@@ -9,6 +9,10 @@ namespace Arena
     {
         Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
         Roar, Bulldoze, Haven, SoulLink, Grenade, Mark,
+        // Mage
+        ArcaneAegis, FrostNova, FlameWall, TimeRewind, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
+        // Summoner
+        GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
         None = 255,
     }
 
@@ -71,20 +75,44 @@ namespace Arena
             new AbilityDef { Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate." },
             new AbilityDef { Name = "Cluster Grenade", Cooldown = 6f, Desc = "Throw a grenade at your cursor that explodes into shrapnel." },
             new AbilityDef { Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s." },
+            // Mage
+            new AbilityDef { Name = "Arcane Aegis", Cooldown = 11f, Desc = "For 3 s, enemy bullets that touch you are reflected back as your own." },
+            new AbilityDef { Name = "Frost Nova", Cooldown = 12f, Desc = "Freeze every enemy near you for 3 s and deal 40 damage." },
+            new AbilityDef { Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets." },
+            new AbilityDef { Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing." },
+            new AbilityDef { Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and your ally for 60 damage for 8 s." },
+            new AbilityDef { Name = "Sanctify", Cooldown = 12f, Desc = "Erase enemy bullets around you and heal everyone nearby for 25." },
+            new AbilityDef { Name = "Meteor", Cooldown = 10f, Desc = "Call a meteor at your cursor: after a short warning it hits for 150 damage." },
+            new AbilityDef { Name = "Blizzard", Cooldown = 14f, Desc = "A storm at your cursor for 5 s that slows and damages enemies." },
+            new AbilityDef { Name = "Arcane Surge", Cooldown = 16f, Desc = "For 5 s your shots deal 60% more damage and pierce 2 more enemies." },
+            // Summoner
+            new AbilityDef { Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three stone walls in front of you for 6 s that block bullets." },
+            new AbilityDef { Name = "Earthquake", Cooldown = 10f, Desc = "You and every minion you have slam the ground, damaging and slowing enemies." },
+            new AbilityDef { Name = "Guardian Spirit", Cooldown = 18f, Desc = "A guardian follows you for 8 s and absorbs every bullet near it." },
+            new AbilityDef { Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release 5 healing sprites for 6 s." },
+            new AbilityDef { Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If your ally goes down, it revives them instantly." },
+            new AbilityDef { Name = "Soul Lantern", Cooldown = 20f, Desc = "For 5 s, allies near the lantern can't go down." },
+            new AbilityDef { Name = "Bat Swarm", Cooldown = 12f, Desc = "Release 8 bats that hunt enemies for 6 s." },
+            new AbilityDef { Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later." },
+            new AbilityDef { Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions frenzy for 6 s: faster, and they attack twice as often." },
         };
 
-        /// The three role abilities (Space) each class can pick from in the lobby.
-        public static AbilityId RoleAbility(Role r, int choice)
+        /// The three Space abilities for each role and kit, picked in the lobby.
+        static readonly AbilityId[] RoleAbilities =
         {
-            AbilityId[] options;
-            switch (r)
-            {
-                case Role.Tank: options = new[] { AbilityId.Barrier, AbilityId.Roar, AbilityId.Bulldoze }; break;
-                case Role.Healer: options = new[] { AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink }; break;
-                default: options = new[] { AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark }; break;
-            }
-            return options[choice >= 0 && choice < options.Length ? choice : 0];
-        }
+            AbilityId.Barrier, AbilityId.Roar, AbilityId.Bulldoze,                // Tank: Soldier
+            AbilityId.ArcaneAegis, AbilityId.FrostNova, AbilityId.FlameWall,      // Tank: Mage
+            AbilityId.GolemWall, AbilityId.Earthquake, AbilityId.GuardianSpirit,  // Tank: Summoner
+            AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink,             // Healer: Soldier
+            AbilityId.TimeRewind, AbilityId.ArcaneWard, AbilityId.Sanctify,       // Healer: Mage
+            AbilityId.SpiritSwarm, AbilityId.Phoenix, AbilityId.SoulLantern,      // Healer: Summoner
+            AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark,                    // DPS: Soldier
+            AbilityId.Meteor, AbilityId.Blizzard, AbilityId.ArcaneSurge,          // DPS: Mage
+            AbilityId.BatSwarm, AbilityId.Sacrifice, AbilityId.AlphaCall,         // DPS: Summoner
+        };
+
+        public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
+            RoleAbilities[((int)r * 3 + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
 
         public const int RoleAbilityChoices = 3;
 

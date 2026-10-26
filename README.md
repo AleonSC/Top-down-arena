@@ -17,15 +17,24 @@ press Play, so there are no scenes or prefabs to wire together.
 4. Commit the `.meta` files Unity generates on first import; Unity needs them to keep
    references stable.
 
-## Roles
+## Roles and classes
 
-Each player picks a role, a weapon and a **role ability** (Space) in the lobby.
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner), then
+one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
+their role and class.
 
-| Role | HP | Ability choices (Space) |
-|---|---|---|
-| **Tank** | 240. Enemies prefer to target you | **Barrier**: 4 s bubble that deletes enemy bullets · **Roar**: every enemy targets you for 5 s and you take 40% less damage · **Bulldoze**: charge forward, damaging and knocking back everything in your path |
-| **Healer** | 120. Aura slowly heals a nearby ally | **Mend Pulse**: heal everyone nearby for 60 and revive downed allies · **Haven**: a healing zone for 6 s where allies regenerate and revive 3x faster · **Soul Link**: tether to your ally for 6 s; they take half damage and you both regenerate |
-| **DPS** | 95. Highest damage | **Dash**: quick dash with brief invulnerability · **Cluster Grenade**: thrown at your cursor, explodes into shrapnel · **Mark for Death**: the enemy nearest your cursor takes 50% more damage for 6 s |
+- **Soldier**: guns and gear, full health.
+- **Mage**: spells (fire, frost, lightning, arcane), 85% health.
+- **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
+
+| | Soldier | Mage | Summoner |
+|---|---|---|---|
+| **Tank** (240 HP, enemies prefer you) | Weapons: Scattergun, Flak Cannon, Riot Repeater<br>Abilities: Barrier, Roar, Bulldoze | Weapons: Flame Burst, Frost Lance (slows), Storm Hammer (chain lightning)<br>Abilities: **Arcane Aegis** (reflects bullets), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets) | Weapons: Golem Staff (+ bullet-blocking Golem), Bone Guard (+ 2 orbiting skeleton shields), Bear Totem (+ Bear)<br>Abilities: **Golem Wall** (3 stone walls), **Earthquake** (you and every minion slam), **Guardian Spirit** (eats nearby bullets for 8 s) |
+| **Healer** (120 HP, healing aura) | Weapons: Light Bolt, Twin Wisps, Mender's Bow<br>Abilities: Mend Pulse, Haven, Soul Link | Weapons: Radiant Orb (heals allies it passes), Chain Light, Prism Beam (grazing heals)<br>Abilities: **Time Rewind** (health back to 4 s ago, even undoing a downing), **Arcane Ward** (60 HP shields), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (+ 2 healing sprites), Treant Rod (+ Treant guard, healing bolts), Totem Staff (plants healing totems)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (allies near it can't go down) |
+| **DPS** (95 HP) | Weapons: Twin Rifle, Railgun, Burst SMG<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (explodes), Arc Lightning (chains to 4), Arcane Missiles (curving)<br>Abilities: **Meteor** (warning circle, then 150 damage), **Blizzard** (slowing storm), **Arcane Surge** (+60% damage, +2 pierce) | Weapons: Wolf Whistle (+ 2 wolves), Wisp Lantern (+ 3 shooting wisps), Imp Caller (exploding imps every 3 s)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
+
+Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
+use your damage and attack-speed bonuses too.
 
 Both players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
@@ -156,7 +165,7 @@ TopDownArena.exe --host --role=tank --autostart=2     # host and auto-start when
 TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
-Also: `--name=X`, `--port=N`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
+Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
@@ -167,6 +176,7 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
   - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
   - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
   - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
+  - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport

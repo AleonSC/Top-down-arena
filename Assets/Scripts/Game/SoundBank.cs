@@ -157,6 +157,14 @@ namespace Arena
             Set(Sfx.Shockwave, Tone(0.5f, Osc.Saw, 200f, 50f, 0.4f, noise: 0.4f, lowpass: 0.3f));
             Set(Sfx.Blink, Tone(0.15f, Osc.Sine, 1200f, 400f, 0.25f));
             Set(Sfx.Pick, Tone(0.08f, Osc.Sine, 660f, 990f, 0.25f));
+            Set(Sfx.SpellFire, Tone(0.25f, Osc.Sine, 200f, 120f, 0.3f, noise: 0.8f, lowpass: 0.25f, attack: 0.02f), 0.07f);
+            Set(Sfx.SpellFrost, Tone(0.18f, Osc.Triangle, 1800f, 2600f, 0.16f, noise: 0.15f), 0.08f);
+            Set(Sfx.SpellZap, Tone(0.12f, Osc.Saw, 900f, 300f, 0.2f, noise: 0.3f, lowpass: 0.6f), 0.07f);
+            Set(Sfx.SpellArcane, Tone(0.2f, Osc.Sine, 500f, 1100f, 0.2f, attack: 0.01f), 0.06f);
+            Set(Sfx.SpellHoly, Notes(new[] { 1047f, 1319f }, 0.06f, Osc.Sine, 0.18f, 1f), 0.1f);
+            Set(Sfx.Throw, Tone(0.1f, Osc.Sine, 400f, 200f, 0.16f, noise: 0.6f, lowpass: 0.3f), 0.07f);
+            Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
+            Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Roar, Tone(0.7f, Osc.Saw, 110f, 55f, 0.45f, noise: 0.35f, lowpass: 0.15f, attack: 0.04f, decay: 1.2f));
             Set(Sfx.Pickup, Notes(new[] { 880f, 1320f }, 0.06f, Osc.Sine, 0.25f, 1f), 0.05f);
             Set(Sfx.PickupBig, Notes(new[] { 660f, 880f, 1100f, 1320f }, 0.07f, Osc.Triangle, 0.3f, 1f));

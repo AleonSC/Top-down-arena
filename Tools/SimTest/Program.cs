@@ -39,7 +39,7 @@ static class Program
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
         for (int choice = 0; choice < Upgrades.RoleAbilityChoices; choice++)
         {
-            var ab = Upgrades.RoleAbility(role, choice);
+            var ab = Upgrades.RoleAbility(role, Kit.Soldier, choice);
             var taken = new List<int>();
             for (int level = 1; level < 60; level++)
             {
@@ -158,7 +158,7 @@ static class Program
                                 ghosts++;
                     }
                 }
-                string names = Defs.Weapon(roles[0], w).Name + " + " + Defs.Weapon(roles[1], w).Name;
+                string names = Defs.Weapon(roles[0], Kit.Soldier, w).Name + " + " + Defs.Weapon(roles[1], Kit.Soldier, w).Name;
                 Check(fired > 0 && ghosts == 0, "weapons fire and stay in sync: " + names);
                 host.Leave("");
                 client.Leave("");
@@ -266,7 +266,9 @@ static class Program
                 for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
                 bool taunt = false, zone = false, link = false, grenade = false, marked = false;
                 int ghosts = 0, frame = 0;
-                Run(s, dt, 14, null, () =>
+                // Mark needs an enemy on screen when the bot presses it, so give it longer.
+                float seconds = roles[0] == Role.Dps && choice == 2 ? 26f : 14f;
+                Run(s, dt, seconds, null, () =>
                 {
                     foreach (var p in client.Game.Players.Values)
                     {
@@ -296,7 +298,9 @@ static class Program
                         case AbilityId.Grenade: seen = grenade; break;
                         case AbilityId.Mark: seen = marked; break;
                     }
-                    Check(ab == Upgrades.RoleAbility(client.Game.Players[id].Role, choice) && seen && ghosts == 0,
+                    if (Environment.GetEnvironmentVariable("DEBUG") != null)
+                        Console.WriteLine("  {0}: seen {1} ghosts {2} wave {3} enemies {4}", ab, seen, ghosts, host.Game.Wave, host.Game.Enemies.Count);
+                    Check(ab == Upgrades.RoleAbility(client.Game.Players[id].Role, Kit.Soldier, choice) && seen && ghosts == 0,
                         "class ability works over the network: " + Upgrades.Ability(ab).Name);
                 }
                 host.Leave("");
@@ -304,6 +308,88 @@ static class Program
             }
         }
     }
+
+    // Every mage and summoner weapon and ability, over the network.
+    static void KitSweep(float dt)
+    {
+        foreach (var kit in new[] { Kit.Mage, Kit.Summoner })
+        foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
+        for (int choice = 0; choice < 3; choice++)
+        {
+            int port = nextPort++;
+            var host = new Session { AutoStart = 2, StartWave = 3 };
+            host.Game.Bot = true;
+            host.Host(port, "Host", roles[0], choice, choice, kit);
+            var client = new Session();
+            client.Game.Bot = true;
+            client.Join("127.0.0.1", port, "Friend", roles[1], choice, choice, kit);
+            var s = new[] { host, client };
+            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            var minions = new HashSet<MinionKind>();
+            var zones = new HashSet<ZoneKind>();
+            bool aegis = false, shield = false, surge = false, frenzy = false, bolt = false, boltShot = false;
+            int ghosts = 0, frame = 0;
+            Run(s, dt, 13, null, () =>
+            {
+                foreach (var m in client.Game.Minions.Values)
+                    minions.Add(m.Kind);
+                foreach (var z in client.Game.Zones.Values)
+                    zones.Add(z.Kind);
+                foreach (var p in client.Game.Players.Values)
+                {
+                    aegis |= p.AegisT > 0f;
+                    shield |= p.ShieldHp > 0f;
+                    surge |= p.SurgeT > 0f;
+                    frenzy |= p.FrenzyT > 0f;
+                }
+                foreach (var fx in client.Game.Effects)
+                    bolt |= fx.Kind == FxKind.Bolt;
+                foreach (var b in client.Game.Bullets.Values)
+                    boltShot |= b.Kind == Defs.BoltShot;
+                if (++frame % 60 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                    ghosts += Ghosts(s);
+                }
+            });
+            foreach (int id in new[] { 1, 2 })
+            {
+                var p = client.Game.Players[id];
+                var w = p.Weapon;
+                bool weaponOk = w.Companion == MinionKind.None || minions.Contains(w.Companion);
+                if (w.Id == WeaponId.TotemStaff) weaponOk = zones.Contains(ZoneKind.Totem);
+                // Chains need a second enemy nearby, so per run just require the shots; a chain is checked below.
+                if (w.Id == WeaponId.StormHammer || w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning) weaponOk = boltShot;
+                bool abilityOk = true;
+                switch (p.Slots[0].Id)
+                {
+                    case AbilityId.ArcaneAegis: abilityOk = aegis; break;
+                    case AbilityId.FlameWall: abilityOk = zones.Contains(ZoneKind.FlameWall); break;
+                    case AbilityId.ArcaneWard: abilityOk = shield; break;
+                    case AbilityId.Meteor: abilityOk = zones.Contains(ZoneKind.Meteor); break;
+                    case AbilityId.Blizzard: abilityOk = zones.Contains(ZoneKind.Blizzard); break;
+                    case AbilityId.ArcaneSurge: abilityOk = surge; break;
+                    case AbilityId.GolemWall: abilityOk = minions.Contains(MinionKind.Wall); break;
+                    case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Guardian); break;
+                    case AbilityId.SpiritSwarm: abilityOk = minions.Contains(MinionKind.Sprite); break;
+                    case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
+                    case AbilityId.SoulLantern: abilityOk = zones.Contains(ZoneKind.Lantern); break;
+                    case AbilityId.BatSwarm: abilityOk = minions.Contains(MinionKind.Bat); break;
+                    case AbilityId.AlphaCall: abilityOk = frenzy; break;
+                }
+                bool kitOk = p.Kit == kit && Math.Abs(host.Game.Players[id].MaxHp - p.Def.Hp * Defs.KitHpMult(kit)) < 0.5f
+                    && p.Slots[0].Id == Upgrades.RoleAbility(p.Role, kit, choice) && w == Defs.Weapon(p.Role, kit, choice);
+                Check(kitOk && weaponOk && abilityOk && ghosts == 0, string.Format("{0} {1}: {2} + {3} work over the network",
+                    kit, p.Def.Name, w.Name, Upgrades.Ability(p.Slots[0].Id).Name));
+            }
+            anyChain |= bolt;
+            host.Leave("");
+            client.Leave("");
+        }
+        Check(anyChain, "lightning chains between enemies (seen on the client)");
+    }
+
+    static bool anyChain;
 
     // Every legendary active at once: their extra shots, splits and turrets stay in sync.
     static void LegendarySync(float dt)
@@ -563,7 +649,9 @@ static class Program
                 Step(client, dt);
                 if (i % 2 == 0)
                     Thread.Sleep(1);
-                turretsSeen = Math.Max(turretsSeen, client.Game.Turrets.Count);
+                foreach (var m in client.Game.Minions.Values)
+                    if (m.Kind == MinionKind.Turret)
+                        turretsSeen++;
                 if (i % 30 == 0)
                 {
                     for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
@@ -624,6 +712,7 @@ static class Program
         WeaponSweep(dt);
         LateGameEnemies(dt);
         AbilitySweep(dt);
+        KitSweep(dt);
         LegendarySync(dt);
         BossMechanics(dt);
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");

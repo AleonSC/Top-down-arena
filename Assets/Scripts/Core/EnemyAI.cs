@@ -161,6 +161,8 @@ namespace Arena
                 e.T += dt;
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
+                if (e.SlowT <= 0f)
+                    e.SlowMult = 1f;
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;

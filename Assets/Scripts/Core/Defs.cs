@@ -16,13 +16,29 @@ namespace Arena
         public float Hp, Speed, HitR, BodyR, FireInterval, AbilityCd;
     }
 
-    public enum WeaponId : byte { Scattergun, FlakCannon, RiotRepeater, LightBolt, TwinWisps, MendersBow, TwinRifle, Railgun, BurstSmg }
+    /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
+    public enum Kit : byte { Soldier, Mage, Summoner }
+
+    public enum WeaponId : byte
+    {
+        // Soldier
+        Scattergun, FlakCannon, RiotRepeater, LightBolt, TwinWisps, MendersBow, TwinRifle, Railgun, BurstSmg,
+        // Mage
+        FlameBurst, FrostLance, StormHammer, RadiantOrb, ChainLight, PrismBeam, Fireball, ArcLightning, ArcaneMissiles,
+        // Summoner
+        GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, TotemStaff, WolfWhistle, WispLantern, ImpCaller,
+    }
 
     public class WeaponDef
     {
         public WeaponId Id;
         public string Name, Desc;
         public float FireInterval;
+        // Summoner weapons keep companions around. Imps blow themselves up, so a new one
+        // arrives every CompanionRespawn seconds; the others only die to Sacrifice.
+        public MinionKind Companion = MinionKind.None;
+        public int CompanionCount;
+        public float CompanionRespawn = 3f;
     }
 
     public class EnemyDef
@@ -82,20 +98,55 @@ namespace Arena
         public const int WeaponsPerRole = 3;
 
         // Three starting weapons per role, in the same order as Role.
+        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner).
         public static readonly WeaponDef[] Weapons =
         {
+            // Tank
             new WeaponDef { Id = WeaponId.Scattergun, Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
             new WeaponDef { Id = WeaponId.FlakCannon, Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
             new WeaponDef { Id = WeaponId.RiotRepeater, Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
+            new WeaponDef { Id = WeaponId.FlameBurst, Name = "Flame Burst", FireInterval = 0.4f, Desc = "A short-range cone of fire." },
+            new WeaponDef { Id = WeaponId.FrostLance, Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice shards that slow enemies." },
+            new WeaponDef { Id = WeaponId.StormHammer, Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
+            new WeaponDef { Id = WeaponId.GolemStaff, Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
+                Companion = MinionKind.Golem, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.BoneGuard, Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
+                Companion = MinionKind.Guard, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.BearTotem, Name = "Bear Totem", FireInterval = 0.35f, Desc = "Wide claw swipes. A Bear companion mauls nearby enemies.",
+                Companion = MinionKind.Bear, CompanionCount = 1 },
+            // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
             new WeaponDef { Id = WeaponId.TwinWisps, Name = "Twin Wisps", FireInterval = 0.35f, Desc = "Two curving shots that cross in front of you." },
             new WeaponDef { Id = WeaponId.MendersBow, Name = "Mender's Bow", FireInterval = 0.3f, Desc = "Bolts heal your ally when they pass through them." },
+            new WeaponDef { Id = WeaponId.RadiantOrb, Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
+            new WeaponDef { Id = WeaponId.ChainLight, Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
+            new WeaponDef { Id = WeaponId.PrismBeam, Name = "Prism Beam", FireInterval = 0.06f, Desc = "A rapid short-range beam. Grazing your ally heals them." },
+            new WeaponDef { Id = WeaponId.SpriteStaff, Name = "Sprite Staff", FireInterval = 0.35f, Desc = "Seed shots. Two sprites fly to whoever is hurt and heal them.",
+                Companion = MinionKind.Sprite, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.TreantRod, Name = "Treant Rod", FireInterval = 0.3f, Desc = "Bolts heal allies they pass. A Treant guards you and blocks bullets.",
+                Companion = MinionKind.Treant, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.TotemStaff, Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
+            // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
             new WeaponDef { Id = WeaponId.Railgun, Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
             new WeaponDef { Id = WeaponId.BurstSmg, Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
+            new WeaponDef { Id = WeaponId.Fireball, Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
+            new WeaponDef { Id = WeaponId.ArcLightning, Name = "Arc Lightning", FireInterval = 0.25f, Desc = "Bolts that chain to 4 nearby enemies." },
+            new WeaponDef { Id = WeaponId.ArcaneMissiles, Name = "Arcane Missiles", FireInterval = 0.3f, Desc = "Three curving missiles per cast." },
+            new WeaponDef { Id = WeaponId.WolfWhistle, Name = "Wolf Whistle", FireInterval = 0.3f, Desc = "Darts. Two wolves hunt down enemies.",
+                Companion = MinionKind.Wolf, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.WispLantern, Name = "Wisp Lantern", FireInterval = 0.45f, Desc = "Weak bolts. Three wisps orbit you and shoot.",
+                Companion = MinionKind.Wisp, CompanionCount = 3 },
+            new WeaponDef { Id = WeaponId.ImpCaller, Name = "Imp Caller", FireInterval = 0.35f, Desc = "Darts. Calls an imp every 3 s that charges an enemy and explodes.",
+                Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f },
         };
 
-        public static WeaponDef Weapon(Role role, int index) => Weapons[(int)role * WeaponsPerRole + index];
+        public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * 3 + (int)kit) * WeaponsPerRole + index];
+
+        public static string KitName(Kit k) => k.ToString();
+
+        /// Mages and summoners trade some health for their spells and minions.
+        public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : 1f;
 
         /// XP needed to go from this level to the next.
         public static float XpToNext(int level) => 50f + 30f * (level - 1);
@@ -104,7 +155,11 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13;
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13,
+            // more player kinds (enemy kinds are 10-19)
+            FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28;
+
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
         public static float BulletRadius(byte kind)
         {
@@ -120,6 +175,15 @@ namespace Arena
                 case WispShot: return 5f;
                 case GrenadeShot: return 7f;
                 case SwarmShot: return 3f;
+                case FireShot: return 6f;
+                case FrostShot: return 4.5f;
+                case ArcaneShot: return 5f;
+                case HolyShot: return 9f;
+                case BoltShot: return 4f;
+                case SeedShot: return 4f;
+                case BoneShot: return 3.5f;
+                case RockShot: return 6f;
+                case MinionShot: return 3.5f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case FastShot: return 4.5f;
@@ -152,6 +216,15 @@ namespace Arena
                 case WispShot: return new Rgba(0.4f, 1f, 0.85f);
                 case GrenadeShot: return new Rgba(0.75f, 0.85f, 0.4f);
                 case SwarmShot: return new Rgba(1f, 0.85f, 0.35f);
+                case FireShot: return new Rgba(1f, 0.45f, 0.15f);
+                case FrostShot: return new Rgba(0.6f, 0.9f, 1f);
+                case ArcaneShot: return new Rgba(0.75f, 0.45f, 1f);
+                case HolyShot: return new Rgba(1f, 0.95f, 0.6f);
+                case BoltShot: return new Rgba(0.75f, 0.85f, 1f);
+                case SeedShot: return new Rgba(0.55f, 0.9f, 0.35f);
+                case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
+                case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
+                case MinionShot: return new Rgba(0.85f, 1f, 0.95f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);

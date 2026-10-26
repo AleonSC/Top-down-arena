@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver }
 
-    public enum FxKind : byte { Boom, Spark, Ring }
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt }
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -17,6 +17,7 @@ namespace Arena
         ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotWisp, ShotBow, ShotAssault, ShotSniper, ShotSmg,
         ShotTurret, ShotNova,
         Pickup, PickupBig, Roar,
+        SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
     }
 
     public struct SoundCue
@@ -39,8 +40,10 @@ namespace Arena
         public int Id;
         public Role Role;
         public RoleDef Def;
+        public Kit Kit;
         public WeaponDef Weapon;
         public AbilityId RoleAbility;
+        public float BaseHp;
         public string Name;
         public V2 Pos, Disp;
         public float Aim;
@@ -49,6 +52,12 @@ namespace Arena
         public bool Downed;
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
         public float TauntT;  // Roar: enemies target this player
+        public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
+        public float ShieldHp, ShieldT;        // Arcane Ward
+        public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
+        public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
+        public readonly bool[] DownHistory = new bool[16];
+        public int HistoryIdx;
         public float LinkT;   // Soul Link: protecting LinkTo
         public int LinkTo;
 
@@ -100,6 +109,8 @@ namespace Arena
         public float Splash;      // host only: explosion radius on impact
         public float HealAlly;    // host only: heals an ally it passes through
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
+        public int Chain;         // host only: lightning jumps to this many more enemies
+        public float SlowAmt;     // host only: frost slows enemies hit
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -114,25 +125,34 @@ namespace Arena
         public float Heal => Big ? Game.BigOrbHeal : Game.OrbHeal;
     }
 
-    /// Haven: a healing zone on the ground.
+    /// An area on the ground: Haven, Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
     public class Zone
     {
         public int Id, Owner;
+        public ZoneKind Kind;
         public V2 Pos;
         public float Radius, T, Duration;
+        public float DmgMult = 1f;  // host: owner's damage multiplier when cast
+        public ZoneDef Def => Kits.Get(Kind);
     }
 
-    public class Turret
+    /// A friendly unit: turrets, summoner companions and summoned creatures.
+    public class Minion
     {
         public int Id, Owner;
-        public V2 Pos;
-        public float T, FireCd, Aim;
+        public MinionKind Kind;
+        public V2 Pos, Disp;
+        public float Aim;
+        public float T = -1f, Duration;  // seconds left; -1 = a companion that stays
+        public float Cd, Ang, HealRate;
+        public bool Companion;
+        public MinionDef Def => Kits.Get(Kind);
     }
 
     public class Effect
     {
         public FxKind Kind;
-        public V2 Pos;
+        public V2 Pos, Pos2;  // Pos2: the far end of a lightning bolt
         public Rgba Color;
         public float Radius, T, Dur;
     }
@@ -191,12 +211,12 @@ namespace Arena
         const float LinkTime = 6f, LinkHeal = 8f;
         const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeRadius = 110f, GrenadeDamage = 80f;
         const float MarkTime = 6f;
+        const float SpellRange = 420f;
         const float BlinkRange = 300f;
         const float ShockwaveRange = 230f;
         const float ShockwaveDamage = 60f;
         const float OverdriveTime = 5f;
         const float TurretTime = 10f;
-        const float TurretRange = 520f;
 
         readonly Session session;
         readonly Random rng = new Random();
@@ -209,7 +229,7 @@ namespace Arena
         public readonly SortedDictionary<int, Player> Players = new SortedDictionary<int, Player>();
         public readonly Dictionary<int, Enemy> Enemies = new Dictionary<int, Enemy>();
         public readonly Dictionary<int, Bullet> Bullets = new Dictionary<int, Bullet>();
-        public readonly Dictionary<int, Turret> Turrets = new Dictionary<int, Turret>();
+        public readonly Dictionary<int, Minion> Minions = new Dictionary<int, Minion>();
         public readonly Dictionary<int, Orb> Orbs = new Dictionary<int, Orb>();
         public readonly Dictionary<int, Zone> Zones = new Dictionary<int, Zone>();
         public readonly List<Effect> Effects = new List<Effect>();
@@ -237,7 +257,7 @@ namespace Arena
         float lastMyHp;
 
         // Host-only simulation state.
-        int nextBulletId = 1, nextEnemyId = 1, nextTurretId = 1, nextOrbId = 1, nextZoneId = 1, tick;
+        int nextBulletId = 1, nextEnemyId = 1, nextMinionId = 1, nextOrbId = 1, nextZoneId = 1, tick;
         readonly List<EnemyType> spawnQueue = new List<EnemyType>();
         float spawnTimer;
         // Bullets spawned this tick, recorded as they were at spawn time (the host
@@ -277,6 +297,7 @@ namespace Arena
                 w.Write(e.Id);
                 w.Write(e.Name);
                 w.Write((byte)e.Role);
+                w.Write((byte)e.Kit);
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
             }
@@ -297,12 +318,19 @@ namespace Arena
                 int id = r.ReadInt32();
                 string name = r.ReadString();
                 var role = (Role)r.ReadByte();
+                var kit = (Kit)r.ReadByte();
                 int weapon = r.ReadByte();
                 int ability = r.ReadByte();
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
-                p.Weapon = Defs.Weapon(role, weapon < Defs.WeaponsPerRole ? weapon : 0);
-                p.RoleAbility = Upgrades.RoleAbility(role, ability);
+                p.Kit = kit;
+                p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponsPerRole ? weapon : 0);
+                p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
+                p.BaseHp = def.Hp * Defs.KitHpMult(kit);
+                p.MaxHp = p.Hp = p.BaseHp;
+                p.TotemCd = 2f;
+                for (int k = 0; k < p.HpHistory.Length; k++)
+                    p.HpHistory[k] = p.Hp;
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
@@ -330,7 +358,7 @@ namespace Arena
             Players.Clear();
             Enemies.Clear();
             Bullets.Clear();
-            Turrets.Clear();
+            Minions.Clear();
             Orbs.Clear();
             Zones.Clear();
             Effects.Clear();
@@ -342,7 +370,7 @@ namespace Arena
             lastLevel.Clear();
             nextBulletId = 1;
             nextEnemyId = 1;
-            nextTurretId = 1;
+            nextMinionId = 1;
             nextOrbId = 1;
             nextZoneId = 1;
             ResetBossState();
@@ -365,7 +393,7 @@ namespace Arena
         {
             p.Stats = Upgrades.Compute(p.Taken);
             float oldMax = p.MaxHp;
-            p.MaxHp = p.Def.Hp + p.Stats.BonusHp;
+            p.MaxHp = p.BaseHp + p.Stats.BonusHp;
             if (p.MaxHp > oldMax && !p.Downed)
                 p.Hp += p.MaxHp - oldMax;
 
@@ -605,6 +633,8 @@ namespace Arena
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
             foreach (var o in Orbs.Values)
                 o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);
+            foreach (var m in Minions.Values)
+                m.Disp = IsHost ? m.Pos : V2.Lerp(m.Disp, m.Pos, k);
             for (int i = Effects.Count - 1; i >= 0; i--)
             {
                 Effects[i].T += dt;
@@ -727,6 +757,11 @@ namespace Arena
                     case AbilityId.Grenade:
                         target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(GrenadeRange), 10f);
                         break;
+                    case AbilityId.FlameWall:
+                    case AbilityId.Meteor:
+                    case AbilityId.Blizzard:
+                        target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(SpellRange), 10f);
+                        break;
                     case AbilityId.Blink:
                         target = me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange);
                         target = ClampToArena(target, me.Def.BodyR);
@@ -802,7 +837,7 @@ namespace Arena
             TickPlayers(dt);
             TickWaves(dt);
             TickEnemies(dt);
-            TickTurrets(dt);
+            TickMinions(dt);
             TickOrbs(dt);
             MoveBullets(dt);
             Collide();
@@ -850,6 +885,12 @@ namespace Arena
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
+                p.AegisT = Math.Max(0f, p.AegisT - dt);
+                p.SurgeT = Math.Max(0f, p.SurgeT - dt);
+                p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
+                p.ShieldT = Math.Max(0f, p.ShieldT - dt);
+                if (p.ShieldT <= 0f)
+                    p.ShieldHp = 0f;
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 p.LinkT = Math.Max(0f, p.LinkT - dt);
                 if (p.Downed)
@@ -880,28 +921,8 @@ namespace Arena
                 }
             }
 
-            // Haven zones heal everyone inside and speed up revives.
-            var expiredZones = new List<int>();
-            foreach (var z in Zones.Values)
-            {
-                z.T -= dt;
-                if (z.T <= 0f)
-                {
-                    expiredZones.Add(z.Id);
-                    continue;
-                }
-                foreach (var q in Players.Values)
-                {
-                    if (q.Pos.DistanceTo(z.Pos) > z.Radius)
-                        continue;
-                    if (q.Downed)
-                        q.Revive += dt / ReviveTime * 2f;  // on top of the normal revive: 3x total
-                    else
-                        q.Hp = Math.Min(q.MaxHp, q.Hp + HavenHeal * dt);
-                }
-            }
-            foreach (int id in expiredZones)
-                Zones.Remove(id);
+            TickZones(dt);
+            RecordHistory(dt);
 
             // Standing next to a downed ally slowly brings them back.
             foreach (var p in Players.Values)
@@ -973,6 +994,9 @@ namespace Arena
                     case WeaponId.BurstSmg:
                         SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-0.16f, 0.16f)) * 760f, 0f, 0.8f, 5f * dmg, p.Id);
                         break;
+                    default:
+                        FireKitWeapon(p, aim, dir, muzzle, dmg);  // mage and summoner weapons (Minions.cs)
+                        break;
                 }
             }
         }
@@ -1027,10 +1051,8 @@ namespace Arena
                 }
                 case AbilityId.Haven:
                 {
-                    var z = new Zone { Id = nextZoneId++, Owner = p.Id, Pos = p.Pos, Radius = HavenRadius * s.HavenRadiusMult, Duration = HavenTime + s.HavenBonusTime };
-                    z.T = z.Duration;
-                    Zones[z.Id] = z;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.4f, 1f, 0.6f), z.Radius, 0.5f, Sfx.Ability);
+                    var z = AddZone(ZoneKind.Haven, p, p.Pos, HavenRadius * s.HavenRadiusMult, HavenTime + s.HavenBonusTime);
+                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.Ability);
                     break;
                 }
                 case AbilityId.SoulLink:
@@ -1088,7 +1110,7 @@ namespace Arena
                 {
                     var erase = new List<int>();
                     foreach (var b in Bullets.Values)
-                        if (b.Kind >= Defs.SmallShot && b.Pos.DistanceTo(p.Pos) < ShockwaveRange)
+                        if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(p.Pos) < ShockwaveRange)
                             erase.Add(b.Id);
                     foreach (int bid in erase)
                     {
@@ -1121,47 +1143,12 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.95f, 0.8f, 1f), 50f, 0.3f, Sfx.Ability);
                     break;
                 case AbilityId.Turret:
-                {
-                    var t = new Turret { Id = nextTurretId++, Owner = p.Id, Pos = p.Pos, T = TurretTime, Aim = p.Aim };
-                    Turrets[t.Id] = t;
+                    SpawnMinion(MinionKind.Turret, p, p.Pos, TurretTime);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 0.95f, 1f), 40f, 0.35f, Sfx.Ability);
                     break;
-                }
-            }
-        }
-
-        void TickTurrets(float dt)
-        {
-            var expired = new List<int>();
-            foreach (var t in Turrets.Values)
-            {
-                t.T -= dt;
-                t.FireCd -= dt;
-                Player owner;
-                Players.TryGetValue(t.Owner, out owner);
-                if (t.T <= 0f || owner == null)
-                {
-                    expired.Add(t.Id);
-                    continue;
-                }
-                Enemy target = null;
-                foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Pos.DistanceTo(t.Pos) < TurretRange && (target == null || e.Pos.DistanceSq(t.Pos) < target.Pos.DistanceSq(t.Pos)))
-                        target = e;
-                if (target == null)
-                    continue;
-                t.Aim = (target.Pos - t.Pos).Angle;
-                if (t.FireCd <= 0f && State == MatchState.Fighting)
-                {
-                    t.FireCd = 0.25f;
-                    V2 dir = V2.FromAngle(t.Aim);
-                    SpawnBullet(Defs.TurretShot, t.Pos + dir * 14f, dir * 700f, 0f, 0.9f, 9f * owner.Stats.DmgMult, t.Owner);
-                }
-            }
-            foreach (int id in expired)
-            {
-                AddFx(FxKind.Boom, Turrets[id].Pos, new Rgba(0.6f, 0.95f, 1f), 20f, 0.3f);
-                Turrets.Remove(id);
+                default:
+                    KitAbility(p, p.Slots[slot].Id, target);  // mage and summoner abilities (Minions.cs)
+                    break;
             }
         }
 
@@ -1172,9 +1159,18 @@ namespace Arena
             foreach (var q in Players.Values)
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
-            p.Hp -= amount * p.Stats.DamageTaken;
+            amount *= p.Stats.DamageTaken;
+            if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
+            {
+                float soak = Math.Min(p.ShieldHp, amount);
+                p.ShieldHp -= soak;
+                amount -= soak;
+            }
+            p.Hp -= amount;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
+            if (p.Hp <= 0f && InLantern(p))
+                p.Hp = 1f;  // a Soul Lantern keeps you standing
             if (p.Hp <= 0f)
             {
                 p.Hp = 0f;
@@ -1262,7 +1258,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            Turrets.Clear();
+            RemoveTemporaryMinions();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             DoLog("wave " + Wave + " cleared");
@@ -1274,7 +1270,14 @@ namespace Arena
             b.Dmg = dmg;
             Player p;
             if (owner != 0 && Players.TryGetValue(owner, out p))
+            {
                 b.Pierce = p.Stats.Pierce;
+                if (p.SurgeT > 0f)  // Arcane Surge
+                {
+                    b.Dmg *= 1.6f;
+                    b.Pierce += 2;
+                }
+            }
             pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life });
             return b;
         }
@@ -1292,7 +1295,7 @@ namespace Arena
 
         Sfx ShotSound(byte kind, int owner)
         {
-            if (kind == Defs.TurretShot)
+            if (kind == Defs.TurretShot || kind == Defs.MinionShot)
                 return Sfx.ShotTurret;
             if (kind == Defs.NovaShot)
                 return Sfx.ShotNova;
@@ -1309,7 +1312,18 @@ namespace Arena
                 case WeaponId.MendersBow: return Sfx.ShotBow;
                 case WeaponId.TwinRifle: return Sfx.ShotAssault;
                 case WeaponId.Railgun: return Sfx.ShotSniper;
-                default: return Sfx.ShotSmg;
+                case WeaponId.BurstSmg: return Sfx.ShotSmg;
+                case WeaponId.FlameBurst:
+                case WeaponId.Fireball: return Sfx.SpellFire;
+                case WeaponId.FrostLance: return Sfx.SpellFrost;
+                case WeaponId.StormHammer:
+                case WeaponId.ChainLight:
+                case WeaponId.ArcLightning: return Sfx.SpellZap;
+                case WeaponId.PrismBeam:
+                case WeaponId.ArcaneMissiles:
+                case WeaponId.WispLantern: return Sfx.SpellArcane;
+                case WeaponId.RadiantOrb: return Sfx.SpellHoly;
+                default: return Sfx.Throw;  // summoner staffs, darts and rocks
             }
         }
 
@@ -1388,11 +1402,12 @@ namespace Arena
             scratchIds.Clear();
             splashes.Clear();
             splits.Clear();
+            reflects.Clear();
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind == Defs.GrenadeShot)
                     continue;  // grenades fly over enemies and explode where they land
-                if (b.Kind < Defs.SmallShot)
+                if (!Defs.IsEnemyShot(b.Kind))
                 {
                     if (b.HealAlly > 0f && HealAllyHit(b))
                     {
@@ -1426,10 +1441,21 @@ namespace Arena
                 }
                 else
                 {
+                    if (BlockedBySummons(b))
+                    {
+                        scratchIds.Add(b.Id);
+                        continue;
+                    }
                     foreach (var p in Players.Values)
                     {
                         if (p.Downed)
                             continue;
+                        if (p.AegisT > 0f && b.Pos.DistanceTo(p.Pos) < p.Def.BodyR + 24f)
+                        {
+                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // Arcane Aegis
+                            scratchIds.Add(b.Id);
+                            break;
+                        }
                         if (p.BarrierT > 0f && b.Pos.DistanceTo(p.Pos) < p.BarrierRadius)
                         {
                             scratchIds.Add(b.Id);
@@ -1457,6 +1483,13 @@ namespace Arena
                 RemovedFx(b);
                 Bullets.Remove(id);
                 pendingRemoved.Add(id);
+            }
+
+            foreach (var rb in reflects)
+            {
+                Player owner;
+                if (Players.TryGetValue(rb.Owner, out owner))
+                    SpawnBullet(Defs.ArcaneShot, rb.Pos, rb.Vel.Normalized() * -520f, 0f, 1f, 12f * owner.Stats.DmgMult, rb.Owner);
             }
 
             foreach (var sp in splits)
@@ -1518,8 +1551,8 @@ namespace Arena
                 }
                 if (s.SlowOnHit > 0f)
                 {
-                    e.SlowT = 2f;
-                    e.SlowMult = 1f - s.SlowOnHit;
+                    e.SlowT = Math.Max(e.SlowT, 2f);
+                    e.SlowMult = Math.Min(e.SlowMult, 1f - s.SlowOnHit);
                 }
                 e.LastHitBy = attacker;
             }
@@ -1527,12 +1560,20 @@ namespace Arena
             e.Flash = 0.06f;
         }
 
-        // Swarm Rounds splits, queued while the bullet loop runs.
+        // Swarm Rounds splits and Aegis reflections, queued while the bullet loop runs.
         readonly List<Bullet> splits = new List<Bullet>();
+        readonly List<Bullet> reflects = new List<Bullet>();
 
         /// Legendary on-hit effects that spawn things (run after the collision loop).
         void OnBulletHit(Bullet b, Enemy e)
         {
+            if (b.Chain > 0)
+                ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner);
+            if (b.SlowAmt > 0f && !e.Def.IsBoss)
+            {
+                e.SlowT = Math.Max(e.SlowT, 1.5f);
+                e.SlowMult = Math.Min(e.SlowMult, 1f - b.SlowAmt);
+            }
             Player p;
             if (!Players.TryGetValue(b.Owner, out p))
                 return;
@@ -1557,7 +1598,7 @@ namespace Arena
                 SpawnBullet(Defs.NovaShot, e.Pos + d * e.Radius, d * 420f, 0f, 0.7f, 10f * s.DmgMult, p.Id);
             }
             if (s.BroodChance > 0f && rng.NextDouble() < s.BroodChance)
-                Turrets[nextTurretId] = new Turret { Id = nextTurretId++, Owner = p.Id, Pos = e.Pos, T = 4f };
+                SpawnMinion(MinionKind.Turret, p, e.Pos, 4f);
         }
 
         void DropOrbs(Enemy e, bool bossReward)
@@ -1625,7 +1666,7 @@ namespace Arena
         void RemovedFx(Bullet b)
         {
             AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), 10f, 0.15f);
-            if (b.Kind < Defs.SmallShot)
+            if (!Defs.IsEnemyShot(b.Kind))
                 Sounds.Add(Sfx.Hit);
         }
 
@@ -1639,7 +1680,7 @@ namespace Arena
         {
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
-                if (b.Kind >= Defs.SmallShot)
+                if (Defs.IsEnemyShot(b.Kind))
                     scratchIds.Add(b.Id);
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
@@ -1647,11 +1688,18 @@ namespace Arena
 
         void BroadcastFx(FxKind kind, V2 pos, Rgba color, float radius, float dur, Sfx sound)
         {
+            BroadcastFx(kind, pos, pos, color, radius, dur, sound);
+        }
+
+        void BroadcastFx(FxKind kind, V2 pos, V2 pos2, Rgba color, float radius, float dur, Sfx sound)
+        {
             AddFx(kind, pos, color, radius, dur);
+            Effects[Effects.Count - 1].Pos2 = pos2;
             Sounds.Add(sound);
             var w = Proto.Begin(Msg.Fx);
             w.Write((byte)kind);
             w.Write(pos);
+            w.Write(pos2);
             w.Write(color);
             w.Write(radius);
             w.Write(dur);
@@ -1685,6 +1733,10 @@ namespace Arena
                 w.Write(p.TauntT);
                 w.Write(p.LinkT);
                 w.Write(p.LinkTo);
+                w.Write(p.AegisT);
+                w.Write(p.SurgeT);
+                w.Write(p.FrenzyT);
+                w.Write(p.ShieldHp);
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
                 w.Write((byte)p.PendingPicks);
@@ -1713,19 +1765,22 @@ namespace Arena
                 w.Write(e.Elite);
                 w.Write(e.MarkT > 0f);
             }
-            w.Write((byte)Turrets.Count);
-            foreach (var t in Turrets.Values)
+            w.Write((byte)Minions.Count);
+            foreach (var m in Minions.Values)
             {
-                w.Write(t.Id);
-                w.Write(t.Owner);
-                w.Write(t.Pos);
-                w.Write(t.T);
-                w.Write(t.Aim);
+                w.Write(m.Id);
+                w.Write((byte)m.Kind);
+                w.Write(m.Owner);
+                w.Write(m.Pos);
+                w.Write(m.Aim);
+                w.Write(m.T);
+                w.Write(m.Duration);
             }
             w.Write((byte)Zones.Count);
             foreach (var z in Zones.Values)
             {
                 w.Write(z.Id);
+                w.Write((byte)z.Kind);
                 w.Write(z.Owner);
                 w.Write(z.Pos);
                 w.Write(z.Radius);
@@ -1787,15 +1842,15 @@ namespace Arena
                 }
                 case Msg.ClearEnemyBullets:
                     ClearEnemyBullets();
-                    Turrets.Clear();
                     break;
                 case Msg.Fx:
                 {
                     var kind = (FxKind)r.ReadByte();
-                    V2 pos = r.ReadV2();
+                    V2 pos = r.ReadV2(), pos2 = r.ReadV2();
                     Rgba color = r.ReadRgba();
                     float radius = r.ReadSingle(), dur = r.ReadSingle();
                     AddFx(kind, pos, color, radius, dur);
+                    Effects[Effects.Count - 1].Pos2 = pos2;
                     Sounds.Add((Sfx)r.ReadByte());
                     break;
                 }
@@ -1840,6 +1895,7 @@ namespace Arena
                 float revive = r.ReadSingle(), barrier = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
                 float taunt = r.ReadSingle(), link = r.ReadSingle();
                 int linkTo = r.ReadInt32();
+                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), shield = r.ReadSingle();
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
@@ -1882,6 +1938,10 @@ namespace Arena
                 p.TauntT = taunt;
                 p.LinkT = link;
                 p.LinkTo = linkTo;
+                p.AegisT = aegis;
+                p.SurgeT = surge;
+                p.FrenzyT = frenzy;
+                p.ShieldHp = shield;
                 p.Level = level;
                 p.Xp = xp;
                 p.PendingPicks = pending;
@@ -1936,19 +1996,39 @@ namespace Arena
                 Enemies.Remove(e.Id);
             }
 
-            Turrets.Clear();
-            int nt = r.ReadByte();
-            for (int i = 0; i < nt; i++)
+            var seenMinions = new HashSet<int>();
+            int nm = r.ReadByte();
+            for (int i = 0; i < nm; i++)
             {
-                var t = new Turret { Id = r.ReadInt32(), Owner = r.ReadInt32(), Pos = r.ReadV2(), T = r.ReadSingle(), Aim = r.ReadSingle() };
-                Turrets[t.Id] = t;
+                int id = r.ReadInt32();
+                var kind = (MinionKind)r.ReadByte();
+                int owner = r.ReadInt32();
+                V2 pos = r.ReadV2();
+                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle();
+                Minion m;
+                if (!Minions.TryGetValue(id, out m))
+                {
+                    m = new Minion { Id = id, Kind = kind, Owner = owner, Pos = pos, Disp = pos };
+                    Minions[id] = m;
+                }
+                m.Pos = pos;
+                m.Aim = aim;
+                m.T = t;
+                m.Duration = duration;
+                seenMinions.Add(id);
             }
+            var goneMinions = new List<int>();
+            foreach (int id in Minions.Keys)
+                if (!seenMinions.Contains(id))
+                    goneMinions.Add(id);
+            foreach (int id in goneMinions)
+                Minions.Remove(id);
 
             Zones.Clear();
             int nz = r.ReadByte();
             for (int i = 0; i < nz; i++)
             {
-                var z = new Zone { Id = r.ReadInt32(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle() };
+                var z = new Zone { Id = r.ReadInt32(), Kind = (ZoneKind)r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle() };
                 Zones[z.Id] = z;
             }
 

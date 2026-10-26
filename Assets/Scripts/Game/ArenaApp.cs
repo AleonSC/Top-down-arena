@@ -22,6 +22,7 @@ namespace Arena
         Role hostRole = Role.Tank;
         Role? joinRole;
         int weaponChoice, abilityChoice;
+        Kit kitChoice = Kit.Soldier;
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
@@ -105,6 +106,10 @@ namespace Arena
                 weaponChoice = Mathf.Clamp(weapon - 1, 0, Defs.WeaponsPerRole - 1);
             if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
                 abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices - 1);
+            if (opts.TryGetValue("class", out v))
+                for (int i = 0; i <= (int)Kit.Summoner; i++)
+                    if (string.Equals(((Kit)i).ToString(), v, StringComparison.OrdinalIgnoreCase))
+                        kitChoice = (Kit)i;
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
@@ -113,7 +118,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice);
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
             }
         }
 
@@ -125,7 +130,7 @@ namespace Arena
 
         void HostGame()
         {
-            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice))
+            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 
@@ -294,6 +299,16 @@ namespace Arena
                 }
                 if (p.OverdriveT > 0f)
                     Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
+                if (p.AegisT > 0f)  // Arcane Aegis: a spinning hexagon
+                    for (int k = 0; k < 6; k++)
+                        Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
+                             p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
+                if (p.ShieldHp > 0f)  // Arcane Ward
+                    Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+                if (p.SurgeT > 0f)  // Arcane Surge
+                    Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
+                if (p.FrenzyT > 0f)  // Alpha Call
+                    Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
             }
 
             foreach (var b in game.Bullets.Values)
@@ -307,17 +322,15 @@ namespace Arena
                         Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
                     continue;
                 }
+                if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot || b.Kind == Defs.FrostShot)
+                    Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), Defs.BulletColor(b.Kind).WithAlpha(0.25f), 12);
                 if (b.Kind == Defs.RailShot)
                     Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
                 Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
             }
 
-            foreach (var z in game.Zones.Values)  // Haven
-            {
-                var c = new Rgba(0.4f, 1f, 0.6f);
-                Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
-                Arc(z.Pos, z.Radius, 2.5f, c.WithAlpha(0.7f), 48, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.T / z.Duration));
-            }
+            foreach (var z in game.Zones.Values)
+                DrawZone(z, t);
             foreach (var p in game.Players.Values)
             {
                 Player q;
@@ -338,13 +351,8 @@ namespace Arena
                 if (p.TauntT > 0f && !p.Downed)  // Roar
                     Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
             }
-            foreach (var tur in game.Turrets.Values)
-            {
-                var c = new Rgba(0.6f, 0.95f, 1f);
-                Polygon(tur.Pos, 13f, 6, 0f, c);
-                Line(tur.Pos, tur.Pos + V2.FromAngle(tur.Aim) * 20f, 5f, c);
-                Arc(tur.Pos, 18f, 2f, c.WithAlpha(0.5f), 32, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(tur.T / 10f));
-            }
+            foreach (var minion in game.Minions.Values)
+                DrawMinion(minion, t);
             foreach (var o in game.Orbs.Values)
             {
                 // Blink during the last 3 seconds before the orb disappears.
@@ -392,6 +400,18 @@ namespace Arena
                     case FxKind.Ring:
                         Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
                         break;
+                    case FxKind.Bolt:  // jagged lightning between two points
+                    {
+                        V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
+                        V2 prev = a;
+                        for (int k = 1; k <= 6; k++)
+                        {
+                            V2 pt = k == 6 ? b : V2.Lerp(a, b, k / 6f) + n * (((k * 37 + fx.Pos.X) % 17f) - 8.5f);
+                            Line(prev, pt, 3f, fx.Color.WithAlpha(1f - f));
+                            prev = pt;
+                        }
+                        break;
+                    }
                 }
             }
 
@@ -406,6 +426,71 @@ namespace Arena
             Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
             Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
             Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
+        }
+
+        void DrawZone(Zone z, float t)
+        {
+            var d = z.Def;
+            var c = d.Color;
+            float timeLeft = MathX.Clamp01(z.T / Mathf.Max(0.01f, z.Duration));
+            switch (z.Kind)
+            {
+                case ZoneKind.Meteor:  // warning circle that fills in, then the meteor lands
+                    Circle(z.Pos, z.Radius * (1f - timeLeft), c.WithAlpha(0.25f), 40);
+                    Arc(z.Pos, z.Radius, 3f, c.WithAlpha(MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.5f), 48);
+                    return;
+                case ZoneKind.FlameWall:  // a ring of flickering flames
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.12f), 40);
+                    for (int k = 0; k < 18; k++)
+                        Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, 7f + 3f * Mathf.Sin(t * 14f + k), c.WithAlpha(0.8f), 8);
+                    break;
+                case ZoneKind.Blizzard:  // swirling snow
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.14f), 40);
+                    for (int k = 0; k < 14; k++)
+                    {
+                        float a = t * 1.5f + k * 2.4f, rr = z.Radius * MathX.Fmod(k * 0.37f + t * 0.2f, 1f);
+                        Circle(z.Pos + V2.FromAngle(a) * rr, 2.5f, Rgba.White.WithAlpha(0.8f), 6);
+                    }
+                    break;
+                case ZoneKind.Lantern:
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 40);
+                    Polygon(z.Pos, 9f, 4, MathX.Pi / 4f, c);
+                    break;
+                case ZoneKind.Totem:
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 40);
+                    Polygon(z.Pos, 8f, 6, t, c);
+                    break;
+                default:  // Haven
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
+                    break;
+            }
+            Arc(z.Pos, z.Radius, 2.5f, c.WithAlpha(0.7f), 48, -MathX.Pi / 2f, MathX.Tau * timeLeft);
+        }
+
+        void DrawMinion(Minion m, float t)
+        {
+            var d = m.Def;
+            var c = d.Color;
+            if (m.T >= 0f && m.T < 1.5f && MathX.Fmod(t, 0.2f) < 0.1f)
+                c = c.WithAlpha(0.4f);  // about to vanish
+            if (d.BlockRadius > d.Radius)  // the guardian spirit's bullet-eating field
+            {
+                Circle(m.Disp, d.BlockRadius, c.WithAlpha(0.12f), 40);
+                Arc(m.Disp, d.BlockRadius, 2f, c.WithAlpha(0.6f), 40);
+            }
+            float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
+            if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
+                Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);
+            if (m.Kind == MinionKind.Phoenix)
+                for (int k = 0; k < 2; k++)  // flapping wings
+                    Line(m.Disp, m.Disp + V2.FromAngle(m.Aim + MathX.Pi * (0.6f + k * 0.8f) + 0.4f * Mathf.Sin(t * 12f)) * 20f, 4f, c);
+            Polygon(m.Disp, d.Radius, d.Sides, rot, c);
+            if (d.Attack == MinionAttack.Shoot)
+                Line(m.Disp, m.Disp + V2.FromAngle(m.Aim) * (d.Radius + 7f), 4f, c);
+            if (m.Kind == MinionKind.Sprite)
+                Line(m.Disp - new V2(3, 0), m.Disp + new V2(3, 0), 1.5f, Rgba.White);
+            if (m.T >= 0f && m.Duration > 0f)
+                Arc(m.Disp, d.Radius + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
         }
 
         void DrawEnemy(Enemy e, float t)
@@ -551,6 +636,14 @@ namespace Arena
                 Line(p.Disp - new V2(r * 0.6f, 0), p.Disp + new V2(r * 0.6f, 0), 3f, col.WithAlpha(0.6f));
                 Line(p.Disp - new V2(0, r * 0.6f), p.Disp + new V2(0, r * 0.6f), 3f, col.WithAlpha(0.6f));
             }
+            // Class marker: a mage's four-point star, a summoner's three orbiting motes.
+            if (p.Kit == Kit.Mage && !p.Downed)
+                for (int k = 0; k < 4; k++)
+                    Line(p.Disp + V2.FromAngle(MathX.Pi / 4f + k * MathX.Pi / 2f) * (r * 0.35f),
+                         p.Disp + V2.FromAngle(MathX.Pi / 4f + k * MathX.Pi / 2f) * (r + 6f), 2f, new Rgba(0.8f, 0.55f, 1f, 0.8f));
+            else if (p.Kit == Kit.Summoner && !p.Downed)
+                for (int k = 0; k < 3; k++)
+                    Circle(p.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (r + 7f), 2.5f, new Rgba(0.6f, 1f, 0.7f, 0.9f), 8);
             // The real hitbox, drawn as a bright core.
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
@@ -692,7 +785,7 @@ namespace Arena
                 if (GUILayout.Button("Host game", buttonStyle))
                     HostGame();
                 if (GUILayout.Button("Join game", buttonStyle))
-                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice);
+                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(8);
@@ -704,9 +797,19 @@ namespace Arena
             GUILayout.EndArea();
         }
 
+        static string KitBlurb(Kit k)
+        {
+            switch (k)
+            {
+                case Kit.Mage: return "Spells: fire, frost, lightning and arcane magic. 85% health.";
+                case Kit.Summoner: return "Fights alongside minions that come with your weapon. 90% health.";
+                default: return "Guns and gear. Full health.";
+            }
+        }
+
         void DrawLobby()
         {
-            GUILayout.BeginArea(new Rect(W / 2f - 320f, 14f, 640f, 692f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(W / 2f - 330f, 6f, 660f, 708f), GUI.skin.box);
             GUILayout.Space(10);
             GUILayout.Label("LOBBY", titleStyle);
             GUILayout.Space(6);
@@ -726,7 +829,7 @@ namespace Arena
                 if (e.Id == session.MyId) tags.Add("you");
                 var style = new GUIStyle(labelStyle) { fontSize = 18 };
                 style.normal.textColor = ToColor(Defs.Get(e.Role).Color);
-                GUILayout.Label("• " + e.Name + " — " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Weapon).Name + ", " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Ability)).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
+                GUILayout.Label("• " + e.Name + " — " + Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + ", " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
             }
             if (session.Lobby.Count < Session.MaxPlayers)
                 GUILayout.Label("• waiting for a friend to join…", labelStyle);
@@ -755,12 +858,30 @@ namespace Arena
             if (me != null)
             {
                 GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(22));
-                GUILayout.Space(6);
+                GUILayout.Space(4);
+                GUILayout.Label("Pick your class:", smallStyle);
+                GUILayout.BeginHorizontal();
+                for (int i = 0; i <= (int)Kit.Summoner; i++)
+                {
+                    var k = (Kit)i;
+                    bool selected = me.Kit == k;
+                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
+                    if (GUILayout.Button(selected ? "[ " + Defs.KitName(k) + " ]" : Defs.KitName(k), style))
+                    {
+                        session.RequestKit(k);
+                        kitChoice = k;
+                        weaponChoice = 0;
+                        abilityChoice = 0;
+                    }
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label(KitBlurb(me.Kit), smallStyle);
+                GUILayout.Space(4);
                 GUILayout.Label("Pick your weapon:", smallStyle);
                 GUILayout.BeginHorizontal();
                 for (int i = 0; i < Defs.WeaponsPerRole; i++)
                 {
-                    var wd = Defs.Weapon(me.Role, i);
+                    var wd = Defs.Weapon(me.Role, me.Kit, i);
                     bool selected = me.Weapon == i;
                     var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
                     if (GUILayout.Button(selected ? "[ " + wd.Name + " ]" : wd.Name, style))
@@ -770,13 +891,13 @@ namespace Arena
                     }
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label(Defs.Weapon(me.Role, me.Weapon).Desc, smallStyle);
+                GUILayout.Label(Defs.Weapon(me.Role, me.Kit, me.Weapon).Desc, smallStyle);
                 GUILayout.Space(6);
                 GUILayout.Label("Pick your ability (Space):", smallStyle);
                 GUILayout.BeginHorizontal();
                 for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
                 {
-                    var ad = Upgrades.Ability(Upgrades.RoleAbility(me.Role, i));
+                    var ad = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i));
                     bool selected = me.Ability == i;
                     var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
                     if (GUILayout.Button(selected ? "[ " + ad.Name + " ]" : ad.Name, style))
@@ -786,7 +907,7 @@ namespace Arena
                     }
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label(Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Ability)).Desc, smallStyle);
+                GUILayout.Label(Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability)).Desc, smallStyle);
             }
 
             GUILayout.FlexibleSpace();

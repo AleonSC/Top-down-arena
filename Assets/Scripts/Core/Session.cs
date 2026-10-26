@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest,
+        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest,
     }
 
     public static class Proto
@@ -42,8 +42,9 @@ namespace Arena
         public int Id;
         public string Name;
         public Role Role;
-        public byte Weapon;   // index into Defs.Weapon(Role, i)
-        public byte Ability;  // index into Upgrades.RoleAbility(Role, i)
+        public Kit Kit;       // Soldier, Mage or Summoner
+        public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
+        public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -70,7 +71,7 @@ namespace Arena
 
         string joinName = "Player";
         int joinRole = 255;
-        int joinWeapon, joinAbility;
+        int joinWeapon, joinAbility, joinKit;
 
         public Session()
         {
@@ -85,7 +86,7 @@ namespace Arena
             return name.Length > 0 ? name : "Player";
         }
 
-        public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0)
+        public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
         {
             Leave("");
             try
@@ -101,13 +102,13 @@ namespace Arena
             }
             Port = port;
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
             Screen = AppScreen.Lobby;
             return true;
         }
 
         /// role: preferred role, or null to take the first one nobody has.
-        public void Join(string address, int port, string name, Role? role, int weapon = 0, int ability = 0)
+        public void Join(string address, int port, string name, Role? role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
         {
             Leave("");
             address = (address ?? "").Trim();
@@ -126,6 +127,7 @@ namespace Arena
             joinRole = role.HasValue ? (int)role.Value : 255;
             joinWeapon = ClampWeapon(weapon);
             joinAbility = ClampAbility(ability);
+            joinKit = (int)kit;
             Connecting = true;
             Status = "Connecting to " + address + ":" + port + "...";
         }
@@ -200,12 +202,13 @@ namespace Arena
                     int wanted = r.ReadByte();
                     int weapon = ClampWeapon(r.ReadByte());
                     int ability = ClampAbility(r.ReadByte());
+                    var kit = ClampKit(r.ReadByte());
                     if (Game.Running || Lobby.Count >= MaxPlayers)
                     {
                         Net.Kick(peer);
                         return;
                     }
-                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Weapon = (byte)weapon, Ability = (byte)ability };
+                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability };
                     var w = Proto.Begin(Msg.Welcome);
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
@@ -231,6 +234,9 @@ namespace Arena
                     break;
                 case Msg.AbilityRequest:
                     SetAbility(peer, r.ReadByte());
+                    break;
+                case Msg.KitRequest:
+                    SetKit(peer, r.ReadByte());
                     break;
                 case Msg.Reroll:
                     Game.HostReroll(peer);
@@ -269,6 +275,21 @@ namespace Arena
 
         static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WeaponsPerRole ? weapon : 0;
         static int ClampAbility(int ability) => ability >= 0 && ability < Upgrades.RoleAbilityChoices ? ability : 0;
+        static Kit ClampKit(int kit) => kit >= 0 && kit <= (int)Kit.Summoner ? (Kit)kit : Kit.Soldier;
+
+        void SetKit(int id, int kit)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e))
+                return;
+            if (e.Kit != ClampKit(kit))
+            {
+                e.Weapon = 0;  // each kit has its own weapons and abilities
+                e.Ability = 0;
+            }
+            e.Kit = ClampKit(kit);
+            BroadcastLobby();
+        }
 
         void SetAbility(int id, int ability)
         {
@@ -297,6 +318,7 @@ namespace Arena
                 w.Write(e.Id);
                 w.Write(e.Name);
                 w.Write((byte)e.Role);
+                w.Write((byte)e.Kit);
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
             }
@@ -328,6 +350,20 @@ namespace Arena
             {
                 var w = Proto.Begin(Msg.WeaponRequest);
                 w.Write((byte)weapon);
+                SendToHost(Proto.End(w));
+            }
+        }
+
+        public void RequestKit(Kit kit)
+        {
+            if (IsHost)
+            {
+                SetKit(1, (int)kit);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.KitRequest);
+                w.Write((byte)kit);
                 SendToHost(Proto.End(w));
             }
         }
@@ -375,6 +411,7 @@ namespace Arena
                     w.Write((byte)joinRole);
                     w.Write((byte)joinWeapon);
                     w.Write((byte)joinAbility);
+                    w.Write((byte)joinKit);
                     SendToHost(Proto.End(w));
                     break;
                 }
@@ -405,7 +442,7 @@ namespace Arena
                     int n = r.ReadByte();
                     for (int i = 0; i < n; i++)
                     {
-                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
+                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                         Lobby[e.Id] = e;
                     }
                     if (!Game.Running)
