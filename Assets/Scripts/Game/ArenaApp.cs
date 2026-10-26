@@ -823,6 +823,9 @@ namespace Arena
             GUILayout.Label(session.Status, status);
             GUILayout.FlexibleSpace();
             GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E / Shift bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc pause", smallStyle);
+            var version = new GUIStyle(smallStyle) { alignment = TextAnchor.MiddleCenter };
+            version.normal.textColor = new Color(1f, 1f, 1f, 0.45f);
+            GUILayout.Label(Session.VersionText + " — you and your friend need the same version", version);
             GUILayout.EndArea();
         }
 
@@ -950,6 +953,13 @@ namespace Arena
                                 "\n(Use a 100.x.x.x address if you both run Tailscale.)", info);
             else
                 GUILayout.Label("Connected. Waiting for the host to start the game.", info);
+            if (session.Status.Length > 0)
+            {
+                var warn = new GUIStyle(smallStyle);
+                warn.normal.textColor = new Color(1f, 0.75f, 0.4f);
+                GUILayout.Label(session.Status, warn);
+            }
+            GUILayout.Label(Session.VersionText, smallStyle);
             GUILayout.Space(10);
 
             foreach (var e in session.Lobby.Values)

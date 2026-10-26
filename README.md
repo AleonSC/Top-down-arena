@@ -145,6 +145,10 @@ they're saved between sessions.
 
 ## Playing with a friend
 
+**You both need the same version of the game.** The version is shown at the bottom of the main menu and
+in the lobby. If they don't match, the joining player is turned away with a message saying so. After
+pulling an update, both players should rebuild (or the host should send the new build).
+
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.

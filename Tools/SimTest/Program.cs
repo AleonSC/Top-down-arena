@@ -86,7 +86,7 @@ static class Program
             host.Game.GrantUpgrade(1, hollow);
             host.Game.GrantUpgrade(2, hollow);
         }
-        bool bossSeen = false, bossDead = false;
+        bool bossSeen = false, bossDead = false, bigOrb = false;
         for (int i = 0; i < 60 * 60 && !bossDead; i++)
         {
             Step(host, dt);
@@ -98,16 +98,22 @@ static class Program
                 bossAlive |= e.Def.IsBoss;
             bossSeen |= bossAlive;
             bossDead = bossSeen && !bossAlive;
+            foreach (var o in client.Game.Orbs.Values)
+                bigOrb |= o.Big;
             if (host.Game.State == MatchState.GameOver)
                 break;
         }
-        for (int i = 0; i < 20; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 20; i++)
+        {
+            Step(host, dt);
+            Step(client, dt);
+            Thread.Sleep(2);
+            foreach (var o in client.Game.Orbs.Values)
+                bigOrb |= o.Big;
+        }
         Console.WriteLine("  boss dead: {0}, rerolls host {1}/{2}, client sees {3}/{4}", bossDead, host.Game.Players[1].Rerolls, host.Game.Players[2].Rerolls,
             client.Game.Players[1].Rerolls, client.Game.Players[2].Rerolls);
         Check(bossDead && host.Game.Players[1].Rerolls == 4 && client.Game.Players[2].Rerolls == 4, "boss kill gives everyone +2 rerolls");
-        bool bigOrb = false;
-        foreach (var o in client.Game.Orbs.Values)
-            bigOrb |= o.Big;
         Check(bigOrb, "boss drops a large health orb (seen on the client)");
         // After the wave, each player picks one of The Warden's legendary weapon upgrades.
         Run(new[] { host, client }, dt, 20, () => host.Game.State == MatchState.Fighting && host.Game.Wave > 5);
@@ -329,7 +335,7 @@ static class Program
             var zones = new HashSet<ZoneKind>();
             bool aegis = false, shield = false, surge = false, frenzy = false, bolt = false, boltShot = false;
             int ghosts = 0, frame = 0;
-            Run(s, dt, 13, null, () =>
+            Action watch = () =>
             {
                 foreach (var m in client.Game.Minions.Values)
                     minions.Add(m.Kind);
@@ -351,7 +357,14 @@ static class Program
                     for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
                     ghosts += Ghosts(s);
                 }
-            });
+            };
+            Run(s, dt, 13, null, watch);
+            // A chain needs two enemies close together when a lightning shot lands; keep going until one does.
+            bool lightning = false;
+            foreach (var p in client.Game.Players.Values)
+                lightning |= p.Weapon.Id == WeaponId.StormHammer || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning;
+            if (lightning && !bolt)
+                Run(s, dt, 15, () => bolt, watch);
             foreach (int id in new[] { 1, 2 })
             {
                 var p = client.Game.Players[id];
@@ -559,6 +572,26 @@ static class Program
         Check(client.Game.Players.Count == 2 && client.Game.Players[2].Role == Role.Healer, "client sees both players with chosen roles");
         Check(client.Game.Players[1].Weapon.Id == WeaponId.FlakCannon && host.Game.Players[2].Weapon.Id == WeaponId.MendersBow,
             "chosen weapons reach both sides (Flak Cannon, Mender's Bow)");
+
+        // A friend on a different version gets a clear message instead of silence.
+        {
+            var other = new Session { Version = Session.ProtocolVersion + 1 };
+            var h2 = new Session();
+            h2.Host(port + 1, "Host", Role.Tank);
+            other.Join("127.0.0.1", port + 1, "Friend", Role.Healer);
+            for (int i = 0; i < 120 && other.Status.IndexOf("Version mismatch", StringComparison.Ordinal) < 0; i++)
+            {
+                h2.Poll();
+                other.Poll();
+                Thread.Sleep(5);
+            }
+            Console.WriteLine("  friend sees: " + other.Status);
+            Console.WriteLine("  host sees: " + h2.Status);
+            Check(other.Screen == AppScreen.Menu && other.Status.Contains("Version mismatch") && h2.Status.Contains("different version") == false
+                && h2.Status.Contains("version " + (Session.ProtocolVersion + 1)) && h2.Lobby.Count == 1,
+                "a different version is turned away with a clear message on both sides");
+            h2.Leave("");
+        }
 
         // A third player must be turned away.
         var extra = new Session();

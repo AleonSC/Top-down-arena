@@ -13,6 +13,9 @@ namespace Arena
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
         Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync,
+
+        // Fixed value so every version can understand it, whatever else changes.
+        Reject = 200,
     }
 
     public static class Proto
@@ -53,6 +56,13 @@ namespace Arena
     public class Session
     {
         public const int DefaultPort = 7777;
+
+        /// Bump this whenever the messages the two games send each other change.
+        /// Players on different versions can't play together; the host turns them away with a message.
+        public const int ProtocolVersion = 13;
+        public static string VersionText => "Version " + ProtocolVersion;
+
+        const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
         public const int MaxPlayers = 2;
 
         public NetPeer Net { get; private set; }
@@ -67,11 +77,14 @@ namespace Arena
 
         // Testing helpers (see the README's command-line flags).
         public int AutoStart;
+        public int Version = ProtocolVersion;  // tests can pretend to be another version
         public int StartWave = 1;
 
         string joinName = "Player";
         int joinRole = 255;
         int joinWeapon, joinAbility, joinKit;
+        DateTime helloSentAt;
+        bool awaitingWelcome;
 
         public Session()
         {
@@ -139,6 +152,7 @@ namespace Arena
                 Net.Close();
             Net = null;
             Connecting = false;
+            awaitingWelcome = false;
             Lobby.Clear();
             Screen = AppScreen.Menu;
             Status = status;
@@ -148,6 +162,12 @@ namespace Arena
         {
             if (Net == null)
                 return;
+            if (awaitingWelcome && (DateTime.UtcNow - helloSentAt).TotalSeconds > WelcomeTimeout)
+            {
+                Leave("Connected, but the host didn't answer. Make sure you're both on the same version of the game " +
+                      "(it's shown at the bottom of the main menu; you're on " + VersionText + ").");
+                return;
+            }
             foreach (var ev in new List<NetEvent>(Net.Poll()))
             {
                 if (Net == null)
@@ -180,7 +200,16 @@ namespace Arena
             switch (ev.Type)
             {
                 case NetEventType.Data:
-                    HandleHostMessage(ev.Peer, ev.Data);
+                    try
+                    {
+                        HandleHostMessage(ev.Peer, ev.Data);
+                    }
+                    catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
+                    {
+                        // Garbled or old-format message: most likely a different version of the game.
+                        Reject(ev.Peer, "Couldn't understand your game. Make sure you're both on the same version (the host is on " + VersionText + ").");
+                        Status = "Someone tried to join with a different version of the game. You're on " + VersionText + ".";
+                    }
                     break;
                 case NetEventType.Disconnected:
                     Lobby.Remove(ev.Peer);
@@ -198,6 +227,16 @@ namespace Arena
             {
                 case Msg.Hello:
                 {
+                    int version = r.ReadInt32();
+                    if (version != Version)
+                    {
+                        // Builds from before version checks don't send a number, so this reads as garbage.
+                        string theirs = version > 0 && version < 10000 ? "version " + version : "an older version";
+                        Reject(peer, "Version mismatch: the host is on " + VersionText + " and you're on " + theirs +
+                                     ". Both players need the same build of the game.");
+                        Status = "A friend tried to join on " + theirs + ", but you're on " + VersionText + ". You both need the same build.";
+                        return;
+                    }
                     string name = r.ReadString();
                     int wanted = r.ReadByte();
                     int weapon = ClampWeapon(r.ReadByte());
@@ -245,6 +284,14 @@ namespace Arena
                     Game.HostReroll(peer);
                     break;
             }
+        }
+
+        void Reject(int peer, string reason)
+        {
+            var w = Proto.Begin(Msg.Reject);
+            w.Write(reason);
+            Net.Send(peer, Proto.End(w));
+            Net.Kick(peer);
         }
 
         Role PickRole(int wanted)
@@ -410,12 +457,15 @@ namespace Arena
                     Connecting = false;
                     Status = "";
                     var w = Proto.Begin(Msg.Hello);
+                    w.Write(Version);
                     w.Write(joinName);
                     w.Write((byte)joinRole);
                     w.Write((byte)joinWeapon);
                     w.Write((byte)joinAbility);
                     w.Write((byte)joinKit);
                     SendToHost(Proto.End(w));
+                    awaitingWelcome = true;
+                    helloSentAt = DateTime.UtcNow;
                     break;
                 }
                 case NetEventType.ConnectFailed:
@@ -425,7 +475,14 @@ namespace Arena
                     Leave("Disconnected from the host (the game may already have been in progress).");
                     break;
                 case NetEventType.Data:
-                    HandleClientMessage(ev.Data);
+                    try
+                    {
+                        HandleClientMessage(ev.Data);
+                    }
+                    catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
+                    {
+                        Leave("Couldn't understand the host's game. Make sure you're both on the same version (you're on " + VersionText + ").");
+                    }
                     break;
             }
         }
@@ -438,6 +495,10 @@ namespace Arena
             {
                 case Msg.Welcome:
                     MyId = r.ReadInt32();
+                    awaitingWelcome = false;
+                    break;
+                case Msg.Reject:
+                    Leave(r.ReadString());
                     break;
                 case Msg.Lobby:
                 {
