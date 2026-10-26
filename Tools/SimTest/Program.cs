@@ -544,6 +544,9 @@ static class Program
             // 13 enemy types are in the mix by now, so give it up to two waves to roll all four.
             Run(s, dt, 80, () => seen.Contains(EnemyType.Phantom) && seen.Contains(EnemyType.Hexer) && seen.Contains(EnemyType.Juggernaut) && seen.Contains(EnemyType.Nest), () =>
             {
+                // This only checks which enemies appear, so keep the bots from dying before they've all spawned.
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
                 foreach (var e in s[1].Game.Enemies.Values)
                     seen.Add(e.Type);
                 if (++frame % 60 == 0)
