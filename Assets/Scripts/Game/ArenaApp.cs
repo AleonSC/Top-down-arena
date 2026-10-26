@@ -21,7 +21,7 @@ namespace Arena
         string portText = Session.DefaultPort.ToString();
         Role hostRole = Role.Tank;
         Role? joinRole;
-        int weaponChoice;
+        int weaponChoice, abilityChoice;
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
@@ -103,6 +103,8 @@ namespace Arena
             int weapon;
             if (opts.TryGetValue("weapon", out v) && int.TryParse(v, out weapon))
                 weaponChoice = Mathf.Clamp(weapon - 1, 0, Defs.WeaponsPerRole - 1);
+            if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
+                abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices - 1);
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
@@ -111,7 +113,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole, weaponChoice);
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice);
             }
         }
 
@@ -123,7 +125,7 @@ namespace Arena
 
         void HostGame()
         {
-            if (session.Host(Port(), nameText, hostRole, weaponChoice))
+            if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 
@@ -298,11 +300,44 @@ namespace Arena
             {
                 if (b.Kind >= Defs.SmallShot)
                     continue;
+                if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
+                {
+                    Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
+                    if (MathX.Fmod(t, 0.15f) < 0.075f)
+                        Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
+                    continue;
+                }
                 if (b.Kind == Defs.RailShot)
                     Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
                 Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
             }
 
+            foreach (var z in game.Zones.Values)  // Haven
+            {
+                var c = new Rgba(0.4f, 1f, 0.6f);
+                Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
+                Arc(z.Pos, z.Radius, 2.5f, c.WithAlpha(0.7f), 48, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.T / z.Duration));
+            }
+            foreach (var p in game.Players.Values)
+            {
+                Player q;
+                if (p.LinkT > 0f && p.LinkTo != p.Id && game.Players.TryGetValue(p.LinkTo, out q))
+                {
+                    // Soul Link: a wavy tether between healer and ally.
+                    V2 a = p.Disp, b = q.Disp, n = (b - a).Normalized().Orthogonal();
+                    var c = new Rgba(0.6f, 1f, 0.9f, 0.8f);
+                    V2 prev = a;
+                    for (int k = 1; k <= 16; k++)
+                    {
+                        float f = k / 16f;
+                        V2 pt = V2.Lerp(a, b, f) + n * (Mathf.Sin(f * 12f - t * 10f) * 5f * Mathf.Sin(f * MathX.Pi));
+                        Line(prev, pt, 2.5f, c);
+                        prev = pt;
+                    }
+                }
+                if (p.TauntT > 0f && !p.Downed)  // Roar
+                    Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
+            }
             foreach (var tur in game.Turrets.Values)
             {
                 var c = new Rgba(0.6f, 0.95f, 1f);
@@ -422,6 +457,12 @@ namespace Arena
             }
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
+            if (e.Marked)  // Mark for Death: a rotating red reticle
+            {
+                var mc = new Rgba(1f, 0.2f, 0.2f, 0.9f);
+                for (int k = 0; k < 4; k++)
+                    Arc(pos, r + 12f, 2.5f, mc, 6, t * 2f + k * MathX.Pi / 2f, 0.9f);
+            }
 
             if (e.Flash > 0f)
                 col = Rgba.White;
@@ -651,7 +692,7 @@ namespace Arena
                 if (GUILayout.Button("Host game", buttonStyle))
                     HostGame();
                 if (GUILayout.Button("Join game", buttonStyle))
-                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice);
+                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice);
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(8);
@@ -665,7 +706,7 @@ namespace Arena
 
         void DrawLobby()
         {
-            GUILayout.BeginArea(new Rect(W / 2f - 320f, 30f, 640f, 660f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(W / 2f - 320f, 14f, 640f, 692f), GUI.skin.box);
             GUILayout.Space(10);
             GUILayout.Label("LOBBY", titleStyle);
             GUILayout.Space(6);
@@ -685,7 +726,7 @@ namespace Arena
                 if (e.Id == session.MyId) tags.Add("you");
                 var style = new GUIStyle(labelStyle) { fontSize = 18 };
                 style.normal.textColor = ToColor(Defs.Get(e.Role).Color);
-                GUILayout.Label("• " + e.Name + " — " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Weapon).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
+                GUILayout.Label("• " + e.Name + " — " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Weapon).Name + ", " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Ability)).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
             }
             if (session.Lobby.Count < Session.MaxPlayers)
                 GUILayout.Label("• waiting for a friend to join…", labelStyle);
@@ -707,12 +748,13 @@ namespace Arena
                     hostRole = (Role)i;
                     joinRole = (Role)i;
                     weaponChoice = 0;
+                    abilityChoice = 0;
                 }
             }
             GUILayout.EndHorizontal();
             if (me != null)
             {
-                GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(52));
+                GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(22));
                 GUILayout.Space(6);
                 GUILayout.Label("Pick your weapon:", smallStyle);
                 GUILayout.BeginHorizontal();
@@ -729,6 +771,22 @@ namespace Arena
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.Label(Defs.Weapon(me.Role, me.Weapon).Desc, smallStyle);
+                GUILayout.Space(6);
+                GUILayout.Label("Pick your ability (Space):", smallStyle);
+                GUILayout.BeginHorizontal();
+                for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
+                {
+                    var ad = Upgrades.Ability(Upgrades.RoleAbility(me.Role, i));
+                    bool selected = me.Ability == i;
+                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
+                    if (GUILayout.Button(selected ? "[ " + ad.Name + " ]" : ad.Name, style))
+                    {
+                        session.RequestAbility(i);
+                        abilityChoice = i;
+                    }
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label(Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Ability)).Desc, smallStyle);
             }
 
             GUILayout.FlexibleSpace();
@@ -878,9 +936,13 @@ namespace Arena
         {
             SyncSelection(me);
             Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
-            Label(new Rect(0, 110, W, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
-            if (me.PendingPicks > 1)
-                Label(new Rect(0, 152, W, 22), (me.PendingPicks - 1) + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
+            if (me.OfferLegendary)
+                Label(new Rect(0, 110, W, 44), "BOSS REWARD! Choose a legendary weapon upgrade", 34, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleCenter, true);
+            else
+                Label(new Rect(0, 110, W, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
+            int more = me.PendingPicks + me.PendingLegendary - 1;
+            if (more > 0)
+                Label(new Rect(0, 152, W, 22), more + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
 
             const float cardW = 300f, cardH = 230f, gap = 24f;
             float x0 = (W - cardW * 3 - gap * 2) / 2f;
@@ -933,11 +995,11 @@ namespace Arena
             string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
             if (GUI.Button(new Rect(W / 2f - btnW - 10f, by, btnW, 40f), confirmText, buttonStyle))
                 ConfirmPick();
-            GUI.enabled = me.Rerolls > 0 && !game.RerollPending;
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary;
             if (GUI.Button(new Rect(W / 2f + 10f, by, btnW, 40f), "Reroll (" + me.Rerolls + " left)  [R]", buttonStyle))
                 game.RerollOffer();
             GUI.enabled = wasEnabled;
-            Label(new Rect(0, by + 46f, W, 18), "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            Label(new Rect(0, by + 46f, W, 18), me.OfferLegendary ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

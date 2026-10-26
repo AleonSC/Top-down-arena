@@ -157,6 +157,7 @@ namespace Arena
             Set(Sfx.Shockwave, Tone(0.5f, Osc.Saw, 200f, 50f, 0.4f, noise: 0.4f, lowpass: 0.3f));
             Set(Sfx.Blink, Tone(0.15f, Osc.Sine, 1200f, 400f, 0.25f));
             Set(Sfx.Pick, Tone(0.08f, Osc.Sine, 660f, 990f, 0.25f));
+            Set(Sfx.Roar, Tone(0.7f, Osc.Saw, 110f, 55f, 0.45f, noise: 0.35f, lowpass: 0.15f, attack: 0.04f, decay: 1.2f));
             Set(Sfx.Pickup, Notes(new[] { 880f, 1320f }, 0.06f, Osc.Sine, 0.25f, 1f), 0.05f);
             Set(Sfx.PickupBig, Notes(new[] { 660f, 880f, 1100f, 1320f }, 0.07f, Osc.Triangle, 0.3f, 1f));
             Set(Sfx.LevelUp, Notes(new[] { 523f, 659f, 784f, 1047f }, 0.08f, Osc.Square, 0.2f, 0.5f));

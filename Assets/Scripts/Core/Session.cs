@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades, Reroll, WeaponRequest,
+        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest,
     }
 
     public static class Proto
@@ -42,7 +42,8 @@ namespace Arena
         public int Id;
         public string Name;
         public Role Role;
-        public byte Weapon;  // index into Defs.WeaponsFor(Role)
+        public byte Weapon;   // index into Defs.Weapon(Role, i)
+        public byte Ability;  // index into Upgrades.RoleAbility(Role, i)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -69,7 +70,7 @@ namespace Arena
 
         string joinName = "Player";
         int joinRole = 255;
-        int joinWeapon;
+        int joinWeapon, joinAbility;
 
         public Session()
         {
@@ -84,7 +85,7 @@ namespace Arena
             return name.Length > 0 ? name : "Player";
         }
 
-        public bool Host(int port, string name, Role role, int weapon = 0)
+        public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0)
         {
             Leave("");
             try
@@ -100,13 +101,13 @@ namespace Arena
             }
             Port = port;
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Weapon = (byte)ClampWeapon(weapon) };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
             Screen = AppScreen.Lobby;
             return true;
         }
 
         /// role: preferred role, or null to take the first one nobody has.
-        public void Join(string address, int port, string name, Role? role, int weapon = 0)
+        public void Join(string address, int port, string name, Role? role, int weapon = 0, int ability = 0)
         {
             Leave("");
             address = (address ?? "").Trim();
@@ -124,6 +125,7 @@ namespace Arena
             joinName = CleanName(name);
             joinRole = role.HasValue ? (int)role.Value : 255;
             joinWeapon = ClampWeapon(weapon);
+            joinAbility = ClampAbility(ability);
             Connecting = true;
             Status = "Connecting to " + address + ":" + port + "...";
         }
@@ -197,12 +199,13 @@ namespace Arena
                     string name = r.ReadString();
                     int wanted = r.ReadByte();
                     int weapon = ClampWeapon(r.ReadByte());
+                    int ability = ClampAbility(r.ReadByte());
                     if (Game.Running || Lobby.Count >= MaxPlayers)
                     {
                         Net.Kick(peer);
                         return;
                     }
-                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Weapon = (byte)weapon };
+                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Weapon = (byte)weapon, Ability = (byte)ability };
                     var w = Proto.Begin(Msg.Welcome);
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
@@ -225,6 +228,9 @@ namespace Arena
                     break;
                 case Msg.WeaponRequest:
                     SetWeapon(peer, r.ReadByte());
+                    break;
+                case Msg.AbilityRequest:
+                    SetAbility(peer, r.ReadByte());
                     break;
                 case Msg.Reroll:
                     Game.HostReroll(peer);
@@ -253,12 +259,25 @@ namespace Arena
             if (role < 0 || role >= Defs.Roles.Length || !Lobby.TryGetValue(id, out e))
                 return;
             if (e.Role != (Role)role)
-                e.Weapon = 0;  // weapons differ per role
+            {
+                e.Weapon = 0;  // weapons and abilities differ per role
+                e.Ability = 0;
+            }
             e.Role = (Role)role;
             BroadcastLobby();
         }
 
         static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WeaponsPerRole ? weapon : 0;
+        static int ClampAbility(int ability) => ability >= 0 && ability < Upgrades.RoleAbilityChoices ? ability : 0;
+
+        void SetAbility(int id, int ability)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e))
+                return;
+            e.Ability = (byte)ClampAbility(ability);
+            BroadcastLobby();
+        }
 
         void SetWeapon(int id, int weapon)
         {
@@ -279,6 +298,7 @@ namespace Arena
                 w.Write(e.Name);
                 w.Write((byte)e.Role);
                 w.Write(e.Weapon);
+                w.Write(e.Ability);
             }
             Broadcast(Proto.End(w));
         }
@@ -312,6 +332,20 @@ namespace Arena
             }
         }
 
+        public void RequestAbility(int ability)
+        {
+            if (IsHost)
+            {
+                SetAbility(1, ability);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.AbilityRequest);
+                w.Write((byte)ability);
+                SendToHost(Proto.End(w));
+            }
+        }
+
         public void RequestRole(Role role)
         {
             if (IsHost)
@@ -340,6 +374,7 @@ namespace Arena
                     w.Write(joinName);
                     w.Write((byte)joinRole);
                     w.Write((byte)joinWeapon);
+                    w.Write((byte)joinAbility);
                     SendToHost(Proto.End(w));
                     break;
                 }
@@ -370,7 +405,7 @@ namespace Arena
                     int n = r.ReadByte();
                     for (int i = 0; i < n; i++)
                     {
-                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Weapon = r.ReadByte() };
+                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                         Lobby[e.Id] = e;
                     }
                     if (!Game.Running)

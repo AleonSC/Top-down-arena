@@ -43,22 +43,19 @@ namespace Arena
             {
                 Name = "Tank", Ability = "Barrier", Color = new Rgba(0.35f, 0.6f, 1f),
                 Hp = 240f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
-                Desc = "Big HP pool and a short-range shotgun. Enemies prefer to target you.\n" +
-                       "Ability: a 4 s barrier bubble that deletes enemy bullets. Keep your ally inside it.",
+                Desc = "Big HP pool. Enemies prefer to target you.",
             },
             new RoleDef
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
                 Hp = 120f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,
-                Desc = "Your aura slowly heals an ally standing near you.\n" +
-                       "Ability: heal everyone nearby for 60 HP and instantly revive downed allies in range.",
+                Desc = "Your aura slowly heals an ally standing near you.",
             },
             new RoleDef
             {
                 Name = "DPS", Ability = "Dash", Color = new Rgba(1f, 0.55f, 0.25f),
                 Hp = 95f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
-                Desc = "Fragile, but shreds enemies with a twin-stream rifle.\n" +
-                       "Ability: a quick dash that makes you briefly invulnerable.",
+                Desc = "Fragile, but deals the most damage.",
             },
         };
 
@@ -107,7 +104,7 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13;
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13;
 
         public static float BulletRadius(byte kind)
         {
@@ -121,6 +118,8 @@ namespace Arena
                 case FlakShell: return 8f;
                 case RailShot: return 3.5f;
                 case WispShot: return 5f;
+                case GrenadeShot: return 7f;
+                case SwarmShot: return 3f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case FastShot: return 4.5f;
@@ -151,6 +150,8 @@ namespace Arena
                 case FlakShell: return new Rgba(0.7f, 0.85f, 1f);
                 case RailShot: return new Rgba(1f, 1f, 0.75f);
                 case WispShot: return new Rgba(0.4f, 1f, 0.85f);
+                case GrenadeShot: return new Rgba(0.75f, 0.85f, 0.4f);
+                case SwarmShot: return new Rgba(1f, 0.85f, 0.35f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);

@@ -19,11 +19,13 @@ press Play, so there are no scenes or prefabs to wire together.
 
 ## Roles
 
-| Role | HP | Weapon | Ability (Space / Right click) |
-|---|---|---|---|
-| **Tank** | 240 | Short-range 5-pellet shotgun | **Barrier** (12 s cooldown): a 4 s bubble that deletes enemy bullets. Enemies prefer to target the tank. |
-| **Healer** | 120 | Single bolt | **Mend Pulse** (10 s): heals everyone nearby for 60 and instantly revives downed allies in range. Passive aura slowly heals an ally standing close. |
-| **DPS** | 95 | Fast twin-stream rifle | **Dash** (3.5 s): quick dash with brief invulnerability. |
+Each player picks a role, a weapon and a **role ability** (Space) in the lobby.
+
+| Role | HP | Ability choices (Space) |
+|---|---|---|
+| **Tank** | 240. Enemies prefer to target you | **Barrier**: 4 s bubble that deletes enemy bullets · **Roar**: every enemy targets you for 5 s and you take 40% less damage · **Bulldoze**: charge forward, damaging and knocking back everything in your path |
+| **Healer** | 120. Aura slowly heals a nearby ally | **Mend Pulse**: heal everyone nearby for 60 and revive downed allies · **Haven**: a healing zone for 6 s where allies regenerate and revive 3x faster · **Soul Link**: tether to your ally for 6 s; they take half damage and you both regenerate |
+| **DPS** | 95. Highest damage | **Dash**: quick dash with brief invulnerability · **Cluster Grenade**: thrown at your cursor, explodes into shrapnel · **Mark for Death**: the enemy nearest your cursor takes 50% more damage for 6 s |
 
 Both players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
@@ -61,8 +63,16 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | Ability upgrades: **two charges** for your Barrier / Mend Pulse / Dash, bigger and longer Barrier, stronger Mend Pulse, wider aura, longer Dash invulnerability; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for the specific ability you picked (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks), wider aura; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability in your **Q** slot, then **E**, then **Shift**: Shockwave, Overdrive, Blink, Nova or Turret (each one only once) |
+| **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
+
+| Boss | Legendary weapon upgrades |
+|---|---|
+| The Warden | **Warden's Halo** (every 4th volley adds a ring of 8 shots) · **Iron Volley** (+1 projectile, +25% damage) · **Ringburst** (kills burst into 6 shots) |
+| Hive Queen | **Swarm Rounds** (shots split into 3 on hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (20% of kills spawn a 4 s mini-turret) |
+| Twin Reapers | **Executioner** (double damage below 35% HP) · **Twin Fang** (25% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
+| The Singularity | **Collapse Rounds** (shots implode on impact) · **Graviton Rounds** (hits slow enemies 40%) · **Dark Matter** (+2 pierce, +20% damage) |
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
@@ -146,7 +156,7 @@ TopDownArena.exe --host --role=tank --autostart=2     # host and auto-start when
 TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
-Also: `--name=X`, `--port=N`, `--weapon=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
+Also: `--name=X`, `--port=N`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).

@@ -37,15 +37,19 @@ static class Program
         bool ok = true;
         var rarityCount = new int[4];
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+        for (int choice = 0; choice < Upgrades.RoleAbilityChoices; choice++)
         {
+            var ab = Upgrades.RoleAbility(role, choice);
             var taken = new List<int>();
             for (int level = 1; level < 60; level++)
             {
-                var offer = Upgrades.RollOffer(rng, role, taken, level);
+                var offer = Upgrades.RollOffer(rng, role, ab, taken, level);
                 var seen = new HashSet<int>();
                 foreach (int id in offer)
                 {
-                    ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, taken);
+                    ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, ab, taken);
+                    ok &= Upgrades.All[id].Rarity != Rarity.Legendary;  // legendaries only come from bosses
+                    ok &= Upgrades.All[id].RequiresAbility == AbilityId.None || Upgrades.All[id].RequiresAbility == ab;
                     if (id >= 0)
                         rarityCount[(int)Upgrades.All[id].Rarity]++;
                     if (id >= 0 && Upgrades.All[id].Grants != AbilityId.None)
@@ -105,6 +109,17 @@ static class Program
         foreach (var o in client.Game.Orbs.Values)
             bigOrb |= o.Big;
         Check(bigOrb, "boss drops a large health orb (seen on the client)");
+        // After the wave, each player picks one of The Warden's legendary weapon upgrades.
+        Run(new[] { host, client }, dt, 20, () => host.Game.State == MatchState.Fighting && host.Game.Wave > 5);
+        int legendaries = 0;
+        foreach (var p in client.Game.Players.Values)
+            foreach (int t in p.Taken)
+                if (Upgrades.All[t].Rarity == Rarity.Legendary && Upgrades.All[t].Boss == EnemyType.Boss)
+                {
+                    legendaries++;
+                    Console.WriteLine("  {0} took legendary: {1}", p.Role, Upgrades.All[t].Name);
+                }
+        Check(legendaries == 2, "boss kill gives each player one legendary weapon upgrade from that boss (seen on client)");
         host.Leave("");
         client.Leave("");
     }
@@ -231,6 +246,89 @@ static class Program
         Check(ghosts == 0, "late-game waves stay in sync (mortar bursts, splits)");
         s[0].Leave("");
         s[1].Leave("");
+    }
+
+    // Every class ability choice works over the network.
+    static void AbilitySweep(float dt)
+    {
+        foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
+        {
+            for (int choice = 0; choice < Upgrades.RoleAbilityChoices; choice++)
+            {
+                int port = nextPort++;
+                var host = new Session { AutoStart = 2, StartWave = 3 };
+                host.Game.Bot = true;
+                host.Host(port, "Host", roles[0], 0, choice);
+                var client = new Session();
+                client.Game.Bot = true;
+                client.Join("127.0.0.1", port, "Friend", roles[1], 0, choice);
+                var s = new[] { host, client };
+                for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+                bool taunt = false, zone = false, link = false, grenade = false, marked = false;
+                int ghosts = 0, frame = 0;
+                Run(s, dt, 14, null, () =>
+                {
+                    foreach (var p in client.Game.Players.Values)
+                    {
+                        taunt |= p.TauntT > 0f;
+                        link |= p.LinkT > 0f;
+                    }
+                    zone |= client.Game.Zones.Count > 0;
+                    foreach (var b in client.Game.Bullets.Values)
+                        grenade |= b.Kind == Defs.GrenadeShot;
+                    foreach (var e in client.Game.Enemies.Values)
+                        marked |= e.Marked;
+                    if (++frame % 60 == 0)
+                    {
+                        for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                        ghosts += Ghosts(s);
+                    }
+                });
+                foreach (int id in new[] { 1, 2 })
+                {
+                    var ab = client.Game.Players[id].Slots[0].Id;
+                    bool seen = true;
+                    switch (ab)
+                    {
+                        case AbilityId.Roar: seen = taunt; break;
+                        case AbilityId.Haven: seen = zone; break;
+                        case AbilityId.SoulLink: seen = link; break;
+                        case AbilityId.Grenade: seen = grenade; break;
+                        case AbilityId.Mark: seen = marked; break;
+                    }
+                    Check(ab == Upgrades.RoleAbility(client.Game.Players[id].Role, choice) && seen && ghosts == 0,
+                        "class ability works over the network: " + Upgrades.Ability(ab).Name);
+                }
+                host.Leave("");
+                client.Leave("");
+            }
+        }
+    }
+
+    // Every legendary active at once: their extra shots, splits and turrets stay in sync.
+    static void LegendarySync(float dt)
+    {
+        var s = StartBuffed(dt, 6, 0);
+        for (int id = 0; id < Upgrades.All.Length; id++)
+            if (Upgrades.All[id].Rarity == Rarity.Legendary)
+            {
+                s[0].Game.GrantUpgrade(1, id);
+                s[0].Game.GrantUpgrade(2, id);
+            }
+        bool swarm = false;
+        int ghosts = 0, frame = 0;
+        Run(s, dt, 15, null, () =>
+        {
+            foreach (var b in s[1].Game.Bullets.Values)
+                swarm |= b.Kind == Defs.SwarmShot;
+            if (++frame % 60 == 0)
+            {
+                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                ghosts += Ghosts(s);
+            }
+        });
+        Check(swarm && ghosts == 0, "all legendary weapon effects at once stay in sync");
+        s[0].Leave(""); s[1].Leave("");
     }
 
     static Enemy Find(Session s, EnemyType t)
@@ -444,9 +542,14 @@ static class Program
             Action<int, string> Give = (id, name) =>
             {
                 var p = host.Game.Players[id];
-                if (Upgrades.Available(U(name), p.Role, p.Taken))
+                if (Upgrades.Available(U(name), p.Role, p.RoleAbility, p.Taken))
                     host.Game.GrantUpgrade(id, U(name));
             };
+            for (int k = 0; k < 20; k++)  // keep the bots alive long enough to use everything
+            {
+                host.Game.GrantUpgrade(1, U("Fortitude"));
+                host.Game.GrantUpgrade(2, U("Fortitude"));
+            }
             Give(1, "Turret");
             Give(1, "Shockwave");
             Give(2, "Nova");
@@ -520,6 +623,8 @@ static class Program
         BossRerollScenario(dt);
         WeaponSweep(dt);
         LateGameEnemies(dt);
+        AbilitySweep(dt);
+        LegendarySync(dt);
         BossMechanics(dt);
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");
 

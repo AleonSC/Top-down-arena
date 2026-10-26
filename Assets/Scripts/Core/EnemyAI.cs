@@ -133,6 +133,9 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
+                if (!p.Downed && p.TauntT > 0f)
+                    return p.Id;  // Roar: everyone goes for the roaring tank
+            foreach (var p in Players.Values)
             {
                 if (p.Downed)
                     continue;
@@ -156,6 +159,8 @@ namespace Arena
             foreach (var e in new List<Enemy>(Enemies.Values))  // copy: some enemies spawn others
             {
                 e.T += dt;
+                e.MarkT = Math.Max(0f, e.MarkT - dt);
+                e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;
@@ -326,6 +331,8 @@ namespace Arena
             }
             if (rng.NextDouble() < dt * 0.3)
                 e.Strafe = -e.Strafe;
+            if (e.SlowT > 0f && !e.Def.IsBoss)
+                speed *= e.SlowMult;
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
         }
@@ -592,8 +599,13 @@ namespace Arena
             if (bossRewarded)
                 return false;
             bossRewarded = true;
+            var bossKey = IsTwin(e.Type) ? EnemyType.TwinA : e.Type;
             foreach (var p in Players.Values)
+            {
                 p.Rerolls += BossRerolls;
+                p.LegendaryQueue.Add(bossKey);  // picked at the end of the wave
+                p.PendingLegendary = p.LegendaryQueue.Count;
+            }
             DoLog(e.Def.Name + " defeated: everyone gets " + BossRerolls + " rerolls");
             return true;
         }
