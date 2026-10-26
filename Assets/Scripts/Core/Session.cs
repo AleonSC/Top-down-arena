@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades,
+        Pick, Upgrades, Reroll, WeaponRequest,
     }
 
     public static class Proto
@@ -42,6 +42,7 @@ namespace Arena
         public int Id;
         public string Name;
         public Role Role;
+        public byte Weapon;  // index into Defs.WeaponsFor(Role)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -68,6 +69,7 @@ namespace Arena
 
         string joinName = "Player";
         int joinRole = 255;
+        int joinWeapon;
 
         public Session()
         {
@@ -82,7 +84,7 @@ namespace Arena
             return name.Length > 0 ? name : "Player";
         }
 
-        public bool Host(int port, string name, Role role)
+        public bool Host(int port, string name, Role role, int weapon = 0)
         {
             Leave("");
             try
@@ -98,13 +100,13 @@ namespace Arena
             }
             Port = port;
             MyId = 1;
-            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role };
+            Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Weapon = (byte)ClampWeapon(weapon) };
             Screen = AppScreen.Lobby;
             return true;
         }
 
         /// role: preferred role, or null to take the first one nobody has.
-        public void Join(string address, int port, string name, Role? role)
+        public void Join(string address, int port, string name, Role? role, int weapon = 0)
         {
             Leave("");
             address = (address ?? "").Trim();
@@ -121,6 +123,7 @@ namespace Arena
             Port = port;
             joinName = CleanName(name);
             joinRole = role.HasValue ? (int)role.Value : 255;
+            joinWeapon = ClampWeapon(weapon);
             Connecting = true;
             Status = "Connecting to " + address + ":" + port + "...";
         }
@@ -193,12 +196,13 @@ namespace Arena
                 {
                     string name = r.ReadString();
                     int wanted = r.ReadByte();
+                    int weapon = ClampWeapon(r.ReadByte());
                     if (Game.Running || Lobby.Count >= MaxPlayers)
                     {
                         Net.Kick(peer);
                         return;
                     }
-                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted) };
+                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Weapon = (byte)weapon };
                     var w = Proto.Begin(Msg.Welcome);
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
@@ -218,6 +222,12 @@ namespace Arena
                     break;
                 case Msg.RoleRequest:
                     SetRole(peer, r.ReadByte());
+                    break;
+                case Msg.WeaponRequest:
+                    SetWeapon(peer, r.ReadByte());
+                    break;
+                case Msg.Reroll:
+                    Game.HostReroll(peer);
                     break;
             }
         }
@@ -242,7 +252,20 @@ namespace Arena
             LobbyEntry e;
             if (role < 0 || role >= Defs.Roles.Length || !Lobby.TryGetValue(id, out e))
                 return;
+            if (e.Role != (Role)role)
+                e.Weapon = 0;  // weapons differ per role
             e.Role = (Role)role;
+            BroadcastLobby();
+        }
+
+        static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WeaponsPerRole ? weapon : 0;
+
+        void SetWeapon(int id, int weapon)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e))
+                return;
+            e.Weapon = (byte)ClampWeapon(weapon);
             BroadcastLobby();
         }
 
@@ -255,6 +278,7 @@ namespace Arena
                 w.Write(e.Id);
                 w.Write(e.Name);
                 w.Write((byte)e.Role);
+                w.Write(e.Weapon);
             }
             Broadcast(Proto.End(w));
         }
@@ -272,6 +296,20 @@ namespace Arena
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
             Game.Stop();
             Screen = AppScreen.Lobby;
+        }
+
+        public void RequestWeapon(int weapon)
+        {
+            if (IsHost)
+            {
+                SetWeapon(1, weapon);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.WeaponRequest);
+                w.Write((byte)weapon);
+                SendToHost(Proto.End(w));
+            }
         }
 
         public void RequestRole(Role role)
@@ -301,6 +339,7 @@ namespace Arena
                     var w = Proto.Begin(Msg.Hello);
                     w.Write(joinName);
                     w.Write((byte)joinRole);
+                    w.Write((byte)joinWeapon);
                     SendToHost(Proto.End(w));
                     break;
                 }
@@ -331,7 +370,7 @@ namespace Arena
                     int n = r.ReadByte();
                     for (int i = 0; i < n; i++)
                     {
-                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte() };
+                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Weapon = r.ReadByte() };
                         Lobby[e.Id] = e;
                     }
                     if (!Game.Running)

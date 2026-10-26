@@ -21,6 +21,9 @@ namespace Arena
         string portText = Session.DefaultPort.ToString();
         Role hostRole = Role.Tank;
         Role? joinRole;
+        int weaponChoice;
+        int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
+        string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
         SoundBank sounds;
 
@@ -97,6 +100,9 @@ namespace Arena
                         hostRole = (Role)i;
                 joinRole = hostRole;
             }
+            int weapon;
+            if (opts.TryGetValue("weapon", out v) && int.TryParse(v, out weapon))
+                weaponChoice = Mathf.Clamp(weapon - 1, 0, Defs.WeaponsPerRole - 1);
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
@@ -105,7 +111,7 @@ namespace Arena
             else if (opts.TryGetValue("join", out v))
             {
                 addressText = v;
-                session.Join(addressText, Port(), nameText, joinRole);
+                session.Join(addressText, Port(), nameText, joinRole, weaponChoice);
             }
         }
 
@@ -117,7 +123,7 @@ namespace Arena
 
         void HostGame()
         {
-            if (session.Host(Port(), nameText, hostRole))
+            if (session.Host(Port(), nameText, hostRole, weaponChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 
@@ -152,9 +158,12 @@ namespace Arena
 
             if (choosing)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1)) game.PickUpgrade(0);
-                else if (Input.GetKeyDown(KeyCode.Alpha2)) game.PickUpgrade(1);
-                else if (Input.GetKeyDown(KeyCode.Alpha3)) game.PickUpgrade(2);
+                SyncSelection(me);
+                if (Input.GetKeyDown(KeyCode.Alpha1)) selectedCard = 0;
+                else if (Input.GetKeyDown(KeyCode.Alpha2)) selectedCard = 1;
+                else if (Input.GetKeyDown(KeyCode.Alpha3)) selectedCard = 2;
+                else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
+                else if (Input.GetKeyDown(KeyCode.R)) game.RerollOffer();
             }
 
             if (session.Screen == AppScreen.Game)
@@ -187,6 +196,25 @@ namespace Arena
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
             game.FixedStep(Time.fixedDeltaTime, input);
+        }
+
+        /// Forget the highlighted card whenever a new set of cards is shown.
+        void SyncSelection(Player me)
+        {
+            string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count;
+            if (key != shownOffer)
+            {
+                shownOffer = key;
+                selectedCard = -1;
+            }
+        }
+
+        void ConfirmPick()
+        {
+            if (selectedCard < 0 || game.RerollPending)
+                return;
+            game.PickUpgrade(selectedCard);
+            selectedCard = -1;
         }
 
         static float Axis(KeyCode a, KeyCode b) => Input.GetKey(a) || Input.GetKey(b) ? 1f : 0f;
@@ -264,8 +292,13 @@ namespace Arena
             }
 
             foreach (var b in game.Bullets.Values)
-                if (b.Kind < Defs.SmallShot)
-                    Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
+            {
+                if (b.Kind >= Defs.SmallShot)
+                    continue;
+                if (b.Kind == Defs.RailShot)
+                    Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
+                Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
+            }
 
             foreach (var tur in game.Turrets.Values)
             {
@@ -511,7 +544,7 @@ namespace Arena
                 if (GUILayout.Button("Host game", buttonStyle))
                     HostGame();
                 if (GUILayout.Button("Join game", buttonStyle))
-                    session.Join(addressText, Port(), nameText, joinRole);
+                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice);
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(8);
@@ -519,13 +552,13 @@ namespace Arena
             status.normal.textColor = new Color(1f, 0.75f, 0.4f);
             GUILayout.Label(session.Status, status);
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E bonus abilities · 1-3 pick upgrade · M mute · Esc leave", smallStyle);
+            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc leave", smallStyle);
             GUILayout.EndArea();
         }
 
         void DrawLobby()
         {
-            GUILayout.BeginArea(new Rect(W / 2f - 300f, 70f, 600f, 600f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(W / 2f - 320f, 30f, 640f, 660f), GUI.skin.box);
             GUILayout.Space(10);
             GUILayout.Label("LOBBY", titleStyle);
             GUILayout.Space(6);
@@ -545,7 +578,7 @@ namespace Arena
                 if (e.Id == session.MyId) tags.Add("you");
                 var style = new GUIStyle(labelStyle) { fontSize = 18 };
                 style.normal.textColor = ToColor(Defs.Get(e.Role).Color);
-                GUILayout.Label("• " + e.Name + " — " + Defs.Get(e.Role).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
+                GUILayout.Label("• " + e.Name + " — " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Weapon).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
             }
             if (session.Lobby.Count < Session.MaxPlayers)
                 GUILayout.Label("• waiting for a friend to join…", labelStyle);
@@ -566,11 +599,30 @@ namespace Arena
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
                     joinRole = (Role)i;
+                    weaponChoice = 0;
                 }
             }
             GUILayout.EndHorizontal();
             if (me != null)
-                GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(60));
+            {
+                GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(52));
+                GUILayout.Space(6);
+                GUILayout.Label("Pick your weapon:", smallStyle);
+                GUILayout.BeginHorizontal();
+                for (int i = 0; i < Defs.WeaponsPerRole; i++)
+                {
+                    var wd = Defs.Weapon(me.Role, i);
+                    bool selected = me.Weapon == i;
+                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
+                    if (GUILayout.Button(selected ? "[ " + wd.Name + " ]" : wd.Name, style))
+                    {
+                        session.RequestWeapon(i);
+                        weaponChoice = i;
+                    }
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label(Defs.Weapon(me.Role, me.Weapon).Desc, smallStyle);
+            }
 
             GUILayout.FlexibleSpace();
             GUILayout.BeginHorizontal();
@@ -689,6 +741,7 @@ namespace Arena
 
         void DrawUpgradePicker(Player me)
         {
+            SyncSelection(me);
             Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
             Label(new Rect(0, 110, W, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
             if (me.PendingPicks > 1)
@@ -702,8 +755,9 @@ namespace Arena
                 var r = new Rect(x0 + i * (cardW + gap), 200f, cardW, cardH);
                 Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
                 bool hover = r.Contains(Event.current.mousePosition);
-                Box(r, hover ? new Color(0.13f, 0.14f, 0.2f, 0.97f) : new Color(0.08f, 0.09f, 0.13f, 0.95f));
-                float bw = hover ? 4f : 2f;
+                bool selected = selectedCard == i;
+                Box(r, selected ? new Color(0.17f, 0.18f, 0.26f, 0.98f) : hover ? new Color(0.13f, 0.14f, 0.2f, 0.97f) : new Color(0.08f, 0.09f, 0.13f, 0.95f));
+                float bw = selected ? 6f : hover ? 4f : 2f;
                 Box(new Rect(r.x, r.y, r.width, bw), rc);
                 Box(new Rect(r.x, r.yMax - bw, r.width, bw), rc);
                 Box(new Rect(r.x, r.y, bw, r.height), rc);
@@ -725,10 +779,25 @@ namespace Arena
                         note = "You have " + have;
                 }
                 Label(new Rect(r.x, r.yMax - 52, r.width, 18), note, 12, new Color(1, 1, 1, 0.5f), TextAnchor.MiddleCenter);
-                Label(new Rect(r.x, r.yMax - 28, r.width, 18), "[" + (i + 1) + "]", 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
+                Label(new Rect(r.x, r.yMax - 28, r.width, 18), selected ? "SELECTED" : "[" + (i + 1) + "]", 14,
+                    selected ? rc : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
                 if (GUI.Button(r, GUIContent.none, GUIStyle.none))
-                    game.PickUpgrade(i);
+                    selectedCard = i;
             }
+
+            // Confirm and reroll buttons under the cards.
+            const float btnW = 220f;
+            float by = 200f + cardH + 24f;
+            bool wasEnabled = GUI.enabled;
+            GUI.enabled = selectedCard >= 0 && !game.RerollPending;
+            string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
+            if (GUI.Button(new Rect(W / 2f - btnW - 10f, by, btnW, 40f), confirmText, buttonStyle))
+                ConfirmPick();
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending;
+            if (GUI.Button(new Rect(W / 2f + 10f, by, btnW, 40f), "Reroll (" + me.Rerolls + " left)  [R]", buttonStyle))
+                game.RerollOffer();
+            GUI.enabled = wasEnabled;
+            Label(new Rect(0, by + 46f, W, 18), "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

@@ -25,13 +25,32 @@ press Play, so there are no scenes or prefabs to wire together.
 | **Healer** | 120 | Single bolt | **Mend Pulse** (10 s): heals everyone nearby for 60 and instantly revives downed allies in range. Passive aura slowly heals an ally standing close. |
 | **DPS** | 95 | Fast twin-stream rifle | **Dash** (3.5 s): quick dash with brief invulnerability. |
 
-Both players can pick the same role if you want.
+Both players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
+
+### Weapons
+
+Each role picks one of three starting weapons in the lobby. Damage, fire rate, Multishot and Piercing
+upgrades work with all of them.
+
+| Role | Weapon | |
+|---|---|---|
+| Tank | **Scattergun** | Short-range spread of 5 pellets |
+| | **Flak Cannon** | Slow, heavy shells that explode on impact |
+| | **Riot Repeater** | Steady single shots with a little spread |
+| Healer | **Light Bolt** | Accurate long-range bolts |
+| | **Twin Wisps** | Two curving shots that cross in front of you |
+| | **Mender's Bow** | Bolts heal your ally when they pass through them |
+| DPS | **Twin Rifle** | Fast parallel twin stream |
+| | **Railgun** | Slow, devastating shots that pierce 3 enemies |
+| | **Burst SMG** | Sprays very fast, inaccurate shots |
 
 ## Levels and upgrades
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
-the wave is cleared, each player picks one of **3 upgrades per level gained**. The next wave waits until
-both players have chosen.
+the wave is cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to
+select a card, then **Confirm** (or Enter). Don't like the cards? **Reroll** (or R) for a fresh set. You
+start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until both players
+have chosen.
 
 | Rarity | Color | What you get |
 |---|---|---|
@@ -59,7 +78,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 | Shoot | Hold left click |
 | Role ability | Space or right click |
 | Bonus abilities | Q and E (once unlocked) |
-| Pick an upgrade | Click a card, or press 1 / 2 / 3 |
+| Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
+| Reroll upgrades | Reroll button or R |
 | Mute sound | M |
 | Leave | Esc |
 | After game over (host) | R = play again, L = back to lobby |
@@ -94,7 +114,7 @@ TopDownArena.exe --host --role=tank --autostart=2     # host and auto-start when
 TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
-Also: `--name=X`, `--port=N`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
+Also: `--name=X`, `--port=N`, `--weapon=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).

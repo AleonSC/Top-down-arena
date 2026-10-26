@@ -27,6 +27,7 @@ namespace Arena
         public int Id;
         public Role Role;
         public RoleDef Def;
+        public WeaponDef Weapon;
         public string Name;
         public V2 Pos, Disp;
         public float Aim;
@@ -35,7 +36,7 @@ namespace Arena
         public bool Downed;
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
 
-        public int Level = 1, PendingPicks;
+        public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
         public float Xp;
         public int[] Offer;  // three upgrade ids while choosing, otherwise null
         public readonly List<int> Taken = new List<int>();
@@ -67,6 +68,8 @@ namespace Arena
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
         public int Owner, Pierce, LastHit;
+        public float Splash;      // host only: explosion radius on impact
+        public float HealAlly;    // host only: heals an ally it passes through
     }
 
     public class Turret
@@ -108,6 +111,9 @@ namespace Arena
         public const float Width = 1280f, Height = 720f;
 
         const int SnapshotEvery = 3;  // ticks
+        public const int StartingRerolls = 2;
+        const int BossRerolls = 2;
+        const float PassiveRegen = 0.5f;  // HP per second for everyone
         const float StartDelay = 3f;
         const float IntermissionTime = 4f;
         const float ContactDamage = 15f;
@@ -148,8 +154,13 @@ namespace Arena
         public V2 DashDir = new V2(1f, 0f);
         readonly bool[] abilityWasDown = new bool[Upgrades.SlotCount];
         bool awaitingPick;  // client sent a pick; ignore offers until the host confirms it
+        int rerollsAtRequest = -1;  // client sent a reroll; block picks until new cards arrive
+
+        public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
+        public bool BotRerolls = true;
+        int botRerolledAt = -1;
         public Action<string> Log;
         float botT;
 
@@ -200,6 +211,7 @@ namespace Arena
                 w.Write(e.Id);
                 w.Write(e.Name);
                 w.Write((byte)e.Role);
+                w.Write(e.Weapon);
             }
             var msg = Proto.End(w);
             session.Broadcast(msg);
@@ -218,8 +230,10 @@ namespace Arena
                 int id = r.ReadInt32();
                 string name = r.ReadString();
                 var role = (Role)r.ReadByte();
+                int weapon = r.ReadByte();
                 var def = Defs.Get(role);
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
+                p.Weapon = Defs.Weapon(role, weapon < Defs.WeaponsPerRole ? weapon : 0);
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
@@ -260,6 +274,7 @@ namespace Arena
             nextTurretId = 1;
             DashT = 0f;
             awaitingPick = false;
+            rerollsAtRequest = -1;
             tick = 0;
         }
 
@@ -371,7 +386,7 @@ namespace Arena
         public void PickUpgrade(int index)
         {
             var me = Me;
-            if (me == null || me.Offer == null || index < 0 || index >= me.Offer.Length)
+            if (me == null || me.Offer == null || index < 0 || index >= me.Offer.Length || RerollPending)
                 return;
             Sounds.Add(Sfx.Pick);
             if (IsHost)
@@ -386,6 +401,35 @@ namespace Arena
                 me.Offer = null;  // hide the cards until the host confirms
                 awaitingPick = true;
             }
+        }
+
+        /// Called by the front end when the local player rerolls their cards.
+        public void RerollOffer()
+        {
+            var me = Me;
+            if (me == null || me.Offer == null || me.Rerolls <= 0 || RerollPending)
+                return;
+            Sounds.Add(Sfx.Pick);
+            if (IsHost)
+            {
+                HostReroll(MyId);
+            }
+            else
+            {
+                rerollsAtRequest = me.Rerolls;
+                session.SendToHost(Proto.End(Proto.Begin(Msg.Reroll)));
+            }
+        }
+
+        public void HostReroll(int id)
+        {
+            Player p;
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.Rerolls <= 0 || State != MatchState.Intermission)
+                return;
+            p.Rerolls--;
+            p.Offer = Upgrades.RollOffer(rng, p.Role, p.Taken, p.Level);
+            DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
+            SendSnapshot();
         }
 
         public void OnPick(int peer, BinaryReader r)
@@ -540,7 +584,16 @@ namespace Arena
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
                 if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
-                    PickUpgrade(rng.Next(me.Offer.Length));
+                {
+                    // Reroll once per pick while rerolls last, then pick at random.
+                    if (BotRerolls && me.Rerolls > 0 && botRerolledAt != me.Taken.Count)
+                    {
+                        botRerolledAt = me.Taken.Count;
+                        RerollOffer();
+                    }
+                    else
+                        PickUpgrade(rng.Next(me.Offer.Length));
+                }
             }
 
             if (me.Downed)
@@ -684,11 +737,10 @@ namespace Arena
                     continue;
                 if (p.Firing && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
-                    p.FireCd = p.Def.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f);
+                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f);
                     FirePlayer(p);
                 }
-                if (p.Stats.Regen > 0f)
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + p.Stats.Regen * dt);
+                p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
                 if (p.Role == Role.Healer)
                 {
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
@@ -727,19 +779,39 @@ namespace Arena
                 float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
                 V2 dir = V2.FromAngle(aim);
                 V2 muzzle = p.Pos + dir * p.Def.BodyR;
-                switch (p.Role)
+                switch (p.Weapon.Id)
                 {
-                    case Role.Tank:
+                    case WeaponId.Scattergun:
                         for (int i = 0; i < 5; i++)
                             SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i - 2) * 0.13f) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
                         break;
-                    case Role.Healer:
+                    case WeaponId.FlakCannon:
+                        SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id).Splash = 70f;
+                        break;
+                    case WeaponId.RiotRepeater:
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
+                        break;
+                    case WeaponId.LightBolt:
                         SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
                         break;
-                    case Role.Dps:
+                    case WeaponId.TwinWisps:
+                        // Start angled outward and curve back in, crossing about 200 px ahead.
+                        SpawnBullet(Defs.WispShot, muzzle, V2.FromAngle(aim - 0.45f) * 420f, 1.9f, 0.9f, 10f * dmg, p.Id);
+                        SpawnBullet(Defs.WispShot, muzzle, V2.FromAngle(aim + 0.45f) * 420f, -1.9f, 0.9f, 10f * dmg, p.Id);
+                        break;
+                    case WeaponId.MendersBow:
+                        SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;
+                        break;
+                    case WeaponId.TwinRifle:
                         V2 side = dir.Orthogonal() * 5f;
                         SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
                         SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                        break;
+                    case WeaponId.Railgun:
+                        SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id).Pierce += 3;
+                        break;
+                    case WeaponId.BurstSmg:
+                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-0.16f, 0.16f)) * 760f, 0f, 0.8f, 5f * dmg, p.Id);
                         break;
                 }
             }
@@ -1167,7 +1239,7 @@ namespace Arena
             SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0);
         }
 
-        void SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner)
+        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner)
         {
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life);
             b.Dmg = dmg;
@@ -1175,6 +1247,7 @@ namespace Arena
             if (owner != 0 && Players.TryGetValue(owner, out p))
                 b.Pierce = p.Stats.Pierce;
             pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life });
+            return b;
         }
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life)
@@ -1203,13 +1276,34 @@ namespace Arena
                 Bullets.Remove(id);
         }
 
+        readonly List<Bullet> splashes = new List<Bullet>();
+
+        bool HealAllyHit(Bullet b)
+        {
+            foreach (var p in Players.Values)
+            {
+                float r = p.Def.BodyR + b.Radius;
+                if (p.Id == b.Owner || p.Downed || p.Hp >= p.MaxHp || b.Pos.DistanceSq(p.Pos) >= r * r)
+                    continue;
+                p.Hp = Math.Min(p.MaxHp, p.Hp + b.HealAlly * (b.Dmg / 9f));
+                return true;
+            }
+            return false;
+        }
+
         void Collide()
         {
             scratchIds.Clear();
+            splashes.Clear();
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind < Defs.SmallShot)
                 {
+                    if (b.HealAlly > 0f && HealAllyHit(b))
+                    {
+                        scratchIds.Add(b.Id);
+                        continue;
+                    }
                     foreach (var e in Enemies.Values)
                     {
                         if (e.SpawnT > 0f || e.Hp <= 0f || e.Id == b.LastHit)
@@ -1220,6 +1314,8 @@ namespace Arena
                             e.Hp -= b.Dmg;
                             e.Flash = 0.06f;
                             b.LastHit = e.Id;
+                            if (b.Splash > 0f)
+                                splashes.Add(b);
                             if (b.Pierce > 0)
                                 b.Pierce--;
                             else
@@ -1263,12 +1359,31 @@ namespace Arena
                 pendingRemoved.Add(id);
             }
 
+            // Flak shells hurt everything near the impact, at 60% damage.
+            foreach (var b in splashes)
+            {
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.DistanceTo(b.Pos) > b.Splash + e.Radius)
+                        continue;
+                    e.Hp -= b.Dmg * 0.6f;
+                    e.Flash = 0.06f;
+                }
+                BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, Sfx.Explode);
+            }
+
             var dead = new List<Enemy>();
             foreach (var e in Enemies.Values)
                 if (e.Hp <= 0f)
                     dead.Add(e);
             foreach (var e in dead)
             {
+                if (e.Type == EnemyType.Boss)
+                {
+                    foreach (var p in Players.Values)
+                        p.Rerolls += BossRerolls;
+                    DoLog("boss killed: everyone gets " + BossRerolls + " rerolls");
+                }
                 Score += e.Score;
                 GrantXp(e.Def.Xp);
                 DeathFx(e, e.Pos);
@@ -1336,6 +1451,7 @@ namespace Arena
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
                 w.Write((byte)p.PendingPicks);
+                w.Write((short)p.Rerolls);
                 for (int i = 0; i < 3; i++)
                     w.Write((byte)(p.Offer != null ? p.Offer[i] : 255));
                 foreach (var s in p.Slots)
@@ -1461,6 +1577,7 @@ namespace Arena
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
+                int rerolls = r.ReadInt16();
                 var offer = new int[3];
                 for (int k = 0; k < 3; k++)
                     offer[k] = r.ReadByte();
@@ -1497,6 +1614,9 @@ namespace Arena
                 p.Level = level;
                 p.Xp = xp;
                 p.PendingPicks = pending;
+                p.Rerolls = rerolls;
+                if (id == MyId && RerollPending && (rerolls < rerollsAtRequest || offer[0] == 255))
+                    rerollsAtRequest = -1;
                 p.Offer = offer[0] == 255 || (id == MyId && awaitingPick) ? null : offer;
             }
 

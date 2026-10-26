@@ -55,6 +55,90 @@ static class Program
         Check(ok, "offers are 3 distinct, eligible upgrades; at most 2 new abilities");
     }
 
+    // Start at the boss wave with boosted damage so the bots kill the boss,
+    // then check everyone got the bonus rerolls.
+    static void BossRerollScenario(float dt)
+    {
+        var host = new Session { AutoStart = 2, StartWave = 5 };
+        host.Game.Bot = true;
+        host.Game.BotRerolls = false;
+        Check(host.Host(7791, "Host", Role.Dps, 1), "boss scenario: host listens");
+        var client = new Session();
+        client.Game.Bot = true;
+        client.Game.BotRerolls = false;
+        client.Join("127.0.0.1", 7791, "Friend", Role.Dps, 2);
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        int hollow = Array.FindIndex(Upgrades.All, u => u.Name == "Hollow Points");
+        for (int k = 0; k < 25; k++)
+        {
+            host.Game.GrantUpgrade(1, hollow);
+            host.Game.GrantUpgrade(2, hollow);
+        }
+        bool bossSeen = false, bossDead = false;
+        for (int i = 0; i < 60 * 60 && !bossDead; i++)
+        {
+            Step(host, dt);
+            Step(client, dt);
+            if (i % 2 == 0)
+                Thread.Sleep(1);
+            bool bossAlive = false;
+            foreach (var e in host.Game.Enemies.Values)
+                bossAlive |= e.Type == EnemyType.Boss;
+            bossSeen |= bossAlive;
+            bossDead = bossSeen && !bossAlive;
+            if (host.Game.State == MatchState.GameOver)
+                break;
+        }
+        for (int i = 0; i < 20; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        Console.WriteLine("  boss dead: {0}, rerolls host {1}/{2}, client sees {3}/{4}", bossDead, host.Game.Players[1].Rerolls, host.Game.Players[2].Rerolls,
+            client.Game.Players[1].Rerolls, client.Game.Players[2].Rerolls);
+        Check(bossDead && host.Game.Players[1].Rerolls == 4 && client.Game.Players[2].Rerolls == 4, "boss kill gives everyone +2 rerolls");
+        host.Leave("");
+        client.Leave("");
+    }
+
+    // Every weapon fires and the client's bullets match the host's.
+    static void WeaponSweep(float dt)
+    {
+        int port = 7792;
+        foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
+        {
+            for (int w = 0; w < Defs.WeaponsPerRole; w++)
+            {
+                var host = new Session { AutoStart = 2, StartWave = 2 };
+                host.Game.Bot = true;
+                host.Host(port, "Host", roles[0], w);
+                var client = new Session();
+                client.Game.Bot = true;
+                client.Join("127.0.0.1", port, "Friend", roles[1], w);
+                port++;
+                for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+                int ghosts = 0, fired = 0;
+                for (int i = 0; i < 60 * 10; i++)
+                {
+                    Step(host, dt);
+                    Step(client, dt);
+                    if (i % 2 == 0)
+                        Thread.Sleep(1);
+                    foreach (var b in host.Game.Bullets.Values)
+                        if (b.Kind < Defs.SmallShot)
+                            fired++;
+                    if (i % 30 == 0)
+                    {
+                        for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                        foreach (var b in client.Game.Bullets.Values)
+                            if (!host.Game.Bullets.ContainsKey(b.Id))
+                                ghosts++;
+                    }
+                }
+                string names = Defs.Weapon(roles[0], w).Name + " + " + Defs.Weapon(roles[1], w).Name;
+                Check(fired > 0 && ghosts == 0, "weapons fire and stay in sync: " + names);
+                host.Leave("");
+                client.Leave("");
+            }
+        }
+    }
+
     static int Main(string[] args)
     {
         int startWave = args.Length > 0 ? int.Parse(args[0]) : 1;
@@ -67,12 +151,12 @@ static class Program
         var host = new Session { AutoStart = 2, StartWave = startWave };
         host.Game.Bot = true;
         host.Game.Log = Console.WriteLine;
-        Check(host.Host(port, "Host", Role.Tank), "host listens");
+        Check(host.Host(port, "Host", Role.Tank, 1), "host listens");
 
         var client = new Session();
         client.Game.Bot = true;
         client.Game.Log = Console.WriteLine;
-        client.Join("127.0.0.1", port, "Friend", Role.Healer);
+        client.Join("127.0.0.1", port, "Friend", Role.Healer, 2);
 
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++)
         {
@@ -83,6 +167,8 @@ static class Program
         Check(client.MyId == 2, "client got id 2");
         Check(host.Screen == AppScreen.Game && client.Screen == AppScreen.Game, "both in game after autostart");
         Check(client.Game.Players.Count == 2 && client.Game.Players[2].Role == Role.Healer, "client sees both players with chosen roles");
+        Check(client.Game.Players[1].Weapon.Id == WeaponId.FlakCannon && host.Game.Players[2].Weapon.Id == WeaponId.MendersBow,
+            "chosen weapons reach both sides (Flak Cannon, Mender's Bow)");
 
         // A third player must be turned away.
         var extra = new Session();
@@ -162,6 +248,15 @@ static class Program
             Console.WriteLine("  {0} level {1}: {2} | slots {3}", hp.Role, hp.Level, string.Join(", ", names), string.Join(" ", slots));
         }
         Check(sameUpgrades, "host and client agree on levels and picked upgrades");
+        bool sameRerolls = true;
+        int rerollsUsed = 0;
+        foreach (var hp in host.Game.Players.Values)
+        {
+            sameRerolls &= hp.Rerolls == client.Game.Players[hp.Id].Rerolls;
+            rerollsUsed += Game.StartingRerolls - hp.Rerolls;
+        }
+        Console.WriteLine("  rerolls used: {0}", rerollsUsed);
+        Check(sameRerolls && rerollsUsed > 0, "rerolls get used and stay in sync");
         Check(host.Game.Players[1].Level > 1, "players levelled up");
         Check(mismatches == 0, "client stays in sync (" + mismatches + "/" + samples + " samples off)");
 
@@ -226,16 +321,22 @@ static class Program
 
         client.RequestRole(Role.Dps);
         for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        client.RequestWeapon(1);
+        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         Check(host.Lobby[2].Role == Role.Dps && client.Lobby[2].Role == Role.Dps, "role change reaches host and client");
 
         host.StartMatch();
         for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         Check(client.Screen == AppScreen.Game && client.Game.Players[2].Role == Role.Dps, "second match starts with new role");
+        Check(host.Game.Players[2].Weapon.Id == WeaponId.Railgun, "weapon change in lobby applies (Railgun)");
 
         // Host quits: the client should drop back to the menu with a message.
         host.Leave("");
         for (int i = 0; i < 60 && client.Screen != AppScreen.Menu; i++) { client.Poll(); Thread.Sleep(5); }
         Check(client.Screen == AppScreen.Menu && client.Status.Length > 0, "client notices host leaving");
+
+        BossRerollScenario(dt);
+        WeaponSweep(dt);
 
         Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
         return failures == 0 ? 0 : 1;
