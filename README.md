@@ -27,6 +27,22 @@ press Play, so there are no scenes or prefabs to wire together.
 
 Both players can pick the same role if you want.
 
+## Levels and upgrades
+
+Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
+the wave is cleared, each player picks one of **3 upgrades per level gained**. The next wave waits until
+both players have chosen.
+
+| Rarity | Color | What you get |
+|---|---|---|
+| **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
+| **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
+| **Rare** | blue | Ability upgrades: **two charges** for your Barrier / Mend Pulse / Dash, bigger and longer Barrier, stronger Mend Pulse, wider aura, longer Dash invulnerability; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E) |
+| **Very rare** | purple | A brand-new ability in your **Q** slot (then **E**): Shockwave, Overdrive, Blink, Nova or Turret |
+
+Rarer cards show up a bit more often as you level. All the numbers live in
+`Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
+
 ## Rules
 
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
@@ -41,7 +57,10 @@ Both players can pick the same role if you want.
 | Move | WASD / arrow keys |
 | Aim | Mouse |
 | Shoot | Hold left click |
-| Ability | Space or right click |
+| Role ability | Space or right click |
+| Bonus abilities | Q and E (once unlocked) |
+| Pick an upgrade | Click a card, or press 1 / 2 / 3 |
+| Mute sound | M |
 | Leave | Esc |
 | After game over (host) | R = play again, L = back to lobby |
 
@@ -84,8 +103,10 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
 
 - `Assets/Scripts/Core/`: plain C# with no Unity dependency
   - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
+  - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport
 - `Assets/Scripts/Game/ArenaApp.cs`: the Unity side: input, drawing (GL), menus and HUD (IMGUI)
+- `Assets/Scripts/Game/SoundBank.cs`: sound effects, synthesized in code (no audio files)
 - `Assets/Editor/ArenaEditor.cs`: creates the scene and the **Arena** build menu

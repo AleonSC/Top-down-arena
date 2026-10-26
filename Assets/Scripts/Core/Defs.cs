@@ -14,7 +14,7 @@ namespace Arena
     public class EnemyDef
     {
         public float Hp, Radius, Speed;
-        public int Score, Sides;
+        public int Score, Sides, Xp;
         public Rgba Color;
     }
 
@@ -48,18 +48,21 @@ namespace Arena
 
         public static readonly EnemyDef[] Enemies =
         {
-            new EnemyDef { Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f) },
-            new EnemyDef { Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f) },
-            new EnemyDef { Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f) },
-            new EnemyDef { Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f) },
-            new EnemyDef { Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f) },
+            new EnemyDef { Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f) },
+            new EnemyDef { Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f) },
+            new EnemyDef { Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f) },
+            new EnemyDef { Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f) },
+            new EnemyDef { Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f) },
         };
+
+        /// XP needed to go from this level to the next.
+        public static float XpToNext(int level) => 50f + 30f * (level - 1);
 
         public static RoleDef Get(Role r) => Roles[(int)r];
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, SmallShot = 10, BigShot = 11, FastShot = 12;
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, SmallShot = 10, BigShot = 11, FastShot = 12;
 
         public static float BulletRadius(byte kind)
         {
@@ -68,6 +71,8 @@ namespace Arena
                 case TankShot: return 5f;
                 case HealerShot: return 4.5f;
                 case DpsShot: return 3.5f;
+                case TurretShot: return 4f;
+                case NovaShot: return 6f;
                 case BigShot: return 10f;
                 case FastShot: return 4.5f;
                 default: return 6f;
@@ -91,6 +96,8 @@ namespace Arena
                 case TankShot: return new Rgba(0.5f, 0.75f, 1f);
                 case HealerShot: return new Rgba(0.5f, 1f, 0.65f);
                 case DpsShot: return new Rgba(1f, 0.7f, 0.35f);
+                case TurretShot: return new Rgba(0.6f, 0.95f, 1f);
+                case NovaShot: return new Rgba(0.95f, 0.8f, 1f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);
                 default: return new Rgba(1f, 0.3f, 0.45f);

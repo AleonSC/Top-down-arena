@@ -21,7 +21,8 @@ namespace Arena
         string portText = Session.DefaultPort.ToString();
         Role hostRole = Role.Tank;
         Role? joinRole;
-        bool wantAbility;
+        readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
+        SoundBank sounds;
 
         Material glMaterial;
         float scale = 1f, offX, offY;  // arena -> screen pixels (top-left origin)
@@ -51,6 +52,8 @@ namespace Arena
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.02f, 0.02f, 0.03f);
             cam.orthographic = true;
+            if (FindFirstObjectByType<AudioListener>() == null)
+                cam.gameObject.AddComponent<AudioListener>();
             cam.gameObject.AddComponent<ArenaApp>();
             DontDestroyOnLoad(cam.gameObject);
         }
@@ -64,6 +67,7 @@ namespace Arena
             session = new Session();
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
+            sounds = new SoundBank(gameObject);
             ParseCommandLine();
         }
 
@@ -128,12 +132,30 @@ namespace Arena
         {
             session.Poll();
             game.Update(Time.deltaTime);
+            foreach (var sfx in game.Sounds)
+                sounds.Play(sfx, Time.unscaledTime);
+            game.Sounds.Clear();
             UpdateLayout();
-            Cursor.visible = session.Screen != AppScreen.Game;
+            var me = game.Me;
+            bool choosing = me != null && me.Offer != null;
+            Cursor.visible = session.Screen != AppScreen.Game || choosing;
 
             // Remember ability presses between fixed steps so quick taps aren't lost.
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1))
-                wantAbility = true;
+                wantAbility[0] = true;
+            if (Input.GetKeyDown(KeyCode.Q))
+                wantAbility[1] = true;
+            if (Input.GetKeyDown(KeyCode.E))
+                wantAbility[2] = true;
+            if (Input.GetKeyDown(KeyCode.M))
+                sounds.Muted = !sounds.Muted;
+
+            if (choosing)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1)) game.PickUpgrade(0);
+                else if (Input.GetKeyDown(KeyCode.Alpha2)) game.PickUpgrade(1);
+                else if (Input.GetKeyDown(KeyCode.Alpha3)) game.PickUpgrade(2);
+            }
 
             if (session.Screen == AppScreen.Game)
             {
@@ -158,9 +180,12 @@ namespace Arena
                               Axis(KeyCode.S, KeyCode.DownArrow) - Axis(KeyCode.W, KeyCode.UpArrow)).Normalized(),
                 AimAt = MouseArena(),
                 Fire = Input.GetMouseButton(0),
-                Ability = wantAbility || Input.GetKey(KeyCode.Space) || Input.GetMouseButton(1),
+                Ability = wantAbility[0] || Input.GetKey(KeyCode.Space) || Input.GetMouseButton(1),
+                AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
+                AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
             };
-            wantAbility = false;
+            for (int i = 0; i < wantAbility.Length; i++)
+                wantAbility[i] = false;
             game.FixedStep(Time.fixedDeltaTime, input);
         }
 
@@ -225,21 +250,30 @@ namespace Arena
                     continue;
                 if (p.Role == Role.Healer)
                 {
-                    Circle(p.Disp, Game.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
-                    Arc(p.Disp, Game.AuraRange, 2f, new Rgba(0.3f, 1f, 0.5f, 0.18f), 64);
+                    Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
+                    Arc(p.Disp, p.AuraRange, 2f, new Rgba(0.3f, 1f, 0.5f, 0.18f), 64);
                 }
                 if (p.BarrierT > 0f)
                 {
                     float a = p.BarrierT > 1f || MathX.Fmod(t, 0.2f) < 0.1f ? 0.7f : 0.25f;
-                    Circle(p.Disp, Game.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.12f), 64);
-                    Arc(p.Disp, Game.BarrierRadius, 3f, new Rgba(0.5f, 0.8f, 1f, a), 64);
+                    Circle(p.Disp, p.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.12f), 64);
+                    Arc(p.Disp, p.BarrierRadius, 3f, new Rgba(0.5f, 0.8f, 1f, a), 64);
                 }
+                if (p.OverdriveT > 0f)
+                    Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
             }
 
             foreach (var b in game.Bullets.Values)
                 if (b.Kind < Defs.SmallShot)
                     Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
 
+            foreach (var tur in game.Turrets.Values)
+            {
+                var c = new Rgba(0.6f, 0.95f, 1f);
+                Polygon(tur.Pos, 13f, 6, 0f, c);
+                Line(tur.Pos, tur.Pos + V2.FromAngle(tur.Aim) * 20f, 5f, c);
+                Arc(tur.Pos, 18f, 2f, c.WithAlpha(0.5f), 32, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(tur.T / 10f));
+            }
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)
@@ -485,7 +519,7 @@ namespace Arena
             status.normal.textColor = new Color(1f, 0.75f, 0.4f);
             GUILayout.Label(session.Status, status);
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Esc leave", smallStyle);
+            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E bonus abilities · 1-3 pick upgrade · M mute · Esc leave", smallStyle);
             GUILayout.EndArea();
         }
 
@@ -548,32 +582,28 @@ namespace Arena
             GUILayout.EndArea();
         }
 
+        static readonly string[] SlotKeys = { "SPACE", "Q", "E" };
+
         void DrawHud()
         {
             var white = new Color(1f, 1f, 1f, 0.9f);
+            var dim = new Color(1f, 1f, 1f, 0.7f);
+            var me = game.Me;
             Label(new Rect(20, 10, 400, 34), "WAVE " + game.Wave, 26, white, TextAnchor.UpperLeft, true);
-            Label(new Rect(20, 44, 400, 20), "Enemies left: " + game.Remaining + "    Score: " + game.Score, 14, new Color(1, 1, 1, 0.7f), TextAnchor.UpperLeft);
+            Label(new Rect(20, 44, 400, 20), "Enemies left: " + game.Remaining + "    Score: " + game.Score, 14, dim, TextAnchor.UpperLeft);
 
-            switch (game.State)
-            {
-                case MatchState.Intermission:
-                    Label(new Rect(0, H / 2f - 70f, W, 44), game.Wave == 0 ? "Get ready!" : "Wave " + game.Wave + " cleared!", 34, white, TextAnchor.MiddleCenter, true);
-                    Label(new Rect(0, H / 2f - 26f, W, 24), "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer), 18, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
-                    break;
-                case MatchState.GameOver:
-                    Label(new Rect(0, H / 2f - 80f, W, 60), "GAME OVER", 48, new Color(1f, 0.4f, 0.4f), TextAnchor.MiddleCenter, true);
-                    Label(new Rect(0, H / 2f - 20f, W, 28), "You survived to wave " + game.Wave + " with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
-                    Label(new Rect(0, H / 2f + 14f, W, 24), session.IsHost ? "R: play again    L: back to lobby    Esc: quit" : "Waiting for the host…    Esc: quit",
-                        16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
-                    break;
-            }
-
-            // Names over players.
+            // Names, level-up popups and downed labels over players.
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
-                Label(new Rect(p.Disp.X - 100f, p.Disp.Y - r - 32f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 13,
+                Label(new Rect(p.Disp.X - 100f, p.Disp.Y - r - 32f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : "") + "  Lv " + p.Level, 13,
                     ToColor(p.Def.Color.WithAlpha(0.9f)), TextAnchor.MiddleCenter);
+                if (p.LevelFlash > 0f)
+                {
+                    float rise = (1.5f - p.LevelFlash) * 20f;
+                    Label(new Rect(p.Disp.X - 100f, p.Disp.Y - r - 56f - rise, 200f, 22f), "LEVEL UP!", 18,
+                        new Color(1f, 0.9f, 0.3f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter, true);
+                }
                 if (p.Downed)
                     Label(new Rect(p.Disp.X - 150f, p.Disp.Y + r + 12f, 300f, 18f), "DOWNED — stand close to revive", 11,
                         new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleCenter);
@@ -588,13 +618,116 @@ namespace Arena
                 var p = game.Players[id];
                 const float y = 12f;
                 Box(new Rect(x, y, 250, 50), new Color(0, 0, 0, 0.45f));
-                Label(new Rect(x + 8, y + 2, 234, 18), p.Name + " — " + p.Def.Name, 13, ToColor(p.Def.Color), TextAnchor.UpperLeft);
+                Label(new Rect(x + 8, y + 2, 234, 18), p.Name + " — " + p.Def.Name + "   Lv " + p.Level, 13, ToColor(p.Def.Color), TextAnchor.UpperLeft);
                 GuiBar(new Rect(x + 8, y + 22, 234, 8), p.Hp / p.MaxHp, p.Downed ? new Color(0.5f, 0.5f, 0.5f) : new Color(0.3f, 1f, 0.4f));
-                float cd = id == game.MyId ? game.MyAbilityCd : p.AbilityCd;
-                bool ready = cd <= 0f;
-                GuiBar(new Rect(x + 8, y + 36, 120, 6), 1f - cd / p.Def.AbilityCd, ready ? new Color(0.5f, 0.8f, 1f) : new Color(0.35f, 0.45f, 0.6f));
-                Label(new Rect(x + 134, y + 31, 112, 16), p.Def.Ability + " " + (ready ? "READY" : cd.ToString("0.0") + "s"), 11, new Color(1, 1, 1, 0.8f), TextAnchor.UpperLeft);
+                GuiBar(new Rect(x + 8, y + 36, 234, 5), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.85f, 0.3f));
                 x += 262f;
+            }
+
+            if (me != null)
+                DrawAbilityBar(me);
+
+            switch (game.State)
+            {
+                case MatchState.Intermission:
+                    if (me != null && me.Offer != null)
+                    {
+                        DrawUpgradePicker(me);
+                        break;
+                    }
+                    Label(new Rect(0, H / 2f - 70f, W, 44), game.Wave == 0 ? "Get ready!" : "Wave " + game.Wave + " cleared!", 34, white, TextAnchor.MiddleCenter, true);
+                    var choosing = new List<string>();
+                    foreach (var p in game.Players.Values)
+                        if (p.PendingPicks > 0 && p.Id != game.MyId)
+                            choosing.Add(p.Name);
+                    if (choosing.Count > 0)
+                        Label(new Rect(0, H / 2f - 26f, W, 24), "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…", 18, dim, TextAnchor.MiddleCenter);
+                    else if (!game.AnyonePicking())
+                        Label(new Rect(0, H / 2f - 26f, W, 24), "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer), 18, dim, TextAnchor.MiddleCenter);
+                    break;
+                case MatchState.GameOver:
+                    Label(new Rect(0, H / 2f - 80f, W, 60), "GAME OVER", 48, new Color(1f, 0.4f, 0.4f), TextAnchor.MiddleCenter, true);
+                    Label(new Rect(0, H / 2f - 20f, W, 28), "You survived to wave " + game.Wave + " with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
+                    Label(new Rect(0, H / 2f + 14f, W, 24), session.IsHost ? "R: play again    L: back to lobby    Esc: quit" : "Waiting for the host…    Esc: quit",
+                        16, dim, TextAnchor.MiddleCenter);
+                    break;
+            }
+        }
+
+        /// XP bar plus the three ability slots (Space / Q / E) along the bottom.
+        void DrawAbilityBar(Player me)
+        {
+            const float slotW = 170f, gap = 8f;
+            float total = slotW * 3 + gap * 2;
+            float x0 = (W - total) / 2f, y = H - 58f;
+
+            Box(new Rect(x0, y - 22f, total, 14f), new Color(0, 0, 0, 0.5f));
+            GuiBar(new Rect(x0 + 52f, y - 18f, total - 56f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.85f, 0.3f));
+            Label(new Rect(x0 + 4f, y - 24f, 48f, 16f), "Lv " + me.Level, 12, new Color(1f, 0.9f, 0.5f), TextAnchor.MiddleLeft, true);
+
+            for (int i = 0; i < Upgrades.SlotCount; i++)
+            {
+                var slot = me.Slots[i];
+                var r = new Rect(x0 + i * (slotW + gap), y, slotW, 46f);
+                Box(r, new Color(0, 0, 0, 0.55f));
+                Label(new Rect(r.x + 6, r.y + 2, 60, 14), SlotKeys[i], 10, new Color(1, 1, 1, 0.55f), TextAnchor.UpperLeft, true);
+                if (slot.Id == AbilityId.None)
+                {
+                    Label(new Rect(r.x + 6, r.y + 16, slotW - 12, 26), "empty — find a very rare upgrade", 11, new Color(1, 1, 1, 0.35f), TextAnchor.MiddleLeft);
+                    continue;
+                }
+                bool ready = slot.Charges > 0;
+                Label(new Rect(r.x + 6, r.y + 14, slotW - 12, 18), Upgrades.Ability(slot.Id).Name, 14, ready ? Color.white : new Color(1, 1, 1, 0.5f), TextAnchor.UpperLeft, true);
+                float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / game.Cooldown(me, i);
+                GuiBar(new Rect(r.x + 6, r.y + 36, slotW - 12, 5), fill, ready ? new Color(0.5f, 0.8f, 1f) : new Color(0.35f, 0.45f, 0.6f));
+                string status = slot.Charges >= slot.MaxCharges ? "READY" : slot.Timer.ToString("0.0") + "s";
+                if (slot.MaxCharges > 1)
+                    status = slot.Charges + "/" + slot.MaxCharges + "  " + status;
+                Label(new Rect(r.x + 6, r.y + 2, slotW - 12, 14), status, 10, new Color(1, 1, 1, 0.7f), TextAnchor.UpperRight);
+            }
+        }
+
+        void DrawUpgradePicker(Player me)
+        {
+            Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
+            Label(new Rect(0, 110, W, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
+            if (me.PendingPicks > 1)
+                Label(new Rect(0, 152, W, 22), (me.PendingPicks - 1) + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
+
+            const float cardW = 300f, cardH = 230f, gap = 24f;
+            float x0 = (W - cardW * 3 - gap * 2) / 2f;
+            for (int i = 0; i < me.Offer.Length; i++)
+            {
+                var u = Upgrades.All[me.Offer[i]];
+                var r = new Rect(x0 + i * (cardW + gap), 200f, cardW, cardH);
+                Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+                bool hover = r.Contains(Event.current.mousePosition);
+                Box(r, hover ? new Color(0.13f, 0.14f, 0.2f, 0.97f) : new Color(0.08f, 0.09f, 0.13f, 0.95f));
+                float bw = hover ? 4f : 2f;
+                Box(new Rect(r.x, r.y, r.width, bw), rc);
+                Box(new Rect(r.x, r.yMax - bw, r.width, bw), rc);
+                Box(new Rect(r.x, r.y, bw, r.height), rc);
+                Box(new Rect(r.xMax - bw, r.y, bw, r.height), rc);
+
+                Label(new Rect(r.x, r.y + 14, r.width, 18), Upgrades.RarityName(u.Rarity), 13, rc, TextAnchor.MiddleCenter, true);
+                Label(new Rect(r.x, r.y + 44, r.width, 30), u.Name, 22, Color.white, TextAnchor.MiddleCenter, true);
+                var desc = new GUIStyle(labelStyle) { fontSize = 15, alignment = TextAnchor.UpperCenter, wordWrap = true };
+                GUI.Label(new Rect(r.x + 18, r.y + 90, r.width - 36, 90), u.Desc, desc);
+                string note = "";
+                if (u.Grants != AbilityId.None)
+                    note = "Goes in your " + (me.Slots[1].Id == AbilityId.None ? "Q" : "E") + " slot";
+                else if (u.Role.HasValue)
+                    note = Defs.Get(u.Role.Value).Name + " only";
+                else
+                {
+                    int have = Upgrades.Count(me.Taken, me.Offer[i]);
+                    if (have > 0)
+                        note = "You have " + have;
+                }
+                Label(new Rect(r.x, r.yMax - 52, r.width, 18), note, 12, new Color(1, 1, 1, 0.5f), TextAnchor.MiddleCenter);
+                Label(new Rect(r.x, r.yMax - 28, r.width, 18), "[" + (i + 1) + "]", 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
+                if (GUI.Button(r, GUIContent.none, GUIStyle.none))
+                    game.PickUpgrade(i);
             }
         }
 

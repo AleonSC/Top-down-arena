@@ -11,6 +11,8 @@ namespace Arena
         Hello = 1, Input, Ability, RoleRequest,
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
+        // added later; kept at the end so existing values don't shift
+        Pick, Upgrades,
     }
 
     public static class Proto
@@ -209,7 +211,10 @@ namespace Arena
                     Game.OnInput(peer, r);
                     break;
                 case Msg.Ability:
-                    Game.HostAbility(peer);
+                    Game.OnAbility(peer, r);
+                    break;
+                case Msg.Pick:
+                    Game.OnPick(peer, r);
                     break;
                 case Msg.RoleRequest:
                     SetRole(peer, r.ReadByte());

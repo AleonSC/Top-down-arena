@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
@@ -21,6 +22,37 @@ static class Program
         s.Poll();
         s.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(640, 360) });
         s.Game.Update(dt);
+        s.Game.Sounds.Clear();
+    }
+
+    static void CheckOffers()
+    {
+        var rng = new Random(1);
+        bool ok = true;
+        var rarityCount = new int[4];
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+        {
+            var taken = new List<int>();
+            for (int level = 1; level < 60; level++)
+            {
+                var offer = Upgrades.RollOffer(rng, role, taken, level);
+                var seen = new HashSet<int>();
+                foreach (int id in offer)
+                {
+                    ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, taken);
+                    if (id >= 0)
+                        rarityCount[(int)Upgrades.All[id].Rarity]++;
+                }
+                taken.Add(offer[rng.Next(3)]);
+            }
+            int grants = 0;
+            foreach (int t in taken)
+                if (Upgrades.All[t].Grants != AbilityId.None)
+                    grants++;
+            ok &= grants <= 2;
+        }
+        Console.WriteLine("offer rarities seen: common {0}, uncommon {1}, rare {2}, very rare {3}", rarityCount[0], rarityCount[1], rarityCount[2], rarityCount[3]);
+        Check(ok, "offers are 3 distinct, eligible upgrades; at most 2 new abilities");
     }
 
     static int Main(string[] args)
@@ -29,6 +61,8 @@ static class Program
         int seconds = args.Length > 1 ? int.Parse(args[1]) : 60;
         int port = 7790;
         const float dt = 1f / 60f;
+
+        CheckOffers();
 
         var host = new Session { AutoStart = 2, StartWave = startWave };
         host.Game.Bot = true;
@@ -114,7 +148,76 @@ static class Program
         Console.WriteLine("peak bullets {0}, reached wave {1}, score {2}, worst bullet position error {3:F1}px", maxBullets, maxWave, host.Game.Score, maxError);
         Check(maxWave >= startWave, "waves progressed");
         Check(maxBullets > 0, "bullets were fired");
+        bool sameUpgrades = true;
+        foreach (var hp in host.Game.Players.Values)
+        {
+            var cp = client.Game.Players[hp.Id];
+            sameUpgrades &= hp.Level == cp.Level && string.Join(",", hp.Taken) == string.Join(",", cp.Taken);
+            var names = new List<string>();
+            foreach (int t in hp.Taken)
+                names.Add(Upgrades.All[t].Name);
+            var slots = new List<string>();
+            foreach (var sl in cp.Slots)
+                slots.Add(sl.Id == AbilityId.None ? "-" : sl.Id + "x" + sl.MaxCharges);
+            Console.WriteLine("  {0} level {1}: {2} | slots {3}", hp.Role, hp.Level, string.Join(", ", names), string.Join(" ", slots));
+        }
+        Check(sameUpgrades, "host and client agree on levels and picked upgrades");
+        Check(host.Game.Players[1].Level > 1, "players levelled up");
         Check(mismatches == 0, "client stays in sync (" + mismatches + "/" + samples + " samples off)");
+
+        // New Q/E abilities: grant some directly, then let the bots use them.
+        if (host.Game.State != MatchState.GameOver)
+        {
+            Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+            Action<int, string> Give = (id, name) =>
+            {
+                var p = host.Game.Players[id];
+                if (Upgrades.Available(U(name), p.Role, p.Taken))
+                    host.Game.GrantUpgrade(id, U(name));
+            };
+            Give(1, "Turret");
+            Give(1, "Shockwave");
+            Give(2, "Nova");
+            Give(2, "Blink");
+            Give(2, "Overcharge");
+            int turretsSeen = 0, ghostsAfter = 0;
+            for (int i = 0; i < 60 * 12; i++)
+            {
+                Step(host, dt);
+                Step(client, dt);
+                if (i % 2 == 0)
+                    Thread.Sleep(1);
+                turretsSeen = Math.Max(turretsSeen, client.Game.Turrets.Count);
+                if (i % 30 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                    foreach (var b in client.Game.Bullets.Values)
+                        if (!host.Game.Bullets.ContainsKey(b.Id))
+                            ghostsAfter++;
+                }
+            }
+            var c1 = client.Game.Players[1].Slots;
+            var c2 = client.Game.Players[2].Slots;
+            Console.WriteLine("  client sees tank slots {0}/{1}/{2}, healer slots {3}x{4}/{5}x{6}", c1[0].Id, c1[1].Id, c1[2].Id, c2[1].Id, c2[1].MaxCharges, c2[2].Id, c2[2].MaxCharges);
+            bool slotsOk = true, overchargeOk = true;
+            bool hasTurret = false;
+            foreach (var hp in host.Game.Players.Values)
+            {
+                var grants = new List<AbilityId>();
+                foreach (int t in hp.Taken)
+                    if (Upgrades.All[t].Grants != AbilityId.None)
+                        grants.Add(Upgrades.All[t].Grants);
+                var cs = client.Game.Players[hp.Id].Slots;
+                slotsOk &= grants.Count == 2 && cs[1].Id == grants[0] && cs[2].Id == grants[1];
+                hasTurret |= grants.Contains(AbilityId.Turret);
+                if (hp.Id == 2)
+                    overchargeOk = cs[1].MaxCharges == 2 && cs[2].MaxCharges == 2;
+            }
+            Check(slotsOk, "new abilities fill Q then E, in pick order, on the client too");
+            Check(overchargeOk, "Overcharge gives Q/E a second charge");
+            Check(!hasTurret || turretsSeen > 0, "turret shows up on the client");
+            Check(ghostsAfter == 0, "still in sync while using new abilities");
+        }
 
         // Host restarts after game over / returns everyone to the lobby.
         host.ReturnToLobby();

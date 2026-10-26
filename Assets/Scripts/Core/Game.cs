@@ -8,6 +8,20 @@ namespace Arena
 
     public enum FxKind : byte { Boom, Spark, Ring }
 
+    /// Sound cues raised by the game; the Unity layer plays them.
+    public enum Sfx : byte
+    {
+        None, PlayerShot, AllyShot, EnemyShot, Hit, Hurt, Explode, BigExplode, Ability, Shockwave, Blink,
+        LevelUp, Pick, WaveStart, WaveClear, GameOver, Downed, Revive,
+    }
+
+    public class AbilitySlot
+    {
+        public AbilityId Id = AbilityId.None;
+        public int Charges, MaxCharges = 1;
+        public float Timer;  // time until the next charge comes back
+    }
+
     public class Player
     {
         public int Id;
@@ -19,7 +33,18 @@ namespace Arena
         public bool Firing;
         public float Hp, MaxHp;
         public bool Downed;
-        public float Revive, FireCd, AbilityCd, BarrierT, InvulnT, Flash;
+        public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
+
+        public int Level = 1, PendingPicks;
+        public float Xp;
+        public int[] Offer;  // three upgrade ids while choosing, otherwise null
+        public readonly List<int> Taken = new List<int>();
+        public Stats Stats = new Stats();
+        public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };
+
+        public float Speed => Def.Speed * Stats.SpeedMult;
+        public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
+        public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
 
     public class Enemy
@@ -41,7 +66,14 @@ namespace Arena
         public byte Kind;
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
-        public int Owner;
+        public int Owner, Pierce, LastHit;
+    }
+
+    public class Turret
+    {
+        public int Id, Owner;
+        public V2 Pos;
+        public float T, FireCd, Aim;
     }
 
     public class Effect
@@ -54,27 +86,30 @@ namespace Arena
 
     public struct PlayerInput
     {
-        public V2 Move;     // desired direction, length <= 1
-        public V2 AimAt;    // point in arena coordinates
+        public V2 Move;       // desired direction, length <= 1
+        public V2 AimAt;      // point in arena coordinates
         public bool Fire;
-        public bool Ability;  // held state; Game detects the press
+        public bool Ability;  // held states; Game detects the presses
+        public bool AbilityQ;
+        public bool AbilityE;
     }
 
-    /// The match. The host simulates enemies, bullets, damage and waves; every
+    /// The match. The host simulates enemies, bullets, damage, XP and waves; every
     /// peer moves its own player locally and renders the shared state.
     ///
     /// Network traffic:
-    ///   client -> host  Input (every tick: position/aim/firing), Ability
+    ///   client -> host  Input (every tick: position/aim/firing), Ability, Pick
     ///   host -> all     Spawn / Remove (bullets fly deterministically, so only
     ///                   spawns and hits are sent), Snapshot (20 Hz: players,
-    ///                   enemies and wave state), Fx, ClearEnemyBullets
+    ///                   enemies, turrets and wave state), Upgrades (a player's
+    ///                   picks, after each pick), Fx, ClearEnemyBullets
     public class Game
     {
         public const float Width = 1280f, Height = 720f;
 
         const int SnapshotEvery = 3;  // ticks
         const float StartDelay = 3f;
-        const float IntermissionTime = 5f;
+        const float IntermissionTime = 4f;
         const float ContactDamage = 15f;
         const float HitIframes = 0.35f;
         const float ReviveRange = 70f;
@@ -87,6 +122,12 @@ namespace Arena
         const float PulseHeal = 60f;
         public const float DashTime = 0.18f;
         const float DashSpeed = 1200f;
+        const float BlinkRange = 300f;
+        const float ShockwaveRange = 230f;
+        const float ShockwaveDamage = 60f;
+        const float OverdriveTime = 5f;
+        const float TurretTime = 10f;
+        const float TurretRange = 520f;
 
         readonly Session session;
         readonly Random rng = new Random();
@@ -99,18 +140,27 @@ namespace Arena
         public readonly SortedDictionary<int, Player> Players = new SortedDictionary<int, Player>();
         public readonly Dictionary<int, Enemy> Enemies = new Dictionary<int, Enemy>();
         public readonly Dictionary<int, Bullet> Bullets = new Dictionary<int, Bullet>();
+        public readonly Dictionary<int, Turret> Turrets = new Dictionary<int, Turret>();
         public readonly List<Effect> Effects = new List<Effect>();
+        public readonly List<Sfx> Sounds = new List<Sfx>();  // drained by the front end each frame
 
-        public float MyAbilityCd, DashT, AnimT;
+        public float DashT, AnimT;
         public V2 DashDir = new V2(1f, 0f);
-        bool abilityWasDown;
+        readonly bool[] abilityWasDown = new bool[Upgrades.SlotCount];
+        bool awaitingPick;  // client sent a pick; ignore offers until the host confirms it
 
         public bool Bot;  // drive the local player automatically (testing)
         public Action<string> Log;
         float botT;
 
+        // Previous values, to raise sounds when things change.
+        MatchState lastState;
+        readonly Dictionary<int, bool> lastDowned = new Dictionary<int, bool>();
+        readonly Dictionary<int, int> lastLevel = new Dictionary<int, int>();
+        float lastMyHp;
+
         // Host-only simulation state.
-        int nextBulletId = 1, nextEnemyId = 1, tick;
+        int nextBulletId = 1, nextEnemyId = 1, nextTurretId = 1, tick;
         readonly List<EnemyType> spawnQueue = new List<EnemyType>();
         float spawnTimer;
         // Bullets spawned this tick, recorded as they were at spawn time (the host
@@ -125,6 +175,16 @@ namespace Arena
 
         public int MyId => session.MyId;
         bool IsHost => session.IsHost;
+
+        public Player Me
+        {
+            get
+            {
+                Player p;
+                Players.TryGetValue(MyId, out p);
+                return p;
+            }
+        }
 
         float Rand(float a, float b) => a + (float)rng.NextDouble() * (b - a);
 
@@ -162,12 +222,17 @@ namespace Arena
                 var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f };
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
+                Recalc(p);
                 Players[id] = p;
+                lastDowned[id] = false;
+                lastLevel[id] = 1;
             }
             Wave = Math.Max(0, startWave - 1);
             State = MatchState.Intermission;
+            lastState = State;
             StateTimer = StartDelay;
             Running = true;
+            lastMyHp = Me != null ? Me.Hp : 0f;
             session.Screen = AppScreen.Game;
             DoLog("game started with " + Players.Count + " player(s)");
         }
@@ -182,20 +247,187 @@ namespace Arena
             Players.Clear();
             Enemies.Clear();
             Bullets.Clear();
+            Turrets.Clear();
             Effects.Clear();
+            Sounds.Clear();
             spawnQueue.Clear();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
+            lastDowned.Clear();
+            lastLevel.Clear();
             nextBulletId = 1;
             nextEnemyId = 1;
-            MyAbilityCd = 0f;
+            nextTurretId = 1;
             DashT = 0f;
+            awaitingPick = false;
             tick = 0;
         }
 
         public void OnPeerLeft(int id)
         {
             Players.Remove(id);
+        }
+
+        // --- Upgrades ----------------------------------------------------------
+
+        /// Recompute a player's stats and ability slots from their picks. Runs on
+        /// every peer, so all derived values agree without being sent.
+        void Recalc(Player p)
+        {
+            p.Stats = Upgrades.Compute(p.Taken);
+            float oldMax = p.MaxHp;
+            p.MaxHp = p.Def.Hp + p.Stats.BonusHp;
+            if (p.MaxHp > oldMax && !p.Downed)
+                p.Hp += p.MaxHp - oldMax;
+
+            var ids = new AbilityId[Upgrades.SlotCount];
+            ids[0] = Upgrades.RoleAbility(p.Role);
+            for (int i = 1; i < ids.Length; i++)
+                ids[i] = AbilityId.None;
+            int next = 1;
+            foreach (int t in p.Taken)
+                if (Upgrades.All[t].Grants != AbilityId.None && next < ids.Length)
+                    ids[next++] = Upgrades.All[t].Grants;
+
+            for (int i = 0; i < ids.Length; i++)
+            {
+                var slot = p.Slots[i];
+                int max = ids[i] == AbilityId.None ? 0 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges);
+                if (slot.Id != ids[i])
+                {
+                    slot.Id = ids[i];
+                    slot.Charges = max;
+                    slot.Timer = 0f;
+                }
+                else if (max > slot.MaxCharges)
+                    slot.Charges += max - slot.MaxCharges;
+                slot.MaxCharges = max;
+                slot.Charges = Math.Min(slot.Charges, max);
+            }
+        }
+
+        public float Cooldown(Player p, int slot)
+        {
+            var id = p.Slots[slot].Id;
+            if (id == AbilityId.None)
+                return 1f;
+            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult;
+            if (id == AbilityId.Dash)
+                cd *= p.Stats.DashCdMult;
+            return cd;
+        }
+
+        void TickSlots(Player p, float dt)
+        {
+            for (int i = 0; i < p.Slots.Length; i++)
+            {
+                var s = p.Slots[i];
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges)
+                    continue;
+                s.Timer -= dt;
+                if (s.Timer <= 0f)
+                {
+                    s.Charges++;
+                    s.Timer = s.Charges < s.MaxCharges ? Cooldown(p, i) : 0f;
+                }
+            }
+        }
+
+        /// Spend a charge. lenient: accept presses that arrive slightly early (the
+        /// owner tracks its own cooldowns, so the host's copy can lag a little).
+        bool Consume(Player p, int slot, bool lenient)
+        {
+            var s = p.Slots[slot];
+            if (s.Id == AbilityId.None)
+                return false;
+            if (s.Charges <= 0)
+            {
+                if (!lenient || s.Timer > 0.5f)
+                    return false;
+                s.Charges = 1;
+                s.Timer = 0f;
+            }
+            s.Charges--;
+            if (s.Timer <= 0f)
+                s.Timer = Cooldown(p, slot);
+            return true;
+        }
+
+        void GrantXp(float amount)
+        {
+            foreach (var p in Players.Values)
+            {
+                p.Xp += amount;
+                while (p.Xp >= Defs.XpToNext(p.Level))
+                {
+                    p.Xp -= Defs.XpToNext(p.Level);
+                    p.Level++;
+                    p.PendingPicks++;
+                }
+            }
+        }
+
+        /// Called by the front end when the local player clicks an upgrade card.
+        public void PickUpgrade(int index)
+        {
+            var me = Me;
+            if (me == null || me.Offer == null || index < 0 || index >= me.Offer.Length)
+                return;
+            Sounds.Add(Sfx.Pick);
+            if (IsHost)
+            {
+                HostPick(MyId, index);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.Pick);
+                w.Write((byte)index);
+                session.SendToHost(Proto.End(w));
+                me.Offer = null;  // hide the cards until the host confirms
+                awaitingPick = true;
+            }
+        }
+
+        public void OnPick(int peer, BinaryReader r)
+        {
+            HostPick(peer, r.ReadByte());
+        }
+
+        void HostPick(int id, int index)
+        {
+            Player p;
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
+                return;
+            int upgrade = p.Offer[index];
+            p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+            p.Offer = p.PendingPicks > 0 ? Upgrades.RollOffer(rng, p.Role, p.Taken, p.Level) : null;
+            GrantUpgrade(id, upgrade);
+            DoLog(p.Role + " picked " + Upgrades.All[upgrade].Name);
+            SendSnapshot();  // show the next offer right away
+        }
+
+        /// Host only: give a player an upgrade and tell everyone.
+        public void GrantUpgrade(int id, int upgrade)
+        {
+            Player p;
+            if (!IsHost || !Players.TryGetValue(id, out p))
+                return;
+            p.Taken.Add(upgrade);
+            Recalc(p);
+            var w = Proto.Begin(Msg.Upgrades);
+            w.Write(p.Id);
+            w.Write((byte)p.Taken.Count);
+            foreach (int t in p.Taken)
+                w.Write((byte)t);
+            session.Broadcast(Proto.End(w));
+        }
+
+        public bool AnyonePicking()
+        {
+            foreach (var p in Players.Values)
+                if (p.PendingPicks > 0)
+                    return true;
+            return false;
         }
 
         // --- Frame loop --------------------------------------------------------
@@ -220,10 +452,13 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 e.Flash = Math.Max(0f, e.Flash - dt);
             foreach (var p in Players.Values)
+            {
                 p.Flash = Math.Max(0f, p.Flash - dt);
+                p.LevelFlash = Math.Max(0f, p.LevelFlash - dt);
+            }
         }
 
-        /// Per-frame visual update: smoothing and effects.
+        /// Per-frame visual update: smoothing, effects and sound cues.
         public void Update(float dt)
         {
             if (!Running)
@@ -240,19 +475,53 @@ namespace Arena
                 if (Effects[i].T >= Effects[i].Dur)
                     Effects.RemoveAt(i);
             }
+
+            if (State != lastState)
+            {
+                if (State == MatchState.Fighting)
+                    Sounds.Add(Sfx.WaveStart);
+                else if (State == MatchState.Intermission && lastState == MatchState.Fighting)
+                    Sounds.Add(Sfx.WaveClear);
+                else if (State == MatchState.GameOver)
+                    Sounds.Add(Sfx.GameOver);
+                lastState = State;
+            }
+            foreach (var p in Players.Values)
+            {
+                bool wasDown;
+                if (lastDowned.TryGetValue(p.Id, out wasDown) && wasDown != p.Downed)
+                    Sounds.Add(p.Downed ? Sfx.Downed : Sfx.Revive);
+                lastDowned[p.Id] = p.Downed;
+                int lvl;
+                if (lastLevel.TryGetValue(p.Id, out lvl) && p.Level > lvl)
+                {
+                    p.LevelFlash = 1.5f;
+                    if (p.Id == MyId)
+                        Sounds.Add(Sfx.LevelUp);
+                }
+                lastLevel[p.Id] = p.Level;
+            }
+            var me = Me;
+            if (me != null)
+            {
+                if (me.Hp < lastMyHp - 0.5f && !me.Downed)
+                    Sounds.Add(Sfx.Hurt);
+                lastMyHp = me.Hp;
+            }
         }
 
         void LocalControl(float dt, PlayerInput input)
         {
-            Player me;
-            if (!Players.TryGetValue(MyId, out me))
+            var me = Me;
+            if (me == null)
                 return;
-            MyAbilityCd = Math.Max(0f, MyAbilityCd - dt);
+            if (!IsHost)
+                TickSlots(me, dt);  // the host ticks everyone's slots in TickPlayers
             V2 move = input.Move.LimitLength(1f);
-            me.Aim = (input.AimAt - me.Pos).Angle;
+            V2 aimAt = input.AimAt;
+            me.Aim = (aimAt - me.Pos).Angle;
             bool firing = input.Fire && !me.Downed;
-            bool abilityPressed = input.Ability && !abilityWasDown;
-            abilityWasDown = input.Ability;
+            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE };
 
             if (Bot)
             {
@@ -263,9 +532,15 @@ namespace Arena
                     if (nearest == null || e.Pos.DistanceSq(me.Pos) < nearest.Pos.DistanceSq(me.Pos))
                         nearest = e;
                 if (nearest != null)
-                    me.Aim = (nearest.Pos - me.Pos).Angle;
+                {
+                    aimAt = nearest.Pos;
+                    me.Aim = (aimAt - me.Pos).Angle;
+                }
                 firing = !me.Downed;
-                abilityPressed = MathX.Fmod(botT, 4f) < dt;
+                for (int i = 0; i < held.Length; i++)
+                    held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
+                if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
+                    PickUpgrade(rng.Next(me.Offer.Length));
             }
 
             if (me.Downed)
@@ -276,20 +551,40 @@ namespace Arena
                 me.Pos += DashDir * DashSpeed * dt;
             }
             else
-                me.Pos += move * me.Def.Speed * dt;
+                me.Pos += move * me.Speed * dt;
 
-            if (abilityPressed && !me.Downed && MyAbilityCd <= 0f && State != MatchState.GameOver)
+            for (int slot = 0; slot < held.Length; slot++)
             {
-                MyAbilityCd = me.Def.AbilityCd;
-                if (me.Role == Role.Dps)
+                bool pressed = held[slot] && !abilityWasDown[slot];
+                abilityWasDown[slot] = held[slot];
+                if (!pressed || me.Downed || State == MatchState.GameOver || !Consume(me, slot, false))
+                    continue;
+                V2 target = aimAt;
+                switch (me.Slots[slot].Id)
                 {
-                    DashDir = move.IsZero ? V2.FromAngle(me.Aim) : move.Normalized();
-                    DashT = DashTime;
+                    case AbilityId.Dash:
+                        DashDir = move.IsZero ? V2.FromAngle(me.Aim) : move.Normalized();
+                        DashT = DashTime;
+                        break;
+                    case AbilityId.Blink:
+                        target = me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange);
+                        target = ClampToArena(target, me.Def.BodyR);
+                        AddFx(FxKind.Ring, me.Pos, new Rgba(0.7f, 0.6f, 1f), 30f, 0.3f);
+                        me.Pos = target;
+                        DashT = 0f;
+                        break;
                 }
                 if (IsHost)
-                    HostAbility(MyId);
+                {
+                    HostAbility(MyId, slot, target, true);
+                }
                 else
-                    session.SendToHost(Proto.End(Proto.Begin(Msg.Ability)));
+                {
+                    var w = Proto.Begin(Msg.Ability);
+                    w.Write((byte)slot);
+                    w.Write(target);
+                    session.SendToHost(Proto.End(w));
+                }
             }
 
             me.Pos = ClampToArena(me.Pos, me.Def.BodyR);
@@ -323,6 +618,14 @@ namespace Arena
             p.Firing = firing;
         }
 
+        public void OnAbility(int peer, BinaryReader r)
+        {
+            int slot = r.ReadByte();
+            V2 target = r.ReadV2();
+            if (slot < Upgrades.SlotCount)
+                HostAbility(peer, slot, target, false);
+        }
+
         // --- Host simulation ---------------------------------------------------
 
         void HostTick(float dt)
@@ -330,6 +633,7 @@ namespace Arena
             TickPlayers(dt);
             TickWaves(dt);
             TickEnemies(dt);
+            TickTurrets(dt);
             MoveBullets(dt);
             Collide();
             CheckGameOver();
@@ -342,6 +646,7 @@ namespace Arena
                 {
                     w.Write(b.Id);
                     w.Write(b.Kind);
+                    w.Write(b.Owner);
                     w.Write(b.Pos);
                     w.Write(b.Vel);
                     w.Write(b.AngVel);
@@ -361,7 +666,7 @@ namespace Arena
             }
             tick++;
             if (tick % SnapshotEvery == 0)
-                session.Broadcast(Snapshot());
+                SendSnapshot();
             if (tick % 120 == 0)
                 DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} score {4} hp {5}", Wave, State, Enemies.Count, Bullets.Count, Score, HpSummary()));
         }
@@ -370,23 +675,26 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                p.AbilityCd = Math.Max(0f, p.AbilityCd - dt);
+                TickSlots(p, dt);
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
+                p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.FireCd -= dt;
                 if (p.Downed)
                     continue;
                 if (p.Firing && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
-                    p.FireCd = p.Def.FireInterval;
+                    p.FireCd = p.Def.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f);
                     FirePlayer(p);
                 }
+                if (p.Stats.Regen > 0f)
+                    p.Hp = Math.Min(p.MaxHp, p.Hp + p.Stats.Regen * dt);
                 if (p.Role == Role.Healer)
                 {
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
                     foreach (var q in Players.Values)
-                        if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < AuraRange)
-                            q.Hp = Math.Min(q.MaxHp, q.Hp + AuraHeal * dt);
+                        if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
+                            q.Hp = Math.Min(q.MaxHp, q.Hp + AuraHeal * p.Stats.AuraHealMult * dt);
                 }
             }
 
@@ -412,58 +720,149 @@ namespace Arena
 
         void FirePlayer(Player p)
         {
-            V2 dir = V2.FromAngle(p.Aim);
-            V2 muzzle = p.Pos + dir * p.Def.BodyR;
-            switch (p.Role)
+            float dmg = p.Stats.DmgMult;
+            // Volley 0 is straight ahead; Multishot adds volleys fanned out to alternating sides.
+            for (int v = 0; v <= p.Stats.ExtraShots; v++)
             {
-                case Role.Tank:
-                    for (int i = 0; i < 5; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(p.Aim + (i - 2) * 0.13f) * 520f, 0f, 0.5f, 7f, p.Id);
-                    break;
-                case Role.Healer:
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f, p.Id);
-                    break;
-                case Role.Dps:
-                    V2 side = dir.Orthogonal() * 5f;
-                    SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f, p.Id);
-                    SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f, p.Id);
-                    break;
+                float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
+                V2 dir = V2.FromAngle(aim);
+                V2 muzzle = p.Pos + dir * p.Def.BodyR;
+                switch (p.Role)
+                {
+                    case Role.Tank:
+                        for (int i = 0; i < 5; i++)
+                            SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i - 2) * 0.13f) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
+                        break;
+                    case Role.Healer:
+                        SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
+                        break;
+                    case Role.Dps:
+                        V2 side = dir.Orthogonal() * 5f;
+                        SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                        break;
+                }
             }
         }
 
-        public void HostAbility(int id)
+        void HostAbility(int id, int slot, V2 target, bool consumed)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed || p.AbilityCd > 0.5f)
+            if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
-            p.AbilityCd = p.Def.AbilityCd;
-            switch (p.Role)
+            if (!consumed && !Consume(p, slot, true))
+                return;
+            var s = p.Stats;
+            switch (p.Slots[slot].Id)
             {
-                case Role.Tank:
-                    p.BarrierT = BarrierTime;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.8f, 1f), BarrierRadius, 0.4f);
+                case AbilityId.Barrier:
+                    p.BarrierT = BarrierTime + s.BarrierBonusTime;
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Ability);
                     break;
-                case Role.Dps:
-                    p.InvulnT = Math.Max(p.InvulnT, DashTime + 0.12f);
+                case AbilityId.Dash:
+                    p.InvulnT = Math.Max(p.InvulnT, DashTime + 0.12f + s.DashIframeBonus);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.7f, 0.35f), 24f, 0.25f, Sfx.Blink);
                     break;
-                case Role.Healer:
+                case AbilityId.MendPulse:
+                {
+                    float range = PulseRange * s.PulseRangeMult;
                     foreach (var q in Players.Values)
                     {
-                        if (q.Pos.DistanceTo(p.Pos) >= PulseRange)
+                        if (q.Pos.DistanceTo(p.Pos) >= range)
                             continue;
                         if (q.Downed)
                             RevivePlayer(q, 0.5f);
                         else
-                            q.Hp = Math.Min(q.MaxHp, q.Hp + PulseHeal);
+                            q.Hp = Math.Min(q.MaxHp, q.Hp + PulseHeal * s.PulseHealMult);
                     }
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.4f, 1f, 0.55f), PulseRange, 0.6f);
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.4f, 1f, 0.55f), range, 0.6f, Sfx.Ability);
                     break;
+                }
+                case AbilityId.Shockwave:
+                {
+                    var erase = new List<int>();
+                    foreach (var b in Bullets.Values)
+                        if (b.Kind >= Defs.SmallShot && b.Pos.DistanceTo(p.Pos) < ShockwaveRange)
+                            erase.Add(b.Id);
+                    foreach (int bid in erase)
+                    {
+                        Bullets.Remove(bid);
+                        pendingRemoved.Add(bid);
+                    }
+                    foreach (var e in Enemies.Values)
+                    {
+                        if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > ShockwaveRange + e.Radius)
+                            continue;
+                        e.Hp -= ShockwaveDamage * s.DmgMult;
+                        e.Flash = 0.1f;
+                    }
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.9f, 0.5f), ShockwaveRange, 0.45f, Sfx.Shockwave);
+                    break;
+                }
+                case AbilityId.Overdrive:
+                    p.OverdriveT = OverdriveTime;
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.4f, 0.3f), 60f, 0.4f, Sfx.Ability);
+                    break;
+                case AbilityId.Blink:
+                    p.InvulnT = Math.Max(p.InvulnT, 0.3f);
+                    BroadcastFx(FxKind.Ring, target, new Rgba(0.7f, 0.6f, 1f), 40f, 0.35f, Sfx.Blink);
+                    break;
+                case AbilityId.Nova:
+                    for (int i = 0; i < 24; i++)
+                    {
+                        V2 dir = V2.FromAngle(p.Aim + MathX.Tau * i / 24f);
+                        SpawnBullet(Defs.NovaShot, p.Pos + dir * p.Def.BodyR, dir * 480f, 0f, 1.2f, 22f * s.DmgMult, p.Id);
+                    }
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.95f, 0.8f, 1f), 50f, 0.3f, Sfx.Ability);
+                    break;
+                case AbilityId.Turret:
+                {
+                    var t = new Turret { Id = nextTurretId++, Owner = p.Id, Pos = p.Pos, T = TurretTime, Aim = p.Aim };
+                    Turrets[t.Id] = t;
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 0.95f, 1f), 40f, 0.35f, Sfx.Ability);
+                    break;
+                }
+            }
+        }
+
+        void TickTurrets(float dt)
+        {
+            var expired = new List<int>();
+            foreach (var t in Turrets.Values)
+            {
+                t.T -= dt;
+                t.FireCd -= dt;
+                Player owner;
+                Players.TryGetValue(t.Owner, out owner);
+                if (t.T <= 0f || owner == null)
+                {
+                    expired.Add(t.Id);
+                    continue;
+                }
+                Enemy target = null;
+                foreach (var e in Enemies.Values)
+                    if (e.SpawnT <= 0f && e.Pos.DistanceTo(t.Pos) < TurretRange && (target == null || e.Pos.DistanceSq(t.Pos) < target.Pos.DistanceSq(t.Pos)))
+                        target = e;
+                if (target == null)
+                    continue;
+                t.Aim = (target.Pos - t.Pos).Angle;
+                if (t.FireCd <= 0f && State == MatchState.Fighting)
+                {
+                    t.FireCd = 0.25f;
+                    V2 dir = V2.FromAngle(t.Aim);
+                    SpawnBullet(Defs.TurretShot, t.Pos + dir * 14f, dir * 700f, 0f, 0.9f, 9f * owner.Stats.DmgMult, t.Owner);
+                }
+            }
+            foreach (int id in expired)
+            {
+                AddFx(FxKind.Boom, Turrets[id].Pos, new Rgba(0.6f, 0.95f, 1f), 20f, 0.3f);
+                Turrets.Remove(id);
             }
         }
 
         void Damage(Player p, float amount)
         {
-            p.Hp -= amount;
+            p.Hp -= amount * p.Stats.DamageTaken;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
             if (p.Hp <= 0f)
@@ -472,6 +871,7 @@ namespace Arena
                 p.Downed = true;
                 p.Revive = 0f;
                 p.BarrierT = 0f;
+                p.OverdriveT = 0f;
                 p.Firing = false;
             }
         }
@@ -493,6 +893,8 @@ namespace Arena
                     return;
             State = MatchState.GameOver;
             spawnQueue.Clear();
+            foreach (var p in Players.Values)
+                p.Offer = null;
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
 
@@ -501,7 +903,9 @@ namespace Arena
             switch (State)
             {
                 case MatchState.Intermission:
-                    StateTimer -= dt;
+                    // The countdown waits while anyone is still choosing upgrades.
+                    if (!AnyonePicking())
+                        StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {
                         Wave++;
@@ -558,7 +962,10 @@ namespace Arena
                     RevivePlayer(p, 0.4f);
                 else
                     p.Hp = Math.Min(p.MaxHp, p.Hp + p.MaxHp * 0.3f);
+                if (p.PendingPicks > 0 && p.Offer == null)
+                    p.Offer = Upgrades.RollOffer(rng, p.Role, p.Taken, p.Level);
             }
+            Turrets.Clear();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             DoLog("wave " + Wave + " cleared");
@@ -762,16 +1169,19 @@ namespace Arena
 
         void SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner)
         {
-            var b = MakeBullet(nextBulletId++, kind, pos, vel, angVel, life);
+            var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life);
             b.Dmg = dmg;
-            b.Owner = owner;
-            pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Pos = pos, Vel = vel, AngVel = angVel, Life = life });
+            Player p;
+            if (owner != 0 && Players.TryGetValue(owner, out p))
+                b.Pierce = p.Stats.Pierce;
+            pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life });
         }
 
-        Bullet MakeBullet(int id, byte kind, V2 pos, V2 vel, float angVel, float life)
+        Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life)
         {
-            var b = new Bullet { Id = id, Kind = kind, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Radius = Defs.BulletRadius(kind) };
+            var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Radius = Defs.BulletRadius(kind) };
             Bullets[id] = b;
+            Sounds.Add(owner == 0 ? Sfx.EnemyShot : owner == MyId ? Sfx.PlayerShot : Sfx.AllyShot);
             return b;
         }
 
@@ -802,14 +1212,18 @@ namespace Arena
                 {
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Hp <= 0f)
+                        if (e.SpawnT > 0f || e.Hp <= 0f || e.Id == b.LastHit)
                             continue;
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
                         {
                             e.Hp -= b.Dmg;
                             e.Flash = 0.06f;
-                            scratchIds.Add(b.Id);
+                            b.LastHit = e.Id;
+                            if (b.Pierce > 0)
+                                b.Pierce--;
+                            else
+                                scratchIds.Add(b.Id);
                             break;
                         }
                     }
@@ -820,7 +1234,7 @@ namespace Arena
                     {
                         if (p.Downed)
                             continue;
-                        if (p.BarrierT > 0f && b.Pos.DistanceTo(p.Pos) < BarrierRadius)
+                        if (p.BarrierT > 0f && b.Pos.DistanceTo(p.Pos) < p.BarrierRadius)
                         {
                             scratchIds.Add(b.Id);
                             break;
@@ -844,7 +1258,7 @@ namespace Arena
                 Bullet b;
                 if (!Bullets.TryGetValue(id, out b))
                     continue;
-                AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), 10f, 0.15f);
+                RemovedFx(b);
                 Bullets.Remove(id);
                 pendingRemoved.Add(id);
             }
@@ -856,9 +1270,23 @@ namespace Arena
             foreach (var e in dead)
             {
                 Score += e.Score;
-                AddFx(FxKind.Boom, e.Pos, e.Def.Color, e.Radius * 2.2f, 0.4f);
+                GrantXp(e.Def.Xp);
+                DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
             }
+        }
+
+        void RemovedFx(Bullet b)
+        {
+            AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), 10f, 0.15f);
+            if (b.Kind < Defs.SmallShot)
+                Sounds.Add(Sfx.Hit);
+        }
+
+        void DeathFx(Enemy e, V2 pos)
+        {
+            AddFx(FxKind.Boom, pos, e.Def.Color, e.Radius * 2.2f, 0.4f);
+            Sounds.Add(e.Type == EnemyType.Boss ? Sfx.BigExplode : Sfx.Explode);
         }
 
         void ClearEnemyBullets()
@@ -871,19 +1299,21 @@ namespace Arena
                 Bullets.Remove(id);
         }
 
-        void BroadcastFx(FxKind kind, V2 pos, Rgba color, float radius, float dur)
+        void BroadcastFx(FxKind kind, V2 pos, Rgba color, float radius, float dur, Sfx sound)
         {
             AddFx(kind, pos, color, radius, dur);
+            Sounds.Add(sound);
             var w = Proto.Begin(Msg.Fx);
             w.Write((byte)kind);
             w.Write(pos);
             w.Write(color);
             w.Write(radius);
             w.Write(dur);
+            w.Write((byte)sound);
             session.Broadcast(Proto.End(w));
         }
 
-        byte[] Snapshot()
+        void SendSnapshot()
         {
             var w = Proto.Begin(Msg.Snapshot);
             w.Write((byte)State);
@@ -900,9 +1330,19 @@ namespace Arena
                 w.Write(p.Hp);
                 w.Write(p.Downed);
                 w.Write(p.Revive);
-                w.Write(p.AbilityCd);
                 w.Write(p.BarrierT);
                 w.Write(p.InvulnT);
+                w.Write(p.OverdriveT);
+                w.Write((short)p.Level);
+                w.Write(p.Xp);
+                w.Write((byte)p.PendingPicks);
+                for (int i = 0; i < 3; i++)
+                    w.Write((byte)(p.Offer != null ? p.Offer[i] : 255));
+                foreach (var s in p.Slots)
+                {
+                    w.Write((byte)s.Charges);
+                    w.Write(s.Timer);
+                }
             }
             w.Write((short)Enemies.Count);
             foreach (var e in Enemies.Values)
@@ -914,7 +1354,16 @@ namespace Arena
                 w.Write(e.MaxHp);
                 w.Write(e.SpawnT > 0f);
             }
-            return Proto.End(w);
+            w.Write((byte)Turrets.Count);
+            foreach (var t in Turrets.Values)
+            {
+                w.Write(t.Id);
+                w.Write(t.Owner);
+                w.Write(t.Pos);
+                w.Write(t.T);
+                w.Write(t.Aim);
+            }
+            session.Broadcast(Proto.End(w));
         }
 
         // --- Client-side replication ------------------------------------------
@@ -937,9 +1386,10 @@ namespace Arena
                     {
                         int id = r.ReadInt32();
                         byte kind = r.ReadByte();
+                        int owner = r.ReadInt32();
                         V2 pos = r.ReadV2(), vel = r.ReadV2();
                         float angVel = r.ReadSingle(), life = r.ReadSingle();
-                        MakeBullet(id, kind, pos, vel, angVel, life);
+                        MakeBullet(id, kind, owner, pos, vel, angVel, life);
                     }
                     break;
                 }
@@ -952,7 +1402,7 @@ namespace Arena
                         Bullet b;
                         if (Bullets.TryGetValue(id, out b))
                         {
-                            AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), 10f, 0.15f);
+                            RemovedFx(b);
                             Bullets.Remove(id);
                         }
                     }
@@ -960,6 +1410,7 @@ namespace Arena
                 }
                 case Msg.ClearEnemyBullets:
                     ClearEnemyBullets();
+                    Turrets.Clear();
                     break;
                 case Msg.Fx:
                 {
@@ -968,6 +1419,22 @@ namespace Arena
                     Rgba color = r.ReadRgba();
                     float radius = r.ReadSingle(), dur = r.ReadSingle();
                     AddFx(kind, pos, color, radius, dur);
+                    Sounds.Add((Sfx)r.ReadByte());
+                    break;
+                }
+                case Msg.Upgrades:
+                {
+                    int id = r.ReadInt32();
+                    int n = r.ReadByte();
+                    Player p;
+                    if (!Players.TryGetValue(id, out p))
+                        break;
+                    p.Taken.Clear();
+                    for (int i = 0; i < n; i++)
+                        p.Taken.Add(r.ReadByte());
+                    Recalc(p);
+                    if (id == MyId)
+                        awaitingPick = false;
                     break;
                 }
                 case Msg.Snapshot:
@@ -990,7 +1457,21 @@ namespace Arena
                 V2 pos = r.ReadV2();
                 float aim = r.ReadSingle(), hp = r.ReadSingle();
                 bool downed = r.ReadBoolean();
-                float revive = r.ReadSingle(), abilityCd = r.ReadSingle(), barrier = r.ReadSingle(), invuln = r.ReadSingle();
+                float revive = r.ReadSingle(), barrier = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
+                int level = r.ReadInt16();
+                float xp = r.ReadSingle();
+                int pending = r.ReadByte();
+                var offer = new int[3];
+                for (int k = 0; k < 3; k++)
+                    offer[k] = r.ReadByte();
+                var charges = new int[Upgrades.SlotCount];
+                var timers = new float[Upgrades.SlotCount];
+                for (int k = 0; k < Upgrades.SlotCount; k++)
+                {
+                    charges[k] = r.ReadByte();
+                    timers[k] = r.ReadSingle();
+                }
+
                 Player p;
                 if (!Players.TryGetValue(id, out p))
                     continue;
@@ -998,15 +1479,25 @@ namespace Arena
                 {
                     p.Pos = pos;
                     p.Aim = aim;
+                    // Your own cooldowns are tracked locally; only copy the ally's.
+                    for (int k = 0; k < Upgrades.SlotCount; k++)
+                    {
+                        p.Slots[k].Charges = charges[k];
+                        p.Slots[k].Timer = timers[k];
+                    }
                 }
                 if (hp < p.Hp)
                     p.Flash = 0.1f;
                 p.Hp = hp;
                 p.Downed = downed;
                 p.Revive = revive;
-                p.AbilityCd = abilityCd;
                 p.BarrierT = barrier;
                 p.InvulnT = invuln;
+                p.OverdriveT = overdrive;
+                p.Level = level;
+                p.Xp = xp;
+                p.PendingPicks = pending;
+                p.Offer = offer[0] == 255 || (id == MyId && awaitingPick) ? null : offer;
             }
 
             var seen = new HashSet<int>();
@@ -1039,8 +1530,16 @@ namespace Arena
                     gone.Add(e);
             foreach (var e in gone)
             {
-                AddFx(FxKind.Boom, e.Disp, e.Def.Color, e.Radius * 2.2f, 0.4f);
+                DeathFx(e, e.Disp);
                 Enemies.Remove(e.Id);
+            }
+
+            Turrets.Clear();
+            int nt = r.ReadByte();
+            for (int i = 0; i < nt; i++)
+            {
+                var t = new Turret { Id = r.ReadInt32(), Owner = r.ReadInt32(), Pos = r.ReadV2(), T = r.ReadSingle(), Aim = r.ReadSingle() };
+                Turrets[t.Id] = t;
             }
         }
 
@@ -1057,7 +1556,7 @@ namespace Arena
         {
             var parts = new List<string>();
             foreach (var p in Players.Values)
-                parts.Add(p.Role + ":" + (int)p.Hp + (p.Downed ? "(down)" : ""));
+                parts.Add(p.Role + ":" + (int)p.Hp + (p.Downed ? "(down)" : "") + "/L" + p.Level);
             return string.Join(" ", parts);
         }
 
