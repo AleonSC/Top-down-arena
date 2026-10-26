@@ -56,8 +56,8 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | Ability upgrades: **two charges** for your Barrier / Mend Pulse / Dash, bigger and longer Barrier, stronger Mend Pulse, wider aura, longer Dash invulnerability; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E) |
-| **Very rare** | purple | A brand-new ability in your **Q** slot (then **E**): Shockwave, Overdrive, Blink, Nova or Turret |
+| **Rare** | blue | Ability upgrades: **two charges** for your Barrier / Mend Pulse / Dash, bigger and longer Barrier, stronger Mend Pulse, wider aura, longer Dash invulnerability; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Very rare** | purple | A brand-new ability in your **Q** slot, then **E**, then **Shift**: Shockwave, Overdrive, Blink, Nova or Turret (each one only once) |
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
@@ -77,7 +77,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 | Aim | Mouse |
 | Shoot | Hold left click |
 | Role ability | Space or right click |
-| Bonus abilities | Q and E (once unlocked) |
+| Bonus abilities | Q, E and Shift (once unlocked) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
@@ -128,5 +128,6 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport
 - `Assets/Scripts/Game/ArenaApp.cs`: the Unity side: input, drawing (GL), menus and HUD (IMGUI)
-- `Assets/Scripts/Game/SoundBank.cs`: sound effects, synthesized in code (no audio files)
+- `Assets/Scripts/Game/SoundBank.cs`: sound effects, synthesized in code (no audio files). Each weapon has
+  its own gunshot recipe (muzzle crack, body, thump, room tail, reverb) you can tweak
 - `Assets/Editor/ArenaEditor.cs`: creates the scene and the **Arena** build menu

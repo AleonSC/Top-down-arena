@@ -11,8 +11,19 @@ namespace Arena
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
     {
-        None, PlayerShot, AllyShot, EnemyShot, Hit, Hurt, Explode, BigExplode, Ability, Shockwave, Blink,
+        None, EnemyShot, Hit, Hurt, Explode, BigExplode, Ability, Shockwave, Blink,
         LevelUp, Pick, WaveStart, WaveClear, GameOver, Downed, Revive,
+        // One gunshot per weapon, plus the turret and Nova.
+        ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotWisp, ShotBow, ShotAssault, ShotSniper, ShotSmg,
+        ShotTurret, ShotNova,
+    }
+
+    public struct SoundCue
+    {
+        public Sfx Sfx;
+        public bool Ally;  // your friend's shot: played quieter
+
+        public static implicit operator SoundCue(Sfx s) => new SoundCue { Sfx = s };
     }
 
     public class AbilitySlot
@@ -41,7 +52,7 @@ namespace Arena
         public int[] Offer;  // three upgrade ids while choosing, otherwise null
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
-        public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };
+        public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };
 
         public float Speed => Def.Speed * Stats.SpeedMult;
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
@@ -95,6 +106,7 @@ namespace Arena
         public bool Ability;  // held states; Game detects the presses
         public bool AbilityQ;
         public bool AbilityE;
+        public bool AbilityShift;
     }
 
     /// The match. The host simulates enemies, bullets, damage, XP and waves; every
@@ -148,7 +160,7 @@ namespace Arena
         public readonly Dictionary<int, Bullet> Bullets = new Dictionary<int, Bullet>();
         public readonly Dictionary<int, Turret> Turrets = new Dictionary<int, Turret>();
         public readonly List<Effect> Effects = new List<Effect>();
-        public readonly List<Sfx> Sounds = new List<Sfx>();  // drained by the front end each frame
+        public readonly List<SoundCue> Sounds = new List<SoundCue>();  // drained by the front end each frame
 
         public float DashT, AnimT;
         public V2 DashDir = new V2(1f, 0f);
@@ -565,7 +577,7 @@ namespace Arena
             V2 aimAt = input.AimAt;
             me.Aim = (aimAt - me.Pos).Angle;
             bool firing = input.Fire && !me.Downed;
-            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE };
+            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift };
 
             if (Bot)
             {
@@ -1254,8 +1266,34 @@ namespace Arena
         {
             var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Radius = Defs.BulletRadius(kind) };
             Bullets[id] = b;
-            Sounds.Add(owner == 0 ? Sfx.EnemyShot : owner == MyId ? Sfx.PlayerShot : Sfx.AllyShot);
+            if (owner == 0)
+                Sounds.Add(Sfx.EnemyShot);
+            else
+                Sounds.Add(new SoundCue { Sfx = ShotSound(kind, owner), Ally = owner != MyId });
             return b;
+        }
+
+        Sfx ShotSound(byte kind, int owner)
+        {
+            if (kind == Defs.TurretShot)
+                return Sfx.ShotTurret;
+            if (kind == Defs.NovaShot)
+                return Sfx.ShotNova;
+            Player p;
+            if (!Players.TryGetValue(owner, out p))
+                return Sfx.ShotRifle;
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Scattergun: return Sfx.ShotShotgun;
+                case WeaponId.FlakCannon: return Sfx.ShotCannon;
+                case WeaponId.RiotRepeater: return Sfx.ShotRifle;
+                case WeaponId.LightBolt: return Sfx.ShotSuppressed;
+                case WeaponId.TwinWisps: return Sfx.ShotWisp;
+                case WeaponId.MendersBow: return Sfx.ShotBow;
+                case WeaponId.TwinRifle: return Sfx.ShotAssault;
+                case WeaponId.Railgun: return Sfx.ShotSniper;
+                default: return Sfx.ShotSmg;
+            }
         }
 
         readonly List<int> scratchIds = new List<int>();

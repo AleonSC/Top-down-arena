@@ -42,6 +42,8 @@ static class Program
                     ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, taken);
                     if (id >= 0)
                         rarityCount[(int)Upgrades.All[id].Rarity]++;
+                    if (id >= 0 && Upgrades.All[id].Grants != AbilityId.None)
+                        ok &= !taken.Contains(id);
                 }
                 taken.Add(offer[rng.Next(3)]);
             }
@@ -49,10 +51,10 @@ static class Program
             foreach (int t in taken)
                 if (Upgrades.All[t].Grants != AbilityId.None)
                     grants++;
-            ok &= grants <= 2;
+            ok &= grants <= Upgrades.SlotCount - 1;
         }
         Console.WriteLine("offer rarities seen: common {0}, uncommon {1}, rare {2}, very rare {3}", rarityCount[0], rarityCount[1], rarityCount[2], rarityCount[3]);
-        Check(ok, "offers are 3 distinct, eligible upgrades; at most 2 new abilities");
+        Check(ok, "offers are 3 distinct, eligible upgrades; at most 3 new abilities");
     }
 
     // Start at the boss wave with boosted damage so the bots kill the boss,
@@ -274,6 +276,7 @@ static class Program
             Give(1, "Shockwave");
             Give(2, "Nova");
             Give(2, "Blink");
+            Give(1, "Overdrive");
             Give(2, "Overcharge");
             int turretsSeen = 0, ghostsAfter = 0;
             for (int i = 0; i < 60 * 12; i++)
@@ -293,7 +296,7 @@ static class Program
             }
             var c1 = client.Game.Players[1].Slots;
             var c2 = client.Game.Players[2].Slots;
-            Console.WriteLine("  client sees tank slots {0}/{1}/{2}, healer slots {3}x{4}/{5}x{6}", c1[0].Id, c1[1].Id, c1[2].Id, c2[1].Id, c2[1].MaxCharges, c2[2].Id, c2[2].MaxCharges);
+            Console.WriteLine("  client sees tank slots {0}/{1}/{2}/{3}, healer slots {4}x{5}/{6}x{7}/{8}", c1[0].Id, c1[1].Id, c1[2].Id, c1[3].Id, c2[1].Id, c2[1].MaxCharges, c2[2].Id, c2[2].MaxCharges, c2[3].Id);
             bool slotsOk = true, overchargeOk = true;
             bool hasTurret = false;
             foreach (var hp in host.Game.Players.Values)
@@ -303,12 +306,16 @@ static class Program
                     if (Upgrades.All[t].Grants != AbilityId.None)
                         grants.Add(Upgrades.All[t].Grants);
                 var cs = client.Game.Players[hp.Id].Slots;
-                slotsOk &= grants.Count == 2 && cs[1].Id == grants[0] && cs[2].Id == grants[1];
+                for (int k = 1; k < Upgrades.SlotCount; k++)
+                    slotsOk &= cs[k].Id == (k - 1 < grants.Count ? grants[k - 1] : AbilityId.None);
+                slotsOk &= new HashSet<AbilityId>(grants).Count == grants.Count;  // no duplicates
+                if (hp.Id == 1)
+                    slotsOk &= grants.Count == 3 && cs[3].Id != AbilityId.None;  // tank fills Shift too
                 hasTurret |= grants.Contains(AbilityId.Turret);
                 if (hp.Id == 2)
                     overchargeOk = cs[1].MaxCharges == 2 && cs[2].MaxCharges == 2;
             }
-            Check(slotsOk, "new abilities fill Q then E, in pick order, on the client too");
+            Check(slotsOk, "new abilities fill Q, E, then Shift, in pick order, on the client too");
             Check(overchargeOk, "Overcharge gives Q/E a second charge");
             Check(!hasTurret || turretsSeen > 0, "turret shows up on the client");
             Check(ghostsAfter == 0, "still in sync while using new abilities");

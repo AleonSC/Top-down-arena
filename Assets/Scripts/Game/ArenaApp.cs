@@ -139,7 +139,7 @@ namespace Arena
             session.Poll();
             game.Update(Time.deltaTime);
             foreach (var sfx in game.Sounds)
-                sounds.Play(sfx, Time.unscaledTime);
+                sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
             UpdateLayout();
             var me = game.Me;
@@ -153,6 +153,8 @@ namespace Arena
                 wantAbility[1] = true;
             if (Input.GetKeyDown(KeyCode.E))
                 wantAbility[2] = true;
+            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+                wantAbility[3] = true;
             if (Input.GetKeyDown(KeyCode.M))
                 sounds.Muted = !sounds.Muted;
 
@@ -192,6 +194,7 @@ namespace Arena
                 Ability = wantAbility[0] || Input.GetKey(KeyCode.Space) || Input.GetMouseButton(1),
                 AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
                 AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
+                AbilityShift = wantAbility[3] || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -552,7 +555,7 @@ namespace Arena
             status.normal.textColor = new Color(1f, 0.75f, 0.4f);
             GUILayout.Label(session.Status, status);
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc leave", smallStyle);
+            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E / Shift bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc leave", smallStyle);
             GUILayout.EndArea();
         }
 
@@ -634,7 +637,7 @@ namespace Arena
             GUILayout.EndArea();
         }
 
-        static readonly string[] SlotKeys = { "SPACE", "Q", "E" };
+        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT" };
 
         void DrawHud()
         {
@@ -706,11 +709,11 @@ namespace Arena
             }
         }
 
-        /// XP bar plus the three ability slots (Space / Q / E) along the bottom.
+        /// XP bar plus the ability slots (Space / Q / E / Shift) along the bottom.
         void DrawAbilityBar(Player me)
         {
-            const float slotW = 170f, gap = 8f;
-            float total = slotW * 3 + gap * 2;
+            const float slotW = 160f, gap = 8f;
+            float total = slotW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
             float x0 = (W - total) / 2f, y = H - 58f;
 
             Box(new Rect(x0, y - 22f, total, 14f), new Color(0, 0, 0, 0.5f));
@@ -769,7 +772,12 @@ namespace Arena
                 GUI.Label(new Rect(r.x + 18, r.y + 90, r.width - 36, 90), u.Desc, desc);
                 string note = "";
                 if (u.Grants != AbilityId.None)
-                    note = "Goes in your " + (me.Slots[1].Id == AbilityId.None ? "Q" : "E") + " slot";
+                {
+                    int free = 1;
+                    while (free < Upgrades.SlotCount - 1 && me.Slots[free].Id != AbilityId.None)
+                        free++;
+                    note = "Goes in your " + SlotKeys[free] + " slot";
+                }
                 else if (u.Role.HasValue)
                     note = Defs.Get(u.Role.Value).Name + " only";
                 else

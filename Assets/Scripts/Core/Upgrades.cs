@@ -31,14 +31,14 @@ namespace Arena
         public Rarity Rarity;
         public int MaxStacks = 99;
         public Role? Role;                          // only offered to this role
-        public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E ability
-        public bool NeedsExtraAbility;              // only offered once you have a Q/E ability
+        public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E/Shift ability
+        public bool NeedsExtraAbility;              // only offered once you have a bonus ability
         public Action<Stats> Apply;
     }
 
     public static class Upgrades
     {
-        public const int SlotCount = 3;  // 0 = role ability (Space), 1 = Q, 2 = E
+        public const int SlotCount = 4;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift
 
         public static readonly AbilityDef[] Abilities =
         {
@@ -97,10 +97,10 @@ namespace Arena
                 Apply = s => { s.DashIframeBonus += 0.25f; s.DashCdMult *= 0.75f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "Fire an extra volley at an angle", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy", Apply = s => s.Pierce += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, NeedsExtraAbility = true, Name = "Overcharge", Desc = "Your Q and E abilities get a second charge",
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, NeedsExtraAbility = true, Name = "Overcharge", Desc = "Your Q, E and Shift abilities get a second charge",
                 Apply = s => s.ExtraCharges += 1 },
 
-            // Very rare: a new Q / E ability
+            // Very rare: a new Q / E / Shift ability
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Shockwave, Name = "Shockwave", Desc = "New ability: erase enemy bullets around you and damage nearby enemies" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Overdrive, Name = "Overdrive", Desc = "New ability: double fire rate for 5 seconds" },
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Blink, Name = "Blink", Desc = "New ability: teleport toward your cursor" },
@@ -136,8 +136,8 @@ namespace Arena
             var u = All[id];
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
-            if (Count(taken, id) >= u.MaxStacks)
-                return false;
+            if (Count(taken, id) >= (u.Grants != AbilityId.None ? 1 : u.MaxStacks))
+                return false;  // each bonus ability can only be owned once
             int grants = 0;
             foreach (int t in taken)
                 if (All[t].Grants != AbilityId.None)
