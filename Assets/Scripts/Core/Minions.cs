@@ -169,8 +169,8 @@ namespace Arena
                         pendingRemoved.Add(bid);
                     }
                     foreach (var q in Players.Values)
-                        if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 280f)
-                            q.Hp = Math.Min(q.MaxHp, q.Hp + 25f);
+                        if (q.Pos.DistanceTo(p.Pos) < 280f)
+                            Heal(q, 25f, p);
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.HolyShot), 280f, 0.5f, Sfx.SpellHoly);
                     break;
                 }
@@ -442,8 +442,8 @@ namespace Arena
                         break;
                     case MinionAttack.Heal:
                         foreach (var q in Players.Values)
-                            if (!q.Downed && q.Pos.DistanceTo(m.Pos) < d.Range)
-                                q.Hp = Math.Min(q.MaxHp, q.Hp + m.HealRate * dt);
+                            if (q.Pos.DistanceTo(m.Pos) < d.Range)
+                                Heal(q, m.HealRate * dt, owner);
                         break;
                 }
 
@@ -452,7 +452,7 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (q.Downed)
                         {
-                            RevivePlayer(q, 0.5f);
+                            RevivePlayer(q, 0.5f, owner);
                             BroadcastFx(FxKind.Ring, q.Pos, d.Color, 90f, 0.6f, Sfx.Revive);
                             expired.Add(m);
                             break;
@@ -511,10 +511,13 @@ namespace Arena
                 {
                     if (q.Pos.DistanceTo(z.Pos) > z.Radius)
                         continue;
-                    if (q.Downed)
+                    if (q.Downed && d.ReviveBoost > 0f)
+                    {
                         q.Revive += dt / ReviveTime * d.ReviveBoost;  // on top of the normal revive
+                        q.ReviveBy = z.Owner;
+                    }
                     else if (d.HealRate > 0f)
-                        q.Hp = Math.Min(q.MaxHp, q.Hp + d.HealRate * dt);
+                        Heal(q, d.HealRate * dt, PlayerOrNull(z.Owner));
                 }
                 if (d.Dps > 0f || d.Slow > 0f)
                     foreach (var e in Enemies.Values)

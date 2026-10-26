@@ -23,7 +23,7 @@ namespace Arena
         Role? joinRole;
         int weaponChoice, abilityChoice;
         Kit kitChoice = Kit.Soldier;
-        bool pauseMenuOpen, settingsOpen, wasPaused;
+        bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
@@ -31,7 +31,7 @@ namespace Arena
 
         Material glMaterial;
         float scale = 1f, offX, offY;  // arena -> screen pixels (top-left origin)
-        GUIStyle titleStyle, labelStyle, smallStyle, centerStyle, buttonStyle, fieldStyle;
+        GUIStyle labelStyle;  // base for the HUD's labels; menus use Ui
         string addressList;
 
         // Reset statics in case "Enter Play Mode Options" skips domain reloads.
@@ -271,8 +271,6 @@ namespace Arena
 
         void OnPostRender()
         {
-            if (!game.Running)
-                return;
             if (glMaterial == null)
             {
                 glMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
@@ -287,9 +285,40 @@ namespace Arena
             GL.PushMatrix();
             GL.LoadPixelMatrix();
             GL.Begin(GL.TRIANGLES);
-            DrawWorld();
+            if (game.Running)
+                DrawWorld();
+            else
+                DrawMenuBackground(Time.time);
             GL.End();
             GL.PopMatrix();
+        }
+
+        /// Behind the menus: a slow drifting grid and a boss-like spiral of glowing bullets.
+        void DrawMenuBackground(float t)
+        {
+            FillRect(0, 0, W, H, new Rgba(0.035f, 0.04f, 0.065f));
+            var grid = new Rgba(0.4f, 0.55f, 1f, 0.05f);
+            float scroll = MathX.Fmod(t * 12f, 64f);
+            for (float x = -64f + scroll; x <= W; x += 64f)
+                Line(new V2(x, 0), new V2(x, H), 1f, grid);
+            for (float y = -64f + scroll; y <= H; y += 64f)
+                Line(new V2(0, y), new V2(W, y), 1f, grid);
+            // Soft colored glows.
+            Circle(new V2(W * 0.25f + 60f * Mathf.Sin(t * 0.2f), H * 0.35f), 260f, new Rgba(0.3f, 0.45f, 1f, 0.05f), 48);
+            Circle(new V2(W * 0.78f, H * 0.7f + 50f * Mathf.Cos(t * 0.17f)), 300f, new Rgba(0.8f, 0.35f, 0.9f, 0.04f), 48);
+            // A rotating five-armed spiral of bullets from the center.
+            var center = new V2(W / 2f, H / 2f);
+            for (int arm = 0; arm < 5; arm++)
+                for (int k = 0; k < 14; k++)
+                {
+                    float dist = MathX.Fmod(t * 60f + k * 52f, 14f * 52f);
+                    float ang = t * 0.25f + arm * MathX.Tau / 5f + dist * 0.004f;
+                    V2 pos = center + V2.FromAngle(ang) * dist;
+                    float a = 0.35f * MathX.Clamp01(dist / 120f) * (1f - dist / (14f * 52f));
+                    var c = arm % 2 == 0 ? new Rgba(1f, 0.35f, 0.5f) : new Rgba(0.45f, 0.65f, 1f);
+                    Circle(pos, 7f, c.WithAlpha(a * 0.5f), 10);
+                    Circle(pos, 3.5f, c.WithAlpha(a), 8);
+                }
         }
 
         void DrawWorld()
@@ -815,27 +844,25 @@ namespace Arena
 
         void InitStyles()
         {
-            if (titleStyle != null)
+            if (labelStyle != null)
                 return;
             labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, wordWrap = true };
             labelStyle.normal.textColor = new Color(0.9f, 0.92f, 1f);
-            smallStyle = new GUIStyle(labelStyle) { fontSize = 13 };
-            titleStyle = new GUIStyle(labelStyle) { fontSize = 34, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
-            centerStyle = new GUIStyle(labelStyle) { alignment = TextAnchor.MiddleCenter, wordWrap = false };
-            buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 16, fixedHeight = 38 };
-            fieldStyle = new GUIStyle(GUI.skin.textField) { fontSize = 16, fixedHeight = 30 };
         }
 
         void OnGUI()
         {
             UpdateLayout();
             InitStyles();
+            Ui.Init();
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX, offY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
             switch (session.Screen)
             {
                 case AppScreen.Menu:
                     if (settingsOpen)
                         DrawSettings();
+                    else if (howToOpen)
+                        DrawHowToPlay();
                     else
                         DrawMenu();
                     break;
@@ -852,44 +879,80 @@ namespace Arena
 
         void DrawMenu()
         {
-            GUILayout.BeginArea(new Rect(W / 2f - 280f, 90f, 560f, 560f), GUI.skin.box);
-            GUILayout.Space(10);
-            GUILayout.Label("TOP-DOWN ARENA", titleStyle);
-            GUILayout.Label("Co-op bullet hell for two. Survive the waves.", centerStyle);
-            GUILayout.Space(14);
-            GUILayout.Label("Your name", smallStyle);
-            nameText = GUILayout.TextField(nameText, 16, fieldStyle);
-            GUILayout.Label("Host address (only needed to join)", smallStyle);
-            addressText = GUILayout.TextField(addressText, 64, fieldStyle);
-            GUILayout.Label("Port", smallStyle);
-            portText = GUILayout.TextField(portText, 5, fieldStyle);
-            GUILayout.Space(12);
+            Ui.Title(new Rect(0, 70f, W, 70f), "TOP-DOWN ARENA", 60, Color.white);
+            Ui.Label(new Rect(0, 140f, W, 24f), "CO-OP BULLET HELL  ·  SURVIVE 50 WAVES", 15, Ui.Gold, TextAnchor.MiddleCenter, true);
+
+            var card = new Rect(W / 2f - 250f, 190f, 500f, 360f);
+            Ui.Panel(card, true);
+            float x = card.x + 32f, w = card.width - 64f, y = card.y + 26f;
+            Ui.Heading(x, y, w, "Your name");
+            nameText = Ui.Field(new Rect(x, y + 28f, w, 38f), nameText, 16);
+            y += 82f;
+            Ui.Heading(x, y, w - 130f, "Host address (to join)");
+            Ui.Heading(x + w - 110f, y, 110f, "Port");
+            addressText = Ui.Field(new Rect(x, y + 28f, w - 130f, 38f), addressText, 64);
+            portText = Ui.Field(new Rect(x + w - 110f, y + 28f, 110f, 38f), portText, 5);
+            y += 94f;
             if (session.Connecting)
             {
-                if (GUILayout.Button("Cancel", buttonStyle))
+                Ui.Label(new Rect(x, y, w, 44f), session.Status, 15, Ui.Muted, TextAnchor.MiddleCenter);
+                if (Ui.Button(new Rect(x + w / 2f - 90f, y + 52f, 180f, 44f), "Cancel", Ui.Danger))
                     session.Leave("");
             }
             else
             {
-                GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Host game", buttonStyle))
+                if (Ui.Button(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary))
                     HostGame();
-                if (GUILayout.Button("Join game", buttonStyle))
+                if (Ui.Button(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral))
                     session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
-                GUILayout.EndHorizontal();
-                if (GUILayout.Button("Settings", buttonStyle))
-                    settingsOpen = true;
+                if (session.Status.Length > 0)
+                    Ui.Label(new Rect(x - 10f, y + 58f, w + 20f, 50f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
             }
-            GUILayout.Space(8);
-            var status = new GUIStyle(smallStyle);
-            status.normal.textColor = new Color(1f, 0.75f, 0.4f);
-            GUILayout.Label(session.Status, status);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E / Shift bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc pause", smallStyle);
-            var version = new GUIStyle(smallStyle) { alignment = TextAnchor.MiddleCenter };
-            version.normal.textColor = new Color(1f, 1f, 1f, 0.45f);
-            GUILayout.Label(Session.VersionText + " — you and your friend need the same version", version);
-            GUILayout.EndArea();
+
+            float by = card.yMax + 24f;
+            if (Ui.Button(new Rect(W / 2f - 250f, by, 160f, 40f), "How to play"))
+                howToOpen = true;
+            if (Ui.Button(new Rect(W / 2f - 80f, by, 160f, 40f), "Settings"))
+                settingsOpen = true;
+            if (Ui.Button(new Rect(W / 2f + 90f, by, 160f, 40f), "Quit", Ui.Danger))
+                Application.Quit();
+            Ui.Label(new Rect(0, H - 30f, W, 20f), Session.VersionText + "  ·  you and your friend need the same version", 12, Ui.Muted, TextAnchor.MiddleCenter);
+        }
+
+        void DrawHowToPlay()
+        {
+            var panel = new Rect(W / 2f - 330f, 80f, 660f, 560f);
+            Ui.Panel(panel, true);
+            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "HOW TO PLAY", 32, Color.white);
+            string[,] rows =
+            {
+                { "Move", "WASD / arrow keys" },
+                { "Aim / shoot", "Mouse / hold left click" },
+                { "Role ability", "Space or right click" },
+                { "Bonus abilities", "Q, E and Shift (from very rare upgrades)" },
+                { "Pick an upgrade", "Click a card (or 1-3), then Confirm (Enter)" },
+                { "Reroll upgrades", "R" },
+                { "Pause menu", "Esc" },
+                { "Mute", "M" },
+            };
+            float x = panel.x + 40f, y = panel.y + 80f, w = panel.width - 80f;
+            Ui.Heading(x, y, w, "Controls");
+            y += 30f;
+            for (int i = 0; i < rows.GetLength(0); i++)
+            {
+                Ui.Label(new Rect(x, y, 200f, 24f), rows[i, 0], 15, Ui.Muted);
+                Ui.Label(new Rect(x + 200f, y, w - 200f, 24f), rows[i, 1], 15, Ui.Text, TextAnchor.MiddleLeft, true);
+                y += 28f;
+            }
+            y += 10f;
+            Ui.Heading(x, y, w, "Tips");
+            Ui.Label(new Rect(x, y + 28f, w, 120f),
+                "Your hitbox is the small white dot in the middle of your character.\n" +
+                "At 0 HP you're downed: stand next to your ally to revive them.\n" +
+                "Levels give upgrade picks at the end of each wave; bosses give legendary ones.\n" +
+                "One player hosts, the other joins (Tailscale makes this easy).", 14, Ui.Text, TextAnchor.UpperLeft, false, true);
+            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 64f, 200f, 44f), "Back", Ui.Primary))
+                howToOpen = false;
         }
 
         // --- Pause menu and audio settings --------------------------------------
@@ -910,21 +973,23 @@ namespace Arena
 
         void DrawPauseMenu()
         {
-            Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
-            var panel = new Rect(W / 2f - 230f, 110f, 460f, 500f);
-            Box(panel, new Color(0.08f, 0.09f, 0.13f, 0.97f));
-            Label(new Rect(panel.x, panel.y + 18f, panel.width, 40f), "PAUSED", 34, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
+            var panel = new Rect(W / 2f - 240f, 80f, 480f, 560f);
+            Ui.Panel(panel, true);
+            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
             Player by;
+            string sub = "";
             if (game.Paused && game.PausedBy != game.MyId && game.Players.TryGetValue(game.PausedBy, out by))
-                Label(new Rect(panel.x, panel.y + 56f, panel.width, 20f), "Paused by " + by.Name, 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter);
-            else if (!game.Paused && game.State != MatchState.GameOver)
-                Label(new Rect(panel.x, panel.y + 56f, panel.width, 20f), "Pausing…", 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter);
+                sub = "Paused by " + by.Name;
+            else if (!game.Paused && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+                sub = "Pausing…";
+            Ui.Label(new Rect(panel.x, panel.y + 62f, panel.width, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter);
 
             float x = panel.x + 40f, w = panel.width - 80f;
-            if (GUI.Button(new Rect(x, panel.y + 90f, w, 40f), "Resume  [Esc]", buttonStyle))
+            if (Ui.Button(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary))
                 ResumeGame();
-            DrawAudioOptions(x, panel.y + 150f, w);
-            if (GUI.Button(new Rect(x, panel.yMax - 60f, w, 40f), "Leave game", buttonStyle))
+            DrawAudioOptions(x, panel.y + 168f, w);
+            if (Ui.Button(new Rect(x, panel.yMax - 68f, w, 44f), "Leave game", Ui.Danger))
             {
                 pauseMenuOpen = false;
                 session.Leave("");
@@ -933,26 +998,26 @@ namespace Arena
 
         void DrawSettings()
         {
-            var panel = new Rect(W / 2f - 230f, 140f, 460f, 420f);
-            Box(panel, new Color(0.08f, 0.09f, 0.13f, 0.97f));
-            Label(new Rect(panel.x, panel.y + 18f, panel.width, 40f), "SETTINGS", 30, Color.white, TextAnchor.MiddleCenter, true);
+            var panel = new Rect(W / 2f - 240f, 110f, 480f, 470f);
+            Ui.Panel(panel, true);
+            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
             float x = panel.x + 40f, w = panel.width - 80f;
-            DrawAudioOptions(x, panel.y + 80f, w);
-            if (GUI.Button(new Rect(x, panel.yMax - 60f, w, 40f), "Back", buttonStyle))
+            DrawAudioOptions(x, panel.y + 82f, w);
+            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 66f, 200f, 44f), "Back", Ui.Primary))
                 settingsOpen = false;
         }
 
         /// Volume sliders and mute; changes are saved right away.
         void DrawAudioOptions(float x, float y, float w)
         {
-            Label(new Rect(x, y, w, 22f), "AUDIO", 16, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleLeft, true);
-            y += 30f;
+            Ui.Heading(x, y, w, "Audio");
+            y += 34f;
             bool changed = false;
             changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
-            changed |= VolumeSlider(x, ref y, w, "Weapons (your shots and spells)", ref sounds.Weapons);
+            changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
             changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
-            changed |= VolumeSlider(x, ref y, w, "Effects (explosions, abilities, UI)", ref sounds.Effects);
-            bool muted = GUI.Toggle(new Rect(x, y + 4f, w, 24f), sounds.Muted, "  Mute all sound  [M]");
+            changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, UI)", ref sounds.Effects);
+            bool muted = Ui.Toggle(new Rect(x, y + 2f, w, 26f), sounds.Muted, "Mute all sound   [M]");
             if (muted != sounds.Muted)
             {
                 sounds.Muted = muted;
@@ -964,10 +1029,10 @@ namespace Arena
 
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
         {
-            Label(new Rect(x, y, w - 60f, 18f), label, 13, new Color(1, 1, 1, 0.85f), TextAnchor.MiddleLeft);
-            Label(new Rect(x + w - 60f, y, 60f, 18f), Mathf.RoundToInt(value * 100f) + "%", 13, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleRight);
-            float v = GUI.HorizontalSlider(new Rect(x, y + 22f, w, 16f), value, 0f, 1f);
-            y += 48f;
+            Ui.Label(new Rect(x, y, w - 60f, 20f), label, 14, Ui.Text);
+            Ui.Label(new Rect(x + w - 60f, y, 60f, 20f), Mathf.RoundToInt(value * 100f) + "%", 14, Ui.Muted, TextAnchor.MiddleRight, true);
+            float v = Ui.Slider(new Rect(x, y + 24f, w, 18f), value);
+            y += 54f;
             if (Mathf.Abs(v - value) < 0.0001f)
                 return false;
             value = v;
@@ -1005,50 +1070,103 @@ namespace Arena
 
         void DrawLobby()
         {
-            GUILayout.BeginArea(new Rect(W / 2f - 330f, 6f, 660f, 708f), GUI.skin.box);
-            GUILayout.Space(10);
-            GUILayout.Label("LOBBY", titleStyle);
-            GUILayout.Space(6);
-            var info = new GUIStyle(smallStyle);
-            info.normal.textColor = new Color(0.7f, 0.8f, 1f);
-            if (session.IsHost)
-                GUILayout.Label("Hosting on port " + session.Port + ". Your friend should join one of these addresses:\n" + addressList +
-                                "\n(Use a 100.x.x.x address if you both run Tailscale.)", info);
-            else
-                GUILayout.Label("Connected. Waiting for the host to start the game.", info);
-            if (session.Status.Length > 0)
-            {
-                var warn = new GUIStyle(smallStyle);
-                warn.normal.textColor = new Color(1f, 0.75f, 0.4f);
-                GUILayout.Label(session.Status, warn);
-            }
-            GUILayout.Label(Session.VersionText, smallStyle);
-            GUILayout.Space(10);
-
-            foreach (var e in session.Lobby.Values)
-            {
-                var tags = new List<string>();
-                if (e.Id == 1) tags.Add("host");
-                if (e.Id == session.MyId) tags.Add("you");
-                var style = new GUIStyle(labelStyle) { fontSize = 18 };
-                style.normal.textColor = ToColor(Defs.Get(e.Role).Color);
-                GUILayout.Label("• " + e.Name + " — " + Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name + ", " + Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + ", " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name + "  (" + string.Join(", ", tags.ToArray()) + ")", style);
-            }
-            if (session.Lobby.Count < Session.MaxPlayers)
-                GUILayout.Label("• waiting for a friend to join…", labelStyle);
-
-            GUILayout.Space(10);
-            GUILayout.Label("Pick your role:", smallStyle);
+            Ui.Title(new Rect(40f, 22f, 600f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(W - 440f, 30f, 400f, 20f), Session.VersionText, 12, Ui.Muted, TextAnchor.MiddleRight);
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
-            GUILayout.BeginHorizontal();
-            for (int i = 0; i < Defs.Roles.Length; i++)
+
+            // Left column: who's here and how to connect.
+            float lx = 40f, lw = 420f, y = 92f;
+            Ui.Heading(lx, y, lw, "Players");
+            y += 32f;
+            foreach (var e in session.Lobby.Values)
             {
-                var def = Defs.Roles[i];
-                bool selected = me != null && (int)me.Role == i;
-                var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
-                style.normal.textColor = style.hover.textColor = ToColor(def.Color);
-                if (GUILayout.Button(selected ? "[ " + def.Name + " ]" : def.Name, style))
+                DrawPlayerCard(new Rect(lx, y, lw, 96f), e);
+                y += 108f;
+            }
+            if (session.Lobby.Count < Session.MaxPlayers)
+            {
+                var empty = new Rect(lx, y, lw, 96f);
+                Ui.Fill(empty, new Color(1f, 1f, 1f, 0.03f));
+                Ui.Label(empty, "Waiting for a friend to join…", 15, Ui.Muted, TextAnchor.MiddleCenter);
+                y += 108f;
+            }
+            y += 8f;
+            Ui.Heading(lx, y, lw, session.IsHost ? "Your friend joins with" : "Connection");
+            y += 30f;
+            if (session.IsHost)
+            {
+                Ui.Label(new Rect(lx, y, lw, 20f), "Port " + session.Port + " and one of these addresses:", 13, Ui.Muted);
+                y += 24f;
+                float bx = lx;
+                foreach (var addr in (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    float bw = 14f + addr.Length * 8.5f;
+                    if (bx + bw > lx + lw)
+                    {
+                        bx = lx;
+                        y += 30f;
+                    }
+                    Ui.Badge(new Rect(bx, y, bw, 24f), addr, addr.StartsWith("100.") ? Ui.Accent : Ui.Neutral);
+                    bx += bw + 8f;
+                }
+                y += 32f;
+                Ui.Label(new Rect(lx, y, lw, 20f), "Blue = Tailscale address", 12, Ui.Muted);
+            }
+            else
+                Ui.Label(new Rect(lx, y, lw, 20f), "Connected. Waiting for the host to start.", 14, Ui.Good);
+            if (session.Status.Length > 0)
+                Ui.Label(new Rect(lx, H - 150f, lw, 60f), session.Status, 13, Ui.Warn, TextAnchor.UpperLeft, false, true);
+
+            // Right column: your loadout.
+            if (me != null)
+                DrawLoadout(me, new Rect(500f, 92f, W - 540f, 520f));
+
+            // Bottom bar.
+            if (Ui.Button(new Rect(40f, H - 76f, 180f, 48f), "Leave", Ui.Danger))
+                session.Leave("");
+            if (session.IsHost)
+            {
+                if (Ui.Button(new Rect(W - 300f, H - 76f, 260f, 48f), session.Lobby.Count < Session.MaxPlayers ? "Start solo" : "Start game", Ui.Primary))
+                    session.StartMatch();
+            }
+            else
+                Ui.Label(new Rect(W - 440f, H - 76f, 400f, 48f), "The host starts the game", 15, Ui.Muted, TextAnchor.MiddleRight);
+        }
+
+        void DrawPlayerCard(Rect r, LobbyEntry e)
+        {
+            var color = ToColor(Defs.Get(e.Role).Color);
+            Ui.Panel(r, e.Id == session.MyId);
+            Ui.Fill(new Rect(r.x + 3f, r.y + 10f, 4f, r.height - 20f), color);
+            Ui.Label(new Rect(r.x + 20f, r.y + 10f, r.width - 140f, 28f), e.Name, 20, Color.white, TextAnchor.MiddleLeft, true);
+            float bx = r.xMax - 16f;
+            if (e.Id == session.MyId)
+            {
+                bx -= 48f;
+                Ui.Badge(new Rect(bx, r.y + 12f, 48f, 22f), "YOU", Ui.Accent);
+            }
+            if (e.Id == 1)
+            {
+                bx -= 58f;
+                Ui.Badge(new Rect(bx, r.y + 12f, 52f, 22f), "HOST", Ui.GoldButton);
+            }
+            Ui.Label(new Rect(r.x + 20f, r.y + 40f, r.width - 40f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 15, color, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 20f, r.y + 62f, r.width - 40f, 22f),
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 13, Ui.Muted);
+        }
+
+        void DrawLoadout(LobbyEntry me, Rect r)
+        {
+            Ui.Panel(r);
+            float x = r.x + 24f, w = r.width - 48f, y = r.y + 18f;
+            const float gap = 10f;
+            float third = (w - gap * 2f) / 3f;
+            var roleColor = ToColor(Defs.Get(me.Role).Color);
+
+            Ui.Heading(x, y, w, "Role");
+            for (int i = 0; i < Defs.Roles.Length; i++)
+                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.Roles[i].Name, (int)me.Role == i, ToColor(Defs.Roles[i].Color)))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
@@ -1056,71 +1174,40 @@ namespace Arena
                     weaponChoice = 0;
                     abilityChoice = 0;
                 }
-            }
-            GUILayout.EndHorizontal();
-            if (me != null)
-            {
-                GUILayout.Label(Defs.Get(me.Role).Desc, smallStyle, GUILayout.MinHeight(22));
-                GUILayout.Space(4);
-                GUILayout.Label("Pick your class:", smallStyle);
-                GUILayout.BeginHorizontal();
-                for (int i = 0; i <= (int)Kit.Summoner; i++)
-                {
-                    var k = (Kit)i;
-                    bool selected = me.Kit == k;
-                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
-                    if (GUILayout.Button(selected ? "[ " + Defs.KitName(k) + " ]" : Defs.KitName(k), style))
-                    {
-                        session.RequestKit(k);
-                        kitChoice = k;
-                        weaponChoice = 0;
-                        abilityChoice = 0;
-                    }
-                }
-                GUILayout.EndHorizontal();
-                GUILayout.Label(KitBlurb(me.Kit), smallStyle);
-                GUILayout.Space(4);
-                GUILayout.Label("Pick your weapon:", smallStyle);
-                GUILayout.BeginHorizontal();
-                for (int i = 0; i < Defs.WeaponsPerRole; i++)
-                {
-                    var wd = Defs.Weapon(me.Role, me.Kit, i);
-                    bool selected = me.Weapon == i;
-                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
-                    if (GUILayout.Button(selected ? "[ " + wd.Name + " ]" : wd.Name, style))
-                    {
-                        session.RequestWeapon(i);
-                        weaponChoice = i;
-                    }
-                }
-                GUILayout.EndHorizontal();
-                GUILayout.Label(Defs.Weapon(me.Role, me.Kit, me.Weapon).Desc, smallStyle);
-                GUILayout.Space(6);
-                GUILayout.Label("Pick your ability (Space):", smallStyle);
-                GUILayout.BeginHorizontal();
-                for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
-                {
-                    var ad = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i));
-                    bool selected = me.Ability == i;
-                    var style = new GUIStyle(buttonStyle) { fontStyle = selected ? FontStyle.Bold : FontStyle.Normal };
-                    if (GUILayout.Button(selected ? "[ " + ad.Name + " ]" : ad.Name, style))
-                    {
-                        session.RequestAbility(i);
-                        abilityChoice = i;
-                    }
-                }
-                GUILayout.EndHorizontal();
-                GUILayout.Label(Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability)).Desc, smallStyle);
-            }
+            Ui.Label(new Rect(x, y + 70f, w, 20f), Defs.Get(me.Role).Desc + "  " + (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit)) + " HP.", 13, Ui.Muted);
+            y += 100f;
 
-            GUILayout.FlexibleSpace();
-            GUILayout.BeginHorizontal();
-            if (session.IsHost && GUILayout.Button("Start game", buttonStyle))
-                session.StartMatch();
-            if (GUILayout.Button("Leave", buttonStyle))
-                session.Leave("");
-            GUILayout.EndHorizontal();
-            GUILayout.EndArea();
+            Ui.Heading(x, y, w, "Class");
+            for (int i = 0; i <= (int)Kit.Summoner; i++)
+                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor))
+                {
+                    session.RequestKit((Kit)i);
+                    kitChoice = (Kit)i;
+                    weaponChoice = 0;
+                    abilityChoice = 0;
+                }
+            Ui.Label(new Rect(x, y + 70f, w, 20f), KitBlurb(me.Kit), 13, Ui.Muted);
+            y += 100f;
+
+            Ui.Heading(x, y, w, "Weapon");
+            for (int i = 0; i < Defs.WeaponsPerRole; i++)
+                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor))
+                {
+                    session.RequestWeapon(i);
+                    weaponChoice = i;
+                }
+            Ui.Label(new Rect(x, y + 70f, w, 36f), Defs.Weapon(me.Role, me.Kit, me.Weapon).Desc, 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            y += 110f;
+
+            Ui.Heading(x, y, w, "Ability  (Space)");
+            for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
+                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor))
+                {
+                    session.RequestAbility(i);
+                    abilityChoice = i;
+                }
+            var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
+            Ui.Label(new Rect(x, y + 70f, w, 40f), ability.Desc + "  (" + ability.Cooldown.ToString("0.#") + " s cooldown)", 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
         }
 
         static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT" };
@@ -1188,18 +1275,154 @@ namespace Arena
                         Label(new Rect(0, H / 2f - 26f, W, 24), "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer), 18, dim, TextAnchor.MiddleCenter);
                     break;
                 case MatchState.Victory:
-                    Label(new Rect(0, H / 2f - 90f, W, 60), "VICTORY!", 56, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleCenter, true);
-                    Label(new Rect(0, H / 2f - 26f, W, 28), "You beat all " + Game.MaxWave + " waves and The Eclipse with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
-                    Label(new Rect(0, H / 2f + 10f, W, 24), session.IsHost ? "C: keep going (endless)    R: play again    L: back to lobby    Esc: menu" : "Waiting for the host…    Esc: menu",
-                        16, dim, TextAnchor.MiddleCenter);
-                    break;
                 case MatchState.GameOver:
-                    Label(new Rect(0, H / 2f - 80f, W, 60), "GAME OVER", 48, new Color(1f, 0.4f, 0.4f), TextAnchor.MiddleCenter, true);
-                    Label(new Rect(0, H / 2f - 20f, W, 28), "You survived to wave " + game.Wave + " with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
-                    Label(new Rect(0, H / 2f + 14f, W, 24), session.IsHost ? "R: play again    L: back to lobby    Esc: menu" : "Waiting for the host…    Esc: menu",
-                        16, dim, TextAnchor.MiddleCenter);
+                    if (!pauseMenuOpen)
+                        DrawRunSummary();
                     break;
             }
+        }
+
+        // --- End of run ---------------------------------------------------------
+
+        struct SummaryRow
+        {
+            public string Label, Award;
+            public Func<RunStats, float> Value;
+            public Func<RunStats, string> Format;
+        }
+
+        static readonly SummaryRow[] SummaryRows =
+        {
+            new SummaryRow { Label = "Damage dealt", Award = "Most damage", Value = s => s.DamageDealt, Format = s => Big(s.DamageDealt) },
+            new SummaryRow { Label = "Kills", Award = "Most kills", Value = s => s.Kills, Format = s => s.Kills + (s.EliteKills + s.BossKills > 0 ? "  (" + s.EliteKills + " elite, " + s.BossKills + " boss)" : "") },
+            new SummaryRow { Label = "Biggest hit", Award = "Heavy hitter", Value = s => s.BiggestHit, Format = s => Big(s.BiggestHit) },
+            new SummaryRow { Label = "Accuracy", Award = "Sharpshooter", Value = s => s.Accuracy, Format = s => Mathf.RoundToInt(s.Accuracy * 100f) + "%" },
+            new SummaryRow { Label = "Healing done", Award = "Best healer", Value = s => s.HealingDone, Format = s => Big(s.HealingDone) },
+            new SummaryRow { Label = "Allies revived", Award = "Lifesaver", Value = s => s.Revives, Format = s => s.Revives.ToString() },
+            new SummaryRow { Label = "Damage taken", Award = "Damage sponge", Value = s => s.DamageTaken, Format = s => Big(s.DamageTaken) },
+            new SummaryRow { Label = "Times downed", Award = null, Value = s => s.Downs, Format = s => s.Downs.ToString() },
+            new SummaryRow { Label = "Abilities used", Award = null, Value = s => s.AbilitiesUsed, Format = s => s.AbilitiesUsed.ToString() },
+        };
+
+        static string Big(float v) => v >= 10000f ? (v / 1000f).ToString("0.#") + "k" : Mathf.RoundToInt(v).ToString();
+
+        void DrawRunSummary()
+        {
+            bool won = game.State == MatchState.Victory;
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f));
+            var panel = new Rect(70f, 30f, W - 140f, H - 60f);
+            Ui.Panel(panel, true);
+            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 56f), won ? "VICTORY!" : "GAME OVER", 46, won ? Ui.Gold : new Color(1f, 0.45f, 0.45f));
+            Ui.Label(new Rect(panel.x, panel.y + 66f, panel.width, 22f),
+                won ? "You beat all " + Game.MaxWave + " waves and The Eclipse" : "You made it to wave " + game.Wave, 16, Ui.Muted, TextAnchor.MiddleCenter);
+
+            // Run totals.
+            int kills = 0;
+            foreach (var p in game.Players.Values)
+                kills += p.Run.Kills;
+            int secs = Mathf.RoundToInt(game.RunTime);
+            string[,] chips = { { "WAVE", game.Wave.ToString() }, { "TIME", secs / 60 + ":" + (secs % 60).ToString("00") }, { "SCORE", game.Score.ToString() }, { "KILLS", kills.ToString() } };
+            float cw = 170f, cx = panel.x + panel.width / 2f - (cw * 4f + 30f) / 2f;
+            for (int i = 0; i < 4; i++)
+            {
+                var c = new Rect(cx + i * (cw + 10f), panel.y + 98f, cw, 58f);
+                Ui.Fill(c, new Color(1f, 1f, 1f, 0.04f));
+                Ui.Label(new Rect(c.x, c.y + 6f, c.width, 16f), chips[i, 0], 11, Ui.Muted, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(c.x, c.y + 22f, c.width, 30f), chips[i, 1], 24, Color.white, TextAnchor.MiddleCenter, true);
+            }
+
+            if (!game.RunStatsReady)
+                Ui.Label(new Rect(panel.x, panel.y + 300f, panel.width, 30f), "Collecting results…", 18, Ui.Muted, TextAnchor.MiddleCenter);
+            else
+            {
+                var players = new List<Player>(game.Players.Values);
+                float colW = (panel.width - 60f - 20f * (players.Count - 1)) / Mathf.Max(1, players.Count);
+                for (int i = 0; i < players.Count; i++)
+                    DrawPlayerSummary(players[i], players, new Rect(panel.x + 30f + i * (colW + 20f), panel.y + 168f, colW, 410f));
+            }
+
+            // Buttons.
+            float by = panel.yMax - 66f;
+            if (session.IsHost)
+            {
+                float bx = panel.x + 30f;
+                if (Ui.Button(new Rect(bx, by, 200f, 46f), "Play again  [R]", Ui.Primary))
+                    session.StartMatch();
+                bx += 212f;
+                if (Ui.Button(new Rect(bx, by, 200f, 46f), "Back to lobby  [L]"))
+                    session.ReturnToLobby();
+                bx += 212f;
+                if (won && Ui.Button(new Rect(bx, by, 280f, 46f), "Keep going (endless)  [C]", Ui.GoldButton))
+                    game.ContinueEndless();
+            }
+            else
+                Ui.Label(new Rect(panel.x + 30f, by, 400f, 46f), "Waiting for the host…", 16, Ui.Muted);
+            if (Ui.Button(new Rect(panel.xMax - 190f, by, 160f, 46f), "Leave", Ui.Danger))
+                session.Leave("");
+        }
+
+        void DrawPlayerSummary(Player p, List<Player> all, Rect r)
+        {
+            var color = ToColor(p.Def.Color);
+            Ui.Panel(r, p.Id == game.MyId);
+            Ui.Fill(new Rect(r.x + 3f, r.y + 12f, 4f, 44f), color);
+            Ui.Label(new Rect(r.x + 18f, r.y + 10f, r.width - 120f, 26f), p.Name, 20, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.xMax - 110f, r.y + 10f, 94f, 26f), "LEVEL " + p.Level, 14, Ui.Gold, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 36f, r.width - 36f, 20f), Defs.KitName(p.Kit) + " " + p.Def.Name + "  ·  " + p.Weapon.Name, 13, color);
+
+            // Awards: rows where this player has the best number (and it isn't zero).
+            float ax = r.x + 18f;
+            if (all.Count > 1)
+                foreach (var row in SummaryRows)
+                {
+                    if (row.Award == null || row.Value(p.Run) <= 0f)
+                        continue;
+                    bool best = true;
+                    foreach (var o in all)
+                        if (o != p && row.Value(o.Run) >= row.Value(p.Run))
+                            best = false;
+                    if (!best || ax > r.xMax - 120f)
+                        continue;
+                    float bw = 16f + row.Award.Length * 7.2f;
+                    Ui.Badge(new Rect(ax, r.y + 62f, bw, 22f), row.Award.ToUpperInvariant(), Ui.GoldButton);
+                    ax += bw + 6f;
+                }
+
+            float y = r.y + 96f;
+            foreach (var row in SummaryRows)
+            {
+                float mine = row.Value(p.Run), top = 0f;
+                foreach (var o in all)
+                    top = Mathf.Max(top, row.Value(o.Run));
+                bool leading = all.Count > 1 && row.Award != null && mine > 0f && mine >= top;
+                Ui.Label(new Rect(r.x + 18f, y, 150f, 20f), row.Label, 14, Ui.Muted);
+                Ui.Label(new Rect(r.x + 160f, y, r.width - 178f, 20f), row.Format(p.Run), 14, leading ? Ui.Gold : Color.white, TextAnchor.MiddleRight, true);
+                if (top > 0f && row.Award != null)
+                    Ui.Meter(new Rect(r.x + 18f, y + 21f, r.width - 36f, 2f), mine / top, leading ? Ui.Gold : color * 0.8f);
+                y += 27f;
+            }
+
+            // Upgrades picked, by rarity.
+            var counts = new int[5];
+            var legendaries = new List<string>();
+            foreach (int id in p.Taken)
+            {
+                counts[(int)Upgrades.All[id].Rarity]++;
+                if (Upgrades.All[id].Rarity == Rarity.Legendary)
+                    legendaries.Add(Upgrades.All[id].Name);
+            }
+            y += 6f;
+            Ui.Label(new Rect(r.x + 18f, y, 120f, 20f), "Upgrades", 14, Ui.Muted);
+            float px = r.x + 120f;
+            for (int i = 0; i < counts.Length; i++)
+            {
+                if (counts[i] == 0)
+                    continue;
+                Ui.Badge(new Rect(px, y, 44f, 20f), counts[i].ToString(), ToColor(Upgrades.RarityColor((Rarity)i)));
+                px += 50f;
+            }
+            if (legendaries.Count > 0)
+                Ui.Label(new Rect(r.x + 18f, y + 24f, r.width - 36f, 20f), string.Join(", ", legendaries.ToArray()), 12, ToColor(Upgrades.RarityColor(Rarity.Legendary)));
         }
 
         /// Name and health bar for each boss on the field, plus warnings for their mechanics.
@@ -1334,10 +1557,10 @@ namespace Arena
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
             string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
-            if (GUI.Button(new Rect(mid - btnW - 10f, by, btnW, 40f), confirmText, buttonStyle))
+            if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, Ui.Primary))
                 ConfirmPick();
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary;
-            if (GUI.Button(new Rect(mid + 10f, by, btnW, 40f), "Reroll (" + me.Rerolls + " left)  [R]", buttonStyle))
+            if (Ui.Button(new Rect(mid + 10f, by, btnW, 46f), "Reroll (" + me.Rerolls + " left)  [R]"))
                 game.RerollOffer();
             GUI.enabled = wasEnabled;
             Label(new Rect(x0, by + 46f, areaW, 18), me.OfferLegendary ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
@@ -1346,8 +1569,8 @@ namespace Arena
         /// Your current stats; with a card selected, the ones it would change show their new value.
         void DrawStatPanel(Player me, Rect r)
         {
-            Box(r, new Color(0.06f, 0.07f, 0.1f, 0.95f));
-            Label(new Rect(r.x + 12f, r.y + 8f, r.width - 24f, 22f), "YOUR STATS", 16, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Panel(r);
+            Ui.Label(new Rect(r.x + 14f, r.y + 10f, r.width - 28f, 22f), "YOUR STATS", 15, Ui.Muted, TextAnchor.MiddleLeft, true);
             Label(new Rect(r.x + 12f, r.y + 30f, r.width - 24f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12,
                 ToColor(me.Def.Color), TextAnchor.MiddleLeft);
             var now = StatSheet.Describe(me, me.Taken);

@@ -487,6 +487,44 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // A run's end-of-run numbers are tracked on the host and reach the friend intact.
+    static void RunStatsTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 3 };
+        host.Game.Bot = true;
+        host.Host(port, "Host", Role.Healer, 0, 0);  // Light Bolt + Mend Pulse
+        var client = new Session();
+        client.Game.Bot = true;
+        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        Run(s, dt, 25, () => host.Game.State == MatchState.GameOver);
+        if (host.Game.State != MatchState.GameOver)
+            foreach (var p in host.Game.Players.Values)
+            {
+                p.Hp = 0f;  // end the run
+                p.Downed = true;
+            }
+        Run(s, dt, 1, () => client.Game.RunStatsReady);
+        bool same = true;
+        foreach (var hp in host.Game.Players.Values)
+        {
+            var a = hp.Run;
+            var b = client.Game.Players[hp.Id].Run;
+            same &= a.Kills == b.Kills && Math.Abs(a.DamageDealt - b.DamageDealt) < 0.01f && a.ShotsFired == b.ShotsFired && a.Downs == b.Downs
+                && Math.Abs(a.HealingDone - b.HealingDone) < 0.01f && a.AbilitiesUsed == b.AbilitiesUsed;
+            Console.WriteLine("  {0}: dmg {1:F0}, kills {2}, biggest {3:F0}, accuracy {4:P0}, taken {5:F0}, healing {6:F0}, downs {7}, revives {8}, abilities {9}",
+                hp.Role, a.DamageDealt, a.Kills, a.BiggestHit, a.Accuracy, a.DamageTaken, a.HealingDone, a.Downs, a.Revives, a.AbilitiesUsed);
+        }
+        var healer = host.Game.Players[1].Run;
+        var dps = host.Game.Players[2].Run;
+        Check(client.Game.RunStatsReady && same, "end-of-run stats reach the friend and match the host");
+        Check(dps.DamageDealt > 0f && dps.Kills > 0 && dps.ShotsFired > 0 && dps.Accuracy > 0f && dps.Accuracy <= 1f
+            && healer.HealingDone > 0f && healer.AbilitiesUsed > 0 && host.Game.RunTime > 1f, "end-of-run stats are filled in sensibly");
+        host.Leave(""); client.Leave("");
+    }
+
     static bool BossAlive(Session s)
     {
         foreach (var e in s.Game.Enemies.Values)
@@ -913,6 +951,7 @@ static class Program
         KitSweep(dt);
         LegendarySync(dt);
         PauseTest(dt);
+        RunStatsTest(dt);
         LateWaves(dt);
         BossMechanics(dt);
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");

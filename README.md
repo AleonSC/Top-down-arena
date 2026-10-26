@@ -148,6 +148,14 @@ bosses come back around, tougher each time.
 | Pause menu | Esc |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
+## End of a run
+
+When a run ends (game over or victory) a results screen shows the wave reached, time, score and total
+kills, plus a column per player: level, damage dealt, kills (elite and boss), biggest hit, accuracy,
+healing done, allies revived, damage taken, times downed, abilities used, and the upgrades picked by
+rarity. The best number in each row is highlighted, with awards like **Most damage**, **Best healer** and
+**Sharpshooter**. The host can play again, go back to the lobby, or keep going after a victory.
+
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for both players** (your friend

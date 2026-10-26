@@ -36,6 +36,7 @@ namespace Arena
             Hazards.Clear();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
+            BroadcastRunStats();
             DoLog("victory at wave " + Wave + ", score " + Score);
         }
 

@@ -68,6 +68,8 @@ namespace Arena
         public int PendingLegendary; // boss rewards still to pick (host keeps the queue below)
         public readonly List<EnemyType> LegendaryQueue = new List<EnemyType>();
         public int Volleys;          // host: shots fired, for Warden's Halo
+        public RunStats Run = new RunStats();
+        public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
@@ -106,6 +108,7 @@ namespace Arena
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
         public int Owner, Pierce, LastHit;
+        public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public float HealAlly;    // host only: heals an ally it passes through
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
@@ -378,6 +381,8 @@ namespace Arena
             Paused = false;
             PausedBy = 0;
             Endless = false;
+            RunTime = 0f;
+            RunStatsReady = false;
             Hazards.Clear();
             awaitingPick = false;
             rerollsAtRequest = -1;
@@ -613,6 +618,8 @@ namespace Arena
             LocalControl(dt, input);
             if (IsHost)
             {
+                if (State == MatchState.Fighting || State == MatchState.Intermission)
+                    RunTime += dt;
                 HostTick(dt);
             }
             else
@@ -912,9 +919,9 @@ namespace Arena
                 {
                     Player q;
                     float heal = LinkHeal * p.Stats.LinkHealMult * dt;
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + heal);
-                    if (Players.TryGetValue(p.LinkTo, out q) && !q.Downed && q != p)
-                        q.Hp = Math.Min(q.MaxHp, q.Hp + heal);
+                    Heal(p, heal, p);
+                    if (Players.TryGetValue(p.LinkTo, out q) && q != p)
+                        Heal(q, heal, p);
                 }
                 p.FireCd -= dt;
                 if (p.Downed)
@@ -929,8 +936,8 @@ namespace Arena
                 {
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
                     foreach (var q in Players.Values)
-                        if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
-                            q.Hp = Math.Min(q.MaxHp, q.Hp + AuraHeal * p.Stats.AuraHealMult * dt);
+                        if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
+                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p);
                 }
             }
 
@@ -942,18 +949,21 @@ namespace Arena
             {
                 if (!p.Downed)
                     continue;
-                bool helped = false;
+                Player helper = null;
                 foreach (var q in Players.Values)
                     if (q != p && !q.Downed && q.Pos.DistanceTo(p.Pos) < ReviveRange)
-                        helped = true;
-                if (helped)
+                        helper = q;
+                if (helper != null)
                 {
                     p.Revive += dt / ReviveTime;
-                    if (p.Revive >= 1f)
-                        RevivePlayer(p, 0.35f);
+                    p.ReviveBy = helper.Id;
                 }
-                else
+                else if (p.ReviveBy == 0)
                     p.Revive = Math.Max(0f, p.Revive - dt * 0.25f);
+                // A Haven or other zone can finish the revive on its own (it sets ReviveBy to its owner).
+                if (p.Revive >= 1f)
+                    RevivePlayer(p, 0.35f, PlayerOrNull(p.ReviveBy));
+                p.ReviveBy = 0;
             }
         }
 
@@ -961,6 +971,7 @@ namespace Arena
         {
             float dmg = p.Stats.DmgMult;
             p.Volleys++;
+            firingWeapon = true;
             if (p.Stats.HaloEvery > 0 && p.Volleys % p.Stats.HaloEvery == 0)
                 for (int i = 0; i < 8; i++)
                 {
@@ -1012,7 +1023,10 @@ namespace Arena
                         break;
                 }
             }
+            firingWeapon = false;
         }
+
+        bool firingWeapon;  // set while FirePlayer runs, to tag gun shots for accuracy
 
         void HostAbility(int id, int slot, V2 target, bool consumed)
         {
@@ -1021,6 +1035,7 @@ namespace Arena
                 return;
             if (!consumed && !Consume(p, slot, true))
                 return;
+            p.Run.AbilitiesUsed++;
             var s = p.Stats;
             switch (p.Slots[slot].Id)
             {
@@ -1112,9 +1127,9 @@ namespace Arena
                         if (q.Pos.DistanceTo(p.Pos) >= range)
                             continue;
                         if (q.Downed)
-                            RevivePlayer(q, 0.5f);
+                            RevivePlayer(q, 0.5f, p);
                         else
-                            q.Hp = Math.Min(q.MaxHp, q.Hp + PulseHeal * s.PulseHealMult);
+                            Heal(q, PulseHeal * s.PulseHealMult, p);
                     }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.4f, 1f, 0.55f), range, 0.6f, Sfx.Ability);
                     break;
@@ -1179,6 +1194,7 @@ namespace Arena
                 p.ShieldHp -= soak;
                 amount -= soak;
             }
+            p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             p.Hp -= amount;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
@@ -1188,6 +1204,7 @@ namespace Arena
             {
                 p.Hp = 0f;
                 p.Downed = true;
+                p.Run.Downs++;
                 p.Revive = 0f;
                 p.BarrierT = 0f;
                 p.OverdriveT = 0f;
@@ -1195,8 +1212,10 @@ namespace Arena
             }
         }
 
-        void RevivePlayer(Player p, float fraction)
+        void RevivePlayer(Player p, float fraction, Player by = null)
         {
+            if (by != null && by != p)
+                by.Run.Revives++;
             p.Downed = false;
             p.Revive = 0f;
             p.Hp = Math.Max(p.Hp, p.MaxHp * fraction);
@@ -1218,6 +1237,7 @@ namespace Arena
                 p.LegendaryQueue.Clear();
                 p.PendingLegendary = 0;
             }
+            BroadcastRunStats();
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
 
@@ -1290,6 +1310,11 @@ namespace Arena
             Player p;
             if (owner != 0 && Players.TryGetValue(owner, out p))
             {
+                if (firingWeapon)
+                {
+                    b.FromWeapon = true;
+                    p.Run.ShotsFired++;
+                }
                 b.Pierce = p.Stats.Pierce;
                 if (p.SurgeT > 0f)  // Arcane Surge
                 {
@@ -1410,7 +1435,7 @@ namespace Arena
                 float r = p.Def.BodyR + b.Radius;
                 if (p.Id == b.Owner || p.Downed || p.Hp >= p.MaxHp || b.Pos.DistanceSq(p.Pos) >= r * r)
                     continue;
-                p.Hp = Math.Min(p.MaxHp, p.Hp + b.HealAlly * (b.Dmg / 9f));
+                Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
                 return true;
             }
             return false;
@@ -1444,6 +1469,12 @@ namespace Arena
                             {
                                 scratchIds.Add(b.Id);
                                 break;
+                            }
+                            if (b.FromWeapon && b.LastHit == 0)
+                            {
+                                Player shooter;
+                                if (Players.TryGetValue(b.Owner, out shooter))
+                                    shooter.Run.ShotsHit++;
                             }
                             HurtEnemy(e, b.Dmg, b.Owner);
                             OnBulletHit(b, e);
@@ -1541,6 +1572,15 @@ namespace Arena
             {
                 bool bossReward = OnEnemyKilled(e);
                 KillEffects(e);
+                var killer = PlayerOrNull(e.LastHitBy);
+                if (killer != null && e.Def.Xp > 0)
+                {
+                    killer.Run.Kills++;
+                    if (e.Elite)
+                        killer.Run.EliteKills++;
+                    if (e.Def.IsBoss)
+                        killer.Run.BossKills++;
+                }
                 Score += e.Score * (e.Elite ? 3 : 1);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1));
                 DropOrbs(e, bossReward);
@@ -1579,6 +1619,8 @@ namespace Arena
                     e.SlowMult = Math.Min(e.SlowMult, 1f - s.SlowOnHit);
                 }
                 e.LastHitBy = attacker;
+                p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
+                p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
             }
             e.Hp -= dmg;
             e.Flash = 0.06f;
@@ -1904,6 +1946,9 @@ namespace Arena
                     break;
                 case Msg.BulletSync:
                     ReadBulletSync(r);
+                    break;
+                case Msg.RunStats:
+                    ReadRunStats(r);
                     break;
             }
         }
