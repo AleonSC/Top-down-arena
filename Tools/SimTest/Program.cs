@@ -22,8 +22,14 @@ static class Program
         s.Poll();
         s.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(640, 360) });
         s.Game.Update(dt);
+        if (s.IsHost)
+            foreach (var cue in s.Game.Sounds)
+                if (cue.Sfx == Sfx.Pickup || cue.Sfx == Sfx.PickupBig)
+                    pickups++;
         s.Game.Sounds.Clear();
     }
+
+    static int pickups;
 
     static void CheckOffers()
     {
@@ -95,6 +101,10 @@ static class Program
         Console.WriteLine("  boss dead: {0}, rerolls host {1}/{2}, client sees {3}/{4}", bossDead, host.Game.Players[1].Rerolls, host.Game.Players[2].Rerolls,
             client.Game.Players[1].Rerolls, client.Game.Players[2].Rerolls);
         Check(bossDead && host.Game.Players[1].Rerolls == 4 && client.Game.Players[2].Rerolls == 4, "boss kill gives everyone +2 rerolls");
+        bool bigOrb = false;
+        foreach (var o in client.Game.Orbs.Values)
+            bigOrb |= o.Big;
+        Check(bigOrb, "boss drops a large health orb (seen on the client)");
         host.Leave("");
         client.Leave("");
     }
@@ -186,6 +196,9 @@ static class Program
 
         int maxBullets = 0, mismatches = 0, samples = 0, maxWave = 0;
         float maxError = 0f;
+        var hostOrbIds = new HashSet<int>();
+        var clientOrbIds = new HashSet<int>();
+        int orbsHost = 0, orbsClient = 0, orbsPicked = 0;
         for (int i = 0; i < seconds * 60; i++)
         {
             Step(host, dt);
@@ -193,6 +206,13 @@ static class Program
             if (i % 2 == 0)
                 Thread.Sleep(1);
             maxBullets = Math.Max(maxBullets, host.Game.Bullets.Count);
+            foreach (int id in host.Game.Orbs.Keys)
+                if (hostOrbIds.Add(id))
+                    orbsHost++;
+            foreach (int id in client.Game.Orbs.Keys)
+                if (clientOrbIds.Add(id))
+                    orbsClient++;
+            orbsPicked = pickups;
             maxWave = Math.Max(maxWave, host.Game.Wave);
             if (i % 30 == 0)
             {
@@ -235,6 +255,9 @@ static class Program
         }
         Console.WriteLine("peak bullets {0}, reached wave {1}, score {2}, worst bullet position error {3:F1}px", maxBullets, maxWave, host.Game.Score, maxError);
         Check(maxWave >= startWave, "waves progressed");
+        Console.WriteLine("  health orbs: {0} seen on host, {1} on client, {2} picked up", orbsHost, orbsClient, orbsPicked);
+        Check(orbsHost > 0 && orbsClient > 0, "enemies drop health orbs and the client sees them");
+        Check(orbsPicked > 0, "players pick up orbs");
         Check(maxBullets > 0, "bullets were fired");
         bool sameUpgrades = true;
         foreach (var hp in host.Game.Players.Values)

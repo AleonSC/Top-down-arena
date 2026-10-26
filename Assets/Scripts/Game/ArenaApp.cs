@@ -310,6 +310,21 @@ namespace Arena
                 Line(tur.Pos, tur.Pos + V2.FromAngle(tur.Aim) * 20f, 5f, c);
                 Arc(tur.Pos, 18f, 2f, c.WithAlpha(0.5f), 32, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(tur.T / 10f));
             }
+            foreach (var o in game.Orbs.Values)
+            {
+                // Blink during the last 3 seconds before the orb disappears.
+                if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
+                    continue;
+                float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : 8f) + o.Id);
+                float r = o.Radius * pulse;
+                var green = new Rgba(0.35f, 1f, 0.5f);
+                Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
+                Circle(o.Disp, r, green, 16);
+                Line(o.Disp - new V2(r * 0.55f, 0), o.Disp + new V2(r * 0.55f, 0), o.Big ? 3f : 2f, Rgba.White);
+                Line(o.Disp - new V2(0, r * 0.55f), o.Disp + new V2(0, r * 0.55f), o.Big ? 3f : 2f, Rgba.White);
+                if (o.Big)
+                    Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
+            }
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)

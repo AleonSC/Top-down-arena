@@ -16,6 +16,7 @@ namespace Arena
         // One gunshot per weapon, plus the turret and Nova.
         ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotWisp, ShotBow, ShotAssault, ShotSniper, ShotSmg,
         ShotTurret, ShotNova,
+        Pickup, PickupBig,
     }
 
     public struct SoundCue
@@ -83,6 +84,18 @@ namespace Arena
         public float HealAlly;    // host only: heals an ally it passes through
     }
 
+    /// A health pickup dropped by a dead enemy.
+    public class Orb
+    {
+        public int Id;
+        public bool Big;
+        public V2 Pos, Disp;
+        public float Life;
+
+        public float Radius => Big ? 11f : 6f;
+        public float Heal => Big ? Game.BigOrbHeal : Game.OrbHeal;
+    }
+
     public class Turret
     {
         public int Id, Owner;
@@ -124,6 +137,12 @@ namespace Arena
 
         const int SnapshotEvery = 3;  // ticks
         public const int StartingRerolls = 2;
+        const float OrbChance = 0.18f;      // small health orb drop chance per kill
+        const float BigOrbChance = 0.03f;   // rare large health orb
+        public const float OrbHeal = 15f;
+        public const float BigOrbHeal = 60f;
+        public const float OrbLifetime = 12f;
+        const float OrbMagnetRange = 110f;
         const int BossRerolls = 2;
         const float PassiveRegen = 0.5f;  // HP per second for everyone
         const float StartDelay = 3f;
@@ -159,6 +178,7 @@ namespace Arena
         public readonly Dictionary<int, Enemy> Enemies = new Dictionary<int, Enemy>();
         public readonly Dictionary<int, Bullet> Bullets = new Dictionary<int, Bullet>();
         public readonly Dictionary<int, Turret> Turrets = new Dictionary<int, Turret>();
+        public readonly Dictionary<int, Orb> Orbs = new Dictionary<int, Orb>();
         public readonly List<Effect> Effects = new List<Effect>();
         public readonly List<SoundCue> Sounds = new List<SoundCue>();  // drained by the front end each frame
 
@@ -183,7 +203,7 @@ namespace Arena
         float lastMyHp;
 
         // Host-only simulation state.
-        int nextBulletId = 1, nextEnemyId = 1, nextTurretId = 1, tick;
+        int nextBulletId = 1, nextEnemyId = 1, nextTurretId = 1, nextOrbId = 1, tick;
         readonly List<EnemyType> spawnQueue = new List<EnemyType>();
         float spawnTimer;
         // Bullets spawned this tick, recorded as they were at spawn time (the host
@@ -274,6 +294,7 @@ namespace Arena
             Enemies.Clear();
             Bullets.Clear();
             Turrets.Clear();
+            Orbs.Clear();
             Effects.Clear();
             Sounds.Clear();
             spawnQueue.Clear();
@@ -284,6 +305,7 @@ namespace Arena
             nextBulletId = 1;
             nextEnemyId = 1;
             nextTurretId = 1;
+            nextOrbId = 1;
             DashT = 0f;
             awaitingPick = false;
             rerollsAtRequest = -1;
@@ -525,6 +547,8 @@ namespace Arena
                 p.Disp = p.Id == MyId ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
+            foreach (var o in Orbs.Values)
+                o.Disp = IsHost ? o.Pos : V2.Lerp(o.Disp, o.Pos, k);
             for (int i = Effects.Count - 1; i >= 0; i--)
             {
                 Effects[i].T += dt;
@@ -699,6 +723,7 @@ namespace Arena
             TickWaves(dt);
             TickEnemies(dt);
             TickTurrets(dt);
+            TickOrbs(dt);
             MoveBullets(dt);
             Collide();
             CheckGameOver();
@@ -1424,9 +1449,67 @@ namespace Arena
                 }
                 Score += e.Score;
                 GrantXp(e.Def.Xp);
+                DropOrbs(e);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
             }
+        }
+
+        void DropOrbs(Enemy e)
+        {
+            if (e.Type == EnemyType.Boss)
+            {
+                // Bosses always drop a large orb and a few small ones around it.
+                SpawnOrb(e.Pos, true);
+                for (int i = 0; i < 4; i++)
+                    SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
+                return;
+            }
+            double roll = rng.NextDouble();
+            if (roll < BigOrbChance)
+                SpawnOrb(e.Pos, true);
+            else if (roll < BigOrbChance + OrbChance)
+                SpawnOrb(e.Pos, false);
+        }
+
+        void SpawnOrb(V2 pos, bool big)
+        {
+            var o = new Orb { Id = nextOrbId++, Big = big, Pos = ClampToArena(pos, 12f), Life = OrbLifetime };
+            o.Disp = o.Pos;
+            Orbs[o.Id] = o;
+        }
+
+        /// Orbs drift toward the nearest hurt player in range and heal whoever touches them.
+        /// Players at full health leave them for their ally.
+        void TickOrbs(float dt)
+        {
+            var gone = new List<int>();
+            foreach (var o in Orbs.Values)
+            {
+                o.Life -= dt;
+                if (o.Life <= 0f)
+                {
+                    gone.Add(o.Id);
+                    continue;
+                }
+                Player nearest = null;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.Hp < p.MaxHp && p.Pos.DistanceTo(o.Pos) < OrbMagnetRange &&
+                        (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
+                        nearest = p;
+                if (nearest == null)
+                    continue;
+                V2 to = nearest.Pos - o.Pos;
+                o.Pos += to.LimitLength(300f * dt);
+                if (to.Length < nearest.Def.BodyR + o.Radius)
+                {
+                    nearest.Hp = Math.Min(nearest.MaxHp, nearest.Hp + o.Heal);
+                    BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), o.Big ? 50f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
+                    gone.Add(o.Id);
+                }
+            }
+            foreach (int id in gone)
+                Orbs.Remove(id);
         }
 
         void RemovedFx(Bullet b)
@@ -1516,6 +1599,14 @@ namespace Arena
                 w.Write(t.Pos);
                 w.Write(t.T);
                 w.Write(t.Aim);
+            }
+            w.Write((short)Orbs.Count);
+            foreach (var o in Orbs.Values)
+            {
+                w.Write(o.Id);
+                w.Write(o.Big);
+                w.Write(o.Pos);
+                w.Write(o.Life);
             }
             session.Broadcast(Proto.End(w));
         }
@@ -1699,6 +1790,31 @@ namespace Arena
                 var t = new Turret { Id = r.ReadInt32(), Owner = r.ReadInt32(), Pos = r.ReadV2(), T = r.ReadSingle(), Aim = r.ReadSingle() };
                 Turrets[t.Id] = t;
             }
+
+            var seenOrbs = new HashSet<int>();
+            int no = r.ReadInt16();
+            for (int i = 0; i < no; i++)
+            {
+                int id = r.ReadInt32();
+                bool big = r.ReadBoolean();
+                V2 pos = r.ReadV2();
+                float life = r.ReadSingle();
+                Orb o;
+                if (!Orbs.TryGetValue(id, out o))
+                {
+                    o = new Orb { Id = id, Big = big, Pos = pos, Disp = pos };
+                    Orbs[id] = o;
+                }
+                o.Pos = pos;
+                o.Life = life;
+                seenOrbs.Add(id);
+            }
+            var expired = new List<int>();
+            foreach (int id in Orbs.Keys)
+                if (!seenOrbs.Contains(id))
+                    expired.Add(id);
+            foreach (int id in expired)
+                Orbs.Remove(id);
         }
 
         // --- Helpers -----------------------------------------------------------

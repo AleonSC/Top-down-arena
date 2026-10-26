@@ -27,6 +27,11 @@ press Play, so there are no scenes or prefabs to wire together.
 
 Both players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
+Enemies sometimes drop **health orbs**: small green ones heal 15 HP (18% chance), and rare large ones
+with a gold ring heal 60 HP (3% chance). Bosses always drop a large orb plus four small ones. Orbs drift
+toward a hurt player who gets close, are left alone by players at full health (so your ally can grab
+them), and blink before vanishing after 12 seconds.
+
 ### Weapons
 
 Each role picks one of three starting weapons in the lobby. Damage, fire rate, Multishot and Piercing
