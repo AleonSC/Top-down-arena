@@ -64,7 +64,9 @@ upgrades work with all of them.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
 the wave is cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to
-select a card, then **Confirm** (or Enter). Don't like the cards? **Reroll** (or R) for a fresh set. You
+select a card, then **Confirm** (or Enter). A panel on the left shows your stats (damage, fire rate, speed,
+cooldowns, damage taken, regen, projectiles, pierce, charges, bonus abilities, legendaries); with a card
+selected, the stats it would change are highlighted with their new values. Don't like the cards? **Reroll** (or R) for a fresh set. You
 start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until both players
 have chosen.
 
@@ -106,19 +108,30 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 | 8 | **Mortar** | Lobs bombs at where you're standing; they burst into a ring when they land. Keep moving |
 | 9 | **Shielder** | A shield on its front blocks your shots. It turns slowly, so flank it |
 | 11 | **Medic** | Heals nearby enemies every few seconds. Kill it first |
+| 16 | **Phantom** | Flickers, blinks next to you and bursts into a ring |
+| 21 | **Hexer** | Fires curving pincer shots that close in from both sides |
+| 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
+| 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
 | 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, shoots faster, worth 3x XP, always drops an orb. More common each wave |
 
 ## Bosses
 
-Bosses rotate every 5 waves and come back stronger each cycle. Their name and health bar show at the top.
+The game has **50 waves** with a different boss every 5 waves. Their name, health bar and warnings show at
+the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C), where the
+bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
 |---|---|---|
 | 5 | **The Warden** | Cycles through spirals, rings of big orbs and aimed fans |
-| 10 | **Hive Queen** | Summons Shards every few seconds and is **immune while 3+ of her swarm are alive**. Clear the swarm, then hit her |
-| 15 | **Twin Reapers** | Two bosses circling the arena. Kill one and the other **enrages**; finish it within **8 seconds** or the fallen twin revives at half health |
-| 20 | **The Singularity** | Sits in the center. Every 12 s it opens a **gravity well** that drags everyone toward it (run against it!), then collapses into dense rings |
-| 25+ | ... | The cycle repeats with tougher versions |
+| 10 | **Hive Queen** | Summons Shards and is **immune while 3+ of her swarm are alive** |
+| 15 | **Twin Reapers** | Kill one and the other **enrages**; finish it within **8 s** or the fallen twin revives |
+| 20 | **The Singularity** | **Gravity wells** drag everyone toward it, then it collapses into dense rings |
+| 25 | **The Colossus** | Stomps out huge rings with **one gap** to slip through, and throws rocks |
+| 30 | **The Duelist** | Teleports every few seconds and leaves **decoys** that look just like it; decoys burst into rings unless killed |
+| 35 | **The Lich** | **Immune while its phylactery stands** somewhere in the arena; break it, then strike before a new one appears. Raises skeleton grunts |
+| 40 | **Storm Herald** | Calls **lightning strikes** where you stand (warning circle first). Keep moving |
+| 45 | **The Devourer** | Gets **hungry** for 3 s of every 10: your shots **heal** it, so stop shooting |
+| 50 | **The Eclipse** | Final boss in 3 phases: spirals and rings → gravity wells and phantoms → lightning storms and a frantic spiral |
 
 ## Controls
 
@@ -133,7 +146,7 @@ Bosses rotate every 5 waves and come back stronger each cycle. Their name and he
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
 | Pause menu | Esc |
-| After game over (host) | R = play again, L = back to lobby |
+| After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
 ## Pause menu and settings
 
@@ -188,6 +201,8 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
   - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
   - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
   - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
+  - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode
+  - `StatSheet.cs`: the stats shown beside the upgrade cards
   - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types

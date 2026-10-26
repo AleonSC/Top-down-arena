@@ -190,6 +190,7 @@ namespace Arena
             Set(Sfx.Throw, Tone(0.1f, Osc.Sine, 400f, 200f, 0.16f, noise: 0.6f, lowpass: 0.3f), 0.07f);
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
+            Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
             Set(Sfx.Roar, Tone(0.7f, Osc.Saw, 110f, 55f, 0.45f, noise: 0.35f, lowpass: 0.15f, attack: 0.04f, decay: 1.2f));
             Set(Sfx.Pickup, Notes(new[] { 880f, 1320f }, 0.06f, Osc.Sine, 0.25f, 1f), 0.05f);
             Set(Sfx.PickupBig, Notes(new[] { 660f, 880f, 1100f, 1320f }, 0.07f, Osc.Triangle, 0.3f, 1f));

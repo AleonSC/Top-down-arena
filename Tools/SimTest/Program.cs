@@ -31,6 +31,23 @@ static class Program
 
     static int pickups;
 
+    static void CheckStatSheet()
+    {
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        var p = new Player { Role = Role.Dps, Def = Defs.Get(Role.Dps), BaseHp = 95f, RoleAbility = AbilityId.Dash };
+        var taken = new List<int> { U("Sharpened Rounds"), U("Hollow Points"), U("Fortitude"), U("Multishot"), U("Blink"), U("Executioner") };
+        var lines = StatSheet.Describe(p, taken);
+        var map = new Dictionary<string, string>();
+        foreach (var l in lines)
+            if (!l.Header)
+                map[l.Label] = l.Value;
+        Console.WriteLine("  stat sheet: " + string.Join(" | ", Array.ConvertAll(lines.ToArray(), l => l.Header ? "[" + l.Label + "]" : l.Label + "=" + l.Value)));
+        Check(map["Damage"] == "128%" && map["Max HP"] == "135" && map["Extra projectiles"] == "+1" && map["Q"] == "Blink"
+            && map.ContainsKey("Executioner") && map["Regeneration"] == "0.5 HP/s", "stat sheet shows the right numbers");
+        var withCard = new List<int>(taken) { U("Quick Trigger") };
+        Check(StatSheet.Describe(p, withCard).Find(l => l.Label == "Fire rate").Value == "108%", "stat preview reflects the selected card");
+    }
+
     static void CheckOffers()
     {
         var rng = new Random(1);
@@ -470,6 +487,113 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    static bool BossAlive(Session s)
+    {
+        foreach (var e in s.Game.Enemies.Values)
+            if (e.Def.IsBoss)
+                return true;
+        return false;
+    }
+
+    /// Waves 25-50: late enemies, the six new bosses' mechanics, victory and endless mode.
+    static void LateWaves(float dt)
+    {
+        // Wave 31: all four late-game enemy types are in the mix.
+        {
+            var s = StartBuffed(dt, 31, 30);
+            var seen = new HashSet<EnemyType>();
+            int ghosts = 0, frame = 0;
+            // 13 enemy types are in the mix by now, so give it up to two waves to roll all four.
+            Run(s, dt, 80, () => seen.Contains(EnemyType.Phantom) && seen.Contains(EnemyType.Hexer) && seen.Contains(EnemyType.Juggernaut) && seen.Contains(EnemyType.Nest), () =>
+            {
+                foreach (var e in s[1].Game.Enemies.Values)
+                    seen.Add(e.Type);
+                if (++frame % 60 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    ghosts += Ghosts(s);
+                }
+            });
+            foreach (var t in new[] { EnemyType.Phantom, EnemyType.Hexer, EnemyType.Juggernaut, EnemyType.Nest })
+                Check(seen.Contains(t), "late-game enemy shows up on the client: " + t);
+            Check(ghosts == 0, "late-game enemies stay in sync");
+            s[0].Leave(""); s[1].Leave("");
+        }
+
+        foreach (int wave in new[] { 25, 30, 35, 40, 45, 50 })
+        {
+            var s = StartBuffed(dt, wave, 60);
+            Run(s, dt, 10, () => BossAlive(s[0]));
+            EnemyType boss = EnemyType.Grunt;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Def.IsBoss)
+                    boss = e.Type;
+            bool mechanic = false, devourerHealed = false;
+            float hungryHp = -1f;
+            byte eclipsePhase = 0;
+            int ghosts = 0, frame = 0;
+            Run(s, dt, 150, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
+            {
+                var cb = Find(s[1], boss);
+                switch (boss)
+                {
+                    case EnemyType.Colossus: mechanic = true; break;
+                    case EnemyType.Duelist: mechanic |= Find(s[1], EnemyType.Decoy) != null; break;
+                    case EnemyType.Lich:
+                    {
+                        var ph = Find(s[0], EnemyType.Phylactery);
+                        if (cb != null && cb.Phase == 1 && ph != null)
+                        {
+                            mechanic = true;
+                            ph.Hp = 0f;  // the bots only shoot the nearest enemy, so break it for them
+                        }
+                        break;
+                    }
+                    case EnemyType.StormHerald: mechanic |= s[1].Game.Hazards.Count > 0; break;
+                    case EnemyType.Devourer:
+                    {
+                        var hb = Find(s[0], EnemyType.Devourer);
+                        if (hb != null && Game.Hungry(hb))
+                        {
+                            mechanic = true;
+                            if (hungryHp < 0f)
+                                hungryHp = hb.Hp;
+                            else if (hb.Hp > hungryHp + 1f)
+                                devourerHealed = true;
+                        }
+                        else
+                            hungryHp = -1f;
+                        break;
+                    }
+                    case EnemyType.Eclipse:
+                        if (cb != null)
+                            eclipsePhase = Math.Max(eclipsePhase, cb.Phase);
+                        mechanic = eclipsePhase == 2;
+                        break;
+                }
+                if (++frame % 60 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    ghosts += Ghosts(s);
+                }
+            });
+            bool dead = !BossAlive(s[0]) && s[0].Game.State != MatchState.GameOver;
+            string name = Defs.Get(boss).Name;
+            Console.WriteLine("  wave {0}: {1} defeated {2}, mechanic seen {3}, state {4}", wave, name, dead, mechanic, s[0].Game.State);
+            Check(dead && mechanic && ghosts == 0 && (boss != EnemyType.Devourer || devourerHealed),
+                "wave " + wave + " boss " + name + " works (its mechanic shows on the client) and can be beaten");
+            if (wave == 50)
+            {
+                Run(s, dt, 1);
+                Check(s[0].Game.State == MatchState.Victory && s[1].Game.State == MatchState.Victory, "beating The Eclipse at wave 50 wins the game on both screens");
+                s[0].Game.ContinueEndless();
+                Run(s, dt, 12, () => s[1].Game.Wave > 50 && s[1].Game.State == MatchState.Fighting);
+                Check(s[1].Game.Endless && s[1].Game.Wave == 51, "endless mode carries on past wave 50");
+            }
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+
     static Enemy Find(Session s, EnemyType t)
     {
         foreach (var e in s.Game.Enemies.Values)
@@ -550,6 +674,7 @@ static class Program
         const float dt = 1f / 60f;
 
         CheckOffers();
+        CheckStatSheet();
 
         var host = new Session { AutoStart = 2, StartWave = startWave };
         host.Game.Bot = true;
@@ -788,6 +913,7 @@ static class Program
         KitSweep(dt);
         LegendarySync(dt);
         PauseTest(dt);
+        LateWaves(dt);
         BossMechanics(dt);
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");
 

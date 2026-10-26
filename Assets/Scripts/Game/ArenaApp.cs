@@ -200,12 +200,14 @@ namespace Arena
                     else
                         OpenPauseMenu();
                 }
-                else if (session.IsHost && game.State == MatchState.GameOver && !menuUp)
+                else if (session.IsHost && (game.State == MatchState.GameOver || game.State == MatchState.Victory) && !menuUp)
                 {
                     if (Input.GetKeyDown(KeyCode.R))
                         session.StartMatch();
                     else if (Input.GetKeyDown(KeyCode.L))
                         session.ReturnToLobby();
+                    else if (Input.GetKeyDown(KeyCode.C))
+                        game.ContinueEndless();
                 }
             }
         }
@@ -354,6 +356,13 @@ namespace Arena
 
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
+            foreach (var h in game.Hazards.Values)  // incoming lightning strike: a filling warning circle
+            {
+                var hc = new Rgba(0.7f, 0.85f, 1f);
+                float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
+                Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
+                Arc(h.Pos, h.Radius, 2.5f, (f > 0.7f && MathX.Fmod(t, 0.1f) < 0.05f ? Rgba.White : hc).WithAlpha(0.85f), 40);
+            }
             foreach (var p in game.Players.Values)
             {
                 Player q;
@@ -438,7 +447,7 @@ namespace Arena
                 }
             }
 
-            if (game.State == MatchState.GameOver)
+            if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, W, H, new Rgba(0f, 0f, 0f, 0.45f));
 
             // Crosshair
@@ -562,6 +571,50 @@ namespace Arena
                         }
                     Circle(pos, r * 1.6f, new Rgba(0.05f, 0f, 0.1f, 0.9f), 40);  // dark core halo
                     break;
+                case EnemyType.Phantom:
+                    col = col.WithAlpha(0.45f + 0.35f * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
+                    break;
+                case EnemyType.Juggernaut:
+                    Arc(pos, r + 4f, 5f, new Rgba(0.75f, 0.75f, 0.8f, 0.9f), 8);  // armor plating
+                    break;
+                case EnemyType.Nest:
+                    Circle(pos, r + 6f + 3f * Mathf.Sin(t * 3f), col.WithAlpha(0.2f), 24);
+                    break;
+                case EnemyType.Lich:
+                {
+                    // A tether to its phylactery while it's protected.
+                    if (e.Phase == 1)
+                    {
+                        foreach (var o in game.Enemies.Values)
+                            if (o.Type == EnemyType.Phylactery)
+                                Line(pos, o.Disp, 2f, new Rgba(0.4f, 1f, 0.6f, 0.5f + 0.3f * Mathf.Sin(t * 8f)));
+                        Circle(pos, r + 14f, new Rgba(0.4f, 1f, 0.6f, 0.15f), 32);
+                        Arc(pos, r + 14f, 3f, new Rgba(0.4f, 1f, 0.6f, 0.8f), 32);
+                    }
+                    break;
+                }
+                case EnemyType.Phylactery:
+                    Circle(pos, r * 2.2f, col.WithAlpha(0.15f + 0.1f * Mathf.Sin(t * 6f)), 24);
+                    break;
+                case EnemyType.StormHerald:
+                    for (int k = 0; k < 3; k++)  // crackling sparks
+                    {
+                        V2 a = pos + V2.FromAngle(t * 4f + k * 2.1f) * (r + 6f);
+                        Line(a, a + V2.FromAngle(t * 17f + k) * 10f, 2f, new Rgba(0.8f, 0.9f, 1f, 0.8f));
+                    }
+                    break;
+                case EnemyType.Devourer:
+                    if (e.Phase == 1)  // hungry: a pulsing warning glow
+                        Circle(pos, r + 18f + 6f * Mathf.Sin(t * 10f), new Rgba(1f, 0.2f, 0.6f, 0.25f), 40);
+                    break;
+                case EnemyType.Eclipse:
+                    // A dark disk with a corona that grows wilder each phase.
+                    for (int k = 0; k < 12; k++)
+                    {
+                        float a = MathX.Tau * k / 12f + t * (0.3f + 0.3f * e.Phase);
+                        Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a) * (r + 14f + 6f * e.Phase + 4f * Mathf.Sin(t * 6f + k)), 3f, col.WithAlpha(0.8f));
+                    }
+                    break;
             }
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
@@ -618,6 +671,15 @@ namespace Arena
                 case EnemyType.Singularity:
                     Circle(pos, r * 0.45f, new Rgba(0f, 0f, 0f, 1f), 24);
                     Arc(pos, r * 0.45f, 2f, Rgba.White.WithAlpha(0.6f), 24);
+                    break;
+                case EnemyType.Devourer:
+                    Circle(pos, r * (e.Phase == 1 ? 0.7f : 0.4f), new Rgba(0.1f, 0f, 0.05f, 1f), 24);  // the mouth opens when hungry
+                    break;
+                case EnemyType.Eclipse:
+                    Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
+                    break;
+                case EnemyType.Phylactery:
+                    Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
                     break;
             }
             // Bosses get a bar at the top of the screen instead.
@@ -1068,7 +1130,7 @@ namespace Arena
             var white = new Color(1f, 1f, 1f, 0.9f);
             var dim = new Color(1f, 1f, 1f, 0.7f);
             var me = game.Me;
-            Label(new Rect(20, 10, 400, 34), "WAVE " + game.Wave, 26, white, TextAnchor.UpperLeft, true);
+            Label(new Rect(20, 10, 400, 34), "WAVE " + game.Wave + (game.Endless ? "  · ENDLESS" : " / " + Game.MaxWave), 26, white, TextAnchor.UpperLeft, true);
             Label(new Rect(20, 44, 400, 20), "Enemies left: " + game.Remaining + "    Score: " + game.Score, 14, dim, TextAnchor.UpperLeft);
             DrawBossBars();
 
@@ -1125,6 +1187,12 @@ namespace Arena
                     else if (!game.AnyonePicking())
                         Label(new Rect(0, H / 2f - 26f, W, 24), "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer), 18, dim, TextAnchor.MiddleCenter);
                     break;
+                case MatchState.Victory:
+                    Label(new Rect(0, H / 2f - 90f, W, 60), "VICTORY!", 56, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleCenter, true);
+                    Label(new Rect(0, H / 2f - 26f, W, 28), "You beat all " + Game.MaxWave + " waves and The Eclipse with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
+                    Label(new Rect(0, H / 2f + 10f, W, 24), session.IsHost ? "C: keep going (endless)    R: play again    L: back to lobby    Esc: menu" : "Waiting for the host…    Esc: menu",
+                        16, dim, TextAnchor.MiddleCenter);
+                    break;
                 case MatchState.GameOver:
                     Label(new Rect(0, H / 2f - 80f, W, 60), "GAME OVER", 48, new Color(1f, 0.4f, 0.4f), TextAnchor.MiddleCenter, true);
                     Label(new Rect(0, H / 2f - 20f, W, 28), "You survived to wave " + game.Wave + " with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
@@ -1149,6 +1217,12 @@ namespace Arena
                     name += "  — shielded: kill her swarm!";
                 else if (Game.IsTwin(e.Type) && e.Phase == 1)
                     name += "  — ENRAGED";
+                else if (e.Type == EnemyType.Lich && e.Phase == 1)
+                    name += "  — immune: destroy the phylactery!";
+                else if (Game.Hungry(e))
+                    name += "  — HUNGRY: stop shooting, your hits heal it!";
+                else if (e.Type == EnemyType.Eclipse)
+                    name += "  — phase " + (e.Phase + 1) + " of 3";
                 Label(new Rect(W / 2f - barW / 2f, y - 18f, barW, 18f), name, 14, col, TextAnchor.MiddleCenter, true);
                 Box(new Rect(W / 2f - barW / 2f, y, barW, 10f), new Color(0, 0, 0, 0.6f));
                 Box(new Rect(W / 2f - barW / 2f, y, barW * Mathf.Clamp01(e.Hp / e.MaxHp), 10f), col);
@@ -1198,16 +1272,21 @@ namespace Arena
         {
             SyncSelection(me);
             Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
+            // Stats on the left; the cards and buttons fill the rest.
+            const float statsX = 16f, statsW = 250f;
+            const float cardW = 300f, cardH = 230f, gap = 20f;
+            float x0 = statsX + statsW + 22f;
+            float areaW = cardW * 3 + gap * 2, mid = x0 + areaW / 2f;
+            DrawStatPanel(me, new Rect(statsX, 110f, statsW, 560f));
+
             if (me.OfferLegendary)
-                Label(new Rect(0, 110, W, 44), "BOSS REWARD! Choose a legendary weapon upgrade", 34, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleCenter, true);
+                Label(new Rect(x0, 110, areaW, 44), "BOSS REWARD! Choose a legendary weapon upgrade", 28, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleCenter, true);
             else
-                Label(new Rect(0, 110, W, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
+                Label(new Rect(x0, 110, areaW, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
             int more = me.PendingPicks + me.PendingLegendary - 1;
             if (more > 0)
-                Label(new Rect(0, 152, W, 22), more + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
+                Label(new Rect(x0, 152, areaW, 22), more + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
 
-            const float cardW = 300f, cardH = 230f, gap = 24f;
-            float x0 = (W - cardW * 3 - gap * 2) / 2f;
             for (int i = 0; i < me.Offer.Length; i++)
             {
                 var u = Upgrades.All[me.Offer[i]];
@@ -1250,18 +1329,58 @@ namespace Arena
             }
 
             // Confirm and reroll buttons under the cards.
-            const float btnW = 220f;
+            const float btnW = 260f;
             float by = 200f + cardH + 24f;
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
             string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
-            if (GUI.Button(new Rect(W / 2f - btnW - 10f, by, btnW, 40f), confirmText, buttonStyle))
+            if (GUI.Button(new Rect(mid - btnW - 10f, by, btnW, 40f), confirmText, buttonStyle))
                 ConfirmPick();
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary;
-            if (GUI.Button(new Rect(W / 2f + 10f, by, btnW, 40f), "Reroll (" + me.Rerolls + " left)  [R]", buttonStyle))
+            if (GUI.Button(new Rect(mid + 10f, by, btnW, 40f), "Reroll (" + me.Rerolls + " left)  [R]", buttonStyle))
                 game.RerollOffer();
             GUI.enabled = wasEnabled;
-            Label(new Rect(0, by + 46f, W, 18), me.OfferLegendary ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            Label(new Rect(x0, by + 46f, areaW, 18), me.OfferLegendary ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+        }
+
+        /// Your current stats; with a card selected, the ones it would change show their new value.
+        void DrawStatPanel(Player me, Rect r)
+        {
+            Box(r, new Color(0.06f, 0.07f, 0.1f, 0.95f));
+            Label(new Rect(r.x + 12f, r.y + 8f, r.width - 24f, 22f), "YOUR STATS", 16, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleLeft, true);
+            Label(new Rect(r.x + 12f, r.y + 30f, r.width - 24f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12,
+                ToColor(me.Def.Color), TextAnchor.MiddleLeft);
+            var now = StatSheet.Describe(me, me.Taken);
+            List<StatLine> after = null;
+            if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
+            {
+                var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
+                after = StatSheet.Describe(me, preview);
+            }
+            var lines = after ?? now;
+            var green = new Color(0.45f, 1f, 0.5f);
+            float y = r.y + 56f;
+            for (int i = 0; i < lines.Count && y < r.yMax - 20f; i++)
+            {
+                var line = lines[i];
+                if (line.Header)
+                {
+                    y += 6f;
+                    Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), line.Label.ToUpperInvariant(), 12, new Color(1f, 0.8f, 0.45f), TextAnchor.MiddleLeft, true);
+                    y += 20f;
+                    continue;
+                }
+                // Compare with the same row in the current stats to spot what the card changes.
+                string old = null;
+                foreach (var n in now)
+                    if (n.Label == line.Label && !n.Header)
+                        old = n.Value;
+                bool changed = after != null && old != line.Value;
+                string value = changed && old != null ? old + "  ->  " + line.Value : line.Value;
+                Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), line.Label, 13, changed ? green : new Color(1, 1, 1, 0.75f), TextAnchor.MiddleLeft);
+                Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed && old == null ? "NEW " + value : value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
+                y += 20f;
+            }
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

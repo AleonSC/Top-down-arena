@@ -1,0 +1,59 @@
+using System.Collections.Generic;
+
+namespace Arena
+{
+    public struct StatLine
+    {
+        public string Label, Value;
+        public bool Header;  // a section title rather than a stat
+    }
+
+    /// The numbers shown beside the upgrade cards. Built from a list of picks so the
+    /// menu can also preview what a card would change.
+    public static class StatSheet
+    {
+        public static List<StatLine> Describe(Player p, List<int> taken)
+        {
+            var s = Upgrades.Compute(taken);
+            var lines = new List<StatLine>();
+            lines.Add(new StatLine { Label = "Max HP", Value = ((int)(p.BaseHp + s.BonusHp)).ToString() });
+            lines.Add(new StatLine { Label = "Damage", Value = Pct(s.DmgMult) });
+            lines.Add(new StatLine { Label = "Fire rate", Value = Pct(s.FireRateMult) });
+            lines.Add(new StatLine { Label = "Move speed", Value = Pct(s.SpeedMult) });
+            lines.Add(new StatLine { Label = "Ability cooldowns", Value = Pct(s.CdMult) });
+            lines.Add(new StatLine { Label = "Damage taken", Value = Pct(s.DamageTaken) });
+            lines.Add(new StatLine { Label = "Regeneration", Value = (Game.PassiveRegen + s.Regen).ToString("0.0") + " HP/s" });
+            lines.Add(new StatLine { Label = "Extra projectiles", Value = "+" + s.ExtraShots });
+            lines.Add(new StatLine { Label = "Pierce", Value = "+" + s.Pierce });
+            lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.RoleCharges).ToString() });
+
+            var bonus = new List<string>();
+            var legendary = new Dictionary<string, int>();
+            foreach (int id in taken)
+            {
+                var u = Upgrades.All[id];
+                if (u.Grants != AbilityId.None)
+                    bonus.Add(Upgrades.Ability(u.Grants).Name);
+                if (u.Rarity == Rarity.Legendary)
+                    legendary[u.Name] = legendary.ContainsKey(u.Name) ? legendary[u.Name] + 1 : 1;
+            }
+            if (bonus.Count > 0)
+            {
+                lines.Add(new StatLine { Label = "Bonus abilities", Header = true });
+                string[] keys = { "Q", "E", "Shift" };
+                for (int i = 0; i < bonus.Count && i < keys.Length; i++)
+                    lines.Add(new StatLine { Label = keys[i], Value = bonus[i] });
+                lines.Add(new StatLine { Label = "Bonus charges", Value = (1 + s.ExtraCharges).ToString() });
+            }
+            if (legendary.Count > 0)
+            {
+                lines.Add(new StatLine { Label = "Legendary", Header = true });
+                foreach (var kv in legendary)
+                    lines.Add(new StatLine { Label = kv.Key, Value = kv.Value > 1 ? "x" + kv.Value : "" });
+            }
+            return lines;
+        }
+
+        static string Pct(float mult) => ((int)System.Math.Round(mult * 100f)) + "%";
+    }
+}

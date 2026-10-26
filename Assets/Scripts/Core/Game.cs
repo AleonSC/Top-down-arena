@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Arena
 {
-    public enum MatchState : byte { Idle, Fighting, Intermission, GameOver }
+    public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
     public enum FxKind : byte { Boom, Spark, Ring, Bolt }
 
@@ -16,7 +16,7 @@ namespace Arena
         // One gunshot per weapon, plus the turret and Nova.
         ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotWisp, ShotBow, ShotAssault, ShotSniper, ShotSmg,
         ShotTurret, ShotNova,
-        Pickup, PickupBig, Roar,
+        Pickup, PickupBig, Roar, Victory,
         SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
     }
 
@@ -86,7 +86,7 @@ namespace Arena
         public V2 Pos, Disp, Waypoint;
         public float Hp, MaxHp, Radius, Speed;
         public int Score;
-        public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash;
+        public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;
         public float Facing;    // direction it faces (shields, charges)
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
@@ -190,7 +190,7 @@ namespace Arena
         public const float OrbLifetime = 12f;
         const float OrbMagnetRange = 110f;
         const int BossRerolls = 2;
-        const float PassiveRegen = 0.5f;  // HP per second for everyone
+        public const float PassiveRegen = 0.5f;  // HP per second for everyone
         const float StartDelay = 3f;
         const float IntermissionTime = 4f;
         const float ContactDamage = 15f;
@@ -377,6 +377,8 @@ namespace Arena
             DashT = 0f;
             Paused = false;
             PausedBy = 0;
+            Endless = false;
+            Hazards.Clear();
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;
@@ -659,6 +661,8 @@ namespace Arena
                     Sounds.Add(Sfx.WaveClear);
                 else if (State == MatchState.GameOver)
                     Sounds.Add(Sfx.GameOver);
+                else if (State == MatchState.Victory)
+                    Sounds.Add(Sfx.Victory);
                 lastState = State;
             }
             foreach (var p in Players.Values)
@@ -1049,7 +1053,7 @@ namespace Arena
                         if (e.Pos.DistanceTo(closest) > e.Radius + 30f)
                             continue;
                         HurtEnemy(e, BulldozeDamage * s.DmgMult * s.BulldozeMult, p.Id);
-                        if (!e.Def.IsBoss)
+                        if (!Heavy(e))
                         {
                             V2 away = (e.Pos - closest).Normalized();
                             e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir.Orthogonal() : away) * 70f, e.Radius);
@@ -1201,7 +1205,7 @@ namespace Arena
 
         void CheckGameOver()
         {
-            if (State == MatchState.GameOver || State == MatchState.Idle || Players.Count == 0)
+            if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
             foreach (var p in Players.Values)
                 if (!p.Downed)
@@ -1246,7 +1250,12 @@ namespace Arena
                         }
                     }
                     else if (Enemies.Count == 0)
-                        WaveCleared();
+                    {
+                        if (Wave >= MaxWave && !Endless)
+                            Win();
+                        else
+                            WaveCleared();
+                    }
                     break;
             }
             Remaining = spawnQueue.Count + Enemies.Count;
@@ -1256,6 +1265,7 @@ namespace Arena
         {
             ResetBossState();
             Zones.Clear();
+            Hazards.Clear();
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
             foreach (var p in Players.Values)
@@ -1544,6 +1554,11 @@ namespace Arena
         {
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
+            if (Hungry(e))
+            {
+                e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);  // the Devourer feeds on your shots
+                return;
+            }
             Player p;
             if (Players.TryGetValue(attacker, out p))
             {
@@ -1612,6 +1627,8 @@ namespace Arena
 
         void DropOrbs(Enemy e, bool bossReward)
         {
+            if (e.Def.Xp == 0)
+                return;  // decoys and phylacteries
             if (e.Elite)
             {
                 SpawnOrb(e.Pos, rng.NextDouble() < 0.25);  // elites always drop something
@@ -1726,6 +1743,7 @@ namespace Arena
             w.Write(Score);
             w.Write(Paused);
             w.Write(PausedBy);
+            w.Write(Endless);
             w.Write(PullCenter);
             w.Write(PullStrength);
             w.Write(TwinReviveT);
@@ -1798,6 +1816,7 @@ namespace Arena
                 w.Write(z.T);
                 w.Write(z.Duration);
             }
+            WriteHazards(w);
             w.Write((short)Orbs.Count);
             foreach (var o in Orbs.Values)
             {
@@ -1898,6 +1917,7 @@ namespace Arena
             Score = r.ReadInt32();
             Paused = r.ReadBoolean();
             PausedBy = r.ReadInt32();
+            Endless = r.ReadBoolean();
             PullCenter = r.ReadV2();
             PullStrength = r.ReadSingle();
             TwinReviveT = r.ReadSingle();
@@ -2047,6 +2067,8 @@ namespace Arena
                 var z = new Zone { Id = r.ReadInt32(), Kind = (ZoneKind)r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle() };
                 Zones[z.Id] = z;
             }
+
+            ReadHazards(r);
 
             var seenOrbs = new HashSet<int>();
             int no = r.ReadInt16();

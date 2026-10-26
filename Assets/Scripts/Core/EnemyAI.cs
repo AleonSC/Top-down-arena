@@ -6,8 +6,14 @@ namespace Arena
     /// Enemy waves, spawning, movement, attack patterns and boss mechanics (host only).
     public partial class Game
     {
-        // Bosses rotate every 5 waves: 5, 10, 15, 20, then repeat (stronger each time).
-        static readonly EnemyType[] BossCycle = { EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity };
+        // A different boss every 5 waves up to the final one at 50; endless mode then cycles through them.
+        static readonly EnemyType[] BossCycle =
+        {
+            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus,
+            EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
+        };
+
+        public const int MaxWave = 50;
 
         public const float EliteSize = 1.25f;
         const float ShieldHalfAngle = 1.13f;  // Shielder blocks shots within ~65 degrees of where it faces
@@ -56,10 +62,23 @@ namespace Arena
                         spawnQueue.Add(EnemyType.TwinA);
                         spawnQueue.Add(EnemyType.TwinB);
                         break;
-                    default:
+                    case EnemyType.Singularity:
                         spawnQueue.Add(EnemyType.Singularity);
                         for (int i = 0; i < n / 4; i++)
                             spawnQueue.Add(i % 2 == 0 ? EnemyType.Grunt : EnemyType.Sniper);
+                        break;
+                    case EnemyType.Colossus:
+                        spawnQueue.Add(EnemyType.Colossus);
+                        for (int i = 0; i < n / 5; i++)
+                            spawnQueue.Add(EnemyType.Grunt);
+                        break;
+                    case EnemyType.StormHerald:
+                        spawnQueue.Add(EnemyType.StormHerald);
+                        for (int i = 0; i < n / 8; i++)
+                            spawnQueue.Add(EnemyType.Sniper);
+                        break;
+                    default:  // Duelist, Lich, Devourer and the Eclipse fight alone (or bring their own help)
+                        spawnQueue.Add(BossCycle[(n / 5 - 1) % BossCycle.Length]);
                         break;
                 }
                 return;
@@ -74,7 +93,11 @@ namespace Arena
             if (n >= 8) pool.Add(EnemyType.Mortar);
             if (n >= 9) pool.Add(EnemyType.Shielder);
             if (n >= 11) pool.Add(EnemyType.Medic);
-            int count = Math.Min(4 + n * 2, 32);
+            if (n >= 16) pool.Add(EnemyType.Phantom);
+            if (n >= 21) pool.Add(EnemyType.Hexer);
+            if (n >= 26) pool.Add(EnemyType.Juggernaut);
+            if (n >= 31) pool.Add(EnemyType.Nest);
+            int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             for (int i = 0; i < count; i++)
                 spawnQueue.Add(pool[rng.Next(pool.Count)]);
         }
@@ -97,8 +120,12 @@ namespace Arena
                 pos = new V2(Width / 2f - 300f, 180f);
             else if (type == EnemyType.TwinB)
                 pos = new V2(Width / 2f + 300f, 180f);
-            else if (type == EnemyType.Singularity)
+            else if (type == EnemyType.Singularity || type == EnemyType.Duelist || type == EnemyType.Eclipse)
                 pos = new V2(Width / 2f, Height / 2f);
+            else if (d.IsBoss)
+                pos = new V2(Width / 2f, 150f);
+            else if (type == EnemyType.Nest)
+                pos = new V2(Rand(160f, Width - 160f), Rand(120f, Height - 120f));
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = !d.IsBoss && Wave >= 12 && rng.NextDouble() < Math.Min(0.35, 0.04 * (Wave - 11));
@@ -194,6 +221,8 @@ namespace Arena
                         Damage(p, contact);
             }
 
+            TickHazards(dt);
+
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
             if (twinPending)
             {
@@ -224,8 +253,8 @@ namespace Arena
                     if (l < minD && l > 0.001f)
                     {
                         // Bosses don't get shoved around by small fry.
-                        float wa = a.Def.IsBoss ? 0f : (b.Def.IsBoss ? 1f : 0.5f);
-                        float wb = b.Def.IsBoss ? 0f : (a.Def.IsBoss ? 1f : 0.5f);
+                        float wa = Heavy(a) ? 0f : (Heavy(b) ? 1f : 0.5f);
+                        float wb = Heavy(b) ? 0f : (Heavy(a) ? 1f : 0.5f);
                         V2 push = d / l * (minD - l);
                         a.Pos -= push * wa;
                         b.Pos += push * wb;
@@ -254,6 +283,8 @@ namespace Arena
         {
             if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
                 return true;
+            if (e.Type == EnemyType.Lich && e.Phase == 1)
+                return true;  // protected while its phylactery stands
             if (e.Type != EnemyType.Shielder)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
@@ -331,9 +362,11 @@ namespace Arena
                     break;
                 }
             }
+            if (IsLateGame(e.Type))
+                v = LateMove(e, tpos, dir, dist, dt, ref speed);
             if (rng.NextDouble() < dt * 0.3)
                 e.Strafe = -e.Strafe;
-            if (e.SlowT > 0f && !e.Def.IsBoss)
+            if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
@@ -342,6 +375,11 @@ namespace Arena
         /// Behaviour that isn't just "shoot when the timer runs out".
         void Special(Enemy e, V2 tpos, float dt)
         {
+            if (IsLateGame(e.Type))
+            {
+                LateSpecial(e, tpos, dt);
+                return;
+            }
             switch (e.Type)
             {
                 case EnemyType.Charger:
@@ -410,6 +448,11 @@ namespace Arena
         void EnemyFire(Enemy e, V2 tpos)
         {
             float aim = (tpos - e.Pos).Angle;
+            if (IsLateGame(e.Type))
+            {
+                LateFire(e, tpos, aim);
+                return;
+            }
             switch (e.Type)
             {
                 case EnemyType.Grunt:
