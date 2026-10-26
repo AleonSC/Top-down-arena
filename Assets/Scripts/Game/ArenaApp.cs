@@ -335,6 +335,8 @@ namespace Arena
                 if (b.Kind < Defs.SmallShot)
                     continue;
                 Rgba c = Defs.BulletColor(b.Kind);
+                if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
+                    Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
                 Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
                 Circle(b.Pos, b.Radius, c, 12);
                 Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
@@ -374,19 +376,106 @@ namespace Arena
         void DrawEnemy(Enemy e, float t)
         {
             Rgba col = e.Def.Color;
-            if (game.IsSpawning(e))
+            V2 pos = e.Disp;
+            float r = e.Radius;
+            bool spawning = game.IsSpawning(e);
+            if (spawning)
             {
-                Arc(e.Disp, e.Radius + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
+                Arc(pos, r + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
                 col = col.WithAlpha(0.35f);
             }
+
+            // Effects behind the body.
+            switch (e.Type)
+            {
+                case EnemyType.Charger:
+                    if (e.Phase == 1)  // wind-up: show where it's about to dash
+                    {
+                        V2 dir = V2.FromAngle(e.Facing);
+                        float a = MathX.Fmod(t, 0.16f) < 0.08f ? 0.55f : 0.25f;
+                        Line(pos + dir * r, pos + dir * 260f, 3f, new Rgba(1f, 0.3f, 0.3f, a));
+                    }
+                    else if (e.Phase == 2)
+                        Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
+                    break;
+                case EnemyType.HiveQueen:
+                    if (e.Phase == 1)  // shielded by her swarm
+                    {
+                        Circle(pos, r + 16f, new Rgba(1f, 0.85f, 0.3f, 0.15f), 40);
+                        Arc(pos, r + 16f, 3f, new Rgba(1f, 0.9f, 0.4f, 0.8f), 40);
+                    }
+                    break;
+                case EnemyType.TwinA:
+                case EnemyType.TwinB:
+                    if (e.Phase == 1)  // enraged
+                        Circle(pos, r + 10f + 4f * Mathf.Sin(t * 14f), new Rgba(1f, 0.2f, 0.2f, 0.25f), 32);
+                    break;
+                case EnemyType.Singularity:
+                    if (e.Phase == 1)  // gravity well: rings shrinking inward
+                        for (int k = 0; k < 4; k++)
+                        {
+                            float f = 1f - MathX.Fmod(t * 0.8f + k * 0.25f, 1f);
+                            Arc(pos, r + 40f + f * 360f, 2f, col.WithAlpha(0.35f * (1f - f)), 64);
+                        }
+                    Circle(pos, r * 1.6f, new Rgba(0.05f, 0f, 0.1f, 0.9f), 40);  // dark core halo
+                    break;
+            }
+            if (e.Elite)
+                Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
+
             if (e.Flash > 0f)
                 col = Rgba.White;
-            float spin = e.Type == EnemyType.Spinner ? 2.5f : 0.4f;
-            Polygon(e.Disp, e.Radius, e.Def.Sides, t * spin + e.Id, col);
-            if (e.Hp < e.MaxHp)
+            float rot;
+            switch (e.Type)
             {
-                float w = Mathf.Max(30f, e.Radius * 2f);
-                Bar(e.Disp + new V2(-w / 2f, -e.Radius - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
+                case EnemyType.Charger:
+                case EnemyType.Shard:
+                case EnemyType.Mortar:
+                case EnemyType.Shielder:
+                    rot = e.Facing;  // point where they're aiming
+                    break;
+                case EnemyType.Spinner:
+                    rot = t * 2.5f + e.Id;
+                    break;
+                case EnemyType.Singularity:
+                    rot = t * (e.Phase == 1 ? -3f : 1f);
+                    break;
+                case EnemyType.Medic:
+                    rot = MathX.Pi / 4f;
+                    break;
+                default:
+                    rot = t * 0.4f + e.Id;
+                    break;
+            }
+            Polygon(pos, r, e.Def.Sides, rot, col);
+
+            // Details on top of the body.
+            switch (e.Type)
+            {
+                case EnemyType.Shielder:
+                    Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);
+                    break;
+                case EnemyType.Medic:
+                    Line(pos - new V2(r * 0.5f, 0), pos + new V2(r * 0.5f, 0), 3f, Rgba.White);
+                    Line(pos - new V2(0, r * 0.5f), pos + new V2(0, r * 0.5f), 3f, Rgba.White);
+                    break;
+                case EnemyType.Mortar:
+                    Line(pos, pos + V2.FromAngle(e.Facing) * (r + 8f), 6f, col);
+                    break;
+                case EnemyType.Splitter:
+                    Line(pos - new V2(r * 0.6f, 0), pos + new V2(r * 0.6f, 0), 2f, col.WithAlpha(0.6f));
+                    Line(pos - new V2(0, r * 0.6f), pos + new V2(0, r * 0.6f), 2f, col.WithAlpha(0.6f));
+                    break;
+                case EnemyType.Singularity:
+                    Circle(pos, r * 0.45f, new Rgba(0f, 0f, 0f, 1f), 24);
+                    Arc(pos, r * 0.45f, 2f, Rgba.White.WithAlpha(0.6f), 24);
+                    break;
+            }
+            // Bosses get a bar at the top of the screen instead.
+            if (e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning)
+            {
+                float w = Mathf.Max(30f, r * 2f);
+                Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
             }
         }
 
@@ -661,6 +750,7 @@ namespace Arena
             var me = game.Me;
             Label(new Rect(20, 10, 400, 34), "WAVE " + game.Wave, 26, white, TextAnchor.UpperLeft, true);
             Label(new Rect(20, 44, 400, 20), "Enemies left: " + game.Remaining + "    Score: " + game.Score, 14, dim, TextAnchor.UpperLeft);
+            DrawBossBars();
 
             // Names, level-up popups and downed labels over players.
             foreach (var p in game.Players.Values)
@@ -722,6 +812,33 @@ namespace Arena
                         16, dim, TextAnchor.MiddleCenter);
                     break;
             }
+        }
+
+        /// Name and health bar for each boss on the field, plus warnings for their mechanics.
+        void DrawBossBars()
+        {
+            float y = 76f;
+            const float barW = 420f;
+            foreach (var e in game.Enemies.Values)
+            {
+                if (!e.Def.IsBoss)
+                    continue;
+                var col = ToColor(e.Def.Color);
+                string name = e.Def.Name;
+                if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
+                    name += "  — shielded: kill her swarm!";
+                else if (Game.IsTwin(e.Type) && e.Phase == 1)
+                    name += "  — ENRAGED";
+                Label(new Rect(W / 2f - barW / 2f, y - 18f, barW, 18f), name, 14, col, TextAnchor.MiddleCenter, true);
+                Box(new Rect(W / 2f - barW / 2f, y, barW, 10f), new Color(0, 0, 0, 0.6f));
+                Box(new Rect(W / 2f - barW / 2f, y, barW * Mathf.Clamp01(e.Hp / e.MaxHp), 10f), col);
+                y += 36f;
+            }
+            if (game.TwinReviveT > 0f)
+                Label(new Rect(0, y - 8f, W, 22f), "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!", 16,
+                    new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleCenter, true);
+            else if (game.PullStrength > 0f)
+                Label(new Rect(0, y - 8f, W, 22f), "GRAVITY WELL — run!", 16, new Color(0.8f, 0.6f, 1f), TextAnchor.MiddleCenter, true);
         }
 
         /// XP bar plus the ability slots (Space / Q / E / Shift) along the bottom.

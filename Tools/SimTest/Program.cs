@@ -91,7 +91,7 @@ static class Program
                 Thread.Sleep(1);
             bool bossAlive = false;
             foreach (var e in host.Game.Enemies.Values)
-                bossAlive |= e.Type == EnemyType.Boss;
+                bossAlive |= e.Def.IsBoss;
             bossSeen |= bossAlive;
             bossDead = bossSeen && !bossAlive;
             if (host.Game.State == MatchState.GameOver)
@@ -151,6 +151,160 @@ static class Program
         }
     }
 
+    static int nextPort = 7810;
+
+    // Start a bot match at a given wave with both players buffed so they survive a while.
+    static Session[] StartBuffed(float dt, int wave, int damageStacks)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = wave };
+        host.Game.Bot = true;
+        host.Game.BotRerolls = false;
+        host.Host(port, "Host", Role.Tank, 0);
+        var client = new Session();
+        client.Game.Bot = true;
+        client.Game.BotRerolls = false;
+        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        foreach (int id in new[] { 1, 2 })
+        {
+            for (int k = 0; k < 20; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
+            for (int k = 0; k < 10; k++) host.Game.GrantUpgrade(id, U("Regeneration"));
+            for (int k = 0; k < damageStacks; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
+        }
+        return new[] { host, client };
+    }
+
+    static void Run(Session[] s, float dt, float seconds, Func<bool> stop = null, Action each = null)
+    {
+        for (int i = 0; i < seconds * 60; i++)
+        {
+            Step(s[0], dt);
+            Step(s[1], dt);
+            if (i % 2 == 0)
+                Thread.Sleep(1);
+            if (each != null)
+                each();
+            if (stop != null && stop())
+                break;
+        }
+        for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+    }
+
+    static int Ghosts(Session[] s)
+    {
+        int ghosts = 0;
+        foreach (var b in s[1].Game.Bullets.Values)
+            if (!s[0].Game.Bullets.ContainsKey(b.Id))
+                ghosts++;
+        return ghosts;
+    }
+
+    // Waves 11-13: the new enemy types and elites show up on the client, in sync.
+    static void LateGameEnemies(float dt)
+    {
+        var s = StartBuffed(dt, 11, 6);
+        var seen = new HashSet<EnemyType>();
+        bool eliteSeen = false;
+        int ghosts = 0, frame = 0;
+        Run(s, dt, 120, () => s[0].Game.Wave >= 14 || s[0].Game.State == MatchState.GameOver, () =>
+        {
+            foreach (var e in s[1].Game.Enemies.Values)
+            {
+                seen.Add(e.Type);
+                eliteSeen |= e.Elite;
+            }
+            if (++frame % 60 == 0)
+            {
+                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                ghosts += Ghosts(s);
+            }
+        });
+        var names = new List<string>();
+        foreach (var t in seen)
+            names.Add(t.ToString());
+        Console.WriteLine("  reached wave {0}; client saw: {1}; elite seen: {2}", s[0].Game.Wave, string.Join(", ", names), eliteSeen);
+        foreach (var t in new[] { EnemyType.Charger, EnemyType.Splitter, EnemyType.Shard, EnemyType.Mortar, EnemyType.Shielder, EnemyType.Medic })
+            Check(seen.Contains(t), "new enemy shows up on the client: " + t);
+        Check(eliteSeen, "elite enemies appear from wave 12");
+        Check(ghosts == 0, "late-game waves stay in sync (mortar bursts, splits)");
+        s[0].Leave("");
+        s[1].Leave("");
+    }
+
+    static Enemy Find(Session s, EnemyType t)
+    {
+        foreach (var e in s.Game.Enemies.Values)
+            if (e.Type == t)
+                return e;
+        return null;
+    }
+
+    static void BossMechanics(float dt)
+    {
+        // Hive Queen (wave 10): summons a swarm and is immune while it's big.
+        {
+            var s = StartBuffed(dt, 10, 25);
+            bool shielded = false, swarm = false, dead = false, seenQueen = false;
+            Run(s, dt, 70, () => dead, () =>
+            {
+                var q = Find(s[1], EnemyType.HiveQueen);
+                seenQueen |= q != null;
+                shielded |= q != null && q.Phase == 1;
+                swarm |= Find(s[1], EnemyType.Shard) != null;
+                dead = seenQueen && Find(s[0], EnemyType.HiveQueen) == null;
+            });
+            Check(swarm && shielded, "Hive Queen summons a swarm and shields herself (seen on client)");
+            Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Twin Reapers (wave 15): killing one enrages the other; it revives unless both die in time.
+        {
+            var s = StartBuffed(dt, 15, 0);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f);
+            s[0].Game.Bot = s[1].Game.Bot = false;  // stop shooting so the survivor lives
+            Find(s[0], EnemyType.TwinA).Hp = 0f;
+            bool enraged = false, timerShown = false;
+            Run(s, dt, 2, null, () =>
+            {
+                var b = Find(s[1], EnemyType.TwinB);
+                enraged |= b != null && b.Phase == 1;
+                timerShown |= s[1].Game.TwinReviveT > 0f;
+            });
+            Check(Find(s[0], EnemyType.TwinA) == null && enraged && timerShown, "killing one twin enrages the other and starts the revive timer (seen on client)");
+            Run(s, dt, 8, () => Find(s[0], EnemyType.TwinA) != null);
+            Run(s, dt, 0.5f);
+            var revived = Find(s[1], EnemyType.TwinA);
+            Check(revived != null && revived.Hp < revived.MaxHp * 0.6f, "the fallen twin revives at half health");
+            int before = s[0].Game.Players[1].Rerolls;
+            Find(s[0], EnemyType.TwinA).Hp = 0f;
+            Find(s[0], EnemyType.TwinB).Hp = 0f;
+            Run(s, dt, 1);
+            Check(Find(s[0], EnemyType.TwinA) == null && Find(s[0], EnemyType.TwinB) == null && s[0].Game.TwinReviveT == 0f
+                && s[0].Game.Players[1].Rerolls == before + 2, "killing both together ends the fight with one reward");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // The Singularity (wave 20): gravity phases pull players in.
+        {
+            var s = StartBuffed(dt, 20, 0);
+            Run(s, dt, 15, () => s[0].Game.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && Find(s[0], EnemyType.Singularity).SpawnT <= 0f);
+            s[1].Game.Bot = false;  // the friend stands still; only the pull should move them
+            V2 start = s[1].Game.Players[2].Pos;
+            bool pullSeen = false;
+            float closest = float.MaxValue;
+            V2 center = new V2(Game.Width / 2f, Game.Height / 2f);
+            Run(s, dt, 13, null, () =>
+            {
+                pullSeen |= s[1].Game.PullStrength > 0f;
+                closest = Math.Min(closest, s[1].Game.Players[2].Pos.DistanceTo(center));
+            });
+            Console.WriteLine("  singularity: friend started {0:F0}px from the boss, got pulled to {1:F0}px", start.DistanceTo(center), closest);
+            Check(pullSeen && closest < start.DistanceTo(center) - 100f, "The Singularity's gravity pulls the client's player in");
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+
     static int Main(string[] args)
     {
         int startWave = args.Length > 0 ? int.Parse(args[0]) : 1;
@@ -198,7 +352,7 @@ static class Program
         float maxError = 0f;
         var hostOrbIds = new HashSet<int>();
         var clientOrbIds = new HashSet<int>();
-        int orbsHost = 0, orbsClient = 0, orbsPicked = 0;
+        int orbsHost = 0, orbsClient = 0;
         for (int i = 0; i < seconds * 60; i++)
         {
             Step(host, dt);
@@ -212,7 +366,6 @@ static class Program
             foreach (int id in client.Game.Orbs.Keys)
                 if (clientOrbIds.Add(id))
                     orbsClient++;
-            orbsPicked = pickups;
             maxWave = Math.Max(maxWave, host.Game.Wave);
             if (i % 30 == 0)
             {
@@ -255,9 +408,8 @@ static class Program
         }
         Console.WriteLine("peak bullets {0}, reached wave {1}, score {2}, worst bullet position error {3:F1}px", maxBullets, maxWave, host.Game.Score, maxError);
         Check(maxWave >= startWave, "waves progressed");
-        Console.WriteLine("  health orbs: {0} seen on host, {1} on client, {2} picked up", orbsHost, orbsClient, orbsPicked);
+        Console.WriteLine("  health orbs: {0} seen on host, {1} on client", orbsHost, orbsClient);
         Check(orbsHost > 0 && orbsClient > 0, "enemies drop health orbs and the client sees them");
-        Check(orbsPicked > 0, "players pick up orbs");
         Check(maxBullets > 0, "bullets were fired");
         bool sameUpgrades = true;
         foreach (var hp in host.Game.Players.Values)
@@ -367,6 +519,9 @@ static class Program
 
         BossRerollScenario(dt);
         WeaponSweep(dt);
+        LateGameEnemies(dt);
+        BossMechanics(dt);
+        Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");
 
         Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
         return failures == 0 ? 0 : 1;

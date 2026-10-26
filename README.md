@@ -72,7 +72,34 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
 - If both players are downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
-- New enemy types unlock as waves go up: grunts (aimed spreads), bursters (rings), snipers (fast shots), spinners (spirals), and a boss every 5 waves.
+- New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
+
+## Enemies
+
+| Wave | Enemy | What it does |
+|---|---|---|
+| 1 | Grunt | Aimed 3-shot spreads |
+| 2 | Burster | Rings of bullets |
+| 3 | Sniper | Fast, accurate shots from far away |
+| 4 | Spinner | Wanders and sprays spirals |
+| 6 | **Charger** | Flashes a red warning line, then dashes at you and bursts into a ring. Step out of the line |
+| 7 | **Splitter** | Splits into 3 fast Shards when killed |
+| 8 | **Mortar** | Lobs bombs at where you're standing; they burst into a ring when they land. Keep moving |
+| 9 | **Shielder** | A shield on its front blocks your shots. It turns slowly, so flank it |
+| 11 | **Medic** | Heals nearby enemies every few seconds. Kill it first |
+| 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, shoots faster, worth 3x XP, always drops an orb. More common each wave |
+
+## Bosses
+
+Bosses rotate every 5 waves and come back stronger each cycle. Their name and health bar show at the top.
+
+| Wave | Boss | Mechanic |
+|---|---|---|
+| 5 | **The Warden** | Cycles through spirals, rings of big orbs and aimed fans |
+| 10 | **Hive Queen** | Summons Shards every few seconds and is **immune while 3+ of her swarm are alive**. Clear the swarm, then hit her |
+| 15 | **Twin Reapers** | Two bosses circling the arena. Kill one and the other **enrages**; finish it within **8 seconds** or the fallen twin revives at half health |
+| 20 | **The Singularity** | Sits in the center. Every 12 s it opens a **gravity well** that drags everyone toward it (run against it!), then collapses into dense rings |
+| 25+ | ... | The cycle repeats with tougher versions |
 
 ## Controls
 
@@ -129,6 +156,7 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
 - `Assets/Scripts/Core/`: plain C# with no Unity dependency
   - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
   - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
+  - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport

@@ -69,7 +69,11 @@ namespace Arena
         public float Hp, MaxHp, Radius, Speed;
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash;
-        public int TargetId;
+        public float Facing;    // direction it faces (shields, charges)
+        public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
+        public float PhaseT;
+        public bool Elite;
+        public int TargetId, ParentId;
         public bool Spawning;  // replicated SpawnT > 0 on clients
     }
 
@@ -82,6 +86,7 @@ namespace Arena
         public int Owner, Pierce, LastHit;
         public float Splash;      // host only: explosion radius on impact
         public float HealAlly;    // host only: heals an ally it passes through
+        public int Burst;         // host only: mortar bombs burst into this many bullets when they land
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -131,7 +136,7 @@ namespace Arena
     ///                   spawns and hits are sent), Snapshot (20 Hz: players,
     ///                   enemies, turrets and wave state), Upgrades (a player's
     ///                   picks, after each pick), Fx, ClearEnemyBullets
-    public class Game
+    public partial class Game
     {
         public const float Width = 1280f, Height = 720f;
 
@@ -306,6 +311,7 @@ namespace Arena
             nextEnemyId = 1;
             nextTurretId = 1;
             nextOrbId = 1;
+            ResetBossState();
             DashT = 0f;
             awaitingPick = false;
             rerollsAtRequest = -1;
@@ -641,6 +647,8 @@ namespace Arena
             }
             else
                 me.Pos += move * me.Speed * dt;
+            if (PullStrength > 0f && !me.Downed && DashT <= 0f)
+                me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
 
             for (int slot = 0; slot < held.Length; slot++)
             {
@@ -1042,27 +1050,9 @@ namespace Arena
             Remaining = spawnQueue.Count + Enemies.Count;
         }
 
-        void BuildWave(int n)
-        {
-            spawnQueue.Clear();
-            if (n % 5 == 0)
-            {
-                spawnQueue.Add(EnemyType.Boss);
-                for (int i = 0; i < n / 2; i++)
-                    spawnQueue.Add(EnemyType.Grunt);
-                return;
-            }
-            var pool = new List<EnemyType> { EnemyType.Grunt };
-            if (n >= 2) pool.Add(EnemyType.Burster);
-            if (n >= 3) pool.Add(EnemyType.Sniper);
-            if (n >= 4) pool.Add(EnemyType.Spinner);
-            int count = Math.Min(4 + n * 2, 32);
-            for (int i = 0; i < count; i++)
-                spawnQueue.Add(pool[rng.Next(pool.Count)]);
-        }
-
         void WaveCleared()
         {
+            ResetBossState();
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
             foreach (var p in Players.Values)
@@ -1078,202 +1068,6 @@ namespace Arena
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             DoLog("wave " + Wave + " cleared");
-        }
-
-        void SpawnEnemy(EnemyType type)
-        {
-            var d = Defs.Get(type);
-            var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score };
-            e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * (Players.Count > 1 ? 1f : 0.7f);
-            e.Hp = e.MaxHp;
-            float m = e.Radius + 30f;
-            switch (rng.Next(4))
-            {
-                case 0: e.Pos = new V2(Rand(m, Width - m), m); break;
-                case 1: e.Pos = new V2(Rand(m, Width - m), Height - m); break;
-                case 2: e.Pos = new V2(m, Rand(m, Height - m)); break;
-                default: e.Pos = new V2(Width - m, Rand(m, Height - m)); break;
-            }
-            if (type == EnemyType.Boss)
-                e.Pos = new V2(Width / 2f, 140f);
-            e.Disp = e.Pos;
-            e.Waypoint = e.Pos;
-            e.SpawnT = 0.9f;
-            e.FireT = Rand(0.3f, 1.2f);
-            e.Strafe = rng.NextDouble() < 0.5 ? 1f : -1f;
-            e.Ang = Rand(0f, MathX.Tau);
-            Enemies[e.Id] = e;
-        }
-
-        int PickTarget()
-        {
-            var alive = new List<int>();
-            var tanks = new List<int>();
-            foreach (var p in Players.Values)
-            {
-                if (p.Downed)
-                    continue;
-                alive.Add(p.Id);
-                if (p.Role == Role.Tank)
-                    tanks.Add(p.Id);
-            }
-            if (alive.Count == 0)
-                return 0;
-            if (tanks.Count > 0 && rng.NextDouble() < 0.7)
-                return tanks[rng.Next(tanks.Count)];
-            return alive[rng.Next(alive.Count)];
-        }
-
-        void TickEnemies(float dt)
-        {
-            float rate = Math.Min(2f, 1f + 0.05f * (Wave - 1));
-            foreach (var e in Enemies.Values)
-            {
-                e.T += dt;
-                if (e.SpawnT > 0f)
-                {
-                    e.SpawnT -= dt;
-                    continue;
-                }
-                e.RetargetT -= dt;
-                Player target;
-                Players.TryGetValue(e.TargetId, out target);
-                if (e.RetargetT <= 0f || target == null || target.Downed)
-                {
-                    e.TargetId = PickTarget();
-                    e.RetargetT = 3f;
-                    Players.TryGetValue(e.TargetId, out target);
-                }
-                V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
-                MoveEnemy(e, tpos, dt);
-                if (State == MatchState.Fighting)
-                {
-                    e.FireT -= dt * rate;
-                    if (e.FireT <= 0f)
-                        EnemyFire(e, tpos);
-                }
-                foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
-                        Damage(p, ContactDamage);
-            }
-
-            // Keep enemies from stacking on top of each other.
-            var list = new List<Enemy>(Enemies.Values);
-            for (int i = 0; i < list.Count; i++)
-            {
-                for (int j = i + 1; j < list.Count; j++)
-                {
-                    Enemy a = list[i], b = list[j];
-                    V2 d = b.Pos - a.Pos;
-                    float l = d.Length, minD = a.Radius + b.Radius;
-                    if (l < minD && l > 0.001f)
-                    {
-                        V2 push = d / l * (minD - l) * 0.5f;
-                        a.Pos -= push;
-                        b.Pos += push;
-                    }
-                }
-            }
-        }
-
-        static V2 KeepDistance(V2 dir, float dist, float want)
-        {
-            if (dist > want + 40f) return dir;
-            if (dist < want - 40f) return -dir;
-            return V2.Zero;
-        }
-
-        void MoveEnemy(Enemy e, V2 tpos, float dt)
-        {
-            V2 to = tpos - e.Pos;
-            float dist = to.Length;
-            V2 dir = dist > 0.01f ? to / dist : V2.Zero;
-            V2 v = V2.Zero;
-            switch (e.Type)
-            {
-                case EnemyType.Grunt:
-                    v = KeepDistance(dir, dist, 230f) + dir.Orthogonal() * e.Strafe * 0.6f;
-                    break;
-                case EnemyType.Sniper:
-                    v = KeepDistance(dir, dist, 420f) + dir.Orthogonal() * e.Strafe * 0.8f;
-                    break;
-                case EnemyType.Burster:
-                    v = KeepDistance(dir, dist, 160f);
-                    break;
-                case EnemyType.Spinner:
-                    if (e.Pos.DistanceTo(e.Waypoint) < 20f)
-                        e.Waypoint = new V2(Rand(150f, Width - 150f), Rand(150f, Height - 150f));
-                    v = (e.Waypoint - e.Pos).Normalized();
-                    break;
-                case EnemyType.Boss:
-                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * 380f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
-                    v = (goal - e.Pos) / 60f;
-                    break;
-            }
-            if (rng.NextDouble() < dt * 0.3)
-                e.Strafe = -e.Strafe;
-            e.Pos += v.LimitLength(1f) * e.Speed * dt;
-            e.Pos = ClampToArena(e.Pos, e.Radius);
-        }
-
-        void EnemyFire(Enemy e, V2 tpos)
-        {
-            float aim = (tpos - e.Pos).Angle;
-            switch (e.Type)
-            {
-                case EnemyType.Grunt:
-                    e.FireT = 1.8f;
-                    for (int i = 0; i < 3; i++)
-                        EnemyShot(e, aim + (i - 1) * 0.22f, 175f, Defs.SmallShot);
-                    break;
-                case EnemyType.Burster:
-                {
-                    e.FireT = 2.4f;
-                    int n = 12 + Math.Min(Wave, 10);
-                    e.Ang += MathX.Pi / n;
-                    for (int i = 0; i < n; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / n, 135f, Defs.SmallShot);
-                    break;
-                }
-                case EnemyType.Sniper:
-                    e.FireT = 2.6f;
-                    EnemyShot(e, aim, 400f, Defs.FastShot);
-                    break;
-                case EnemyType.Spinner:
-                    e.FireT = 0.11f;
-                    e.Ang += 0.27f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 125f, Defs.SmallShot, 0.25f);
-                    break;
-                case EnemyType.Boss:
-                    switch ((int)(e.T / 6f) % 3)
-                    {
-                        case 0:  // four-armed spiral
-                            e.FireT = 0.07f;
-                            e.Ang += 0.19f;
-                            for (int k = 0; k < 4; k++)
-                                EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
-                            break;
-                        case 1:  // slow rings of big orbs
-                            e.FireT = 1f;
-                            e.Ang += 0.12f;
-                            for (int i = 0; i < 26; i++)
-                                EnemyShot(e, e.Ang + MathX.Tau * i / 26f, 110f, Defs.BigShot);
-                            break;
-                        default:  // aimed fan
-                            e.FireT = 0.45f;
-                            for (int i = 0; i < 9; i++)
-                                EnemyShot(e, aim + (i - 4) * 0.12f, 210f, Defs.SmallShot);
-                            break;
-                    }
-                    break;
-            }
-        }
-
-        void EnemyShot(Enemy e, float ang, float speed, byte kind, float angVel = 0f)
-        {
-            V2 dir = V2.FromAngle(ang);
-            SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0);
         }
 
         Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner)
@@ -1323,9 +1117,12 @@ namespace Arena
 
         readonly List<int> scratchIds = new List<int>();
 
+        readonly List<Bullet> landed = new List<Bullet>();
+
         void MoveBullets(float dt)
         {
             scratchIds.Clear();
+            landed.Clear();
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f)
@@ -1333,10 +1130,25 @@ namespace Arena
                 b.Pos += b.Vel * dt;
                 b.Life -= dt;
                 if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
+                {
                     scratchIds.Add(b.Id);
+                    if (b.Burst > 0 && b.Life <= 0f)
+                        landed.Add(b);
+                }
             }
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
+            // Host only (Burst is never set on clients): landed mortar bombs explode into rings.
+            foreach (var b in landed)
+            {
+                float offset = Rand(0f, MathX.Tau);
+                for (int i = 0; i < b.Burst; i++)
+                {
+                    V2 dir = V2.FromAngle(offset + MathX.Tau * i / b.Burst);
+                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 150f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0);
+                }
+                BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.MineShot), 30f, 0.3f, Sfx.Hit);
+            }
         }
 
         readonly List<Bullet> splashes = new List<Bullet>();
@@ -1374,6 +1186,11 @@ namespace Arena
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
                         {
+                            if (BlocksShot(e, b.Pos))
+                            {
+                                scratchIds.Add(b.Id);
+                                break;
+                            }
                             e.Hp -= b.Dmg;
                             e.Flash = 0.06f;
                             b.LastHit = e.Id;
@@ -1427,7 +1244,7 @@ namespace Arena
             {
                 foreach (var e in Enemies.Values)
                 {
-                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.DistanceTo(b.Pos) > b.Splash + e.Radius)
+                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.DistanceTo(b.Pos) > b.Splash + e.Radius || BlocksShot(e, b.Pos))
                         continue;
                     e.Hp -= b.Dmg * 0.6f;
                     e.Flash = 0.06f;
@@ -1441,23 +1258,23 @@ namespace Arena
                     dead.Add(e);
             foreach (var e in dead)
             {
-                if (e.Type == EnemyType.Boss)
-                {
-                    foreach (var p in Players.Values)
-                        p.Rerolls += BossRerolls;
-                    DoLog("boss killed: everyone gets " + BossRerolls + " rerolls");
-                }
-                Score += e.Score;
-                GrantXp(e.Def.Xp);
-                DropOrbs(e);
+                bool bossReward = OnEnemyKilled(e);
+                Score += e.Score * (e.Elite ? 3 : 1);
+                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1));
+                DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
             }
         }
 
-        void DropOrbs(Enemy e)
+        void DropOrbs(Enemy e, bool bossReward)
         {
-            if (e.Type == EnemyType.Boss)
+            if (e.Elite)
+            {
+                SpawnOrb(e.Pos, rng.NextDouble() < 0.25);  // elites always drop something
+                return;
+            }
+            if (bossReward)
             {
                 // Bosses always drop a large orb and a few small ones around it.
                 SpawnOrb(e.Pos, true);
@@ -1522,7 +1339,7 @@ namespace Arena
         void DeathFx(Enemy e, V2 pos)
         {
             AddFx(FxKind.Boom, pos, e.Def.Color, e.Radius * 2.2f, 0.4f);
-            Sounds.Add(e.Type == EnemyType.Boss ? Sfx.BigExplode : Sfx.Explode);
+            Sounds.Add(e.Def.IsBoss ? Sfx.BigExplode : Sfx.Explode);
         }
 
         void ClearEnemyBullets()
@@ -1557,6 +1374,9 @@ namespace Arena
             w.Write(StateTimer);
             w.Write(Remaining);
             w.Write(Score);
+            w.Write(PullCenter);
+            w.Write(PullStrength);
+            w.Write(TwinReviveT);
             w.Write((byte)Players.Count);
             foreach (var p in Players.Values)
             {
@@ -1590,6 +1410,9 @@ namespace Arena
                 w.Write(e.Hp);
                 w.Write(e.MaxHp);
                 w.Write(e.SpawnT > 0f);
+                w.Write(e.Facing);
+                w.Write(e.Phase);
+                w.Write(e.Elite);
             }
             w.Write((byte)Turrets.Count);
             foreach (var t in Turrets.Values)
@@ -1695,6 +1518,9 @@ namespace Arena
             StateTimer = r.ReadSingle();
             Remaining = r.ReadInt32();
             Score = r.ReadInt32();
+            PullCenter = r.ReadV2();
+            PullStrength = r.ReadSingle();
+            TwinReviveT = r.ReadSingle();
             int np = r.ReadByte();
             for (int i = 0; i < np; i++)
             {
@@ -1758,6 +1584,9 @@ namespace Arena
                 V2 pos = r.ReadV2();
                 float hp = r.ReadSingle(), maxHp = r.ReadSingle();
                 bool spawning = r.ReadBoolean();
+                float facing = r.ReadSingle();
+                byte phase = r.ReadByte();
+                bool elite = r.ReadBoolean();
                 Enemy e;
                 if (!Enemies.TryGetValue(id, out e))
                 {
@@ -1771,6 +1600,10 @@ namespace Arena
                 e.Hp = hp;
                 e.MaxHp = maxHp;
                 e.Spawning = spawning;
+                e.Facing = facing;
+                e.Phase = phase;
+                e.Elite = elite;
+                e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
                 seen.Add(id);
             }
             var gone = new List<Enemy>();

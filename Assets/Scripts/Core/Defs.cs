@@ -2,7 +2,12 @@ namespace Arena
 {
     public enum Role : byte { Tank = 0, Healer = 1, Dps = 2 }
 
-    public enum EnemyType : byte { Grunt = 0, Burster = 1, Sniper = 2, Spinner = 3, Boss = 4 }
+    public enum EnemyType : byte
+    {
+        Grunt, Burster, Sniper, Spinner, Boss,
+        Charger, Splitter, Shard, Mortar, Shielder, Medic,
+        HiveQueen, TwinA, TwinB, Singularity,
+    }
 
     public class RoleDef
     {
@@ -24,6 +29,8 @@ namespace Arena
     {
         public float Hp, Radius, Speed;
         public int Score, Sides, Xp;
+        public string Name;
+        public bool IsBoss;
         public Rgba Color;
     }
 
@@ -55,13 +62,24 @@ namespace Arena
             },
         };
 
+        // Indexed by EnemyType.
         public static readonly EnemyDef[] Enemies =
         {
-            new EnemyDef { Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f) },
-            new EnemyDef { Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f) },
-            new EnemyDef { Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f) },
-            new EnemyDef { Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f) },
-            new EnemyDef { Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f) },
+            new EnemyDef { Name = "Grunt", Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f) },
+            new EnemyDef { Name = "Burster", Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f) },
+            new EnemyDef { Name = "Sniper", Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f) },
+            new EnemyDef { Name = "Spinner", Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f) },
+            new EnemyDef { Name = "The Warden", IsBoss = true, Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f) },
+            new EnemyDef { Name = "Charger", Hp = 90f, Radius = 15f, Speed = 70f, Score = 20, Xp = 18, Sides = 3, Color = new Rgba(0.3f, 0.9f, 0.9f) },
+            new EnemyDef { Name = "Splitter", Hp = 120f, Radius = 19f, Speed = 50f, Score = 20, Xp = 16, Sides = 4, Color = new Rgba(0.6f, 1f, 0.3f) },
+            new EnemyDef { Name = "Shard", Hp = 25f, Radius = 8f, Speed = 130f, Score = 5, Xp = 4, Sides = 3, Color = new Rgba(0.8f, 1f, 0.55f) },
+            new EnemyDef { Name = "Mortar", Hp = 80f, Radius = 16f, Speed = 40f, Score = 20, Xp = 18, Sides = 7, Color = new Rgba(0.95f, 0.55f, 0.3f) },
+            new EnemyDef { Name = "Shielder", Hp = 140f, Radius = 17f, Speed = 60f, Score = 25, Xp = 22, Sides = 6, Color = new Rgba(0.6f, 0.7f, 0.9f) },
+            new EnemyDef { Name = "Medic", Hp = 70f, Radius = 13f, Speed = 75f, Score = 25, Xp = 20, Sides = 4, Color = new Rgba(1f, 0.5f, 0.75f) },
+            new EnemyDef { Name = "Hive Queen", IsBoss = true, Hp = 3000f, Radius = 44f, Speed = 40f, Score = 400, Xp = 180, Sides = 6, Color = new Rgba(1f, 0.8f, 0.2f) },
+            new EnemyDef { Name = "Reaper of Dusk", IsBoss = true, Hp = 1500f, Radius = 34f, Speed = 70f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f) },
+            new EnemyDef { Name = "Reaper of Dawn", IsBoss = true, Hp = 1500f, Radius = 34f, Speed = 70f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f) },
+            new EnemyDef { Name = "The Singularity", IsBoss = true, Hp = 3600f, Radius = 40f, Speed = 0f, Score = 500, Xp = 220, Sides = 10, Color = new Rgba(0.6f, 0.35f, 1f) },
         };
 
         public const int WeaponsPerRole = 3;
@@ -89,7 +107,7 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, SmallShot = 10, BigShot = 11, FastShot = 12;
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13;
 
         public static float BulletRadius(byte kind)
         {
@@ -104,6 +122,7 @@ namespace Arena
                 case RailShot: return 3.5f;
                 case WispShot: return 5f;
                 case BigShot: return 10f;
+                case MineShot: return 9f;
                 case FastShot: return 4.5f;
                 default: return 6f;
             }
@@ -114,6 +133,7 @@ namespace Arena
             switch (kind)
             {
                 case BigShot: return 20f;
+                case MineShot: return 18f;
                 case FastShot: return 15f;
                 default: return 12f;
             }
@@ -132,6 +152,7 @@ namespace Arena
                 case RailShot: return new Rgba(1f, 1f, 0.75f);
                 case WispShot: return new Rgba(0.4f, 1f, 0.85f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
+                case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
