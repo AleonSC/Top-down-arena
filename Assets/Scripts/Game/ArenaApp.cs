@@ -174,7 +174,8 @@ namespace Arena
                 if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
                     wantAbility[3] = true;
             }
-            if (Input.GetKeyDown(KeyCode.M))
+            // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
+            if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
                 SaveAudioSettings();
