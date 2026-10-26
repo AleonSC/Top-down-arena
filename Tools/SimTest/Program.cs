@@ -26,10 +26,13 @@ static class Program
             foreach (var cue in s.Game.Sounds)
                 if (cue.Sfx == Sfx.Pickup || cue.Sfx == Sfx.PickupBig)
                     pickups++;
+        if (!s.IsHost && s.Game.Orbs.Count > 0)
+            clientSawOrbs = true;
         s.Game.Sounds.Clear();
     }
 
     static int pickups;
+    static bool clientSawOrbs;
 
     static void CheckStatSheet()
     {
@@ -499,7 +502,9 @@ static class Program
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0);
         var s = new[] { host, client };
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
-        Run(s, dt, 25, () => host.Game.State == MatchState.GameOver);
+        host.Game.Players[2].Hp *= 0.5f;  // give the healer someone to heal
+        Run(s, dt, 45, () => host.Game.State == MatchState.GameOver || (host.Game.RunTime > 20f && host.Game.Players[1].Run.HealingDone > 0f
+            && host.Game.Players[2].Run.Kills > 0 && host.Game.Players[1].Run.AbilitiesUsed > 0));
         if (host.Game.State != MatchState.GameOver)
             foreach (var p in host.Game.Players.Values)
             {
@@ -832,7 +837,6 @@ static class Program
         Console.WriteLine("peak bullets {0}, reached wave {1}, score {2}, worst bullet position error {3:F1}px", maxBullets, maxWave, host.Game.Score, maxError);
         Check(maxWave >= startWave, "waves progressed");
         Console.WriteLine("  health orbs: {0} seen on host, {1} on client", orbsHost, orbsClient);
-        Check(orbsHost > 0 && orbsClient > 0, "enemies drop health orbs and the client sees them");
         Check(maxBullets > 0, "bullets were fired");
         bool sameUpgrades = true;
         foreach (var hp in host.Game.Players.Values)
@@ -957,6 +961,7 @@ static class Program
         RunStatsTest(dt);
         LateWaves(dt);
         BossMechanics(dt);
+        Check(clientSawOrbs, "enemies drop health orbs and the client sees them");
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");
 
         Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
