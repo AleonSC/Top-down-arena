@@ -23,6 +23,7 @@ namespace Arena
         Role? joinRole;
         int weaponChoice, abilityChoice;
         Kit kitChoice = Kit.Soldier;
+        bool pauseMenuOpen, settingsOpen, wasPaused;
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
@@ -72,6 +73,7 @@ namespace Arena
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
             sounds = new SoundBank(gameObject);
+            LoadAudioSettings();
             ParseCommandLine();
         }
 
@@ -150,20 +152,33 @@ namespace Arena
             game.Sounds.Clear();
             UpdateLayout();
             var me = game.Me;
-            bool choosing = me != null && me.Offer != null;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing;
+            // If someone else resumes while our menu is open, close it.
+            if (wasPaused && !game.Paused)
+                pauseMenuOpen = false;
+            wasPaused = game.Paused;
+            if (session.Screen != AppScreen.Game)
+                pauseMenuOpen = false;
+            bool menuUp = pauseMenuOpen || game.Paused;
+            bool choosing = me != null && me.Offer != null && !menuUp;
+            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp;
 
-            // Remember ability presses between fixed steps so quick taps aren't lost.
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1))
-                wantAbility[0] = true;
-            if (Input.GetKeyDown(KeyCode.Q))
-                wantAbility[1] = true;
-            if (Input.GetKeyDown(KeyCode.E))
-                wantAbility[2] = true;
-            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
-                wantAbility[3] = true;
+            if (!menuUp)
+            {
+                // Remember ability presses between fixed steps so quick taps aren't lost.
+                if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1))
+                    wantAbility[0] = true;
+                if (Input.GetKeyDown(KeyCode.Q))
+                    wantAbility[1] = true;
+                if (Input.GetKeyDown(KeyCode.E))
+                    wantAbility[2] = true;
+                if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+                    wantAbility[3] = true;
+            }
             if (Input.GetKeyDown(KeyCode.M))
+            {
                 sounds.Muted = !sounds.Muted;
+                SaveAudioSettings();
+            }
 
             if (choosing)
             {
@@ -178,8 +193,13 @@ namespace Arena
             if (session.Screen == AppScreen.Game)
             {
                 if (Input.GetKeyDown(KeyCode.Escape))
-                    session.Leave("");
-                else if (session.IsHost && game.State == MatchState.GameOver)
+                {
+                    if (menuUp)
+                        ResumeGame();
+                    else
+                        OpenPauseMenu();
+                }
+                else if (session.IsHost && game.State == MatchState.GameOver && !menuUp)
                 {
                     if (Input.GetKeyDown(KeyCode.R))
                         session.StartMatch();
@@ -205,6 +225,8 @@ namespace Arena
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
+            if (pauseMenuOpen || game.Paused)
+                input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
             game.FixedStep(Time.fixedDeltaTime, input);
         }
 
@@ -749,13 +771,18 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    DrawMenu();
+                    if (settingsOpen)
+                        DrawSettings();
+                    else
+                        DrawMenu();
                     break;
                 case AppScreen.Lobby:
                     DrawLobby();
                     break;
                 case AppScreen.Game:
                     DrawHud();
+                    if (pauseMenuOpen || game.Paused)
+                        DrawPauseMenu();
                     break;
             }
         }
@@ -787,14 +814,117 @@ namespace Arena
                 if (GUILayout.Button("Join game", buttonStyle))
                     session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
                 GUILayout.EndHorizontal();
+                if (GUILayout.Button("Settings", buttonStyle))
+                    settingsOpen = true;
             }
             GUILayout.Space(8);
             var status = new GUIStyle(smallStyle);
             status.normal.textColor = new Color(1f, 0.75f, 0.4f);
             GUILayout.Label(session.Status, status);
             GUILayout.FlexibleSpace();
-            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E / Shift bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc leave", smallStyle);
+            GUILayout.Label("Controls: WASD move · Mouse aim · Left click shoot · Space / Right click ability · Q / E / Shift bonus abilities · 1-3 + Enter pick upgrade · R reroll · M mute · Esc pause", smallStyle);
             GUILayout.EndArea();
+        }
+
+        // --- Pause menu and audio settings --------------------------------------
+
+        void OpenPauseMenu()
+        {
+            pauseMenuOpen = true;
+            if (game.State != MatchState.GameOver)
+                game.RequestPause(true);  // pauses the match for both players
+        }
+
+        void ResumeGame()
+        {
+            pauseMenuOpen = false;
+            if (game.Paused)
+                game.RequestPause(false);
+        }
+
+        void DrawPauseMenu()
+        {
+            Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
+            var panel = new Rect(W / 2f - 230f, 110f, 460f, 500f);
+            Box(panel, new Color(0.08f, 0.09f, 0.13f, 0.97f));
+            Label(new Rect(panel.x, panel.y + 18f, panel.width, 40f), "PAUSED", 34, Color.white, TextAnchor.MiddleCenter, true);
+            Player by;
+            if (game.Paused && game.PausedBy != game.MyId && game.Players.TryGetValue(game.PausedBy, out by))
+                Label(new Rect(panel.x, panel.y + 56f, panel.width, 20f), "Paused by " + by.Name, 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter);
+            else if (!game.Paused && game.State != MatchState.GameOver)
+                Label(new Rect(panel.x, panel.y + 56f, panel.width, 20f), "Pausing…", 14, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter);
+
+            float x = panel.x + 40f, w = panel.width - 80f;
+            if (GUI.Button(new Rect(x, panel.y + 90f, w, 40f), "Resume  [Esc]", buttonStyle))
+                ResumeGame();
+            DrawAudioOptions(x, panel.y + 150f, w);
+            if (GUI.Button(new Rect(x, panel.yMax - 60f, w, 40f), "Leave game", buttonStyle))
+            {
+                pauseMenuOpen = false;
+                session.Leave("");
+            }
+        }
+
+        void DrawSettings()
+        {
+            var panel = new Rect(W / 2f - 230f, 140f, 460f, 420f);
+            Box(panel, new Color(0.08f, 0.09f, 0.13f, 0.97f));
+            Label(new Rect(panel.x, panel.y + 18f, panel.width, 40f), "SETTINGS", 30, Color.white, TextAnchor.MiddleCenter, true);
+            float x = panel.x + 40f, w = panel.width - 80f;
+            DrawAudioOptions(x, panel.y + 80f, w);
+            if (GUI.Button(new Rect(x, panel.yMax - 60f, w, 40f), "Back", buttonStyle))
+                settingsOpen = false;
+        }
+
+        /// Volume sliders and mute; changes are saved right away.
+        void DrawAudioOptions(float x, float y, float w)
+        {
+            Label(new Rect(x, y, w, 22f), "AUDIO", 16, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleLeft, true);
+            y += 30f;
+            bool changed = false;
+            changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
+            changed |= VolumeSlider(x, ref y, w, "Weapons (your shots and spells)", ref sounds.Weapons);
+            changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
+            changed |= VolumeSlider(x, ref y, w, "Effects (explosions, abilities, UI)", ref sounds.Effects);
+            bool muted = GUI.Toggle(new Rect(x, y + 4f, w, 24f), sounds.Muted, "  Mute all sound  [M]");
+            if (muted != sounds.Muted)
+            {
+                sounds.Muted = muted;
+                changed = true;
+            }
+            if (changed)
+                SaveAudioSettings();
+        }
+
+        bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
+        {
+            Label(new Rect(x, y, w - 60f, 18f), label, 13, new Color(1, 1, 1, 0.85f), TextAnchor.MiddleLeft);
+            Label(new Rect(x + w - 60f, y, 60f, 18f), Mathf.RoundToInt(value * 100f) + "%", 13, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleRight);
+            float v = GUI.HorizontalSlider(new Rect(x, y + 22f, w, 16f), value, 0f, 1f);
+            y += 48f;
+            if (Mathf.Abs(v - value) < 0.0001f)
+                return false;
+            value = v;
+            return true;
+        }
+
+        void LoadAudioSettings()
+        {
+            sounds.Master = PlayerPrefs.GetFloat("vol_master", 1f);
+            sounds.Weapons = PlayerPrefs.GetFloat("vol_weapons", 1f);
+            sounds.Enemies = PlayerPrefs.GetFloat("vol_enemies", 1f);
+            sounds.Effects = PlayerPrefs.GetFloat("vol_effects", 1f);
+            sounds.Muted = PlayerPrefs.GetInt("muted", 0) == 1;
+        }
+
+        void SaveAudioSettings()
+        {
+            PlayerPrefs.SetFloat("vol_master", sounds.Master);
+            PlayerPrefs.SetFloat("vol_weapons", sounds.Weapons);
+            PlayerPrefs.SetFloat("vol_enemies", sounds.Enemies);
+            PlayerPrefs.SetFloat("vol_effects", sounds.Effects);
+            PlayerPrefs.SetInt("muted", sounds.Muted ? 1 : 0);
+            PlayerPrefs.Save();
         }
 
         static string KitBlurb(Kit k)
@@ -987,7 +1117,7 @@ namespace Arena
                 case MatchState.GameOver:
                     Label(new Rect(0, H / 2f - 80f, W, 60), "GAME OVER", 48, new Color(1f, 0.4f, 0.4f), TextAnchor.MiddleCenter, true);
                     Label(new Rect(0, H / 2f - 20f, W, 28), "You survived to wave " + game.Wave + " with " + game.Score + " points", 20, white, TextAnchor.MiddleCenter);
-                    Label(new Rect(0, H / 2f + 14f, W, 24), session.IsHost ? "R: play again    L: back to lobby    Esc: quit" : "Waiting for the host…    Esc: quit",
+                    Label(new Rect(0, H / 2f + 14f, W, 24), session.IsHost ? "R: play again    L: back to lobby    Esc: menu" : "Waiting for the host…    Esc: menu",
                         16, dim, TextAnchor.MiddleCenter);
                     break;
             }

@@ -132,8 +132,16 @@ Bosses rotate every 5 waves and come back stronger each cycle. Their name and he
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
-| Leave | Esc |
+| Pause menu | Esc |
 | After game over (host) | R = play again, L = back to lobby |
+
+## Pause menu and settings
+
+Press **Esc** in a match to open the pause menu. Pausing **freezes the match for both players** (your friend
+sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Weapons** (your
+and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
+a mute toggle, and **Leave game**. The same audio options are under **Settings** on the main menu, and
+they're saved between sessions.
 
 ## Playing with a friend
 

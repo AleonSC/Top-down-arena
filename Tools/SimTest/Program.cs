@@ -417,6 +417,46 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // The friend pauses mid-fight: everything freezes on both sides, then resumes in sync.
+    static void PauseTest(float dt)
+    {
+        var s = StartBuffed(dt, 4, 0);
+        Run(s, dt, 6, () => s[0].Game.Bullets.Count > 30);
+        s[1].Game.RequestPause(true);
+        Run(s, dt, 0.3f);
+        bool paused = s[0].Game.Paused && s[1].Game.Paused && s[1].Game.PausedBy == 2;
+        var hostBullets = new Dictionary<int, V2>();
+        foreach (var b in s[0].Game.Bullets.Values)
+            hostBullets[b.Id] = b.Pos;
+        var enemyPos = new Dictionary<int, V2>();
+        foreach (var e in s[0].Game.Enemies.Values)
+            enemyPos[e.Id] = e.Pos;
+        float playerHp = s[0].Game.Players[1].Hp;
+        Run(s, dt, 2);
+        bool frozen = s[0].Game.Players[1].Hp == playerHp;
+        foreach (var b in s[0].Game.Bullets.Values)
+            frozen &= hostBullets.ContainsKey(b.Id) && hostBullets[b.Id].DistanceTo(b.Pos) < 0.01f;
+        foreach (var e in s[0].Game.Enemies.Values)
+            frozen &= enemyPos.ContainsKey(e.Id) && enemyPos[e.Id].DistanceTo(e.Pos) < 0.01f;
+        // While paused the client's bullets match the host's exactly.
+        float worst = 0f;
+        int missing = 0;
+        foreach (var b in s[0].Game.Bullets.Values)
+        {
+            Bullet cb;
+            if (s[1].Game.Bullets.TryGetValue(b.Id, out cb))
+                worst = Math.Max(worst, cb.Pos.DistanceTo(b.Pos));
+            else
+                missing++;
+        }
+        Check(paused && frozen && worst < 0.01f && missing == 0 && s[1].Game.Bullets.Count == s[0].Game.Bullets.Count,
+            "pausing freezes the match on both sides with bullets in identical positions");
+        s[0].Game.RequestPause(false);  // the host resumes it
+        Run(s, dt, 3);
+        Check(!s[0].Game.Paused && !s[1].Game.Paused && s[0].Game.Bullets.Count > 0 && Ghosts(s) == 0, "resuming continues the match in sync");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static Enemy Find(Session s, EnemyType t)
     {
         foreach (var e in s.Game.Enemies.Values)
@@ -714,6 +754,7 @@ static class Program
         AbilitySweep(dt);
         KitSweep(dt);
         LegendarySync(dt);
+        PauseTest(dt);
         BossMechanics(dt);
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");
 

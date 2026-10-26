@@ -33,6 +33,31 @@ namespace Arena
 
         public bool Muted;
 
+        // Volume settings (0..1), set from the pause menu.
+        public float Master = 1f, Weapons = 1f, Enemies = 1f, Effects = 1f;
+
+        public enum Category { Weapons, Enemies, Effects }
+
+        public static Category CategoryOf(Sfx s)
+        {
+            if (s == Sfx.EnemyShot)
+                return Category.Enemies;
+            string name = s.ToString();
+            if (name.StartsWith("Shot") || name.StartsWith("Spell") || s == Sfx.Throw || s == Sfx.Hit)
+                return Category.Weapons;
+            return Category.Effects;
+        }
+
+        float CategoryVolume(Sfx s)
+        {
+            switch (CategoryOf(s))
+            {
+                case Category.Weapons: return Weapons;
+                case Category.Enemies: return Enemies;
+                default: return Effects;
+            }
+        }
+
         public SoundBank(GameObject owner)
         {
             clips = new AudioClip[count][];
@@ -205,6 +230,9 @@ namespace Arena
         {
             int i = (int)s;
             if (Muted || i <= 0 || i >= count || clips[i] == null || now - lastPlayed[i] < minGap[i])
+                return;
+            volume *= Master * CategoryVolume(s);
+            if (volume <= 0.001f)
                 return;
             lastPlayed[i] = now;
             var takes = clips[i];

@@ -375,6 +375,8 @@ namespace Arena
             nextZoneId = 1;
             ResetBossState();
             DashT = 0f;
+            Paused = false;
+            PausedBy = 0;
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;
@@ -599,6 +601,13 @@ namespace Arena
         {
             if (!Running)
                 return;
+            if (Paused)
+            {
+                // Frozen: the host keeps sending snapshots so clients stay up to date.
+                if (IsHost && ++tick % SnapshotEvery == 0)
+                    SendSnapshot();
+                return;
+            }
             LocalControl(dt, input);
             if (IsHost)
             {
@@ -1715,6 +1724,8 @@ namespace Arena
             w.Write(StateTimer);
             w.Write(Remaining);
             w.Write(Score);
+            w.Write(Paused);
+            w.Write(PausedBy);
             w.Write(PullCenter);
             w.Write(PullStrength);
             w.Write(TwinReviveT);
@@ -1872,6 +1883,9 @@ namespace Arena
                 case Msg.Snapshot:
                     ReadSnapshot(r);
                     break;
+                case Msg.BulletSync:
+                    ReadBulletSync(r);
+                    break;
             }
         }
 
@@ -1882,6 +1896,8 @@ namespace Arena
             StateTimer = r.ReadSingle();
             Remaining = r.ReadInt32();
             Score = r.ReadInt32();
+            Paused = r.ReadBoolean();
+            PausedBy = r.ReadInt32();
             PullCenter = r.ReadV2();
             PullStrength = r.ReadSingle();
             TwinReviveT = r.ReadSingle();

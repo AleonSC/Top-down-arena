@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest,
+        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync,
     }
 
     public static class Proto
@@ -225,6 +225,9 @@ namespace Arena
                     break;
                 case Msg.Pick:
                     Game.OnPick(peer, r);
+                    break;
+                case Msg.Pause:
+                    Game.OnPause(peer, r);
                     break;
                 case Msg.RoleRequest:
                     SetRole(peer, r.ReadByte());
