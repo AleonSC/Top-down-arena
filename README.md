@@ -164,7 +164,7 @@ little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 1
 | Wave | Shooter | What it does |
 |---|---|---|
 | 1 | Grunt | Aimed 3-shot spreads |
-| 2 | Burster | Rings of bullets |
+| 2 | Burster | Rings of bullets (one more per wave, up to 18) |
 | 3 | Sniper | Fast, accurate shots from far away |
 | 4 | Spinner | Wanders and sprays spirals in **bursts** (about 1.3 s on, 2 s off); it glows and spins up while bursting |
 | 6 | **Charger** | Flashes a red warning line, then dashes at you and bursts into a ring. Step out of the line |

@@ -707,7 +707,7 @@ namespace Arena
                 case EnemyType.Burster:
                 {
                     e.FireT = 2.4f;
-                    int n = 12 + Math.Min(Wave, 10);
+                    int n = 12 + Math.Min(Wave, 6);  // the ring grows each wave up to 18 bullets (wave 6)
                     e.Ang += MathX.Pi / n;
                     for (int i = 0; i < n; i++)
                         EnemyShot(e, e.Ang + MathX.Tau * i / n, 135f, Defs.SmallShot);
@@ -804,9 +804,10 @@ namespace Arena
                 case EnemyType.HiveQueen:
                     if ((int)(e.T / 5f) % 2 == 0)
                     {
-                        e.FireT = 0.7f;
+                        // Aimed fan, with gaps wide enough to slip through even up close.
+                        e.FireT = 0.9f;
                         for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.16f, 200f, Defs.PierceShot);
+                            EnemyShot(e, aim + (i - 2) * 0.22f, 200f, Defs.PierceShot);
                     }
                     else
                     {
