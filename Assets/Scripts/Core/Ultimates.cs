@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Ultimates (right click): one per role and class, on a long cooldown (host only).
+    /// Ultimates (F): one per role and class, on a long cooldown (host only).
     public partial class Game
     {
         bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm;
