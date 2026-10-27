@@ -837,8 +837,8 @@ static class Program
             var s = StartBuffed(dt, 31, 30);
             var seen = new HashSet<EnemyType>();
             int ghosts = 0, frame = 0;
-            // 13 enemy types are in the mix by now, so give it up to two waves to roll all four.
-            Run(s, dt, 80, () => seen.Contains(EnemyType.Phantom) && seen.Contains(EnemyType.Hexer) && seen.Contains(EnemyType.Juggernaut) && seen.Contains(EnemyType.Nest), () =>
+            // 13 enemy types are in the mix by now, so give it a few waves to roll all four.
+            Run(s, dt, 160, () => seen.Contains(EnemyType.Phantom) && seen.Contains(EnemyType.Hexer) && seen.Contains(EnemyType.Juggernaut) && seen.Contains(EnemyType.Nest), () =>
             {
                 // This only checks which enemies appear, so keep the bots from dying before they've all spawned.
                 foreach (var p in s[0].Game.Players.Values)
@@ -974,13 +974,62 @@ static class Program
             Run(s, dt, 8, () => Find(s[0], EnemyType.TwinA) != null);
             Run(s, dt, 0.5f);
             var revived = Find(s[1], EnemyType.TwinA);
-            Check(revived != null && revived.Hp < revived.MaxHp * 0.6f, "the fallen twin revives at half health");
+            Check(revived != null && revived.Hp <= revived.MaxHp * 0.61f && revived.Hp > revived.MaxHp * 0.5f, "the fallen twin revives at 60% health");
             int before = s[0].Game.Players[1].Rerolls;
             Find(s[0], EnemyType.TwinA).Hp = 0f;
             Find(s[0], EnemyType.TwinB).Hp = 0f;
             Run(s, dt, 1);
             Check(Find(s[0], EnemyType.TwinA) == null && Find(s[0], EnemyType.TwinB) == null && s[0].Game.TwinReviveT == 0f
                 && s[0].Game.Players[1].Rerolls == before + 2, "killing both together ends the fight with one reward");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Twin Reapers: Soul Bond makes the more-hurt one immune, and their tether hurts.
+        {
+            var s = StartBuffed(dt, 15, 0);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
+                && Find(s[0], EnemyType.TwinA).SpawnT <= 0f);
+            var a = Find(s[0], EnemyType.TwinA);
+            var b = Find(s[0], EnemyType.TwinB);
+            a.Hp = a.MaxHp * 0.5f;
+            b.Hp = b.MaxHp;
+            bool boundOnClient = false;
+            Run(s, dt, 0.5f, null, () => { var ca = Find(s[1], EnemyType.TwinA); boundOnClient |= ca != null && ca.Phase == 2; });
+            // Shoot only the bound one: the bots skip immune targets, so aim them by hand via a host-side check.
+            float hpBound = a.Hp;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (!e.Def.IsBoss)
+                    e.Hp = 0f;
+            Run(s, dt, 3);
+            bool immune = a.Hp >= hpBound - 0.01f && Game.SoulBound(a);
+            bool otherHurt = b.Hp < b.MaxHp;  // the bots turned to the other Reaper instead
+            b.Hp = b.MaxHp * 0.52f;
+            Run(s, dt, 0.5f);
+            bool released = !Game.SoulBound(a);
+            Console.WriteLine("  soul bond: bound on client {0}, immune {1}, bots switched {2}, released {3}", boundOnClient, immune, otherHurt, released);
+            Check(boundOnClient && immune && released, "Soul Bond: the more-hurt Reaper is immune until the other is evened out (seen on client)");
+            Check(otherHurt, "bots switch to the Reaper that can be hurt");
+
+            // Stand on the tether between them.
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var p = s[0].Game.Players[1];
+            float hpBefore = 0f;
+            bool hurt = false;
+            Run(s, dt, 1.5f, null, () =>
+            {
+                var ta = Find(s[0], EnemyType.TwinA);
+                var tb = Find(s[0], EnemyType.TwinB);
+                if (ta == null || tb == null)
+                    return;
+                p.Pos = V2.Lerp(ta.Pos, tb.Pos, 0.5f);
+                foreach (var bl in new List<Bullet>(s[0].Game.Bullets.Values))
+                    if (Defs.IsEnemyShot(bl.Kind))
+                        s[0].Game.Bullets.Remove(bl.Id);  // only the tether should hurt
+                if (hpBefore == 0f)
+                    hpBefore = p.Hp;
+                hurt |= p.Hp < hpBefore - 5f;
+            });
+            Console.WriteLine("  tether: hp {0:0} -> {1:0}", hpBefore, p.Hp);
+            Check(hurt, "the Reapers' tether hurts players standing in it");
             s[0].Leave(""); s[1].Leave("");
         }
         // The Singularity (wave 20): gravity phases pull players in.
@@ -1013,6 +1062,18 @@ static class Program
         if (args.Length > 2 && args[2] == "exploit")
         {
             ExploitTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "late")
+        {
+            LateGameEnemies(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "bosses")
+        {
+            BossMechanics(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

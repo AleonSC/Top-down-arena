@@ -450,6 +450,7 @@ namespace Arena
                 if (o.Big)
                     Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
             }
+            DrawReaperTether(t);
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)
@@ -525,6 +526,30 @@ namespace Arena
             Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
             Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
             Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
+        }
+
+        /// The beam between the Twin Reapers: crackling dusk-to-dawn colors. It hurts to touch.
+        void DrawReaperTether(float t)
+        {
+            Enemy a = null, b = null;
+            foreach (var e in game.Enemies.Values)
+                if (Game.IsTwin(e.Type) && !game.IsSpawning(e))
+                {
+                    if (a == null) a = e; else b = e;
+                }
+            if (a == null || b == null)
+                return;
+            V2 from = a.Disp, to = b.Disp, n = (to - from).Normalized().Orthogonal();
+            Line(from, to, Game.TetherWidth + 8f, new Rgba(0.75f, 0.4f, 1f, 0.18f));
+            Line(from, to, Game.TetherWidth, new Rgba(0.85f, 0.5f, 1f, 0.85f));
+            // A jagged core so it reads as dangerous.
+            V2 prev = from;
+            for (int k = 1; k <= 16; k++)
+            {
+                V2 pt = k == 16 ? to : V2.Lerp(from, to, k / 16f) + n * (3f * Mathf.Sin(t * 30f + k * 1.7f));
+                Line(prev, pt, 2f, new Rgba(1f, 0.95f, 1f, 0.9f));
+                prev = pt;
+            }
         }
 
         void DrawZone(Zone z, float t)
@@ -655,6 +680,13 @@ namespace Arena
                 case EnemyType.TwinB:
                     if (e.Phase == 1)  // enraged
                         Circle(pos, r + 10f + 4f * Mathf.Sin(t * 14f), new Rgba(1f, 0.2f, 0.2f, 0.25f), 32);
+                    else if (e.Phase == 2)  // Soul Bond: immune, wrapped in a pale shell with orbiting runes
+                    {
+                        Circle(pos, r + 14f, new Rgba(0.9f, 0.9f, 1f, 0.18f), 40);
+                        Arc(pos, r + 14f, 3f, new Rgba(0.95f, 0.95f, 1f, 0.85f), 40);
+                        for (int k = 0; k < 5; k++)
+                            Polygon(pos + V2.FromAngle(t * 1.5f + MathX.Tau * k / 5f) * (r + 14f), 4f, 4, t * 3f, new Rgba(1f, 1f, 1f, 0.9f));
+                    }
                     break;
                 case EnemyType.Singularity:
                     if (e.Phase == 1)  // gravity well: rings shrinking inward
@@ -1662,6 +1694,8 @@ namespace Arena
                     name += "  — shielded: kill her swarm!";
                 else if (Game.IsTwin(e.Type) && e.Phase == 1)
                     name += "  — ENRAGED";
+                else if (Game.SoulBound(e))
+                    name += "  — SOUL BOUND: hurt the other Reaper!";
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
                     name += "  — immune: destroy the phylactery!";
                 else if (Game.Hungry(e))

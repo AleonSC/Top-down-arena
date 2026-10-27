@@ -17,7 +17,10 @@ namespace Arena
 
         public const float EliteSize = 1.25f;
         const float ShieldHalfAngle = 1.13f;  // Shielder blocks shots within ~65 degrees of where it faces
-        const float TwinReviveTime = 8f;
+        const float TwinReviveTime = 6f;
+        const float TwinReviveHp = 0.6f;       // a revived Reaper comes back with this much health
+        const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
+        const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
 
         // Replicated to clients in the snapshot.
@@ -32,6 +35,46 @@ namespace Arena
         bool twinPending, bossRewarded;
 
         public static bool IsTwin(EnemyType t) => t == EnemyType.TwinA || t == EnemyType.TwinB;
+
+        /// Soul Bond: this Twin Reaper is immune (it's too far below its twin's health).
+        public static bool SoulBound(Enemy e) => IsTwin(e.Type) && e.Phase == 2;
+
+        public Enemy OtherTwin(Enemy e)
+        {
+            foreach (var o in Enemies.Values)
+                if (IsTwin(o.Type) && o.Id != e.Id && o.Hp > 0f && !IsSpawning(o))
+                    return o;
+            return null;
+        }
+
+        /// The Reapers' tether: a beam between the two that sweeps the arena as they circle.
+        /// Touching it hurts; dashing through it is fine.
+        void TickReaperTether()
+        {
+            Enemy a = null, b = null;
+            foreach (var e in Enemies.Values)
+                if (IsTwin(e.Type) && !IsSpawning(e))
+                {
+                    if (a == null) a = e; else b = e;
+                }
+            if (a == null || b == null)
+                return;
+            V2 d = b.Pos - a.Pos;
+            float len = Math.Max(1f, d.Length);
+            V2 dir = d / len;
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || p.InvulnT > 0f)
+                    continue;
+                float along = (p.Pos.X - a.Pos.X) * dir.X + (p.Pos.Y - a.Pos.Y) * dir.Y;
+                if (along < a.Radius || along > len - b.Radius)
+                    continue;
+                if (p.Pos.DistanceTo(a.Pos + dir * along) < TetherWidth / 2f + p.Def.HitR)
+                    Damage(p, 18f + Wave * 0.4f);
+            }
+        }
+
+        public const float TetherWidth = 8f;
 
         void ResetBossState()
         {
@@ -231,6 +274,7 @@ namespace Arena
             }
 
             TickHazards(dt);
+            TickReaperTether();
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
             if (twinPending)
@@ -241,7 +285,7 @@ namespace Arena
                     twinPending = false;
                     var twin = SpawnEnemyAt(deadTwinType, deadTwinPos, 0.6f, 0);
                     twin.MaxHp = deadTwinMaxHp;
-                    twin.Hp = deadTwinMaxHp * 0.5f;
+                    twin.Hp = deadTwinMaxHp * TwinReviveHp;
                     foreach (var other in Enemies.Values)
                         if (IsTwin(other.Type))
                             other.Phase = 0;
@@ -294,6 +338,8 @@ namespace Arena
         {
             if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
                 return true;
+            if (SoulBound(e))
+                return true;  // the more-hurt Twin Reaper, until the other catches up
             if (e.Type == EnemyType.Lich && e.Phase == 1)
                 return true;  // protected while its phylactery stands
             if (e.Type != EnemyType.Shielder)
@@ -393,6 +439,20 @@ namespace Arena
             }
             switch (e.Type)
             {
+                case EnemyType.TwinA:
+                case EnemyType.TwinB:
+                {
+                    // Soul Bond: whichever Reaper is clearly more hurt is immune until you even them out.
+                    var other = OtherTwin(e);
+                    if (other == null || e.Phase == 1)
+                        break;
+                    float gap = other.Hp / other.MaxHp - e.Hp / e.MaxHp;
+                    if (e.Phase == 0 && gap > SoulBondGap)
+                        e.Phase = 2;
+                    else if (e.Phase == 2 && gap < SoulBondRelease)
+                        e.Phase = 0;
+                    break;
+                }
                 case EnemyType.Charger:
                     // Phase 1: wind up (telegraph line); phase 2: dash, then burst.
                     if (e.Phase == 0)

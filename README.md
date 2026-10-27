@@ -160,7 +160,7 @@ bosses come back around, tougher each time.
 |---|---|---|
 | 5 | **The Warden** | Cycles through spirals, rings of big orbs and aimed fans |
 | 10 | **Hive Queen** | Summons tough Shards (3x normal health) and is **immune while 3+ of her swarm are alive** |
-| 15 | **Twin Reapers** | Kill one and the other **enrages**; finish it within **8 s** or the fallen twin revives |
+| 15 | **Twin Reapers** | **Soul Bond**: whichever Reaper is more than 10% further down on health is **immune** until you even them out, so split your damage. A **tether** between them sweeps the arena and hurts on touch (dash through it). Kill one and the other **enrages**; finish it within **6 s** or the fallen twin revives at 60% |
 | 20 | **The Singularity** | **Gravity wells** drag everyone toward it, then it collapses into dense rings |
 | 25 | **The Colossus** | Stomps out huge rings with **one gap** to slip through, and throws rocks |
 | 30 | **The Duelist** | Teleports every few seconds and leaves **decoys** that look just like it; decoys burst into rings unless killed |

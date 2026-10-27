@@ -758,7 +758,7 @@ namespace Arena
                 move = V2.FromAngle(botT * 0.9f + MyId);
                 Enemy nearest = null;
                 foreach (var e in Enemies.Values)
-                    if (nearest == null || e.Pos.DistanceSq(me.Pos) < nearest.Pos.DistanceSq(me.Pos))
+                    if (!SoulBound(e) && (nearest == null || e.Pos.DistanceSq(me.Pos) < nearest.Pos.DistanceSq(me.Pos)))
                         nearest = e;
                 if (nearest != null)
                 {
@@ -1792,6 +1792,8 @@ namespace Arena
 
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
+            if (SoulBound(e))
+                return;  // immune until its twin is brought down to match
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
             if (Hungry(e))
@@ -1884,7 +1886,7 @@ namespace Arena
             e.BurnT -= dt;
             if (e.BurnT <= 0f)
                 e.BurnDps = 0f;
-            if (Hungry(e) || e.SpawnT > 0f)
+            if (Hungry(e) || e.SpawnT > 0f || SoulBound(e))
                 return;
             float dmg = e.BurnDps * dt;
             Player p;
