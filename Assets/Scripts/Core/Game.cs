@@ -1089,8 +1089,8 @@ namespace Arena
                         SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
                         break;
                     case WeaponId.Pistol:
-                        // One accurate shot: 17 damage every 0.3 s.
-                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * 700f, 0f, 1.1f, 17f * dmg, p.Id);
+                        // One perfectly accurate shot (no spread, so small aim adjustments count): 17 damage every 0.3 s.
+                        SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, 17f * dmg, p.Id);
                         break;
                     case WeaponId.MendersBow:
                         SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;

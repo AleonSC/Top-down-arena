@@ -691,6 +691,52 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Aim precision: a tiny change in where you point (a quarter of a degree) shows up exactly in
+    // the direction of your shots, for the host and for a player who joined.
+    static void AimTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 1 };
+        host.Host(port, "Host", Role.Healer, 1);  // Pistol
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Healer, 1);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        bool ok = true;
+        float worst = 0f;
+        foreach (var who in new[] { host, client })
+        {
+            var me = who.Game.Players[who.Game.MyId];
+            foreach (float deg in new[] { 30f, 30.25f, 30.5f })
+            {
+                float want = deg * MathX.Pi / 180f;
+                var seen = new HashSet<int>(host.Game.Bullets.Keys);
+                float got = float.NaN;
+                for (int i = 0; i < 90 && float.IsNaN(got); i++)
+                {
+                    V2 target = me.Pos + V2.FromAngle(want) * 400f;
+                    foreach (var x in s)
+                    {
+                        x.Poll();
+                        x.Game.FixedStep(dt, x == who ? new PlayerInput { AimAt = target, Fire = true } : new PlayerInput { AimAt = new V2(0f, 0f) });
+                    }
+                    Thread.Sleep(1);
+                    foreach (var b in host.Game.Bullets.Values)
+                        if (b.Owner == me.Id && !seen.Contains(b.Id))
+                            got = b.Vel.Angle;
+                }
+                float err = Math.Abs(got - want) * 180f / MathX.Pi;
+                worst = Math.Max(worst, float.IsNaN(err) ? 99f : err);
+                ok &= !float.IsNaN(got) && err < 0.05f;
+                // Let go of the trigger and wait out the fire delay before the next angle.
+                for (int i = 0; i < 30; i++) foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = me.Pos + V2.FromAngle(want) * 400f }); }
+            }
+        }
+        Console.WriteLine("  aim: worst difference between aimed and fired direction {0:0.000} degrees", worst);
+        Check(ok, "shots go exactly where you aim, to a quarter of a degree (host and joining player)");
+        host.Leave(""); client.Leave("");
+    }
+
     // Session recording: a run from wave 4 through the Warden is written to a JSON file with
     // waves, the boss fight, damage sources, picks and samples.
     static string SessionTest(float dt)
@@ -1607,6 +1653,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "aim")
+        {
+            AimTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "session")
         {
             var path = SessionTest(1f / 60f);
@@ -1628,6 +1680,7 @@ static class Program
         ParryTest(dt);
         SessionTest(dt);
         ParryUpgradeTest(dt);
+        AimTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
