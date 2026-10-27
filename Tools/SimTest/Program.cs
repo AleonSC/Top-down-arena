@@ -344,6 +344,53 @@ static class Program
         }
     }
 
+    // Balance probe: a full run with invulnerable bots that level up and pick upgrades as they go,
+    // timing how long each boss survives. (Not part of the suite; run with: run.sh 1 1 ttk [last wave])
+    static void BossTtk(float dt, int lastWave)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 1 };
+        host.Game.Bot = true;
+        host.Host(port, "Host", Role.Tank, 0, 0, Kit.Soldier);
+        var client = new Session();
+        client.Game.Bot = true;
+        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0, Kit.Soldier);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); }
+        var born = new Dictionary<int, float>();
+        float t = 0f;
+        for (long frame = 0; frame < 60L * 60 * 90; frame++)
+        {
+            Step(host, dt);
+            Step(client, dt);
+            t += dt;
+            foreach (var p in host.Game.Players.Values)
+            {
+                p.InvulnT = 1f;
+                p.Downed = false;
+                p.Hp = p.MaxHp;
+            }
+            foreach (var e in host.Game.Enemies.Values)
+                if (e.Def.IsBoss && e.SpawnT <= 0f && !born.ContainsKey(e.Id))
+                {
+                    born[e.Id] = t;
+                    Console.WriteLine("  wave {0}: {1} appears with {2:0} HP (players level {3}/{4}, {5}/{6} picks)", host.Game.Wave, e.Def.Name, e.MaxHp,
+                        host.Game.Players[1].Level, host.Game.Players[2].Level, host.Game.Players[1].Taken.Count, host.Game.Players[2].Taken.Count);
+                }
+            foreach (var kv in new List<KeyValuePair<int, float>>(born))
+                if (!host.Game.Enemies.ContainsKey(kv.Key))
+                {
+                    Console.WriteLine("      dead after {0:0.0} s", t - kv.Value);
+                    born.Remove(kv.Key);
+                }
+            if (host.Game.Wave > lastWave || host.Game.State == MatchState.Victory)
+                break;
+            if (frame % 600 == 0)
+                Thread.Sleep(1);
+        }
+        host.Leave(""); client.Leave("");
+    }
+
     // The arena is 1600x900, and players wrap around its edges (enemies don't).
     static void WrapTest(float dt)
     {
@@ -1136,6 +1183,11 @@ static class Program
             ExploitTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "ttk")
+        {
+            BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
+            return 0;
         }
         if (args.Length > 2 && args[2] == "wrap")
         {

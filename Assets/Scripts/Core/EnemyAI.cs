@@ -22,6 +22,8 @@ namespace Arena
         const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
         const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
+        const int LateBossWave = 20;
+        const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
         const int WellCount = 4;
         const float WellOrbit = 135f, WellRespawn = 15f;
         public const float WellPullRange = 170f;  // players' shots this close bend into a gravity well
@@ -183,6 +185,9 @@ namespace Arena
             var d = Defs.Get(type);
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
             e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * (Players.Count > 1 ? 1f : 0.7f);
+            // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
+            if (d.IsBoss && Wave > LateBossWave)
+                e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);
             if (elite)
             {
                 e.MaxHp *= 2.5f;

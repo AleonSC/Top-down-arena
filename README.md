@@ -153,7 +153,7 @@ seconds instead. Boss bullets are easy to spot: they have a **dark core**. Viole
 down; **red ones (aimed shots) can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
 
-The game has **50 waves** with a different boss every 5 waves. Their name, health bar and warnings show at
+The game has **50 waves** with a different boss every 5 waves. Bosses after wave 20 get extra health (+10% per wave on top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and warnings show at
 the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C), where the
 bosses come back around, tougher each time.
 
@@ -247,6 +247,8 @@ Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`,
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
+`Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
+that level up and pick upgrades at random, and prints how long each boss survived.
 
 ## Code layout
 
