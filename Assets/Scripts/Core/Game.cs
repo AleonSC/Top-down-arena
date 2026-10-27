@@ -54,6 +54,13 @@ namespace Arena
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float UltT;                     // Fortress / Bullet Storm time left
+        public bool Parrying;                  // holding the parry shield up (replicated)
+        public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
+        public float ParryBroken;              // seconds until a broken shield can be raised again (replicated)
+        public float ParryHeld, ParryDown = 10f;  // host: how long it's been up / down
+        public bool ParryPerfect;              // host: raised fresh, so the first moment reflects
+        public float ParryBumpT;               // host: a melee hit on the shield counts once per bump
+        public bool ParryActive => Parrying && ParryBroken <= 0f && !Downed;
         public float BarrierHp, BarrierMax, AegisHp;  // damage the Barrier / Aegis can still soak (host)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
@@ -187,6 +194,7 @@ namespace Arena
         public bool AbilityE;
         public bool AbilityShift;
         public bool Ultimate;
+        public bool Parry;     // held: raise the parry shield toward the cursor
     }
 
     /// The match. The host simulates enemies, bullets, damage, XP and waves; every
@@ -268,6 +276,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
+        public bool HoldParry;  // keep the parry up (testing)
         public bool BotRerolls = true;
         int botRerolledAt = -1;
         public Action<string> Log;
@@ -752,7 +761,8 @@ namespace Arena
             V2 move = input.Move.LimitLength(1f);
             V2 aimAt = input.AimAt;
             me.Aim = (aimAt - me.Pos).Angle;
-            bool firing = input.Fire && !me.Downed;
+            me.Parrying = (input.Parry || HoldParry) && !me.Downed;
+            bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
             bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift, input.Ultimate };
 
             if (Bot)
@@ -792,7 +802,7 @@ namespace Arena
                 me.Pos += DashDir * dashSpeed * dt;
             }
             else
-                me.Pos += move * me.Speed * dt;
+                me.Pos += move * me.Speed * (me.ParryActive ? ParrySlow : 1f) * dt;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
 
@@ -860,6 +870,7 @@ namespace Arena
                 w.Write(me.Pos);
                 w.Write(me.Aim);
                 w.Write(firing);
+                w.Write(me.Parrying);
                 session.SendToHost(Proto.End(w));
             }
         }
@@ -882,6 +893,7 @@ namespace Arena
             V2 pos = r.ReadV2();
             float aim = r.ReadSingle();
             bool firing = r.ReadBoolean();
+            bool parry = r.ReadBoolean();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -889,6 +901,7 @@ namespace Arena
                 p.Pos = WrapArena(pos);
             p.Aim = aim;
             p.Firing = firing;
+            p.Parrying = parry;
         }
 
         public void OnAbility(int peer, BinaryReader r)
@@ -965,6 +978,7 @@ namespace Arena
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
+                TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
@@ -983,7 +997,7 @@ namespace Arena
                 p.FireCd -= dt;
                 if (p.Downed)
                     continue;
-                if (p.Firing && p.FireCd <= 0f && State != MatchState.GameOver)
+                if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
                     p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f);
                     FirePlayer(p);
@@ -1680,6 +1694,15 @@ namespace Arena
                         if (p.Downed)
                             continue;
                         bool blockable = !Defs.Unblockable(b.Kind);
+                        if (p.ParryActive && InParryArc(p, b.Pos, b.Radius))
+                        {
+                            // The parry stops anything in front of it, even shots barriers can't.
+                            scratchIds.Add(b.Id);
+                            ParryHit(p, b.Dmg, b.Pos);
+                            if (p.ParryHeld < PerfectParry && p.ParryPerfect)
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // perfect parry: sent back
+                            break;
+                        }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
                         {
                             reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // Arcane Aegis
@@ -2097,6 +2120,9 @@ namespace Arena
                 w.Write(p.SurgeT);
                 w.Write(p.FrenzyT);
                 w.Write(p.UltT);
+                w.Write(p.Parrying);
+                w.Write(p.ParryHp);
+                w.Write(p.ParryBroken);
                 w.Write(p.ShieldHp);
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
@@ -2283,7 +2309,9 @@ namespace Arena
                 float revive = r.ReadSingle(), barrier = r.ReadSingle(), barrierFrac = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
                 float taunt = r.ReadSingle(), link = r.ReadSingle();
                 int linkTo = r.ReadInt32();
-                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle(), shield = r.ReadSingle();
+                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
+                bool parrying = r.ReadBoolean();
+                float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
@@ -2333,6 +2361,10 @@ namespace Arena
                 p.SurgeT = surge;
                 p.FrenzyT = frenzy;
                 p.UltT = ult;
+                if (id != MyId)
+                    p.Parrying = parrying;  // your own comes from your mouse, without the round trip
+                p.ParryHp = parryHp;
+                p.ParryBroken = parryBroken;
                 p.ShieldHp = shield;
                 p.Level = level;
                 p.Xp = xp;

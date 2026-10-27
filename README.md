@@ -63,9 +63,19 @@ upgrades work with all of them.
 | | **Railgun** | Slow, devastating shots that pierce 3 enemies |
 | | **Burst SMG** | Sprays very fast, inaccurate shots |
 
+### Parry
+
+Hold **right click** to raise a small shield on the side facing your cursor. It blocks enemy bullets from that
+side (including the red aimed shots that barriers can't stop) and melee enemies that run into it, shoving
+them back. While it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and
+can't be raised for 3 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**:
+for the first instant after raising it, blocked bullets are sent back at enemies and cost nothing (it has to
+have been down for half a second, so you can't spam it). The meter left of your abilities shows how much it
+has left. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
+
 ### Ultimates
 
-Right click (or **F**) fires your **ultimate**. Each role and class combination has its own, fixed one: it
+**F** fires your **ultimate**. Each role and class combination has its own, fixed one: it
 comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
@@ -191,7 +201,8 @@ bosses come back around, tougher each time.
 | Aim | Mouse |
 | Shoot | Hold left click |
 | Role ability | Space |
-| Ultimate | Right click or F |
+| Parry | Hold right click |
+| Ultimate | F |
 | Bonus abilities | Q, E and Shift (once unlocked) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |

@@ -13,7 +13,7 @@ namespace Arena
         ArcaneAegis, FrostNova, FlameWall, TimeRewind, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
         // Summoner
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
-        // Ultimates (right click): one per role and class
+        // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, MeteorStorm, Legion,
         None = 255,
     }
@@ -68,7 +68,7 @@ namespace Arena
 
     public static class Upgrades
     {
-        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift, 4 = ultimate (right click)
+        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift, 4 = ultimate (F)
         public const int BonusSlots = 3; // Q, E and Shift, filled by very rare upgrades
         public const int UltSlot = 4;
 

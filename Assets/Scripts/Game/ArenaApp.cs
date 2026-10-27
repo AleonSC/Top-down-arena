@@ -178,7 +178,7 @@ namespace Arena
                 // Remember ability presses between fixed steps so quick taps aren't lost.
                 if (Input.GetKeyDown(KeyCode.Space))
                     wantAbility[0] = true;
-                if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.F))
+                if (Input.GetKeyDown(KeyCode.F))
                     wantAbility[Upgrades.UltSlot] = true;
                 if (Input.GetKeyDown(KeyCode.Q))
                     wantAbility[1] = true;
@@ -264,7 +264,8 @@ namespace Arena
                 AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
                 AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
                 AbilityShift = wantAbility[3] || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
-                Ultimate = wantAbility[Upgrades.UltSlot] || Input.GetMouseButton(1) || Input.GetKey(KeyCode.F),
+                Ultimate = wantAbility[Upgrades.UltSlot] || Input.GetKey(KeyCode.F),
+                Parry = Input.GetMouseButton(1),
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -408,6 +409,22 @@ namespace Arena
                     Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
                 if (p.FrenzyT > 0f)  // Alpha Call
                     Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
+                if (p.ParryActive)  // the parry shield: an arc toward the cursor that dims as it wears
+                {
+                    float hp = Mathf.Clamp01(p.ParryHp / Game.ParryCapacity);
+                    float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
+                    var sc = new Rgba(0.55f, 0.9f, 1f);
+                    float from = p.Aim - Game.ParryHalfArc, span = Game.ParryHalfArc * 2f;
+                    Arc(p.Disp, rr, 14f, sc.WithAlpha(0.3f + 0.25f * hp), 20, from, span);            // the shield's face
+                    Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.7f + 0.3f * hp), 20, from, span);  // bright rim
+                    for (int k = 0; k <= 1; k++)  // end caps
+                        Circle(p.Disp + V2.FromAngle(from + span * k) * (rr + 2f), 4f, sc.Mix(Rgba.White, 0.4f), 8);
+                    if (hp < 0.35f && MathX.Fmod(t, 0.2f) < 0.1f)  // about to break
+                        Arc(p.Disp, rr + 7f, 4f, new Rgba(1f, 0.4f, 0.4f, 0.9f), 20, from, span);
+                }
+                else if (p.ParryBroken > 0f && !p.Downed)  // broken: cracked pieces until it's back
+                    for (int k = 0; k < 3; k++)
+                        Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.45f, 0.45f, 0.35f), 4, p.Aim - 0.8f + k * 0.6f, 0.35f);
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)  // golden bulwark
                 {
                     Circle(p.Disp, p.Def.BodyR + 16f, new Rgba(1f, 0.8f, 0.35f, 0.15f), 32);
@@ -1247,7 +1264,7 @@ namespace Arena
 
         void DrawHowToPlay()
         {
-            var panel = new Rect(W / 2f - 330f, 80f, 660f, 560f);
+            var panel = new Rect(W / 2f - 330f, 26f, 660f, 668f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "HOW TO PLAY", 32, Color.white);
             string[,] rows =
@@ -1255,7 +1272,8 @@ namespace Arena
                 { "Move", "WASD / arrow keys" },
                 { "Aim / shoot", "Mouse / hold left click" },
                 { "Role ability", "Space" },
-                { "Ultimate", "Right click or F (one per role and class)" },
+                { "Parry", "Hold right click: a shield toward your cursor (no shooting)" },
+                { "Ultimate", "F (one per role and class)" },
                 { "Bonus abilities", "Q, E and Shift (from very rare upgrades)" },
                 { "Pick an upgrade", "Click a card (or 1-3), then Confirm (Enter)" },
                 { "Reroll upgrades", "R" },
@@ -1561,12 +1579,12 @@ namespace Arena
 
             // The ultimate comes with the role and class; it can't be picked.
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
-            Ui.Heading(x, y, w, "Ultimate  (right click / F)");
+            Ui.Heading(x, y, w, "Ultimate  (F)");
             Ui.Label(new Rect(x, y + 26f, w, 20f), ult.Name, 15, Ui.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x + 150f, y + 26f, w - 150f, 36f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
         }
 
-        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT", "RMB / F" };
+        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT", "F" };
 
         void DrawHud()
         {
@@ -2037,6 +2055,19 @@ namespace Arena
             Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
             Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
 
+            // Parry meter, just left of the abilities.
+            {
+                var r = new Rect(x0 - 78f, y, 70f, tileH);
+                bool broken = me.ParryBroken > 0f;
+                float hp = Mathf.Clamp01(me.ParryHp / Game.ParryCapacity);
+                var sc = new Color(0.55f, 0.9f, 1f);
+                Ui.HudPanel(r, me.ParryActive ? sc : broken ? new Color(1f, 0.4f, 0.4f) : (Color?)null);
+                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), "RMB", me.ParryActive ? sc : new Color(1f, 1f, 1f, 0.6f));
+                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 16f), broken ? "BROKEN" : "PARRY", 11,
+                    broken ? new Color(1f, 0.55f, 0.55f) : Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Bar(new Rect(r.x + 8f, r.yMax - 12f, r.width - 16f, 5f), hp, broken ? new Color(1f, 0.45f, 0.45f) : sc, new Color(0f, 0f, 0f, 0.5f));
+            }
+
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var slot = me.Slots[i];
@@ -2064,7 +2095,7 @@ namespace Arena
                     Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
                     GUI.EndGroup();
                 }
-                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · RMB/F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
+                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
                 Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), Upgrades.Ability(slot.Id).Name, 13, ready ? Color.white : new Color(1f, 1f, 1f, 0.78f), TextAnchor.MiddleLeft, true);
                 if (ready)
                     Ui.Label(new Rect(r.x + 8f, r.y + 7f, r.width - 16f, 16f), ultimate ? "READY!" : "READY", 10, ultimate ? Ui.Gold : Ui.Good, TextAnchor.MiddleRight, true);

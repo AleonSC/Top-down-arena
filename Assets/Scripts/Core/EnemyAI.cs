@@ -316,8 +316,14 @@ namespace Arena
                     : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
                     : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
+                {
+                    if (p.Downed || p.InvulnT > 0f)
+                        continue;
+                    if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
+                        continue;
+                    if (p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
                         Damage(p, contact);
+                }
             }
 
             TickHazards(dt);

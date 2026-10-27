@@ -538,6 +538,73 @@ static class Program
         }
     }
 
+    // The parry: blocks a boss's fire from the front, breaks after its limit, stops you shooting,
+    // reflects shots on a perfect parry, and everyone sees it.
+    static void ParryTest(float dt)
+    {
+        var s = StartBuffed(dt, 5, 0);
+        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Boss);
+        var me = s[0].Game.Players[1];
+        s[1].Game.Bot = false;
+        s[0].Game.Bot = true;  // aims at the Warden and holds the trigger
+        Action pin = () =>
+        {
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (!e.Def.IsBoss) e.Hp = 0f;
+            var bw = Find(s[0], EnemyType.Boss);
+            if (bw != null)
+                me.Pos = bw.Pos + new V2(0f, 170f);  // stand in front of it
+            s[1].Game.Players[2].Pos = new V2(60f, Game.Height - 60f);  // the friend stays out of the way
+        };
+        // Down for a moment first, then raise it just as a shot is about to land (a perfect parry).
+        Run(s, dt, 1f, null, pin);
+        Run(s, dt, 6f, () =>
+        {
+            foreach (var b in s[0].Game.Bullets.Values)
+                if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(me.Pos) < me.Def.BodyR + 45f && (b.Vel.X * (me.Pos.X - b.Pos.X) + b.Vel.Y * (me.Pos.Y - b.Pos.Y)) > 0f)
+                    return true;
+            return false;
+        }, pin);
+        float taken0 = me.Run.DamageTaken;
+        int myShots = 0, reflected = 0;
+        var seenShots = new HashSet<int>();
+        foreach (var b in s[0].Game.Bullets.Values)
+            seenShots.Add(b.Id);  // shots already in the air before raising it don't count
+        bool clientSeesIt = false, broke = false;
+        float takenWhileUp = -1f, upFor = 0f;
+        s[0].Game.HoldParry = true;
+        Run(s, dt, 12f, () => broke, () =>
+        {
+            pin();
+            foreach (var b in s[0].Game.Bullets.Values)
+                if (b.Owner == 1 && seenShots.Add(b.Id))
+                {
+                    if (b.Kind == Defs.ArcaneShot) reflected++;
+                    else if (b.Kind != Defs.GrenadeShot) myShots++;
+                }
+            clientSeesIt |= s[1].Game.Players[1].Parrying;
+            if (!broke) upFor += dt;
+            if (me.ParryBroken > 0f && !broke)
+            {
+                broke = true;
+                takenWhileUp = me.Run.DamageTaken - taken0;
+            }
+        });
+        float takenAtBreak = me.Run.DamageTaken;
+        Run(s, dt, 2f, null, pin);
+        float takenAfter = me.Run.DamageTaken - takenAtBreak;
+        Console.WriteLine("  parry: held {6:0.0}s against the Warden before breaking, damage taken while up {1:0}, after it broke {2:0}, own shots while up {3}, reflected {4}, client sees it {5}",
+            broke, takenWhileUp, takenAfter, myShots, reflected, clientSeesIt, upFor);
+        Check(broke && takenWhileUp < 20f, "the parry blocks a boss's fire from the front until it breaks");
+        Check(takenAfter > 0f, "once broken, the parry stops blocking");
+        Check(myShots == 0, "you can't shoot while parrying");
+        Check(reflected > 0, "a perfect parry sends the shots back");
+        Check(clientSeesIt, "other players see your parry shield");
+        s[0].Game.HoldParry = false;
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Every music track renders: a sensible length, no clipping or NaNs, and a seamless loop.
     static void MusicTest()
     {
@@ -1406,9 +1473,16 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "parry")
+        {
+            ParryTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "music")
         {
             MusicTest();
+        ParryTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
