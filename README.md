@@ -154,6 +154,7 @@ bosses come back around, tougher each time.
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
+| Stats & upgrades (just for you) | Hold Tab |
 | Pause menu | Esc |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
@@ -164,6 +165,12 @@ kills, plus a column per player: level, damage dealt, kills (elite and boss), bi
 healing done, allies revived, damage taken, times downed, abilities used, and the upgrades picked by
 rarity. The best number in each row is highlighted, with awards like **Most damage**, **Best healer** and
 **Sharpshooter**. The host can play again, go back to the lobby, or keep going after a victory.
+
+## Loadout screen (Tab)
+
+Hold **Tab** during a match to see your stats, weapon, abilities (with charges and cooldowns) and every
+upgrade you've picked, rarest first. It only shows on your screen: the game **doesn't pause** and your
+friend isn't affected, so you can check it mid-fight (you can still move and shoot while it's up).
 
 ## Pause menu and settings
 

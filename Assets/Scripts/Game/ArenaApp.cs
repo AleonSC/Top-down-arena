@@ -24,6 +24,7 @@ namespace Arena
         int weaponChoice, abilityChoice;
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
+        bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
@@ -161,6 +162,8 @@ namespace Arena
             bool menuUp = pauseMenuOpen || game.Paused;
             bool choosing = me != null && me.Offer != null && !menuUp;
             Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp;
+            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
+                && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
 
             if (!menuUp)
             {
@@ -963,6 +966,7 @@ namespace Arena
                 { "Bonus abilities", "Q, E and Shift (from very rare upgrades)" },
                 { "Pick an upgrade", "Click a card (or 1-3), then Confirm (Enter)" },
                 { "Reroll upgrades", "R" },
+                { "Stats & upgrades", "Hold Tab (just for you, doesn't pause)" },
                 { "Pause menu", "Esc" },
                 { "Mute", "M" },
             };
@@ -1308,9 +1312,105 @@ namespace Arena
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
-                    if (!pauseMenuOpen)
+                    if (!pauseMenuOpen && !tabHeld)
                         DrawRunSummary();
                     break;
+            }
+            if (tabHeld)
+                DrawTabMenu(me);
+            else if (me != null && me.Offer == null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+                Label(new Rect(W - 220f, H - 26f, 200f, 18f), "Hold Tab: stats & upgrades", 11, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleRight);
+        }
+
+        // --- Tab: your stats and loadout ---------------------------------------
+
+        /// Held with Tab. Only drawn on this player's screen; nothing is sent to the
+        /// other player and the game doesn't pause.
+        void DrawTabMenu(Player me)
+        {
+            var panel = new Rect(W / 2f - 520f, 96f, 1040f, 540f);
+            Ui.Panel(panel, true);
+            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 36f), "YOUR LOADOUT", 26, Color.white);
+            Ui.Label(new Rect(panel.x, panel.y + 48f, panel.width, 20f),
+                Defs.KitName(me.Kit) + " " + me.Def.Name + "   ·   Level " + me.Level + "   ·   " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left",
+                14, ToColor(me.Def.Color), TextAnchor.MiddleCenter, true);
+            float top = panel.y + 84f, bottom = panel.yMax - 20f;
+            const float pad = 24f, gap = 24f;
+            float colW = (panel.width - pad * 2f - gap * 2f) / 3f;
+            float x1 = panel.x + pad, x2 = x1 + colW + gap, x3 = x2 + colW + gap;
+
+            // Column 1: stats (the same numbers as the upgrade screen's panel).
+            Ui.Heading(x1, top, colW, "Stats");
+            float y = top + 30f;
+            foreach (var line in StatSheet.Describe(me, me.Taken))
+            {
+                if (line.Header)
+                    break;  // abilities and legendaries are listed in the other columns
+                Ui.Label(new Rect(x1, y, colW, 22f), line.Label, 14, Ui.Muted);
+                Ui.Label(new Rect(x1, y, colW, 22f), line.Value, 14, Ui.Text, TextAnchor.MiddleRight, true);
+                y += 25f;
+            }
+            Ui.Label(new Rect(x1, y, colW, 22f), "Health now", 14, Ui.Muted);
+            Ui.Label(new Rect(x1, y, colW, 22f), (int)me.Hp + " / " + (int)me.MaxHp, 14, Ui.Text, TextAnchor.MiddleRight, true);
+
+            // Column 2: weapon and abilities.
+            Ui.Heading(x2, top, colW, "Weapon");
+            Ui.Label(new Rect(x2, top + 30f, colW, 22f), me.Weapon.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x2, top + 54f, colW, 40f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            y = top + 104f;
+            Ui.Heading(x2, y, colW, "Abilities");
+            y += 30f;
+            for (int i = 0; i < me.Slots.Length; i++)
+            {
+                var slot = me.Slots[i];
+                if (slot.Id == AbilityId.None)
+                    continue;
+                var a = Upgrades.Ability(slot.Id);
+                Ui.Badge(new Rect(x2, y + 1f, 52f, 20f), SlotKeys[i], ToColor(me.Def.Color));
+                Ui.Label(new Rect(x2 + 60f, y, colW - 60f, 22f), a.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
+                string state = slot.Charges > 0 ? "ready" : Mathf.CeilToInt(slot.Timer) + "s";
+                if (slot.MaxCharges > 1)
+                    state = slot.Charges + "/" + slot.MaxCharges + (slot.Charges < slot.MaxCharges ? "  (" + Mathf.CeilToInt(slot.Timer) + "s)" : "");
+                Ui.Label(new Rect(x2 + 60f, y, colW - 60f, 22f), state, 12, slot.Charges > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight);
+                Ui.Label(new Rect(x2 + 60f, y + 21f, colW - 60f, 34f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                y += 62f;
+            }
+
+            // Column 3: every upgrade picked, rarest first.
+            Ui.Heading(x3, top, colW, "Upgrades (" + me.Taken.Count + ")");
+            y = top + 30f;
+            var counts = new Dictionary<int, int>();
+            var order = new List<int>();
+            foreach (int id in me.Taken)
+            {
+                if (!counts.ContainsKey(id))
+                {
+                    counts[id] = 0;
+                    order.Add(id);
+                }
+                counts[id]++;
+            }
+            order.Sort((a, b) => Upgrades.All[b].Rarity != Upgrades.All[a].Rarity
+                ? Upgrades.All[b].Rarity.CompareTo(Upgrades.All[a].Rarity)
+                : string.CompareOrdinal(Upgrades.All[a].Name, Upgrades.All[b].Name));
+            if (order.Count == 0)
+                Ui.Label(new Rect(x3, y, colW, 22f), "None yet: level up to pick some.", 13, Ui.Muted);
+            const float rowH = 22f;
+            int fits = Mathf.FloorToInt((bottom - y) / rowH);
+            for (int i = 0; i < order.Count; i++)
+            {
+                if (i == fits - 1 && order.Count > fits)
+                {
+                    Ui.Label(new Rect(x3, y, colW, rowH), "+" + (order.Count - i) + " more", 13, Ui.Muted);
+                    break;
+                }
+                var u = Upgrades.All[order[i]];
+                Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+                Box(new Rect(x3, y + 6f, 4f, 10f), rc);
+                Ui.Label(new Rect(x3 + 12f, y, colW - 12f, rowH), u.Name, 14, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
+                if (counts[order[i]] > 1)
+                    Ui.Label(new Rect(x3, y, colW, rowH), "x" + counts[order[i]], 13, Ui.Text, TextAnchor.MiddleRight, true);
+                y += rowH;
             }
         }
 
