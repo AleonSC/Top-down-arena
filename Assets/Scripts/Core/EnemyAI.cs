@@ -23,9 +23,13 @@ namespace Arena
         const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
         const float SpinnerCycle = 3.3f, SpinnerBurst = 1.3f;  // Spinner: spray for 1.3 s out of every 3.3 s
-        const int WardenCross = 3;  // the Warden's fourth attack: "+" streams while roaming
+        const int WardenCross = 3;  // the Warden's fourth attack: a static "+" that cuts the arena into quadrants
+        const float CrossPlant = 3f, CrossDash = 1f;  // each plant: dash 1 s to a new spot, then fire for 2 s
 
         static int WardenAttack(Enemy e) => (int)(e.T / 6f) % 4;
+
+        /// During the cross attack: is the Warden dashing to its next spot (rather than planted and firing)?
+        static bool CrossDashing(Enemy e) => MathX.Fmod(e.T, CrossPlant) < CrossDash;
 
         /// The boss that appears on a boss wave (every 5th).
         public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
@@ -481,11 +485,9 @@ namespace Arena
                 {
                     if (e.Type == EnemyType.Boss && WardenAttack(e) == WardenCross)
                     {
-                        // Cross streams: roam the arena from point to point.
-                        if (e.Pos.DistanceTo(e.Waypoint) < 40f || e.Waypoint.Y < 1f)
-                            e.Waypoint = new V2(Rand(200f, Width - 200f), Rand(160f, Height - 160f));
-                        v = (e.Waypoint - e.Pos).Normalized();
-                        speed = 150f;
+                        // Dash to the spot picked for this plant, then stand still while firing.
+                        v = CrossDashing(e) && e.Pos.DistanceTo(e.Waypoint) > 8f ? (e.Waypoint - e.Pos).Normalized() : V2.Zero;
+                        speed = 340f;
                         break;
                     }
                     var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
@@ -526,13 +528,18 @@ namespace Arena
                 {
                     // The Warden rotates through four attacks, 6 s each; Phase tells clients which.
                     int attack = WardenAttack(e);
-                    if (attack == WardenCross && e.Phase != WardenCross)
-                        e.Waypoint = V2.Zero;  // pick a fresh spot to roam to
                     e.Phase = (byte)attack;
                     if (attack == WardenCross)
                     {
-                        e.Ang += 0.45f * dt;  // the cross turns slowly so you can slip between the arms
-                        e.Facing = e.Ang;
+                        // A new spot somewhere in the middle of the arena for each plant (T2 counts them),
+                        // so the quadrants come out a different size every time.
+                        int plant = (int)(e.T / CrossPlant);
+                        if (plant != (int)e.T2)
+                        {
+                            e.T2 = plant;
+                            e.Waypoint = new V2(Rand(Width * 0.28f, Width * 0.72f), Rand(Height * 0.3f, Height * 0.7f));
+                        }
+                        e.Facing = 0f;  // arms along the arena's axes; clients draw the guides from this
                     }
                     break;
                 }
@@ -755,10 +762,12 @@ namespace Arena
                 case EnemyType.Boss:
                     switch (WardenAttack(e))
                     {
-                        case WardenCross:  // streams of bullets in a slowly turning "+", while it roams
+                        case WardenCross:  // planted: straight streams up, down, left and right (a wall of bullets)
                             e.FireT = 0.075f;
+                            if (CrossDashing(e))
+                                break;
                             for (int k = 0; k < 4; k++)
-                                EnemyShot(e, e.Ang + MathX.Pi / 2f * k, 240f, Defs.SmallShot);
+                                EnemyShot(e, MathX.Pi / 2f * k, 240f, Defs.SmallShot);
                             break;
                         case 0:  // four-armed spiral
                             e.FireT = 0.07f;

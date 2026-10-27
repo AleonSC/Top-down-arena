@@ -1490,7 +1490,8 @@ static class Program
 
     static void BossMechanics(float dt)
     {
-        // The Warden's fourth attack: "+" streams while it roams the arena.
+        // The Warden's fourth attack: it dashes to a spot, plants, and fires straight streams up, down,
+        // left and right (a static "+" that cuts the arena into quadrants), then moves and does it again.
         {
             var s = StartBuffed(dt, 5, 0);
             Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
@@ -1498,9 +1499,10 @@ static class Program
             s[0].Game.Bot = s[1].Game.Bot = false;
             w.T = 17.9f;  // jump to just before the fourth attack (each lasts 6 s)
             V2 start = w.Pos;
-            float farthest = 0f;
+            float farthest = 0f, movedWhileFiring = 0f;
+            V2 lastPos = w.Pos;
             bool phaseOnClient = false;
-            int onArms = 0, offArms = 0;
+            int onAxes = 0, offAxes = 0;
             var seen = new HashSet<int>();
             Run(s, dt, 5.5f, null, () =>
             {
@@ -1509,19 +1511,28 @@ static class Program
                 var cw = Find(s[1], EnemyType.Boss);
                 phaseOnClient |= cw != null && cw.Phase == 3;
                 if (w.Phase != 3)
+                {
+                    lastPos = w.Pos;
                     return;
+                }
                 farthest = Math.Max(farthest, w.Pos.DistanceTo(start));
+                bool fired = false;
                 foreach (var b in s[0].Game.Bullets.Values)
                     if (b.Kind == Defs.SmallShot && b.FromBoss && seen.Add(b.Id) && b.Pos.DistanceTo(w.Pos) < w.Radius + 12f)
                     {
-                        // Each new shot should leave along one of the four arms.
-                        float rel = MathX.Fmod(b.Vel.Angle - w.Ang + MathX.Pi / 4f, MathX.Pi / 2f) - MathX.Pi / 4f;
-                        if (Math.Abs(rel) < 0.12f) onArms++; else offArms++;
+                        fired = true;
+                        // Each shot leaves straight along one of the four axes.
+                        float rel = MathX.Fmod(b.Vel.Angle + MathX.Pi / 4f, MathX.Pi / 2f) - MathX.Pi / 4f;
+                        if (Math.Abs(rel) < 0.01f && b.AngVel == 0f) onAxes++; else offAxes++;
                     }
+                if (fired)
+                    movedWhileFiring = Math.Max(movedWhileFiring, w.Pos.DistanceTo(lastPos));
+                lastPos = w.Pos;
             });
-            Console.WriteLine("  warden cross: client saw it {0}, roamed {1:0}px, shots on the arms {2}, off {3}", phaseOnClient, farthest, onArms, offArms);
-            Check(phaseOnClient && farthest > 250f, "the Warden's cross attack makes it roam the arena (seen on client)");
-            Check(onArms > 100 && offArms == 0, "the Warden's cross attack fires streams in a '+' pattern");
+            Console.WriteLine("  warden cross: client saw it {0}, moved {1:0}px between plants, moved {2:0.0}px per tick while firing, shots on the axes {3}, off {4}",
+                phaseOnClient, farthest, movedWhileFiring, onAxes, offAxes);
+            Check(phaseOnClient && farthest > 150f, "the Warden's cross attack moves it to new spots (seen on client)");
+            Check(onAxes > 100 && offAxes == 0 && movedWhileFiring < 0.5f, "the Warden's cross is a static '+' along the axes, fired while it stands still");
             s[0].Leave(""); s[1].Leave("");
         }
         // Hive Queen (wave 10): summons a swarm and is immune while it's big.

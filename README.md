@@ -193,7 +193,7 @@ bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
 |---|---|---|
-| 5 | **The Warden** | Cycles through spirals, rings of big orbs, aimed fans, and **cross streams**: four streams of bullets in a slowly turning "+" (shown by faint guide lines) while it roams the arena |
+| 5 | **The Warden** | Cycles through spirals, rings of big orbs, aimed fans, and **cross streams**: it dashes to a new spot, plants, and fires straight streams up, down, left and right — a static "+" (shown by faint guide lines) that cuts the arena into quadrants — then moves and does it again |
 | 10 | **Hive Queen** | Summons tough Shards (3x normal health) and is **immune while 3+ of her swarm are alive** |
 | 15 | **Twin Reapers** | **Soul Bond**: whichever Reaper is more than 10% further down on health is **immune** until you even them out, so split your damage. They circle the arena fast, and a **tether** between them sweeps it and hurts on touch (dash through it). Kill one and the other **enrages**; finish it within **6 s** or the fallen twin revives at 60% |
 | 20 | **The Singularity** | Its **gravity phase** drags everyone toward it, then it collapses into dense rings. Four **Gravity Wells** orbit it and bend your shots into themselves, so kill them first; they come back 15 s after the last one dies |
