@@ -37,6 +37,7 @@ namespace Arena
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             BroadcastRunStats();
+            Recorder?.End(this, "victory");
             DoLog("victory at wave " + Wave + ", score " + Score);
         }
 
@@ -418,7 +419,7 @@ namespace Arena
                 float dmg = 25f + Wave * 0.3f;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
-                        Damage(p, dmg);
+                        Damage(p, dmg, "Storm Herald (lightning)");
                 var color = new Rgba(0.7f, 0.85f, 1f);
                 BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-60f, 60f), -20f), h.Pos, color, 0f, 0.25f, Sfx.SpellZap);
                 BroadcastFx(FxKind.Boom, h.Pos, color, h.Radius, 0.3f, Sfx.None);

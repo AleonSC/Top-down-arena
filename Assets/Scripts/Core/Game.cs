@@ -134,6 +134,7 @@ namespace Arena
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
+        public EnemyType? Source; // host only: the enemy that fired it (for the session record)
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -277,6 +278,10 @@ namespace Arena
 
         public bool Bot;  // drive the local player automatically (testing)
         public bool HoldParry;  // keep the parry up (testing)
+
+        /// Dev: when set (on the host), each match is recorded to a new file in this folder.
+        public string RecordFolder;
+        public SessionRecorder Recorder;
         public bool BotRerolls = true;
         int botRerolledAt = -1;
         public Action<string> Log;
@@ -377,11 +382,19 @@ namespace Arena
             Running = true;
             lastMyHp = Me != null ? Me.Hp : 0f;
             session.Screen = AppScreen.Game;
+            Recorder = null;
+            if (IsHost && RecordFolder != null)
+            {
+                Recorder = new SessionRecorder(RecordFolder);
+                Recorder.Begin(this, startWave);
+            }
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
         public void Stop()
         {
+            if (Recorder != null && Running)
+                Recorder.End(this, "left");
             Running = false;
             State = MatchState.Idle;
             Wave = 0;
@@ -576,6 +589,7 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.Rerolls <= 0 || State != MatchState.Intermission)
                 return;
             p.Rerolls--;
+            Recorder?.Rerolled(p);
             p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
@@ -592,6 +606,7 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
                 return;
             int upgrade = p.Offer[index];
+            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : "level");
             if (p.OfferLegendary)
                 p.LegendaryQueue.RemoveAt(0);
             else if (p.OfferMod)
@@ -917,6 +932,7 @@ namespace Arena
         void HostTick(float dt)
         {
             tickDt = dt;
+            Recorder?.Tick(this, dt);
             TickPlayers(dt);
             TickWaves(dt);
             TickEnemies(dt);
@@ -1107,6 +1123,7 @@ namespace Arena
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;
+            Recorder?.AbilityUsed(p, p.Slots[slot].Id);
             var s = p.Stats;
             switch (p.Slots[slot].Id)
             {
@@ -1257,7 +1274,10 @@ namespace Arena
             }
         }
 
-        void Damage(Player p, float amount)
+        static string ShotSource(Bullet b) =>
+            (b.Source.HasValue ? Defs.Get(b.Source.Value).Name : "Enemy") + (b.Kind == Defs.PierceShot ? " (aimed)" : "");
+
+        void Damage(Player p, float amount, string source = "Other")
         {
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
@@ -1274,6 +1294,7 @@ namespace Arena
                 amount -= soak;
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
+            Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             p.Hp -= amount;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
@@ -1284,6 +1305,7 @@ namespace Arena
                 p.Hp = 0f;
                 p.Downed = true;
                 p.Run.Downs++;
+                Recorder?.Downed(this, p, source);
                 p.Revive = 0f;
                 p.BarrierT = 0f;
                 p.OverdriveT = 0f;
@@ -1293,6 +1315,7 @@ namespace Arena
 
         void RevivePlayer(Player p, float fraction, Player by = null)
         {
+            Recorder?.Revived(p, by);
             if (by != null && by != p)
                 by.Run.Revives++;
             p.Downed = false;
@@ -1319,6 +1342,7 @@ namespace Arena
                 p.OfferMod = false;
             }
             BroadcastRunStats();
+            Recorder?.End(this, "game over");
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
 
@@ -1336,6 +1360,7 @@ namespace Arena
                         State = MatchState.Fighting;
                         spawnTimer = 0.5f;
                         BuildWave(Wave);
+                        Recorder?.WaveStart(this, Wave, Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null);
                         DoLog("wave " + Wave + ": " + string.Join(",", spawnQueue));
                     }
                     break;
@@ -1364,6 +1389,7 @@ namespace Arena
 
         void WaveCleared()
         {
+            Recorder?.WaveEnd(this);
             ResetBossState();
             Zones.Clear();
             Hazards.Clear();
@@ -1524,7 +1550,7 @@ namespace Arena
                 for (int i = 0; i < b.Burst; i++)
                 {
                     V2 dir = V2.FromAngle(offset + MathX.Tau * i / b.Burst);
-                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 150f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0);
+                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 150f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = b.Source;
                 }
                 BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.MineShot), 30f, 0.3f, Sfx.Hit);
             }
@@ -1729,7 +1755,7 @@ namespace Arena
                             // Invulnerable players (dash, recent hit) let bullets pass through.
                             if (p.InvulnT <= 0f)
                             {
-                                Damage(p, b.Dmg);
+                                Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
                             }
                             break;
@@ -1815,6 +1841,7 @@ namespace Arena
                     dead.Add(e);
             foreach (var e in dead)
             {
+                Recorder?.EnemyKilled(e);
                 bool bossReward = OnEnemyKilled(e);
                 KillEffects(e);
                 var killer = PlayerOrNull(e.LastHitBy);
@@ -1885,6 +1912,7 @@ namespace Arena
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
             }
+            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             e.Hp -= dmg;
             e.Flash = 0.06f;
         }
@@ -1953,6 +1981,7 @@ namespace Arena
             Player p;
             if (Players.TryGetValue(e.BurnBy, out p))
             {
+                Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
                 e.LastHitBy = e.BurnBy;
             }
@@ -2032,6 +2061,7 @@ namespace Arena
                 o.Pos += to.LimitLength(300f * dt);
                 if (to.Length < nearest.Def.BodyR + o.Radius)
                 {
+                    Recorder?.Orb(nearest, Math.Min(o.Heal, nearest.MaxHp - nearest.Hp));
                     nearest.Hp = Math.Min(nearest.MaxHp, nearest.Hp + o.Heal);
                     BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), o.Big ? 50f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
                     gone.Add(o.Id);

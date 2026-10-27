@@ -30,6 +30,12 @@ namespace Arena
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
+        bool recordSessions;             // dev: record each match for balancing (Settings or --record)
+
+        static string SessionsFolder => System.IO.Path.Combine(Application.persistentDataPath, "sessions");
+
+        /// Recording happens on the host (which decides every hit), so this only matters when you host.
+        void ApplyRecording() => game.RecordFolder = recordSessions ? SessionsFolder : null;
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
@@ -124,6 +130,8 @@ namespace Arena
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
+            recordSessions = PlayerPrefs.GetInt("record_sessions", 0) == 1 || opts.ContainsKey("record");
+            ApplyRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
             else if (opts.TryGetValue("join", out v))
@@ -1356,11 +1364,29 @@ namespace Arena
 
         void DrawSettings()
         {
-            var panel = new Rect(W / 2f - 240f, 90f, 480f, 530f);
+            var panel = new Rect(W / 2f - 240f, 30f, 480f, 660f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
             float x = panel.x + 40f, w = panel.width - 80f;
             DrawAudioOptions(x, panel.y + 82f, w);
+
+            // Developer: session recording for balancing.
+            float y = panel.y + 450f;
+            Ui.Heading(x, y, w, "Developer");
+            bool rec = Ui.Toggle(new Rect(x, y + 30f, w, 26f), recordSessions, "Record sessions for balancing (when hosting)");
+            if (rec != recordSessions)
+            {
+                recordSessions = rec;
+                PlayerPrefs.SetInt("record_sessions", rec ? 1 : 0);
+                PlayerPrefs.Save();
+                ApplyRecording();
+            }
+            if (Ui.Button(new Rect(x, y + 64f, 190f, 30f), "Open sessions folder"))
+            {
+                System.IO.Directory.CreateDirectory(SessionsFolder);
+                Application.OpenURL("file:///" + SessionsFolder.Replace('\\', '/'));
+            }
+            Ui.Label(new Rect(x + 200f, y + 64f, w - 200f, 30f), "Summarize with Tools/SessionReport", 11, Ui.Muted, TextAnchor.MiddleLeft);
             if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 66f, 200f, 44f), "Back", Ui.Primary))
                 settingsOpen = false;
         }
@@ -1864,6 +1890,8 @@ namespace Arena
             Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 56f), won ? "VICTORY!" : "GAME OVER", 46, won ? Ui.Gold : new Color(1f, 0.45f, 0.45f));
             Ui.Label(new Rect(panel.x, panel.y + 66f, panel.width, 22f),
                 won ? "You beat all " + Game.MaxWave + " waves and The Eclipse" : "You made it to wave " + game.Wave, 16, Ui.Muted, TextAnchor.MiddleCenter);
+            if (game.Recorder != null)
+                Ui.Label(new Rect(panel.x + 20f, panel.yMax - 22f, panel.width - 40f, 16f), "Session recorded: " + game.Recorder.Path, 10, Ui.Muted, TextAnchor.MiddleLeft);
 
             // Run totals.
             int kills = 0;

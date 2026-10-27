@@ -54,8 +54,10 @@ namespace Arena
             if (p.ParryHeld < PerfectParry && p.ParryPerfect)
             {
                 BroadcastFx(FxKind.Spark, at, new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.Blink);
+                Recorder?.Parry(p, dmg, true, false);
                 return;
             }
+            Recorder?.Parry(p, Math.Min(dmg, p.ParryHp), false, p.ParryHp - dmg <= 0f);
             p.ParryHp -= dmg;
             BroadcastFx(FxKind.Spark, at, new Rgba(0.55f, 0.9f, 1f), 9f, 0.15f, Sfx.Hit);
             if (p.ParryHp <= 0f)

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Threading;
 using Arena;
@@ -603,6 +604,54 @@ static class Program
         Check(clientSeesIt, "other players see your parry shield");
         s[0].Game.HoldParry = false;
         s[0].Leave(""); s[1].Leave("");
+    }
+
+    // Session recording: a run from wave 4 through the Warden is written to a JSON file with
+    // waves, the boss fight, damage sources, picks and samples.
+    static string SessionTest(float dt)
+    {
+        string folder = Path.Combine(Path.GetTempPath(), "arena-sessions-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 4 };
+        host.Game.Bot = true;
+        host.Game.RecordFolder = folder;
+        host.Host(port, "Host", Role.Tank, 0, 0, Kit.Mage);
+        var client = new Session();
+        client.Game.Bot = true;
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        foreach (int id in new[] { 1, 2 })
+        {
+            for (int k = 0; k < 20; k++) host.Game.GrantUpgrade(id, U("Fortitude"));
+            for (int k = 0; k < 15; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
+        }
+        Run(s, dt, 120, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);
+        string path = host.Game.Recorder != null ? host.Game.Recorder.Path : null;
+        host.Leave(""); client.Leave("");  // ends the recording ("left")
+        bool ok = path != null && File.Exists(path);
+        string text = ok ? File.ReadAllText(path) : "";
+        foreach (var key in new[] { "\"waves\"", "\"bosses\"", "\"The Warden\"", "\"timeToKill\"", "\"picks\"", "\"damageTakenFrom\"", "\"samples\"", "\"outcome\": \"left\"", "\"enemyTypes\"" })
+            ok &= text.Contains(key);
+        int depth = 0;
+        bool inStr = false;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (inStr) { if (c == '\\') i++; else if (c == '"') inStr = false; continue; }
+            if (c == '"') inStr = true;
+            else if (c == '{' || c == '[') depth++;
+            else if (c == '}' || c == ']') depth--;
+        }
+        ok &= depth == 0 && !inStr;
+        Console.WriteLine("  session file: {0} ({1:0.0} KB)", path, text.Length / 1024.0);
+        Check(ok, "a recorded session has waves, the boss fight, damage sources, picks and samples, as valid JSON");
+        string copy = Path.Combine(Path.GetTempPath(), "arena-last-session.json");
+        if (ok)
+            File.Copy(path, copy, true);
+        try { Directory.Delete(folder, true); } catch (IOException) { }
+        return ok ? copy : null;
     }
 
     // Every music track renders: a sensible length, no clipping or NaNs, and a seamless loop.
@@ -1473,6 +1522,14 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "session")
+        {
+            var path = SessionTest(1f / 60f);
+            if (args.Length > 3 && path != null)
+                File.Copy(path, args[3], true);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "parry")
         {
             ParryTest(1f / 60f);
@@ -1483,6 +1540,7 @@ static class Program
         {
             MusicTest();
         ParryTest(dt);
+        SessionTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

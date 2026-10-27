@@ -30,6 +30,7 @@ namespace Arena
             target.Hp += applied;
             if (source != null)
                 source.Run.HealingDone += applied;
+            Recorder?.Healed(source, applied);
             return applied;
         }
 

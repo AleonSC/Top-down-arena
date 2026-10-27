@@ -81,7 +81,7 @@ namespace Arena
                 if (along < a.Radius || along > len - b.Radius)
                     continue;
                 if (p.Pos.DistanceTo(a.Pos + dir * along) < TetherWidth / 2f + p.Def.HitR)
-                    Damage(p, 18f + Wave * 0.4f);
+                    Damage(p, 18f + Wave * 0.4f, "Twin Reapers (tether)");
             }
         }
 
@@ -231,6 +231,7 @@ namespace Arena
                 e.Radius *= EliteSize;
             }
             e.Hp = e.MaxHp;
+            Recorder?.EnemySpawned(e);
             e.Pos = ClampToArena(pos, e.Radius);
             e.Disp = e.Pos;
             e.Waypoint = e.Pos;
@@ -322,7 +323,7 @@ namespace Arena
                     if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
                         continue;
                     if (p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
-                        Damage(p, contact);
+                        Damage(p, contact, e.Def.Name + " (contact)");
                 }
             }
 
@@ -727,6 +728,7 @@ namespace Arena
                     V2 vel = ((tpos - e.Pos) / flight).LimitLength(330f);
                     var bomb = SpawnBullet(Defs.MineShot, e.Pos + V2.FromAngle(aim) * e.Radius, vel, 0f, flight, Defs.BulletDamage(Defs.MineShot), 0);
                     bomb.Burst = e.Elite ? 14 : 10;
+                    bomb.Source = e.Type;
                     break;
                 }
                 case EnemyType.Shielder:
@@ -831,7 +833,7 @@ namespace Arena
         void EnemyShot(Enemy e, float ang, float speed, byte kind, float angVel = 0f)
         {
             V2 dir = V2.FromAngle(ang);
-            SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss);
+            SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss).Source = e.Type;
         }
 
         /// Death side effects. Returns true when this kill earns the boss rewards

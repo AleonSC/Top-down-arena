@@ -277,6 +277,36 @@ Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`,
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
+### Session recording (for balancing)
+
+Turn on **Settings > Developer > Record sessions** (or launch with `--record`). While you **host**, every match
+is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
+`%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
+covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave, so a crash
+keeps everything up to the last cleared wave.
+
+Each file records:
+
+- the team (role, class, weapon, ability, ultimate), party size, start wave, and how it ended
+- **per wave:** length, enemies spawned and killed by type, and per player: damage dealt (and to bosses),
+  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing,
+  health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
+  and parry blocks / perfect parries / breaks
+- **per boss:** health, time to kill, each player's damage, damage players took and downs during the fight
+- **every down** (who, when, what did it), **every upgrade pick** (the cards offered and the one taken) and rerolls
+- **per enemy type:** spawned, killed, average lifetime and damage dealt to players
+- a **sample every 5 s** of everyone's health, enemies and bullets on screen
+
+Summarize one run or a whole folder of them (needs Python 3):
+
+```
+python Tools/SessionReport/report.py path/to/sessions
+```
+
+It prints boss kill rates and times, difficulty by wave (damage taken, downs, time at low health), what
+downs players, where damage comes from, the most dangerous enemies per spawn, upgrade pick rates, ability
+and parry use, and how each class and role performs.
+
 `Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
 that level up and pick upgrades at random, and prints how long each boss survived.
 
