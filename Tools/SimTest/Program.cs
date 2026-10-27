@@ -734,6 +734,12 @@ static class Program
         }
         Console.WriteLine("  aim: worst difference between aimed and fired direction {0:0.000} degrees", worst);
         Check(ok, "shots go exactly where you aim, to a quarter of a degree (host and joining player)");
+        // The aim debug overlay's numbers: ping, and the client's record of its last shot.
+        var cme = client.Game.Players[client.Game.MyId];
+        float shotOff = Math.Abs(MathX.Fmod(client.Game.LastShotAngle - cme.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) * 180f / MathX.Pi;
+        Console.WriteLine("  aim debug: client ping {0:0.0} ms, last shot {1:0.00} degrees off its aim", client.Game.PingMs, shotOff);
+        Check(client.Game.PingMs > 0f && client.Game.PingMs < 500f && client.Game.LastShotId != 0 && shotOff < 0.05f,
+            "the aim debug overlay gets a ping and the direction of your last shot");
         host.Leave(""); client.Leave("");
     }
 

@@ -280,6 +280,36 @@ namespace Arena
         public bool Bot;  // drive the local player automatically (testing)
         public bool HoldParry;  // keep the parry up (testing)
 
+        /// Round trip to the host in milliseconds (0 when you're the host), measured once a second.
+        public float PingMs;
+        readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+        float pingT;
+
+        /// For the aim debug overlay: the direction of your most recent shot, as the host fired it.
+        public int LastShotId;
+        public float LastShotAngle, LastShotAim;
+        public V2 LastShotFrom;
+        long lastShotTicks;
+
+        /// Keep the shot from the newest volley that's closest to where you're aiming (spreads fire several).
+        void NoteShot(Bullet b)
+        {
+            var me = Me;
+            if (me == null)
+                return;
+            float off = Math.Abs(MathX.Fmod(b.Vel.Angle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+            float prevOff = Math.Abs(MathX.Fmod(LastShotAngle - me.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+            bool newVolley = clock.ElapsedTicks - lastShotTicks > System.Diagnostics.Stopwatch.Frequency / 25;
+            if (newVolley || off < prevOff)
+            {
+                LastShotId = b.Id;
+                LastShotAngle = b.Vel.Angle;
+                LastShotAim = me.Aim;  // what you were aiming at when it showed up
+                LastShotFrom = b.Pos;
+            }
+            lastShotTicks = clock.ElapsedTicks;
+        }
+
         /// Dev: when set (on the host), each match is recorded to a new file in this folder.
         public string RecordFolder;
         public SessionRecorder Recorder;
@@ -685,6 +715,13 @@ namespace Arena
                 return;
             }
             LocalControl(dt, input);
+            if (!IsHost && (pingT -= dt) <= 0f)
+            {
+                pingT = 1f;
+                var pw = Proto.Begin(Msg.Ping);
+                pw.Write(clock.ElapsedTicks);
+                session.SendToHost(Proto.End(pw));
+            }
             if (IsHost)
             {
                 if (State == MatchState.Fighting || State == MatchState.Intermission)
@@ -1452,6 +1489,8 @@ namespace Arena
         {
             var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing, Radius = Defs.BulletRadius(kind) };
             Bullets[id] = b;
+            if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot)
+                NoteShot(b);
             if (owner == 0)
                 Sounds.Add(Sfx.EnemyShot);
             else
@@ -2306,6 +2345,9 @@ namespace Arena
                     break;
                 case Msg.Steer:
                     ReadSteer(r);
+                    break;
+                case Msg.Pong:
+                    PingMs = (float)((clock.ElapsedTicks - r.ReadInt64()) * 1000.0 / System.Diagnostics.Stopwatch.Frequency);
                     break;
                 case Msg.BulletSync:
                     ReadBulletSync(r);

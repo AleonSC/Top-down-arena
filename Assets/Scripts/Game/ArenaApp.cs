@@ -31,6 +31,7 @@ namespace Arena
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
+        bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
 
         static string SessionsFolder => System.IO.Path.Combine(Application.persistentDataPath, "sessions");
 
@@ -205,6 +206,8 @@ namespace Arena
                     wantAbility[3] = true;
             }
             // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
+            if (Input.GetKeyDown(KeyCode.F3))
+                aimDebug = !aimDebug;  // aim debug overlay
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
@@ -602,6 +605,20 @@ namespace Arena
 
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
+
+            if (aimDebug && game.Me != null)
+            {
+                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
+                var me = game.Me;
+                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
+                if (game.LastShotId != 0)
+                {
+                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
+                    Bullet shot;
+                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
+                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
+                }
+            }
 
             // Crosshair
             V2 m = MouseArena();
@@ -1625,6 +1642,8 @@ namespace Arena
         {
             var me = game.Me;
             DrawWavePlate();
+            if (aimDebug && me != null)
+                DrawAimDebug(me);
             DrawBossBars();
 
             // Names, level-up popups and downed labels over players (hidden while they're under
@@ -2125,6 +2144,25 @@ namespace Arena
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
+        }
+
+        /// F3: the numbers behind the aim lines.
+        void DrawAimDebug(Player me)
+        {
+            var r = new Rect(14f, H - 190f, 300f, 104f);
+            Ui.HudPanel(r, new Color(0.3f, 0.9f, 1f));
+            Func<float, string> deg = a => (MathX.Fmod(a * 180f / MathX.Pi + 360f, 360f)).ToString("0.00") + "°";
+            float diff = MathX.Fmod(game.LastShotAngle - game.LastShotAim + MathX.Pi, MathX.Tau) - MathX.Pi;
+            Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "AIM DEBUG  (F3)", 11, new Color(0.3f, 0.9f, 1f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), "Aim now", 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), deg(me.Aim), 12, Color.white, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), "Last shot", 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), game.LastShotId != 0 ? deg(game.LastShotAngle) : "-", 12, new Color(1f, 0.85f, 0.2f), TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), "Shot vs aim when it appeared", 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), game.LastShotId != 0 ? (diff * 180f / MathX.Pi).ToString("+0.00;-0.00;0.00") + "°" : "-", 12, Color.white, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), "Ping to host", 12, Ui.Muted);
+            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), session.IsHost ? "0 ms (you're the host)" : Mathf.RoundToInt(game.PingMs) + " ms", 12,
+                session.IsHost || game.PingMs < 60f ? Ui.Good : game.PingMs < 120f ? Ui.Warn : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleRight, true);
         }
 
         /// A centered announcement between waves.

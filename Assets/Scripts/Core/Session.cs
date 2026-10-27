@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest,
+        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest, Ping, Pong,
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -60,7 +60,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 31;
+        public const int ProtocolVersion = 32;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -288,6 +288,13 @@ namespace Arena
                 case Msg.Reroll:
                     Game.HostReroll(peer);
                     break;
+                case Msg.Ping:  // echo it straight back so the client can time the round trip
+                {
+                    var w = Proto.Begin(Msg.Pong);
+                    w.Write(r.ReadInt64());
+                    Net.Send(peer, Proto.End(w));
+                    break;
+                }
             }
         }
 
