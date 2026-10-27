@@ -1048,6 +1048,56 @@ static class Program
             });
             Console.WriteLine("  singularity: friend started {0:F0}px from the boss, got pulled to {1:F0}px", start.DistanceTo(center), closest);
             Check(pullSeen && closest < start.DistanceTo(center) - 100f, "The Singularity's gravity pulls the client's player in");
+            s[1].Game.Bot = true;
+
+            // Its gravity wells: they orbit it, bend the players' shots into themselves, and come back after you kill them.
+            int wellsOnClient = 0, pulled = 0, compared = 0;
+            float drift = 0f;
+            var counted = new HashSet<int>();
+            int frame = 0;
+            Run(s, dt, 6, null, () =>
+            {
+                int n = 0;
+                foreach (var e in s[1].Game.Enemies.Values)
+                    if (e.Type == EnemyType.GravityWell)
+                        n++;
+                wellsOnClient = Math.Max(wellsOnClient, n);
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Pulled && counted.Add(b.Id))
+                        pulled++;
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
+                if (++frame % 60 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    foreach (var b in s[1].Game.Bullets.Values)
+                    {
+                        Bullet hb;
+                        if (s[0].Game.Bullets.TryGetValue(b.Id, out hb) && hb.Pulled)
+                        {
+                            drift = Math.Max(drift, hb.Pos.DistanceTo(b.Pos));
+                            compared++;
+                        }
+                    }
+                }
+            });
+            Console.WriteLine("  gravity wells: {0} on the client, {1} shots bent, drift {2:0.0}px over {3} samples", wellsOnClient, pulled, drift, compared);
+            Check(wellsOnClient == 4, "the Singularity brings 4 gravity wells (seen on client)");
+            Check(pulled > 30 && drift < 40f, "gravity wells bend players' shots into themselves, in sync on the client");
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Type == EnemyType.GravityWell)
+                    e.Hp = 0f;
+            Run(s, dt, 2);
+            bool gone = Find(s[0], EnemyType.GravityWell) == null;
+            Run(s, dt, 16, () => Find(s[0], EnemyType.GravityWell) != null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; });
+            bool back = Find(s[0], EnemyType.GravityWell) != null;
+            var sing = Find(s[0], EnemyType.Singularity);
+            if (sing != null)
+                sing.Hp = 0f;
+            Run(s, dt, 2);
+            bool collapsed = Find(s[0], EnemyType.GravityWell) == null;
+            Console.WriteLine("  wells killed {0}, came back {1}, collapsed with the boss {2}", gone, back, collapsed);
+            Check(gone && back && collapsed, "gravity wells return 15 s after you kill them, and collapse when the Singularity dies");
             s[0].Leave(""); s[1].Leave("");
         }
     }

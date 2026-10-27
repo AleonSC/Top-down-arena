@@ -78,6 +78,15 @@ namespace Arena
                     var goal = new V2(Width / 2f, Height / 2f) + V2.FromAngle(e.T * 0.3f) * 140f;
                     return (goal - e.Pos) / 60f;
                 }
+                case EnemyType.GravityWell:
+                {
+                    // Orbit the Singularity, between it and you.
+                    Enemy parent;
+                    if (!Enemies.TryGetValue(e.ParentId, out parent))
+                        return V2.Zero;
+                    var goal = parent.Pos + V2.FromAngle(e.Ang + e.T * 0.6f) * WellOrbit;
+                    return (goal - e.Pos) / 30f;
+                }
                 default:  // Nest, Decoy, Phylactery stay put
                     return V2.Zero;
             }
@@ -340,7 +349,7 @@ namespace Arena
                         }
                     }
                     break;
-                default:  // Nest, Decoy and Phylactery don't shoot
+                default:  // Nest, Decoy, Phylactery and gravity wells don't shoot
                     e.FireT = 99f;
                     break;
             }

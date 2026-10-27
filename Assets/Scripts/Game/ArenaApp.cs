@@ -528,6 +528,14 @@ namespace Arena
             Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
         }
 
+        bool AnyWells()
+        {
+            foreach (var o in game.Enemies.Values)
+                if (o.Type == EnemyType.GravityWell)
+                    return true;
+            return false;
+        }
+
         /// The beam between the Twin Reapers: crackling dusk-to-dawn colors. It hurts to touch.
         void DrawReaperTether(float t)
         {
@@ -722,6 +730,16 @@ namespace Arena
                 case EnemyType.Phylactery:
                     Circle(pos, r * 2.2f, col.WithAlpha(0.15f + 0.1f * Mathf.Sin(t * 6f)), 24);
                     break;
+                case EnemyType.GravityWell:  // its pull range, with rings falling inward
+                    if (spawning)
+                        break;
+                    Circle(pos, Game.WellPullRange, col.WithAlpha(0.05f), 40);
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float f = 1f - MathX.Fmod(t * 0.9f + k / 3f + e.Id * 0.13f, 1f);
+                        Arc(pos, r + 6f + f * (Game.WellPullRange - r - 6f), 1.5f, col.WithAlpha(0.4f * (1f - f)), 40);
+                    }
+                    break;
                 case EnemyType.StormHerald:
                     for (int k = 0; k < 3; k++)  // crackling sparks
                     {
@@ -815,6 +833,10 @@ namespace Arena
                     break;
                 case EnemyType.Phylactery:
                     Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
+                    break;
+                case EnemyType.GravityWell:  // a spinning black hole
+                    Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
+                    Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;
             }
             // Bosses get a bar at the top of the screen instead.
@@ -1694,6 +1716,8 @@ namespace Arena
                     name += "  — shielded: kill her swarm!";
                 else if (Game.IsTwin(e.Type) && e.Phase == 1)
                     name += "  — ENRAGED";
+                else if (e.Type == EnemyType.Singularity && AnyWells())
+                    name += "  — its gravity wells swallow your shots: kill them!";
                 else if (Game.SoulBound(e))
                     name += "  — SOUL BOUND: hurt the other Reaper!";
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)

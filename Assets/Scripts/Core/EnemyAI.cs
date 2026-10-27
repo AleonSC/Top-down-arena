@@ -22,6 +22,9 @@ namespace Arena
         const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
         const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
+        const int WellCount = 4;
+        const float WellOrbit = 135f, WellRespawn = 15f;
+        public const float WellPullRange = 170f;  // players' shots this close bend into a gravity well
 
         // Replicated to clients in the snapshot.
         public V2 PullCenter;      // The Singularity's gravity well
@@ -413,7 +416,7 @@ namespace Arena
                 case EnemyType.TwinB:
                 {
                     // The twins circle the arena on opposite sides.
-                    float a = e.T * 0.35f + (e.Type == EnemyType.TwinA ? 0f : MathX.Pi);
+                    float a = e.T * 0.47f + (e.Type == EnemyType.TwinA ? 0f : MathX.Pi);
                     var goal = new V2(Width / 2f + (float)Math.Cos(a) * 330f, Height / 2f + (float)Math.Sin(a) * 200f);
                     v = (goal - e.Pos) / 60f;
                     break;
@@ -515,6 +518,21 @@ namespace Arena
                     {
                         PullCenter = e.Pos;
                         PullStrength = SingularityPull;
+                    }
+                    // Gravity wells orbit it and swallow your shots. Kill all of them and they
+                    // come back 15 s later.
+                    int wells = CountChildren(e, EnemyType.GravityWell);
+                    e.T2 -= dt;
+                    if (wells > 0)
+                        e.T2 = Math.Max(e.T2, WellRespawn);
+                    else if (e.T2 <= 0f)
+                    {
+                        for (int i = 0; i < WellCount; i++)
+                        {
+                            var w = SpawnEnemyAt(EnemyType.GravityWell, e.Pos + V2.FromAngle(MathX.Tau * i / WellCount) * WellOrbit, 0.8f, e.Id);
+                            w.Ang = MathX.Tau * i / WellCount;
+                        }
+                        BroadcastFx(FxKind.Ring, e.Pos, Defs.Get(EnemyType.GravityWell).Color, WellOrbit + 40f, 0.6f, Sfx.Summon);
                     }
                     break;
                 }
@@ -687,6 +705,10 @@ namespace Arena
         /// (rerolls and the big orb drop).
         bool OnEnemyKilled(Enemy e)
         {
+            if (e.Type == EnemyType.Singularity)
+                foreach (var o in Enemies.Values)
+                    if (o.Type == EnemyType.GravityWell)
+                        o.Hp = 0f;  // its wells collapse with it
             if (e.Type == EnemyType.Splitter)
             {
                 int n = e.Elite ? 5 : 3;

@@ -126,6 +126,7 @@ namespace Arena
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
+        public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -1463,12 +1464,19 @@ namespace Arena
         {
             scratchIds.Clear();
             landed.Clear();
+            wells.Clear();
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
+                    wells.Add(e);
+            bool wellsUp = wells.Count > 0;
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f)
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot)
+                    PullIntoWells(b, dt);
                 b.Pos += b.Vel * dt;
                 b.Life -= dt;
                 if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
@@ -1527,19 +1535,39 @@ namespace Arena
             b.Vel = b.Vel.Rotated(turn);
         }
 
-        /// Host: the exact position and course of every homing bullet.
+        readonly List<Enemy> wells = new List<Enemy>();
+
+        /// The Singularity's gravity wells bend players' shots into themselves, harder the closer
+        /// they pass. Clients bend them the same way; the host sends the exact course.
+        void PullIntoWells(Bullet b, float dt)
+        {
+            foreach (var w in wells)
+            {
+                float d = b.Pos.DistanceTo(w.Pos);
+                if (d > WellPullRange)
+                    continue;
+                float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
+                float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
+                float rate = (1.5f + 10f * (1f - d / WellPullRange)) * dt;
+                b.Vel = b.Vel.Rotated(Math.Max(-rate, Math.Min(rate, diff)));
+                b.Pulled = true;
+                return;  // one well at a time
+            }
+        }
+
+        /// Host: the exact position and course of every homing (or gravity-bent) bullet.
         void SendSteer()
         {
             int n = 0;
             foreach (var b in Bullets.Values)
-                if (b.Homing > 0f)
+                if (b.Homing > 0f || b.Pulled)
                     n++;
             if (n == 0)
                 return;
             var w = Proto.Begin(Msg.Steer);
             w.Write(n);
             foreach (var b in Bullets.Values)
-                if (b.Homing > 0f)
+                if (b.Homing > 0f || b.Pulled)
                 {
                     w.Write(b.Id);
                     w.Write(b.Pos);
