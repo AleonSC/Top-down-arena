@@ -29,6 +29,7 @@ namespace Arena
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
+        bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
@@ -169,6 +170,14 @@ namespace Arena
                 pauseMenuOpen = false;
             bool menuUp = pauseMenuOpen || game.Paused;
             bool choosing = me != null && me.Offer != null && !menuUp;
+            // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
+            // parry: a press that starts while one is up is ignored until the button is released.
+            bool overlay = menuUp || choosing || game.State == MatchState.GameOver || game.State == MatchState.Victory;
+            if (overlay && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
+                clickOnMenu = true;
+            if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1))
+                clickOnMenu = false;
+            mouseBlocked = overlay || clickOnMenu;
             Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp;
             tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
                 && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
@@ -259,13 +268,13 @@ namespace Arena
                 Move = new V2(Axis(KeyCode.D, KeyCode.RightArrow) - Axis(KeyCode.A, KeyCode.LeftArrow),
                               Axis(KeyCode.S, KeyCode.DownArrow) - Axis(KeyCode.W, KeyCode.UpArrow)).Normalized(),
                 AimAt = MouseArena(),
-                Fire = Input.GetMouseButton(0),
+                Fire = Input.GetMouseButton(0) && !mouseBlocked,
                 Ability = wantAbility[0] || Input.GetKey(KeyCode.Space),
                 AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
                 AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
                 AbilityShift = wantAbility[3] || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
                 Ultimate = wantAbility[Upgrades.UltSlot] || Input.GetKey(KeyCode.F),
-                Parry = Input.GetMouseButton(1),
+                Parry = Input.GetMouseButton(1) && !mouseBlocked,
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -1592,12 +1601,16 @@ namespace Arena
             DrawWavePlate();
             DrawBossBars();
 
-            // Names, level-up popups and downed labels over players.
+            // Names, level-up popups and downed labels over players (hidden while they're under
+            // the between-waves banner, so they don't show on top of its text).
+            bool banner = game.State == MatchState.Intermission && (me == null || me.Offer == null);
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
                 V2 at = p.Disp * WorldToUi;  // arena -> HUD coordinates
                 r *= WorldToUi;
+                if (banner && at.X > BannerRect.x - 100f && at.X < BannerRect.xMax + 100f && at.Y > BannerRect.y - 20f && at.Y < BannerRect.yMax + r + 60f)
+                    continue;
                 Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12,
                     ToColor(p.Def.Color.WithAlpha(0.95f)));
                 if (p.LevelFlash > 0f)
@@ -1667,99 +1680,154 @@ namespace Arena
         /// other player and the game doesn't pause.
         void DrawTabMenu(Player me)
         {
-            var panel = new Rect(40f, 66f, W - 80f, 620f);
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.6f));
+            var panel = new Rect(36f, 54f, W - 72f, 640f);
             Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 12f, panel.width, 36f), "YOUR LOADOUT", 26, Color.white);
-            Ui.Label(new Rect(panel.x, panel.y + 46f, panel.width, 20f),
+            Ui.Title(new Rect(panel.x, panel.y + 12f, panel.width, 34f), "YOUR LOADOUT", 26, Color.white);
+            Ui.Label(new Rect(panel.x, panel.y + 46f, panel.width, 18f),
                 Defs.KitName(me.Kit) + " " + me.Def.Name + "   ·   Level " + me.Level + "   ·   " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left",
-                14, ToColor(me.Def.Color), TextAnchor.MiddleCenter, true);
-            float top = panel.y + 80f, bottom = panel.yMax - 18f;
-            const float pad = 24f, gap = 24f, statsW = 240f, abilW = 290f;
-            float x1 = panel.x + pad, x2 = x1 + statsW + gap, x3 = x2 + abilW + gap;
-            float upW = panel.xMax - pad - x3;
+                13, ToColor(me.Def.Color), TextAnchor.MiddleCenter, true);
+            float top = panel.y + 76f, bottom = panel.yMax - 16f;
+            const float pad = 16f, gap = 14f, statsW = 270f, abilW = 330f;
+            var statsBox = new Rect(panel.x + pad, top, statsW, bottom - top);
+            var abilBox = new Rect(statsBox.xMax + gap, top, abilW, bottom - top);
+            var upBox = new Rect(abilBox.xMax + gap, top, panel.xMax - pad - abilBox.xMax - gap, bottom - top);
+            DrawTabStats(me, statsBox);
+            DrawTabAbilities(me, abilBox);
+            DrawTabUpgrades(me, upBox);
+        }
 
-            // Column 1: stats (the same numbers as the upgrade screen's panel).
-            Ui.Heading(x1, top, statsW, "Stats");
-            float y = top + 30f;
+        /// Stats, grouped so they're quick to scan.
+        void DrawTabStats(Player me, Rect box)
+        {
+            Ui.HudPanel(box);
+            var lines = new Dictionary<string, string>();
             foreach (var line in StatSheet.Describe(me, me.Taken))
+                if (!line.Header && !lines.ContainsKey(line.Label))
+                    lines[line.Label] = line.Value;
+            Func<string, string> get = k => lines.ContainsKey(k) ? lines[k] : "";
+            string charges = "";
+            foreach (var kv in lines)
+                if (kv.Key.EndsWith(" charges") && kv.Key != "Bonus charges")
+                    charges = kv.Value;
+            var groups = new[]
             {
-                if (line.Header)
-                    break;  // abilities and upgrades are listed in the other columns
-                Ui.Label(new Rect(x1, y, statsW, 22f), line.Label, 14, Ui.Muted);
-                Ui.Label(new Rect(x1, y, statsW, 22f), line.Value, 14, Ui.Text, TextAnchor.MiddleRight, true);
-                y += 25f;
+                new KeyValuePair<string, string[,]>("OFFENSE", new string[,] { { "Damage", get("Damage") }, { "Fire rate", get("Fire rate") }, { "Extra projectiles", get("Extra projectiles") }, { "Pierce", get("Pierce") } }),
+                new KeyValuePair<string, string[,]>("DEFENSE", new string[,] { { "Health", Mathf.CeilToInt(me.Hp) + " / " + Mathf.CeilToInt(me.MaxHp) }, { "Damage taken", get("Damage taken") }, { "Regeneration", get("Regeneration") } }),
+                new KeyValuePair<string, string[,]>("UTILITY", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { "Space charges", charges } }),
+            };
+            float y = box.y + 12f;
+            foreach (var g in groups)
+            {
+                Ui.Label(new Rect(box.x + 16f, y, box.width - 32f, 16f), g.Key, 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+                y += 22f;
+                for (int i = 0; i < g.Value.GetLength(0); i++)
+                {
+                    var row = new Rect(box.x + 10f, y, box.width - 20f, 28f);
+                    if (i % 2 == 0)
+                        Ui.Fill(row, new Color(1f, 1f, 1f, 0.035f));
+                    Ui.Label(new Rect(row.x + 8f, row.y, row.width - 16f, row.height), g.Value[i, 0], 14, Ui.Muted);
+                    Ui.Label(new Rect(row.x + 8f, row.y, row.width - 16f, row.height), g.Value[i, 1], 15, Color.white, TextAnchor.MiddleRight, true);
+                    y += 28f;
+                }
+                y += 14f;
             }
-            Ui.Label(new Rect(x1, y, statsW, 22f), "Health now", 14, Ui.Muted);
-            Ui.Label(new Rect(x1, y, statsW, 22f), (int)me.Hp + " / " + (int)me.MaxHp, 14, Ui.Text, TextAnchor.MiddleRight, true);
+        }
 
-            // Column 2: weapon and abilities.
-            Ui.Heading(x2, top, abilW, "Weapon");
-            Ui.Label(new Rect(x2, top + 30f, abilW, 22f), me.Weapon.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x2, top + 54f, abilW, 40f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y = top + 100f;
-            Ui.Heading(x2, y, abilW, "Abilities");
-            y += 30f;
+        /// The weapon and each ability on its own tile.
+        void DrawTabAbilities(Player me, Rect box)
+        {
+            Ui.HudPanel(box);
+            float x = box.x + 12f, w = box.width - 24f, y = box.y + 12f;
+            Ui.Label(new Rect(x + 4f, y, w, 16f), "WEAPON", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            y += 20f;
+            Ui.Label(new Rect(x + 4f, y, w, 22f), me.Weapon.Name, 17, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 4f, y + 22f, w - 8f, 18f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            y += 54f;
+            Ui.Label(new Rect(x + 4f, y, w, 16f), "ABILITIES", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            y += 22f;
             for (int i = 0; i < me.Slots.Length; i++)
             {
                 var slot = me.Slots[i];
                 if (slot.Id == AbilityId.None)
                     continue;
                 var a = Upgrades.Ability(slot.Id);
-                Ui.Badge(new Rect(x2, y + 1f, 60f, 20f), SlotKeys[i], i == Upgrades.UltSlot ? new Color(0.7f, 0.52f, 0.15f) : ToColor(me.Def.Color));
-                Ui.Label(new Rect(x2 + 68f, y, abilW - 68f, 22f), a.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
-                string state = slot.Charges > 0 ? "ready" : Mathf.CeilToInt(slot.Timer) + "s";
+                bool ult = i == Upgrades.UltSlot;
+                var tile = new Rect(x, y, w, 80f);
+                Ui.Fill(tile, new Color(1f, 1f, 1f, 0.04f));
+                DrawKeyCap(new Rect(tile.x + 8f, tile.y + 8f, 0f, 18f), ult ? "ULT · F" : SlotKeys[i], ult ? Ui.Gold : ToColor(me.Def.Color));
+                Ui.Label(new Rect(tile.x + 8f, tile.y + 28f, tile.width - 16f, 20f), a.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
+                string state = slot.Charges > 0 ? "Ready" : Mathf.CeilToInt(slot.Timer) + "s";
                 if (slot.MaxCharges > 1)
-                    state = slot.Charges + "/" + slot.MaxCharges + (slot.Charges < slot.MaxCharges ? "  (" + Mathf.CeilToInt(slot.Timer) + "s)" : "");
-                Ui.Label(new Rect(x2 + 68f, y, abilW - 68f, 22f), state, 12, slot.Charges > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight);
-                Ui.Label(new Rect(x2 + 68f, y + 21f, abilW - 68f, 34f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
-                y += 60f;
+                    state = slot.Charges + "/" + slot.MaxCharges + " charges" + (slot.Charges < slot.MaxCharges ? "  ·  " + Mathf.CeilToInt(slot.Timer) + "s" : "");
+                Ui.Label(new Rect(tile.x + 8f, tile.y + 8f, tile.width - 16f, 18f), state, 12, slot.Charges > 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f, 30f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                y += 84f;
             }
+        }
 
-            // Column 3: every upgrade picked, rarest first, in two compact columns.
+        /// Every upgrade picked, grouped by rarity (rarest first) in two columns.
+        void DrawTabUpgrades(Player me, Rect box)
+        {
+            Ui.HudPanel(box);
             var counts = new Dictionary<int, int>();
-            var order = new List<int>();
             foreach (int id in me.Taken)
+                counts[id] = counts.ContainsKey(id) ? counts[id] + 1 : 1;
+            // A flat list of headers (id < 0, rarity in -id - 1) and upgrades, rarest first.
+            var items = new List<int>();
+            for (int rr = (int)Rarity.Mod; rr >= 0; rr--)
             {
-                if (!counts.ContainsKey(id))
-                {
-                    counts[id] = 0;
-                    order.Add(id);
-                }
-                counts[id]++;
+                var group = new List<int>();
+                foreach (var id in counts.Keys)
+                    if ((int)Upgrades.All[id].Rarity == rr)
+                        group.Add(id);
+                if (group.Count == 0)
+                    continue;
+                group.Sort((a, b) => string.CompareOrdinal(Upgrades.All[a].Name, Upgrades.All[b].Name));
+                items.Add(-rr - 1);
+                items.AddRange(group);
             }
-            order.Sort((a, b) => Upgrades.All[b].Rarity != Upgrades.All[a].Rarity
-                ? Upgrades.All[b].Rarity.CompareTo(Upgrades.All[a].Rarity)
-                : string.CompareOrdinal(Upgrades.All[a].Name, Upgrades.All[b].Name));
-            const float rowH = 20f, subGap = 16f;
-            float subW = (upW - subGap) / 2f;
-            float listTop = top + 30f;
-            int rowsPerCol = Mathf.FloorToInt((bottom - listTop) / rowH);
-            int perPage = rowsPerCol * 2;
-            // If it ever overflows, the mouse wheel scrolls the list (by rows across both columns).
-            int maxScroll = Math.Max(0, order.Count - perPage);
+            Ui.Label(new Rect(box.x + 16f, box.y + 12f, box.width - 32f, 16f), "UPGRADES", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(box.x + 16f, box.y + 12f, box.width - 32f, 16f), me.Taken.Count + " picks", 11, Ui.Muted, TextAnchor.MiddleRight, true);
+            if (items.Count == 0)
+            {
+                Ui.Label(new Rect(box.x + 16f, box.y + 40f, box.width - 32f, 22f), "None yet: level up to pick some.", 13, Ui.Muted);
+                return;
+            }
+            const float rowH = 23f, colGap = 14f;
+            float listTop = box.y + 36f, colW = (box.width - 24f - colGap) / 2f;
+            int perCol = Mathf.FloorToInt((box.yMax - 10f - listTop) / rowH);
+            int maxScroll = Math.Max(0, items.Count - perCol * 2);
             if (Event.current.type == EventType.ScrollWheel)
             {
                 tabScroll += Event.current.delta.y > 0f ? 2 : -2;
                 Event.current.Use();
             }
             tabScroll = Mathf.Clamp(tabScroll, 0, maxScroll);
-            string heading = "Upgrades (" + me.Taken.Count + " picks, " + order.Count + " different)";
-            Ui.Heading(x3, top, upW, heading);
             if (maxScroll > 0)
-                Ui.Label(new Rect(x3, top, upW, 20f), "scroll for more", 11, Ui.Muted, TextAnchor.MiddleRight);
-            if (order.Count == 0)
-                Ui.Label(new Rect(x3, listTop, upW, 22f), "None yet: level up to pick some.", 13, Ui.Muted);
-            for (int k = 0; k < perPage && tabScroll + k < order.Count; k++)
+                Ui.Label(new Rect(box.x + 16f, box.yMax - 20f, box.width - 32f, 14f), "scroll for more", 10, Ui.Muted, TextAnchor.MiddleRight);
+            for (int k = 0; k < perCol * 2 && tabScroll + k < items.Count; k++)
             {
-                int id = order[tabScroll + k];
-                var u = Upgrades.All[id];
-                float cx = x3 + (k / rowsPerCol) * (subW + subGap);
-                float cy = listTop + (k % rowsPerCol) * rowH;
-                Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
-                Ui.Icon(new Rect(cx, cy + 1f, 18f, 18f), PixelArt.ForUpgrade(u.Name));
-                Ui.Label(new Rect(cx + 24f, cy, subW - 56f, rowH), u.Name, 13, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
-                if (counts[id] > 1)
-                    Ui.Label(new Rect(cx, cy, subW, rowH), "x" + counts[id], 12, Ui.Text, TextAnchor.MiddleRight, true);
+                int item = items[tabScroll + k];
+                float cx = box.x + 12f + (k / perCol) * (colW + colGap), cy = listTop + (k % perCol) * rowH;
+                if (item < 0)
+                {
+                    var rarity = (Rarity)(-item - 1);
+                    Color rc = ToColor(Upgrades.RarityColor(rarity));
+                    Ui.Pill(new Rect(cx, cy + 9f, 3f, 8f), rc);
+                    Ui.Label(new Rect(cx + 9f, cy + 3f, colW - 9f, 20f), Upgrades.RarityName(rarity), 11, rc, TextAnchor.MiddleLeft, true);
+                    Ui.Fill(new Rect(cx, cy + rowH - 1f, colW, 1f), new Color(rc.r, rc.g, rc.b, 0.25f));
+                    continue;
+                }
+                var u = Upgrades.All[item];
+                Ui.Icon(new Rect(cx + 2f, cy + 3f, 18f, 18f), PixelArt.ForUpgrade(u.Name));
+                Ui.Label(new Rect(cx + 26f, cy, colW - 60f, rowH), u.Name, 13, Ui.Text, TextAnchor.MiddleLeft);
+                if (counts[item] > 1)
+                {
+                    var badge = new Rect(cx + colW - 30f, cy + 4f, 28f, 16f);
+                    Ui.Pill(badge, new Color(1f, 1f, 1f, 0.12f));
+                    Ui.Label(badge, "x" + counts[item], 10, Color.white, TextAnchor.MiddleCenter, true);
+                }
             }
         }
 
@@ -2032,10 +2100,12 @@ namespace Arena
         }
 
         /// A centered announcement between waves.
+        static readonly Rect BannerRect = new Rect(W / 2f - 280f, H / 2f - 92f, 560f, 96f);
+
         void DrawBanner(string title, string sub, Color accent)
         {
-            var r = new Rect(W / 2f - 280f, H / 2f - 92f, 560f, sub.Length > 0 ? 96f : 70f);
-            Ui.HudPanel(r, accent);
+            var r = new Rect(BannerRect.x, BannerRect.y, BannerRect.width, sub.Length > 0 ? 96f : 70f);
+            Ui.Card(r, accent, 0.8f);  // solid, so nothing in the arena shows through
             Ui.Fill(new Rect(r.x + 40f, r.y + 14f, r.width - 80f, 1f), new Color(accent.r, accent.g, accent.b, 0.35f));
             Ui.Title(new Rect(r.x, r.y + 16f, r.width, 40f), title, 30, Color.white);
             if (sub.Length > 0)
@@ -2168,11 +2238,11 @@ namespace Arena
             }
 
             // Confirm and reroll buttons under the cards.
-            const float btnW = 260f;
+            const float btnW = 280f;
             float by = top + rows * ch + (rows - 1) * gap + 26f;
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
-            string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
+            string confirmText = selectedCard >= 0 ? "Confirm  [Enter]" : "Pick a card first";  // the selected card shows its name
             if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, selectedCard >= 0 ? Ui.Primary : Ui.Neutral))
                 ConfirmPick();
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod;
