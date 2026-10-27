@@ -14,7 +14,7 @@ namespace Arena
         None, EnemyShot, Hit, Hurt, Explode, BigExplode, Ability, Shockwave, Blink,
         LevelUp, Pick, WaveStart, WaveClear, GameOver, Downed, Revive,
         // One gunshot per weapon, plus the turret and Nova.
-        ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotWisp, ShotBow, ShotAssault, ShotSniper, ShotSmg,
+        ShotShotgun, ShotCannon, ShotRifle, ShotSuppressed, ShotPistol, ShotBow, ShotAssault, ShotSniper, ShotSmg,
         ShotTurret, ShotNova,
         Pickup, PickupBig, Roar, Victory,
         SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
@@ -1088,10 +1088,9 @@ namespace Arena
                     case WeaponId.LightBolt:
                         SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
                         break;
-                    case WeaponId.TwinWisps:
-                        // Start angled outward and curve back in, crossing about 200 px ahead.
-                        SpawnBullet(Defs.WispShot, muzzle, V2.FromAngle(aim - 0.45f) * 420f, 1.9f, 0.9f, 10f * dmg, p.Id);
-                        SpawnBullet(Defs.WispShot, muzzle, V2.FromAngle(aim + 0.45f) * 420f, -1.9f, 0.9f, 10f * dmg, p.Id);
+                    case WeaponId.Pistol:
+                        // One accurate shot: 17 damage every 0.3 s.
+                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * 700f, 0f, 1.1f, 17f * dmg, p.Id);
                         break;
                     case WeaponId.MendersBow:
                         SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;
@@ -1475,7 +1474,7 @@ namespace Arena
                 case WeaponId.FlakCannon: return Sfx.ShotCannon;
                 case WeaponId.RiotRepeater: return Sfx.ShotRifle;
                 case WeaponId.LightBolt: return Sfx.ShotSuppressed;
-                case WeaponId.TwinWisps: return Sfx.ShotWisp;
+                case WeaponId.Pistol: return Sfx.ShotPistol;
                 case WeaponId.MendersBow: return Sfx.ShotBow;
                 case WeaponId.TwinRifle: return Sfx.ShotAssault;
                 case WeaponId.Railgun: return Sfx.ShotSniper;

@@ -227,13 +227,13 @@ namespace Arena
                 Tail = 0.05f, TailDecay = 0.08f, TailLowpass = 800f,
                 Reverb = 0.08f, Duration = 0.18f, Peak = 0.4f,
             });
-            SetGun(Sfx.ShotWisp, 0.1f, new Gun
+            SetGun(Sfx.ShotPistol, 0.1f, new Gun  // a snappy handgun: sharp crack, short body, a little room
             {
-                Crack = 0.2f, CrackDecay = 0.0012f, CrackHighpass = 2500f,
-                Body = 0.6f, BodyDecay = 0.02f, BodyLowpass = 2500f,
-                Thump = 0.35f, ThumpFrom = 260f, ThumpTo = 120f, ThumpDecay = 0.025f,
-                Tail = 0.04f, TailDecay = 0.06f, TailLowpass = 1000f,
-                Reverb = 0.1f, Duration = 0.16f, Peak = 0.35f,
+                Crack = 0.85f, CrackDecay = 0.002f, CrackHighpass = 2600f,
+                Body = 0.75f, BodyDecay = 0.035f, BodyLowpass = 3200f,
+                Thump = 0.45f, ThumpFrom = 200f, ThumpTo = 90f, ThumpDecay = 0.045f,
+                Tail = 0.18f, TailDecay = 0.18f, TailLowpass = 1400f,
+                Reverb = 0.15f, Duration = 0.35f, Peak = 0.5f,
             });
             SetGun(Sfx.ShotAssault, 0.07f, new Gun
             {

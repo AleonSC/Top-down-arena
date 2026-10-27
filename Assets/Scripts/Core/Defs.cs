@@ -28,7 +28,7 @@ namespace Arena
     public enum WeaponId : byte
     {
         // Soldier
-        Scattergun, FlakCannon, RiotRepeater, LightBolt, TwinWisps, MendersBow, TwinRifle, Railgun, BurstSmg,
+        Scattergun, FlakCannon, RiotRepeater, LightBolt, Pistol, MendersBow, TwinRifle, Railgun, BurstSmg,
         // Mage
         FlameBurst, FrostLance, StormHammer, RadiantOrb, ChainLight, PrismBeam, Fireball, ArcLightning, ArcaneMissiles,
         // Summoner
@@ -141,7 +141,7 @@ namespace Arena
                 Companion = MinionKind.Bear, CompanionCount = 1 },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
-            new WeaponDef { Id = WeaponId.TwinWisps, Name = "Twin Wisps", FireInterval = 0.35f, Desc = "Two curving shots that cross in front of you." },
+            new WeaponDef { Id = WeaponId.Pistol, Name = "Pistol", FireInterval = 0.3f, Desc = "Accurate, hard-hitting single shots." },
             new WeaponDef { Id = WeaponId.MendersBow, Name = "Mender's Bow", FireInterval = 0.3f, Desc = "Bolts heal your ally when they pass through them." },
             new WeaponDef { Id = WeaponId.RadiantOrb, Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
             new WeaponDef { Id = WeaponId.ChainLight, Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
@@ -200,7 +200,7 @@ namespace Arena
                 case NovaShot: return 6f;
                 case FlakShell: return 8f;
                 case RailShot: return 3.5f;
-                case WispShot: return 5f;
+                case WispShot: return 5f;  // no longer fired by any weapon (Twin Wisps became the Pistol)
                 case GrenadeShot: return 7f;
                 case SwarmShot: return 3f;
                 case FireShot: return 6f;
