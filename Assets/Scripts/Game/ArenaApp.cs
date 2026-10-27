@@ -1218,7 +1218,7 @@ namespace Arena
                 Ui.Label(new Rect(lx, y, lw, 20f), "Blue = Tailscale address", 12, Ui.Muted);
             }
             else
-                Ui.Label(new Rect(lx, y, lw, 20f), "Connected. Waiting for the host to start.", 14, Ui.Good);
+                Ui.Label(new Rect(lx, y, lw, 20f), "Connected. Click Ready, then the host starts.", 14, Ui.Good);
             if (session.Status.Length > 0)
                 Ui.Label(new Rect(lx, H - 150f, lw, 60f), session.Status, 13, Ui.Warn, TextAnchor.UpperLeft, false, true);
 
@@ -1229,13 +1229,26 @@ namespace Arena
             // Bottom bar.
             if (Ui.Button(new Rect(40f, H - 76f, 180f, 48f), "Leave", Ui.Danger))
                 session.Leave("");
+            // Everyone readies up; then the host can start.
+            bool ready = me != null && me.Ready;
+            float readyX = session.IsHost ? W - 580f : W - 300f;
+            if (Ui.Button(new Rect(readyX, H - 76f, 260f, 48f), ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary))
+                session.RequestReady(!ready);
+            int waiting = 0;
+            foreach (var e in session.Lobby.Values)
+                if (!e.Ready)
+                    waiting++;
+            string note = waiting == 0 ? (session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start")
+                : waiting == 1 && !ready ? "Click Ready when your loadout is set" : "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up";
+            Ui.Label(new Rect(240f, H - 76f, readyX - 260f, 48f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
             if (session.IsHost)
             {
+                bool wasEnabled = GUI.enabled;
+                GUI.enabled = session.AllReady;
                 if (Ui.Button(new Rect(W - 300f, H - 76f, 260f, 48f), session.Lobby.Count < Session.MaxPlayers ? "Start solo" : "Start game", Ui.Primary))
                     session.StartMatch();
+                GUI.enabled = wasEnabled;
             }
-            else
-                Ui.Label(new Rect(W - 440f, H - 76f, 400f, 48f), "The host starts the game", 15, Ui.Muted, TextAnchor.MiddleRight);
         }
 
         void DrawPlayerCard(Rect r, LobbyEntry e)
@@ -1255,8 +1268,10 @@ namespace Arena
                 bx -= 58f;
                 Ui.Badge(new Rect(bx, r.y + 12f, 52f, 22f), "HOST", Ui.GoldButton);
             }
+            // Ready state, bottom right of the card.
+            Ui.Badge(new Rect(r.xMax - 104f, r.yMax - 32f, 88f, 22f), e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.6f, 0.32f) : Ui.Neutral);
             Ui.Label(new Rect(r.x + 20f, r.y + 40f, r.width - 40f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 15, color, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 20f, r.y + 62f, r.width - 40f, 22f),
+            Ui.Label(new Rect(r.x + 20f, r.y + 62f, r.width - 130f, 22f),
                 Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 13, Ui.Muted);
         }
 

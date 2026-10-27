@@ -12,7 +12,7 @@ namespace Arena
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
         // added later; kept at the end so existing values don't shift
-        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer,
+        Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest,
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -48,6 +48,7 @@ namespace Arena
         public Kit Kit;       // Soldier, Mage or Summoner
         public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
+        public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -59,7 +60,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 20;
+        public const int ProtocolVersion = 21;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -280,6 +281,9 @@ namespace Arena
                 case Msg.KitRequest:
                     SetKit(peer, r.ReadByte());
                     break;
+                case Msg.ReadyRequest:
+                    SetReady(peer, r.ReadBoolean());
+                    break;
                 case Msg.Reroll:
                     Game.HostReroll(peer);
                     break;
@@ -320,6 +324,7 @@ namespace Arena
                 e.Ability = 0;
             }
             e.Role = (Role)role;
+            e.Ready = false;  // changing your loadout takes back your Ready
             BroadcastLobby();
         }
 
@@ -338,6 +343,7 @@ namespace Arena
                 e.Ability = 0;
             }
             e.Kit = ClampKit(kit);
+            e.Ready = false;
             BroadcastLobby();
         }
 
@@ -347,6 +353,7 @@ namespace Arena
             if (!Lobby.TryGetValue(id, out e))
                 return;
             e.Ability = (byte)ClampAbility(ability);
+            e.Ready = false;
             BroadcastLobby();
         }
 
@@ -356,7 +363,45 @@ namespace Arena
             if (!Lobby.TryGetValue(id, out e))
                 return;
             e.Weapon = (byte)ClampWeapon(weapon);
+            e.Ready = false;
             BroadcastLobby();
+        }
+
+        void SetReady(int id, bool ready)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e) || Game.Running)
+                return;
+            e.Ready = ready;
+            BroadcastLobby();
+        }
+
+        /// Everyone in the lobby has clicked Ready.
+        public bool AllReady
+        {
+            get
+            {
+                if (Lobby.Count == 0)
+                    return false;
+                foreach (var e in Lobby.Values)
+                    if (!e.Ready)
+                        return false;
+                return true;
+            }
+        }
+
+        public void RequestReady(bool ready)
+        {
+            if (IsHost)
+            {
+                SetReady(1, ready);
+            }
+            else
+            {
+                var w = Proto.Begin(Msg.ReadyRequest);
+                w.Write(ready);
+                SendToHost(Proto.End(w));
+            }
         }
 
         void BroadcastLobby()
@@ -371,14 +416,22 @@ namespace Arena
                 w.Write((byte)e.Kit);
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
+                w.Write(e.Ready);
             }
             Broadcast(Proto.End(w));
         }
 
+        /// From the lobby the match only starts once everyone is ready ("Play again" after
+        /// a run starts straight away; AutoStart is for tests).
         public void StartMatch()
         {
-            if (IsHost)
-                Game.HostStart();
+            if (!IsHost)
+                return;
+            if (Screen == AppScreen.Lobby && AutoStart == 0 && !AllReady)
+                return;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;  // ready up again next time you're back in the lobby
+            Game.HostStart();
         }
 
         public void ReturnToLobby()
@@ -388,6 +441,9 @@ namespace Arena
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
             Game.Stop();
             Screen = AppScreen.Lobby;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
         }
 
         public void RequestWeapon(int weapon)
@@ -507,6 +563,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
+                        e.Ready = r.ReadBoolean();
                         Lobby[e.Id] = e;
                     }
                     if (!Game.Running)

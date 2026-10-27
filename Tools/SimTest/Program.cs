@@ -344,6 +344,44 @@ static class Program
         }
     }
 
+    // The match can't start from the lobby until both players have clicked Ready.
+    static void ReadyTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session();
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        Run(s, dt, 3, () => host.Lobby.Count == 2 && client.Lobby.Count == 2);
+        host.StartMatch();
+        Run(s, dt, 0.5f);
+        bool blockedNoneReady = !host.Game.Running;
+        host.RequestReady(true);
+        host.StartMatch();
+        Run(s, dt, 0.5f);
+        bool blockedOneReady = !host.Game.Running && client.Lobby[1].Ready && !client.Lobby[2].Ready;
+        client.RequestReady(true);
+        client.RequestWeapon(1);  // changing your loadout takes the Ready back...
+        Run(s, dt, 0.5f);
+        bool unreadied = !host.Lobby[2].Ready && host.Lobby[2].Weapon == 1;
+        client.RequestReady(true);  // ...so click it again
+        Run(s, dt, 0.5f);
+        bool allReady = host.AllReady && client.AllReady;
+        host.StartMatch();
+        Run(s, dt, 1f, () => client.Screen == AppScreen.Game);
+        bool started = host.Game.Running && client.Screen == AppScreen.Game;
+        host.ReturnToLobby();
+        Run(s, dt, 0.5f);
+        bool resetInLobby = !host.AllReady && !client.Lobby[1].Ready && !client.Lobby[2].Ready;
+        Console.WriteLine("  none ready blocked {0}, one ready blocked {1}, loadout change unreadies {2}, both ready {3}, started {4}, reset in lobby {5}",
+            blockedNoneReady, blockedOneReady, unreadied, allReady, started, resetInLobby);
+        Check(blockedNoneReady && blockedOneReady, "the host can't start until both players are ready");
+        Check(unreadied && allReady && started, "once both are ready the match starts (changing loadout un-readies you)");
+        Check(resetInLobby, "back in the lobby, everyone has to ready up again");
+        host.Leave(""); client.Leave("");
+    }
+
     // Every role and class has its own ultimate on right click, and each one works over the network.
     static void UltimateSweep(float dt)
     {
@@ -978,6 +1016,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "ready")
+        {
+            ReadyTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "ults")
         {
             UltimateSweep(1f / 60f);
@@ -1231,6 +1275,7 @@ static class Program
         LegendarySync(dt);
         WeaponModTest(dt);
         UltimateSweep(dt);
+        ReadyTest(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

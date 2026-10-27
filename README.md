@@ -219,7 +219,7 @@ One person **hosts**, the other **joins**. The host's game acts as the server, s
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.
 2. Host: open the game, click **Host game**. The lobby lists your addresses; give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
-4. Both pick a role; the host clicks **Start game**.
+4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host clicks **Start game**.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
