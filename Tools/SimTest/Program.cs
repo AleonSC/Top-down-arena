@@ -1598,6 +1598,87 @@ static class Program
             Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
             s[0].Leave(""); s[1].Leave("");
         }
+        // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones
+        // aimed at where each player was when they launched, then her bullet patterns, then again.
+        {
+            var s = StartBuffed(dt, 10, 0);
+            Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var q = Find(s[0], EnemyType.HiveQueen);
+            Run(s, dt, 1.5f);
+            bool shieldUp = q.Phase == 1 && Find(s[0], EnemyType.Shard) != null && (int)q.T2 == 1;
+            bool bombersEarly = Find(s[0], EnemyType.HiveBomber) != null;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Type == EnemyType.Shard) e.Hp = 0f;
+            var stages = new List<int> { (int)q.T2 };
+            var aimedAt = new Dictionary<int, V2>();
+            var lastPos = new Dictionary<int, V2>();
+            int launched = 0, onTarget = 0, offTarget = 0, aimedRight = 0, fans = 0;
+            bool clientBomber = false, clientMarker = false, resummoned = false;
+            float hpBefore = 1f, hpAfter = 1f, t = 0f;  // minus damage taken so far, when the bomber stage starts / ends
+            Run(s, dt, 26f, null, () =>
+            {
+                t += dt;
+                int st = (int)q.T2;
+                if (stages[stages.Count - 1] != st) stages.Add(st);
+                // Both players keep running in circles.
+                int k = 0;
+                foreach (var p in s[0].Game.Players.Values)
+                {
+                    p.Pos = new V2(800f, 500f) + V2.FromAngle(t * 1.1f + k++ * MathX.Pi) * 260f;
+                    Player cp;
+                    if (s[1].Game.Players.TryGetValue(p.Id, out cp)) cp.Pos = p.Pos;  // the joining player reports its own position
+                    if (st != 2) p.Hp = p.MaxHp;
+                }
+                if (st == 2 && hpBefore > 0f) hpBefore = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
+                if (st == 3 && hpAfter > 0f) hpAfter = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
+                if (st == 1 && stages.Count > 3) resummoned = true;
+                foreach (var e in s[0].Game.Enemies.Values)
+                {
+                    if (e.Type != EnemyType.HiveBomber) continue;
+                    if (!aimedAt.ContainsKey(e.Id))
+                    {
+                        launched++;
+                        aimedAt[e.Id] = e.Waypoint;
+                        foreach (var p in s[0].Game.Players.Values)
+                            if (p.Pos.DistanceTo(e.Waypoint) < 15f) { aimedRight++; break; }  // within a frame or two of running
+                    }
+                    lastPos[e.Id] = e.Pos;
+                }
+                foreach (var id in new List<int>(lastPos.Keys))
+                    if (!s[0].Game.Enemies.ContainsKey(id))
+                    {
+                        if (lastPos[id].DistanceTo(aimedAt[id]) < 25f) onTarget++; else offTarget++;
+                        lastPos.Remove(id);
+                    }
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Kind == Defs.PierceShot && b.Source == EnemyType.HiveQueen) { fans++; break; }
+                clientBomber |= Find(s[1], EnemyType.HiveBomber) != null;
+                foreach (var fx in s[1].Game.Effects) clientMarker |= fx.Kind == FxKind.Target;
+            });
+            Console.WriteLine("  queen loop: stages {0}; {1} bombers launched ({2} aimed at a player's spot), {3} blew up on their spot, {4} elsewhere; running players lost {5:0} HP to them; fans {6}",
+                string.Join(">", stages), launched, aimedRight, onTarget, offTarget, hpBefore - hpAfter, fans);
+            Check(shieldUp && !bombersEarly, "the Hive Queen opens with shooting drones and is shielded while they live");
+            Check(stages.Count >= 4 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && resummoned, "the Hive Queen loops: drones, then bombers, then bullets, then drones again");
+            Check(launched >= 8 && aimedRight == launched && onTarget >= launched - 2 && clientBomber && clientMarker,
+                "Hive bombers fly to where a player was when they launched and blow up there (seen on client, with a marker)");
+            Check(hpBefore - hpAfter < 30f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
+            // ...but standing still gets you blown up.
+            {
+                foreach (var e in s[0].Game.Enemies.Values) if (e.Type != EnemyType.HiveQueen) e.Hp = 0f;
+                q.T2 = 1; q.PhaseT = 0f;  // hold her in the drone stage (no drones left to shoot)
+                Run(s, dt, 0.1f);
+                var still = s[0].Game.Players[1];
+                still.Hp = still.MaxHp; still.InvulnT = 0f;
+                typeof(Game).GetMethod("LaunchBomber", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .Invoke(s[0].Game, new object[] { q, still.Pos });
+                V2 at = still.Pos;
+                float taken0 = still.Run.DamageTaken;
+                Run(s, dt, 2.5f, null, () => { still.Pos = at; if ((int)q.T2 != 1) { q.T2 = 1; q.PhaseT = 0f; } });
+                Check(still.Run.DamageTaken - taken0 >= 20f, "a Hive bomber blows up a player who stands still");
+            }
+            s[0].Leave(""); s[1].Leave("");
+        }
         // Twin Reapers (wave 15): killing one enrages the other; it revives unless both die in time.
         {
             var s = StartBuffed(dt, 15, 0);

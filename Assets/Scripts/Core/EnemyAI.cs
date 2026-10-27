@@ -322,6 +322,8 @@ namespace Arena
                     if (e.FireT <= 0f)
                         EnemyFire(e, tpos);
                 }
+                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber)
+                    continue;  // blew up this tick, or explodes instead of bumping
                 // Bosses and heavies hurt to stand in, more so later on.
                 float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
@@ -386,8 +388,8 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.Charger && e.Phase != 0)
                 return;  // locked in while winding up and dashing
-            if (e.Type == EnemyType.Lunger && e.Phase >= 2)
-                return;  // committed to the leap
+            if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber)
+                return;  // committed to the leap / flight line
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -399,6 +401,14 @@ namespace Arena
         }
 
         const float QueenSwarmHp = 3f;  // the Hive Queen's shards have 3x normal shard health
+
+        // The Hive Queen loops through three stages (Enemy.T2), timed by PhaseT:
+        const int QueenStart = 0, QueenSwarm = 1, QueenBombers = 2, QueenBullets = 3;
+        const float QueenSwarmMax = 18f;    // she moves on after this long even if her swarm still stands
+        const float QueenBomberTime = 4.5f; // explosive drones, launched at where each player is
+        const float QueenBulletTime = 10f;  // aimed fans for 5 s, then rings for 5 s
+        const int QueenSwarmCap = 8;
+        const float BomberBlast = 60f, BomberDamage = 22f;
 
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
         bool BlocksShot(Enemy e, V2 from)
@@ -413,6 +423,48 @@ namespace Arena
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
             return diff < ShieldHalfAngle;
+        }
+
+        void QueenStage(Enemy e, int stage)
+        {
+            e.T2 = stage;
+            e.PhaseT = 0f;
+            e.FireT = 0.6f;  // a beat before each stage starts firing
+        }
+
+        int AlivePlayers()
+        {
+            int n = 0;
+            foreach (var p in Players.Values)
+                if (!p.Downed)
+                    n++;
+            return n;
+        }
+
+        /// An explosive drone that flies straight to `at` (where its target was when it launched).
+        void LaunchBomber(Enemy queen, V2 at)
+        {
+            V2 dir = (at - queen.Pos).Normalized();
+            var b = SpawnEnemyAt(EnemyType.HiveBomber, queen.Pos + dir * (queen.Radius + 8f), 0.15f, queen.Id);
+            b.Waypoint = at;
+            b.Facing = dir.Angle;
+            float flight = 0.15f + Math.Max(0f, at.DistanceTo(b.Pos) - 12f) / b.Speed;
+            BroadcastFx(FxKind.Target, at, b.Def.Color, BomberBlast, flight, Sfx.None);
+        }
+
+        void BomberExplode(Enemy e)
+        {
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || p.InvulnT > 0f || p.Pos.DistanceTo(e.Pos) > BomberBlast + p.Def.HitR)
+                    continue;
+                if (p.ParryActive && ParryContact(p, e, BomberDamage))
+                    continue;  // a raised guard facing the blast takes it
+                Damage(p, BomberDamage, e.Def.Name);
+            }
+            BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, BomberBlast, 0.35f, Sfx.Explode);
+            e.LastHitBy = 0;  // no kill credit for blowing itself up
+            e.Hp = 0f;
         }
 
         static V2 KeepDistance(V2 dir, float dist, float want)
@@ -463,6 +515,9 @@ namespace Arena
                         v = V2.FromAngle(e.Facing);
                         speed = 560f;
                     }
+                    break;
+                case EnemyType.HiveBomber:  // a straight line to the spot it was launched at
+                    v = e.Waypoint - e.Pos;
                     break;
                 case EnemyType.Swarmer:  // straight at you, weaving a little
                     v = dir + dir.Orthogonal() * (float)Math.Sin(e.T * 5f + e.Id) * 0.45f;
@@ -636,22 +691,49 @@ namespace Arena
                 {
                     int swarm = 0;
                     foreach (var o in Enemies.Values)
-                        if (o.ParentId == e.Id)
+                        if (o.ParentId == e.Id && o.Type == EnemyType.Shard)
                             swarm++;
-                    e.Phase = (byte)(swarm >= 3 ? 1 : 0);  // shielded while her swarm is big
-                    e.PhaseT -= dt;
-                    if (e.PhaseT <= 0f && swarm < 8)
+                    e.Phase = (byte)(swarm > 0 ? 1 : 0);  // shielded until every one of her shooting drones is dead
+                    e.PhaseT += dt;
+                    switch ((int)e.T2)
                     {
-                        e.PhaseT = 6f;
-                        for (int i = 0; i < 3; i++)
+                        case QueenStart:
                         {
-                            // Her swarm is tougher than ordinary shards, so it takes real effort to break her shield.
-                            var drone = SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / 3f) * 70f, 0.5f, e.Id);
-                            drone.MaxHp *= QueenSwarmHp;
-                            drone.Hp = drone.MaxHp;
+                            // Her shooting drones, tougher than ordinary shards: kill them all to drop her shield.
+                            int n = Math.Min(QueenSwarmCap - swarm, 3 + AlivePlayers());
+                            for (int i = 0; i < n; i++)
+                            {
+                                var drone = SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / n) * 70f, 0.5f, e.Id);
+                                drone.MaxHp *= QueenSwarmHp;
+                                drone.Hp = drone.MaxHp;
+                            }
+                            BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.Ability);
+                            QueenStage(e, QueenSwarm);
+                            break;
                         }
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.Ability);
+                        case QueenSwarm:
+                            if (swarm == 0 && e.PhaseT > 1f || e.PhaseT > QueenSwarmMax)
+                                QueenStage(e, QueenBombers);
+                            break;
+                        case QueenBombers:
+                            if (e.PhaseT > QueenBomberTime)
+                                QueenStage(e, QueenBullets);
+                            break;
+                        default:
+                            if (e.PhaseT > QueenBulletTime)
+                                QueenStage(e, QueenStart);
+                            break;
                     }
+                    break;
+                }
+                case EnemyType.HiveBomber:
+                {
+                    // Blows up when it reaches the spot it was launched at, or on touching anyone on the way.
+                    bool hit = e.Pos.DistanceTo(e.Waypoint) < 12f;
+                    foreach (var p in Players.Values)
+                        hit |= !p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR;
+                    if (hit)
+                        BomberExplode(e);
                     break;
                 }
                 case EnemyType.Singularity:
@@ -802,7 +884,17 @@ namespace Arena
                     }
                     break;
                 case EnemyType.HiveQueen:
-                    if ((int)(e.T / 5f) % 2 == 0)
+                    if ((int)e.T2 == QueenSwarm)
+                        e.FireT = 0.3f;  // her drones do the shooting
+                    else if ((int)e.T2 == QueenBombers)
+                    {
+                        // One explosive drone per player, aimed at where they are right now: keep moving.
+                        e.FireT = 0.9f;
+                        foreach (var p in Players.Values)
+                            if (!p.Downed)
+                                LaunchBomber(e, p.Pos);
+                    }
+                    else if (e.PhaseT < QueenBulletTime / 2f)
                     {
                         // Aimed fan, with gaps wide enough to slip through even up close.
                         e.FireT = 0.9f;

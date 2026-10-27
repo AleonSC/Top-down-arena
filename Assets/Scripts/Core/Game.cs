@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt }
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target }  // Target: a marker where something is about to land
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte

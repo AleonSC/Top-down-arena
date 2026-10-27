@@ -598,6 +598,11 @@ namespace Arena
                     case FxKind.Ring:
                         Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
                         break;
+                    case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
+                        Circle(fx.Pos, fx.Radius, fx.Color.WithAlpha(0.08f + 0.12f * f), 32);
+                        Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
+                        Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
+                        break;
                     case FxKind.Bolt:  // jagged lightning between two points
                     {
                         V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
@@ -831,6 +836,14 @@ namespace Arena
                     else if (e.Phase == 2)
                         Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
                     break;
+                case EnemyType.HiveBomber:  // a hot glow and a faint streak along its flight line
+                    if (!spawning)
+                    {
+                        Circle(pos, r + 5f + 2f * Mathf.Sin(t * 30f), new Rgba(1f, 0.5f, 0.15f, 0.3f), 16);
+                        V2 ahead = V2.FromAngle(e.Facing);
+                        Line(pos, pos + ahead * 90f, 3f, new Rgba(1f, 0.5f, 0.2f, 0.18f));
+                    }
+                    break;
                 case EnemyType.HiveQueen:
                     if (e.Phase == 1)  // shielded by her swarm
                     {
@@ -950,6 +963,7 @@ namespace Arena
                 case EnemyType.Shard:
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
+                case EnemyType.HiveBomber:
                     rot = e.Facing;  // point where they're aiming
                     break;
                 case EnemyType.Spinner:
