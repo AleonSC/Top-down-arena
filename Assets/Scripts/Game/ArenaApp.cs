@@ -1708,12 +1708,11 @@ namespace Arena
             // Player cards in the top-right corner, yours first.
             var ids = new List<int>(game.Players.Keys);
             ids.Sort((a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b));
-            const float cardW = 232f, cardH = 66f, cardGap = 8f;
-            float x = W - (cardW + cardGap) * ids.Count - 8f;
+            float x = PlayerCardsLeft;
             foreach (int id in ids)
             {
-                DrawPlayerHudCard(game.Players[id], new Rect(x, 12f, cardW, cardH), id == game.MyId);
-                x += cardW + cardGap;
+                DrawPlayerHudCard(game.Players[id], new Rect(x, 12f, PlayerCardW, 66f), id == game.MyId);
+                x += PlayerCardW + PlayerCardGap;
             }
 
             if (me != null)
@@ -2054,10 +2053,21 @@ namespace Arena
         }
 
         /// Name and health bar for each boss on the field, plus warnings for their mechanics.
+        const float PlayerCardW = 232f, PlayerCardGap = 8f;
+        float PlayerCardsLeft => W - (PlayerCardW + PlayerCardGap) * game.Players.Count - 8f;
+
         void DrawBossBars()
         {
-            float y = 86f;
-            const float panelW = 560f;
+            // Up in the top row, between the wave plate and the player cards. With three players
+            // there isn't room, so they go just under the cards instead.
+            float left = 298f, right = PlayerCardsLeft - 14f;
+            float panelW = Mathf.Min(560f, right - left), y = 12f, x0 = left + (right - left - panelW) / 2f;
+            if (panelW < 420f)
+            {
+                panelW = 560f;
+                x0 = W / 2f - panelW / 2f;
+                y = 86f;
+            }
             foreach (var e in game.Enemies.Values)
             {
                 if (!e.Def.IsBoss)
@@ -2089,7 +2099,7 @@ namespace Arena
                 else if (e.Type == EnemyType.Eclipse)
                     note = "Phase " + (e.Phase + 1) + " of 3";
                 float h = note != null ? 62f : 46f;
-                var panel = new Rect(W / 2f - panelW / 2f, y, panelW, h);
+                var panel = new Rect(x0, y, panelW, h);
                 Ui.HudPanel(panel, col);
                 float frac = Mathf.Clamp01(e.Hp / e.MaxHp);
                 // Name with small diamonds either side, and the health percentage.
@@ -2111,7 +2121,7 @@ namespace Arena
                 warning = "GRAVITY WELL — run!";
             if (warning != null)
             {
-                var r = new Rect(W / 2f - 230f, y, 460f, 28f);
+                var r = new Rect(x0 + panelW / 2f - 230f, y, 460f, 28f);
                 float pulse = 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 8f);
                 Ui.Pill(r, new Color(0.45f, 0.06f, 0.1f, 0.75f));
                 Ui.Label(r, warning, 14, new Color(1f, 0.75f, 0.75f, pulse), TextAnchor.MiddleCenter, true);

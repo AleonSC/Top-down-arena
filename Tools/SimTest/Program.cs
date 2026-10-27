@@ -1655,6 +1655,8 @@ static class Program
             Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
             s[0].Game.Bot = s[1].Game.Bot = false;
             var q = Find(s[0], EnemyType.HiveQueen);
+            Check(q.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f, "bosses appear in the middle of the arena");
+            q.Pos = new V2(800f, 140f);  // she spawns in the middle; move her clear of the runners' circles
             Run(s, dt, 1.5f);
             bool shieldUp = q.Phase == 1 && Find(s[0], EnemyType.Shard) != null && (int)q.T2 == 1;
             bool bombersEarly = Find(s[0], EnemyType.HiveBomber) != null;

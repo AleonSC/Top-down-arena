@@ -142,7 +142,7 @@ namespace Arena
                         break;
                     case EnemyType.Singularity:
                         spawnQueue.Add(EnemyType.Singularity);
-                        for (int i = 0; i < n / 4; i++)
+                        for (int i = 0; i < n / 6; i++)
                             spawnQueue.Add(i % 2 == 0 ? EnemyType.Grunt : EnemyType.Sniper);
                         break;
                     case EnemyType.Colossus:
@@ -210,22 +210,19 @@ namespace Arena
                 case 2: pos = new V2(m, Rand(m, Height - m)); break;
                 default: pos = new V2(Width - m, Rand(m, Height - m)); break;
             }
-            if (type == EnemyType.Boss || type == EnemyType.HiveQueen)
-                pos = new V2(Width / 2f, 140f);
-            else if (type == EnemyType.TwinA)
-                pos = new V2(Width / 2f - Width * 0.26f, 180f);
+            // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
+            if (type == EnemyType.TwinA)
+                pos = new V2(Width / 2f - Width * 0.26f, Height / 2f);
             else if (type == EnemyType.TwinB)
-                pos = new V2(Width / 2f + Width * 0.26f, 180f);
-            else if (type == EnemyType.Singularity || type == EnemyType.Duelist || type == EnemyType.Eclipse)
-                pos = new V2(Width / 2f, Height / 2f);
+                pos = new V2(Width / 2f + Width * 0.26f, Height / 2f);
             else if (d.IsBoss)
-                pos = new V2(Width / 2f, 150f);
+                pos = new V2(Width / 2f, Height / 2f);
             else if (type == EnemyType.Nest)
                 pos = new V2(Rand(160f, Width - 160f), Rand(120f, Height - 120f));
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = !d.IsBoss && Wave >= 12 && rng.NextDouble() < Math.Min(0.35, 0.04 * (Wave - 11));
-            SpawnEnemyAt(type, pos, 0.9f, 0, elite);
+            SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
         }
 
         Enemy SpawnEnemyAt(EnemyType type, V2 pos, float spawnT, int parent, bool elite = false)
@@ -933,22 +930,22 @@ namespace Arena
                     switch (e.Phase)
                     {
                         case 1:  // gravity pull: slow three-armed spiral
-                            e.FireT = 0.09f;
+                            e.FireT = 0.13f;
                             e.Ang += 0.21f;
                             for (int k = 0; k < 3; k++)
                                 EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 110f, Defs.SmallShot);
                             break;
-                        case 2:  // collapse: dense rings
-                            e.FireT = 0.7f;
-                            e.Ang += 0.09f;
-                            for (int i = 0; i < 36; i++)
-                                EnemyShot(e, e.Ang + MathX.Tau * i / 36f, 170f, Defs.SmallShot);
+                        case 2:  // collapse: rings
+                            e.FireT = 0.9f;
+                            e.Ang += 0.11f;
+                            for (int i = 0; i < 26; i++)
+                                EnemyShot(e, e.Ang + MathX.Tau * i / 26f, 170f, Defs.SmallShot);
                             break;
                         default:  // aimed fan plus a rotating cross
-                            e.FireT = 0.5f;
+                            e.FireT = 0.65f;
                             e.Ang += 0.3f;
-                            for (int i = 0; i < 7; i++)
-                                EnemyShot(e, aim + (i - 3) * 0.13f, 200f, Defs.PierceShot);
+                            for (int i = 0; i < 5; i++)
+                                EnemyShot(e, aim + (i - 2) * 0.15f, 200f, Defs.PierceShot);
                             for (int d = 0; d < 4; d++)
                                 EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 150f, Defs.BigShot);
                             break;
