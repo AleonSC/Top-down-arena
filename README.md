@@ -129,7 +129,16 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Enemies
 
-| Wave | Enemy | What it does |
+The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
+little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** there are no melee left.
+
+| Wave | Melee enemy | What it does |
+|---|---|---|
+| 1 | Swarmer | Small and fast, weaves toward you, comes in pairs |
+| 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
+| 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
+
+| Wave | Shooter | What it does |
 |---|---|---|
 | 1 | Grunt | Aimed 3-shot spreads |
 | 2 | Burster | Rings of bullets |

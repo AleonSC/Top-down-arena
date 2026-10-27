@@ -421,8 +421,8 @@ static class Program
             foreach (var p in host.Game.Players.Values)
                 p.InvulnT = 1f;
             foreach (var e in host.Game.Enemies.Values)
-                if (e.Type == EnemyType.Grunt && hpRatio == 0f)
-                    hpRatio = e.MaxHp / (Defs.Get(EnemyType.Grunt).Hp * (1f + 0.15f * (host.Game.Wave - 1)));
+                if (!e.Def.IsBoss && !e.Elite && e.ParentId == 0 && hpRatio == 0f)
+                    hpRatio = e.MaxHp / (e.Def.Hp * (1f + 0.15f * (host.Game.Wave - 1)));
             if (i % 120 == 0)
             {
                 for (int k = 0; k < 5; k++) { Thread.Sleep(2); a.Poll(); b.Poll(); }
@@ -451,6 +451,90 @@ static class Program
         Check(host.Game.Wave >= 3 && ghosts == 0 && worstPos < 40f, "a three-player game runs in sync for every client");
         Check(Math.Abs(hpRatio - 1.2f) < 0.01f, "enemies get 20% more health with three players");
         foreach (var x in all) x.Leave("");
+    }
+
+    // Early waves are melee rushers; shooters take over until the melee are gone by wave 13.
+    static void MeleeTest(float dt)
+    {
+        Check(Game.MeleeShare(1) == 1f && Math.Abs(Game.MeleeShare(7) - 0.5f) < 0.01f && Game.MeleeShare(13) == 0f && Game.MeleeShare(30) == 0f,
+            "melee share: all of wave 1, half by wave 7, none from wave 13");
+        foreach (int wave in new[] { 1, 7, 14 })
+        {
+            var s = StartBuffed(dt, wave, 0);
+            var types = new HashSet<EnemyType>();
+            int melee = 0, ranged = 0, enemyShotsFromMelee = 0;
+            bool leapSeen = false, meleeHurt = false;
+            var counted = new HashSet<int>();
+            Run(s, dt, 25, () => s[0].Game.Wave > wave, () =>
+            {
+                foreach (var e in s[1].Game.Enemies.Values)
+                {
+                    types.Add(e.Type);
+                    if (counted.Add(e.Id))
+                    {
+                        if (e.Def.Melee) melee++; else ranged++;
+                    }
+                    leapSeen |= e.Type == EnemyType.Lunger && e.Phase == 2;
+                }
+            });
+            var names = new List<string>();
+            foreach (var t in types) names.Add(t.ToString());
+            Console.WriteLine("  wave {0}: {1} melee, {2} shooters ({3})", wave, melee, ranged, string.Join(", ", names.ToArray()));
+            if (wave == 1)
+                Check(melee > 0 && ranged == 0, "wave 1 is all melee");
+            else if (wave == 7)
+                Check(melee > 0 && ranged > 0, "wave 7 mixes melee and shooters");
+            else
+                Check(melee == 0 && ranged > 0, "from wave 13 there are no melee enemies");
+            s[0].Leave(""); s[1].Leave("");
+        }
+
+        // A brute walks into a player and hurts them; melee enemies never fire.
+        {
+            var s = StartBuffed(dt, 4, 0);
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            Run(s, dt, 20, () => { foreach (var e in s[0].Game.Enemies.Values) if (e.Type == EnemyType.Brute && e.SpawnT <= 0f) return true; return false; });
+            Enemy brute = null;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Type == EnemyType.Brute && e.SpawnT <= 0f)
+                    brute = e;
+            var p = s[0].Game.Players[1];
+            float before = p.Run.DamageTaken;  // health alone hides hits (the test player regenerates fast)
+            int meleeShots = 0;
+            Run(s, dt, 5, null, () =>
+            {
+                if (brute != null && s[0].Game.Enemies.ContainsKey(brute.Id))
+                    p.Pos = brute.Pos + new V2(brute.Radius, 0f);
+                // A melee enemy's fire timer is parked at 99 s the first time it comes up, so it never fires.
+                foreach (var e in s[0].Game.Enemies.Values)
+                    if (e.Def.Melee && e.T > 3f && e.SpawnT <= 0f && e.FireT < 90f)
+                        meleeShots++;
+            });
+            Console.WriteLine("  brute contact: found {0}, damage taken {1:0}", brute != null, p.Run.DamageTaken - before);
+            Check(brute != null && p.Run.DamageTaken - before >= 24f, "melee enemies hurt you when they touch you");
+            Check(meleeShots == 0, "melee enemies don't shoot");
+            s[0].Leave(""); s[1].Leave("");
+        }
+
+        // Lungers wind up and leap (seen on the client).
+        {
+            var s = StartBuffed(dt, 6, 0);
+            s[0].Game.Bot = s[1].Game.Bot = false;  // hold fire so the lungers reach us
+            bool windup = false, leap = false;
+            Run(s, dt, 40, () => windup && leap, () =>
+            {
+                foreach (var e in s[1].Game.Enemies.Values)
+                    if (e.Type == EnemyType.Lunger)
+                    {
+                        windup |= e.Phase == 1;
+                        leap |= e.Phase == 2;
+                    }
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
+            });
+            Check(windup && leap, "lungers telegraph, then leap (seen on client)");
+            s[0].Leave(""); s[1].Leave("");
+        }
     }
 
     // The arena is 1600x900, and players wrap around its edges (enemies don't).
@@ -932,7 +1016,7 @@ static class Program
 
         // In a regular wave, a Barrier holds for its whole duration no matter how much it blocks.
         {
-            var s = StartBuffed(dt, 4, 0);
+            var s = StartBuffed(dt, 14, 0);  // all shooters (early waves are melee)
             Run(s, dt, 10, () => s[0].Game.Enemies.Count >= 4);
             var tank = s[0].Game.Players[1];
             tank.BarrierT = 6f;
@@ -1251,6 +1335,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "melee")
+        {
+            MeleeTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "three")
         {
             ThreePlayerTest(1f / 60f);
@@ -1537,6 +1627,7 @@ static class Program
         ReadyTest(dt);
         WrapTest(dt);
         ThreePlayerTest(dt);
+        MeleeTest(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

@@ -691,9 +691,35 @@ namespace Arena
                 col = col.WithAlpha(0.35f);
             }
 
+            // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
+            if (e.Def.Melee && !spawning)
+            {
+                int spikes = e.Type == EnemyType.Swarmer ? 6 : e.Type == EnemyType.Brute ? 10 : 8;
+                float spin = e.Type == EnemyType.Swarmer ? t * 4f : t * 0.6f;
+                for (int k = 0; k < spikes; k++)
+                {
+                    float a = spin + MathX.Tau * k / spikes;
+                    V2 d = V2.FromAngle(a), side = d.Orthogonal();
+                    SetColor(col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.35f));
+                    Tri(pos + d * (r + 6f), pos + d * (r - 2f) + side * (r * 0.28f), pos + d * (r - 2f) - side * (r * 0.28f));
+                }
+            }
+
             // Effects behind the body.
             switch (e.Type)
             {
+                case EnemyType.Lunger:
+                    if (e.Phase == 1)  // winding up: shows where it's about to leap
+                    {
+                        V2 dir = V2.FromAngle(e.Facing);
+                        float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.6f : 0.25f;
+                        Line(pos + dir * r, pos + dir * 230f, 4f, new Rgba(1f, 0.35f, 0.65f, a));
+                        Arc(pos + dir * 230f, 10f, 2f, new Rgba(1f, 0.35f, 0.65f, a), 12);
+                    }
+                    else if (e.Phase == 2)  // leaping: a smear behind it
+                        for (int k = 1; k <= 3; k++)
+                            Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
+                    break;
                 case EnemyType.Charger:
                     if (e.Phase == 1)  // wind-up: show where it's about to dash
                     {
@@ -818,6 +844,8 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Charger:
+                case EnemyType.Lunger:
+                case EnemyType.Brute:
                 case EnemyType.Shard:
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
@@ -848,6 +876,14 @@ namespace Arena
             // Details on top of the body.
             switch (e.Type)
             {
+                case EnemyType.Brute:  // a heavy brow and fists toward its target
+                {
+                    V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+                    Circle(pos + f * r * 0.95f + side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
+                    Circle(pos + f * r * 0.95f - side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
+                    Line(pos + f * r * 0.35f - side * r * 0.4f, pos + f * r * 0.35f + side * r * 0.4f, 3f, new Rgba(0.15f, 0.05f, 0.05f, 0.9f));
+                    break;
+                }
                 case EnemyType.Shielder:
                     Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);
                     break;

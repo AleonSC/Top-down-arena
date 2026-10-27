@@ -100,6 +100,9 @@ namespace Arena
             return boss ? 1.5f : 1.2f;
         }
 
+        /// How much of a regular wave is melee: all of wave 1, none from wave 13 on.
+        public static float MeleeShare(int wave) => Math.Max(0f, Math.Min(1f, (13f - wave) / 12f));
+
         void BuildWave(int n)
         {
             spawnQueue.Clear();
@@ -158,8 +161,24 @@ namespace Arena
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
+            // The first waves are melee rushers; shooters take over a little more each wave until
+            // the melee are gone by wave 13.
+            var melee = new List<EnemyType> { EnemyType.Swarmer };
+            if (n >= 3) melee.Add(EnemyType.Brute);
+            if (n >= 5) melee.Add(EnemyType.Lunger);
+            float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
-                spawnQueue.Add(pool[rng.Next(pool.Count)]);
+            {
+                if (rng.NextDouble() < meleeShare)
+                {
+                    var type = melee[rng.Next(melee.Count)];
+                    spawnQueue.Add(type);
+                    if (type == EnemyType.Swarmer)
+                        spawnQueue.Add(type);  // swarmers come in pairs
+                }
+                else
+                    spawnQueue.Add(pool[rng.Next(pool.Count)]);
+            }
         }
 
         void SpawnEnemy(EnemyType type)
@@ -287,7 +306,9 @@ namespace Arena
                 }
                 // Bosses and heavies hurt to stand in, more so later on.
                 float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
-                    : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f : ContactDamage;
+                    : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
+                    : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
+                    : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
                         Damage(p, contact);
@@ -341,6 +362,8 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.Charger && e.Phase != 0)
                 return;  // locked in while winding up and dashing
+            if (e.Type == EnemyType.Lunger && e.Phase >= 2)
+                return;  // committed to the leap
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -417,6 +440,23 @@ namespace Arena
                         speed = 560f;
                     }
                     break;
+                case EnemyType.Swarmer:  // straight at you, weaving a little
+                    v = dir + dir.Orthogonal() * (float)Math.Sin(e.T * 5f + e.Id) * 0.45f;
+                    break;
+                case EnemyType.Brute:
+                    v = dir;
+                    break;
+                case EnemyType.Lunger:
+                    if (e.Phase == 0)
+                        v = dist > 170f ? dir : dir.Orthogonal() * e.Strafe * 0.6f;  // close in, then circle while it winds up
+                    else if (e.Phase == 2)
+                    {
+                        v = V2.FromAngle(e.Facing);
+                        speed = 640f;
+                    }
+                    else if (e.Phase == 3)
+                        speed *= 0.3f;  // recovering after the leap
+                    break;
                 case EnemyType.Spinner:
                     if (e.Pos.DistanceTo(e.Waypoint) < 20f)
                         e.Waypoint = new V2(Rand(150f, Width - 150f), Rand(150f, Height - 150f));
@@ -471,6 +511,37 @@ namespace Arena
                         e.Phase = 2;
                     else if (e.Phase == 2 && gap < SoulBondRelease)
                         e.Phase = 0;
+                    break;
+                }
+                case EnemyType.Lunger:
+                {
+                    // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
+                    float dist = tpos.DistanceTo(e.Pos);
+                    e.PhaseT -= dt;
+                    if (e.Phase == 0 && dist < 220f && e.PhaseT <= 0f)
+                    {
+                        e.Phase = 1;
+                        e.PhaseT = 0.6f;
+                    }
+                    else if (e.Phase == 1)
+                    {
+                        e.Facing = (tpos - e.Pos).Angle;  // tracks you while winding up
+                        if (e.PhaseT <= 0f)
+                        {
+                            e.Phase = 2;
+                            e.PhaseT = 0.32f;
+                        }
+                    }
+                    else if (e.Phase == 2 && e.PhaseT <= 0f)
+                    {
+                        e.Phase = 3;
+                        e.PhaseT = 0.8f;
+                    }
+                    else if (e.Phase == 3 && e.PhaseT <= 0f)
+                    {
+                        e.Phase = 0;
+                        e.PhaseT = Rand(0.8f, 1.6f);
+                    }
                     break;
                 }
                 case EnemyType.Charger:
@@ -562,6 +633,11 @@ namespace Arena
             if (IsLateGame(e.Type))
             {
                 LateFire(e, tpos, aim);
+                return;
+            }
+            if (e.Def.Melee)
+            {
+                e.FireT = 99f;  // melee enemies don't shoot
                 return;
             }
             switch (e.Type)
