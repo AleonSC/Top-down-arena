@@ -21,7 +21,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, pill;
+        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, pill, rim;
         static Texture2D checkOn, checkOff;
 
         public static void Init()
@@ -35,6 +35,7 @@ namespace Arena
             hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
             hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
+            rim = Style(Rounded(12, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 12);
 
             button = Style(Rounded(8, new Color(1f, 1f, 1f), new Color(0.82f, 0.84f, 0.88f), new Color(1f, 1f, 1f, 0.55f), 1.5f), 8);
             button.hover.background = Rounded(8, new Color(1f, 1f, 1f), new Color(0.95f, 0.96f, 1f), new Color(1f, 1f, 1f, 1f), 2f);
@@ -183,6 +184,27 @@ namespace Arena
                 GUI.Box(r, GUIContent.none, hudLit);
                 GUI.backgroundColor = old;
             }
+        }
+
+        /// A solid card with a colored rim; glow (0..1) sets how strongly the rim shows.
+        public static void Card(Rect r, Color rimColor, float glow)
+        {
+            GUI.Box(r, GUIContent.none, panel);
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(rimColor.r, rimColor.g, rimColor.b, Mathf.Clamp01(glow));
+            GUI.Box(r, GUIContent.none, rim);
+            GUI.backgroundColor = old;
+        }
+
+        /// A pixel-art icon, scaled up with crisp pixels.
+        public static void Icon(Rect r, Texture2D tex, float alpha = 1f)
+        {
+            if (tex == null)
+                return;
+            var old = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.DrawTexture(r, tex);
+            GUI.color = old;
         }
 
         /// A rounded rectangle in one color (tints a near-white texture, so the top is a bit lighter).

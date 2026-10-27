@@ -1705,8 +1705,8 @@ namespace Arena
                 float cx = x3 + (k / rowsPerCol) * (subW + subGap);
                 float cy = listTop + (k % rowsPerCol) * rowH;
                 Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
-                Box(new Rect(cx, cy + 5f, 4f, 10f), rc);
-                Ui.Label(new Rect(cx + 10f, cy, subW - 44f, rowH), u.Name, 13, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
+                Ui.Icon(new Rect(cx, cy + 1f, 18f, 18f), PixelArt.ForUpgrade(u.Name));
+                Ui.Label(new Rect(cx + 24f, cy, subW - 56f, rowH), u.Name, 13, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
                 if (counts[id] > 1)
                     Ui.Label(new Rect(cx, cy, subW, rowH), "x" + counts[id], 12, Ui.Text, TextAnchor.MiddleRight, true);
             }
@@ -2032,8 +2032,6 @@ namespace Arena
                     GUI.EndGroup();
                 }
                 DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · RMB/F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
-                if (ready)  // a lit strip along the top of ready abilities
-                    Ui.Pill(new Rect(r.x + 10f, r.y + 2f, r.width - 20f, 3f), accent);
                 Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), Upgrades.Ability(slot.Id).Name, 13, ready ? Color.white : new Color(1f, 1f, 1f, 0.78f), TextAnchor.MiddleLeft, true);
                 if (ready)
                     Ui.Label(new Rect(r.x + 8f, r.y + 7f, r.width - 16f, 16f), ultimate ? "READY!" : "READY", 10, ultimate ? Ui.Gold : Ui.Good, TextAnchor.MiddleRight, true);
@@ -2060,93 +2058,58 @@ namespace Arena
         void DrawUpgradePicker(Player me)
         {
             SyncSelection(me);
-            Box(new Rect(0, 0, W, H), new Color(0, 0, 0, 0.55f));
+            float now = Time.unscaledTime;
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.8f));
             // Stats on the left; the cards and buttons fill the rest.
             const float statsX = 16f, statsW = 250f;
-            const float cardW = 300f, cardH = 230f, gap = 20f;
+            const float cardW = 290f, cardH = 300f, gap = 22f;
             float x0 = statsX + statsW + 22f;
             float areaW = cardW * 3 + gap * 2, mid = x0 + areaW / 2f;
             DrawStatPanel(me, new Rect(statsX, 110f, statsW, 560f));
 
-            if (me.OfferLegendary)
-                Label(new Rect(x0, 110, areaW, 44), "BOSS REWARD! Choose a legendary weapon upgrade", 28, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleCenter, true);
-            else if (me.OfferMod)
-                Label(new Rect(x0, 110, areaW, 44), "WEAPON MOD! Choose how your shots behave", 28, ToColor(Upgrades.RarityColor(Rarity.Mod)), TextAnchor.MiddleCenter, true);
-            else
-                Label(new Rect(x0, 110, areaW, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
+            // Heading: a small tag, a big title, and how many picks are left.
+            Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
+                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : Ui.Gold;
+            string tag = me.OfferLegendary ? "BOSS REWARD" : me.OfferMod ? "BOSS REWARD · WEAPON MOD" : "LEVEL " + me.Level;
+            string title = me.OfferLegendary ? "Choose a legendary upgrade" : me.OfferMod ? "Choose how your shots behave" : "Choose an upgrade";
+            float tagW = 30f + tag.Length * 8f;
+            var tagRect = new Rect(mid - tagW / 2f, 104f, tagW, 24f);
+            Ui.Pill(tagRect, new Color(theme.r, theme.g, theme.b, 0.25f));
+            Ui.Label(tagRect, tag, 12, theme, TextAnchor.MiddleCenter, true);
+            Ui.Title(new Rect(x0, 128f, areaW, 40f), title.ToUpperInvariant(), 30, Color.white);
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods - 1;
             if (more > 0)
-                Label(new Rect(x0, 152, areaW, 22), more + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(x0, 164f, areaW, 18f), more + " more to choose after this", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
 
             // Weapon mods show the whole list in a grid of smaller cards.
             bool grid = me.Offer.Length > 3;
             const int perRow = 4;
             float cw = grid ? (areaW - gap * (perRow - 1)) / perRow : cardW, ch = grid ? 150f : cardH;
             int rows = grid ? (me.Offer.Length + perRow - 1) / perRow : 1;
+            float top = grid ? 196f : 196f;
             for (int i = 0; i < me.Offer.Length; i++)
             {
                 var u = Upgrades.All[me.Offer[i]];
                 int row = grid ? i / perRow : 0, col = grid ? i % perRow : i;
                 int inRow = grid ? Math.Min(perRow, me.Offer.Length - row * perRow) : me.Offer.Length;
                 float rowX = mid - (inRow * cw + (inRow - 1) * gap) / 2f;  // center short rows
-                var r = new Rect(rowX + col * (cw + gap), 200f + row * (ch + gap), cw, ch);
-                Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
-                bool hover = r.Contains(Event.current.mousePosition);
+                var slot = new Rect(rowX + col * (cw + gap), top + row * (ch + gap), cw, ch);
+                bool hover = slot.Contains(Event.current.mousePosition);
                 bool selected = selectedCard == i;
-                Box(r, selected ? new Color(0.17f, 0.18f, 0.26f, 0.98f) : hover ? new Color(0.13f, 0.14f, 0.2f, 0.97f) : new Color(0.08f, 0.09f, 0.13f, 0.95f));
-                float bw = selected ? 6f : hover ? 4f : 2f;
-                Box(new Rect(r.x, r.y, r.width, bw), rc);
-                Box(new Rect(r.x, r.yMax - bw, r.width, bw), rc);
-                Box(new Rect(r.x, r.y, bw, r.height), rc);
-                Box(new Rect(r.xMax - bw, r.y, bw, r.height), rc);
-
-                if (grid)
-                {
-                    int stacks = Upgrades.Count(me.Taken, me.Offer[i]);
-                    Label(new Rect(r.x, r.y + 10, r.width, 16), stacks > 0 ? "YOU HAVE " + stacks + " / " + u.MaxStacks : "NEW", 11, rc, TextAnchor.MiddleCenter, true);
-                    Label(new Rect(r.x, r.y + 28, r.width, 26), u.Name, 18, Color.white, TextAnchor.MiddleCenter, true);
-                    var small = new GUIStyle(labelStyle) { fontSize = 12, alignment = TextAnchor.UpperCenter, wordWrap = true };
-                    GUI.Label(new Rect(r.x + 12, r.y + 58, r.width - 24, 64), u.Desc, small);
-                    Label(new Rect(r.x, r.yMax - 24, r.width, 16), selected ? "SELECTED" : "[" + (i + 1) + "]", 12,
-                        selected ? rc : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
-                    if (GUI.Button(r, GUIContent.none, GUIStyle.none))
-                        selectedCard = i;
-                    continue;
-                }
-                Label(new Rect(r.x, r.y + 14, r.width, 18), Upgrades.RarityName(u.Rarity), 13, rc, TextAnchor.MiddleCenter, true);
-                Label(new Rect(r.x, r.y + 44, r.width, 30), u.Name, 22, Color.white, TextAnchor.MiddleCenter, true);
-                var desc = new GUIStyle(labelStyle) { fontSize = 15, alignment = TextAnchor.UpperCenter, wordWrap = true };
-                GUI.Label(new Rect(r.x + 18, r.y + 90, r.width - 36, 90), u.Desc, desc);
-                string note = "";
-                if (u.Grants != AbilityId.None)
-                {
-                    int free = 1;
-                    while (free < Upgrades.BonusSlots && me.Slots[free].Id != AbilityId.None)
-                        free++;
-                    note = "Goes in your " + SlotKeys[free] + " slot";
-                }
-                else if (u.Role.HasValue)
-                    note = Defs.Get(u.Role.Value).Name + " only";
-                else
-                {
-                    int have = Upgrades.Count(me.Taken, me.Offer[i]);
-                    if (have > 0)
-                        note = "You have " + have;
-                }
-                Label(new Rect(r.x, r.yMax - 52, r.width, 18), note, 12, new Color(1, 1, 1, 0.5f), TextAnchor.MiddleCenter);
-                Label(new Rect(r.x, r.yMax - 28, r.width, 18), selected ? "SELECTED" : "[" + (i + 1) + "]", 14,
-                    selected ? rc : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
-                if (GUI.Button(r, GUIContent.none, GUIStyle.none))
+                // The card lifts a little when hovered and more when selected.
+                var r = new Rect(slot.x, slot.y - (selected ? 10f : hover ? 4f : 0f), slot.width, slot.height);
+                DrawUpgradeCard(me, i, u, r, grid, selected, hover, now);
+                if (GUI.Button(slot, GUIContent.none, GUIStyle.none))
                     selectedCard = i;
             }
 
             // Confirm and reroll buttons under the cards.
             const float btnW = 260f;
-            float by = 200f + rows * ch + (rows - 1) * gap + 24f;
+            float by = top + rows * ch + (rows - 1) * gap + 26f;
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
             string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
-            if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, Ui.Primary))
+            if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, selectedCard >= 0 ? Ui.Primary : Ui.Neutral))
                 ConfirmPick();
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod;
             if (Ui.Button(new Rect(mid + 10f, by, btnW, 46f), "Reroll (" + me.Rerolls + " left)  [R]"))
@@ -2155,7 +2118,80 @@ namespace Arena
             string hint = me.OfferLegendary || me.OfferMod ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill";
             if (me.OfferMod)
                 hint = "Every weapon mod you can still take is shown. Each stacks up to 3 times.";
-            Label(new Rect(x0, by + 46f, areaW, 18), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(x0, by + 50f, areaW, 18), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+        }
+
+        /// One upgrade card: rarity ribbon, pixel-art icon in a glowing frame, name, description and a note.
+        void DrawUpgradeCard(Player me, int index, UpgradeDef u, Rect r, bool compact, bool selected, bool hover, float now)
+        {
+            Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+            if (selected)  // a soft glow under the selected card
+                Ui.Pill(new Rect(r.x - 6f, r.y - 6f, r.width + 12f, r.height + 12f), new Color(rc.r, rc.g, rc.b, 0.18f + 0.06f * Mathf.Sin(now * 4f)));
+            Ui.Card(r, rc, selected ? 1f : hover ? 0.75f : 0.45f);
+            // A wash of the rarity color across the top of the card.
+            Ui.Pill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, compact ? 30f : 120f), new Color(rc.r, rc.g, rc.b, 0.08f));
+            if (u.Rarity == Rarity.Legendary)
+            {
+                // A shimmer that sweeps across legendary cards.
+                float sweep = MathX.Fmod(now * 0.6f + index * 0.3f, 1.6f) - 0.3f;
+                GUI.BeginGroup(r);
+                Ui.Fill(new Rect(sweep * r.width, 0f, 18f, r.height), new Color(1f, 0.9f, 0.6f, 0.07f));
+                Ui.Fill(new Rect(sweep * r.width + 22f, 0f, 6f, r.height), new Color(1f, 0.9f, 0.6f, 0.05f));
+                GUI.EndGroup();
+            }
+            var icon = PixelArt.ForUpgrade(u.Name);
+            float bob = selected ? 3f * Mathf.Sin(now * 3f) : 0f;
+            string note = UpgradeNote(me, index, u);
+            if (compact)
+            {
+                // Weapon mod grid: icon on the left, name and stacks on the right, description under.
+                var frame = new Rect(r.x + 12f, r.y + 14f, 52f, 52f);
+                Ui.Pill(frame, new Color(rc.r * 0.3f, rc.g * 0.3f, rc.b * 0.3f, 0.9f));
+                Ui.Icon(new Rect(frame.x + 2f, frame.y + 2f + bob * 0.5f, 48f, 48f), icon);
+                Ui.Label(new Rect(r.x + 74f, r.y + 14f, r.width - 82f, 16f), note, 10, rc, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 74f, r.y + 30f, r.width - 82f, 36f), u.Name, 15, Color.white, TextAnchor.UpperLeft, true, true);
+                Ui.Label(new Rect(r.x + 12f, r.y + 74f, r.width - 24f, 52f), u.Desc, 11, Ui.Text, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(r.x, r.yMax - 22f, r.width - 12f, 16f), selected ? "SELECTED" : "[" + (index + 1) + "]", 11,
+                    selected ? rc : new Color(1, 1, 1, 0.45f), TextAnchor.MiddleRight, true);
+                return;
+            }
+            // Rarity ribbon.
+            string rarity = Upgrades.RarityName(u.Rarity);
+            float rw = 24f + rarity.Length * 7.5f;
+            var ribbon = new Rect(r.x + r.width / 2f - rw / 2f, r.y + 12f, rw, 20f);
+            Ui.Pill(ribbon, new Color(rc.r, rc.g, rc.b, 0.85f));
+            Ui.Label(ribbon, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            // Icon in a framed, glowing tile.
+            var tile = new Rect(r.x + r.width / 2f - 46f, r.y + 42f, 92f, 92f);
+            Ui.Pill(new Rect(tile.x - 4f, tile.y - 4f, tile.width + 8f, tile.height + 8f), new Color(rc.r, rc.g, rc.b, selected ? 0.35f : 0.18f));
+            Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + bob, 72f, 72f), icon);
+            Ui.Label(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter, true);
+            Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
+            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), u.Desc, 14, Ui.Text, TextAnchor.UpperCenter, false, true);
+            if (note.Length > 0)
+                Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
+            var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);
+            Ui.Pill(key, selected ? new Color(rc.r, rc.g, rc.b, 0.85f) : new Color(1f, 1f, 1f, 0.08f));
+            Ui.Label(key, selected ? "SELECTED" : "PRESS " + (index + 1), 10, selected ? new Color(0.06f, 0.06f, 0.1f) : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
+        }
+
+        /// The small line on a card: where a new ability goes, a role restriction, or how many you have.
+        string UpgradeNote(Player me, int index, UpgradeDef u)
+        {
+            int have = Upgrades.Count(me.Taken, me.Offer[index]);
+            if (u.Rarity == Rarity.Mod)
+                return have > 0 ? "YOU HAVE " + have + " / " + u.MaxStacks : "NEW";
+            if (u.Grants != AbilityId.None)
+            {
+                int free = 1;
+                while (free < Upgrades.BonusSlots && me.Slots[free].Id != AbilityId.None)
+                    free++;
+                return "Goes in your " + SlotKeys[free] + " slot";
+            }
+            if (u.Role.HasValue)
+                return Defs.Get(u.Role.Value).Name + " only";
+            return have > 0 ? "You have " + have : "";
         }
 
         /// Your current stats; with a card selected, the ones it would change show their new value.
