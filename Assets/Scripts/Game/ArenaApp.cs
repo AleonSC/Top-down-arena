@@ -10,7 +10,11 @@ namespace Arena
     /// starts, so there is nothing to set up in the editor.
     public class ArenaApp : MonoBehaviour
     {
-        const float W = Game.Width, H = Game.Height;
+        // Menus and the HUD are laid out on a fixed 1280x720 canvas; the arena itself is bigger
+        // and is scaled down to fill the same area.
+        const float W = 1280f, H = 720f;
+        const float AW = Game.Width, AH = Game.Height;
+        const float WorldToUi = W / AW;
 
         static bool booted;
 
@@ -31,7 +35,8 @@ namespace Arena
         SoundBank sounds;
 
         Material glMaterial;
-        float scale = 1f, offX, offY;  // arena -> screen pixels (top-left origin)
+        float scale = 1f, offX, offY;  // UI canvas -> screen pixels (top-left origin)
+        float drawScale = 1f;          // GL coordinates -> screen pixels: the arena in a match, the UI canvas on menus
         GUIStyle labelStyle;  // base for the HUD's labels; menus use Ui
         string addressList;
 
@@ -272,7 +277,8 @@ namespace Arena
         V2 MouseArena()
         {
             Vector3 m = Input.mousePosition;
-            return new V2((m.x - offX) / scale, (UnityEngine.Screen.height - m.y - offY) / scale);
+            float ws = scale * WorldToUi;
+            return new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws);
         }
 
         // --- World drawing (GL immediate mode, arena coordinates) -------------
@@ -293,6 +299,7 @@ namespace Arena
             GL.PushMatrix();
             GL.LoadPixelMatrix();
             GL.Begin(GL.TRIANGLES);
+            drawScale = game.Running ? scale * WorldToUi : scale;
             if (game.Running)
                 DrawWorld();
             else
@@ -332,17 +339,17 @@ namespace Arena
         void DrawWorld()
         {
             float t = game.AnimT;
-            FillRect(0, 0, W, H, new Rgba(0.05f, 0.06f, 0.09f));
+            FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f));
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
-            for (float x = 0; x <= W; x += 64f)
-                Line(new V2(x, 0), new V2(x, H), 1f, grid);
-            for (float y = 0; y <= H; y += 64f)
-                Line(new V2(0, y), new V2(W, y), 1f, grid);
+            for (float x = 0; x <= AW; x += 64f)
+                Line(new V2(x, 0), new V2(x, AH), 1f, grid);
+            for (float y = 0; y <= AH; y += 64f)
+                Line(new V2(0, y), new V2(AW, y), 1f, grid);
             var border = new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
-            Line(new V2(2, 2), new V2(W - 2, 2), 3f, border);
-            Line(new V2(2, H - 2), new V2(W - 2, H - 2), 3f, border);
-            Line(new V2(2, 2), new V2(2, H - 2), 3f, border);
-            Line(new V2(W - 2, 2), new V2(W - 2, H - 2), 3f, border);
+            Line(new V2(2, 2), new V2(AW - 2, 2), 3f, border);
+            Line(new V2(2, AH - 2), new V2(AW - 2, AH - 2), 3f, border);
+            Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
+            Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
 
             foreach (var p in game.Players.Values)
             {
@@ -454,7 +461,24 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)
+            {
                 DrawPlayer(p, t);
+                // Near an edge, also draw the part of you that's already coming in on the far side.
+                V2 real = p.Disp;
+                float edge = p.Def.BodyR + 12f;
+                float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;
+                float dy = real.Y < edge ? AH : real.Y > AH - edge ? -AH : 0f;
+                var ghosts = new List<V2>();
+                if (dx != 0f) ghosts.Add(new V2(dx, 0f));
+                if (dy != 0f) ghosts.Add(new V2(0f, dy));
+                if (dx != 0f && dy != 0f) ghosts.Add(new V2(dx, dy));  // corners
+                foreach (var off in ghosts)
+                {
+                    p.Disp = real + off;
+                    DrawPlayer(p, t);
+                }
+                p.Disp = real;
+            }
 
             foreach (var b in game.Bullets.Values)
             {
@@ -516,7 +540,7 @@ namespace Arena
             }
 
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
-                FillRect(0, 0, W, H, new Rgba(0f, 0f, 0f, 0.45f));
+                FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
 
             // Crosshair
             V2 m = MouseArena();
@@ -897,7 +921,7 @@ namespace Arena
 
         // --- GL primitives (arena coordinates; everything is triangles) -------
 
-        Vector3 Px(V2 p) => new Vector3(offX + p.X * scale, UnityEngine.Screen.height - (offY + p.Y * scale), 0f);
+        Vector3 Px(V2 p) => new Vector3(offX + p.X * drawScale, UnityEngine.Screen.height - (offY + p.Y * drawScale), 0f);
 
         static void SetColor(Rgba c) => GL.Color(new Color(c.R, c.G, c.B, c.A));
 
@@ -1103,8 +1127,9 @@ namespace Arena
             }
             y += 10f;
             Ui.Heading(x, y, w, "Tips");
-            Ui.Label(new Rect(x, y + 28f, w, 140f),
+            Ui.Label(new Rect(x, y + 28f, w, 160f),
                 "Your hitbox is the small white dot in the middle of your character.\n" +
+                "Walk off an edge to come in on the other side (enemies and bullets can't follow).\n" +
                 "At 0 HP you're downed: stand next to your ally to revive them.\n" +
                 "Levels give upgrade picks at the end of each wave; bosses give legendary ones.\n" +
                 "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.\n" +
@@ -1405,16 +1430,18 @@ namespace Arena
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
-                Label(new Rect(p.Disp.X - 100f, p.Disp.Y - r - 32f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : "") + "  Lv " + p.Level, 13,
+                V2 at = p.Disp * WorldToUi;  // arena -> HUD coordinates
+                r *= WorldToUi;
+                Label(new Rect(at.X - 100f, at.Y - r - 32f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : "") + "  Lv " + p.Level, 13,
                     ToColor(p.Def.Color.WithAlpha(0.9f)), TextAnchor.MiddleCenter);
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 20f;
-                    Label(new Rect(p.Disp.X - 100f, p.Disp.Y - r - 56f - rise, 200f, 22f), "LEVEL UP!", 18,
+                    Label(new Rect(at.X - 100f, at.Y - r - 56f - rise, 200f, 22f), "LEVEL UP!", 18,
                         new Color(1f, 0.9f, 0.3f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter, true);
                 }
                 if (p.Downed)
-                    Label(new Rect(p.Disp.X - 150f, p.Disp.Y + r + 12f, 300f, 18f), "DOWNED — stand close to revive", 11,
+                    Label(new Rect(at.X - 150f, at.Y + r + 12f, 300f, 18f), "DOWNED — stand close to revive", 11,
                         new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleCenter);
             }
 

@@ -163,9 +163,9 @@ namespace Arena
             if (type == EnemyType.Boss || type == EnemyType.HiveQueen)
                 pos = new V2(Width / 2f, 140f);
             else if (type == EnemyType.TwinA)
-                pos = new V2(Width / 2f - 300f, 180f);
+                pos = new V2(Width / 2f - Width * 0.26f, 180f);
             else if (type == EnemyType.TwinB)
-                pos = new V2(Width / 2f + 300f, 180f);
+                pos = new V2(Width / 2f + Width * 0.26f, 180f);
             else if (type == EnemyType.Singularity || type == EnemyType.Duelist || type == EnemyType.Eclipse)
                 pos = new V2(Width / 2f, Height / 2f);
             else if (d.IsBoss)
@@ -408,7 +408,7 @@ namespace Arena
                 case EnemyType.Boss:
                 case EnemyType.HiveQueen:
                 {
-                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * 380f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
+                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
                     v = (goal - e.Pos) / 60f;
                     break;
                 }
@@ -417,7 +417,7 @@ namespace Arena
                 {
                     // The twins circle the arena on opposite sides.
                     float a = e.T * 0.47f + (e.Type == EnemyType.TwinA ? 0f : MathX.Pi);
-                    var goal = new V2(Width / 2f + (float)Math.Cos(a) * 330f, Height / 2f + (float)Math.Sin(a) * 200f);
+                    var goal = new V2(Width / 2f + (float)Math.Cos(a) * Width * 0.26f, Height / 2f + (float)Math.Sin(a) * Height * 0.28f);
                     v = (goal - e.Pos) / 60f;
                     break;
                 }

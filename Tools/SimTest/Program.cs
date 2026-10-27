@@ -344,6 +344,28 @@ static class Program
         }
     }
 
+    // The arena is 1600x900, and players wrap around its edges (enemies don't).
+    static void WrapTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 1);
+        var friend = s[1].Game.Players[2];   // the client's own player
+        friend.Pos = new V2(-4f, 300f);      // just stepped off the left edge
+        Run(s, dt, 0.5f);
+        var onHost = s[0].Game.Players[2];
+        bool clientWrapped = friend.Pos.X > Game.Width - 20f && Math.Abs(friend.Pos.Y - 300f) < 1f;
+        bool hostSees = onHost.Pos.X > Game.Width - 20f;
+        var hostPlayer = s[0].Game.Players[1];
+        hostPlayer.Pos = new V2(800f, Game.Height + 3f);  // off the bottom
+        Run(s, dt, 0.5f);
+        bool hostWrapped = hostPlayer.Pos.Y < 20f && s[1].Game.Players[1].Pos.Y < 20f;
+        Console.WriteLine("  arena {0}x{1}; friend -> x={2:0}, host sees x={3:0}; host -> y={4:0}", Game.Width, Game.Height, friend.Pos.X, onHost.Pos.X, hostPlayer.Pos.Y);
+        Check(Game.Width == 1600f && Game.Height == 900f, "the arena is 25% bigger (1600x900)");
+        Check(clientWrapped && hostSees && hostWrapped, "players wrap around the arena's edges, on both machines");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // The match can't start from the lobby until both players have clicked Ready.
     static void ReadyTest(float dt)
     {
@@ -1115,6 +1137,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "wrap")
+        {
+            WrapTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "late")
         {
             LateGameEnemies(1f / 60f);
@@ -1387,6 +1415,7 @@ static class Program
         WeaponModTest(dt);
         UltimateSweep(dt);
         ReadyTest(dt);
+        WrapTest(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

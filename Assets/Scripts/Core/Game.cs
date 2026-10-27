@@ -200,7 +200,7 @@ namespace Arena
     ///                   picks, after each pick), Fx, ClearEnemyBullets
     public partial class Game
     {
-        public const float Width = 1280f, Height = 720f;
+        public const float Width = 1600f, Height = 900f;
 
         const int SnapshotEvery = 3;  // ticks
         public const int StartingRerolls = 2;
@@ -690,7 +690,9 @@ namespace Arena
             AnimT += dt;
             float k = 1f - (float)Math.Exp(-18.0 * dt);
             foreach (var p in Players.Values)
-                p.Disp = p.Id == MyId ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
+                // Snap instead of sliding across the screen when the player wraps around an edge.
+                p.Disp = p.Id == MyId || Math.Abs(p.Disp.X - p.Pos.X) > Width / 2f || Math.Abs(p.Disp.Y - p.Pos.Y) > Height / 2f
+                    ? p.Pos : V2.Lerp(p.Disp, p.Pos, k);
             foreach (var e in Enemies.Values)
                 e.Disp = V2.Lerp(e.Disp, e.Pos, k);
             foreach (var o in Orbs.Values)
@@ -847,7 +849,7 @@ namespace Arena
                 }
             }
 
-            me.Pos = ClampToArena(me.Pos, me.Def.BodyR);
+            me.Pos = WrapArena(me.Pos);
             if (IsHost)
             {
                 me.Firing = firing;
@@ -872,6 +874,9 @@ namespace Arena
 
         static V2 ClampToArena(V2 pos, float r) => pos.Clamp(new V2(r, r), new V2(Width - r, Height - r));
 
+        /// Players wrap around: walking off one edge brings you in on the opposite side.
+        public static V2 WrapArena(V2 pos) => new V2(MathX.Fmod(pos.X, Width), MathX.Fmod(pos.Y, Height));
+
         public void OnInput(int peer, BinaryReader r)
         {
             V2 pos = r.ReadV2();
@@ -881,7 +886,7 @@ namespace Arena
             if (!Players.TryGetValue(peer, out p))
                 return;
             if (!p.Downed)
-                p.Pos = ClampToArena(pos, p.Def.BodyR);
+                p.Pos = WrapArena(pos);
             p.Aim = aim;
             p.Firing = firing;
         }

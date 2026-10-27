@@ -117,6 +117,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
+- The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side. Enemies and bullets don't wrap, so the edges make a good escape route.
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
 - If both players are downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.

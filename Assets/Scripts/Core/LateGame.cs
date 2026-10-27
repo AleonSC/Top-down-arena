@@ -70,7 +70,7 @@ namespace Arena
                 case EnemyType.Lich:
                 case EnemyType.StormHerald:
                 {
-                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * 400f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
+                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
                     return (goal - e.Pos) / 60f;
                 }
                 case EnemyType.Eclipse:
