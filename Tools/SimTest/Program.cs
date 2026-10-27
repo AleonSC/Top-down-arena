@@ -743,6 +743,50 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    // Spinners spray in bursts with breathers in between (they used to spray nonstop).
+    static void SpinnerTest(float dt)
+    {
+        var s = StartBuffed(dt, 6, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var spinner = (Enemy)spawn.Invoke(s[0].Game, new object[] { EnemyType.Spinner, new V2(800f, 300f), 0.3f, 0, false });
+        var seen = new HashSet<int>();
+        var shotTimes = new List<float>();
+        float t = 0f;
+        bool clientBursting = false, clientResting = false;
+        Run(s, dt, 10, null, () =>
+        {
+            t += dt;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e != spinner) e.Hp = 0f;  // only the spinner's bullets
+            foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f;
+            foreach (var b in s[0].Game.Bullets.Values)
+                if (b.Source == EnemyType.Spinner && seen.Add(b.Id))
+                    shotTimes.Add(t);
+            var ce = Find(s[1], EnemyType.Spinner);
+            if (ce != null && !s[1].Game.IsSpawning(ce))
+            {
+                clientBursting |= ce.Phase == 1;
+                clientResting |= ce.Phase == 0;
+            }
+        });
+        float longestGap = 0f;
+        int bursts = shotTimes.Count > 0 ? 1 : 0;
+        for (int i = 1; i < shotTimes.Count; i++)
+        {
+            float gap = shotTimes[i] - shotTimes[i - 1];
+            longestGap = Math.Max(longestGap, gap);
+            if (gap > 1f) bursts++;
+        }
+        float perSecond = shotTimes.Count / 10f;
+        Console.WriteLine("  spinner: {0} bullets in 10 s ({1:0.0}/s, was ~27/s+), {2} bursts, longest gap {3:0.0}s, client saw burst {4} / rest {5}",
+            shotTimes.Count, perSecond, bursts, longestGap, clientBursting, clientResting);
+        Check(bursts >= 2 && longestGap > 1.5f && perSecond < 20f, "Spinners fire in bursts with pauses between");
+        Check(clientBursting && clientResting, "clients see when a Spinner is bursting");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Session recording: a run from wave 4 through the Warden is written to a JSON file with
     // waves, the boss fight, damage sources, picks and samples.
     static string SessionTest(float dt)
@@ -1659,6 +1703,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "spinner")
+        {
+            SpinnerTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "aim")
         {
             AimTest(1f / 60f);
@@ -1687,6 +1737,7 @@ static class Program
         SessionTest(dt);
         ParryUpgradeTest(dt);
         AimTest(dt);
+        SpinnerTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

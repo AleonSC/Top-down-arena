@@ -22,6 +22,7 @@ namespace Arena
         const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
         const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
+        const float SpinnerCycle = 3.3f, SpinnerBurst = 1.3f;  // Spinner: spray for 1.3 s out of every 3.3 s
         const int WardenCross = 3;  // the Warden's fourth attack: "+" streams while roaming
 
         static int WardenAttack(Enemy e) => (int)(e.T / 6f) % 4;
@@ -697,11 +698,22 @@ namespace Arena
                     EnemyShot(e, aim, 400f, Defs.FastShot);
                     break;
                 case EnemyType.Spinner:
+                {
+                    // Bursts: a three-armed spiral for a moment, then a breather. Phase 1 = bursting.
+                    float c = MathX.Fmod(e.T + e.Id * 0.7f, SpinnerCycle);
+                    if (c >= SpinnerBurst)
+                    {
+                        e.Phase = 0;
+                        e.FireT = SpinnerCycle - c;  // wait for the next burst
+                        break;
+                    }
+                    e.Phase = 1;
                     e.FireT = 0.11f;
                     e.Ang += 0.27f;
                     for (int k = 0; k < 3; k++)
                         EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 125f, Defs.SmallShot, 0.25f);
                     break;
+                }
                 case EnemyType.Charger:
                     if (e.Phase == 0)
                     {

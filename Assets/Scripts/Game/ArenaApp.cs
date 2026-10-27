@@ -32,6 +32,14 @@ namespace Arena
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
+        bool aimLine = true;             // V: a soft line from your gun toward the crosshair (saved per player)
+
+        void SetAimLine(bool on)
+        {
+            aimLine = on;
+            PlayerPrefs.SetInt("aim_line", on ? 1 : 0);
+            PlayerPrefs.Save();
+        }
 
         static string SessionsFolder => System.IO.Path.Combine(Application.persistentDataPath, "sessions");
 
@@ -206,6 +214,8 @@ namespace Arena
                     wantAbility[3] = true;
             }
             // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
+            if (Input.GetKeyDown(KeyCode.V) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
+                SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
@@ -606,6 +616,9 @@ namespace Arena
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
 
+            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
+                DrawAimLine(game.Me, MouseArena(), t);
+
             if (aimDebug && game.Me != null)
             {
                 // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
@@ -783,6 +796,10 @@ namespace Arena
             // Effects behind the body.
             switch (e.Type)
             {
+                case EnemyType.Spinner:
+                    if (e.Phase == 1 && !spawning)  // bursting: a hot glow
+                        Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
+                    break;
                 case EnemyType.Boss:
                     if (e.Phase == 3)  // the Warden's cross streams: faint guides along the four arms
                         for (int k = 0; k < 4; k++)
@@ -936,7 +953,7 @@ namespace Arena
                     rot = e.Facing;  // point where they're aiming
                     break;
                 case EnemyType.Spinner:
-                    rot = t * 2.5f + e.Id;
+                    rot = t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                     break;
                 case EnemyType.Singularity:
                     rot = t * (e.Phase == 1 ? -3f : 1f);
@@ -1312,6 +1329,7 @@ namespace Arena
                 { "Pick an upgrade", "Click a card (or 1-3), then Confirm (Enter)" },
                 { "Reroll upgrades", "R" },
                 { "Stats & upgrades", "Hold Tab (just for you, doesn't pause)" },
+                { "Aim line on / off", "V" },
                 { "Pause menu", "Esc" },
                 { "Mute", "M" },
             };
@@ -1388,7 +1406,7 @@ namespace Arena
             DrawAudioOptions(x, panel.y + 82f, w);
 
             // Developer: session recording for balancing.
-            float y = panel.y + 450f;
+            float y = panel.y + 476f;
             Ui.Heading(x, y, w, "Developer");
             bool rec = Ui.Toggle(new Rect(x, y + 30f, w, 26f), recordSessions, "Record sessions for balancing (when hosting)");
             if (rec != recordSessions)
@@ -1427,6 +1445,9 @@ namespace Arena
             }
             if (changed)
                 SaveAudioSettings();
+            bool line = Ui.Toggle(new Rect(x, y + 34f, w, 26f), aimLine, "Aim line   [V]");
+            if (line != aimLine)
+                SetAimLine(line);
         }
 
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
@@ -1449,6 +1470,7 @@ namespace Arena
             sounds.Effects = PlayerPrefs.GetFloat("vol_effects", 1f);
             sounds.Music = PlayerPrefs.GetFloat("vol_music", 0.7f);
             sounds.Muted = PlayerPrefs.GetInt("muted", 0) == 1;
+            aimLine = PlayerPrefs.GetInt("aim_line", 1) == 1;
         }
 
         void SaveAudioSettings()
@@ -2144,6 +2166,33 @@ namespace Arena
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
+        }
+
+        /// The aim line: a soft glow from your gun toward the crosshair in your role's color, fading
+        /// with distance, with motes drifting outward the way your shots fly.
+        void DrawAimLine(Player me, V2 cursor, float t)
+        {
+            V2 dir = V2.FromAngle(me.Aim);
+            V2 from = me.Disp + dir * (me.Def.BodyR + 8f);
+            float reach = Mathf.Min(Mathf.Max(cursor.DistanceTo(me.Disp) - me.Def.BodyR - 14f, 40f), 620f);  // stops just short of the crosshair
+            var c = me.Def.Color.Mix(Rgba.White, 0.35f);
+            const int Steps = 24;
+            for (int i = 0; i < Steps; i++)
+            {
+                float a = (float)i / Steps, b = (float)(i + 1) / Steps;
+                float fade = 1f - 0.8f * a;  // strongest at the gun, still visible at the crosshair
+                V2 p0 = from + dir * (reach * a), p1 = from + dir * (reach * b);
+                Line(p0, p1, 8f, c.WithAlpha(0.07f * fade));   // soft glow
+                Line(p0, p1, 1.5f, c.WithAlpha(0.32f * fade));  // thin core
+            }
+            // Motes drifting outward.
+            const float Spacing = 34f;
+            float offset = MathX.Fmod(t * 140f, Spacing);
+            for (float d = offset; d < reach; d += Spacing)
+            {
+                float f = 1f - 0.75f * d / reach;
+                Circle(from + dir * d, 1.3f + 1.2f * f, c.WithAlpha(0.5f * f), 8);
+            }
         }
 
         /// F3: the numbers behind the aim lines.
