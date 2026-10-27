@@ -196,6 +196,12 @@ namespace Arena
                     e.SpawnT -= dt;
                     continue;
                 }
+                if (e.FrozenT > 0f)  // Glacial Tomb: frozen solid, no moving or shooting
+                {
+                    e.FrozenT -= dt;
+                    e.SlowT = Math.Max(e.SlowT, e.FrozenT);
+                    continue;
+                }
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);

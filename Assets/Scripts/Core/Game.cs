@@ -53,6 +53,7 @@ namespace Arena
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
+        public float UltT;                     // Fortress / Bullet Storm time left
         public float BarrierHp, BarrierMax, AegisHp;  // damage the Barrier / Aegis can still soak (host)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
@@ -77,7 +78,7 @@ namespace Arena
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
-        public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };
+        public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
         public float Speed => Def.Speed * Stats.SpeedMult;
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
@@ -102,6 +103,7 @@ namespace Arena
         public float BurnT, BurnDps;        // Incendiary Rounds (host)
         public int BurnBy;
         public bool Burning, Chilled;       // replicated, for drawing
+        public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public int LastHitBy;
         public bool Marked;
         public int TargetId, ParentId;
@@ -183,6 +185,7 @@ namespace Arena
         public bool AbilityQ;
         public bool AbilityE;
         public bool AbilityShift;
+        public bool Ultimate;
     }
 
     /// The match. The host simulates enemies, bullets, damage, XP and waves; every
@@ -426,20 +429,27 @@ namespace Arena
             ids[0] = p.RoleAbility;
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
+            ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.Kit);
             int next = 1;
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Grants != AbilityId.None && next < ids.Length)
+                if (Upgrades.All[t].Grants != AbilityId.None && next <= Upgrades.BonusSlots)
                     ids[next++] = Upgrades.All[t].Grants;
 
             for (int i = 0; i < ids.Length; i++)
             {
                 var slot = p.Slots[i];
-                int max = ids[i] == AbilityId.None ? 0 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges);
+                int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges);
                 if (slot.Id != ids[i])
                 {
                     slot.Id = ids[i];
                     slot.Charges = max;
                     slot.Timer = 0f;
+                    if (i == Upgrades.UltSlot)
+                    {
+                        // The ultimate starts half charged.
+                        slot.Charges = 0;
+                        slot.Timer = Upgrades.Ability(ids[i]).Cooldown * 0.5f;
+                    }
                 }
                 else if (max > slot.MaxCharges)
                     slot.Charges += max - slot.MaxCharges;
@@ -453,6 +463,8 @@ namespace Arena
             var id = p.Slots[slot].Id;
             if (id == AbilityId.None)
                 return 1f;
+            if (slot == Upgrades.UltSlot)
+                return Upgrades.Ability(id).Cooldown;  // ultimates ignore cooldown upgrades
             float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult;
             if (id == AbilityId.Dash)
                 cd *= p.Stats.DashCdMult;
@@ -738,7 +750,7 @@ namespace Arena
             V2 aimAt = input.AimAt;
             me.Aim = (aimAt - me.Pos).Angle;
             bool firing = input.Fire && !me.Downed;
-            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift };
+            bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift, input.Ultimate };
 
             if (Bot)
             {
@@ -946,6 +958,7 @@ namespace Arena
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
+                p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
@@ -966,7 +979,7 @@ namespace Arena
                     continue;
                 if (p.Firing && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
-                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f);
+                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f);
                     FirePlayer(p);
                 }
                 p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
@@ -1017,7 +1030,7 @@ namespace Arena
                     SpawnBullet(Defs.NovaShot, p.Pos + d * p.Def.BodyR, d * 450f, 0f, 0.8f, 9f * dmg, p.Id);
                 }
             // Volley 0 is straight ahead; Multishot adds volleys fanned out to alternating sides.
-            for (int v = 0; v <= p.Stats.ExtraShots; v++)
+            for (int v = 0; v <= p.Stats.ExtraShots + (Storming(p) ? 2 : 0); v++)
             {
                 float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
                 V2 dir = V2.FromAngle(aim);
@@ -1227,6 +1240,8 @@ namespace Arena
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
             amount *= p.Stats.DamageTaken;
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
+                amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -2041,6 +2056,7 @@ namespace Arena
                 w.Write(p.AegisT);
                 w.Write(p.SurgeT);
                 w.Write(p.FrenzyT);
+                w.Write(p.UltT);
                 w.Write(p.ShieldHp);
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
@@ -2226,7 +2242,7 @@ namespace Arena
                 float revive = r.ReadSingle(), barrier = r.ReadSingle(), barrierFrac = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
                 float taunt = r.ReadSingle(), link = r.ReadSingle();
                 int linkTo = r.ReadInt32();
-                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), shield = r.ReadSingle();
+                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle(), shield = r.ReadSingle();
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
@@ -2275,6 +2291,7 @@ namespace Arena
                 p.AegisT = aegis;
                 p.SurgeT = surge;
                 p.FrenzyT = frenzy;
+                p.UltT = ult;
                 p.ShieldHp = shield;
                 p.Level = level;
                 p.Xp = xp;

@@ -168,8 +168,10 @@ namespace Arena
             if (!menuUp)
             {
                 // Remember ability presses between fixed steps so quick taps aren't lost.
-                if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(1))
+                if (Input.GetKeyDown(KeyCode.Space))
                     wantAbility[0] = true;
+                if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.F))
+                    wantAbility[Upgrades.UltSlot] = true;
                 if (Input.GetKeyDown(KeyCode.Q))
                     wantAbility[1] = true;
                 if (Input.GetKeyDown(KeyCode.E))
@@ -226,10 +228,11 @@ namespace Arena
                               Axis(KeyCode.S, KeyCode.DownArrow) - Axis(KeyCode.W, KeyCode.UpArrow)).Normalized(),
                 AimAt = MouseArena(),
                 Fire = Input.GetMouseButton(0),
-                Ability = wantAbility[0] || Input.GetKey(KeyCode.Space) || Input.GetMouseButton(1),
+                Ability = wantAbility[0] || Input.GetKey(KeyCode.Space),
                 AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
                 AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
                 AbilityShift = wantAbility[3] || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
+                Ultimate = wantAbility[Upgrades.UltSlot] || Input.GetMouseButton(1) || Input.GetKey(KeyCode.F),
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -371,6 +374,15 @@ namespace Arena
                     Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
                 if (p.FrenzyT > 0f)  // Alpha Call
                     Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
+                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)  // golden bulwark
+                {
+                    Circle(p.Disp, p.Def.BodyR + 16f, new Rgba(1f, 0.8f, 0.35f, 0.15f), 32);
+                    Polygon(p.Disp, p.Def.BodyR + 14f, 6, t * 0.8f, new Rgba(1f, 0.8f, 0.35f, 0.12f));
+                    Arc(p.Disp, p.Def.BodyR + 16f, 3f, new Rgba(1f, 0.85f, 0.4f, 0.9f), 6, t * 0.8f + MathX.Pi / 6f, MathX.Tau);
+                }
+                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // spinning muzzle sparks
+                    for (int k = 0; k < 3; k++)
+                        Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
             }
 
             foreach (var b in game.Bullets.Values)
@@ -549,6 +561,22 @@ namespace Arena
                 case ZoneKind.Totem:
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 40);
                     Polygon(z.Pos, 8f, 6, t, c);
+                    break;
+                case ZoneKind.Sanctum:  // a shining dome
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.12f + 0.04f * Mathf.Sin(t * 3f)), 56);
+                    Arc(z.Pos, z.Radius - 6f, 2f, c.WithAlpha(0.5f), 56);
+                    for (int k = 0; k < 8; k++)
+                        Line(z.Pos, z.Pos + V2.FromAngle(MathX.Tau * k / 8f + t * 0.3f) * 26f, 3f, c.WithAlpha(0.8f));
+                    break;
+                case ZoneKind.Grove:  // a great tree with roots spreading out
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f), 48);
+                    for (int k = 0; k < 7; k++)
+                    {
+                        float a = MathX.Tau * k / 7f + 0.3f * Mathf.Sin(t + k);
+                        Line(z.Pos, z.Pos + V2.FromAngle(a) * z.Radius * 0.85f, 3f, new Rgba(0.45f, 0.32f, 0.2f, 0.7f));
+                    }
+                    Circle(z.Pos, 34f, c.WithAlpha(0.85f), 20);
+                    Circle(z.Pos, 12f, new Rgba(0.45f, 0.32f, 0.2f), 12);
                     break;
                 default:  // Haven
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
@@ -1001,7 +1029,8 @@ namespace Arena
             {
                 { "Move", "WASD / arrow keys" },
                 { "Aim / shoot", "Mouse / hold left click" },
-                { "Role ability", "Space or right click" },
+                { "Role ability", "Space" },
+                { "Ultimate", "Right click or F (one per role and class)" },
                 { "Bonus abilities", "Q, E and Shift (from very rare upgrades)" },
                 { "Pick an upgrade", "Click a card (or 1-3), then Confirm (Enter)" },
                 { "Reroll upgrades", "R" },
@@ -1283,9 +1312,16 @@ namespace Arena
                 }
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             Ui.Label(new Rect(x, y + 70f, w, 40f), ability.Desc + "  (" + ability.Cooldown.ToString("0.#") + " s cooldown)", 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            y += 108f;
+
+            // The ultimate comes with the role and class; it can't be picked.
+            var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
+            Ui.Heading(x, y, w, "Ultimate  (right click / F)");
+            Ui.Label(new Rect(x, y + 26f, w, 20f), ult.Name, 15, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 150f, y + 26f, w - 150f, 36f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
         }
 
-        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT" };
+        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT", "RMB / F" };
 
         void DrawHud()
         {
@@ -1644,7 +1680,16 @@ namespace Arena
             {
                 var slot = me.Slots[i];
                 var r = new Rect(x0 + i * (slotW + gap), y, slotW, 46f);
+                bool ultimate = i == Upgrades.UltSlot;
                 Box(r, new Color(0, 0, 0, 0.55f));
+                if (ultimate)  // gold frame, glowing when it's ready
+                {
+                    Color frame = slot.Charges > 0 ? new Color(1f, 0.8f, 0.35f, 0.6f + 0.3f * Mathf.Sin(Time.unscaledTime * 5f)) : new Color(1f, 0.8f, 0.35f, 0.3f);
+                    Box(new Rect(r.x, r.y, r.width, 2f), frame);
+                    Box(new Rect(r.x, r.yMax - 2f, r.width, 2f), frame);
+                    Box(new Rect(r.x, r.y, 2f, r.height), frame);
+                    Box(new Rect(r.xMax - 2f, r.y, 2f, r.height), frame);
+                }
                 Label(new Rect(r.x + 6, r.y + 2, 60, 14), SlotKeys[i], 10, new Color(1, 1, 1, 0.55f), TextAnchor.UpperLeft, true);
                 if (slot.Id == AbilityId.None)
                 {
@@ -1654,8 +1699,8 @@ namespace Arena
                 bool ready = slot.Charges > 0;
                 Label(new Rect(r.x + 6, r.y + 14, slotW - 12, 18), Upgrades.Ability(slot.Id).Name, 14, ready ? Color.white : new Color(1, 1, 1, 0.5f), TextAnchor.UpperLeft, true);
                 float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / game.Cooldown(me, i);
-                GuiBar(new Rect(r.x + 6, r.y + 36, slotW - 12, 5), fill, ready ? new Color(0.5f, 0.8f, 1f) : new Color(0.35f, 0.45f, 0.6f));
-                string status = slot.Charges >= slot.MaxCharges ? "READY" : slot.Timer.ToString("0.0") + "s";
+                GuiBar(new Rect(r.x + 6, r.y + 36, slotW - 12, 5), fill, ultimate ? (ready ? Ui.Gold : new Color(0.6f, 0.5f, 0.25f)) : ready ? new Color(0.5f, 0.8f, 1f) : new Color(0.35f, 0.45f, 0.6f));
+                string status = slot.Charges >= slot.MaxCharges ? "READY" : ultimate ? (int)(fill * 100f) + "%" : slot.Timer.ToString("0.0") + "s";
                 if (slot.MaxCharges > 1)
                     status = slot.Charges + "/" + slot.MaxCharges + "  " + status;
                 Label(new Rect(r.x + 6, r.y + 2, slotW - 12, 14), status, 10, new Color(1, 1, 1, 0.7f), TextAnchor.UpperRight);
@@ -1726,7 +1771,7 @@ namespace Arena
                 if (u.Grants != AbilityId.None)
                 {
                     int free = 1;
-                    while (free < Upgrades.SlotCount - 1 && me.Slots[free].Id != AbilityId.None)
+                    while (free < Upgrades.BonusSlots && me.Slots[free].Id != AbilityId.None)
                         free++;
                     note = "Goes in your " + SlotKeys[free] + " slot";
                 }

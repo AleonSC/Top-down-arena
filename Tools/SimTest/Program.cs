@@ -81,7 +81,7 @@ static class Program
             foreach (int t in taken)
                 if (Upgrades.All[t].Grants != AbilityId.None)
                     grants++;
-            ok &= grants <= Upgrades.SlotCount - 1;
+            ok &= grants <= Upgrades.BonusSlots;
         }
         Console.WriteLine("offer rarities seen: common {0}, uncommon {1}, rare {2}, very rare {3}", rarityCount[0], rarityCount[1], rarityCount[2], rarityCount[3]);
         Check(ok, "offers are 3 distinct, eligible upgrades; at most 3 new abilities");
@@ -342,6 +342,90 @@ static class Program
                 client.Leave("");
             }
         }
+    }
+
+    // Every role and class has its own ultimate on right click, and each one works over the network.
+    static void UltimateSweep(float dt)
+    {
+        var seenUlts = new HashSet<AbilityId>();
+        foreach (var kit in new[] { Kit.Soldier, Kit.Mage, Kit.Summoner })
+        foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
+        {
+            int port = nextPort++;
+            var host = new Session { AutoStart = 2, StartWave = 3 };
+            host.Game.Bot = true;
+            host.Host(port, "Host", roles[0], 0, 0, kit);
+            var client = new Session();
+            client.Game.Bot = true;
+            client.Join("127.0.0.1", port, "Friend", roles[1], 0, 0, kit);
+            var s = new[] { host, client };
+            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            Run(s, dt, 6, () => host.Game.Enemies.Count >= 4 && host.Game.State == MatchState.Fighting);
+            Func<int, Player> mine = id => (id == 1 ? host : client).Game.Players[id];
+            foreach (int id in new[] { 1, 2 })
+            {
+                foreach (var g in new[] { host.Game.Players[id], mine(id) })  // fill the ultimate on both sides
+                {
+                    g.Slots[Upgrades.UltSlot].Charges = 1;
+                    g.Slots[Upgrades.UltSlot].Timer = 0f;
+                }
+                if (kit == Kit.Soldier && roles[0] == Role.Tank)
+                    host.Game.Players[id].Hp = 10f;  // for Lifeline to heal
+                host.Game.Players[id].InvulnT = 2f;  // don't get downed before casting
+            }
+            var minions = new Dictionary<MinionKind, int>();
+            var zones = new Dictionary<ZoneKind, int>();
+            var ultT = new HashSet<int>();
+            bool frozen = false;
+            var fullHp = new HashSet<int>();
+            Run(s, dt, 5, null, () =>
+            {
+                var mc = new Dictionary<MinionKind, int>();
+                foreach (var m in client.Game.Minions.Values)
+                    mc[m.Kind] = (mc.ContainsKey(m.Kind) ? mc[m.Kind] : 0) + 1;
+                foreach (var kv in mc)
+                    minions[kv.Key] = Math.Max(minions.ContainsKey(kv.Key) ? minions[kv.Key] : 0, kv.Value);
+                var zc = new Dictionary<ZoneKind, int>();
+                foreach (var z in client.Game.Zones.Values)
+                    zc[z.Kind] = (zc.ContainsKey(z.Kind) ? zc[z.Kind] : 0) + 1;
+                foreach (var kv in zc)
+                    zones[kv.Key] = Math.Max(zones.ContainsKey(kv.Key) ? zones[kv.Key] : 0, kv.Value);
+                foreach (var p in client.Game.Players.Values)
+                    if (p.UltT > 0f)
+                        ultT.Add(p.Id);
+                foreach (var p in host.Game.Players.Values)
+                    if (p.Hp >= p.MaxHp - 0.5f)
+                        fullHp.Add(p.Id);
+                foreach (var e in host.Game.Enemies.Values)
+                    frozen |= e.FrozenT > 0f;
+            });
+            foreach (int id in new[] { 1, 2 })
+            {
+                var hp = host.Game.Players[id];
+                var ult = hp.Slots[Upgrades.UltSlot].Id;
+                seenUlts.Add(ult);
+                bool used = hp.Slots[Upgrades.UltSlot].Charges == 0 && hp.Slots[Upgrades.UltSlot].Timer > 0f;
+                Func<MinionKind, int> M = k => minions.ContainsKey(k) ? minions[k] : 0;
+                Func<ZoneKind, int> Z = k => zones.ContainsKey(k) ? zones[k] : 0;
+                bool effect = false;
+                switch (ult)
+                {
+                    case AbilityId.Fortress: case AbilityId.BulletStorm: effect = ultT.Contains(id); break;
+                    case AbilityId.GlacialTomb: effect = frozen; break;
+                    case AbilityId.Titan: effect = M(MinionKind.Titan) > 0; break;
+                    case AbilityId.Lifeline: effect = fullHp.Count == 2; break;
+                    case AbilityId.Sanctum: effect = Z(ZoneKind.Sanctum) > 0; break;
+                    case AbilityId.WorldTree: effect = Z(ZoneKind.Grove) > 0 && M(MinionKind.Sprite) >= 4; break;
+                    case AbilityId.MeteorStorm: effect = Z(ZoneKind.Meteor) >= 10; break;
+                    case AbilityId.Legion: effect = M(MinionKind.Wolf) >= 6 && M(MinionKind.Bat) >= 6; break;
+                }
+                bool synced = client.Game.Players[id].Slots[Upgrades.UltSlot].Id == ult && ult == Upgrades.Ultimate(hp.Role, kit);
+                Check(used && effect && synced, string.Format("{0} {1}: ultimate {2} works over the network", kit, hp.Def.Name, Upgrades.Ability(ult).Name));
+            }
+            host.Leave("");
+            client.Leave("");
+        }
+        Check(seenUlts.Count == 9, "all 9 role and class combinations have their own ultimate");
     }
 
     // Every mage and summoner weapon and ability, over the network.
@@ -894,6 +978,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "ults")
+        {
+            UltimateSweep(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "mods")
         {
             WeaponModTest(1f / 60f);
@@ -1097,7 +1187,7 @@ static class Program
                     if (Upgrades.All[t].Grants != AbilityId.None)
                         grants.Add(Upgrades.All[t].Grants);
                 var cs = client.Game.Players[hp.Id].Slots;
-                for (int k = 1; k < Upgrades.SlotCount; k++)
+                for (int k = 1; k <= Upgrades.BonusSlots; k++)
                     slotsOk &= cs[k].Id == (k - 1 < grants.Count ? grants[k - 1] : AbilityId.None);
                 slotsOk &= new HashSet<AbilityId>(grants).Count == grants.Count;  // no duplicates
                 if (hp.Id == 1)
@@ -1140,6 +1230,7 @@ static class Program
         KitSweep(dt);
         LegendarySync(dt);
         WeaponModTest(dt);
+        UltimateSweep(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

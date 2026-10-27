@@ -13,6 +13,8 @@ namespace Arena
         ArcaneAegis, FrostNova, FlameWall, TimeRewind, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
         // Summoner
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
+        // Ultimates (right click): one per role and class
+        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, MeteorStorm, Legion,
         None = 255,
     }
 
@@ -66,7 +68,9 @@ namespace Arena
 
     public static class Upgrades
     {
-        public const int SlotCount = 4;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift
+        public const int SlotCount = 5;  // 0 = role ability (Space), 1 = Q, 2 = E, 3 = Shift, 4 = ultimate (right click)
+        public const int BonusSlots = 3; // Q, E and Shift, filled by very rare upgrades
+        public const int UltSlot = 4;
 
         public static readonly AbilityDef[] Abilities =
         {
@@ -104,7 +108,27 @@ namespace Arena
             new AbilityDef { Name = "Bat Swarm", Cooldown = 12f, Desc = "Release 8 bats that hunt enemies for 6 s." },
             new AbilityDef { Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later." },
             new AbilityDef { Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions frenzy for 6 s: faster, and they attack twice as often." },
+            // Ultimates. Their cooldowns aren't shortened by cooldown upgrades.
+            new AbilityDef { Name = "Fortress", Cooldown = 70f, Desc = "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away." },
+            new AbilityDef { Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead)." },
+            new AbilityDef { Name = "Titan", Cooldown = 80f, Desc = "Summon a stone titan for 15 s that smashes enemies and blocks bullets (it soaks 1000 boss damage)." },
+            new AbilityDef { Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal you and your ally, with 3 s of invulnerability." },
+            new AbilityDef { Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in." },
+            new AbilityDef { Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites." },
+            new AbilityDef { Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast with two extra volleys." },
+            new AbilityDef { Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each." },
+            new AbilityDef { Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy." },
         };
+
+        /// Each role and class has its own ultimate; it can't be changed.
+        static readonly AbilityId[] Ultimates =
+        {
+            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan,         // Tank: Soldier, Mage, Summoner
+            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree,         // Healer
+            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion,     // DPS
+        };
+
+        public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * 3 + (int)kit];
 
         /// The three Space abilities for each role and kit, picked in the lobby.
         static readonly AbilityId[] RoleAbilities =
@@ -294,7 +318,7 @@ namespace Arena
             foreach (int t in taken)
                 if (All[t].Grants != AbilityId.None)
                     grants++;
-            if (u.Grants != AbilityId.None && grants >= SlotCount - 1)
+            if (u.Grants != AbilityId.None && grants >= BonusSlots)
                 return false;
             if (u.NeedsExtraAbility && grants == 0)
                 return false;

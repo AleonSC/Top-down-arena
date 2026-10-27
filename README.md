@@ -60,6 +60,18 @@ upgrades work with all of them.
 | | **Railgun** | Slow, devastating shots that pierce 3 enemies |
 | | **Burst SMG** | Sprays very fast, inaccurate shots |
 
+### Ultimates
+
+Right click (or **F**) fires your **ultimate**. Each role and class combination has its own, fixed one: it
+comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
+that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
+
+| | Soldier | Mage | Summoner |
+|---|---|---|---|
+| **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) |
+| **Healer** | **Lifeline** (90 s): instantly revive and fully heal both players, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
+| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate with two extra volleys | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
+
 ## Levels and upgrades
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
@@ -164,7 +176,8 @@ bosses come back around, tougher each time.
 | Move | WASD / arrow keys |
 | Aim | Mouse |
 | Shoot | Hold left click |
-| Role ability | Space or right click |
+| Role ability | Space |
+| Ultimate | Right click or F |
 | Bonus abilities | Q, E and Shift (once unlocked) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
@@ -243,6 +256,7 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
   - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode
   - `StatSheet.cs`: the stats shown beside the upgrade cards
   - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
+  - `Ultimates.cs`: the nine ultimates
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport

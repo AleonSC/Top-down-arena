@@ -4,7 +4,7 @@ namespace Arena
 
     public enum MinionKind : byte
     {
-        Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall,
+        Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
         None = 255,
     }
 
@@ -28,7 +28,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove }
 
     public class ZoneDef
     {
@@ -72,6 +72,8 @@ namespace Arena
                 BlockRadius = 75f, BlockCapacity = 400f },
             new MinionDef { Name = "Stone Wall", Radius = 22f, Sides = 4, Color = new Rgba(0.6f, 0.55f, 0.5f), Move = MinionMove.Static,
                 BlockRadius = 30f, BlockCapacity = 200f },
+            new MinionDef { Name = "Titan", Radius = 32f, Sides = 6, Color = new Rgba(0.8f, 0.7f, 0.45f), Move = MinionMove.Chase, Speed = 110f,
+                Attack = MinionAttack.Slam, Interval = 1.1f, Damage = 70f, Range = 100f, BlockRadius = 46f, BlockCapacity = 1000f },
         };
 
         // Indexed by ZoneKind.
@@ -83,6 +85,8 @@ namespace Arena
             new ZoneDef { Name = "Soul Lantern", Color = new Rgba(1f, 0.9f, 0.5f), HealRate = 5f, PreventDown = true },
             new ZoneDef { Name = "Healing Totem", Color = new Rgba(0.5f, 0.9f, 0.4f), HealRate = 8f },
             new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },
+            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), HealRate = 20f, PreventDown = true, BlockCapacity = 1500f },
+            new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

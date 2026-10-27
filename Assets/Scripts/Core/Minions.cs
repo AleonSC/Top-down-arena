@@ -257,6 +257,9 @@ namespace Arena
                     p.FrenzyT = 6f;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 120f, 0.4f, Sfx.Roar);
                     break;
+                default:
+                    Ultimate(p, id, target);  // Ultimates.cs
+                    break;
             }
         }
 
