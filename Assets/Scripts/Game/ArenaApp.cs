@@ -428,10 +428,10 @@ namespace Arena
                     Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
                 if (p.ParryActive)  // the parry shield: an arc toward the cursor that dims as it wears
                 {
-                    float hp = Mathf.Clamp01(p.ParryHp / Game.ParryCapacity);
+                    float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
                     float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
                     var sc = new Rgba(0.55f, 0.9f, 1f);
-                    float from = p.Aim - Game.ParryHalfArc, span = Game.ParryHalfArc * 2f;
+                    float from = p.Aim - Game.ParryArc(p), span = Game.ParryArc(p) * 2f;
                     Arc(p.Disp, rr, 14f, sc.WithAlpha(0.3f + 0.25f * hp), 20, from, span);            // the shield's face
                     Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.7f + 0.3f * hp), 20, from, span);  // bright rim
                     for (int k = 0; k <= 1; k++)  // end caps
@@ -1739,7 +1739,7 @@ namespace Arena
             var groups = new[]
             {
                 new KeyValuePair<string, string[,]>("OFFENSE", new string[,] { { "Damage", get("Damage") }, { "Fire rate", get("Fire rate") }, { "Extra projectiles", get("Extra projectiles") }, { "Pierce", get("Pierce") } }),
-                new KeyValuePair<string, string[,]>("DEFENSE", new string[,] { { "Health", Mathf.CeilToInt(me.Hp) + " / " + Mathf.CeilToInt(me.MaxHp) }, { "Damage taken", get("Damage taken") }, { "Regeneration", get("Regeneration") } }),
+                new KeyValuePair<string, string[,]>("DEFENSE", new string[,] { { "Health", Mathf.CeilToInt(me.Hp) + " / " + Mathf.CeilToInt(me.MaxHp) }, { "Damage taken", get("Damage taken") }, { "Regeneration", get("Regeneration") }, { "Parry durability", get("Parry durability") } }),
                 new KeyValuePair<string, string[,]>("UTILITY", new string[,] { { "Move speed", get("Move speed") }, { "Ability cooldowns", get("Ability cooldowns") }, { "Space charges", charges } }),
             };
             float y = box.y + 12f;
@@ -2157,7 +2157,7 @@ namespace Arena
             {
                 var r = new Rect(x0 - 78f, y, 70f, tileH);
                 bool broken = me.ParryBroken > 0f;
-                float hp = Mathf.Clamp01(me.ParryHp / Game.ParryCapacity);
+                float hp = Mathf.Clamp01(me.ParryHp / Game.ParryMax(me));
                 var sc = new Color(0.55f, 0.9f, 1f);
                 Ui.HudPanel(r, me.ParryActive ? sc : broken ? new Color(1f, 0.4f, 0.4f) : (Color?)null);
                 DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), "RMB", me.ParryActive ? sc : new Color(1f, 1f, 1f, 0.6f));

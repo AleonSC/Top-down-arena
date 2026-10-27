@@ -56,6 +56,7 @@ namespace Arena
         public float UltT;                     // Fortress / Bullet Storm time left
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
+        public float CounterT;                 // host: Counterstance fire-rate boost time left
         public float ParryBroken;              // seconds until a broken shield can be raised again (replicated)
         public float ParryHeld, ParryDown = 10f;  // host: how long it's been up / down
         public bool ParryPerfect;              // host: raised fresh, so the first moment reflects
@@ -817,7 +818,7 @@ namespace Arena
                 me.Pos += DashDir * dashSpeed * dt;
             }
             else
-                me.Pos += move * me.Speed * (me.ParryActive ? ParrySlow : 1f) * dt;
+                me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * dt;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
 
@@ -1015,7 +1016,8 @@ namespace Arena
                     continue;
                 if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
-                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f);
+                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f)
+                        / (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
                     FirePlayer(p);
                 }
                 p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
@@ -1724,9 +1726,8 @@ namespace Arena
                         {
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
-                            ParryHit(p, b.Dmg, b.Pos);
-                            if (p.ParryHeld < PerfectParry && p.ParryPerfect)
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // perfect parry: sent back
+                            if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry or Mirror Guard: sent back
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult });
                             break;
                         }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
@@ -1777,7 +1778,7 @@ namespace Arena
             {
                 Player owner;
                 if (Players.TryGetValue(rb.Owner, out owner))
-                    SpawnBullet(Defs.ArcaneShot, rb.Pos, rb.Vel.Normalized() * -520f, 0f, 1f, 12f * owner.Stats.DmgMult, rb.Owner);
+                    SpawnBullet(Defs.ArcaneShot, rb.Pos, rb.Vel.Normalized() * -520f, 0f, 1f, 12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
             }
 
             // Ricochet: the bullet carries on toward the nearest other enemy.

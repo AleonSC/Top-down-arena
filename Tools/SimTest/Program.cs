@@ -522,6 +522,11 @@ static class Program
         {
             var s = StartBuffed(dt, 6, 0);
             s[0].Game.Bot = s[1].Game.Bot = false;  // hold fire so the lungers reach us
+            Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+            // Waves are random, so make sure there are lungers to watch.
+            var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            for (int k = 0; k < 3; k++)
+                spawn.Invoke(s[0].Game, new object[] { EnemyType.Lunger, new V2(300f + k * 400f, 120f), 0.5f, 0, false });
             bool windup = false, leap = false;
             Run(s, dt, 40, () => windup && leap, () =>
             {
@@ -603,6 +608,86 @@ static class Program
         Check(reflected > 0, "a perfect parry sends the shots back");
         Check(clientSeesIt, "other players see your parry shield");
         s[0].Game.HoldParry = false;
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    // The parry upgrades: Reinforced, Wide and Light Guard, Riposte, Counterstance, Mirror Guard.
+    static void ParryUpgradeTest(float dt)
+    {
+        var s = StartBuffed(dt, 5, 0);
+        Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+        var me = s[0].Game.Players[1];
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+
+        // Wide Guard: a point 75 degrees off your aim is only covered with it.
+        me.Aim = 0f;
+        V2 side = me.Pos + V2.FromAngle(1.3f) * (me.Def.BodyR + 10f);
+        bool narrowBefore = !Game.InParryArc(me, side, 2f);
+        for (int k = 0; k < 2; k++) s[0].Game.GrantUpgrade(1, U("Wide Guard"));
+        bool wideAfter = Game.InParryArc(me, side, 2f);
+        Check(narrowBefore && wideAfter, "Wide Guard widens the parry arc");
+
+        // Reinforced Guard: +25% durability per stack.
+        for (int k = 0; k < 4; k++) s[0].Game.GrantUpgrade(1, U("Reinforced Guard"));
+        Check(Math.Abs(Game.ParryMax(me) - Game.ParryCapacity * 2f) < 0.01f, "Reinforced Guard x4 doubles parry durability");
+
+        // Light Guard: full speed while parrying.
+        Func<float> speedWhileParrying = () =>
+        {
+            s[0].Game.HoldParry = true;
+            V2 start = me.Pos;
+            for (int i = 0; i < 30; i++)
+            {
+                s[0].Poll();
+                s[0].Game.FixedStep(dt, new PlayerInput { Move = new V2(1f, 0f), AimAt = me.Pos + new V2(0f, -100f) });
+                foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f;
+            }
+            s[0].Game.HoldParry = false;
+            float dx = Math.Abs(me.Pos.X - start.X);
+            return Math.Min(dx, Game.Width - dx) / (30 * dt);
+        };
+        float slow = speedWhileParrying();
+        s[0].Game.GrantUpgrade(1, U("Light Guard"));
+        float fast = speedWhileParrying();
+        Console.WriteLine("  parry move speed: {0:0} -> {1:0} px/s (normal {2:0})", slow, fast, me.Speed);
+        Check(slow < me.Speed * 0.8f && fast > me.Speed * 0.95f, "Light Guard removes the parry slowdown");
+
+        // Mirror Guard, Riposte and Counterstance: block the Warden's fire and look at what comes back.
+        for (int k = 0; k < 3; k++) s[0].Game.GrantUpgrade(1, U("Mirror Guard"));
+        s[0].Game.GrantUpgrade(1, U("Riposte"));
+        s[0].Game.GrantUpgrade(1, U("Counterstance"));
+        int reflected = 0;
+        float biggestReflect = 0f;
+        bool counter = false;
+        var seen = new HashSet<int>();
+        foreach (var b in s[0].Game.Bullets.Values) seen.Add(b.Id);
+        Action pin = () =>
+        {
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (!e.Def.IsBoss) e.Hp = 0f;
+            var w = Find(s[0], EnemyType.Boss);
+            if (w != null)
+                me.Pos = w.Pos + new V2(0f, 170f);
+            s[1].Game.Players[2].Pos = new V2(60f, Game.Height - 60f);
+            foreach (var b in s[0].Game.Bullets.Values)
+                if (b.Owner == 1 && b.Kind == Defs.ArcaneShot && seen.Add(b.Id))
+                {
+                    reflected++;
+                    biggestReflect = Math.Max(biggestReflect, b.Dmg);
+                }
+            counter |= me.CounterT > 0f;
+        };
+        Run(s, dt, 1f, null, pin);  // shield down long enough that raising it is a fresh parry
+        s[0].Game.Bot = true;       // aims at the Warden
+        s[0].Game.HoldParry = true;
+        Run(s, dt, 4f, null, pin);
+        s[0].Game.HoldParry = false;
+        float plain = 12f * me.Stats.DmgMult;
+        Console.WriteLine("  mirror/riposte: {0} shots reflected, strongest {1:0.0} (plain reflect {2:0.0}), counterstance {3}", reflected, biggestReflect, plain, counter);
+        Check(reflected > 10, "Mirror Guard sends blocked shots back");
+        Check(biggestReflect >= plain * 1.99f, "Riposte doubles reflected shot damage");
+        Check(counter, "Counterstance kicks in after a perfect parry");
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -955,7 +1040,7 @@ static class Program
     {
         var s = StartBuffed(dt, 6, 0);
         var offer = Upgrades.ModOffer(Role.Dps, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), new List<int>());
-        Check(offer != null && offer.Length == 7, "the weapon mod offer lists all 7 mods");
+        Check(offer != null && offer.Length == 8, "the weapon mod offer lists all 8 mods");
         foreach (int id in offer)
             for (int k = 0; k < 3; k++)
             {
@@ -1533,6 +1618,7 @@ static class Program
         if (args.Length > 2 && args[2] == "parry")
         {
             ParryTest(1f / 60f);
+            ParryUpgradeTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
@@ -1541,6 +1627,7 @@ static class Program
             MusicTest();
         ParryTest(dt);
         SessionTest(dt);
+        ParryUpgradeTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

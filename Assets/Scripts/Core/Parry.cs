@@ -16,9 +16,20 @@ namespace Arena
         const float PerfectRearm = 0.5f;            // it must have been down this long first (no spamming)
         const float ParryBreakTime = 3f;            // locked out after it breaks
         const float ParryRegenDelay = 0.8f, ParryRegen = 40f;
+        const float CounterTime = 2.5f;             // Counterstance: faster fire after a perfect parry
+
+        /// How much the shield soaks for this player (Reinforced Guard raises it).
+        public static float ParryMax(Player p) => ParryCapacity * p.Stats.ParryCapacityMult;
+
+        static float HalfArc(Player p) => Math.Min(MathX.Pi * 0.8f, ParryHalfArc * p.Stats.ParryArcMult);
+
+        public static float ParryArc(Player p) => HalfArc(p);
+
+        bool PerfectNow(Player p) => p.ParryPerfect && p.ParryHeld < PerfectParry + p.Stats.PerfectBonus;
 
         void TickParry(Player p, float dt)
         {
+            p.CounterT = Math.Max(0f, p.CounterT - dt);
             p.ParryBroken = Math.Max(0f, p.ParryBroken - dt);
             p.ParryBumpT = Math.Max(0f, p.ParryBumpT - dt);
             if (p.ParryActive)
@@ -33,7 +44,7 @@ namespace Arena
                 p.ParryHeld = 0f;
                 p.ParryDown += dt;
                 if (p.ParryBroken <= 0f && p.ParryDown > ParryRegenDelay)
-                    p.ParryHp = Math.Min(ParryCapacity, p.ParryHp + ParryRegen * dt);
+                    p.ParryHp = Math.Min(ParryMax(p), p.ParryHp + ParryRegen * p.Stats.ParryCapacityMult * dt);
             }
         }
 
@@ -45,17 +56,20 @@ namespace Arena
             if (d.LengthSq > reach * reach)
                 return false;
             float diff = Math.Abs(MathX.Fmod(d.Angle - p.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
-            return diff < ParryHalfArc;
+            return diff < HalfArc(p);
         }
 
         /// The shield takes a hit: free during a perfect parry, otherwise it wears and may break.
-        void ParryHit(Player p, float dmg, V2 at)
+        /// Returns whether the blocked bullet should be sent back (perfect parry or Mirror Guard).
+        bool ParryHit(Player p, float dmg, V2 at)
         {
-            if (p.ParryHeld < PerfectParry && p.ParryPerfect)
+            if (PerfectNow(p))
             {
+                if (p.Stats.CounterFireRate > 0f)
+                    p.CounterT = CounterTime;  // Counterstance
                 BroadcastFx(FxKind.Spark, at, new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.Blink);
                 Recorder?.Parry(p, dmg, true, false);
-                return;
+                return true;
             }
             Recorder?.Parry(p, Math.Min(dmg, p.ParryHp), false, p.ParryHp - dmg <= 0f);
             p.ParryHp -= dmg;
@@ -66,6 +80,7 @@ namespace Arena
                 p.ParryBroken = ParryBreakTime;
                 BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(p.Aim) * (p.Def.BodyR + 10f), new Rgba(0.55f, 0.9f, 1f), 30f, 0.35f, Sfx.Hit);
             }
+            return p.Stats.MirrorChance > 0f && rng.NextDouble() < p.Stats.MirrorChance;  // Mirror Guard
         }
 
         /// Melee enemies running into the shield hit it instead of you, and get shoved back.

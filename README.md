@@ -73,6 +73,17 @@ for the first instant after raising it, blocked bullets are sent back at enemies
 have been down for half a second, so you can't spam it). The meter left of your abilities shows how much it
 has left. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
+Parry upgrades show up like any other card:
+
+| Upgrade | Rarity | Effect |
+|---|---|---|
+| **Reinforced Guard** | Common (x4) | +25% parry durability per stack |
+| **Wide Guard** | Uncommon (x2) | The shield covers a 30% wider arc |
+| **Riposte** | Rare (x2) | Perfect-parry window 0.12 s longer, and reflected shots deal double damage |
+| **Counterstance** | Rare (x2) | A perfect parry gives +50% fire rate for 2.5 s |
+| **Light Guard** | Rare | No slowdown while parrying |
+| **Mirror Guard** | Weapon mod (x3) | Each blocked bullet has a 25% chance to fly back at enemies |
+
 ### Ultimates
 
 **F** fires your **ultimate**. Each role and class combination has its own, fixed one: it
