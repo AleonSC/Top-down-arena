@@ -49,7 +49,9 @@ them), and blink before vanishing after 12 seconds.
 ### Weapons
 
 Each role picks one of three starting weapons in the lobby. Damage, fire rate, Multishot and Piercing
-upgrades work with all of them.
+upgrades work with all of them. Extra projectiles (Multishot, Iron Volley, Bullet Storm) keep each weapon's style: single-shot
+weapons fire quick follow-up shots down the same line, and spread weapons (Scattergun, Flame Burst, Golem
+Staff, Bear Totem, Arcane Missiles) fire a denser spread of the same width.
 
 | Role | Weapon | |
 |---|---|---|

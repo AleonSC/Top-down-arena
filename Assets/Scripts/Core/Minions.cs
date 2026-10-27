@@ -10,13 +10,13 @@ namespace Arena
 
         // --- Weapons -----------------------------------------------------------
 
-        void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg)
+        void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int density)
         {
             switch (p.Weapon.Id)
             {
                 // Mage
                 case WeaponId.FlameBurst:
-                    for (int i = 0; i < 6; i++)
+                    for (int i = 0; i < 6 * density; i++)
                         SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, 480f), 0f, 0.35f, 6f * dmg, p.Id);
                     break;
                 case WeaponId.FrostLance:
@@ -50,13 +50,16 @@ namespace Arena
                     break;
                 case WeaponId.ArcaneMissiles:
                     // Fanned out and curving back in.
-                    for (int i = -1; i <= 1; i++)
-                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + i * 0.4f) * 520f, -i * 1.2f, 1f, 7f * dmg, p.Id);
+                    for (int i = 0, n = 3 * density; i < n; i++)
+                    {
+                        float f = i * 2f / (n - 1) - 1f;
+                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * 520f, -f * 1.2f, 1f, 7f * dmg, p.Id);
+                    }
                     break;
                 // Summoner
                 case WeaponId.GolemStaff:
-                    for (int i = -1; i <= 1; i++)
-                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + i * 0.12f) * 480f, 0f, 0.6f, 8f * dmg, p.Id);
+                    for (int i = 0, n = 3 * density; i < n; i++)
+                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + (i * 2f / (n - 1) - 1f) * 0.12f) * 480f, 0f, 0.6f, 8f * dmg, p.Id);
                     break;
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
@@ -64,8 +67,8 @@ namespace Arena
                     SpawnBullet(Defs.BoneShot, muzzle, dir * 720f, 0f, 0.8f, (p.Weapon.Id == WeaponId.BoneGuard ? 7f : 6.5f) * dmg, p.Id);
                     break;
                 case WeaponId.BearTotem:
-                    for (int i = 0; i < 5; i++)
-                        SpawnBullet(Defs.BoneShot, muzzle, V2.FromAngle(aim + (i - 2) * 0.25f) * 500f, 0f, 0.22f, 9f * dmg, p.Id);
+                    for (int i = 0, n = 5 * density; i < n; i++)
+                        SpawnBullet(Defs.BoneShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 1f) * 500f, 0f, 0.22f, 9f * dmg, p.Id);
                     break;
                 case WeaponId.SpriteStaff:
                 case WeaponId.TotemStaff:

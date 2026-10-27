@@ -54,6 +54,8 @@ namespace Arena
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float UltT;                     // Fortress / Bullet Storm time left
+        public int EchoLeft;                   // follow-up shots still to fire from the last volley (Multishot etc.)
+        public float EchoT, EchoGap;
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
         public float CounterT;                 // host: Counterstance fire-rate boost time left
@@ -1057,6 +1059,17 @@ namespace Arena
                         / (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
                     FirePlayer(p);
                 }
+                // Extra projectiles on single-shot weapons: quick follow-ups down the same line.
+                if (p.EchoLeft > 0)
+                {
+                    if (p.ParryActive)
+                        p.EchoLeft = 0;
+                    for (p.EchoT -= dt; p.EchoLeft > 0 && p.EchoT <= 0f; p.EchoT += p.EchoGap)
+                    {
+                        p.EchoLeft--;
+                        FireVolley(p, p.Aim, 1);
+                    }
+                }
                 p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
                 if (p.Role == Role.Healer)
                 {
@@ -1104,54 +1117,75 @@ namespace Arena
                     V2 d = V2.FromAngle(p.Aim + MathX.Tau * i / 8f);
                     SpawnBullet(Defs.NovaShot, p.Pos + d * p.Def.BodyR, d * 450f, 0f, 0.8f, 9f * dmg, p.Id);
                 }
-            // Volley 0 is straight ahead; Multishot adds volleys fanned out to alternating sides.
-            for (int v = 0; v <= p.Stats.ExtraShots + (Storming(p) ? 2 : 0); v++)
+            // Extra projectiles follow the weapon's style: spread weapons fire a denser spread, and
+            // everything else fires quick follow-up shots down the same line (EchoLeft).
+            int extra = p.Stats.ExtraShots + (Storming(p) ? 2 : 0);
+            if (SpreadWeapon(p.Weapon.Id))
+                FireVolley(p, p.Aim, 1 + extra);
+            else
             {
-                float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
-                V2 dir = V2.FromAngle(aim);
-                V2 muzzle = p.Pos + dir * p.Def.BodyR;
-                switch (p.Weapon.Id)
-                {
-                    case WeaponId.Scattergun:
-                        for (int i = 0; i < 5; i++)
-                            SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i - 2) * 0.13f) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
-                        break;
-                    case WeaponId.FlakCannon:
-                        SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id).Splash = 70f;
-                        break;
-                    case WeaponId.RiotRepeater:
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
-                        break;
-                    case WeaponId.LightBolt:
-                        SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
-                        break;
-                    case WeaponId.Pistol:
-                        // One perfectly accurate shot (no spread, so small aim adjustments count): 17 damage every 0.3 s.
-                        SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, 17f * dmg, p.Id);
-                        break;
-                    case WeaponId.MendersBow:
-                        SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;
-                        break;
-                    case WeaponId.TwinRifle:
-                        V2 side = dir.Orthogonal() * 5f;
-                        SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
-                        SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
-                        break;
-                    case WeaponId.Railgun:
-                        SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id).Pierce += 3;
-                        break;
-                    case WeaponId.BurstSmg:
-                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-0.16f, 0.16f)) * 760f, 0f, 0.8f, 5f * dmg, p.Id);
-                        break;
-                    default:
-                        FireKitWeapon(p, aim, dir, muzzle, dmg);  // mage and summoner weapons (Minions.cs)
-                        break;
-                }
+                FireVolley(p, p.Aim, 1);
+                p.EchoLeft = extra;
+                p.EchoGap = p.EchoT = Math.Min(0.07f, p.FireCd / (extra + 1));
             }
             firingWeapon = false;
         }
 
-        bool firingWeapon;  // set while FirePlayer runs, to tag gun shots for accuracy
+        /// Weapons whose shot is a pattern of several projectiles; extras make the pattern denser.
+        static bool SpreadWeapon(WeaponId w) =>
+            w == WeaponId.Scattergun || w == WeaponId.FlameBurst || w == WeaponId.BearTotem || w == WeaponId.GolemStaff || w == WeaponId.ArcaneMissiles;
+
+        /// One shot of the player's weapon. Spread weapons fire `density` times as many projectiles across the same spread.
+        void FireVolley(Player p, float aim, int density)
+        {
+            firingWeapon = true;
+            float dmg = p.Stats.DmgMult;
+            V2 dir = V2.FromAngle(aim);
+            V2 muzzle = p.Pos + dir * p.Def.BodyR;
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Scattergun:
+                {
+                    int n = 5 * density;
+                    for (int i = 0; i < n; i++)
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.52f) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
+                    break;
+                }
+                case WeaponId.FlakCannon:
+                    SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id).Splash = 70f;
+                    break;
+                case WeaponId.RiotRepeater:
+                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
+                    break;
+                case WeaponId.LightBolt:
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
+                    break;
+                case WeaponId.Pistol:
+                    // One perfectly accurate shot (no spread, so small aim adjustments count): 17 damage every 0.3 s.
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, 17f * dmg, p.Id);
+                    break;
+                case WeaponId.MendersBow:
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;
+                    break;
+                case WeaponId.TwinRifle:
+                    V2 side = dir.Orthogonal() * 5f;
+                    SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                    SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                    break;
+                case WeaponId.Railgun:
+                    SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id).Pierce += 3;
+                    break;
+                case WeaponId.BurstSmg:
+                    SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-0.16f, 0.16f)) * 760f, 0f, 0.8f, 5f * dmg, p.Id);
+                    break;
+                default:
+                    FireKitWeapon(p, aim, dir, muzzle, dmg, density);  // mage and summoner weapons (Minions.cs)
+                    break;
+            }
+            firingWeapon = false;
+        }
+
+        bool firingWeapon;  // set while a player's weapon fires, to tag gun shots for accuracy
 
         void HostAbility(int id, int slot, V2 target, bool consumed)
         {

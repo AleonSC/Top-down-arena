@@ -734,12 +734,49 @@ static class Program
         }
         Console.WriteLine("  aim: worst difference between aimed and fired direction {0:0.000} degrees", worst);
         Check(ok, "shots go exactly where you aim, to a quarter of a degree (host and joining player)");
+
         // The aim debug overlay's numbers: ping, and the client's record of its last shot.
         var cme = client.Game.Players[client.Game.MyId];
         float shotOff = Math.Abs(MathX.Fmod(client.Game.LastShotAngle - cme.Aim + MathX.Pi, MathX.Tau) - MathX.Pi) * 180f / MathX.Pi;
         Console.WriteLine("  aim debug: client ping {0:0.0} ms, last shot {1:0.00} degrees off its aim", client.Game.PingMs, shotOff);
         Check(client.Game.PingMs > 0f && client.Game.PingMs < 500f && client.Game.LastShotId != 0 && shotOff < 0.05f,
             "the aim debug overlay gets a ping and the direction of your last shot");
+        // Extra projectiles keep each weapon's style: single shots get follow-ups down the same line,
+        // spread weapons get a denser spread of the same width (no fanning out into a wall).
+        {
+            var me = host.Game.Players[host.Game.MyId];
+            me.Stats.ExtraShots = 2;
+            float want = 0.6f;
+            Func<List<Bullet>> Volley = () =>
+            {
+                var seen = new HashSet<int>(host.Game.Bullets.Keys);
+                var shots = new List<Bullet>();
+                for (int i = 0; i < 12; i++)
+                {
+                    foreach (var x in s)
+                    {
+                        x.Poll();
+                        x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = me.Pos + V2.FromAngle(want) * 400f, Fire = i == 0 } : new PlayerInput());
+                    }
+                    foreach (var b in host.Game.Bullets.Values)
+                        if (b.Owner == me.Id && seen.Add(b.Id))
+                            shots.Add(b);
+                }
+                for (int i = 0; i < 40; i++) foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput()); }
+                return shots;
+            };
+            var pistol = Volley();
+            float pistolOff = 0f;
+            foreach (var b in pistol) pistolOff = Math.Max(pistolOff, Math.Abs(b.Vel.Angle - want));
+            me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 0);  // Scattergun
+            var scatter = Volley();
+            float scatterOff = 0f;
+            foreach (var b in scatter) scatterOff = Math.Max(scatterOff, Math.Abs(b.Vel.Angle - want));
+            Console.WriteLine("  +2 projectiles: pistol fired {0} shots, widest {1:0.000} rad off aim; scattergun fired {2} pellets, widest {3:0.00} rad (base spread 0.26)",
+                pistol.Count, pistolOff, scatter.Count, scatterOff);
+            Check(pistol.Count == 3 && pistolOff < 0.001f, "+1 projectile on the Pistol adds follow-up shots down the same line");
+            Check(scatter.Count == 15 && scatterOff < 0.27f, "+1 projectile on the Scattergun makes the same spread denser");
+        }
         host.Leave(""); client.Leave("");
     }
 
