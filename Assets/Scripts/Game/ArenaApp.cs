@@ -28,6 +28,7 @@ namespace Arena
         int weaponChoice, abilityChoice;
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
+        int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         string shownOffer = "";
@@ -1499,37 +1500,37 @@ namespace Arena
         /// other player and the game doesn't pause.
         void DrawTabMenu(Player me)
         {
-            var panel = new Rect(W / 2f - 520f, 96f, 1040f, 540f);
+            var panel = new Rect(40f, 66f, W - 80f, 620f);
             Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 36f), "YOUR LOADOUT", 26, Color.white);
-            Ui.Label(new Rect(panel.x, panel.y + 48f, panel.width, 20f),
+            Ui.Title(new Rect(panel.x, panel.y + 12f, panel.width, 36f), "YOUR LOADOUT", 26, Color.white);
+            Ui.Label(new Rect(panel.x, panel.y + 46f, panel.width, 20f),
                 Defs.KitName(me.Kit) + " " + me.Def.Name + "   ·   Level " + me.Level + "   ·   " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left",
                 14, ToColor(me.Def.Color), TextAnchor.MiddleCenter, true);
-            float top = panel.y + 84f, bottom = panel.yMax - 20f;
-            const float pad = 24f, gap = 24f;
-            float colW = (panel.width - pad * 2f - gap * 2f) / 3f;
-            float x1 = panel.x + pad, x2 = x1 + colW + gap, x3 = x2 + colW + gap;
+            float top = panel.y + 80f, bottom = panel.yMax - 18f;
+            const float pad = 24f, gap = 24f, statsW = 240f, abilW = 290f;
+            float x1 = panel.x + pad, x2 = x1 + statsW + gap, x3 = x2 + abilW + gap;
+            float upW = panel.xMax - pad - x3;
 
             // Column 1: stats (the same numbers as the upgrade screen's panel).
-            Ui.Heading(x1, top, colW, "Stats");
+            Ui.Heading(x1, top, statsW, "Stats");
             float y = top + 30f;
             foreach (var line in StatSheet.Describe(me, me.Taken))
             {
                 if (line.Header)
-                    break;  // abilities and legendaries are listed in the other columns
-                Ui.Label(new Rect(x1, y, colW, 22f), line.Label, 14, Ui.Muted);
-                Ui.Label(new Rect(x1, y, colW, 22f), line.Value, 14, Ui.Text, TextAnchor.MiddleRight, true);
+                    break;  // abilities and upgrades are listed in the other columns
+                Ui.Label(new Rect(x1, y, statsW, 22f), line.Label, 14, Ui.Muted);
+                Ui.Label(new Rect(x1, y, statsW, 22f), line.Value, 14, Ui.Text, TextAnchor.MiddleRight, true);
                 y += 25f;
             }
-            Ui.Label(new Rect(x1, y, colW, 22f), "Health now", 14, Ui.Muted);
-            Ui.Label(new Rect(x1, y, colW, 22f), (int)me.Hp + " / " + (int)me.MaxHp, 14, Ui.Text, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(x1, y, statsW, 22f), "Health now", 14, Ui.Muted);
+            Ui.Label(new Rect(x1, y, statsW, 22f), (int)me.Hp + " / " + (int)me.MaxHp, 14, Ui.Text, TextAnchor.MiddleRight, true);
 
             // Column 2: weapon and abilities.
-            Ui.Heading(x2, top, colW, "Weapon");
-            Ui.Label(new Rect(x2, top + 30f, colW, 22f), me.Weapon.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x2, top + 54f, colW, 40f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y = top + 104f;
-            Ui.Heading(x2, y, colW, "Abilities");
+            Ui.Heading(x2, top, abilW, "Weapon");
+            Ui.Label(new Rect(x2, top + 30f, abilW, 22f), me.Weapon.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x2, top + 54f, abilW, 40f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            y = top + 100f;
+            Ui.Heading(x2, y, abilW, "Abilities");
             y += 30f;
             for (int i = 0; i < me.Slots.Length; i++)
             {
@@ -1537,19 +1538,17 @@ namespace Arena
                 if (slot.Id == AbilityId.None)
                     continue;
                 var a = Upgrades.Ability(slot.Id);
-                Ui.Badge(new Rect(x2, y + 1f, 52f, 20f), SlotKeys[i], ToColor(me.Def.Color));
-                Ui.Label(new Rect(x2 + 60f, y, colW - 60f, 22f), a.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Badge(new Rect(x2, y + 1f, 60f, 20f), SlotKeys[i], i == Upgrades.UltSlot ? new Color(0.7f, 0.52f, 0.15f) : ToColor(me.Def.Color));
+                Ui.Label(new Rect(x2 + 68f, y, abilW - 68f, 22f), a.Name, 14, Color.white, TextAnchor.MiddleLeft, true);
                 string state = slot.Charges > 0 ? "ready" : Mathf.CeilToInt(slot.Timer) + "s";
                 if (slot.MaxCharges > 1)
                     state = slot.Charges + "/" + slot.MaxCharges + (slot.Charges < slot.MaxCharges ? "  (" + Mathf.CeilToInt(slot.Timer) + "s)" : "");
-                Ui.Label(new Rect(x2 + 60f, y, colW - 60f, 22f), state, 12, slot.Charges > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight);
-                Ui.Label(new Rect(x2 + 60f, y + 21f, colW - 60f, 34f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
-                y += 62f;
+                Ui.Label(new Rect(x2 + 68f, y, abilW - 68f, 22f), state, 12, slot.Charges > 0 ? Ui.Gold : Ui.Muted, TextAnchor.MiddleRight);
+                Ui.Label(new Rect(x2 + 68f, y + 21f, abilW - 68f, 34f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                y += 60f;
             }
 
-            // Column 3: every upgrade picked, rarest first.
-            Ui.Heading(x3, top, colW, "Upgrades (" + me.Taken.Count + ")");
-            y = top + 30f;
+            // Column 3: every upgrade picked, rarest first, in two compact columns.
             var counts = new Dictionary<int, int>();
             var order = new List<int>();
             foreach (int id in me.Taken)
@@ -1564,24 +1563,36 @@ namespace Arena
             order.Sort((a, b) => Upgrades.All[b].Rarity != Upgrades.All[a].Rarity
                 ? Upgrades.All[b].Rarity.CompareTo(Upgrades.All[a].Rarity)
                 : string.CompareOrdinal(Upgrades.All[a].Name, Upgrades.All[b].Name));
-            if (order.Count == 0)
-                Ui.Label(new Rect(x3, y, colW, 22f), "None yet: level up to pick some.", 13, Ui.Muted);
-            const float rowH = 22f;
-            int fits = Mathf.FloorToInt((bottom - y) / rowH);
-            for (int i = 0; i < order.Count; i++)
+            const float rowH = 20f, subGap = 16f;
+            float subW = (upW - subGap) / 2f;
+            float listTop = top + 30f;
+            int rowsPerCol = Mathf.FloorToInt((bottom - listTop) / rowH);
+            int perPage = rowsPerCol * 2;
+            // If it ever overflows, the mouse wheel scrolls the list (by rows across both columns).
+            int maxScroll = Math.Max(0, order.Count - perPage);
+            if (Event.current.type == EventType.ScrollWheel)
             {
-                if (i == fits - 1 && order.Count > fits)
-                {
-                    Ui.Label(new Rect(x3, y, colW, rowH), "+" + (order.Count - i) + " more", 13, Ui.Muted);
-                    break;
-                }
-                var u = Upgrades.All[order[i]];
+                tabScroll += Event.current.delta.y > 0f ? 2 : -2;
+                Event.current.Use();
+            }
+            tabScroll = Mathf.Clamp(tabScroll, 0, maxScroll);
+            string heading = "Upgrades (" + me.Taken.Count + " picks, " + order.Count + " different)";
+            Ui.Heading(x3, top, upW, heading);
+            if (maxScroll > 0)
+                Ui.Label(new Rect(x3, top, upW, 20f), "scroll for more", 11, Ui.Muted, TextAnchor.MiddleRight);
+            if (order.Count == 0)
+                Ui.Label(new Rect(x3, listTop, upW, 22f), "None yet: level up to pick some.", 13, Ui.Muted);
+            for (int k = 0; k < perPage && tabScroll + k < order.Count; k++)
+            {
+                int id = order[tabScroll + k];
+                var u = Upgrades.All[id];
+                float cx = x3 + (k / rowsPerCol) * (subW + subGap);
+                float cy = listTop + (k % rowsPerCol) * rowH;
                 Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
-                Box(new Rect(x3, y + 6f, 4f, 10f), rc);
-                Ui.Label(new Rect(x3 + 12f, y, colW - 12f, rowH), u.Name, 14, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
-                if (counts[order[i]] > 1)
-                    Ui.Label(new Rect(x3, y, colW, rowH), "x" + counts[order[i]], 13, Ui.Text, TextAnchor.MiddleRight, true);
-                y += rowH;
+                Box(new Rect(cx, cy + 5f, 4f, 10f), rc);
+                Ui.Label(new Rect(cx + 10f, cy, subW - 44f, rowH), u.Name, 13, rc, TextAnchor.MiddleLeft, u.Rarity >= Rarity.Rare);
+                if (counts[id] > 1)
+                    Ui.Label(new Rect(cx, cy, subW, rowH), "x" + counts[id], 12, Ui.Text, TextAnchor.MiddleRight, true);
             }
         }
 
