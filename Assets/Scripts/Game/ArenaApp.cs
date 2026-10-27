@@ -801,7 +801,7 @@ namespace Arena
                         Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
                     break;
                 case EnemyType.Boss:
-                    if (e.Phase == 3)  // the Warden's cross streams: faint guides along the four arms
+                    if (e.Phase == 3)  // the Warden's cross streams: faint guides along the four arms (hidden while it moves)
                         for (int k = 0; k < 4; k++)
                         {
                             V2 d = V2.FromAngle(e.Facing + MathX.Pi / 2f * k);

@@ -1497,24 +1497,32 @@ static class Program
             Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
             var w = Find(s[0], EnemyType.Boss);
             s[0].Game.Bot = s[1].Game.Bot = false;
-            w.T = 17.9f;  // jump to just before the fourth attack (each lasts 6 s)
+            w.T = 17.9f;  // jump to just before the fourth attack (the first three last 6 s each)
             V2 start = w.Pos;
-            float farthest = 0f, movedWhileFiring = 0f;
+            float farthest = 0f, movedWhileFiring = 0f, crossTime = 0f, guidesWhileMoving = 0f;
             V2 lastPos = w.Pos;
-            bool phaseOnClient = false;
+            bool phaseOnClient = false, movingOnClient = false;
+            var plants = new List<V2>();
             int onAxes = 0, offAxes = 0;
             var seen = new HashSet<int>();
-            Run(s, dt, 5.5f, null, () =>
+            Run(s, dt, 13f, null, () =>
             {
                 foreach (var p in s[0].Game.Players.Values)
                     p.InvulnT = 1f;
                 var cw = Find(s[1], EnemyType.Boss);
                 phaseOnClient |= cw != null && cw.Phase == 3;
+                movingOnClient |= cw != null && cw.Phase == 4;
+                if (w.Phase == 3 || w.Phase == 4)
+                    crossTime += dt;
+                if (w.Phase == 3 && w.Pos.DistanceTo(lastPos) > 0.5f)
+                    guidesWhileMoving += dt;
                 if (w.Phase != 3)
                 {
                     lastPos = w.Pos;
                     return;
                 }
+                if (plants.Count == 0 || plants[plants.Count - 1].DistanceTo(w.Pos) > 100f)
+                    plants.Add(w.Pos);
                 farthest = Math.Max(farthest, w.Pos.DistanceTo(start));
                 bool fired = false;
                 foreach (var b in s[0].Game.Bullets.Values)
@@ -1529,9 +1537,11 @@ static class Program
                     movedWhileFiring = Math.Max(movedWhileFiring, w.Pos.DistanceTo(lastPos));
                 lastPos = w.Pos;
             });
-            Console.WriteLine("  warden cross: client saw it {0}, moved {1:0}px between plants, moved {2:0.0}px per tick while firing, shots on the axes {3}, off {4}",
-                phaseOnClient, farthest, movedWhileFiring, onAxes, offAxes);
-            Check(phaseOnClient && farthest > 150f, "the Warden's cross attack moves it to new spots (seen on client)");
+            Console.WriteLine("  warden cross: lasted {0:0.0}s, {1} plants, client saw firing {2} / moving {3}, moved {4:0}px between plants, {5:0.00}s of guides while moving, moved {6:0.0}px per tick while firing, shots on the axes {7}, off {8}",
+                crossTime, plants.Count, phaseOnClient, movingOnClient, farthest, guidesWhileMoving, movedWhileFiring, onAxes, offAxes);
+            Check(phaseOnClient && movingOnClient && farthest > 150f, "the Warden's cross attack moves it to new spots (seen on client)");
+            Check(Math.Abs(crossTime - 12f) < 0.3f && plants.Count >= 4, "the Warden's cross lasts 12 s across four plants");
+            Check(guidesWhileMoving == 0f, "the cross guides are hidden while the Warden moves");
             Check(onAxes > 100 && offAxes == 0 && movedWhileFiring < 0.5f, "the Warden's cross is a static '+' along the axes, fired while it stands still");
             s[0].Leave(""); s[1].Leave("");
         }

@@ -24,9 +24,15 @@ namespace Arena
         const float SingularityPull = 150f;
         const float SpinnerCycle = 3.3f, SpinnerBurst = 1.3f;  // Spinner: spray for 1.3 s out of every 3.3 s
         const int WardenCross = 3;  // the Warden's fourth attack: a static "+" that cuts the arena into quadrants
+        const byte WardenCrossMoving = 4;  // Phase while it dashes between plants (clients hide the guides)
         const float CrossPlant = 3f, CrossDash = 1f;  // each plant: dash 1 s to a new spot, then fire for 2 s
 
-        static int WardenAttack(Enemy e) => (int)(e.T / 6f) % 4;
+        /// Spiral, rings and fans for 6 s each, then the cross for 12 s (four plants).
+        static int WardenAttack(Enemy e)
+        {
+            float t = MathX.Fmod(e.T, 30f);
+            return t < 18f ? (int)(t / 6f) : WardenCross;
+        }
 
         /// During the cross attack: is the Warden dashing to its next spot (rather than planted and firing)?
         static bool CrossDashing(Enemy e) => MathX.Fmod(e.T, CrossPlant) < CrossDash;
@@ -526,9 +532,9 @@ namespace Arena
             {
                 case EnemyType.Boss:
                 {
-                    // The Warden rotates through four attacks, 6 s each; Phase tells clients which.
+                    // The Warden rotates through four attacks; Phase tells clients which.
                     int attack = WardenAttack(e);
-                    e.Phase = (byte)attack;
+                    e.Phase = attack == WardenCross && CrossDashing(e) ? WardenCrossMoving : (byte)attack;
                     if (attack == WardenCross)
                     {
                         // A new spot somewhere in the middle of the arena for each plant (T2 counts them),
@@ -537,7 +543,14 @@ namespace Arena
                         if (plant != (int)e.T2)
                         {
                             e.T2 = plant;
-                            e.Waypoint = new V2(Rand(Width * 0.28f, Width * 0.72f), Rand(Height * 0.3f, Height * 0.7f));
+                            // Far enough from where it is that each plant cuts the arena differently
+                            // (still reachable within the 1 s dash).
+                            for (int tries = 0; tries < 8; tries++)
+                            {
+                                e.Waypoint = new V2(Rand(Width * 0.28f, Width * 0.72f), Rand(Height * 0.3f, Height * 0.7f));
+                                float d = e.Waypoint.DistanceTo(e.Pos);
+                                if (d > 160f && d < 330f) break;
+                            }
                         }
                         e.Facing = 0f;  // arms along the arena's axes; clients draw the guides from this
                     }
