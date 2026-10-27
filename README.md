@@ -1,6 +1,9 @@
 # Top-Down Arena
 
-A co-op top-down bullet hell for two players over the network, made in **Unity 6**.
+A co-op top-down bullet hell for **1 to 3 players** over the network, made in **Unity 6**.
+
+**Party size scaling:** solo, enemies have 70% health; with two players, 100%; with three, regular enemies
+have 120% health and waves have 25% more of them, and bosses have 150% health.
 Pick a role, then survive endless waves of enemies with a boss every 5th wave.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
@@ -36,7 +39,7 @@ their role and class.
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
 use your damage and attack-speed bonuses too.
 
-Both players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
+Players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
 Enemies sometimes drop **health orbs**: small green ones heal 15 HP (18% chance), and rare large ones
 with a gold ring heal 60 HP (3% chance). Bosses always drop a large orb plus four small ones. Orbs drift
@@ -69,7 +72,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 | | Soldier | Mage | Summoner |
 |---|---|---|---|
 | **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) |
-| **Healer** | **Lifeline** (90 s): instantly revive and fully heal both players, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
+| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
 | **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate with two extra volleys | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
 
 ## Levels and upgrades
@@ -79,7 +82,7 @@ the wave is cleared, each player picks one of **3 upgrades per level gained**: c
 select a card, then **Confirm** (or Enter). A panel on the left shows your stats (damage, fire rate, speed,
 cooldowns, damage taken, regen, projectiles, pierce, charges, bonus abilities, legendaries); with a card
 selected, the stats it would change are highlighted with their new values. Don't like the cards? **Reroll** (or R) for a fresh set. You
-start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until both players
+start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone
 have chosen.
 
 | Rarity | Color | What you get |
@@ -120,7 +123,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side. Enemies and bullets don't wrap, so the edges make a good escape route.
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
-- If both players are downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
+- If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
 
 ## Enemies
@@ -203,7 +206,7 @@ friend isn't affected, so you can check it mid-fight (you can still move and sho
 
 ## Pause menu and settings
 
-Press **Esc** in a match to open the pause menu. Pausing **freezes the match for both players** (your friend
+Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Weapons** (your
 and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
 a mute toggle, and **Leave game**. The same audio options are under **Settings** on the main menu, and
@@ -213,7 +216,7 @@ they're saved between sessions.
 
 **You both need the same version of the game.** The version is shown at the bottom of the main menu and
 in the lobby. If they don't match, the joining player is turned away with a message saying so. After
-pulling an update, both players should rebuild (or the host should send the new build).
+pulling an update, everyone should rebuild (or the host should send the new build).
 
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 

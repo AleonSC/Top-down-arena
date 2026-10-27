@@ -1134,7 +1134,7 @@ namespace Arena
                 "At 0 HP you're downed: stand next to your ally to revive them.\n" +
                 "Levels give upgrade picks at the end of each wave; bosses give legendary ones.\n" +
                 "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.\n" +
-                "One player hosts, the other joins (Tailscale makes this easy).", 14, Ui.Text, TextAnchor.UpperLeft, false, true);
+                "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", 14, Ui.Text, TextAnchor.UpperLeft, false, true);
             if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 64f, 200f, 44f), "Back", Ui.Primary))
                 howToOpen = false;
         }
@@ -1265,18 +1265,18 @@ namespace Arena
             y += 32f;
             foreach (var e in session.Lobby.Values)
             {
-                DrawPlayerCard(new Rect(lx, y, lw, 96f), e);
-                y += 108f;
+                DrawPlayerCard(new Rect(lx, y, lw, 88f), e);
+                y += 96f;
             }
             if (session.Lobby.Count < Session.MaxPlayers)
             {
-                var empty = new Rect(lx, y, lw, 96f);
+                var empty = new Rect(lx, y, lw, 56f);
                 Ui.Fill(empty, new Color(1f, 1f, 1f, 0.03f));
-                Ui.Label(empty, "Waiting for a friend to join…", 15, Ui.Muted, TextAnchor.MiddleCenter);
-                y += 108f;
+                Ui.Label(empty, session.Lobby.Count == 1 ? "Waiting for friends to join (up to 2)…" : "Room for one more (optional)", 15, Ui.Muted, TextAnchor.MiddleCenter);
+                y += 64f;
             }
             y += 8f;
-            Ui.Heading(lx, y, lw, session.IsHost ? "Your friend joins with" : "Connection");
+            Ui.Heading(lx, y, lw, session.IsHost ? "Friends join with" : "Connection");
             y += 30f;
             if (session.IsHost)
             {
@@ -1325,7 +1325,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady;
-                if (Ui.Button(new Rect(W - 300f, H - 76f, 260f, 48f), session.Lobby.Count < Session.MaxPlayers ? "Start solo" : "Start game", Ui.Primary))
+                if (Ui.Button(new Rect(W - 300f, H - 76f, 260f, 48f), session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)", Ui.Primary))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }

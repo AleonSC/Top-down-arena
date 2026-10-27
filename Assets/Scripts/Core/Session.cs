@@ -60,11 +60,11 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 24;
+        public const int ProtocolVersion = 25;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
-        public const int MaxPlayers = 2;
+        public const int MaxPlayers = 3;
 
         public NetPeer Net { get; private set; }
         public bool IsHost => Net != null && Net.IsHost;
@@ -245,7 +245,8 @@ namespace Arena
                     var kit = ClampKit(r.ReadByte());
                     if (Game.Running || Lobby.Count >= MaxPlayers)
                     {
-                        Net.Kick(peer);
+                        Reject(peer, Game.Running ? "That game has already started. Ask the host to go back to the lobby, then join."
+                            : "That game is full (" + MaxPlayers + " players max).");
                         return;
                     }
                     Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability };

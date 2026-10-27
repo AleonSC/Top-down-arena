@@ -90,6 +90,16 @@ namespace Arena
 
         // --- Waves -------------------------------------------------------------
 
+        /// Enemy health for the party size: solo 70%, two players 100%, three players 120%
+        /// (bosses 150%, since there are no extra bosses to share the load).
+        float PartyHpScale(bool boss)
+        {
+            int n = Players.Count;
+            if (n <= 1) return 0.7f;
+            if (n == 2) return 1f;
+            return boss ? 1.5f : 1.2f;
+        }
+
         void BuildWave(int n)
         {
             spawnQueue.Clear();
@@ -146,6 +156,8 @@ namespace Arena
             if (n >= 26) pool.Add(EnemyType.Juggernaut);
             if (n >= 31) pool.Add(EnemyType.Nest);
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
+            if (Players.Count >= 3)
+                count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             for (int i = 0; i < count; i++)
                 spawnQueue.Add(pool[rng.Next(pool.Count)]);
         }
@@ -184,7 +196,7 @@ namespace Arena
         {
             var d = Defs.Get(type);
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
-            e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * (Players.Count > 1 ? 1f : 0.7f);
+            e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * PartyHpScale(d.IsBoss);
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
             if (d.IsBoss && Wave > LateBossWave)
                 e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);

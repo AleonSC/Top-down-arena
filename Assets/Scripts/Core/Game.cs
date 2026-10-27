@@ -1145,9 +1145,14 @@ namespace Arena
                 {
                     p.LinkT = LinkTime;
                     p.LinkTo = p.Id;
+                    // Link to the nearest ally who's still standing (or any ally, if all are down).
+                    Player best = null;
                     foreach (var q in Players.Values)
-                        if (q.Id != p.Id)
-                            p.LinkTo = q.Id;
+                        if (q.Id != p.Id && (best == null || (best.Downed && !q.Downed)
+                            || best.Downed == q.Downed && q.Pos.DistanceSq(p.Pos) < best.Pos.DistanceSq(p.Pos)))
+                            best = q;
+                    if (best != null)
+                        p.LinkTo = best.Id;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 1f, 0.9f), 60f, 0.4f, Sfx.Ability);
                     break;
                 }

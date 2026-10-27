@@ -391,6 +391,68 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    // Three players: a host and two friends, all in sync, with enemies scaled up for the bigger party.
+    static void ThreePlayerTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 3, StartWave = 1 };
+        host.Game.Bot = true;
+        host.Host(port, "Host", Role.Tank);
+        var a = new Session();
+        a.Game.Bot = true;
+        a.Join("127.0.0.1", port, "Friend A", Role.Healer);
+        var b = new Session();
+        b.Game.Bot = true;
+        b.Join("127.0.0.1", port, "Friend B", Role.Dps, 0, 0, Kit.Mage);
+        var all = new[] { host, a, b };
+        for (int i = 0; i < 600 && (a.Screen != AppScreen.Game || b.Screen != AppScreen.Game); i++)
+        {
+            foreach (var x in all) Step(x, dt);
+            Thread.Sleep(2);
+        }
+        bool started = host.Game.Players.Count == 3 && a.Game.Players.Count == 3 && b.Game.Players.Count == 3;
+        float hpRatio = 0f;
+        int ghosts = 0;
+        float worstPos = 0f;
+        for (int i = 0; i < 60 * 90 && host.Game.Wave < 4; i++)
+        {
+            foreach (var x in all) Step(x, dt);
+            if (i % 2 == 0) Thread.Sleep(1);
+            foreach (var p in host.Game.Players.Values)
+                p.InvulnT = 1f;
+            foreach (var e in host.Game.Enemies.Values)
+                if (e.Type == EnemyType.Grunt && hpRatio == 0f)
+                    hpRatio = e.MaxHp / (Defs.Get(EnemyType.Grunt).Hp * (1f + 0.15f * (host.Game.Wave - 1)));
+            if (i % 120 == 0)
+            {
+                for (int k = 0; k < 5; k++) { Thread.Sleep(2); a.Poll(); b.Poll(); }
+                foreach (var c in new[] { a, b })
+                {
+                    foreach (var bl in c.Game.Bullets.Values)
+                        if (!host.Game.Bullets.ContainsKey(bl.Id))
+                            ghosts++;
+                    // Everyone else's player, as this client sees it, is where the host has it.
+                    foreach (var p in c.Game.Players.Values)
+                        if (p.Id != c.Game.MyId)
+                        {
+                            // Measured around the wrap: x=1599 and x=1 are 2 px apart.
+                            V2 d = p.Pos - host.Game.Players[p.Id].Pos;
+                            float dx = Math.Abs(d.X), dy = Math.Abs(d.Y);
+                            dx = Math.Min(dx, Game.Width - dx);
+                            dy = Math.Min(dy, Game.Height - dy);
+                            worstPos = Math.Max(worstPos, (float)Math.Sqrt(dx * dx + dy * dy));
+                        }
+                }
+            }
+        }
+        Console.WriteLine("  three players: started {0}, reached wave {1}, grunt hp x{2:0.00}, ghosts {3}, worst ally position error {4:0.0}px",
+            started, host.Game.Wave, hpRatio, ghosts, worstPos);
+        Check(started, "three players can join one game");
+        Check(host.Game.Wave >= 3 && ghosts == 0 && worstPos < 40f, "a three-player game runs in sync for every client");
+        Check(Math.Abs(hpRatio - 1.2f) < 0.01f, "enemies get 20% more health with three players");
+        foreach (var x in all) x.Leave("");
+    }
+
     // The arena is 1600x900, and players wrap around its edges (enemies don't).
     static void WrapTest(float dt)
     {
@@ -1189,6 +1251,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "three")
+        {
+            ThreePlayerTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "wrap")
         {
             WrapTest(1f / 60f);
@@ -1468,6 +1536,7 @@ static class Program
         UltimateSweep(dt);
         ReadyTest(dt);
         WrapTest(dt);
+        ThreePlayerTest(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);
