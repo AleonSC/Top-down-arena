@@ -116,6 +116,7 @@ namespace Arena
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
+        public bool FromBoss;     // host only: fired by a boss (only these wear blockers down)
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -1515,7 +1516,7 @@ namespace Arena
                         {
                             reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // Arcane Aegis
                             scratchIds.Add(b.Id);
-                            p.AegisHp -= b.Dmg;
+                            p.AegisHp -= BlockerWear(b);
                             if (p.AegisHp <= 0f)
                                 p.AegisT = 0f;
                             break;
@@ -1523,7 +1524,7 @@ namespace Arena
                         if (blockable && p.BarrierT > 0f && Enters(b, p.Pos, p.BarrierRadius))
                         {
                             scratchIds.Add(b.Id);
-                            p.BarrierHp -= b.Dmg;
+                            p.BarrierHp -= BlockerWear(b);
                             if (p.BarrierHp <= 0f)
                             {
                                 p.BarrierT = 0f;  // shattered
@@ -1611,6 +1612,9 @@ namespace Arena
 
         /// All damage to enemies goes through here so marks and other modifiers apply.
         float tickDt = 1f / 60f;
+
+        /// Blockers hold for their full duration against regular waves; only bosses' bullets wear them down.
+        static float BlockerWear(Bullet b) => b.FromBoss ? b.Dmg : 0f;
 
         /// Did this bullet just come in from outside the circle? Bullets that started inside
         /// (fired from within a barrier or wall) pass through, so a blocker can't smother a shooter.

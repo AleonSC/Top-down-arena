@@ -488,7 +488,7 @@ namespace Arena
             {
                 if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius))
                     continue;
-                m.BlockHp -= b.Dmg;
+                m.BlockHp -= BlockerWear(b);
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)
@@ -503,7 +503,7 @@ namespace Arena
             {
                 if (z.BlockHp <= 0f || !Enters(b, z.Pos, z.Radius))
                     continue;
-                z.BlockHp -= b.Dmg;
+                z.BlockHp -= BlockerWear(b);
                 if (z.BlockHp <= 0f)
                     BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.4f, Sfx.Hit);  // still burns, no longer blocks
                 return true;

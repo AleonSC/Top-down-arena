@@ -118,9 +118,10 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 **Mitigation, not immunity.** Barriers, Flame Walls, the Guardian Spirit, Golems, Treants, Stone Walls and
 Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
-inside them pass through: you can't muzzle a boss by standing on it. Each blocker soaks a limited amount of
-damage (Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a
-few seconds instead. Bosses' **red-cored aimed shots can't be blocked** and must be dodged, and standing
+inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold
+for their full duration; **only boss bullets wear them down**. Each soaks a limited amount of boss damage
+(Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a few
+seconds instead. Bosses' **red-cored aimed shots can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
 
 The game has **50 waves** with a different boss every 5 waves. Their name, health bar and warnings show at

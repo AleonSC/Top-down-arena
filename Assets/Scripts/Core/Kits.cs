@@ -25,7 +25,7 @@ namespace Arena
         public float Interval, Damage, Range;  // Range: shoot range, slam/explode radius, heal reach
         public float HealRate;       // HP per second while healing
         public float BlockRadius;    // stops enemy bullets coming in this close (0 = none)
-        public float BlockCapacity;  // damage it can soak before it breaks (or, for companions, staggers)
+        public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
     public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor }
@@ -36,7 +36,7 @@ namespace Arena
         public Rgba Color;
         public float HealRate, ReviveBoost;  // HP/s for allies inside; extra revive speed for downed allies
         public float Dps, Slow;              // damage per second to enemies inside; slow amount (0..1)
-        public float BlockCapacity;          // enemy bullets coming in are destroyed until this much damage is soaked
+        public float BlockCapacity;          // enemy bullets coming in are destroyed until this much boss damage is soaked
         public bool PreventDown;             // allies inside can't drop below 1 HP
         public float BlastDamage;            // explodes when it expires (meteor)
     }

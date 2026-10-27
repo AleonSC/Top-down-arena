@@ -591,6 +591,27 @@ static class Program
             Check(blockedAt >= 0f && brokeAt > blockedAt, "a Barrier still blocks incoming fire, then shatters once it has soaked its limit");
             s[0].Leave(""); s[1].Leave("");
         }
+
+        // In a regular wave, a Barrier holds for its whole duration no matter how much it blocks.
+        {
+            var s = StartBuffed(dt, 4, 0);
+            Run(s, dt, 10, () => s[0].Game.Enemies.Count >= 4);
+            var tank = s[0].Game.Players[1];
+            tank.BarrierT = 6f;
+            tank.BarrierMax = tank.BarrierHp = 360f;
+            int nearby = 0;
+            bool heldUp = true;
+            Run(s, dt, 5, null, () =>
+            {
+                heldUp &= tank.BarrierT > 0f;
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(tank.Pos) < tank.BarrierRadius + 20f)
+                        nearby++;
+            });
+            Console.WriteLine("  regular wave: {0} enemy bullet sightings at the barrier, barrier at {1:F0}/360", nearby, tank.BarrierHp);
+            Check(nearby > 0 && heldUp && tank.BarrierHp == 360f, "regular waves can't wear a Barrier down");
+            s[0].Leave(""); s[1].Leave("");
+        }
     }
 
     static bool BossAlive(Session s)

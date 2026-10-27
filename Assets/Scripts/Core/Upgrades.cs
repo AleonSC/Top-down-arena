@@ -61,7 +61,7 @@ namespace Arena
 
         public static readonly AbilityDef[] Abilities =
         {
-            new AbilityDef { Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets until it has soaked 360 damage." },
+            new AbilityDef { Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage)." },
             new AbilityDef { Name = "Mend Pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies." },
             new AbilityDef { Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability." },
             new AbilityDef { Name = "Shockwave", Cooldown = 14f, Desc = "Erase enemy bullets around you and damage nearby enemies." },

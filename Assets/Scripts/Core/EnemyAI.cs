@@ -606,7 +606,8 @@ namespace Arena
         void EnemyShot(Enemy e, float ang, float speed, byte kind, float angVel = 0f)
         {
             V2 dir = V2.FromAngle(ang);
-            SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0);
+            var b = SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0);
+            b.FromBoss = e.Def.IsBoss;
         }
 
         /// Death side effects. Returns true when this kill earns the boss rewards
