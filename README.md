@@ -159,7 +159,7 @@ bosses come back around, tougher each time.
 | Wave | Boss | Mechanic |
 |---|---|---|
 | 5 | **The Warden** | Cycles through spirals, rings of big orbs and aimed fans |
-| 10 | **Hive Queen** | Summons Shards and is **immune while 3+ of her swarm are alive** |
+| 10 | **Hive Queen** | Summons tough Shards (3x normal health) and is **immune while 3+ of her swarm are alive** |
 | 15 | **Twin Reapers** | Kill one and the other **enrages**; finish it within **8 s** or the fallen twin revives |
 | 20 | **The Singularity** | **Gravity wells** drag everyone toward it, then it collapses into dense rings |
 | 25 | **The Colossus** | Stomps out huge rings with **one gap** to slip through, and throws rocks |

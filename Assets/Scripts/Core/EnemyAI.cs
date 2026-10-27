@@ -287,6 +287,8 @@ namespace Arena
             e.Facing = want;
         }
 
+        const float QueenSwarmHp = 3f;  // the Hive Queen's shards have 3x normal shard health
+
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
         bool BlocksShot(Enemy e, V2 from)
         {
@@ -434,7 +436,12 @@ namespace Arena
                     {
                         e.PhaseT = 6f;
                         for (int i = 0; i < 3; i++)
-                            SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / 3f) * 70f, 0.5f, e.Id);
+                        {
+                            // Her swarm is tougher than ordinary shards, so it takes real effort to break her shield.
+                            var drone = SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / 3f) * 70f, 0.5f, e.Id);
+                            drone.MaxHp *= QueenSwarmHp;
+                            drone.Hp = drone.MaxHp;
+                        }
                         BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.Ability);
                     }
                     break;
