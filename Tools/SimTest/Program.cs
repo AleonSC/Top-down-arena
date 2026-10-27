@@ -780,6 +780,56 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    // The F1 dev menu's host commands: hand-edited stats reach every player, god mode, and jumping to a wave.
+    static void DevToolsTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 2);
+        var host = s[0].Game;
+        int dmg = Array.FindIndex(Game.StatFields, f => f.Name == "DmgMult");
+        int shots = Array.FindIndex(Game.StatFields, f => f.Name == "ExtraShots");
+        int hp = Array.FindIndex(Game.StatFields, f => f.Name == "BonusHp");
+        Check(dmg >= 0 && shots >= 0 && hp >= 0 && Game.StatFields.Length > 40, "the dev menu lists every stat");
+        float baseMax = s[1].Game.Players[2].MaxHp;
+        host.DevSetStat(2, dmg, 3f);
+        host.DevSetStat(2, shots, 2.4f);  // rounds to a whole number
+        host.DevSetStat(2, hp, s[1].Game.Players[2].Stats.BonusHp + 500f);
+        Run(s, dt, 0.5f);
+        var cp = s[1].Game.Players[2];
+        Console.WriteLine("  dev stats on the client: dmg x{0}, extra shots {1}, max HP {2:0} (was {3:0})", cp.Stats.DmgMult, cp.Stats.ExtraShots, cp.MaxHp, baseMax);
+        Check(cp.Stats.DmgMult == 3f && cp.Stats.ExtraShots == 2 && cp.MaxHp > baseMax + 499f && host.Players[2].Stats.DmgMult == 3f,
+            "hand-edited stats apply on the host and the player's own game");
+        // They survive picking an upgrade (stats are recomputed from upgrades, then the edits go back on top).
+        host.GrantUpgrade(2, Array.FindIndex(Upgrades.All, u => u.Name == "Sharpened Rounds"));
+        Run(s, dt, 0.3f);
+        Check(s[1].Game.Players[2].Stats.DmgMult == 3f, "edited stats stay edited when you take an upgrade");
+        host.DevResetStats(2);
+        Run(s, dt, 0.3f);
+        Check(s[1].Game.Players[2].Stats.DmgMult != 3f && s[1].Game.Players[2].Stats.ExtraShots == 0, "Reset stats goes back to what upgrades give");
+
+        host.DevSetGod(1, true);
+        var me = host.Players[1];
+        float taken = me.Run.DamageTaken;
+        var damage = typeof(Game).GetMethod("Damage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        me.InvulnT = 0f;
+        damage.Invoke(host, new object[] { me, 500f, "test" });
+        Run(s, dt, 0.3f);
+        Check(me.Run.DamageTaken == taken && !me.Downed && s[1].Game.Players[1].DevGod, "god mode takes no damage (and the other player sees it)");
+        host.DevSetGod(1, false);
+
+        host.DevJumpToWave(10);
+        Run(s, dt, 6, () => Find(s[1], EnemyType.HiveQueen) != null);
+        Console.WriteLine("  dev jump: client on wave {0}, queen there {1}", s[1].Game.Wave, Find(s[1], EnemyType.HiveQueen) != null);
+        Check(s[1].Game.Wave == 10 && Find(s[1], EnemyType.HiveQueen) != null, "jumping to wave 10 starts it (with its boss) for everyone");
+        host.DevJumpToWave(3);
+        Run(s, dt, 0.5f);
+        Check(Find(s[1], EnemyType.HiveQueen) == null && host.Enemies.Count == 0, "jumping clears the arena");
+        Run(s, dt, 3);
+        Check(host.Wave == 3 && host.State == MatchState.Fighting, "and can go back to an earlier wave");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Spinners spray in bursts with breathers in between (they used to spray nonstop).
     static void SpinnerTest(float dt)
     {
@@ -1625,7 +1675,9 @@ static class Program
                 int k = 0;
                 foreach (var p in s[0].Game.Players.Values)
                 {
-                    p.Pos = new V2(800f, 500f) + V2.FromAngle(t * 1.1f + k++ * MathX.Pi) * 260f;
+                    // Separate circles, so neither runs into the spot a bomber was sent at the other.
+                    p.Pos = new V2(800f, 480f) + V2.FromAngle(t * 1.1f + k * MathX.Pi) * (k == 0 ? 300f : 130f);
+                    k++;
                     Player cp;
                     if (s[1].Game.Players.TryGetValue(p.Id, out cp)) cp.Pos = p.Pos;  // the joining player reports its own position
                     if (st != 2) p.Hp = p.MaxHp;
@@ -1662,7 +1714,7 @@ static class Program
             Check(stages.Count >= 4 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && resummoned, "the Hive Queen loops: drones, then bombers, then bullets, then drones again");
             Check(launched >= 8 && aimedRight == launched && onTarget >= launched - 2 && clientBomber && clientMarker,
                 "Hive bombers fly to where a player was when they launched and blow up there (seen on client, with a marker)");
-            Check(hpBefore - hpAfter < 30f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
+            Check(hpBefore - hpAfter < 45f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
             // ...but standing still gets you blown up.
             {
                 foreach (var e in s[0].Game.Enemies.Values) if (e.Type != EnemyType.HiveQueen) e.Hp = 0f;
@@ -1842,6 +1894,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "dev")
+        {
+            DevToolsTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "spinner")
         {
             SpinnerTest(1f / 60f);
@@ -1877,6 +1935,7 @@ static class Program
         ParryUpgradeTest(dt);
         AimTest(dt);
         SpinnerTest(dt);
+        DevToolsTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

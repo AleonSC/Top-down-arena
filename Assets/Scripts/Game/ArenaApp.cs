@@ -8,7 +8,7 @@ namespace Arena
     /// Unity front end: reads input, steps the Session/Game, draws the arena
     /// with GL and the menus/HUD with IMGUI. Creates itself when any scene
     /// starts, so there is nothing to set up in the editor.
-    public class ArenaApp : MonoBehaviour
+    public partial class ArenaApp : MonoBehaviour
     {
         // Menus and the HUD are laid out on a fixed 1280x720 canvas; the arena itself is bigger
         // and is scaled down to fill the same area.
@@ -185,7 +185,12 @@ namespace Arena
             wasPaused = game.Paused;
             if (session.Screen != AppScreen.Game)
                 pauseMenuOpen = false;
-            bool menuUp = pauseMenuOpen || game.Paused;
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                devMenuOpen = !devMenuOpen;
+                GUIUtility.keyboardControl = 0;
+            }
+            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
@@ -236,7 +241,9 @@ namespace Arena
 
             if (session.Screen == AppScreen.Game)
             {
-                if (Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
+                    devMenuOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     if (menuUp)
                         ResumeGame();
@@ -1279,10 +1286,12 @@ namespace Arena
                     break;
                 case AppScreen.Game:
                     DrawHud();
-                    if (pauseMenuOpen || game.Paused)
+                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen)
                         DrawPauseMenu();
                     break;
             }
+            if (devMenuOpen)
+                DrawDevMenu();
         }
 
         void DrawMenu()
@@ -1419,23 +1428,10 @@ namespace Arena
             float x = panel.x + 40f, w = panel.width - 80f;
             DrawAudioOptions(x, panel.y + 82f, w);
 
-            // Developer: session recording for balancing.
+            // The developer tools (session recording etc.) live in the F1 menu.
             float y = panel.y + 476f;
             Ui.Heading(x, y, w, "Developer");
-            bool rec = Ui.Toggle(new Rect(x, y + 30f, w, 26f), recordSessions, "Record sessions for balancing (when hosting)");
-            if (rec != recordSessions)
-            {
-                recordSessions = rec;
-                PlayerPrefs.SetInt("record_sessions", rec ? 1 : 0);
-                PlayerPrefs.Save();
-                ApplyRecording();
-            }
-            if (Ui.Button(new Rect(x, y + 64f, 190f, 30f), "Open sessions folder"))
-            {
-                System.IO.Directory.CreateDirectory(SessionsFolder);
-                Application.OpenURL("file:///" + SessionsFolder.Replace('\\', '/'));
-            }
-            Ui.Label(new Rect(x + 200f, y + 64f, w - 200f, 30f), "Summarize with Tools/SessionReport", 11, Ui.Muted, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(x, y + 30f, w, 26f), "Press F1 for developer tools (session recording, aim debug, waves, stats).", 13, Ui.Muted, TextAnchor.MiddleLeft, false, true);
             if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 66f, 200f, 44f), "Back", Ui.Primary))
                 settingsOpen = false;
         }

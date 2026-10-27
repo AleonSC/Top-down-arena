@@ -222,6 +222,8 @@ bosses come back around, tougher each time.
 | Mute sound | M |
 | Stats & upgrades (just for you) | Hold Tab |
 | Pause menu | Esc |
+| Developer tools | F1 (see below) |
+| Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
 ## End of a run
@@ -290,9 +292,22 @@ Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`,
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
+### Developer tools (F1)
+
+Press **F1** anywhere for the developer menu (Esc or F1 closes it):
+
+- **Tools:** record sessions (below), open the sessions folder, the aim debug overlay (also F3), and a bot that
+  plays for you.
+- **Stage (host):** pick a wave with -5 / -1 / +1 / +5 and **Go to wave N**. It clears the arena, gets downed
+  players back up and starts that wave after 2 s (boss waves show which boss you'll get).
+- **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
+  Edited stats show in gold, are sent to every player's game, and stay on top of upgrades they pick later;
+  **Reset stats** goes back to what their upgrades give. Also **God mode** (takes no damage), **Full heal**
+  and **Level up** (an extra upgrade pick). Joining players can see everyone's stats but not change them.
+
 ### Session recording (for balancing)
 
-Turn on **Settings > Developer > Record sessions** (or launch with `--record`). While you **host**, every match
+Turn on **Record sessions** in the F1 menu (or launch with `--record`). While you **host**, every match
 is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
 `%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
 covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave, so a crash

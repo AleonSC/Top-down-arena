@@ -88,6 +88,8 @@ namespace Arena
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
+        public Dictionary<int, float> StatOverrides = new Dictionary<int, float>();  // dev menu: hand-edited stats (index into Game.StatFields)
+        public bool DevGod;  // dev menu: takes no damage
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
         public float Speed => Def.Speed * Stats.SpeedMult;
@@ -476,6 +478,7 @@ namespace Arena
         void Recalc(Player p)
         {
             p.Stats = Upgrades.Compute(p.Taken);
+            ApplyStatOverrides(p);
             float oldMax = p.MaxHp;
             p.MaxHp = p.BaseHp + p.Stats.BonusHp;
             if (p.MaxHp > oldMax && !p.Downed)
@@ -1351,6 +1354,8 @@ namespace Arena
 
         void Damage(Player p, float amount, string source = "Other")
         {
+            if (p.DevGod)
+                return;
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             foreach (var q in Players.Values)
@@ -2374,6 +2379,9 @@ namespace Arena
                         awaitingPick = false;
                     break;
                 }
+                case Msg.DevStats:
+                    ReadDevStats(r);
+                    break;
                 case Msg.Snapshot:
                     ReadSnapshot(r);
                     break;
