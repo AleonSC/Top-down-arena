@@ -116,6 +116,13 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Bosses
 
+**Mitigation, not immunity.** Barriers, Flame Walls, the Guardian Spirit, Golems, Treants, Stone Walls and
+Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
+inside them pass through: you can't muzzle a boss by standing on it. Each blocker soaks a limited amount of
+damage (Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a
+few seconds instead. Bosses' **red-cored aimed shots can't be blocked** and must be dodged, and standing
+inside a boss hurts more each wave.
+
 The game has **50 waves** with a different boss every 5 waves. Their name, health bar and warnings show at
 the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C), where the
 bosses come back around, tougher each time.

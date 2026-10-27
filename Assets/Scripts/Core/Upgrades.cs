@@ -29,7 +29,7 @@ namespace Arena
         public float BonusHp, Regen;
         public int ExtraShots, Pierce;
         public int RoleCharges, ExtraCharges;
-        public float BarrierRadiusMult = 1f, BarrierBonusTime;
+        public float BarrierRadiusMult = 1f, BarrierBonusTime, BarrierCapacityMult = 1f;
         public float PulseHealMult = 1f, PulseRangeMult = 1f, AuraRangeMult = 1f, AuraHealMult = 1f;
         public float DashIframeBonus, DashCdMult = 1f;
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
@@ -61,7 +61,7 @@ namespace Arena
 
         public static readonly AbilityDef[] Abilities =
         {
-            new AbilityDef { Name = "Barrier", Cooldown = 12f, Desc = "A bubble that deletes enemy bullets." },
+            new AbilityDef { Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets until it has soaked 360 damage." },
             new AbilityDef { Name = "Mend Pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies." },
             new AbilityDef { Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability." },
             new AbilityDef { Name = "Shockwave", Cooldown = 14f, Desc = "Erase enemy bullets around you and damage nearby enemies." },
@@ -140,8 +140,8 @@ namespace Arena
 
             // Rare: ability upgrades and weapon mods
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 1, Name = "Second Charge", Desc = "Your Space ability gets a second charge", Apply = s => s.RoleCharges += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger and lasts 1.5 s longer",
-                Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Barrier, MaxStacks = 2, Name = "Bastion", Desc = "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
+                Apply = s => { s.BarrierRadiusMult += 0.4f; s.BarrierBonusTime += 1.5f; s.BarrierCapacityMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Roar, MaxStacks = 2, Name = "Bellow", Desc = "Roar lasts 2 s longer and blocks 15% more damage",
                 Apply = s => { s.RoarBonusTime += 2f; s.RoarExtraReduction += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },

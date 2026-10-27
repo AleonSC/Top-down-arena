@@ -530,6 +530,69 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    /// Parking a tank's Barrier (or a Flame Wall) on a boss must not stop it from shooting.
+    static void ExploitTest(float dt)
+    {
+        foreach (string mode in new[] { "barrier", "flame wall" })
+        {
+            var s = StartBuffed(dt, 5, 0);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            var boss = Find(s[0], EnemyType.Boss);
+            var tank = s[0].Game.Players[1];
+            if (mode == "flame wall")
+                s[0].Game.AddZone(ZoneKind.FlameWall, tank, boss.Pos, 90f, 30f);
+            int escaped = 0, frame = 0;
+            float hpBefore = s[0].Game.Players[2].Hp + s[0].Game.Players[1].Hp;
+            Run(s, dt, 8, null, () =>
+            {
+                var b = Find(s[0], EnemyType.Boss);
+                if (b == null)
+                    return;
+                if (mode == "barrier")
+                {
+                    tank.Pos = b.Pos;          // stand on the boss
+                    tank.BarrierT = 4f;        // with Barrier up the whole time
+                }
+                foreach (var z in s[0].Game.Zones.Values)
+                    z.Pos = b.Pos;             // the flame wall follows the boss
+                foreach (var e in s[0].Game.Enemies.Values)
+                    if (e != b)
+                        e.Hp = 0f;             // only the boss's own bullets count
+                if (++frame % 10 == 0)
+                    foreach (var bl in s[0].Game.Bullets.Values)
+                        if (Defs.IsEnemyShot(bl.Kind) && bl.Pos.DistanceTo(b.Pos) > 200f)
+                            escaped++;
+            });
+            Console.WriteLine("  {0} on the boss: {1} boss bullet sightings beyond 200 px", mode, escaped);
+            Check(escaped > 50, "a " + mode + " sitting on a boss doesn't stop it from shooting");
+            s[0].Leave(""); s[1].Leave("");
+        }
+
+        // ...but a Barrier still tanks incoming fire until it has soaked its limit, then shatters.
+        {
+            var s = StartBuffed(dt, 5, 0);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            var tank = s[0].Game.Players[1];
+            float blockedAt = -1f, brokeAt = -1f, t = 0f;
+            tank.BarrierT = 30f;
+            tank.BarrierMax = tank.BarrierHp = 360f;
+            Run(s, dt, 30, () => brokeAt >= 0f, () =>
+            {
+                var b = Find(s[0], EnemyType.Boss);
+                if (b != null)
+                    tank.Pos = b.Pos + new V2(0f, 250f);  // in the line of fire, not on top of it
+                t += dt;
+                if (blockedAt < 0f && tank.BarrierHp < 360f)
+                    blockedAt = t;
+                if (tank.BarrierT <= 0f)
+                    brokeAt = t;
+            });
+            Console.WriteLine("  barrier in the line of fire: first block at {0:F1}s, shattered at {1:F1}s", blockedAt, brokeAt);
+            Check(blockedAt >= 0f && brokeAt > blockedAt, "a Barrier still blocks incoming fire, then shatters once it has soaked its limit");
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+
     static bool BossAlive(Session s)
     {
         foreach (var e in s.Game.Enemies.Values)
@@ -719,6 +782,12 @@ static class Program
         int port = 7790;
         const float dt = 1f / 60f;
 
+        if (args.Length > 2 && args[2] == "exploit")
+        {
+            ExploitTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         CheckOffers();
         CheckStatSheet();
 
@@ -960,6 +1029,7 @@ static class Program
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);
+        ExploitTest(dt);
         BossMechanics(dt);
         Check(clientSawOrbs, "enemies drop health orbs and the client sees them");
         Check(pickups > 0, "players pick up orbs (" + pickups + " across all runs)");

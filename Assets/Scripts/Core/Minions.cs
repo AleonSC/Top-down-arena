@@ -112,6 +112,7 @@ namespace Arena
                 // Mage
                 case AbilityId.ArcaneAegis:
                     p.AegisT = 3f;
+                    p.AegisHp = AegisCapacity;
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.ArcaneShot), 50f, 0.4f, Sfx.Ability);
                     break;
                 case AbilityId.FrostNova:
@@ -270,6 +271,7 @@ namespace Arena
             };
             m.Disp = m.Pos;
             m.HealRate = m.Def.HealRate;
+            m.BlockHp = m.Def.BlockCapacity;
             Minions[m.Id] = m;
             return m;
         }
@@ -352,6 +354,12 @@ namespace Arena
                     }
                 }
                 var d = m.Def;
+                if (m.StaggerT > 0f)
+                {
+                    m.StaggerT -= dt;
+                    if (m.StaggerT <= 0f)
+                        m.BlockHp = d.BlockCapacity;  // back on its feet
+                }
                 bool frenzy = owner.FrenzyT > 0f;
                 float speed = d.Speed * (frenzy ? 1.6f : 1f);
                 float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
@@ -472,25 +480,43 @@ namespace Arena
         }
 
         /// Golems, guards, treants, walls, the guardian spirit and flame walls eat enemy bullets.
+        /// They only stop bullets coming in from outside, and each soaks a limited amount
+        /// of damage: walls and the guardian break, companions are staggered for a few seconds.
         bool BlockedBySummons(Bullet b)
         {
             foreach (var m in Minions.Values)
             {
-                float r = m.Def.BlockRadius;
-                if (r > 0f && b.Pos.DistanceSq(m.Pos) < (r + b.Radius) * (r + b.Radius))
-                    return true;
+                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius))
+                    continue;
+                m.BlockHp -= b.Dmg;
+                if (m.BlockHp <= 0f)
+                {
+                    if (m.Companion)
+                        m.StaggerT = 4f;
+                    else
+                        m.T = 0.01f;  // breaks at the end of this tick
+                    BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, m.Def.BlockRadius, 0.3f, Sfx.Hit);
+                }
+                return true;
             }
             foreach (var z in Zones.Values)
-                if (z.Def.BlocksBullets && b.Pos.DistanceTo(z.Pos) < z.Radius)
-                    return true;
+            {
+                if (z.BlockHp <= 0f || !Enters(b, z.Pos, z.Radius))
+                    continue;
+                z.BlockHp -= b.Dmg;
+                if (z.BlockHp <= 0f)
+                    BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.4f, Sfx.Hit);  // still burns, no longer blocks
+                return true;
+            }
             return false;
         }
 
         // --- Zones -------------------------------------------------------------
 
-        Zone AddZone(ZoneKind kind, Player owner, V2 pos, float radius, float duration)
+        internal Zone AddZone(ZoneKind kind, Player owner, V2 pos, float radius, float duration)
         {
             var z = new Zone { Id = nextZoneId++, Kind = kind, Owner = owner.Id, Pos = pos, Radius = radius, Duration = duration, T = duration, DmgMult = owner.Stats.DmgMult };
+            z.BlockHp = z.Def.BlockCapacity;
             Zones[z.Id] = z;
             return z;
         }

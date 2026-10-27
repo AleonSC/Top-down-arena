@@ -254,7 +254,7 @@ namespace Arena
                 case EnemyType.Colossus:
                     e.FireT = 1.2f;
                     for (int i = -1; i <= 1; i++)
-                        EnemyShot(e, aim + i * 0.18f, 170f, Defs.BigShot);
+                        EnemyShot(e, aim + i * 0.18f, 170f, Defs.PierceShot);
                     break;
                 case EnemyType.Duelist:
                     e.FireT = 0.9f;
@@ -264,14 +264,14 @@ namespace Arena
                             EnemyShot(e, aim + (i - 5) * 0.1f, 230f, Defs.SmallShot);
                     else
                         for (int k = 0; k < 3; k++)
-                            EnemyShot(e, aim, 260f + k * 40f, Defs.FastShot);
+                            EnemyShot(e, aim, 260f + k * 40f, Defs.PierceShot);
                     break;
                 case EnemyType.Lich:
                     if ((int)(e.T / 5f) % 2 == 0)
                     {
                         e.FireT = 0.8f;
                         for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.15f, 190f, Defs.SmallShot);
+                            EnemyShot(e, aim + (i - 2) * 0.15f, 190f, Defs.PierceShot);
                     }
                     else
                     {
@@ -284,7 +284,7 @@ namespace Arena
                 case EnemyType.StormHerald:
                     e.FireT = 1f;
                     for (int i = -1; i <= 1; i++)
-                        EnemyShot(e, aim + i * 0.15f, 330f, Defs.FastShot);
+                        EnemyShot(e, aim + i * 0.15f, 330f, Defs.PierceShot);
                     break;
                 case EnemyType.Devourer:
                     if (e.Phase == 1)
@@ -327,7 +327,7 @@ namespace Arena
                                 for (int k = 0; k < 3; k++)
                                     EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 120f + k * 50f, Defs.SmallShot);
                             for (int i = 0; i < 5; i++)
-                                EnemyShot(e, aim + (i - 2) * 0.14f, 210f, Defs.SmallShot);
+                                EnemyShot(e, aim + (i - 2) * 0.14f, 210f, Defs.PierceShot);
                             break;
                         default:
                         {

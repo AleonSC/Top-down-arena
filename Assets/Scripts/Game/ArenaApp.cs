@@ -347,9 +347,12 @@ namespace Arena
                 }
                 if (p.BarrierT > 0f)
                 {
-                    float a = p.BarrierT > 1f || MathX.Fmod(t, 0.2f) < 0.1f ? 0.7f : 0.25f;
-                    Circle(p.Disp, p.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.12f), 64);
-                    Arc(p.Disp, p.BarrierRadius, 3f, new Rgba(0.5f, 0.8f, 1f, a), 64);
+                    // Fades as it soaks damage; flickers when nearly broken or about to expire.
+                    float strength = MathX.Clamp01(p.BarrierFrac);
+                    bool failing = p.BarrierT < 1f || strength < 0.25f;
+                    float a = !failing || MathX.Fmod(t, 0.2f) < 0.1f ? 0.3f + 0.5f * strength : 0.15f;
+                    Circle(p.Disp, p.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.04f + 0.1f * strength), 64);
+                    Arc(p.Disp, p.BarrierRadius, 1.5f + 2.5f * strength, new Rgba(0.5f, 0.8f, 1f, a), 64);
                 }
                 if (p.OverdriveT > 0f)
                     Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
@@ -439,6 +442,13 @@ namespace Arena
                 if (b.Kind < Defs.SmallShot)
                     continue;
                 Rgba c = Defs.BulletColor(b.Kind);
+                if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
+                {
+                    Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.35f), 12);
+                    Circle(b.Pos, b.Radius, c, 12);
+                    Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.1f, 0f, 0f, 1f), 8);
+                    continue;
+                }
                 if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
                     Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
                 Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
@@ -500,11 +510,14 @@ namespace Arena
                     Circle(z.Pos, z.Radius * (1f - timeLeft), c.WithAlpha(0.25f), 40);
                     Arc(z.Pos, z.Radius, 3f, c.WithAlpha(MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.5f), 48);
                     return;
-                case ZoneKind.FlameWall:  // a ring of flickering flames
+                case ZoneKind.FlameWall:  // a ring of flickering flames; lower once it's done blocking
+                {
+                    float wall = z.GuardFrac > 0f ? 1f : 0.45f;
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f), 40);
                     for (int k = 0; k < 18; k++)
-                        Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, 7f + 3f * Mathf.Sin(t * 14f + k), c.WithAlpha(0.8f), 8);
+                        Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, (7f + 3f * Mathf.Sin(t * 14f + k)) * wall, c.WithAlpha(0.8f * wall), 8);
                     break;
+                }
                 case ZoneKind.Blizzard:  // swirling snow
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.14f), 40);
                     for (int k = 0; k < 14; k++)
@@ -534,10 +547,18 @@ namespace Arena
             var c = d.Color;
             if (m.T >= 0f && m.T < 1.5f && MathX.Fmod(t, 0.2f) < 0.1f)
                 c = c.WithAlpha(0.4f);  // about to vanish
-            if (d.BlockRadius > d.Radius)  // the guardian spirit's bullet-eating field
+            bool staggered = d.BlockRadius > 0f && m.GuardFrac <= 0f;
+            if (staggered)  // took too much fire: dazed, not blocking for a moment
             {
-                Circle(m.Disp, d.BlockRadius, c.WithAlpha(0.12f), 40);
-                Arc(m.Disp, d.BlockRadius, 2f, c.WithAlpha(0.6f), 40);
+                c = c.Darkened(0.4f);
+                for (int k = 0; k < 3; k++)
+                    Circle(m.Disp + V2.FromAngle(t * 5f + MathX.Tau * k / 3f) * (d.Radius + 6f), 2.5f, new Rgba(1f, 0.9f, 0.4f, 0.9f), 6);
+            }
+            if (d.BlockRadius > d.Radius)  // the guardian spirit's bullet-eating field, fading as it soaks
+            {
+                float g = MathX.Clamp01(m.GuardFrac);
+                Circle(m.Disp, d.BlockRadius, c.WithAlpha(0.04f + 0.1f * g), 40);
+                Arc(m.Disp, d.BlockRadius, 1f + 2f * g, c.WithAlpha(0.25f + 0.45f * g), 40);
             }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)

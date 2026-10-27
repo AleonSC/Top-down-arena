@@ -24,7 +24,8 @@ namespace Arena
         public MinionAttack Attack;
         public float Interval, Damage, Range;  // Range: shoot range, slam/explode radius, heal reach
         public float HealRate;       // HP per second while healing
-        public float BlockRadius;    // deletes enemy bullets this close (0 = none)
+        public float BlockRadius;    // stops enemy bullets coming in this close (0 = none)
+        public float BlockCapacity;  // damage it can soak before it breaks (or, for companions, staggers)
     }
 
     public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor }
@@ -35,7 +36,7 @@ namespace Arena
         public Rgba Color;
         public float HealRate, ReviveBoost;  // HP/s for allies inside; extra revive speed for downed allies
         public float Dps, Slow;              // damage per second to enemies inside; slow amount (0..1)
-        public bool BlocksBullets;           // enemy bullets entering are destroyed
+        public float BlockCapacity;          // enemy bullets coming in are destroyed until this much damage is soaked
         public bool PreventDown;             // allies inside can't drop below 1 HP
         public float BlastDamage;            // explodes when it expires (meteor)
     }
@@ -48,15 +49,15 @@ namespace Arena
             new MinionDef { Name = "Turret", Radius = 13f, Sides = 6, Color = new Rgba(0.6f, 0.95f, 1f), Move = MinionMove.Static,
                 Attack = MinionAttack.Shoot, Interval = 0.25f, Damage = 9f, Range = 520f },
             new MinionDef { Name = "Golem", Radius = 18f, Sides = 5, Color = new Rgba(0.65f, 0.6f, 0.55f), Move = MinionMove.Chase, Speed = 110f,
-                Attack = MinionAttack.Slam, Interval = 1f, Damage = 25f, Range = 60f, BlockRadius = 24f },
+                Attack = MinionAttack.Slam, Interval = 1f, Damage = 25f, Range = 60f, BlockRadius = 24f, BlockCapacity = 220f },
             new MinionDef { Name = "Skeleton Guard", Radius = 10f, Sides = 4, Color = new Rgba(0.92f, 0.9f, 0.8f), Move = MinionMove.Orbit, Speed = 1.6f, OrbitRadius = 55f,
-                Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 8f, BlockRadius = 16f },
+                Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 8f, BlockRadius = 16f, BlockCapacity = 90f },
             new MinionDef { Name = "Bear", Radius = 15f, Sides = 7, Color = new Rgba(0.6f, 0.4f, 0.25f), Move = MinionMove.Chase, Speed = 200f,
                 Attack = MinionAttack.Bite, Interval = 0.6f, Damage = 22f },
             new MinionDef { Name = "Sprite", Radius = 6f, Sides = 4, Color = new Rgba(0.5f, 1f, 0.6f), Move = MinionMove.FollowHurt, Speed = 220f,
                 Attack = MinionAttack.Heal, HealRate = 5f, Range = 60f },
             new MinionDef { Name = "Treant", Radius = 20f, Sides = 6, Color = new Rgba(0.35f, 0.7f, 0.3f), Move = MinionMove.FollowOwner, Speed = 160f,
-                Attack = MinionAttack.Slam, Interval = 1.2f, Damage = 15f, Range = 50f, BlockRadius = 28f },
+                Attack = MinionAttack.Slam, Interval = 1.2f, Damage = 15f, Range = 50f, BlockRadius = 28f, BlockCapacity = 260f },
             new MinionDef { Name = "Wolf", Radius = 10f, Sides = 3, Color = new Rgba(0.7f, 0.7f, 0.8f), Move = MinionMove.Chase, Speed = 260f,
                 Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 12f },
             new MinionDef { Name = "Wisp", Radius = 6f, Sides = 5, Color = new Rgba(0.85f, 1f, 0.95f), Move = MinionMove.Orbit, Speed = 2.5f, OrbitRadius = 40f,
@@ -68,16 +69,16 @@ namespace Arena
             new MinionDef { Name = "Phoenix", Radius = 12f, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f), Move = MinionMove.Orbit, Speed = 1.8f, OrbitRadius = 70f,
                 Attack = MinionAttack.Shoot, Interval = 0.35f, Damage = 12f, Range = 450f },
             new MinionDef { Name = "Guardian Spirit", Radius = 22f, Sides = 8, Color = new Rgba(0.55f, 0.75f, 1f), Move = MinionMove.FollowOwner, Speed = 400f,
-                BlockRadius = 75f },
+                BlockRadius = 75f, BlockCapacity = 400f },
             new MinionDef { Name = "Stone Wall", Radius = 22f, Sides = 4, Color = new Rgba(0.6f, 0.55f, 0.5f), Move = MinionMove.Static,
-                BlockRadius = 30f },
+                BlockRadius = 30f, BlockCapacity = 200f },
         };
 
         // Indexed by ZoneKind.
         public static readonly ZoneDef[] Zones =
         {
             new ZoneDef { Name = "Haven", Color = new Rgba(0.4f, 1f, 0.6f), HealRate = 15f, ReviveBoost = 2f },
-            new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlocksBullets = true },
+            new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlockCapacity = 300f },
             new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
             new ZoneDef { Name = "Soul Lantern", Color = new Rgba(1f, 0.9f, 0.5f), HealRate = 5f, PreventDown = true },
             new ZoneDef { Name = "Healing Totem", Color = new Rgba(0.5f, 0.9f, 0.4f), HealRate = 8f },

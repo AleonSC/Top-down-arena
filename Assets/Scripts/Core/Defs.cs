@@ -170,11 +170,14 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13,
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14,
             // more player kinds (enemy kinds are 10-19)
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28;
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
+
+        /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
+        public static bool Unblockable(byte kind) => kind == PierceShot;
 
         public static float BulletRadius(byte kind)
         {
@@ -201,6 +204,7 @@ namespace Arena
                 case MinionShot: return 3.5f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
+                case PierceShot: return 6.5f;
                 case FastShot: return 4.5f;
                 default: return 6f;
             }
@@ -212,6 +216,7 @@ namespace Arena
             {
                 case BigShot: return 20f;
                 case MineShot: return 18f;
+                case PierceShot: return 16f;
                 case FastShot: return 15f;
                 default: return 12f;
             }
@@ -242,6 +247,7 @@ namespace Arena
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
+                case PierceShot: return new Rgba(1f, 0.12f, 0.12f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }

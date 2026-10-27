@@ -215,7 +215,9 @@ namespace Arena
                     if (e.FireT <= 0f)
                         EnemyFire(e, tpos);
                 }
-                float contact = e.Type == EnemyType.Charger && e.Phase == 2 ? 25f : ContactDamage;
+                // Bosses and heavies hurt to stand in, more so later on.
+                float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
+                    : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f : ContactDamage;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
                         Damage(p, contact);
@@ -534,7 +536,7 @@ namespace Arena
                         default:  // aimed fan
                             e.FireT = 0.45f;
                             for (int i = 0; i < 9; i++)
-                                EnemyShot(e, aim + (i - 4) * 0.12f, 210f, Defs.SmallShot);
+                                EnemyShot(e, aim + (i - 4) * 0.12f, 210f, Defs.PierceShot);
                             break;
                     }
                     break;
@@ -543,7 +545,7 @@ namespace Arena
                     {
                         e.FireT = 0.7f;
                         for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.16f, 200f, Defs.SmallShot);
+                            EnemyShot(e, aim + (i - 2) * 0.16f, 200f, Defs.PierceShot);
                     }
                     else
                     {
@@ -561,7 +563,7 @@ namespace Arena
                         e.FireT = 1.4f;
                         for (int l = -1; l <= 1; l++)
                             for (int k = 0; k < 6; k++)
-                                EnemyShot(e, aim + l * 0.5f, 140f + k * 35f, Defs.SmallShot);
+                                EnemyShot(e, aim + l * 0.5f, 140f + k * 35f, l == 0 ? Defs.PierceShot : Defs.SmallShot);
                     }
                     else
                     {
@@ -592,7 +594,7 @@ namespace Arena
                             e.FireT = 0.5f;
                             e.Ang += 0.3f;
                             for (int i = 0; i < 7; i++)
-                                EnemyShot(e, aim + (i - 3) * 0.13f, 200f, Defs.SmallShot);
+                                EnemyShot(e, aim + (i - 3) * 0.13f, 200f, Defs.PierceShot);
                             for (int d = 0; d < 4; d++)
                                 EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 150f, Defs.BigShot);
                             break;

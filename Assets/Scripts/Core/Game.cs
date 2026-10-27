@@ -53,6 +53,8 @@ namespace Arena
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
+        public float BarrierHp, BarrierMax, AegisHp;  // damage the Barrier / Aegis can still soak (host)
+        public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
         public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
@@ -136,6 +138,8 @@ namespace Arena
         public V2 Pos;
         public float Radius, T, Duration;
         public float DmgMult = 1f;  // host: owner's damage multiplier when cast
+        public float BlockHp;       // host: damage it can still soak (blocking zones)
+        public float GuardFrac;     // replicated BlockHp fraction, for drawing
         public ZoneDef Def => Kits.Get(Kind);
     }
 
@@ -148,6 +152,8 @@ namespace Arena
         public float Aim;
         public float T = -1f, Duration;  // seconds left; -1 = a companion that stays
         public float Cd, Ang, HealRate;
+        public float BlockHp, StaggerT;  // host: damage it can still soak; a staggered companion doesn't block
+        public float GuardFrac = 1f;     // replicated: 0 while staggered or broken
         public bool Companion;
         public MinionDef Def => Kits.Get(Kind);
     }
@@ -203,6 +209,8 @@ namespace Arena
         public const float AuraRange = 170f;
         const float AuraHeal = 9f;
         const float BarrierTime = 4f;
+        const float BarrierCapacity = 360f;
+        const float AegisCapacity = 300f;
         public const float BarrierRadius = 105f;
         const float PulseRange = 260f;
         const float PulseHeal = 60f;
@@ -854,6 +862,7 @@ namespace Arena
 
         void HostTick(float dt)
         {
+            tickDt = dt;
             TickPlayers(dt);
             TickWaves(dt);
             TickEnemies(dt);
@@ -1041,6 +1050,7 @@ namespace Arena
             {
                 case AbilityId.Barrier:
                     p.BarrierT = BarrierTime + s.BarrierBonusTime;
+                    p.BarrierMax = p.BarrierHp = BarrierCapacity * s.BarrierCapacityMult;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Ability);
                     break;
                 case AbilityId.Roar:
@@ -1491,7 +1501,7 @@ namespace Arena
                 }
                 else
                 {
-                    if (BlockedBySummons(b))
+                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b))
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -1500,15 +1510,25 @@ namespace Arena
                     {
                         if (p.Downed)
                             continue;
-                        if (p.AegisT > 0f && b.Pos.DistanceTo(p.Pos) < p.Def.BodyR + 24f)
+                        bool blockable = !Defs.Unblockable(b.Kind);
+                        if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
                         {
                             reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // Arcane Aegis
                             scratchIds.Add(b.Id);
+                            p.AegisHp -= b.Dmg;
+                            if (p.AegisHp <= 0f)
+                                p.AegisT = 0f;
                             break;
                         }
-                        if (p.BarrierT > 0f && b.Pos.DistanceTo(p.Pos) < p.BarrierRadius)
+                        if (blockable && p.BarrierT > 0f && Enters(b, p.Pos, p.BarrierRadius))
                         {
                             scratchIds.Add(b.Id);
+                            p.BarrierHp -= b.Dmg;
+                            if (p.BarrierHp <= 0f)
+                            {
+                                p.BarrierT = 0f;  // shattered
+                                BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Hit);
+                            }
                             break;
                         }
                         float r = p.Def.HitR + b.Radius;
@@ -1590,6 +1610,19 @@ namespace Arena
         }
 
         /// All damage to enemies goes through here so marks and other modifiers apply.
+        float tickDt = 1f / 60f;
+
+        /// Did this bullet just come in from outside the circle? Bullets that started inside
+        /// (fired from within a barrier or wall) pass through, so a blocker can't smother a shooter.
+        bool Enters(Bullet b, V2 center, float radius)
+        {
+            float r = radius + b.Radius;
+            if (b.Pos.DistanceSq(center) >= r * r)
+                return false;
+            V2 before = b.Pos - b.Vel * tickDt;
+            return before.DistanceSq(center) >= r * r;
+        }
+
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
             if (e.MarkT > 0f)
@@ -1799,6 +1832,8 @@ namespace Arena
                 w.Write(p.Downed);
                 w.Write(p.Revive);
                 w.Write(p.BarrierT);
+                p.BarrierFrac = p.BarrierMax > 0f ? p.BarrierHp / p.BarrierMax : 1f;  // the host draws from this too
+                w.Write(p.BarrierFrac);
                 w.Write(p.InvulnT);
                 w.Write(p.OverdriveT);
                 w.Write(p.TauntT);
@@ -1846,6 +1881,8 @@ namespace Arena
                 w.Write(m.Aim);
                 w.Write(m.T);
                 w.Write(m.Duration);
+                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / m.Def.BlockCapacity : 0f;
+                w.Write(m.GuardFrac);
             }
             w.Write((byte)Zones.Count);
             foreach (var z in Zones.Values)
@@ -1857,6 +1894,8 @@ namespace Arena
                 w.Write(z.Radius);
                 w.Write(z.T);
                 w.Write(z.Duration);
+                z.GuardFrac = z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
+                w.Write(z.GuardFrac);
             }
             WriteHazards(w);
             w.Write((short)Orbs.Count);
@@ -1973,7 +2012,7 @@ namespace Arena
                 V2 pos = r.ReadV2();
                 float aim = r.ReadSingle(), hp = r.ReadSingle();
                 bool downed = r.ReadBoolean();
-                float revive = r.ReadSingle(), barrier = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
+                float revive = r.ReadSingle(), barrier = r.ReadSingle(), barrierFrac = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
                 float taunt = r.ReadSingle(), link = r.ReadSingle();
                 int linkTo = r.ReadInt32();
                 float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), shield = r.ReadSingle();
@@ -2014,6 +2053,7 @@ namespace Arena
                 p.Downed = downed;
                 p.Revive = revive;
                 p.BarrierT = barrier;
+                p.BarrierFrac = barrierFrac;
                 p.InvulnT = invuln;
                 p.OverdriveT = overdrive;
                 p.TauntT = taunt;
@@ -2085,7 +2125,7 @@ namespace Arena
                 var kind = (MinionKind)r.ReadByte();
                 int owner = r.ReadInt32();
                 V2 pos = r.ReadV2();
-                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle();
+                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle(), guard = r.ReadSingle();
                 Minion m;
                 if (!Minions.TryGetValue(id, out m))
                 {
@@ -2096,6 +2136,7 @@ namespace Arena
                 m.Aim = aim;
                 m.T = t;
                 m.Duration = duration;
+                m.GuardFrac = guard;
                 seenMinions.Add(id);
             }
             var goneMinions = new List<int>();
@@ -2109,7 +2150,7 @@ namespace Arena
             int nz = r.ReadByte();
             for (int i = 0; i < nz; i++)
             {
-                var z = new Zone { Id = r.ReadInt32(), Kind = (ZoneKind)r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle() };
+                var z = new Zone { Id = r.ReadInt32(), Kind = (ZoneKind)r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle(), GuardFrac = r.ReadSingle() };
                 Zones[z.Id] = z;
             }
 
