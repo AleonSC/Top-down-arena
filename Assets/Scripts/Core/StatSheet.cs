@@ -29,6 +29,7 @@ namespace Arena
 
             var bonus = new List<string>();
             var legendary = new Dictionary<string, int>();
+            var mods = new Dictionary<string, int>();
             foreach (int id in taken)
             {
                 var u = Upgrades.All[id];
@@ -36,6 +37,8 @@ namespace Arena
                     bonus.Add(Upgrades.Ability(u.Grants).Name);
                 if (u.Rarity == Rarity.Legendary)
                     legendary[u.Name] = legendary.ContainsKey(u.Name) ? legendary[u.Name] + 1 : 1;
+                if (u.Rarity == Rarity.Mod)
+                    mods[u.Name] = mods.ContainsKey(u.Name) ? mods[u.Name] + 1 : 1;
             }
             if (bonus.Count > 0)
             {
@@ -44,6 +47,12 @@ namespace Arena
                 for (int i = 0; i < bonus.Count && i < keys.Length; i++)
                     lines.Add(new StatLine { Label = keys[i], Value = bonus[i] });
                 lines.Add(new StatLine { Label = "Bonus charges", Value = (1 + s.ExtraCharges).ToString() });
+            }
+            if (mods.Count > 0)
+            {
+                lines.Add(new StatLine { Label = "Weapon mods", Header = true });
+                foreach (var kv in mods)
+                    lines.Add(new StatLine { Label = kv.Key, Value = kv.Value > 1 ? "x" + kv.Value : "" });
             }
             if (legendary.Count > 0)
             {

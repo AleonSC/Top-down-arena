@@ -53,6 +53,7 @@ namespace Arena
                 w.Write(b.AngVel);
                 w.Write(b.Life);
                 w.Write(b.FromBoss);
+                w.Write(b.Homing);
             }
             session.Broadcast(Proto.End(w));
             DoLog(pause ? "paused by " + id : "resumed");
@@ -71,6 +72,7 @@ namespace Arena
                 b.AngVel = r.ReadSingle();
                 b.Life = r.ReadSingle();
                 b.FromBoss = r.ReadBoolean();
+                b.Homing = r.ReadSingle();
                 b.Radius = Defs.BulletRadius(b.Kind);
                 Bullets[b.Id] = b;
             }

@@ -190,6 +190,7 @@ namespace Arena
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
+                TickBurn(e, dt);
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;
@@ -652,6 +653,7 @@ namespace Arena
                 p.Rerolls += BossRerolls;
                 p.LegendaryQueue.Add(bossKey);  // picked at the end of the wave
                 p.PendingLegendary = p.LegendaryQueue.Count;
+                p.PendingMods++;                // then a weapon mod
             }
             DoLog(e.Def.Name + " defeated: everyone gets " + BossRerolls + " rerolls");
             return true;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    public enum Rarity : byte { Common, Uncommon, Rare, VeryRare, Legendary }
+    public enum Rarity : byte { Common, Uncommon, Rare, VeryRare, Legendary, Mod }  // Mod: weapon mods, picked after each boss
 
     public enum AbilityId : byte
     {
@@ -40,6 +40,15 @@ namespace Arena
         // Legendary weapon upgrades from bosses.
         public int HaloEvery, KillRing, SplitShots;
         public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit;
+
+        // Weapon mods, one picked after each boss (and its legendary).
+        public float Homing;              // turn rate (radians per second) toward the nearest enemy
+        public int Ricochet;              // bounces to another enemy on hit
+        public float BurnFrac;            // a hit burns for this much of its damage per second, for 3 s
+        public float CryoSlow, FreezeChance;
+        public float ShockChance;
+        public float ExplosiveRadius;
+        public float ShotSpeedMult = 1f;
     }
 
     public class UpgradeDef
@@ -194,7 +203,33 @@ namespace Arena
                 Apply = s => s.SlowOnHit = Math.Min(0.7f, s.SlowOnHit + 0.4f) },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 2 more enemies and deal 20% more damage",
                 Apply = s => { s.Pierce += 2; s.DmgMult += 0.2f; } },
+
+            // Weapon mods: one is picked after every boss, from the full list.
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots curve toward the nearest enemy. More stacks turn harder",
+                Apply = s => s.Homing += 3f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
+                Apply = s => s.Ricochet += 1 },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s",
+                Apply = s => s.BurnFrac += 0.25f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Cryo Rounds", Desc = "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
+                Apply = s => { s.CryoSlow = Math.Min(0.6f, s.CryoSlow + 0.2f); s.FreezeChance += 0.06f; } },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Shock Rounds", Desc = "15% chance per hit for lightning to arc to 2 more enemies (60% damage)",
+                Apply = s => s.ShockChance += 0.15f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Explosive Rounds", Desc = "Shots explode on impact, dealing 30% damage to enemies nearby",
+                Apply = s => s.ExplosiveRadius += s.ExplosiveRadius == 0f ? 40f : 15f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 15% more damage",
+                Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.15f; } },
         };
+
+        /// After a boss: every weapon mod you can still take, to choose from.
+        public static int[] ModOffer(Role role, AbilityId roleAbility, List<int> taken)
+        {
+            var ids = new List<int>();
+            for (int id = 0; id < All.Length; id++)
+                if (All[id].Rarity == Rarity.Mod && Available(id, role, roleAbility, taken))
+                    ids.Add(id);
+            return ids.Count > 0 ? ids.ToArray() : null;
+        }
 
         /// The three legendaries for a boss (topped up from other bosses' if you've maxed some out).
         public static int[] LegendaryOffer(Random rng, EnemyType boss, Role role, AbilityId roleAbility, List<int> taken)
@@ -229,11 +264,12 @@ namespace Arena
                 case Rarity.Rare: return new Rgba(0.35f, 0.6f, 1f);
                 case Rarity.VeryRare: return new Rgba(0.8f, 0.4f, 1f);
                 case Rarity.Legendary: return new Rgba(1f, 0.6f, 0.15f);
+                case Rarity.Mod: return new Rgba(0.25f, 0.95f, 0.85f);
                 default: return new Rgba(0.85f, 0.85f, 0.9f);
             }
         }
 
-        public static string RarityName(Rarity r) => r == Rarity.VeryRare ? "VERY RARE" : r.ToString().ToUpperInvariant();
+        public static string RarityName(Rarity r) => r == Rarity.VeryRare ? "VERY RARE" : r == Rarity.Mod ? "WEAPON MOD" : r.ToString().ToUpperInvariant();
 
         public static int Count(List<int> taken, int id)
         {

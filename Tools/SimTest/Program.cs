@@ -146,6 +146,15 @@ static class Program
                     Console.WriteLine("  {0} took legendary: {1}", p.Role, Upgrades.All[t].Name);
                 }
         Check(legendaries == 2, "boss kill gives each player one legendary weapon upgrade from that boss (seen on client)");
+        int mods = 0;
+        foreach (var p in client.Game.Players.Values)
+            foreach (int t in p.Taken)
+                if (Upgrades.All[t].Rarity == Rarity.Mod)
+                {
+                    mods++;
+                    Console.WriteLine("  {0} took weapon mod: {1}", p.Role, Upgrades.All[t].Name);
+                }
+        Check(mods == 2, "after the legendary, each player also picks one weapon mod (seen on client)");
         host.Leave("");
         client.Leave("");
     }
@@ -447,6 +456,70 @@ static class Program
             }
         });
         Check(swarm && ghosts == 0, "all legendary weapon effects at once stay in sync");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    // Every weapon mod at full stacks: homing shots curve and stay in sync, ricochets
+    // happen, and burning / chilled enemies show up on the client.
+    static void WeaponModTest(float dt)
+    {
+        var s = StartBuffed(dt, 6, 0);
+        var offer = Upgrades.ModOffer(Role.Dps, Upgrades.RoleAbility(Role.Dps, Kit.Soldier, 0), new List<int>());
+        Check(offer != null && offer.Length == 7, "the weapon mod offer lists all 7 mods");
+        foreach (int id in offer)
+            for (int k = 0; k < 3; k++)
+            {
+                s[0].Game.GrantUpgrade(1, id);
+                s[0].Game.GrantUpgrade(2, id);
+            }
+        Check(Upgrades.ModOffer(Role.Dps, AbilityId.Dash, s[0].Game.Players[2].Taken) == null, "maxed-out mods are no longer offered");
+        var spawnAngle = new Dictionary<int, float>();
+        int curved = 0, ricochets = 0, ghosts = 0, frame = 0, compared = 0;
+        float worst = 0f;
+        bool burning = false, chilled = false;
+        Run(s, dt, 15, null, () =>
+        {
+            foreach (var b in s[0].Game.Bullets.Values)
+            {
+                if (b.Owner == 0 || b.Homing <= 0f)
+                    continue;
+                float a0;
+                if (!spawnAngle.TryGetValue(b.Id, out a0))
+                    spawnAngle[b.Id] = b.Vel.Angle;
+                else if (Math.Abs(MathX.Fmod(b.Vel.Angle - a0 + MathX.Pi, MathX.Tau) - MathX.Pi) > 0.3f)
+                {
+                    curved++;
+                    spawnAngle[b.Id] = 99f;  // count each bullet once
+                }
+                if (b.Bounces < 3 && b.Bounces >= 0 && b.LastHit != 0)
+                    ricochets++;
+            }
+            foreach (var e in s[1].Game.Enemies.Values)
+            {
+                burning |= e.Burning;
+                chilled |= e.Chilled;
+            }
+            if (++frame % 60 == 0)
+            {
+                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                ghosts += Ghosts(s);
+                foreach (var b in s[1].Game.Bullets.Values)
+                {
+                    Bullet hb;
+                    if (b.Homing > 0f && s[0].Game.Bullets.TryGetValue(b.Id, out hb))
+                    {
+                        worst = Math.Max(worst, hb.Pos.DistanceTo(b.Pos));
+                        compared++;
+                    }
+                }
+            }
+        });
+        Console.WriteLine("  {0} homing shots curved, {1} ricochet sightings, homing drift {2:0.0}px over {3} samples, burning {4}, chilled {5}",
+            curved, ricochets, worst, compared, burning, chilled);
+        Check(curved > 20, "Homing Rounds curve toward enemies");
+        Check(ricochets > 0, "Ricochet shots bounce to another enemy");
+        Check(compared > 0 && worst < 40f && ghosts == 0, "homing shots stay in sync on the client");
+        Check(burning && chilled, "burning and chilled enemies show on the client");
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -821,6 +894,13 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "mods")
+        {
+            WeaponModTest(1f / 60f);
+            BossRerollScenario(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         CheckOffers();
         CheckStatSheet();
 
@@ -1059,6 +1139,7 @@ static class Program
         AbilitySweep(dt);
         KitSweep(dt);
         LegendarySync(dt);
+        WeaponModTest(dt);
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

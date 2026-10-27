@@ -77,6 +77,7 @@ have chosen.
 | **Rare** | blue | **Second Charge** for your Space ability, an upgrade for the specific ability you picked (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks), wider aura; plus Multishot, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability in your **Q** slot, then **E**, then **Shift**: Shockwave, Overdrive, Blink, Nova or Turret (each one only once) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
+| **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |
 
 | Boss | Legendary weapon upgrades |
 |---|---|
@@ -84,6 +85,20 @@ have chosen.
 | Hive Queen | **Swarm Rounds** (shots split into 3 on hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (20% of kills spawn a 4 s mini-turret) |
 | Twin Reapers | **Executioner** (double damage below 35% HP) · **Twin Fang** (25% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
 | The Singularity | **Collapse Rounds** (shots implode on impact) · **Graviton Rounds** (hits slow enemies 40%) · **Dark Matter** (+2 pierce, +20% damage) |
+
+**Weapon mods** change how your shots behave, and you can see them on your bullets:
+
+| Mod | Per stack |
+|---|---|
+| **Homing Rounds** | Shots curve toward the nearest enemy ahead of them; more stacks turn harder |
+| **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack |
+| **Incendiary Rounds** | Hits set enemies on fire for 3 s, burning 25% of the hit's damage per second |
+| **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
+| **Shock Rounds** | 15% chance per hit for lightning to arc to 2 more enemies at 60% damage |
+| **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack) |
+| **Velocity Rounds** | Shots fly 30% faster and farther, +15% damage |
+
+Mods apply to your weapon's shots and your minions' shots, but not to grenades.
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.

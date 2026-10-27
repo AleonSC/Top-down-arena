@@ -187,10 +187,10 @@ namespace Arena
             if (choosing)
             {
                 SyncSelection(me);
-                if (Input.GetKeyDown(KeyCode.Alpha1)) selectedCard = 0;
-                else if (Input.GetKeyDown(KeyCode.Alpha2)) selectedCard = 1;
-                else if (Input.GetKeyDown(KeyCode.Alpha3)) selectedCard = 2;
-                else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
+                for (int k = 0; k < CardKeys.Length; k++)
+                    if (Input.GetKeyDown(CardKeys[k]) && k < me.Offer.Length)
+                        selectedCard = k;
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
                 else if (Input.GetKeyDown(KeyCode.R)) game.RerollOffer();
             }
 
@@ -214,6 +214,8 @@ namespace Arena
                 }
             }
         }
+
+        static readonly KeyCode[] CardKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8 };
 
         void FixedUpdate()
         {
@@ -375,6 +377,7 @@ namespace Arena
             {
                 if (b.Kind >= Defs.SmallShot)
                     continue;
+                DrawShotMods(b, t);
                 if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
                 {
                     Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
@@ -444,6 +447,8 @@ namespace Arena
             {
                 if (b.Kind < Defs.SmallShot)
                     continue;
+                if (!Defs.IsEnemyShot(b.Kind))
+                    DrawShotMods(b, t);
                 Rgba c = Defs.BulletColor(b.Kind);
                 if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
                 {
@@ -679,6 +684,15 @@ namespace Arena
             }
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
+            if (e.Burning)  // Incendiary Rounds: flickering flames
+                for (int k = 0; k < 5; k++)
+                {
+                    float a = MathX.Tau * k / 5f + t * 1.5f;
+                    float flick = 5f + 4f * Mathf.Sin(t * 14f + k * 2.1f);
+                    Circle(pos + V2.FromAngle(a) * (r * 0.8f), 3f + flick * 0.4f, new Rgba(1f, 0.4f + 0.06f * k, 0.1f, 0.6f), 8);
+                }
+            if (e.Chilled)  // Cryo Rounds and other slows: an icy ring
+                Arc(pos, r + 4f, 2f, new Rgba(0.6f, 0.9f, 1f, 0.75f), 24);
             if (e.Marked)  // Mark for Death: a rotating red reticle
             {
                 var mc = new Rgba(1f, 0.2f, 0.2f, 0.9f);
@@ -829,6 +843,31 @@ namespace Arena
             V2 n = (b - a).Normalized().Orthogonal() * (width / 2f);
             SetColor(c);
             Quad(a + n, b + n, b - n, a - n);
+        }
+
+        /// Weapon mods show on the shots themselves: a trail for homing, embers for fire,
+        /// frost rings, sparks for shock and a hot rim for explosive rounds.
+        void DrawShotMods(Bullet b, float t)
+        {
+            Player p;
+            if (b.Owner == 0 || b.Kind == Defs.GrenadeShot || b.Kind == Defs.SwarmShot || !game.Players.TryGetValue(b.Owner, out p))
+                return;
+            var s = p.Stats;
+            V2 back = b.Vel.Normalized();
+            if (b.Homing > 0f)
+                Line(b.Pos - back * (b.Radius * 4f), b.Pos, b.Radius * 0.9f, Defs.BulletColor(b.Kind).WithAlpha(0.3f));
+            if (s.BurnFrac > 0f)
+                Circle(b.Pos - back * (b.Radius * 1.8f) + V2.FromAngle(t * 20f + b.Id) * 1.5f, b.Radius * 0.7f, new Rgba(1f, 0.45f, 0.1f, 0.7f), 8);
+            if (s.CryoSlow > 0f)
+                Arc(b.Pos, b.Radius + 3f, 1.5f, new Rgba(0.65f, 0.92f, 1f, 0.8f), 10);
+            if (s.ShockChance > 0f && MathX.Fmod(t * 7f + b.Id * 0.37f, 1f) < 0.5f)
+            {
+                V2 side = back.Orthogonal();
+                Line(b.Pos + side * (b.Radius + 2f), b.Pos + side * (b.Radius + 6f) - back * 3f, 1.5f, new Rgba(0.75f, 0.85f, 1f, 0.9f));
+                Line(b.Pos - side * (b.Radius + 2f), b.Pos - side * (b.Radius + 6f) + back * 3f, 1.5f, new Rgba(0.75f, 0.85f, 1f, 0.9f));
+            }
+            if (s.ExplosiveRadius > 0f)
+                Arc(b.Pos, b.Radius + 1.5f, 1.5f, new Rgba(1f, 0.3f, 0.15f, 0.9f), 10);
         }
 
         static readonly Rgba BossShotGlow = new Rgba(0.85f, 0.3f, 1f);
@@ -1303,7 +1342,7 @@ namespace Arena
                     Label(new Rect(0, H / 2f - 70f, W, 44), game.Wave == 0 ? "Get ready!" : "Wave " + game.Wave + " cleared!", 34, white, TextAnchor.MiddleCenter, true);
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
-                        if (p.PendingPicks > 0 && p.Id != game.MyId)
+                        if (p.PendingPicks + p.PendingLegendary + p.PendingMods > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
                     if (choosing.Count > 0)
                         Label(new Rect(0, H / 2f - 26f, W, 24), "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…", 18, dim, TextAnchor.MiddleCenter);
@@ -1535,7 +1574,7 @@ namespace Arena
             }
 
             // Upgrades picked, by rarity.
-            var counts = new int[5];
+            var counts = new int[Enum.GetValues(typeof(Rarity)).Length];
             var legendaries = new List<string>();
             foreach (int id in p.Taken)
             {
@@ -1636,16 +1675,26 @@ namespace Arena
 
             if (me.OfferLegendary)
                 Label(new Rect(x0, 110, areaW, 44), "BOSS REWARD! Choose a legendary weapon upgrade", 28, ToColor(Upgrades.RarityColor(Rarity.Legendary)), TextAnchor.MiddleCenter, true);
+            else if (me.OfferMod)
+                Label(new Rect(x0, 110, areaW, 44), "WEAPON MOD! Choose how your shots behave", 28, ToColor(Upgrades.RarityColor(Rarity.Mod)), TextAnchor.MiddleCenter, true);
             else
                 Label(new Rect(x0, 110, areaW, 44), "LEVEL UP! Choose an upgrade", 34, new Color(1f, 0.9f, 0.4f), TextAnchor.MiddleCenter, true);
-            int more = me.PendingPicks + me.PendingLegendary - 1;
+            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods - 1;
             if (more > 0)
                 Label(new Rect(x0, 152, areaW, 22), more + " more to choose after this", 16, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter);
 
+            // Weapon mods show the whole list in a grid of smaller cards.
+            bool grid = me.Offer.Length > 3;
+            const int perRow = 4;
+            float cw = grid ? (areaW - gap * (perRow - 1)) / perRow : cardW, ch = grid ? 150f : cardH;
+            int rows = grid ? (me.Offer.Length + perRow - 1) / perRow : 1;
             for (int i = 0; i < me.Offer.Length; i++)
             {
                 var u = Upgrades.All[me.Offer[i]];
-                var r = new Rect(x0 + i * (cardW + gap), 200f, cardW, cardH);
+                int row = grid ? i / perRow : 0, col = grid ? i % perRow : i;
+                int inRow = grid ? Math.Min(perRow, me.Offer.Length - row * perRow) : me.Offer.Length;
+                float rowX = mid - (inRow * cw + (inRow - 1) * gap) / 2f;  // center short rows
+                var r = new Rect(rowX + col * (cw + gap), 200f + row * (ch + gap), cw, ch);
                 Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
                 bool hover = r.Contains(Event.current.mousePosition);
                 bool selected = selectedCard == i;
@@ -1656,6 +1705,19 @@ namespace Arena
                 Box(new Rect(r.x, r.y, bw, r.height), rc);
                 Box(new Rect(r.xMax - bw, r.y, bw, r.height), rc);
 
+                if (grid)
+                {
+                    int stacks = Upgrades.Count(me.Taken, me.Offer[i]);
+                    Label(new Rect(r.x, r.y + 10, r.width, 16), stacks > 0 ? "YOU HAVE " + stacks + " / " + u.MaxStacks : "NEW", 11, rc, TextAnchor.MiddleCenter, true);
+                    Label(new Rect(r.x, r.y + 28, r.width, 26), u.Name, 18, Color.white, TextAnchor.MiddleCenter, true);
+                    var small = new GUIStyle(labelStyle) { fontSize = 12, alignment = TextAnchor.UpperCenter, wordWrap = true };
+                    GUI.Label(new Rect(r.x + 12, r.y + 58, r.width - 24, 64), u.Desc, small);
+                    Label(new Rect(r.x, r.yMax - 24, r.width, 16), selected ? "SELECTED" : "[" + (i + 1) + "]", 12,
+                        selected ? rc : new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, true);
+                    if (GUI.Button(r, GUIContent.none, GUIStyle.none))
+                        selectedCard = i;
+                    continue;
+                }
                 Label(new Rect(r.x, r.y + 14, r.width, 18), Upgrades.RarityName(u.Rarity), 13, rc, TextAnchor.MiddleCenter, true);
                 Label(new Rect(r.x, r.y + 44, r.width, 30), u.Name, 22, Color.white, TextAnchor.MiddleCenter, true);
                 var desc = new GUIStyle(labelStyle) { fontSize = 15, alignment = TextAnchor.UpperCenter, wordWrap = true };
@@ -1685,17 +1747,20 @@ namespace Arena
 
             // Confirm and reroll buttons under the cards.
             const float btnW = 260f;
-            float by = 200f + cardH + 24f;
+            float by = 200f + rows * ch + (rows - 1) * gap + 24f;
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
             string confirmText = selectedCard >= 0 ? "Confirm: " + Upgrades.All[me.Offer[selectedCard]].Name + "  [Enter]" : "Select a card to confirm";
             if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, Ui.Primary))
                 ConfirmPick();
-            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary;
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod;
             if (Ui.Button(new Rect(mid + 10f, by, btnW, 46f), "Reroll (" + me.Rerolls + " left)  [R]"))
                 game.RerollOffer();
             GUI.enabled = wasEnabled;
-            Label(new Rect(x0, by + 46f, areaW, 18), me.OfferLegendary ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill", 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            string hint = me.OfferLegendary || me.OfferMod ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill";
+            if (me.OfferMod)
+                hint = "Every weapon mod you can still take is shown. Each stacks up to 3 times.";
+            Label(new Rect(x0, by + 46f, areaW, 18), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
         }
 
         /// Your current stats; with a card selected, the ones it would change show their new value.
