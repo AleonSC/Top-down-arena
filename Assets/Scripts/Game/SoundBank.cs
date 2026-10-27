@@ -34,7 +34,52 @@ namespace Arena
         public bool Muted;
 
         // Volume settings (0..1), set from the pause menu.
-        public float Master = 1f, Weapons = 1f, Enemies = 1f, Effects = 1f;
+        public float Master = 1f, Weapons = 1f, Enemies = 1f, Effects = 1f, Music = 0.7f;
+
+        // --- Menu music ---------------------------------------------------------
+        // Rendered on a background thread at startup (it takes a second or two), then looped
+        // on the menus and in the lobby. It fades out when a match starts.
+        AudioSource music;
+        float[] musicSamples;
+        volatile bool musicReady;
+        float musicFade;
+
+        public void StartMusic(GameObject owner)
+        {
+            music = owner.AddComponent<AudioSource>();
+            music.playOnAwake = false;
+            music.loop = true;
+            music.spatialBlend = 0f;
+            music.volume = 0f;
+            var thread = new System.Threading.Thread(() =>
+            {
+                musicSamples = MenuMusic.Render();
+                musicReady = true;
+            }) { IsBackground = true };
+            thread.Start();
+        }
+
+        /// Call every frame. wanted: whether the music should be playing (on the menus).
+        public void UpdateMusic(bool wanted, float dt)
+        {
+            if (music == null)
+                return;
+            if (musicReady && music.clip == null)
+            {
+                var clip = AudioClip.Create("Menu theme", musicSamples.Length, 1, MenuMusic.Rate, false);
+                clip.SetData(musicSamples, 0);
+                music.clip = clip;
+                musicSamples = null;
+            }
+            if (music.clip == null)
+                return;
+            musicFade = Mathf.Clamp01(musicFade + (wanted ? dt / 2f : -dt / 1.2f));
+            music.volume = Muted ? 0f : musicFade * Master * Music * 0.6f;
+            if (musicFade > 0f && !music.isPlaying)
+                music.Play();
+            else if (musicFade <= 0f && music.isPlaying)
+                music.Pause();  // resumes where it left off next time you're back on the menus
+        }
 
         public enum Category { Weapons, Enemies, Effects }
 

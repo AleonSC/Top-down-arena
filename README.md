@@ -208,10 +208,14 @@ friend isn't affected, so you can check it mid-fight (you can still move and sho
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Weapons** (your
+sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your
 and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
 a mute toggle, and **Leave game**. The same audio options are under **Settings** on the main menu, and
 they're saved between sessions.
+
+**Music:** the menus and lobby play a synthwave theme that's generated in code at startup, like the sound
+effects (`Assets/Scripts/Game/MenuMusic.cs`). It fades out when a match starts and picks up where it left off
+when you're back on the menus.
 
 ## Playing with a friend
 

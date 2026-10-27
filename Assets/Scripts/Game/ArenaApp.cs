@@ -80,6 +80,7 @@ namespace Arena
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
             sounds = new SoundBank(gameObject);
+            sounds.StartMusic(gameObject);
             LoadAudioSettings();
             ParseCommandLine();
         }
@@ -157,6 +158,7 @@ namespace Arena
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
+            sounds.UpdateMusic(session.Screen != AppScreen.Game, Time.unscaledDeltaTime);
             UpdateLayout();
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
@@ -1234,7 +1236,7 @@ namespace Arena
         void DrawPauseMenu()
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
-            var panel = new Rect(W / 2f - 240f, 80f, 480f, 560f);
+            var panel = new Rect(W / 2f - 240f, 45f, 480f, 630f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
             Player by;
@@ -1258,7 +1260,7 @@ namespace Arena
 
         void DrawSettings()
         {
-            var panel = new Rect(W / 2f - 240f, 110f, 480f, 470f);
+            var panel = new Rect(W / 2f - 240f, 90f, 480f, 530f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
             float x = panel.x + 40f, w = panel.width - 80f;
@@ -1274,6 +1276,7 @@ namespace Arena
             y += 34f;
             bool changed = false;
             changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
+            changed |= VolumeSlider(x, ref y, w, "Music  (menus)", ref sounds.Music);
             changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
             changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
             changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, UI)", ref sounds.Effects);
@@ -1305,6 +1308,7 @@ namespace Arena
             sounds.Weapons = PlayerPrefs.GetFloat("vol_weapons", 1f);
             sounds.Enemies = PlayerPrefs.GetFloat("vol_enemies", 1f);
             sounds.Effects = PlayerPrefs.GetFloat("vol_effects", 1f);
+            sounds.Music = PlayerPrefs.GetFloat("vol_music", 0.7f);
             sounds.Muted = PlayerPrefs.GetInt("muted", 0) == 1;
         }
 
@@ -1314,6 +1318,7 @@ namespace Arena
             PlayerPrefs.SetFloat("vol_weapons", sounds.Weapons);
             PlayerPrefs.SetFloat("vol_enemies", sounds.Enemies);
             PlayerPrefs.SetFloat("vol_effects", sounds.Effects);
+            PlayerPrefs.SetFloat("vol_music", sounds.Music);
             PlayerPrefs.SetInt("muted", sounds.Muted ? 1 : 0);
             PlayerPrefs.Save();
         }
@@ -1496,11 +1501,8 @@ namespace Arena
 
         void DrawHud()
         {
-            var white = new Color(1f, 1f, 1f, 0.9f);
-            var dim = new Color(1f, 1f, 1f, 0.7f);
             var me = game.Me;
-            Label(new Rect(20, 10, 400, 34), "WAVE " + game.Wave + (game.Endless ? "  · ENDLESS" : " / " + Game.MaxWave), 26, white, TextAnchor.UpperLeft, true);
-            Label(new Rect(20, 44, 400, 20), "Enemies left: " + game.Remaining + "    Score: " + game.Score, 14, dim, TextAnchor.UpperLeft);
+            DrawWavePlate();
             DrawBossBars();
 
             // Names, level-up popups and downed labels over players.
@@ -1509,32 +1511,32 @@ namespace Arena
                 float r = p.Def.BodyR;
                 V2 at = p.Disp * WorldToUi;  // arena -> HUD coordinates
                 r *= WorldToUi;
-                Label(new Rect(at.X - 100f, at.Y - r - 32f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : "") + "  Lv " + p.Level, 13,
-                    ToColor(p.Def.Color.WithAlpha(0.9f)), TextAnchor.MiddleCenter);
+                Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12,
+                    ToColor(p.Def.Color.WithAlpha(0.95f)));
                 if (p.LevelFlash > 0f)
                 {
-                    float rise = (1.5f - p.LevelFlash) * 20f;
-                    Label(new Rect(at.X - 100f, at.Y - r - 56f - rise, 200f, 22f), "LEVEL UP!", 18,
-                        new Color(1f, 0.9f, 0.3f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter, true);
+                    float rise = (1.5f - p.LevelFlash) * 22f;
+                    Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 54f - rise, 200f, 24f), "LEVEL UP!", 19,
+                        new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)));
                 }
                 if (p.Downed)
-                    Label(new Rect(at.X - 150f, at.Y + r + 12f, 300f, 18f), "DOWNED — stand close to revive", 11,
-                        new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleCenter);
+                {
+                    var tag = new Rect(at.X - 92f, at.Y + r + 10f, 184f, 34f);
+                    Ui.HudPanel(tag, new Color(1f, 0.35f, 0.35f));
+                    Ui.Label(new Rect(tag.x, tag.y + 3f, tag.width, 14f), "DOWNED — stand close to revive", 10, new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
+                    Ui.Bar(new Rect(tag.x + 10f, tag.y + 21f, tag.width - 20f, 6f), p.Revive, Ui.Good);
+                }
             }
 
             // Player cards in the top-right corner, yours first.
             var ids = new List<int>(game.Players.Keys);
             ids.Sort((a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b));
-            float x = W - 262f * ids.Count - 8f;
+            const float cardW = 232f, cardH = 66f, cardGap = 8f;
+            float x = W - (cardW + cardGap) * ids.Count - 8f;
             foreach (int id in ids)
             {
-                var p = game.Players[id];
-                const float y = 12f;
-                Box(new Rect(x, y, 250, 50), new Color(0, 0, 0, 0.45f));
-                Label(new Rect(x + 8, y + 2, 234, 18), p.Name + " — " + p.Def.Name + "   Lv " + p.Level, 13, ToColor(p.Def.Color), TextAnchor.UpperLeft);
-                GuiBar(new Rect(x + 8, y + 22, 234, 8), p.Hp / p.MaxHp, p.Downed ? new Color(0.5f, 0.5f, 0.5f) : new Color(0.3f, 1f, 0.4f));
-                GuiBar(new Rect(x + 8, y + 36, 234, 5), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.85f, 0.3f));
-                x += 262f;
+                DrawPlayerHudCard(game.Players[id], new Rect(x, 12f, cardW, cardH), id == game.MyId);
+                x += cardW + cardGap;
             }
 
             if (me != null)
@@ -1548,15 +1550,13 @@ namespace Arena
                         DrawUpgradePicker(me);
                         break;
                     }
-                    Label(new Rect(0, H / 2f - 70f, W, 44), game.Wave == 0 ? "Get ready!" : "Wave " + game.Wave + " cleared!", 34, white, TextAnchor.MiddleCenter, true);
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
-                    if (choosing.Count > 0)
-                        Label(new Rect(0, H / 2f - 26f, W, 24), "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…", 18, dim, TextAnchor.MiddleCenter);
-                    else if (!game.AnyonePicking())
-                        Label(new Rect(0, H / 2f - 26f, W, 24), "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer), 18, dim, TextAnchor.MiddleCenter);
+                    string sub = choosing.Count > 0 ? "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…"
+                        : !game.AnyonePicking() ? "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer) : "";
+                    DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.Wave > 0 && game.Wave % 5 == 0 ? Ui.Gold : Ui.Accent);
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
@@ -1567,7 +1567,11 @@ namespace Arena
             if (tabHeld)
                 DrawTabMenu(me);
             else if (me != null && me.Offer == null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
-                Label(new Rect(W - 220f, H - 26f, 200f, 18f), "Hold Tab: stats & upgrades", 11, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleRight);
+            {
+                var hint = new Rect(W - 196f, H - 34f, 180f, 22f);
+                Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
+                Ui.Label(hint, "Hold TAB  ·  stats & upgrades", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+            }
         }
 
         // --- Tab: your stats and loadout ---------------------------------------
@@ -1818,80 +1822,203 @@ namespace Arena
         /// Name and health bar for each boss on the field, plus warnings for their mechanics.
         void DrawBossBars()
         {
-            float y = 76f;
-            const float barW = 420f;
+            float y = 86f;
+            const float panelW = 560f;
             foreach (var e in game.Enemies.Values)
             {
                 if (!e.Def.IsBoss)
                     continue;
                 var col = ToColor(e.Def.Color);
-                string name = e.Def.Name;
+                string note = null;
+                Color noteColor = Ui.Warn;
                 if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
-                    name += "  — shielded: kill her swarm!";
+                    note = "SHIELDED — kill her swarm!";
                 else if (Game.IsTwin(e.Type) && e.Phase == 1)
-                    name += "  — ENRAGED";
-                else if (e.Type == EnemyType.Singularity && AnyWells())
-                    name += "  — its gravity wells swallow your shots: kill them!";
+                {
+                    note = "ENRAGED";
+                    noteColor = new Color(1f, 0.4f, 0.4f);
+                }
                 else if (Game.SoulBound(e))
-                    name += "  — SOUL BOUND: hurt the other Reaper!";
+                {
+                    note = "SOUL BOUND — hurt the other Reaper!";
+                    noteColor = new Color(0.85f, 0.88f, 1f);
+                }
+                else if (e.Type == EnemyType.Singularity && AnyWells())
+                    note = "Its gravity wells swallow your shots — kill them!";
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
-                    name += "  — immune: destroy the phylactery!";
+                    note = "IMMUNE — destroy the phylactery!";
                 else if (Game.Hungry(e))
-                    name += "  — HUNGRY: stop shooting, your hits heal it!";
+                {
+                    note = "HUNGRY — stop shooting, your hits heal it!";
+                    noteColor = new Color(1f, 0.45f, 0.7f);
+                }
                 else if (e.Type == EnemyType.Eclipse)
-                    name += "  — phase " + (e.Phase + 1) + " of 3";
-                Label(new Rect(W / 2f - barW / 2f, y - 18f, barW, 18f), name, 14, col, TextAnchor.MiddleCenter, true);
-                Box(new Rect(W / 2f - barW / 2f, y, barW, 10f), new Color(0, 0, 0, 0.6f));
-                Box(new Rect(W / 2f - barW / 2f, y, barW * Mathf.Clamp01(e.Hp / e.MaxHp), 10f), col);
-                y += 36f;
+                    note = "Phase " + (e.Phase + 1) + " of 3";
+                float h = note != null ? 62f : 46f;
+                var panel = new Rect(W / 2f - panelW / 2f, y, panelW, h);
+                Ui.HudPanel(panel, col);
+                float frac = Mathf.Clamp01(e.Hp / e.MaxHp);
+                // Name with small diamonds either side, and the health percentage.
+                Ui.Pill(new Rect(panel.x + 14f, panel.y + 12f, 6f, 6f), col);
+                Ui.Label(new Rect(panel.x + 26f, panel.y + 5f, panelW - 120f, 20f), e.Def.Name.ToUpperInvariant(), 14, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(panel.xMax - 90f, panel.y + 5f, 76f, 20f), Mathf.CeilToInt(frac * 100f) + "%", 13, Ui.Muted, TextAnchor.MiddleRight, true);
+                var bar = new Rect(panel.x + 14f, panel.y + 27f, panelW - 28f, 12f);
+                Ui.Bar(bar, frac, col);
+                for (int k = 1; k < 10; k++)  // tick marks every 10%
+                    Ui.Fill(new Rect(bar.x + bar.width * k / 10f, bar.y + 2f, 1f, bar.height - 4f), new Color(0f, 0f, 0f, 0.35f));
+                if (note != null)
+                    Ui.Label(new Rect(panel.x, panel.y + 41f, panelW, 18f), note, 12, noteColor, TextAnchor.MiddleCenter, true);
+                y += h + 6f;
             }
+            string warning = null;
             if (game.TwinReviveT > 0f)
-                Label(new Rect(0, y - 8f, W, 22f), "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!", 16,
-                    new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleCenter, true);
+                warning = "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!";
             else if (game.PullStrength > 0f)
-                Label(new Rect(0, y - 8f, W, 22f), "GRAVITY WELL — run!", 16, new Color(0.8f, 0.6f, 1f), TextAnchor.MiddleCenter, true);
+                warning = "GRAVITY WELL — run!";
+            if (warning != null)
+            {
+                var r = new Rect(W / 2f - 230f, y, 460f, 28f);
+                float pulse = 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 8f);
+                Ui.Pill(r, new Color(0.45f, 0.06f, 0.1f, 0.75f));
+                Ui.Label(r, warning, 14, new Color(1f, 0.75f, 0.75f, pulse), TextAnchor.MiddleCenter, true);
+            }
         }
 
-        /// XP bar plus the ability slots (Space / Q / E / Shift) along the bottom.
+        // --- HUD pieces -----------------------------------------------------------
+
+        int plateWave = -1, plateMax = 1;
+
+        /// Top-left: the wave number, how many enemies are left (with a progress bar) and the score.
+        void DrawWavePlate()
+        {
+            if (game.Wave != plateWave)
+            {
+                plateWave = game.Wave;
+                plateMax = 1;
+            }
+            plateMax = Math.Max(plateMax, game.Remaining);
+            var r = new Rect(14f, 12f, 270f, 76f);
+            bool bossWave = game.Wave > 0 && game.Wave % 5 == 0;
+            Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
+            Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), bossWave ? "BOSS WAVE" : "WAVE", 10, bossWave ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            string num = game.Wave.ToString();
+            Ui.Label(new Rect(r.x + 14f, r.y + 20f, 120f, 40f), num, 34, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), game.Endless ? "ENDLESS" : "/ " + Game.MaxWave, 13,
+                game.Endless ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 130f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 130f, r.y + 20f, 124f, 26f), game.Remaining.ToString(), 20, Color.white, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.x + 130f, r.y + 44f, 124f, 14f), "SCORE " + game.Score.ToString("N0"), 10, Ui.Gold, TextAnchor.MiddleRight, true);
+            float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
+            Ui.Bar(new Rect(r.x + 14f, r.yMax - 12f, r.width - 28f, 5f), progress, bossWave ? Ui.Gold : Ui.Accent);
+        }
+
+        /// One player's card: role-colored accent, name and class, health (with shield) and XP.
+        void DrawPlayerHudCard(Player p, Rect r, bool mine)
+        {
+            var role = ToColor(p.Def.Color);
+            Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : mine ? role : (Color?)null);
+            Ui.Pill(new Rect(r.x + 6f, r.y + 9f, 4f, r.height - 18f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
+            Ui.Label(new Rect(r.x + 18f, r.y + 6f, r.width - 70f, 18f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 22f, r.width - 70f, 14f), Defs.KitName(p.Kit) + " " + p.Def.Name, 10, role, TextAnchor.MiddleLeft, true);
+            var lv = new Rect(r.xMax - 52f, r.y + 8f, 42f, 18f);
+            Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.22f));
+            Ui.Label(lv, "LV " + p.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
+
+            var hpBar = new Rect(r.x + 18f, r.y + 39f, r.width - 28f, 12f);
+            float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
+            // Green when healthy, through yellow, to red when low.
+            Color hpCol = frac > 0.5f ? Color.Lerp(new Color(1f, 0.85f, 0.3f), new Color(0.35f, 0.95f, 0.45f), (frac - 0.5f) * 2f)
+                : Color.Lerp(new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), frac * 2f);
+            if (p.Downed)
+            {
+                Ui.Bar(hpBar, p.Revive, new Color(0.6f, 0.6f, 0.65f));
+                Ui.Label(hpBar, "DOWNED", 9, new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleCenter, true);
+            }
+            else
+            {
+                Ui.Bar(hpBar, frac, hpCol);
+                if (p.ShieldHp > 0f)  // Arcane Ward: a blue stripe along the bottom of the health bar
+                    Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+                Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
+            }
+            Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
+        }
+
+        /// A centered announcement between waves.
+        void DrawBanner(string title, string sub, Color accent)
+        {
+            var r = new Rect(W / 2f - 280f, H / 2f - 92f, 560f, sub.Length > 0 ? 96f : 70f);
+            Ui.HudPanel(r, accent);
+            Ui.Fill(new Rect(r.x + 40f, r.y + 14f, r.width - 80f, 1f), new Color(accent.r, accent.g, accent.b, 0.35f));
+            Ui.Title(new Rect(r.x, r.y + 16f, r.width, 40f), title, 30, Color.white);
+            if (sub.Length > 0)
+                Ui.Label(new Rect(r.x, r.y + 60f, r.width, 22f), sub, 15, Ui.Muted, TextAnchor.MiddleCenter, true);
+        }
+
+        /// XP bar plus the ability tiles (Space / Q / E / Shift / ultimate) along the bottom.
         void DrawAbilityBar(Player me)
         {
-            const float slotW = 160f, gap = 8f;
-            float total = slotW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
-            float x0 = (W - total) / 2f, y = H - 58f;
+            const float tileW = 150f, tileH = 58f, gap = 8f;
+            float total = tileW * Upgrades.SlotCount + gap * (Upgrades.SlotCount - 1);
+            float x0 = (W - total) / 2f, y = H - tileH - 12f;
 
-            Box(new Rect(x0, y - 22f, total, 14f), new Color(0, 0, 0, 0.5f));
-            GuiBar(new Rect(x0 + 52f, y - 18f, total - 56f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.85f, 0.3f));
-            Label(new Rect(x0 + 4f, y - 24f, 48f, 16f), "Lv " + me.Level, 12, new Color(1f, 0.9f, 0.5f), TextAnchor.MiddleLeft, true);
+            // XP strip with the level badge.
+            var lv = new Rect(x0, y - 22f, 52f, 16f);
+            Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.25f));
+            Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
+            Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
 
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var slot = me.Slots[i];
-                var r = new Rect(x0 + i * (slotW + gap), y, slotW, 46f);
+                var r = new Rect(x0 + i * (tileW + gap), y, tileW, tileH);
                 bool ultimate = i == Upgrades.UltSlot;
-                Box(r, new Color(0, 0, 0, 0.55f));
-                if (ultimate)  // gold frame, glowing when it's ready
-                {
-                    Color frame = slot.Charges > 0 ? new Color(1f, 0.8f, 0.35f, 0.6f + 0.3f * Mathf.Sin(Time.unscaledTime * 5f)) : new Color(1f, 0.8f, 0.35f, 0.3f);
-                    Box(new Rect(r.x, r.y, r.width, 2f), frame);
-                    Box(new Rect(r.x, r.yMax - 2f, r.width, 2f), frame);
-                    Box(new Rect(r.x, r.y, 2f, r.height), frame);
-                    Box(new Rect(r.xMax - 2f, r.y, 2f, r.height), frame);
-                }
-                Label(new Rect(r.x + 6, r.y + 2, 60, 14), SlotKeys[i], 10, new Color(1, 1, 1, 0.55f), TextAnchor.UpperLeft, true);
                 if (slot.Id == AbilityId.None)
                 {
-                    Label(new Rect(r.x + 6, r.y + 16, slotW - 12, 26), "empty — find a very rare upgrade", 11, new Color(1, 1, 1, 0.35f), TextAnchor.MiddleLeft);
+                    Ui.HudPanel(r);
+                    DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], new Color(1f, 1f, 1f, 0.45f));
+                    Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), "Empty", 12, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(r.x + 8f, r.y + 40f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
                     continue;
                 }
                 bool ready = slot.Charges > 0;
-                Label(new Rect(r.x + 6, r.y + 14, slotW - 12, 18), Upgrades.Ability(slot.Id).Name, 14, ready ? Color.white : new Color(1, 1, 1, 0.5f), TextAnchor.UpperLeft, true);
-                float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / game.Cooldown(me, i);
-                GuiBar(new Rect(r.x + 6, r.y + 36, slotW - 12, 5), fill, ultimate ? (ready ? Ui.Gold : new Color(0.6f, 0.5f, 0.25f)) : ready ? new Color(0.5f, 0.8f, 1f) : new Color(0.35f, 0.45f, 0.6f));
-                string status = slot.Charges >= slot.MaxCharges ? "READY" : ultimate ? (int)(fill * 100f) + "%" : slot.Timer.ToString("0.0") + "s";
+                float cd = game.Cooldown(me, i);
+                float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
+                Color accent = ultimate ? Ui.Gold : ToColor(me.Def.Color);
+                float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
+                Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
+
+                // Cooldown: a dark shade over the tile that drains downward as it recharges.
+                if (!ready)
+                {
+                    GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * (1f - fill)));
+                    Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
+                    GUI.EndGroup();
+                }
+                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · RMB/F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
+                if (ready)  // a lit strip along the top of ready abilities
+                    Ui.Pill(new Rect(r.x + 10f, r.y + 2f, r.width - 20f, 3f), accent);
+                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), Upgrades.Ability(slot.Id).Name, 13, ready ? Color.white : new Color(1f, 1f, 1f, 0.78f), TextAnchor.MiddleLeft, true);
+                if (ready)
+                    Ui.Label(new Rect(r.x + 8f, r.y + 7f, r.width - 16f, 16f), ultimate ? "READY!" : "READY", 10, ultimate ? Ui.Gold : Ui.Good, TextAnchor.MiddleRight, true);
+                else
+                    Ui.Shadowed(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
+                        14, Color.white, TextAnchor.MiddleRight);
+                // Recharge line along the bottom, and charge pips.
+                Ui.Bar(new Rect(r.x + 8f, r.yMax - 9f, r.width - 16f, 3f), fill, ready ? accent : new Color(0.5f, 0.6f, 0.8f), new Color(0f, 0f, 0f, 0.4f));
                 if (slot.MaxCharges > 1)
-                    status = slot.Charges + "/" + slot.MaxCharges + "  " + status;
-                Label(new Rect(r.x + 6, r.y + 2, slotW - 12, 14), status, 10, new Color(1, 1, 1, 0.7f), TextAnchor.UpperRight);
+                    for (int k = 0; k < slot.MaxCharges; k++)
+                        Ui.Pill(new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f), k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
             }
+        }
+
+        /// A small key label like [SPACE]; r.width is ignored (it's sized to the text).
+        void DrawKeyCap(Rect r, string key, Color color)
+        {
+            float w = 12f + key.Length * 6.5f;
+            var cap = new Rect(r.x, r.y, w, r.height);
+            Ui.Pill(cap, new Color(color.r, color.g, color.b, 0.2f * color.a + 0.05f));
+            Ui.Label(cap, key, 9, new Color(1f, 1f, 1f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter, true);
         }
 
         void DrawUpgradePicker(Player me)
@@ -2048,12 +2175,6 @@ namespace Arena
             GUI.color = c;
             GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = old;
-        }
-
-        static void GuiBar(Rect r, float frac, Color c)
-        {
-            Box(r, new Color(0, 0, 0, 0.6f));
-            Box(new Rect(r.x, r.y, r.width * Mathf.Clamp01(frac), r.height), c);
         }
 
         static Color ToColor(Rgba c) => new Color(c.R, c.G, c.B, c.A);

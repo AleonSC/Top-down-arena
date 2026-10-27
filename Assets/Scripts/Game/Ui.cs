@@ -21,7 +21,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check;
+        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, pill;
         static Texture2D checkOn, checkOff;
 
         public static void Init()
@@ -30,6 +30,11 @@ namespace Arena
                 return;
             panel = Style(Rounded(10, new Color(0.11f, 0.12f, 0.18f, 0.96f), new Color(0.08f, 0.09f, 0.13f, 0.96f), new Color(0.27f, 0.32f, 0.46f, 1f), 1.5f), 10);
             panelAccent = Style(Rounded(10, new Color(0.12f, 0.14f, 0.21f, 0.97f), new Color(0.09f, 0.1f, 0.15f, 0.97f), new Color(0.42f, 0.6f, 1f, 1f), 2f), 10);
+
+            // In-match HUD: translucent so the arena shows through, with a lighter rim.
+            hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
+            hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
+            pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
 
             button = Style(Rounded(8, new Color(1f, 1f, 1f), new Color(0.82f, 0.84f, 0.88f), new Color(1f, 1f, 1f, 0.55f), 1.5f), 8);
             button.hover.background = Rounded(8, new Color(1f, 1f, 1f), new Color(0.95f, 0.96f, 1f), new Color(1f, 1f, 1f, 1f), 2f);
@@ -163,6 +168,54 @@ namespace Arena
         {
             Fill(r, new Color(1f, 1f, 1f, 0.06f));
             Fill(new Rect(r.x, r.y, r.width * Mathf.Clamp01(frac), r.height), color);
+        }
+
+        // --- In-match HUD pieces ------------------------------------------------
+
+        /// A translucent HUD panel. With an accent, the rim glows in that color.
+        public static void HudPanel(Rect r, Color? accent = null)
+        {
+            GUI.Box(r, GUIContent.none, hud);
+            if (accent.HasValue)
+            {
+                var old = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(accent.Value.r, accent.Value.g, accent.Value.b, 0.22f * accent.Value.a);
+                GUI.Box(r, GUIContent.none, hudLit);
+                GUI.backgroundColor = old;
+            }
+        }
+
+        /// A rounded rectangle in one color (tints a near-white texture, so the top is a bit lighter).
+        public static void Pill(Rect r, Color c)
+        {
+            if (r.width <= 0f || r.height <= 0f)
+                return;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = c;
+            GUI.Box(r, GUIContent.none, pill);
+            GUI.backgroundColor = old;
+        }
+
+        /// A rounded meter: dark track, the filled part clipped from a full-width pill so both
+        /// ends stay rounded, and a faint highlight along the top.
+        public static void Bar(Rect r, float frac, Color fill, Color? trackColor = null)
+        {
+            Pill(r, trackColor ?? new Color(0f, 0f, 0f, 0.55f));
+            frac = Mathf.Clamp01(frac);
+            if (frac > 0f)
+            {
+                GUI.BeginGroup(new Rect(r.x, r.y, r.width * frac, r.height));
+                Pill(new Rect(0f, 0f, r.width, r.height), fill);
+                Fill(new Rect(2f, 1f, r.width - 4f, Mathf.Max(1f, r.height * 0.3f)), new Color(1f, 1f, 1f, 0.18f));
+                GUI.EndGroup();
+            }
+        }
+
+        /// Text with a 1 px dark outline-ish shadow, for labels over the arena.
+        public static void Shadowed(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleCenter, bool bold = true)
+        {
+            Label(new Rect(r.x + 1f, r.y + 1.5f, r.width, r.height), text, size, new Color(0f, 0f, 0f, 0.75f * color.a), align, bold);
+            Label(r, text, size, color, align, bold);
         }
 
         // --- Texture generation -------------------------------------------------
