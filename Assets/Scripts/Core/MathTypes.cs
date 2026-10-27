@@ -64,6 +64,7 @@ namespace Arena
 
         public Rgba WithAlpha(float a) => new Rgba(R, G, B, a);
         public Rgba Darkened(float f) => new Rgba(R * (1f - f), G * (1f - f), B * (1f - f), A);
+        public Rgba Mix(Rgba o, float f) => new Rgba(R + (o.R - R) * f, G + (o.G - G) * f, B + (o.B - B) * f, A);
 
         public static readonly Rgba White = new Rgba(1f, 1f, 1f);
     }

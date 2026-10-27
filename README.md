@@ -122,6 +122,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side. Enemies and bullets don't wrap, so the edges make a good escape route.
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
+- **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **red crosshair** = marked (takes extra damage).
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.

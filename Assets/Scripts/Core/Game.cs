@@ -102,7 +102,7 @@ namespace Arena
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
         public float BurnT, BurnDps;        // Incendiary Rounds (host)
         public int BurnBy;
-        public bool Burning, Chilled;       // replicated, for drawing
+        public bool Burning, Chilled, Frozen;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public int LastHitBy;
         public bool Marked;
@@ -2130,8 +2130,9 @@ namespace Arena
                 w.Write(e.Elite);
                 e.Marked = e.MarkT > 0f;  // the host draws from these too
                 e.Burning = e.BurnT > 0f;
-                e.Chilled = e.SlowT > 0f;
-                w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0)));
+                e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
+                e.Chilled = e.SlowT > 0f && !e.Frozen;
+                w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0)));
             }
             w.Write((byte)Minions.Count);
             foreach (var m in Minions.Values)
@@ -2378,6 +2379,7 @@ namespace Arena
                 e.Marked = (status & 1) != 0;
                 e.Burning = (status & 2) != 0;
                 e.Chilled = (status & 4) != 0;
+                e.Frozen = (status & 8) != 0;
                 e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
                 seen.Add(id);
             }

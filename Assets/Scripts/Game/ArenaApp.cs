@@ -787,15 +787,22 @@ namespace Arena
             }
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
-            if (e.Burning)  // Incendiary Rounds: flickering flames
-                for (int k = 0; k < 5; k++)
+            // Status effects tint the body; icons above it say which ones (see DrawStatusIcons).
+            if (e.Frozen)
+                col = col.Mix(new Rgba(0.75f, 0.92f, 1f), 0.85f);  // frosted almost white-blue
+            else if (e.Chilled)
+                col = col.Mix(IceColor, 0.35f);
+            if (e.Burning)
+            {
+                col = col.Mix(FireColor, 0.25f + 0.15f * Mathf.Sin(t * 18f + e.Id));
+                // Flames licking up off the top of it.
+                for (int k = 0; k < 4; k++)
                 {
-                    float a = MathX.Tau * k / 5f + t * 1.5f;
-                    float flick = 5f + 4f * Mathf.Sin(t * 14f + k * 2.1f);
-                    Circle(pos + V2.FromAngle(a) * (r * 0.8f), 3f + flick * 0.4f, new Rgba(1f, 0.4f + 0.06f * k, 0.1f, 0.6f), 8);
+                    float f = MathX.Fmod(t * 1.6f + k * 0.25f + e.Id * 0.17f, 1f);
+                    V2 at = pos + new V2((k - 1.5f) * r * 0.45f + 2f * Mathf.Sin(t * 9f + k), -r * 0.4f - f * r * 0.9f);
+                    Circle(at, (1f - f) * (4f + r * 0.28f), FireColor.Mix(new Rgba(1f, 0.85f, 0.3f), f).WithAlpha(0.9f * (1f - f)), 8);
                 }
-            if (e.Chilled)  // Cryo Rounds and other slows: an icy ring
-                Arc(pos, r + 4f, 2f, new Rgba(0.6f, 0.9f, 1f, 0.75f), 24);
+            }
             if (e.Marked)  // Mark for Death: a rotating red reticle
             {
                 var mc = new Rgba(1f, 0.2f, 0.2f, 0.9f);
@@ -828,6 +835,13 @@ namespace Arena
                     break;
             }
             Polygon(pos, r, e.Def.Sides, rot, col);
+            if (e.Frozen)  // encased in an angular block of ice with a glint
+            {
+                Arc(pos, r + 5f, 3f, IceColor.WithAlpha(0.95f), 6, MathX.Pi / 6f, MathX.Tau);
+                Polygon(pos, r + 5f, 6, MathX.Pi / 6f, IceColor.WithAlpha(0.35f));
+                float g = MathX.Fmod(t * 0.7f + e.Id * 0.3f, 1f);
+                Line(pos + new V2(-r * 0.6f, -r * 0.2f + g * r * 0.5f), pos + new V2(-r * 0.1f, -r * 0.7f + g * r * 0.5f), 2f, Rgba.White.WithAlpha(0.8f));
+            }
 
             // Details on top of the body.
             switch (e.Type)
@@ -865,10 +879,71 @@ namespace Arena
                     break;
             }
             // Bosses get a bar at the top of the screen instead.
-            if (e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning)
+            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning;
+            if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);
                 Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
+            }
+            DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
+        }
+
+        static readonly Rgba IceColor = new Rgba(0.55f, 0.85f, 1f);
+        static readonly Rgba FireColor = new Rgba(1f, 0.42f, 0.1f);
+        static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
+        static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
+
+        /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
+        /// slowed, flame = burning, red crosshair = marked (takes extra damage).
+        void DrawStatusIcons(Enemy e, V2 center, float t)
+        {
+            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Marked ? 1 : 0);
+            if (n == 0)
+                return;
+            const float size = 8f, step = 21f;
+            float x = center.X - (n - 1) * step / 2f;
+            var bg = new Rgba(0f, 0f, 0f, 0.55f);
+            if (e.Frozen)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                for (int k = 0; k < 3; k++)  // snowflake: three crossing spokes with tips
+                {
+                    V2 d = V2.FromAngle(MathX.Pi / 2f + k * MathX.Pi / 3f) * size;
+                    Line(c - d, c + d, 2f, IceColor);
+                }
+                Circle(c, 1.6f, Rgba.White, 6);
+                x += step;
+            }
+            if (e.Chilled)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                for (int k = 0; k < 2; k++)  // two downward chevrons: slowed
+                {
+                    float y = c.Y - 3f + k * 4.5f;
+                    Line(new V2(c.X - size * 0.8f, y - 2f), new V2(c.X, y + 2f), 2f, SlowColor);
+                    Line(new V2(c.X, y + 2f), new V2(c.X + size * 0.8f, y - 2f), 2f, SlowColor);
+                }
+                x += step;
+            }
+            if (e.Burning)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                float flick = 0.8f * Mathf.Sin(t * 16f + e.Id);
+                Circle(c + new V2(0f, 1.5f), size * 0.6f, FireColor, 10);       // flame: round base...
+                Polygon(c + new V2(0f, -2f + flick * 0.3f), size * 0.62f, 3, -MathX.Pi / 2f, FireColor);  // ...pointed top
+                Circle(c + new V2(0f, 2f), size * 0.3f, new Rgba(1f, 0.9f, 0.4f), 8);
+                x += step;
+            }
+            if (e.Marked)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                Arc(c, size * 0.75f, 1.6f, MarkColor, 12);
+                Line(c - new V2(size, 0f), c + new V2(size, 0f), 1.5f, MarkColor);
+                Line(c - new V2(0f, size), c + new V2(0f, size), 1.5f, MarkColor);
             }
         }
 
@@ -1128,9 +1203,10 @@ namespace Arena
             }
             y += 10f;
             Ui.Heading(x, y, w, "Tips");
-            Ui.Label(new Rect(x, y + 28f, w, 160f),
+            Ui.Label(new Rect(x, y + 28f, w, 180f),
                 "Your hitbox is the small white dot in the middle of your character.\n" +
                 "Walk off an edge to come in on the other side (enemies and bullets can't follow).\n" +
+                "Icons over enemies: snowflake = frozen, blue arrows = slowed, flame = burning, red crosshair = marked.\n" +
                 "At 0 HP you're downed: stand next to your ally to revive them.\n" +
                 "Levels give upgrade picks at the end of each wave; bosses give legendary ones.\n" +
                 "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.\n" +

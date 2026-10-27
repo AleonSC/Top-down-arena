@@ -565,8 +565,8 @@ static class Program
                 foreach (var p in host.Game.Players.Values)
                     if (p.Hp >= p.MaxHp - 0.5f)
                         fullHp.Add(p.Id);
-                foreach (var e in host.Game.Enemies.Values)
-                    frozen |= e.FrozenT > 0f;
+                foreach (var e in client.Game.Enemies.Values)
+                    frozen |= e.Frozen;  // the client sees them frozen (drawn in ice with a snowflake)
             });
             foreach (int id in new[] { 1, 2 })
             {
