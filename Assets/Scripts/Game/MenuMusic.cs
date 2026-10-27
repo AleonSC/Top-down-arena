@@ -18,7 +18,7 @@ namespace Arena
         static readonly int[] Roots = { 57, 53, 60, 55, 57, 53, 50, 52 };
         static readonly bool[] Minor = { true, false, false, false, true, false, true, false };
 
-        static float Hz(float midi) => 440f * (float)Math.Pow(2.0, (midi - 69f) / 12.0);
+        internal static float Hz(float midi) => 440f * (float)Math.Pow(2.0, (midi - 69f) / 12.0);
 
         static int[] Chord(int bar)
         {
@@ -116,7 +116,7 @@ namespace Arena
 
         // --- Instruments ---------------------------------------------------------
 
-        static void AddSaw(float[] dry, float[] wet, float start, float dur, float hz, float vol, float attack, float release, float cutoff)
+        internal static void AddSaw(float[] dry, float[] wet, float start, float dur, float hz, float vol, float attack, float release, float cutoff)
         {
             int i0 = (int)(start * Rate), len = (int)((dur + release) * Rate);
             var lp1 = new OnePole(cutoff);
@@ -134,7 +134,7 @@ namespace Arena
             }
         }
 
-        static void AddBass(float[] dry, float start, float dur, float hz, float vol)
+        internal static void AddBass(float[] dry, float start, float dur, float hz, float vol)
         {
             int i0 = (int)(start * Rate), len = (int)(dur * Rate);
             double phase = 0;
@@ -150,7 +150,7 @@ namespace Arena
             }
         }
 
-        static void AddPluck(float[] dry, float[] echo, float start, float dur, float hz, float vol)
+        internal static void AddPluck(float[] dry, float[] echo, float start, float dur, float hz, float vol)
         {
             int i0 = (int)(start * Rate), len = (int)(dur * Rate);
             double phase = 0;
@@ -169,7 +169,7 @@ namespace Arena
             }
         }
 
-        static void AddKick(float[] dry, float start, float vol)
+        internal static void AddKick(float[] dry, float start, float vol)
         {
             int i0 = (int)(start * Rate), len = (int)(0.35f * Rate);
             double phase = 0;
@@ -183,7 +183,7 @@ namespace Arena
             }
         }
 
-        static void AddHat(float[] dry, float start, float vol, Random rng)
+        internal static void AddHat(float[] dry, float start, float vol, Random rng)
         {
             int i0 = (int)(start * Rate), len = (int)(0.05f * Rate);
             float prev = 0f;
@@ -197,7 +197,7 @@ namespace Arena
             }
         }
 
-        static void AddClap(float[] dry, float[] wet, float start, float vol, Random rng)
+        internal static void AddClap(float[] dry, float[] wet, float start, float vol, Random rng)
         {
             int i0 = (int)(start * Rate), len = (int)(0.25f * Rate);
             var lp = new OnePole(3000f);
@@ -218,7 +218,7 @@ namespace Arena
 
         // --- Effects -------------------------------------------------------------
 
-        class OnePole
+        internal class OnePole
         {
             readonly float a;
             float y;
@@ -227,7 +227,7 @@ namespace Arena
         }
 
         /// Large hall: eight damped combs into four allpasses (Freeverb-style).
-        static float[] Reverb(float[] input)
+        internal static float[] Reverb(float[] input)
         {
             int n = input.Length;
             var outp = new float[n];

@@ -172,7 +172,7 @@ bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
 |---|---|---|
-| 5 | **The Warden** | Cycles through spirals, rings of big orbs and aimed fans |
+| 5 | **The Warden** | Cycles through spirals, rings of big orbs, aimed fans, and **cross streams**: four streams of bullets in a slowly turning "+" (shown by faint guide lines) while it roams the arena |
 | 10 | **Hive Queen** | Summons tough Shards (3x normal health) and is **immune while 3+ of her swarm are alive** |
 | 15 | **Twin Reapers** | **Soul Bond**: whichever Reaper is more than 10% further down on health is **immune** until you even them out, so split your damage. They circle the arena fast, and a **tether** between them sweeps it and hurts on touch (dash through it). Kill one and the other **enrages**; finish it within **6 s** or the fallen twin revives at 60% |
 | 20 | **The Singularity** | Its **gravity phase** drags everyone toward it, then it collapses into dense rings. Four **Gravity Wells** orbit it and bend your shots into themselves, so kill them first; they come back 15 s after the last one dies |
@@ -222,9 +222,11 @@ and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (e
 a mute toggle, and **Leave game**. The same audio options are under **Settings** on the main menu, and
 they're saved between sessions.
 
-**Music:** the menus and lobby play a synthwave theme that's generated in code at startup, like the sound
-effects (`Assets/Scripts/Game/MenuMusic.cs`). It fades out when a match starts and picks up where it left off
-when you're back on the menus.
+**Music:** everything is generated in code, like the sound effects. The menus and lobby play a synthwave
+theme (`Assets/Scripts/Game/MenuMusic.cs`); matches play a soft track during regular waves, and **every boss
+has its own track** that crossfades in while it's on the field (`Assets/Scripts/Game/GameMusic.cs`, where each
+track is a short recipe: tempo, key, chords and which instruments play). Tracks render in the background, and
+the next boss's track is prepared ahead of time. The **Music** slider controls all of it.
 
 ## Playing with a friend
 

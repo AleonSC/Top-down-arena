@@ -158,7 +158,7 @@ namespace Arena
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
-            sounds.UpdateMusic(session.Screen != AppScreen.Game, Time.unscaledDeltaTime);
+            UpdateMusic();
             UpdateLayout();
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
@@ -226,6 +226,30 @@ namespace Arena
         }
 
         static readonly KeyCode[] CardKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8 };
+
+        /// Menu theme on the menus; the soft battle track in a match; each boss's own track while
+        /// it's on the field. The next boss's track is rendered ahead of time.
+        void UpdateMusic()
+        {
+            string wanted = "menu", keep = null;
+            if (session.Screen == AppScreen.Game && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+            {
+                wanted = "battle";
+                foreach (var e in game.Enemies.Values)
+                    if (e.Def.IsBoss)
+                    {
+                        var key = Game.IsTwin(e.Type) ? EnemyType.TwinA : e.Type;
+                        sounds.RequestBossTrack(key);
+                        wanted = SoundBank.BossTrackId(key);
+                        break;
+                    }
+                int next = game.Wave % 5 == 0 && game.State == MatchState.Fighting ? game.Wave : (game.Wave / 5 + 1) * 5;
+                var upcoming = Game.BossForWave(next);
+                sounds.RequestBossTrack(upcoming);
+                keep = SoundBank.BossTrackId(upcoming);
+            }
+            sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime);
+        }
 
         void FixedUpdate()
         {
@@ -708,6 +732,15 @@ namespace Arena
             // Effects behind the body.
             switch (e.Type)
             {
+                case EnemyType.Boss:
+                    if (e.Phase == 3)  // the Warden's cross streams: faint guides along the four arms
+                        for (int k = 0; k < 4; k++)
+                        {
+                            V2 d = V2.FromAngle(e.Facing + MathX.Pi / 2f * k);
+                            Line(pos + d * r, pos + d * (r + 420f), 10f, new Rgba(1f, 0.35f, 0.45f, 0.07f));
+                            Line(pos + d * r, pos + d * (r + 420f), 2f, new Rgba(1f, 0.45f, 0.55f, 0.18f));
+                        }
+                    break;
                 case EnemyType.Lunger:
                     if (e.Phase == 1)  // winding up: shows where it's about to leap
                     {
@@ -1312,7 +1345,7 @@ namespace Arena
             y += 34f;
             bool changed = false;
             changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
-            changed |= VolumeSlider(x, ref y, w, "Music  (menus)", ref sounds.Music);
+            changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music);
             changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
             changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
             changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, UI)", ref sounds.Effects);

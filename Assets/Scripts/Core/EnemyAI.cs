@@ -22,6 +22,12 @@ namespace Arena
         const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
         const float SoulBondRelease = 0.03f;   // ...until the other one is brought back within this
         const float SingularityPull = 150f;
+        const int WardenCross = 3;  // the Warden's fourth attack: "+" streams while roaming
+
+        static int WardenAttack(Enemy e) => (int)(e.T / 6f) % 4;
+
+        /// The boss that appears on a boss wave (every 5th).
+        public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
         const int LateBossWave = 20;
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
         const int WellCount = 4;
@@ -465,6 +471,15 @@ namespace Arena
                 case EnemyType.Boss:
                 case EnemyType.HiveQueen:
                 {
+                    if (e.Type == EnemyType.Boss && WardenAttack(e) == WardenCross)
+                    {
+                        // Cross streams: roam the arena from point to point.
+                        if (e.Pos.DistanceTo(e.Waypoint) < 40f || e.Waypoint.Y < 1f)
+                            e.Waypoint = new V2(Rand(200f, Width - 200f), Rand(160f, Height - 160f));
+                        v = (e.Waypoint - e.Pos).Normalized();
+                        speed = 150f;
+                        break;
+                    }
                     var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
                     v = (goal - e.Pos) / 60f;
                     break;
@@ -499,6 +514,20 @@ namespace Arena
             }
             switch (e.Type)
             {
+                case EnemyType.Boss:
+                {
+                    // The Warden rotates through four attacks, 6 s each; Phase tells clients which.
+                    int attack = WardenAttack(e);
+                    if (attack == WardenCross && e.Phase != WardenCross)
+                        e.Waypoint = V2.Zero;  // pick a fresh spot to roam to
+                    e.Phase = (byte)attack;
+                    if (attack == WardenCross)
+                    {
+                        e.Ang += 0.45f * dt;  // the cross turns slowly so you can slip between the arms
+                        e.Facing = e.Ang;
+                    }
+                    break;
+                }
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
                 {
@@ -704,8 +733,13 @@ namespace Arena
                     EnemyShot(e, aim, 160f, Defs.SmallShot);
                     break;
                 case EnemyType.Boss:
-                    switch ((int)(e.T / 6f) % 3)
+                    switch (WardenAttack(e))
                     {
+                        case WardenCross:  // streams of bullets in a slowly turning "+", while it roams
+                            e.FireT = 0.075f;
+                            for (int k = 0; k < 4; k++)
+                                EnemyShot(e, e.Ang + MathX.Pi / 2f * k, 240f, Defs.SmallShot);
+                            break;
                         case 0:  // four-armed spiral
                             e.FireT = 0.07f;
                             e.Ang += 0.19f;

@@ -505,9 +505,10 @@ static class Program
             {
                 if (brute != null && s[0].Game.Enemies.ContainsKey(brute.Id))
                     p.Pos = brute.Pos + new V2(brute.Radius, 0f);
-                // A melee enemy's fire timer is parked at 99 s the first time it comes up, so it never fires.
+                // A melee enemy's fire timer is parked at 99 s the first time it comes up, so it never fires
                 foreach (var e in s[0].Game.Enemies.Values)
-                    if (e.Def.Melee && e.T > 3f && e.SpawnT <= 0f && e.FireT < 90f)
+                    // (it ticks down at most ~2.5 s per second, and is re-parked if it ever runs out)
+                    if (e.Def.Melee && e.T > 3f && e.SpawnT <= 0f && e.FireT < 99f - e.T * 2.5f)
                         meleeShots++;
             });
             Console.WriteLine("  brute contact: found {0}, damage taken {1:0}", brute != null, p.Run.DamageTaken - before);
@@ -535,6 +536,42 @@ static class Program
             Check(windup && leap, "lungers telegraph, then leap (seen on client)");
             s[0].Leave(""); s[1].Leave("");
         }
+    }
+
+    // Every music track renders: a sensible length, no clipping or NaNs, and a seamless loop.
+    static void MusicTest()
+    {
+        var recipes = new List<KeyValuePair<string, Func<float[]>>>();
+        recipes.Add(new KeyValuePair<string, Func<float[]>>("menu", MenuMusic.Render));
+        recipes.Add(new KeyValuePair<string, Func<float[]>>("battle", () => GameMusic.Render(GameMusic.Battle)));
+        var bosses = new HashSet<EnemyType>();
+        for (int wave = 5; wave <= Game.MaxWave; wave += 5)
+            bosses.Add(Game.BossForWave(wave));
+        foreach (var boss in bosses)
+        {
+            var b = boss;
+            recipes.Add(new KeyValuePair<string, Func<float[]>>(b.ToString(), () => GameMusic.Render(GameMusic.ForBoss(b))));
+        }
+        bool ok = true;
+        var lengths = new List<string>();
+        foreach (var kv in recipes)
+        {
+            var s = kv.Value();
+            float peak = 0f;
+            bool nan = false;
+            foreach (var v in s)
+            {
+                nan |= float.IsNaN(v) || float.IsInfinity(v);
+                peak = Math.Max(peak, Math.Abs(v));
+            }
+            float secs = s.Length / (float)MenuMusic.Rate;
+            bool good = !nan && peak <= 0.81f && peak > 0.2f && secs > 20f && secs < 60f && Math.Abs(s[0] - s[s.Length - 1]) < 0.1f;
+            lengths.Add(kv.Key + " " + secs.ToString("0") + "s");
+            if (!good) Console.WriteLine("  bad track: " + kv.Key + " peak " + peak + " length " + secs + " nan " + nan);
+            ok &= good;
+        }
+        Console.WriteLine("  music: " + string.Join(", ", lengths.ToArray()));
+        Check(ok && bosses.Count == 10, "menu, battle and all 10 boss tracks render cleanly and loop");
     }
 
     // The arena is 1600x900, and players wrap around its edges (enemies don't).
@@ -605,7 +642,7 @@ static class Program
         foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
         {
             int port = nextPort++;
-            var host = new Session { AutoStart = 2, StartWave = 3 };
+            var host = new Session { AutoStart = 2, StartWave = 9 };  // enemies tough enough to survive Glacial Tomb's hit
             host.Game.Bot = true;
             host.Host(port, "Host", roles[0], 0, 0, kit);
             var client = new Session();
@@ -624,7 +661,7 @@ static class Program
                 }
                 if (kit == Kit.Soldier && roles[0] == Role.Tank)
                     host.Game.Players[id].Hp = 10f;  // for Lifeline to heal
-                host.Game.Players[id].InvulnT = 2f;  // don't get downed before casting
+                host.Game.Players[id].InvulnT = 6f;  // don't get downed before casting
             }
             var minions = new Dictionary<MinionKind, int>();
             var zones = new Dictionary<ZoneKind, int>();
@@ -1156,6 +1193,40 @@ static class Program
 
     static void BossMechanics(float dt)
     {
+        // The Warden's fourth attack: "+" streams while it roams the arena.
+        {
+            var s = StartBuffed(dt, 5, 0);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            var w = Find(s[0], EnemyType.Boss);
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            w.T = 17.9f;  // jump to just before the fourth attack (each lasts 6 s)
+            V2 start = w.Pos;
+            float farthest = 0f;
+            bool phaseOnClient = false;
+            int onArms = 0, offArms = 0;
+            var seen = new HashSet<int>();
+            Run(s, dt, 5.5f, null, () =>
+            {
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
+                var cw = Find(s[1], EnemyType.Boss);
+                phaseOnClient |= cw != null && cw.Phase == 3;
+                if (w.Phase != 3)
+                    return;
+                farthest = Math.Max(farthest, w.Pos.DistanceTo(start));
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Kind == Defs.SmallShot && b.FromBoss && seen.Add(b.Id) && b.Pos.DistanceTo(w.Pos) < w.Radius + 12f)
+                    {
+                        // Each new shot should leave along one of the four arms.
+                        float rel = MathX.Fmod(b.Vel.Angle - w.Ang + MathX.Pi / 4f, MathX.Pi / 2f) - MathX.Pi / 4f;
+                        if (Math.Abs(rel) < 0.12f) onArms++; else offArms++;
+                    }
+            });
+            Console.WriteLine("  warden cross: client saw it {0}, roamed {1:0}px, shots on the arms {2}, off {3}", phaseOnClient, farthest, onArms, offArms);
+            Check(phaseOnClient && farthest > 250f, "the Warden's cross attack makes it roam the arena (seen on client)");
+            Check(onArms > 100 && offArms == 0, "the Warden's cross attack fires streams in a '+' pattern");
+            s[0].Leave(""); s[1].Leave("");
+        }
         // Hive Queen (wave 10): summons a swarm and is immune while it's big.
         {
             var s = StartBuffed(dt, 10, 25);
@@ -1334,6 +1405,12 @@ static class Program
         {
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
+        }
+        if (args.Length > 2 && args[2] == "music")
+        {
+            MusicTest();
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
         }
         if (args.Length > 2 && args[2] == "melee")
         {
@@ -1628,6 +1705,7 @@ static class Program
         WrapTest(dt);
         ThreePlayerTest(dt);
         MeleeTest(dt);
+        MusicTest();
         PauseTest(dt);
         RunStatsTest(dt);
         LateWaves(dt);

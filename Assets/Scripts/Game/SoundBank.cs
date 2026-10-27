@@ -36,49 +36,120 @@ namespace Arena
         // Volume settings (0..1), set from the pause menu.
         public float Master = 1f, Weapons = 1f, Enemies = 1f, Effects = 1f, Music = 0.7f;
 
-        // --- Menu music ---------------------------------------------------------
-        // Rendered on a background thread at startup (it takes a second or two), then looped
-        // on the menus and in the lobby. It fades out when a match starts.
-        AudioSource music;
-        float[] musicSamples;
-        volatile bool musicReady;
-        float musicFade;
+        // --- Music ---------------------------------------------------------------
+        // Tracks are synthesized on background threads (a second or few each) the first time
+        // they're asked for, then turned into clips here on the main thread. Two sources
+        // crossfade between tracks. Boss tracks are released again once they're not needed.
+        class Track
+        {
+            public string Id;
+            public float Gain;
+            public volatile float[] Samples;
+            public AudioClip Clip;
+            public float ResumeAt;  // where to pick up next time (menu and battle tracks)
+        }
+
+        readonly System.Collections.Generic.Dictionary<string, Track> tracks = new System.Collections.Generic.Dictionary<string, Track>();
+        readonly AudioSource[] musicVoices = new AudioSource[2];
+        readonly Track[] voiceTrack = new Track[2];
+        readonly float[] voiceFade = new float[2];
+        int activeVoice;
 
         public void StartMusic(GameObject owner)
         {
-            music = owner.AddComponent<AudioSource>();
-            music.playOnAwake = false;
-            music.loop = true;
-            music.spatialBlend = 0f;
-            music.volume = 0f;
-            var thread = new System.Threading.Thread(() =>
+            for (int v = 0; v < musicVoices.Length; v++)
             {
-                musicSamples = MenuMusic.Render();
-                musicReady = true;
-            }) { IsBackground = true };
-            thread.Start();
+                musicVoices[v] = owner.AddComponent<AudioSource>();
+                musicVoices[v].playOnAwake = false;
+                musicVoices[v].loop = true;
+                musicVoices[v].spatialBlend = 0f;
+                musicVoices[v].volume = 0f;
+            }
+            RequestTrack("menu", MenuMusic.Render, 0.6f);
+            RequestTrack("battle", () => GameMusic.Render(GameMusic.Battle), 0.42f);  // soft, under the gunfire
         }
 
-        /// Call every frame. wanted: whether the music should be playing (on the menus).
-        public void UpdateMusic(bool wanted, float dt)
+        /// Start rendering a track if it isn't already. Safe to call every frame.
+        public void RequestTrack(string id, Func<float[]> render, float gain)
         {
-            if (music == null)
+            if (tracks.ContainsKey(id))
                 return;
-            if (musicReady && music.clip == null)
+            var track = new Track { Id = id, Gain = gain };
+            tracks[id] = track;
+            System.Threading.ThreadPool.QueueUserWorkItem(_ => track.Samples = render());
+        }
+
+        public static string BossTrackId(EnemyType boss) => "boss:" + boss;
+
+        public void RequestBossTrack(EnemyType boss) =>
+            RequestTrack(BossTrackId(boss), () => GameMusic.Render(GameMusic.ForBoss(boss)), 0.55f);
+
+        /// Call every frame. wanted: the track that should be playing (null for silence);
+        /// keep: another track to hold on to (the next boss's), so it's ready in time.
+        public void UpdateMusic(string wanted, string keep, float dt)
+        {
+            if (musicVoices[0] == null)
+                return;
+            // Finished renders become clips.
+            foreach (var t in tracks.Values)
+                if (t.Clip == null && t.Samples != null)
+                {
+                    t.Clip = AudioClip.Create(t.Id, t.Samples.Length, 1, MenuMusic.Rate, false);
+                    t.Clip.SetData(t.Samples, 0);
+                    t.Samples = null;
+                }
+
+            // Switch when the wanted track is ready (until then, whatever's playing carries on).
+            Track want = null;
+            if (wanted != null)
+                tracks.TryGetValue(wanted, out want);
+            bool ready = want != null && want.Clip != null;
+            if ((wanted == null || ready) && voiceTrack[activeVoice] != want)
             {
-                var clip = AudioClip.Create("Menu theme", musicSamples.Length, 1, MenuMusic.Rate, false);
-                clip.SetData(musicSamples, 0);
-                music.clip = clip;
-                musicSamples = null;
+                activeVoice = 1 - activeVoice;
+                var src = musicVoices[activeVoice];
+                if (src.isPlaying)
+                    Release(activeVoice);
+                voiceTrack[activeVoice] = want;
+                voiceFade[activeVoice] = 0f;
+                if (want != null)
+                {
+                    src.clip = want.Clip;
+                    src.time = want.ResumeAt;
+                    src.Play();
+                }
             }
-            if (music.clip == null)
-                return;
-            musicFade = Mathf.Clamp01(musicFade + (wanted ? dt / 2f : -dt / 1.2f));
-            music.volume = Muted ? 0f : musicFade * Master * Music * 0.6f;
-            if (musicFade > 0f && !music.isPlaying)
-                music.Play();
-            else if (musicFade <= 0f && music.isPlaying)
-                music.Pause();  // resumes where it left off next time you're back on the menus
+
+            for (int v = 0; v < musicVoices.Length; v++)
+            {
+                var t = voiceTrack[v];
+                bool active = v == activeVoice && t != null;
+                voiceFade[v] = Mathf.Clamp01(voiceFade[v] + (active ? dt / 1.5f : -dt / 1.2f));
+                musicVoices[v].volume = t == null || Muted ? 0f : voiceFade[v] * t.Gain * Master * Music;
+                if (!active && voiceFade[v] <= 0f && t != null)
+                    Release(v);
+            }
+
+            // Let go of boss tracks nobody needs any more (they're a few MB each).
+            string drop = null;
+            foreach (var t in tracks.Values)
+                if (t.Id.StartsWith("boss:") && t.Clip != null && t.Id != wanted && t.Id != keep && t != voiceTrack[0] && t != voiceTrack[1])
+                    drop = t.Id;
+            if (drop != null)
+            {
+                UnityEngine.Object.Destroy(tracks[drop].Clip);
+                tracks.Remove(drop);
+            }
+        }
+
+        void Release(int v)
+        {
+            var t = voiceTrack[v];
+            if (t != null && !t.Id.StartsWith("boss:"))
+                t.ResumeAt = musicVoices[v].time;  // pick the menu / battle music up where it left off
+            musicVoices[v].Stop();
+            voiceTrack[v] = null;
+            voiceFade[v] = 0f;
         }
 
         public enum Category { Weapons, Enemies, Effects }
