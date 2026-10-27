@@ -121,7 +121,8 @@ Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the tea
 inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold
 for their full duration; **only boss bullets wear them down**. Each soaks a limited amount of boss damage
 (Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a few
-seconds instead. Bosses' **red-cored aimed shots can't be blocked** and must be dodged, and standing
+seconds instead. Boss bullets are easy to spot: they have a **dark core**. Violet-spiked ones wear blockers
+down; **red ones (aimed shots) can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
 
 The game has **50 waves** with a different boss every 5 waves. Their name, health bar and warnings show at

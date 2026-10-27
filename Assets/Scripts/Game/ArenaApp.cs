@@ -449,6 +449,14 @@ namespace Arena
                     Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.1f, 0f, 0f, 1f), 8);
                     continue;
                 }
+                if (b.FromBoss)  // other boss shots: violet glow, spinning spikes, dark core (they wear blockers down)
+                {
+                    Circle(b.Pos, b.Radius + 5f, BossShotGlow.WithAlpha(0.3f), 12);
+                    Polygon(b.Pos, b.Radius + 4f, 4, t * 5f + b.Id, BossShotGlow);
+                    Circle(b.Pos, b.Radius, c, 12);
+                    Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.08f, 0f, 0.12f, 1f), 8);
+                    continue;
+                }
                 if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
                     Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
                 Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
@@ -820,6 +828,8 @@ namespace Arena
             Quad(a + n, b + n, b - n, a - n);
         }
 
+        static readonly Rgba BossShotGlow = new Rgba(0.85f, 0.3f, 1f);
+
         void Circle(V2 center, float r, Rgba c, int segs)
         {
             SetColor(c);
@@ -967,10 +977,11 @@ namespace Arena
             }
             y += 10f;
             Ui.Heading(x, y, w, "Tips");
-            Ui.Label(new Rect(x, y + 28f, w, 120f),
+            Ui.Label(new Rect(x, y + 28f, w, 140f),
                 "Your hitbox is the small white dot in the middle of your character.\n" +
                 "At 0 HP you're downed: stand next to your ally to revive them.\n" +
                 "Levels give upgrade picks at the end of each wave; bosses give legendary ones.\n" +
+                "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.\n" +
                 "One player hosts, the other joins (Tailscale makes this easy).", 14, Ui.Text, TextAnchor.UpperLeft, false, true);
             if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 64f, 200f, 44f), "Back", Ui.Primary))
                 howToOpen = false;

@@ -564,6 +564,18 @@ static class Program
                             escaped++;
             });
             Console.WriteLine("  {0} on the boss: {1} boss bullet sightings beyond 200 px", mode, escaped);
+            if (mode == "barrier")
+            {
+                // The client is told which bullets are the boss's, so it can draw them differently.
+                int bossShots = 0, plain = 0;
+                foreach (var bl in s[1].Game.Bullets.Values)
+                    if (Defs.IsEnemyShot(bl.Kind))
+                    {
+                        if (bl.FromBoss) bossShots++; else plain++;
+                    }
+                Console.WriteLine("  client sees {0} boss bullets and {1} unflagged enemy bullets", bossShots, plain);
+                Check(bossShots > 0 && plain == 0, "the client knows which bullets are a boss's");
+            }
             Check(escaped > 50, "a " + mode + " sitting on a boss doesn't stop it from shooting");
             s[0].Leave(""); s[1].Leave("");
         }

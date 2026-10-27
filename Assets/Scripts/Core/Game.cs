@@ -116,7 +116,7 @@ namespace Arena
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
-        public bool FromBoss;     // host only: fired by a boss (only these wear blockers down)
+        public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
     }
 
     /// A health pickup dropped by a dead enemy.
@@ -886,6 +886,7 @@ namespace Arena
                     w.Write(b.Vel);
                     w.Write(b.AngVel);
                     w.Write(b.Life);
+                    w.Write(b.FromBoss);
                 }
                 session.Broadcast(Proto.End(w));
                 pendingSpawns.Clear();
@@ -1314,9 +1315,9 @@ namespace Arena
             DoLog("wave " + Wave + " cleared");
         }
 
-        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner)
+        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false)
         {
-            var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life);
+            var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss);
             b.Dmg = dmg;
             Player p;
             if (owner != 0 && Players.TryGetValue(owner, out p))
@@ -1333,13 +1334,13 @@ namespace Arena
                     b.Pierce += 2;
                 }
             }
-            pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life });
+            pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss });
             return b;
         }
 
-        Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life)
+        Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false)
         {
-            var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Radius = Defs.BulletRadius(kind) };
+            var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Radius = Defs.BulletRadius(kind) };
             Bullets[id] = b;
             if (owner == 0)
                 Sounds.Add(Sfx.EnemyShot);
@@ -1936,7 +1937,7 @@ namespace Arena
                         int owner = r.ReadInt32();
                         V2 pos = r.ReadV2(), vel = r.ReadV2();
                         float angVel = r.ReadSingle(), life = r.ReadSingle();
-                        MakeBullet(id, kind, owner, pos, vel, angVel, life);
+                        MakeBullet(id, kind, owner, pos, vel, angVel, life, r.ReadBoolean());
                     }
                     break;
                 }
