@@ -132,9 +132,7 @@ namespace Arena
                     lobbyTab = i;
                 x += w + 8f;
             }
-            if (!practice)
-                Ui.Label(new Rect(x + 8f, r.y, r.xMax - x - 8f, r.height), session.IsHost ? "Pick Practice Range at the top to build your own waves" : "", 11, Ui.Muted, TextAnchor.MiddleRight);
-            else if (session.Plan.Waves.Count > 0 && lobbyTab == 0)
+            if (practice && session.Plan.Waves.Count > 0 && lobbyTab == 0)
                 Ui.Label(new Rect(x + 8f, r.y, r.xMax - x - 8f, r.height), PracticeSummary(), 11, PracticeColor, TextAnchor.MiddleRight);
         }
 
