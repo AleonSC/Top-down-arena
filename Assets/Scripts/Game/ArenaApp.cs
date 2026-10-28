@@ -203,8 +203,9 @@ namespace Arena
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
-            // Holding Tab opens the loadout, which has buttons (moving abilities between keys).
-            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
+            // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works
+            // while choosing an upgrade too: the cards hide until you let go.
+            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp
                 && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool overlay = menuUp || choosing || tabHeld || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
@@ -240,7 +241,7 @@ namespace Arena
                 SaveAudioSettings();
             }
 
-            if (choosing)
+            if (choosing && !tabHeld)
             {
                 SyncSelection(me);
                 for (int k = 0; k < CardKeys.Length; k++)
@@ -2005,7 +2006,8 @@ namespace Arena
                 case MatchState.Intermission:
                     if (me != null && me.Offer != null)
                     {
-                        DrawUpgradePicker(me);
+                        if (!tabHeld)
+                            DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu
                         break;
                     }
                     var choosing = new List<string>();
@@ -2031,7 +2033,7 @@ namespace Arena
             }
             if (tabHeld)
                 DrawTabMenu(me);
-            else if (me != null && me.Offer == null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+            else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
                 var hint = new Rect(W - 196f, H - 34f, 180f, 22f);
                 Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
@@ -2707,8 +2709,19 @@ namespace Arena
                 else
                     Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
                         14, Color.white, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleRight);
-                // Recharge line along the bottom, and charge pips.
-                Ui.Bar(new Rect(r.x + 8f, r.yMax - 9f, r.width - 16f, 3f), fill, ready ? accent : new Color(0.5f, 0.6f, 0.8f), new Color(0f, 0f, 0f, 0.4f));
+                // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
+                // recharge line, the pair one strip.
+                float mxp;
+                me.MasteryXp.TryGetValue(slot.Id, out mxp);
+                var strip = new Rect(r.x + 8f, r.yMax - 13f, r.width - 16f, 7f);
+                const float xpH = 3f;
+                Ui.Pill(strip, new Color(0f, 0f, 0f, 0.45f));
+                GUI.BeginGroup(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH));
+                Ui.Pill(new Rect(0f, 0f, strip.width, strip.height), new Color(0.35f, 0.9f, 0.45f));
+                GUI.EndGroup();
+                GUI.BeginGroup(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH));
+                Ui.Pill(new Rect(0f, -xpH, strip.width, strip.height), ready ? accent : new Color(0.5f, 0.6f, 0.8f));
+                GUI.EndGroup();
                 if (slot.MaxCharges > 1)
                     for (int k = 0; k < slot.MaxCharges; k++)
                         Ui.Pill(new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f), k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));

@@ -166,7 +166,9 @@ it** during a run. Each cast during a fight earns XP equal to the ability's cool
 slow abilities level at about the same pace. Instant abilities (Shockwave, Frost Nova, Mend Pulse, ...)
 earn by what they did: half for a cast that hit nothing, up to 1.5x for one that hit, healed or erased a
 lot. Casting between waves or with no enemies around earns nothing. Levels need 100 / 300 / 550 / 850 XP in
-total: about level 3 by wave 8-10 and level 5 by wave 20-25 if you use it whenever it's ready.
+total: about level 3 by wave 8-10 and level 5 by wave 20-25 if you use it whenever it's ready. On the
+ability bar, the thin green line on top of each ability's recharge bar is its progress to the next level (full
+once mastered); the Tab menu shows the level.
 
 - **Each level:** +8% to everything the ability does (damage, healing, shields, buff duration, and the zones,
   minions and shots it creates) and 4% off its cooldown. Level 5 is +32% and -16%.
@@ -335,7 +337,7 @@ bosses come back around, tougher each time.
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
-| Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it) |
+| Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
 | Aim line on / off | V (the line runs out to your weapon's range: as far as your shots fly, or your swing reaches) |
