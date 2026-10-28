@@ -14,10 +14,9 @@ namespace Arena
         void DrawHud()
         {
             var me = game.Me;
-            DrawWavePlate();
-            DrawActiveModifiers(14f, 94f + DrawPathChip(14f, 94f));  // PathsUi.cs, ModifiersUi.cs
+            DrawWaveCorner();
             if (game.Recorder != null)  // this match is being recorded (hosts only)
-                Ui.Label(new Rect(W - 70f, H - 20f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
             if (aimDebug && me != null)
                 DrawAimDebug(me);
             DrawBossBars();
@@ -49,15 +48,7 @@ namespace Arena
                 }
             }
 
-            // Player cards in the top-right corner, yours first.
-            var ids = new List<int>(game.Players.Keys);
-            ids.Sort((a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b));
-            float x = PlayerCardsLeft;
-            foreach (int id in ids)
-            {
-                DrawPlayerHudCard(game.Players[id], new Rect(x, 12f, PlayerCardW, 66f), id == game.MyId);
-                x += PlayerCardW + PlayerCardGap;
-            }
+            DrawPlayerCorner();
 
             if (me != null)
                 DrawAbilityBar(me);
@@ -107,7 +98,7 @@ namespace Arena
                 DrawTabMenu(me);
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
-                var hint = new Rect(W - 196f, H - 34f, 180f, 22f);
+                var hint = new Rect(W - 196f, 10f, 180f, 22f);
                 Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
                 Ui.Label(hint, "Hold TAB  ·  stats & upgrades", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
             }
@@ -445,22 +436,11 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 18f, y + 24f, r.width - 36f, 20f), string.Join(", ", legendaries.ToArray()), 12, ToColor(Upgrades.RarityColor(Rarity.Legendary)));
         }
 
-        /// Name and health bar for each boss on the field, plus warnings for their mechanics.
-        const float PlayerCardW = 232f, PlayerCardGap = 8f;
-        float PlayerCardsLeft => W - (PlayerCardW + PlayerCardGap) * game.Players.Count - 8f;
-
+        /// Name and health bar for each boss on the field, plus warnings for their mechanics: wide across the
+        /// top middle, which the rest of the HUD leaves free.
         void DrawBossBars()
         {
-            // Up in the top row, between the wave plate and the player cards. With three players
-            // there isn't room, so they go just under the cards instead.
-            float left = 298f, right = PlayerCardsLeft - 14f;
-            float panelW = Mathf.Min(560f, right - left), y = 12f, x0 = left + (right - left - panelW) / 2f;
-            if (panelW < 420f)
-            {
-                panelW = 560f;
-                x0 = W / 2f - panelW / 2f;
-                y = 86f;
-            }
+            float panelW = 640f, y = 12f, x0 = W / 2f - panelW / 2f;
             foreach (var e in game.Enemies.Values)
             {
                 if (!e.Def.IsBoss)
@@ -526,12 +506,77 @@ namespace Arena
             }
         }
 
+        // --- Beside the hotbar ----------------------------------------------------------
+
+        // The wave panel sits left of the ability bar and your card right of it, both 72 px tall and lined up with
+        // the bar's bottom; the path and modifier chips stack up from the wave panel, teammates from your card.
+        const float SideW = 229f, SideL = 12f, SideR = W - 12f - SideW, SideH = 72f, SideY = H - 12f - SideH;
+
+        void DrawWaveCorner()
+        {
+            DrawWavePlate(new Rect(SideL, SideY, SideW, SideH));
+            float y = SideY - 28f;
+            if (game.CurrentPath != PathId.None)
+            {
+                DrawPathChip(SideL, y);  // PathsUi.cs
+                y -= 24f;
+            }
+            if (DrawGoldChip(SideL, y))  // ShopUi.cs
+                y -= 24f;
+            DrawActiveModifiers(SideL, y + 2f);  // ModifiersUi.cs
+        }
+
+        void DrawPlayerCorner()
+        {
+            var ids = new List<int>(game.Players.Keys);
+            ids.Sort((a, b) => a == game.MyId ? -1 : b == game.MyId ? 1 : a.CompareTo(b));
+            if (ids.Count == 0)
+                return;
+            // Yours in full; teammates as slim rows above it. (A spectator-less game always has you first.)
+            DrawPlayerHudCard(game.Players[ids[0]], new Rect(SideR, SideY, SideW, SideH), ids[0] == game.MyId);
+            float y = SideY - 6f;
+            for (int i = 1; i < ids.Count; i++)
+            {
+                y -= 30f;
+                DrawTeammateRow(game.Players[ids[i]], new Rect(SideR, y, SideW, 30f));
+                y -= 5f;
+            }
+        }
+
+        /// A teammate as one slim row: name and class, level, and health (or how far their revive has got).
+        void DrawTeammateRow(Player p, Rect r)
+        {
+            var role = ToColor(p.Def.Color);
+            Ui.HudPanel(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+            Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
+            Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 15f, 82f, 12f), Defs.KitName(p.Kit) + " " + p.Def.Name, 8, role, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.xMax - 40f, r.y + 2f, 34f, 14f), "LV " + p.Level, 9, Ui.Gold, TextAnchor.MiddleRight, true);
+            var hp = new Rect(r.x + 98f, r.y + 17f, r.width - 106f, 7f);
+            float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
+            if (p.Downed)
+            {
+                Ui.Bar(hp, p.Revive, new Color(0.6f, 0.6f, 0.65f));
+                Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), "DOWNED", 9, new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleLeft, true);
+                return;
+            }
+            Ui.Bar(hp, frac, HealthColor(frac));
+            if (p.ShieldHp > 0f)
+                Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+            Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+        }
+
+        /// Green when healthy, through yellow, to red when low.
+        static Color HealthColor(float frac) =>
+            frac > 0.5f ? Color.Lerp(new Color(1f, 0.85f, 0.3f), new Color(0.35f, 0.95f, 0.45f), (frac - 0.5f) * 2f)
+                : Color.Lerp(new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), frac * 2f);
+
         // --- HUD pieces -----------------------------------------------------------
 
         int plateWave = -1, plateMax = 1;
 
-        /// Top-left: the wave number, how many enemies are left (with a progress bar) and the score.
-        void DrawWavePlate()
+        /// Left of the ability bar: the wave number, how many enemies are left (with a progress bar) and the score.
+        void DrawWavePlate(Rect r)
         {
             if (game.Wave != plateWave)
             {
@@ -539,7 +584,6 @@ namespace Arena
                 plateMax = 1;
             }
             plateMax = Math.Max(plateMax, game.Remaining);
-            var r = new Rect(14f, 12f, 270f, 76f);
             var practice = game.Practice;
             bool bossWave = practice != null ? BossUp() : game.Wave > 0 && game.Wave % 5 == 0;
             Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
@@ -550,9 +594,9 @@ namespace Arena
             string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : "/ " + Game.MaxWave;
             Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), of, 13,
                 game.Endless || practice != null && practice.Loop ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 130f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 130f, r.y + 20f, 124f, 26f), game.Remaining.ToString(), 20, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 130f, r.y + 44f, 124f, 14f), "SCORE " + game.Score.ToString("N0"), 10, Ui.Gold, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.xMax - 140f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.xMax - 140f, r.y + 20f, 124f, 26f), game.Remaining.ToString(), 20, Color.white, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(r.xMax - 140f, r.y + 44f, 124f, 14f), "SCORE " + game.Score.ToString("N0"), 10, Ui.Gold, TextAnchor.MiddleRight, true);
             float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
             Ui.Bar(new Rect(r.x + 14f, r.yMax - 12f, r.width - 28f, 5f), progress, bossWave ? Ui.Gold : Ui.Accent);
         }
@@ -579,9 +623,7 @@ namespace Arena
 
             var hpBar = new Rect(r.x + 18f, r.y + 39f, r.width - 28f, 12f);
             float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
-            // Green when healthy, through yellow, to red when low.
-            Color hpCol = frac > 0.5f ? Color.Lerp(new Color(1f, 0.85f, 0.3f), new Color(0.35f, 0.95f, 0.45f), (frac - 0.5f) * 2f)
-                : Color.Lerp(new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), frac * 2f);
+            Color hpCol = HealthColor(frac);
             if (p.Downed)
             {
                 Ui.Bar(hpBar, p.Revive, new Color(0.6f, 0.6f, 0.65f));
@@ -600,7 +642,7 @@ namespace Arena
         /// F3: the numbers behind the aim lines.
         void DrawAimDebug(Player me)
         {
-            var r = new Rect(14f, H - 190f, 300f, 104f);
+            var r = new Rect(14f, 12f, 300f, 104f);
             Ui.HudPanel(r, new Color(0.3f, 0.9f, 1f));
             Func<float, string> deg = a => (MathX.Fmod(a * 180f / MathX.Pi + 360f, 360f)).ToString("0.00") + "°";
             float diff = MathX.Fmod(game.LastShotAngle - game.LastShotAim + MathX.Pi, MathX.Tau) - MathX.Pi;
@@ -641,15 +683,6 @@ namespace Arena
             Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.25f));
             Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
             Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
-
-            // The Bazaar's gold (Shop.cs), just left of the abilities, while you have some.
-            if (me.Gold > 0 || game.CurrentPath == PathId.Bazaar)
-            {
-                var r = new Rect(x0 - 86f, y + tileH - 30f, 78f, 30f);
-                Ui.HudPanel(r, Ui.Gold);
-                Ui.Icon(new Rect(r.x + 8f, r.y + 7f, 16f, 16f), PixelArt.Get("ui_coin"));
-                Ui.Label(new Rect(r.x + 28f, r.y, r.width - 32f, r.height), me.Gold.ToString(), 15, Ui.Gold, TextAnchor.MiddleLeft, true);
-            }
 
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {

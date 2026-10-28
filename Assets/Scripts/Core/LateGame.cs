@@ -48,6 +48,7 @@ namespace Arena
             if (!IsHost || State != MatchState.Victory)
                 return;
             Endless = true;
+            Recorder?.ContinueEndless();
             WaveCleared();
         }
 

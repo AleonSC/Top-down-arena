@@ -374,6 +374,9 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
+                    foreach (var pt in Patches.Values)  // a path's fire: burning now or about to (Paths.cs)
+                        if (pt.Kind == PatchKind.Fire && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                            d += w * 3f;
                     if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
                     if (sing != null)
@@ -387,14 +390,26 @@ namespace Arena
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2f;
                 }
-                // Moving off the arena wraps you around: fine to escape that way, but don't plan on it.
-                if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
+                // Moving off the arena wraps you around: fine to escape that way, but don't plan on it. Narrow Pass's
+                // walls can't be crossed, and hugging them leaves no room to dodge.
+                if (Walled)
+                {
+                    V2 lo = ArenaMin, hi = ArenaMax;
+                    float room = Math.Min(Math.Min(p.X - lo.X, hi.X - p.X), Math.Min(p.Y - lo.Y, hi.Y - p.Y));
+                    if (room < 50f)
+                        d += 0.6f * (50f - room) / 50f;
+                }
+                else if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
                     d += 0.2f;
                 float dist = p.DistanceTo(anchor);
                 float position = 0.35f * Math.Min(4f, Math.Abs(dist - pref) / 200f) * (pref == 0f ? 3f : 1f);
                 if (stayNear != null)
                     position += 0.25f * Math.Max(0f, p.DistanceTo(stayNear.Pos) - 220f) / 200f;
                 float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
+                if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
+                    foreach (var pt in Patches.Values)
+                        if (pt.Kind == PatchKind.Heal && pt.Pos.DistanceTo(p) < pt.Radius - 10f)
+                            position -= 0.3f;
                 float cost = d + position + steady;
                 if (cost < bestCost)
                 {

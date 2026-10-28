@@ -1420,6 +1420,245 @@ static class Program
 
     // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
     // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void PathHazardsTest(float dt)
+    {
+        // Paths, step 2: no path, Burning Grounds' fire and Sanctuary's pools.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var offer = typeof(Game).GetMethod("OfferPaths", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 6 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.5f);
+
+        // No path: the plain arena for the stretch, noted in the route.
+        g.Wave = 5;
+        offer.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        g.ChoosePath(2);
+        Run(s, dt, 0.5f);
+        Check(g.PathOffer == null && g.CurrentPath == PathId.None && client.Game.PathOffer == null && client.Game.Route.Count == 1 && client.Game.Route[0] == PathId.None,
+            "the host can choose no path: the plain arena, noted in everyone's route");
+
+        // Burning Grounds.
+        g.CurrentPath = PathId.BurningGrounds; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7; g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        g.Patches.Clear();
+        Run(s, dt, Paths.FireEvery + 0.3f);
+        for (int k = 0; k < 20; k++) { client.Poll(); Thread.Sleep(2); }
+        Check(g.Patches.Count >= 1 && g.Patches.Keys.All(k => client.Game.Patches.ContainsKey(k)), "Burning Grounds starts fires, and everyone sees them");
+        var fire = g.Patches.Values.First();
+        var me = g.Players[1];
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, fire.Pos, 0f, 0, false });
+        target.Hp = target.MaxHp = 1e5f;
+        float taken0 = me.Run.DamageTaken;
+        Run(s, dt, Paths.FireWarn * 0.5f, null, () => { me.Pos = fire.Pos; me.InvulnT = 0f; target.Pos = fire.Pos; target.FrozenT = 1f; });
+        float duringWarn = me.Run.DamageTaken - taken0;
+        float r0 = fire.Radius;
+        Run(s, dt, Paths.FireWarn + 1.5f, null, () => { me.Pos = fire.Pos; me.InvulnT = 0f; target.Pos = fire.Pos; target.FrozenT = 1f; });
+        float burned = me.Run.DamageTaken - taken0;
+        Console.WriteLine("  burning grounds: {0:0} damage during the warning, {1:0} once lit; the Brute lost {2:0}; radius {3:0} -> {4:0}", duringWarn, burned, target.MaxHp - target.Hp, r0, fire.Radius);
+        Check(duringWarn == 0f && burned > 0f && target.Hp < target.MaxHp && fire.Radius > r0, "fire warns first, then burns players and enemies, and spreads");
+        cleared.Invoke(g, null);
+        Run(s, dt, 0.5f);
+        Check(g.Patches.Count == 0 && client.Game.Patches.Count == 0, "clearing a wave puts the fires out everywhere");
+
+        // Sanctuary: 20% fewer enemies, healing pools, and the safe path's prize.
+        g.CurrentPath = PathId.None; g.Wave = 7;
+        build.Invoke(g, new object[] { 7 });
+        // Count spawn rolls, not heads: swarmers come in random pairs.
+        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Swarmer) / 2; };
+        int plain = Rolls();
+        g.CurrentPath = PathId.Sanctuary;
+        build.Invoke(g, new object[] { 7 });
+        int calm = Rolls();
+        Check(calm == (int)(plain * 0.8f), "Sanctuary: a fifth fewer enemies (" + plain + " -> " + calm + ")");
+        g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        g.Patches.Clear();
+        Run(s, dt, Paths.PoolEvery + Paths.PoolWarn + 0.3f, null, () => { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; });
+        var pool = g.Patches.Values.FirstOrDefault(pt => pt.Kind == PatchKind.Heal);
+        me.Hp = me.MaxHp * 0.4f;
+        float hp0 = me.Hp;
+        if (pool != null)
+            Run(s, dt, 1.2f, null, () => { me.Pos = pool.Pos; keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; });
+        Check(pool != null && me.Hp > hp0 + Paths.PoolHeal * 0.8f, "Sanctuary's pools heal whoever stands in them");
+        me.Hp = me.MaxHp * 0.5f;
+        int rerolls = me.Rerolls;
+        g.Wave = 9; g.PathTo = 9;
+        cleared.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        Check(me.Hp >= me.MaxHp - 0.5f && me.Rerolls == rerolls + 2 && g.CurrentPath == PathId.None, "the safe path's prize: a full heal and 2 rerolls");
+        host.Leave(""); client.Leave("");
+    }
+
+    static void PathArenaRulesTest(float dt)
+    {
+        // Paths, step 4: Narrow Pass's walls (everyone, movement, spawns, bullets) and Fogbound's mist.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var spawnEnemy = typeof(Game).GetMethod("SpawnEnemy", flags);
+        var spawnBullet = typeof(Game).GetMethod("SpawnBullet", flags);
+        var broadcast = typeof(Game).GetMethod("BroadcastPath", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 6 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        Run(s, dt, 0.1f);
+        var keepAlive = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 450f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        Action Hold = () => { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; };
+
+        // The walls close in for everyone.
+        g.CurrentPath = PathId.NarrowPass; g.PathFrom = 6; g.PathTo = 9;
+        broadcast.Invoke(g, null);
+        Run(s, dt, 0.5f, null, Hold);
+        Check(g.NarrowF > 0.1f && g.NarrowF < 0.6f, "Narrow Pass: the walls close in gradually, not all at once");
+        Run(s, dt, 1.5f, null, Hold);
+        var lo = g.ArenaMin; var hi = g.ArenaMax;
+        Console.WriteLine("  narrow pass: playable area {0:0}x{1:0} (from {2:0},{3:0}); client agrees: {4}", hi.X - lo.X, hi.Y - lo.Y, lo.X, lo.Y, client.Game.ArenaMin.X == lo.X);
+        Check(g.NarrowF == 1f && client.Game.NarrowF == 1f && lo.X == Paths.NarrowInsetX && client.Game.ArenaMax.Y == hi.Y, "Narrow Pass: the walls stand at the same place for everyone");
+
+        // The friend walks into the left wall: stopped, not wrapped round.
+        var friend = client.Game.Players[2];
+        for (int f = 0; f < 60 * 4; f++)
+        {
+            Hold();
+            Step(host, dt);
+            client.Poll();
+            client.Game.FixedStep(dt, new PlayerInput { Move = new V2(-1f, 0.3f), AimAt = new V2(640, 360) });
+            client.Game.Update(dt);
+            if (f % 2 == 0) Thread.Sleep(1);
+        }
+        Run(s, dt, 0.2f, null, Hold);
+        float r = friend.Def.BodyR, hostX = g.Players[2].Pos.X;
+        Console.WriteLine("  narrow pass: the friend stopped at x {0:0} (wall at {1:0}); the host sees {2:0}", friend.Pos.X, lo.X, hostX);
+        Check(Math.Abs(friend.Pos.X - (lo.X + r)) < 1f && Math.Abs(hostX - friend.Pos.X) < 3f, "Narrow Pass: the walls stop you (no wrapping round), for the host too");
+
+        // Enemies come in at the walls, not outside them.
+        bool allInside = true;
+        for (int k = 0; k < 40; k++)
+        {
+            int before = g.Enemies.Count;
+            spawnEnemy.Invoke(g, new object[] { k % 2 == 0 ? EnemyType.Grunt : EnemyType.Spinner });
+            foreach (var e in g.Enemies.Values)
+                if (e != keepAlive && (e.Pos.X < lo.X || e.Pos.X > hi.X || e.Pos.Y < lo.Y || e.Pos.Y > hi.Y))
+                    allInside = false;
+        }
+        Run(s, dt, 3f, null, () => { Hold(); foreach (var e in g.Enemies.Values) if (e != keepAlive && (e.Pos.X < lo.X || e.Pos.X > hi.X || e.Pos.Y < lo.Y || e.Pos.Y > hi.Y)) allInside = false; });
+        Check(allInside, "Narrow Pass: enemies spawn and move inside the walls");
+        foreach (var e in g.Enemies.Values) if (e != keepAlive) e.Hp = 0f;
+        Run(s, dt, 0.2f, null, Hold);
+
+        // Bullets stop at the walls.
+        var shot = (Bullet)spawnBullet.Invoke(g, new object[] { Defs.DpsShot, new V2(lo.X + 40f, 300f), new V2(-600f, 0f), 0f, 3f, 1f, 1, false, 0f });
+        Run(s, dt, 0.3f, null, Hold);
+        Check(!g.Bullets.ContainsKey(shot.Id), "Narrow Pass: bullets stop at the walls");
+
+        // The walls open again for the boss.
+        g.Wave = 9;
+        cleared.Invoke(g, null);
+        Run(s, dt, 2f, null, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        Check(g.CurrentPath == PathId.None && g.NarrowF == 0f && client.Game.NarrowF == 0f && g.ArenaMin.X == 0f, "Narrow Pass: the walls open again before the boss");
+
+        // Fogbound: the mist rolls in on everyone's screen from the path alone (nothing else is sent).
+        g.CurrentPath = PathId.Fogbound; g.PathFrom = 11; g.PathTo = 14; g.Wave = 10;
+        broadcast.Invoke(g, null);
+        Run(s, dt, 2.5f);
+        Check(client.Game.FogF == 1f && g.FogF == 1f && g.NarrowF == 0f, "Fogbound: the mist rolls in for everyone");
+        host.Leave(""); client.Leave("");
+    }
+
+    static void PathTwistsTest(float dt)
+    {
+        // Paths, step 3: Frozen Lake's sliding and chill, Blood Moon's hunt.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1, StartWave = 6 };
+        host.Host(port, "Solo", Role.Dps);
+        var g = host.Game;
+        host.StartMatch();
+        for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++) Step(host, dt);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        Step(host, dt);
+        var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Func<V2, float, float> Move = (dir, secs) =>
+        {
+            me.Pos = new V2(800f, 450f);
+            for (int f = 0; f < secs * 60; f++)
+            {
+                keepAlive.FrozenT = 1f; keepAlive.FireT = 9f;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Move = dir, AimAt = new V2(800f, 200f) });
+            }
+            return me.Pos.X - 800f;
+        };
+        Action Settle = () => { for (int f = 0; f < 120; f++) { keepAlive.FrozenT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 200f) }); } };
+
+        // Plain ground: you start at full speed and stop when you let go.
+        g.CurrentPath = PathId.None;
+        Settle();
+        float plainStart = Move(new V2(1f, 0f), 0.15f), plainCoast = Move(V2.Zero, 0.4f);
+        // Frozen Lake: speed builds, and you keep sliding.
+        g.CurrentPath = PathId.FrozenLake; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7;
+        Settle();
+        float iceStart = Move(new V2(1f, 0f), 0.15f), iceCoast = Move(V2.Zero, 0.4f);
+        Console.WriteLine("  frozen lake: first 0.15 s {0:0} px (plain {1:0}); after letting go {2:0} px more (plain {3:0})", iceStart, plainStart, iceCoast, plainCoast);
+        Check(iceStart < plainStart * 0.7f && iceCoast > 20f && Math.Abs(plainCoast) < 1f, "Frozen Lake: speed builds up, and you slide on after letting go");
+        var chilled = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(900f, 300f), 0f, 0, false });
+        Check(Math.Abs(chilled.Speed - Defs.Get(EnemyType.Grunt).Speed * Paths.IceEnemySpeed) < 0.01f, "Frozen Lake: enemies are 10% slower");
+        chilled.Hp = 0f; Step(host, dt);
+
+        // Blood Moon: no regeneration, no orbs, kills heal.
+        g.CurrentPath = PathId.BloodMoon;
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp * 0.5f;
+        float hp0 = me.Hp;
+        for (int f = 0; f < 120; f++) { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; me.InvulnT = 1f; Step(host, dt); }
+        Check(Math.Abs(me.Hp - hp0) < 0.01f, "Blood Moon: no regeneration");
+        int orbs = g.Orbs.Count;
+        float before = me.Hp;
+        for (int k = 0; k < 10; k++)
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f + k * 10f, 300f), 0f, 0, false });
+            e.Hp = 0f; e.LastHitBy = 1;
+        }
+        keepAlive.FrozenT = 1f; Step(host, dt);
+        Console.WriteLine("  blood moon: 10 kills healed {0:0.#} HP (2 + 0.1 x wave {1} each)", me.Hp - before, g.Wave);
+        Check(g.Orbs.Count == orbs && Math.Abs(me.Hp - before - 10f * Paths.BloodMoonHeal(g.Wave)) < 0.5f, "Blood Moon: no orbs, and every kill heals its killer");
+        host.Leave("");
+    }
+
     static void PathsTest(float dt)
     {
         // Divergent paths: after a boss the host picks one of two paths for the next four waves.
@@ -1473,9 +1712,10 @@ static class Program
         float ridgeFrac = ridge.Count(t => t == EnemyType.Sniper || t == EnemyType.Mortar || t == EnemyType.Grunt) / (float)ridge.Count;
         Console.WriteLine("  paths at wave 7: plain {0} enemies; Swarm Fields {1} ({2:0}% melee); Sniper Ridge {3} ({4:0}% snipers/mortars/grunts); Elite Gauntlet {5}",
             plain, swarm.Count, meleeFrac * 100f, ridge.Count, ridgeFrac * 100f, elite.Count);
-        Check(meleeFrac > 0.7f && swarm.Count > plain * 1.4f, "Swarm Fields: mostly melee rushers, about twice as many");
+        int baseCount = 4 + 2 * 7;  // the wave-7 enemy count before swarmers pair up (BuildWave)
+        Check(meleeFrac > 0.7f && swarm.Count >= baseCount * 1.5f, "Swarm Fields: mostly melee rushers, about twice as many");
         Check(ridgeFrac > 0.6f, "Sniper Ridge: mostly snipers, mortars and grunts");
-        Check(elite.Count <= plain / 2 + 1, "Elite Gauntlet: half as many enemies");
+        Check(elite.Count <= baseCount / 2 + 1, "Elite Gauntlet: half as many enemies");
         g.CurrentPath = PathId.SwarmFields;
         var brute = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 300f), 0f, 0, false });
         g.CurrentPath = PathId.None;
@@ -1869,6 +2109,9 @@ static class Program
         PracticeLobbyTest(dt);
         ModifiersTest(dt);
         PathsTest(dt);
+        PathHazardsTest(dt);
+        PathTwistsTest(dt);
+        PathArenaRulesTest(dt);
         BazaarTest(dt);
 
         // Shield Wall now stops red aimed shots too.
@@ -2788,6 +3031,13 @@ static class Program
         ok &= depth == 0 && !inStr;
         Console.WriteLine("  session file: {0} ({1:0.0} KB)", path, text.Length / 1024.0);
         Check(ok, "a recorded session has waves, the boss fight, damage sources, picks and samples, as valid JSON");
+        bool extra = true;
+        var missing = new List<string>();
+        foreach (var key in new[] { "\"format\": 2", "\"mode\": \"run\"", "\"paths\"", "\"afterWave\": 5", "\"chosen\": \"", "\"healingReceivedFrom\"", "\"regeneration\"",
+                                    "\"devTools\"", "bot plays for the host: on", "\"abilityMastery\"", "\"levelEnd\"" })
+            if (!text.Contains(key)) { extra = false; missing.Add(key); }
+        if (missing.Count > 0) Console.WriteLine("  missing: " + string.Join(" ", missing));
+        Check(extra, "it also has the mode, the path choices, healing received by source, dev tool use and each player's final abilities");
         string copy = Path.Combine(Path.GetTempPath(), "arena-last-session.json");
         if (ok)
             File.Copy(path, copy, true);
@@ -3432,9 +3682,20 @@ static class Program
             {
                 Run(s, dt, 1);
                 Check(s[0].Game.State == MatchState.Victory && s[1].Game.State == MatchState.Victory, "beating The Eclipse at wave 50 wins the game on both screens");
+                // A recording that won at wave 50 opens again for endless, so its real end is kept.
+                string recFolder = Path.Combine(Path.GetTempPath(), "arena-endless-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+                var rec = s[0].Game.Recorder = new SessionRecorder(recFolder);
+                rec.Begin(s[0].Game, 50);
+                rec.End(s[0].Game, "victory");
                 s[0].Game.ContinueEndless();
                 Run(s, dt, 12, () => s[1].Game.Wave > 50 && s[1].Game.State == MatchState.Fighting);
                 Check(s[1].Game.Endless && s[1].Game.Wave == 51, "endless mode carries on past wave 50");
+                s[0].Leave(""); s[1].Leave("");
+                string recText = File.Exists(rec.Path) ? File.ReadAllText(rec.Path) : "";
+                Check(recText.Contains("\"outcome\": \"left (endless)\"") && recText.Contains("\"endless\": true") && recText.Contains("\"wave\": 51"),
+                    "a recorded run that goes on into endless records its real end, not the wave-50 victory");
+                try { Directory.Delete(recFolder, true); } catch (IOException) { }
+                continue;
             }
             s[0].Leave(""); s[1].Leave("");
         }
@@ -3852,6 +4113,15 @@ static class Program
         if (args.Length > 2 && args[2] == "bosssound")
         {
             BossSoundTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "paths")
+        {
+            PathsTest(1f / 60f);
+            PathHazardsTest(1f / 60f);
+            PathTwistsTest(1f / 60f);
+            PathArenaRulesTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

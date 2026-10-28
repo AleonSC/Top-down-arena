@@ -58,6 +58,7 @@ namespace Arena
             Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
 
             DrawArenaContents(t);
+            DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
 
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
@@ -103,6 +104,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind < Defs.SmallShot)
                     DrawBigShot(b, t);
+            DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)

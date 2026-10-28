@@ -186,6 +186,10 @@ namespace Arena
                     wells.Add(e);
             bool wellsUp = wells.Count > 0;
             PrepareNinjaBullets(dt);  // Smoke Bombs and returning chain shuriken (Ninja.cs)
+            // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
+            V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
+            lo -= margin;
+            hi += margin;
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f)
@@ -196,9 +200,11 @@ namespace Arena
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 b.Life -= dt;
-                if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
+                if (b.Life <= 0f || b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y)
                 {
                     scratchIds.Add(b.Id);
+                    if (Walled && b.Life > 0f)
+                        AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
                     if (b.Burst > 0 && b.Life <= 0f)
                         landed.Add(b);
                 }
@@ -538,6 +544,8 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
+                if (killer != null && e.Def.Xp > 0 && OnPathOf(PathId.BloodMoon))
+                    Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
                 if (OnPathOf(PathId.Bazaar))
@@ -596,6 +604,7 @@ namespace Arena
                 {
                     float heal = Math.Min(s.Lifesteal, p.LifestealPool);
                     p.LifestealPool -= heal;
+                    Recorder?.HealReceived(p, Math.Min(heal, p.MaxHp - p.Hp), "lifesteal");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + heal);
                 }
                 if (s.SlowOnHit > 0f)
@@ -697,7 +706,10 @@ namespace Arena
                 return;
             var s = p.Stats;
             if (s.KillHeal > 0f && !p.Downed)
+            {
+                Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
+            }
             for (int i = 0; i < s.KillRing; i++)
             {
                 V2 d = V2.FromAngle(MathX.Tau * i / s.KillRing);
@@ -724,8 +736,8 @@ namespace Arena
                     SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
-            if (Has(RunMod.Famine))
-                return;  // run modifier: no health orbs (bosses still drop theirs)
+            if (Has(RunMod.Famine) || OnPathOf(PathId.BloodMoon))
+                return;  // run modifier / Blood Moon: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)
                 SpawnOrb(e.Pos, true);
@@ -789,6 +801,7 @@ namespace Arena
 
         void ClearEnemyBullets()
         {
+            Patches.Clear();  // a wave was cleared: the path's fire and pools go too (Paths.cs)
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
                 if (Defs.IsEnemyShot(b.Kind))

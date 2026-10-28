@@ -368,7 +368,7 @@ bring the tab back, and click it to open the full card again (remembered on your
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
-boss; everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
+boss, or **no path** (the plain arena, no bonus or prize); everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
 the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 
 | Danger | While on the path | Prize (before the boss) |
@@ -382,15 +382,22 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Brutes, Lungers), twice as many, at 60% health |
 | **Sniper Ridge** | 2 | Mostly Snipers, Mortars and Grunts; hardly any melee |
 | **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
+| **Burning Grounds** | 3 | Fire patches flash a warning ring, then ignite and spread for a few seconds; they burn you (10 + 0.4 per wave damage a second) and the enemies |
+| **Sanctuary** | 1 | Healing pools (10 HP a second) appear around the arena; 20% fewer enemies |
+| **Frozen Lake** | 2 | You slide with momentum (speed builds up and carries after you let go); enemies are 10% slower |
+| **Blood Moon** | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP (+0.1 per wave) |
+| **Fogbound** | 2 | A mist hides everything more than about 350 px from every player (shared sight: stay close) |
+| **Narrow Pass** | 2 | Glowing canyon walls close in to a 1120 x 720 pass: no wrapping round the edges, and bullets stop at the walls |
 | **Bazaar** | 1 | The usual enemies, but every kill drops gold; its prize is a shop (below) instead of the heal and rerolls |
 
-A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
-paths (hazard floors, twists, arena rules) are planned in `Docs/Paths.md`.
+A chip above the wave panel shows the path and the waves left. Session recordings note each wave's path. The
+mist rolls in and the walls close in during the countdown before a path's first wave, and lift before the boss.
+Design notes and the decisions behind them are in `Docs/Paths.md`.
 
 ### The Bazaar's shop
 
 On the Bazaar's waves every kill gives **every player the same gold** (0.3 per point of XP the kill is worth: about
-325 each over waves 6-9, rising to about 1000 by wave 40); your gold shows left of your abilities. After its last
+325 each over waves 6-9, rising to about 1000 by wave 40); your gold shows above the wave panel. After its last
 wave, everyone gets a shop before the boss:
 
 - **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
@@ -409,7 +416,7 @@ wave, everyone gets a shop before the boss:
 
 The lobby's **Modifiers** tab lists switches that change the whole run, for everyone (Practice Range too). The
 host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
-as chips under the wave plate during the match, and session recordings list them.
+as chips above the wave panel during the match, and session recordings list them.
 
 | Modifier | Effect | |
 |---|---|---|
@@ -469,6 +476,14 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
+
+## The HUD
+
+Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)
+in the middle, the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
+stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
+your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
+the top middle, and the "Hold TAB" hint is in the top-right corner.
 
 ## End of a run
 
@@ -592,7 +607,7 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
-**● REC** in the bottom-right corner shows a match is being recorded. The Unity editor and a built game keep
+**● REC** in the top-right corner shows a match is being recorded. The Unity editor and a built game keep
 separate settings, so check it in each. While you **host**, every match (solo or with friends) is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
 `%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
 covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave, so a crash
@@ -600,14 +615,21 @@ keeps everything up to the last cleared wave.
 
 Each file records:
 
-- the team (role, class, weapon, ability, ultimate), party size, start wave, and how it ended
-- **per wave:** length, enemies spawned and killed by type, and per player: damage dealt (and to bosses),
-  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing,
-  health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
+- the team (role, class, weapon, ability, ultimate), party size, start wave, the mode (run or Practice Range),
+  run modifiers, and how it ended (a run continued into endless mode records its real end, marked "(endless)")
+- each player's final level and the abilities they ended with, at their mastery levels
+- **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to
+  enemies (Burning Grounds' fire), and per player: damage dealt (and to bosses),
+  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing done,
+  healing received **broken down by source** (allies, own abilities, regeneration, lifesteal, heal on kill,
+  orbs, Sanctuary pools, Blood Moon), health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
   and parry blocks / perfect parries / breaks
 - **per boss:** health, time to kill, each player's damage, damage players took and downs during the fight
 - **every down** (who, when, what did it), **every upgrade pick** (the cards offered and the one taken) and rerolls
 - **per enemy type:** spawned, killed, average lifetime and damage dealt to players
+- **every path choice:** the two paths offered after each boss, the one taken (or the plain arena) and its prize
+- **dev tool use** (god mode, stat edits, healing, level-ups, mastering, wave jumps, the bot playing for the host),
+  so runs that weren't plain play can be told apart
 - a **sample every 5 s** of everyone's health, enemies and bullets on screen
 
 Summarize one run or a whole folder of them (needs Python 3):
@@ -617,8 +639,10 @@ python Tools/SessionReport/report.py path/to/sessions
 ```
 
 It prints boss kill rates and times, difficulty by wave (damage taken, downs, time at low health), what
-downs players, where damage comes from, the most dangerous enemies per spawn, upgrade pick rates, ability
-and parry use, and how each class and role performs.
+downs players, where damage and healing come from, how each path plays (damage taken, healing, downs, how
+often it's offered and taken), the most dangerous enemies per spawn, upgrade pick rates, ability use and
+mastery, parry use, and how each class and role performs. Runs that used dev tools are flagged, and Practice
+Range sessions are left out of the tables unless you add `--practice`.
 
 `Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
 that level up and pick upgrades at random, and prints how long each boss survived.

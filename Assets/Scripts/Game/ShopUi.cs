@@ -188,6 +188,21 @@ namespace Arena
             return GUI.Button(r, GUIContent.none, GUIStyle.none);
         }
 
+        /// Above the wave panel, with the path chip: your Bazaar gold, while you're on the Bazaar or have some.
+        bool DrawGoldChip(float x, float y)
+        {
+            var me = game.Me;
+            if (me == null || (me.Gold <= 0 && game.CurrentPath != PathId.Bazaar))
+                return false;
+            string text = me.Gold + " gold";
+            var chip = new Rect(x, y, 34f + Ui.TextWidth(text, 11, true) + 10f, 20f);
+            Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
+            Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), Ui.Gold);
+            Ui.Icon(new Rect(chip.x + 12f, chip.y + 3f, 14f, 14f), PixelArt.Get("ui_coin"));
+            Ui.Label(new Rect(chip.x + 30f, chip.y, chip.width - 30f, chip.height), text, 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            return true;
+        }
+
         /// A gold price: a coin and the amount (red when you can't afford it).
         void DrawPriceTag(Rect r, int price, bool afford, string prefix = "")
         {

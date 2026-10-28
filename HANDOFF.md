@@ -16,7 +16,7 @@ and tool is described there). This document is the developer-facing overview; re
 - **A run:** 50 waves, a boss every 5 (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
   Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
   cards (rerolls available); each boss gives a legendary upgrade and a weapon mod.
-- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Mage, Summoner, Knight), then one
+- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Mage, Summoner, Knight, Ninja), then one
   of 3 weapons and one of 3 Space abilities for that combination. Each role × kit has an ultimate (F).
   Bonus abilities on Q/E/Shift come from very rare upgrade cards. Abilities level up with use (**mastery**,
   levels 1-5, with a level-5 "capstone" bonus each).
@@ -27,9 +27,14 @@ and tool is described there). This document is the developer-facing overview; re
   +30% per extra player; 40% of it while a boss is up). Touching a boss hurts once per second and shoves
   you ~100 px out.
 - **Modes in the lobby:** **Run** or **Practice Range** (hand-built waves of any enemies/bosses at any level,
-  shared live with the lobby, savable as text files). The host picks the mode.
-- **Dev tools (F1):** stat editor, god mode, wave skip, session recording toggle, **Boss Lab** (bots that
-  play like people fight any boss; live stats; also a CLI batch mode).
+  shared live with the lobby, savable as text files). The host picks the mode, and the run's **modifiers**
+  (Modifiers tab: Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky).
+- **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the four regular
+  waves before the next boss: enemy mixes, hazard floors, twists and arena rules (9 paths, danger 1-3 with a
+  bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
+- **Dev tools (F1):** a tabbed menu (Match / Players / Tools): stat editor, god mode, wave skip, session
+  recording toggle, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
+- **Field guide (pause menu):** opens the published **Bestiary** and **Armory** pages, with live previews.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.
@@ -69,6 +74,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Mastery.cs` | 0.3k | ability XP/levels and capstones |
 | `Parry.cs`, `Pause.cs`, `DevTools.cs`, `StatSheet.cs`, `RunStats.cs`, `Kits.cs` | small | as named |
 | `BossSounds.cs` | 0.1k | soft audio cues when bosses start attacks |
+| `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |
+| `Shop.cs` | 0.3k | the Bazaar: gold per kill (`GrantGold`, `GoldPerXp`), `OpenShop` / per-player shelf (`RollShelf`), `ShopAction`s (`Shop` → `Msg.Shop` → `HostShop`), giving gold (`Msg.ShopGift`, notices), `CloseShop` (leftover gold → XP), revive token, `BotShop`, snapshot fields |
+| `Modifiers.cs` | 0.07k | `RunMod` flags and `ModDef`s; `Game.Mods` / `Has()`; sent in the lobby message |
 | `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, enemy blurbs, building a practice wave |
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
@@ -85,13 +93,17 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 |---|---|---|
 | `ArenaApp.cs` | 0.45k | boot, command line, input and the frame loop (`Update`, `FixedUpdate`), layout/scaling, `OnGUI` dispatch, small shared helpers |
 | `WorldRenderer.cs` | 1.3k | **world rendering in GL**: `OnPostRender`, `DrawWorld` (floor) → `DrawArenaContents` (one helper per layer: auras, shots, zones, orbs, enemies, players, effects), `DrawEnemy` (layers: underlay / status / body / details, with per-type helpers), `DrawPlayer`, `DrawKnight`, aim line / bow draw / cylinder overlays, GL primitives and clipping (`Tri`, `UiClip`, `BeginUiGl`/`UiModelAt`) |
-| `Hud.cs` | 1.0k | HUD: wave plate, player cards, boss bars, ability bar, mastery toasts, Tab menu, upgrade picker and cards, `StatsSidebar`, banners, run summary |
+| `Hud.cs` | 1.0k | HUD (layout "C", Oct 2026: wave panel left of the ability bar, your card right of it with teammates as slim rows above, `DrawWaveCorner`/`DrawPlayerCorner`/`DrawTeammateRow`; boss bars wide at the top middle): wave plate, player cards, boss bars, ability bar, mastery toasts, Tab menu, upgrade picker and cards, `StatsSidebar`, banners, run summary |
 | `Menus.cs` | 0.4k | main menu (title axis, plot corners), How to play, pause menu, settings and audio |
 | `LobbyUi.cs` | 0.5k | the lobby: "!" connection popup by the title (port, invite addresses), the hero card's live mini-arena (`DrawShowcase`, stepped from `FixedUpdate`), mode switch, party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby's picker card (bottom left: live thumbnail, arrows, dots); your pick is also drawn dimmed behind the arena (`DrawWorld`, `ArenaBgDim`) |
-| `BossLabUi.cs`, `DevMenu.cs` | 0.3k each | F1 tools |
-| `Ui.cs` | 0.34k | IMGUI style kit (panels, buttons, choices, bars, fancy text) |
+| `BossLabUi.cs`, `DevMenu.cs` | 0.3-0.4k each | F1 tools (`DevMenu`: sidebar tabs Match / Players / Tools, card layout) |
+| `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
+| `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
+| `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
+| `ReferencePages.cs` | 0.07k | the pause menu's Field guide (opens the Bestiary / Armory pages) |
+| `Ui.cs` | 0.45k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `PulseRing`, tinted `Icon` |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
 
@@ -101,7 +113,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 57) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 60) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -115,6 +127,12 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Knight melee:** swings are queued (`pendingSwings`) and resolved in `Collide` via a pseudo-bullet
   (`Defs.KnightSlash`) through `OnBulletHit`, so weapon mods apply. The Lance hits a box
   (`Swing.HalfWidth`, `LanceReach`, `LanceStun`), drawn by `FxKind.Jab`.
+- **Arena bounds:** players wrap round the edges (`WrapArena`) except while Narrow Pass's walls are up. Use
+  `ClampToArena` / `KeepInArena` / `RandomInArena` / `ArenaMin`-`ArenaMax` (instance members, in `Paths.cs`
+  and `Game.cs`) rather than `0..Width`, so new code respects the walls. Boss-only code still uses the full
+  arena (paths never apply to boss waves).
+- **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
+  patches itself; only the offer, the choice and each patch's spawn go over the network.
 - **Class tables** (weapons, Space abilities, ultimates) are indexed by role × kit with `Defs.KitCount = 5`; a new class's
   entries go after each role's last class. Ninja weapons are routed by weapon id (`>= WeaponId.Kusarigama`).
 
@@ -132,13 +150,14 @@ Docs/                  sources of the Armory and Bestiary reference pages       
     Singularity, Knight, boss sounds, weapon extras, revolver, bow, practice, weapon range...). The name is
     historical (it began as the music test). **Run both before committing.**
   - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
-    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, ... (see the `args[2] ==` chain
+    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, `paths` (all path tests, ~30 checks), ... (see the `args[2] ==` chain
     near the end of `Program.cs`).
   - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
     own upgrade from extra projectiles" "enemy bullets stay near the bullet budget" (limit 210; the peak
     varies about 175-235 between runs, on the original code too) and, rarely, "regular waves can't wear a Barrier
-    down" (core suite; fails when no enemy happens to shoot near the tank in its 5 s window), and "Swarm Fields:
-    mostly melee rushers, about twice as many" (the wave is random; about 29-32 enemies against a 29.4 threshold).
+    down" (core suite; fails when no enemy happens to shoot near the tank in its 5 s window), and "Mirror Guard"
+    (rare), and "Swarm Fields: mostly melee rushers, about twice as many" (random; about 29-32 enemies against a
+    29.4 threshold). The bullet-budget one fails about 1 run in 4-5 (re-measured Oct 2026: peaks 195-245).
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
     `T/K/1` (Tank Knight, second weapon; `N` = Ninja).
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 11 fixed, seeded scenes (every enemy and minion
@@ -146,7 +165,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`.
   Modes: `hud`, `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `howto`, `bg`
-  (with `BG=0..9`), ... Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
+  (with `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with
+  each pair of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass),
+  `PATCHES=1` (sample fire/pools). Others: `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BGMIN=1` (minimized
+  background picker), `DEVTAB=n` (F1 tab), `FROST=1` (Frost Lance shots). Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
   `KIT=n` with mode `kitgrid` (every role and weapon of a class, drawn big), `NINJA=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed to match Unity in Oct 2026, so older preview PNGs look fainter); use it to
   check layout, then ask the owner to look in Unity.
 - **Reference pages:** `Docs/` holds the Bestiary and Armory sources. `Docs/Armory/build.sh` rebuilds the Armory
@@ -166,10 +188,28 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   then ask which to do.
 - They want things to look **polished** ("make it really nice", "fancy"), with live previews over names.
 - Before deleting code, ask with a question box.
+- For bigger features they like to **plan first** (design doc with their decisions, e.g. `Docs/Paths.md`), then
+  say "start on step N" one step at a time. Each step: code, tests, previews, README/doc status, push, then a
+  short report naming the protocol version and what's next.
+- For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
 
-The Bazaar (4th path, 1 skull): kills on its waves give every player the same gold (`GoldPerXp` 0.3), and its prize is a shop before the boss (`Shop.cs`, `ShopUi.cs`): per-player shelf of 4 upgrades + a legendary + a weapon mod priced by rarity, services (restock, remove an upgrade, full heal, revive token), giving gold (reopens a done player's shop), no timer (closes when everyone is Done; the host can close it after 60 s), leftover gold becomes each player's own XP; bots shop by themselves; gold sits left of the ability bar; preview mode `shop` (`SHOPSEL`, `GIVE=1`, `REMOVE=1`) and `PATHOFFER=bazaar`; protocol 57 · Parry gauge on the shield: a thin blue bar around the rim drains toward your aim (`DrawParryGauge`; faint while lowered and refilling, your own only), the HUD parry tile is gone, and a break plays `FxKind.Shatter` (cracks, then jagged pieces and sparks, seeded by position so everyone sees the same burst); protocol 56 · Ninja class (5th kit) for all three roles: 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; protocol 52 · YOUR STATS is a see-through sidebar down the whole left edge in the Tab menu and the upgrade picker (`StatsSidebar`) · Class ability cards: very rare cards for your class's two other Space abilities, on Q/E/Shift (`UpgradeDef.ClassAbility`, `Weight` 2; generated in `Upgrades.WithClassAbilities`; ability upgrades now need the ability on any key, `Upgrades.HasAbility`); protocol 51 · Practice Range editor redesigned (numbered wave list, level stepper, tiles sized to fit, hover info bar with the enemy drawn, tidy footer; `Ui.SmallButton` for tight rows) · Main menu title is now "Cartesian Colosseum" (title only: the product name, window title and docs keep "Top-Down Arena" so saved settings stay) on an animated x-axis; How to play redone with key caps and illustrated tips · Aim line runs to the crosshair, capped at weapon range · lobby background picker moved bottom left as a card with a live thumbnail · Lobby loadout preview is a live mini-arena (real game offline, target dummies, ability demo on hover/pick) · Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
+**This session (Oct 2026), newest first:** The Bazaar (a 10th path, 1 skull): kills on its waves give every player the same gold (`GoldPerXp` 0.3), and its prize is a shop before the boss (`Shop.cs`, `ShopUi.cs`): per-player shelf of 4 upgrades + a legendary + a weapon mod priced by rarity, services (restock, remove an upgrade, full heal, revive token), giving gold (reopens a done player's shop), no timer (closes when everyone is Done; the host can close it after 60 s), leftover gold becomes each player's own XP; bots shop by themselves; gold shows as a chip above the wave panel (`DrawGoldChip`; preview `GOLD=n`); preview mode `shop` (`SHOPSEL`, `GIVE=1`, `REMOVE=1`) and `PATHOFFER=bazaar`; protocol 60 · HUD moved to the bottom (owner picked mockup C of three): wave panel and your card flank the ability bar, teammates as slim rows, boss bars wide at the top · Session recorder check (format 2): mode (run / practice), endless runs record their real end (they used to stay "victory" at wave 50), path offers/choices/prizes, healing received by source, floor damage to enemies, dev tool use, each player's final abilities and mastery; `report.py` shows paths, healing sources, dev-tool flags and leaves Practice Range sessions out (`--practice` to include) · Divergent paths, all 4 steps (protocols 57-59): framework and the
+Choose-your-path screen, Swarm Fields / Sniper Ridge / Elite Gauntlet, Burning Grounds and Sanctuary (hazard
+patches, bots avoid fire and seek pools), the "no path" option, Frozen Lake (momentum movement in
+`LocalControl`: `iceVel`, `Paths.IceGrip`) and Blood Moon (no orbs/regen, kills heal), Fogbound (client-side
+mist) and Narrow Pass (walls, playable rect; bullets spark and stop at the walls); `paths` sim mode; the
+Sanctuary count test now counts spawn rolls (swarmer pairs made it flaky) · `Docs/Paths.md` design with the
+owner's decisions · Run modifiers: lobby Modifiers tab, six switches · Lobby: no RUN / PRACTICE label by Ready;
+background picker has a minimize button (fades after a few seconds, hover to bring back) · Stat previews use a
+pixel arrow icon (`ui_arrow`) instead of "->" · Frost Lance flies as an ice spear with a wider (20 px)
+spearhead hitbox (`DrawFrostLance`) · UI buttons restyled as icon cards (style "F") · F1 dev menu tabbed and
+card-based; Field guide (Bestiary, Armory) in the pause menu · Docs: Armory build script (icons from
+`PixelArt.cs`) and Playwright page checks · Audit: dead code removed, Game.cs and ArenaApp.cs split,
+`Tools/RenderCheck`, `Tools/Preview`, `Tools/CompileCheck`, this HANDOFF.
+
+Earlier: Parry gauge on the shield: a thin blue bar around the rim drains toward your aim (`DrawParryGauge`; faint while lowered and refilling, your own only), the HUD parry tile is gone, and a break plays `FxKind.Shatter` (cracks, then jagged pieces and sparks, seeded by position so everyone sees the same burst); protocol 56 · Ninja class (5th kit) for all three roles: 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; protocol 52 · YOUR STATS is a see-through sidebar down the whole left edge in the Tab menu and the upgrade picker (`StatsSidebar`) · Class ability cards: very rare cards for your class's two other Space abilities, on Q/E/Shift (`UpgradeDef.ClassAbility`, `Weight` 2; generated in `Upgrades.WithClassAbilities`; ability upgrades now need the ability on any key, `Upgrades.HasAbility`); protocol 51 · Practice Range editor redesigned (numbered wave list, level stepper, tiles sized to fit, hover info bar with the enemy drawn, tidy footer; `Ui.SmallButton` for tight rows) · Main menu title is now "Cartesian Colosseum" (title only: the product name, window title and docs keep "Top-Down Arena" so saved settings stay) on an animated x-axis; How to play redone with key caps and illustrated tips · Aim line runs to the crosshair, capped at weapon range · lobby background picker moved bottom left as a card with a live thumbnail · Lobby loadout preview is a live mini-arena (real game offline, target dummies, ability demo on hover/pick) · Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
 shared and co-editable · Tab menu during upgrade picks; mastery XP line on ability tiles · aim line ends at
 weapon range (`Game.WeaponRange`, tested against real shots) · Lance: box hitbox 180×88 that slides out,
 1 s stun · Practice Range (first as an F1 tool) · Shield Wall blocks red shots · boss contact shove ·
@@ -283,11 +323,20 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    `ReadSnapshot`. Protocol bump (items 8, 9).
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
-7. **Divergent paths**: step 1 ✅ (framework + 3 enemy-mix paths). Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
+7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).
 9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
 
 Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
 live mini-arena loadout preview, aim line capped at range, background picker card, Cartesian Colosseum
-main menu and How to play, Practice Range editor redesign. `Tools/CompileCheck/check.sh` fails loudly when mono is missing.
+main menu and How to play, Practice Range editor redesign, dev menu tabs, Field guide, button style F, Frost
+Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
+loudly when mono is missing.
+
+**Where to pick up:** the next items are 3 (SimTest reorganisation) or 8 (Balance.cs). Paths are feature-complete
+but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
+1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
+whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the
+Tab menu, the route in the run summary (the route only shows on the Choose-your-path screen today), and
+`Tools/SessionReport` grouping damage and downs by path.

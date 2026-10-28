@@ -181,7 +181,7 @@ namespace Arena
             var melee = new List<EnemyType> { EnemyType.Swarmer };
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
-            if (BuildPathWave(n, count, pool, melee))  // a path's own mix (Paths.cs)
+            if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
                 return;
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
@@ -202,13 +202,14 @@ namespace Arena
         {
             var d = Defs.Get(type);
             float m = d.Radius + 30f;
+            V2 lo = ArenaMin + new V2(m, m), hi = ArenaMax - new V2(m, m);  // along the edges (Narrow Pass: its walls)
             V2 pos;
             switch (rng.Next(4))
             {
-                case 0: pos = new V2(Rand(m, Width - m), m); break;
-                case 1: pos = new V2(Rand(m, Width - m), Height - m); break;
-                case 2: pos = new V2(m, Rand(m, Height - m)); break;
-                default: pos = new V2(Width - m, Rand(m, Height - m)); break;
+                case 0: pos = new V2(Rand(lo.X, hi.X), lo.Y); break;
+                case 1: pos = new V2(Rand(lo.X, hi.X), hi.Y); break;
+                case 2: pos = new V2(lo.X, Rand(lo.Y, hi.Y)); break;
+                default: pos = new V2(hi.X, Rand(lo.Y, hi.Y)); break;
             }
             // Bosses appear in the middle of the arena (the Twin Reapers on either side of it, where their circle starts).
             if (type == EnemyType.TwinA)
@@ -218,7 +219,7 @@ namespace Arena
             else if (d.IsBoss)
                 pos = new V2(Width / 2f, Height / 2f);
             else if (type == EnemyType.Nest)
-                pos = new V2(Rand(160f, Width - 160f), Rand(120f, Height - 120f));
+                pos = RandomInArena(Walled ? 80f : 160f, Walled ? 80f : 120f);
 
             // From wave 12, regular enemies can show up as tougher elites.
             bool elite = !d.IsBoss && Wave >= 12 && rng.NextDouble() < Math.Min(0.35, 0.04 * (Wave - 11));
@@ -592,7 +593,7 @@ namespace Arena
                     break;
                 case EnemyType.Spinner:
                     if (e.Pos.DistanceTo(e.Waypoint) < 20f)
-                        e.Waypoint = new V2(Rand(150f, Width - 150f), Rand(150f, Height - 150f));
+                        e.Waypoint = RandomInArena(Walled ? 80f : 150f);
                     v = (e.Waypoint - e.Pos).Normalized();
                     break;
                 case EnemyType.Boss:

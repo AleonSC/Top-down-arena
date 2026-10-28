@@ -332,6 +332,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
+        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured once a second.
@@ -894,6 +895,8 @@ namespace Arena
                 if (tick % 120 == 0)
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
+            AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
+            TickArenaRules(dt);
             foreach (var e in Enemies.Values)
                 e.Flash = Math.Max(0f, e.Flash - dt);
             foreach (var p in Players.Values)
@@ -1023,9 +1026,25 @@ namespace Arena
             {
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
+                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
             }
             else
-                me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * dt;
+            {
+                V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f);
+                if (OnPathOf(PathId.FrozenLake))
+                {
+                    // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
+                    iceVel += (want * Paths.IceTopSpeed - iceVel) * Math.Min(1f, Paths.IceGrip * dt);
+                    me.Pos += iceVel * dt;
+                }
+                else
+                {
+                    iceVel = want;
+                    me.Pos += want * dt;
+                }
+            }
+            if (me.Downed)
+                iceVel = V2.Zero;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
             if (!me.Downed && DashT <= 0f)
@@ -1125,7 +1144,7 @@ namespace Arena
                 }
             }
 
-            me.Pos = WrapArena(me.Pos);
+            me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             if (IsHost)
             {
                 me.Firing = firing;
@@ -1153,7 +1172,7 @@ namespace Arena
             return false;
         }
 
-        static V2 ClampToArena(V2 pos, float r) => pos.Clamp(new V2(r, r), new V2(Width - r, Height - r));
+        V2 ClampToArena(V2 pos, float r) => pos.Clamp(ArenaMin + new V2(r, r), ArenaMax - new V2(r, r));
 
         /// Players wrap around: walking off one edge brings you in on the opposite side.
         public static V2 WrapArena(V2 pos) => new V2(MathX.Fmod(pos.X, Width), MathX.Fmod(pos.Y, Height));
@@ -1168,6 +1187,7 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickNinjas(dt);   // Ninja.cs
             TickWaves(dt);
+            TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
             TickMinions(dt);
             TickOrbs(dt);
@@ -1269,9 +1289,14 @@ namespace Arena
                         FireFanned(p, p.Aim, 0);
                     }
                 }
-                p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
+                if (!OnPathOf(PathId.BloodMoon))  // Blood Moon (Paths.cs): no regeneration
+                {
+                    Recorder?.HealReceived(p, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.MaxHp - p.Hp), "regeneration");
+                    p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
+                }
                 if (p.Role == Role.Healer)
                 {
+                    Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)

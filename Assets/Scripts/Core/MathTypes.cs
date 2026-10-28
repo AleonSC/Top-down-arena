@@ -76,5 +76,6 @@ namespace Arena
 
         public static float Clamp01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
         public static float Fmod(float a, float b) => a - b * (float)Math.Floor(a / b);
+        public static float MoveTowards(float v, float target, float step) => v < target ? Math.Min(target, v + step) : Math.Max(target, v - step);
     }
 }

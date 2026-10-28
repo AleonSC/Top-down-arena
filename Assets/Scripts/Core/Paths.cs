@@ -7,7 +7,26 @@ namespace Arena
     /// Divergent paths (Docs/Paths.md): after each boss the host picks one of two paths for the four regular waves
     /// before the next boss. A path changes the enemy mix (and, in later steps, the arena), pays a bonus to XP and
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
-    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, Bazaar }
+    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass, Bazaar }
+
+    public enum PatchKind : byte { Fire, Heal }
+
+    /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
+    /// everyone once; each game then ages, grows and expires it the same way.
+    public class PathPatch
+    {
+        public int Id;
+        public PatchKind Kind;
+        public V2 Pos;
+        public float Age, Warn, Life, R0, R1;
+
+        /// Fire: warning until Warn, then burning. Heal: fading in until Warn.
+        public bool Active => Age >= Warn;
+        public bool Done => Age >= Life;
+
+        /// Fire spreads from R0 to R1 while it burns; pools stay the same size.
+        public float Radius => Kind == PatchKind.Fire && Active ? R0 + (R1 - R0) * Math.Min(1f, (Age - Warn) / Math.Max(0.01f, Life - Warn)) : R0;
+    }
 
     public class PathDef
     {
@@ -39,12 +58,59 @@ namespace Arena
                 Rules = new[] { "Half as many enemies", "Every one of them is elite (2.5x health, faster fire)" },
                 Floor = new Rgba(0.3f, 0.24f, 0.08f), Accent = new Rgba(1f, 0.85f, 0.3f),
                 Showcase = new[] { EnemyType.Charger, EnemyType.Spinner, EnemyType.Shielder } },
+            new PathDef { Id = PathId.BurningGrounds, Name = "Burning Grounds", Kind = "Hazard floor", Danger = 3,
+                Blurb = "Scorched earth that keeps catching fire.",
+                Rules = new[] { "Fire patches flash a warning, then ignite and spread", "They burn you and the enemies alike" },
+                Floor = new Rgba(0.2f, 0.09f, 0.05f), Accent = new Rgba(1f, 0.5f, 0.2f),
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Spinner } },
+            new PathDef { Id = PathId.Sanctuary, Name = "Sanctuary", Kind = "Hazard floor", Danger = 1,
+                Blurb = "Quiet ground with springs of healing light.",
+                Rules = new[] { "Healing pools appear around the arena", "20% fewer enemies" },
+                Floor = new Rgba(0.08f, 0.16f, 0.26f), Accent = new Rgba(0.5f, 0.9f, 1f),
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Sniper, EnemyType.Medic } },
+            new PathDef { Id = PathId.FrozenLake, Name = "Frozen Lake", Kind = "Twist", Danger = 2,
+                Blurb = "A sheet of cracked ice. Mind your footing.",
+                Rules = new[] { "You slide: speed builds up and carries on", "Enemies are chilled: 10% slower" },
+                Floor = new Rgba(0.16f, 0.27f, 0.36f), Accent = new Rgba(0.65f, 0.92f, 1f),
+                Showcase = new[] { EnemyType.Charger, EnemyType.Lunger, EnemyType.Spinner } },
+            new PathDef { Id = PathId.BloodMoon, Name = "Blood Moon", Kind = "Twist", Danger = 3,
+                Blurb = "Under a red moon, only the hunt keeps you alive.",
+                Rules = new[] { "No health orbs and no regeneration", "Every kill heals its killer a little" },
+                Floor = new Rgba(0.24f, 0.05f, 0.07f), Accent = new Rgba(1f, 0.35f, 0.4f),
+                Showcase = new[] { EnemyType.Brute, EnemyType.Burster, EnemyType.Sniper } },
+            new PathDef { Id = PathId.Fogbound, Name = "Fogbound", Kind = "Arena rule", Danger = 2,
+                Blurb = "A thick mist rolls in. Stay close together.",
+                Rules = new[] { "You only see a short way around each player", "Enemies and bullets beyond fade into the mist" },
+                Floor = new Rgba(0.17f, 0.18f, 0.21f), Accent = new Rgba(0.8f, 0.86f, 0.95f),
+                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Swarmer } },
+            new PathDef { Id = PathId.NarrowPass, Name = "Narrow Pass", Kind = "Arena rule", Danger = 2,
+                Blurb = "A canyon pass hemmed in by glowing walls.",
+                Rules = new[] { "The arena closes in to a narrow pass", "Walls on every side: no wrapping round the edges" },
+                Floor = new Rgba(0.27f, 0.19f, 0.14f), Accent = new Rgba(1f, 0.7f, 0.45f),
+                Showcase = new[] { EnemyType.Brute, EnemyType.Charger, EnemyType.Grunt } },
             new PathDef { Id = PathId.Bazaar, Name = "Bazaar", Kind = "Market", Danger = 1,
                 Blurb = "A trading town on the road.",
                 Rules = new[] { "The usual enemies, but every kill drops gold", "Everyone gets the same gold, and can give it away", "Gold you don't spend becomes XP" },
                 Floor = new Rgba(0.3f, 0.2f, 0.1f), Accent = new Rgba(1f, 0.8f, 0.35f), Prize = "A shop",
                 Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Sniper } },
         };
+
+        // Fogbound and Narrow Pass.
+        public const float FogSight = 350f, FogEdge = 130f, FogIn = 2f;  // clear radius, soft edge, seconds to roll in
+        public const float NarrowInsetX = 240f, NarrowInsetY = 90f, NarrowClose = 1.5f;  // 1120 x 720 between the walls
+
+        // Frozen Lake and Blood Moon.
+        public const float IceGrip = 3.2f, IceTopSpeed = 1.1f, IceEnemySpeed = 0.9f;
+        public static float BloodMoonHeal(int wave) => 2f + 0.1f * wave;
+
+        // Burning Grounds and Sanctuary.
+        public const float FireWarn = 1.4f, FireLife = 9f, FireR0 = 55f, FireR1 = 115f, FireEvery = 2.2f;
+        public const int FireMax = 7;
+        public const float PoolWarn = 0.6f, PoolLife = 10f, PoolRadius = 80f, PoolEvery = 5f, PoolHeal = 10f;
+        public const int PoolMax = 3;
+        public const float PatchTick = 0.5f;
+        public static float FirePlayerDps(int wave) => 10f + 0.4f * wave;
+        public static float FireEnemyDps(int wave) => 20f + 1.5f * wave;
 
         public const int Length = 4;  // regular waves per path (the ones before the next boss)
 
@@ -99,7 +165,8 @@ namespace Arena
             PathOffer = null;
             Route.Clear();
             lastPath = PathId.None;
-            lastPathFromSeen = -1;
+            Patches.Clear();
+            NarrowF = FogF = 0f;
             ShopOpen = false;
             ShopT = 0f;
         }
@@ -124,23 +191,26 @@ namespace Arena
             w.Write((byte)PathOffer[0]);
             w.Write((byte)PathOffer[1]);
             session.Broadcast(Proto.End(w));
+            Recorder?.PathOffered(this, PathOffer);
             DoLog("paths offered: " + PathOffer[0] + " / " + PathOffer[1]);
         }
 
-        /// The host picks one of the offered paths (index 0 or 1). Only the host's choice counts.
+        /// The host picks one of the offered paths (index 0 or 1), or 2 for no path (the plain arena, no bonus or
+        /// prize). Only the host's choice counts.
         public void ChoosePath(int index)
         {
-            if (!IsHost || PathOffer == null || index < 0 || index > 1)
+            if (!IsHost || PathOffer == null || index < 0 || index > 2)
                 return;
-            CurrentPath = PathOffer[index];
+            CurrentPath = index == 2 ? PathId.None : PathOffer[index];
             PathFrom = Wave + 1;
             PathTo = Wave + Paths.Length;
             PathOffer = null;
             Route.Add(CurrentPath);
             lastPath = CurrentPath;
             BroadcastPath();
+            Recorder?.PathChosen(CurrentPath);
             Sounds.Add(Sfx.Pick);
-            DoLog("path: " + Paths.Get(CurrentPath).Name + " for waves " + PathFrom + "-" + PathTo);
+            DoLog("path: " + PathName(CurrentPath) + " for waves " + PathFrom + "-" + PathTo);
         }
 
         void BroadcastPath()
@@ -159,13 +229,15 @@ namespace Arena
             CurrentPath = (PathId)r.ReadByte();
             PathFrom = r.ReadInt32();
             PathTo = r.ReadInt32();
-            PathOffer = null;
-            if (CurrentPath != PathId.None && (Route.Count == 0 || Route[Route.Count - 1] != CurrentPath || PathFrom != lastPathFromSeen))
+            if (PathOffer != null)  // this answers an offer (a path, or no path); otherwise a path just ended
                 Route.Add(CurrentPath);
-            lastPathFromSeen = PathFrom;
+            PathOffer = null;
+            if (CurrentPath == PathId.None)
+                Patches.Clear();
         }
 
-        int lastPathFromSeen = -1;
+        /// A path's name for the route and logs ("Plain arena" for no path).
+        public static string PathName(PathId id) => id == PathId.None ? "Plain arena" : Paths.Get(id).Name;
 
         /// Host, when the path's last wave is cleared: the prize, then back to the plain arena for the boss.
         void FinishPath()
@@ -192,17 +264,21 @@ namespace Arena
                 }
             }
             DoLog(d.Name + " complete: " + Paths.PrizeText(d));
+            Recorder?.PathFinished(Paths.PrizeText(d));
             CurrentPath = PathId.None;
             BroadcastPath();
         }
 
         /// A path's enemy mix replaces a regular wave's (BuildWave).
-        bool BuildPathWave(int n, int count, List<EnemyType> pool, List<EnemyType> melee)
+        bool BuildPathWave(int n, ref int count, List<EnemyType> pool, List<EnemyType> melee)
         {
             if (!OnPath || n % 5 == 0)
                 return false;
             switch (CurrentPath)
             {
+                case PathId.Sanctuary:
+                    count = Math.Max(2, (int)(count * 0.8f));  // the usual mix, a fifth smaller
+                    return false;
                 case PathId.SwarmFields:
                 {
                     var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger };
@@ -251,8 +327,153 @@ namespace Arena
                 return;
             if (CurrentPath == PathId.SwarmFields && e.Def.Melee)
                 e.MaxHp *= 0.6f;
+            if (CurrentPath == PathId.FrozenLake)
+                e.Speed *= Paths.IceEnemySpeed;  // chilled by the ice
             if (CurrentPath == PathId.EliteGauntlet && e.ParentId == 0)
                 elite = true;
+        }
+
+        // --- Arena rules (Fogbound, Narrow Pass) ----------------------------------------------
+
+        /// How far Narrow Pass's walls have closed in, and how thick Fogbound's mist is (0-1). Every game eases them
+        /// the same way from the path, so nothing needs sending.
+        public float NarrowF, FogF;
+
+        /// The rule is on from the countdown before the path's first wave (the walls close in, the mist rolls in)
+        /// until its last wave is cleared.
+        bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && Practice == null;
+
+        void TickArenaRules(float dt)
+        {
+            NarrowF = MathX.MoveTowards(NarrowF, ArenaRule(PathId.NarrowPass) ? 1f : 0f, dt / Paths.NarrowClose);
+            FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) ? 1f : 0f, dt / Paths.FogIn);
+        }
+
+        /// Narrow Pass is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
+        public bool Walled => NarrowF > 0f;
+
+        /// The playable part of the arena: all of it, or the pass between Narrow Pass's walls.
+        public V2 ArenaMin
+        {
+            get
+            {
+                float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
+                return new V2(Paths.NarrowInsetX * f, Paths.NarrowInsetY * f);
+            }
+        }
+
+        public V2 ArenaMax => new V2(Width, Height) - ArenaMin;
+
+        /// A random spot in the playable arena, at least margin (mx across, my down) from its edges.
+        V2 RandomInArena(float mx, float my)
+        {
+            V2 lo = ArenaMin, hi = ArenaMax;
+            return new V2(Rand(lo.X + mx, hi.X - mx), Rand(lo.Y + my, hi.Y - my));
+        }
+
+        V2 RandomInArena(float margin) => RandomInArena(margin, margin);
+
+        /// A player's position after moving: wrapped round the edges, or held inside Narrow Pass's walls.
+        V2 KeepInArena(V2 pos, float r) => Walled ? ClampToArena(pos, r) : WrapArena(pos);
+
+        // --- Hazard floors (Burning Grounds, Sanctuary) -------------------------------------------
+
+        public readonly Dictionary<int, PathPatch> Patches = new Dictionary<int, PathPatch>();
+        int nextPatchId = 1;
+        float patchSpawnT, patchTickT;
+
+        /// Every game: patches age and expire.
+        void AgePatches(float dt)
+        {
+            if (Patches.Count == 0)
+                return;
+            scratchIds.Clear();
+            foreach (var pt in Patches.Values)
+            {
+                pt.Age += dt;
+                if (pt.Done)
+                    scratchIds.Add(pt.Id);
+            }
+            foreach (int id in scratchIds)
+                Patches.Remove(id);
+        }
+
+        /// Host: spawn the path's patches during a wave, and apply their burns and heals.
+        void TickPaths(float dt)
+        {
+            bool fire = OnPathOf(PathId.BurningGrounds), heal = OnPathOf(PathId.Sanctuary);
+            if (State != MatchState.Fighting || (!fire && !heal))
+                return;
+            patchSpawnT -= dt;
+            if (patchSpawnT <= 0f)
+            {
+                patchSpawnT = fire ? Paths.FireEvery : Paths.PoolEvery;
+                int count = 0;
+                foreach (var pt in Patches.Values)
+                    count++;
+                if (count < (fire ? Paths.FireMax : Paths.PoolMax))
+                    SpawnPatch(fire ? PatchKind.Fire : PatchKind.Heal);
+            }
+            patchTickT -= dt;
+            if (patchTickT > 0f)
+                return;
+            patchTickT = Paths.PatchTick;
+            foreach (var pt in Patches.Values)
+            {
+                if (!pt.Active)
+                    continue;
+                float r = pt.Radius;
+                foreach (var p in Players.Values)
+                {
+                    if (p.Pos.DistanceTo(pt.Pos) > r + p.Def.HitR)
+                        continue;
+                    if (pt.Kind == PatchKind.Heal)
+                    {
+                        if (!p.Downed)
+                            Heal(p, Paths.PoolHeal * Paths.PatchTick, null, "Sanctuary pools");
+                    }
+                    else if (!p.Downed && p.InvulnT <= 0f)
+                        Damage(p, Paths.FirePlayerDps(Wave) * Paths.PatchTick, "Burning Grounds");
+                }
+                if (pt.Kind == PatchKind.Fire)
+                    foreach (var e in Enemies.Values)
+                        if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.DistanceTo(pt.Pos) < r + e.Radius)
+                        {
+                            Recorder?.HazardDamage(Math.Min(Paths.FireEnemyDps(Wave) * Paths.PatchTick, Math.Max(0f, e.Hp)));
+                            HurtEnemy(e, Paths.FireEnemyDps(Wave) * Paths.PatchTick, 0);
+                        }
+            }
+        }
+
+        void SpawnPatch(PatchKind kind)
+        {
+            // Fire often starts near someone, so it keeps you moving; pools appear anywhere open.
+            V2 pos = RandomInArena(90f);
+            if (kind == PatchKind.Fire && rng.NextDouble() < 0.5 && Players.Count > 0)
+            {
+                var list = new List<Player>(Players.Values);
+                var p = list[rng.Next(list.Count)];
+                pos = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
+            }
+            var pt = kind == PatchKind.Fire
+                ? new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.FireWarn, Life = Paths.FireLife, R0 = Paths.FireR0, R1 = Paths.FireR1 }
+                : new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.PoolWarn, Life = Paths.PoolLife, R0 = Paths.PoolRadius, R1 = Paths.PoolRadius };
+            Patches[pt.Id] = pt;
+            var w = Proto.Begin(Msg.PathPatch);
+            w.Write(pt.Id);
+            w.Write((byte)pt.Kind);
+            w.Write(pt.Pos);
+            w.Write(pt.Warn);
+            w.Write(pt.Life);
+            w.Write(pt.R0);
+            w.Write(pt.R1);
+            session.Broadcast(Proto.End(w));
+        }
+
+        void ReadPathPatch(BinaryReader r)
+        {
+            var pt = new PathPatch { Id = r.ReadInt32(), Kind = (PatchKind)r.ReadByte(), Pos = r.ReadV2(), Warn = r.ReadSingle(), Life = r.ReadSingle(), R0 = r.ReadSingle(), R1 = r.ReadSingle() };
+            Patches[pt.Id] = pt;
         }
     }
 }

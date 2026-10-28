@@ -1,7 +1,6 @@
 # Divergent paths: design plan
 
-Status: **step 1 built** (framework + the three enemy-mix paths: Swarm Fields, Sniper Ridge, Elite Gauntlet),
-plus the **Bazaar** (a shop path, below); steps 2-4 planned. Decisions below were made with the owner (October 2026); numbers are first
+Status: **all 4 steps built**: the framework, the no-path option and all nine paths, plus the **Bazaar** (a shop path, below). Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -17,6 +16,7 @@ look, so the run feels like travelling somewhere.
 |---|---|
 | Does a path apply to the boss fight? | **No: regular waves only.** The path ends before the boss; boss fights stay standard, so boss balance and Boss Lab data hold. |
 | Who picks? | **The host decides.** Everyone sees both cards; only the host's click counts. |
+| A "no path" option? | **Yes:** the host can keep the plain arena for the stretch (no bonus, no prize). |
 | Which kinds of path? | **All four:** enemy mixes, arena rules, hazard floors, twists on you. |
 | How do harder paths pay off? | **Both:** a bonus while on the path and a prize at the end. |
 
@@ -27,7 +27,7 @@ look, so the run feels like travelling somewhere.
    two cards side by side. The host clicks one; the others see the cards and "Waiting for <host>". The next
    wave doesn't start until the host has picked.
 3. The chosen path runs the next four waves (e.g. after wave 5: waves 6-9). Its floor tint and rules are on;
-   a chip by the wave plate shows its name and waves left.
+   a chip by the wave panel shows its name and waves left.
 4. The wave before the boss ends the path: its **prize** is given (before the boss), the arena returns to
    normal, and the boss wave plays as usual.
 5. Repeats after every boss (9 path choices in a 50-wave run). In endless mode it keeps going.
@@ -56,11 +56,11 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 | **Sniper Ridge** | Enemy mix | 2 | Mostly Snipers, Mortars and Grunts; few melee. Floor: rocky ridges. |
 | **Elite Gauntlet** | Enemy mix | 3 | Half as many enemies, every one elite. Floor: dark gold flagstones. |
 | **Fogbound** | Arena rule | 2 | You only see about 350 px around each player; enemies and bullets beyond fade out. Floor: misty grey. |
-| **Narrow Pass** | Arena rule | 2 | The arena shrinks to about 70% between glowing walls; no wrapping around the edges. Floor: canyon stone. |
+| **Narrow Pass** | Arena rule | 2 | The arena shrinks to 1120 x 720 (70% wide, 80% tall) between glowing walls; no wrapping around the edges, bullets stop at the walls. Floor: canyon stone. |
 | **Burning Grounds** | Hazard floor | 3 | Fire patches flash a warning, ignite and slowly spread; they burn enemies too. Floor: scorched earth. |
 | **Sanctuary** | Hazard floor | 1 | Healing pools appear around the arena; 20% fewer enemies. A recovery path. Floor: soft blue light. |
 | **Frozen Lake** | Twist | 2 | You slide with momentum (speed builds and carries); enemies are chilled 10% slower. Floor: cracked ice. |
-| **Blood Moon** | Twist | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP. Floor: red-lit. |
+| **Blood Moon** | Twist | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP (+0.1 per wave, so it keeps up late). Floor: red-lit. |
 
 ## The Bazaar (built)
 
@@ -83,7 +83,7 @@ Code: `Core/Shop.cs` (state, actions, bots, snapshot fields, `Msg.Shop` / `Msg.S
 - **Choose your path:** two big cards, each with a live animated preview of its floor and a few enemies from its
   mix, the name and skulls, its rules as short lines, the bonus, and the prize. Host: "Take this path" button on
   each. Others: the same cards and "Waiting for <host>".
-- **During a path:** the floor tint and pattern, a chip under the wave plate ("Sniper Ridge · 3 waves left"), and
+- **During a path:** the floor tint and pattern, a chip above the wave panel ("Sniper Ridge · 3 waves left"), and
   the path's own effects (fog, walls, fire patches, healing pools).
 - **Tab menu:** a small route strip of the paths taken so far this run.
 - **Run summary:** the route taken.
@@ -110,12 +110,11 @@ Code: `Core/Shop.cs` (state, actions, bots, snapshot fields, `Msg.Shop` / `Msg.S
 
 1. ✅ **Framework + enemy-mix paths:** the registry, offers, the Choose-your-path screen, bonus and prize, HUD chip,
    recordings, tests. Paths: Swarm Fields, Sniper Ridge, Elite Gauntlet.
-2. **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
-3. **Twists:** Frozen Lake, Blood Moon.
-4. **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor).
+2. ✅ **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
+3. ✅ **Twists:** Frozen Lake, Blood Moon.
+4. ✅ **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor: `Game.ArenaMin`/`ArenaMax`).
 
 ## Still open
 
 - Names, floor looks and numbers are first drafts: change freely.
 - Should the very first stretch (waves 1-4) also get a choice, e.g. picked in the lobby?
-- Should the host be able to pick "no path" (the plain arena) as a third option?

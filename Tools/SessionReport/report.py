@@ -7,6 +7,9 @@ Usage:
 Turn recording on in the game under Settings > Developer (or launch with --record); the host saves
 one JSON file per match. Pass one file to look at a single run, or a folder to see trends across
 many runs (boss kill times, what downs people, which upgrades get picked, ...).
+
+Practice Range sessions are listed but left out of the balance tables (pass --practice to include them).
+Runs where dev tools were used (god mode, stat edits, wave jumps, the bot) are flagged in the runs table.
 """
 import json
 import os
@@ -60,18 +63,29 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(1)
-    runs = load(sys.argv[1:])
-    if not runs:
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    all_runs = load(args)
+    if not all_runs:
         print("No sessions found.")
         sys.exit(1)
 
     # --- Runs -------------------------------------------------------------------
     rows = []
-    for r in runs:
+    for r in all_runs:
         team = ", ".join(f"{p['class']} {p['role']} ({p['weapon']})" for p in r["players"])
         end = r["end"]
-        rows.append([r["_file"], r["playerCount"], team, end["outcome"], end["wave"], f"{end['time'] / 60:.1f} min"])
-    table(["session", "players", "team", "outcome", "wave", "length"], rows, f"Runs ({len(runs)})")
+        dev = len(r.get("devTools", []))
+        rows.append([r["_file"], r.get("mode", "run") + (" +endless" if r.get("endless") else ""), r["playerCount"], team,
+                     r.get("modifiers") or "", end["outcome"], end["wave"], f"{end['time'] / 60:.1f} min", f"{dev} uses" if dev else ""])
+    table(["session", "mode", "players", "team", "modifiers", "outcome", "wave", "length", "dev tools"], rows, f"Runs ({len(all_runs)})")
+    for r in all_runs:
+        for d in r.get("devTools", []):
+            print(f"  {r['_file']}: wave {d['wave']}, {d['time']:.0f} s: {d['what']}")
+    runs = [r for r in all_runs if "--practice" in sys.argv or r.get("mode", "run") != "practice"]
+    if len(runs) < len(all_runs):
+        print(f"\n  {len(all_runs) - len(runs)} Practice Range session(s) left out of the tables below (--practice to include)")
+    if not runs:
+        return
 
     # --- Bosses -----------------------------------------------------------------
     bosses = defaultdict(list)
@@ -107,6 +121,33 @@ def main():
     table(["wave", "runs", "avg length (s)", "avg enemies", "dmg taken / player", "% of max HP", "downs", "low-HP s / player", "boss"],
           rows, "Difficulty by wave (watch for spikes)")
 
+    # --- Paths ------------------------------------------------------------------
+    path_waves = defaultdict(list)
+    for r in runs:
+        for w in r["waves"]:
+            path_waves[w.get("path") or ("(boss)" if w["boss"] else "Plain arena")].append(w)
+    chosen, offered = defaultdict(int), defaultdict(int)
+    for r in runs:
+        for pr in r.get("paths", []):
+            for o in pr["offered"]:
+                offered[o] += 1
+            if pr.get("chosen"):
+                chosen[pr["chosen"]] += 1
+    rows = []
+    for name, ws in sorted(path_waves.items()):
+        per_player = [p for w in ws for p in w["players"].values()]
+        rows.append([
+            name, len(ws), offered.get(name, ""), chosen.get(name, ""),
+            mean(w["duration"] for w in ws if w["duration"] >= 0),
+            mean(100 * p["damageTaken"] / max(1, p["maxHp"]) for p in per_player),
+            mean(p.get("healingReceived", 0) for p in per_player),
+            sum(p["downs"] for p in per_player) / max(1, len(ws)),
+            mean(w.get("hazardDamageToEnemies", 0) for w in ws),
+        ])
+    table(["path", "waves", "offered", "chosen", "avg length (s)", "dmg taken % max HP / player", "healing received / player", "downs / wave",
+           "floor dmg to enemies / wave"],
+          rows, "Paths (each wave counted on the path it was played on; boss waves apart)")
+
     # --- What downs people --------------------------------------------------------
     downs = defaultdict(int)
     for r in runs:
@@ -123,6 +164,17 @@ def main():
     total = sum(taken.values()) or 1
     table(["source", "damage", "share"], [[s, v, f"{100 * v / total:.1f}%"] for s, v in sorted(taken.items(), key=lambda kv: -kv[1])[:20]],
           "Where damage to players comes from (top 20)")
+
+    healed = defaultdict(float)
+    for r in runs:
+        for w in r["waves"]:
+            for p in w["players"].values():
+                for src, v in p.get("healingReceivedFrom", {}).items():
+                    healed[src] += v
+    if healed:
+        total = sum(healed.values()) or 1
+        table(["source", "healing", "share"], [[s, v, f"{100 * v / total:.1f}%"] for s, v in sorted(healed.items(), key=lambda kv: -kv[1])],
+              "Where players' healing comes from (during waves)")
 
     # --- Enemies ----------------------------------------------------------------
     enemies = defaultdict(lambda: defaultdict(float))
@@ -165,7 +217,13 @@ def main():
                 parry["blocked"] += p["parryBlocked"]
                 parry["perfect"] += p["perfectParries"]
                 parry["breaks"] += p["parryBreaks"]
-    table(["ability", "uses"], sorted(uses.items(), key=lambda kv: -kv[1]), "Ability uses")
+    mastery = defaultdict(list)
+    for r in runs:
+        for p in r["players"]:
+            for a, lvl in p.get("abilityMastery", {}).items():
+                mastery[a].append(lvl)
+    rows = [[a, uses.get(a, 0), mean(mastery[a]) if a in mastery else ""] for a in set(uses) | set(mastery)]
+    table(["ability", "uses", "avg mastery at the end"], sorted(rows, key=lambda r: -r[1]), "Ability uses")
     print(f"\n  parry: {parry['blocked']:,.0f} damage blocked, {int(parry['perfect'])} perfect parries, {int(parry['breaks'])} breaks")
 
     # --- Roles -------------------------------------------------------------------
