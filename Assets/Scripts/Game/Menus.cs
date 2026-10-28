@@ -112,7 +112,7 @@ namespace Arena
         static readonly string[][] HowToKeys =
         {
             new[] { "W", "A", "S", "D" }, new[] { "LMB" }, new[] { "RMB" }, new[] { "Space" }, new[] { "F" }, new[] { "Q", "E", "Shift" },
-            new[] { "1", "2", "3" }, new[] { "R" }, new[] { "Tab" }, new[] { "V" }, new[] { "Esc" }, new[] { "M" },
+            new[] { "1", "2", "3" }, new[] { "R" }, new[] { "Tab" }, new[] { "V", "H" }, new[] { "Esc" }, new[] { "M" },
         };
         static readonly string[,] HowToActions =
         {
@@ -125,7 +125,7 @@ namespace Arena
             { "Pick an upgrade", "or click a card, then Confirm (Enter)" },
             { "Reroll upgrades", "" },
             { "Stats & upgrades", "hold: just for you, doesn't pause" },
-            { "Aim line", "on / off" },
+            { "Aim line, HUD", "V: aim line on / off · H: hide or show the HUD" },
             { "Pause menu", "" },
             { "Mute", "" },
         };

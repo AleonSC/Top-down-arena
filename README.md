@@ -474,6 +474,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
+| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 

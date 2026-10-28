@@ -14,12 +14,15 @@ namespace Arena
         void DrawHud()
         {
             var me = game.Me;
-            DrawWaveCorner();
-            if (game.Recorder != null)  // this match is being recorded (hosts only)
-                Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
+            HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
+            HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
+            {
+                if (game.Recorder != null)  // this match is being recorded (hosts only)
+                    Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
+                DrawBossBars();
+            });
             if (aimDebug && me != null)
                 DrawAimDebug(me);
-            DrawBossBars();
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
@@ -48,10 +51,9 @@ namespace Arena
                 }
             }
 
-            DrawPlayerCorner();
-
+            HudGroup(2, new Vector2(150f, 30f), new Rect(SideR, SideY, SideW, SideH), DrawPlayerCorner);
             if (me != null)
-                DrawAbilityBar(me);
+                HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
 
             switch (game.State)
             {
@@ -98,10 +100,56 @@ namespace Arena
                 DrawTabMenu(me);
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
-                var hint = new Rect(W - 196f, 10f, 180f, 22f);
-                Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
-                Ui.Label(hint, "Hold TAB  ·  stats & upgrades", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+                HudGroup(3, new Vector2(0f, -60f), new Rect(W - 290f, 10f, 274f, 22f), () =>
+                {
+                    var hint = new Rect(W - 290f, 10f, 274f, 22f);
+                    Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
+                    Ui.Label(hint, "Hold TAB  ·  stats & upgrades      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+                });
+                // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
+                float back = Mathf.Clamp01((0.35f - hudT) / 0.35f);
+                if (back > 0f)
+                {
+                    float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
+                    Ui.Shadowed(new Rect(0f, H - 30f + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
+                }
             }
+        }
+
+        // --- Hiding the HUD (H) ---------------------------------------------------------
+
+        bool hudShown = true;
+        float hudT = 1f;               // 0 hidden .. 1 shown, eased in Update
+        const float HudFadeTime = 0.55f, HudStagger = 0.14f;
+        const int HudGroups = 4;       // 0 ability bar, 1 wave panel, 2 player cards, 3 top row (boss bars, hints)
+
+        /// One piece of the HUD, played in its turn: showing, the ability bar rises first, then the side panels slide
+        /// in, then the top row drops; hiding runs the other way. Each piece slides, scales up from 90% and fades,
+        /// overshooting a little as it lands (and pulling back before it leaves).
+        void HudGroup(int order, Vector2 away, Rect pivot, Action draw)
+        {
+            float p = Mathf.Clamp01(hudT * (1f + HudStagger * (HudGroups - 1)) - HudStagger * order);
+            if (p <= 0f)
+                return;
+            if (p >= 1f)
+            {
+                draw();
+                return;
+            }
+            const float back = 1.70158f;  // ease-out-back
+            float q = p - 1f, e = 1f + (back + 1f) * q * q * q + back * q * q;
+            float k = 0.9f + 0.1f * e, a = p * p * (3f - 2f * p);
+            Vector2 c = pivot.center;
+            float ox = away.x * (1f - e) + c.x * (1f - k), oy = away.y * (1f - e) + c.y * (1f - k);
+            var oldMatrix = GUI.matrix;
+            var oldColor = GUI.color;
+            GUI.matrix = Matrix4x4.TRS(new Vector3(offX + ox * scale, offY + oy * scale, 0f), Quaternion.identity, new Vector3(scale * k, scale * k, 1f));
+            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * a);
+            Ui.Alpha = a;
+            draw();
+            Ui.Alpha = 1f;
+            GUI.color = oldColor;
+            GUI.matrix = oldMatrix;
         }
 
         // --- Tab: your stats and loadout ---------------------------------------

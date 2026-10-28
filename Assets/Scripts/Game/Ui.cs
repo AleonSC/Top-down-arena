@@ -116,10 +116,16 @@ namespace Arena
             Fill(new Rect(x, y + 21f, w, 1f), new Color(1f, 1f, 1f, 0.08f));
         }
 
+        /// Multiplies the alpha of everything drawn (the HUD fading in and out). Drawing that sets GUI.color itself
+        /// goes through Faded, so it fades too; everything else is tinted by GUI.color, which the HUD sets as well.
+        public static float Alpha = 1f;
+
+        public static Color Faded(Color c) => new Color(c.r, c.g, c.b, c.a * Alpha);
+
         public static void Fill(Rect r, Color c)
         {
             var old = GUI.color;
-            GUI.color = c;
+            GUI.color = Faded(c);
             GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = old;
         }
@@ -146,7 +152,7 @@ namespace Arena
             float x = r.center.x - total / 2f;
             var c = new Rect(x, r.center.y - cs / 2f, cs, cs);
             var old = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, 0.28f);
+            GUI.color = Faded(new Color(1f, 1f, 1f, 0.28f));
             GUI.DrawTexture(c, chip);
             GUI.color = old;
             float isz = Mathf.Round(cs * 0.6f);
@@ -297,7 +303,7 @@ namespace Arena
             if (tex == null)
                 return;
             var old = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.color = Faded(new Color(1f, 1f, 1f, alpha));
             GUI.DrawTexture(r, tex);
             GUI.color = old;
         }
@@ -308,7 +314,7 @@ namespace Arena
             if (tex == null)
                 return;
             var old = GUI.color;
-            GUI.color = tint;
+            GUI.color = Faded(tint);
             GUI.DrawTexture(r, tex);
             GUI.color = old;
         }

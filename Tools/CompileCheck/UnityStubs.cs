@@ -38,7 +38,7 @@ namespace UnityEngine {
   public class Shader : Object { public static Shader Find(string n){return null;} }
   public class Material : Object { public Material(Shader s){} public void SetInt(string n, int v){} public bool SetPass(int p){return true;} }
   public sealed class GL { public const int TRIANGLES=4; public static void PushMatrix(){} public static void PopMatrix(){} public static void LoadPixelMatrix(){} public static void Begin(int m){} public static void End(){} public static void Vertex(Vector3 v){} public static void Color(Color c){} }
-  public enum KeyCode { C, LeftShift, RightShift, Return, KeypadEnter, Q, E, M, Alpha1, Alpha2, Alpha3, Alpha4, Alpha5, Alpha6, Alpha7, Alpha8, Space, Escape, R, L, W, A, S, D, UpArrow, DownArrow, LeftArrow, RightArrow, Tab, F, F1, F3, V, P }
+  public enum KeyCode { C, H, LeftShift, RightShift, Return, KeypadEnter, Q, E, M, Alpha1, Alpha2, Alpha3, Alpha4, Alpha5, Alpha6, Alpha7, Alpha8, Space, Escape, R, L, W, A, S, D, UpArrow, DownArrow, LeftArrow, RightArrow, Tab, F, F1, F3, V, P }
   public class Input { public static bool GetKey(KeyCode k){return false;} public static bool GetKeyDown(KeyCode k){return false;} public static bool GetMouseButton(int b){return false;} public static bool GetMouseButtonDown(int b){return false;} public static Vector3 mousePosition; }
   public sealed class Screen { public static int width, height; }
   public class Time { public static float deltaTime, fixedDeltaTime, unscaledTime, unscaledDeltaTime, time, timeScale = 1f; }

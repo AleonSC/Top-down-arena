@@ -234,6 +234,9 @@ namespace Arena
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
+            if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
+                hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
+            hudT = MathX.MoveTowards(hudT, hudShown ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
@@ -426,7 +429,7 @@ namespace Arena
         static void Box(Rect r, Color c)
         {
             var old = GUI.color;
-            GUI.color = c;
+            GUI.color = Ui.Faded(c);
             GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = old;
         }
