@@ -98,306 +98,347 @@ namespace Arena
         void DrawArenaContents(float t)
         {
             foreach (var p in game.Players.Values)
-            {
-                if (p.Downed)
-                    continue;
-                if (p.Role == Role.Healer)
-                {
-                    Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
-                    Arc(p.Disp, p.AuraRange, 2f, new Rgba(0.3f, 1f, 0.5f, 0.18f), 64);
-                }
-                if (p.BarrierT > 0f)
-                {
-                    // Fades as it soaks damage; flickers when nearly broken or about to expire.
-                    float strength = MathX.Clamp01(p.BarrierFrac);
-                    bool failing = p.BarrierT < 1f || strength < 0.25f;
-                    float a = !failing || MathX.Fmod(t, 0.2f) < 0.1f ? 0.3f + 0.5f * strength : 0.15f;
-                    Circle(p.Disp, p.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.04f + 0.1f * strength), 64);
-                    Arc(p.Disp, p.BarrierRadius, 1.5f + 2.5f * strength, new Rgba(0.5f, 0.8f, 1f, a), 64);
-                }
-                if (p.OverdriveT > 0f)
-                    Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
-                if (p.AegisT > 0f)  // Arcane Aegis: a spinning hexagon
-                    for (int k = 0; k < 6; k++)
-                        Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
-                             p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
-                if (p.ShieldHp > 0f)  // Arcane Ward
-                    Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
-                if (p.SurgeT > 0f)  // Arcane Surge
-                    Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
-                if (p.FrenzyT > 0f)  // Alpha Call
-                    Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
-                if (p.ParryActive)  // the parry shield: an arc toward the cursor that dims as it wears
-                {
-                    float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
-                    float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
-                    var sc = new Rgba(0.55f, 0.9f, 1f);
-                    float from = p.Aim - Game.ParryArc(p), span = Game.ParryArc(p) * 2f;
-                    Arc(p.Disp, rr, 14f, sc.WithAlpha(0.3f + 0.25f * hp), 20, from, span);            // the shield's face
-                    Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.7f + 0.3f * hp), 20, from, span);  // bright rim
-                    for (int k = 0; k <= 1; k++)  // end caps
-                        Circle(p.Disp + V2.FromAngle(from + span * k) * (rr + 2f), 4f, sc.Mix(Rgba.White, 0.4f), 8);
-                    if (hp < 0.35f && MathX.Fmod(t, 0.2f) < 0.1f)  // about to break
-                        Arc(p.Disp, rr + 7f, 4f, new Rgba(1f, 0.4f, 0.4f, 0.9f), 20, from, span);
-                }
-                else if (p.ParryBroken > 0f && !p.Downed)  // broken: cracked pieces until it's back
-                    for (int k = 0; k < 3; k++)
-                        Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.45f, 0.45f, 0.35f), 4, p.Aim - 0.8f + k * 0.6f, 0.35f);
-                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)  // golden bulwark
-                {
-                    Circle(p.Disp, p.Def.BodyR + 16f, new Rgba(1f, 0.8f, 0.35f, 0.15f), 32);
-                    Polygon(p.Disp, p.Def.BodyR + 14f, 6, t * 0.8f, new Rgba(1f, 0.8f, 0.35f, 0.12f));
-                    Arc(p.Disp, p.Def.BodyR + 16f, 3f, new Rgba(1f, 0.85f, 0.4f, 0.9f), 6, t * 0.8f + MathX.Pi / 6f, MathX.Tau);
-                }
-                if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // spinning muzzle sparks
-                    for (int k = 0; k < 3; k++)
-                        Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
-            }
-
+                DrawPlayerAuras(p, t);
             foreach (var b in game.Bullets.Values)
-            {
-                if (b.Kind >= Defs.SmallShot)
-                    continue;
-                DrawShotMods(b, t);
-                if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
-                {
-                    Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
-                    if (MathX.Fmod(t, 0.15f) < 0.075f)
-                        Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
-                    continue;
-                }
-                if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot || b.Kind == Defs.FrostShot)
-                    Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), Defs.BulletColor(b.Kind).WithAlpha(0.25f), 12);
-                if (b.Kind == Defs.RailShot)
-                    Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
-                Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
-            }
-
+                if (b.Kind < Defs.SmallShot)
+                    DrawBigShot(b, t);
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
-            foreach (var h in game.Hazards.Values)  // incoming lightning strike: a filling warning circle
-            {
-                var hc = new Rgba(0.7f, 0.85f, 1f);
-                float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
-                Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
-                Arc(h.Pos, h.Radius, 2.5f, (f > 0.7f && MathX.Fmod(t, 0.1f) < 0.05f ? Rgba.White : hc).WithAlpha(0.85f), 40);
-            }
+            foreach (var h in game.Hazards.Values)
+                DrawHazard(h, t);
             foreach (var p in game.Players.Values)
-            {
-                Player q;
-                if (p.LinkT > 0f && p.LinkTo != p.Id && game.Players.TryGetValue(p.LinkTo, out q))
-                {
-                    // Soul Link: a wavy tether between healer and ally.
-                    V2 a = p.Disp, b = q.Disp, n = (b - a).Normalized().Orthogonal();
-                    var c = new Rgba(0.6f, 1f, 0.9f, 0.8f);
-                    V2 prev = a;
-                    for (int k = 1; k <= 16; k++)
-                    {
-                        float f = k / 16f;
-                        V2 pt = V2.Lerp(a, b, f) + n * (Mathf.Sin(f * 12f - t * 10f) * 5f * Mathf.Sin(f * MathX.Pi));
-                        Line(prev, pt, 2.5f, c);
-                        prev = pt;
-                    }
-                }
-                if (p.TauntT > 0f && !p.Downed)  // Roar
-                    Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
-            }
+                DrawPlayerLinks(p, t);
             foreach (var minion in game.Minions.Values)
                 DrawMinion(minion, t);
             foreach (var o in game.Orbs.Values)
-            {
-                // Blink during the last 3 seconds before the orb disappears.
-                if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
-                    continue;
-                float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : 8f) + o.Id);
-                float r = o.Radius * pulse;
-                var green = new Rgba(0.35f, 1f, 0.5f);
-                Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
-                Circle(o.Disp, r, green, 16);
-                Line(o.Disp - new V2(r * 0.55f, 0), o.Disp + new V2(r * 0.55f, 0), o.Big ? 3f : 2f, Rgba.White);
-                Line(o.Disp - new V2(0, r * 0.55f), o.Disp + new V2(0, r * 0.55f), o.Big ? 3f : 2f, Rgba.White);
-                if (o.Big)
-                    Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
-            }
+                DrawOrb(o, t);
             DrawReaperTether(t);
             DrawSingularityHazards(t);
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)
-            {
-                DrawPlayer(p, t);
-                // Near an edge, also draw the part of you that's already coming in on the far side.
-                V2 real = p.Disp;
-                float edge = p.Def.BodyR + 12f;
-                float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;
-                float dy = real.Y < edge ? AH : real.Y > AH - edge ? -AH : 0f;
-                var ghosts = new List<V2>();
-                if (dx != 0f) ghosts.Add(new V2(dx, 0f));
-                if (dy != 0f) ghosts.Add(new V2(0f, dy));
-                if (dx != 0f && dy != 0f) ghosts.Add(new V2(dx, dy));  // corners
-                foreach (var off in ghosts)
-                {
-                    p.Disp = real + off;
-                    DrawPlayer(p, t);
-                }
-                p.Disp = real;
-            }
-
+                DrawPlayerWrapped(p, t);
             foreach (var b in game.Bullets.Values)
-            {
-                if (b.Kind < Defs.SmallShot)
-                    continue;
-                if (!Defs.IsEnemyShot(b.Kind))
-                    DrawShotMods(b, t);
-                Rgba c = Defs.BulletColor(b.Kind);
-                if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
-                {
-                    V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
-                    V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;
-                    Line(tail - dir * 10f, tail, 2f, c.WithAlpha(0.25f));                    // faint green streak behind
-                    Line(tail, neck, 2f, new Rgba(0.78f, 0.6f, 0.38f));                      // shaft
-                    SetColor(new Rgba(0.9f, 0.95f, 1f));                                      // head
-                    Tri(tip, neck + side * 3.5f, neck - side * 3.5f);
-                    for (int k = 0; k < 2; k++)                                               // fletching
-                    {
-                        V2 at = tail + dir * (2f + k * 3f);
-                        Line(at, at - dir * 4f + side * 3.5f, 1.5f, c);
-                        Line(at, at - dir * 4f - side * 3.5f, 1.5f, c);
-                    }
-                    continue;
-                }
-                if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
-                {
-                    float a = b.Vel.Angle;
-                    Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 5f, c.WithAlpha(0.45f), 12, a - 0.9f, 1.8f);
-                    Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 2f, Rgba.White.WithAlpha(0.95f), 12, a - 0.8f, 1.6f);
-                    continue;
-                }
-                if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
-                {
-                    Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.35f), 12);
-                    Circle(b.Pos, b.Radius, c, 12);
-                    Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.1f, 0f, 0f, 1f), 8);
-                    continue;
-                }
-                if (b.FromBoss)  // other boss shots: violet glow, spinning spikes, dark core (they wear blockers down)
-                {
-                    Circle(b.Pos, b.Radius + 5f, BossShotGlow.WithAlpha(0.3f), 12);
-                    Polygon(b.Pos, b.Radius + 4f, 4, t * 5f + b.Id, BossShotGlow);
-                    Circle(b.Pos, b.Radius, c, 12);
-                    Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.08f, 0f, 0.12f, 1f), 8);
-                    continue;
-                }
-                if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
-                    Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
-                Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
-                Circle(b.Pos, b.Radius, c, 12);
-                Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
-            }
-
+                if (b.Kind >= Defs.SmallShot)
+                    DrawSmallShot(b, t);
             foreach (var fx in game.Effects)
+                DrawEffect(fx, t);
+        }
+
+        /// Under a player: the healer's aura, Barrier, buffs, the parry shield and ultimates' looks.
+        void DrawPlayerAuras(Player p, float t)
+        {
+            if (p.Downed)
+                return;
+            if (p.Role == Role.Healer)
             {
-                float f = fx.T / fx.Dur;
-                switch (fx.Kind)
+                Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
+                Arc(p.Disp, p.AuraRange, 2f, new Rgba(0.3f, 1f, 0.5f, 0.18f), 64);
+            }
+            if (p.BarrierT > 0f)
+            {
+                // Fades as it soaks damage; flickers when nearly broken or about to expire.
+                float strength = MathX.Clamp01(p.BarrierFrac);
+                bool failing = p.BarrierT < 1f || strength < 0.25f;
+                float a = !failing || MathX.Fmod(t, 0.2f) < 0.1f ? 0.3f + 0.5f * strength : 0.15f;
+                Circle(p.Disp, p.BarrierRadius, new Rgba(0.4f, 0.7f, 1f, 0.04f + 0.1f * strength), 64);
+                Arc(p.Disp, p.BarrierRadius, 1.5f + 2.5f * strength, new Rgba(0.5f, 0.8f, 1f, a), 64);
+            }
+            if (p.OverdriveT > 0f)
+                Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
+            if (p.AegisT > 0f)  // Arcane Aegis: a spinning hexagon
+                for (int k = 0; k < 6; k++)
+                    Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
+                         p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
+            if (p.ShieldHp > 0f)  // Arcane Ward
+                Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+            if (p.SurgeT > 0f)  // Arcane Surge
+                Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
+            if (p.FrenzyT > 0f)  // Alpha Call
+                Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
+            if (p.ParryActive)
+                DrawParryShield(p, t);
+            else if (p.ParryBroken > 0f && !p.Downed)  // broken: cracked pieces until it's back
+                for (int k = 0; k < 3; k++)
+                    Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.45f, 0.45f, 0.35f), 4, p.Aim - 0.8f + k * 0.6f, 0.35f);
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)  // golden bulwark
+            {
+                Circle(p.Disp, p.Def.BodyR + 16f, new Rgba(1f, 0.8f, 0.35f, 0.15f), 32);
+                Polygon(p.Disp, p.Def.BodyR + 14f, 6, t * 0.8f, new Rgba(1f, 0.8f, 0.35f, 0.12f));
+                Arc(p.Disp, p.Def.BodyR + 16f, 3f, new Rgba(1f, 0.85f, 0.4f, 0.9f), 6, t * 0.8f + MathX.Pi / 6f, MathX.Tau);
+            }
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // spinning muzzle sparks
+                for (int k = 0; k < 3; k++)
+                    Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
+        }
+
+        /// The parry shield: an arc toward the cursor that dims as it wears.
+        void DrawParryShield(Player p, float t)
+        {
+            float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
+            float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
+            var sc = new Rgba(0.55f, 0.9f, 1f);
+            float from = p.Aim - Game.ParryArc(p), span = Game.ParryArc(p) * 2f;
+            Arc(p.Disp, rr, 14f, sc.WithAlpha(0.3f + 0.25f * hp), 20, from, span);            // the shield's face
+            Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.7f + 0.3f * hp), 20, from, span);  // bright rim
+            for (int k = 0; k <= 1; k++)  // end caps
+                Circle(p.Disp + V2.FromAngle(from + span * k) * (rr + 2f), 4f, sc.Mix(Rgba.White, 0.4f), 8);
+            if (hp < 0.35f && MathX.Fmod(t, 0.2f) < 0.1f)  // about to break
+                Arc(p.Disp, rr + 7f, 4f, new Rgba(1f, 0.4f, 0.4f, 0.9f), 20, from, span);
+        }
+
+        /// Players' big shots (kinds below Defs.SmallShot), drawn under enemies.
+        void DrawBigShot(Bullet b, float t)
+        {
+            DrawShotMods(b, t);
+            if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
+            {
+                Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
+                if (MathX.Fmod(t, 0.15f) < 0.075f)
+                    Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
+                return;
+            }
+            if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot || b.Kind == Defs.FrostShot)
+                Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), Defs.BulletColor(b.Kind).WithAlpha(0.25f), 12);
+            if (b.Kind == Defs.RailShot)
+                Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
+            Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
+        }
+
+        /// An incoming lightning strike: a filling warning circle.
+        void DrawHazard(Hazard h, float t)
+        {
+            var hc = new Rgba(0.7f, 0.85f, 1f);
+            float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
+            Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
+            Arc(h.Pos, h.Radius, 2.5f, (f > 0.7f && MathX.Fmod(t, 0.1f) < 0.05f ? Rgba.White : hc).WithAlpha(0.85f), 40);
+        }
+
+        /// Soul Link's tether, and Roar's ring.
+        void DrawPlayerLinks(Player p, float t)
+        {
+            Player q;
+            if (p.LinkT > 0f && p.LinkTo != p.Id && game.Players.TryGetValue(p.LinkTo, out q))
+            {
+                // Soul Link: a wavy tether between healer and ally.
+                V2 a = p.Disp, b = q.Disp, n = (b - a).Normalized().Orthogonal();
+                var c = new Rgba(0.6f, 1f, 0.9f, 0.8f);
+                V2 prev = a;
+                for (int k = 1; k <= 16; k++)
                 {
-                    case FxKind.Boom:
-                        Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
-                        Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
-                        break;
-                    case FxKind.Spark:
-                        Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);
-                        break;
-                    case FxKind.Ring:
-                        Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
-                        break;
-                    case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
-                        Circle(fx.Pos, fx.Radius, fx.Color.WithAlpha(0.08f + 0.12f * f), 32);
-                        Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
-                        Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
-                        break;
-                    case FxKind.Slash:  // a melee swing: a bright crescent sweeping across the arc, fading out
-                    {
-                        V2 to = fx.Pos2 - fx.Pos;
-                        float reach = to.Length, aim = to.Angle, half = fx.Radius;
-                        if (reach < 1f)
-                            break;
-                        if (half < 0f)  // a jab: the blade shoots forward, with speed lines along the cone
-                        {
-                            float grow = Mathf.Min(1f, f * 4f), len = reach * (0.3f + 0.7f * grow), fade = 1f - f;
-                            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
-                            V2 tipAt = fx.Pos + dir * len;
-                            for (int k = -1; k <= 1; k += 2)  // the cone it covers, faintly
-                                Line(fx.Pos, fx.Pos + V2.FromAngle(aim + k * -half) * len * 0.9f, 1.5f, fx.Color.WithAlpha(0.25f * fade));
-                            for (int k = 0; k < 4; k++)  // speed lines
-                            {
-                                float o = (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * k) * (float)Math.Tan(-half) * len * 0.5f;
-                                V2 a0 = fx.Pos + dir * len * (0.35f + 0.12f * k) + side * o;
-                                Line(a0, a0 + dir * len * 0.25f, 1.5f, Rgba.White.WithAlpha(0.5f * fade));
-                            }
-                            Line(fx.Pos, tipAt, 10f * fade + 2f, fx.Color.WithAlpha(0.35f * fade));
-                            Line(fx.Pos, tipAt - dir * 6f, 3f, Rgba.White.WithAlpha(0.9f * fade));
-                            SetColor(Rgba.White.WithAlpha(0.95f * fade));
-                            Tri(tipAt + dir * 8f, tipAt - dir * 4f + side * 6f, tipAt - dir * 4f - side * 6f);
-                            break;
-                        }
-                        if (half < 0.2f)  // a thrust or a lunge: a streak along the line
-                        {
-                            Line(fx.Pos, fx.Pos2, 8f * (1f - f), fx.Color.WithAlpha(0.35f * (1f - f)));
-                            Line(fx.Pos, fx.Pos2, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
-                            break;
-                        }
-                        float sweep = 2f * half * Mathf.Min(1f, f * 3f);
-                        float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;
-                        Arc(fx.Pos, reach * 0.78f, reach * 0.4f, fx.Color.WithAlpha(0.28f * (1f - f)), 24, from, sweep);
-                        Arc(fx.Pos, reach, 3f, Rgba.White.WithAlpha(0.9f * (1f - f)), 24, from, sweep);
-                        break;
-                    }
-                    case FxKind.Jab:  // the Lance: its rectangular hitbox slides out from the Knight, lance tip leading
-                    {
-                        V2 to = fx.Pos2 - fx.Pos;
-                        float reach = to.Length, w = fx.Radius;
-                        if (reach < 1f)
-                            break;
-                        V2 dir = to / reach, side = dir.Orthogonal();
-                        float g = Mathf.Min(1f, f / 0.35f);
-                        g = 1f - (1f - g) * (1f - g) * (1f - g);  // fast out, easing in to full reach
-                        float fade = f < 0.35f ? 1f : 1f - (f - 0.35f) / 0.65f;
-                        float front = reach * g;
-                        // The box, from your body to its sliding front edge.
-                        V2 a0 = fx.Pos + side * w, a1 = fx.Pos - side * w, b0 = a0 + dir * front, b1 = a1 + dir * front;
-                        SetColor(fx.Color.WithAlpha(0.2f * fade));
-                        Tri(a0, b0, b1);
-                        Tri(a0, b1, a1);
-                        Line(a0, b0, 1.5f, fx.Color.WithAlpha(0.6f * fade));
-                        Line(a1, b1, 1.5f, fx.Color.WithAlpha(0.6f * fade));
-                        Line(b0, b1, 4f, Rgba.White.WithAlpha(0.9f * fade));  // the leading edge
-                        // Speed streaks riding along inside it.
-                        for (int k = 0; k < 4; k++)
-                        {
-                            float o = (k - 1.5f) / 1.5f * w * 0.7f, at = front * (0.25f + 0.15f * (k % 2));
-                            V2 s0 = fx.Pos + dir * at + side * o;
-                            Line(s0, s0 + dir * front * 0.35f, 1.5f, Rgba.White.WithAlpha(0.45f * fade));
-                        }
-                        // The lance itself, slid out with its tip at the front edge.
-                        V2 tipAt = fx.Pos + dir * front, tail = fx.Pos + dir * Mathf.Max(0f, front - reach * 0.8f);
-                        Line(tail, tipAt - dir * 10f, 4f, Rgba.White.WithAlpha(0.85f * fade));
-                        SetColor(Rgba.White.WithAlpha(0.95f * fade));
-                        Tri(tipAt + dir * 6f, tipAt - dir * 14f + side * 7f, tipAt - dir * 14f - side * 7f);
-                        break;
-                    }
-                    case FxKind.Bolt:  // jagged lightning between two points
-                    {
-                        V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
-                        V2 prev = a;
-                        for (int k = 1; k <= 6; k++)
-                        {
-                            V2 pt = k == 6 ? b : V2.Lerp(a, b, k / 6f) + n * (((k * 37 + fx.Pos.X) % 17f) - 8.5f);
-                            Line(prev, pt, 3f, fx.Color.WithAlpha(1f - f));
-                            prev = pt;
-                        }
-                        break;
-                    }
+                    float f = k / 16f;
+                    V2 pt = V2.Lerp(a, b, f) + n * (Mathf.Sin(f * 12f - t * 10f) * 5f * Mathf.Sin(f * MathX.Pi));
+                    Line(prev, pt, 2.5f, c);
+                    prev = pt;
                 }
+            }
+            if (p.TauntT > 0f && !p.Downed)  // Roar
+                Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
+        }
+
+        /// A health orb: green with a white cross; big ones get a gold ring.
+        void DrawOrb(Orb o, float t)
+        {
+            // Blink during the last 3 seconds before the orb disappears.
+            if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
+                return;
+            float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : 8f) + o.Id);
+            float r = o.Radius * pulse;
+            var green = new Rgba(0.35f, 1f, 0.5f);
+            Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
+            Circle(o.Disp, r, green, 16);
+            Line(o.Disp - new V2(r * 0.55f, 0), o.Disp + new V2(r * 0.55f, 0), o.Big ? 3f : 2f, Rgba.White);
+            Line(o.Disp - new V2(0, r * 0.55f), o.Disp + new V2(0, r * 0.55f), o.Big ? 3f : 2f, Rgba.White);
+            if (o.Big)
+                Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
+        }
+
+        /// A player, plus, near an edge, the part of them already coming in on the far side.
+        void DrawPlayerWrapped(Player p, float t)
+        {
+            DrawPlayer(p, t);
+            V2 real = p.Disp;
+            float edge = p.Def.BodyR + 12f;
+            float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;
+            float dy = real.Y < edge ? AH : real.Y > AH - edge ? -AH : 0f;
+            var ghosts = new List<V2>();
+            if (dx != 0f) ghosts.Add(new V2(dx, 0f));
+            if (dy != 0f) ghosts.Add(new V2(0f, dy));
+            if (dx != 0f && dy != 0f) ghosts.Add(new V2(dx, dy));  // corners
+            foreach (var off in ghosts)
+            {
+                p.Disp = real + off;
+                DrawPlayer(p, t);
+            }
+            p.Disp = real;
+        }
+
+        /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
+        void DrawSmallShot(Bullet b, float t)
+        {
+            if (!Defs.IsEnemyShot(b.Kind))
+                DrawShotMods(b, t);
+            Rgba c = Defs.BulletColor(b.Kind);
+            if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
+            {
+                V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
+                V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;
+                Line(tail - dir * 10f, tail, 2f, c.WithAlpha(0.25f));                    // faint green streak behind
+                Line(tail, neck, 2f, new Rgba(0.78f, 0.6f, 0.38f));                      // shaft
+                SetColor(new Rgba(0.9f, 0.95f, 1f));                                      // head
+                Tri(tip, neck + side * 3.5f, neck - side * 3.5f);
+                for (int k = 0; k < 2; k++)                                               // fletching
+                {
+                    V2 at = tail + dir * (2f + k * 3f);
+                    Line(at, at - dir * 4f + side * 3.5f, 1.5f, c);
+                    Line(at, at - dir * 4f - side * 3.5f, 1.5f, c);
+                }
+                return;
+            }
+            if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
+            {
+                float a = b.Vel.Angle;
+                Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 5f, c.WithAlpha(0.45f), 12, a - 0.9f, 1.8f);
+                Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 2f, Rgba.White.WithAlpha(0.95f), 12, a - 0.8f, 1.6f);
+                return;
+            }
+            if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
+            {
+                Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.35f), 12);
+                Circle(b.Pos, b.Radius, c, 12);
+                Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.1f, 0f, 0f, 1f), 8);
+                return;
+            }
+            if (b.FromBoss)  // other boss shots: violet glow, spinning spikes, dark core (they wear blockers down)
+            {
+                Circle(b.Pos, b.Radius + 5f, BossShotGlow.WithAlpha(0.3f), 12);
+                Polygon(b.Pos, b.Radius + 4f, 4, t * 5f + b.Id, BossShotGlow);
+                Circle(b.Pos, b.Radius, c, 12);
+                Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.08f, 0f, 0.12f, 1f), 8);
+                return;
+            }
+            if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
+                Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
+            Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
+            Circle(b.Pos, b.Radius, c, 12);
+            Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
+        }
+
+        /// A short-lived effect, by kind.
+        void DrawEffect(Effect fx, float t)
+        {
+            float f = fx.T / fx.Dur;
+            switch (fx.Kind)
+            {
+                case FxKind.Boom:
+                    Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
+                    Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
+                    break;
+                case FxKind.Spark:
+                    Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);
+                    break;
+                case FxKind.Ring:
+                    Arc(fx.Pos, fx.Radius * (0.2f + 0.8f * f), 4f, fx.Color.WithAlpha(1f - f), 64);
+                    break;
+                case FxKind.Target:  // where a bomber will blow up: a faint zone with a ring closing in on it
+                    Circle(fx.Pos, fx.Radius, fx.Color.WithAlpha(0.08f + 0.12f * f), 32);
+                    Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
+                    Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
+                    break;
+                case FxKind.Slash:
+                    DrawSlashFx(fx, f, t);
+                    break;
+                case FxKind.Jab:
+                    DrawJabFx(fx, f);
+                    break;
+                case FxKind.Bolt:
+                    DrawBoltFx(fx, f);
+                    break;
+            }
+        }
+
+        /// A melee swing: a bright crescent sweeping across the arc, fading out (a jab or thrust is a streak).
+        void DrawSlashFx(Effect fx, float f, float t)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float reach = to.Length, aim = to.Angle, half = fx.Radius;
+            if (reach < 1f)
+                return;
+            if (half < 0f)  // a jab: the blade shoots forward, with speed lines along the cone
+            {
+                float grow = Mathf.Min(1f, f * 4f), len = reach * (0.3f + 0.7f * grow), fade = 1f - f;
+                V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+                V2 tipAt = fx.Pos + dir * len;
+                for (int k = -1; k <= 1; k += 2)  // the cone it covers, faintly
+                    Line(fx.Pos, fx.Pos + V2.FromAngle(aim + k * -half) * len * 0.9f, 1.5f, fx.Color.WithAlpha(0.25f * fade));
+                for (int k = 0; k < 4; k++)  // speed lines
+                {
+                    float o = (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * k) * (float)Math.Tan(-half) * len * 0.5f;
+                    V2 a0 = fx.Pos + dir * len * (0.35f + 0.12f * k) + side * o;
+                    Line(a0, a0 + dir * len * 0.25f, 1.5f, Rgba.White.WithAlpha(0.5f * fade));
+                }
+                Line(fx.Pos, tipAt, 10f * fade + 2f, fx.Color.WithAlpha(0.35f * fade));
+                Line(fx.Pos, tipAt - dir * 6f, 3f, Rgba.White.WithAlpha(0.9f * fade));
+                SetColor(Rgba.White.WithAlpha(0.95f * fade));
+                Tri(tipAt + dir * 8f, tipAt - dir * 4f + side * 6f, tipAt - dir * 4f - side * 6f);
+                return;
+            }
+            if (half < 0.2f)  // a thrust or a lunge: a streak along the line
+            {
+                Line(fx.Pos, fx.Pos2, 8f * (1f - f), fx.Color.WithAlpha(0.35f * (1f - f)));
+                Line(fx.Pos, fx.Pos2, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
+                return;
+            }
+            float sweep = 2f * half * Mathf.Min(1f, f * 3f);
+            float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;
+            Arc(fx.Pos, reach * 0.78f, reach * 0.4f, fx.Color.WithAlpha(0.28f * (1f - f)), 24, from, sweep);
+            Arc(fx.Pos, reach, 3f, Rgba.White.WithAlpha(0.9f * (1f - f)), 24, from, sweep);
+        }
+
+        /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
+        void DrawJabFx(Effect fx, float f)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float reach = to.Length, w = fx.Radius;
+            if (reach < 1f)
+                return;
+            V2 dir = to / reach, side = dir.Orthogonal();
+            float g = Mathf.Min(1f, f / 0.35f);
+            g = 1f - (1f - g) * (1f - g) * (1f - g);  // fast out, easing in to full reach
+            float fade = f < 0.35f ? 1f : 1f - (f - 0.35f) / 0.65f;
+            float front = reach * g;
+            // The box, from your body to its sliding front edge.
+            V2 a0 = fx.Pos + side * w, a1 = fx.Pos - side * w, b0 = a0 + dir * front, b1 = a1 + dir * front;
+            SetColor(fx.Color.WithAlpha(0.2f * fade));
+            Tri(a0, b0, b1);
+            Tri(a0, b1, a1);
+            Line(a0, b0, 1.5f, fx.Color.WithAlpha(0.6f * fade));
+            Line(a1, b1, 1.5f, fx.Color.WithAlpha(0.6f * fade));
+            Line(b0, b1, 4f, Rgba.White.WithAlpha(0.9f * fade));  // the leading edge
+            // Speed streaks riding along inside it.
+            for (int k = 0; k < 4; k++)
+            {
+                float o = (k - 1.5f) / 1.5f * w * 0.7f, at = front * (0.25f + 0.15f * (k % 2));
+                V2 s0 = fx.Pos + dir * at + side * o;
+                Line(s0, s0 + dir * front * 0.35f, 1.5f, Rgba.White.WithAlpha(0.45f * fade));
+            }
+            // The lance itself, slid out with its tip at the front edge.
+            V2 tipAt = fx.Pos + dir * front, tail = fx.Pos + dir * Mathf.Max(0f, front - reach * 0.8f);
+            Line(tail, tipAt - dir * 10f, 4f, Rgba.White.WithAlpha(0.85f * fade));
+            SetColor(Rgba.White.WithAlpha(0.95f * fade));
+            Tri(tipAt + dir * 6f, tipAt - dir * 14f + side * 7f, tipAt - dir * 14f - side * 7f);
+        }
+
+        /// Jagged lightning between two points.
+        void DrawBoltFx(Effect fx, float f)
+        {
+            V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
+            V2 prev = a;
+            for (int k = 1; k <= 6; k++)
+            {
+                V2 pt = k == 6 ? b : V2.Lerp(a, b, k / 6f) + n * (((k * 37 + fx.Pos.X) % 17f) - 8.5f);
+                Line(prev, pt, 3f, fx.Color.WithAlpha(1f - f));
+                prev = pt;
             }
         }
 
@@ -596,6 +637,8 @@ namespace Arena
                 Arc(m.Disp, rad + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
         }
 
+        /// An enemy, in layers: spawn ring, melee spikes, its type's effects behind the body, elite ring and
+        /// status (tint, flames, mark), the body, ice, its type's details on top, then the health bar and icons.
         void DrawEnemy(Enemy e, float t)
         {
             Rgba col = e.Def.Color;
@@ -607,22 +650,45 @@ namespace Arena
                 Arc(pos, r + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
                 col = col.WithAlpha(0.35f);
             }
-
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
             if (e.Def.Melee && !spawning)
+                DrawMeleeSpikes(e, pos, r, col, t);
+            col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
+            if (e.Elite)
+                Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
+            col = DrawEnemyStatus(e, pos, r, col, t);
+            if (e.Flash > 0f)
+                col = Rgba.White;
+            Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
+            if (e.Frozen)
+                DrawIceBlock(e, pos, r, t);
+            DrawEnemyDetails(e, pos, r, col, t);
+            // Bosses get a bar at the top of the screen instead.
+            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning;
+            if (bar)
             {
-                int spikes = e.Type == EnemyType.Swarmer ? 6 : e.Type == EnemyType.Brute ? 10 : 8;
-                float spin = e.Type == EnemyType.Swarmer ? t * 4f : t * 0.6f;
-                for (int k = 0; k < spikes; k++)
-                {
-                    float a = spin + MathX.Tau * k / spikes;
-                    V2 d = V2.FromAngle(a), side = d.Orthogonal();
-                    SetColor(col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.35f));
-                    Tri(pos + d * (r + 6f), pos + d * (r - 2f) + side * (r * 0.28f), pos + d * (r - 2f) - side * (r * 0.28f));
-                }
+                float w = Mathf.Max(30f, r * 2f);
+                Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
             }
+            DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
+        }
 
-            // Effects behind the body.
+        void DrawMeleeSpikes(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            int spikes = e.Type == EnemyType.Swarmer ? 6 : e.Type == EnemyType.Brute ? 10 : 8;
+            float spin = e.Type == EnemyType.Swarmer ? t * 4f : t * 0.6f;
+            for (int k = 0; k < spikes; k++)
+            {
+                float a = spin + MathX.Tau * k / spikes;
+                V2 d = V2.FromAngle(a), side = d.Orthogonal();
+                SetColor(col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.35f));
+                Tri(pos + d * (r + 6f), pos + d * (r - 2f) + side * (r * 0.28f), pos + d * (r - 2f) - side * (r * 0.28f));
+            }
+        }
+
+        /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
+        Rgba DrawEnemyUnderlay(Enemy e, V2 pos, float r, Rgba col, bool spawning, float t)
+        {
             switch (e.Type)
             {
                 case EnemyType.Spinner:
@@ -630,35 +696,14 @@ namespace Arena
                         Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
                     break;
                 case EnemyType.Boss:
-                    if (e.Phase == 3)  // the Warden's cross streams: faint guides along the four arms (hidden while it moves)
-                        for (int k = 0; k < 4; k++)
-                        {
-                            V2 d = V2.FromAngle(e.Facing + MathX.Pi / 2f * k);
-                            Line(pos + d * r, pos + d * (r + 420f), 10f, new Rgba(1f, 0.35f, 0.45f, 0.07f));
-                            Line(pos + d * r, pos + d * (r + 420f), 2f, new Rgba(1f, 0.45f, 0.55f, 0.18f));
-                        }
+                    if (e.Phase == 3)
+                        DrawWardenCrossGuides(e, pos, r);
                     break;
                 case EnemyType.Lunger:
-                    if (e.Phase == 1)  // winding up: shows where it's about to leap
-                    {
-                        V2 dir = V2.FromAngle(e.Facing);
-                        float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.6f : 0.25f;
-                        Line(pos + dir * r, pos + dir * 230f, 4f, new Rgba(1f, 0.35f, 0.65f, a));
-                        Arc(pos + dir * 230f, 10f, 2f, new Rgba(1f, 0.35f, 0.65f, a), 12);
-                    }
-                    else if (e.Phase == 2)  // leaping: a smear behind it
-                        for (int k = 1; k <= 3; k++)
-                            Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
+                    DrawLungerTell(e, pos, r, col, t);
                     break;
                 case EnemyType.Charger:
-                    if (e.Phase == 1)  // wind-up: show where it's about to dash
-                    {
-                        V2 dir = V2.FromAngle(e.Facing);
-                        float a = MathX.Fmod(t, 0.16f) < 0.08f ? 0.55f : 0.25f;
-                        Line(pos + dir * r, pos + dir * 260f, 3f, new Rgba(1f, 0.3f, 0.3f, a));
-                    }
-                    else if (e.Phase == 2)
-                        Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
+                    DrawChargerTell(e, pos, r, col, t);
                     break;
                 case EnemyType.HiveBomber:  // a hot glow and a faint streak along its flight line
                     if (!spawning)
@@ -677,15 +722,7 @@ namespace Arena
                     break;
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
-                    if (e.Phase == 1)  // enraged
-                        Circle(pos, r + 10f + 4f * Mathf.Sin(t * 14f), new Rgba(1f, 0.2f, 0.2f, 0.25f), 32);
-                    else if (e.Phase == 2)  // Soul Bond: immune, wrapped in a pale shell with orbiting runes
-                    {
-                        Circle(pos, r + 14f, new Rgba(0.9f, 0.9f, 1f, 0.18f), 40);
-                        Arc(pos, r + 14f, 3f, new Rgba(0.95f, 0.95f, 1f, 0.85f), 40);
-                        for (int k = 0; k < 5; k++)
-                            Polygon(pos + V2.FromAngle(t * 1.5f + MathX.Tau * k / 5f) * (r + 14f), 4f, 4, t * 3f, new Rgba(1f, 1f, 1f, 0.9f));
-                    }
+                    DrawTwinShell(e, pos, r, t);
                     break;
                 case EnemyType.Singularity:
                     if (e.Phase == 1)  // gravity well: rings shrinking inward
@@ -706,30 +743,15 @@ namespace Arena
                     Circle(pos, r + 6f + 3f * Mathf.Sin(t * 3f), col.WithAlpha(0.2f), 24);
                     break;
                 case EnemyType.Lich:
-                {
-                    // A tether to its phylactery while it's protected.
                     if (e.Phase == 1)
-                    {
-                        foreach (var o in game.Enemies.Values)
-                            if (o.Type == EnemyType.Phylactery)
-                                Line(pos, o.Disp, 2f, new Rgba(0.4f, 1f, 0.6f, 0.5f + 0.3f * Mathf.Sin(t * 8f)));
-                        Circle(pos, r + 14f, new Rgba(0.4f, 1f, 0.6f, 0.15f), 32);
-                        Arc(pos, r + 14f, 3f, new Rgba(0.4f, 1f, 0.6f, 0.8f), 32);
-                    }
+                        DrawLichTether(pos, r, t);
                     break;
-                }
                 case EnemyType.Phylactery:
                     Circle(pos, r * 2.2f, col.WithAlpha(0.15f + 0.1f * Mathf.Sin(t * 6f)), 24);
                     break;
-                case EnemyType.GravityWell:  // its pull range, with rings falling inward
-                    if (spawning)
-                        break;
-                    Circle(pos, Game.WellPullRange, col.WithAlpha(0.05f), 40);
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float f = 1f - MathX.Fmod(t * 0.9f + k / 3f + e.Id * 0.13f, 1f);
-                        Arc(pos, r + 6f + f * (Game.WellPullRange - r - 6f), 1.5f, col.WithAlpha(0.4f * (1f - f)), 40);
-                    }
+                case EnemyType.GravityWell:
+                    if (!spawning)
+                        DrawWellPull(e, pos, r, col, t);
                     break;
                 case EnemyType.StormHerald:
                     for (int k = 0; k < 3; k++)  // crackling sparks
@@ -743,17 +765,100 @@ namespace Arena
                         Circle(pos, r + 18f + 6f * Mathf.Sin(t * 10f), new Rgba(1f, 0.2f, 0.6f, 0.25f), 40);
                     break;
                 case EnemyType.Eclipse:
-                    // A dark disk with a corona that grows wilder each phase.
-                    for (int k = 0; k < 12; k++)
-                    {
-                        float a = MathX.Tau * k / 12f + t * (0.3f + 0.3f * e.Phase);
-                        Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a) * (r + 14f + 6f * e.Phase + 4f * Mathf.Sin(t * 6f + k)), 3f, col.WithAlpha(0.8f));
-                    }
+                    DrawEclipseCorona(e, pos, r, col, t);
                     break;
             }
-            if (e.Elite)
-                Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
-            // Status effects tint the body; icons above it say which ones (see DrawStatusIcons).
+            return col;
+        }
+
+        /// The Warden's cross streams: faint guides along the four arms (hidden while it moves).
+        void DrawWardenCrossGuides(Enemy e, V2 pos, float r)
+        {
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(e.Facing + MathX.Pi / 2f * k);
+                Line(pos + d * r, pos + d * (r + 420f), 10f, new Rgba(1f, 0.35f, 0.45f, 0.07f));
+                Line(pos + d * r, pos + d * (r + 420f), 2f, new Rgba(1f, 0.45f, 0.55f, 0.18f));
+            }
+        }
+
+        /// Winding up: where it's about to leap. Leaping: a smear behind it.
+        void DrawLungerTell(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            if (e.Phase == 1)
+            {
+                V2 dir = V2.FromAngle(e.Facing);
+                float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.6f : 0.25f;
+                Line(pos + dir * r, pos + dir * 230f, 4f, new Rgba(1f, 0.35f, 0.65f, a));
+                Arc(pos + dir * 230f, 10f, 2f, new Rgba(1f, 0.35f, 0.65f, a), 12);
+            }
+            else if (e.Phase == 2)
+                for (int k = 1; k <= 3; k++)
+                    Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
+        }
+
+        /// Wind-up: where it's about to dash. Dashing: a smear behind it.
+        void DrawChargerTell(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            if (e.Phase == 1)
+            {
+                V2 dir = V2.FromAngle(e.Facing);
+                float a = MathX.Fmod(t, 0.16f) < 0.08f ? 0.55f : 0.25f;
+                Line(pos + dir * r, pos + dir * 260f, 3f, new Rgba(1f, 0.3f, 0.3f, a));
+            }
+            else if (e.Phase == 2)
+                Circle(pos - V2.FromAngle(e.Facing) * r, r * 0.9f, col.WithAlpha(0.3f), 16);
+        }
+
+        /// The Twin Reapers: an enraged glow, or Soul Bond's immune shell with orbiting runes.
+        void DrawTwinShell(Enemy e, V2 pos, float r, float t)
+        {
+            if (e.Phase == 1)  // enraged
+                Circle(pos, r + 10f + 4f * Mathf.Sin(t * 14f), new Rgba(1f, 0.2f, 0.2f, 0.25f), 32);
+            else if (e.Phase == 2)  // Soul Bond: immune, wrapped in a pale shell with orbiting runes
+            {
+                Circle(pos, r + 14f, new Rgba(0.9f, 0.9f, 1f, 0.18f), 40);
+                Arc(pos, r + 14f, 3f, new Rgba(0.95f, 0.95f, 1f, 0.85f), 40);
+                for (int k = 0; k < 5; k++)
+                    Polygon(pos + V2.FromAngle(t * 1.5f + MathX.Tau * k / 5f) * (r + 14f), 4f, 4, t * 3f, new Rgba(1f, 1f, 1f, 0.9f));
+            }
+        }
+
+        /// The Lich, protected: a tether to its phylactery and a green shell.
+        void DrawLichTether(V2 pos, float r, float t)
+        {
+            foreach (var o in game.Enemies.Values)
+                if (o.Type == EnemyType.Phylactery)
+                    Line(pos, o.Disp, 2f, new Rgba(0.4f, 1f, 0.6f, 0.5f + 0.3f * Mathf.Sin(t * 8f)));
+            Circle(pos, r + 14f, new Rgba(0.4f, 1f, 0.6f, 0.15f), 32);
+            Arc(pos, r + 14f, 3f, new Rgba(0.4f, 1f, 0.6f, 0.8f), 32);
+        }
+
+        /// A gravity well's pull range, with rings falling inward.
+        void DrawWellPull(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            Circle(pos, Game.WellPullRange, col.WithAlpha(0.05f), 40);
+            for (int k = 0; k < 3; k++)
+            {
+                float f = 1f - MathX.Fmod(t * 0.9f + k / 3f + e.Id * 0.13f, 1f);
+                Arc(pos, r + 6f + f * (Game.WellPullRange - r - 6f), 1.5f, col.WithAlpha(0.4f * (1f - f)), 40);
+            }
+        }
+
+        /// The Eclipse: a dark disk with a corona that grows wilder each phase.
+        void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            for (int k = 0; k < 12; k++)
+            {
+                float a = MathX.Tau * k / 12f + t * (0.3f + 0.3f * e.Phase);
+                Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a) * (r + 14f + 6f * e.Phase + 4f * Mathf.Sin(t * 6f + k)), 3f, col.WithAlpha(0.8f));
+            }
+        }
+
+        /// Status effects tint the body (frozen, chilled, burning with flames licking up) and Mark for Death
+        /// adds a reticle; icons above it say which ones (see DrawStatusIcons). Returns the tinted colour.
+        Rgba DrawEnemyStatus(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
             if (e.Frozen)
                 col = col.Mix(new Rgba(0.75f, 0.92f, 1f), 0.85f);  // frosted almost white-blue
             else if (e.Chilled)
@@ -775,10 +880,12 @@ namespace Arena
                 for (int k = 0; k < 4; k++)
                     Arc(pos, r + 12f, 2.5f, mc, 6, t * 2f + k * MathX.Pi / 2f, 0.9f);
             }
+            return col;
+        }
 
-            if (e.Flash > 0f)
-                col = Rgba.White;
-            float rot;
+        /// How the body is turned: toward its aim, spinning, or slowly drifting round.
+        static float EnemyRotation(Enemy e, float t)
+        {
             switch (e.Type)
             {
                 case EnemyType.Charger:
@@ -788,41 +895,35 @@ namespace Arena
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
                 case EnemyType.HiveBomber:
-                    rot = e.Facing;  // point where they're aiming
-                    break;
+                    return e.Facing;  // point where they're aiming
                 case EnemyType.Spinner:
-                    rot = t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
-                    break;
+                    return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:
-                    rot = t * (e.Phase == 1 ? -3f : 1f);
-                    break;
+                    return t * (e.Phase == 1 ? -3f : 1f);
                 case EnemyType.Medic:
-                    rot = MathX.Pi / 4f;
-                    break;
+                    return MathX.Pi / 4f;
                 default:
-                    rot = t * 0.4f + e.Id;
-                    break;
+                    return t * 0.4f + e.Id;
             }
-            Polygon(pos, r, e.Def.Sides, rot, col);
-            if (e.Frozen)  // encased in an angular block of ice with a glint
-            {
-                Arc(pos, r + 5f, 3f, IceColor.WithAlpha(0.95f), 6, MathX.Pi / 6f, MathX.Tau);
-                Polygon(pos, r + 5f, 6, MathX.Pi / 6f, IceColor.WithAlpha(0.35f));
-                float g = MathX.Fmod(t * 0.7f + e.Id * 0.3f, 1f);
-                Line(pos + new V2(-r * 0.6f, -r * 0.2f + g * r * 0.5f), pos + new V2(-r * 0.1f, -r * 0.7f + g * r * 0.5f), 2f, Rgba.White.WithAlpha(0.8f));
-            }
+        }
 
-            // Details on top of the body.
+        /// Frozen: encased in an angular block of ice with a glint.
+        void DrawIceBlock(Enemy e, V2 pos, float r, float t)
+        {
+            Arc(pos, r + 5f, 3f, IceColor.WithAlpha(0.95f), 6, MathX.Pi / 6f, MathX.Tau);
+            Polygon(pos, r + 5f, 6, MathX.Pi / 6f, IceColor.WithAlpha(0.35f));
+            float g = MathX.Fmod(t * 0.7f + e.Id * 0.3f, 1f);
+            Line(pos + new V2(-r * 0.6f, -r * 0.2f + g * r * 0.5f), pos + new V2(-r * 0.1f, -r * 0.7f + g * r * 0.5f), 2f, Rgba.White.WithAlpha(0.8f));
+        }
+
+        /// Each type's details on top of its body.
+        void DrawEnemyDetails(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
             switch (e.Type)
             {
-                case EnemyType.Brute:  // a heavy brow and fists toward its target
-                {
-                    V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
-                    Circle(pos + f * r * 0.95f + side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
-                    Circle(pos + f * r * 0.95f - side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
-                    Line(pos + f * r * 0.35f - side * r * 0.4f, pos + f * r * 0.35f + side * r * 0.4f, 3f, new Rgba(0.15f, 0.05f, 0.05f, 0.9f));
+                case EnemyType.Brute:
+                    DrawBruteFace(e, pos, r, col);
                     break;
-                }
                 case EnemyType.Shielder:
                     Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);
                     break;
@@ -856,14 +957,15 @@ namespace Arena
                     Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;
             }
-            // Bosses get a bar at the top of the screen instead.
-            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning;
-            if (bar)
-            {
-                float w = Mathf.Max(30f, r * 2f);
-                Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
-            }
-            DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
+        }
+
+        /// The Brute: a heavy brow and fists toward its target.
+        void DrawBruteFace(Enemy e, V2 pos, float r, Rgba col)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            Circle(pos + f * r * 0.95f + side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
+            Circle(pos + f * r * 0.95f - side * r * 0.6f, r * 0.34f, col.Mix(new Rgba(1f, 0.9f, 0.8f), 0.3f), 10);
+            Line(pos + f * r * 0.35f - side * r * 0.4f, pos + f * r * 0.35f + side * r * 0.4f, 3f, new Rgba(0.15f, 0.05f, 0.05f, 0.9f));
         }
 
         static readonly Rgba IceColor = new Rgba(0.55f, 0.85f, 1f);
