@@ -264,7 +264,7 @@ namespace Arena
             var alive = new List<int>();
             var tanks = new List<int>();
             foreach (var p in Players.Values)
-                if (!p.Downed && p.TauntT > 0f)
+                if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p)))
                     return p.Id;  // Roar: everyone goes for the roaring tank
             foreach (var p in Players.Values)
             {

@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
-    public enum Kit : byte { Soldier, Mage, Summoner, Knight, Ninja }
+    public enum Kit : byte { Soldier, Mage, Summoner, Knight, Ninja, BloodMage }
 
     public enum WeaponId : byte
     {
@@ -39,6 +39,8 @@ namespace Arena
         Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee
         Kusarigama, BoStaff, ChainShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
+        // Blood Mage (BloodMage.cs): blood spells that drain and heal
+        BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, HemoSpray, BoneSpear,
     }
 
     public class WeaponDef
@@ -52,7 +54,7 @@ namespace Arena
         public MinionKind Companion = MinionKind.None;
         public int CompanionCount;
         public float CompanionRespawn = 3f;
-        public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana too)
+        public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
     }
 
     public class EnemyDef
@@ -132,9 +134,9 @@ namespace Arena
 
         public const int WeaponsPerRole = 3;
 
-        public const int KitCount = 5;
+        public const int KitCount = 6;
 
-        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner, Knight, Ninja).
+        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner, Knight, Ninja, Blood Mage).
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
@@ -163,6 +165,12 @@ namespace Arena
                 Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air." },
             new WeaponDef { Id = WeaponId.ChainShuriken, ExtraDesc = "+1 shuriken, fanned out", Name = "Chain Shuriken", FireInterval = 0.7f,
                 Desc = "A heavy spinning star that flies out and comes back, cutting through everything both ways." },
+            new WeaponDef { Id = WeaponId.BloodLash, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per enemy hit", Name = "Blood Lash", FireInterval = 0.5f,
+                Desc = "A whip of blood lashed in a wide arc (110 px, 130°). Heals you 3 for each enemy it hits." },
+            new WeaponDef { Id = WeaponId.ClotBolt, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
+                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s." },
+            new WeaponDef { Id = WeaponId.LeechBeam, ExtraDesc = "+25% beam length and +25% damage", Name = "Leech Beam", FireInterval = 0.08f,
+                Desc = "A rapid short beam of blood. 30% of the damage it deals heals you." },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
             new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
@@ -187,6 +195,12 @@ namespace Arena
                 Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back." },
             new WeaponDef { Id = WeaponId.Ofuda, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
                 Desc = "Slow paper charms that home in and burst (25), healing allies near the burst for 8." },
+            new WeaponDef { Id = WeaponId.TransfusionDarts, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
+                Desc = "Darts that heal an ally they reach for 8, at a cost of 3 of your own health." },
+            new WeaponDef { Id = WeaponId.SanguineOrb, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f,
+                Desc = "Homing orbs of blood (16). Enemies they kill have a 40% chance to drop a small health orb." },
+            new WeaponDef { Id = WeaponId.VeinTether, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
+                Desc = "A draining beam. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
             new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
@@ -212,14 +226,20 @@ namespace Arena
                 Desc = "Fast 110° quick-draw slashes; every 4th is a long lunging cut for double damage." },
             new WeaponDef { Id = WeaponId.Kunai, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
                 Desc = "Rapid throwing knives. +50% damage to enemies that aren't targeting you." },
+            new WeaponDef { Id = WeaponId.BloodBolts, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
+                Desc = "Fast bolts of blood (9)." },
+            new WeaponDef { Id = WeaponId.HemoSpray, ExtraDesc = "+2 droplets", Name = "Hemo Spray", FireInterval = 0.35f,
+                Desc = "A fan of 5 piercing droplets (7 each)." },
+            new WeaponDef { Id = WeaponId.BoneSpear, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
+                Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health." },
         };
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 
-        public static string KitName(Kit k) => k.ToString();
+        public static string KitName(Kit k) => k == Kit.BloodMage ? "Blood Mage" : k.ToString();
 
         /// Mages and summoners trade some health for their spells and minions; knights wear armour to get close;
-        /// ninjas are quick and lightly protected.
+        /// ninjas are quick and lightly protected; blood mages keep their full health to spend.
         public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : k == Kit.Knight ? 1.15f : k == Kit.Ninja ? 0.85f : 1f;
 
         /// Ninjas move 12% faster.
@@ -240,7 +260,9 @@ namespace Arena
             ArrowShot = 31,    // a Mender's Bow arrow
             // Ninja
             StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
-            FrostLance = 38;  // the Frost Lance's spear (its shatter icicles are FrostShot)
+            FrostLance = 38,  // the Frost Lance's spear (its shatter icicles are FrostShot)
+            // Blood Mage
+            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, DropletShot = 45, BoneSpearShot = 46;
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -279,6 +301,14 @@ namespace Arena
                 case OfudaShot: return 6f;
                 case GustShot: return 9f;
                 case ChainStar: return 11f;
+                case BloodShot: return 4f;
+                case ClotShot: return 7f;
+                case LeechShot:
+                case VeinShot: return 3.5f;
+                case TransfuseShot: return 3f;
+                case SanguineShot: return 6.5f;
+                case DropletShot: return 3f;
+                case BoneSpearShot: return 6f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case PierceShot: return 6.5f;
@@ -332,6 +362,14 @@ namespace Arena
                 case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
                 case GustShot: return new Rgba(0.7f, 1f, 0.85f);
+                case BloodShot:
+                case DropletShot: return new Rgba(0.9f, 0.12f, 0.2f);
+                case ClotShot: return new Rgba(0.6f, 0.05f, 0.12f);
+                case LeechShot: return new Rgba(1f, 0.25f, 0.3f);
+                case VeinShot: return new Rgba(1f, 0.35f, 0.5f);
+                case TransfuseShot: return new Rgba(1f, 0.5f, 0.55f);
+                case SanguineShot: return new Rgba(0.85f, 0.1f, 0.25f);
+                case BoneSpearShot: return new Rgba(0.95f, 0.9f, 0.82f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);

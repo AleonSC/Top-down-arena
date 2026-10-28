@@ -133,6 +133,8 @@ namespace Arena
         {
             if (p.Downed)
                 return;
+            if (p.Kit == Kit.BloodMage)
+                DrawBloodAuras(p, t);  // BloodMageLook.cs
             if (p.Role == Role.Healer)
             {
                 Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
@@ -330,6 +332,11 @@ namespace Arena
             if (b.Kind >= Defs.StarShot && b.Kind <= Defs.ChainStar)
             {
                 DrawNinjaShot(b, c, t);
+                return;
+            }
+            if (b.Kind >= Defs.BloodShot && b.Kind <= Defs.BoneSpearShot)
+            {
+                DrawBloodShot(b, c, t);  // BloodMageLook.cs
                 return;
             }
             if (b.Kind == Defs.FrostLance)
@@ -817,6 +824,10 @@ namespace Arena
                     SetColor(new Rgba(1f, 0.93f, 0.78f));
                     Quad(z.Pos + new V2(-7f, -12f), z.Pos + new V2(7f, -12f), z.Pos + new V2(7f, 12f), z.Pos + new V2(-7f, 12f));
                     Line(z.Pos + new V2(0f, -8f), z.Pos + new V2(0f, 8f), 2.5f, new Rgba(0.9f, 0.2f, 0.2f));
+                    break;
+                case ZoneKind.Siphon:
+                case ZoneKind.BloodPool:
+                    DrawBloodZone(z, c, t);  // BloodMageLook.cs
                     break;
                 default:  // Haven
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
@@ -1340,6 +1351,8 @@ namespace Arena
                 DrawKnight(p, r, t);
             else if (p.Kit == Kit.Ninja && !p.Downed)
                 DrawNinja(p, r, t, col);
+            else if (p.Kit == Kit.BloodMage && !p.Downed)
+                DrawBloodMage(p, r, t, col);  // BloodMageLook.cs
             // The real hitbox, drawn as a bright core.
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);

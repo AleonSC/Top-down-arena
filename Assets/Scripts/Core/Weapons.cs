@@ -8,7 +8,7 @@ namespace Arena
     {
         /// Everything that speeds up firing: upgrades, Overdrive, Bullet Storm, Counterstance.
         float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
-            * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
+            * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * BloodFireRate(p);
 
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
         void FirePlayer(Player p, float spread = 0f)
@@ -306,7 +306,9 @@ namespace Arena
                     break;
                 }
                 default:
-                    if (p.Weapon.Id >= WeaponId.Kusarigama)
+                    if (p.Weapon.Id >= WeaponId.BloodLash)
+                        FireBloodWeapon(p, aim, dir, muzzle, dmg, extra);  // BloodMage.cs
+                    else if (p.Weapon.Id >= WeaponId.Kusarigama)
                         FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra);  // Ninja.cs
                     else if (p.Weapon.Melee)
                         FireKnightWeapon(p, aim, dmg, extra);  // Knight.cs
@@ -355,6 +357,16 @@ namespace Arena
                 case WeaponId.Ofuda: shot = 360f * 1.6f; break;
                 case WeaponId.Shuriken: shot = 700f * 0.75f; break;
                 case WeaponId.Kunai: shot = 850f * 0.75f; break;
+                // Blood Mages
+                case WeaponId.ClotBolt: shot = 520f * 1f; break;
+                case WeaponId.LeechBeam: shot = 1100f * 0.3f * (1f + 0.25f * x); break;
+                case WeaponId.VeinTether: shot = 1100f * 0.32f * (1f + 0.25f * x); break;
+                case WeaponId.TransfusionDarts: shot = 850f * 0.85f; break;
+                case WeaponId.SanguineOrb: shot = 420f * 1.4f; break;
+                case WeaponId.BloodBolts: shot = 800f * 0.8f; break;
+                case WeaponId.HemoSpray: shot = 620f * 0.5f; break;
+                case WeaponId.BoneSpear: shot = 1000f * 0.9f; break;
+                case WeaponId.BloodLash: return MeleeReach(p, LashReach + 20f * x);
                 case WeaponId.Kusarigama: return MeleeReach(p, KusariReach + 20f * x);
                 case WeaponId.BoStaff: return MeleeReach(p, BoReach + 20f * x);
                 // Knights: the reach of the swing.

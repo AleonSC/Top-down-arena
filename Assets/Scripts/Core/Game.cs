@@ -61,6 +61,9 @@ namespace Arena
         public V2 VanishFrom;                         // host: where enemies last saw you before you vanished
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
+        public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
+        public bool PactMastered, RushMastered, ApoUp;
         public float WallHp, WhirlTick, WhirlPower = 1f;  // host
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
@@ -150,6 +153,7 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public int LastHitBy;
+        public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
@@ -167,6 +171,8 @@ namespace Arena
         public float Splash;      // host only: explosion radius on impact
         public float HealAlly;    // host only: heals an ally it passes through
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
+        public float HealOwner;   // host only: heals whoever fired it this much when it hits (Hemo Nova)
+        public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it hits (Clot Bolt)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
@@ -1188,6 +1194,7 @@ namespace Arena
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
             TickNinjas(dt);   // Ninja.cs
+            TickBloodMages(dt);  // BloodMage.cs
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

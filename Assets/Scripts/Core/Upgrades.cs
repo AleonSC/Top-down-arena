@@ -21,6 +21,9 @@ namespace Arena
         // Ninja (Space), then the Ninja ultimates
         ShadowClone, SmokeBomb, IronBody, HealingMist, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
         ThousandClones, BlossomStorm, DeathLotus,
+        // Blood Mage (Space), then the Blood Mage ultimates
+        BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
+        BloodRite, SanguineRain, CrimsonApotheosis,
         None = 255,
     }
 
@@ -28,6 +31,8 @@ namespace Arena
     {
         public string Name, Desc;
         public float Cooldown;
+        public float HealthCost;   // the Blood Mage's abilities cost this much of your max health (it can't take you below 1)
+        public bool CostsCurrent;  // ...or of your current health (Blood Gift)
     }
 
     /// Stats derived from the upgrades a player has picked (recomputed on every pick).
@@ -56,6 +61,11 @@ namespace Arena
         public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
         public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
         public int FanExtraKunai;
+        // Blood Mage abilities
+        public float ShellBonus, ShellBonusTime, PactMult = 1f, PactRadiusMult = 1f, DrainMult = 1f, DrainRadiusMult = 1f;
+        public float GiftMult = 1f, SiphonRadiusMult = 1f, SiphonBonusTime, MartyrBonus, MartyrInvuln;
+        public float BoilMult = 1f, BoilRadiusMult = 1f, RushBonusTime, RushRate;
+        public int NovaExtraBolts;
 
         // Legendary weapon upgrades from bosses.
         public int HaloEvery, KillRing, SplitShots;
@@ -168,14 +178,33 @@ namespace Arena
             new AbilityDef { Name = "Thousand Clones", Cooldown = 70f, Desc = "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends." },
             new AbilityDef { Name = "Blossom Storm", Cooldown = 80f, Desc = "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally." },
             new AbilityDef { Name = "Death Lotus", Cooldown = 65f, Desc = "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each." },
+            // Blood Mage: every Space ability costs health
+            new AbilityDef { Name = "Blood Shell", Cooldown = 9f, HealthCost = 0.15f, Desc = "Pay 15% of your max health for a shield worth three times as much, for 5 s." },
+            new AbilityDef { Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f,
+                Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px." },
+            new AbilityDef { Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you." },
+            new AbilityDef { Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true,
+                Desc = "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you." },
+            new AbilityDef { Name = "Siphon Field", Cooldown = 11f, HealthCost = 0.1f,
+                Desc = "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s." },
+            new AbilityDef { Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f,
+                Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid." },
+            new AbilityDef { Name = "Blood Boil", Cooldown = 8f, HealthCost = 0.2f, Desc = "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid." },
+            new AbilityDef { Name = "Frenzy Pact", Cooldown = 11f, HealthCost = 0.05f,
+                Desc = "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s." },
+            new AbilityDef { Name = "Hemo Nova", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3." },
+            new AbilityDef { Name = "Blood Rite", Cooldown = 75f, Desc = "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies." },
+            new AbilityDef { Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage." },
+            new AbilityDef { Name = "Crimson Apotheosis", Cooldown = 65f,
+                Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt." },
         };
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates =
         {
-            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand, AbilityId.ThousandClones,  // Tank: Soldier, Mage, Summoner, Knight, Ninja
-            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade, AbilityId.BlossomStorm,  // Healer
-            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, AbilityId.DeathLotus,  // DPS
+            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand, AbilityId.ThousandClones, AbilityId.BloodRite,  // Tank: Soldier, Mage, Summoner, Knight, Ninja, Blood Mage
+            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade, AbilityId.BlossomStorm, AbilityId.SanguineRain,  // Healer
+            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, AbilityId.DeathLotus, AbilityId.CrimsonApotheosis,  // DPS
         };
 
         public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * Defs.KitCount + (int)kit];
@@ -188,16 +217,19 @@ namespace Arena
             AbilityId.GolemWall, AbilityId.Earthquake, AbilityId.GuardianSpirit,  // Tank: Summoner
             AbilityId.ShieldWall, AbilityId.LeapSlam, AbilityId.Unbreakable,      // Tank: Knight
             AbilityId.ShadowClone, AbilityId.SmokeBomb, AbilityId.IronBody,       // Tank: Ninja
+            AbilityId.BloodShell, AbilityId.CrimsonPact, AbilityId.Exsanguinate,  // Tank: Blood Mage
             AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink,             // Healer: Soldier
             AbilityId.TimeRewind, AbilityId.ArcaneWard, AbilityId.Sanctify,       // Healer: Mage
             AbilityId.SpiritSwarm, AbilityId.Phoenix, AbilityId.SoulLantern,      // Healer: Summoner
             AbilityId.Consecrate, AbilityId.GuardiansOath, AbilityId.LayOnHands,  // Healer: Knight
             AbilityId.HealingMist, AbilityId.Substitution, AbilityId.SpiritWard,  // Healer: Ninja
+            AbilityId.BloodGift, AbilityId.SiphonField, AbilityId.Martyr,         // Healer: Blood Mage
             AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark,                    // DPS: Soldier
             AbilityId.Meteor, AbilityId.Blizzard, AbilityId.ArcaneSurge,          // DPS: Mage
             AbilityId.BatSwarm, AbilityId.Sacrifice, AbilityId.AlphaCall,         // DPS: Summoner
             AbilityId.Whirlwind, AbilityId.Lunge, AbilityId.BattleFury,           // DPS: Knight
             AbilityId.ShadowStep, AbilityId.Vanish, AbilityId.BladeFan,           // DPS: Ninja
+            AbilityId.BloodBoil, AbilityId.FrenzyPact, AbilityId.HemoNova,        // DPS: Blood Mage
         };
 
         public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
@@ -283,6 +315,24 @@ namespace Arena
                 Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
                 Apply = s => s.FanExtraKunai += 6 },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodShell, MaxStacks = 2, Name = "Hardened Blood", Desc = "Blood Shell is worth one more times what you paid and lasts 2 s longer",
+                Apply = s => { s.ShellBonus += 1f; s.ShellBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CrimsonPact, MaxStacks = 2, Name = "Blood Oath", Desc = "Crimson Pact's burst hits 50% harder and reaches 30% farther",
+                Apply = s => { s.PactMult += 0.5f; s.PactRadiusMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Exsanguinate, MaxStacks = 2, Name = "Deep Veins", Desc = "Exsanguinate reaches 30% farther and drains 50% more",
+                Apply = s => { s.DrainRadiusMult += 0.3f; s.DrainMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodGift, MaxStacks = 2, Name = "Lifeblood", Desc = "Blood Gift gives 50% more",
+                Apply = s => s.GiftMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiphonField, MaxStacks = 2, Name = "Hungry Earth", Desc = "Siphon Field is 40% bigger and lasts 3 s longer",
+                Apply = s => { s.SiphonRadiusMult += 0.4f; s.SiphonBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Martyr, MaxStacks = 2, Name = "Saint's Blood", Desc = "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
+                Apply = s => { s.MartyrBonus += 0.25f; s.MartyrInvuln += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodBoil, MaxStacks = 2, Name = "Boiling Point", Desc = "Blood Boil bursts 50% harder and reaches 25% farther",
+                Apply = s => { s.BoilMult += 0.5f; s.BoilRadiusMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FrenzyPact, MaxStacks = 2, Name = "Bloodrush", Desc = "Frenzy Pact lasts 2 s longer and fires another 25% faster",
+                Apply = s => { s.RushBonusTime += 2f; s.RushRate += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Hemo Nova fires 8 more bolts",
+                Apply = s => s.NovaExtraBolts += 8 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },

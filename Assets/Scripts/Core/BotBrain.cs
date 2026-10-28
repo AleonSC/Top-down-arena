@@ -245,6 +245,27 @@ namespace Arena
                     return haveTarget && targetD > 120f && targetD < 440f || BotDanger > 2.5f;
                 case AbilityId.BladeFan:
                     return danger || haveTarget && targetD < 260f;
+                // Blood Mage: Space abilities cost health, so not when it's already low (Martyr excepted)
+                case AbilityId.BloodShell:
+                    return danger && me.Hp > me.MaxHp * 0.4f;
+                case AbilityId.CrimsonPact:
+                    return haveTarget && targetD < 260f && me.Hp > me.MaxHp * 0.6f;
+                case AbilityId.Exsanguinate: case AbilityId.HemoNova:
+                    return haveTarget && targetD < 220f && me.Hp > me.MaxHp * 0.35f;
+                case AbilityId.BloodGift: case AbilityId.SiphonField:
+                    return allyHurt && me.Hp > me.MaxHp * 0.5f;
+                case AbilityId.Martyr:
+                    return allyDown;
+                case AbilityId.BloodBoil:
+                    return haveTarget && targetD < 250f && me.Hp > me.MaxHp * 0.45f;
+                case AbilityId.FrenzyPact:
+                    return haveTarget && targetD < 500f && me.Hp > me.MaxHp * 0.5f;
+                case AbilityId.BloodRite:
+                    return danger || haveTarget && Players.Count > 1;
+                case AbilityId.SanguineRain:
+                    return allyHurt && haveTarget;
+                case AbilityId.CrimsonApotheosis:
+                    return haveTarget && targetD < 500f;
                 // Everything else hurts the boss: use it when it's in reach
                 default:
                     return haveTarget && targetD < 520f;

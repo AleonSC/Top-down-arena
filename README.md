@@ -24,7 +24,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight, Ninja), then
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight, Ninja, Blood Mage), then
 one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
 their role and class.
 
@@ -33,6 +33,7 @@ their role and class.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
 - **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see below).
+- **Blood Mage**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its health; full health (see below).
 
 | | Soldier | Mage | Summoner |
 |---|---|---|---|
@@ -76,6 +77,28 @@ Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix 
 | **Tank** | **Kusarigama** (a chain-sickle whipped in a 130 px, 120° arc that yanks enemies 40 px toward you), **Bo Staff** (spun all the way round you, 90 px, cutting small bullets), **Chain Shuriken** (a heavy star that flies out and comes back, cutting through everything both ways) | **Shadow Clone** (a decoy for 5 s that every enemy aims at; bursts for 60), **Smoke Bomb** (a 140 px cloud for 5 s: enemy bullets inside slow to half speed, allies inside take 30% less damage), **Iron Body** (2 s of 80% less damage, then a 50-damage shockwave) | **Thousand Clones** (70 s): five clones surround you for 8 s, drawing every enemy's fire, then burst |
 | **Healer** | **Medicine Darts** (fast needles that heal allies they pass for 4), **Spirit Fan** (a short gust that heals allies in it and blows small enemy bullets back), **Ofuda** (slow homing paper charms that burst for 25 and heal allies near the burst for 8) | **Healing Mist** (a mist follows you for 6 s: allies inside heal 10 HP/s), **Substitution** (swap places with the ally nearest your cursor and shield them for 60; alone, slip toward your cursor and shield yourself), **Spirit Ward** (a talisman at your cursor for 8 s: allies near it regenerate and revive 3x faster) | **Blossom Storm** (80 s): for 5 s the whole party heals 20 HP/s and enemy bullets near every ally are erased |
 | **DPS** | **Shuriken** (fans of 3 stars that ricochet once), **Katana** (fast 110° slashes; every 4th is a long lunging cut for double damage), **Kunai** (rapid knives, +50% damage to enemies that aren't targeting you) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80), **Vanish** (for 3 s enemies lose track of you; your next hit deals double), **Blade Fan** (12 kunai in a ring, 18 each) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each |
+
+### The Blood Mage
+
+Health is the Blood Mage's resource. It has full health and normal speed, and:
+
+- **Every Space ability costs health**, a share of your max health shown on the card (Blood Gift: of your
+  current health). A cost can't take you below 1 HP: at 1 HP the ability still goes off, but anything that
+  scales with what you paid is worth nothing. Cooldowns are shorter than other classes' to make up for it.
+- **Blood Price:** you deal more damage the more health you're missing, up to **+40%** at 10% health.
+- **All your hits heal you for 3% of the damage they deal.**
+
+| | Weapons | Space abilities (cost) | Ultimate |
+|---|---|---|---|
+| **Tank** | **Blood Lash** (a 110 px, 130° whip of blood, 24; heals you 3 per enemy hit), **Clot Bolt** (a heavy bolt, 26, that leaves a pool of blood slowing enemies 40% for 3 s), **Leech Beam** (a rapid short beam; 30% of its damage heals you) | **Blood Shell** (15%: a shield worth three times what you paid, 5 s), **Crimson Pact** (10%: every enemy targets you for 4 s, then the damage you took bursts back out at 150% within 220 px), **Exsanguinate** (10%: pull enemies within 220 px in and drain 20 from each into you) | **Blood Rite** (75 s): for 8 s every enemy targets you and you take 60% less damage; the damage you take heals your allies |
+| **Healer** | **Transfusion Darts** (darts that heal an ally they reach for 8, costing you 3), **Sanguine Orb** (homing orbs, 16; their kills have a 40% chance to drop a small health orb), **Vein Tether** (a draining beam; 40% of its damage heals, split between you and the nearest ally) | **Blood Gift** (25% of current health: the most hurt ally heals twice what you paid; alone, a shield for you), **Siphon Field** (10%: a 140 px field at your feet for 6 s, enemies inside lose 10 HP/s and allies heal 10 HP/s), **Martyr** (40%: revive the downed ally nearest your cursor, anywhere, at 50%; if no one is down, the most hurt ally heals twice what you paid) | **Sanguine Rain** (80 s): for 6 s every hit any ally lands heals them for 20% of its damage |
+| **DPS** | **Blood Bolts** (fast bolts, 9), **Hemo Spray** (a fan of 5 piercing droplets, 7 each), **Bone Spear** (a heavy spear, 60, that pierces 3; each throw costs 2 health) | **Blood Boil** (20%: enemies within 260 px burst after 1 s for three times what you paid), **Frenzy Pact** (5%: for 6 s fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s), **Hemo Nova** (10%: a ring of 16 blood bolts, 20 each, each that hits heals you 3) | **Crimson Apotheosis** (65 s): for 6 s you can't drop below 1 HP and Blood Price goes up to +100%; when it ends you heal for half the damage you dealt |
+
+Capstones (level 5): Blood Shell also erases bullets within 160 px · Crimson Pact: 30% less damage while it
+lasts · Exsanguinate also slows what it drains by 50% for 2 s · Blood Gift also heals others within 200 px of
+them for half · Siphon Field follows you · Martyr: you're invulnerable for 2 s after · Blood Boil's bursts also
+hit enemies within 80 px · Frenzy Pact: no health drain · Hemo Nova's bolts pierce 2 · Blood Rite lasts 12 s ·
+Sanguine Rain lasts 9 s and heals 30% · Crimson Apotheosis lasts 9 s.
 
 Players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
@@ -140,6 +163,15 @@ your weapon. Per extra projectile:
 | DPS · Ninja | **Shuriken** | Fans of 3 stars (9) that ricochet once | +1 star in the fan |
 | | **Katana** | 110° slashes (20); every 4th is a 170 px lunging cut (40) | +1 cut: each slash strikes once more (60% damage) |
 | | **Kunai** | Rapid knives (8), +50% on enemies that aren't targeting you | +1 knife, fanned out (half damage) |
+| Tank · Blood Mage | **Blood Lash** | 130° whip (24) with 110 px reach; heals you 3 per enemy hit | +20 px reach and +1 HP healed per hit |
+| | **Clot Bolt** | A heavy bolt (26) that leaves a 70 px pool slowing enemies 40% for 3 s | +1 bolt, fanned out |
+| | **Leech Beam** | A rapid short beam (4); 30% of its damage heals you | +25% beam length and +25% damage |
+| Healer · Blood Mage | **Transfusion Darts** | Darts (7) that heal an ally they reach for 8, costing you 3 | +1 dart, fanned out |
+| | **Sanguine Orb** | Homing orbs (16); kills may drop a small health orb (40%) | +1 orb, fanned out |
+| | **Vein Tether** | A draining beam (4); 40% of its damage heals you and the nearest ally | +25% beam length and +25% damage |
+| DPS · Blood Mage | **Blood Bolts** | Fast bolts (9) | +1 bolt, fanned out |
+| | **Hemo Spray** | A fan of 5 piercing droplets (7 each) | +2 droplets |
+| | **Bone Spear** | A heavy spear (60) that pierces 3; each throw costs 2 health | +1 spear, fanned out (costs no more health) |
 
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
 fills while it reloads.
@@ -246,7 +278,7 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Blood Mages: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, Boiling Point, Bloodrush, Crimson Tide), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability on **Q**, **E** or **Shift** (you choose the key; each one only once): a universal one (Shockwave, Overdrive, Blink, Nova or Turret), or one of your **class's two other Space abilities**, the ones you didn't pick in the lobby (these count double, so about 4 in 9 very rare cards are class abilities) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |
@@ -660,6 +692,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
+  - `Ninja.cs` / `BloodMage.cs`: the Ninja and Blood Mage classes: weapons, abilities and ultimates
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab

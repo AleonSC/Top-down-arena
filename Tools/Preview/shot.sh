@@ -4,7 +4,8 @@
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
 # Modes (see Shot.cs): hud, dev, bg, lobby, lobbypr, practicehud, labsetup, labpanel, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
-# BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1.
+# BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
+# NINJA=n / BLOOD=n (everyone plays that class, with weapon n).
 # Needs mono (mcs) and python3 with Pillow. Output: Tools/Preview/out/<out-name>.png
 set -e
 cd "$(dirname "$0")"

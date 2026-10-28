@@ -17,6 +17,7 @@ namespace Arena
             var id0 = p.Slots[slot].Id;
             Recorder?.AbilityUsed(p, id0);
             bool hadTargets = State == MatchState.Fighting && AnyTarget();
+            PayAbilityCost(p, id0);  // Blood Mage abilities cost health (BloodMage.cs)
             BeginCast(p, id0);
             CastAbility(p, slot, target);
             EndCast(p, slot, id0, hadTargets);

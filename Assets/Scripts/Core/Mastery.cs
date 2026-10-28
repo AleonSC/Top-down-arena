@@ -277,6 +277,18 @@ namespace Arena
                 case AbilityId.ThousandClones: return "Eight clones.";
                 case AbilityId.BlossomStorm: return "Lasts 8 s.";
                 case AbilityId.DeathLotus: return "Strikes up to 14 enemies.";
+                case AbilityId.BloodShell: return "Also erases enemy bullets within 160 px.";
+                case AbilityId.CrimsonPact: return "You take 30% less damage while it lasts.";
+                case AbilityId.Exsanguinate: return "Also slows the enemies it drains by 50% for 2 s.";
+                case AbilityId.BloodGift: return "Also heals everyone else within 200 px of them for half as much.";
+                case AbilityId.SiphonField: return "The field follows you.";
+                case AbilityId.Martyr: return "You're invulnerable for 2 s after the sacrifice.";
+                case AbilityId.BloodBoil: return "Each burst also hits enemies within 80 px of it.";
+                case AbilityId.FrenzyPact: return "No health drain.";
+                case AbilityId.HemoNova: return "Bolts pierce 2 enemies.";
+                case AbilityId.BloodRite: return "Lasts 12 s.";
+                case AbilityId.SanguineRain: return "Lasts 9 s and heals 30%.";
+                case AbilityId.CrimsonApotheosis: return "Lasts 9 s.";
                 default: return "";
             }
         }

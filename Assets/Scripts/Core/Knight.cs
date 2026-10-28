@@ -21,6 +21,7 @@ namespace Arena
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
         public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
         public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
+        public float SelfHeal;        // heals the swinger this much per enemy hit (the Blood Mage's Blood Lash)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -58,6 +59,7 @@ namespace Arena
                 case WeaponId.BoStaff: return BoReach;
                 case WeaponId.Katana: return KatanaReach;
                 case WeaponId.BearTotem: return BearReach;
+                case WeaponId.BloodLash: return LashReach;
                 default: return 0f;
             }
         }
@@ -315,6 +317,8 @@ namespace Arena
                         if (q.Pos.DistanceTo(origin) < s.HealRange)
                             Heal(q, s.HealPerHit, p);
                 }
+                if (s.SelfHeal > 0f)
+                    Heal(p, s.SelfHeal, p);
             }
             if (s.HealSpin > 0f)
                 foreach (var q in Players.Values)
