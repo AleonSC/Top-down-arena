@@ -365,7 +365,16 @@ namespace Arena
                     if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
                         continue;
                     if (p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR)
+                    {
+                        if (e.Def.IsBoss)
+                        {
+                            // A boss's body hurts once and shoves you out (the shove happens on your own game).
+                            if (p.BossContactT > 0f)
+                                continue;
+                            p.BossContactT = BossContactEvery;
+                        }
                         Damage(p, contact, e.Def.Name + " (contact)");
+                    }
                 }
             }
 

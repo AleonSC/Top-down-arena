@@ -59,6 +59,7 @@ namespace Arena
         public float WallHp, WhirlTick, WhirlPower = 1f;  // host
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
+        public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float UltT;                     // Fortress / Bullet Storm time left
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
@@ -263,6 +264,9 @@ namespace Arena
         const float IntermissionTime = 4f;
         const float ContactDamage = 15f;
         const float HitIframes = 0.35f;
+        const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
+        float shoveT;
+        V2 shoveDir;
         const float ReviveRange = 70f;
         const float ReviveTime = 3f;
         public const float AuraRange = 170f;
@@ -417,6 +421,7 @@ namespace Arena
         void ReadStart(BinaryReader r)
         {
             Stop();
+            PracticeIndex = -1;
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)
@@ -1000,6 +1005,21 @@ namespace Arena
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
             if (!me.Downed && DashT <= 0f)
                 me.Pos += WellDriftAt(me.Pos) * dt;  // the Singularity's corner wells (Singularity.cs)
+            // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
+            if (!me.Downed && shoveT <= 0f)
+                foreach (var e in Enemies.Values)
+                    if (e.Def.IsBoss && !IsSpawning(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
+                    {
+                        V2 away = me.Pos - e.Pos;
+                        shoveDir = away.IsZero ? V2.FromAngle(me.Aim + MathX.Pi) : away.Normalized();
+                        shoveT = BossShoveTime;
+                        break;
+                    }
+            if (shoveT > 0f)
+            {
+                shoveT -= dt;
+                me.Pos += shoveDir * BossShoveSpeed * dt;
+            }
 
             for (int slot = 0; slot < held.Length; slot++)
             {
@@ -1901,11 +1921,26 @@ namespace Arena
                         StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {
-                        Wave++;
                         State = MatchState.Fighting;
                         spawnTimer = 0.5f;
-                        BuildWave(Wave);
-                        Recorder?.WaveStart(this, Wave, Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null);
+                        string bossName;
+                        if (Practice != null && Practice.Waves.Count > 0)
+                        {
+                            // Practice range: the next wave of the plan (wrapping round), at its level.
+                            PracticeIndex = (PracticeIndex + 1) % Practice.Waves.Count;
+                            var pw = Practice.Waves[PracticeIndex];
+                            Wave = Math.Max(1, pw.Level);
+                            BuildPracticeWave(pw);
+                            var boss = Array.Find(PracticePlan.Choices, t => Defs.Get(t).IsBoss && pw.Counts.ContainsKey(t) && pw.Counts[t] > 0);
+                            bossName = Defs.Get(boss).IsBoss ? PracticePlan.NameOf(boss) : null;
+                        }
+                        else
+                        {
+                            Wave++;
+                            BuildWave(Wave);
+                            bossName = Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null;
+                        }
+                        Recorder?.WaveStart(this, Wave, bossName);
                         DoLog("wave " + Wave + ": " + string.Join(",", spawnQueue));
                     }
                     break;
@@ -1922,7 +1957,14 @@ namespace Arena
                     }
                     else if (Enemies.Count == 0)
                     {
-                        if (Wave >= MaxWave && !Endless)
+                        if (Practice != null)
+                        {
+                            if (PracticeIndex >= Practice.Waves.Count - 1 && !Practice.Loop)
+                                Win();  // practice complete
+                            else
+                                WaveCleared();
+                        }
+                        else if (Wave >= MaxWave && !Endless)
                             Win();
                         else
                             WaveCleared();
@@ -2297,9 +2339,9 @@ namespace Arena
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult });
                             break;
                         }
-                        if (blockable && p.WallT > 0f && WallCovers(p, b.Pos, b.Radius))
+                        if (p.WallT > 0f && WallCovers(p, b.Pos, b.Radius))
                         {
-                            scratchIds.Add(b.Id);  // Shield Wall
+                            scratchIds.Add(b.Id);  // Shield Wall: stops everything from the front, red aimed shots included
                             if (p.WallReflect)
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
                             p.WallHp -= BlockerWear(b);

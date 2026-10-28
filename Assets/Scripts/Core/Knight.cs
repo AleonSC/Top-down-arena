@@ -488,6 +488,7 @@ namespace Arena
                 p.WallT = Math.Max(0f, p.WallT - dt);
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
                 p.FuryT = Math.Max(0f, p.FuryT - dt);
+                p.BossContactT = Math.Max(0f, p.BossContactT - dt);
                 if (p.Downed)
                     p.WallT = p.WhirlT = p.UnbreakT = p.FuryT = 0f;
                 if (p.WhirlT > 0f)

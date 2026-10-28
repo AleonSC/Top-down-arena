@@ -61,7 +61,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 47;
+        public const int ProtocolVersion = 48;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -150,6 +150,7 @@ namespace Arena
         public void Leave(string status)
         {
             Game.Stop();
+            Game.Practice = null;
             if (Net != null)
                 Net.Close();
             Net = null;
@@ -452,6 +453,7 @@ namespace Arena
                 return;
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
             Game.Stop();
+            Game.Practice = null;
             Screen = AppScreen.Lobby;
             foreach (var e in Lobby.Values)
                 e.Ready = false;

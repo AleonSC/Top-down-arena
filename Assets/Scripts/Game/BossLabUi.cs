@@ -146,16 +146,18 @@ namespace Arena
                 Ui.Label(new Rect(x, start.y, start.x - 150f - x, 40f), session.Status, 12, Ui.Warn, TextAnchor.MiddleLeft, false, true);
         }
 
-        float DrawLabSeat(int i, float x, float y, float w)
+        float DrawLabSeat(int i, float x, float y, float w) => DrawSeat(lab.Seats[i], "Player " + (i + 1), i == 0 ? 1 : 2, x, y, w);
+
+        /// A role / class / weapon / ability picker. corner: 0 = nothing, 1 = "I'll play this one" toggle, 2 = "Bot".
+        float DrawSeat(LabSeat s, string title, int corner, float x, float y, float w)
         {
-            var s = lab.Seats[i];
             var box = new Rect(x, y, w, 150f);
             Ui.HudPanel(box, ToColor(Defs.Get(s.Role).Color));
             float ix = x + 12f, iw = w - 24f, iy = y + 8f;
-            Ui.Label(new Rect(ix, iy, 120f, 20f), "Player " + (i + 1), 14, Color.white, TextAnchor.MiddleLeft, true);
-            if (i == 0)
+            Ui.Label(new Rect(ix, iy, 200f, 20f), title, 14, Color.white, TextAnchor.MiddleLeft, true);
+            if (corner == 1)
                 s.Human = Ui.Toggle(new Rect(ix + iw - 170f, iy - 2f, 170f, 24f), s.Human, "I'll play this one");
-            else
+            else if (corner == 2)
                 Ui.Label(new Rect(ix + iw - 170f, iy, 170f, 20f), "Bot", 12, Ui.Muted, TextAnchor.MiddleRight);
             iy += 26f;
             float lw = 60f;

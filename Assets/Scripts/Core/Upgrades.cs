@@ -133,7 +133,7 @@ namespace Arena
             new AbilityDef { Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each." },
             new AbilityDef { Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy." },
             // Knight
-            new AbilityDef { Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°). Bosses can break it (it soaks 400 of their damage)." },
+            new AbilityDef { Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), even red aimed shots. Bosses can break it (it soaks 400 of their damage)." },
             new AbilityDef { Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s." },
             new AbilityDef { Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal." },
             new AbilityDef { Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second." },

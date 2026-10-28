@@ -50,7 +50,7 @@ classes.
 
 | | Weapons | Space abilities | Ultimate |
 |---|---|---|---|
-| **Tank** | **Warhammer** (slow 150° smash, knocks back), **Lance** (a heavy 150 px jab that shoves enemies 140 px back), **Halberd** (160 px thrust that hits everything on the blade) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
+| **Tank** | **Warhammer** (slow 150° smash, knocks back), **Lance** (a heavy 150 px jab that shoves enemies 140 px back), **Halberd** (160 px thrust that hits everything on the blade) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, red aimed shots included, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
 | **Healer** | **Holy Mace** (each enemy hit heals you and allies near you for 2, up to 8 a swing), **Lightbringer** (sword cut plus a crescent of light that heals allies it passes), **Censer** (a flail whirled all the way round; each spin heals allies near you for 3) | **Consecrate** (6 s of blessed ground: allies heal 12 HP/s, enemies burn 20/s), **Guardian's Oath** (shield the ally nearest your cursor for 100, yourself for 50, for 6 s), **Lay on Hands** (heal the most hurt ally within 300 px for 70, or revive them at half health) | **Hallowed Blade** (80 s): a giant sword falls at your cursor for 200 damage around it, then blesses the ground for 8 s (allies heal 15 HP/s) |
 | **DPS** | **Twin Blades** (very fast alternating slashes), **Greatsword** (huge 170° sweeps), **Rapier** (thrusts at the nearest enemy; each hit in a row on it deals 10% more, up to +60%) | **Whirlwind** (spin for 2 s hitting everything within 110 px every 0.2 s and slicing small bullets), **Lunge** (dash 260 px toward your cursor hitting everything you pass for 35; two charges), **Battle Fury** (6 s: swing 40% faster, +25% damage) | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
@@ -258,6 +258,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
+- **Boss bodies:** touching a boss hurts once (25 + 0.6 per wave) and shoves you about 100 px back out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 50 + 4 per wave, up to 120 from wave 18 (30% more per extra player). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies only get 40% of the cap. Later waves get harder through tougher enemies, not more bullets.
 
 ## Enemies
@@ -455,6 +456,30 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
+### Practice Range (F1)
+
+**F1 → Practice Range** lets you build your own waves and play them.
+
+- **Waves** (left): add as many as you like (**+ Add**, **Copy**, **Remove**). Each has a **level** (1-50) that
+  sets how strong its enemies are: their health and fire rate as on that wave of a normal run. Tick **Loop the
+  waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
+- **Enemies** (right): pick how many of each of the 17 regular enemies and 10 bosses are in the selected wave
+  (up to 99 each). Bosses spawn first and bring their usual adds; the Twin Reapers come as a pair.
+- **Your loadout:** role, class, weapon and ability. You play solo, with upgrade picks between waves as usual.
+  Starting practice leaves any match you're in.
+- **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
+  sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
+
+  ```
+  # Top-Down Arena practice setup: warden drills
+  loop: no
+  wave 5: Grunt x4, Sniper x2
+  wave 10: The Warden x1, Medic x2
+  ```
+
+  One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
+  ignore case and "The". Unknown names are skipped and listed when you load.
+
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
@@ -501,6 +526,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
+  - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types

@@ -190,9 +190,16 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 devMenuOpen = !devMenuOpen;
+                practiceSetupOpen = false;
                 GUIUtility.keyboardControl = 0;
             }
-            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen;
+            bool closedPractice = false;
+            if (Input.GetKeyDown(KeyCode.Escape) && practiceSetupOpen)
+            {
+                practiceSetupOpen = false;
+                closedPractice = true;
+            }
+            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen || practiceSetupOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
@@ -248,7 +255,11 @@ namespace Arena
 
             if (session.Screen == AppScreen.Game)
             {
-                if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
+                if (closedPractice)
+                {
+                    // this Escape closed the Practice Range setup
+                }
+                else if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
@@ -1497,7 +1508,7 @@ namespace Arena
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
-            bool modal = labSetupOpen || devMenuOpen;
+            bool modal = labSetupOpen || devMenuOpen || practiceSetupOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
@@ -1516,11 +1527,13 @@ namespace Arena
                     DrawHud();
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen)
+                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen && !practiceSetupOpen)
                         DrawPauseMenu();
                     break;
             }
-            if (labSetupOpen)
+            if (practiceSetupOpen)
+                DrawPracticeSetup();
+            else if (labSetupOpen)
                 DrawLabSetup();
             else if (devMenuOpen)
                 DrawDevMenu();
@@ -1966,9 +1979,16 @@ namespace Arena
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
+                    var pr = game.Practice;
+                    int pNext = pr == null ? 0 : (game.PracticeIndex + 1) % Math.Max(1, pr.Waves.Count);
                     string sub = choosing.Count > 0 ? "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…"
-                        : !game.AnyonePicking() ? "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer) : "";
-                    DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.Wave > 0 && game.Wave % 5 == 0 ? Ui.Gold : Ui.Accent);
+                        : game.AnyonePicking() ? ""
+                        : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
+                        : "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);
+                    if (pr != null)
+                        DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
+                    else
+                        DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.Wave > 0 && game.Wave % 5 == 0 ? Ui.Gold : Ui.Accent);
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
@@ -2204,9 +2224,10 @@ namespace Arena
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f));
             var panel = new Rect(70f, 30f, W - 140f, H - 60f);
             Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 56f), won ? "VICTORY!" : "GAME OVER", 46, won ? Ui.Gold : new Color(1f, 0.45f, 0.45f));
+            Ui.Title(new Rect(panel.x, panel.y + 14f, panel.width, 56f), game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : won ? "VICTORY!" : "GAME OVER", game.Practice != null ? 40 : 46, won ? Ui.Gold : new Color(1f, 0.45f, 0.45f));
             Ui.Label(new Rect(panel.x, panel.y + 66f, panel.width, 22f),
-                won ? "You beat all " + Game.MaxWave + " waves and The Eclipse" : "You made it to wave " + game.Wave, 16, Ui.Muted, TextAnchor.MiddleCenter);
+                game.Practice != null ? (won ? "You cleared all " + game.Practice.Waves.Count + " practice waves" : "You made it to practice wave " + Math.Max(1, game.PracticeIndex + 1) + " of " + game.Practice.Waves.Count)
+                : won ? "You beat all " + Game.MaxWave + " waves and The Eclipse" : "You made it to wave " + game.Wave, 16, Ui.Muted, TextAnchor.MiddleCenter);
             if (game.Recorder != null)
                 Ui.Label(new Rect(panel.x + 20f, panel.yMax - 22f, panel.width - 40f, 16f), "Session recorded: " + game.Recorder.Path, 10, Ui.Muted, TextAnchor.MiddleLeft);
 
@@ -2414,18 +2435,29 @@ namespace Arena
             }
             plateMax = Math.Max(plateMax, game.Remaining);
             var r = new Rect(14f, 12f, 270f, 76f);
-            bool bossWave = game.Wave > 0 && game.Wave % 5 == 0;
+            var practice = game.Practice;
+            bool bossWave = practice != null ? BossUp() : game.Wave > 0 && game.Wave % 5 == 0;
             Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
-            Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), bossWave ? "BOSS WAVE" : "WAVE", 10, bossWave ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string num = game.Wave.ToString();
+            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : bossWave ? "BOSS WAVE" : "WAVE";
+            Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), head, 10, bossWave ? Ui.Gold : practice != null ? Ui.Accent : Ui.Muted, TextAnchor.MiddleLeft, true);
+            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Wave.ToString();
             Ui.Label(new Rect(r.x + 14f, r.y + 20f, 120f, 40f), num, 34, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), game.Endless ? "ENDLESS" : "/ " + Game.MaxWave, 13,
-                game.Endless ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : "/ " + Game.MaxWave;
+            Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), of, 13,
+                game.Endless || practice != null && practice.Loop ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 130f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(r.x + 130f, r.y + 20f, 124f, 26f), game.Remaining.ToString(), 20, Color.white, TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(r.x + 130f, r.y + 44f, 124f, 14f), "SCORE " + game.Score.ToString("N0"), 10, Ui.Gold, TextAnchor.MiddleRight, true);
             float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
             Ui.Bar(new Rect(r.x + 14f, r.yMax - 12f, r.width - 28f, 5f), progress, bossWave ? Ui.Gold : Ui.Accent);
+        }
+
+        bool BossUp()
+        {
+            foreach (var e in game.Enemies.Values)
+                if (e.Def.IsBoss)
+                    return true;
+            return false;
         }
 
         /// One player's card: role-colored accent, name and class, health (with shield) and XP.
