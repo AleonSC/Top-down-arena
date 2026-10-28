@@ -866,6 +866,38 @@ static class Program
             me.AmmoUsed = 0; me.ReloadT = 0f;
             Check(g.RevolverCapacity(me) == 10 && g.RevolverHeavy(me) == 5, "each extra projectile adds two heavy rounds to the Revolver's cylinder");
         }
+        // Barrage builds the wall: every shot also fires copies fanned out to the sides.
+        {
+            Func<WeaponDef, int, int, List<Bullet>> FirstVolley = (w, fan, extra) =>
+            {
+                g.Bullets.Clear();
+                me.Weapon = w;
+                me.Stats.Fan = fan;
+                me.Stats.ExtraShots = extra;
+                me.AmmoUsed = 0; me.ReloadT = 0f;
+                var seen = new HashSet<int>();
+                var shots = new List<Bullet>();
+                for (int f = 0; f < 60 && shots.Count == 0; f++)
+                {
+                    foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = true } : new PlayerInput()); }
+                    foreach (var b in g.Bullets.Values) if (b.Owner == 1 && seen.Add(b.Id)) shots.Add(b);
+                }
+                return shots;
+            };
+            var rev = FirstVolley(Defs.Weapon(Role.Healer, Kit.Soldier, 1), 2, 0);
+            var angles = rev.ConvertAll(b => (float)Math.Round(b.Vel.Angle, 2));
+            angles.Sort();
+            int used = me.AmmoUsed;
+            var scatter0 = FirstVolley(Defs.Weapon(Role.Tank, Kit.Soldier, 0), 0, 0);
+            var scatter2 = FirstVolley(Defs.Weapon(Role.Tank, Kit.Soldier, 0), 2, 0);
+            Func<List<Bullet>, float> Width = bs => { float lo = 9f, hi = -9f; foreach (var b in bs) { lo = Math.Min(lo, b.Vel.Angle); hi = Math.Max(hi, b.Vel.Angle); } return hi - lo; };
+            Console.WriteLine("  barrage: revolver x2 fires at {0} using {1} round(s); scattergun {2} pellets over {3:0.00} rad -> {4} over {5:0.00} rad",
+                string.Join(" ", angles), used, scatter0.Count, Width(scatter0), scatter2.Count, Width(scatter2));
+            Check(rev.Count == 3 && Math.Abs(angles[0] + 0.14f) < 0.011f && Math.Abs(angles[2] - 0.14f) < 0.011f && used == 1,
+                "Barrage fans every shot out to the sides (a Revolver round fans for one round of ammo)");
+            Check(scatter2.Count == 3 * scatter0.Count && Width(scatter2) > Width(scatter0) + 0.25f, "Barrage stacks into a wall: a Scattergun with two copies fires three cones side by side");
+            me.Stats.Fan = 0;
+        }
         // Twin Rifle: barrels side by side, not a line.
         {
             g.Bullets.Clear();

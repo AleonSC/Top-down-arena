@@ -1082,7 +1082,7 @@ namespace Arena
                     for (p.EchoT -= dt; p.EchoLeft > 0 && p.EchoT <= 0f; p.EchoT += p.EchoGap)
                     {
                         p.EchoLeft--;
-                        FireVolley(p, p.Aim, 0);
+                        FireFanned(p, p.Aim, 0);
                     }
                 }
                 p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
@@ -1134,7 +1134,12 @@ namespace Arena
                 }
             // Each extra projectile (Multishot, Iron Volley, Bullet Storm) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
-            FireVolley(p, p.Aim, extra);
+            FireFanned(p, p.Aim, extra);
+            if (p.Weapon.Id == WeaponId.Pistol)
+            {
+                p.AmmoUsed++;  // fanned copies come free with the round
+                p.ReloadIdle = 0f;
+            }
             if (p.Weapon.Id == WeaponId.RiotRepeater && extra > 0)
             {
                 // A burst of 1 + extra rounds, then a longer pause.
@@ -1143,6 +1148,13 @@ namespace Arena
                 p.FireCd *= 1f + 0.6f * extra;
             }
             firingWeapon = false;
+        }
+
+        /// Barrage: the volley, plus a copy per stack fanned out to alternating sides (8 degrees apart).
+        void FireFanned(Player p, float aim, int extra)
+        {
+            for (int v = 0; v <= p.Stats.Fan; v++)
+                FireVolley(p, aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2)), extra);
         }
 
         /// Extra projectiles from upgrades, plus two during Bullet Storm.
@@ -1222,10 +1234,8 @@ namespace Arena
                 case WeaponId.Pistol:
                 {
                     // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
-                    int left = RevolverCapacity(p) - p.AmmoUsed;
+                    int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
                     bool heavy = left <= RevolverHeavy(p);
-                    p.AmmoUsed++;
-                    p.ReloadIdle = 0f;
                     SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, RevolverDamage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = heavy ? 6f : 4.5f;
                     break;
                 }

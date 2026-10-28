@@ -24,6 +24,7 @@ namespace Arena
             lines.Add(new StatLine { Label = "Damage taken", Value = Pct(s.DamageTaken) });
             lines.Add(new StatLine { Label = "Regeneration", Value = (Game.PassiveRegen + s.Regen).ToString("0.0") + " HP/s" });
             lines.Add(new StatLine { Label = "Extra projectiles", Value = "+" + s.ExtraShots });
+            lines.Add(new StatLine { Label = "Barrage (fanned copies)", Value = "+" + s.Fan });
             lines.Add(new StatLine { Label = "Pierce", Value = "+" + s.Pierce });
             lines.Add(new StatLine { Label = "Parry durability", Value = ((int)(Game.ParryCapacity * s.ParryCapacityMult)).ToString() });
             lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.RoleCharges).ToString() });

@@ -61,6 +61,7 @@ namespace Arena
             { "Bigger Boom", "grenade" },
             { "Exploit Weakness", "crosshair" },
             { "Multishot", "multishot" },
+            { "Barrage", "barrage" },
             { "Piercing Rounds", "pierce" },
             { "Overcharge", "battery" },
             { "Shockwave", "shockwave" },
@@ -456,6 +457,21 @@ namespace Arena
                 "..rr.rr.rr..",
                 "...rrrrrr...",
                 ".....rr.....",
+            },
+            ["barrage"] = new[]
+            {
+                ".....yw.....",
+                "yw...YY...yw",
+                "YY.yw..yw.YY",
+                "...YYggYY...",
+                ".g...gg...g.",
+                "..g..gg..g..",
+                "...g.gg.g...",
+                "....gggg....",
+                "....kGGk....",
+                "...kGggGk...",
+                "...kGGGGk...",
+                "...kkkkkk...",
             },
             ["multishot"] = new[]
             {
