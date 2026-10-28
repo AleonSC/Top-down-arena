@@ -323,6 +323,12 @@ bosses come back around, tougher each time.
 | 45 | **The Devourer** | Gets **hungry** for 3 s of every 10: your shots **heal** it, so stop shooting |
 | 50 | **The Eclipse** | Final boss in 3 phases: spirals and rings → gravity wells and phantoms → lightning storms and a frantic spiral |
 
+## Lobby backgrounds
+
+The lobby's **Background** picker (top right) switches the animated background behind the menus: Spiral, Warp,
+Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula or Tides. Untick **Animated** for a still
+image. Each player's choice is saved on their own computer.
+
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range
@@ -535,6 +541,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
+  - `MenuBackgrounds.cs`: the 10 menu backgrounds and the lobby's picker
   - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with live character previews) and the Practice Range editor
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync

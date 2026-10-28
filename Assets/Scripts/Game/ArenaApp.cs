@@ -102,6 +102,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            LoadBackgroundSettings();
             ParseCommandLine();
         }
 
@@ -389,34 +390,6 @@ namespace Arena
                 DrawMenuBackground(Time.time);
             GL.End();
             GL.PopMatrix();
-        }
-
-        /// Behind the menus: a slow drifting grid and a boss-like spiral of glowing bullets.
-        void DrawMenuBackground(float t)
-        {
-            FillRect(0, 0, W, H, new Rgba(0.035f, 0.04f, 0.065f));
-            var grid = new Rgba(0.4f, 0.55f, 1f, 0.05f);
-            float scroll = MathX.Fmod(t * 12f, 64f);
-            for (float x = -64f + scroll; x <= W; x += 64f)
-                Line(new V2(x, 0), new V2(x, H), 1f, grid);
-            for (float y = -64f + scroll; y <= H; y += 64f)
-                Line(new V2(0, y), new V2(W, y), 1f, grid);
-            // Soft colored glows.
-            Circle(new V2(W * 0.25f + 60f * Mathf.Sin(t * 0.2f), H * 0.35f), 260f, new Rgba(0.3f, 0.45f, 1f, 0.05f), 48);
-            Circle(new V2(W * 0.78f, H * 0.7f + 50f * Mathf.Cos(t * 0.17f)), 300f, new Rgba(0.8f, 0.35f, 0.9f, 0.04f), 48);
-            // A rotating five-armed spiral of bullets from the center.
-            var center = new V2(W / 2f, H / 2f);
-            for (int arm = 0; arm < 5; arm++)
-                for (int k = 0; k < 14; k++)
-                {
-                    float dist = MathX.Fmod(t * 60f + k * 52f, 14f * 52f);
-                    float ang = t * 0.25f + arm * MathX.Tau / 5f + dist * 0.004f;
-                    V2 pos = center + V2.FromAngle(ang) * dist;
-                    float a = 0.35f * MathX.Clamp01(dist / 120f) * (1f - dist / (14f * 52f));
-                    var c = arm % 2 == 0 ? new Rgba(1f, 0.35f, 0.5f) : new Rgba(0.45f, 0.65f, 1f);
-                    Circle(pos, 7f, c.WithAlpha(a * 0.5f), 10);
-                    Circle(pos, 3.5f, c.WithAlpha(a), 8);
-                }
         }
 
         void DrawWorld()

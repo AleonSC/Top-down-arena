@@ -32,7 +32,8 @@ namespace Arena
             Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             Ui.Label(new Rect(42f, 62f, 360f, 18f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 12, Ui.Muted);
             DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
-            Ui.Label(new Rect(W - 240f, 24f, 200f, 18f), Session.VersionText, 12, Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(W - 240f, 8f, 200f, 16f), Session.VersionText, 11, Ui.Muted, TextAnchor.MiddleRight);
+            DrawBackgroundPicker(W - 40f, 26f);  // MenuBackgrounds.cs
 
             // --- Left: the party and how to invite.
             float lx = 40f, lw = 376f, y = 100f;
