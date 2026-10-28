@@ -57,7 +57,9 @@ namespace Arena
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
         public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)
-        public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long you've held fire
+        public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
+        public bool WasFiring, TapQueued, Fanning;  // Revolver (host): tap vs hold; a click that came too early; fanning the hammer
+        public float HeldT;                    // Revolver (host): how long the trigger has been held
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
         public float CounterT;                 // host: Counterstance fire-rate boost time left
@@ -1159,11 +1161,13 @@ namespace Arena
                 if (p.Downed)
                     continue;
                 if (p.Weapon.Id == WeaponId.Pistol)
-                    TickRevolver(p, dt);
-                if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && (p.Weapon.Id != WeaponId.Pistol || p.ReloadT <= 0f))
                 {
-                    p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f)
-                        / (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
+                    TickRevolver(p, dt);
+                    RevolverTrigger(p, dt);
+                }
+                else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
+                {
+                    p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
                 }
                 // Riot Repeater: the rest of the burst.
@@ -1213,7 +1217,12 @@ namespace Arena
             }
         }
 
-        void FirePlayer(Player p)
+        /// Everything that speeds up firing: upgrades, Overdrive, Bullet Storm, Counterstance.
+        float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f)
+            * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
+
+        /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
+        void FirePlayer(Player p, float spread = 0f)
         {
             float dmg = p.Stats.DmgMult;
             p.Volleys++;
@@ -1226,7 +1235,7 @@ namespace Arena
                 }
             // Each extra projectile (Multishot, Iron Volley, Bullet Storm) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
-            FireFanned(p, p.Aim, extra);
+            FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
             if (p.Weapon.Id == WeaponId.Pistol)
             {
                 p.AmmoUsed++;  // fanned copies come free with the round
@@ -1265,6 +1274,48 @@ namespace Arena
 
         /// The last rounds in the cylinder are heavy (double damage): one, plus two per extra projectile.
         public int RevolverHeavy(Player p) => 1 + 2 * ExtraShots(p);
+
+        const float FanDelay = 0.2f;      // hold the trigger this long and you start fanning the hammer
+        const float FanInterval = 0.07f;  // fanned rounds come this fast...
+        const float FanSpread = 0.087f;   // ...each within 5 degrees either side of your aim (a 10 degree arc)
+
+        /// Tap to fire single aimed rounds (Weapon.FireInterval apart); hold to fan the hammer and empty
+        /// the cylinder in a quick, imprecise burst. Keep holding and it fans again once it's reloaded.
+        void RevolverTrigger(Player p, float dt)
+        {
+            bool pressed = p.Firing && !p.WasFiring;
+            p.WasFiring = p.Firing;
+            if (!p.Firing)
+            {
+                p.HeldT = 0f;
+                p.Fanning = false;
+            }
+            else
+                p.HeldT += dt;
+            p.TapQueued |= pressed;
+            if (p.ParryActive || p.ReloadT > 0f || State == MatchState.GameOver)
+                return;
+            if (p.Firing && p.HeldT >= FanDelay && !p.Fanning)
+            {
+                p.Fanning = true;
+                p.FireCd = Math.Min(p.FireCd, 0f);  // the hammer goes right away, whatever the tap timer says
+            }
+            if (p.Fanning)
+            {
+                if (p.FireCd <= 0f)
+                {
+                    p.FireCd = FanInterval / FireRate(p);
+                    p.TapQueued = false;
+                    FirePlayer(p, FanSpread);
+                }
+            }
+            else if (p.TapQueued && p.FireCd <= 0f)
+            {
+                p.FireCd = p.Weapon.FireInterval / FireRate(p);
+                p.TapQueued = false;
+                FirePlayer(p);
+            }
+        }
 
         void TickRevolver(Player p, float dt)
         {

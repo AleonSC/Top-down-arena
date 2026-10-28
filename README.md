@@ -67,7 +67,7 @@ your weapon. Per extra projectile:
 | | **Bone Guard** | Darts, plus 2 orbiting skeleton shields | +1 Skeleton Guard |
 | | **Bear Totem** | Wide claw swipes, plus a Bear | +2 claws, wider swipes, and the Bear's bites hit enemies around its target |
 | Healer · Soldier | **Light Bolt** | Accurate long-range bolts | +1 small homing bolt with every shot |
-| | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage); reloads in 1.2 s when empty, and slides rounds back in one at a time (every 0.25 s) once you stop shooting for 0.8 s | +2 rounds in the cylinder, loaded as heavy rounds |
+| | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage). **Tap** for perfectly aimed shots (one every 0.45 s); **hold** to fan the hammer: after 0.2 s it empties the cylinder, a round every 0.07 s, each within 5° of your aim. Reloads in 1.2 s when empty, and slides rounds back in one at a time (every 0.25 s) once you stop shooting for 0.8 s | +2 rounds in the cylinder, loaded as heavy rounds |
 | | **Mender's Bow** | Arrows heal allies they pass | Arrows split into 1 more arrow 300 px out (they share the damage: 1.5x, 2x, ...) |
 | Healer · Mage | **Radiant Orb** | Slow piercing orbs that heal allies | +1 Light Orb circling you that hurts enemies and heals allies it touches |
 | | **Chain Light** | Bolts chain to 2 | Chains to 1 more enemy |

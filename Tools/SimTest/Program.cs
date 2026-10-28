@@ -979,6 +979,8 @@ static class Program
         var s = new[] { host, client };
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         var hp = host.Game.Players[client.Game.MyId];
+        host.Game.DevSetGod(hp.Id, true);  // a quiet range: no enemies to down you or eat your rounds
+        Action Quiet = () => host.Game.Enemies.Clear();
         var cme = client.Game.Players[client.Game.MyId];
         Func<int, float, bool, int[]> Tap = (taps, every, untilEmpty) =>
         {
@@ -990,7 +992,7 @@ static class Program
             for (int f = 0; f < frames; f++)
             {
                 bool fire = f % (int)(every * 60) < 3;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = new V2(1500f, 450f), Fire = fire } : new PlayerInput()); }
+                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = new V2(1500f, 450f), Fire = fire } : new PlayerInput()); }
                 Thread.Sleep(1);
                 foreach (var b in host.Game.Bullets.Values)
                     if (b.Owner == hp.Id && seen.Add(b.Id)) fired++;
@@ -1001,7 +1003,7 @@ static class Program
             }
             return new[] { fired, reloads };
         };
-        Action<float> Idle = secs => { for (int f = 0; f < secs * 60; f++) { foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); } Thread.Sleep(1); } };
+        Action<float> Idle = secs => { for (int f = 0; f < secs * 60; f++) { Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); } Thread.Sleep(1); } };
 
         Idle(1f);
         var slow = Tap(12, 0.7f, true);  // deliberate taps, slower than the old 0.6 s auto-reload
@@ -1013,6 +1015,45 @@ static class Program
         Idle(1.6f);  // 0.8 s, then a round every 0.25 s
         Console.WriteLine("  revolver: after 3 shots the client shows {0} used; after a 1.6 s pause, {1} used", afterThree, cme.AmmoUsed);
         Check(afterThree == 3 && cme.AmmoUsed == 0 && hp.ReloadT <= 0f, "a pause tops the cylinder back up a round at a time, without locking you out");
+
+        // Tapping fast is capped at the aimed rate (one every 0.45 s), and every tap shot is dead on.
+        Idle(2f);
+        {
+            var seen = new HashSet<int>(host.Game.Bullets.Keys);
+            var shots = new List<Bullet>();
+            for (int f = 0; f < 90; f++)  // 1.5 s of clicking ten times a second
+            {
+                bool fire = f % 6 < 2;
+                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = fire } : new PlayerInput()); }
+                Thread.Sleep(1);
+                foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) shots.Add(b);
+            }
+            float worst = 0f;
+            foreach (var b in shots) worst = Math.Max(worst, Math.Abs(b.Vel.Angle));
+            Console.WriteLine("  revolver: clicking 10x a second for 1.5 s fired {0} aimed rounds, worst {1:0.000} rad off aim", shots.Count, worst);
+            Check(shots.Count >= 3 && shots.Count <= 4 && worst < 0.001f, "tapping fires aimed rounds at the slower tap rate");
+        }
+        // Holding fans the hammer: the whole cylinder goes in a quick burst, spread over a 10 degree arc.
+        Idle(2.5f);
+        {
+            var seen = new HashSet<int>(host.Game.Bullets.Keys);
+            var shots = new List<Bullet>();
+            float t = 0f, lastAt = 0f;
+            for (int f = 0; f < 60; f++)  // hold for a second
+            {
+                t += dt;
+                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = true } : new PlayerInput()); }
+                Thread.Sleep(1);
+                foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) { shots.Add(b); lastAt = t; }
+            }
+            float lo = 9f, hi = -9f;
+            foreach (var b in shots) { lo = Math.Min(lo, b.Vel.Angle); hi = Math.Max(hi, b.Vel.Angle); }
+            Console.WriteLine("  revolver: holding fired {0} rounds in {1:0.00} s, spread {2:0.0} to {3:0.0} degrees; reloading {4}",
+                shots.Count, lastAt, lo * 180f / MathX.Pi, hi * 180f / MathX.Pi, hp.ReloadT > 0f);
+            Check(shots.Count == 6 && lastAt < 0.7f && lo >= -0.0875f && hi <= 0.0875f && hi - lo > 0.02f,
+                "holding fans the hammer: all six rounds in a quick burst within a 10 degree arc");
+        }
+        Idle(2f);
 
         host.Game.GrantUpgrade(hp.Id, Array.FindIndex(Upgrades.All, u => u.Name == "Multishot"));
         Idle(2f);

@@ -144,7 +144,7 @@ namespace Arena
                 Companion = MinionKind.Bear, CompanionCount = 1 },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
-            new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.3f, Desc = "Six accurate, hard-hitting rounds; the last one is a heavy round. Reloads when empty; tops up a round at a time when you stop shooting." },
+            new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
             new WeaponDef { Id = WeaponId.MendersBow, ExtraDesc = "Arrows split into 1 more arrow after 300 px", Name = "Mender's Bow", FireInterval = 0.3f, Desc = "Bolts heal your ally when they pass through them." },
             new WeaponDef { Id = WeaponId.RadiantOrb, ExtraDesc = "+1 light orb circling you that hurts enemies and heals allies it touches", Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
             new WeaponDef { Id = WeaponId.ChainLight, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
