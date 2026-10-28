@@ -32,8 +32,9 @@ class Shot {
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("AIMLINE") != null)
     {
-      // Point the mouse 380 px up and to the right of the player (screen y is flipped).
-      V2 target = me.Pos + V2.FromAngle(-0.5f) * 380f;
+      // Point the mouse up and to the right of the player: AIMLINE=<distance> (1 = 380 px; screen y is flipped).
+      float aimDist = float.Parse(Environment.GetEnvironmentVariable("AIMLINE")); if (aimDist <= 1f) aimDist = 380f;
+      V2 target = me.Pos + V2.FromAngle(-0.5f) * aimDist;
       float ws = 1280f / Game.Width;
       Input.mousePosition = new Vector3(target.X * ws, 720f - target.Y * ws, 0f);
       me.Aim = (target - me.Pos).Angle;

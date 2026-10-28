@@ -33,7 +33,7 @@ namespace Arena
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
-        bool aimLine = true;             // V: a soft line from your gun toward the crosshair (saved per player)
+        bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
         void SetAimLine(bool on)
         {
@@ -2495,7 +2495,12 @@ namespace Arena
         {
             V2 dir = V2.FromAngle(me.Aim);
             V2 from = me.Disp + dir * (me.Def.BodyR + 8f);
-            float reach = Mathf.Max(game.WeaponRange(me) - me.Def.BodyR - 8f, 20f);  // out to where your shots (or swings) stop
+            // Out to the crosshair, but never past where your shots (or swings) stop.
+            float range = Mathf.Max(game.WeaponRange(me) - me.Def.BodyR - 8f, 20f);
+            float toCursor = cursor.DistanceTo(me.Disp) - me.Def.BodyR - 8f;
+            float reach = Mathf.Min(range, toCursor);
+            if (reach < 4f)
+                return;  // crosshair on top of you
             var c = me.Def.Color.Mix(Rgba.White, 0.35f);
             const int Steps = 24;
             for (int i = 0; i < Steps; i++)
@@ -2506,9 +2511,12 @@ namespace Arena
                 Line(p0, p1, 8f, c.WithAlpha(0.07f * fade));   // soft glow
                 Line(p0, p1, 1.5f, c.WithAlpha(0.32f * fade));  // thin core
             }
-            // A small cap where the weapon's reach ends.
-            V2 end = from + dir * reach, side = dir.Orthogonal();
-            Line(end - side * 6f, end + side * 6f, 2f, c.WithAlpha(0.45f));
+            // A small cap where the weapon's reach ends (when the crosshair is beyond it).
+            if (toCursor >= range)
+            {
+                V2 end = from + dir * reach, side = dir.Orthogonal();
+                Line(end - side * 6f, end + side * 6f, 2f, c.WithAlpha(0.45f));
+            }
             // Motes drifting outward.
             const float Spacing = 34f;
             float offset = MathX.Fmod(t * 140f, Spacing);
