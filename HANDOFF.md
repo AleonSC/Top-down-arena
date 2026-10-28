@@ -51,7 +51,12 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 | File | Lines | What it holds |
 |---|---|---|
-| `Game.cs` | 3.3k | Player/Enemy/Bullet/Minion/Zone classes, match state, the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), wave flow (`TickWaves`, `BuildWave`), `CastAbility` for Soldier abilities, weapons (`FireVolley`, `WeaponRange`), bullets (`SpawnBullet`, `Collide`, on-hit effects), damage/healing, **all network serialisation** (`SendSnapshot`/`ReadSnapshot`, `OnHostMessage`, inputs) |
+| `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and constants, lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
+| `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), `SendSnapshot`/`ReadSnapshot`, `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
+| `Combat.cs` | 0.8k | bullets (`SpawnBullet`, `MoveBullets`, homing `Steer`, gravity wells), `Collide`, damage to players (`Damage`, `RevivePlayer`) and enemies (`HurtEnemy`), on-hit/on-kill effects, burn, orbs |
+| `Weapons.cs` | 0.37k | `FireRate`, `FirePlayer`, `FireVolley`, `ExtraShots`, Revolver and Mender's Bow, `WeaponRange`, `SetFrags` |
+| `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
+| `Waves.cs` | 0.12k | `TickWaves`, `WaveCleared`, `CheckGameOver` |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
 | `LateGame.cs` | 0.45k | bosses 25-50 (Colossus → Eclipse) |
 | `Singularity.cs` | 0.25k | wave-20 boss: corner wells, lasers, cages |
@@ -105,6 +110,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 3. Testing and previewing (no Unity in the cloud container)
 
+- **Setup:** the cloud container may not have mono. Install it with
+  `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
+  Without mono, `check.sh` wrongly prints "OK: compiles" (it only greps for "error"), so make sure `which mcs` works.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
@@ -116,8 +124,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
     `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, ... (see the `args[2] ==` chain
     near the end of `Program.cs`).
-  - Known flaky checks (pass on rerun): "a perfect parry sends the shots back" and "every weapon gets its
-    own upgrade from extra projectiles".
+  - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
+    own upgrade from extra projectiles" and "enemy bullets stay near the bullet budget" (limit 210; the peak
+    varies about 175-235 between runs, on the original code too).
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
     `T/K/1` (Tank Knight, second weapon).
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`.
@@ -193,9 +202,11 @@ copies of the same numbers:
 
 ### 6.3 File organisation
 
-5. **Split `Game.cs` (3.3k lines)** into `GameNet.cs` (snapshot send/read, host/client messages, inputs),
+5. ✅ **Done (Oct 2026).** **Split `Game.cs` (3.3k lines)** into `GameNet.cs` (snapshot send/read, host/client messages, inputs),
    `Combat.cs` (`Collide`, damage, on-hit effects), `Abilities.cs` (`CastAbility`), `Waves.cs` (`TickWaves`,
    `BuildWave`) and `Weapons.cs` (`FireVolley`, `WeaponRange`). Pure moves: low risk, big readability gain.
+   *Done as pure moves (every line kept, verified by line multiset). `BuildWave` was already in `EnemyAI.cs`
+   with the roster and stays there; the scattered constants stay at the top of `Game.cs` until item 14.*
 6. **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
    the 351-line `DrawWorld` and 268-line `DrawEnemy` would also benefit from per-type helpers), `Hud.cs`
    (wave plate, ability bar, Tab menu, picker, run summary) and `Menus.cs` (main menu, settings, how-to).
