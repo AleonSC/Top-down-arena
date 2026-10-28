@@ -50,6 +50,7 @@ namespace Arena
         public V2 Pos, Disp;
         public float Aim;
         public bool Firing;
+        public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
         public bool Downed;
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
@@ -1153,6 +1154,7 @@ namespace Arena
             }
 
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
+            me.FiringSeen = firing;
             if (IsHost)
             {
                 me.Firing = firing;

@@ -1273,6 +1273,65 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Vein Tether is a beam: it hurts what's on your aim line each tick, so you have to keep it on the enemy.
+    static void VeinBeamTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 3 };
+        host.Host(port, "Healer", Role.Healer, 2, 0, Kit.BloodMage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 8, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        Check(me.Weapon.Id == WeaponId.VeinTether, "the Blood Mage healer's third weapon is Vein Tether");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        me.Pos = me.Disp = new V2(600f, 450f);
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 450f), 0f, 0, false });
+        target.Hp = target.MaxHp = 1e6f;
+        client.Game.Players[2].Pos = new V2(300f, 200f);  // out of the Vein's sharing range
+        Func<V2, float, float> Beam = (aimAt, secs) =>
+        {
+            float before = target.Hp;
+            for (int f = 0; f < secs * 60; f++)
+            {
+                target.FrozenT = 1f; target.FireT = 9f; me.Pos = new V2(600f, 450f);
+                host.Poll();
+                g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = aimAt });
+                g.Update(dt);
+                Step(client, dt);
+                if (f % 2 == 0) Thread.Sleep(1);
+            }
+            return before - target.Hp;
+        };
+        int bulletsBefore = g.Bullets.Count;
+        float onTarget = Beam(target.Pos, 1f);
+        bool clientSees = client.Game.Players[1].FiringSeen;
+        float offTarget = Beam(new V2(600f, 100f), 1f);  // aimed straight up, away from it
+        Console.WriteLine("  vein tether: {0:0} damage in 1 s on target, {1:0} aimed away; no bullets ({2}); the friend sees the beam: {3}", onTarget, offTarget, g.Bullets.Count - bulletsBefore, clientSees);
+        Check(onTarget > 30f && offTarget == 0f, "Vein Tether only hurts while you hold the beam on the enemy");
+        Check(g.Bullets.Values.All(b => b.Kind != Defs.VeinShot) && clientSees, "it's a beam, not bullets, and other players see it firing");
+        target.Pos = new V2(600f + Game.VeinBeamRange + 60f, 450f);
+        Check(Beam(target.Pos, 0.5f) == 0f, "the beam doesn't reach past its range");
+        target.Pos = new V2(800f, 450f);
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp * 0.5f;
+        float hp0 = me.Hp;
+        Beam(target.Pos, 1f);
+        Console.WriteLine("  vein tether: healed {0:0.0} HP in 1 s", me.Hp - hp0);
+        Check(me.Hp > hp0 + 5f, "the beam drains: its damage heals you");
+        host.Leave(""); client.Leave("");
+    }
+
     static void BloodMageTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -4421,6 +4480,7 @@ static class Program
         }
         if (args.Length > 2 && args[2] == "blood")
         {
+            VeinBeamTest(1f / 60f);
             BloodMageTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
@@ -4491,6 +4551,7 @@ static class Program
         ClassAbilityTest(dt);
         NinjaTest(dt);
         BloodMageTest(dt);
+        VeinBeamTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

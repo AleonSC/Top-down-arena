@@ -10,6 +10,7 @@ namespace Arena
     {
         const float LashReach = 110f, ClotPoolRadius = 70f, ClotPoolTime = 3f;
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.3f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
+        public const float VeinBeamRange = 350f, VeinBeamHalfWidth = 6f, VeinBeamDamage = 4f;  // per tick (FireInterval 0.08 s)
         public const float BoneSpearCost = 2f, TransfuseCost = 3f;
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
@@ -47,11 +48,23 @@ namespace Arena
                     break;
                 }
                 case WeaponId.LeechBeam:
-                case WeaponId.VeinTether:
                 {
                     float k = 1f + 0.25f * extra;
-                    byte kind = p.Weapon.Id == WeaponId.LeechBeam ? Defs.LeechShot : Defs.VeinShot;
-                    SpawnBullet(kind, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * 1100f, 0f, (kind == Defs.LeechShot ? 0.3f : 0.32f) * k, 4f * k * dmg, p.Id);
+                    SpawnBullet(Defs.LeechShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * 1100f, 0f, 0.3f * k, 4f * k * dmg, p.Id);
+                    break;
+                }
+                case WeaponId.VeinTether:
+                {
+                    // A real beam: it hits whatever is on your aim line right now, so you have to keep it on them.
+                    float k = 1f + 0.25f * extra;
+                    float beamDmg = VeinBeamDamage * k * dmg * (casting && !firingWeapon ? castPower : 1f);
+                    int pierce = p.Stats.Pierce;
+                    if (p.SurgeT > 0f)  // Arcane Surge, as on bullets
+                    {
+                        beamDmg *= 1.6f;
+                        pierce += 2;
+                    }
+                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = VeinBeamRange * k, Dmg = beamDmg, Pierce = pierce });
                     break;
                 }
                 case WeaponId.TransfusionDarts:
@@ -95,6 +108,78 @@ namespace Arena
                 }
             }
         }
+
+        // --- Vein Tether's beam ----------------------------------------------------------
+
+        class VeinBeam { public int Owner, Pierce; public float Aim, Range, Dmg; }
+
+        readonly List<VeinBeam> pendingBeams = new List<VeinBeam>();
+        readonly List<Enemy> beamHits = new List<Enemy>();
+
+        /// Where a beam from `from` along `aim` stops: at the first enemy it can't pass (a shield, or the last it
+        /// pierces), else at its full range. Fills `hits` (if given) with the enemies it touches, nearest first.
+        /// The host uses real positions; screens pass `drawn` to use where enemies are drawn.
+        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false)
+        {
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            beamOrder.Clear();
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                V2 rel = (drawn ? e.Disp : e.Pos) - from;
+                float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + VeinBeamHalfWidth;
+                if (across > reach || along < -e.Radius || along - e.Radius > range)
+                    continue;
+                float enter = along - (float)Math.Sqrt(Math.Max(0f, reach * reach - across * across));
+                beamOrder.Add(new KeyValuePair<float, Enemy>(Math.Max(0f, enter), e));
+            }
+            beamOrder.Sort((a, b) => a.Key.CompareTo(b.Key));
+            hits?.Clear();
+            int left = pierce;
+            foreach (var kv in beamOrder)
+            {
+                if (BlocksShot(kv.Value, from))
+                    return from + dir * kv.Key;  // shields stop it cold
+                hits?.Add(kv.Value);
+                if (left-- <= 0)
+                    return from + dir * kv.Key;
+            }
+            return from + dir * range;
+        }
+
+        readonly List<KeyValuePair<float, Enemy>> beamOrder = new List<KeyValuePair<float, Enemy>>();
+
+        /// Called from Collide with the swings: each beam tick hurts what's on the line, through the usual on-hit
+        /// effects (weapon mods, legendaries) and Vein Tether's drain.
+        void ResolveBeams()
+        {
+            foreach (var beam in pendingBeams)
+            {
+                Player p;
+                if (!Players.TryGetValue(beam.Owner, out p) || p.Downed)
+                    continue;
+                V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * (p.Def.BodyR + 4f);
+                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits);
+                p.Run.ShotsFired++;
+                if (beamHits.Count > 0)
+                    p.Run.ShotsHit++;
+                foreach (var e in beamHits)
+                {
+                    float hit = beam.Dmg * NinjaHitMult(p.Id, Defs.VeinShot, e);
+                    HurtEnemy(e, hit, p.Id);
+                    var pseudo = new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = hit, Kind = Defs.VeinShot };
+                    BloodShotHit(pseudo, e, hit);
+                    OnBulletHit(pseudo, e);
+                }
+            }
+            pendingBeams.Clear();
+        }
+
+        /// Is this player's Vein Tether beam showing? (Each screen draws the beams itself.)
+        public bool BeamOn(Player p) =>
+            p.Weapon.Id == WeaponId.VeinTether && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            && State != MatchState.GameOver && State != MatchState.Victory;
 
         /// Shot i of n, fanned out `step` radians apart around the aim.
         static float Fanned(float aim, int i, int n, float step) => aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * step * (n - 1));

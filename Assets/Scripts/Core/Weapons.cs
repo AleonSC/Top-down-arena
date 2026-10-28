@@ -360,7 +360,7 @@ namespace Arena
                 // Blood Mages
                 case WeaponId.ClotBolt: shot = 520f * 1f; break;
                 case WeaponId.LeechBeam: shot = 1100f * 0.3f * (1f + 0.25f * x); break;
-                case WeaponId.VeinTether: shot = 1100f * 0.32f * (1f + 0.25f * x); break;
+                case WeaponId.VeinTether: shot = VeinBeamRange * (1f + 0.25f * x); break;
                 case WeaponId.TransfusionDarts: shot = 850f * 0.85f; break;
                 case WeaponId.SanguineOrb: shot = 420f * 1.4f; break;
                 case WeaponId.BloodBolts: shot = 800f * 0.8f; break;

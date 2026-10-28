@@ -27,6 +27,12 @@ class Shot {
     me.Slots[1].Charges = 0; me.Slots[1].Timer = 4.2f;
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
+    if (Environment.GetEnvironmentVariable("VEIN") != null) {
+      // Vein Tether: one beam on an enemy (VEIN=1), or on nothing (VEIN=0).
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.VeinTether); me.Kit = Kit.BloodMage; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true;
+      if (Environment.GetEnvironmentVariable("VEIN") == "1") foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim) * 230f; break; }
+    }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
     var app = new ArenaApp();
     var f2 = BindingFlags.NonPublic | BindingFlags.Instance;

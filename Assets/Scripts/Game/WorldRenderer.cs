@@ -119,6 +119,7 @@ namespace Arena
             DrawSingularityHazards(t);
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
+            DrawVeinBeams(t);  // BloodMageLook.cs
             foreach (var p in game.Players.Values)
                 DrawPlayerWrapped(p, t);
             foreach (var b in game.Bullets.Values)

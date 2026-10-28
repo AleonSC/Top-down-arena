@@ -116,6 +116,60 @@ namespace Arena
                 }
         }
 
+        /// Vein Tether's beams (each screen works out where they stop from where the enemies are drawn): a pulsing
+        /// blood beam with two veins twisting along it. On an enemy, drops of blood flow back along it into the
+        /// caster and the hit point throbs; on nothing, it thins out at the tip.
+        void DrawVeinBeams(float t)
+        {
+            var c = Defs.BulletColor(Defs.VeinShot);
+            foreach (var p in game.Players.Values)
+            {
+                if (!game.BeamOn(p))
+                    continue;
+                float range = Game.VeinBeamRange * (1f + 0.25f * game.ExtraShots(p));
+                for (int v = 0; v <= p.Stats.Fan; v++)  // Barrage: a beam per stack, fanned like the shots
+                {
+                    float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
+                    V2 dir = V2.FromAngle(aim), side = dir.Orthogonal(), from = p.Disp + dir * (p.Def.BodyR + 4f);
+                    V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true);
+                    float len = from.DistanceTo(end);
+                    bool hit = len < range - 1f;
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(t * 18f + p.Id);
+                    float tipFade = hit ? 1f : 0.55f;
+                    Line(from, end, 15f + 3f * pulse, c.WithAlpha(0.1f * tipFade));
+                    Line(from, end, 6f + 1.5f * pulse, c.WithAlpha(0.55f * tipFade));
+                    Line(from, end, 2f, new Rgba(1f, 0.8f, 0.85f, 0.9f * tipFade));
+                    // Two veins twisting around the beam.
+                    for (int s = 0; s < 2; s++)
+                    {
+                        V2 prev = from;
+                        for (float u = 10f; u <= len; u += 10f)
+                        {
+                            float amp = 4.5f * Mathf.Min(1f, u / 30f);
+                            V2 q = from + dir * u + side * (amp * Mathf.Sin(u * 0.09f - t * 14f + s * MathX.Pi));
+                            Line(prev, q, 1.4f, BloodDark.WithAlpha(0.85f * tipFade));
+                            prev = q;
+                        }
+                    }
+                    Circle(from, 5f + 1.5f * pulse, c.WithAlpha(0.6f), 12);
+                    if (hit)
+                    {
+                        // The drain: drops riding the beam back home.
+                        for (int k = 0; k < 5; k++)
+                        {
+                            float f = MathX.Fmod(t * 1.8f + k / 5f, 1f);
+                            DrawDrop(V2.Lerp(end, from, f) + side * (2.5f * Mathf.Sin(f * 9f + k)), 2.3f, -dir, BloodRed.WithAlpha(0.95f * Mathf.Sin(f * MathX.Pi)));
+                        }
+                        Circle(end, 9f + 3f * pulse, c.WithAlpha(0.35f), 16);
+                        Arc(end, 13f + 4f * pulse, 1.8f, BloodRed.WithAlpha(0.7f), 16);
+                        Circle(end, 4f, new Rgba(1f, 0.8f, 0.85f, 0.9f), 10);
+                    }
+                    else
+                        Circle(end, 3f + pulse, c.WithAlpha(0.4f), 10);
+                }
+            }
+        }
+
         /// A drop of blood: round, with a point trailing behind its direction of travel.
         void DrawDrop(V2 c, float r, V2 dir, Rgba col)
         {

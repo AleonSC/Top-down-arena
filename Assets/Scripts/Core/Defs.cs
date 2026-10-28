@@ -200,7 +200,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.SanguineOrb, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f,
                 Desc = "Homing orbs of blood (16). Enemies they kill have a 40% chance to drop a small health orb." },
             new WeaponDef { Id = WeaponId.VeinTether, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
-                Desc = "A draining beam. 40% of its damage heals, split between you and the nearest ally." },
+                Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
             new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },

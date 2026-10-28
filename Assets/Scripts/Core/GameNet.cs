@@ -132,6 +132,7 @@ namespace Arena
                 w.Write(p.FrenzyT);
                 w.Write(p.UltT);
                 w.Write(p.Parrying);
+                w.Write(p.Firing);
                 w.Write(p.ParryHp);
                 w.Write(p.ParryBroken);
                 w.Write(p.ShieldHp);
@@ -374,6 +375,7 @@ namespace Arena
                 int linkTo = r.ReadInt32();
                 float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
                 bool parrying = r.ReadBoolean();
+                bool firingSeen = r.ReadBoolean();
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
                 float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
                 float vanishT = r.ReadSingle(), ironT = r.ReadSingle(), pactT = r.ReadSingle(), rushT = r.ReadSingle();
@@ -434,7 +436,10 @@ namespace Arena
                 p.FrenzyT = frenzy;
                 p.UltT = ult;
                 if (id != MyId)
+                {
                     p.Parrying = parrying;  // your own comes from your mouse, without the round trip
+                    p.FiringSeen = firingSeen;
+                }
                 p.ParryHp = parryHp;
                 p.ParryBroken = parryBroken;
                 p.ShieldHp = shield;

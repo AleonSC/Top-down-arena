@@ -444,9 +444,9 @@ const W = [
   { id: "Sanguine Orb", role: "Healer", kit: "Blood Mage", every: 0.45, desc: "Homing orbs of blood. Enemies they kill have a 40% chance to drop a small health orb.", shot: "Sanguine", xtra: "+1 orb, fanned out",
     rows: [["Damage", "16"], ["Homing", "Turns 3 rad/s toward the nearest enemy"], ["Kills", "40% chance of a small health orb (15 HP)"], ["Speed / range", "420 px/s · 588 px"]], dmgPerVolley: 16,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Sanguine", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.35 * (n - 1)), 420, 1.4, 16, { homing: 3 }); } },
-  { id: "Vein Tether", role: "Healer", kit: "Blood Mage", every: 0.08, desc: "A draining beam. 40% of its damage heals, split between you and the nearest ally.", shot: "Vein", xtra: "+25% beam length and +25% damage",
-    rows: [["Damage", "4"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "1100 px/s · 352 px"]], dmgPerVolley: 4,
-    fire: (s, a, x) => s.bullet("Vein", a + rnd(-0.02, 0.02), 1100, 0.32 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
+  { id: "Vein Tether", role: "Healer", kit: "Blood Mage", every: 0.08, desc: "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.", shot: "Vein", xtra: "+25% beam length and +25% damage",
+    rows: [["Damage", "4 every 0.08 s (50/s) to the first enemy on your aim line; Pierce lets it pass through more"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "instant beam · 350 px"]], dmgPerVolley: 4,
+    fire: (s, a, x) => s.beam("Vein", a, 350 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // DPS
   { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Fast parallel twin stream.", shot: "Dps", xtra: "+1 barrel (side by side, 10 px apart)",
     rows: [["Damage", "6.5 per barrel (2 barrels, 10 px apart)"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 13,
@@ -974,6 +974,17 @@ function newRange() {
 const rangeApi = {
   // A melee swing: hits every dummy in the arc (or the nearest few), after an optional delay.
   swing(a, reach, arcDeg, dmg, o = {}) { range.slashes.push({ a, reach: reach * (1 + 0.1 * WS.pierce), half: arcDeg * Math.PI / 360, dmg: dmg * WS.dmg, delay: o.delay || 0, t: -1, knock: o.knock || 0, targets: o.targets || 0, rapier: o.rapier, bash: o.bash, thrust: o.thrust, box: o.box || 0 }); },
+  // A beam (Vein Tether): hits the first dummy on the aim line at once (more with Pierce), and shows briefly.
+  beam(kind, a, len, dmg) {
+    const p = range.player, c = Math.cos(a), sn = Math.sin(a), from = { x: p.x + c * 16, y: p.y + sn * 16 };
+    const on = range.dummies.map(d => { const dx = d.x - from.x, dy = d.y - from.y, along = dx * c + dy * sn, across = Math.abs(-dx * sn + dy * c), reach = d.r + 6;
+      return across <= reach && along > -d.r && along - d.r <= len ? { d, at: Math.max(0, along - Math.sqrt(reach * reach - across * across)) } : null; })
+      .filter(Boolean).sort((u, v) => u.at - v.at).slice(0, 1 + WS.pierce);
+    for (const h of on) hitDummy(h.d, dmg * WS.dmg);
+    const end = on.length ? on[on.length - 1].at : len;
+    range.beams = (range.beams || []).filter(b => b.a !== a);
+    range.beams.push({ a, from, len: end, hit: on.length > 0, t: 0, col: SHOT[kind].col });
+  },
   bullet(kind, a, speed, life, dmg, o = {}, from) {
     const p = from || range.player, sh = SHOT[kind], off = from ? 4 : 16;
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
@@ -1068,6 +1079,7 @@ function stepRange(dt) {
     }
   }
   R.slashes = R.slashes.filter(sl => sl.t < 0 || sl.t < (sl.box ? 0.26 : 0.22));
+  R.beams = (R.beams || []).filter(b => (b.t += dt) < 0.12);
   // Bullets
   const keep = [], spawned = [];
   for (const b of R.bullets) {
@@ -1207,6 +1219,24 @@ function drawRange() {
   for (const f of R.fx) { const k = f.t / f.dur; if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
   for (const f of R.bolts) { ctx.strokeStyle = `rgba(190,215,255,${1 - f.t / f.dur})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(f.a.x, f.a.y);
     for (let s = 1; s < 5; s++) ctx.lineTo(f.a.x + (f.b.x - f.a.x) * s / 5 + rnd(-8, 8), f.a.y + (f.b.y - f.a.y) * s / 5 + rnd(-8, 8)); ctx.lineTo(f.b.x, f.b.y); ctx.stroke(); }
+  for (const b of R.beams || []) {  // Vein Tether: a pulsing blood beam with veins twisting along it, drops flowing home on a hit
+    const c = Math.cos(b.a), sn = Math.sin(b.a), ex = b.from.x + c * b.len, ey = b.from.y + sn * b.len, pulse = 0.5 + 0.5 * Math.sin(t * 18), f = b.hit ? 1 : 0.55;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = css(b.col, 0.12 * f); ctx.lineWidth = 15 + 3 * pulse; ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = css(b.col, 0.6 * f); ctx.lineWidth = 6 + 1.5 * pulse; ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = `rgba(255,205,215,${0.9 * f})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y); ctx.lineTo(ex, ey); ctx.stroke();
+    for (let v = 0; v < 2; v++) {
+      ctx.strokeStyle = `rgba(110,10,25,${0.85 * f})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(b.from.x, b.from.y);
+      for (let u = 10; u <= b.len; u += 10) { const amp = 4.5 * Math.min(1, u / 30), o = amp * Math.sin(u * 0.09 - t * 14 + v * Math.PI); ctx.lineTo(b.from.x + c * u - sn * o, b.from.y + sn * u + c * o); }
+      ctx.stroke();
+    }
+    if (b.hit) {
+      for (let k = 0; k < 5; k++) { const q = ((t * 1.8 + k / 5) % 1), u = b.len * (1 - q); ctx.fillStyle = `rgba(200,20,40,${0.95 * Math.sin(q * Math.PI)})`; ctx.beginPath(); ctx.arc(b.from.x + c * u, b.from.y + sn * u, 2.3, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = css(b.col, 0.35); ctx.beginPath(); ctx.arc(ex, ey, 9 + 3 * pulse, 0, TAU); ctx.fill();
+      ctx.fillStyle = "rgba(255,205,215,0.9)"; ctx.beginPath(); ctx.arc(ex, ey, 4, 0, TAU); ctx.fill();
+    }
+    ctx.lineCap = "butt";
+  }
   for (const sl of R.slashes) {  // swing arcs
     if (sl.t < 0) continue;
     const k = sl.t / 0.22, full = sl.half >= Math.PI - 0.01, from = full ? sl.a + R.t * 6 : sl.a - sl.half, sweep = 2 * sl.half * Math.min(1, k * 3);
