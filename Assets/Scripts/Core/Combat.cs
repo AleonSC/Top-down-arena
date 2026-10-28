@@ -19,6 +19,8 @@ namespace Arena
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
             amount *= p.Stats.DamageTaken;
+            if (Has(RunMod.GlassCannon))
+                amount *= Modifiers.GlassCannonTaken;
             float cut = 0f;
             foreach (var z in Zones.Values)
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
@@ -536,8 +538,8 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
-                Score += e.Score * (e.Elite ? 3 : 1);
-                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1));
+                Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
+                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);
@@ -565,6 +567,8 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
+            if (attacker > 0 && Has(RunMod.GlassCannon))
+                dmg *= Modifiers.GlassCannonDealt;
             if (casting)
             {
                 dmg *= castPower;
@@ -718,6 +722,8 @@ namespace Arena
                     SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
+            if (Has(RunMod.Famine))
+                return;  // run modifier: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)
                 SpawnOrb(e.Pos, true);

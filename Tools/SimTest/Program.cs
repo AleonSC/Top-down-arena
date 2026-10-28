@@ -1420,6 +1420,159 @@ static class Program
 
     // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
     // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void PathsTest(float dt)
+    {
+        // Divergent paths: after a boss the host picks one of two paths for the next four waves.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 5 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        // Beat the wave-5 boss.
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0);
+        Run(s, dt, 30f, () => g.State == MatchState.Intermission, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+        NoPicks();
+        Run(s, dt, 1f);
+        Check(g.PathOffer != null && g.PathOffer[0] != g.PathOffer[1] && client.Game.PathOffer != null && client.Game.PathOffer[1] == g.PathOffer[1],
+            "after a boss, two different paths are offered to everyone");
+        float timer = g.StateTimer;
+        client.Game.ChoosePath(0);
+        Run(s, dt, 3f, null, NoPicks);
+        Check(g.PathOffer != null && g.State == MatchState.Intermission && g.StateTimer >= timer, "the next wave waits for the host; a friend's click doesn't choose");
+        var chosen = g.PathOffer[1];
+        g.ChoosePath(1);
+        Run(s, dt, 1f, null, NoPicks);
+        Check(g.CurrentPath == chosen && client.Game.CurrentPath == chosen && g.PathFrom == 6 && g.PathTo == 9 && client.Game.PathTo == 9 && client.Game.Route.Count == 1,
+            "the host's pick is the path for waves 6-9, for everyone");
+        Check(client.Game.PathWavesLeft == 4 && !client.Game.OnPath, "the HUD counts 4 waves left before it starts");
+
+        // Each path's enemy mix (built directly at wave 7).
+        Func<PathId, List<EnemyType>> Mix = id =>
+        {
+            g.CurrentPath = id; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7;
+            build.Invoke(g, new object[] { 7 });
+            return new List<EnemyType>((List<EnemyType>)queueField.GetValue(g));
+        };
+        g.CurrentPath = PathId.None;
+        build.Invoke(g, new object[] { 7 });
+        int plain = ((List<EnemyType>)queueField.GetValue(g)).Count;
+        var swarm = Mix(PathId.SwarmFields);
+        var ridge = Mix(PathId.SniperRidge);
+        var elite = Mix(PathId.EliteGauntlet);
+        float meleeFrac = swarm.Count(t => Defs.Get(t).Melee) / (float)swarm.Count;
+        float ridgeFrac = ridge.Count(t => t == EnemyType.Sniper || t == EnemyType.Mortar || t == EnemyType.Grunt) / (float)ridge.Count;
+        Console.WriteLine("  paths at wave 7: plain {0} enemies; Swarm Fields {1} ({2:0}% melee); Sniper Ridge {3} ({4:0}% snipers/mortars/grunts); Elite Gauntlet {5}",
+            plain, swarm.Count, meleeFrac * 100f, ridge.Count, ridgeFrac * 100f, elite.Count);
+        Check(meleeFrac > 0.7f && swarm.Count > plain * 1.4f, "Swarm Fields: mostly melee rushers, about twice as many");
+        Check(ridgeFrac > 0.6f, "Sniper Ridge: mostly snipers, mortars and grunts");
+        Check(elite.Count <= plain / 2 + 1, "Elite Gauntlet: half as many enemies");
+        g.CurrentPath = PathId.SwarmFields;
+        var brute = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 300f), 0f, 0, false });
+        g.CurrentPath = PathId.None;
+        var plainBrute = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 300f), 0f, 0, false });
+        g.CurrentPath = PathId.EliteGauntlet;
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        Check(Math.Abs(brute.MaxHp - plainBrute.MaxHp * 0.6f) < 0.1f && grunt.Elite, "Swarm Fields rushers have 60% health; the Gauntlet's enemies are all elite");
+
+        // The bonus while on a path (danger 2: +25% XP).
+        g.CurrentPath = PathId.SniperRidge;
+        g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Step(host, dt);
+        var me = g.Players[1];
+        float xp0 = me.Xp; int lv0 = me.Level;
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Sniper, new V2(900f, 300f), 0f, 0, false });
+        target.Elite = false; target.Hp = 0f; target.LastHitBy = 1;
+        Step(host, dt);
+        Check(me.Level == lv0 && Math.Abs(me.Xp - xp0 - Defs.Get(EnemyType.Sniper).Xp * 1.25f) < 0.01f, "a danger-2 path gives +25% XP");
+
+        // Finishing: the prize, then the plain arena for the boss.
+        foreach (var p in g.Players.Values) p.PendingPicks = 0;
+        g.Wave = 9; g.PathTo = 9;
+        cleared.Invoke(g, null);
+        Run(s, dt, 0.5f);
+        Check(g.CurrentPath == PathId.None && client.Game.CurrentPath == PathId.None && g.Players[1].PendingPicks >= 1 && g.Players[2].PendingPicks >= 1,
+            "after the path's last wave everyone gets its prize (danger 2: +1 pick) and the boss wave is plain");
+        host.Leave(""); client.Leave("");
+
+        // A bot host picks a path by itself, so automated runs never stall.
+        port = nextPort++;
+        host = new Session { AutoStart = 1, StartWave = 5 };
+        host.Host(port, "Bot", Role.Dps);
+        g = host.Game; g.Bot = true;
+        host.StartMatch();
+        g.DevSetGod(1, true);
+        for (int f = 0; f < 60 * 40 && !(g.Wave >= 6 && g.State == MatchState.Fighting); f++)
+        {
+            Step(host, dt);
+            if (g.State == MatchState.Fighting && g.Wave == 5) foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        }
+        Check(g.Wave >= 6 && g.Route.Count == 1 && g.OnPath, "a bot host picks a path and the run carries on");
+        host.Leave("");
+    }
+
+    static void ModifiersTest(float dt)
+    {
+        // Run modifiers: the host picks them in the lobby, everyone sees them, and they change the run.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        int port = nextPort++;
+        var host = new Session();
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Sync();
+        host.SetModifier(RunMod.ToughCrowd, true);
+        host.SetModifier(RunMod.GlassCannon, true);
+        host.SetModifier(RunMod.Lucky, true);
+        host.SetModifier(RunMod.Famine, true);
+        Sync();
+        Check(client.Modifiers == host.Modifiers && Modifiers.Count(client.Modifiers) == 4, "the friend sees the host's run modifiers");
+        client.RequestReady(true); host.RequestReady(true); Sync();
+        host.StartMatch();
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Check(g.Has(RunMod.ToughCrowd) && client.Game.Has(RunMod.Lucky), "both games know the run's modifiers");
+        Check(g.Players[1].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls && client.Game.Players[2].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls,
+            "Lucky: everyone starts with 3 extra rerolls");
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        float baseHp = Defs.Get(EnemyType.Grunt).Hp * (1f + 0.15f * (g.Wave - 1));
+        Check(Math.Abs(grunt.MaxHp - baseHp * Modifiers.ToughCrowdHp * (grunt.MaxHp / (baseHp * Modifiers.ToughCrowdHp))) < 0.01f && grunt.MaxHp >= baseHp * 1.49f,
+            "Tough Crowd: enemies have 50% more health");
+        float hp0 = grunt.Hp;
+        hurt.Invoke(g, new object[] { grunt, 10f, 1 });
+        var me = g.Players[1];
+        me.InvulnT = 0f;
+        float t0 = me.Run.DamageTaken;
+        damage.Invoke(g, new object[] { me, 10f, "test" });
+        Console.WriteLine("  modifiers: grunt hp {0:0} (base {1:0}), a 10 hit dealt {2:0.#}, a 10 hit taken {3:0.#}", grunt.MaxHp, baseHp, hp0 - grunt.Hp, me.Run.DamageTaken - t0);
+        Check(Math.Abs((hp0 - grunt.Hp) - 15f) < 0.01f && Math.Abs((me.Run.DamageTaken - t0) - 15f * me.Stats.DamageTaken) < 0.5f, "Glass Cannon: everyone deals and takes 50% more");
+        int orbs = g.Orbs.Count;
+        for (int k = 0; k < 40; k++)
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f + k, 400f), 0f, 0, false });
+            e.Hp = 0f;
+        }
+        Step(host, dt);
+        Check(g.Orbs.Count == orbs, "Famine: enemies drop no health orbs");
+        host.Leave(""); client.Leave("");
+        Check(host.Modifiers == RunMod.None && client.Modifiers == RunMod.None, "leaving clears the modifiers");
+    }
+
     static void PracticeLobbyTest(float dt)
     {
         // The Practice Range lives in the lobby: everyone sees the setup, and the host decides who can edit it.
@@ -1569,6 +1722,8 @@ static class Program
         host.Leave("");
         Check(host.Game.Practice == null && !host.PracticeMode, "leaving clears the practice plan, so the next run is a normal one");
         PracticeLobbyTest(dt);
+        ModifiersTest(dt);
+        PathsTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;

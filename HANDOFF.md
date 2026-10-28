@@ -101,7 +101,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 54) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 56) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -168,7 +168,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
-Parry gauge on the shield: a thin blue bar around the rim drains toward your aim (`DrawParryGauge`; faint while lowered and refilling, your own only), the HUD parry tile is gone, and a break plays `FxKind.Shatter` (cracks, then jagged pieces and sparks, seeded by position so everyone sees the same burst); protocol 54 · Ninja class (5th kit) for all three roles: 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; protocol 52 · YOUR STATS is a see-through sidebar down the whole left edge in the Tab menu and the upgrade picker (`StatsSidebar`) · Class ability cards: very rare cards for your class's two other Space abilities, on Q/E/Shift (`UpgradeDef.ClassAbility`, `Weight` 2; generated in `Upgrades.WithClassAbilities`; ability upgrades now need the ability on any key, `Upgrades.HasAbility`); protocol 51 · Practice Range editor redesigned (numbered wave list, level stepper, tiles sized to fit, hover info bar with the enemy drawn, tidy footer; `Ui.SmallButton` for tight rows) · Main menu title is now "Cartesian Colosseum" (title only: the product name, window title and docs keep "Top-Down Arena" so saved settings stay) on an animated x-axis; How to play redone with key caps and illustrated tips · Aim line runs to the crosshair, capped at weapon range · lobby background picker moved bottom left as a card with a live thumbnail · Lobby loadout preview is a live mini-arena (real game offline, target dummies, ability demo on hover/pick) · Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
+Parry gauge on the shield: a thin blue bar around the rim drains toward your aim (`DrawParryGauge`; faint while lowered and refilling, your own only), the HUD parry tile is gone, and a break plays `FxKind.Shatter` (cracks, then jagged pieces and sparks, seeded by position so everyone sees the same burst); protocol 56 · Ninja class (5th kit) for all three roles: 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; protocol 52 · YOUR STATS is a see-through sidebar down the whole left edge in the Tab menu and the upgrade picker (`StatsSidebar`) · Class ability cards: very rare cards for your class's two other Space abilities, on Q/E/Shift (`UpgradeDef.ClassAbility`, `Weight` 2; generated in `Upgrades.WithClassAbilities`; ability upgrades now need the ability on any key, `Upgrades.HasAbility`); protocol 51 · Practice Range editor redesigned (numbered wave list, level stepper, tiles sized to fit, hover info bar with the enemy drawn, tidy footer; `Ui.SmallButton` for tight rows) · Main menu title is now "Cartesian Colosseum" (title only: the product name, window title and docs keep "Top-Down Arena" so saved settings stay) on an animated x-axis; How to play redone with key caps and illustrated tips · Aim line runs to the crosshair, capped at weapon range · lobby background picker moved bottom left as a card with a live thumbnail · Lobby loadout preview is a live mini-arena (real game offline, target dummies, ability demo on hover/pick) · Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
 shared and co-editable · Tab menu during upgrade picks; mastery XP line on ability tiles · aim line ends at
 weapon range (`Game.WeaponRange`, tested against real shots) · Lance: box hitbox 180×88 that slides out,
 1 s stun · Practice Range (first as an F1 tool) · Shield Wall blocks red shots · boss contact shove ·
@@ -282,13 +282,8 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    `ReadSnapshot`. Protocol bump (items 8, 9).
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
-7. **Divergent paths** (added by the owner; needs the registries). After each boss the party votes between
-   two paths for the next five waves; bosses stay fixed so balance and Boss Lab data hold. A path is a
-   definition: arena rules (walls instead of wrapping, smaller arena, a pull, fog, burning/healing ground),
-   an enemy mix (e.g. swarms, snipers, all-elite), a reward weighed against the risk (extra legendary vs.
-   heal/reroll) and a floor look. First version: 3-4 paths from rules and enemy mixes only; obstacles that
-   block bullets come later (bullets, enemy movement and bot dodging assume an open arena). Session
-   recordings note the path. Show the owner the design before building. Protocol bump.
+7. **Divergent paths**: step 1 ✅ (framework + 3 enemy-mix paths). Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
+   of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).
 9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
 

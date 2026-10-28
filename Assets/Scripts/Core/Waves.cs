@@ -38,8 +38,10 @@ namespace Arena
             switch (State)
             {
                 case MatchState.Intermission:
-                    // The countdown waits while anyone is still choosing upgrades.
-                    if (!AnyonePicking())
+                    // The countdown waits while anyone is still choosing upgrades, and for the host to pick a path.
+                    if (PathOffer != null && Bot)
+                        ChoosePath(rng.Next(2));  // a bot host picks for itself
+                    if (!AnyonePicking() && PathOffer == null)
                         StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {
@@ -108,6 +110,8 @@ namespace Arena
             Cages.Clear();
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
+            if (CurrentPath != PathId.None && Wave >= PathTo)
+                FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
             foreach (var p in Players.Values)
             {
                 if (p.Downed)
@@ -117,6 +121,8 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
+            if (Wave % 5 == 0)
+                OfferPaths();  // after a boss: two paths for the next stretch
             RemoveTemporaryMinions();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));

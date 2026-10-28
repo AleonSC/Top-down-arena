@@ -181,6 +181,8 @@ namespace Arena
             var melee = new List<EnemyType> { EnemyType.Swarmer };
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
+            if (BuildPathWave(n, count, pool, melee))  // a path's own mix (Paths.cs)
+                return;
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
             {
@@ -231,6 +233,12 @@ namespace Arena
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
             if (d.IsBoss && Wave > LateBossWave)
                 e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);
+            if (Has(RunMod.ToughCrowd))
+                e.MaxHp *= Modifiers.ToughCrowdHp;
+            if (Has(RunMod.SwiftFoes))
+                e.Speed *= Modifiers.SwiftFoesSpeed;
+            ApplyPathToEnemy(e, ref elite);  // Paths.cs
+            e.Elite = elite;
             if (elite)
             {
                 e.MaxHp *= 2.5f;
@@ -348,7 +356,7 @@ namespace Arena
                     Special(e, tpos, dt);
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
-                    float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f);
+                    float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
                     e.FireT -= dt * mult;
                     if (e.FireT <= 0f)
                     {

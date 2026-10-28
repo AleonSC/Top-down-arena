@@ -362,6 +362,45 @@ for the next one), arrows either side of the name and a dot per background (clic
 **Animated** for a still image. Each player's choice is saved on their own computer. Your pick also shows faintly behind the arena
 during matches (dimmed so the fight stays easy to read).
 
+The card's **-** button minimizes it to a slim tab that fades away after a few seconds; hover where it was to
+bring the tab back, and click it to open the full card again (remembered on your computer).
+
+## Paths
+
+After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
+boss; everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
+the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
+
+| Danger | While on the path | Prize (before the boss) |
+|---|---|---|
+| 1 | no bonus | full heal and 2 rerolls |
+| 2 | +25% XP and score | +1 upgrade pick |
+| 3 | +50% XP and score | an extra legendary pick |
+
+| Path | Danger | What changes |
+|---|---|---|
+| **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Brutes, Lungers), twice as many, at 60% health |
+| **Sniper Ridge** | 2 | Mostly Snipers, Mortars and Grunts; hardly any melee |
+| **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
+
+A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
+paths (hazard floors, twists, arena rules) are planned in `Docs/Paths.md`.
+
+## Run modifiers
+
+The lobby's **Modifiers** tab lists switches that change the whole run, for everyone (Practice Range too). The
+host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
+as chips under the wave plate during the match, and session recordings list them.
+
+| Modifier | Effect | |
+|---|---|---|
+| Glass Cannon | Everyone deals 50% more damage, and takes 50% more | Risky |
+| Tough Crowd | Enemies and bosses have 50% more health | Harder |
+| Frenzy | Enemies and bosses shoot 30% faster (the bullet budget still applies) | Harder |
+| Swift Foes | Enemies move 30% faster | Harder |
+| Famine | Enemies never drop health orbs (bosses still do) | Harder |
+| Lucky | Everyone starts with 3 extra upgrade rerolls | Easier |
+
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range
@@ -577,6 +616,8 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
+  - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
+  - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
   - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with a live mini-arena preview) and the Practice Range editor

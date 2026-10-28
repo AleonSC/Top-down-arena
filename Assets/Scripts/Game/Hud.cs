@@ -15,6 +15,7 @@ namespace Arena
         {
             var me = game.Me;
             DrawWavePlate();
+            DrawActiveModifiers(14f, 94f + DrawPathChip(14f, 94f));  // PathsUi.cs, ModifiersUi.cs
             if (game.Recorder != null)  // this match is being recorded (hosts only)
                 Ui.Label(new Rect(W - 70f, H - 20f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
             if (aimDebug && me != null)
@@ -68,6 +69,11 @@ namespace Arena
                     {
                         if (!tabHeld)
                             DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu
+                        break;
+                    }
+                    if (game.PathOffer != null && !tabHeld)
+                    {
+                        DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
                     var choosing = new List<string>();
@@ -931,9 +937,18 @@ namespace Arena
                     if (n.Label == line.Label && !n.Header)
                         old = n.Value;
                 bool changed = after != null && old != line.Value;
-                string value = changed && old != null ? old + "  ->  " + line.Value : line.Value;
                 Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), line.Label, 13, changed ? green : new Color(1, 1, 1, 0.75f), TextAnchor.MiddleLeft);
-                Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed && old == null ? "NEW " + value : value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
+                if (changed && old != null)
+                {
+                    // old value, an arrow, the new value (right-aligned)
+                    float right = r.xMax - 12f, nw = Ui.TextWidth(line.Value, 13, true);
+                    Label(new Rect(right - nw - 2f, y, nw + 4f, 18f), line.Value, 13, green, TextAnchor.MiddleRight, true);
+                    var arrow = new Rect(right - nw - 18f, y + 3f, 12f, 12f);
+                    Ui.Icon(arrow, PixelArt.Get("ui_arrow"), green);
+                    Label(new Rect(r.x + 12f, y, arrow.x - 4f - (r.x + 12f), 18f), old, 13, new Color(green.r, green.g, green.b, 0.6f), TextAnchor.MiddleRight);
+                }
+                else
+                    Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed ? "NEW " + line.Value : line.Value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
                 y += 20f;
             }
         }

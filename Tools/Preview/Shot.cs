@@ -62,6 +62,7 @@ class Shot {
       host.Game.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 150f, Color = Defs.BulletColor(Defs.KnightSlash), Radius = Game.LanceHalfWidth, T = tt * 0.26f, Dur = 0.26f });
     }
     if (Environment.GetEnvironmentVariable("BG") != null) typeof(ArenaApp).GetField("menuBg", f2).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("BG")));
+    if (Environment.GetEnvironmentVariable("PATHON") != null) { host.Game.CurrentPath = (PathId)int.Parse(Environment.GetEnvironmentVariable("PATHON")); host.Game.PathFrom = host.Game.Wave - 1; host.Game.PathTo = host.Game.Wave + 2; host.Game.Mods = RunMod.Frenzy; }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();
@@ -75,6 +76,8 @@ class Shot {
       host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
       if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
     }
+    if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
+    if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (mode == "hud")
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
     else if (mode == "dev")
@@ -113,6 +116,8 @@ class Shot {
       host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true };
       host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Mage, Weapon = 0, Ability = 1 };
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky; }
+      if (Environment.GetEnvironmentVariable("BGMIN") != null) { set("bgPickerMin", true); set("bgTabSeen", 0f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;

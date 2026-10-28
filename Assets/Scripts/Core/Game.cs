@@ -428,6 +428,7 @@ namespace Arena
         {
             Stop();
             PracticeIndex = -1;
+            ResetPaths();
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)
@@ -451,6 +452,8 @@ namespace Arena
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
                 Recalc(p);
+                if (Has(RunMod.Lucky))
+                    p.Rerolls += Modifiers.LuckyRerolls;
                 Players[id] = p;
                 lastDowned[id] = false;
                 lastLevel[id] = 1;
