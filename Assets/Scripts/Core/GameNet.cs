@@ -141,6 +141,8 @@ namespace Arena
                 w.Write(p.WhirlT);
                 w.Write(p.VanishT);
                 w.Write(p.IronT);
+                w.Write(p.PactT);
+                w.Write(p.RushT);
                 w.Write((byte)p.AmmoUsed);
                 w.Write(p.ReloadT);
                 w.Write(p.DrawT);
@@ -373,7 +375,7 @@ namespace Arena
                 bool parrying = r.ReadBoolean();
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
                 float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
-                float vanishT = r.ReadSingle(), ironT = r.ReadSingle();
+                float vanishT = r.ReadSingle(), ironT = r.ReadSingle(), pactT = r.ReadSingle(), rushT = r.ReadSingle();
                 int ammoUsed = r.ReadByte();
                 float reloadT = r.ReadSingle();
                 float drawT = r.ReadSingle();
@@ -439,6 +441,8 @@ namespace Arena
                 p.UnbreakT = unbreakT;
                 p.VanishT = vanishT;
                 p.IronT = ironT;
+                p.PactT = pactT;
+                p.RushT = rushT;
                 p.FuryT = furyT;
                 p.WhirlT = whirlT;
                 p.AmmoUsed = ammoUsed;

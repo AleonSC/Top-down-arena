@@ -5,8 +5,8 @@ class Shot {
     int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     var host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
-    var melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA");
-    Kit meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Kit.Knight;
+    var melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");
+    Kit meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Environment.GetEnvironmentVariable("BLOOD") != null ? Kit.BloodMage : Kit.Knight;
     host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Mage);
     var others = new System.Collections.Generic.List<Session>();
     string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = melee != null ? new[] { meleeKit, meleeKit } : new[] { Kit.Soldier, Kit.Summoner };
@@ -174,7 +174,7 @@ class Shot {
     }
     else if (mode == "kitgrid")
     {
-      // Every role and weapon of one class (KIT=0..4, default the Ninja), drawn big: a check on how each one looks.
+      // Every role and weapon of one class (KIT=0..5, default the Ninja), drawn big: a check on how each one looks.
       GL.Tris.Clear();
       set("drawScale", 1f);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });

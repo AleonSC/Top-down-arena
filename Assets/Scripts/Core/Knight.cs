@@ -19,6 +19,7 @@ namespace Arena
         public float Stun;            // freezes what it hits for this long (not bosses)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
+        public float SelfHeal;        // heals the swinger this much per enemy hit (the Blood Mage's Blood Lash)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -55,6 +56,7 @@ namespace Arena
                 case WeaponId.Kusarigama: return KusariReach;
                 case WeaponId.BoStaff: return BoReach;
                 case WeaponId.Katana: return KatanaReach;
+                case WeaponId.BloodLash: return LashReach;
                 default: return 0f;
             }
         }
@@ -307,6 +309,8 @@ namespace Arena
                         if (q.Pos.DistanceTo(origin) < s.HealRange)
                             Heal(q, s.HealPerHit, p);
                 }
+                if (s.SelfHeal > 0f)
+                    Heal(p, s.SelfHeal, p);
             }
             if (s.HealSpin > 0f)
                 foreach (var q in Players.Values)

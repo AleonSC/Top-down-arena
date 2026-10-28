@@ -372,6 +372,7 @@ namespace Arena
                 case Kit.Summoner: return "Fights alongside minions that come with your weapon. 90% health.";
                 case Kit.Knight: return "Melee: swings cut small bullets out of the air. Armoured: 115% health.";
                 case Kit.Ninja: return "Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health.";
+                case Kit.BloodMage: return "Blood spells that drain and heal. Abilities cost health; hits harder the lower your health.";
                 default: return "Guns and gear. Full health.";
             }
         }

@@ -64,6 +64,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
 | `Waves.cs` | 0.12k | `TickWaves`, `WaveCleared`, `CheckGameOver` |
 | `Ninja.cs` | 0.45k | the Ninja: `FireNinjaWeapon`, `NinjaAbility`, Substitution's `MovePlayer` (`Msg.Teleport`), Shadow Step's landing, clones and Vanish (`NinjaTarget`), Smoke Bomb's slowed bullets, `TickNinjas` |
+| `BloodMage.cs` | 0.45k | the Blood Mage: `FireBloodWeapon`, `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
 | `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
 | `LateGame.cs` | 0.45k | bosses 25-50 (Colossus → Eclipse) |
@@ -104,6 +105,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
 | `ReferencePages.cs` | 0.07k | the pause menu's Field guide (opens the Bestiary / Armory pages) |
 | `Ui.cs` | 0.45k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `PulseRing`, tinted `Icon` |
+| `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
 
@@ -113,7 +115,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 60) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 61) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -133,8 +135,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   arena (paths never apply to boss waves).
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
   patches itself; only the offer, the choice and each patch's spawn go over the network.
-- **Class tables** (weapons, Space abilities, ultimates) are indexed by role × kit with `Defs.KitCount = 5`; a new class's
-  entries go after each role's last class. Ninja weapons are routed by weapon id (`>= WeaponId.Kusarigama`).
+- **Class tables** (weapons, Space abilities, ultimates) are indexed by role × kit with `Defs.KitCount = 6`; a new class's
+  entries go after each role's last class. Ninja and Blood Mage weapons are routed by weapon id (`>= WeaponId.Kusarigama`,
+  `>= WeaponId.BloodLash`). Blood Mage abilities cost health: `AbilityDef.HealthCost` (share of max health, or of
+  current with `CostsCurrent`), paid in `HostAbility` before the cast, never below 1 HP.
 
 ## 3. Testing and previewing (no Unity in the cloud container)
 
@@ -146,11 +150,11 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [mode]` builds and runs `Program.cs`.
   - `run.sh 1 30` = the **core** match tests (~164 checks).
-  - `run.sh 1 30 music` = the **feature** suite (~137 checks: parry, aim, mastery, budget, Boss Lab,
+  - `run.sh 1 30 music` = the **feature** suite (~175 checks: parry, aim, mastery, budget, Boss Lab,
     Singularity, Knight, boss sounds, weapon extras, revolver, bow, practice, weapon range...). The name is
     historical (it began as the music test). **Run both before committing.**
   - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
-    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, `paths` (all path tests, ~30 checks), ... (see the `args[2] ==` chain
+    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, `blood`, `paths` (all path tests, ~30 checks), ... (see the `args[2] ==` chain
     near the end of `Program.cs`).
   - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
     own upgrade from extra projectiles" "enemy bullets stay near the bullet budget" (limit 210; the peak
@@ -159,7 +163,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
     (rare), and "Swarm Fields: mostly melee rushers, about twice as many" (random; about 29-32 enemies against a
     29.4 threshold). The bullet-budget one fails about 1 run in 4-5 (re-measured Oct 2026: peaks 195-245).
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
-    `T/K/1` (Tank Knight, second weapon; `N` = Ninja).
+    `T/K/1` (Tank Knight, second weapon; `N` = Ninja, `B` = Blood Mage).
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 11 fixed, seeded scenes (every enemy and minion
   type, each class's abilities and ultimate, two Ninja scenes; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.
@@ -169,7 +173,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   each pair of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass),
   `PATCHES=1` (sample fire/pools). Others: `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BGMIN=1` (minimized
   background picker), `DEVTAB=n` (F1 tab), `FROST=1` (Frost Lance shots). Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
-  `KIT=n` with mode `kitgrid` (every role and weapon of a class, drawn big), `NINJA=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed to match Unity in Oct 2026, so older preview PNGs look fainter); use it to
+  `KIT=n` with mode `kitgrid` (every role and weapon of a class, drawn big), `NINJA=<weapon>` / `BLOOD=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed to match Unity in Oct 2026, so older preview PNGs look fainter); use it to
   check layout, then ask the owner to look in Unity.
 - **Reference pages:** `Docs/` holds the Bestiary and Armory sources. `Docs/Armory/build.sh` rebuilds the Armory
   (its icons come straight from `PixelArt.cs`) and `Docs/checks/*.js` are Playwright scripts that screenshot the
@@ -194,6 +198,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Blood Mage class (Oct 2026, protocol 61):** 6th kit for all three roles: health as a resource (Space abilities cost health, never below 1 HP; Blood Price up to +40% damage at low health; 3% lifesteal), 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; `blood` test suite; preview `BLOOD=n`.
 
 **This session (Oct 2026), newest first:** H hides/shows the HUD (`hudShown`/`hudT`, `HudGroup` staggers four pieces with slide + scale + ease-out-back + fade; `Ui.Alpha`/`Ui.Faded` make GUI.color-setting draws fade too; preview flag `HUDT=0..1`) · The Bazaar (a 10th path, 1 skull): kills on its waves give every player the same gold (`GoldPerXp` 0.3), and its prize is a shop before the boss (`Shop.cs`, `ShopUi.cs`): per-player shelf of 4 upgrades + a legendary + a weapon mod priced by rarity, services (restock, remove an upgrade, full heal, revive token), giving gold (reopens a done player's shop), no timer (closes when everyone is Done; the host can close it after 60 s), leftover gold becomes each player's own XP; bots shop by themselves; gold shows as a chip above the wave panel (`DrawGoldChip`; preview `GOLD=n`); preview mode `shop` (`SHOPSEL`, `GIVE=1`, `REMOVE=1`) and `PATHOFFER=bazaar`; protocol 60 · HUD moved to the bottom (owner picked mockup C of three): wave panel and your card flank the ability bar, teammates as slim rows, boss bars wide at the top · Session recorder check (format 2): mode (run / practice), endless runs record their real end (they used to stay "victory" at wave 50), path offers/choices/prizes, healing received by source, floor damage to enemies, dev tool use, each player's final abilities and mastery; `report.py` shows paths, healing sources, dev-tool flags and leaves Practice Range sessions out (`--practice` to include) · Divergent paths, all 4 steps (protocols 57-59): framework and the
 Choose-your-path screen, Swarm Fields / Sniper Ridge / Elite Gauntlet, Burning Grounds and Sanctuary (hazard

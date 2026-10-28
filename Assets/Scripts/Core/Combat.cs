@@ -29,6 +29,7 @@ namespace Arena
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
+            amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
@@ -40,11 +41,14 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
+            BloodTookHit(p, amount);  // Crimson Pact stores it; Blood Rite heals allies with it
             p.Hp -= amount;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
             if (p.Hp <= 0f && LastStanding(p))
                 p.Hp = 1f;  // Last Stand
+            if (p.Hp <= 0f && Exalted(p))
+                p.Hp = 1f;  // Crimson Apotheosis
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
             if (p.Hp <= 0f)
@@ -154,6 +158,12 @@ namespace Arena
                 case WeaponId.ArcaneMissiles:
                 case WeaponId.WispLantern: return Sfx.SpellArcane;
                 case WeaponId.RadiantOrb: return Sfx.SpellHoly;
+                case WeaponId.ClotBolt:
+                case WeaponId.LeechBeam:
+                case WeaponId.SanguineOrb:
+                case WeaponId.VeinTether:
+                case WeaponId.BloodBolts:
+                case WeaponId.HemoSpray: return Sfx.SpellArcane;
                 default: return Sfx.Throw;  // summoner staffs, darts and rocks
             }
         }
@@ -299,6 +309,7 @@ namespace Arena
                 if (p.Id == b.Owner || p.Downed || p.Hp >= p.MaxHp || b.Pos.DistanceSq(p.Pos) >= r * r)
                     continue;
                 Heal(p, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
+                TransfusionCost(b);  // Transfusion Darts cost their healer (BloodMage.cs)
                 return true;
             }
             return false;
@@ -342,7 +353,9 @@ namespace Arena
                                 if (Players.TryGetValue(b.Owner, out shooter))
                                     shooter.Run.ShotsHit++;
                             }
-                            HurtEnemy(e, b.Dmg * NinjaHitMult(b.Owner, b.Kind, e), b.Owner);  // Kunai and ambush bonuses (Ninja.cs)
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e);  // Kunai and ambush bonuses (Ninja.cs)
+                            HurtEnemy(e, hit, b.Owner);
+                            BloodShotHit(b, e, hit);  // Blood Mage shots drain, pool and drop orbs (BloodMage.cs)
                             OnBulletHit(b, e);
                             b.LastHit = e.Id;
                             if (b.Frags > 0)
@@ -596,6 +609,7 @@ namespace Arena
             {
                 var s = p.Stats;
                 dmg *= KnightDamageMult(p);  // Battle Fury, Last Stand
+                dmg *= BloodDamageMult(p);   // Blood Price
                 if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * 0.35f)
                     dmg *= 1f + s.ExecuteBonus;
                 if (s.CritChance > 0f && rng.NextDouble() < s.CritChance)
@@ -618,6 +632,7 @@ namespace Arena
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 KnightLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
+                BloodLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             e.Hp -= dmg;

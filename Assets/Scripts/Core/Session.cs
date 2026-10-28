@@ -65,7 +65,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 60;
+        public const int ProtocolVersion = 61;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -389,7 +389,7 @@ namespace Arena
 
         static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WeaponsPerRole ? weapon : 0;
         static int ClampAbility(int ability) => ability >= 0 && ability < Upgrades.RoleAbilityChoices ? ability : 0;
-        static Kit ClampKit(int kit) => kit >= 0 && kit <= (int)Kit.Ninja ? (Kit)kit : Kit.Soldier;
+        static Kit ClampKit(int kit) => kit >= 0 && kit <= (int)Kit.BloodMage ? (Kit)kit : Kit.Soldier;
 
         void SetKit(int id, int kit)
         {
