@@ -52,9 +52,12 @@ namespace Arena
             Ui.Panel(r);
             DrawPracticeHeader(r, t, canEdit);
 
-            // --- Waves (left).
-            float x0 = r.x + 14f, w0 = 212f, y = r.y + 52f;
+            // --- Waves (left): a numbered list, then what you can do to the selected wave.
+            float x0 = r.x + 16f, w0 = 214f, y = r.y + 58f;
             const int rows = 7;
+            const float rowH = 26f, rowStep = 29f;
+            Ui.Label(new Rect(x0, y, w0, 14f), "WAVES  ·  " + plan.Waves.Count, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            y += 20f;
             practiceScroll = Mathf.Clamp(practiceScroll, 0, Mathf.Max(0, plan.Waves.Count - rows));
             if (practiceSel < practiceScroll)
                 practiceScroll = practiceSel;
@@ -64,88 +67,95 @@ namespace Arena
             for (int i = practiceScroll; i < plan.Waves.Count && i < practiceScroll + rows; i++)
             {
                 var w = plan.Waves[i];
-                var row = new Rect(x0, y, w0, 28f);
+                var row = new Rect(x0, y, w0, rowH);
                 var boss = BossIn(w);
                 bool on = i == practiceSel;
                 Color c = boss != null ? Ui.Gold : PracticeColor;
-                Ui.Pill(row, on ? new Color(c.r * 0.55f, c.g * 0.55f, c.b * 0.55f, 0.95f) : new Color(1f, 1f, 1f, row.Contains(Event.current.mousePosition) ? 0.08f : 0.04f));
-                if (on)
-                    Ui.Fill(new Rect(row.x, row.y + 4f, 3f, row.height - 8f), c);
+                Ui.Pill(row, on ? new Color(c.r * 0.45f, c.g * 0.45f, c.b * 0.45f, 0.95f) : new Color(1f, 1f, 1f, row.Contains(Event.current.mousePosition) ? 0.08f : 0.035f));
                 if (other.Length > 0 && session.PlanEditorSel == i && t - practiceFlashT < 3f)
                     Ui.Pill(row, new Color(1f, 1f, 1f, 0.12f * (1f - (t - practiceFlashT) / 3f)));
-                Ui.Label(new Rect(row.x + 10f, row.y, 26f, row.height), (i + 1).ToString(), 13, on ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(row.x + 34f, row.y, 44f, row.height), "lv " + w.Level, 11, on ? new Color(1f, 1f, 1f, 0.8f) : Ui.Muted, TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(row.x + 76f, row.y, row.width - 82f, row.height), boss != null ? PracticePlan.NameOf(boss.Value).Replace("The ", "") : w.Total + " enemies", 12,
-                    boss != null ? Ui.Gold : on ? Color.white : Ui.Text, TextAnchor.MiddleLeft, boss != null);
+                var num = new Rect(row.x + 4f, row.y + 3f, 20f, 20f);  // the wave's number in a round badge
+                Ui.Pill(num, on ? c : new Color(1f, 1f, 1f, 0.08f));
+                Ui.Label(num, (i + 1).ToString(), 11, on ? new Color(0.05f, 0.06f, 0.09f) : Ui.Muted, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(row.x + 30f, row.y, 40f, row.height), "Lv " + w.Level, 10, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(row.x + 70f, row.y, row.width - 76f, row.height), boss != null ? PracticePlan.NameOf(boss.Value).Replace("The ", "") : w.Total == 1 ? "1 enemy" : w.Total + " enemies", 12,
+                    boss != null ? Ui.Gold : on ? Color.white : Ui.Text, TextAnchor.MiddleLeft, boss != null || on);
                 if (other.Length > 0 && session.PlanEditorSel == i)  // where the other editor is working
-                    Ui.Badge(new Rect(row.xMax - 54f, row.y + 6f, 50f, 16f), other.Length > 6 ? other.Substring(0, 6) : other, Ui.Accent);
+                    Ui.Badge(new Rect(row.xMax - 54f, row.y + 5f, 50f, 16f), other.Length > 6 ? other.Substring(0, 6) : other, Ui.Accent);
                 if (!on && GUI.Button(row, GUIContent.none, GUIStyle.none))
                 {
                     practiceSel = i;
                     practiceLoadOpen = false;
                 }
-                y += 31f;
+                y += rowStep;
             }
+            float by = r.y + 78f + rows * rowStep;
             if (plan.Waves.Count > rows)
             {
-                Ui.Label(new Rect(x0, y, w0, 14f), (practiceScroll + 1) + "-" + Math.Min(plan.Waves.Count, practiceScroll + rows) + " of " + plan.Waves.Count, 10, Ui.Muted, TextAnchor.MiddleCenter);
-                if (Ui.Button(new Rect(x0, y - 2f, 26f, 18f), "^") && practiceScroll > 0)
+                Ui.Label(new Rect(x0, by, w0, 16f), (practiceScroll + 1) + "-" + Math.Min(plan.Waves.Count, practiceScroll + rows) + " of " + plan.Waves.Count, 10, Ui.Muted, TextAnchor.MiddleCenter);
+                if (Ui.SmallButton(new Rect(x0, by - 1f, 28f, 18f), "▲", 9) && practiceScroll > 0)
                     practiceScroll--;
-                if (Ui.Button(new Rect(x0 + w0 - 26f, y - 2f, 26f, 18f), "v"))
+                if (Ui.SmallButton(new Rect(x0 + w0 - 28f, by - 1f, 28f, 18f), "▼", 9))
                     practiceScroll++;
             }
+            by += 20f;
 
-            float by = r.y + 52f + rows * 31f + 20f, bw = (w0 - 12f) / 3f;
             bool wasEnabled = GUI.enabled;
             GUI.enabled = canEdit;
-            if (Ui.Button(new Rect(x0, by, bw, 28f), "+ Add"))
+            float bw = (w0 - 12f) / 3f;
+            if (Ui.SmallButton(new Rect(x0, by, bw, 26f), "+ Add", new Color(PracticeColor.r * 0.8f, PracticeColor.g * 0.8f, PracticeColor.b * 0.8f)))
             {
                 plan.Waves.Insert(practiceSel + 1, new PracticeWave { Level = sel.Level });
                 practiceSel++;
                 PracticeChanged();
             }
-            if (Ui.Button(new Rect(x0 + bw + 6f, by, bw, 28f), "Copy"))
+            if (Ui.SmallButton(new Rect(x0 + bw + 6f, by, bw, 26f), "Copy"))
             {
                 plan.Waves.Insert(practiceSel + 1, sel.Copy());
                 practiceSel++;
                 PracticeChanged();
             }
-            if (Ui.Button(new Rect(x0 + 2f * (bw + 6f), by, bw, 28f), "Remove", Ui.Danger) && plan.Waves.Count > 1)
+            if (Ui.SmallButton(new Rect(x0 + 2f * (bw + 6f), by, bw, 26f), "Remove", Ui.Danger) && plan.Waves.Count > 1)
             {
                 plan.Waves.RemoveAt(practiceSel);
                 practiceSel = Mathf.Min(practiceSel, plan.Waves.Count - 1);
                 PracticeChanged();
             }
-            by += 38f;
-            Ui.Label(new Rect(x0, by, 50f, 28f), "LEVEL", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            float lx = x0 + 44f;
+            by += 34f;
+
+            // Level: a stepper in a pill.
+            var lp = new Rect(x0, by, w0, 30f);
+            Ui.Pill(lp, new Color(0f, 0f, 0f, 0.3f));
+            Ui.Label(new Rect(lp.x + 10f, lp.y, 50f, lp.height), "LEVEL", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            float lx = lp.x + 52f;
             foreach (int step in new[] { -5, -1, 0, 1, 5 })
             {
                 if (step == 0)
                 {
-                    Ui.Fancy(new Rect(lx, by, 40f, 28f), sel.Level.ToString(), 18, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
-                    lx += 40f;
+                    Ui.Fancy(new Rect(lx, lp.y, 38f, lp.height), sel.Level.ToString(), 17, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+                    lx += 38f;
                     continue;
                 }
-                if (Ui.Button(new Rect(lx, by, 30f, 28f), step > 0 ? "+" + step : step.ToString()))
+                if (Ui.SmallButton(new Rect(lx, lp.y + 3f, 28f, 24f), step > 0 ? "+" + step : "−" + (-step), 11))
                 {
                     sel.Level = Mathf.Clamp(sel.Level + step, 1, Game.MaxWave);
                     PracticeChanged();
                 }
-                lx += 33f;
+                lx += 31f;
             }
-            by += 34f;
-            bool loop = Ui.Toggle(new Rect(x0, by, w0, 24f), plan.Loop, "Loop the waves");
+            by += 38f;
+            bool loop = Ui.Toggle(new Rect(x0, by, w0, 22f), plan.Loop, "Loop the waves");
             if (loop != plan.Loop && canEdit)
             {
                 plan.Loop = loop;
                 PracticeChanged();
             }
             GUI.enabled = wasEnabled;
-            Ui.Label(new Rect(x0, by + 28f, w0, 30f), "Level sets enemy health and fire rate, as on that wave of a run.", 10, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            Ui.Label(new Rect(x0, by + 26f, w0, 28f), "Level sets enemy health and fire rate, as on that wave of a run.", 10, Ui.Muted, TextAnchor.UpperLeft, false, true);
 
             // --- Enemies (right): or the saved setups.
-            var grid = new Rect(x0 + w0 + 18f, r.y + 52f, r.xMax - 14f - (x0 + w0 + 18f), r.height - 104f);
+            Ui.Fill(new Rect(x0 + w0 + 12f, r.y + 58f, 1f, r.height - 58f - 60f), new Color(1f, 1f, 1f, 0.05f));
+            var grid = new Rect(x0 + w0 + 26f, r.y + 58f, r.xMax - 16f - (x0 + w0 + 26f), r.height - 58f - 62f);
             if (practiceLoadOpen)
                 DrawPracticeFiles(grid);
             else
@@ -164,13 +174,13 @@ namespace Arena
 
         void DrawPracticeHeader(Rect r, float t, bool canEdit)
         {
-            float x = r.x + 16f, y = r.y + 12f;
+            float x = r.x + 16f, y = r.y + 10f;
             string status;
             Color sc;
             if (session.IsHost)
             {
                 status = session.OthersCanEdit ? "Everyone can edit these waves" : "You're editing  ·  the others see every change";
-                sc = Ui.Text;
+                sc = PracticeColor;
             }
             else if (canEdit)
             {
@@ -182,45 +192,51 @@ namespace Arena
                 status = "Watching " + HostName() + "'s setup  ·  only the host can edit";
                 sc = Ui.Muted;
             }
-            Ui.Label(new Rect(x, y, r.width - 230f, 26f), status, 13, sc, TextAnchor.MiddleLeft, true);
+            // A live dot, then who's editing.
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f);
+            Ui.Pill(new Rect(x, y + 9f, 10f, 10f), new Color(sc.r, sc.g, sc.b, 0.35f + 0.5f * pulse));
+            Ui.Label(new Rect(x + 18f, y, r.width - 250f, 28f), status, 13, Ui.Text, TextAnchor.MiddleLeft, true);
             if (session.PlanEditor.Length > 0 && session.PlanEditor != MyLobbyName() && t - practiceFlashT < 4f)
-                Ui.Label(new Rect(x, y + 20f, r.width - 230f, 16f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 11,
+                Ui.Label(new Rect(x + 18f, y + 22f, r.width - 250f, 16f), session.PlanEditor + " changed wave " + (session.PlanEditorSel + 1), 11,
                     new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 1f - (t - practiceFlashT) / 4f));
             if (session.IsHost)
             {
-                bool on = Ui.Toggle(new Rect(r.xMax - 196f, y + 2f, 180f, 24f), session.OthersCanEdit, "Let others edit");
+                bool on = Ui.Toggle(new Rect(r.xMax - 176f, y + 3f, 160f, 22f), session.OthersCanEdit, "Let others edit");
                 if (on != session.OthersCanEdit)
                     session.SetOthersCanEdit(on);
             }
             else if (canEdit)
                 Ui.Badge(new Rect(r.xMax - 116f, y + 4f, 100f, 20f), "YOU CAN EDIT", new Color(0.2f, 0.62f, 0.32f));
-            Ui.Fill(new Rect(r.x + 14f, r.y + 44f, r.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
+            Ui.Fill(new Rect(r.x + 14f, r.y + 46f, r.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
         }
 
         /// The enemies to pick from, each drawn live: click to add one, right-click (or the corner -) to take one away.
         void DrawEnemyGrid(Rect g, PracticeWave sel, bool canEdit, float t)
         {
             const int cols = 6;
-            const float gap = 6f, th = 62f;
+            const float gap = 6f, infoH = 46f, headH = 20f;
             float tw = (g.width - gap * (cols - 1)) / cols;
             var tiles = new Rect[PracticePlan.Choices.Length];
             int regular = PracticePlan.Choices.Count(c => !Defs.Get(c).IsBoss);
+            int tileRows = (regular + cols - 1) / cols + (tiles.Length - regular + cols - 1) / cols;
+            // Tiles shrink to fit above the info bar.
+            float th = Mathf.Min(62f, (g.height - infoH - 14f - 2f * headH - 6f - gap * (tileRows - 1)) / tileRows);
             float y = g.y;
             Ui.Label(new Rect(g.x, y, g.width, 14f), "ENEMIES IN WAVE " + (practiceSel + 1) + "  ·  " + sel.Total, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            if (canEdit && sel.Total > 0 && Ui.Button(new Rect(g.xMax - 60f, y - 3f, 60f, 18f), "Clear"))
+            if (canEdit && sel.Total > 0 && Ui.SmallButton(new Rect(g.xMax - 56f, y - 3f, 56f, 20f), "Clear", 11))
             {
                 sel.Counts.Clear();
                 PracticeChanged();
             }
-            y += 18f;
+            y += headH;
             for (int i = 0; i < tiles.Length; i++)
             {
                 int k = i < regular ? i : i - regular;
                 if (i == regular)
                 {
                     y += (regular + cols - 1) / cols * (th + gap) + 4f;
-                    Ui.Label(new Rect(g.x, y, g.width, 14f), "BOSSES  (they bring their usual adds)", 10, Ui.Gold, TextAnchor.MiddleLeft, true);
-                    y += 18f;
+                    Ui.Label(new Rect(g.x, y, g.width, 14f), "BOSSES  ·  they bring their usual adds", 10, Ui.Gold, TextAnchor.MiddleLeft, true);
+                    y += headH;
                 }
                 tiles[i] = new Rect(g.x + (k % cols) * (tw + gap), y + (k / cols) * (th + gap), tw, th);
             }
@@ -268,8 +284,10 @@ namespace Arena
                     int n;
                     sel.Counts.TryGetValue(type, out n);
                     bool hover = hovered == type;
-                    DrawEnemyPreview(type, new V2(tiles[i].center.x, tiles[i].y + 25f), 40f, t, n > 0 || hover);
+                    DrawEnemyPreview(type, new V2(tiles[i].center.x, tiles[i].y + (th - 14f) / 2f + 1f), Mathf.Min(40f, th - 18f), t, n > 0 || hover);
                 }
+                if (hovered != null)
+                    DrawEnemyPreview(hovered.Value, new V2(g.x + 24f, g.yMax - infoH / 2f), 32f, t, true);
                 EndUiGl();
             }
             // Names and counts on top.
@@ -280,7 +298,7 @@ namespace Arena
                 int n;
                 sel.Counts.TryGetValue(type, out n);
                 bool boss = Defs.Get(type).IsBoss;
-                Ui.Label(new Rect(tr.x + 2f, tr.yMax - 17f, tr.width - 4f, 14f), PracticePlan.NameOf(type).Replace("The ", ""), 10,
+                Ui.Label(new Rect(tr.x + 2f, tr.yMax - 15f, tr.width - 4f, 13f), PracticePlan.NameOf(type).Replace("The ", ""), 10,
                     boss ? Ui.Gold : n > 0 ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, n > 0);
                 if (n > 0)
                 {
@@ -291,16 +309,23 @@ namespace Arena
                     {
                         var minus = new Rect(tr.x + 3f, tr.y + 3f, 17f, 17f);
                         Ui.Pill(minus, new Color(0f, 0f, 0f, minus.Contains(ev.mousePosition) ? 0.8f : 0.5f));
-                        Ui.Label(minus, "-", 13, Color.white, TextAnchor.MiddleCenter, true);
+                        Ui.Label(minus, "−", 13, Color.white, TextAnchor.MiddleCenter, true);
                     }
                 }
             }
-            // What the hovered one does.
-            var line = new Rect(g.x, g.yMax - 2f, g.width, 18f);
+            // What the hovered one does, in a bar under the tiles (its enemy is drawn at the left, above).
+            var info = new Rect(g.x, g.yMax - infoH, g.width, infoH);
+            Ui.Pill(info, new Color(0f, 0f, 0f, 0.28f));
             if (hovered != null)
-                Ui.Label(line, PracticePlan.NameOf(hovered.Value) + ":  " + PracticePlan.BlurbOf(hovered.Value), 11, Ui.Text, TextAnchor.MiddleLeft);
-            else if (canEdit)
-                Ui.Label(line, "Click an enemy to add one, right-click to take one away. Hover to see what it does.", 11, Ui.Muted, TextAnchor.MiddleLeft);
+            {
+                bool boss = Defs.Get(hovered.Value).IsBoss;
+                Ui.Label(new Rect(info.x + 50f, info.y + 4f, info.width - 60f, 16f), PracticePlan.NameOf(hovered.Value), 12, boss ? Ui.Gold : Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(info.x + 50f, info.y + 20f, info.width - 60f, 26f), PracticePlan.BlurbOf(hovered.Value), 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            }
+            else
+                Ui.Label(new Rect(info.x + 14f, info.y, info.width - 28f, infoH), canEdit
+                    ? "Click an enemy to add one, right-click (or its −) to take one away. Hover one to see what it does."
+                    : "Hover an enemy to see what it does.", 11, Ui.Muted, TextAnchor.MiddleCenter, false, true);
         }
 
         /// One enemy, drawn as in a match and fitted into a box `size` across (call between BeginUiGl and EndUiGl).
@@ -348,23 +373,26 @@ namespace Arena
 
         void DrawPracticeFooter(Rect r, bool canEdit)
         {
-            float x = r.x + 14f, y = r.yMax - 40f;
-            Ui.Fill(new Rect(r.x + 14f, y - 8f, r.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
-            practiceName = Ui.Field(new Rect(x, y, 150f, 28f), practiceName, 40);
-            if (Ui.Button(new Rect(x + 156f, y, 58f, 28f), "Save"))
+            float x = r.x + 16f, y = r.yMax - 44f;
+            Ui.Fill(new Rect(r.x + 14f, y - 10f, r.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
+            Ui.Label(new Rect(x, y, 54f, 30f), "SETUP", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            practiceName = Ui.Field(new Rect(x + 48f, y, 170f, 30f), practiceName, 40);
+            float bx = x + 226f;
+            if (Ui.SmallButton(new Rect(bx, y, 64f, 30f), "Save", new Color(PracticeColor.r * 0.8f, PracticeColor.g * 0.8f, PracticeColor.b * 0.8f)))
                 SavePractice();
             bool wasEnabled = GUI.enabled;
             GUI.enabled = canEdit;
-            if (Ui.Button(new Rect(x + 220f, y, 58f, 28f), practiceLoadOpen ? "Back" : "Load", practiceLoadOpen ? Ui.Primary : Ui.Neutral))
+            if (Ui.SmallButton(new Rect(bx + 70f, y, 64f, 30f), practiceLoadOpen ? "Back" : "Load", practiceLoadOpen ? Ui.Primary : Ui.Neutral))
                 practiceLoadOpen = !practiceLoadOpen;
             GUI.enabled = wasEnabled;
-            if (Ui.Button(new Rect(x + 284f, y, 98f, 28f), "Open folder"))
+            if (Ui.SmallButton(new Rect(bx + 140f, y, 96f, 30f), "Open folder"))
             {
                 Directory.CreateDirectory(PracticeFolder);
                 Application.OpenURL("file:///" + PracticeFolder.Replace('\\', '/'));
             }
-            Ui.Label(new Rect(x + 392f, y, r.xMax - 14f - (x + 392f), 28f), practiceStatus.Length > 0 ? practiceStatus : PracticeSummary(), 11,
-                practiceStatus.Length > 0 ? Ui.Muted : PracticeColor, TextAnchor.MiddleRight);
+            float sx = bx + 248f;
+            Ui.Label(new Rect(sx, y, r.xMax - 16f - sx, 30f), practiceStatus.Length > 0 ? practiceStatus : PracticeSummary(), 11,
+                practiceStatus.Length > 0 ? Ui.Muted : PracticeColor, TextAnchor.MiddleRight, practiceStatus.Length == 0);
         }
 
         void DrawPracticeFiles(Rect g)
@@ -390,7 +418,7 @@ namespace Arena
             for (int i = 0; i < files.Length; i++)
             {
                 var b = new Rect(g.x + (i % 2) * (bw + 6f), g.y + 22f + (i / 2) * 34f, bw, 30f);
-                if (Ui.Button(b, Path.GetFileNameWithoutExtension(files[i])))
+                if (Ui.SmallButton(b, Path.GetFileNameWithoutExtension(files[i]), 13))
                     LoadPractice(files[i]);
             }
         }

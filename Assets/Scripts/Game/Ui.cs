@@ -118,6 +118,18 @@ namespace Arena
 
         public static bool Button(Rect r, string text) => Button(r, text, Neutral);
 
+        /// A button with smaller text, for tight rows.
+        public static bool SmallButton(Rect r, string text, Color tint, int size = 12)
+        {
+            int old = button.fontSize;
+            button.fontSize = size;
+            bool clicked = Button(r, text, tint);
+            button.fontSize = old;
+            return clicked;
+        }
+
+        public static bool SmallButton(Rect r, string text, int size = 12) => SmallButton(r, text, Neutral, size);
+
         /// One option of a row of choices. The selected one is filled with the accent color.
         public static bool Choice(Rect r, string text, bool selected, Color accent)
         {
