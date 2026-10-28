@@ -16,6 +16,7 @@ namespace Arena
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
+        public float Stun;            // freezes what it hits for this long (not bosses)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
     }
 
@@ -29,7 +30,7 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
-        public const float LanceHalfWidth = 34f;  // the Lance hits a 68 px wide box straight ahead
+        public const float LanceHalfWidth = 44f, LanceReach = 180f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
 
         // --- Weapons ------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ namespace Arena
             switch (w)
             {
                 case WeaponId.Warhammer: return 100f;
-                case WeaponId.Lance: return 150f;
+                case WeaponId.Lance: return LanceReach;
                 case WeaponId.Halberd: return 160f;
                 case WeaponId.HolyMace: return 85f;
                 case WeaponId.Lightbringer: return 80f;
@@ -84,8 +85,9 @@ namespace Arena
                 case WeaponId.Lance:
                 {
                     // A big jab straight ahead that drives everything it hits far back (not bosses or heavies).
-                    var s = NewSwing(p, aim, 150f + 30f * extra, 0f, 36f * dmg);
+                    var s = NewSwing(p, aim, LanceReach + 30f * extra, 0f, 36f * dmg);
                     s.HalfWidth = LanceHalfWidth + 12f * extra;
+                    s.Stun = LanceStun;
                     s.Knock = 140f + 60f * extra;
                     s.Heavy = true;
                     s.Thrust = true;
@@ -277,6 +279,11 @@ namespace Arena
                 }
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                if (s.Stun > 0f && !e.Def.IsBoss)
+                {
+                    e.FrozenT = Math.Max(e.FrozenT, s.Stun);
+                    e.SlowT = Math.Max(e.SlowT, s.Stun);
+                }
                 if (s.Knock > 0f && !Heavy(e))
                 {
                     V2 away = (e.Pos - origin).Normalized();

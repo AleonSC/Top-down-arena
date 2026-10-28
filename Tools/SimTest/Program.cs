@@ -1871,6 +1871,19 @@ static class Program
         Console.WriteLine("  lance box: ahead took {0:0}, beside took {1:0}", aheadHp - ahead.Hp, besideHp - beside.Hp);
         Check(ahead.Hp < aheadHp && beside.Hp == besideHp, "the Lance hits a box straight ahead, not a cone");
         ahead.Hp = beside.Hp = 0f; keep.Remove(ahead); keep.Remove(beside);
+        // And it stuns what it hits for a second (not bosses).
+        var stunned = Dummy(new V2(900f, 600f));
+        var lanceBoss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, new V2(900f, 600f), 0f, 0, false });
+        lanceBoss.Hp = lanceBoss.MaxHp = 1e6f; lanceBoss.SpawnT = 0f; keep.Add(lanceBoss);
+        float stunAt = 0f, bossFrozen = 0f;
+        for (int f = 0; f < 45; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); Clear(); me.Pos = new V2(780f, 600f);
+            stunAt = Math.Max(stunAt, stunned.FrozenT); bossFrozen = Math.Max(bossFrozen, lanceBoss.FrozenT);
+        }
+        Console.WriteLine("  lance stun: {0:0.00} s on a Brute, {1:0.00} s on the Warden", stunAt, bossFrozen);
+        Check(stunAt > 0.9f && bossFrozen == 0f, "the Lance stuns what it hits for 1 s (not bosses)");
+        stunned.Hp = lanceBoss.Hp = 0f; keep.Remove(stunned); keep.Remove(lanceBoss);
 
         // Abilities (cast directly; all players are invulnerable to everything but what's tested).
         Func<AbilityId, int> Slot = id => { var p = g.Players.Values.First(q => q.Slots.Any(sl => sl.Id == id)); return Array.FindIndex(p.Slots, sl => sl.Id == id); };
