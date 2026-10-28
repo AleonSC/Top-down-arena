@@ -276,10 +276,36 @@ namespace Arena
 
         // --- Per-tick behaviour ------------------------------------------------
 
+        // --- Bullet budget ---------------------------------------------------------------
+        // A cap on enemy bullets on screen, so later waves get harder through tougher enemies rather than
+        // a wall of bullets. Regular enemies hold their fire while the screen is over budget; bosses always
+        // fire, and while one is up the others only get a small share, so the boss's patterns stay readable.
+
+        int enemyShots;  // enemy bullets in flight, counted each tick (and as they're fired)
+
+        public int ShotBudget => (int)(Math.Min(120f, 50f + 4f * Wave) * (1f + 0.3f * (Players.Count - 1)));
+
+        int RegularShotBudget()
+        {
+            foreach (var e in Enemies.Values)
+                if (e.Def.IsBoss)
+                    return (int)(ShotBudget * 0.4f);
+            return ShotBudget;
+        }
+
+        void CountEnemyShots()
+        {
+            enemyShots = 0;
+            foreach (var b in Bullets.Values)
+                if (Defs.IsEnemyShot(b.Kind))
+                    enemyShots++;
+        }
+
         void TickEnemies(float dt)
         {
             float rate = Math.Min(2f, 1f + 0.05f * (Wave - 1));
             PullStrength = 0f;
+            CountEnemyShots();
             foreach (var e in new List<Enemy>(Enemies.Values))  // copy: some enemies spawn others
             {
                 e.T += dt;
@@ -317,7 +343,12 @@ namespace Arena
                     float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f);
                     e.FireT -= dt * mult;
                     if (e.FireT <= 0f)
-                        EnemyFire(e, tpos);
+                    {
+                        if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())
+                            e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
+                        else
+                            EnemyFire(e, tpos);
+                    }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber)
                     continue;  // blew up this tick, or explodes instead of bumping

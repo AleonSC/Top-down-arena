@@ -1285,6 +1285,71 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // How crowded the screen gets: enemy bullets on screen through a wave (bots playing, buffed so they survive).
+    static void BulletCountReport(float dt)
+    {
+        foreach (int wave in new[] { 3, 6, 9, 12, 15, 18, 21, 24, 27 })
+        {
+            var s = StartBuffed(dt, wave, 6);
+            foreach (var g in new[] { s[0].Game, s[1].Game }) foreach (var p in g.Players.Values) p.DevGod = true;
+            s[0].Game.DevSetGod(1, true); s[0].Game.DevSetGod(2, true);
+            Run(s, dt, 8, () => s[0].Game.State == MatchState.Fighting);
+            var counts = new List<int>();
+            bool boss = false;
+            Run(s, dt, 40, () => s[0].Game.State != MatchState.Fighting, () =>
+            {
+                counts.Add(s[0].Game.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)));
+                boss |= s[0].Game.Enemies.Values.Any(e => e.Def.IsBoss);
+            });
+            counts.Sort();
+            Console.WriteLine("  wave {0,2}{1}: enemy bullets avg {2,4:0} median {3,4} p90 {4,4} max {5,4}", wave, boss ? " (boss)" : "       ",
+                counts.Count > 0 ? counts.Average() : 0, counts.Count > 0 ? counts[counts.Count / 2] : 0, counts.Count > 0 ? counts[counts.Count * 9 / 10] : 0, counts.Count > 0 ? counts.Last() : 0);
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+
+    // The bullet budget caps enemy bullets on screen; Homing Rounds only fix near misses and cost damage.
+    static void BudgetHomingTest(float dt)
+    {
+        var s = StartBuffed(dt, 21, 6);
+        s[0].Game.DevSetGod(1, true); s[0].Game.DevSetGod(2, true);
+        Run(s, dt, 8, () => s[0].Game.State == MatchState.Fighting);
+        int max = 0, budget = s[0].Game.ShotBudget;
+        Run(s, dt, 20, () => s[0].Game.State != MatchState.Fighting, () =>
+        {
+            if (!s[0].Game.Enemies.Values.Any(e => e.Def.IsBoss))
+                max = Math.Max(max, s[0].Game.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)));
+        });
+        Console.WriteLine("  wave 21: at most {0} enemy bullets on screen (budget {1}; it used to reach 800+)", max, budget);
+        Check(budget > 100 && max <= budget * 1.35f, "enemy bullets stay near the bullet budget");
+        s[0].Leave(""); s[1].Leave("");
+
+        s = StartBuffed(dt, 3, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        var dummy = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        dummy.Hp = dummy.MaxHp = 1e6f;
+        for (int k = 0; k < 3; k++) g.GrantUpgrade(2, Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds"));
+        Run(s, dt, 0.2f, null, () => { dummy.FrozenT = 1f; });
+        // A near miss (aimed 15 degrees off, 200 px away) bends in; a shot fired sideways doesn't hunt it down.
+        var near = (Bullet)shoot.Invoke(g, new object[] { Defs.DpsShot, new V2(800f, 500f), V2.FromAngle(-MathX.Pi / 2f + 0.26f) * 600f, 0f, 1.5f, 10f, 2, false, 0f });
+        var wide = (Bullet)shoot.Invoke(g, new object[] { Defs.DpsShot, new V2(800f, 500f), V2.FromAngle(0f) * 600f, 0f, 1.5f, 10f, 2, false, 0f });
+        float wideAngle0 = wide.Vel.Angle, hpBefore = dummy.Hp;
+        Run(s, dt, 0.6f, null, () => { dummy.FrozenT = 1f; });
+        bool nearHit = dummy.Hp < hpBefore;
+        float wideTurn = Math.Abs(wide.Vel.Angle - wideAngle0);
+        Console.WriteLine("  homing x3: near miss hit {0}, sideways shot turned {1:0.00} rad, shot damage {2:0.0} of 10", nearHit, wideTurn, near.Dmg);
+        Check(nearHit && wideTurn < 0.05f, "Homing Rounds fix near misses but don't hunt enemies off to the side");
+        Check(Math.Abs(near.Dmg - 7f) < 0.01f, "Homing Rounds cost 10% damage per stack");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Spinners spray in bursts with breathers in between (they used to spray nonstop).
     static void SpinnerTest(float dt)
     {
@@ -2399,6 +2464,17 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "bulletcount")
+        {
+            BulletCountReport(1f / 60f);
+            return 0;
+        }
+        if (args.Length > 2 && args[2] == "budget")
+        {
+            BudgetHomingTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "mastery")
         {
             MasteryTest(1f / 60f);
@@ -2448,6 +2524,7 @@ static class Program
         SpinnerTest(dt);
         DevToolsTest(dt);
         MasteryTest(dt);
+        BudgetHomingTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);
         RevolverReloadTest(dt);

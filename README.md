@@ -197,7 +197,7 @@ have chosen.
 
 | Mod | Per stack |
 |---|---|
-| **Homing Rounds** | Shots curve toward the nearest enemy ahead of them; more stacks turn harder |
+| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder |
 | **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack |
 | **Incendiary Rounds** | Hits set enemies on fire for 3 s, burning 25% of the hit's damage per second |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
@@ -218,6 +218,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
+- **Bullet budget:** enemy bullets on screen are capped at 50 + 4 per wave, up to 120 from wave 18 (30% more per extra player). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies only get 40% of the cap. Later waves get harder through tougher enemies, not more bullets.
 
 ## Enemies
 

@@ -1906,7 +1906,10 @@ namespace Arena
                 p = Players[owner];
                 vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
                 homing = Math.Max(homing, p.Stats.Homing);
+                dmg *= 1f - HomingDamageCost * p.Stats.Homing;  // Homing Rounds trade damage for forgiveness
             }
+            if (owner == 0 && Defs.IsEnemyShot(kind))
+                enemyShots++;
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
             b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
@@ -2054,12 +2057,17 @@ namespace Arena
 
         readonly List<Bullet> splashes = new List<Bullet>();
 
-        /// Homing Rounds: turn toward the nearest enemy ahead. Clients steer the same way with the
+        /// Homing Rounds (2 turn per stack) cost 5% damage per point of turn: 10% a stack.
+        public const float HomingDamageCost = 0.05f;
+        const float HomingRange = 260f, HomingCone = 0.7f;  // only enemies within 260 px and ~45 degrees of the shot's path
+
+        /// Homing Rounds: bend toward the nearest enemy close ahead, so near misses connect but a shot
+        /// fired the wrong way doesn't turn around to find someone. Clients steer the same way with the
         /// enemies they see, and the host sends the exact course 20 times a second.
         void Steer(Bullet b, float dt)
         {
             Enemy best = null;
-            float bestD = 380f * 380f;
+            float bestD = HomingRange * HomingRange;
             V2 dir = b.Vel.Normalized();
             foreach (var e in Enemies.Values)
             {
@@ -2067,7 +2075,7 @@ namespace Arena
                     continue;
                 V2 to = e.Pos - b.Pos;
                 float d = to.LengthSq;
-                if (d < bestD && to.X * dir.X + to.Y * dir.Y > 0f)
+                if (d < bestD && to.X * dir.X + to.Y * dir.Y > HomingCone * (float)Math.Sqrt(d))
                 {
                     best = e;
                     bestD = d;

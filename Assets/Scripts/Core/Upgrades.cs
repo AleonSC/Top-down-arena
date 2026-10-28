@@ -243,8 +243,8 @@ namespace Arena
                 Apply = s => { s.Pierce += 2; s.DmgMult += 0.2f; } },
 
             // Weapon mods: one is picked after every boss, from the full list.
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots curve toward the nearest enemy. More stacks turn harder",
-                Apply = s => s.Homing += 3f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 10% less damage per stack. More stacks bend harder",
+                Apply = s => s.Homing += 2f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
                 Apply = s => s.Ricochet += 1 },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s",

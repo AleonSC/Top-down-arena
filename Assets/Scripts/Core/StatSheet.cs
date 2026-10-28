@@ -19,7 +19,7 @@ namespace Arena
             var s = Upgrades.Compute(taken);
             var lines = new List<StatLine>();
             lines.Add(new StatLine { Label = "Max HP", Value = ((int)(p.BaseHp + s.BonusHp)).ToString() });
-            lines.Add(new StatLine { Label = "Damage", Value = Pct(s.DmgMult) });
+            lines.Add(new StatLine { Label = "Damage", Value = Pct(s.DmgMult * (1f - Game.HomingDamageCost * s.Homing)) });  // Homing Rounds cost damage
             lines.Add(new StatLine { Label = "Fire rate", Value = Pct(s.FireRateMult) });
             lines.Add(new StatLine { Label = "Move speed", Value = Pct(s.SpeedMult) });
             lines.Add(new StatLine { Label = "Ability cooldowns", Value = Pct(s.CdMult) });
