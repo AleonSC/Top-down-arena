@@ -389,7 +389,7 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Fogbound** | 2 | A mist hides everything more than about 350 px from every player (shared sight: stay close) |
 | **Narrow Pass** | 2 | Glowing canyon walls close in to a 1120 x 720 pass: no wrapping round the edges, and bullets stop at the walls |
 
-A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. The
+A chip above the wave panel shows the path and the waves left. Session recordings note each wave's path. The
 mist rolls in and the walls close in during the countdown before a path's first wave, and lift before the boss.
 Design notes and the decisions behind them are in `Docs/Paths.md`.
 
@@ -397,7 +397,7 @@ Design notes and the decisions behind them are in `Docs/Paths.md`.
 
 The lobby's **Modifiers** tab lists switches that change the whole run, for everyone (Practice Range too). The
 host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
-as chips under the wave plate during the match, and session recordings list them.
+as chips above the wave panel during the match, and session recordings list them.
 
 | Modifier | Effect | |
 |---|---|---|
@@ -457,6 +457,14 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
+
+## The HUD
+
+Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)
+in the middle, the **wave panel** left of it (wave, enemies left, score, progress; the path and modifier chips
+stack above it) and **your card** right of it (health, shield, level, XP). Teammates show as slim rows above
+your card: name, class, level and health (or their revive progress when downed). Boss health bars go wide across
+the top middle, and the "Hold TAB" hint is in the top-right corner.
 
 ## End of a run
 
@@ -580,7 +588,7 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
-**● REC** in the bottom-right corner shows a match is being recorded. The Unity editor and a built game keep
+**● REC** in the top-right corner shows a match is being recorded. The Unity editor and a built game keep
 separate settings, so check it in each. While you **host**, every match (solo or with friends) is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
 `%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
 covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave, so a crash
