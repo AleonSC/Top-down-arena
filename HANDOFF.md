@@ -252,3 +252,35 @@ copies of the same numbers:
 Low-risk, high-value first: (5) and (6) file splits → (7) test suite layout → (1) weapon numbers in
 `WeaponDef` → (8) symmetric serialisation → (2)/(3) registries → (14) balance file. Do each as its own commit,
 running both test suites and the compile check after each.
+
+### 6.8 Work plan (the owner's order, October 2026)
+
+One step per commit, pushed to `main`; compile check and both suites must pass first (rerun known flakes).
+Bump `Session.ProtocolVersion` and tell the owner whenever a message format changes. Preview any UI touched,
+before and after. Ask before deleting code, changing behaviour, or growing a step beyond what's described.
+
+1. ✅ Split `Game.cs` into `GameNet.cs`, `Combat.cs`, `Abilities.cs`, `Waves.cs`, `Weapons.cs` (item 5).
+2. Split `ArenaApp.cs` into `WorldRenderer.cs`, `Hud.cs`, `Menus.cs`; break `DrawWorld`/`DrawEnemy` into
+   per-type helpers (item 6). (`DrawArenaContents` was already pulled out of `DrawWorld` for the loadout preview.)
+3. Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
+   `music` suite, fixed seeds for the flaky tests (items 7, 15).
+4. Weapon numbers into `WeaponDef`; `WeaponRange`, bot range tables and upgrade texts read them; `aim` test
+   must pass (item 1).
+5. Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; reuse scratch collections in
+   `ReadSnapshot`. Protocol bump (items 8, 9).
+6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
+   commits.
+7. **Divergent paths** (added by the owner; needs the registries). After each boss the party votes between
+   two paths for the next five waves; bosses stay fixed so balance and Boss Lab data hold. A path is a
+   definition: arena rules (walls instead of wrapping, smaller arena, a pull, fog, burning/healing ground),
+   an enemy mix (e.g. swarms, snipers, all-elite), a reward weighed against the risk (extra legendary vs.
+   heal/reroll) and a floor look. First version: 3-4 paths from rules and enemy mixes only; obstacles that
+   block bullets come later (bullets, enemy movement and bot dodging assume an open arena). Session
+   recordings note the path. Show the owner the design before building. Protocol bump.
+8. Gather the scattered balance constants into `Balance.cs` (item 14).
+9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
+
+Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
+live mini-arena loadout preview, aim line capped at range, background picker card, Cartesian Colosseum
+main menu and How to play, Practice Range editor redesign. Pending small fix offered to the owner:
+`Tools/CompileCheck/check.sh` prints "OK" when `mcs` is missing.
