@@ -106,6 +106,7 @@ class Shot {
       Event.current.type = EventType.Repaint;
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
+      if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
       GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       GL.ToUi = false;

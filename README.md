@@ -418,7 +418,7 @@ pulling an update, everyone should rebuild (or the host should send the new buil
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.
-2. Host: open the game, click **Host game**. The lobby lists your addresses; give your friend the one starting with `100.`.
+2. Host: open the game, click **Host game**. Click the **!** next to the Lobby title to see your port and addresses; give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host clicks **Start game**.
 

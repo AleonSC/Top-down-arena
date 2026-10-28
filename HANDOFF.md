@@ -81,7 +81,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | File | Lines | What it holds |
 |---|---|---|
 | `ArenaApp.cs` | 2.8k | boot, input, layout/scaling, **world rendering in GL** (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, `DrawKnight`, effects), main menu, settings, how-to-play, HUD (wave plate, player cards, ability bar, Tab menu, upgrade picker, run summary), sound playback |
-| `LobbyUi.cs` | 0.4k | the lobby: mode switch, party cards with live characters, loadout with hero preview, bottom bar |
+| `LobbyUi.cs` | 0.4k | the lobby: "!" connection popup by the title (port, invite addresses), mode switch, party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby picker |
 | `BossLabUi.cs`, `DevMenu.cs` | 0.3k each | F1 tools |
@@ -132,7 +132,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`.
   Modes: `hud`, `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `bg`
   (with `BG=0..9`), ... Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
-  `MOUSE=x,y`, `SOLO=1`. The renderer is approximate (no text fields, faint seams in big circles); use it to
+  `MOUSE=x,y`, `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup). The renderer is approximate (no text fields, faint seams in big circles); use it to
   check layout, then ask the owner to look in Unity.
 - **Reference pages:** `Docs/` (Armory, Bestiary) — see `Docs/README.md` for how to rebuild and where they're
   published. Their numbers are hand-copied from the code; update them with balance changes.
@@ -152,7 +152,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
-Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
+Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
 shared and co-editable · Tab menu during upgrade picks; mastery XP line on ability tiles · aim line ends at
 weapon range (`Game.WeaponRange`, tested against real shots) · Lance: box hitbox 180×88 that slides out,
 1 s stun · Practice Range (first as an F1 tool) · Shield Wall blocks red shots · boss contact shove ·

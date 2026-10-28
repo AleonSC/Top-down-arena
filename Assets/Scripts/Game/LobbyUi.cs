@@ -12,6 +12,7 @@ namespace Arena
 
         int lobbyTab;              // 0 = your loadout, 1 = practice waves
         bool lobbyWasPractice;
+        bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
         void DrawLobby()
@@ -27,15 +28,25 @@ namespace Arena
             }
             if (!practice)
                 lobbyTab = 0;
+            var infoButton = new Rect(196f, 28f, 28f, 28f);
+            var infoPanel = ConnInfoRect(infoButton);
+            if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
+            {
+                // The popup is drawn last, so eat clicks on it before the buttons under it see them; a click outside closes it.
+                if (!infoPanel.Contains(Event.current.mousePosition))
+                    connInfoOpen = false;
+                Event.current.Use();
+            }
 
             // --- Top bar: title, mode switch, version.
             Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
-            Ui.Label(new Rect(42f, 62f, 360f, 18f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 12, Ui.Muted);
+            if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
+                connInfoOpen = !connInfoOpen;
             DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
             Ui.Label(new Rect(W - 240f, 8f, 200f, 16f), Session.VersionText, 11, Ui.Muted, TextAnchor.MiddleRight);
             DrawBackgroundPicker(W - 40f, 26f);  // MenuBackgrounds.cs
 
-            // --- Left: the party and how to invite.
+            // --- Left: the party.
             float lx = 40f, lw = 376f, y = 100f;
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
             y += 30f;
@@ -50,7 +61,8 @@ namespace Arena
                 DrawOpenSlot(new Rect(lx, y, lw, 88f), slot, t);
                 y += 96f;
             }
-            DrawInvite(new Rect(lx, y + 4f, lw, H - 96f - (y + 4f)));
+            if (session.Status.Length > 0)
+                Ui.Label(new Rect(lx, y + 4f, lw, H - 96f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: tabs, then your loadout or the practice waves.
             var area = new Rect(440f, 100f, W - 480f, H - 196f);
@@ -62,6 +74,8 @@ namespace Arena
                 DrawLoadout(me, body, t);
 
             DrawLobbyBottom(me, practice);
+            if (connInfoOpen)
+                DrawConnInfo(infoPanel);
         }
 
         string HostName()
@@ -195,38 +209,69 @@ namespace Arena
             Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
             Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
             Ui.Label(new Rect(r.x, r.y + 20f, r.width, 24f), "Open slot", 15, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + 44f, r.width, 18f), slot == 1 ? "Friends join with your address below" : "Room for one more (optional)", 11, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(r.x, r.y + 44f, r.width, 18f), slot == 1 ? "Click ! by the title for your address" : "Room for one more (optional)", 11, Ui.Muted, TextAnchor.MiddleCenter);
         }
 
-        void DrawInvite(Rect r)
+        string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+
+        static float AddressWidth(string addr) => 14f + addr.Length * 8.5f;
+
+        /// Where the "!" popup goes: just under its button, as tall as its contents.
+        Rect ConnInfoRect(Rect button)
         {
-            if (r.height < 60f)
-                return;
-            Ui.Heading(r.x, r.y, r.width, session.IsHost ? "Invite friends" : "Connection");
-            float y = r.y + 30f;
+            const float w = 376f, pad = 14f;
+            float h = pad + 30f + 22f;
             if (session.IsHost)
             {
-                Ui.Label(new Rect(r.x, y, r.width, 18f), "They join with port " + session.Port + " and one of:", 12, Ui.Muted);
-                y += 22f;
-                float bx = r.x;
-                foreach (var addr in (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))
+                int rows = 1;
+                float bx = 0f;
+                foreach (var addr in InviteAddresses())
                 {
-                    float bw = 14f + addr.Length * 8.5f;
-                    if (bx + bw > r.xMax)
+                    if (bx > 0f && bx + AddressWidth(addr) > w - 2f * pad)
                     {
-                        bx = r.x;
+                        bx = 0f;
+                        rows++;
+                    }
+                    bx += AddressWidth(addr) + 6f;
+                }
+                h += 22f + rows * 28f + 16f;
+            }
+            else
+                h += 20f;
+            return new Rect(40f, button.yMax + 8f, w, h + pad);
+        }
+
+        /// The "!" popup: who's hosting and on which port, and the addresses friends join with.
+        void DrawConnInfo(Rect r)
+        {
+            Ui.Fill(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, r.height - 6f), new Color(0.05f, 0.06f, 0.09f, 0.97f));  // solid backing over the party
+            Ui.Panel(r, true);
+            float x = r.x + 14f, w = r.width - 28f, y = r.y + 14f;
+            Ui.Heading(x, y, w, session.IsHost ? "Invite friends" : "Connection");
+            y += 30f;
+            Ui.Label(new Rect(x, y, w, 18f), session.IsHost ? "You're hosting  ·  port " + session.Port : "Connected to " + HostName(), 12, Ui.Text);
+            y += 22f;
+            if (session.IsHost)
+            {
+                Ui.Label(new Rect(x, y, w, 18f), "They join with port " + session.Port + " and one of:", 12, Ui.Muted);
+                y += 22f;
+                float bx = x;
+                foreach (var addr in InviteAddresses())
+                {
+                    float bw = AddressWidth(addr);
+                    if (bx > x && bx + bw > x + w)
+                    {
+                        bx = x;
                         y += 28f;
                     }
                     Ui.Badge(new Rect(bx, y, bw, 22f), addr, addr.StartsWith("100.") ? Ui.Accent : Ui.Neutral);
                     bx += bw + 6f;
                 }
                 y += 28f;
-                Ui.Label(new Rect(r.x, y, r.width, 16f), "Blue = Tailscale address", 11, Ui.Muted);
+                Ui.Label(new Rect(x, y, w, 16f), "Blue = Tailscale address", 11, Ui.Muted);
             }
             else
-                Ui.Label(new Rect(r.x, y, r.width, 20f), "Connected. Pick your loadout and click Ready.", 13, Ui.Good);
-            if (session.Status.Length > 0)
-                Ui.Label(new Rect(r.x, r.yMax - 40f, r.width, 40f), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+                Ui.Label(new Rect(x, y, w, 20f), "Connected. Pick your loadout and click Ready.", 13, Ui.Good);
         }
 
         // --- Loadout --------------------------------------------------------------
