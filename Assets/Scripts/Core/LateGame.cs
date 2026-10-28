@@ -131,7 +131,7 @@ namespace Arena
                         for (int i = 0; i < n; i++)
                             if ((i - gap + n) % n >= 5)
                                 EnemyShot(e, MathX.Tau * i / n, 150f, Defs.SmallShot);
-                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, e.Radius * 2f, 0.4f, Sfx.Explode);
+                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, e.Radius * 2f, 0.4f, Sfx.BossPulse);
                     }
                     break;
                 case EnemyType.Duelist:
@@ -145,7 +145,7 @@ namespace Arena
                         e.Pos = FarFromPlayers(e.Radius);
                         e.Disp = e.Pos;
                         BroadcastFx(FxKind.Ring, from, e.Def.Color, 50f, 0.3f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 60f, 0.3f, Sfx.Blink);
+                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 60f, 0.3f, Sfx.BossShift);
                     }
                     break;
                 case EnemyType.Decoy:
@@ -185,6 +185,7 @@ namespace Arena
                     {
                         // Strike where each player stands, plus a couple of random spots.
                         e.PhaseT = 2.2f;
+                        BroadcastSound(Sfx.BossCharge);
                         foreach (var p in Players.Values)
                             if (!p.Downed)
                                 AddHazard(p.Pos, 70f, 1.1f);
@@ -197,7 +198,7 @@ namespace Arena
                     byte was = e.Phase;
                     e.Phase = (byte)(MathX.Fmod(e.T, 10f) >= 7f ? 1 : 0);  // hungry for 3 s of every 10
                     if (e.Phase == 1 && was == 0)
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 160f, 0.6f, Sfx.Roar);
+                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 160f, 0.6f, Sfx.None);  // its cue plays from BossCues
                     break;
                 }
                 case EnemyType.Eclipse:

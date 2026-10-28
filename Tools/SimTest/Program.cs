@@ -19,6 +19,8 @@ static class Program
             failures++;
     }
 
+    static readonly List<Sfx> clientHeard = new List<Sfx>();  // every sound the client games played
+
     static void Step(Session s, float dt)
     {
         s.Poll();
@@ -30,6 +32,8 @@ static class Program
                     pickups++;
         if (!s.IsHost && s.Game.Orbs.Count > 0)
             clientSawOrbs = true;
+        if (!s.IsHost)
+            clientHeard.AddRange(s.Game.Sounds.Select(c => c.Sfx));
         s.Game.Sounds.Clear();
     }
 
@@ -1819,6 +1823,21 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    // Bosses play soft cues for their abilities, heard on both games.
+    static void BossSoundTest(float dt)
+    {
+        var s = StartBuffed(dt, 20, 0);
+        s[0].Game.DevSetGod(1, true); s[0].Game.DevSetGod(2, true);
+        Run(s, dt, 15, () => s[0].Game.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null);
+        clientHeard.Clear();
+        Run(s, dt, 25);
+        var heard = clientHeard.Where(x => x.ToString().StartsWith("Boss")).ToList();
+        Console.WriteLine("  client heard boss cues: " + string.Join(", ", heard.GroupBy(x => x).Select(gr => gr.Key + " x" + gr.Count())));
+        Check(heard.Contains(Sfx.BossCharge) && heard.Contains(Sfx.BossPulse) && heard.Contains(Sfx.BossChime) && heard.Contains(Sfx.BossShift) && heard.Count < 20,
+            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Spinners spray in bursts with breathers in between (they used to spray nonstop).
     static void SpinnerTest(float dt)
     {
@@ -2965,6 +2984,12 @@ static class Program
             WeaponDpsReport(1f / 60f);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "bosssound")
+        {
+            BossSoundTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "knight")
         {
             KnightTest(1f / 60f);
@@ -3035,6 +3060,7 @@ static class Program
         BossLabTest(dt);
         SingularityTest(dt);
         KnightTest(dt);
+        BossSoundTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);
         RevolverReloadTest(dt);

@@ -15,6 +15,7 @@ namespace Arena
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
+        public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -84,17 +85,21 @@ namespace Arena
                     var s = NewSwing(p, aim, 150f + 30f * extra, 60f, 36f * dmg);
                     s.Knock = 140f + 60f * extra;
                     s.Heavy = true;
+                    s.Thrust = true;
                     pendingSwings.Add(s);
                     break;
                 }
                 case WeaponId.Halberd:
                 {
                     float reach = 160f + 30f * extra;
-                    pendingSwings.Add(NewSwing(p, aim, reach, 40f, 32f * dmg));
+                    var h = NewSwing(p, aim, reach, 40f, 32f * dmg);
+                    h.Thrust = true;
+                    pendingSwings.Add(h);
                     if (extra > 0)
                     {
                         var f = NewSwing(p, aim, reach, 40f, 19f * dmg);
                         f.Delay = 0.12f;
+                        f.Thrust = true;
                         pendingSwings.Add(f);
                     }
                     break;
@@ -159,6 +164,7 @@ namespace Arena
                 {
                     var s = NewSwing(p, aim, 130f, 36f, 18f * dmg);
                     s.Rapier = true;
+                    s.Thrust = true;
                     s.MaxTargets = 1 + extra;
                     pendingSwings.Add(s);
                     break;
@@ -210,7 +216,7 @@ namespace Arena
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
             bool full = s.HalfArc >= MathX.Pi - 0.01f;
-            BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfArc, s.Heavy ? 0.24f : 0.16f,
+            BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
                 s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).

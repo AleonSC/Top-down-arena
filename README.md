@@ -299,6 +299,10 @@ seconds instead. Boss bullets are easy to spot: they have a **dark core**. Viole
 down; **red ones (aimed shots) can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
 
+Bosses give soft sound cues when they start an ability: a low swell when they switch attacks, a rising shimmer
+before something telegraphed (lasers, bombers, lightning), a deep thump for slams and stomps, and a chime for
+summons and phase changes.
+
 The game has **50 waves** with a different boss every 5 waves. Bosses after wave 20 get extra health (+10% per wave on top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and warnings show at
 the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C), where the
 bosses come back around, tougher each time.

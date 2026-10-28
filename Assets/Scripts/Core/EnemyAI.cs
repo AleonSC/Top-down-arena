@@ -339,6 +339,8 @@ namespace Arena
                 if (State == MatchState.Fighting)
                 {
                     Special(e, tpos, dt);
+                    if (e.Def.IsBoss)
+                        BossCues(e);  // BossSounds.cs
                     float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f);
                     e.FireT -= dt * mult;
                     if (e.FireT <= 0f)

@@ -654,6 +654,25 @@ namespace Arena
                         float reach = to.Length, aim = to.Angle, half = fx.Radius;
                         if (reach < 1f)
                             break;
+                        if (half < 0f)  // a jab: the blade shoots forward, with speed lines along the cone
+                        {
+                            float grow = Mathf.Min(1f, f * 4f), len = reach * (0.3f + 0.7f * grow), fade = 1f - f;
+                            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+                            V2 tipAt = fx.Pos + dir * len;
+                            for (int k = -1; k <= 1; k += 2)  // the cone it covers, faintly
+                                Line(fx.Pos, fx.Pos + V2.FromAngle(aim + k * -half) * len * 0.9f, 1.5f, fx.Color.WithAlpha(0.25f * fade));
+                            for (int k = 0; k < 4; k++)  // speed lines
+                            {
+                                float o = (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * k) * (float)Math.Tan(-half) * len * 0.5f;
+                                V2 a0 = fx.Pos + dir * len * (0.35f + 0.12f * k) + side * o;
+                                Line(a0, a0 + dir * len * 0.25f, 1.5f, Rgba.White.WithAlpha(0.5f * fade));
+                            }
+                            Line(fx.Pos, tipAt, 10f * fade + 2f, fx.Color.WithAlpha(0.35f * fade));
+                            Line(fx.Pos, tipAt - dir * 6f, 3f, Rgba.White.WithAlpha(0.9f * fade));
+                            SetColor(Rgba.White.WithAlpha(0.95f * fade));
+                            Tri(tipAt + dir * 8f, tipAt - dir * 4f + side * 6f, tipAt - dir * 4f - side * 6f);
+                            break;
+                        }
                         if (half < 0.2f)  // a thrust or a lunge: a streak along the line
                         {
                             Line(fx.Pos, fx.Pos2, 8f * (1f - f), fx.Color.WithAlpha(0.35f * (1f - f)));

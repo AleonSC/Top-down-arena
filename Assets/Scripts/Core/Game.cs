@@ -19,6 +19,7 @@ namespace Arena
         Pickup, PickupBig, Roar, Victory,
         SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
         SwingLight, SwingHeavy, Clang,  // Knight swings, and a shield taking a hit
+        BossShift, BossCharge, BossPulse, BossChime,  // soft cues for bosses' abilities (BossSounds.cs)
     }
 
     public struct SoundCue
@@ -136,6 +137,7 @@ namespace Arena
         public int LastHitBy;
         public bool Marked;
         public int TargetId, ParentId;
+        public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients
     }
 
@@ -2898,6 +2900,9 @@ namespace Arena
                 }
                 case Msg.ClearEnemyBullets:
                     ClearEnemyBullets();
+                    break;
+                case Msg.Sound:
+                    Sounds.Add((Sfx)r.ReadByte());
                     break;
                 case Msg.Fx:
                 {

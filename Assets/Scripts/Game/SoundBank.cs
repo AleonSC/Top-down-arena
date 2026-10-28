@@ -159,6 +159,8 @@ namespace Arena
             if (s == Sfx.EnemyShot)
                 return Category.Enemies;
             string name = s.ToString();
+            if (name.StartsWith("Boss"))
+                return Category.Enemies;
             if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit)
                 return Category.Weapons;
             return Category.Effects;
@@ -308,6 +310,11 @@ namespace Arena
             Set(Sfx.SwingLight, Tone(0.12f, Osc.Sine, 900f, 300f, 0.14f, noise: 0.85f, lowpass: 0.45f, attack: 0.02f), 0.05f);
             Set(Sfx.SwingHeavy, Tone(0.26f, Osc.Sine, 260f, 70f, 0.3f, noise: 0.6f, lowpass: 0.22f, attack: 0.03f), 0.08f);
             Set(Sfx.Clang, Tone(0.3f, Osc.Square, 1400f, 1250f, 0.16f, noise: 0.1f, lowpass: 0.7f, decay: 4f), 0.08f);
+            // Bosses: soft cues when they start an ability (kept quiet under the bullets).
+            Set(Sfx.BossShift, Tone(0.45f, Osc.Sine, 140f, 200f, 0.1f, lowpass: 0.4f, attack: 0.12f, decay: 1.5f), 0.3f);
+            Set(Sfx.BossCharge, Tone(0.6f, Osc.Triangle, 260f, 620f, 0.08f, lowpass: 0.5f, attack: 0.25f, decay: 1.2f), 0.3f);
+            Set(Sfx.BossPulse, Tone(0.5f, Osc.Sine, 95f, 45f, 0.16f, noise: 0.15f, lowpass: 0.15f, attack: 0.02f, decay: 1.5f), 0.3f);
+            Set(Sfx.BossChime, Notes(new[] { 392f, 523f, 659f }, 0.09f, Osc.Sine, 0.09f, 1f), 0.3f);
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
