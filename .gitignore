@@ -21,3 +21,4 @@ crashlytics-buildsettings.properties
 # Test harness output
 Tools/SimTest/*.exe
 Tools/Preview/out/
+Docs/Armory/out/

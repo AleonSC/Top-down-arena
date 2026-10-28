@@ -146,8 +146,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   (with `BG=0..9`), ... Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
   `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed to match Unity in Oct 2026, so older preview PNGs look fainter); use it to
   check layout, then ask the owner to look in Unity.
-- **Reference pages:** `Docs/` (Armory, Bestiary) — see `Docs/README.md` for how to rebuild and where they're
-  published. Their numbers are hand-copied from the code; update them with balance changes.
+- **Reference pages:** `Docs/` holds the Bestiary and Armory sources. `Docs/Armory/build.sh` rebuilds the Armory
+  (its icons come straight from `PixelArt.cs`) and `Docs/checks/*.js` are Playwright scripts that screenshot the
+  pages and report page errors. See `Docs/README.md` for where they're published and how to update them; their
+  numbers and descriptions are hand-copied from the code, so update them with balance changes.
 
 ## 4. How the owner works (preferences learned over many sessions)
 
