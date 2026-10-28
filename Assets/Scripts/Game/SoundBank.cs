@@ -159,7 +159,7 @@ namespace Arena
             if (s == Sfx.EnemyShot)
                 return Category.Enemies;
             string name = s.ToString();
-            if (name.StartsWith("Shot") || name.StartsWith("Spell") || s == Sfx.Throw || s == Sfx.Hit)
+            if (name.StartsWith("Shot") || name.StartsWith("Spell") || name.StartsWith("Swing") || s == Sfx.Throw || s == Sfx.Hit)
                 return Category.Weapons;
             return Category.Effects;
         }
@@ -304,6 +304,10 @@ namespace Arena
             Set(Sfx.SpellArcane, Tone(0.2f, Osc.Sine, 500f, 1100f, 0.2f, attack: 0.01f), 0.06f);
             Set(Sfx.SpellHoly, Notes(new[] { 1047f, 1319f }, 0.06f, Osc.Sine, 0.18f, 1f), 0.1f);
             Set(Sfx.Throw, Tone(0.1f, Osc.Sine, 400f, 200f, 0.16f, noise: 0.6f, lowpass: 0.3f), 0.07f);
+            // Knight: a quick airy whoosh, a heavier one with a low thud, and steel on steel.
+            Set(Sfx.SwingLight, Tone(0.12f, Osc.Sine, 900f, 300f, 0.14f, noise: 0.85f, lowpass: 0.45f, attack: 0.02f), 0.05f);
+            Set(Sfx.SwingHeavy, Tone(0.26f, Osc.Sine, 260f, 70f, 0.3f, noise: 0.6f, lowpass: 0.22f, attack: 0.03f), 0.08f);
+            Set(Sfx.Clang, Tone(0.3f, Osc.Square, 1400f, 1250f, 0.16f, noise: 0.1f, lowpass: 0.7f, decay: 4f), 0.08f);
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

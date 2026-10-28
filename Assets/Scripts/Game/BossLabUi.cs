@@ -158,17 +158,18 @@ namespace Arena
             else
                 Ui.Label(new Rect(ix + iw - 170f, iy, 170f, 20f), "Bot", 12, Ui.Muted, TextAnchor.MiddleRight);
             iy += 26f;
-            float lw = 60f, cw = (iw - lw) / 3f;
+            float lw = 60f;
             Action<string, string[], int, Action<int>> row = (label, names, sel, set) =>
             {
+                float cw = (iw - lw) / names.Length;
                 Ui.Label(new Rect(ix, iy, lw, 26f), label, 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-                for (int k = 0; k < 3; k++)
+                for (int k = 0; k < names.Length; k++)
                     if (Ui.Choice(new Rect(ix + lw + k * cw, iy, cw - 3f, 26f), names[k], sel == k, ToColor(Defs.Get(s.Role).Color)))
                         set(k);
                 iy += 28f;
             };
             row("ROLE", RoleNames, (int)s.Role, k => s.Role = (Role)k);
-            row("CLASS", new[] { "Soldier", "Mage", "Summoner" }, (int)s.Kit, k => s.Kit = (Kit)k);
+            row("CLASS", Enumerable.Range(0, Defs.KitCount).Select(k => Defs.KitName((Kit)k)).ToArray(), (int)s.Kit, k => s.Kit = (Kit)k);
             row("WEAPON", Enumerable.Range(0, 3).Select(k => Defs.Weapon(s.Role, s.Kit, k).Name).ToArray(), s.Weapon, k => s.Weapon = k);
             row("ABILITY", Enumerable.Range(0, 3).Select(k => Upgrades.Ability(Upgrades.RoleAbility(s.Role, s.Kit, k)).Name).ToArray(), s.Ability, k => s.Ability = k);
             return box.yMax;

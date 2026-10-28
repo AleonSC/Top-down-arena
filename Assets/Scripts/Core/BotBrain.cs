@@ -137,6 +137,8 @@ namespace Arena
                     lowest = q;
             }
             float pref = PreferredRange(me.Weapon.Id) - (me.Role == Role.Tank ? 40f : 0f);
+            if (me.Weapon.Melee)  // in swinging distance of the target's edge
+                pref = MeleeReach(me, MeleeRange(me.Weapon.Id)) * 0.7f + (target != null ? target.Radius : 0f);
             V2 anchor = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
             if (downed != null)
             {
@@ -217,6 +219,21 @@ namespace Arena
                     return BotDanger > 2.5f;
                 case AbilityId.Roar:
                     return haveTarget && Players.Count > 1;
+                // Knight
+                case AbilityId.ShieldWall: case AbilityId.Unbreakable:
+                    return danger;
+                case AbilityId.Consecrate: case AbilityId.GuardiansOath: case AbilityId.LayOnHands:
+                    return allyHurt;
+                case AbilityId.LeapSlam:
+                    return haveTarget && targetD > 140f && targetD < 340f || BotDanger > 2.5f;
+                case AbilityId.Lunge:
+                    return haveTarget && targetD > 110f && targetD < 300f || BotDanger > 2.5f;
+                case AbilityId.Whirlwind:
+                    return danger || haveTarget && targetD < 150f;
+                case AbilityId.BattleFury: case AbilityId.BladeTempest:
+                    return haveTarget && targetD < 220f;
+                case AbilityId.LastStand:
+                    return danger || haveTarget && targetD < 220f;
                 // Everything else hurts the boss: use it when it's in reach
                 default:
                     return haveTarget && targetD < 520f;

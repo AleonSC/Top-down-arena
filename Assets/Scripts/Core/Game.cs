@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target }  // Target: a marker where something is about to land
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -18,6 +18,7 @@ namespace Arena
         ShotTurret, ShotNova,
         Pickup, PickupBig, Roar, Victory,
         SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
+        SwingLight, SwingHeavy, Clang,  // Knight swings, and a shield taking a hit
     }
 
     public struct SoundCue
@@ -53,6 +54,10 @@ namespace Arena
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, Flash, LevelFlash;
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
+        public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
+        public float WallHp, WhirlTick, WhirlPower = 1f;  // host
+        public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
+        public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
         public float UltT;                     // Fortress / Bullet Storm time left
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
@@ -184,6 +189,7 @@ namespace Arena
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
         public float DamageCut;     // host: mastered Haven: allies inside take less damage
         public bool Embers;         // host: a mastered Meteor leaves burning ground
+        public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
         public float GuardFrac;     // replicated BlockHp fraction, for drawing
         public ZoneDef Def => Kits.Get(Kind);
@@ -545,7 +551,8 @@ namespace Arena
             {
                 var slot = p.Slots[i];
                 int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
-                    + (ids[i] == AbilityId.Dash && Mastered(p, AbilityId.Dash) ? 1 : 0);
+                    + (ids[i] == AbilityId.Dash && Mastered(p, AbilityId.Dash) ? 1 : 0)
+                    + (ids[i] == AbilityId.Lunge ? 1 + (Mastered(p, AbilityId.Lunge) ? 1 : 0) : 0);  // Lunge has two charges
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
                 {
@@ -1010,6 +1017,26 @@ namespace Arena
                         DashT = DashTime;
                         dashSpeed = DashSpeed;
                         break;
+                    case AbilityId.LeapSlam:
+                    {
+                        // Leap to the cursor (up to 320 px); the host lands the slam there.
+                        target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(LeapRange), me.Def.BodyR);
+                        float dist = target.DistanceTo(me.Pos);
+                        DashDir = dist > 1f ? (target - me.Pos) / dist : V2.Zero;
+                        DashT = LeapTime;
+                        dashSpeed = dist / LeapTime;
+                        break;
+                    }
+                    case AbilityId.Lunge:
+                    {
+                        V2 dir = (aimAt - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (aimAt - me.Pos).Normalized();
+                        float range = LungeRange * me.Stats.LungeRangeMult;
+                        target = ClampToArena(me.Pos + dir * range, me.Def.BodyR);
+                        DashDir = dir;
+                        DashT = target.DistanceTo(me.Pos) / LungeSpeed;
+                        dashSpeed = LungeSpeed;
+                        break;
+                    }
                     case AbilityId.Bulldoze:
                         DashDir = V2.FromAngle(me.Aim);
                         DashT = BulldozeTime;
@@ -1113,6 +1140,7 @@ namespace Arena
             tickDt = dt;
             Recorder?.Tick(this, dt);
             TickPlayers(dt);
+            TickKnights(dt);  // Knight.cs
             TickWaves(dt);
             TickEnemies(dt);
             TickMinions(dt);
@@ -1252,7 +1280,7 @@ namespace Arena
         }
 
         /// Everything that speeds up firing: upgrades, Overdrive, Bullet Storm, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f)
+        float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
 
         /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
@@ -1288,13 +1316,23 @@ namespace Arena
         /// Barrage: the volley, plus a copy per stack fanned out to alternating sides (8 degrees apart).
         void FireFanned(Player p, float aim, int extra)
         {
+            if (p.Weapon.Melee)
+            {
+                // One swing; each Barrage stack throws a sword wave instead of another swing.
+                FireVolley(p, aim, extra);
+                firingWeapon = true;
+                FireKnightWaves(p, aim);
+                firingWeapon = false;
+                return;
+            }
             for (int v = 0; v <= p.Stats.Fan; v++)
                 FireVolley(p, aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2)), extra);
         }
 
         /// Extra projectiles from upgrades, plus two during Bullet Storm.
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
-            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0) + (p.SurgeT > 0f && Mastered(p, AbilityId.ArcaneSurge) ? 1 : 0);
+            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0) + (p.SurgeT > 0f && Mastered(p, AbilityId.ArcaneSurge) ? 1 : 0)
+            + (p.FuryT > 0f && Mastered(p, AbilityId.BattleFury) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol) -------------------------------------------
 
@@ -1538,7 +1576,10 @@ namespace Arena
                     break;
                 }
                 default:
-                    FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
+                    if (p.Weapon.Melee)
+                        FireKnightWeapon(p, aim, dmg, extra);  // Knight.cs
+                    else
+                        FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
                     break;
             }
             firingWeapon = false;
@@ -1782,6 +1823,8 @@ namespace Arena
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, z.DamageCut);
             amount *= 1f - cut;  // a mastered Haven
+            if (p.UnbreakT > 0f)
+                amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
@@ -1796,6 +1839,8 @@ namespace Arena
             p.Hp -= amount;
             p.InvulnT = HitIframes;
             p.Flash = 0.1f;
+            if (p.Hp <= 0f && LastStanding(p))
+                p.Hp = 1f;  // Last Stand
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
             if (p.Hp <= 0f)
@@ -2180,6 +2225,7 @@ namespace Arena
             frags.Clear();
             reflects.Clear();
             ricochets.Clear();
+            ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind == Defs.GrenadeShot)
@@ -2247,6 +2293,19 @@ namespace Arena
                             scratchIds.Add(b.Id);
                             if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry or Mirror Guard: sent back
                                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult });
+                            break;
+                        }
+                        if (blockable && p.WallT > 0f && WallCovers(p, b.Pos, b.Radius))
+                        {
+                            scratchIds.Add(b.Id);  // Shield Wall
+                            if (p.WallReflect)
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
+                            p.WallHp -= BlockerWear(b);
+                            if (p.WallHp <= 0f)
+                            {
+                                p.WallT = 0f;
+                                BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.75f, 0.85f, 1f), 50f, 0.4f, Sfx.Clang);
+                            }
                             break;
                         }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
@@ -2441,6 +2500,7 @@ namespace Arena
             if (Players.TryGetValue(attacker, out p))
             {
                 var s = p.Stats;
+                dmg *= KnightDamageMult(p);  // Battle Fury, Last Stand
                 if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * 0.35f)
                     dmg *= 1f + s.ExecuteBonus;
                 if (s.CritChance > 0f && rng.NextDouble() < s.CritChance)
@@ -2461,6 +2521,7 @@ namespace Arena
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
+                KnightLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             e.Hp -= dmg;
@@ -2707,6 +2768,10 @@ namespace Arena
                 w.Write(p.ParryHp);
                 w.Write(p.ParryBroken);
                 w.Write(p.ShieldHp);
+                w.Write(p.WallT);
+                w.Write(p.UnbreakT);
+                w.Write(p.FuryT);
+                w.Write(p.WhirlT);
                 w.Write((byte)p.AmmoUsed);
                 w.Write(p.ReloadT);
                 w.Write(p.DrawT);
@@ -2909,6 +2974,7 @@ namespace Arena
                 float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
                 bool parrying = r.ReadBoolean();
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
+                float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
                 int ammoUsed = r.ReadByte();
                 float reloadT = r.ReadSingle();
                 float drawT = r.ReadSingle();
@@ -2969,6 +3035,10 @@ namespace Arena
                 p.ParryHp = parryHp;
                 p.ParryBroken = parryBroken;
                 p.ShieldHp = shield;
+                p.WallT = wallT;
+                p.UnbreakT = unbreakT;
+                p.FuryT = furyT;
+                p.WhirlT = whirlT;
                 p.AmmoUsed = ammoUsed;
                 p.ReloadT = reloadT;
                 if (id != MyId)

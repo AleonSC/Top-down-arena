@@ -15,6 +15,9 @@ namespace Arena
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, MeteorStorm, Legion,
+        // Knight (Space), then the Knight ultimates
+        ShieldWall, LeapSlam, Unbreakable, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
+        LastStand, HallowedBlade, BladeTempest,
         None = 255,
     }
 
@@ -38,6 +41,12 @@ namespace Arena
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
         public float HavenRadiusMult = 1f, HavenBonusTime, LinkHealMult = 1f;
         public float GrenadeRadiusMult = 1f, MarkBonus;
+        // Knight abilities
+        public float WallCapMult = 1f, WallArcMult = 1f, WallBonusTime;
+        public float SlamRadiusMult = 1f, SlamStunBonus;
+        public float UnbreakBonus, UnbreakHealBonus;
+        public float ConsecrateRadiusMult = 1f, ConsecrateBonusTime, OathMult = 1f, LayMult = 1f;
+        public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
         public int GrenadeExtraShrapnel;
 
         // Legendary weapon upgrades from bosses.
@@ -123,17 +132,30 @@ namespace Arena
             new AbilityDef { Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles." },
             new AbilityDef { Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each." },
             new AbilityDef { Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy." },
+            // Knight
+            new AbilityDef { Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°). Bosses can break it (it soaks 400 of their damage)." },
+            new AbilityDef { Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s." },
+            new AbilityDef { Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal." },
+            new AbilityDef { Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second." },
+            new AbilityDef { Name = "Guardian's Oath", Cooldown = 15f, Desc = "Shield the ally nearest your cursor for 100 damage (and yourself for 50) for 6 s." },
+            new AbilityDef { Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down." },
+            new AbilityDef { Name = "Whirlwind", Cooldown = 10f, Desc = "Spin for 2 s, hitting everything within 110 px for 12 every 0.2 s and slicing small bullets out of the air." },
+            new AbilityDef { Name = "Lunge", Cooldown = 6f, Desc = "Dash 260 px toward your cursor, hitting everything you pass for 35. Two charges." },
+            new AbilityDef { Name = "Battle Fury", Cooldown = 16f, Desc = "For 6 s you swing 40% faster and deal 25% more damage." },
+            new AbilityDef { Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage." },
+            new AbilityDef { Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn)." },
+            new AbilityDef { Name = "Blade Tempest", Cooldown = 65f, Desc = "For 6 s every swing also hurls three piercing sword beams." },
         };
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates =
         {
-            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan,         // Tank: Soldier, Mage, Summoner
-            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree,         // Healer
-            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion,     // DPS
+            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand,        // Tank: Soldier, Mage, Summoner, Knight
+            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade,    // Healer
+            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, // DPS
         };
 
-        public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * 3 + (int)kit];
+        public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * Defs.KitCount + (int)kit];
 
         /// The three Space abilities for each role and kit, picked in the lobby.
         static readonly AbilityId[] RoleAbilities =
@@ -141,16 +163,19 @@ namespace Arena
             AbilityId.Barrier, AbilityId.Roar, AbilityId.Bulldoze,                // Tank: Soldier
             AbilityId.ArcaneAegis, AbilityId.FrostNova, AbilityId.FlameWall,      // Tank: Mage
             AbilityId.GolemWall, AbilityId.Earthquake, AbilityId.GuardianSpirit,  // Tank: Summoner
+            AbilityId.ShieldWall, AbilityId.LeapSlam, AbilityId.Unbreakable,      // Tank: Knight
             AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink,             // Healer: Soldier
             AbilityId.TimeRewind, AbilityId.ArcaneWard, AbilityId.Sanctify,       // Healer: Mage
             AbilityId.SpiritSwarm, AbilityId.Phoenix, AbilityId.SoulLantern,      // Healer: Summoner
+            AbilityId.Consecrate, AbilityId.GuardiansOath, AbilityId.LayOnHands,  // Healer: Knight
             AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark,                    // DPS: Soldier
             AbilityId.Meteor, AbilityId.Blizzard, AbilityId.ArcaneSurge,          // DPS: Mage
             AbilityId.BatSwarm, AbilityId.Sacrifice, AbilityId.AlphaCall,         // DPS: Summoner
+            AbilityId.Whirlwind, AbilityId.Lunge, AbilityId.BattleFury,           // DPS: Knight
         };
 
         public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
-            RoleAbilities[((int)r * 3 + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
+            RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
 
         public const int RoleAbilityChoices = 3;
 
@@ -197,6 +222,23 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Grenade, MaxStacks = 2, Name = "Bigger Boom", Desc = "Grenade blast is 50% bigger with 6 more shrapnel",
                 Apply = s => { s.GrenadeRadiusMult += 0.5f; s.GrenadeExtraShrapnel += 6; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
+            // Knight abilities
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShieldWall, MaxStacks = 2, Name = "Tower Shield", Desc = "Shield Wall covers 160°, lasts 1.5 s longer and soaks 50% more",
+                Apply = s => { s.WallArcMult += 0.33f; s.WallBonusTime += 1.5f; s.WallCapMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LeapSlam, MaxStacks = 2, Name = "Earthshaker", Desc = "Leap Slam hits 40% wider and stuns for 1 s longer",
+                Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Unbreakable, MaxStacks = 2, Name = "Iron Will", Desc = "Unbreakable blocks 15% more damage and heals you for 10% more of what you deal",
+                Apply = s => { s.UnbreakBonus += 0.15f; s.UnbreakHealBonus += 0.1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate is 40% bigger and lasts 3 s longer",
+                Apply = s => { s.ConsecrateRadiusMult += 0.4f; s.ConsecrateBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath shields are 60% stronger", Apply = s => s.OathMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Whirlwind, MaxStacks = 2, Name = "Cyclone", Desc = "Whirlwind lasts 1 s longer and reaches 30% further",
+                Apply = s => { s.WhirlBonusTime += 1f; s.WhirlRadiusMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Lunge, MaxStacks = 2, Name = "Flurry", Desc = "Lunge goes 40% further and hits 50% harder",
+                Apply = s => { s.LungeRangeMult += 0.4f; s.LungeDmgMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Bloodlust", Desc = "During Battle Fury your hits heal you for 10% of the damage they deal",
+                Apply = s => s.FuryLifesteal += 0.1f },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
@@ -305,8 +347,22 @@ namespace Arena
                 return weapon.Name + ": " + weapon.ExtraDesc;
             if (u.Name == "Iron Volley")
                 return weapon.Name + ": " + weapon.ExtraDesc + ". Also +25% damage";
+            string knight;
+            if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
+                return knight;
             return u.Desc;
         }
+
+        /// What shot-based upgrades do for a Knight's melee weapon instead.
+        static readonly Dictionary<string, string> KnightDesc = new Dictionary<string, string>
+        {
+            { "Piercing Rounds", "Your swings reach 10% further, and sword waves pass through one more enemy" },
+            { "Barrage", "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" },
+            { "Homing Rounds", "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected" },
+            { "Ricochet", "Your sword waves bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack" },
+            { "Explosive Rounds", "Your hits explode, dealing 30% damage to enemies nearby" },
+            { "Velocity Rounds", "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage" },
+        };
 
         public static Rgba RarityColor(Rarity r)
         {

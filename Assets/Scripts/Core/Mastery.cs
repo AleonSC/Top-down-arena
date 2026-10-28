@@ -79,7 +79,7 @@ namespace Arena
                 case AbilityId.Shockwave: case AbilityId.MendPulse: case AbilityId.FrostNova: case AbilityId.Earthquake:
                 case AbilityId.Sanctify: case AbilityId.Bulldoze: case AbilityId.Sacrifice: case AbilityId.TimeRewind:
                 case AbilityId.ArcaneWard: case AbilityId.GlacialTomb: case AbilityId.Lifeline: case AbilityId.Roar:
-                case AbilityId.Nova: case AbilityId.Mark:
+                case AbilityId.Nova: case AbilityId.Mark: case AbilityId.Lunge:
                     return true;
                 default:
                     return false;
@@ -252,6 +252,18 @@ namespace Arena
                 case AbilityId.BulletStorm: return "+4 extra projectiles instead of +2.";
                 case AbilityId.MeteorStorm: return "Twenty meteors.";
                 case AbilityId.Legion: return "Summons 10 wolves and 10 bats.";
+                case AbilityId.ShieldWall: return "Bullets that hit the shield are reflected back as your own.";
+                case AbilityId.LeapSlam: return "The landing also erases enemy bullets within 160 px.";
+                case AbilityId.Unbreakable: return "Lasts 8 s.";
+                case AbilityId.Consecrate: return "The blessed ground follows you.";
+                case AbilityId.GuardiansOath: return "Everyone within 300 px gets the full shield.";
+                case AbilityId.LayOnHands: return "Also heals everyone else near them for half as much.";
+                case AbilityId.Whirlwind: return "Lasts 3 s and cuts every bullet except red aimed shots.";
+                case AbilityId.Lunge: return "+1 charge (three in all).";
+                case AbilityId.BattleFury: return "+1 extra projectile while it lasts.";
+                case AbilityId.LastStand: return "Lasts 12 s.";
+                case AbilityId.HallowedBlade: return "Three swords fall: one at your cursor and one either side.";
+                case AbilityId.BladeTempest: return "Five sword beams a swing instead of three.";
                 default: return "";
             }
         }

@@ -134,7 +134,7 @@ namespace Arena
             if (opts.TryGetValue("ability", out v) && int.TryParse(v, out weapon))
                 abilityChoice = Mathf.Clamp(weapon - 1, 0, Upgrades.RoleAbilityChoices - 1);
             if (opts.TryGetValue("class", out v))
-                for (int i = 0; i <= (int)Kit.Summoner; i++)
+                for (int i = 0; i < Defs.KitCount; i++)
                     if (string.Equals(((Kit)i).ToString(), v, StringComparison.OrdinalIgnoreCase))
                         kitChoice = (Kit)i;
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
@@ -583,6 +583,13 @@ namespace Arena
                 if (!Defs.IsEnemyShot(b.Kind))
                     DrawShotMods(b, t);
                 Rgba c = Defs.BulletColor(b.Kind);
+                if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
+                {
+                    float a = b.Vel.Angle;
+                    Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 5f, c.WithAlpha(0.45f), 12, a - 0.9f, 1.8f);
+                    Arc(b.Pos - V2.FromAngle(a) * 8f, b.Radius + 6f, 2f, Rgba.White.WithAlpha(0.95f), 12, a - 0.8f, 1.6f);
+                    continue;
+                }
                 if (b.Kind == Defs.PierceShot)  // a boss's unblockable shot: red with a dark core
                 {
                     Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.35f), 12);
@@ -625,6 +632,24 @@ namespace Arena
                         Arc(fx.Pos, fx.Radius, 2f, fx.Color.WithAlpha(0.5f), 32);
                         Arc(fx.Pos, fx.Radius * (1.8f - 0.8f * f), 2f, fx.Color.WithAlpha(0.3f + 0.5f * f), 32);
                         break;
+                    case FxKind.Slash:  // a melee swing: a bright crescent sweeping across the arc, fading out
+                    {
+                        V2 to = fx.Pos2 - fx.Pos;
+                        float reach = to.Length, aim = to.Angle, half = fx.Radius;
+                        if (reach < 1f)
+                            break;
+                        if (half < 0.2f)  // a thrust or a lunge: a streak along the line
+                        {
+                            Line(fx.Pos, fx.Pos2, 8f * (1f - f), fx.Color.WithAlpha(0.35f * (1f - f)));
+                            Line(fx.Pos, fx.Pos2, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
+                            break;
+                        }
+                        float sweep = 2f * half * Mathf.Min(1f, f * 3f);
+                        float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;
+                        Arc(fx.Pos, reach * 0.78f, reach * 0.4f, fx.Color.WithAlpha(0.28f * (1f - f)), 24, from, sweep);
+                        Arc(fx.Pos, reach, 3f, Rgba.White.WithAlpha(0.9f * (1f - f)), 24, from, sweep);
+                        break;
+                    }
                     case FxKind.Bolt:  // jagged lightning between two points
                     {
                         V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
@@ -801,6 +826,21 @@ namespace Arena
                     for (int k = 0; k < 8; k++)
                         Line(z.Pos, z.Pos + V2.FromAngle(MathX.Tau * k / 8f + t * 0.3f) * 26f, 3f, c.WithAlpha(0.8f));
                     break;
+                case ZoneKind.Consecrate:  // blessed ground: a golden circle with a slowly turning rune ring
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
+                    Arc(z.Pos, z.Radius - 4f, 2f, c.WithAlpha(0.6f), 48);
+                    for (int k = 0; k < 6; k++)
+                        Polygon(z.Pos + V2.FromAngle(t * 0.4f + MathX.Tau * k / 6f) * (z.Radius - 14f), 4f, 4, t, c.WithAlpha(0.8f));
+                    break;
+                case ZoneKind.HolySword:  // a warning circle while a giant sword drops toward it
+                {
+                    Circle(z.Pos, z.Radius * (1f - timeLeft), c.WithAlpha(0.2f), 40);
+                    Arc(z.Pos, z.Radius, 3f, c.WithAlpha(MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.5f), 48);
+                    V2 tip = z.Pos - new V2(0f, 420f * timeLeft);
+                    Line(tip, tip - new V2(0f, 90f), 10f, c.WithAlpha(0.9f));
+                    Line(tip - new V2(0f, 90f) + new V2(-22f, 0f), tip - new V2(0f, 90f) + new V2(22f, 0f), 6f, new Rgba(0.8f, 0.65f, 0.3f));
+                    return;
+                }
                 case ZoneKind.Grove:  // a great tree with roots spreading out
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f), 48);
                     for (int k = 0; k < 7; k++)
@@ -1223,6 +1263,8 @@ namespace Arena
             else if (p.Kit == Kit.Summoner && !p.Downed)
                 for (int k = 0; k < 3; k++)
                     Circle(p.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (r + 7f), 2.5f, new Rgba(0.6f, 1f, 0.7f, 0.9f), 8);
+            else if (p.Kit == Kit.Knight && !p.Downed)
+                DrawKnight(p, r, t);
             // The real hitbox, drawn as a bright core.
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
@@ -1230,6 +1272,68 @@ namespace Arena
             Bar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f));
             if (p.Downed)
                 Arc(p.Disp, r + 8f, 4f, new Rgba(0.4f, 1f, 0.5f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(p.Revive, 0.01f));
+        }
+
+        static readonly Rgba Steel = new Rgba(0.82f, 0.88f, 1f);
+
+        /// A knight: a steel helm band, the weapon held toward the aim, and any buff it has up.
+        void DrawKnight(Player p, float r, float t)
+        {
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+            Arc(p.Disp, r * 0.62f, 2.5f, Steel.WithAlpha(0.75f), 16, p.Aim - 0.9f, 1.8f);  // visor
+            // The weapon, held out to one side.
+            V2 grip = p.Disp + side * (r * 0.7f);
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Warhammer: case WeaponId.HolyMace:
+                    Line(grip, grip + dir * (r + 12f), 3f, new Rgba(0.6f, 0.45f, 0.3f));
+                    Polygon(grip + dir * (r + 14f), 6f, p.Weapon.Id == WeaponId.HolyMace ? 6 : 4, p.Aim, p.Weapon.Id == WeaponId.HolyMace ? new Rgba(1f, 0.9f, 0.5f) : Steel);
+                    break;
+                case WeaponId.Halberd: case WeaponId.Rapier:
+                    Line(grip - dir * 6f, grip + dir * (r + (p.Weapon.Id == WeaponId.Halberd ? 30f : 22f)), p.Weapon.Id == WeaponId.Halberd ? 3f : 2f, Steel);
+                    if (p.Weapon.Id == WeaponId.Halberd)
+                        Line(grip + dir * (r + 18f) + side * 6f, grip + dir * (r + 24f) - side * 2f, 4f, Steel);
+                    break;
+                case WeaponId.Censer:
+                {
+                    V2 ball = p.Disp + V2.FromAngle(t * 9f) * (r + 14f);
+                    Line(grip, ball, 1.5f, Steel.WithAlpha(0.6f));
+                    Circle(ball, 5f, new Rgba(1f, 0.85f, 0.45f), 10);
+                    break;
+                }
+                case WeaponId.TwinBlades:
+                    Line(grip, grip + dir * (r + 12f), 3f, Steel);
+                    Line(p.Disp - side * (r * 0.7f), p.Disp - side * (r * 0.7f) + dir * (r + 12f), 3f, Steel);
+                    break;
+                default:  // swords
+                    Line(grip, grip + dir * (r + (p.Weapon.Id == WeaponId.Greatsword ? 26f : 16f)), p.Weapon.Id == WeaponId.Greatsword ? 5f : 3.5f,
+                        p.Weapon.Id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.65f) : Steel);
+                    Line(grip + side * 5f, grip - side * 5f, 3f, new Rgba(0.75f, 0.6f, 0.3f));  // crossguard
+                    break;
+            }
+            if (p.Weapon.Id == WeaponId.SwordShield)  // the shield on the other arm
+                Arc(p.Disp, r + 4f, 5f, Steel.WithAlpha(0.85f), 10, p.Aim - 1.2f - 0.6f, 0.9f);
+            // Abilities
+            if (p.WallT > 0f)
+            {
+                float half = 1.05f * p.Stats.WallArcMult;
+                Arc(p.Disp, r + 34f, 12f, new Rgba(0.75f, 0.85f, 1f, 0.22f), 20, p.Aim - half, 2f * half);
+                Arc(p.Disp, r + 40f, 4f, new Rgba(0.85f, 0.92f, 1f, 0.9f), 20, p.Aim - half, 2f * half);
+            }
+            if (p.WhirlT > 0f)
+                for (int k = 0; k < 3; k++)
+                {
+                    float a = t * 14f + MathX.Tau * k / 3f, reach = 110f * p.Stats.WhirlRadiusMult;
+                    Line(p.Disp + V2.FromAngle(a) * r, p.Disp + V2.FromAngle(a) * reach, 3f, Steel.WithAlpha(0.8f));
+                    Arc(p.Disp, reach, 2f, Steel.WithAlpha(0.3f), 12, a - 0.6f, 0.6f);
+                }
+            if (p.FuryT > 0f)
+                Arc(p.Disp, r + 6f, 3f, new Rgba(1f, 0.3f, 0.2f, 0.5f + 0.4f * Mathf.Sin(t * 12f)), 24);
+            if (p.UnbreakT > 0f)
+                Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.35f));
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand)
+                for (int k = 0; k < 8; k++)  // flames licking up around them
+                    Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 8f + t) * (r + 10f), 4f + 2f * Mathf.Sin(t * 15f + k), new Rgba(1f, 0.5f, 0.2f, 0.7f), 6);
         }
 
         // --- GL primitives (arena coordinates; everything is triangles) -------
@@ -1586,6 +1690,7 @@ namespace Arena
             {
                 case Kit.Mage: return "Spells: fire, frost, lightning and arcane magic. 85% health.";
                 case Kit.Summoner: return "Fights alongside minions that come with your weapon. 90% health.";
+                case Kit.Knight: return "Melee: swings cut small bullets out of the air. Armoured: 115% health.";
                 default: return "Guns and gear. Full health.";
             }
         }
@@ -1715,8 +1820,9 @@ namespace Arena
             y += 100f;
 
             Ui.Heading(x, y, w, "Class");
-            for (int i = 0; i <= (int)Kit.Summoner; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor))
+            float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
+            for (int i = 0; i < Defs.KitCount; i++)
+                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 38f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor))
                 {
                     session.RequestKit((Kit)i);
                     kitChoice = (Kit)i;

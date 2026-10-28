@@ -320,7 +320,8 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 120f, 0.4f, Sfx.Roar);
                     break;
                 default:
-                    Ultimate(p, id, target);  // Ultimates.cs
+                    if (!KnightAbility(p, id, target))  // Knight.cs
+                        Ultimate(p, id, target);  // Ultimates.cs
                     break;
             }
         }
@@ -685,6 +686,12 @@ namespace Arena
                             HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
                     BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.BigExplode);
                     Player caster;
+                    if (z.Consecrates && Players.TryGetValue(z.Owner, out caster))
+                    {
+                        var holy = AddZone(ZoneKind.Consecrate, caster, z.Pos, z.Radius, 8f);
+                        holy.DmgMult = z.DmgMult;
+                        holy.HealMult = z.HealMult * 1.25f;  // 15 HP/s
+                    }
                     if (z.Embers && Players.TryGetValue(z.Owner, out caster))
                     {
                         // A mastered Meteor leaves burning ground (it doesn't block bullets).

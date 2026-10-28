@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
-    public enum Kit : byte { Soldier, Mage, Summoner }
+    public enum Kit : byte { Soldier, Mage, Summoner, Knight }
 
     public enum WeaponId : byte
     {
@@ -35,6 +35,8 @@ namespace Arena
         FlameBurst, FrostLance, StormHammer, RadiantOrb, ChainLight, PrismBeam, Fireball, ArcLightning, ArcaneMissiles,
         // Summoner
         GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, TotemStaff, WolfWhistle, WispLantern, ImpCaller,
+        // Knight (melee)
+        Warhammer, SwordShield, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
     }
 
     public class WeaponDef
@@ -48,6 +50,7 @@ namespace Arena
         public MinionKind Companion = MinionKind.None;
         public int CompanionCount;
         public float CompanionRespawn = 3f;
+        public bool Melee;  // a Knight weapon: swings instead of shots (Knight.cs)
     }
 
     public class EnemyDef
@@ -127,8 +130,9 @@ namespace Arena
 
         public const int WeaponsPerRole = 3;
 
-        // Three starting weapons per role, in the same order as Role.
-        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner).
+        public const int KitCount = 4;
+
+        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner, Knight).
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
@@ -144,6 +148,12 @@ namespace Arena
                 Companion = MinionKind.Guard, CompanionCount = 2 },
             new WeaponDef { Id = WeaponId.BearTotem, ExtraDesc = "+2 claws, wider swipes, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.35f, Desc = "Wide claw swipes. A Bear companion mauls nearby enemies.",
                 Companion = MinionKind.Bear, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.Warhammer, Melee = true, ExtraDesc = "+1 aftershock: a second smash 0.2 s later with 60% damage and more reach", Name = "Warhammer", FireInterval = 0.75f,
+                Desc = "Slow overhead smashes in a wide arc that knock enemies back." },
+            new WeaponDef { Id = WeaponId.SwordShield, Melee = true, ExtraDesc = "Shield bashes come 1 swing sooner (every swing at 2+), and knock back further", Name = "Sword & Shield", FireInterval = 0.32f,
+                Desc = "Quick sword cuts. Every third swing is a shield bash that knocks enemies back and blocks every bullet in front of you." },
+            new WeaponDef { Id = WeaponId.Halberd, Melee = true, ExtraDesc = "+30 px reach and a quick follow-up thrust (60% damage)", Name = "Halberd", FireInterval = 0.55f,
+                Desc = "Long-reaching thrusts that hit everything along the blade." },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
             new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
@@ -156,6 +166,12 @@ namespace Arena
             new WeaponDef { Id = WeaponId.TreantRod, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.3f, Desc = "Bolts heal allies they pass. A Treant guards you and blocks bullets.",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.TotemStaff, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
+            new WeaponDef { Id = WeaponId.HolyMace, Melee = true, ExtraDesc = "+1 HP healed per enemy hit, and the healing reaches 60 px further", Name = "Holy Mace", FireInterval = 0.45f,
+                Desc = "Mace swings. Every enemy you hit heals you and allies near you for 2 (up to 8 a swing)." },
+            new WeaponDef { Id = WeaponId.Lightbringer, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
+                Desc = "Sword swings that also send a short crescent of light, which heals allies it passes." },
+            new WeaponDef { Id = WeaponId.Censer, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
+                Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
             new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
@@ -169,14 +185,20 @@ namespace Arena
                 Companion = MinionKind.Wisp, CompanionCount = 3 },
             new WeaponDef { Id = WeaponId.ImpCaller, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f, Desc = "Darts. Calls an imp every 3 s that charges an enemy and explodes.",
                 Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f },
+            new WeaponDef { Id = WeaponId.TwinBlades, Melee = true, ExtraDesc = "+1 cut: each swing strikes once more (60% damage)", Name = "Twin Blades", FireInterval = 0.16f,
+                Desc = "Very fast alternating slashes." },
+            new WeaponDef { Id = WeaponId.Greatsword, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
+                Desc = "Huge sweeping cuts with long reach." },
+            new WeaponDef { Id = WeaponId.Rapier, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
+                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%)." },
         };
 
-        public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * 3 + (int)kit) * WeaponsPerRole + index];
+        public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 
         public static string KitName(Kit k) => k.ToString();
 
-        /// Mages and summoners trade some health for their spells and minions.
-        public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : 1f;
+        /// Mages and summoners trade some health for their spells and minions; knights wear armour to get close.
+        public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : k == Kit.Knight ? 1.15f : 1f;
 
         /// XP needed to go from this level to the next.
         public static float XpToNext(int level) => 50f + 30f * (level - 1);
@@ -187,7 +209,9 @@ namespace Arena
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
         public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14,
             // more player kinds (enemy kinds are 10-19)
-            FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28;
+            FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
+            KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
+            KnightWave = 30;   // a crescent of steel or light thrown by a swing
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -217,6 +241,7 @@ namespace Arena
                 case BoneShot: return 3.5f;
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
+                case KnightWave: return 11f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case PierceShot: return 6.5f;
@@ -260,6 +285,8 @@ namespace Arena
                 case BoneShot: return new Rgba(0.92f, 0.9f, 0.8f);
                 case RockShot: return new Rgba(0.7f, 0.6f, 0.5f);
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);
+                case KnightSlash:
+                case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);

@@ -22,13 +22,14 @@ press Play, so there are no scenes or prefabs to wire together.
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner), then
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight), then
 one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
 their role and class.
 
 - **Soldier**: guns and gear, full health.
 - **Mage**: spells (fire, frost, lightning, arcane), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
+- **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
 
 | | Soldier | Mage | Summoner |
 |---|---|---|---|
@@ -38,6 +39,29 @@ their role and class.
 
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
 use your damage and attack-speed bonuses too.
+
+### The Knight
+
+Knights fight up close. Holding fire **swings** instead of shooting: each swing hits every enemy in its arc
+(the Rapier only the nearest), and **cuts small bullets out of the air** in front of you. Big orbs and mines get
+through (a Sword & Shield bash stops those too), and bosses' red aimed shots always do. Knights have 115%
+health to make up for standing in the thick of it, and deal about a third more damage than the ranged
+classes.
+
+| | Weapons | Space abilities | Ultimate |
+|---|---|---|---|
+| **Tank** | **Warhammer** (slow 150° smash, knocks back), **Sword & Shield** (quick cuts; every 3rd swing a shield bash that knocks back and blocks every bullet in front), **Halberd** (160 px thrust that hits everything on the blade) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
+| **Healer** | **Holy Mace** (each enemy hit heals you and allies near you for 2, up to 8 a swing), **Lightbringer** (sword cut plus a crescent of light that heals allies it passes), **Censer** (a flail whirled all the way round; each spin heals allies near you for 3) | **Consecrate** (6 s of blessed ground: allies heal 12 HP/s, enemies burn 20/s), **Guardian's Oath** (shield the ally nearest your cursor for 100, yourself for 50, for 6 s), **Lay on Hands** (heal the most hurt ally within 300 px for 70, or revive them at half health) | **Hallowed Blade** (80 s): a giant sword falls at your cursor for 200 damage around it, then blesses the ground for 8 s (allies heal 15 HP/s) |
+| **DPS** | **Twin Blades** (very fast alternating slashes), **Greatsword** (huge 170° sweeps), **Rapier** (thrusts at the nearest enemy; each hit in a row on it deals 10% more, up to +60%) | **Whirlwind** (spin for 2 s hitting everything within 110 px every 0.2 s and slicing small bullets), **Lunge** (dash 260 px toward your cursor hitting everything you pass for 35; two charges), **Battle Fury** (6 s: swing 40% faster, +25% damage) | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
+
+How shot upgrades work on a melee weapon (the cards say so when you're a Knight):
+
+- **Damage, fire rate (swing speed), crits, lifesteal, legendaries** work as usual.
+- **Piercing Rounds**: +10% reach per stack (and sword waves pierce one more).
+- **Barrage**: every swing also throws a **sword wave** per stack, fanned out to the sides.
+- **Incendiary, Cryo, Shock and Explosive Rounds**, Swarm Rounds, Collapse Rounds and Graviton Rounds apply to
+  every melee hit. **Homing, Ricochet and Velocity Rounds** only change your sword waves (Velocity's +15%
+  damage counts for everything).
 
 Players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
@@ -84,6 +108,15 @@ your weapon. Per extra projectile:
 | DPS · Summoner | **Wolf Whistle** | Darts, plus 2 wolves | +1 Wolf |
 | | **Wisp Lantern** | Weak bolts, plus 3 shooting wisps | +1 Wisp |
 | | **Imp Caller** | Darts; exploding imps every 3 s | +1 Imp, arriving 50% faster |
+| Tank · Knight | **Warhammer** | Slow overhead smash: 150° arc, 100 px reach, 50 damage, knocks back | +1 aftershock: a second smash 0.2 s later (60% damage, more reach) |
+| | **Sword & Shield** | Quick 110° cuts (19); every 3rd swing a shield bash (24, knocks back, blocks every bullet in front) | Bashes come 1 swing sooner (every swing from 2 stacks), then knock back further |
+| | **Halberd** | 160 px thrust (32) that hits everything along the blade | +30 px reach and a quick follow-up thrust (60% damage) |
+| Healer · Knight | **Holy Mace** | 120° swings (22); each enemy hit heals you and allies within 220 px for 2 (up to 8 a swing) | +1 HP healed per enemy hit, and 60 px more healing reach |
+| | **Lightbringer** | 100° sword cut (17) plus a crescent of light (12, pierces 2) that heals allies it passes for 6 | +1 crescent, fanned out |
+| | **Censer** | Flail whirled all the way around you (14, 80 px); each spin heals allies within 140 px for 3 | +20 px reach and +1 HP healed per spin |
+| DPS · Knight | **Twin Blades** | Very fast alternating 90° slashes (15) | +1 cut: each swing strikes once more (60% damage) |
+| | **Greatsword** | Huge 170° sweeps (60) with 125 px reach | +1 sword beam: each sweep launches a piercing crescent (40% damage) |
+| | **Rapier** | Narrow 130 px thrusts (18) at the nearest enemy in front; +10% per hit in a row on it (up to +60%) | Skewers 1 more enemy behind the first |
 
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
 fills while it reloads.
@@ -120,11 +153,11 @@ Parry upgrades show up like any other card:
 comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
-| | Soldier | Mage | Summoner |
-|---|---|---|---|
-| **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) |
-| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
-| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
+| | Soldier | Mage | Summoner | Knight |
+|---|---|---|---|---|
+| **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
+| **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
+| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
 
@@ -161,7 +194,13 @@ total: about level 3 by wave 8-10 and level 5 by wave 20-25 if you use it whenev
 | **Titan** | The titan is bigger and stays for 25 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
 | **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 16 s with 8 sprites. |
 | **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
-| **Legion** | Summons 10 wolves and 10 bats. |  |  |
+| **Legion** | Summons 10 wolves and 10 bats. | **Shield Wall** | Bullets that hit the shield are reflected back as your own. |
+| **Leap Slam** | The landing also erases enemy bullets within 160 px. | **Unbreakable** | Lasts 8 s. |
+| **Consecrate** | The blessed ground follows you. | **Guardian's Oath** | Everyone within 300 px gets the full shield. |
+| **Lay on Hands** | Also heals everyone else near them for half as much. | **Whirlwind** | Lasts 3 s and cuts every bullet except red aimed shots. |
+| **Lunge** | +1 charge (three in all). | **Battle Fury** | +1 extra projectile while it lasts. |
+| **Last Stand** | Lasts 12 s. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
+| **Blade Tempest** | Five sword beams a swing instead of three. |  |  |
 
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next
 one fills as it earns XP); hover it to read what level 5 unlocks.
@@ -181,7 +220,7 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for the specific ability you picked (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for the specific ability you picked (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability in your **Q** slot, then **E**, then **Shift**: Shockwave, Overdrive, Blink, Nova or Turret (each one only once) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |
@@ -205,7 +244,8 @@ have chosen.
 | **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack) |
 | **Velocity Rounds** | Shots fly 30% faster and farther, +15% damage |
 
-Mods apply to your weapon's shots and your minions' shots, but not to grenades.
+Mods apply to your weapon's shots and your minions' shots, but not to grenades. On a Knight, the elemental mods
+apply to every melee hit (see The Knight above).
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
@@ -409,7 +449,7 @@ Bots don't parry, pick up health orbs, or reroll upgrades.
 
 From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]` runs
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
-Soldier, first weapon), `H/M/1` or `D/U/2` (U = Summoner).
+Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
 ### Session recording (for balancing)
 
@@ -456,6 +496,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
+  - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
