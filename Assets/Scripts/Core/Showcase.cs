@@ -28,6 +28,10 @@ namespace Arena
         public static readonly V2 Home = new V2(Game.Width / 2f, Game.Height / 2f + 150f);
         public float Distance { get; private set; } = 250f;
 
+        /// How far ahead the view should reach: the dummies' distance, growing to fit when a weapon
+        /// shoves them further (the Lance), so the preview can zoom out to keep them in view.
+        public float Extent { get; private set; } = 250f;
+
         /// Show this loadout. A new weapon (or role or class) restarts the scene; a different ability just
         /// swaps the Space ability. demo: cast the ability every few seconds.
         public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo)
@@ -45,6 +49,7 @@ namespace Arena
                 float reach = Game.WeaponRange(Me);
                 Distance = Me.Weapon.Melee ? reach * 0.75f : Math.Min(reach * 0.8f, Math.Max(200f, Math.Min(320f, reach * 0.55f)));
                 Game.ShowcaseDummies(Home, Distance);
+                Extent = Distance;
                 t = 0f;
                 castT = FirstCast;
             }
@@ -86,6 +91,11 @@ namespace Arena
             }
             Game.FixedStep(dt, input);
             Game.Update(dt);
+            float far = Distance;
+            foreach (var e in Game.Enemies.Values)
+                far = Math.Max(far, Home.DistanceTo(e.Pos) + e.Radius);
+            if (far > Extent)
+                Extent += (far - Extent) * Math.Min(1f, dt * 4f);
             Game.Sounds.Clear();  // the preview is silent
         }
 

@@ -44,30 +44,68 @@ namespace Arena
             }
         }
 
-        /// The lobby's background picker: arrows either side of the name, and the animation switch.
-        void DrawBackgroundPicker(float right, float y)
+        /// The lobby's background picker (bottom left): a live thumbnail of the current background (click it for
+        /// the next one), its name between arrows, a dot per background (click one to jump to it) and the
+        /// animation switch.
+        void DrawBackgroundPicker(Rect r)
         {
-            float x = right - 236f;
-            Ui.Label(new Rect(x - 92f, y, 86f, 24f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleRight, true);
-            if (Ui.Button(new Rect(x, y, 26f, 24f), "<"))
+            Ui.Card(r, Ui.Accent, 0.25f);
+            var thumb = new Rect(r.x + 10f, r.y + 10f, (r.height - 20f) * W / H, r.height - 20f);
+            float x = thumb.xMax + 14f, w = r.xMax - 12f - x;
+            float dotsX = x, dotsY = r.y + r.height - 18f;
+            if (BeginUiGl())
             {
-                menuBg = (menuBg + BackgroundNames.Length - 1) % BackgroundNames.Length;
-                SaveBackgroundSettings();
+                UiModelAt(new V2(thumb.x, thumb.y), thumb.width / W);
+                UiClip(thumb);
+                DrawMenuBackground(Time.time);
+                UiNoClip();
+                UiModelAt(V2.Zero, 1f);
+                var edge = new Rgba(1f, 1f, 1f, thumb.Contains(Event.current.mousePosition) ? 0.5f : 0.18f);
+                Line(new V2(thumb.x, thumb.y), new V2(thumb.xMax, thumb.y), 1f, edge);
+                Line(new V2(thumb.x, thumb.yMax), new V2(thumb.xMax, thumb.yMax), 1f, edge);
+                Line(new V2(thumb.x, thumb.y), new V2(thumb.x, thumb.yMax), 1f, edge);
+                Line(new V2(thumb.xMax, thumb.y), new V2(thumb.xMax, thumb.yMax), 1f, edge);
+                // A dot per background; the current one is lit.
+                for (int i = 0; i < BackgroundNames.Length; i++)
+                {
+                    V2 c = new V2(dotsX + i * 11f + 4f, dotsY);
+                    bool hover = Event.current.mousePosition.x >= c.X - 6f && Event.current.mousePosition.x < c.X + 6f && Mathf.Abs(Event.current.mousePosition.y - c.Y) < 8f;
+                    if (i == menuBg)
+                    {
+                        Circle(c, 6f, new Rgba(0.36f, 0.6f, 1f, 0.25f), 16);
+                        Circle(c, 3.5f, new Rgba(0.55f, 0.75f, 1f), 12);
+                    }
+                    else
+                        Circle(c, 2.5f, new Rgba(1f, 1f, 1f, hover ? 0.6f : 0.25f), 10);
+                }
+                EndUiGl();
             }
-            var name = new Rect(x + 30f, y, 176f, 24f);
-            Ui.Pill(name, new Color(0f, 0f, 0f, 0.4f));
-            Ui.Label(name, BackgroundNames[menuBg] + "  (" + (menuBg + 1) + "/" + BackgroundNames.Length + ")", 12, Color.white, TextAnchor.MiddleCenter, true);
-            if (Ui.Button(new Rect(x + 210f, y, 26f, 24f), ">"))
-            {
-                menuBg = (menuBg + 1) % BackgroundNames.Length;
-                SaveBackgroundSettings();
-            }
-            bool anim = Ui.Toggle(new Rect(x + 30f, y + 28f, 176f, 22f), menuBgAnimate, "Animated");
+            if (GUI.Button(thumb, GUIContent.none, GUIStyle.none))
+                SetBackground(menuBg + 1);
+
+            Ui.Label(new Rect(x, r.y + 8f, w, 16f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x, r.y + 8f, w, 16f), (menuBg + 1) + " / " + BackgroundNames.Length, 10, Ui.Muted, TextAnchor.MiddleRight);
+            if (Ui.Button(new Rect(x, r.y + 27f, 24f, 24f), "<"))
+                SetBackground(menuBg - 1);
+            if (Ui.Button(new Rect(x + w - 24f, r.y + 27f, 24f, 24f), ">"))
+                SetBackground(menuBg + 1);
+            Ui.Fancy(new Rect(x + 28f, r.y + 27f, w - 56f, 24f), BackgroundNames[menuBg], 15, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter);
+
+            for (int i = 0; i < BackgroundNames.Length; i++)  // the dots (drawn above) are buttons too
+                if (i != menuBg && GUI.Button(new Rect(dotsX + i * 11f - 1.5f, dotsY - 8f, 11f, 16f), GUIContent.none, GUIStyle.none))
+                    SetBackground(i);
+            bool anim = Ui.Toggle(new Rect(x + w - 104f, dotsY - 11f, 104f, 22f), menuBgAnimate, "Animated");
             if (anim != menuBgAnimate)
             {
                 menuBgAnimate = anim;
                 SaveBackgroundSettings();
             }
+        }
+
+        void SetBackground(int i)
+        {
+            menuBg = (i % BackgroundNames.Length + BackgroundNames.Length) % BackgroundNames.Length;
+            SaveBackgroundSettings();
         }
 
         // --- Helpers ------------------------------------------------------------------

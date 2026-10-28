@@ -52,7 +52,6 @@ namespace Arena
                 connInfoOpen = !connInfoOpen;
             DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
             Ui.Label(new Rect(W - 240f, 8f, 200f, 16f), Session.VersionText, 11, Ui.Muted, TextAnchor.MiddleRight);
-            DrawBackgroundPicker(W - 40f, 26f);  // MenuBackgrounds.cs
 
             // --- Left: the party.
             float lx = 40f, lw = 376f, y = 100f;
@@ -69,8 +68,10 @@ namespace Arena
                 DrawOpenSlot(new Rect(lx, y, lw, 88f), slot, t);
                 y += 96f;
             }
+            var picker = new Rect(lx, H - 96f - 84f, lw, 84f);
             if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, y + 4f, lw, H - 96f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+                Ui.Label(new Rect(lx, y + 4f, lw, picker.y - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+            DrawBackgroundPicker(picker);  // MenuBackgrounds.cs
 
             // --- Right: tabs, then your loadout or the practice waves.
             var area = new Rect(440f, 100f, W - 480f, H - 196f);
@@ -405,8 +406,8 @@ namespace Arena
                 return;
             var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
             var sg = showcase.Game;
-            float zoom = Mathf.Min(1.1f, view.height / (showcase.Distance + 190f));
-            V2 focus = Showcase.Home + new V2(0f, -showcase.Distance / 2f);
+            float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f));
+            V2 focus = Showcase.Home + new V2(0f, -showcase.Extent / 2f);
             V2 centre = new V2(view.center.x, view.center.y);
             UiModelAt(centre - focus * zoom, zoom);
             UiClip(view);

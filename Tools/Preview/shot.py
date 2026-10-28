@@ -42,10 +42,15 @@ for line in open(base+'.ui',encoding='utf-8'):
         ec=mul(edge)
         if ec[3]>0.02: ld.rounded_rectangle([x,y,x+w-1,y+h-1],radius=r,outline=c8(*ec),width=1)
     elif kind=='tris':
+        # GL models on top of the menus: blend each triangle over what's there, like the GPU does (drawing
+        # into a transparent layer would let each translucent triangle replace the ones under it).
         tv=floats(p[3])
+        rgb=img.convert('RGB'); bd=ImageDraw.Draw(rgb,'RGBA')
         for i in range(0,len(tv),18):
             pts=[(tv[i+k*6], H-tv[i+k*6+1]) for k in range(3)]
-            ld.polygon(pts, fill=c8(*tv[i+2:i+6]))
+            bd.polygon(pts, fill=c8(*tv[i+2:i+6]))
+        img=rgb.convert('RGBA')
+        continue
     elif kind=='img':
         n=int(p[3]); hexs=p[4]
         tint=floats(p[5])

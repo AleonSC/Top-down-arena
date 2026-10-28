@@ -334,9 +334,10 @@ the other players), so it always matches how weapons and abilities really behave
 
 ## Lobby backgrounds
 
-The lobby's **Background** picker (top right) switches the animated background behind the menus: Spiral, Warp,
-Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula or Tides. Untick **Animated** for a still
-image. Each player's choice is saved on their own computer. Your pick also shows faintly behind the arena
+The lobby's **Background** card (bottom left) switches the animated background behind the menus: Spiral, Warp,
+Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula or Tides. It shows a live thumbnail (click it
+for the next one), arrows either side of the name and a dot per background (click one to jump to it). Untick
+**Animated** for a still image. Each player's choice is saved on their own computer. Your pick also shows faintly behind the arena
 during matches (dimmed so the fight stays easy to read).
 
 ## Practice Range
@@ -385,7 +386,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
-| Aim line on / off | V (the line runs out to your weapon's range: as far as your shots fly, or your swing reaches) |
+| Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
