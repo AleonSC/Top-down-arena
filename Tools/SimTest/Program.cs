@@ -1106,8 +1106,8 @@ static class Program
                         cls++;
                 }
         float frac = cls / (float)Math.Max(1, veryRare);
-        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} (4 in 9 = 44%)", veryRare, frac);
-        Check(frac > 0.38f && frac < 0.51f, "class ability cards count double among very rare cards");
+        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} (6 in 11 = 55%)", veryRare, frac);
+        Check(frac > 0.49f && frac < 0.61f, "class ability cards count triple among very rare cards");
 
         var taken = new List<int> { U("Barrier") };  // a Tank Soldier who picked Roar, then found Barrier
         Check(!Upgrades.Available(U("Barrier"), Role.Tank, AbilityId.Roar, taken) && Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, taken)

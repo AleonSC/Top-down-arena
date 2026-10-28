@@ -492,7 +492,7 @@ namespace Arena
                 var a = Ability(id);
                 all.Add(new UpgradeDef
                 {
-                    Rarity = Rarity.VeryRare, Grants = id, ClassAbility = true, Weight = 2, Name = a.Name, Desc = a.Desc,
+                    Rarity = Rarity.VeryRare, Grants = id, ClassAbility = true, Weight = 3, Name = a.Name, Desc = a.Desc,
                 });
             }
             return all.ToArray();
@@ -564,7 +564,7 @@ namespace Arena
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
                         if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken))
-                            for (int k = 0; k < All[id].Weight; k++)  // class ability cards count double
+                            for (int k = 0; k < All[id].Weight; k++)  // class ability cards count triple
                                 candidates.Add(id);
                     if (candidates.Count > 0)
                         pick = candidates[rng.Next(candidates.Count)];
