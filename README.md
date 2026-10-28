@@ -364,6 +364,21 @@ during matches (dimmed so the fight stays easy to read).
 The card's **-** button minimizes it to a slim tab that fades away after a few seconds; hover where it was to
 bring the tab back, and click it to open the full card again (remembered on your computer).
 
+## Run modifiers
+
+The lobby's **Modifiers** tab lists switches that change the whole run, for everyone (Practice Range too). The
+host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
+as chips under the wave plate during the match, and session recordings list them.
+
+| Modifier | Effect | |
+|---|---|---|
+| Glass Cannon | Everyone deals 50% more damage, and takes 50% more | Risky |
+| Tough Crowd | Enemies and bosses have 50% more health | Harder |
+| Frenzy | Enemies and bosses shoot 30% faster (the bullet budget still applies) | Harder |
+| Swift Foes | Enemies move 30% faster | Harder |
+| Famine | Enemies never drop health orbs (bosses still do) | Harder |
+| Lucky | Everyone starts with 3 extra upgrade rerolls | Easier |
+
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range
@@ -579,6 +594,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
+  - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
   - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with a live mini-arena preview) and the Practice Range editor

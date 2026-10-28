@@ -9,8 +9,9 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Color PracticeColor = new Color(0.22f, 0.78f, 0.62f);
+        static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout, 1 = practice waves
+        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers
         bool lobbyWasPractice;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
@@ -34,7 +35,7 @@ namespace Arena
                 lobbyTab = practice ? 1 : 0;  // jump to the waves when the host turns practice on
                 lobbyWasPractice = practice;
             }
-            if (!practice)
+            if (!practice && lobbyTab == 1)
                 lobbyTab = 0;
             var infoButton = new Rect(196f, 28f, 28f, 28f);
             var infoPanel = ConnInfoRect(infoButton);
@@ -79,6 +80,8 @@ namespace Arena
             var body = new Rect(area.x, area.y + 40f, area.width, area.height - 40f);
             if (lobbyTab == 1 && practice)
                 DrawPracticeEditor(body, t);
+            else if (lobbyTab == 2)
+                DrawModifiers(body, t);
             else if (me != null)
                 DrawLoadout(me, body, t);
 
@@ -125,7 +128,8 @@ namespace Arena
 
         void DrawLobbyTabs(Rect r, bool practice)
         {
-            string[] names = { "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null };
+            int mods = Modifiers.Count(session.Modifiers);
+            string[] names = { "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers" };
             float x = r.x;
             for (int i = 0; i < names.Length; i++)
             {
@@ -134,7 +138,7 @@ namespace Arena
                 float w = 30f + names[i].Length * 8.2f;
                 var tab = new Rect(x, r.y, w, r.height);
                 bool on = lobbyTab == i;
-                var c = i == 1 ? PracticeColor : Ui.Accent;
+                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : Ui.Accent;
                 Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
                 Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
                 if (!on && GUI.Button(tab, GUIContent.none, GUIStyle.none))

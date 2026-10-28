@@ -15,6 +15,7 @@ namespace Arena
         {
             var me = game.Me;
             DrawWavePlate();
+            DrawActiveModifiers(14f, 94f);  // ModifiersUi.cs
             if (game.Recorder != null)  // this match is being recorded (hosts only)
                 Ui.Label(new Rect(W - 70f, H - 20f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
             if (aimDebug && me != null)

@@ -63,7 +63,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 53;
+        public const int ProtocolVersion = 54;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -87,6 +87,7 @@ namespace Arena
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
+        public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
 
         // Testing helpers (see the README's command-line flags).
         public int AutoStart;
@@ -173,6 +174,7 @@ namespace Arena
             Game.Practice = null;
             PracticeMode = false;
             OthersCanEdit = false;
+            Modifiers = RunMod.None;
             if (Net != null)
                 Net.Close();
             Net = null;
@@ -470,6 +472,7 @@ namespace Arena
                 w.Write(e.Ability);
                 w.Write(e.Ready);
             }
+            w.Write((int)Modifiers);
             Broadcast(Proto.End(w));
         }
 
@@ -485,6 +488,17 @@ namespace Arena
                 e.Ready = false;  // what you're readying up for changed
             BroadcastLobby();
             BroadcastPractice();
+        }
+
+        /// Host: turn a run modifier on or off. Everyone's Ready is taken back, since the run changed.
+        public void SetModifier(RunMod mod, bool on)
+        {
+            if (!IsHost || Game.Running)
+                return;
+            Modifiers = on ? Modifiers | mod : Modifiers & ~mod;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
         }
 
         /// Host: whether the other players can edit the practice waves.
@@ -555,6 +569,7 @@ namespace Arena
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
+            Game.Mods = Modifiers;
             Game.HostStart();
         }
 
@@ -691,6 +706,7 @@ namespace Arena
                         e.Ready = r.ReadBoolean();
                         Lobby[e.Id] = e;
                     }
+                    Modifiers = (RunMod)r.ReadInt32();
                     if (!Game.Running)
                         Screen = AppScreen.Lobby;
                     break;
@@ -713,6 +729,7 @@ namespace Arena
                 }
                 case Msg.Start:
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
+                    Game.Mods = Modifiers;
                     Game.OnHostMessage(type, r);
                     break;
                 default:

@@ -1417,6 +1417,58 @@ static class Program
 
     // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
     // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void ModifiersTest(float dt)
+    {
+        // Run modifiers: the host picks them in the lobby, everyone sees them, and they change the run.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        int port = nextPort++;
+        var host = new Session();
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Sync();
+        host.SetModifier(RunMod.ToughCrowd, true);
+        host.SetModifier(RunMod.GlassCannon, true);
+        host.SetModifier(RunMod.Lucky, true);
+        host.SetModifier(RunMod.Famine, true);
+        Sync();
+        Check(client.Modifiers == host.Modifiers && Modifiers.Count(client.Modifiers) == 4, "the friend sees the host's run modifiers");
+        client.RequestReady(true); host.RequestReady(true); Sync();
+        host.StartMatch();
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Check(g.Has(RunMod.ToughCrowd) && client.Game.Has(RunMod.Lucky), "both games know the run's modifiers");
+        Check(g.Players[1].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls && client.Game.Players[2].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls,
+            "Lucky: everyone starts with 3 extra rerolls");
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(800f, 300f), 0f, 0, false });
+        float baseHp = Defs.Get(EnemyType.Grunt).Hp * (1f + 0.15f * (g.Wave - 1));
+        Check(Math.Abs(grunt.MaxHp - baseHp * Modifiers.ToughCrowdHp * (grunt.MaxHp / (baseHp * Modifiers.ToughCrowdHp))) < 0.01f && grunt.MaxHp >= baseHp * 1.49f,
+            "Tough Crowd: enemies have 50% more health");
+        float hp0 = grunt.Hp;
+        hurt.Invoke(g, new object[] { grunt, 10f, 1 });
+        var me = g.Players[1];
+        me.InvulnT = 0f;
+        float t0 = me.Run.DamageTaken;
+        damage.Invoke(g, new object[] { me, 10f, "test" });
+        Console.WriteLine("  modifiers: grunt hp {0:0} (base {1:0}), a 10 hit dealt {2:0.#}, a 10 hit taken {3:0.#}", grunt.MaxHp, baseHp, hp0 - grunt.Hp, me.Run.DamageTaken - t0);
+        Check(Math.Abs((hp0 - grunt.Hp) - 15f) < 0.01f && Math.Abs((me.Run.DamageTaken - t0) - 15f * me.Stats.DamageTaken) < 0.5f, "Glass Cannon: everyone deals and takes 50% more");
+        int orbs = g.Orbs.Count;
+        for (int k = 0; k < 40; k++)
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f + k, 400f), 0f, 0, false });
+            e.Hp = 0f;
+        }
+        Step(host, dt);
+        Check(g.Orbs.Count == orbs, "Famine: enemies drop no health orbs");
+        host.Leave(""); client.Leave("");
+        Check(host.Modifiers == RunMod.None && client.Modifiers == RunMod.None, "leaving clears the modifiers");
+    }
+
     static void PracticeLobbyTest(float dt)
     {
         // The Practice Range lives in the lobby: everyone sees the setup, and the host decides who can edit it.
@@ -1566,6 +1618,7 @@ static class Program
         host.Leave("");
         Check(host.Game.Practice == null && !host.PracticeMode, "leaving clears the practice plan, so the next run is a normal one");
         PracticeLobbyTest(dt);
+        ModifiersTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;

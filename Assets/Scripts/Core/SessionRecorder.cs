@@ -64,6 +64,7 @@ namespace Arena
         readonly Dictionary<int, int> rerolls = new Dictionary<int, int>();
         readonly DateTime started = DateTime.Now;
         int playerCount, startWave;
+        string modifiers = "";
         float sampleT, now;
         string outcome = "in progress";
         int endWave, endScore;
@@ -104,6 +105,7 @@ namespace Arena
         public void Begin(Game g, int startWaveNumber)
         {
             startWave = startWaveNumber;
+            modifiers = string.Join(", ", Modifiers.Names(g.Mods).ToArray());
             playerCount = g.Players.Count;
             foreach (var p in g.Players.Values)
                 players.Add(new PlayerInfo
@@ -351,6 +353,7 @@ namespace Arena
             j.Field("started", started.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
             j.Field("playerCount", playerCount);
             j.Field("startWave", startWave);
+            j.Field("modifiers", modifiers);
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
             j.Close();
