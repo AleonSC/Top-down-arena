@@ -10,56 +10,76 @@ namespace Arena
 
         // --- Weapons -----------------------------------------------------------
 
-        void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int density)
+        /// Mage and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
+        void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
             switch (p.Weapon.Id)
             {
                 // Mage
                 case WeaponId.FlameBurst:
-                    for (int i = 0; i < 6 * density; i++)
-                        SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, 480f), 0f, 0.35f, 6f * dmg, p.Id);
+                {
+                    // +2 flames and 25% more reach per extra projectile.
+                    float reach = 0.35f * (1f + 0.25f * extra);
+                    for (int i = 0; i < 6 + 2 * extra; i++)
+                        SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, 480f), 0f, reach, 6f * dmg, p.Id);
                     break;
+                }
                 case WeaponId.FrostLance:
                 {
                     var b = SpawnBullet(Defs.FrostShot, muzzle, dir * 700f, 0f, 0.9f, 14f * dmg, p.Id);
                     b.Pierce += 1;
                     b.SlowAmt = 0.3f;
+                    if (extra > 0)  // shatters into icicles that fly out to the sides
+                        SetFrags(b, 2 * extra, Defs.FrostShot, 5f * dmg, 500f, 0.3f, 0f, true);
                     break;
                 }
                 case WeaponId.StormHammer:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 420f, 0f, 1.2f, 24f * dmg, p.Id).Chain = 3;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * 420f, 0f, 1.2f, 24f * dmg, p.Id).Chain = 3 + extra;
                     break;
                 case WeaponId.RadiantOrb:
                 {
                     var b = SpawnBullet(Defs.HolyShot, muzzle, dir * 300f, 0f, 1.8f, 14f * dmg, p.Id);
                     b.Pierce += 2;
                     b.HealAlly = 10f;
-                    break;
+                    break;  // extra projectiles become Light Orbs circling you (TickMinions)
                 }
                 case WeaponId.ChainLight:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 800f, 0f, 0.8f, 10f * dmg, p.Id).Chain = 2;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * 800f, 0f, 0.8f, 10f * dmg, p.Id).Chain = 2 + extra;
                     break;
                 case WeaponId.PrismBeam:
-                    SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * 1200f, 0f, 0.35f, 4f * dmg, p.Id).HealAlly = 2f;
+                {
+                    // +30% length, +25% damage and +50% healing per extra projectile.
+                    var b = SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * 1200f, 0f, 0.35f * (1f + 0.3f * extra),
+                        4f * (1f + 0.25f * extra) * dmg, p.Id);
+                    b.HealAlly = 2f * (1f + 0.5f * extra);
                     break;
+                }
                 case WeaponId.Fireball:
-                    SpawnBullet(Defs.FireShot, muzzle, dir * 520f, 0f, 1.2f, 22f * dmg, p.Id).Splash = 60f;
+                {
+                    var b = SpawnBullet(Defs.FireShot, muzzle, dir * 520f, 0f, 1.2f, 22f * dmg, p.Id);
+                    b.Splash = 60f;
+                    if (extra > 0)  // splits into small fireballs on impact
+                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f, false);
                     break;
+                }
                 case WeaponId.ArcLightning:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 900f, 0f, 0.6f, 12f * dmg, p.Id).Chain = 4;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * 900f, 0f, 0.6f, 12f * dmg, p.Id).Chain = 4 + extra;
                     break;
                 case WeaponId.ArcaneMissiles:
-                    // Fanned out and curving back in.
-                    for (int i = 0, n = 3 * density; i < n; i++)
+                {
+                    // Fanned out and curving back in; with extra projectiles, more of them, and they home instead.
+                    int n = 3 + extra;
+                    for (int i = 0; i < n; i++)
                     {
                         float f = i * 2f / (n - 1) - 1f;
-                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * 520f, -f * 1.2f, 1f, 7f * dmg, p.Id);
+                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * 520f, extra > 0 ? 0f : -f * 1.2f, 1f, 7f * dmg, p.Id, false, extra > 0 ? 4f : 0f);
                     }
                     break;
-                // Summoner
+                }
+                // Summoner (extra projectiles mostly add companions: see CompanionCount)
                 case WeaponId.GolemStaff:
-                    for (int i = 0, n = 3 * density; i < n; i++)
-                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + (i * 2f / (n - 1) - 1f) * 0.12f) * 480f, 0f, 0.6f, 8f * dmg, p.Id);
+                    for (int i = -1; i <= 1; i++)
+                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + i * 0.12f) * 480f, 0f, 0.6f, 8f * dmg, p.Id);
                     break;
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
@@ -67,9 +87,14 @@ namespace Arena
                     SpawnBullet(Defs.BoneShot, muzzle, dir * 720f, 0f, 0.8f, (p.Weapon.Id == WeaponId.BoneGuard ? 7f : 6.5f) * dmg, p.Id);
                     break;
                 case WeaponId.BearTotem:
-                    for (int i = 0, n = 5 * density; i < n; i++)
-                        SpawnBullet(Defs.BoneShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 1f) * 500f, 0f, 0.22f, 9f * dmg, p.Id);
+                {
+                    // +2 claws and 15% wider swipes per extra projectile.
+                    int n = 5 + 2 * extra;
+                    float width = 1f + 0.15f * extra;
+                    for (int i = 0; i < n; i++)
+                        SpawnBullet(Defs.BoneShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * width) * 500f, 0f, 0.22f, 9f * dmg, p.Id);
                     break;
+                }
                 case WeaponId.SpriteStaff:
                 case WeaponId.TotemStaff:
                     SpawnBullet(Defs.SeedShot, muzzle, dir * 600f, 0f, 1f, 9f * dmg, p.Id);
@@ -80,6 +105,24 @@ namespace Arena
                 case WeaponId.WispLantern:
                     SpawnBullet(Defs.ArcaneShot, muzzle, dir * 600f, 0f, 1f, 8f * dmg, p.Id);
                     break;
+            }
+        }
+
+        /// Companions a player's weapon keeps around: the weapon's own, plus one per extra projectile
+        /// (Golems top out at 3). The Radiant Orb gets Light Orbs; the Treant grows instead of multiplying.
+        public MinionKind CompanionKind(Player p) => p.Weapon.Id == WeaponId.RadiantOrb ? MinionKind.LightOrb : p.Weapon.Companion;
+
+        public int CompanionCount(Player p)
+        {
+            var w = p.Weapon;
+            int extra = ExtraShots(p);
+            switch (w.Id)
+            {
+                case WeaponId.RadiantOrb: return extra;
+                case WeaponId.TreantRod: return w.CompanionCount;
+                case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
+                case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
+                default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra;
             }
         }
 
@@ -316,17 +359,34 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 var w = p.Weapon;
-                if (w.Companion != MinionKind.None)
+                var kind = CompanionKind(p);
+                int extra = ExtraShots(p);
+                if (kind != MinionKind.None)
                 {
-                    int have = 0;
+                    int want = CompanionCount(p), have = 0;
+                    Minion surplus = null;
                     foreach (var m in Minions.Values)
                         if (m.Owner == p.Id && m.Companion)
+                        {
                             have++;
+                            surplus = m;
+                            float scale = m.Kind == MinionKind.Treant ? 1f + 0.3f * extra : 1f;
+                            if (scale != m.Scale)
+                            {
+                                if (m.StaggerT <= 0f)
+                                    m.BlockHp *= scale / m.Scale;  // keeps the same fraction of a bigger guard
+                                m.Scale = scale;
+                            }
+                        }
+                    if (have > want && surplus != null && kind != MinionKind.Imp)
+                        Minions.Remove(surplus.Id);  // Bullet Storm's extras leave when it ends
                     p.CompanionCd -= dt;
-                    if (have < w.CompanionCount && p.CompanionCd <= 0f)
+                    if (have < want && p.CompanionCd <= 0f)
                     {
-                        SpawnMinion(w.Companion, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, -1f, true);
-                        p.CompanionCd = w.Companion == MinionKind.Imp ? w.CompanionRespawn : 0.3f;
+                        var m = SpawnMinion(kind, p, p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 30f, -1f, true);
+                        if (kind == MinionKind.LightOrb)
+                            m.Ang = MathX.Tau * have / Math.Max(1, want);
+                        p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) : 0.3f;
                     }
                 }
                 if (w.Id == WeaponId.TotemStaff && !p.Downed && State == MatchState.Fighting)
@@ -334,7 +394,7 @@ namespace Arena
                     p.TotemCd -= dt;
                     if (p.TotemCd <= 0f)
                     {
-                        p.TotemCd = 10f;
+                        p.TotemCd = 10f / (1f + 0.6f * extra);
                         AddZone(ZoneKind.Totem, p, p.Pos, 90f, 8f);
                     }
                 }
@@ -364,12 +424,13 @@ namespace Arena
                 {
                     m.StaggerT -= dt;
                     if (m.StaggerT <= 0f)
-                        m.BlockHp = d.BlockCapacity;  // back on its feet
+                        m.BlockHp = d.BlockCapacity * m.Scale;  // back on its feet
                 }
                 bool frenzy = owner.FrenzyT > 0f;
                 float speed = d.Speed * (frenzy ? 1.6f : 1f);
                 float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
-                float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f);
+                float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale;
+                float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
                 // Movement
@@ -437,17 +498,30 @@ namespace Arena
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
                             HurtEnemy(e, dmg, m.Owner);
+                            // Bear Totem's extra projectiles: the bear's bites also hit enemies around its target.
+                            int extraBear = m.Kind == MinionKind.Bear && owner.Weapon.Id == WeaponId.BearTotem ? ExtraShots(owner) : 0;
+                            if (extraBear > 0)
+                            {
+                                foreach (var o in Enemies.Values)
+                                    if (o != e && o.SpawnT <= 0f && o.Pos.DistanceTo(e.Pos) < 55f + o.Radius)
+                                        HurtEnemy(o, dmg * Math.Min(1f, 0.4f * extraBear), m.Owner);
+                                BroadcastFx(FxKind.Ring, e.Pos, d.Color, 55f, 0.25f, Sfx.None);
+                            }
                         }
+                        if (m.Kind == MinionKind.LightOrb)  // also heals allies it passes over
+                            foreach (var q in Players.Values)
+                                if (!q.Downed && q.Pos.DistanceTo(m.Pos) < reach + d.Radius)
+                                    Heal(q, m.HealRate * dt, owner);
                         break;
                     }
                     case MinionAttack.Slam:
-                        if (m.Cd <= 0f && NearestEnemy(m.Pos, d.Range) != null)
+                        if (m.Cd <= 0f && NearestEnemy(m.Pos, reach) != null)
                         {
                             m.Cd = d.Interval;
                             foreach (var e in Enemies.Values)
-                                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < d.Range + e.Radius)
+                                if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < reach + e.Radius)
                                     HurtEnemy(e, dmg, m.Owner);
-                            BroadcastFx(FxKind.Ring, m.Pos, d.Color, d.Range, 0.3f, Sfx.None);
+                            BroadcastFx(FxKind.Ring, m.Pos, d.Color, reach, 0.3f, Sfx.None);
                         }
                         break;
                     case MinionAttack.Explode:
@@ -492,7 +566,7 @@ namespace Arena
         {
             foreach (var m in Minions.Values)
             {
-                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius))
+                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
                 m.BlockHp -= BlockerWear(b);
                 if (m.BlockHp <= 0f)
@@ -501,7 +575,7 @@ namespace Arena
                         m.StaggerT = 4f;
                     else
                         m.T = 0.01f;  // breaks at the end of this tick
-                    BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, m.Def.BlockRadius, 0.3f, Sfx.Hit);
+                    BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, m.Def.BlockRadius * m.Scale, 0.3f, Sfx.Hit);
                 }
                 return true;
             }

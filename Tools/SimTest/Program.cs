@@ -741,43 +741,148 @@ static class Program
         Console.WriteLine("  aim debug: client ping {0:0.0} ms, last shot {1:0.00} degrees off its aim", client.Game.PingMs, shotOff);
         Check(client.Game.PingMs > 0f && client.Game.PingMs < 500f && client.Game.LastShotId != 0 && shotOff < 0.05f,
             "the aim debug overlay gets a ping and the direction of your last shot");
-        // Extra projectiles keep each weapon's style: single shots get follow-ups down the same line,
-        // spread weapons get a denser spread of the same width (no fanning out into a wall).
-        {
-            var me = host.Game.Players[host.Game.MyId];
-            me.Stats.ExtraShots = 2;
-            float want = 0.6f;
-            Func<List<Bullet>> Volley = () =>
-            {
-                var seen = new HashSet<int>(host.Game.Bullets.Keys);
-                var shots = new List<Bullet>();
-                for (int i = 0; i < 12; i++)
-                {
-                    foreach (var x in s)
-                    {
-                        x.Poll();
-                        x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = me.Pos + V2.FromAngle(want) * 400f, Fire = i == 0 } : new PlayerInput());
-                    }
-                    foreach (var b in host.Game.Bullets.Values)
-                        if (b.Owner == me.Id && seen.Add(b.Id))
-                            shots.Add(b);
-                }
-                for (int i = 0; i < 40; i++) foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput()); }
-                return shots;
-            };
-            var pistol = Volley();
-            float pistolOff = 0f;
-            foreach (var b in pistol) pistolOff = Math.Max(pistolOff, Math.Abs(b.Vel.Angle - want));
-            me.Weapon = Defs.Weapon(Role.Tank, Kit.Soldier, 0);  // Scattergun
-            var scatter = Volley();
-            float scatterOff = 0f;
-            foreach (var b in scatter) scatterOff = Math.Max(scatterOff, Math.Abs(b.Vel.Angle - want));
-            Console.WriteLine("  +2 projectiles: pistol fired {0} shots, widest {1:0.000} rad off aim; scattergun fired {2} pellets, widest {3:0.00} rad (base spread 0.26)",
-                pistol.Count, pistolOff, scatter.Count, scatterOff);
-            Check(pistol.Count == 3 && pistolOff < 0.001f, "+1 projectile on the Pistol adds follow-up shots down the same line");
-            Check(scatter.Count == 15 && scatterOff < 0.27f, "+1 projectile on the Scattergun makes the same spread denser");
-        }
         host.Leave(""); client.Leave("");
+    }
+
+    // Extra projectiles upgrade each weapon in its own way. Every weapon fires at a cluster of dummies
+    // with 0 and then 2 extra projectiles; each must get stronger in its own way, and none turns
+    // into a line of bullets.
+    static void WeaponExtraTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        V2 from = new V2(560f, 450f), center = new V2(700f, 450f);
+        Func<WeaponDef, int, float[]> Trial = (w, extra) =>
+        {
+            // The Mender's Bow splits its arrows 300 px out, so it shoots at a far cluster.
+            center = w.Id == WeaponId.MendersBow ? new V2(1060f, 450f) : new V2(700f, 450f);
+            queue.Clear();
+            g.Enemies.Clear();
+            g.Minions.Clear();
+            g.Zones.Clear();
+            g.Bullets.Clear();
+            var dummies = new List<Enemy>();
+            for (int k = 0; k < 9; k++)
+            {
+                V2 at = k == 0 ? center : center + V2.FromAngle(MathX.Tau * (k - 1) / 8f) * (k % 2 == 0 ? 110f : 60f);
+                var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+                e.MaxHp = e.Hp = 1e6f;
+                dummies.Add(e);
+            }
+            me.Weapon = w;
+            me.Stats.ExtraShots = extra;
+            me.AmmoUsed = 0;
+            me.ReloadT = 0f;
+            me.TotemCd = 0f;
+            me.CompanionCd = 0f;
+            int spawned = 0, totems = 0;
+            var seen = new HashSet<int>();
+            for (int f = 0; f < 6 * 60; f++)
+            {
+                queue.Clear();
+                me.Pos = from;
+                ally.Pos = new V2(560f, 300f);
+                foreach (var e in dummies) { e.Speed = 0f; e.FireT = 99f; e.Pos = e.Disp; }
+                foreach (var x in s)
+                {
+                    x.Poll();
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = true } : new PlayerInput());
+                }
+                foreach (var b in g.Bullets.Values)
+                    if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
+                foreach (var z in g.Zones.Values)
+                    if (z.Kind == ZoneKind.Totem && seen.Add(-z.Id)) totems++;
+            }
+            float dmg = 0f;
+            foreach (var e in dummies) dmg += e.MaxHp - e.Hp;
+            int companions = 0;
+            float scale = 1f;
+            foreach (var m in g.Minions.Values)
+                if (m.Owner == 1 && m.Companion) { companions++; scale = Math.Max(scale, m.Scale); }
+            return new[] { dmg, spawned, companions, totems, scale };
+        };
+        int pass = 0;
+        var weak = new List<string>();
+        Console.WriteLine("  weapon            dmg 0 -> +2    shots 0 -> +2   companions   (6 s at a cluster of dummies)");
+        foreach (var w in Defs.Weapons)
+        {
+            var a = Trial(w, 0);
+            var b = Trial(w, 2);
+            float ratio = b[0] / Math.Max(1f, a[0]);
+            bool ok;
+            switch (w.Id)
+            {
+                case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
+                case WeaponId.TotemStaff: ok = b[3] > a[3]; break;                       // totems more often
+                case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // arrows split (in flight)
+                case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
+                case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
+                case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
+                case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
+                case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.15f; break;
+                default: ok = ratio > 1.2f; break;
+            }
+            Console.WriteLine("  {0,-17} {1,6:0} -> {2,6:0} (x{3:0.00})  {4,4} -> {5,4}      {6} -> {7}{8}", w.Name, a[0], b[0], ratio, a[1], b[1], a[2], b[2], ok ? "" : "   <-- not stronger");
+            if (ok) pass++; else weak.Add(w.Name);
+        }
+        Check(pass == Defs.Weapons.Length, "every weapon gets its own upgrade from extra projectiles (" + pass + "/" + Defs.Weapons.Length + ")" + (weak.Count > 0 ? ": " + string.Join(", ", weak) : ""));
+
+        // The Revolver: six rounds (the last one heavy), then a reload; two more heavy rounds per extra projectile.
+        {
+            queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+            me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1);
+            me.Stats.ExtraShots = 0;
+            me.AmmoUsed = 0; me.ReloadT = 0f;
+            var dmgs = new List<float>();
+            var seen = new HashSet<int>(g.Bullets.Keys);
+            bool reloaded = false, clientSawReload = false;
+            float firstGap = 0f, t = 0f, lastShot = -1f;
+            for (int f = 0; f < 4 * 60; f++)
+            {
+                t += dt;
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = true } : new PlayerInput()); }
+                foreach (var b in g.Bullets.Values)
+                    if (b.Owner == 1 && seen.Add(b.Id))
+                    {
+                        if (lastShot >= 0f && t - lastShot > firstGap) firstGap = t - lastShot;
+                        lastShot = t;
+                        dmgs.Add(b.Dmg);
+                    }
+                reloaded |= me.ReloadT > 0f;
+                clientSawReload |= s[1].Game.Players[1].ReloadT > 0f;
+            }
+            float baseDmg = dmgs.Count > 0 ? dmgs[0] : 0f;
+            Console.WriteLine("  revolver: {0} shots in 4 s, first six {1}, longest gap {2:0.00} s", dmgs.Count, string.Join(" ", dmgs.GetRange(0, Math.Min(7, dmgs.Count)).ConvertAll(x => x.ToString("0"))), firstGap);
+            Check(dmgs.Count >= 7 && dmgs[4] == baseDmg && dmgs[5] == baseDmg * 2f && dmgs[6] == baseDmg && firstGap > 1.1f && reloaded && clientSawReload,
+                "the Revolver fires six rounds (the sixth heavy), then reloads (seen on the client)");
+            me.Stats.ExtraShots = 2;
+            me.AmmoUsed = 0; me.ReloadT = 0f;
+            Check(g.RevolverCapacity(me) == 10 && g.RevolverHeavy(me) == 5, "each extra projectile adds two heavy rounds to the Revolver's cylinder");
+        }
+        // Twin Rifle: barrels side by side, not a line.
+        {
+            g.Bullets.Clear();
+            me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0);
+            me.Stats.ExtraShots = 2;
+            var seen = new HashSet<int>();
+            var first = new List<Bullet>();
+            for (int f = 0; f < 60 && first.Count == 0; f++)
+            {
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = true } : new PlayerInput()); }
+                foreach (var b in g.Bullets.Values) if (b.Owner == 1 && seen.Add(b.Id)) first.Add(b);
+            }
+            float spreadY = 0f;
+            foreach (var b in first) foreach (var c in first) spreadY = Math.Max(spreadY, Math.Abs(b.Pos.Y - c.Pos.Y));
+            Check(first.Count == 4 && spreadY > 25f, "the Twin Rifle with +2 fires four parallel barrels at once");
+        }
+        s[0].Leave(""); s[1].Leave("");
     }
 
     // The F1 dev menu's host commands: hand-edited stats reach every player, god mode, and jumping to a wave.
@@ -1896,6 +2001,12 @@ static class Program
             BossTtk(1f / 60f, args.Length > 3 ? int.Parse(args[3]) : 50);
             return 0;
         }
+        if (args.Length > 2 && args[2] == "extra")
+        {
+            WeaponExtraTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "dev")
         {
             DevToolsTest(1f / 60f);
@@ -1938,6 +2049,7 @@ static class Program
         AimTest(dt);
         SpinnerTest(dt);
         DevToolsTest(dt);
+        WeaponExtraTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

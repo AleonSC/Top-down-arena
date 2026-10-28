@@ -630,6 +630,8 @@ namespace Arena
 
             if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
                 DrawAimLine(game.Me, MouseArena(), t);
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol)
+                DrawCylinder(game.Me, t);
 
             if (aimDebug && game.Me != null)
             {
@@ -749,6 +751,7 @@ namespace Arena
         {
             var d = m.Def;
             var c = d.Color;
+            float rad = d.Radius * m.Scale, block = d.BlockRadius * m.Scale;
             if (m.T >= 0f && m.T < 1.5f && MathX.Fmod(t, 0.2f) < 0.1f)
                 c = c.WithAlpha(0.4f);  // about to vanish
             bool staggered = d.BlockRadius > 0f && m.GuardFrac <= 0f;
@@ -756,27 +759,29 @@ namespace Arena
             {
                 c = c.Darkened(0.4f);
                 for (int k = 0; k < 3; k++)
-                    Circle(m.Disp + V2.FromAngle(t * 5f + MathX.Tau * k / 3f) * (d.Radius + 6f), 2.5f, new Rgba(1f, 0.9f, 0.4f, 0.9f), 6);
+                    Circle(m.Disp + V2.FromAngle(t * 5f + MathX.Tau * k / 3f) * (rad + 6f), 2.5f, new Rgba(1f, 0.9f, 0.4f, 0.9f), 6);
             }
-            if (d.BlockRadius > d.Radius)  // the guardian spirit's bullet-eating field, fading as it soaks
+            if (block > rad)  // the guardian spirit's bullet-eating field, fading as it soaks
             {
                 float g = MathX.Clamp01(m.GuardFrac);
-                Circle(m.Disp, d.BlockRadius, c.WithAlpha(0.04f + 0.1f * g), 40);
-                Arc(m.Disp, d.BlockRadius, 1f + 2f * g, c.WithAlpha(0.25f + 0.45f * g), 40);
+                Circle(m.Disp, block, c.WithAlpha(0.04f + 0.1f * g), 40);
+                Arc(m.Disp, block, 1f + 2f * g, c.WithAlpha(0.25f + 0.45f * g), 40);
             }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
                 Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);
+            if (m.Kind == MinionKind.LightOrb)  // a soft halo that pulses
+                Circle(m.Disp, rad * (2.4f + 0.3f * Mathf.Sin(t * 6f + m.Id)), c.WithAlpha(0.22f), 16);
             if (m.Kind == MinionKind.Phoenix)
                 for (int k = 0; k < 2; k++)  // flapping wings
                     Line(m.Disp, m.Disp + V2.FromAngle(m.Aim + MathX.Pi * (0.6f + k * 0.8f) + 0.4f * Mathf.Sin(t * 12f)) * 20f, 4f, c);
-            Polygon(m.Disp, d.Radius, d.Sides, rot, c);
+            Polygon(m.Disp, rad, d.Sides, rot, c);
             if (d.Attack == MinionAttack.Shoot)
-                Line(m.Disp, m.Disp + V2.FromAngle(m.Aim) * (d.Radius + 7f), 4f, c);
+                Line(m.Disp, m.Disp + V2.FromAngle(m.Aim) * (rad + 7f), 4f, c);
             if (m.Kind == MinionKind.Sprite)
                 Line(m.Disp - new V2(3, 0), m.Disp + new V2(3, 0), 1.5f, Rgba.White);
             if (m.T >= 0f && m.Duration > 0f)
-                Arc(m.Disp, d.Radius + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
+                Arc(m.Disp, rad + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
         }
 
         void DrawEnemy(Enemy e, float t)
@@ -2190,6 +2195,33 @@ namespace Arena
 
         /// The aim line: a soft glow from your gun toward the crosshair in your role's color, fading
         /// with distance, with motes drifting outward the way your shots fly.
+        /// Revolver: the cylinder as pips in an arc under you (gold = heavy rounds), and a ring while reloading.
+        void DrawCylinder(Player p, float t)
+        {
+            int cap = game.RevolverCapacity(p), heavy = game.RevolverHeavy(p);
+            int left = Math.Max(0, cap - p.AmmoUsed);
+            float r = p.Def.BodyR + 13f;
+            var gold = new Rgba(1f, 0.8f, 0.3f);
+            if (p.ReloadT > 0f)
+            {
+                float f = 1f - MathX.Clamp01(p.ReloadT / Game.RevolverReload);
+                Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.15f), 32);
+                Arc(p.Disp, r, 2.5f, gold.WithAlpha(0.85f), 32, -MathX.Pi / 2f, MathX.Tau * f);
+                return;
+            }
+            // Pips spread across the bottom half, filled from the right as the cylinder empties.
+            float span = Mathf.Min(MathX.Pi * 0.9f, cap * 0.2f);
+            for (int i = 0; i < cap; i++)
+            {
+                float a = MathX.Pi / 2f + span / 2f - span * (cap == 1 ? 0.5f : (float)i / (cap - 1));
+                V2 at = p.Disp + V2.FromAngle(a) * r;
+                bool loaded = i < left;
+                bool isHeavy = i < heavy;  // the heavy rounds are the last ones fired
+                var c = isHeavy ? gold : new Rgba(0.85f, 0.95f, 1f);
+                Circle(at, isHeavy ? 3.2f : 2.6f, loaded ? c.WithAlpha(0.95f) : c.WithAlpha(0.15f), 8);
+            }
+        }
+
         void DrawAimLine(Player me, V2 cursor, float t)
         {
             V2 dir = V2.FromAngle(me.Aim);
@@ -2419,7 +2451,7 @@ namespace Arena
                 Ui.Icon(new Rect(frame.x + 2f, frame.y + 2f + bob * 0.5f, 48f, 48f), icon);
                 Ui.Label(new Rect(r.x + 74f, r.y + 14f, r.width - 82f, 16f), note, 10, rc, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(r.x + 74f, r.y + 30f, r.width - 82f, 36f), u.Name, 15, Color.white, TextAnchor.UpperLeft, true, true);
-                Ui.Label(new Rect(r.x + 12f, r.y + 74f, r.width - 24f, 52f), u.Desc, 11, Ui.Text, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(r.x + 12f, r.y + 74f, r.width - 24f, 52f), Upgrades.DescFor(u, me.Weapon), 11, Ui.Text, TextAnchor.UpperLeft, false, true);
                 Ui.Label(new Rect(r.x, r.yMax - 22f, r.width - 12f, 16f), selected ? "SELECTED" : "[" + (index + 1) + "]", 11,
                     selected ? rc : new Color(1, 1, 1, 0.45f), TextAnchor.MiddleRight, true);
                 return;
@@ -2437,7 +2469,7 @@ namespace Arena
             Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + bob, 72f, 72f), icon);
             Ui.Label(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
-            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), u.Desc, 14, Ui.Text, TextAnchor.UpperCenter, false, true);
+            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), Upgrades.DescFor(u, me.Weapon), 14, Ui.Text, TextAnchor.UpperCenter, false, true);
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
             var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);

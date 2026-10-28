@@ -40,6 +40,7 @@ namespace Arena
     {
         public WeaponId Id;
         public string Name, Desc;
+        public string ExtraDesc;  // what each extra projectile (Multishot, Iron Volley, Bullet Storm) does for this weapon
         public float FireInterval;
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
         // arrives every CompanionRespawn seconds; the others only die to Sacrifice.
@@ -129,42 +130,42 @@ namespace Arena
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Scattergun, Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
-            new WeaponDef { Id = WeaponId.FlakCannon, Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
-            new WeaponDef { Id = WeaponId.RiotRepeater, Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
-            new WeaponDef { Id = WeaponId.FlameBurst, Name = "Flame Burst", FireInterval = 0.4f, Desc = "A short-range cone of fire." },
-            new WeaponDef { Id = WeaponId.FrostLance, Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice shards that slow enemies." },
-            new WeaponDef { Id = WeaponId.StormHammer, Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
-            new WeaponDef { Id = WeaponId.GolemStaff, Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.Scattergun, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
+            new WeaponDef { Id = WeaponId.FlakCannon, ExtraDesc = "Shells burst into 2 more bomblets on impact", Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
+            new WeaponDef { Id = WeaponId.RiotRepeater, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
+            new WeaponDef { Id = WeaponId.FlameBurst, ExtraDesc = "+2 flames and 25% more reach", Name = "Flame Burst", FireInterval = 0.4f, Desc = "A short-range cone of fire." },
+            new WeaponDef { Id = WeaponId.FrostLance, ExtraDesc = "Shards shatter into 2 more icicles on hit", Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice shards that slow enemies." },
+            new WeaponDef { Id = WeaponId.StormHammer, ExtraDesc = "Lightning chains to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
+            new WeaponDef { Id = WeaponId.GolemStaff, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.BoneGuard, Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
+            new WeaponDef { Id = WeaponId.BoneGuard, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
                 Companion = MinionKind.Guard, CompanionCount = 2 },
-            new WeaponDef { Id = WeaponId.BearTotem, Name = "Bear Totem", FireInterval = 0.35f, Desc = "Wide claw swipes. A Bear companion mauls nearby enemies.",
+            new WeaponDef { Id = WeaponId.BearTotem, ExtraDesc = "+2 claws, wider swipes, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.35f, Desc = "Wide claw swipes. A Bear companion mauls nearby enemies.",
                 Companion = MinionKind.Bear, CompanionCount = 1 },
             // Healer
-            new WeaponDef { Id = WeaponId.LightBolt, Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
-            new WeaponDef { Id = WeaponId.Pistol, Name = "Pistol", FireInterval = 0.3f, Desc = "Accurate, hard-hitting single shots." },
-            new WeaponDef { Id = WeaponId.MendersBow, Name = "Mender's Bow", FireInterval = 0.3f, Desc = "Bolts heal your ally when they pass through them." },
-            new WeaponDef { Id = WeaponId.RadiantOrb, Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
-            new WeaponDef { Id = WeaponId.ChainLight, Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
-            new WeaponDef { Id = WeaponId.PrismBeam, Name = "Prism Beam", FireInterval = 0.06f, Desc = "A rapid short-range beam. Grazing your ally heals them." },
-            new WeaponDef { Id = WeaponId.SpriteStaff, Name = "Sprite Staff", FireInterval = 0.35f, Desc = "Seed shots. Two sprites fly to whoever is hurt and heal them.",
+            new WeaponDef { Id = WeaponId.LightBolt, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
+            new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.3f, Desc = "Six accurate, hard-hitting rounds; the last one is a heavy round. Reloads when empty or when you stop shooting." },
+            new WeaponDef { Id = WeaponId.MendersBow, ExtraDesc = "Arrows split into 1 more arrow after 300 px", Name = "Mender's Bow", FireInterval = 0.3f, Desc = "Bolts heal your ally when they pass through them." },
+            new WeaponDef { Id = WeaponId.RadiantOrb, ExtraDesc = "+1 light orb circling you that hurts enemies and heals allies it touches", Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
+            new WeaponDef { Id = WeaponId.ChainLight, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
+            new WeaponDef { Id = WeaponId.PrismBeam, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f, Desc = "A rapid short-range beam. Grazing your ally heals them." },
+            new WeaponDef { Id = WeaponId.SpriteStaff, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.35f, Desc = "Seed shots. Two sprites fly to whoever is hurt and heal them.",
                 Companion = MinionKind.Sprite, CompanionCount = 2 },
-            new WeaponDef { Id = WeaponId.TreantRod, Name = "Treant Rod", FireInterval = 0.3f, Desc = "Bolts heal allies they pass. A Treant guards you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.TreantRod, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.3f, Desc = "Bolts heal allies they pass. A Treant guards you and blocks bullets.",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.TotemStaff, Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
+            new WeaponDef { Id = WeaponId.TotemStaff, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
-            new WeaponDef { Id = WeaponId.Railgun, Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
-            new WeaponDef { Id = WeaponId.BurstSmg, Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
-            new WeaponDef { Id = WeaponId.Fireball, Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
-            new WeaponDef { Id = WeaponId.ArcLightning, Name = "Arc Lightning", FireInterval = 0.25f, Desc = "Bolts that chain to 4 nearby enemies." },
-            new WeaponDef { Id = WeaponId.ArcaneMissiles, Name = "Arcane Missiles", FireInterval = 0.3f, Desc = "Three curving missiles per cast." },
-            new WeaponDef { Id = WeaponId.WolfWhistle, Name = "Wolf Whistle", FireInterval = 0.3f, Desc = "Darts. Two wolves hunt down enemies.",
+            new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
+            new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
+            new WeaponDef { Id = WeaponId.BurstSmg, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
+            new WeaponDef { Id = WeaponId.Fireball, ExtraDesc = "Splits into 2 small fireballs on impact", Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
+            new WeaponDef { Id = WeaponId.ArcLightning, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Arc Lightning", FireInterval = 0.25f, Desc = "Bolts that chain to 4 nearby enemies." },
+            new WeaponDef { Id = WeaponId.ArcaneMissiles, ExtraDesc = "+1 missile, and missiles home in on enemies", Name = "Arcane Missiles", FireInterval = 0.3f, Desc = "Three curving missiles per cast." },
+            new WeaponDef { Id = WeaponId.WolfWhistle, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f, Desc = "Darts. Two wolves hunt down enemies.",
                 Companion = MinionKind.Wolf, CompanionCount = 2 },
-            new WeaponDef { Id = WeaponId.WispLantern, Name = "Wisp Lantern", FireInterval = 0.45f, Desc = "Weak bolts. Three wisps orbit you and shoot.",
+            new WeaponDef { Id = WeaponId.WispLantern, ExtraDesc = "+1 Wisp", Name = "Wisp Lantern", FireInterval = 0.45f, Desc = "Weak bolts. Three wisps orbit you and shoot.",
                 Companion = MinionKind.Wisp, CompanionCount = 3 },
-            new WeaponDef { Id = WeaponId.ImpCaller, Name = "Imp Caller", FireInterval = 0.35f, Desc = "Darts. Calls an imp every 3 s that charges an enemy and explodes.",
+            new WeaponDef { Id = WeaponId.ImpCaller, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f, Desc = "Darts. Calls an imp every 3 s that charges an enemy and explodes.",
                 Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f },
         };
 

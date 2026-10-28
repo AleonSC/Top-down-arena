@@ -5,6 +5,7 @@ namespace Arena
     public enum MinionKind : byte
     {
         Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
+        LightOrb,  // Radiant Orb's extra projectiles: circles you, hurting enemies and healing allies it touches
         None = 255,
     }
 
@@ -74,6 +75,8 @@ namespace Arena
                 BlockRadius = 30f, BlockCapacity = 200f },
             new MinionDef { Name = "Titan", Radius = 32f, Sides = 6, Color = new Rgba(0.8f, 0.7f, 0.45f), Move = MinionMove.Chase, Speed = 110f,
                 Attack = MinionAttack.Slam, Interval = 1.1f, Damage = 70f, Range = 100f, BlockRadius = 46f, BlockCapacity = 1000f },
+            new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
+                Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
         };
 
         // Indexed by ZoneKind.

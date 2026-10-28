@@ -33,7 +33,7 @@ their role and class.
 | | Soldier | Mage | Summoner |
 |---|---|---|---|
 | **Tank** (240 HP, enemies prefer you) | Weapons: Scattergun, Flak Cannon, Riot Repeater<br>Abilities: Barrier, Roar, Bulldoze | Weapons: Flame Burst, Frost Lance (slows), Storm Hammer (chain lightning)<br>Abilities: **Arcane Aegis** (reflects bullets), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets) | Weapons: Golem Staff (+ bullet-blocking Golem), Bone Guard (+ 2 orbiting skeleton shields), Bear Totem (+ Bear)<br>Abilities: **Golem Wall** (3 stone walls), **Earthquake** (you and every minion slam), **Guardian Spirit** (eats nearby bullets for 8 s) |
-| **Healer** (120 HP, healing aura) | Weapons: Light Bolt, Pistol, Mender's Bow<br>Abilities: Mend Pulse, Haven, Soul Link | Weapons: Radiant Orb (heals allies it passes), Chain Light, Prism Beam (grazing heals)<br>Abilities: **Time Rewind** (health back to 4 s ago, even undoing a downing), **Arcane Ward** (60 HP shields), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (+ 2 healing sprites), Treant Rod (+ Treant guard, healing bolts), Totem Staff (plants healing totems)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (allies near it can't go down) |
+| **Healer** (120 HP, healing aura) | Weapons: Light Bolt, Revolver, Mender's Bow<br>Abilities: Mend Pulse, Haven, Soul Link | Weapons: Radiant Orb (heals allies it passes), Chain Light, Prism Beam (grazing heals)<br>Abilities: **Time Rewind** (health back to 4 s ago, even undoing a downing), **Arcane Ward** (60 HP shields), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (+ 2 healing sprites), Treant Rod (+ Treant guard, healing bolts), Totem Staff (plants healing totems)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (allies near it can't go down) |
 | **DPS** (95 HP) | Weapons: Twin Rifle, Railgun, Burst SMG<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (explodes), Arc Lightning (chains to 4), Arcane Missiles (curving)<br>Abilities: **Meteor** (warning circle, then 150 damage), **Blizzard** (slowing storm), **Arcane Surge** (+60% damage, +2 pierce) | Weapons: Wolf Whistle (+ 2 wolves), Wisp Lantern (+ 3 shooting wisps), Imp Caller (exploding imps every 3 s)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
 
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
@@ -48,22 +48,45 @@ them), and blink before vanishing after 12 seconds.
 
 ### Weapons
 
-Each role picks one of three starting weapons in the lobby. Damage, fire rate, Multishot and Piercing
-upgrades work with all of them. Extra projectiles (Multishot, Iron Volley, Bullet Storm) keep each weapon's style: single-shot
-weapons fire quick follow-up shots down the same line, and spread weapons (Scattergun, Flame Burst, Golem
-Staff, Bear Totem, Arcane Missiles) fire a denser spread of the same width.
+Each role picks one of three starting weapons in the lobby. Damage, fire rate and Piercing upgrades work
+with all of them.
 
-| Role | Weapon | |
-|---|---|---|
-| Tank | **Scattergun** | Short-range spread of 5 pellets |
-| | **Flak Cannon** | Slow, heavy shells that explode on impact |
-| | **Riot Repeater** | Steady single shots with a little spread |
-| Healer | **Light Bolt** | Accurate long-range bolts |
-| | **Pistol** | Accurate, hard-hitting single shots |
-| | **Mender's Bow** | Bolts heal your ally when they pass through them |
-| DPS | **Twin Rifle** | Fast parallel twin stream |
-| | **Railgun** | Slow, devastating shots that pierce 3 enemies |
-| | **Burst SMG** | Sprays very fast, inaccurate shots |
+**Extra projectiles** (Multishot, Iron Volley, and +2 during Bullet Storm) upgrade each weapon in its own
+way instead of adding more bullets in a line. The Multishot and Iron Volley cards show what they'll do for
+your weapon. Per extra projectile:
+
+| Class | Weapon | Base | Each extra projectile |
+|---|---|---|---|
+| Tank · Soldier | **Scattergun** | Short-range spread of 5 pellets | +2 pellets and a 15% tighter cone |
+| | **Flak Cannon** | Slow, heavy shells that explode on impact | Shells scatter 2 bomblets that pop where they land |
+| | **Riot Repeater** | Steady single shots with a little spread | Fires in bursts: +1 round per burst, then a longer pause |
+| Tank · Mage | **Flame Burst** | A short-range cone of fire | +2 flames and 25% more reach |
+| | **Frost Lance** | Piercing ice shards that slow | Shards shatter into 2 icicles sideways on every hit |
+| | **Storm Hammer** | Heavy orb, lightning chains to 3 | Chains to 1 more enemy |
+| Tank · Summoner | **Golem Staff** | Rocks, plus a bullet-blocking Golem | +1 Golem (up to 3) |
+| | **Bone Guard** | Darts, plus 2 orbiting skeleton shields | +1 Skeleton Guard |
+| | **Bear Totem** | Wide claw swipes, plus a Bear | +2 claws, wider swipes, and the Bear's bites hit enemies around its target |
+| Healer · Soldier | **Light Bolt** | Accurate long-range bolts | +1 small homing bolt with every shot |
+| | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage); reloads in 1.2 s when empty or when you stop shooting | +2 rounds in the cylinder, loaded as heavy rounds |
+| | **Mender's Bow** | Arrows heal allies they pass | Arrows split into 1 more arrow 300 px out (they share the damage: 1.5x, 2x, ...) |
+| Healer · Mage | **Radiant Orb** | Slow piercing orbs that heal allies | +1 Light Orb circling you that hurts enemies and heals allies it touches |
+| | **Chain Light** | Bolts chain to 2 | Chains to 1 more enemy |
+| | **Prism Beam** | Rapid short beam; grazing heals | +30% length, +25% damage, +50% healing |
+| Healer · Summoner | **Sprite Staff** | Seeds, plus 2 healing sprites | +1 Sprite |
+| | **Treant Rod** | Healing bolts, plus a Treant guard | The Treant grows 30%: blocks more, hits harder, reaches farther |
+| | **Totem Staff** | Seeds; plants a healing totem every 10 s | Totems 60% more often |
+| DPS · Soldier | **Twin Rifle** | Fast parallel twin stream | +1 barrel |
+| | **Railgun** | Slow shots that pierce 3 | Throws 2 shrapnel shards sideways at every enemy it pierces |
+| | **Burst SMG** | Very fast, inaccurate spray | +1 bullet per shot (half damage) and a wider spray |
+| DPS · Mage | **Fireball** | Explodes on impact | Splits into 2 small fireballs on impact |
+| | **Arc Lightning** | Bolts chain to 4 | Chains to 1 more enemy |
+| | **Arcane Missiles** | 3 curving missiles | +1 missile, and they home in |
+| DPS · Summoner | **Wolf Whistle** | Darts, plus 2 wolves | +1 Wolf |
+| | **Wisp Lantern** | Weak bolts, plus 3 shooting wisps | +1 Wisp |
+| | **Imp Caller** | Darts; exploding imps every 3 s | +1 Imp, arriving 50% faster |
+
+With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
+fills while it reloads.
 
 ### Parry
 
@@ -96,7 +119,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 |---|---|---|---|
 | **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
-| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate with two extra volleys | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
+| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
 
 ## Levels and upgrades
 

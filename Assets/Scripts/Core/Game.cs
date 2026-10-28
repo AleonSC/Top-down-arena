@@ -54,8 +54,10 @@ namespace Arena
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float UltT;                     // Fortress / Bullet Storm time left
-        public int EchoLeft;                   // follow-up shots still to fire from the last volley (Multishot etc.)
+        public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
+        public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)
+        public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long you've held fire
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
         public float CounterT;                 // host: Counterstance fire-rate boost time left
@@ -138,6 +140,13 @@ namespace Arena
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
+        public int Frags;         // host only: on hit, throws this many fragments (Frost Lance, Railgun, Flak, Fireball)
+        public byte FragKind;
+        public float FragDmg, FragSpeed, FragLife, FragSplash;
+        public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
+        public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
+        public float SplitT;      // host only: Mender's Bow arrows split into SplitN arrows when this runs out
+        public int SplitN;
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
         public EnemyType? Source; // host only: the enemy that fired it (for the session record)
     }
@@ -179,6 +188,7 @@ namespace Arena
         public float BlockHp, StaggerT;  // host: damage it can still soak; a staggered companion doesn't block
         public float GuardFrac = 1f;     // replicated: 0 while staggered or broken
         public bool Companion;
+        public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
         public MinionDef Def => Kits.Get(Kind);
     }
 
@@ -1056,13 +1066,15 @@ namespace Arena
                 p.FireCd -= dt;
                 if (p.Downed)
                     continue;
-                if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
+                if (p.Weapon.Id == WeaponId.Pistol)
+                    TickRevolver(p, dt);
+                if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && (p.Weapon.Id != WeaponId.Pistol || p.ReloadT <= 0f))
                 {
                     p.FireCd = p.Weapon.FireInterval / p.Stats.FireRateMult / (p.OverdriveT > 0f ? 2f : 1f) / (Storming(p) ? 3f : 1f)
                         / (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f);
                     FirePlayer(p);
                 }
-                // Extra projectiles on single-shot weapons: quick follow-ups down the same line.
+                // Riot Repeater: the rest of the burst.
                 if (p.EchoLeft > 0)
                 {
                     if (p.ParryActive)
@@ -1070,7 +1082,7 @@ namespace Arena
                     for (p.EchoT -= dt; p.EchoLeft > 0 && p.EchoT <= 0f; p.EchoT += p.EchoGap)
                     {
                         p.EchoLeft--;
-                        FireVolley(p, p.Aim, 1);
+                        FireVolley(p, p.Aim, 0);
                     }
                 }
                 p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
@@ -1120,26 +1132,58 @@ namespace Arena
                     V2 d = V2.FromAngle(p.Aim + MathX.Tau * i / 8f);
                     SpawnBullet(Defs.NovaShot, p.Pos + d * p.Def.BodyR, d * 450f, 0f, 0.8f, 9f * dmg, p.Id);
                 }
-            // Extra projectiles follow the weapon's style: spread weapons fire a denser spread, and
-            // everything else fires quick follow-up shots down the same line (EchoLeft).
-            int extra = p.Stats.ExtraShots + (Storming(p) ? 2 : 0);
-            if (SpreadWeapon(p.Weapon.Id))
-                FireVolley(p, p.Aim, 1 + extra);
-            else
+            // Each extra projectile (Multishot, Iron Volley, Bullet Storm) upgrades the weapon in its own way.
+            int extra = ExtraShots(p);
+            FireVolley(p, p.Aim, extra);
+            if (p.Weapon.Id == WeaponId.RiotRepeater && extra > 0)
             {
-                FireVolley(p, p.Aim, 1);
+                // A burst of 1 + extra rounds, then a longer pause.
                 p.EchoLeft = extra;
-                p.EchoGap = p.EchoT = Math.Min(0.07f, p.FireCd / (extra + 1));
+                p.EchoGap = p.EchoT = 0.06f;
+                p.FireCd *= 1f + 0.6f * extra;
             }
             firingWeapon = false;
         }
 
-        /// Weapons whose shot is a pattern of several projectiles; extras make the pattern denser.
-        static bool SpreadWeapon(WeaponId w) =>
-            w == WeaponId.Scattergun || w == WeaponId.FlameBurst || w == WeaponId.BearTotem || w == WeaponId.GolemStaff || w == WeaponId.ArcaneMissiles;
+        /// Extra projectiles from upgrades, plus two during Bullet Storm.
+        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? 2 : 0);
 
-        /// One shot of the player's weapon. Spread weapons fire `density` times as many projectiles across the same spread.
-        void FireVolley(Player p, float aim, int density)
+        // --- Revolver (the Healer's Pistol) -------------------------------------------
+
+        public const int RevolverCylinder = 6;
+        public const float RevolverReload = 1.2f;
+        const float RevolverIdleReload = 0.6f;  // stop shooting this long and it reloads on its own
+        const float RevolverDamage = 24f;
+
+        /// Six rounds, plus two per extra projectile.
+        public int RevolverCapacity(Player p) => RevolverCylinder + 2 * ExtraShots(p);
+
+        /// The last rounds in the cylinder are heavy (double damage): one, plus two per extra projectile.
+        public int RevolverHeavy(Player p) => 1 + 2 * ExtraShots(p);
+
+        void TickRevolver(Player p, float dt)
+        {
+            if (p.ReloadT > 0f)
+            {
+                p.ReloadT -= dt;
+                if (p.ReloadT <= 0f)
+                {
+                    p.ReloadT = 0f;
+                    p.AmmoUsed = 0;
+                }
+                return;
+            }
+            int cap = RevolverCapacity(p);
+            p.ReloadIdle = p.Firing ? 0f : p.ReloadIdle + dt;
+            if (p.AmmoUsed >= cap || p.AmmoUsed > 0 && p.ReloadIdle >= RevolverIdleReload)
+            {
+                p.ReloadT = RevolverReload / p.Stats.FireRateMult;
+                Sounds.Add(Sfx.Pick);
+            }
+        }
+
+        /// One shot of the player's weapon, upgraded by `extra` extra projectiles.
+        void FireVolley(Player p, float aim, int extra)
         {
             firingWeapon = true;
             float dmg = p.Stats.DmgMult;
@@ -1149,43 +1193,95 @@ namespace Arena
             {
                 case WeaponId.Scattergun:
                 {
-                    int n = 5 * density;
+                    // +2 pellets and a 15% tighter cone per extra projectile.
+                    int n = 5 + 2 * extra;
+                    float cone = 0.52f * (float)Math.Pow(0.85, extra);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.52f) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
                     break;
                 }
                 case WeaponId.FlakCannon:
-                    SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id).Splash = 70f;
+                {
+                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id);
+                    b.Splash = 70f;
+                    if (extra > 0)  // bomblets scatter around the impact and pop where they land
+                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f, false);
                     break;
+                }
                 case WeaponId.RiotRepeater:
                     SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
                     break;
                 case WeaponId.LightBolt:
                     SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
+                    for (int k = 0; k < extra; k++)  // smaller bolts that seek out the nearest enemy
+                    {
+                        float a = aim + (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * (k / 2));
+                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * 600f, 0f, 1.3f, 6f * dmg, p.Id, false, 6f).Radius = 3f;
+                    }
                     break;
                 case WeaponId.Pistol:
-                    // One perfectly accurate shot (no spread, so small aim adjustments count): 17 damage every 0.3 s.
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, 17f * dmg, p.Id);
+                {
+                    // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
+                    int left = RevolverCapacity(p) - p.AmmoUsed;
+                    bool heavy = left <= RevolverHeavy(p);
+                    p.AmmoUsed++;
+                    p.ReloadIdle = 0f;
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, RevolverDamage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = heavy ? 6f : 4.5f;
                     break;
+                }
                 case WeaponId.MendersBow:
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id).HealAlly = 7f;
+                {
+                    var b = SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id);
+                    b.HealAlly = 7f;
+                    if (extra > 0)
+                    {
+                        b.SplitT = 0.5f;  // 300 px out
+                        b.SplitN = 1 + extra;
+                    }
                     break;
+                }
                 case WeaponId.TwinRifle:
-                    V2 side = dir.Orthogonal() * 5f;
-                    SpawnBullet(Defs.DpsShot, muzzle + side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
-                    SpawnBullet(Defs.DpsShot, muzzle - side, dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                {
+                    // Parallel barrels, 10 px apart: two, plus one per extra projectile.
+                    int n = 2 + extra;
+                    V2 side = dir.Orthogonal();
+                    for (int i = 0; i < n; i++)
+                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
                     break;
+                }
                 case WeaponId.Railgun:
-                    SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id).Pierce += 3;
+                {
+                    var b = SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id);
+                    b.Pierce += 3;
+                    if (extra > 0)
+                        SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
                     break;
+                }
                 case WeaponId.BurstSmg:
-                    SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-0.16f, 0.16f)) * 760f, 0f, 0.8f, 5f * dmg, p.Id);
+                {
+                    // +1 bullet per shot per extra projectile (at half damage), sprayed a little wider.
+                    float spray = 0.16f * (1f + 0.35f * extra);
+                    for (int i = 0; i <= extra; i++)
+                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * 760f, 0f, 0.8f, (i == 0 ? 5f : 2.5f) * dmg, p.Id);
                     break;
+                }
                 default:
-                    FireKitWeapon(p, aim, dir, muzzle, dmg, density);  // mage and summoner weapons (Minions.cs)
+                    FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
                     break;
             }
             firingWeapon = false;
+        }
+
+        /// On hit, the bullet throws `n` fragments: out to the sides, or all around.
+        static void SetFrags(Bullet b, int n, byte kind, float dmg, float speed, float life, float splash, bool sideways)
+        {
+            b.Frags = n;
+            b.FragKind = kind;
+            b.FragDmg = dmg;
+            b.FragSpeed = speed;
+            b.FragLife = life;
+            b.FragSplash = splash;
+            b.FragSideways = sideways;
         }
 
         bool firingWeapon;  // set while a player's weapon fires, to tag gun shots for accuracy
@@ -1487,16 +1583,16 @@ namespace Arena
             DoLog("wave " + Wave + " cleared");
         }
 
-        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false)
+        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false, float homingTurn = 0f)
         {
             Player p;
-            float homing = 0f;
+            float homing = homingTurn;
             bool modded = owner != 0 && Players.TryGetValue(owner, out p) && Moddable(kind);
             if (modded)
             {
                 p = Players[owner];
                 vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
-                homing = p.Stats.Homing;
+                homing = Math.Max(homing, p.Stats.Homing);
             }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
             b.Dmg = dmg;
@@ -1608,6 +1704,13 @@ namespace Arena
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * dt;
                 b.Life -= dt;
+                if (b.SplitN > 0 && (b.SplitT -= dt) <= 0f)
+                {
+                    arrowSplits.Add(b);
+                    scratchIds.Add(b.Id);
+                    pendingRemoved.Add(b.Id);
+                    continue;
+                }
                 if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
                 {
                     scratchIds.Add(b.Id);
@@ -1617,9 +1720,33 @@ namespace Arena
             }
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
+            // Host only: Mender's Bow arrows that split, fanned a little apart.
+            foreach (var b in arrowSplits)
+            {
+                for (int i = 0; i < b.SplitN; i++)
+                {
+                    float a = b.Vel.Angle + (i - (b.SplitN - 1) / 2f) * 0.12f;
+                    Player owner;
+                    float speedMult = Players.TryGetValue(b.Owner, out owner) ? owner.Stats.ShotSpeedMult : 1f;  // SpawnBullet applies it again
+                    var nb = SpawnBullet(b.Kind, b.Pos, V2.FromAngle(a) * (b.Vel.Length / speedMult), 0f, b.Life, b.Dmg, b.Owner);
+                    // The arrows share the damage: 1.5x in total for one extra projectile, 2x for two, and so on.
+                    nb.Dmg = b.Dmg * (1f + 0.5f * (b.SplitN - 1)) / b.SplitN;  // b.Dmg already includes any Arcane Surge bonus
+                    nb.HealAlly = b.HealAlly;
+                    nb.Pierce = b.Pierce;
+                }
+            }
+            arrowSplits.Clear();
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
+                if (b.Bomblet)
+                {
+                    foreach (var e in Enemies.Values)
+                        if (e.SpawnT <= 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                            HurtEnemy(e, b.Dmg, b.Owner);
+                    BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
+                    continue;
+                }
                 if (b.Owner != 0)
                 {
                     ExplodeGrenade(b);
@@ -1739,6 +1866,7 @@ namespace Arena
             scratchIds.Clear();
             splashes.Clear();
             splits.Clear();
+            frags.Clear();
             reflects.Clear();
             ricochets.Clear();
             foreach (var b in Bullets.Values)
@@ -1773,6 +1901,9 @@ namespace Arena
                             HurtEnemy(e, b.Dmg, b.Owner);
                             OnBulletHit(b, e);
                             b.LastHit = e.Id;
+                            if (b.Frags > 0)
+                                frags.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = b.Owner, LastHit = e.Id, Frags = b.Frags, FragKind = b.FragKind,
+                                    FragDmg = b.FragDmg, FragSpeed = b.FragSpeed, FragLife = b.FragLife, FragSplash = b.FragSplash, FragSideways = b.FragSideways });
                             if (b.Splash > 0f)
                                 splashes.Add(b);
                             if (b.Pierce > 0)
@@ -1891,6 +2022,27 @@ namespace Arena
                 nb.SlowAmt = rb.SlowAmt;
             }
 
+            // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
+            foreach (var f in frags)
+            {
+                float baseAng = f.Vel.Angle, offset = Rand(0f, MathX.Tau);
+                for (int i = 0; i < f.Frags; i++)
+                {
+                    float a = f.FragSideways
+                        ? baseAng + (i % 2 == 0 ? 1f : -1f) * (MathX.Pi / 2f - 0.25f * (i / 2))  // pairs out to either side, fanning forward
+                        : offset + MathX.Tau * i / f.Frags;
+                    V2 d = V2.FromAngle(a);
+                    var nb = SpawnBullet(f.FragKind, f.Pos + d * 6f, d * f.FragSpeed, 0f, f.FragLife, f.FragDmg, f.Owner);
+                    nb.LastHit = f.LastHit;
+                    nb.Splash = f.FragSplash;
+                    if (f.FragKind == Defs.GrenadeShot)  // lobbed bomblets: they fly over enemies and pop where they land
+                    {
+                        nb.Bomblet = true;
+                        nb.Burst = 1;
+                    }
+                }
+            }
+
             foreach (var sp in splits)
             {
                 float offset = Rand(0f, MathX.Tau);
@@ -1997,6 +2149,8 @@ namespace Arena
 
         // Swarm Rounds splits and Aegis reflections, queued while the bullet loop runs.
         readonly List<Bullet> splits = new List<Bullet>();
+        readonly List<Bullet> frags = new List<Bullet>();
+        readonly List<Bullet> arrowSplits = new List<Bullet>();
         readonly List<Bullet> reflects = new List<Bullet>();
         readonly List<Bullet> ricochets = new List<Bullet>();
 
@@ -2232,6 +2386,8 @@ namespace Arena
                 w.Write(p.ParryHp);
                 w.Write(p.ParryBroken);
                 w.Write(p.ShieldHp);
+                w.Write((byte)p.AmmoUsed);
+                w.Write(p.ReloadT);
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
                 w.Write((byte)p.PendingPicks);
@@ -2278,8 +2434,9 @@ namespace Arena
                 w.Write(m.Aim);
                 w.Write(m.T);
                 w.Write(m.Duration);
-                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / m.Def.BlockCapacity : 0f;
+                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
                 w.Write(m.GuardFrac);
+                w.Write(m.Scale);
             }
             w.Write((byte)Zones.Count);
             foreach (var z in Zones.Values)
@@ -2426,6 +2583,8 @@ namespace Arena
                 float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
                 bool parrying = r.ReadBoolean();
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
+                int ammoUsed = r.ReadByte();
+                float reloadT = r.ReadSingle();
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
@@ -2480,6 +2639,8 @@ namespace Arena
                 p.ParryHp = parryHp;
                 p.ParryBroken = parryBroken;
                 p.ShieldHp = shield;
+                p.AmmoUsed = ammoUsed;
+                p.ReloadT = reloadT;
                 p.Level = level;
                 p.Xp = xp;
                 p.PendingPicks = pending;
@@ -2547,7 +2708,7 @@ namespace Arena
                 var kind = (MinionKind)r.ReadByte();
                 int owner = r.ReadInt32();
                 V2 pos = r.ReadV2();
-                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle(), guard = r.ReadSingle();
+                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle(), guard = r.ReadSingle(), scale = r.ReadSingle();
                 Minion m;
                 if (!Minions.TryGetValue(id, out m))
                 {
@@ -2559,6 +2720,7 @@ namespace Arena
                 m.T = t;
                 m.Duration = duration;
                 m.GuardFrac = guard;
+                m.Scale = scale;
                 seenMinions.Add(id);
             }
             var goneMinions = new List<int>();

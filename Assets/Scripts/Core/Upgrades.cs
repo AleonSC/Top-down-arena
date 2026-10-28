@@ -119,7 +119,7 @@ namespace Arena
             new AbilityDef { Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal the whole party, with 3 s of invulnerability." },
             new AbilityDef { Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in." },
             new AbilityDef { Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites." },
-            new AbilityDef { Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast with two extra volleys." },
+            new AbilityDef { Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles." },
             new AbilityDef { Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each." },
             new AbilityDef { Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy." },
         };
@@ -196,7 +196,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Grenade, MaxStacks = 2, Name = "Bigger Boom", Desc = "Grenade blast is 50% bigger with 6 more shrapnel",
                 Apply = s => { s.GrenadeRadiusMult += 0.5f; s.GrenadeExtraShrapnel += 6; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: single shots get a quick follow-up down the same line; spreads get denser", Apply = s => s.ExtraShots += 1 },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy", Apply = s => s.Pierce += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
                 Apply = s => { s.PerfectBonus += 0.12f; s.ReflectMult += 1f; } },
@@ -291,6 +291,18 @@ namespace Arena
             while (own.Count < 3)
                 own.Add(own.Count > 0 ? own[0] : 0);  // everything maxed: unreachable in practice
             return new[] { own[0], own[1], own[2] };
+        }
+
+        /// The card text for this weapon: Multishot and Iron Volley say what an extra projectile does for it.
+        public static string DescFor(UpgradeDef u, WeaponDef weapon)
+        {
+            if (weapon == null || weapon.ExtraDesc == null)
+                return u.Desc;
+            if (u.Name == "Multishot")
+                return weapon.Name + ": " + weapon.ExtraDesc;
+            if (u.Name == "Iron Volley")
+                return weapon.Name + ": " + weapon.ExtraDesc + ". Also +25% damage";
+            return u.Desc;
         }
 
         public static Rgba RarityColor(Rarity r)
