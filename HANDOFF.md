@@ -152,7 +152,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
-Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
+Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
 shared and co-editable · Tab menu during upgrade picks; mastery XP line on ability tiles · aim line ends at
 weapon range (`Game.WeaponRange`, tested against real shots) · Lance: box hitbox 180×88 that slides out,
 1 s stun · Practice Range (first as an F1 tool) · Shield Wall blocks red shots · boss contact shove ·

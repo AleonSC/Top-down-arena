@@ -423,12 +423,14 @@ namespace Arena
             float readyX = session.IsHost ? W - 560f : W - 300f;
             if (Ui.Button(new Rect(readyX, H - 70f, 240f, 48f), ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary))
                 session.RequestReady(!ready);
-            int waiting = 0;
+            int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
-                if (!e.Ready)
+                if (!e.Ready && e.Id != session.MyId)
                     waiting++;
-            string note = waiting == 0 ? (session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start")
-                : waiting == 1 && !ready ? "Click Ready when your loadout is set" : "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up";
+            // Only with other players: who you're waiting on, or that everyone's ready.
+            string note = session.Lobby.Count < 2 ? ""
+                : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
+                : !ready ? "" : session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
             Ui.Label(new Rect(210f, H - 78f, readyX - 230f, 26f), practice ? "PRACTICE RANGE" : "RUN", 11, practice ? PracticeColor : Ui.Accent, TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(210f, H - 56f, readyX - 230f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
             if (session.IsHost)
