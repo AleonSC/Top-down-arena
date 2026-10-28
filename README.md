@@ -338,6 +338,7 @@ bosses come back around, tougher each time.
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it) |
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
+| Aim line on / off | V (the line runs out to your weapon's range: as far as your shots fly, or your swing reaches) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 

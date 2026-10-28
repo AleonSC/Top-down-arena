@@ -1607,6 +1607,49 @@ namespace Arena
             firingWeapon = false;
         }
 
+        /// How far the player's weapon reaches from their centre right now: a shot's speed times its lifetime
+        /// (with Velocity Rounds) plus the muzzle offset, or a melee weapon's reach. Keep in step with FireVolley,
+        /// FireKitWeapon and FireKnightWeapon (SimTest checks it against real shots). The aim line uses it.
+        public float WeaponRange(Player p)
+        {
+            int x = ExtraShots(p);
+            float shot;
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Scattergun: shot = 520f * 0.5f; break;
+                case WeaponId.FlakCannon: shot = 380f * 1.1f; break;
+                case WeaponId.RiotRepeater: shot = 600f * 0.8f; break;
+                case WeaponId.LightBolt: shot = 650f * 1.3f; break;
+                case WeaponId.Pistol: shot = 700f * 1.1f; break;
+                case WeaponId.MendersBow: shot = Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f); break;
+                case WeaponId.TwinRifle: shot = 820f * 1f; break;
+                case WeaponId.Railgun: shot = 1600f * 0.7f; break;
+                case WeaponId.BurstSmg: shot = 760f * 0.8f; break;
+                case WeaponId.FlameBurst: shot = 480f * 0.35f * (1f + 0.25f * x); break;
+                case WeaponId.FrostLance: shot = 700f * 0.9f; break;
+                case WeaponId.StormHammer: shot = 420f * 1.2f; break;
+                case WeaponId.RadiantOrb: shot = 300f * 1.8f; break;
+                case WeaponId.ChainLight: shot = 800f * 0.8f; break;
+                case WeaponId.PrismBeam: shot = 1200f * 0.35f * (1f + 0.3f * x); break;
+                case WeaponId.Fireball: shot = 520f * 1.2f; break;
+                case WeaponId.ArcLightning: shot = 900f * 0.6f; break;
+                case WeaponId.ArcaneMissiles: shot = 520f * 1f; break;
+                case WeaponId.GolemStaff: shot = 480f * 0.6f; break;
+                case WeaponId.BoneGuard: case WeaponId.WolfWhistle: case WeaponId.ImpCaller: shot = 720f * 0.8f; break;
+                case WeaponId.BearTotem: shot = 500f * 0.22f; break;
+                case WeaponId.SpriteStaff: case WeaponId.TotemStaff: case WeaponId.TreantRod: case WeaponId.WispLantern: shot = 600f * 1f; break;
+                // Knights: the reach of the swing.
+                case WeaponId.Warhammer: return MeleeReach(p, 100f + 30f * x);
+                case WeaponId.Lance: return MeleeReach(p, LanceReach + 30f * x);
+                case WeaponId.Halberd: return MeleeReach(p, 160f + 30f * x);
+                case WeaponId.Censer: return MeleeReach(p, 80f + 20f * x);
+                case WeaponId.Lightbringer: return Math.Max(MeleeReach(p, 80f), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);  // its sword waves
+                case WeaponId.Greatsword: return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, 125f);
+                default: return p.Weapon.Melee ? MeleeReach(p, MeleeRange(p.Weapon.Id)) : 600f;
+            }
+            return p.Def.BodyR + shot * p.Stats.ShotSpeedMult;
+        }
+
         /// On hit, the bullet throws `n` fragments: out to the sides, or all around.
         static void SetFrags(Bullet b, int n, byte kind, float dmg, float speed, float life, float splash, bool sideways)
         {

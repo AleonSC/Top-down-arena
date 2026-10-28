@@ -2525,8 +2525,8 @@ namespace Arena
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
         }
 
-        /// The aim line: a soft glow from your gun toward the crosshair in your role's color, fading
-        /// with distance, with motes drifting outward the way your shots fly.
+        /// The aim line: a soft glow from your gun along your aim in your role's color, out to your weapon's
+        /// range (Game.WeaponRange) with a small cap there, fading with distance, motes drifting outward.
         /// Mender's Bow: a ring that fills as you draw (gold at full draw, pulsing while a release would be
         /// perfect), and for your own bow an aim cone that narrows to a line.
         void DrawBowDraw(Player p, bool mine, float t)
@@ -2584,7 +2584,7 @@ namespace Arena
         {
             V2 dir = V2.FromAngle(me.Aim);
             V2 from = me.Disp + dir * (me.Def.BodyR + 8f);
-            float reach = Mathf.Min(Mathf.Max(cursor.DistanceTo(me.Disp) - me.Def.BodyR - 14f, 40f), 620f);  // stops just short of the crosshair
+            float reach = Mathf.Max(game.WeaponRange(me) - me.Def.BodyR - 8f, 20f);  // out to where your shots (or swings) stop
             var c = me.Def.Color.Mix(Rgba.White, 0.35f);
             const int Steps = 24;
             for (int i = 0; i < Steps; i++)
@@ -2595,6 +2595,9 @@ namespace Arena
                 Line(p0, p1, 8f, c.WithAlpha(0.07f * fade));   // soft glow
                 Line(p0, p1, 1.5f, c.WithAlpha(0.32f * fade));  // thin core
             }
+            // A small cap where the weapon's reach ends.
+            V2 end = from + dir * reach, side = dir.Orthogonal();
+            Line(end - side * 6f, end + side * 6f, 2f, c.WithAlpha(0.45f));
             // Motes drifting outward.
             const float Spacing = 34f;
             float offset = MathX.Fmod(t * 140f, Spacing);

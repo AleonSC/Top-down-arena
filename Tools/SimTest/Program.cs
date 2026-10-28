@@ -698,6 +698,57 @@ static class Program
 
     // Aim precision: a tiny change in where you point (a quarter of a degree) shows up exactly in
     // the direction of your shots, for the host and for a player who joined.
+    static void WeaponRangeTest(float dt)
+    {
+        // The aim line ends at Game.WeaponRange: check it against how far each weapon's shots really go.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Soldier);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        int pass = 0;
+        var off = new List<string>();
+        foreach (var w in Defs.Weapons)
+        {
+            foreach (int extra in new[] { 0, 2 })
+            {
+                g.Enemies.Clear(); g.Bullets.Clear(); g.Minions.Clear(); g.Effects.Clear();
+                me.Weapon = w;
+                me.Stats.ExtraShots = extra;
+                me.BowShotDraw = 0f;
+                me.Pos = new V2(120f, 450f);
+                me.Aim = 0f;
+                float range = g.WeaponRange(me);
+                volley.Invoke(g, new object[] { me, 0f, extra });
+                var first = new HashSet<int>(g.Bullets.Values.Where(b => b.Owner == 1).Select(b => b.Id));
+                float far = 0f;
+                for (int f = 0; f < 150; f++)
+                {
+                    g.Enemies.Clear();
+                    me.Pos = new V2(120f, 450f);
+                    foreach (var b in g.Bullets.Values)
+                        if (first.Contains(b.Id))
+                            far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
+                    foreach (var fx in g.Effects)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab)
+                            far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
+                    host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+                }
+                // Shots move in 1/60 s steps, so they can stop up to a step short; Arcane Missiles curve.
+                float step = w.Melee && range < 200f ? 2f : 1700f / 60f;
+                bool ok = w.Id == WeaponId.ArcaneMissiles ? far <= range + 2f && far > range * 0.6f : Math.Abs(far - range) <= step + 4f;
+                if (ok) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + far.ToString("0") + " vs " + range.ToString("0") + ")");
+            }
+        }
+        Console.WriteLine("  weapon ranges: " + pass + "/" + Defs.Weapons.Length * 2 + " match" + (off.Count > 0 ? "; off: " + string.Join(", ", off) : ""));
+        Check(off.Count == 0, "the aim line's length matches how far each weapon's shots and swings reach");
+        host.Leave("");
+    }
+
     static void AimTest(float dt)
     {
         int port = nextPort++;
@@ -3195,6 +3246,7 @@ static class Program
         if (args.Length > 2 && args[2] == "aim")
         {
             AimTest(1f / 60f);
+            WeaponRangeTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
@@ -3233,6 +3285,7 @@ static class Program
         RevolverReloadTest(dt);
         BowTest(dt);
         PracticeTest(dt);
+        WeaponRangeTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
