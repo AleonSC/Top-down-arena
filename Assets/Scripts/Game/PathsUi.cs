@@ -69,7 +69,7 @@ namespace Arena
             Ui.Label(new Rect(x + 110f, y, w - 110f, 18f), Paths.BonusText(d.Danger), 13, d.Danger > 1 ? Ui.Good : Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 24f;
             Ui.Label(new Rect(x, y, 120f, 18f), "PRIZE", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 110f, y, w - 110f, 18f), Paths.PrizeText(d.Danger) + " before the boss", 13, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 110f, y, w - 110f, 18f), Paths.PrizeText(d) + " before the boss", 13, Ui.Gold, TextAnchor.MiddleLeft, true);
             if (!session.IsHost)
                 return false;
             return Ui.Button(new Rect(x, r.yMax - 58f, w, 42f), "Take this path", new Color(accent.r * 0.75f, accent.g * 0.75f, accent.b * 0.75f), PixelArt.Get("ui_play"));
@@ -105,6 +105,19 @@ namespace Arena
                             Line(prev, p, 1.5f, line);
                             prev = p;
                         }
+                    }
+                    break;
+                case PathId.Bazaar:  // market awnings: warm diagonal stripes, with a few coins
+                    for (float xx = x - h; xx < x + w; xx += 36f)
+                    {
+                        float x1 = Mathf.Max(x, xx), x2 = Mathf.Min(x + w, xx + h);
+                        if (x2 > x1)
+                            Line(new V2(x1, y + (x1 - xx)), new V2(x2, y + (x2 - xx)), 6f, d.Accent.WithAlpha(0.07f * alpha));
+                    }
+                    for (int i = 0; i < (int)(w * h / 9000f); i++)
+                    {
+                        var c = new V2(x + 8f + Hash(i * 5) * (w - 16f), y + 8f + Hash(i * 5 + 1) * (h - 16f));
+                        Circle(c, 4f, d.Accent.WithAlpha(0.22f * alpha), 10);
                     }
                     break;
                 case PathId.EliteGauntlet:  // gilded flagstones

@@ -76,7 +76,7 @@ class Shot {
       host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
       if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
     }
-    if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
+    if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (mode == "hud")
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
@@ -217,6 +217,26 @@ class Shot {
       if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
       me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
       typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
+    }
+    else if (mode == "shop")
+    {
+      // The Bazaar's shop (ShopUi.cs): SHOPSEL=n selects a card, REMOVE=1 opens the remove list, GIVE=1 the Give popup.
+      Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+      foreach (var n in new[] { "Hollow Points", "Fortitude", "Multishot", "Thick Skin", "Riposte" })
+        host.Game.GrantUpgrade(1, U(n));
+      var g = host.Game;
+      g.CurrentPath = PathId.Bazaar; g.PathFrom = 11; g.PathTo = 14; g.Wave = 14; g.State = MatchState.Intermission;
+      typeof(Game).GetMethod("OpenShop", f2).Invoke(g, null);
+      g.CurrentPath = PathId.None;
+      int k = 0;
+      foreach (var p in g.Players.Values) { p.Gold = k == 0 ? 252 : k == 1 ? 112 : 162; p.ShopDone = k == 2; k++; }
+      me.ShelfSold = 1 << 2; me.Hp = me.MaxHp * 0.6f;
+      g.ShopNotices.Add(new ShopNotice { Text = "Mira gave you 40 gold", Life = 2f });
+      int sel = Environment.GetEnvironmentVariable("SHOPSEL") != null ? int.Parse(Environment.GetEnvironmentVariable("SHOPSEL")) : 0;
+      typeof(ArenaApp).GetField("shopSel", f2).SetValue(app, sel);
+      if (Environment.GetEnvironmentVariable("REMOVE") != null) typeof(ArenaApp).GetField("shopRemoveOpen", f2).SetValue(app, true);
+      if (Environment.GetEnvironmentVariable("GIVE") != null) foreach (var p in g.Players.Values) if (p.Id != me.Id) typeof(ArenaApp).GetField("shopGiveTo", f2).SetValue(app, p.Id);
+      typeof(ArenaApp).GetMethod("DrawShop", f2).Invoke(app, new object[] { me, 1f });
     }
     else
     {

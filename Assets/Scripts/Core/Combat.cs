@@ -540,6 +540,8 @@ namespace Arena
                 }
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
+                if (OnPathOf(PathId.Bazaar))
+                    GrantGold(e);  // Shop.cs
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);

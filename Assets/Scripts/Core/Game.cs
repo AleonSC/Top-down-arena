@@ -97,6 +97,13 @@ namespace Arena
         public int LinkTo;
 
         public int Level = 1, PendingPicks, Rerolls = Game.StartingRerolls;
+        public int Gold;                       // the Bazaar's gold (Shop.cs, replicated)
+        public readonly int[] Shelf = { -1, -1, -1, -1, -1, -1 };  // this player's shop: upgrade ids (Game.ShelfSize, replicated)
+        public byte ShelfSold;                 // bit per shelf slot: bought (replicated)
+        public int Restocks;                   // shelf restocks this visit (replicated; each costs more)
+        public bool ShopDone;                  // clicked Done shopping (replicated)
+        public bool ReviveToken;               // bought at the Bazaar: get back up once by yourself (replicated)
+        public float TokenT;                   // host: how long you've been down with a token
         public float Xp;
         public int[] Offer;  // three upgrade ids while choosing, otherwise null
         public bool OfferLegendary;  // the current offer is a boss reward
@@ -651,14 +658,17 @@ namespace Arena
             if (ShowcaseMode)
                 return;  // no levelling up in the loadout preview
             foreach (var p in Players.Values)
+                GrantXpTo(p, amount);
+        }
+
+        void GrantXpTo(Player p, float amount)
+        {
+            p.Xp += amount;
+            while (p.Xp >= Defs.XpToNext(p.Level))
             {
-                p.Xp += amount;
-                while (p.Xp >= Defs.XpToNext(p.Level))
-                {
-                    p.Xp -= Defs.XpToNext(p.Level);
-                    p.Level++;
-                    p.PendingPicks++;
-                }
+                p.Xp -= Defs.XpToNext(p.Level);
+                p.Level++;
+                p.PendingPicks++;
             }
         }
 
@@ -899,6 +909,7 @@ namespace Arena
             if (!Running)
                 return;
             AnimT += dt;
+            TickShopNotices(dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
             foreach (var p in Players.Values)
                 // Snap instead of sliding across the screen when the player wraps around an edge.
@@ -1001,6 +1012,8 @@ namespace Arena
                     else
                         PickUpgrade(rng.Next(me.Offer.Length));
                 }
+                else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
+                    BotShop(me);  // Shop.cs
             }
 
             float bowRelease = LocalBow(me, firing, dt);
@@ -1272,6 +1285,7 @@ namespace Arena
             // Standing next to a downed ally slowly brings them back.
             foreach (var p in Players.Values)
             {
+                TickReviveToken(p, dt);  // Shop.cs
                 if (!p.Downed)
                     continue;
                 Player helper = null;

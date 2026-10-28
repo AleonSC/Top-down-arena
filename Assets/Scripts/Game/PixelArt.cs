@@ -255,6 +255,21 @@ namespace Arena
                 "...wwwwww...",
                 "............",
             },
+            ["ui_coin"] = new[]
+            {
+                "............",
+                "...kkkkkk...",
+                "..kyyyyyyk..",
+                ".kyywyyyyYk.",
+                ".kywyyyyyYk.",
+                ".kyyyYYyyYk.",
+                ".kyyyYYyyYk.",
+                ".kyyyyyyyYk.",
+                ".kYyyyyyYYk.",
+                "..kYYYYYYk..",
+                "...kkkkkk...",
+                "............",
+            },
             ["ui_play"] = new[]
             {
                 "............",

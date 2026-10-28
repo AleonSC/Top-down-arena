@@ -11,8 +11,8 @@ namespace Arena
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
             foreach (var p in Players.Values)
-                if (!p.Downed)
-                    return;
+                if (!p.Downed || p.ReviveToken)
+                    return;  // someone's standing, or will get up on their own
             State = MatchState.GameOver;
             spawnQueue.Clear();
             foreach (var p in Players.Values)
@@ -38,10 +38,11 @@ namespace Arena
             switch (State)
             {
                 case MatchState.Intermission:
-                    // The countdown waits while anyone is still choosing upgrades, and for the host to pick a path.
+                    // The countdown waits while anyone is still choosing upgrades, for the host to pick a path, and for the shop.
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
-                    if (!AnyonePicking() && PathOffer == null)
+                    TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
+                    if (!AnyonePicking() && PathOffer == null && !ShopOpen)
                         StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {

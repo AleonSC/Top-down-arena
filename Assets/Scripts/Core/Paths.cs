@@ -7,7 +7,7 @@ namespace Arena
     /// Divergent paths (Docs/Paths.md): after each boss the host picks one of two paths for the four regular waves
     /// before the next boss. A path changes the enemy mix (and, in later steps, the arena), pays a bonus to XP and
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
-    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet }
+    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, Bazaar }
 
     public class PathDef
     {
@@ -17,6 +17,7 @@ namespace Arena
         public int Danger;              // 1-3: sets the bonus and the prize
         public Rgba Floor, Accent;      // the arena's tint and the path's colour
         public EnemyType[] Showcase;    // shown on the path card
+        public string Prize;            // its own prize instead of the danger rating's (the Bazaar's shop)
     }
 
     public static class Paths
@@ -38,6 +39,11 @@ namespace Arena
                 Rules = new[] { "Half as many enemies", "Every one of them is elite (2.5x health, faster fire)" },
                 Floor = new Rgba(0.3f, 0.24f, 0.08f), Accent = new Rgba(1f, 0.85f, 0.3f),
                 Showcase = new[] { EnemyType.Charger, EnemyType.Spinner, EnemyType.Shielder } },
+            new PathDef { Id = PathId.Bazaar, Name = "Bazaar", Kind = "Market", Danger = 1,
+                Blurb = "A trading town on the road.",
+                Rules = new[] { "The usual enemies, but every kill drops gold", "Everyone gets the same gold, and can give it away", "Gold you don't spend becomes XP" },
+                Floor = new Rgba(0.3f, 0.2f, 0.1f), Accent = new Rgba(1f, 0.8f, 0.35f), Prize = "A shop",
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Sniper } },
         };
 
         public const int Length = 4;  // regular waves per path (the ones before the next boss)
@@ -54,6 +60,8 @@ namespace Arena
         public static float Bonus(int danger) => danger >= 3 ? 1.5f : danger == 2 ? 1.25f : 1f;
 
         public static string BonusText(int danger) => danger >= 3 ? "+50% XP and score" : danger == 2 ? "+25% XP and score" : "No bonus";
+
+        public static string PrizeText(PathDef d) => d.Prize ?? PrizeText(d.Danger);
 
         public static string PrizeText(int danger) => danger >= 3 ? "An extra legendary pick" : danger == 2 ? "+1 upgrade pick" : "Full heal and 2 rerolls";
     }
@@ -92,6 +100,8 @@ namespace Arena
             Route.Clear();
             lastPath = PathId.None;
             lastPathFromSeen = -1;
+            ShopOpen = false;
+            ShopT = 0f;
         }
 
         /// Host, after a boss wave is cleared: offer two paths for the next stretch (not in the Practice Range or
@@ -165,7 +175,9 @@ namespace Arena
                 return;
             var lastBoss = BossForWave(Math.Max(5, PathFrom - 1));
             var key = IsTwin(lastBoss) ? EnemyType.TwinA : lastBoss;
-            foreach (var p in Players.Values)
+            if (d.Id == PathId.Bazaar)
+                OpenShop();  // the shop is its prize (Shop.cs)
+            else foreach (var p in Players.Values)
             {
                 if (d.Danger >= 3)
                     p.LegendaryQueue.Add(key);  // picked with the other cards
@@ -179,7 +191,7 @@ namespace Arena
                     p.Rerolls += 2;
                 }
             }
-            DoLog(d.Name + " complete: " + Paths.PrizeText(d.Danger));
+            DoLog(d.Name + " complete: " + Paths.PrizeText(d));
             CurrentPath = PathId.None;
             BroadcastPath();
         }

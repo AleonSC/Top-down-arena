@@ -382,9 +382,28 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Brutes, Lungers), twice as many, at 60% health |
 | **Sniper Ridge** | 2 | Mostly Snipers, Mortars and Grunts; hardly any melee |
 | **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
+| **Bazaar** | 1 | The usual enemies, but every kill drops gold; its prize is a shop (below) instead of the heal and rerolls |
 
 A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
 paths (hazard floors, twists, arena rules) are planned in `Docs/Paths.md`.
+
+### The Bazaar's shop
+
+On the Bazaar's waves every kill gives **every player the same gold** (0.3 per point of XP the kill is worth: about
+325 each over waves 6-9, rising to about 1000 by wave 40); your gold shows left of your abilities. After its last
+wave, everyone gets a shop before the boss:
+
+- **Your shelf** (rolled for your class): four upgrades, one legendary and one weapon mod. Prices by rarity: common
+  40, uncommon 60, rare 100, very rare 160, weapon mod 200, legendary 280. Click a card to select it (your stats
+  preview it), click again to buy.
+- **Services:** restock the shelf (25, then +25 each time), remove an upgrade (75; one stack, and abilities it gave
+  go too), full heal (40), and a revive token (120; one at a time: when you go down you get back up 2 s later at
+  half health, and it isn't game over while it's waiting).
+- **Give** sends a teammate 10, 50, 100 or all of your gold. Giving to someone who's already done reopens their
+  shop so they can choose what to do with it.
+- **No timer:** the shop closes when everyone has clicked **Done shopping** (click again to keep shopping until the
+  last player is done). After a minute the host can close it for everyone. When it closes, each player's leftover
+  gold becomes their own XP (1 gold = 1 XP).
 
 ## Run modifiers
 
@@ -617,6 +636,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
+  - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker

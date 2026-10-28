@@ -108,6 +108,8 @@ namespace Arena
             w.Write(PullCenter);
             w.Write(PullStrength);
             w.Write(TwinReviveT);
+            w.Write(ShopOpen);
+            w.Write(ShopT);
             w.Write((byte)Players.Count);
             foreach (var p in Players.Values)
             {
@@ -160,6 +162,7 @@ namespace Arena
                     w.Write(s.Timer);
                 }
                 WriteMastery(w, p);
+                WriteShop(w, p);
             }
             w.Write((short)Enemies.Count);
             foreach (var e in Enemies.Values)
@@ -240,6 +243,9 @@ namespace Arena
                     break;
                 case Msg.PathChosen:
                     ReadPathChosen(r);
+                    break;
+                case Msg.ShopGift:
+                    ReadShopGift(r);
                     break;
                 case Msg.Spawn:
                 {
@@ -348,6 +354,8 @@ namespace Arena
             PullCenter = r.ReadV2();
             PullStrength = r.ReadSingle();
             TwinReviveT = r.ReadSingle();
+            ShopOpen = r.ReadBoolean();
+            ShopT = r.ReadSingle();
             int np = r.ReadByte();
             for (int i = 0; i < np; i++)
             {
@@ -387,6 +395,7 @@ namespace Arena
                 Player mp;
                 Players.TryGetValue(id, out mp);
                 ReadMastery(r, mp);
+                ReadShop(r, mp);
 
                 Player p;
                 if (!Players.TryGetValue(id, out p))

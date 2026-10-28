@@ -1,7 +1,7 @@
 # Divergent paths: design plan
 
-Status: **step 1 built** (framework + the three enemy-mix paths: Swarm Fields, Sniper Ridge, Elite Gauntlet);
-steps 2-4 planned. Decisions below were made with the owner (October 2026); numbers are first
+Status: **step 1 built** (framework + the three enemy-mix paths: Swarm Fields, Sniper Ridge, Elite Gauntlet),
+plus the **Bazaar** (a shop path, below); steps 2-4 planned. Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -61,6 +61,22 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 | **Sanctuary** | Hazard floor | 1 | Healing pools appear around the arena; 20% fewer enemies. A recovery path. Floor: soft blue light. |
 | **Frozen Lake** | Twist | 2 | You slide with momentum (speed builds and carries); enemies are chilled 10% slower. Floor: cracked ice. |
 | **Blood Moon** | Twist | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP. Floor: red-lit. |
+
+## The Bazaar (built)
+
+A 1-skull path whose prize is a shop. Decided with the owner (October 2026), from mockups:
+
+| Question | Decision |
+|---|---|
+| Currency | **Gold, only on the Bazaar.** Each kill on its waves gives every player the same gold (`GoldPerXp` = 0.3 of the kill's XP), so it's split equally. |
+| Leftover gold | **Becomes XP for each player** when the shop closes (1 gold = 1 XP). |
+| Shelf | **Per player**, rolled for your class: four upgrades, a legendary, a weapon mod. Common 40, uncommon 60, rare 100, very rare 160, mod 200, legendary 280. |
+| Services | Restock (25, +25 each time), remove an upgrade (75), full heal (40), revive token (120, **one at a time**). |
+| Giving gold | Give 10 / 50 / 100 / all to a teammate. **Giving to someone who's done reopens their shop** so they can choose. |
+| Timing | **No timer.** Closes when everyone has clicked Done shopping; **the host can close it after 60 s** for a stalled player. |
+| Layout | Like the upgrade picker (layout A of the mockup): your stats on the left, six cards, services, then who's done, the Done button and teammates' gold. |
+
+Code: `Core/Shop.cs` (state, actions, bots, snapshot fields, `Msg.Shop` / `Msg.ShopGift`) and `Game/ShopUi.cs`.
 
 ## Screens
 

@@ -76,6 +76,12 @@ namespace Arena
                         DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
+                    if (game.ShopOpen && me != null)
+                    {
+                        if (!tabHeld)
+                            DrawShop(me, Time.unscaledTime);  // ShopUi.cs
+                        break;
+                    }
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods > 0 && p.Id != game.MyId)
@@ -636,6 +642,15 @@ namespace Arena
             Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
             Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
 
+            // The Bazaar's gold (Shop.cs), just left of the abilities, while you have some.
+            if (me.Gold > 0 || game.CurrentPath == PathId.Bazaar)
+            {
+                var r = new Rect(x0 - 86f, y + tileH - 30f, 78f, 30f);
+                Ui.HudPanel(r, Ui.Gold);
+                Ui.Icon(new Rect(r.x + 8f, r.y + 7f, 16f, 16f), PixelArt.Get("ui_coin"));
+                Ui.Label(new Rect(r.x + 28f, r.y, r.width - 32f, r.height), me.Gold.ToString(), 15, Ui.Gold, TextAnchor.MiddleLeft, true);
+            }
+
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var slot = me.Slots[i];
@@ -909,11 +924,14 @@ namespace Arena
         }
 
         /// Your current stats; with a card selected, the ones it would change show their new value.
-        void DrawStatPanel(Player me, Rect r)
+        /// shopPreview: an upgrade from the Bazaar's shelf to preview instead of the picker's selection.
+        void DrawStatPanel(Player me, Rect r, int shopPreview = -1)
         {
             var now = StatSheet.Describe(me, me.Taken);
             List<StatLine> after = null;
-            if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
+            if (shopPreview >= 0)
+                after = StatSheet.Describe(me, new List<int>(me.Taken) { shopPreview });
+            else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
             {
                 var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
                 after = StatSheet.Describe(me, preview, pickKey);

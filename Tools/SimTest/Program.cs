@@ -1521,6 +1521,151 @@ static class Program
         host.Leave("");
     }
 
+    // The Bazaar (Shop.cs): kills on its waves drop gold, then a shop before the boss that closes when everyone is done.
+    static void BazaarTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var openShop = typeof(Game).GetMethod("OpenShop", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 5 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Enemies.Count > 0);
+        Run(s, dt, 30f, () => g.State == MatchState.Intermission, () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+        NoPicks();
+        Run(s, dt, 0.5f);
+        g.PathOffer = new[] { PathId.Bazaar, PathId.SniperRidge };
+        g.ChoosePath(0);
+        Run(s, dt, 0.5f, null, NoPicks);
+        Check(client.Game.CurrentPath == PathId.Bazaar && Paths.Get(PathId.Bazaar).Danger == 1, "the Bazaar is a 1-skull path everyone sees");
+
+        // Gold: every kill on its waves gives every player the same gold.
+        var me = g.Players[1]; var friend = g.Players[2];
+        g.Wave = 7; g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Step(host, dt);
+        int gold0 = me.Gold, friend0 = friend.Gold;
+        var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(900f, 300f), 0f, 0, false });
+        grunt.Elite = false; grunt.Hp = 0f; grunt.LastHitBy = 2;
+        Step(host, dt);
+        int each = (int)Math.Round(Defs.Get(EnemyType.Grunt).Xp * Game.GoldPerXp);
+        Run(s, dt, 0.3f);
+        Check(each > 0 && me.Gold - gold0 == each && friend.Gold - friend0 == each && client.Game.Players[2].Gold == friend.Gold,
+            "a kill on the Bazaar gives every player the same gold (" + each + " for a grunt), and clients see it");
+
+        // The shop opens after its last wave, and the next wave waits for it.
+        me.Gold = 400; friend.Gold = 1000;
+        g.Wave = 9; g.PathTo = 9;
+        cleared.Invoke(g, null);
+        NoPicks();
+        Run(s, dt, 0.5f, null, NoPicks);
+        var cme = client.Game.Players[2];
+        int stocked = 0;
+        foreach (int u in cme.Shelf) if (u >= 0) stocked++;
+        Check(g.ShopOpen && client.Game.ShopOpen && g.CurrentPath == PathId.None && stocked >= 5, "after the Bazaar's last wave the shop opens with a shelf for each player (" + stocked + " items)");
+        float timer = g.StateTimer;
+        Run(s, dt, 2f, null, NoPicks);
+        Check(g.State == MatchState.Intermission && g.StateTimer >= timer, "the next wave waits while the shop is open (no timer)");
+
+        // Buying, healing, a revive token, removing and restocking (as the client, through the host).
+        int slot = Array.FindIndex(friend.Shelf, u => u >= 0 && Upgrades.All[u].Grants == AbilityId.None);
+        int bought = friend.Shelf[slot], price = Game.Price(bought), have = Upgrades.Count(friend.Taken, bought);
+        client.Game.Shop(ShopAction.Buy, slot);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(Upgrades.Count(friend.Taken, bought) == have + 1 && friend.Gold == 1000 - price && Game.Sold(cme, slot), "buying takes the gold and gives the upgrade (" + Upgrades.All[bought].Name + " for " + price + ")");
+        client.Game.Shop(ShopAction.Buy, slot);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(Upgrades.Count(friend.Taken, bought) == have + 1, "a shelf item can only be bought once");
+        friend.Hp = friend.MaxHp * 0.5f;
+        int before = friend.Gold;
+        client.Game.Shop(ShopAction.Heal);
+        client.Game.Shop(ShopAction.Revive);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(friend.Hp >= friend.MaxHp && friend.ReviveToken && cme.ReviveToken && friend.Gold == before - Game.HealPrice - Game.RevivePrice, "full heal and a revive token");
+        client.Game.Shop(ShopAction.Revive);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(friend.Gold == before - Game.HealPrice - Game.RevivePrice, "only one revive token at a time");
+        client.Game.Shop(ShopAction.Remove, bought);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(Upgrades.Count(friend.Taken, bought) == have, "removing an upgrade takes one stack away");
+        before = friend.Gold;
+        client.Game.Shop(ShopAction.Restock);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(friend.Restocks == 1 && friend.Gold == before - 25 && friend.ShelfSold == 0 && Game.RestockPrice(friend) == 50, "restocking rolls a new shelf; the next restock costs more");
+
+        // Giving gold, and giving to someone who's done reopens their shop.
+        client.Game.Shop(ShopAction.Done, 1);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(friend.ShopDone && g.ShopOpen, "one player done: the shop stays open for the others");
+        before = friend.Gold;
+        g.Shop(ShopAction.Give, 2, 50);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(friend.Gold == before + 50 && me.Gold == 350 && !friend.ShopDone && client.Game.ShopNotices.Exists(n => n.Text.Contains("gave you 50")),
+            "giving gold moves it, tells them, and reopens a done player's shop");
+
+        // Everyone done: the shop closes and leftover gold becomes each player's own XP.
+        Func<Player, float> TotalXp = p => { float t = p.Xp; for (int l = 1; l < p.Level; l++) t += Defs.XpToNext(l); return t; };
+        float xpMe = TotalXp(me), xpFriend = TotalXp(friend);
+        int goldMe = me.Gold, goldFriend = friend.Gold;
+        g.Shop(ShopAction.Close);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(g.ShopOpen, "the host can't close the shop early");
+        g.Shop(ShopAction.Done, 1);
+        client.Game.Shop(ShopAction.Done, 1);
+        Run(s, dt, 0.5f);
+        Console.WriteLine("  bazaar: leftover gold {0} and {1} -> XP {2:0} and {3:0}", goldMe, goldFriend, TotalXp(me) - xpMe, TotalXp(friend) - xpFriend);
+        Check(!g.ShopOpen && !client.Game.ShopOpen && me.Gold == 0 && friend.Gold == 0
+            && Math.Abs(TotalXp(me) - xpMe - goldMe * Game.GoldToXp) < 0.5f && Math.Abs(TotalXp(friend) - xpFriend - goldFriend * Game.GoldToXp) < 0.5f,
+            "when everyone is done the shop closes and leftover gold becomes each player's own XP");
+        NoPicks();
+        timer = g.StateTimer;
+        Run(s, dt, 0.5f, null, NoPicks);
+        Check(g.StateTimer < timer || g.State == MatchState.Fighting, "then the countdown to the boss goes on");
+
+        // The host can close a stalled shop after a minute.
+        openShop.Invoke(g, null);
+        g.ShopT = Game.ShopHostCloseAfter + 1f;
+        client.Game.Shop(ShopAction.Close);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(g.ShopOpen, "only the host can close the shop");
+        g.Shop(ShopAction.Close);
+        Run(s, dt, 0.3f, null, NoPicks);
+        Check(!g.ShopOpen && !client.Game.ShopOpen, "after a minute the host can close the shop for everyone");
+
+        // A revive token gets you back up by yourself, and keeps the run going if you were the last one standing.
+        friend.ReviveToken = true;
+        friend.Downed = true; friend.Hp = 0f;
+        me.Downed = true; me.Hp = 0f;
+        Run(s, dt, 2.5f, null, NoPicks);
+        Check(!friend.Downed && !friend.ReviveToken && g.State != MatchState.GameOver, "a revive token gets you up on your own (and it isn't game over meanwhile)");
+        host.Leave(""); client.Leave("");
+
+        // A bot shops by itself and finishes, so automated runs never stall.
+        port = nextPort++;
+        host = new Session { AutoStart = 1, StartWave = 5 };
+        host.Host(port, "Bot", Role.Dps);
+        g = host.Game; g.Bot = true;
+        host.StartMatch();
+        g.DevSetGod(1, true);
+        for (int f = 0; f < 60 * 20 && !(g.State == MatchState.Fighting && g.Enemies.Count > 0); f++) Step(host, dt);
+        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        g.Players[1].Gold = 300;
+        int taken = g.Players[1].Taken.Count;
+        cleared.Invoke(g, null);
+        for (int f = 0; f < 60 * 15 && g.State != MatchState.Fighting; f++) Step(host, dt);
+        Check(g.State == MatchState.Fighting && !g.ShopOpen && g.Players[1].Taken.Count > taken, "a bot buys something, finishes shopping, and the run carries on");
+        host.Leave("");
+    }
+
     static void ModifiersTest(float dt)
     {
         // Run modifiers: the host picks them in the lobby, everyone sees them, and they change the run.
@@ -1724,6 +1869,7 @@ static class Program
         PracticeLobbyTest(dt);
         ModifiersTest(dt);
         PathsTest(dt);
+        BazaarTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;
@@ -3781,6 +3927,12 @@ static class Program
             var path = SessionTest(1f / 60f);
             if (args.Length > 3 && path != null)
                 File.Copy(path, args[3], true);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "bazaar")
+        {
+            BazaarTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
