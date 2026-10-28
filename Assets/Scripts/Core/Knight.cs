@@ -16,6 +16,7 @@ namespace Arena
         public float HealSpin;        // heals allies near you once per swing (Censer)
         public bool Rapier, Heavy, Silent;
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
+        public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -28,6 +29,7 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
+        public const float LanceHalfWidth = 34f;  // the Lance hits a 68 px wide box straight ahead
 
         // --- Weapons ------------------------------------------------------------------
 
@@ -82,7 +84,8 @@ namespace Arena
                 case WeaponId.Lance:
                 {
                     // A big jab straight ahead that drives everything it hits far back (not bosses or heavies).
-                    var s = NewSwing(p, aim, 150f + 30f * extra, 60f, 36f * dmg);
+                    var s = NewSwing(p, aim, 150f + 30f * extra, 0f, 36f * dmg);
+                    s.HalfWidth = LanceHalfWidth + 12f * extra;
                     s.Knock = 140f + 60f * extra;
                     s.Heavy = true;
                     s.Thrust = true;
@@ -210,14 +213,20 @@ namespace Arena
             }
         }
 
+        static float Dot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
+
         static float AngleTo(V2 from, V2 to, float aim) => Math.Abs(MathX.Fmod((to - from).Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
 
         void LandSwing(Player p, Swing s)
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
-            bool full = s.HalfArc >= MathX.Pi - 0.01f;
-            BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
-                s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
+            bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f;
+            if (box)
+                BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
+                    s.Silent ? Sfx.None : Sfx.SwingHeavy);
+            else
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
+                    s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
             var hits = new List<Enemy>();
@@ -226,6 +235,17 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Hp <= 0f)
                     continue;
                 float d = e.Pos.DistanceTo(origin);
+                if (box)
+                {
+                    // The Lance's box: from your body out to its reach, HalfWidth either side of the aim line.
+                    V2 rel = e.Pos - origin;
+                    float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
+                    if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius)
+                        continue;
+                    if (!BlocksShot(e, origin))
+                        hits.Add(e);
+                    continue;
+                }
                 if (d - e.Radius > s.Reach)
                     continue;
                 float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
@@ -275,12 +295,12 @@ namespace Arena
                     if (q.Pos.DistanceTo(origin) < s.HealRange)
                         Heal(q, s.HealSpin, p);
 
-            CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll);
+            CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
         }
 
         /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.
         /// Bosses' red aimed shots always get through.
-        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all)
+        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f)
         {
             var cut = new List<int>();
             foreach (var b in Bullets.Values)
@@ -289,6 +309,15 @@ namespace Arena
                     continue;
                 if (!all && b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)
                     continue;
+                if (halfWidth > 0f)
+                {
+                    V2 dir = V2.FromAngle(aim), rel = b.Pos - origin;
+                    float along = Dot(rel, dir);
+                    if (along < -b.Radius || along > reach + b.Radius || Math.Abs(Dot(rel, dir.Orthogonal())) > halfWidth + b.Radius)
+                        continue;
+                    cut.Add(b.Id);
+                    continue;
+                }
                 if (b.Pos.DistanceTo(origin) > reach + b.Radius)
                     continue;
                 if (halfArc < MathX.Pi && AngleTo(origin, b.Pos, aim) > halfArc)

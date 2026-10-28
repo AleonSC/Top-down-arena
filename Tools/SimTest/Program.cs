@@ -1863,6 +1863,14 @@ static class Program
         Console.WriteLine("  lance: pushed a Brute {0:0} px", shoved.Pos.X - shovedFrom.X);
         Check(me.Weapon.Name == "Lance" && shoved.Pos.X - shovedFrom.X > 120f, "the Lance jabs enemies far back");
         shoved.Hp = 0f; keep.Remove(shoved);
+        // Its hitbox is a box straight ahead: something off to the side at the same distance isn't hit.
+        var ahead = Dummy(new V2(920f, 600f));
+        var beside = Dummy(new V2(880f, 600f + Game.LanceHalfWidth + 60f));
+        float aheadHp = ahead.Hp, besideHp = beside.Hp;
+        for (int f = 0; f < 45; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); ahead.FrozenT = beside.FrozenT = 1f; ahead.Pos = new V2(920f, 600f); beside.Pos = new V2(880f, 600f + Game.LanceHalfWidth + 60f); Clear(); me.Pos = new V2(780f, 600f); }
+        Console.WriteLine("  lance box: ahead took {0:0}, beside took {1:0}", aheadHp - ahead.Hp, besideHp - beside.Hp);
+        Check(ahead.Hp < aheadHp && beside.Hp == besideHp, "the Lance hits a box straight ahead, not a cone");
+        ahead.Hp = beside.Hp = 0f; keep.Remove(ahead); keep.Remove(beside);
 
         // Abilities (cast directly; all players are invulnerable to everything but what's tested).
         Func<AbilityId, int> Slot = id => { var p = g.Players.Values.First(q => q.Slots.Any(sl => sl.Id == id)); return Array.FindIndex(p.Slots, sl => sl.Id == id); };

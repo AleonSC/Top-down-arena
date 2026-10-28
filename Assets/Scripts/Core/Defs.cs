@@ -150,7 +150,7 @@ namespace Arena
                 Companion = MinionKind.Bear, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.Warhammer, Melee = true, ExtraDesc = "+1 aftershock: a second smash 0.2 s later with 60% damage and more reach", Name = "Warhammer", FireInterval = 0.75f,
                 Desc = "Slow overhead smashes in a wide arc that knock enemies back." },
-            new WeaponDef { Id = WeaponId.Lance, Melee = true, ExtraDesc = "+30 px reach and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
+            new WeaponDef { Id = WeaponId.Lance, Melee = true, ExtraDesc = "+30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
                 Desc = "A heavy jab in front of you that shoves enemies far back." },
             new WeaponDef { Id = WeaponId.Halberd, Melee = true, ExtraDesc = "+30 px reach and a quick follow-up thrust (60% damage)", Name = "Halberd", FireInterval = 0.55f,
                 Desc = "Long-reaching thrusts that hit everything along the blade." },

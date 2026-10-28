@@ -696,6 +696,39 @@ namespace Arena
                         Arc(fx.Pos, reach, 3f, Rgba.White.WithAlpha(0.9f * (1f - f)), 24, from, sweep);
                         break;
                     }
+                    case FxKind.Jab:  // the Lance: its rectangular hitbox slides out from the Knight, lance tip leading
+                    {
+                        V2 to = fx.Pos2 - fx.Pos;
+                        float reach = to.Length, w = fx.Radius;
+                        if (reach < 1f)
+                            break;
+                        V2 dir = to / reach, side = dir.Orthogonal();
+                        float g = Mathf.Min(1f, f / 0.35f);
+                        g = 1f - (1f - g) * (1f - g) * (1f - g);  // fast out, easing in to full reach
+                        float fade = f < 0.35f ? 1f : 1f - (f - 0.35f) / 0.65f;
+                        float front = reach * g;
+                        // The box, from your body to its sliding front edge.
+                        V2 a0 = fx.Pos + side * w, a1 = fx.Pos - side * w, b0 = a0 + dir * front, b1 = a1 + dir * front;
+                        SetColor(fx.Color.WithAlpha(0.2f * fade));
+                        Tri(a0, b0, b1);
+                        Tri(a0, b1, a1);
+                        Line(a0, b0, 1.5f, fx.Color.WithAlpha(0.6f * fade));
+                        Line(a1, b1, 1.5f, fx.Color.WithAlpha(0.6f * fade));
+                        Line(b0, b1, 4f, Rgba.White.WithAlpha(0.9f * fade));  // the leading edge
+                        // Speed streaks riding along inside it.
+                        for (int k = 0; k < 4; k++)
+                        {
+                            float o = (k - 1.5f) / 1.5f * w * 0.7f, at = front * (0.25f + 0.15f * (k % 2));
+                            V2 s0 = fx.Pos + dir * at + side * o;
+                            Line(s0, s0 + dir * front * 0.35f, 1.5f, Rgba.White.WithAlpha(0.45f * fade));
+                        }
+                        // The lance itself, slid out with its tip at the front edge.
+                        V2 tipAt = fx.Pos + dir * front, tail = fx.Pos + dir * Mathf.Max(0f, front - reach * 0.8f);
+                        Line(tail, tipAt - dir * 10f, 4f, Rgba.White.WithAlpha(0.85f * fade));
+                        SetColor(Rgba.White.WithAlpha(0.95f * fade));
+                        Tri(tipAt + dir * 6f, tipAt - dir * 14f + side * 7f, tipAt - dir * 14f - side * 7f);
+                        break;
+                    }
                     case FxKind.Bolt:  // jagged lightning between two points
                     {
                         V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
