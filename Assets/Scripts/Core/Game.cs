@@ -1974,6 +1974,9 @@ namespace Arena
                             var pw = Practice.Waves[PracticeIndex];
                             Wave = Math.Max(1, pw.Level);
                             BuildPracticeWave(pw);
+                            var pm = Proto.Begin(Msg.PracticeWave);  // so everyone's HUD shows which practice wave this is
+                            pm.Write(PracticeIndex);
+                            session.Broadcast(Proto.End(pm));
                             var boss = Array.Find(PracticePlan.Choices, t => Defs.Get(t).IsBoss && pw.Counts.ContainsKey(t) && pw.Counts[t] > 0);
                             bossName = Defs.Get(boss).IsBoss ? PracticePlan.NameOf(boss) : null;
                         }
@@ -2952,6 +2955,9 @@ namespace Arena
                 return;
             switch (type)
             {
+                case Msg.PracticeWave:
+                    PracticeIndex = r.ReadInt32();
+                    break;
                 case Msg.Spawn:
                 {
                     int n = r.ReadInt32();

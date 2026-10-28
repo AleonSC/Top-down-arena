@@ -14,6 +14,7 @@ namespace Arena
         // added later; kept at the end so existing values don't shift
         Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest, Ping, Pong,
         DevStats, SetKey, Sound,
+        Practice, PracticeEdit, PracticeWave,  // the lobby's Practice Range setup; a client's edit to it; the practice wave being fought
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -61,7 +62,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 49;
+        public const int ProtocolVersion = 50;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -76,6 +77,15 @@ namespace Arena
         public int Port = DefaultPort;
         public readonly SortedDictionary<int, LobbyEntry> Lobby = new SortedDictionary<int, LobbyEntry>();
         public readonly Game Game;
+
+        // Lobby mode (host decides; everyone sees it). In Practice Range mode the match plays Plan's waves
+        // instead of a normal run. The host can let the others edit the plan too.
+        public bool PracticeMode;
+        public PracticePlan Plan = PracticePlan.Default();
+        public bool OthersCanEdit;
+        public string PlanEditor = "";  // who made the last change
+        public int PlanEditorSel;       // the wave they were working on
+        public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
 
         // Testing helpers (see the README's command-line flags).
         public int AutoStart;
@@ -151,6 +161,8 @@ namespace Arena
         {
             Game.Stop();
             Game.Practice = null;
+            PracticeMode = false;
+            OthersCanEdit = false;
             if (Net != null)
                 Net.Close();
             Net = null;
@@ -256,6 +268,7 @@ namespace Arena
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
                     BroadcastLobby();
+                    BroadcastPractice();
                     if (AutoStart > 0 && Lobby.Count >= AutoStart)
                         StartMatch();
                     break;
@@ -293,6 +306,22 @@ namespace Arena
                 case Msg.Reroll:
                     Game.HostReroll(peer);
                     break;
+                case Msg.PracticeEdit:
+                {
+                    string text = r.ReadString();
+                    int sel = r.ReadInt32();
+                    LobbyEntry who;
+                    if (!OthersCanEdit || Game.Running || !Lobby.TryGetValue(peer, out who))
+                    {
+                        BroadcastPractice();  // put their copy back the way it is
+                        break;
+                    }
+                    List<string> problems;
+                    var plan = PracticePlan.Parse(text, out problems);
+                    if (plan.Waves.Count > 0)
+                        ApplyPractice(plan, who.Name, sel);
+                    break;
+                }
                 case Msg.Ping:  // echo it straight back so the client can time the round trip
                 {
                     var w = Proto.Begin(Msg.Pong);
@@ -434,6 +463,77 @@ namespace Arena
             Broadcast(Proto.End(w));
         }
 
+        // --- Practice Range (lobby) ----------------------------------------------
+
+        /// Host: switch the lobby between a normal run and the Practice Range.
+        public void SetPracticeMode(bool on)
+        {
+            if (!IsHost || Game.Running)
+                return;
+            PracticeMode = on;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;  // what you're readying up for changed
+            BroadcastLobby();
+            BroadcastPractice();
+        }
+
+        /// Host: whether the other players can edit the practice waves.
+        public void SetOthersCanEdit(bool on)
+        {
+            if (!IsHost)
+                return;
+            OthersCanEdit = on;
+            BroadcastPractice();
+        }
+
+        /// Can this player change the practice waves right now?
+        public bool CanEditPractice => !Game.Running && (IsHost || OthersCanEdit);
+
+        /// You changed the practice plan (Plan, edited in place): the host shares it; a client sends it to the
+        /// host, who shares it with everyone (or puts it back if editing isn't allowed).
+        public void PracticeEdited(int sel)
+        {
+            if (!CanEditPractice)
+                return;
+            LobbyEntry me;
+            string name = Lobby.TryGetValue(MyId, out me) ? me.Name : "";
+            if (IsHost)
+            {
+                ApplyPractice(Plan, name, sel);
+                return;
+            }
+            PlanEditor = name;
+            PlanEditorSel = sel;
+            PlanRevision++;
+            var w = Proto.Begin(Msg.PracticeEdit);
+            w.Write(Plan.ToText());
+            w.Write(sel);
+            SendToHost(Proto.End(w));
+        }
+
+        /// Host: replace the plan (a load, or a client's edit) and share it.
+        public void ApplyPractice(PracticePlan plan, string editor, int sel)
+        {
+            if (!IsHost)
+                return;
+            Plan = plan;
+            PlanEditor = editor;
+            PlanEditorSel = sel;
+            PlanRevision++;
+            BroadcastPractice();
+        }
+
+        void BroadcastPractice()
+        {
+            var w = Proto.Begin(Msg.Practice);
+            w.Write(PracticeMode);
+            w.Write(OthersCanEdit);
+            w.Write(Plan.ToText());
+            w.Write(PlanEditor ?? "");
+            w.Write(PlanEditorSel);
+            Broadcast(Proto.End(w));
+        }
+
         /// From the lobby the match only starts once everyone is ready ("Play again" after
         /// a run starts straight away; AutoStart is for tests).
         public void StartMatch()
@@ -444,6 +544,7 @@ namespace Arena
                 return;
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // ready up again next time you're back in the lobby
+            Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.HostStart();
         }
 
@@ -586,7 +687,23 @@ namespace Arena
                 }
                 case Msg.ToLobby:
                     Game.Stop();
+                    Game.Practice = null;
                     Screen = AppScreen.Lobby;
+                    break;
+                case Msg.Practice:
+                {
+                    PracticeMode = r.ReadBoolean();
+                    OthersCanEdit = r.ReadBoolean();
+                    List<string> problems;
+                    Plan = PracticePlan.Parse(r.ReadString(), out problems);
+                    PlanEditor = r.ReadString();
+                    PlanEditorSel = r.ReadInt32();
+                    PlanRevision++;
+                    break;
+                }
+                case Msg.Start:
+                    Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
+                    Game.OnHostMessage(type, r);
                     break;
                 default:
                     Game.OnHostMessage(type, r);

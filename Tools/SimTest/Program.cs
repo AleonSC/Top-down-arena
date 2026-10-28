@@ -1126,6 +1126,61 @@ static class Program
 
     // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
     // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void PracticeLobbyTest(float dt)
+    {
+        // The Practice Range lives in the lobby: everyone sees the setup, and the host decides who can edit it.
+        int port = nextPort++;
+        var host = new Session();
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Sync();
+        List<string> problems;
+        host.SetPracticeMode(true);
+        host.Plan = PracticePlan.Parse("wave 4: Grunt x3\nwave 10: The Warden x1", out problems);
+        host.PracticeEdited(1);
+        Sync();
+        Check(client.PracticeMode && client.Plan.ToText() == host.Plan.ToText() && client.PlanEditor == "Host" && client.PlanEditorSel == 1 && !client.CanEditPractice,
+            "the lobby shows everyone the host's practice waves as they change (and which wave they're on)");
+
+        // A friend's edit is undone unless the host lets them edit.
+        string before = host.Plan.ToText();
+        client.Plan.Waves[0].Counts[EnemyType.Sniper] = 5;
+        typeof(Session).GetMethod("PracticeEdited").Invoke(client, new object[] { 0 });  // the UI wouldn't even offer it
+        var w = Proto.Begin(Msg.PracticeEdit); w.Write(client.Plan.ToText()); w.Write(0); client.SendToHost(Proto.End(w));
+        Sync();
+        Check(host.Plan.ToText() == before && client.Plan.ToText() == before, "without the host's OK, a friend's edits are put back");
+
+        host.SetOthersCanEdit(true);
+        Sync();
+        client.Plan.Waves[0].Counts[EnemyType.Sniper] = 5;
+        client.Plan.Waves.Add(new PracticeWave { Level = 7 });
+        client.PracticeEdited(2);
+        Sync();
+        Check(client.CanEditPractice && host.Plan.Waves.Count == 3 && host.Plan.Waves[0].Counts[EnemyType.Sniper] == 5 && host.PlanEditor == "Friend" && host.PlanEditorSel == 2,
+            "with Let others edit on, a friend's changes reach the host");
+
+        // Starting plays the plan for everyone; the HUD knows which practice wave it is.
+        host.Plan = PracticePlan.Parse("wave 2: Grunt x1\nwave 3: Swarmer x2", out problems);
+        host.PracticeEdited(0);
+        Sync();
+        host.RequestReady(true);
+        client.RequestReady(true);
+        Sync();
+        host.StartMatch();
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        host.Game.DevSetGod(1, true); host.Game.DevSetGod(2, true);
+        Run(s, dt, 15f, () => host.Game.State == MatchState.Fighting && host.Game.PracticeIndex == 1 && client.Game.PracticeIndex == 1,
+            () => { foreach (var e in host.Game.Enemies.Values) e.Hp = 0f; foreach (var p in host.Game.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } });
+        Check(client.Game.Practice != null && client.Game.Practice.Waves.Count == 2 && client.Game.PracticeIndex == 1 && host.Game.PracticeIndex == 1,
+            "a practice match plays the lobby's waves, and everyone's HUD follows which one it is");
+        host.Leave("");
+        client.Leave("");
+    }
+
     static void PracticeTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -1155,7 +1210,8 @@ static class Program
         var host = new Session { AutoStart = 1 };
         host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Knight);
         var g = host.Game;
-        g.Practice = PracticePlan.Parse(text, out problems);
+        host.PracticeMode = true;
+        host.Plan = PracticePlan.Parse(text, out problems);
         host.StartMatch();
         g.DevSetGod(1, true);
         Action<float, Func<bool>> Solo = (secs, stop) =>
@@ -1201,7 +1257,8 @@ static class Program
         host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Soldier);
         g = host.Game;
         var loop = PracticePlan.Parse("loop: yes\nwave 1: Grunt x1\n", out problems);
-        g.Practice = loop;
+        host.PracticeMode = true;
+        host.Plan = loop;
         host.StartMatch();
         g.DevSetGod(1, true);
         int fights = 0;
@@ -1216,7 +1273,8 @@ static class Program
         });
         Check(fights >= 3 && g.State != MatchState.Victory && g.PracticeIndex == 0, "a looping practice plan keeps going round");
         host.Leave("");
-        Check(host.Game.Practice == null, "leaving clears the practice plan, so the next run is a normal one");
+        Check(host.Game.Practice == null && !host.PracticeMode, "leaving clears the practice plan, so the next run is a normal one");
+        PracticeLobbyTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;

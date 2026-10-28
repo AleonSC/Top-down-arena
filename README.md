@@ -323,6 +323,35 @@ bosses come back around, tougher each time.
 | 45 | **The Devourer** | Gets **hungry** for 3 s of every 10: your shots **heal** it, so stop shooting |
 | 50 | **The Eclipse** | Final boss in 3 phases: spirals and rings → gravity wells and phantoms → lightning storms and a frantic spiral |
 
+## Practice Range
+
+In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range
+plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves as usual.
+
+- **Practice waves** tab: add as many waves as you like (**+ Add**, **Copy**, **Remove**). Each has a **level**
+  (1-50) that sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
+  Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
+- **Enemies:** every one of the 17 regular enemies and 10 bosses is shown moving, as in a match, so you don't
+  need to know their names. Click one to add it to the selected wave, right-click (or its corner **-**) to take
+  one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
+  as a pair.
+- **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
+  they're working on (players who can't edit follow along to it). The host can tick **Let others edit** so
+  friends can change the waves too.
+- Everyone keeps their own loadout (the **Your loadout** tab).
+- **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
+  sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
+
+  ```
+  # Top-Down Arena practice setup: warden drills
+  loop: no
+  wave 5: Grunt x4, Sniper x2
+  wave 10: The Warden x1, Medic x2
+  ```
+
+  One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
+  ignore case and "The". Unknown names are skipped and listed when you load.
+
 ## Controls
 
 | | |
@@ -459,30 +488,6 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Practice Range (F1)
-
-**F1 → Practice Range** lets you build your own waves and play them.
-
-- **Waves** (left): add as many as you like (**+ Add**, **Copy**, **Remove**). Each has a **level** (1-50) that
-  sets how strong its enemies are: their health and fire rate as on that wave of a normal run. Tick **Loop the
-  waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
-- **Enemies** (right): pick how many of each of the 17 regular enemies and 10 bosses are in the selected wave
-  (up to 99 each). Bosses spawn first and bring their usual adds; the Twin Reapers come as a pair.
-- **Your loadout:** role, class, weapon and ability. You play solo, with upgrade picks between waves as usual.
-  Starting practice leaves any match you're in.
-- **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
-  sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
-
-  ```
-  # Top-Down Arena practice setup: warden drills
-  loop: no
-  wave 5: Grunt x4, Sniper x2
-  wave 10: The Warden x1, Medic x2
-  ```
-
-  One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
-  ignore case and "The". Unknown names are skipped and listed when you load.
-
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
@@ -530,6 +535,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
+  - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with live character previews) and the Practice Range editor
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types

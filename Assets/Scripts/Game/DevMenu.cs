@@ -68,9 +68,6 @@ namespace Arena
                 devMenuOpen = false;
                 labSetupOpen = true;
             }
-            y += 38f;
-            if (Ui.Button(new Rect(x, y, w, 32f), "Practice Range: build your own waves", Ui.GoldButton))
-                OpenPractice();
             return y + 38f;
         }
 

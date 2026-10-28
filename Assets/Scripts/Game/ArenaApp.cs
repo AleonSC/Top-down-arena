@@ -55,6 +55,9 @@ namespace Arena
         Material glMaterial;
         float scale = 1f, offX, offY;  // UI canvas -> screen pixels (top-left origin)
         float drawScale = 1f;          // GL coordinates -> screen pixels: the arena in a match, the UI canvas on menus
+        float glZoom = 1f;             // menu previews (LobbyUi.cs): a model drawn around (0, 0), scaled by glZoom
+        V2 glShift;                    //   and moved to glShift on the UI canvas
+        bool menuPreview;              // drawing an enemy for a menu tile (keeps it easy to see)
         GUIStyle labelStyle;  // base for the HUD's labels; menus use Ui
         string addressList;
 
@@ -190,16 +193,9 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 devMenuOpen = !devMenuOpen;
-                practiceSetupOpen = false;
                 GUIUtility.keyboardControl = 0;
             }
-            bool closedPractice = false;
-            if (Input.GetKeyDown(KeyCode.Escape) && practiceSetupOpen)
-            {
-                practiceSetupOpen = false;
-                closedPractice = true;
-            }
-            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen || practiceSetupOpen;
+            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
@@ -256,11 +252,7 @@ namespace Arena
 
             if (session.Screen == AppScreen.Game)
             {
-                if (closedPractice)
-                {
-                    // this Escape closed the Practice Range setup
-                }
-                else if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
+                if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
@@ -1076,7 +1068,7 @@ namespace Arena
                     Circle(pos, r * 1.6f, new Rgba(0.05f, 0f, 0.1f, 0.9f), 40);  // dark core halo
                     break;
                 case EnemyType.Phantom:
-                    col = col.WithAlpha(0.45f + 0.35f * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
+                    col = col.WithAlpha((menuPreview ? 0.75f : 0.45f) + (menuPreview ? 0.2f : 0.35f) * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
                     break;
                 case EnemyType.Juggernaut:
                     Arc(pos, r + 4f, 5f, new Rgba(0.75f, 0.75f, 0.8f, 0.9f), 8);  // armor plating
@@ -1304,7 +1296,7 @@ namespace Arena
             }
         }
 
-        void DrawPlayer(Player p, float t)
+        void DrawPlayer(Player p, float t, bool preview = false)
         {
             float r = p.Def.BodyR;
             Rgba col = p.Def.Color;
@@ -1349,7 +1341,8 @@ namespace Arena
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
 
-            Bar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f));
+            if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
+                Bar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f));
             if (p.Downed)
                 Arc(p.Disp, r + 8f, 4f, new Rgba(0.4f, 1f, 0.5f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(p.Revive, 0.01f));
         }
@@ -1425,7 +1418,37 @@ namespace Arena
 
         // --- GL primitives (arena coordinates; everything is triangles) -------
 
-        Vector3 Px(V2 p) => new Vector3(offX + p.X * drawScale, UnityEngine.Screen.height - (offY + p.Y * drawScale), 0f);
+        Vector3 Px(V2 p) => new Vector3(offX + (glShift.X + p.X * glZoom) * drawScale, UnityEngine.Screen.height - (offY + (glShift.Y + p.Y * glZoom) * drawScale), 0f);
+
+        /// Start drawing game models (GL) on top of the menus, in UI canvas coordinates. IMGUI draws in order
+        /// on Repaint, so models land above the panels drawn before and below those drawn after. Returns
+        /// false (draw nothing) on other events. Always pair with EndUiGl.
+        bool BeginUiGl()
+        {
+            if (Event.current.type != EventType.Repaint || glMaterial == null)
+                return false;
+            glMaterial.SetPass(0);
+            GL.PushMatrix();
+            GL.LoadPixelMatrix();
+            GL.Begin(GL.TRIANGLES);
+            drawScale = scale;
+            return true;
+        }
+
+        void EndUiGl()
+        {
+            GL.End();
+            GL.PopMatrix();
+            glZoom = 1f;
+            glShift = V2.Zero;
+        }
+
+        /// Models drawn next sit around (0, 0), scaled by zoom and centred on `at` (UI canvas).
+        void UiModelAt(V2 at, float zoom)
+        {
+            glShift = at;
+            glZoom = zoom;
+        }
 
         static void SetColor(Rgba c) => GL.Color(new Color(c.R, c.G, c.B, c.A));
 
@@ -1542,7 +1565,7 @@ namespace Arena
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
-            bool modal = labSetupOpen || devMenuOpen || practiceSetupOpen;
+            bool modal = labSetupOpen || devMenuOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
@@ -1561,13 +1584,11 @@ namespace Arena
                     DrawHud();
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen && !practiceSetupOpen)
+                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen)
                         DrawPauseMenu();
                     break;
             }
-            if (practiceSetupOpen)
-                DrawPracticeSetup();
-            else if (labSetupOpen)
+            if (labSetupOpen)
                 DrawLabSetup();
             else if (devMenuOpen)
                 DrawDevMenu();
@@ -1782,171 +1803,6 @@ namespace Arena
                 case Kit.Knight: return "Melee: swings cut small bullets out of the air. Armoured: 115% health.";
                 default: return "Guns and gear. Full health.";
             }
-        }
-
-        void DrawLobby()
-        {
-            Ui.Title(new Rect(40f, 22f, 600f, 50f), "LOBBY", 40, Color.white, TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(W - 440f, 30f, 400f, 20f), Session.VersionText, 12, Ui.Muted, TextAnchor.MiddleRight);
-            LobbyEntry me;
-            session.Lobby.TryGetValue(session.MyId, out me);
-
-            // Left column: who's here and how to connect.
-            float lx = 40f, lw = 420f, y = 92f;
-            Ui.Heading(lx, y, lw, "Players");
-            y += 32f;
-            foreach (var e in session.Lobby.Values)
-            {
-                DrawPlayerCard(new Rect(lx, y, lw, 88f), e);
-                y += 96f;
-            }
-            if (session.Lobby.Count < Session.MaxPlayers)
-            {
-                var empty = new Rect(lx, y, lw, 56f);
-                Ui.Fill(empty, new Color(1f, 1f, 1f, 0.03f));
-                Ui.Label(empty, session.Lobby.Count == 1 ? "Waiting for friends to join (up to 2)…" : "Room for one more (optional)", 15, Ui.Muted, TextAnchor.MiddleCenter);
-                y += 64f;
-            }
-            y += 8f;
-            Ui.Heading(lx, y, lw, session.IsHost ? "Friends join with" : "Connection");
-            y += 30f;
-            if (session.IsHost)
-            {
-                Ui.Label(new Rect(lx, y, lw, 20f), "Port " + session.Port + " and one of these addresses:", 13, Ui.Muted);
-                y += 24f;
-                float bx = lx;
-                foreach (var addr in (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    float bw = 14f + addr.Length * 8.5f;
-                    if (bx + bw > lx + lw)
-                    {
-                        bx = lx;
-                        y += 30f;
-                    }
-                    Ui.Badge(new Rect(bx, y, bw, 24f), addr, addr.StartsWith("100.") ? Ui.Accent : Ui.Neutral);
-                    bx += bw + 8f;
-                }
-                y += 32f;
-                Ui.Label(new Rect(lx, y, lw, 20f), "Blue = Tailscale address", 12, Ui.Muted);
-            }
-            else
-                Ui.Label(new Rect(lx, y, lw, 20f), "Connected. Click Ready, then the host starts.", 14, Ui.Good);
-            if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, H - 150f, lw, 60f), session.Status, 13, Ui.Warn, TextAnchor.UpperLeft, false, true);
-
-            // Right column: your loadout.
-            if (me != null)
-                DrawLoadout(me, new Rect(500f, 92f, W - 540f, 520f));
-
-            // Bottom bar.
-            if (Ui.Button(new Rect(40f, H - 76f, 180f, 48f), "Leave", Ui.Danger))
-                session.Leave("");
-            // Everyone readies up; then the host can start.
-            bool ready = me != null && me.Ready;
-            float readyX = session.IsHost ? W - 580f : W - 300f;
-            if (Ui.Button(new Rect(readyX, H - 76f, 260f, 48f), ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary))
-                session.RequestReady(!ready);
-            int waiting = 0;
-            foreach (var e in session.Lobby.Values)
-                if (!e.Ready)
-                    waiting++;
-            string note = waiting == 0 ? (session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start")
-                : waiting == 1 && !ready ? "Click Ready when your loadout is set" : "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up";
-            Ui.Label(new Rect(240f, H - 76f, readyX - 260f, 48f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
-            if (session.IsHost)
-            {
-                bool wasEnabled = GUI.enabled;
-                GUI.enabled = session.AllReady;
-                if (Ui.Button(new Rect(W - 300f, H - 76f, 260f, 48f), session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)", Ui.Primary))
-                    session.StartMatch();
-                GUI.enabled = wasEnabled;
-            }
-        }
-
-        void DrawPlayerCard(Rect r, LobbyEntry e)
-        {
-            var color = ToColor(Defs.Get(e.Role).Color);
-            Ui.Panel(r, e.Id == session.MyId);
-            Ui.Fill(new Rect(r.x + 3f, r.y + 10f, 4f, r.height - 20f), color);
-            Ui.Label(new Rect(r.x + 20f, r.y + 10f, r.width - 140f, 28f), e.Name, 20, Color.white, TextAnchor.MiddleLeft, true);
-            float bx = r.xMax - 16f;
-            if (e.Id == session.MyId)
-            {
-                bx -= 48f;
-                Ui.Badge(new Rect(bx, r.y + 12f, 48f, 22f), "YOU", Ui.Accent);
-            }
-            if (e.Id == 1)
-            {
-                bx -= 58f;
-                Ui.Badge(new Rect(bx, r.y + 12f, 52f, 22f), "HOST", Ui.GoldButton);
-            }
-            // Ready state, bottom right of the card.
-            Ui.Badge(new Rect(r.xMax - 104f, r.yMax - 32f, 88f, 22f), e.Ready ? "READY" : "NOT READY", e.Ready ? new Color(0.2f, 0.6f, 0.32f) : Ui.Neutral);
-            Ui.Label(new Rect(r.x + 20f, r.y + 40f, r.width - 40f, 22f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 15, color, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 20f, r.y + 62f, r.width - 130f, 22f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 13, Ui.Muted);
-        }
-
-        void DrawLoadout(LobbyEntry me, Rect r)
-        {
-            Ui.Panel(r);
-            float x = r.x + 24f, w = r.width - 48f, y = r.y + 18f;
-            const float gap = 10f;
-            float third = (w - gap * 2f) / 3f;
-            var roleColor = ToColor(Defs.Get(me.Role).Color);
-
-            Ui.Heading(x, y, w, "Role");
-            for (int i = 0; i < Defs.Roles.Length; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.Roles[i].Name, (int)me.Role == i, ToColor(Defs.Roles[i].Color)))
-                {
-                    session.RequestRole((Role)i);
-                    hostRole = (Role)i;
-                    joinRole = (Role)i;
-                    weaponChoice = 0;
-                    abilityChoice = 0;
-                }
-            Ui.Label(new Rect(x, y + 70f, w, 20f), Defs.Get(me.Role).Desc + "  " + (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit)) + " HP.", 13, Ui.Muted);
-            y += 100f;
-
-            Ui.Heading(x, y, w, "Class");
-            float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
-            for (int i = 0; i < Defs.KitCount; i++)
-                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 38f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor))
-                {
-                    session.RequestKit((Kit)i);
-                    kitChoice = (Kit)i;
-                    weaponChoice = 0;
-                    abilityChoice = 0;
-                }
-            Ui.Label(new Rect(x, y + 70f, w, 20f), KitBlurb(me.Kit), 13, Ui.Muted);
-            y += 100f;
-
-            Ui.Heading(x, y, w, "Weapon");
-            for (int i = 0; i < Defs.WeaponsPerRole; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor))
-                {
-                    session.RequestWeapon(i);
-                    weaponChoice = i;
-                }
-            Ui.Label(new Rect(x, y + 70f, w, 36f), Defs.Weapon(me.Role, me.Kit, me.Weapon).Desc, 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y += 110f;
-
-            Ui.Heading(x, y, w, "Ability  (Space)");
-            for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 38f), Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor))
-                {
-                    session.RequestAbility(i);
-                    abilityChoice = i;
-                }
-            var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
-            Ui.Label(new Rect(x, y + 70f, w, 40f), ability.Desc + "  (" + ability.Cooldown.ToString("0.#") + " s cooldown)", 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y += 108f;
-
-            // The ultimate comes with the role and class; it can't be picked.
-            var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
-            Ui.Heading(x, y, w, "Ultimate  (F)");
-            Ui.Label(new Rect(x, y + 26f, w, 20f), ult.Name, 15, Ui.Gold, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 150f, y + 26f, w - 150f, 36f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
         }
 
         static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT", "F" };
