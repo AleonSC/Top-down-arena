@@ -181,6 +181,7 @@ namespace Arena
             w.Write((byte)PathOffer[0]);
             w.Write((byte)PathOffer[1]);
             session.Broadcast(Proto.End(w));
+            Recorder?.PathOffered(this, PathOffer);
             DoLog("paths offered: " + PathOffer[0] + " / " + PathOffer[1]);
         }
 
@@ -197,6 +198,7 @@ namespace Arena
             Route.Add(CurrentPath);
             lastPath = CurrentPath;
             BroadcastPath();
+            Recorder?.PathChosen(CurrentPath);
             Sounds.Add(Sfx.Pick);
             DoLog("path: " + PathName(CurrentPath) + " for waves " + PathFrom + "-" + PathTo);
         }
@@ -250,6 +252,7 @@ namespace Arena
                 }
             }
             DoLog(d.Name + " complete: " + Paths.PrizeText(d.Danger));
+            Recorder?.PathFinished(Paths.PrizeText(d.Danger));
             CurrentPath = PathId.None;
             BroadcastPath();
         }
@@ -415,7 +418,7 @@ namespace Arena
                     if (pt.Kind == PatchKind.Heal)
                     {
                         if (!p.Downed)
-                            Heal(p, Paths.PoolHeal * Paths.PatchTick, null);
+                            Heal(p, Paths.PoolHeal * Paths.PatchTick, null, "Sanctuary pools");
                     }
                     else if (!p.Downed && p.InvulnT <= 0f)
                         Damage(p, Paths.FirePlayerDps(Wave) * Paths.PatchTick, "Burning Grounds");
@@ -423,7 +426,10 @@ namespace Arena
                 if (pt.Kind == PatchKind.Fire)
                     foreach (var e in Enemies.Values)
                         if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.DistanceTo(pt.Pos) < r + e.Radius)
+                        {
+                            Recorder?.HazardDamage(Math.Min(Paths.FireEnemyDps(Wave) * Paths.PatchTick, Math.Max(0f, e.Hp)));
                             HurtEnemy(e, Paths.FireEnemyDps(Wave) * Paths.PatchTick, 0);
+                        }
             }
         }
 

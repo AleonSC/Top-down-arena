@@ -588,14 +588,21 @@ keeps everything up to the last cleared wave.
 
 Each file records:
 
-- the team (role, class, weapon, ability, ultimate), party size, start wave, and how it ended
-- **per wave:** length, enemies spawned and killed by type, and per player: damage dealt (and to bosses),
-  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing,
-  health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
+- the team (role, class, weapon, ability, ultimate), party size, start wave, the mode (run or Practice Range),
+  run modifiers, and how it ended (a run continued into endless mode records its real end, marked "(endless)")
+- each player's final level and the abilities they ended with, at their mastery levels
+- **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to
+  enemies (Burning Grounds' fire), and per player: damage dealt (and to bosses),
+  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing done,
+  healing received **broken down by source** (allies, own abilities, regeneration, lifesteal, heal on kill,
+  orbs, Sanctuary pools, Blood Moon), health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
   and parry blocks / perfect parries / breaks
 - **per boss:** health, time to kill, each player's damage, damage players took and downs during the fight
 - **every down** (who, when, what did it), **every upgrade pick** (the cards offered and the one taken) and rerolls
 - **per enemy type:** spawned, killed, average lifetime and damage dealt to players
+- **every path choice:** the two paths offered after each boss, the one taken (or the plain arena) and its prize
+- **dev tool use** (god mode, stat edits, healing, level-ups, mastering, wave jumps, the bot playing for the host),
+  so runs that weren't plain play can be told apart
 - a **sample every 5 s** of everyone's health, enemies and bullets on screen
 
 Summarize one run or a whole folder of them (needs Python 3):
@@ -605,8 +612,10 @@ python Tools/SessionReport/report.py path/to/sessions
 ```
 
 It prints boss kill rates and times, difficulty by wave (damage taken, downs, time at low health), what
-downs players, where damage comes from, the most dangerous enemies per spawn, upgrade pick rates, ability
-and parry use, and how each class and role performs.
+downs players, where damage and healing come from, how each path plays (damage taken, healing, downs, how
+often it's offered and taken), the most dangerous enemies per spawn, upgrade pick rates, ability use and
+mastery, parry use, and how each class and role performs. Runs that used dev tools are flagged, and Practice
+Range sessions are left out of the tables unless you add `--practice`.
 
 `Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
 that level up and pick upgrades at random, and prints how long each boss survived.

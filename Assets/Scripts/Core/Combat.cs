@@ -545,7 +545,7 @@ namespace Arena
                         killer.Run.BossKills++;
                 }
                 if (killer != null && e.Def.Xp > 0 && OnPathOf(PathId.BloodMoon))
-                    Heal(killer, Paths.BloodMoonHeal(Wave), null);  // Blood Moon: the hunt keeps you alive
+                    Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
                 DropOrbs(e, bossReward);
@@ -602,6 +602,7 @@ namespace Arena
                 {
                     float heal = Math.Min(s.Lifesteal, p.LifestealPool);
                     p.LifestealPool -= heal;
+                    Recorder?.HealReceived(p, Math.Min(heal, p.MaxHp - p.Hp), "lifesteal");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + heal);
                 }
                 if (s.SlowOnHit > 0f)
@@ -703,7 +704,10 @@ namespace Arena
                 return;
             var s = p.Stats;
             if (s.KillHeal > 0f && !p.Downed)
+            {
+                Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
+            }
             for (int i = 0; i < s.KillRing; i++)
             {
                 V2 d = V2.FromAngle(MathX.Tau * i / s.KillRing);

@@ -12,16 +12,22 @@ namespace Arena
     /// the end. Tools/SessionReport/report.py summarizes one or many of them.
     public class SessionRecorder
     {
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;  // 2: mode, endless, paths, dev tools, healing received, final loadouts
         public readonly string Path;
         public bool Ended { get; private set; }
 
-        class PlayerInfo { public int Id; public string Name, Role, Kit, Weapon, Ability, Ultimate; }
+        class PlayerInfo
+        {
+            public int Id, Level;
+            public string Name, Role, Kit, Weapon, Ability, Ultimate;
+            public readonly Dictionary<string, int> Mastery = new Dictionary<string, int>();  // the abilities they ended with, and their levels
+        }
 
         class PlayerWave
         {
             public float DmgDealt, DmgToBosses, DmgTaken, Healing, OrbHealing, LowHpTime, HpStart, HpEnd, MaxHp;
-            public float ParryBlocked;
+            public float ParryBlocked, HealingReceived;
+            public readonly Dictionary<string, float> HealedBy = new Dictionary<string, float>();
             public int Downs, Revives, Kills, ParryPerfect, ParryBreaks, LevelEnd, Orbs;
             public readonly Dictionary<string, float> TakenBy = new Dictionary<string, float>();
             public readonly Dictionary<string, int> Abilities = new Dictionary<string, int>();
@@ -34,6 +40,7 @@ namespace Arena
             public string Path;  // the divergent path this wave was played on (null on the plain arena)
             public float Start, End = -1f;
             public int Elites;
+            public float HazardDamage;  // damage the floor did to enemies (Burning Grounds' fire)
             public readonly Dictionary<string, int> Spawned = new Dictionary<string, int>(), Killed = new Dictionary<string, int>();
             public readonly Dictionary<int, PlayerWave> Players = new Dictionary<int, PlayerWave>();
         }
@@ -51,6 +58,8 @@ namespace Arena
 
         class PickRec { public int Player, Wave, Level, RerollsLeft; public string Kind, Picked; public string[] Offered; }
         class DownRec { public int Player, Wave; public float Time; public string Source; }
+        class PathRec { public int AfterWave; public string[] Offered; public string Chosen, Prize; }
+        class DevRec { public float Time; public int Wave; public string What; }
         class Sample { public float Time; public int Wave, Enemies, Bullets; public Dictionary<int, float> Hp = new Dictionary<int, float>(); }
 
         readonly List<PlayerInfo> players = new List<PlayerInfo>();
@@ -63,6 +72,10 @@ namespace Arena
         readonly List<DownRec> downs = new List<DownRec>();
         readonly List<Sample> samples = new List<Sample>();
         readonly Dictionary<int, int> rerolls = new Dictionary<int, int>();
+        readonly List<PathRec> paths = new List<PathRec>();
+        readonly List<DevRec> devUses = new List<DevRec>();
+        string mode = "run";
+        bool endless, fighting, lastBot;
         readonly DateTime started = DateTime.Now;
         int playerCount, startWave;
         string modifiers = "";
@@ -106,6 +119,10 @@ namespace Arena
         public void Begin(Game g, int startWaveNumber)
         {
             startWave = startWaveNumber;
+            mode = g.Practice != null ? "practice" : "run";
+            lastBot = g.Bot;
+            if (g.Bot)
+                Dev(g, "bot plays for the host: on");
             modifiers = string.Join(", ", Modifiers.Names(g.Mods).ToArray());
             playerCount = g.Players.Count;
             foreach (var p in g.Players.Values)
@@ -120,7 +137,13 @@ namespace Arena
         public void Tick(Game g, float dt)
         {
             now = g.RunTime;
-            if (g.State != MatchState.Fighting)
+            if (g.Bot != lastBot)
+            {
+                lastBot = g.Bot;
+                Dev(g, "bot plays for the host: " + (g.Bot ? "on" : "off"));
+            }
+            fighting = g.State == MatchState.Fighting;
+            if (!fighting)
                 return;
             foreach (var p in g.Players.Values)
                 if (!p.Downed && p.Hp < p.MaxHp * 0.25f)
@@ -164,7 +187,32 @@ namespace Arena
                 pw.MaxHp = p.MaxHp;
                 pw.LevelEnd = p.Level;
             }
+            UpdateLoadouts(g);
             Save();
+        }
+
+        /// Each player's level and abilities (with mastery) as they stand, so a crash still keeps the latest.
+        void UpdateLoadouts(Game g)
+        {
+            foreach (var info in players)
+            {
+                Player p;
+                if (!g.Players.TryGetValue(info.Id, out p))
+                    continue;
+                info.Level = p.Level;
+                info.Mastery.Clear();
+                foreach (var slot in p.Slots)
+                    if (slot.Id != AbilityId.None)
+                        info.Mastery[Upgrades.Ability(slot.Id).Name] = Game.MasteryLevel(p, slot.Id);
+            }
+        }
+
+        /// The host kept going past wave 50: the run is open again, so its real end gets recorded.
+        public void ContinueEndless()
+        {
+            Ended = false;
+            endless = true;
+            outcome = "in progress";
         }
 
         public void End(Game g, string how)
@@ -173,7 +221,7 @@ namespace Arena
                 return;
             WaveEnd(g);
             Ended = true;
-            outcome = how;
+            outcome = endless ? how + " (endless)" : how;
             endWave = g.Wave;
             endTime = g.RunTime;
             endScore = g.Score;
@@ -242,6 +290,12 @@ namespace Arena
                 Add(b.DmgBy, attacker, amount);
         }
 
+        public void HazardDamage(float amount)
+        {
+            if (Current != null && amount > 0f)
+                Current.HazardDamage += amount;
+        }
+
         public void DamageTaken(Player p, float amount, string source)
         {
             if (amount <= 0f)
@@ -299,6 +353,49 @@ namespace Arena
                 return;
             pw.Orbs++;
             pw.OrbHealing += healed;
+            HealReceived(p, healed, "orbs");
+        }
+
+        /// Healing a player got during a wave, by where it came from (allies, regeneration, lifesteal, a path...).
+        public void HealReceived(Player p, float amount, string source)
+        {
+            if (!fighting || amount <= 0f)
+                return;
+            var pw = Pw(p.Id);
+            if (pw == null)
+                return;
+            pw.HealingReceived += amount;
+            Add(pw.HealedBy, source, amount);
+        }
+
+        public void PathOffered(Game g, PathId[] offer) =>
+            paths.Add(new PathRec { AfterWave = g.Wave, Offered = new[] { Game.PathName(offer[0]), Game.PathName(offer[1]) } });
+
+        public void PathChosen(PathId id)
+        {
+            if (paths.Count > 0 && paths[paths.Count - 1].Chosen == null)
+                paths[paths.Count - 1].Chosen = Game.PathName(id);
+        }
+
+        public void PathFinished(string prize)
+        {
+            if (paths.Count > 0)
+                paths[paths.Count - 1].Prize = prize;
+        }
+
+        /// A dev tool was used (god mode, stat edits, wave jumps, the bot...): the numbers after it aren't plain play.
+        public void Dev(Game g, string what)
+        {
+            // Typing a stat in digit by digit (or holding +) edits the same entry rather than adding one per change.
+            int cut = what.IndexOf(" set to ", StringComparison.Ordinal);
+            var last = devUses.Count > 0 ? devUses[devUses.Count - 1] : null;
+            if (cut > 0 && last != null && g.RunTime - last.Time < 5f && last.What.StartsWith(what.Substring(0, cut + 8), StringComparison.Ordinal))
+            {
+                last.What = what;
+                last.Time = g.RunTime;
+                return;
+            }
+            devUses.Add(new DevRec { Time = g.RunTime, Wave = g.Wave, What = what });
         }
 
         public void AbilityUsed(Player p, AbilityId id)
@@ -354,6 +451,8 @@ namespace Arena
             j.Field("started", started.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
             j.Field("playerCount", playerCount);
             j.Field("startWave", startWave);
+            j.Field("mode", mode);
+            j.Field("endless", endless);
             j.Field("modifiers", modifiers);
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
@@ -366,6 +465,8 @@ namespace Arena
                 j.Field("id", p.Id); j.Field("name", p.Name); j.Field("role", p.Role); j.Field("class", p.Kit);
                 j.Field("weapon", p.Weapon); j.Field("ability", p.Ability); j.Field("ultimate", p.Ultimate);
                 j.Field("rerolls", rerolls.ContainsKey(p.Id) ? rerolls[p.Id] : 0);
+                j.Field("levelEnd", p.Level);
+                j.Key("abilityMastery"); j.Map(p.Mastery);
                 j.Close();
             }
             j.CloseList();
@@ -380,6 +481,7 @@ namespace Arena
                 j.Field("start", w.Start);
                 j.Field("duration", w.End >= 0f ? w.End - w.Start : -1f);
                 j.Field("elites", w.Elites);
+                j.Field("hazardDamageToEnemies", w.HazardDamage);
                 j.Key("spawned"); j.Map(w.Spawned);
                 j.Key("killed"); j.Map(w.Killed);
                 j.Key("players"); j.Open();
@@ -390,6 +492,7 @@ namespace Arena
                     j.Field("damageDealt", pw.DmgDealt); j.Field("damageToBosses", pw.DmgToBosses); j.Field("kills", pw.Kills);
                     j.Field("damageTaken", pw.DmgTaken); j.Key("damageTakenFrom"); j.Map(pw.TakenBy);
                     j.Field("healingDone", pw.Healing); j.Field("orbs", pw.Orbs); j.Field("orbHealing", pw.OrbHealing);
+                    j.Field("healingReceived", pw.HealingReceived); j.Key("healingReceivedFrom"); j.Map(pw.HealedBy);
                     j.Field("downs", pw.Downs); j.Field("revives", pw.Revives); j.Field("lowHpSeconds", pw.LowHpTime);
                     j.Field("hpStart", pw.HpStart); j.Field("hpEnd", pw.HpEnd); j.Field("maxHp", pw.MaxHp); j.Field("levelEnd", pw.LevelEnd);
                     j.Key("abilitiesUsed"); j.Map(pw.Abilities);
@@ -449,6 +552,29 @@ namespace Arena
                     j.Value(o);
                 j.CloseList();
                 j.Field("picked", p.Picked); j.Field("rerollsLeft", p.RerollsLeft);
+                j.Close();
+            }
+            j.CloseList();
+
+            j.Key("paths"); j.OpenList();
+            foreach (var pr in paths)
+            {
+                j.Open();
+                j.Field("afterWave", pr.AfterWave);
+                j.Key("offered"); j.OpenList();
+                foreach (var o in pr.Offered)
+                    j.Value(o);
+                j.CloseList();
+                j.Field("chosen", pr.Chosen); j.Field("prize", pr.Prize);
+                j.Close();
+            }
+            j.CloseList();
+
+            j.Key("devTools"); j.OpenList();
+            foreach (var d in devUses)
+            {
+                j.Open();
+                j.Field("time", d.Time); j.Field("wave", d.Wave); j.Field("what", d.What);
                 j.Close();
             }
             j.CloseList();

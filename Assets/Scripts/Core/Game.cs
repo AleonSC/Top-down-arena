@@ -1277,9 +1277,13 @@ namespace Arena
                     }
                 }
                 if (!OnPathOf(PathId.BloodMoon))  // Blood Moon (Paths.cs): no regeneration
+                {
+                    Recorder?.HealReceived(p, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.MaxHp - p.Hp), "regeneration");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
+                }
                 if (p.Role == Role.Healer)
                 {
+                    Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)

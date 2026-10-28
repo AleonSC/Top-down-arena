@@ -20,8 +20,9 @@ namespace Arena
         public float RunTime;          // seconds of play (pauses excluded)
         public bool RunStatsReady;     // the end-of-run numbers have arrived
 
-        /// Heals a player and credits whoever caused it. Returns the HP actually restored.
-        float Heal(Player target, float amount, Player source)
+        /// Heals a player and credits whoever caused it. Returns the HP actually restored. what names the source
+        /// for session recordings when there's no player behind it (a path's pools, Blood Moon).
+        float Heal(Player target, float amount, Player source, string what = null)
         {
             if (target.Downed || amount <= 0f)
                 return 0f;
@@ -36,6 +37,7 @@ namespace Arena
             if (source != null)
                 source.Run.HealingDone += applied;
             Recorder?.Healed(source, applied);
+            Recorder?.HealReceived(target, applied, what ?? (source == null ? "other" : source == target ? "own abilities" : "allies"));
             return applied;
         }
 

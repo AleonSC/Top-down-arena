@@ -192,7 +192,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
-**This session (Oct 2026), newest first:** Divergent paths, all 4 steps (protocols 57-59): framework and the
+**This session (Oct 2026), newest first:** Session recorder check (format 2): mode (run / practice), endless runs record their real end (they used to stay "victory" at wave 50), path offers/choices/prizes, healing received by source, floor damage to enemies, dev tool use, each player's final abilities and mastery; `report.py` shows paths, healing sources, dev-tool flags and leaves Practice Range sessions out (`--practice` to include) · Divergent paths, all 4 steps (protocols 57-59): framework and the
 Choose-your-path screen, Swarm Fields / Sniper Ridge / Elite Gauntlet, Burning Grounds and Sanctuary (hazard
 patches, bots avoid fire and seek pools), the "no path" option, Frozen Lake (momentum movement in
 `LocalControl`: `iceVel`, `Paths.IceGrip`) and Blood Moon (no orbs/regen, kills heal), Fogbound (client-side
