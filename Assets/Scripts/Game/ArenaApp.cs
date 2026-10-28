@@ -583,6 +583,22 @@ namespace Arena
                 if (!Defs.IsEnemyShot(b.Kind))
                     DrawShotMods(b, t);
                 Rgba c = Defs.BulletColor(b.Kind);
+                if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
+                {
+                    V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
+                    V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;
+                    Line(tail - dir * 10f, tail, 2f, c.WithAlpha(0.25f));                    // faint green streak behind
+                    Line(tail, neck, 2f, new Rgba(0.78f, 0.6f, 0.38f));                      // shaft
+                    SetColor(new Rgba(0.9f, 0.95f, 1f));                                      // head
+                    Tri(tip, neck + side * 3.5f, neck - side * 3.5f);
+                    for (int k = 0; k < 2; k++)                                               // fletching
+                    {
+                        V2 at = tail + dir * (2f + k * 3f);
+                        Line(at, at - dir * 4f + side * 3.5f, 1.5f, c);
+                        Line(at, at - dir * 4f - side * 3.5f, 1.5f, c);
+                    }
+                    continue;
+                }
                 if (b.Kind == Defs.KnightWave)  // a crescent of steel (or light) flying edge-first
                 {
                     float a = b.Vel.Angle;

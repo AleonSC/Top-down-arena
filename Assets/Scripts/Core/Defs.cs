@@ -211,7 +211,8 @@ namespace Arena
             // more player kinds (enemy kinds are 10-19)
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
             KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
-            KnightWave = 30;   // a crescent of steel or light thrown by a swing
+            KnightWave = 30,   // a crescent of steel or light thrown by a swing
+            ArrowShot = 31;    // a Mender's Bow arrow
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -242,6 +243,7 @@ namespace Arena
                 case RockShot: return 6f;
                 case MinionShot: return 3.5f;
                 case KnightWave: return 11f;
+                case ArrowShot: return 4.5f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case PierceShot: return 6.5f;
@@ -287,6 +289,7 @@ namespace Arena
                 case MinionShot: return new Rgba(0.85f, 1f, 0.95f);
                 case KnightSlash:
                 case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
+                case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);

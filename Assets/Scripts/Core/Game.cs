@@ -1540,7 +1540,7 @@ namespace Arena
                     {
                         float a = aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.07f * ((k + 1) / 2));
                         float d = baseDmg * (k == 0 ? 1f : 0.5f);
-                        var b = SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
+                        var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
                         b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
                         b.Pierce += c >= 1f ? 2 : c >= 0.5f ? 1 : 0;
                         if (perfect)

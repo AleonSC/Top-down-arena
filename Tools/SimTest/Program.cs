@@ -787,7 +787,7 @@ static class Program
             for (int f = 0; f < 6 * 60; f++)
             {
                 queue.Clear();
-                me.Pos = from;
+                me.Pos = w.Melee ? center - new V2(Game.MeleeRange(w.Id) * 0.5f + 40f, 0f) : from;  // knights stand in reach
                 ally.Pos = new V2(560f, 300f);
                 foreach (var e in dummies) { e.Speed = 0f; e.FireT = 99f; e.Pos = e.Disp; }
                 foreach (var x in s)
@@ -829,6 +829,7 @@ static class Program
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
                 case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
+                case WeaponId.HolyMace: ok = ratio > 0.9f && a[0] > 0f; break;              // heals more per hit (checked in KnightTest's tables); damage unchanged
                 default: ok = ratio > 1.2f; break;
             }
             Console.WriteLine("  {0,-17} {1,6:0} -> {2,6:0} (x{3:0.00})  {4,4} -> {5,4}      {6} -> {7}{8}", w.Name, a[0], b[0], ratio, a[1], b[1], a[2], b[2], ok ? "" : "   <-- not stronger");
