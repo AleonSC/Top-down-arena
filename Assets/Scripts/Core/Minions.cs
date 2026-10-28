@@ -320,7 +320,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 120f, 0.4f, Sfx.Roar);
                     break;
                 default:
-                    if (!KnightAbility(p, id, target))  // Knight.cs
+                    if (!KnightAbility(p, id, target) && !NinjaAbility(p, id, target))  // Knight.cs, Ninja.cs
                         Ultimate(p, id, target);  // Ultimates.cs
                     break;
             }

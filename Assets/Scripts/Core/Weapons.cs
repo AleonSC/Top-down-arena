@@ -303,7 +303,9 @@ namespace Arena
                     break;
                 }
                 default:
-                    if (p.Weapon.Melee)
+                    if (p.Weapon.Id >= WeaponId.Kusarigama)
+                        FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra);  // Ninja.cs
+                    else if (p.Weapon.Melee)
                         FireKnightWeapon(p, aim, dmg, extra);  // Knight.cs
                     else
                         FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
@@ -343,6 +345,15 @@ namespace Arena
                 case WeaponId.BoneGuard: case WeaponId.WolfWhistle: case WeaponId.ImpCaller: shot = 720f * 0.8f; break;
                 case WeaponId.BearTotem: shot = 500f * 0.22f; break;
                 case WeaponId.SpriteStaff: case WeaponId.TotemStaff: case WeaponId.TreantRod: case WeaponId.WispLantern: shot = 600f * 1f; break;
+                // Ninjas
+                case WeaponId.ChainShuriken: shot = ChainStarSpeed * ChainStarOut; break;  // as far as it goes before it turns back
+                case WeaponId.MedicineDarts: shot = 900f * 0.8f; break;
+                case WeaponId.SpiritFan: shot = 420f * 0.3f * (1f + 0.25f * x); break;
+                case WeaponId.Ofuda: shot = 360f * 1.6f; break;
+                case WeaponId.Shuriken: shot = 700f * 0.75f; break;
+                case WeaponId.Kunai: shot = 850f * 0.75f; break;
+                case WeaponId.Kusarigama: return MeleeReach(p, KusariReach + 20f * x);
+                case WeaponId.BoStaff: return MeleeReach(p, BoReach + 20f * x);
                 // Knights: the reach of the swing.
                 case WeaponId.Warhammer: return MeleeReach(p, 100f + 30f * x);
                 case WeaponId.Lance: return MeleeReach(p, LanceReach + 30f * x);

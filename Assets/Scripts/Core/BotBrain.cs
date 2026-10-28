@@ -234,6 +234,17 @@ namespace Arena
                     return haveTarget && targetD < 220f;
                 case AbilityId.LastStand:
                     return danger || haveTarget && targetD < 220f;
+                // Ninja
+                case AbilityId.ShadowClone: case AbilityId.SmokeBomb: case AbilityId.IronBody: case AbilityId.Vanish: case AbilityId.ThousandClones:
+                    return danger;
+                case AbilityId.HealingMist: case AbilityId.SpiritWard: case AbilityId.BlossomStorm:
+                    return allyHurt;
+                case AbilityId.Substitution:
+                    return allyDown || allyHurt && danger;
+                case AbilityId.ShadowStep:
+                    return haveTarget && targetD > 120f && targetD < 440f || BotDanger > 2.5f;
+                case AbilityId.BladeFan:
+                    return danger || haveTarget && targetD < 260f;
                 // Everything else hurts the boss: use it when it's in reach
                 default:
                     return haveTarget && targetD < 520f;

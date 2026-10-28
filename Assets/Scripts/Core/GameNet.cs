@@ -137,6 +137,8 @@ namespace Arena
                 w.Write(p.UnbreakT);
                 w.Write(p.FuryT);
                 w.Write(p.WhirlT);
+                w.Write(p.VanishT);
+                w.Write(p.IronT);
                 w.Write((byte)p.AmmoUsed);
                 w.Write(p.ReloadT);
                 w.Write(p.DrawT);
@@ -270,6 +272,14 @@ namespace Arena
                 case Msg.Sound:
                     Sounds.Add((Sfx)r.ReadByte());
                     break;
+                case Msg.Teleport:  // Substitution moved someone; each player's own game moves them
+                {
+                    int id = r.ReadInt32();
+                    V2 pos = r.ReadV2();
+                    if (id == MyId && Me != null)
+                        Me.Pos = Me.Disp = pos;
+                    break;
+                }
                 case Msg.Fx:
                 {
                     var kind = (FxKind)r.ReadByte();
@@ -346,6 +356,7 @@ namespace Arena
                 bool parrying = r.ReadBoolean();
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
                 float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
+                float vanishT = r.ReadSingle(), ironT = r.ReadSingle();
                 int ammoUsed = r.ReadByte();
                 float reloadT = r.ReadSingle();
                 float drawT = r.ReadSingle();
@@ -408,6 +419,8 @@ namespace Arena
                 p.ShieldHp = shield;
                 p.WallT = wallT;
                 p.UnbreakT = unbreakT;
+                p.VanishT = vanishT;
+                p.IronT = ironT;
                 p.FuryT = furyT;
                 p.WhirlT = whirlT;
                 p.AmmoUsed = ammoUsed;

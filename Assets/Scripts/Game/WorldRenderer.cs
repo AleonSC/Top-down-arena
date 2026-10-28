@@ -279,6 +279,11 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
+            if (b.Kind >= Defs.StarShot && b.Kind <= Defs.ChainStar)
+            {
+                DrawNinjaShot(b, c, t);
+                return;
+            }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
@@ -322,6 +327,44 @@ namespace Arena
             Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
             Circle(b.Pos, b.Radius, c, 12);
             Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
+        }
+
+        /// The Ninja's thrown things: spinning stars, needles, knives, paper charms and gusts of wind.
+        void DrawNinjaShot(Bullet b, Rgba c, float t)
+        {
+            V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
+            switch (b.Kind)
+            {
+                case Defs.StarShot:
+                    DrawStar(b.Pos, b.Radius + 2f, t * 20f + b.Id, c);
+                    break;
+                case Defs.ChainStar:  // big, with a blur ring as it spins
+                    Arc(b.Pos, b.Radius + 3f, 2f, c.WithAlpha(0.35f), 16);
+                    DrawStar(b.Pos, b.Radius + 2f, t * 16f + b.Id, c);
+                    break;
+                case Defs.NeedleShot:
+                    Line(b.Pos - dir * 9f, b.Pos + dir * 4f, 1.5f, c);
+                    Circle(b.Pos + dir * 4f, 1.6f, Rgba.White, 6);
+                    break;
+                case Defs.KunaiShot:
+                    Line(b.Pos - dir * 8f, b.Pos, 2f, NinjaCloth.Mix(c, 0.4f));
+                    SetColor(c);
+                    Tri(b.Pos + dir * 7f, b.Pos + side * 3f, b.Pos - side * 3f);
+                    break;
+                case Defs.OfudaShot:  // a paper charm fluttering along, glowing faintly
+                {
+                    Circle(b.Pos, b.Radius + 5f, c.WithAlpha(0.2f), 12);
+                    V2 s = side * (3.5f + 1.5f * Mathf.Sin(t * 14f + b.Id));
+                    SetColor(c);
+                    Quad(b.Pos - dir * 7f - s, b.Pos + dir * 7f - s, b.Pos + dir * 7f + s, b.Pos - dir * 7f + s);
+                    Line(b.Pos - side * 2.5f, b.Pos + side * 2.5f, 2f, new Rgba(0.9f, 0.2f, 0.2f));
+                    break;
+                }
+                default:  // GustShot: soft puffs of air
+                    Circle(b.Pos, b.Radius, c.WithAlpha(0.18f), 12);
+                    Arc(b.Pos, b.Radius * 0.7f, 1.5f, c.WithAlpha(0.45f), 10, b.Vel.Angle + t * 8f, 2f);
+                    break;
+            }
         }
 
         /// A short-lived effect, by kind.
@@ -593,6 +636,26 @@ namespace Arena
                     Circle(z.Pos, 34f, c.WithAlpha(0.85f), 20);
                     Circle(z.Pos, 12f, new Rgba(0.45f, 0.32f, 0.2f), 12);
                     break;
+                case ZoneKind.Smoke:  // billowing grey puffs
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.18f), 40);
+                    for (int k = 0; k < 9; k++)
+                    {
+                        float pa = MathX.Tau * k / 9f + t * 0.25f, pr = z.Radius * (0.35f + 0.45f * MathX.Fmod(k * 0.53f + t * 0.1f, 1f));
+                        Circle(z.Pos + V2.FromAngle(pa) * pr, z.Radius * 0.3f, c.WithAlpha(0.12f), 16);
+                    }
+                    break;
+                case ZoneKind.Mist:  // a soft green mist with drifting droplets
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 3f)), 48);
+                    for (int k = 0; k < 8; k++)
+                        Circle(z.Pos + V2.FromAngle(t * 0.6f + MathX.Tau * k / 8f) * (z.Radius * 0.7f), 3f, c.WithAlpha(0.6f), 6);
+                    break;
+                case ZoneKind.Ward:  // a paper talisman with a slowly turning seal ring
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 48);
+                    Arc(z.Pos, z.Radius * 0.55f, 2f, new Rgba(0.9f, 0.25f, 0.25f, 0.5f), 32, t * 0.5f, MathX.Tau * 0.8f);
+                    SetColor(new Rgba(1f, 0.93f, 0.78f));
+                    Quad(z.Pos + new V2(-7f, -12f), z.Pos + new V2(7f, -12f), z.Pos + new V2(7f, 12f), z.Pos + new V2(-7f, 12f));
+                    Line(z.Pos + new V2(0f, -8f), z.Pos + new V2(0f, 8f), 2.5f, new Rgba(0.9f, 0.2f, 0.2f));
+                    break;
                 default:  // Haven
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
                     break;
@@ -620,6 +683,11 @@ namespace Arena
                 Circle(m.Disp, block, c.WithAlpha(0.04f + 0.1f * g), 40);
                 Arc(m.Disp, block, 1f + 2f * g, c.WithAlpha(0.25f + 0.45f * g), 40);
             }
+            if (m.Kind == MinionKind.Clone)
+            {
+                DrawClone(m, t);
+                return;
+            }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
                 Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);
@@ -635,6 +703,23 @@ namespace Arena
                 Line(m.Disp - new V2(3, 0), m.Disp + new V2(3, 0), 1.5f, Rgba.White);
             if (m.T >= 0f && m.Duration > 0f)
                 Arc(m.Disp, rad + 5f, 2f, c.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
+        }
+
+        /// A Shadow Clone: a dark copy of its ninja, flickering, with its time running out around it.
+        void DrawClone(Minion m, float t)
+        {
+            Player owner;
+            Rgba col = game.Players.TryGetValue(m.Owner, out owner) ? owner.Def.Color : m.Def.Color;
+            float r = owner != null ? owner.Def.BodyR : m.Def.Radius;
+            float a = 0.55f + 0.15f * Mathf.Sin(t * 11f + m.Id);
+            Circle(m.Disp, r + 8f, m.Def.Color.WithAlpha(0.15f), 20);
+            Circle(m.Disp, r, col.Darkened(0.7f).WithAlpha(a), 24);
+            Arc(m.Disp, r, 2f, col.WithAlpha(a), 24);
+            V2 dir = V2.FromAngle(m.Aim);
+            Arc(m.Disp, r * 0.62f, 4f, NinjaCloth.WithAlpha(a), 16, m.Aim - 1.1f, 2.2f);
+            Line(m.Disp - dir * (r * 0.6f), m.Disp - dir * (r * 0.6f + 16f) + dir.Orthogonal() * (4f * Mathf.Sin(t * 9f)), 2f, col.WithAlpha(a * 0.8f));
+            if (m.T >= 0f && m.Duration > 0f)
+                Arc(m.Disp, r + 5f, 2f, col.WithAlpha(0.5f), 24, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(m.T / m.Duration));
         }
 
         /// An enemy, in layers: spawn ring, melee spikes, its type's effects behind the body, elite ring and
@@ -1037,6 +1122,8 @@ namespace Arena
                 col = col.WithAlpha(0.35f);
             if (p.Flash > 0f)
                 col = Rgba.White;
+            if (p.VanishT > 0f && !p.Downed)  // Vanish: barely there (a little clearer on your own screen)
+                col = col.WithAlpha(p.Id == game.MyId ? 0.45f : 0.18f);
 
             if (p.Id == game.MyId && game.DashT > 0f)
                 Circle(p.Disp - game.DashDir * 18f, r * 0.8f, col.WithAlpha(0.25f), 20);
@@ -1068,6 +1155,8 @@ namespace Arena
                     Circle(p.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (r + 7f), 2.5f, new Rgba(0.6f, 1f, 0.7f, 0.9f), 8);
             else if (p.Kit == Kit.Knight && !p.Downed)
                 DrawKnight(p, r, t);
+            else if (p.Kit == Kit.Ninja && !p.Downed)
+                DrawNinja(p, r, t, col);
             // The real hitbox, drawn as a bright core.
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
@@ -1145,6 +1234,96 @@ namespace Arena
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand)
                 for (int k = 0; k < 8; k++)  // flames licking up around them
                     Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 8f + t) * (r + 10f), 4f + 2f * Mathf.Sin(t * 15f + k), new Rgba(1f, 0.5f, 0.2f, 0.7f), 6);
+        }
+
+        static readonly Rgba NinjaCloth = new Rgba(0.1f, 0.1f, 0.14f);
+        static readonly Rgba Wood = new Rgba(0.6f, 0.45f, 0.3f);
+
+        /// A ninja: a dark wrap with an eye slit, a scarf in the role's colour trailing behind, the weapon in hand,
+        /// and any buff it has up.
+        void DrawNinja(Player p, float r, float t, Rgba col)
+        {
+            float a = col.A;
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+            // The scarf: two ribbons waving out behind.
+            for (int k = 0; k < 2; k++)
+            {
+                V2 prev = p.Disp - dir * (r * 0.6f) + side * (k == 0 ? 3f : -3f);
+                for (int i = 1; i <= 5; i++)
+                {
+                    float f = i / 5f;
+                    V2 pt = p.Disp - dir * (r * 0.6f + f * (14f + 4f * k)) + side * ((k == 0 ? 3f : -3f) + Mathf.Sin(t * 9f + i * 0.9f + k) * 4f * f);
+                    Line(prev, pt, 3f - 1.5f * f, col.WithAlpha(a * (1f - 0.5f * f)));
+                    prev = pt;
+                }
+            }
+            Arc(p.Disp, r * 0.62f, 4f, NinjaCloth.WithAlpha(0.9f * a), 16, p.Aim - 1.1f, 2.2f);           // the wrap
+            Line(p.Disp + dir * (r * 0.55f) + side * 4f, p.Disp + dir * (r * 0.55f) - side * 4f, 1.5f, new Rgba(1f, 1f, 1f, 0.8f * a));  // eye slit
+            V2 grip = p.Disp + side * (r * 0.75f);
+            switch (p.Weapon.Id)
+            {
+                case WeaponId.Kusarigama:  // a sickle, its chain looping round
+                    Line(grip, grip + dir * (r + 6f), 3f, Wood.WithAlpha(a));
+                    Arc(grip + dir * (r + 6f) - side * 5f, 6f, 2.5f, Steel.WithAlpha(a), 8, p.Aim - MathX.Pi / 2f, MathX.Pi);
+                    for (int k = 0; k < 5; k++)
+                        Circle(p.Disp + V2.FromAngle(t * 6f + k * 0.5f) * (r + 9f), 1.6f, Steel.WithAlpha(0.7f * a), 6);
+                    break;
+                case WeaponId.BoStaff:  // a long staff turning in the hands
+                {
+                    V2 s = V2.FromAngle(p.Aim + 0.6f * Mathf.Sin(t * 3f) + MathX.Pi / 2f);
+                    Line(p.Disp - s * (r + 14f), p.Disp + s * (r + 14f), 3.5f, Wood.WithAlpha(a));
+                    break;
+                }
+                case WeaponId.ChainShuriken:
+                    DrawStar(grip + dir * 6f, 8f, t * 2f, Steel.WithAlpha(a));
+                    break;
+                case WeaponId.MedicineDarts:  // three needles between the fingers
+                    for (int k = -1; k <= 1; k++)
+                        Line(grip, grip + V2.FromAngle(p.Aim + k * 0.25f) * 10f, 1.2f, new Rgba(0.6f, 1f, 0.75f, a));
+                    break;
+                case WeaponId.SpiritFan:  // an open fan facing forward
+                    Arc(grip + dir * 2f, 9f, 6f, new Rgba(0.75f, 1f, 0.85f, 0.85f * a), 10, p.Aim - 0.9f, 1.8f);
+                    Line(grip, grip + dir * 4f, 2f, Wood.WithAlpha(a));
+                    break;
+                case WeaponId.Ofuda:  // a paper charm with a red seal
+                {
+                    V2 c = grip + dir * 6f;
+                    SetColor(new Rgba(1f, 0.93f, 0.78f, a));
+                    Quad(c - dir * 6f - side * 3.5f, c + dir * 6f - side * 3.5f, c + dir * 6f + side * 3.5f, c - dir * 6f + side * 3.5f);
+                    Line(c - side * 2.5f, c + side * 2.5f, 2f, new Rgba(0.9f, 0.2f, 0.2f, a));
+                    break;
+                }
+                case WeaponId.Shuriken:
+                    DrawStar(grip, 5f, t * 4f, Steel.WithAlpha(a));
+                    break;
+                case WeaponId.Katana:  // a long thin blade with a small square guard
+                    Line(grip - dir * 5f, grip, 3f, NinjaCloth.WithAlpha(a));
+                    Line(grip, grip + dir * (r + 20f), 2.5f, Steel.WithAlpha(a));
+                    Polygon(grip, 3.5f, 4, p.Aim + MathX.Pi / 4f, new Rgba(0.75f, 0.6f, 0.3f, a));
+                    break;
+                default:  // Kunai: a knife with a ring pommel
+                    Line(grip, grip + dir * (r + 2f), 2.5f, Steel.WithAlpha(a));
+                    Arc(grip - dir * 3f, 3f, 1.2f, Steel.WithAlpha(a), 8);
+                    break;
+            }
+            // Abilities
+            if (p.IronT > 0f)  // Iron Body: a steel-grey shell
+                Polygon(p.Disp, r + 8f, 8, t * 0.6f, new Rgba(0.75f, 0.78f, 0.85f, 0.35f + 0.15f * Mathf.Sin(t * 10f)));
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)  // petals swirling round
+                for (int k = 0; k < 10; k++)
+                    Circle(p.Disp + V2.FromAngle(t * 1.5f + MathX.Tau * k / 10f) * (r + 30f + 8f * Mathf.Sin(t * 2f + k)), 3f, new Rgba(1f, 0.7f, 0.85f, 0.8f), 6);
+        }
+
+        /// A four-pointed throwing star.
+        void DrawStar(V2 c, float r, float rot, Rgba col)
+        {
+            SetColor(col);
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(rot + MathX.Pi / 2f * k), s = d.Orthogonal();
+                Tri(c + d * r, c + s * (r * 0.3f), c - s * (r * 0.3f));
+            }
+            Circle(c, r * 0.25f, NinjaCloth.WithAlpha(col.A), 6);
         }
 
         // --- GL primitives (arena coordinates; everything is triangles) -------

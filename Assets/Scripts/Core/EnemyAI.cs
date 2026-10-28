@@ -259,12 +259,16 @@ namespace Arena
                     return p.Id;  // Roar: everyone goes for the roaring tank
             foreach (var p in Players.Values)
             {
-                if (p.Downed)
+                if (p.Downed || p.VanishT > 0f)  // a vanished Ninja can't be picked out (Ninja.cs)
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
                     tanks.Add(p.Id);
             }
+            if (alive.Count == 0)
+                foreach (var p in Players.Values)
+                    if (!p.Downed)
+                        alive.Add(p.Id);  // everyone has vanished: they search where they last saw them
             if (alive.Count == 0)
                 return 0;
             if (tanks.Count > 0 && rng.NextDouble() < 0.7)
@@ -335,6 +339,7 @@ namespace Arena
                     Players.TryGetValue(e.TargetId, out target);
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
+                tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 if (e.Type != EnemyType.Singularity)  // its Facing is the lasers' sweep, not where it looks
                     Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);

@@ -317,7 +317,8 @@ namespace Arena
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
             HeroStat(hero, ref hy, "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.35f, 0.95f, 0.45f));
-            HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(Defs.Get(me.Role).Speed).ToString(), Mathf.Clamp01(Defs.Get(me.Role).Speed / 300f), new Color(0.45f, 0.75f, 1f));
+            float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
+            HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.45f, 0.75f, 1f));
             HeroStat(hero, ref hy, wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), Ui.Gold);
             hy += 8f;
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));

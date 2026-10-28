@@ -25,7 +25,7 @@ namespace Arena
     }
 
     /// Soldier is the original gun-based kit; Mage and Summoner are the alternatives for each role.
-    public enum Kit : byte { Soldier, Mage, Summoner, Knight }
+    public enum Kit : byte { Soldier, Mage, Summoner, Knight, Ninja }
 
     public enum WeaponId : byte
     {
@@ -37,6 +37,8 @@ namespace Arena
         GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, TotemStaff, WolfWhistle, WispLantern, ImpCaller,
         // Knight (melee)
         Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
+        // Ninja (Ninja.cs): thrown blades and quick melee
+        Kusarigama, BoStaff, ChainShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
     }
 
     public class WeaponDef
@@ -50,7 +52,7 @@ namespace Arena
         public MinionKind Companion = MinionKind.None;
         public int CompanionCount;
         public float CompanionRespawn = 3f;
-        public bool Melee;  // a Knight weapon: swings instead of shots (Knight.cs)
+        public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana too)
     }
 
     public class EnemyDef
@@ -130,9 +132,9 @@ namespace Arena
 
         public const int WeaponsPerRole = 3;
 
-        public const int KitCount = 4;
+        public const int KitCount = 5;
 
-        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner, Knight).
+        // Three weapons per role and kit, ordered Role, then Kit (Soldier, Mage, Summoner, Knight, Ninja).
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
@@ -154,6 +156,12 @@ namespace Arena
                 Desc = "A heavy jab in front of you that shoves enemies far back and stuns them for 1 s." },
             new WeaponDef { Id = WeaponId.Halberd, Melee = true, ExtraDesc = "+30 px reach and a quick follow-up thrust (60% damage)", Name = "Halberd", FireInterval = 0.55f,
                 Desc = "Long-reaching thrusts that hit everything along the blade." },
+            new WeaponDef { Id = WeaponId.Kusarigama, Melee = true, ExtraDesc = "+20 px reach and the chain yanks 15 px harder", Name = "Kusarigama", FireInterval = 0.55f,
+                Desc = "A chain-sickle whipped in a wide arc (130 px, 120°) that yanks enemies 40 px toward you." },
+            new WeaponDef { Id = WeaponId.BoStaff, Melee = true, ExtraDesc = "+20 px reach", Name = "Bo Staff", FireInterval = 0.4f,
+                Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air." },
+            new WeaponDef { Id = WeaponId.ChainShuriken, ExtraDesc = "+1 shuriken, fanned out", Name = "Chain Shuriken", FireInterval = 0.7f,
+                Desc = "A heavy spinning star that flies out and comes back, cutting through everything both ways." },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
             new WeaponDef { Id = WeaponId.Pistol, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
@@ -172,6 +180,12 @@ namespace Arena
                 Desc = "Sword swings that also send a short crescent of light, which heals allies it passes." },
             new WeaponDef { Id = WeaponId.Censer, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
                 Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3." },
+            new WeaponDef { Id = WeaponId.MedicineDarts, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
+                Desc = "Fast needles. Each one that passes an ally heals them for 4." },
+            new WeaponDef { Id = WeaponId.SpiritFan, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
+                Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back." },
+            new WeaponDef { Id = WeaponId.Ofuda, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
+                Desc = "Slow paper charms that home in and burst (25), healing allies near the burst for 8." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
             new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
@@ -191,14 +205,24 @@ namespace Arena
                 Desc = "Huge sweeping cuts with long reach." },
             new WeaponDef { Id = WeaponId.Rapier, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
                 Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%)." },
+            new WeaponDef { Id = WeaponId.Shuriken, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
+                Desc = "Fans of 3 spinning stars that ricochet to one more enemy." },
+            new WeaponDef { Id = WeaponId.Katana, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
+                Desc = "Fast 110° quick-draw slashes; every 4th is a long lunging cut for double damage." },
+            new WeaponDef { Id = WeaponId.Kunai, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
+                Desc = "Rapid throwing knives. +50% damage to enemies that aren't targeting you." },
         };
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 
         public static string KitName(Kit k) => k.ToString();
 
-        /// Mages and summoners trade some health for their spells and minions; knights wear armour to get close.
-        public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : k == Kit.Knight ? 1.15f : 1f;
+        /// Mages and summoners trade some health for their spells and minions; knights wear armour to get close;
+        /// ninjas are quick and lightly protected.
+        public static float KitHpMult(Kit k) => k == Kit.Mage ? 0.85f : k == Kit.Summoner ? 0.9f : k == Kit.Knight ? 1.15f : k == Kit.Ninja ? 0.85f : 1f;
+
+        /// Ninjas move 12% faster.
+        public static float KitSpeedMult(Kit k) => k == Kit.Ninja ? 1.12f : 1f;
 
         /// XP needed to go from this level to the next.
         public static float XpToNext(int level) => 50f + 30f * (level - 1);
@@ -212,7 +236,9 @@ namespace Arena
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
             KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
             KnightWave = 30,   // a crescent of steel or light thrown by a swing
-            ArrowShot = 31;    // a Mender's Bow arrow
+            ArrowShot = 31,    // a Mender's Bow arrow
+            // Ninja
+            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37;
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -244,6 +270,12 @@ namespace Arena
                 case MinionShot: return 3.5f;
                 case KnightWave: return 11f;
                 case ArrowShot: return 4.5f;
+                case StarShot: return 5.5f;
+                case NeedleShot: return 3f;
+                case KunaiShot: return 4f;
+                case OfudaShot: return 6f;
+                case GustShot: return 9f;
+                case ChainStar: return 11f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
                 case PierceShot: return 6.5f;
@@ -290,6 +322,12 @@ namespace Arena
                 case KnightSlash:
                 case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
                 case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
+                case StarShot:
+                case ChainStar:
+                case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
+                case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
+                case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
+                case GustShot: return new Rgba(0.7f, 1f, 0.85f);
                 case BigShot: return new Rgba(0.85f, 0.35f, 1f);
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);

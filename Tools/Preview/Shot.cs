@@ -5,9 +5,11 @@ class Shot {
     int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     var host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
-    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, Environment.GetEnvironmentVariable("KNIGHT") != null ? int.Parse(Environment.GetEnvironmentVariable("KNIGHT")) : 0, 0, Environment.GetEnvironmentVariable("KNIGHT") != null ? Kit.Knight : Kit.Mage);
+    var melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA");
+    Kit meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Kit.Knight;
+    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, melee != null ? int.Parse(melee) : 0, 0, melee != null ? meleeKit : Kit.Mage);
     var others = new System.Collections.Generic.List<Session>();
-    string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = Environment.GetEnvironmentVariable("KNIGHT") != null ? new[] { Kit.Knight, Kit.Knight } : new[] { Kit.Soldier, Kit.Summoner };
+    string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = melee != null ? new[] { meleeKit, meleeKit } : new[] { Kit.Soldier, Kit.Summoner };
     for (int i = 1; i < players; i++) { var c = new Session(); c.Game.Bot = true; c.Join("127.0.0.1", host.Port, names[i-1], roles[i-1], 0, 0, kits[i-1]); others.Add(c); }
     if (players == 1) host.StartMatch();
     for (int i = 0; i < 600 && !host.Game.Running; i++) { Step(host); foreach (var c in others) Step(c); Thread.Sleep(2); }
@@ -150,6 +152,28 @@ class Shot {
       set("glMaterial", new Material(null));
       GL.ToUi = true;
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : "DrawHowToPlay", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
+    else if (mode == "kitgrid")
+    {
+      // Every role and weapon of one class (KIT=0..4, default the Ninja), drawn big: a check on how each one looks.
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
+      Event.current.type = EventType.Repaint;
+      set("glMaterial", new Material(null));
+      var kitArg = (Kit)int.Parse(Environment.GetEnvironmentVariable("KIT") ?? "4");
+      var begin = typeof(ArenaApp).GetMethod("BeginUiGl", f2); var at = typeof(ArenaApp).GetMethod("UiModelAt", f2);
+      var draw = typeof(ArenaApp).GetMethod("DrawPreviewPlayer", f2); var end = typeof(ArenaApp).GetMethod("EndUiGl", f2);
+      GL.ToUi = true;
+      begin.Invoke(app, null);
+      for (int r = 0; r < 3; r++) for (int w = 0; w < 3; w++) {
+        at.Invoke(app, new object[] { new V2(240f + w * 400f, 130f + r * 230f), 3.2f });
+        draw.Invoke(app, new object[] { (Role)r, kitArg, w, 2.3f + w * 0.4f + r });
+      }
+      end.Invoke(app, null);
+      for (int r = 0; r < 3; r++) for (int w = 0; w < 3; w++)
+        Ui.Label(new Rect(140f + w * 400f, 215f + r * 230f, 200f, 20f), Defs.Weapon((Role)r, kitArg, w).Name, 14, Color.white, TextAnchor.MiddleCenter, true);
       GL.ToUi = false;
     }
     else if (mode == "practicehud")

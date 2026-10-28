@@ -6,6 +6,7 @@ namespace Arena
     {
         Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
         LightOrb,  // Radiant Orb's extra projectiles: circles you, hurting enemies and healing allies it touches
+        Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         None = 255,
     }
 
@@ -29,7 +30,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward }
 
     public class ZoneDef
     {
@@ -77,6 +78,7 @@ namespace Arena
                 Attack = MinionAttack.Slam, Interval = 1.1f, Damage = 70f, Range = 100f, BlockRadius = 46f, BlockCapacity = 1000f },
             new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
+            new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static },
         };
 
         // Indexed by ZoneKind.
@@ -92,6 +94,9 @@ namespace Arena
             new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
             new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
             new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },
+            new ZoneDef { Name = "Smoke Bomb", Color = new Rgba(0.62f, 0.62f, 0.7f) },  // slows enemy bullets inside (Ninja.cs)
+            new ZoneDef { Name = "Healing Mist", Color = new Rgba(0.55f, 1f, 0.8f), HealRate = 10f },
+            new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f), HealRate = 6f, ReviveBoost = 2f },
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

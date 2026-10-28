@@ -24,7 +24,7 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight), then
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight, Ninja), then
 one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
 their role and class.
 
@@ -32,6 +32,7 @@ their role and class.
 - **Mage**: spells (fire, frost, lightning, arcane), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
+- **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see below).
 
 | | Soldier | Mage | Summoner |
 |---|---|---|---|
@@ -64,6 +65,17 @@ How shot upgrades work on a melee weapon (the cards say so when you're a Knight)
 - **Incendiary, Cryo, Shock and Explosive Rounds**, Swarm Rounds, Collapse Rounds and Graviton Rounds apply to
   every melee hit. **Homing, Ricochet and Velocity Rounds** only change your sword waves (Velocity's +15%
   damage counts for everything).
+
+### The Ninja
+
+Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix thrown weapons with fast melee
+(the Kusarigama, Bo Staff and Katana swing like a Knight's weapons; the Bo Staff and Katana cut small bullets).
+
+| | Weapons | Space abilities | Ultimate |
+|---|---|---|---|
+| **Tank** | **Kusarigama** (a chain-sickle whipped in a 130 px, 120° arc that yanks enemies 40 px toward you), **Bo Staff** (spun all the way round you, 90 px, cutting small bullets), **Chain Shuriken** (a heavy star that flies out and comes back, cutting through everything both ways) | **Shadow Clone** (a decoy for 5 s that every enemy aims at; bursts for 60), **Smoke Bomb** (a 140 px cloud for 5 s: enemy bullets inside slow to half speed, allies inside take 30% less damage), **Iron Body** (2 s of 80% less damage, then a 50-damage shockwave) | **Thousand Clones** (70 s): five clones surround you for 8 s, drawing every enemy's fire, then burst |
+| **Healer** | **Medicine Darts** (fast needles that heal allies they pass for 4), **Spirit Fan** (a short gust that heals allies in it and blows small enemy bullets back), **Ofuda** (slow homing paper charms that burst for 25 and heal allies near the burst for 8) | **Healing Mist** (a mist follows you for 6 s: allies inside heal 10 HP/s), **Substitution** (swap places with the ally nearest your cursor and shield them for 60; alone, slip toward your cursor and shield yourself), **Spirit Ward** (a talisman at your cursor for 8 s: allies near it regenerate and revive 3x faster) | **Blossom Storm** (80 s): for 5 s the whole party heals 20 HP/s and enemy bullets near every ally are erased |
+| **DPS** | **Shuriken** (fans of 3 stars that ricochet once), **Katana** (fast 110° slashes; every 4th is a long lunging cut for double damage), **Kunai** (rapid knives, +50% damage to enemies that aren't targeting you) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80), **Vanish** (for 3 s enemies lose track of you; your next hit deals double), **Blade Fan** (12 kunai in a ring, 18 each) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each |
 
 Players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
 
@@ -119,6 +131,15 @@ your weapon. Per extra projectile:
 | DPS · Knight | **Twin Blades** | Very fast alternating 90° slashes (15) | +1 cut: each swing strikes once more (60% damage) |
 | | **Greatsword** | Huge 170° sweeps (60) with 125 px reach | +1 sword beam: each sweep launches a piercing crescent (40% damage) |
 | | **Rapier** | Narrow 130 px thrusts (18) at the nearest enemy in front; +10% per hit in a row on it (up to +60%) | Skewers 1 more enemy behind the first |
+| Tank · Ninja | **Kusarigama** | 120° whips (26) with 130 px reach that yank enemies 40 px in | +20 px reach and the chain yanks 15 px harder |
+| | **Bo Staff** | Spun all the way round you (16, 90 px), cutting small bullets | +20 px reach |
+| | **Chain Shuriken** | A heavy star (22) that flies out 260 px and comes back, cutting through everything | +1 shuriken, fanned out |
+| Healer · Ninja | **Medicine Darts** | Fast needles (7) that heal allies they pass for 4 | +1 dart, fanned out |
+| | **Spirit Fan** | A short gust (6) that heals allies in it for 3 and blows small bullets back | +25% reach and +1 HP healed |
+| | **Ofuda** | Slow homing charms that burst (25) and heal allies near the burst for 8 | +1 charm, fanned out |
+| DPS · Ninja | **Shuriken** | Fans of 3 stars (9) that ricochet once | +1 star in the fan |
+| | **Katana** | 110° slashes (20); every 4th is a 170 px lunging cut (40) | +1 cut: each slash strikes once more (60% damage) |
+| | **Kunai** | Rapid knives (8), +50% on enemies that aren't targeting you | +1 knife, fanned out (half damage) |
 
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
 fills while it reloads.
@@ -224,7 +245,7 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability on **Q**, **E** or **Shift** (you choose the key; each one only once): a universal one (Shockwave, Overdrive, Blink, Nova or Turret), or one of your **class's two other Space abilities**, the ones you didn't pick in the lobby (these count double, so about 4 in 9 very rare cards are class abilities) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |

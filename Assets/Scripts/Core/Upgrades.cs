@@ -18,6 +18,9 @@ namespace Arena
         // Knight (Space), then the Knight ultimates
         ShieldWall, LeapSlam, Unbreakable, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
         LastStand, HallowedBlade, BladeTempest,
+        // Ninja (Space), then the Ninja ultimates
+        ShadowClone, SmokeBomb, IronBody, HealingMist, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
+        ThousandClones, BlossomStorm, DeathLotus,
         None = 255,
     }
 
@@ -48,6 +51,11 @@ namespace Arena
         public float ConsecrateRadiusMult = 1f, ConsecrateBonusTime, OathMult = 1f, LayMult = 1f;
         public float WhirlBonusTime, WhirlRadiusMult = 1f, LungeRangeMult = 1f, LungeDmgMult = 1f, FuryLifesteal;
         public int GrenadeExtraShrapnel;
+        // Ninja abilities
+        public float CloneBonusTime, CloneBurstMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, IronBonusTime, IronWaveMult = 1f;
+        public float MistHealMult = 1f, MistRadiusMult = 1f, SubShieldMult = 1f, SubBonusTime, WardRadiusMult = 1f, WardBonusTime;
+        public float StepDmgMult = 1f, StepRangeMult = 1f, VanishBonusTime, AmbushMult = 2f;
+        public int FanExtraKunai;
 
         // Legendary weapon upgrades from bosses.
         public int HaloEvery, KillRing, SplitShots;
@@ -147,14 +155,27 @@ namespace Arena
             new AbilityDef { Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage." },
             new AbilityDef { Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn)." },
             new AbilityDef { Name = "Blade Tempest", Cooldown = 65f, Desc = "For 6 s every swing also hurls three piercing sword beams." },
+            // Ninja
+            new AbilityDef { Name = "Shadow Clone", Cooldown = 14f, Desc = "Leave a decoy for 5 s that every enemy targets. It bursts for 60 damage when it ends." },
+            new AbilityDef { Name = "Smoke Bomb", Cooldown = 14f, Desc = "A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage." },
+            new AbilityDef { Name = "Iron Body", Cooldown = 12f, Desc = "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50." },
+            new AbilityDef { Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s: allies inside heal 10 HP/s." },
+            new AbilityDef { Name = "Substitution", Cooldown = 12f, Desc = "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself." },
+            new AbilityDef { Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster." },
+            new AbilityDef { Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80." },
+            new AbilityDef { Name = "Vanish", Cooldown = 16f, Desc = "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage." },
+            new AbilityDef { Name = "Blade Fan", Cooldown = 9f, Desc = "Throw 12 kunai in a ring around you, 18 damage each." },
+            new AbilityDef { Name = "Thousand Clones", Cooldown = 70f, Desc = "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends." },
+            new AbilityDef { Name = "Blossom Storm", Cooldown = 80f, Desc = "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally." },
+            new AbilityDef { Name = "Death Lotus", Cooldown = 65f, Desc = "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each." },
         };
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates =
         {
-            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand,        // Tank: Soldier, Mage, Summoner, Knight
-            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade,    // Healer
-            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, // DPS
+            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand, AbilityId.ThousandClones,  // Tank: Soldier, Mage, Summoner, Knight, Ninja
+            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade, AbilityId.BlossomStorm,  // Healer
+            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, AbilityId.DeathLotus,  // DPS
         };
 
         public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * Defs.KitCount + (int)kit];
@@ -166,14 +187,17 @@ namespace Arena
             AbilityId.ArcaneAegis, AbilityId.FrostNova, AbilityId.FlameWall,      // Tank: Mage
             AbilityId.GolemWall, AbilityId.Earthquake, AbilityId.GuardianSpirit,  // Tank: Summoner
             AbilityId.ShieldWall, AbilityId.LeapSlam, AbilityId.Unbreakable,      // Tank: Knight
+            AbilityId.ShadowClone, AbilityId.SmokeBomb, AbilityId.IronBody,       // Tank: Ninja
             AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink,             // Healer: Soldier
             AbilityId.TimeRewind, AbilityId.ArcaneWard, AbilityId.Sanctify,       // Healer: Mage
             AbilityId.SpiritSwarm, AbilityId.Phoenix, AbilityId.SoulLantern,      // Healer: Summoner
             AbilityId.Consecrate, AbilityId.GuardiansOath, AbilityId.LayOnHands,  // Healer: Knight
+            AbilityId.HealingMist, AbilityId.Substitution, AbilityId.SpiritWard,  // Healer: Ninja
             AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark,                    // DPS: Soldier
             AbilityId.Meteor, AbilityId.Blizzard, AbilityId.ArcaneSurge,          // DPS: Mage
             AbilityId.BatSwarm, AbilityId.Sacrifice, AbilityId.AlphaCall,         // DPS: Summoner
             AbilityId.Whirlwind, AbilityId.Lunge, AbilityId.BattleFury,           // DPS: Knight
+            AbilityId.ShadowStep, AbilityId.Vanish, AbilityId.BladeFan,           // DPS: Ninja
         };
 
         public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
@@ -241,6 +265,24 @@ namespace Arena
                 Apply = s => { s.LungeRangeMult += 0.4f; s.LungeDmgMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BattleFury, MaxStacks = 2, Name = "Bloodlust", Desc = "During Battle Fury your hits heal you for 10% of the damage they deal",
                 Apply = s => s.FuryLifesteal += 0.1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowClone, MaxStacks = 2, Name = "Mirror Image", Desc = "Shadow Clone lasts 2 s longer and bursts 50% harder",
+                Apply = s => { s.CloneBonusTime += 2f; s.CloneBurstMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
+                Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.IronBody, MaxStacks = 2, Name = "Tempered Steel", Desc = "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
+                Apply = s => { s.IronBonusTime += 1f; s.IronWaveMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingMist, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Mist heals 50% more and is 25% bigger",
+                Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
+                Apply = s => { s.SubShieldMult += 0.6f; s.SubBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritWard, MaxStacks = 2, Name = "Sacred Seal", Desc = "Spirit Ward is 40% bigger and lasts 3 s longer",
+                Apply = s => { s.WardRadiusMult += 0.4f; s.WardBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowStep, MaxStacks = 2, Name = "Assassinate", Desc = "Shadow Step strikes 60% harder and reaches enemies 30% farther",
+                Apply = s => { s.StepDmgMult += 0.6f; s.StepRangeMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Vanish, MaxStacks = 2, Name = "Unseen Blade", Desc = "Vanish lasts 1.5 s longer and your ambush hit deals one more times its damage",
+                Apply = s => { s.VanishBonusTime += 1.5f; s.AmbushMult += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladeFan, MaxStacks = 2, Name = "Storm of Steel", Desc = "Blade Fan throws 6 more kunai",
+                Apply = s => s.FanExtraKunai += 6 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },

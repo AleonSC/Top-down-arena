@@ -56,6 +56,11 @@ namespace Arena
         public float TauntT;  // Roar: enemies target this player
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
+        public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
+        public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
+        public V2 VanishFrom;                         // host: where enemies last saw you before you vanished
+        public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
+        public bool IronMastered;
         public float WallHp, WhirlTick, WhirlPower = 1f;  // host
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
@@ -111,7 +116,7 @@ namespace Arena
         public bool DevGod;  // dev menu: takes no damage
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult;
+        public float Speed => Def.Speed * Stats.SpeedMult * Defs.KitSpeedMult(Kit);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -152,6 +157,7 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public float HealAlly;    // host only: heals an ally it passes through
+        public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
@@ -559,6 +565,7 @@ namespace Arena
                 var slot = p.Slots[i];
                 int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
                     + (ids[i] == AbilityId.Dash && Mastered(p, AbilityId.Dash) ? 1 : 0)
+                    + (ids[i] == AbilityId.ShadowStep && Mastered(p, AbilityId.ShadowStep) ? 1 : 0)
                     + (ids[i] == AbilityId.Lunge ? 1 + (Mastered(p, AbilityId.Lunge) ? 1 : 0) : 0);  // Lunge has two charges
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
@@ -1075,6 +1082,12 @@ namespace Arena
                     case AbilityId.Blizzard:
                         target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(SpellRange), 10f);
                         break;
+                    case AbilityId.ShadowStep:
+                        target = ShadowStepLanding(me, aimAt);  // Ninja.cs: behind the enemy nearest your cursor
+                        AddFx(FxKind.Ring, me.Pos, new Rgba(0.45f, 0.4f, 0.65f), 26f, 0.3f);
+                        me.Pos = target;
+                        DashT = 0f;
+                        break;
                     case AbilityId.Blink:
                         target = me.Pos + (aimAt - me.Pos).LimitLength(BlinkRange);
                         target = ClampToArena(target, me.Def.BodyR);
@@ -1137,6 +1150,7 @@ namespace Arena
             Recorder?.Tick(this, dt);
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
+            TickNinjas(dt);   // Ninja.cs
             TickWaves(dt);
             TickEnemies(dt);
             TickMinions(dt);

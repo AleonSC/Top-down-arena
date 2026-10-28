@@ -18,6 +18,7 @@ namespace Arena
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
         public float Stun;            // freezes what it hits for this long (not bosses)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
+        public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -51,6 +52,9 @@ namespace Arena
                 case WeaponId.TwinBlades: return 75f;
                 case WeaponId.Greatsword: return 125f;
                 case WeaponId.Rapier: return 130f;
+                case WeaponId.Kusarigama: return KusariReach;
+                case WeaponId.BoStaff: return BoReach;
+                case WeaponId.Katana: return KatanaReach;
                 default: return 0f;
             }
         }
@@ -277,6 +281,7 @@ namespace Arena
                     p.RapierTarget = e.Id;
                     dmg *= 1f + 0.1f * p.RapierStreak;
                 }
+                dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
                 if (s.Stun > 0f && !e.Def.IsBoss)
@@ -288,6 +293,12 @@ namespace Arena
                 {
                     V2 away = (e.Pos - origin).Normalized();
                     e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir : away) * s.Knock, e.Radius);
+                }
+                else if (s.Knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
+                {
+                    V2 away = (e.Pos - origin).Normalized();
+                    float d = Math.Max(e.Pos.DistanceTo(origin) + s.Knock, e.Radius + p.Def.BodyR + 4f);
+                    e.Pos = ClampToArena(origin + (away.IsZero ? dir : away) * d, e.Radius);
                 }
                 if (s.HealPerHit > 0f && healed < s.HealHits)
                 {
@@ -302,7 +313,8 @@ namespace Arena
                     if (q.Pos.DistanceTo(origin) < s.HealRange)
                         Heal(q, s.HealSpin, p);
 
-            CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
+            if (!s.NoCut)
+                CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
         }
 
         /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.

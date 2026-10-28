@@ -26,6 +26,7 @@ namespace Arena
             amount *= 1f - cut;  // a mastered Haven
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
+            amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
@@ -182,6 +183,7 @@ namespace Arena
                 if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
                     wells.Add(e);
             bool wellsUp = wells.Count > 0;
+            PrepareNinjaBullets(dt);  // Smoke Bombs and returning chain shuriken (Ninja.cs)
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f)
@@ -190,7 +192,7 @@ namespace Arena
                     Steer(b, dt);
                 if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot)
                     PullIntoWells(b, dt);
-                b.Pos += b.Vel * dt;
+                b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 b.Life -= dt;
                 if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
                 {
@@ -332,7 +334,7 @@ namespace Arena
                                 if (Players.TryGetValue(b.Owner, out shooter))
                                     shooter.Run.ShotsHit++;
                             }
-                            HurtEnemy(e, b.Dmg, b.Owner);
+                            HurtEnemy(e, b.Dmg * NinjaHitMult(b.Owner, b.Kind, e), b.Owner);  // Kunai and ambush bonuses (Ninja.cs)
                             OnBulletHit(b, e);
                             b.LastHit = e.Id;
                             if (b.Frags > 0)
@@ -512,6 +514,8 @@ namespace Arena
                     HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 }
                 BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
+                if (b.HealBurst > 0f)
+                    CharmHeal(b);  // Ofuda (Ninja.cs)
             }
 
             var dead = new List<Enemy>();

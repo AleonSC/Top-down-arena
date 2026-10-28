@@ -264,6 +264,18 @@ namespace Arena
                 case AbilityId.LastStand: return "Lasts 12 s.";
                 case AbilityId.HallowedBlade: return "Three swords fall: one at your cursor and one either side.";
                 case AbilityId.BladeTempest: return "Five sword beams a swing instead of three.";
+                case AbilityId.ShadowClone: return "Leaves two clones.";
+                case AbilityId.SmokeBomb: return "Enemies inside the smoke are also slowed by 40%.";
+                case AbilityId.IronBody: return "The shockwave also erases enemy bullets within 160 px.";
+                case AbilityId.HealingMist: return "Lasts 9 s.";
+                case AbilityId.Substitution: return "You and your ally are both invulnerable for 1 s after the swap.";
+                case AbilityId.SpiritWard: return "The ward follows you.";
+                case AbilityId.ShadowStep: return "+1 charge.";
+                case AbilityId.Vanish: return "Erases enemy bullets around you when you vanish.";
+                case AbilityId.BladeFan: return "Throws twice as many kunai.";
+                case AbilityId.ThousandClones: return "Eight clones.";
+                case AbilityId.BlossomStorm: return "Lasts 8 s.";
+                case AbilityId.DeathLotus: return "Strikes up to 14 enemies.";
                 default: return "";
             }
         }
