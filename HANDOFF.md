@@ -116,7 +116,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 - **Setup:** the cloud container may not have mono. Install it with
   `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
-  Without mono, `check.sh` wrongly prints "OK: compiles" (it only greps for "error"), so make sure `which mcs` works.
+  Without mono, `check.sh` now fails with a clear message (exit 2); it used to print "OK" anyway.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
@@ -283,5 +283,4 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
 
 Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
 live mini-arena loadout preview, aim line capped at range, background picker card, Cartesian Colosseum
-main menu and How to play, Practice Range editor redesign. Pending small fix offered to the owner:
-`Tools/CompileCheck/check.sh` prints "OK" when `mcs` is missing.
+main menu and How to play, Practice Range editor redesign. `Tools/CompileCheck/check.sh` fails loudly when mono is missing.
