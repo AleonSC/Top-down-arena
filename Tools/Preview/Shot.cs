@@ -53,6 +53,7 @@ class Shot {
       host.Game.Effects.Clear();
       host.Game.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 150f, Color = Defs.BulletColor(Defs.KnightSlash), Radius = Game.LanceHalfWidth, T = tt * 0.26f, Dur = 0.26f });
     }
+    if (Environment.GetEnvironmentVariable("BG") != null) typeof(ArenaApp).GetField("menuBg", f2).SetValue(app, int.Parse(Environment.GetEnvironmentVariable("BG")));
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

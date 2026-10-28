@@ -77,7 +77,8 @@ for line in open(base+'.ui',encoding='utf-8'):
         tx = x+2 if hx==0 else (x+(w-tw)/2 if hx==1 else x+w-tw-2)
         ty = y+2 if vy==0 else y+(h-th)/2-bb[1]
         ld.multiline_text((tx,ty),text,font=f,fill=c8(*col),align=['left','center','right'][hx])
-    # clip
+    # clip (an empty clip area shows nothing; newer Pillow rejects drawing it)
+    if cw<=0 or ch<=0: continue
     m=Image.new('L',(W,H),0); ImageDraw.Draw(m).rectangle([cx,cy,cx+cw-1,cy+ch-1],fill=255)
     clipped=Image.new('RGBA',(W,H),(0,0,0,0)); clipped.paste(layer,(0,0),Image.composite(layer.getchannel('A'),Image.new('L',(W,H),0),m))
     img=Image.alpha_composite(img,clipped)

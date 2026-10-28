@@ -15,6 +15,7 @@ namespace Arena
         const float W = 1280f, H = 720f;
         const float AW = Game.Width, AH = Game.Height;
         const float WorldToUi = W / AW;
+        const float ArenaBgDim = 0.72f;  // how much of the lobby background the arena's dark floor hides
 
         static bool booted;
 
@@ -395,7 +396,12 @@ namespace Arena
         void DrawWorld()
         {
             float t = game.AnimT;
-            FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f));
+            // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
+            float worldScale = drawScale;
+            drawScale = worldScale / WorldToUi;  // the backgrounds draw in UI canvas coordinates
+            DrawMenuBackground(Time.time);
+            drawScale = worldScale;
+            FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
             for (float x = 0; x <= AW; x += 64f)
                 Line(new V2(x, 0), new V2(x, AH), 1f, grid);

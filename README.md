@@ -329,7 +329,8 @@ bosses come back around, tougher each time.
 
 The lobby's **Background** picker (top right) switches the animated background behind the menus: Spiral, Warp,
 Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula or Tides. Untick **Animated** for a still
-image. Each player's choice is saved on their own computer.
+image. Each player's choice is saved on their own computer. Your pick also shows faintly behind the arena
+during matches (dimmed so the fight stays easy to read).
 
 ## Practice Range
 
@@ -543,7 +544,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
-  - `MenuBackgrounds.cs`: the 10 menu backgrounds and the lobby's picker
+  - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
   - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with live character previews) and the Practice Range editor
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
