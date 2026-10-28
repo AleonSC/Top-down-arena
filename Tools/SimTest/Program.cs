@@ -75,7 +75,7 @@ static class Program
                 {
                     ok &= id >= 0 && seen.Add(id) && Upgrades.Available(id, role, ab, taken);
                     ok &= Upgrades.All[id].Rarity != Rarity.Legendary;  // legendaries only come from bosses
-                    ok &= Upgrades.All[id].RequiresAbility == AbilityId.None || Upgrades.All[id].RequiresAbility == ab;
+                    ok &= Upgrades.All[id].RequiresAbility == AbilityId.None || Upgrades.HasAbility(Upgrades.All[id].RequiresAbility, ab, taken);  // on any key
                     if (id >= 0)
                         rarityCount[(int)Upgrades.All[id].Rarity]++;
                     if (id >= 0 && Upgrades.All[id].Grants != AbilityId.None)
@@ -1021,6 +1021,59 @@ static class Program
 
     // Bonus abilities go on the key you choose when you pick them, and can be moved in the Tab menu
     // (cooldowns move with them). Tested from the joining player, so it goes through the host.
+    // Class ability cards: very rare cards for your class's two other Space abilities, which go on Q, E or Shift.
+    static void ClassAbilityTest(float dt)
+    {
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        var cards = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].ClassAbility).ToList();
+        int right = 0, combos = 0;
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+                for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                {
+                    var ab = Upgrades.RoleAbility(role, (Kit)k, c);
+                    var offered = cards.Where(i => Upgrades.Available(i, role, ab, new List<int>())).Select(i => Upgrades.All[i].Grants).OrderBy(x => x).ToList();
+                    var expect = Enumerable.Range(0, Upgrades.RoleAbilityChoices).Where(o => o != c).Select(o => Upgrades.RoleAbility(role, (Kit)k, o)).OrderBy(x => x).ToList();
+                    combos++;
+                    if (offered.SequenceEqual(expect))
+                        right++;
+                }
+        Console.WriteLine("  class ability cards: {0} cards; the right two offered for {1}/{2} role/class/ability picks", cards.Count, right, combos);
+        Check(cards.Count == 36 && right == combos, "each class is offered exactly its two other Space abilities as very rare cards");
+
+        var rng = new Random(7);
+        int veryRare = 0, cls = 0;
+        for (int n = 0; n < 4000; n++)
+            foreach (int id in Upgrades.RollOffer(rng, Role.Tank, AbilityId.Roar, new List<int>(), 20))
+                if (Upgrades.All[id].Rarity == Rarity.VeryRare)
+                {
+                    veryRare++;
+                    if (Upgrades.All[id].ClassAbility)
+                        cls++;
+                }
+        float frac = cls / (float)Math.Max(1, veryRare);
+        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} (4 in 9 = 44%)", veryRare, frac);
+        Check(frac > 0.38f && frac < 0.51f, "class ability cards count double among very rare cards");
+
+        var taken = new List<int> { U("Barrier") };  // a Tank Soldier who picked Roar, then found Barrier
+        Check(!Upgrades.Available(U("Barrier"), Role.Tank, AbilityId.Roar, taken) && Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, taken)
+            && !Upgrades.Available(U("Bastion"), Role.Tank, AbilityId.Roar, new List<int>()),
+            "a class ability card isn't offered twice, and that ability's own upgrades open up");
+
+        // In a match: the DPS Soldier (Space: Dash) gets Cluster Grenade on Q, and the bot throws it.
+        var s = StartBuffed(dt, 1, 0);
+        Run(s, dt, 1);
+        s[0].Game.GrantUpgrade(2, U("Cluster Grenade"));
+        bool thrown = false;
+        Run(s, dt, 9, null, () => thrown |= s[0].Game.Bullets.Values.Any(b => b.Kind == Defs.GrenadeShot && b.Owner == 2));
+        var hp = s[0].Game.Players[2];
+        var cp = s[1].Game.Players[2];
+        Console.WriteLine("  DPS Soldier: Space {0}, Q {1} (client sees {2}); grenade thrown {3}", hp.Slots[0].Id, hp.Slots[1].Id, cp.Slots[1].Id, thrown);
+        Check(hp.Slots[0].Id == AbilityId.Dash && hp.Slots[1].Id == AbilityId.Grenade && cp.Slots[1].Id == AbilityId.Grenade && thrown,
+            "a class ability card puts that ability on Q, E or Shift, and it works there");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void KeybindTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -3351,6 +3404,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "classcards")
+        {
+            ClassAbilityTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "showcase")
         {
             ShowcaseTest(1f / 60f);
@@ -3394,6 +3453,7 @@ static class Program
         PracticeTest(dt);
         WeaponRangeTest(dt);
         ShowcaseTest(dt);
+        ClassAbilityTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

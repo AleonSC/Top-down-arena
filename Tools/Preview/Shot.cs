@@ -176,6 +176,7 @@ class Shot {
     {
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
       if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
+      else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));
       else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Iron Volley") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Halo"), U("Iron Volley"), U("Ringburst") }; me.OfferLegendary = true; }
       else { me.Offer = Upgrades.ModOffer(me.Role, me.RoleAbility, me.Taken); me.OfferMod = true; }

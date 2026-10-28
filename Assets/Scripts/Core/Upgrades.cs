@@ -75,7 +75,9 @@ namespace Arena
         public Role? Role;                          // only offered to this role
         public AbilityId Grants = AbilityId.None;   // very rare: a new Q/E/Shift ability
         public bool NeedsExtraAbility;              // only offered once you have a bonus ability
-        public AbilityId RequiresAbility = AbilityId.None;  // only offered if this is your role ability
+        public AbilityId RequiresAbility = AbilityId.None;  // only offered if you have this ability (on any key)
+        public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
+        public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
         public Action<Stats> Apply;
     }
@@ -182,7 +184,7 @@ namespace Arena
         public static AbilityDef Ability(AbilityId id) => Abilities[(int)id];
 
 
-        public static readonly UpgradeDef[] All =
+        public static readonly UpgradeDef[] All = WithClassAbilities(new[]
         {
             // Common: small stat boosts
             new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+8% damage", Apply = s => s.DmgMult += 0.08f },
@@ -301,7 +303,7 @@ namespace Arena
                 Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 15% more damage",
                 Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.15f; } },
-        };
+        });
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(Role role, AbilityId roleAbility, List<int> taken)
@@ -388,14 +390,50 @@ namespace Arena
             return n;
         }
 
+        /// The very rare class ability cards, added after the rest: for every role and class, a card for each of
+        /// its Space abilities. A player is offered the two they didn't pick (see Available).
+        static UpgradeDef[] WithClassAbilities(UpgradeDef[] basic)
+        {
+            var all = new List<UpgradeDef>(basic);
+            foreach (var id in RoleAbilities)
+            {
+                var a = Ability(id);
+                all.Add(new UpgradeDef
+                {
+                    Rarity = Rarity.VeryRare, Grants = id, ClassAbility = true, Weight = 2, Name = a.Name, Desc = a.Desc,
+                });
+            }
+            return all.ToArray();
+        }
+
+        /// Which role and class a Space ability belongs to (each belongs to exactly one), or -1.
+        static int KitOf(AbilityId id)
+        {
+            int i = Array.IndexOf(RoleAbilities, id);
+            return i < 0 ? -1 : i / RoleAbilityChoices;
+        }
+
+        /// Do you have this ability: as your Space pick, or from a card that put it on Q, E or Shift?
+        public static bool HasAbility(AbilityId id, AbilityId roleAbility, List<int> taken)
+        {
+            if (id == roleAbility)
+                return true;
+            foreach (int t in taken)
+                if (All[t].Grants == id)
+                    return true;
+            return false;
+        }
+
         /// Can this upgrade be offered to a player with these picks and role?
         public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken)
         {
             var u = All[id];
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
-            if (u.RequiresAbility != AbilityId.None && u.RequiresAbility != roleAbility)
+            if (u.RequiresAbility != AbilityId.None && !HasAbility(u.RequiresAbility, roleAbility, taken))
                 return false;
+            if (u.ClassAbility && (u.Grants == roleAbility || KitOf(u.Grants) != KitOf(roleAbility)))
+                return false;  // only your own class's other two Space abilities
             if (Count(taken, id) >= (u.Grants != AbilityId.None ? 1 : u.MaxStacks))
                 return false;  // each bonus ability can only be owned once
             int grants = 0;
@@ -434,7 +472,8 @@ namespace Arena
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
                         if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, role, roleAbility, taken))
-                            candidates.Add(id);
+                            for (int k = 0; k < All[id].Weight; k++)  // class ability cards count double
+                                candidates.Add(id);
                     if (candidates.Count > 0)
                         pick = candidates[rng.Next(candidates.Count)];
                 }

@@ -2985,7 +2985,8 @@ namespace Arena
             Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + bob, 72f, 72f), icon);
             Ui.Label(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
-            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), Upgrades.DescFor(u, me.Weapon), 14, Ui.Text, TextAnchor.UpperCenter, false, true);
+            string desc = Upgrades.DescFor(u, me.Weapon);
+            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), desc, desc.Length > 110 ? 12 : 14, Ui.Text, TextAnchor.UpperCenter, false, true);
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
             var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);
@@ -3001,9 +3002,10 @@ namespace Arena
                 return have > 0 ? "YOU HAVE " + have + " / " + u.MaxStacks : "NEW";
             if (u.Grants != AbilityId.None)
             {
+                string cls = u.ClassAbility ? "Class ability  ·  " : "";
                 if (index == selectedCard && pickKey >= 1)
-                    return "Goes on " + SlotKeys[pickKey] + " (choose below)";
-                return "You choose its key";
+                    return cls + "Goes on " + SlotKeys[pickKey] + " (choose below)";
+                return cls + "You choose its key";
             }
             if (u.Role.HasValue)
                 return Defs.Get(u.Role.Value).Name + " only";

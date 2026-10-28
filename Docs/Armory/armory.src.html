@@ -1395,7 +1395,7 @@ function selectAbility(id) {
   $("aName").textContent = a.id;
   const slot = { Space: "Space", Bonus: "Q / E / Shift", Ultimate: "F (ultimate)", Parry: "Right mouse" }[a.slot];
   const R = ROLES.find(r => r.id === a.role);
-  $("aChips").innerHTML = `<span class="chip">${slot}</span>${a.role ? `<span class="chip" style="color:${css(R.col)}">${a.kit} ${a.role}</span>` : `<span class="chip">${a.slot === "Bonus" ? "From a very rare upgrade" : "Every class"}</span>`}${a.cd ? `<span class="chip">${a.cd} s cooldown</span>` : ""}`;
+  $("aChips").innerHTML = `<span class="chip">${slot}</span>${a.role ? `<span class="chip" style="color:${css(R.col)}">${a.kit} ${a.role}</span>` : `<span class="chip">${a.slot === "Bonus" ? "From a very rare upgrade" : "Every class"}</span>`}${a.slot === "Space" ? `<span class="chip">Or Q / E / Shift: a very rare card when you picked another</span>` : ""}${a.cd ? `<span class="chip">${a.cd} s cooldown</span>` : ""}`;
   $("aLead").textContent = a.desc;
   $("aStats").innerHTML = [["Cooldown", a.cd ? `${a.cd} s${a.slot === "Ultimate" ? " <small>(cooldown upgrades don't shorten ultimates)</small>" : ""}` : "None (breaks and recharges)"], ...a.stats].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   const ups = U.filter(u => (a.ups || []).includes(u.name) || u.grants === a.id);
