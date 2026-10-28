@@ -93,6 +93,15 @@ namespace Arena
             GUI.Label(r, text, label);
         }
 
+        /// How wide a label of this text would be.
+        public static float TextWidth(string text, int size, bool bold = false)
+        {
+            label.fontSize = size;
+            label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            label.wordWrap = false;
+            return label.CalcSize(new GUIContent(text)).x;
+        }
+
         /// Big text with a soft drop shadow.
         public static void Title(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleCenter)
         {
@@ -289,6 +298,17 @@ namespace Arena
                 return;
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.DrawTexture(r, tex);
+            GUI.color = old;
+        }
+
+        /// A pixel-art icon tinted a colour (white icons take the colour exactly).
+        public static void Icon(Rect r, Texture2D tex, Color tint)
+        {
+            if (tex == null)
+                return;
+            var old = GUI.color;
+            GUI.color = tint;
             GUI.DrawTexture(r, tex);
             GUI.color = old;
         }
