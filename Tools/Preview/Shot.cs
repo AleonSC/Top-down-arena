@@ -1,0 +1,162 @@
+using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
+class Shot {
+  static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
+  static void Main(string[] args) {
+    int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
+    UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
+    var host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
+    host.Host(7990 + new System.Random().Next(500), "Anthony", Role.Tank, Environment.GetEnvironmentVariable("KNIGHT") != null ? int.Parse(Environment.GetEnvironmentVariable("KNIGHT")) : 0, 0, Environment.GetEnvironmentVariable("KNIGHT") != null ? Kit.Knight : Kit.Mage);
+    var others = new System.Collections.Generic.List<Session>();
+    string[] names = { "Aleon", "Sam" }; Role[] roles = { Role.Dps, Role.Healer }; Kit[] kits = Environment.GetEnvironmentVariable("KNIGHT") != null ? new[] { Kit.Knight, Kit.Knight } : new[] { Kit.Soldier, Kit.Summoner };
+    for (int i = 1; i < players; i++) { var c = new Session(); c.Game.Bot = true; c.Join("127.0.0.1", host.Port, names[i-1], roles[i-1], 0, 0, kits[i-1]); others.Add(c); }
+    if (players == 1) host.StartMatch();
+    for (int i = 0; i < 600 && !host.Game.Running; i++) { Step(host); foreach (var c in others) Step(c); Thread.Sleep(2); }
+    // Some upgrades so the bars have content.
+    for (int f = 0; f < seconds * 60; f++) {
+      Step(host); foreach (var c in others) Step(c); if (f % 4 == 0) Thread.Sleep(1);
+      foreach (var p in host.Game.Players.Values) { p.InvulnT = 1f; }
+      if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
+      if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
+      if (Environment.GetEnvironmentVariable("SINGT") != null && f == (int)(seconds * 60) - 120) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity) e.T = float.Parse(Environment.GetEnvironmentVariable("SINGT"));
+      if (Environment.GetEnvironmentVariable("WARDEN_CROSS") != null && f == (int)(seconds * 60) - 170) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.T = 17.95f;
+    }
+    foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) Console.WriteLine("warden T {0:0.0} phase {1} pos {2:0},{3:0}", e.T, e.Phase, e.Pos.X, e.Pos.Y);
+    var me = host.Game.Players[1]; if (Environment.GetEnvironmentVariable("PARRY") == null) me.Hp = me.MaxHp * 0.62f; me.ShieldHp = 40f; me.Xp = Defs.XpToNext(me.Level) * 0.4f;
+    me.Slots[1].Charges = 0; me.Slots[1].Timer = 4.2f;
+    if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
+    if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
+    if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
+    var app = new ArenaApp();
+    var f2 = BindingFlags.NonPublic | BindingFlags.Instance;
+    Action<string, object> set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
+    set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
+    if (Environment.GetEnvironmentVariable("AIMLINE") != null)
+    {
+      // Point the mouse 380 px up and to the right of the player (screen y is flipped).
+      V2 target = me.Pos + V2.FromAngle(-0.5f) * 380f;
+      float ws = 1280f / Game.Width;
+      Input.mousePosition = new Vector3(target.X * ws, 720f - target.Y * ws, 0f);
+      me.Aim = (target - me.Pos).Angle;
+    }
+    if (Environment.GetEnvironmentVariable("AIMDEBUG") != null)
+    {
+      typeof(ArenaApp).GetField("aimDebug", f2).SetValue(app, true);
+      me.Aim = -0.6f;
+      host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
+    }
+    if (Environment.GetEnvironmentVariable("ARROWS") != null) {
+      var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int k = 0; k < 4; k++) { float a = -0.6f + k * 0.45f; sb.Invoke(host.Game, new object[] { Defs.ArrowShot, me.Pos + V2.FromAngle(a) * (60f + k * 30f), V2.FromAngle(a) * 900f, 0f, 1f, 40f, 1, false, 0f }); }
+    }
+    if (Environment.GetEnvironmentVariable("THRUST") != null) {
+      float tt = float.Parse(Environment.GetEnvironmentVariable("THRUST"));
+      host.Game.Effects.Clear();
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 150f, Color = Defs.BulletColor(Defs.KnightSlash), Radius = Game.LanceHalfWidth, T = tt * 0.26f, Dur = 0.26f });
+    }
+    typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
+    typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
+    Ui.Init();
+    Event.current = new Event { mousePosition = new Vector2 { x = -100, y = -100 } };
+    string mode = args.Length > 4 ? args[4] : "hud";
+    if (Environment.GetEnvironmentVariable("MASTERY") != null) {
+      Func<string, int> U0 = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+      host.Game.GrantUpgrade(1, U0("Shockwave")); host.Game.GrantUpgrade(1, U0("Blink"));
+      float[] xs = { 900f, 420f, 130f, 0f, 20f };
+      for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k];
+      host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
+      if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
+    }
+    if (mode == "hud")
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+    else if (mode == "dev")
+    {
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
+      host.Game.DevSetGod(1, true);
+      set("devWave", 10);
+      typeof(ArenaApp).GetMethod("DrawDevMenu", f2).Invoke(app, null);
+    }
+    else if (mode == "bg")
+    {
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG")));
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
+    }
+    else if (mode == "lobby" || mode == "lobbypr")
+    {
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
+      host.Lobby.Clear();
+      host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true };
+      host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Mage, Weapon = 0, Ability = 1 };
+      if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
+      if (mode == "lobbypr") {
+        System.Collections.Generic.List<string> pr;
+        host.PracticeMode = true;
+        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Medic x1, Shielder x2, Charger x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
+        host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
+        host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
+        set("practiceSel", 1);
+      }
+      var hv = Environment.GetEnvironmentVariable("MOUSE");
+      if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      Event.current.type = EventType.Repaint;
+      set("glMaterial", new Material(null));
+      set("addressList", "100.123.48.122, 192.168.1.163");
+      GL.ToUi = true;
+      typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
+    else if (mode == "practicehud")
+    {
+      System.Collections.Generic.List<string> pr;
+      host.Game.Practice = PracticePlan.Parse("wave 3: Grunt x4\nwave 6: Swarmer x8\nwave 10: The Warden x1", out pr);
+      host.Game.PracticeIndex = 1;
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+    }
+    else if (mode == "labsetup")
+    {
+      var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
+      lab.Wave = 20; lab.PlayerCount = 3; lab.Seats[1].Kit = Kit.Mage; lab.Seats[2].Kit = Kit.Knight; lab.Seats[2].Weapon = 1;
+      typeof(ArenaApp).GetMethod("DrawLabSetup", f2).Invoke(app, null);
+    }
+    else if (mode == "labpanel")
+    {
+      var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
+      lab.Host = host; lab.FightTime = 23.4f; lab.BossHpFrac = 0.41f; lab.BossName = "The Singularity"; lab.PeakBullets = 171;
+      foreach (var p in host.Game.Players.Values) { var st = new LabPlayerStats { Name = p.Name, BossDamage = 2140f, DamageTaken = 96f, Downs = 0 }; st.TakenFrom["The Singularity"] = 70f; st.TakenFrom["The Singularity (aimed)"] = 22f; st.TakenFrom["Grunt"] = 4f; lab.Stats[p.Id] = st; }
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod("DrawLabPanel", f2).Invoke(app, null);
+      if (Environment.GetEnvironmentVariable("RESULT") != null) { lab.Outcome = LabOutcome.Won; typeof(ArenaApp).GetMethod("DrawLabResult", f2).Invoke(app, null); }
+    }
+    else if (mode == "tab")
+    {
+      var rng = new System.Random(4);
+      Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+      foreach (var n in new[] { "Hollow Points", "Hollow Points", "Sharpened Rounds", "Quick Trigger", "Hair Trigger", "Fortitude", "Vitality", "Vitality", "Regeneration", "Focus", "Clarity", "Thick Skin", "Second Charge", "Multishot", "Multishot", "Piercing Rounds", "Overcharge", "Shockwave", "Blink", "Nova", "Warden's Halo", "Iron Volley", "Swarm Rounds", "Twin Fang", "Collapse Rounds", "Homing Rounds", "Homing Rounds", "Incendiary Rounds", "Shock Rounds", "Velocity Rounds", "Light Boots", "Sprinter", "Mending", "Executioner", "Royal Jelly" })
+        host.Game.GrantUpgrade(1, U(n));
+      if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
+      me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
+      typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
+    }
+    else
+    {
+      Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+      if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
+      else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Iron Volley") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
+      else if (mode == "legendary") { me.Offer = new[] { U("Warden's Halo"), U("Iron Volley"), U("Ringburst") }; me.OfferLegendary = true; }
+      else { me.Offer = Upgrades.ModOffer(me.Role, me.RoleAbility, me.Taken); me.OfferMod = true; }
+      me.PendingPicks = 2;
+      typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
+      typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);
+      typeof(ArenaApp).GetMethod("DrawUpgradePicker", f2).Invoke(app, new object[] { me });
+    }
+    using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
+    File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
+    Console.WriteLine("state {0} wave {1}, tris {2}, ui items {3}", host.Game.State, host.Game.Wave, GL.Tris.Count / 18, GUI.Log.Count);
+    host.Leave(""); foreach (var c in others) c.Leave("");
+  }
+}

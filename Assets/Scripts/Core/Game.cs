@@ -281,7 +281,7 @@ namespace Arena
         const float DashSpeed = 1200f;
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
         const float RoarTime = 5f, RoarReduction = 0.4f;
-        const float HavenRadius = 130f, HavenTime = 6f, HavenHeal = 15f;
+        const float HavenRadius = 130f, HavenTime = 6f;
         const float LinkTime = 6f, LinkHeal = 8f;
         const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeRadius = 110f, GrenadeDamage = 80f;
         const float MarkTime = 6f;

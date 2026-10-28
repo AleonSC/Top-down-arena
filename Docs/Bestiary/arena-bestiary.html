@@ -1,0 +1,1369 @@
+<title>Top-Down Arena Bestiary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a field manual — animated roster rail on the left, live arena + data sheet for the selected enemy on the right.
+   Single dark look by choice: it mirrors the game's own arena. */
+:root {
+  --bg: #0a0c12;
+  --panel: #121521;
+  --panel-2: #181c2b;
+  --line: #262b3f;
+  --fg: #e8ecf8;
+  --muted: #8e97b3;
+  --accent: #5b8cff;
+  --gold: #ffcc59;
+  --danger: #ff5a6e;
+  --good: #6be38a;
+  --arena: #0d1019;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1360px; margin: 0 auto; display: grid; gap: 18px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 4vw, 38px); letter-spacing: 0.04em; margin: 0; text-wrap: balance; }
+h1 span { color: var(--gold); }
+.sub { color: var(--muted); margin: 2px 0 0; max-width: 70ch; }
+.global { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.layout { display: grid; grid-template-columns: minmax(250px, 330px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Roster */
+.roster { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 12px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; }
+@media (max-width: 900px) { .roster { position: static; max-height: none; } }
+.search { width: 100%; background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 8px 10px; font: inherit; }
+.search:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.group h3 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; display: flex; justify-content: space-between; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 4px 6px; display: grid; justify-items: center; gap: 2px; cursor: pointer; color: var(--fg); font: inherit; }
+.card:hover { border-color: #3a4260; }
+.card.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.card canvas { width: 64px; height: 64px; }
+.card .nm { font-size: 12px; font-weight: 600; text-align: center; line-height: 1.15; }
+.card .wv { font-family: var(--font-data); font-size: 10px; color: var(--muted); }
+
+/* Main */
+.main { display: grid; gap: 14px; min-width: 0; }
+.head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3vw, 30px); margin: 0; letter-spacing: 0.03em; }
+.chip { font-family: var(--font-data); font-size: 11px; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.boss { color: var(--gold); border-color: #6b5524; }
+.chip.melee { color: #ffad6b; border-color: #6b4126; }
+.chip.summon { color: #9fd1ff; border-color: #2a4a6b; }
+.lead { margin: 0; color: #c9cfe3; max-width: 80ch; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stage canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--arena); touch-action: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
+.controls .sep { width: 1px; height: 22px; background: var(--line); }
+button.btn, select, .num { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 5px 10px; font: 500 13px var(--font-body); cursor: pointer; }
+button.btn:hover { border-color: #3a4260; }
+button.btn.on { background: #22305a; border-color: var(--accent); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.num { width: 64px; font-family: var(--font-data); cursor: text; }
+label.tg { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: #c9cfe3; cursor: pointer; }
+label.tg input { accent-color: var(--accent); }
+.lbl { font-size: 12px; color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: var(--panel-2); color: var(--fg); padding: 5px 9px; font: 500 12px var(--font-body); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: #22305a; color: #fff; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 12px; border-top: 1px solid var(--line); font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--fg); font-weight: 500; }
+.readout .hot { color: var(--danger); }
+
+.sheet { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 14px; }
+@media (max-width: 1100px) { .sheet { grid-template-columns: minmax(0, 1fr); } }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.box h4 { font-family: var(--font-display); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+dl.stats { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+dl.stats dt { color: var(--muted); }
+dl.stats dd { margin: 0; font-family: var(--font-data); font-size: 13px; font-variant-numeric: tabular-nums; }
+dl.stats dd small { color: var(--muted); font-size: 11px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-display); font-weight: 500; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td.n { font-family: var(--font-data); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td .eff { color: var(--gold); }
+tr:last-child td { border-bottom: 0; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+.notes { margin: 8px 0 0; padding-left: 18px; color: #c9cfe3; font-size: 14px; }
+.notes li + li { margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); }
+.foot { color: var(--muted); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>TOP-DOWN ARENA <span>BESTIARY</span></h1>
+      <p class="sub">Every enemy, boss and summon, simulated from the game's code: movement, attack patterns, damage and timings. Pick one to watch it fight a test dummy.</p>
+    </div>
+    <div class="global">
+      <label class="tg"><input type="checkbox" id="animRoster" checked> Animate roster</label>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="roster" aria-label="Enemies">
+      <input class="search" id="search" type="search" placeholder="Search enemies…" aria-label="Search enemies">
+      <div id="groups"></div>
+    </aside>
+
+    <main class="main">
+      <div class="head">
+        <h2 id="name">—</h2>
+        <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <p class="lead" id="lead"></p>
+
+      <section class="stage" aria-label="Live simulation">
+        <canvas id="arena" width="1280" height="720"></canvas>
+        <div class="controls">
+          <button class="btn primary" id="play">Pause</button>
+          <button class="btn" id="restart">Restart</button>
+          <span class="lbl">Speed</span>
+          <div class="seg" id="speed"><button data-v="0.25">¼×</button><button data-v="0.5">½×</button><button data-v="1" class="on">1×</button><button data-v="2">2×</button></div>
+          <span class="sep"></span>
+          <span class="lbl">Dummy</span>
+          <div class="seg" id="dummy"><button data-v="still" class="on">Stands still</button><button data-v="circle">Runs in a circle</button><button data-v="mouse">Follows pointer</button></div>
+        </div>
+        <div class="controls">
+          <label class="lbl" for="wave">Wave</label>
+          <input class="num" id="wave" type="number" min="1" max="99" value="1">
+          <span class="lbl">Players</span>
+          <div class="seg" id="party"><button data-v="1">1</button><button data-v="2" class="on">2</button><button data-v="3">3</button></div>
+          <label class="tg"><input type="checkbox" id="elite"> Elite</label>
+          <span class="sep"></span>
+          <label class="tg"><input type="checkbox" id="tele" checked> Telegraphs</label>
+          <label class="tg"><input type="checkbox" id="hitbox"> Hitboxes</label>
+          <label class="tg"><input type="checkbox" id="bodyAnim" checked> Body animation</label>
+        </div>
+        <div class="controls" id="attackRow" hidden>
+          <span class="lbl">Attack</span>
+          <div class="seg" id="lock"></div>
+          <span id="extraBtns" style="display:inline-flex;gap:8px;flex-wrap:wrap"></span>
+        </div>
+        <div class="readout" id="readout"></div>
+      </section>
+
+      <section class="sheet">
+        <div class="box">
+          <h4>Stats</h4>
+          <dl class="stats" id="stats"></dl>
+        </div>
+        <div class="box">
+          <h4>Attacks <span id="rateNote" style="text-transform:none;letter-spacing:0;font-family:var(--font-body);color:var(--muted)"></span></h4>
+          <div class="tablewrap"><table id="attacks"></table></div>
+          <ul class="notes" id="notes"></ul>
+        </div>
+      </section>
+
+      <section class="box">
+        <h4>Enemy bullets</h4>
+        <div class="tablewrap"><table id="bulletTable"></table></div>
+        <p class="foot" style="margin:8px 0 0">After any hit you can't be hurt for 0.35 s. Contact with a shooter does 15; bosses do 25 + 0.6 per wave on contact. Dark-cored shots come from bosses. Red aimed shots can't be blocked by barriers.</p>
+      </section>
+      <p class="foot">Health = base × (1 + 0.15 per wave after the first) × party size (solo 70%, duo 100%, trio 120%; bosses 70 / 100 / 150%) × 2.5 for elites. Bosses after wave 20 also get +10% per wave. Enemies fire faster each wave: × (1 + 0.05 per wave after the first), capped at × 2, and elites another × 1.35. The test dummy has a 7 px hitbox (a Healer's).</p>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const W = 1600, H = 900, TAU = Math.PI * 2;
+const rgb = (r, g, b) => [r, g, b];
+const css = (c, a = 1) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`;
+const deg = r => Math.round(r * 180 / Math.PI * 10) / 10 + "°";
+
+// Bullet kinds (Defs.cs)
+const B = {
+  small:  { name: "Small shot",   dmg: 12, r: 6,   col: rgb(1, 0.3, 0.45) },
+  fast:   { name: "Fast shot",    dmg: 15, r: 4.5, col: rgb(1, 0.95, 0.4) },
+  big:    { name: "Big orb",      dmg: 20, r: 10,  col: rgb(0.85, 0.35, 1) },
+  pierce: { name: "Aimed shot",   dmg: 16, r: 6.5, col: rgb(1, 0.12, 0.12) },
+  mine:   { name: "Mortar bomb",  dmg: 18, r: 9,   col: rgb(1, 0.55, 0.2) },
+};
+
+// ---------------------------------------------------------------------------------------------
+// Enemy data (EnemyDef in Defs.cs + behaviour in EnemyAI.cs / LateGame.cs)
+// ---------------------------------------------------------------------------------------------
+const E = [
+  // Melee
+  { id: "Swarmer", cat: "Melee", hp: 22, r: 9, speed: 135, sides: 3, col: rgb(1, 0.6, 0.3), melee: true, contact: 10, xp: 5, score: 5, wave: 1,
+    appears: "Waves 1–12 (always in pairs)", lead: "Runs straight at you, weaving side to side. Comes in pairs and makes up most of the first waves.",
+    attacks: [{ name: "Contact", pattern: "Touch", dmg: "10", every: null, notes: "Weaves ±45% sideways as it runs" }],
+    notes: ["Melee enemies make up all of wave 1 and fade out by wave 13: share = (13 − wave) / 12."] },
+  { id: "Brute", cat: "Melee", hp: 110, r: 19, speed: 62, sides: 7, col: rgb(0.8, 0.45, 0.35), melee: true, contact: 24, xp: 14, score: 15, wave: 3,
+    appears: "Waves 3–12", lead: "Slow and tough. Walks straight at you and hits hard on contact.",
+    attacks: [{ name: "Contact", pattern: "Touch", dmg: "24", every: null, notes: "Walks straight at its target" }] },
+  { id: "Lunger", cat: "Melee", hp: 45, r: 12, speed: 95, sides: 4, col: rgb(0.95, 0.35, 0.65), melee: true, contact: 18, xp: 12, score: 12, wave: 5,
+    appears: "Waves 5–12", lead: "Closes to about 170 px, circles you, then winds up and leaps along a telegraphed line.",
+    attacks: [
+      { name: "Leap", pattern: "Wind-up 0.6 s (tracks you, shows a line) → leap 0.32 s at 640 px/s (~205 px)", dmg: "26", every: null, notes: "Starts when you're within 220 px" },
+      { name: "Recover", pattern: "0.8 s at 30% speed, then 0.8–1.6 s before it can leap again", dmg: "18 contact", every: null, notes: "" }],
+    notes: ["The line locks in when the leap starts: sidestep at the end of the wind-up."] },
+
+  // Shooters
+  { id: "Grunt", cat: "Shooters", hp: 60, r: 14, speed: 85, sides: 3, col: rgb(1, 0.35, 0.35), xp: 10, score: 10, wave: 1,
+    appears: "Wave 1+", lead: "The basic shooter. Keeps about 230 px away, strafes, and fires a three-shot spread.",
+    attacks: [{ name: "Spread", pattern: "3 shots, 12.6° apart, aimed", kind: "small", n: 3, speed: 175, every: 1.8 }] },
+  { id: "Burster", cat: "Shooters", hp: 110, r: 17, speed: 55, sides: 6, col: rgb(0.8, 0.4, 1), xp: 18, score: 20, wave: 2,
+    appears: "Wave 2+", lead: "Gets close (160 px) and fires full rings. Each ring is rotated half a gap from the last, so the safe gaps move.",
+    attacks: [{ name: "Ring", pattern: "Full ring, rotates half a gap each volley", kind: "small", n: w => 12 + Math.min(w, 6), nLabel: "12 + wave (max 18)", speed: 135, every: 2.4 }] },
+  { id: "Sniper", cat: "Shooters", hp: 50, r: 12, speed: 95, sides: 4, col: rgb(1, 0.9, 0.3), xp: 14, score: 15, wave: 3,
+    appears: "Wave 3+", lead: "Hangs back at 420 px, strafing, and fires one fast aimed shot.",
+    attacks: [{ name: "Snipe", pattern: "1 aimed shot", kind: "fast", n: 1, speed: 400, every: 2.6 }] },
+  { id: "Spinner", cat: "Shooters", hp: 150, r: 18, speed: 35, sides: 5, col: rgb(1, 0.6, 0.2), xp: 22, score: 25, wave: 4,
+    appears: "Wave 4+", lead: "Wanders to random spots. Every 3.3 s it spins up and sprays a curving three-armed spiral for 1.3 s, then rests.",
+    attacks: [{ name: "Burst spiral", pattern: "3 arms, +15.5° per volley, curving 14°/s; 1.3 s on, 2 s off", kind: "small", n: 3, speed: 125, every: 0.11, notes: "About 36 bullets per burst" }],
+    notes: ["It glows and spins faster while bursting: that's your cue to back off."] },
+  { id: "Charger", cat: "Shooters", hp: 90, r: 15, speed: 70, sides: 3, col: rgb(0.3, 0.9, 0.9), xp: 18, score: 20, wave: 6,
+    appears: "Wave 6+", lead: "Circles at 300 px, then locks onto you, winds up, dashes, and bursts into a ring where it stops.",
+    attacks: [
+      { name: "Dash", pattern: "Wind-up 0.7 s (line shows the path) → dash 0.45 s at 560 px/s (~250 px)", dmg: "25 contact", every: null, notes: "Direction locks at the start of the wind-up" },
+      { name: "Burst", pattern: "Ring at the end of the dash", kind: "small", n: 10, speed: 140, every: 3.2, notes: "Then a 3.2 s cooldown" }] },
+  { id: "Splitter", cat: "Shooters", hp: 120, r: 19, speed: 50, sides: 4, col: rgb(0.6, 1, 0.3), xp: 16, score: 20, wave: 7,
+    appears: "Wave 7+", lead: "Fires a tight pair of shots. When it dies it breaks into three Shards (five if elite).",
+    attacks: [{ name: "Pair", pattern: "2 shots, 9.2° apart, aimed", kind: "small", n: 2, speed: 150, every: 2 }],
+    notes: ["Use “Kill it” to see the split."] },
+  { id: "Mortar", cat: "Shooters", hp: 80, r: 16, speed: 40, sides: 7, col: rgb(0.95, 0.55, 0.3), xp: 18, score: 20, wave: 8,
+    appears: "Wave 8+", lead: "Stays far back (450 px) and lobs bombs at where you are. Each bomb bursts into a ring when it lands.",
+    attacks: [
+      { name: "Bomb", pattern: "Lobbed at your spot, 1.3 s flight (max 330 px/s)", kind: "mine", n: 1, speed: "≤330", every: 3 },
+      { name: "Landing burst", pattern: "Ring from the landing spot", kind: "small", n: "10 (14 elite)", speed: 150, every: null }],
+    notes: ["The bomb itself hurts too if it hits you in flight. Keep moving and the ring goes off behind you."] },
+  { id: "Shielder", cat: "Shooters", hp: 140, r: 17, speed: 60, sides: 6, col: rgb(0.6, 0.7, 0.9), xp: 22, score: 25, wave: 9,
+    appears: "Wave 9+", lead: "Carries a front shield that blocks your shots within 65° of where it faces. It turns slowly, so get around it.",
+    attacks: [{ name: "Fan", pattern: "5 shots, 8.6° apart, along its facing", kind: "small", n: 5, speed: 190, every: 2.2 }],
+    notes: ["Turns at 92°/s. Shield covers a 130° arc in front."] },
+  { id: "Medic", cat: "Shooters", hp: 70, r: 13, speed: 75, sides: 4, col: rgb(1, 0.5, 0.75), xp: 20, score: 25, wave: 11,
+    appears: "Wave 11+", lead: "Keeps 360 px back and heals every non-boss enemy within 180 px by 15% of their max health every 3 s.",
+    attacks: [
+      { name: "Heal pulse", pattern: "+15% max HP to enemies within 180 px", dmg: "—", every: 3, unscaled: true },
+      { name: "Shot", pattern: "1 aimed shot", kind: "small", n: 1, speed: 160, every: 2.5 }],
+    notes: ["Kill it first in mixed waves."] },
+  { id: "Phantom", cat: "Late game", hp: 90, r: 13, speed: 90, sides: 4, col: rgb(0.55, 0.85, 1), xp: 22, score: 25, wave: 16,
+    appears: "Wave 16+", lead: "Blinks to 220–300 px from you every 3–4.5 s and bursts into a ring, firing pairs in between.",
+    attacks: [
+      { name: "Pair", pattern: "2 shots, 5.7° apart, aimed", kind: "small", n: 2, speed: 200, every: 1.5 },
+      { name: "Blink burst", pattern: "Teleports near you, then a ring", kind: "small", n: 12, speed: 130, every: "3–4.5", unscaled: true }] },
+  { id: "Hexer", cat: "Late game", hp: 100, r: 14, speed: 60, sides: 5, col: rgb(0.75, 0.3, 0.9), xp: 22, score: 25, wave: 21,
+    appears: "Wave 21+", lead: "Fires shots out to the sides that curve back in like pincers. Standing still between them gets you caught.",
+    attacks: [
+      { name: "Inner pincers", pattern: "2 shots at ±40°, curving in at 63°/s", kind: "small", n: 2, speed: 170, every: 2 },
+      { name: "Outer pincers", pattern: "2 shots at ±69°, curving in at 92°/s (same volley)", kind: "small", n: 2, speed: 150, every: 2 }] },
+  { id: "Juggernaut", cat: "Late game", hp: 420, r: 26, speed: 32, sides: 8, col: rgb(0.55, 0.55, 0.62), contact: 25, xp: 50, score: 60, wave: 26,
+    appears: "Wave 26+", lead: "Huge and heavy: can't be slowed, frozen in place or knocked back. Pushes in to 140 px and fires slow rings of big orbs.",
+    attacks: [
+      { name: "Orb ring", pattern: "8 orbs, rotating 11.5° each volley", kind: "big", n: 8, speed: 110, every: 2.5 },
+      { name: "Contact", pattern: "Touch", dmg: "25", every: null }] },
+  { id: "Nest", cat: "Late game", hp: 260, r: 22, speed: 0, sides: 6, col: rgb(0.7, 0.9, 0.4), xp: 35, score: 40, wave: 31,
+    appears: "Wave 31+", lead: "Never moves. Hatches two Shards every 5 s while it has fewer than six.",
+    attacks: [{ name: "Hatch", pattern: "2 Shards (up to 6 alive)", dmg: "—", every: 5, unscaled: true }] },
+
+  // Bosses
+  { id: "Warden", label: "The Warden", cat: "Bosses", boss: true, hp: 2400, r: 46, speed: 45, sides: 8, col: rgb(1, 0.25, 0.5), xp: 150, score: 300, wave: 5,
+    appears: "Wave 5 (with wave ÷ 2 Grunts)", lead: "Sways along the top of the arena through a 30 s loop: spiral, rings, aimed fans, then 12 s of a static “+” cross fired from four spots.",
+    locks: ["Cycle", "Spiral", "Rings", "Fan", "Cross"],
+    attacks: [
+      { name: "Spiral (6 s)", pattern: "4 arms, +10.9° per volley", kind: "small", n: 4, speed: 150, every: 0.07 },
+      { name: "Rings (6 s)", pattern: "Ring of big orbs, +6.9° per volley", kind: "big", n: 26, speed: 110, every: 1 },
+      { name: "Fan (6 s)", pattern: "9 aimed shots, 6.9° apart", kind: "pierce", n: 9, speed: 210, every: 0.45 },
+      { name: "Cross (12 s)", pattern: "4 plants: dash 1 s at 340 px/s to a spot 160–330 px away, then 2 s of streams up/down/left/right", kind: "small", n: 4, speed: 240, every: 0.075, notes: "Guide lines only while planted" }] },
+  { id: "HiveQueen", label: "Hive Queen", cat: "Bosses", boss: true, hp: 3000, r: 44, speed: 40, sides: 6, col: rgb(1, 0.8, 0.2), xp: 180, score: 400, wave: 10,
+    appears: "Wave 10 (brings her own swarm)", lead: "Loops: she summons shooting drones (and stays shielded while any live), then without waiting launches explosive bombers at where you stand, then her bullet patterns.",
+    locks: ["Cycle", "Drones", "Bombers", "Bullets"],
+    attacks: [
+      { name: "Drones (2 s)", pattern: "3 + 1 per player Shards with 3× health, topped up each loop (max 8). She's immune while any live, but the loop carries on", dmg: "15 per shot", every: null },
+      { name: "Bombers (4.5 s)", pattern: "1 Hive Bomber per player, flies at 330 px/s to your spot at launch, 60 px blast", dmg: "22", every: 0.9, notes: "30 HP each, can be shot down" },
+      { name: "Fan (5 s)", pattern: "5 aimed shots, 12.6° apart", kind: "pierce", n: 5, speed: 200, every: 0.9 },
+      { name: "Rings (5 s)", pattern: "Ring of big orbs, +8.6° per volley", kind: "big", n: 20, speed: 100, every: 1.6 }],
+    notes: ["Each stage starts after a 0.6 s beat.", "A marker shows where each bomber will land; keep moving and they all miss."] },
+  { id: "Twins", label: "Twin Reapers", cat: "Bosses", boss: true, hp: 1800, r: 34, speed: 95, sides: 5, col: rgb(1, 0.35, 0.6), col2: rgb(0.45, 0.55, 1), xp: 100, score: 250, wave: 15,
+    appears: "Wave 15 (Reaper of Dusk + Reaper of Dawn, 1800 HP each)", lead: "Two Reapers circle the arena on opposite sides, joined by a beam that sweeps the floor. They alternate lines of streaking shots and rotating crosses.",
+    locks: ["Cycle", "Lines", "Cross"],
+    attacks: [
+      { name: "Lines (5 s)", pattern: "3 lines 28.6° apart, 6 shots each at 140–315 px/s; the middle line is aimed shots", kind: "small", n: 18, speed: "140–315", every: 1.4 },
+      { name: "Cross (5 s)", pattern: "4 arms × 3 shots (120 / 170 / 220 px/s), +20° per volley", kind: "small", n: 12, speed: "120–220", every: 0.9 },
+      { name: "Tether", pattern: "8 px beam between them", dmg: w => (18 + 0.4 * w).toFixed(1), dmgLabel: "18 + 0.4 × wave", every: null }],
+    notes: ["Soul Bond: the more-hurt Reaper is immune once it's 10% behind, until the other is brought within 3%.", "Kill one and the other enrages (fires 1.7× faster). The fallen one revives with 60% health after 6 s unless you finish the pair."] },
+  { id: "Singularity", label: "The Singularity", cat: "Bosses", boss: true, hp: 3600, r: 40, speed: 0, sides: 10, col: rgb(0.6, 0.35, 1), xp: 220, score: 500, wave: 20,
+    appears: "Wave 20 (with Grunts and Snipers)", lead: "Sits in the middle and loops four attacks over 24 s: Pull, Collapse, Normal (a purple spiral, then three sweeping red lasers) and Cage. Four gravity wells hold the corners, bending your shots and drifting you toward them.",
+    locks: ["Cycle", "Pull", "Collapse", "Normal", "Cage"],
+    attacks: [
+      { name: "Pull (4 s)", pattern: "Drags players in at 150 px/s; 3-arm spiral, +12° per volley", kind: "small", n: 3, speed: 110, every: 0.13 },
+      { name: "Collapse (3 s)", pattern: "Rings, +6.3° per volley", kind: "small", n: 26, speed: 170, every: 0.9 },
+      { name: "Normal (8 s): spiral", pattern: "4 purple orbs in a cross, rotating 17° per volley", kind: "big", n: 4, speed: 150, every: 0.65 },
+      { name: "Normal: lasers", pattern: "From 1.5 s in: 3 red lines flicker for 0.8 s as a warning, then fire from its centre to the edges, 120° apart, sweeping counter-clockwise at 18°/s. 10 px wide", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
+      { name: "Cage (9 s)", pattern: "Rings every player with 3 Cage Wells in a 180 px circle that spins and shrinks 22 px/s (gone in ~8 s). Touching the ring hurts; shoot the 3 wells to break it. The boss holds fire meanwhile", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null }],
+    notes: ["Corner gravity wells: 4, one 110 px in from each corner (260 HP each). Your shots within 420 px bend hard into them, and players within 480 px drift toward them (up to 45 px/s). Kill all four and they return 15 s later.", "Hits from lasers and cage walls give the usual 0.35 s of invulnerability, so standing in one hurts about 3 times a second."] },
+  { id: "Colossus", label: "The Colossus", cat: "Bosses", boss: true, hp: 6800, r: 54, speed: 35, sides: 6, col: rgb(0.78, 0.62, 0.45), xp: 260, score: 600, wave: 25,
+    appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "Lumbers toward you (200 px) and stomps every 4 s: a huge ring with one gap to slip through.",
+    attacks: [
+      { name: "Volley", pattern: "3 aimed shots, 10.3° apart", kind: "pierce", n: 3, speed: 170, every: 1.2 },
+      { name: "Stomp", pattern: "Ring of 48 with a 5-shot gap (37.5°) in a random spot", kind: "small", n: 43, speed: 150, every: 4, unscaled: true }] },
+  { id: "Duelist", label: "The Duelist", cat: "Bosses", boss: true, hp: 6000, r: 30, speed: 80, sides: 4, col: rgb(0.85, 0.85, 1), xp: 280, score: 650, wave: 30,
+    appears: "Wave 30 (alone)", lead: "Fast and slippery. Every 3.5 s it vanishes, leaving two decoys that pop into rings, and reappears far from you.",
+    locks: ["Cycle", "Fan", "Triple"],
+    attacks: [
+      { name: "Triple", pattern: "3 aimed shots stacked on one line (260 / 300 / 340 px/s)", kind: "pierce", n: 3, speed: "260–340", every: 0.9, notes: "2 of every 3 volleys" },
+      { name: "Fan", pattern: "11 shots, 5.7° apart", kind: "small", n: 11, speed: 230, every: 0.9, notes: "Every 3rd volley" },
+      { name: "Decoys", pattern: "2 decoys (70 HP, give nothing); each pops after 5 s into a ring", kind: "small", n: 16, speed: 140, every: 3.5, unscaled: true }] },
+  { id: "Lich", label: "The Lich", cat: "Bosses", boss: true, hp: 5000, r: 36, speed: 45, sides: 7, col: rgb(0.5, 1, 0.75), xp: 300, score: 700, wave: 35,
+    appears: "Wave 35", lead: "Immune while its phylactery stands somewhere far from you. Alternates aimed fans and slow orb rings, and raises Grunts.",
+    locks: ["Cycle", "Fan", "Rings"],
+    attacks: [
+      { name: "Fan (5 s)", pattern: "5 aimed shots, 8.6° apart", kind: "pierce", n: 5, speed: 190, every: 0.8 },
+      { name: "Rings (5 s)", pattern: "16 orbs, +11.5° per volley", kind: "big", n: 16, speed: 90, every: 2.2 },
+      { name: "Raise dead", pattern: "3 Grunts (up to 6 alive)", dmg: "—", every: 9, unscaled: true }],
+    notes: ["Phylactery: 600 HP, spawns at least 250 px from players. A new one appears 15 s after you break it."] },
+  { id: "StormHerald", label: "Storm Herald", cat: "Bosses", boss: true, hp: 6000, r: 40, speed: 55, sides: 9, col: rgb(0.55, 0.75, 1), xp: 320, score: 800, wave: 40,
+    appears: "Wave 40 (with wave ÷ 8 Snipers)", lead: "Calls lightning on where each of you stands (plus two random spots) every 2.2 s, and fires fast aimed volleys.",
+    attacks: [
+      { name: "Volley", pattern: "3 aimed shots, 8.6° apart", kind: "pierce", n: 3, speed: 330, every: 1 },
+      { name: "Lightning", pattern: "70 px circle on each player + 2 random; strikes 1.1 s later", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2.2, unscaled: true }] },
+  { id: "Devourer", label: "The Devourer", cat: "Bosses", boss: true, hp: 6500, r: 50, speed: 40, sides: 12, col: rgb(0.85, 0.28, 0.38), xp: 340, score: 900, wave: 45,
+    appears: "Wave 45 (alone)", lead: "Sprays a twin stream for 7 s, then turns hungry for 3 s: your shots heal it instead of hurting it, and it fires orb rings.",
+    locks: ["Cycle", "Stream", "Hungry"],
+    attacks: [
+      { name: "Twin stream (7 s)", pattern: "2 opposite shots, +9.7° per volley", kind: "small", n: 2, speed: 140, every: 0.08 },
+      { name: "Hungry (3 s)", pattern: "Ring of big orbs. Your hits heal it for 50% of their damage", kind: "big", n: 20, speed: 90, every: 1.2 }],
+    notes: ["Stop shooting while it glows."] },
+  { id: "Eclipse", label: "The Eclipse", cat: "Bosses", boss: true, hp: 9000, r: 52, speed: 30, sides: 16, col: rgb(1, 0.85, 0.4), xp: 500, score: 2000, wave: 50,
+    appears: "Wave 50, the final boss", lead: "Orbits the middle through three phases as its health drops, adding Phantoms, then Hexers, a gravity pull and lightning.",
+    locks: ["Phase 1", "Phase 2", "Phase 3"],
+    attacks: [
+      { name: "Phase 1 (>66%)", pattern: "Alternates every 4 s: 4-arm spiral (every 0.07 s, 150 px/s) / 24-orb rings (every 1 s, 110 px/s)", kind: "small", n: "4 / 24", speed: "150 / 110", every: "0.07 / 1" },
+      { name: "Phase 2 (66–33%)", pattern: "2 Phantoms join. Rotating cross 4 × 3 + 5 aimed shots 8° apart; pull 120 px/s for 3.5 of every 10 s", kind: "small", n: "12 + 5", speed: "120–220 / 210", every: 0.5 },
+      { name: "Phase 3 (<33%)", pattern: "2 Hexers join. 5-arm spiral reversing every 3 s; lightning on each player every 2.5 s (75 px, 1.2 s)", kind: "small", n: 5, speed: 170, every: 0.06 }] },
+
+  // Summons
+  { id: "Shard", cat: "Summons", summon: true, hp: 25, r: 8, speed: 130, sides: 3, col: rgb(0.8, 1, 0.55), xp: 4, score: 5, wave: 7,
+    appears: "From Splitters, Nests and the Hive Queen (3× health as her drones)", lead: "Small and quick. Keeps 180 px away, strafing hard, and fires fast aimed shots.",
+    attacks: [{ name: "Shot", pattern: "1 aimed shot", kind: "fast", n: 1, speed: 260, every: 1.6 }] },
+  { id: "HiveBomber", label: "Hive Bomber", cat: "Summons", summon: true, hp: 30, r: 10, speed: 330, sides: 3, col: rgb(1, 0.45, 0.15), melee: true, xp: 0, score: 2, wave: 10,
+    appears: "Launched by the Hive Queen", lead: "Flies in a straight line to where you were standing when it launched, then explodes. Shooting it down is safe.",
+    attacks: [{ name: "Explosion", pattern: "60 px blast at its landing spot, or on touching anyone on the way", dmg: "22", every: null, notes: "A marker shows the landing spot" }] },
+  { id: "Decoy", cat: "Summons", summon: true, hp: 70, r: 30, speed: 0, sides: 4, col: rgb(0.85, 0.85, 1), xp: 0, score: 0, wave: 30,
+    appears: "Left behind by the Duelist", lead: "Looks like the Duelist. Pops into a ring after 5 s unless you destroy it first. Gives no score, XP or drops.",
+    attacks: [{ name: "Pop", pattern: "Ring after 5 s", kind: "small", n: 16, speed: 140, every: 5, unscaled: true }] },
+  { id: "Phylactery", cat: "Summons", summon: true, hp: 600, r: 18, speed: 0, sides: 4, col: rgb(0.4, 1, 0.6), xp: 0, score: 50, wave: 35,
+    appears: "The Lich's soul jar", lead: "Doesn't attack. The Lich is immune while it stands. A new one appears 15 s after it breaks.",
+    attacks: [{ name: "—", pattern: "No attacks", dmg: "—", every: null }] },
+  { id: "GravityWell", label: "Gravity Well", cat: "Summons", summon: true, hp: 260, r: 15, speed: 160, sides: 6, col: rgb(0.7, 0.45, 1), xp: 15, score: 40, wave: 20,
+    appears: "The Singularity's corners (4 at a time)", lead: "Sits 110 px in from a corner. Bends your shots within 420 px hard into itself and drifts nearby players slowly toward it. Doesn't attack.",
+    attacks: [{ name: "Shot sink", pattern: "Bends your shots within 420 px into itself (2.5–14.5 rad/s, harder up close)", dmg: "—", every: null },
+      { name: "Drift", pattern: "Pulls players within 480 px toward it, up to 45 px/s", dmg: "—", every: null }] },
+  { id: "CageWell", label: "Cage Well", cat: "Summons", summon: true, hp: 40, r: 11, speed: 0, sides: 6, col: rgb(0.85, 0.4, 1), xp: 2, score: 5, wave: 20, melee: true,
+    appears: "The Singularity's Cage attack (3 per player)", lead: "Three of these orbit each player on a shrinking ring. The ring hurts to touch; shooting all three breaks it.",
+    attacks: [{ name: "Cage wall", pattern: "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null }] },
+];
+const BY = Object.fromEntries(E.map(e => [e.id, e]));
+const nameOf = d => d.label || d.id;
+
+// Party / wave scaling (EnemyAI.cs)
+const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
+const maxHp = (d, wave, party, elite) => {
+  let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
+  if (d.boss && wave > 20) hp *= 1 + 0.1 * (wave - 20);
+  if (elite && !d.boss && !d.summon) hp *= 2.5;
+  return hp;
+};
+const fireRate = (wave, elite) => Math.min(2, 1 + 0.05 * (wave - 1)) * (elite ? 1.35 : 1);
+
+// ---------------------------------------------------------------------------------------------
+// Simulation (a port of the host's enemy logic, simplified where it doesn't change the pattern)
+// ---------------------------------------------------------------------------------------------
+const S = {
+  sel: "Grunt", playing: true, speed: 1, dummy: "still", wave: 1, party: 2, elite: false,
+  tele: true, hitbox: false, bodyAnim: true, lock: 0, mouse: null,
+};
+let world;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const ang = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+let nextId = 1;
+
+function newWorld() {
+  world = { t: 0, enemies: [], bullets: [], hazards: [], fx: [], pull: null, cages: [],
+    player: { x: 800, y: 640, inv: 0, dmg: 0, hits: 0, hitR: 7, speed: 215, path: 0 },
+    log: [] };
+  const d = BY[S.sel];
+  switch (d.id) {
+    case "Warden": case "HiveQueen": spawn(d.id, 800, 140); break;
+    case "Twins": spawn("TwinA", 800 - 1600 * 0.26, 180); spawn("TwinB", 800 + 1600 * 0.26, 180); break;
+    case "Singularity": case "Eclipse": case "Duelist": spawn(d.id, 800, 450); break;
+    case "Colossus": case "Lich": case "StormHerald": case "Devourer": spawn(d.id, 800, 150); break;
+    case "Nest": spawn("Nest", 800, 300); break;
+    case "Decoy": { const e = spawn("Decoy", 800, 300); e.phaseT = 5; e.fireT = 99; break; }
+    case "Phylactery": spawn("Phylactery", 800, 260); break;
+    case "GravityWell": { const s = spawn("Singularity", 800, 450); s.dummyOnly = true; break; }
+    case "CageWell": { const s = spawn("Singularity", 800, 450); s.cageDemo = true; break; }
+    case "HiveBomber": { const q = spawn("HiveQueen", 800, 140); q.t2 = 2; q.phaseT = 0; q.bomberDemo = true; break; }
+    default: spawn(d.id, 800, 200);
+  }
+}
+
+function spawn(type, x, y, parent = 0, spawnT = 0.4) {
+  const d = BY[type] || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
+  const elite = S.elite && d && !d.boss && !d.summon;
+  const r = (d ? d.r : 10) * (elite ? 1.25 : 1);
+  const e = { id: nextId++, type, d, x: clamp(x, r, W - r), y: clamp(y, r, H - r), r, t: 0, spawnT, fireT: rnd(0.3, 1.2), phaseT: rnd(1, 3),
+    ang: rnd(0, TAU), facing: Math.PI / 2, phase: 0, t2: 0, strafe: Math.random() < 0.5 ? 1 : -1, wp: { x, y }, parent, elite, hp: 1 };
+  if (type === "GravityWell") e.ang = 0;
+  world.enemies.push(e);
+  return e;
+}
+const children = (p, type) => world.enemies.filter(o => o.parent === p.id && o.type === type && !o.dead);
+
+function shot(e, a, speed, kind, angVel = 0, boss) {
+  const k = B[kind];
+  world.bullets.push({ x: e.x + Math.cos(a) * e.r, y: e.y + Math.sin(a) * e.r, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
+    av: angVel, r: k.r, col: k.col, dmg: k.dmg, life: 8, boss: boss ?? !!(e.d && e.d.boss), kind });
+}
+
+function keepDistance(dx, dy, dl, want) {
+  if (dl > want + 40) return [dx, dy];
+  if (dl < want - 40) return [-dx, -dy];
+  return [0, 0];
+}
+
+function wardenAttack(e) {
+  if (S.sel === "Warden" && S.lock > 0) return S.lock - 1;
+  const t = e.t % 30; return t < 18 ? Math.floor(t / 6) : 3;
+}
+const crossDashing = e => (e.t % 3) < 1;
+function phaseByTime(e, period) { return Math.floor(e.t / period) % 2; }
+
+function move(e, dt) {
+  const p = world.player;
+  const dx0 = p.x - e.x, dy0 = p.y - e.y, dl = Math.hypot(dx0, dy0) || 1, dx = dx0 / dl, dy = dy0 / dl;
+  const ox = -dy, oy = dx;  // orthogonal
+  let v = [0, 0], speed = e.d ? e.d.speed : 0;
+  const kd = (want, s) => { const k = keepDistance(dx, dy, dl, want); return [k[0] + ox * e.strafe * s, k[1] + oy * e.strafe * s]; };
+  switch (e.type) {
+    case "Grunt": v = kd(230, 0.6); break;
+    case "Sniper": v = kd(420, 0.8); break;
+    case "Burster": v = kd(160, 0); break;
+    case "Shard": v = kd(180, 1); break;
+    case "Mortar": v = kd(450, 0.4); break;
+    case "Shielder": v = kd(200, 0); break;
+    case "Medic": v = kd(360, 0.5); break;
+    case "Splitter": v = kd(220, 0); break;
+    case "Charger":
+      if (e.phase === 0) v = kd(300, 0.5);
+      else if (e.phase === 2) { v = [Math.cos(e.facing), Math.sin(e.facing)]; speed = 560; }
+      break;
+    case "HiveBomber": { const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) || 1; v = [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l]; if (l < speed * dt) v = [(e.wp.x - e.x) / (speed * dt), (e.wp.y - e.y) / (speed * dt)]; break; }
+    case "Swarmer": { const s = Math.sin(e.t * 5 + e.id) * 0.45; v = [dx + ox * s, dy + oy * s]; break; }
+    case "Brute": v = [dx, dy]; break;
+    case "Lunger":
+      if (e.phase === 0) v = dl > 170 ? [dx, dy] : [ox * e.strafe * 0.6, oy * e.strafe * 0.6];
+      else if (e.phase === 2) { v = [Math.cos(e.facing), Math.sin(e.facing)]; speed = 640; }
+      else if (e.phase === 3) speed *= 0.3;
+      break;
+    case "Spinner":
+      if (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 20) e.wp = { x: rnd(150, W - 150), y: rnd(150, H - 150) };
+      { const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) || 1; v = [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l]; }
+      break;
+    case "Warden": case "HiveQueen":
+      if (e.type === "Warden" && wardenAttack(e) === 3) {
+        const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y);
+        v = crossDashing(e) && l > 8 ? [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l] : [0, 0]; speed = 340; break;
+      } else {
+        const gx = 800 + Math.sin(e.t * 0.5) * 1600 * 0.3, gy = 150 + Math.sin(e.t * 0.8) * 40;
+        v = [(gx - e.x) / 60, (gy - e.y) / 60];
+      }
+      break;
+    case "TwinA": case "TwinB": {
+      const a = e.t * 0.47 + (e.type === "TwinA" ? 0 : Math.PI);
+      const gx = 800 + Math.cos(a) * 1600 * 0.26, gy = 450 + Math.sin(a) * 900 * 0.28;
+      v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
+    }
+    case "Phantom": v = kd(250, 0.7); break;
+    case "Hexer": v = kd(300, 0.5); break;
+    case "Juggernaut": v = kd(140, 0); break;
+    case "Colossus": v = kd(200, 0); break;
+    case "Duelist": v = kd(280, 0.8); break;
+    case "Devourer": v = kd(260, 0); break;
+    case "Lich": case "StormHerald": {
+      const gx = 800 + Math.sin(e.t * 0.45) * 1600 * 0.3, gy = 150 + Math.sin(e.t * 0.7) * 50;
+      v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
+    }
+    case "Eclipse": {
+      const gx = 800 + Math.cos(e.t * 0.3) * 140, gy = 450 + Math.sin(e.t * 0.3) * 140;
+      v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
+    }
+    case "GravityWell": {  // holds its corner, bobbing a little
+      const gx = e.wp.x + Math.cos(e.t * 0.8 + e.id) * 12, gy = e.wp.y + Math.sin(e.t * 0.8 + e.id) * 12;
+      v = [(gx - e.x) / 30, (gy - e.y) / 30];
+      break;
+    }
+  }
+  if (Math.random() < dt * 0.3) e.strafe = -e.strafe;
+  const l = Math.hypot(v[0], v[1]);
+  if (l > 1) { v[0] /= l; v[1] /= l; }
+  e.x = clamp(e.x + v[0] * speed * dt, e.r, W - e.r);
+  e.y = clamp(e.y + v[1] * speed * dt, e.r, H - e.r);
+}
+
+function face(e, dt) {
+  const want = ang(e, world.player);
+  if (e.type === "Charger" && e.phase !== 0) return;
+  if (e.type === "Lunger" && e.phase >= 2) return;
+  if (e.type === "HiveBomber" || e.type === "Singularity") return;  // its facing is the laser sweep
+  if (e.type === "Warden" && wardenAttack(e) === 3) { e.facing = 0; return; }
+  if (e.type === "Shielder") {
+    const diff = ((want - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI;
+    e.facing += clamp(diff, -1.6 * dt, 1.6 * dt); return;
+  }
+  e.facing = want;
+}
+
+function addFx(kind, x, y, col, r, dur, extra = {}) { world.fx.push({ kind, x, y, col, r, dur, t: 0, ...extra }); }
+function hazard(x, y, r, delay, dmg) { world.hazards.push({ x: clamp(x, 10, W - 10), y: clamp(y, 10, H - 10), r, t: delay, dur: delay, dmg }); }
+const alivePlayers = () => S.party;  // one dummy stands in for the whole party
+
+function queenStage(e, s) { e.t2 = s; e.phaseT = 0; e.fireT = 0.6; }
+function launchBomber(q, at) {
+  const a = Math.atan2(at.y - q.y, at.x - q.x);
+  const b = spawn("HiveBomber", q.x + Math.cos(a) * (q.r + 8), q.y + Math.sin(a) * (q.r + 8), q.id, 0.15);
+  b.wp = { x: at.x, y: at.y }; b.facing = a;
+  const flight = 0.15 + Math.max(0, Math.hypot(at.x - b.x, at.y - b.y) - 12) / 330;
+  addFx("target", at.x, at.y, BY.HiveBomber.col, 60, flight);
+}
+function bomberExplode(e) {
+  const p = world.player;
+  if (dist(p, e) <= 60 + p.hitR) hurt(22);
+  addFx("boom", e.x, e.y, e.d.col, 60, 0.35);
+  e.dead = true;
+}
+
+function special(e, dt) {
+  const p = world.player;
+  const late = ["Phantom", "Nest", "Colossus", "Duelist", "Decoy", "Lich", "StormHerald", "Devourer", "Eclipse"].includes(e.type);
+  if (late) e.phaseT -= dt;
+  switch (e.type) {
+    case "Warden": {
+      const atk = wardenAttack(e);
+      e.phase = atk === 3 && crossDashing(e) ? 4 : atk;
+      if (atk === 3) {
+        const plant = Math.floor(e.t / 3);
+        if (plant !== e.t2) {
+          e.t2 = plant;
+          for (let i = 0; i < 8; i++) {
+            e.wp = { x: rnd(1600 * 0.28, 1600 * 0.72), y: rnd(900 * 0.3, 900 * 0.7) };
+            const d = Math.hypot(e.wp.x - e.x, e.wp.y - e.y); if (d > 160 && d < 330) break;
+          }
+        }
+      }
+      break;
+    }
+    case "TwinA": case "TwinB": break;
+    case "Lunger": {
+      const dl = dist(p, e); e.phaseT -= dt;
+      if (e.phase === 0 && dl < 220 && e.phaseT <= 0) { e.phase = 1; e.phaseT = 0.6; }
+      else if (e.phase === 1) { e.facing = ang(e, p); if (e.phaseT <= 0) { e.phase = 2; e.phaseT = 0.32; } }
+      else if (e.phase === 2 && e.phaseT <= 0) { e.phase = 3; e.phaseT = 0.8; }
+      else if (e.phase === 3 && e.phaseT <= 0) { e.phase = 0; e.phaseT = rnd(0.8, 1.6); }
+      break;
+    }
+    case "Charger":
+      if (e.phase === 0) break;
+      e.phaseT -= dt; if (e.phaseT > 0) break;
+      if (e.phase === 1) { e.phase = 2; e.phaseT = 0.45; }
+      else { e.phase = 0; e.fireT = 3.2; for (let i = 0; i < 10; i++) shot(e, e.facing + TAU * i / 10, 140, "small"); }
+      break;
+    case "Medic":
+      e.phaseT -= dt;
+      if (e.phaseT <= 0) { e.phaseT = 3; addFx("ring", e.x, e.y, e.d.col, 180, 0.5); }
+      break;
+    case "HiveQueen": {
+      let swarm = children(e, "Shard").length;
+      e.phase = swarm > 0 ? 1 : 0;
+      e.phaseT += dt;
+      const lockStage = S.sel === "HiveQueen" && S.lock > 0 ? S.lock : 0;
+      if (lockStage && e.t2 !== 0 && e.t2 !== lockStage) { if (lockStage === 1) e.t2 = 0; else queenStage(e, lockStage); }
+      switch (e.t2) {
+        case 0: {
+          const n = Math.min(8 - swarm, 3 + alivePlayers());
+          for (let i = 0; i < n; i++) { const a = e.t + TAU * i / n; spawn("Shard", e.x + Math.cos(a) * 70, e.y + Math.sin(a) * 70, e.id, 0.5).queen = true; }
+          addFx("ring", e.x, e.y, e.d.col, 90, 0.5);
+          queenStage(e, 1); break;
+        }
+        case 1:
+          if (lockStage === 1) { if (swarm === 0 && e.phaseT > 2) e.t2 = 0; break; }
+          if (e.phaseT > 2) queenStage(e, 2);  // the drones don't hold up the loop
+          break;
+        case 2: if (e.phaseT > 4.5 && lockStage !== 2) queenStage(e, e.bomberDemo ? 2 : 3); break;
+        default:
+          if (e.phaseT > 10) { if (lockStage === 3) e.phaseT -= 10; else queenStage(e, 0); }
+          break;
+      }
+      if (e.bomberDemo && e.t2 !== 2) queenStage(e, 2);
+      break;
+    }
+    case "HiveBomber": {
+      if (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 12 || dist(p, e) < e.r + p.hitR) bomberExplode(e);
+      break;
+    }
+    case "Singularity": {
+      // 24 s loop: Pull 4, Collapse 3, Normal 8 (lasers warn at 1.5 s, fire at 2.3 s), Cage 9. Locks hold one attack.
+      let c = e.t % 24;
+      const lk = S.sel === "Singularity" ? S.lock : (e.cageDemo ? 4 : 0);
+      if (lk > 0) c = [0, 0, 4, 7, 15][lk] + e.t % [0, 4, 3, 8, 9][lk];
+      const was = e.phase;
+      e.phase = c < 4 ? 1 : c < 7 ? 2 : c < 15 ? (c - 7 < 1.5 ? 0 : c - 7 < 2.3 ? 4 : 5) : 3;
+      if (e.dummyOnly) e.phase = 0;
+      if (e.phase === 1) world.pull = { x: e.x, y: e.y, s: 150 };
+      if (e.phase === 4 && was !== 4) e.facing = rnd(0, TAU);
+      if (e.phase === 5) e.facing += 0.32 * dt;
+      const cyc = Math.floor(e.t / (lk > 0 ? [0, 4, 3, 8, 9][lk] : 24));  // a locked attack restarts each time it loops
+      if (e.phase === 3 && (was !== 3 || cyc !== e.cyc)) spawnCage(e);
+      e.cyc = cyc;
+      if (e.phase !== 3 && was === 3) world.cages = [];
+      if (e.cageDemo) break;
+      const wells = children(e, "GravityWell").length;
+      e.t2 -= dt;
+      if (wells > 0) e.t2 = Math.max(e.t2, 15);
+      else if (e.t2 <= 0) {
+        for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) { spawn("GravityWell", x, y, e.id, 0.8); addFx("ring", x, y, BY.GravityWell.col, 120, 0.6); }
+      }
+      break;
+    }
+    case "Phantom":
+      if (e.phaseT <= 0) {
+        e.phaseT = rnd(3, 4.5);
+        addFx("ring", e.x, e.y, e.d.col, 30, 0.3);
+        const a = rnd(0, TAU), r = rnd(220, 300);
+        e.x = clamp(p.x + Math.cos(a) * r, e.r, W - e.r); e.y = clamp(p.y + Math.sin(a) * r, e.r, H - e.r);
+        addFx("ring", e.x, e.y, e.d.col, 40, 0.3);
+        for (let i = 0; i < 12; i++) shot(e, TAU * i / 12, 130, "small");
+      }
+      break;
+    case "Nest":
+      if (e.phaseT <= 0) { e.phaseT = 5; if (children(e, "Shard").length < 6) for (let i = 0; i < 2; i++) { const a = rnd(0, TAU); spawn("Shard", e.x + Math.cos(a) * 30, e.y + Math.sin(a) * 30, e.id, 0.4); } }
+      break;
+    case "Colossus":
+      if (e.phaseT <= 0) {
+        e.phaseT = 4; const n = 48, gap = Math.floor(Math.random() * n);
+        for (let i = 0; i < n; i++) if ((i - gap + n) % n >= 5) shot(e, TAU * i / n, 150, "small");
+        addFx("boom", e.x, e.y, e.d.col, e.r * 2, 0.4);
+      }
+      break;
+    case "Duelist":
+      if (e.phaseT <= 0) {
+        e.phaseT = 3.5;
+        decoy(e.x, e.y); decoy(rnd(100, W - 100), rnd(100, H - 100));
+        addFx("ring", e.x, e.y, e.d.col, 50, 0.3);
+        let best = null, bd = -1;
+        for (let i = 0; i < 12; i++) { const q = { x: rnd(e.r + 60, W - e.r - 60), y: rnd(e.r + 60, H - e.r - 60) }; const d = dist(q, p); if (d > bd) { bd = d; best = q; } if (d >= 250) break; }
+        e.x = best.x; e.y = best.y; addFx("ring", e.x, e.y, e.d.col, 60, 0.3);
+      }
+      break;
+    case "Decoy":
+      if (e.phaseT <= 0) { for (let i = 0; i < 16; i++) shot(e, TAU * i / 16, 140, "small", 0, false); e.dead = true; if (S.sel === "Decoy") setTimeout(() => { if (S.sel === "Decoy") { const d = spawn("Decoy", 800, 300); d.phaseT = 5; d.fireT = 99; } }, 1200); }
+      break;
+    case "Lich": {
+      const ph = children(e, "Phylactery").length;
+      e.phase = ph > 0 ? 1 : 0;
+      if (ph === 0 && e.phaseT <= 0) {
+        e.phaseT = 15;
+        let best = null, bd = -1;
+        for (let i = 0; i < 12; i++) { const q = { x: rnd(80, W - 80), y: rnd(80, H - 80) }; const d = dist(q, p); if (d > bd) { bd = d; best = q; } if (d >= 250) break; }
+        spawn("Phylactery", best.x, best.y, e.id, 0.8); addFx("ring", best.x, best.y, BY.Phylactery.col, 60, 0.6);
+      } else if (ph > 0) e.phaseT = Math.max(e.phaseT, 15);
+      e.t2 -= dt;
+      if (e.t2 <= 0) { e.t2 = 9; if (children(e, "Grunt").length < 6) for (let i = 0; i < 3; i++) spawn("Grunt", e.x + Math.cos(TAU * i / 3) * 80, e.y + Math.sin(TAU * i / 3) * 80, e.id, 0.6); }
+      break;
+    }
+    case "StormHerald":
+      if (e.phaseT <= 0) {
+        e.phaseT = 2.2; const dmg = 25 + 0.3 * S.wave;
+        hazard(p.x, p.y, 70, 1.1, dmg);
+        for (let i = 0; i < 2; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 70, 1.1, dmg);
+      }
+      break;
+    case "Devourer": {
+      const was = e.phase;
+      e.phase = S.sel === "Devourer" && S.lock > 0 ? S.lock - 1 : (e.t % 10 >= 7 ? 1 : 0);
+      if (e.phase === 1 && was === 0) addFx("ring", e.x, e.y, e.d.col, 160, 0.6);
+      break;
+    }
+    case "Eclipse": {
+      const phase = S.lock;
+      if (phase > e.phase) {
+        e.phase = phase; addFx("ring", e.x, e.y, e.d.col, 300, 0.8);
+        const add = phase === 1 ? "Phantom" : "Hexer";
+        for (let i = 0; i < 2; i++) spawn(add, e.x + Math.cos(Math.PI * i) * 200, e.y + Math.sin(Math.PI * i) * 200, e.id, 0.8);
+      }
+      if (e.phase >= 1) { e.t2 += dt; if (e.t2 % 10 < 3.5) world.pull = { x: e.x, y: e.y, s: 120 }; }
+      if (e.phase === 2 && e.phaseT <= 0) { e.phaseT = 2.5; hazard(p.x, p.y, 75, 1.2, 25 + 0.3 * S.wave); }
+      break;
+    }
+  }
+}
+
+function decoy(x, y) { const d = spawn("Decoy", x, y, 0, 0); d.phaseT = 5; d.fireT = 99; }
+
+function fire(e) {
+  const p = world.player, aim = ang(e, p);
+  const d = e.d;
+  if (d && d.melee) { e.fireT = 99; return; }
+  switch (e.type) {
+    case "Grunt": e.fireT = 1.8; for (let i = 0; i < 3; i++) shot(e, aim + (i - 1) * 0.22, 175, "small"); break;
+    case "Burster": { e.fireT = 2.4; const n = 12 + Math.min(S.wave, 6); e.ang += Math.PI / n; for (let i = 0; i < n; i++) shot(e, e.ang + TAU * i / n, 135, "small"); break; }
+    case "Sniper": e.fireT = 2.6; shot(e, aim, 400, "fast"); break;
+    case "Spinner": {
+      const c = (e.t + e.id * 0.7) % 3.3;
+      if (c >= 1.3) { e.phase = 0; e.fireT = 3.3 - c; break; }
+      e.phase = 1; e.fireT = 0.11; e.ang += 0.27;
+      for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 125, "small", 0.25);
+      break;
+    }
+    case "Charger": if (e.phase === 0) { e.phase = 1; e.phaseT = 0.7; e.facing = aim; } e.fireT = 99; break;
+    case "Splitter": e.fireT = 2; shot(e, aim - 0.08, 150, "small"); shot(e, aim + 0.08, 150, "small"); break;
+    case "Shard": e.fireT = 1.6; shot(e, aim, 260, "fast"); break;
+    case "Mortar": {
+      e.fireT = 3; const fl = 1.3; let vx = (p.x - e.x) / fl, vy = (p.y - e.y) / fl; const l = Math.hypot(vx, vy);
+      if (l > 330) { vx *= 330 / l; vy *= 330 / l; }
+      world.bullets.push({ x: e.x + Math.cos(aim) * e.r, y: e.y + Math.sin(aim) * e.r, vx, vy, av: 0, r: B.mine.r, col: B.mine.col, dmg: B.mine.dmg, life: fl, burst: e.elite ? 14 : 10, kind: "mine" });
+      break;
+    }
+    case "Shielder": e.fireT = 2.2; for (let i = 0; i < 5; i++) shot(e, e.facing + (i - 2) * 0.15, 190, "small"); break;
+    case "Medic": e.fireT = 2.5; shot(e, aim, 160, "small"); break;
+    case "Warden":
+      switch (wardenAttack(e)) {
+        case 3: e.fireT = 0.075; if (crossDashing(e)) break; for (let k = 0; k < 4; k++) shot(e, Math.PI / 2 * k, 240, "small"); break;
+        case 0: e.fireT = 0.07; e.ang += 0.19; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); break;
+        case 1: e.fireT = 1; e.ang += 0.12; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 110, "big"); break;
+        default: e.fireT = 0.45; for (let i = 0; i < 9; i++) shot(e, aim + (i - 4) * 0.12, 210, "pierce");
+      }
+      break;
+    case "HiveQueen":
+      if (e.t2 === 1) e.fireT = 0.3;
+      else if (e.t2 === 2) { e.fireT = 0.9; launchBomber(e, p); }
+      else if (e.phaseT < 5) { e.fireT = 0.9; for (let i = 0; i < 5; i++) shot(e, aim + (i - 2) * 0.22, 200, "pierce"); }
+      else { e.fireT = 1.6; e.ang += 0.15; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 100, "big"); }
+      break;
+    case "TwinA": case "TwinB": {
+      const lines = S.sel === "Twins" && S.lock > 0 ? S.lock === 1 : phaseByTime(e, 5) === 0;
+      if (lines) { e.fireT = 1.4; for (let l = -1; l <= 1; l++) for (let k = 0; k < 6; k++) shot(e, aim + l * 0.5, 140 + k * 35, l === 0 ? "pierce" : "small"); }
+      else { e.fireT = 0.9; e.ang += 0.35; for (let dd = 0; dd < 4; dd++) for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * dd / 4, 120 + k * 50, "small"); }
+      break;
+    }
+    case "Singularity":
+      if (e.dummyOnly || e.cageDemo) { e.fireT = 99; break; }
+      switch (e.phase) {
+        case 1: e.fireT = 0.13; e.ang += 0.21; for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 110, "small"); break;
+        case 2: e.fireT = 0.9; e.ang += 0.11; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 170, "small"); break;
+        case 3: e.fireT = 0.3; break;  // holds fire while the cages close
+        default: e.fireT = 0.65; e.ang += 0.3; for (let dd = 0; dd < 4; dd++) shot(e, e.ang + TAU * dd / 4, 150, "big");
+      }
+      break;
+    case "Phantom": e.fireT = 1.5; shot(e, aim - 0.05, 200, "small"); shot(e, aim + 0.05, 200, "small"); break;
+    case "Hexer": e.fireT = 2; for (let s = -1; s <= 1; s += 2) { shot(e, aim + s * 0.7, 170, "small", -s * 1.1); shot(e, aim + s * 1.2, 150, "small", -s * 1.6); } break;
+    case "Juggernaut": e.fireT = 2.5; e.ang += 0.2; for (let k = 0; k < 8; k++) shot(e, e.ang + TAU * k / 8, 110, "big"); break;
+    case "Colossus": e.fireT = 1.2; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.18, 170, "pierce"); break;
+    case "Duelist": {
+      e.fireT = 0.9; e.vol = (e.vol || 0) + 1;
+      const fan = S.sel === "Duelist" && S.lock > 0 ? S.lock === 1 : e.vol % 3 === 0;
+      if (fan) for (let i = 0; i < 11; i++) shot(e, aim + (i - 5) * 0.1, 230, "small");
+      else for (let k = 0; k < 3; k++) shot(e, aim, 260 + k * 40, "pierce");
+      break;
+    }
+    case "Lich": {
+      const fanMode = S.sel === "Lich" && S.lock > 0 ? S.lock === 1 : phaseByTime(e, 5) === 0;
+      if (fanMode) { e.fireT = 0.8; for (let i = 0; i < 5; i++) shot(e, aim + (i - 2) * 0.15, 190, "pierce"); }
+      else { e.fireT = 2.2; e.ang += 0.2; for (let i = 0; i < 16; i++) shot(e, e.ang + TAU * i / 16, 90, "big"); }
+      break;
+    }
+    case "StormHerald": e.fireT = 1; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.15, 330, "pierce"); break;
+    case "Devourer":
+      if (e.phase === 1) { e.fireT = 1.2; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 90, "big"); }
+      else { e.fireT = 0.08; e.ang += 0.17; shot(e, e.ang, 140, "small"); shot(e, e.ang + Math.PI, 140, "small"); }
+      break;
+    case "Eclipse":
+      switch (e.phase) {
+        case 0:
+          if (Math.floor(e.t / 4) % 2 === 0) { e.fireT = 0.07; e.ang += 0.21; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); }
+          else { e.fireT = 1; e.ang += 0.13; for (let i = 0; i < 24; i++) shot(e, e.ang + TAU * i / 24, 110, "big"); }
+          break;
+        case 1:
+          e.fireT = 0.5; e.ang += 0.3;
+          for (let dd = 0; dd < 4; dd++) for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * dd / 4, 120 + k * 50, "small");
+          for (let i = 0; i < 5; i++) shot(e, aim + (i - 2) * 0.14, 210, "pierce");
+          break;
+        default:
+          e.fireT = 0.06; e.ang += Math.floor(e.t / 3) % 2 === 0 ? 0.19 : -0.19;
+          for (let k = 0; k < 5; k++) shot(e, e.ang + TAU * k / 5, 170, "small");
+      }
+      break;
+    default: e.fireT = 99;
+  }
+}
+
+function onLaser(e, a, p, reach) {
+  const dx = Math.cos(a), dy = Math.sin(a), tx = p.x - e.x, ty = p.y - e.y;
+  return tx * dx + ty * dy > 0 && Math.abs(tx * dy - ty * dx) < reach;
+}
+
+function spawnCage(boss) {
+  const p = world.player, c = { x: p.x, y: p.y, r: 180, spin: rnd(0, TAU), wells: [] };
+  for (let i = 0; i < 3; i++) { const w = spawn("CageWell", p.x, p.y, boss.id, 0.5); w.ang = TAU * i / 3; w.fireT = 99; c.wells.push(w); }
+  world.cages = [c];
+  addFx("ring", c.x, c.y, BY.CageWell.col, 180, 0.5);
+}
+
+function hurt(amount) {
+  const p = world.player;
+  if (p.inv > 0) return false;
+  p.dmg += amount; p.hits++; p.inv = 0.35; p.flash = 0.15;
+  return true;
+}
+
+function contactDamage(e) {
+  const d = e.d;
+  if (!d) return 15;
+  if (d.boss) return 25 + S.wave * 0.6;
+  if (e.type === "Charger" && e.phase === 2 || e.type === "Juggernaut") return 25;
+  if (e.type === "Lunger" && e.phase === 2) return 26;
+  return d.contact || 15;
+}
+
+function movePlayer(dt) {
+  const p = world.player;
+  if (S.dummy === "circle") {
+    p.path += dt * p.speed / 230;
+    const tx = 800 + Math.cos(p.path) * 230, ty = 560 + Math.sin(p.path) * 230;
+    p.x = tx; p.y = ty;
+  } else if (S.dummy === "mouse" && S.mouse) {
+    const dx = S.mouse.x - p.x, dy = S.mouse.y - p.y, l = Math.hypot(dx, dy);
+    const step = Math.min(l, p.speed * dt);
+    if (l > 0.5) { p.x += dx / l * step; p.y += dy / l * step; }
+  }
+  for (const w of world.enemies) {
+    if (w.type !== "GravityWell" || w.spawnT > 0) continue;
+    const dx = w.x - p.x, dy = w.y - p.y, l = Math.hypot(dx, dy);
+    if (l < 480 && l > 1) { const s = 45 * (1 - l / 480) * dt; p.x += dx / l * s; p.y += dy / l * s; }
+  }
+  if (world.pull) {
+    const dx = world.pull.x - p.x, dy = world.pull.y - p.y, l = Math.hypot(dx, dy) || 1;
+    p.x += dx / l * world.pull.s * dt; p.y += dy / l * world.pull.s * dt;
+  }
+  p.x = clamp(p.x, 14, W - 14); p.y = clamp(p.y, 14, H - 14);
+}
+
+function step(dt) {
+  world.t += dt;
+  world.pull = null;
+  const p = world.player;
+  p.inv = Math.max(0, p.inv - dt); p.flash = Math.max(0, (p.flash || 0) - dt);
+  const twinsAlive = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && !o.dead).length;
+  for (const e of [...world.enemies]) {
+    if (e.dead) continue;
+    e.t += dt;
+    if (e.spawnT > 0) { e.spawnT -= dt; continue; }
+    face(e, dt);
+    move(e, dt);
+    special(e, dt);
+    if (e.dead) continue;
+    const enraged = (e.type === "TwinA" || e.type === "TwinB") && twinsAlive === 1;
+    e.fireT -= dt * fireRate(S.wave, e.elite) * (enraged ? 1.7 : 1);
+    if (e.fireT <= 0) fire(e);
+    if (e.type !== "HiveBomber" && dist(p, e) < e.r + p.hitR) hurt(contactDamage(e));
+  }
+  // Reaper tether
+  const tw = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && !o.dead && o.spawnT <= 0);
+  if (tw.length === 2) {
+    const [a, b] = tw, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
+    const along = (p.x - a.x) * ux + (p.y - a.y) * uy;
+    if (along > a.r && along < len - b.r && Math.hypot(p.x - (a.x + ux * along), p.y - (a.y + uy * along)) < 4 + p.hitR) hurt(18 + S.wave * 0.4);
+  }
+  // The Singularity's lasers and cages
+  const sing = world.enemies.find(o => o.type === "Singularity" && !o.dead && o.spawnT <= 0);
+  if (sing && sing.phase === 5) for (let k = 0; k < 3; k++) if (onLaser(sing, sing.facing + TAU * k / 3, p, 5 + p.hitR)) { hurt(14 + 0.4 * S.wave); break; }
+  for (const c of world.cages) {
+    c.wells = c.wells.filter(w => !w.dead);
+    if (!c.wells.length) { addFx("ring", c.x, c.y, BY.CageWell.col, c.r + 20, 0.4); c.broken = true; continue; }
+    c.r = Math.max(0, c.r - 22 * dt); c.spin += 1.4 * dt;
+    for (const w of c.wells) { w.x = c.x + Math.cos(c.spin + w.ang) * c.r; w.y = c.y + Math.sin(c.spin + w.ang) * c.r; }
+    if (Math.abs(Math.hypot(p.x - c.x, p.y - c.y) - c.r) < 5 + p.hitR) hurt(14 + 0.4 * S.wave);
+  }
+  world.cages = world.cages.filter(c => !c.broken);
+  world.enemies = world.enemies.filter(e => !e.dead);
+  // Bullets
+  const keep = [];
+  for (const b of world.bullets) {
+    if (b.av) { const c = Math.cos(b.av * dt), s = Math.sin(b.av * dt), vx = b.vx * c - b.vy * s; b.vy = b.vx * s + b.vy * c; b.vx = vx; }
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    if (b.burst && b.life <= 0) {
+      const off = Math.random() * TAU;
+      for (let i = 0; i < b.burst; i++) { const a = off + TAU * i / b.burst; world.bullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, av: 0, r: B.small.r, col: B.small.col, dmg: 12, life: 8, kind: "small" }); }
+      addFx("boom", b.x, b.y, B.mine.col, 30, 0.3);
+      continue;
+    }
+    if (b.life <= 0 || b.x < -40 || b.y < -40 || b.x > W + 40 || b.y > H + 40) continue;
+    if (Math.hypot(b.x - p.x, b.y - p.y) < b.r + p.hitR && hurt(b.dmg)) continue;  // passes through while invulnerable
+    keep.push(b);
+  }
+  world.bullets = keep;
+  // Lightning
+  for (const h of world.hazards) {
+    h.t -= dt;
+    if (h.t <= 0) { if (dist(h, p) < h.r) hurt(h.dmg); addFx("bolt", h.x, h.y, rgb(0.7, 0.85, 1), h.r, 0.3); }
+  }
+  world.hazards = world.hazards.filter(h => h.t > 0);
+  for (const f of world.fx) f.t += dt;
+  world.fx = world.fx.filter(f => f.t < f.dur);
+  movePlayer(dt);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Drawing
+// ---------------------------------------------------------------------------------------------
+function poly(ctx, x, y, r, sides, rot) {
+  ctx.beginPath();
+  for (let i = 0; i < sides; i++) { const a = rot + TAU * i / sides; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+  ctx.closePath();
+}
+const mix = (c, d, f) => [c[0] + (d[0] - c[0]) * f, c[1] + (d[1] - c[1]) * f, c[2] + (d[2] - c[2]) * f];
+
+function bodyRot(e, t) {
+  switch (e.type) {
+    case "Charger": case "Lunger": case "Brute": case "Shard": case "Mortar": case "Shielder": case "HiveBomber": return e.facing;
+    case "Spinner": return t * (e.phase === 1 ? 7 : 1.5) + e.id;
+    case "Singularity": return t * (e.phase === 1 ? -3 : 1);
+    case "Medic": return Math.PI / 4;
+    default: return t * 0.4 + e.id;
+  }
+}
+
+function colorOf(e) {
+  if (e.type === "TwinB") return BY.Twins.col2;
+  if (e.type === "TwinA") return BY.Twins.col;
+  return e.d ? e.d.col : rgb(1, 1, 1);
+}
+
+/** Draw one enemy body (shared by the arena and the roster thumbnails). */
+function drawBody(ctx, e, x, y, r, t, anim) {
+  const col = colorOf(e);
+  const tt = anim ? t : 0;
+  const melee = e.d && e.d.melee;
+  const sides = e.d ? e.d.sides : 4;
+  // Glows and auras behind the body
+  if (e.type === "Spinner" && e.phase === 1) { ctx.fillStyle = css(rgb(1, 0.6, 0.2), 0.25); ctx.beginPath(); ctx.arc(x, y, r + 8 + 3 * Math.sin(tt * 20), 0, TAU); ctx.fill(); }
+  if (e.type === "HiveBomber") { ctx.fillStyle = css(rgb(1, 0.5, 0.15), 0.3); ctx.beginPath(); ctx.arc(x, y, r + 5 + 2 * Math.sin(tt * 30), 0, TAU); ctx.fill(); }
+  if (e.type === "Devourer" && e.phase === 1) { ctx.fillStyle = css(col, 0.22 + 0.08 * Math.sin(tt * 10)); ctx.beginPath(); ctx.arc(x, y, r + 14, 0, TAU); ctx.fill(); }
+  if (e.enraged) { ctx.fillStyle = css(rgb(1, 0.2, 0.2), 0.25); ctx.beginPath(); ctx.arc(x, y, r + 10 + 4 * Math.sin(tt * 14), 0, TAU); ctx.fill(); }
+  if (e.elite) { ctx.strokeStyle = css(rgb(1, 0.85, 0.35), 0.8); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r + 6, 0, TAU); ctx.stroke(); }
+  // Melee spikes
+  if (melee) {
+    const spikes = e.type === "Swarmer" ? 6 : e.type === "Brute" ? 10 : 8;
+    const spin = e.type === "Swarmer" ? tt * 4 : tt * 0.6;
+    ctx.fillStyle = css(mix(col, [1, 0.95, 0.85], 0.35));
+    for (let k = 0; k < spikes; k++) {
+      const a = spin + TAU * k / spikes, dx = Math.cos(a), dy = Math.sin(a), sx = -dy, sy = dx;
+      ctx.beginPath();
+      ctx.moveTo(x + dx * (r + 6), y + dy * (r + 6));
+      ctx.lineTo(x + dx * (r - 2) + sx * r * 0.28, y + dy * (r - 2) + sy * r * 0.28);
+      ctx.lineTo(x + dx * (r - 2) - sx * r * 0.28, y + dy * (r - 2) - sy * r * 0.28);
+      ctx.fill();
+    }
+  }
+  const rot = anim ? bodyRot(e, t) : (["Charger", "Lunger", "Brute", "Shard", "Mortar", "Shielder", "HiveBomber"].includes(e.type) ? e.facing : e.id * 0.7);
+  poly(ctx, x, y, r, sides, rot);
+  ctx.fillStyle = css(col);
+  ctx.fill();
+  ctx.lineWidth = Math.max(1, r * 0.08);
+  ctx.strokeStyle = css(mix(col, [1, 1, 1], 0.45), 0.9);
+  ctx.stroke();
+  // Inner core for bosses
+  if (e.d && e.d.boss) { poly(ctx, x, y, r * 0.55, sides, -rot * 1.3); ctx.fillStyle = css(mix(col, [0, 0, 0], 0.35), 0.8); ctx.fill(); }
+  if (e.type === "Shielder") {  // front shield arc
+    ctx.strokeStyle = css(rgb(0.6, 0.8, 1), 0.9); ctx.lineWidth = Math.max(2, r * 0.22);
+    ctx.beginPath(); ctx.arc(x, y, r + 7, e.facing - 1.13, e.facing + 1.13); ctx.stroke();
+  }
+  if (e.type === "CageWell") { ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(x, y, r * 0.6, 0, TAU); ctx.fill(); }
+  if (e.type === "GravityWell") { ctx.strokeStyle = css(col, 0.35); ctx.lineWidth = 1.5; for (let k = 0; k < 2; k++) { ctx.beginPath(); ctx.arc(x, y, r + 6 + ((tt * 18 + k * 8) % 16), 0, TAU); ctx.stroke(); } }
+  if (e.type === "Decoy") { ctx.fillStyle = css(rgb(0, 0, 0), 0.35); poly(ctx, x, y, r, sides, rot); ctx.fill(); }
+}
+
+const cv = document.getElementById("arena"), cx = cv.getContext("2d");
+
+function drawArena() {
+  const sc = cv.width / W;
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.fillStyle = "#0d1019"; cx.fillRect(0, 0, cv.width, cv.height);
+  cx.setTransform(sc, 0, 0, sc, 0, 0);
+  // grid
+  cx.strokeStyle = "rgba(120,140,200,0.07)"; cx.lineWidth = 1 / sc;
+  cx.beginPath();
+  for (let x = 0; x <= W; x += 80) { cx.moveTo(x, 0); cx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 80) { cx.moveTo(0, y); cx.lineTo(W, y); }
+  cx.stroke();
+  cx.strokeStyle = "rgba(91,140,255,0.35)"; cx.lineWidth = 3; cx.strokeRect(1.5, 1.5, W - 3, H - 3);
+  const t = world.t, anim = S.bodyAnim;
+  const p = world.player;
+
+  // Pull
+  if (world.pull) { cx.strokeStyle = "rgba(170,120,255,0.25)"; cx.lineWidth = 2; for (let k = 0; k < 3; k++) { const rr = 300 - ((t * 120 + k * 100) % 300); cx.beginPath(); cx.arc(world.pull.x, world.pull.y, rr, 0, TAU); cx.stroke(); } }
+  // Hazards
+  for (const h of world.hazards) {
+    const f = 1 - h.t / h.dur;
+    cx.fillStyle = `rgba(150,190,255,${0.08 + 0.18 * f})`; cx.beginPath(); cx.arc(h.x, h.y, h.r, 0, TAU); cx.fill();
+    cx.strokeStyle = "rgba(170,210,255,0.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(h.x, h.y, h.r * f, 0, TAU); cx.stroke();
+    cx.beginPath(); cx.arc(h.x, h.y, h.r, 0, TAU); cx.stroke();
+  }
+  // FX (under)
+  for (const f of world.fx) {
+    const k = f.t / f.dur;
+    if (f.kind === "target" && S.tele) {
+      cx.fillStyle = css(f.col, 0.08 + 0.12 * k); cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, TAU); cx.fill();
+      cx.strokeStyle = css(f.col, 0.5); cx.lineWidth = 2; cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, TAU); cx.stroke();
+      cx.strokeStyle = css(f.col, 0.3 + 0.5 * k); cx.beginPath(); cx.arc(f.x, f.y, f.r * (1.8 - 0.8 * k), 0, TAU); cx.stroke();
+    }
+  }
+  // Tether
+  const tw = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && o.spawnT <= 0);
+  if (tw.length === 2) {
+    cx.strokeStyle = "rgba(255,120,200,0.25)"; cx.lineWidth = 14; cx.beginPath(); cx.moveTo(tw[0].x, tw[0].y); cx.lineTo(tw[1].x, tw[1].y); cx.stroke();
+    cx.strokeStyle = "rgba(255,190,230,0.9)"; cx.lineWidth = 4; cx.stroke();
+  }
+  // Singularity: corner wells' reach, lasers (warning, then beams) and cage rings
+  for (const w of world.enemies) if (w.type === "GravityWell" && w.spawnT <= 0) { cx.fillStyle = css(BY.GravityWell.col, 0.04); cx.beginPath(); cx.arc(w.x, w.y, 420, 0, TAU); cx.fill(); }
+  const sg = world.enemies.find(o => o.type === "Singularity" && o.spawnT <= 0);
+  if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0; k < 3; k++) {
+    const a = sg.facing + TAU * k / 3;
+    if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, sg.r, 2000); } }
+    else {
+      cx.strokeStyle = "rgba(255,40,55,0.18)"; cx.lineWidth = 22; seg(sg, a, sg.r, 2000);
+      cx.strokeStyle = "rgba(255,50,65,0.9)"; cx.lineWidth = 10; seg(sg, a, sg.r, 2000);
+      cx.strokeStyle = "rgba(255,215,215,0.95)"; cx.lineWidth = 2.5; seg(sg, a, sg.r, 2000);
+    }
+  }
+  for (const c of world.cages) {
+    if (c.r < 1) continue;
+    cx.strokeStyle = css(BY.CageWell.col, 0.15); cx.lineWidth = 20; cx.beginPath(); cx.arc(c.x, c.y, c.r, 0, TAU); cx.stroke();
+    cx.strokeStyle = css(BY.CageWell.col, 0.85); cx.lineWidth = 10; cx.stroke();
+    cx.strokeStyle = "rgba(255,230,255,0.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(c.x, c.y, c.r, t * 2, t * 2 + Math.PI * 1.4); cx.stroke();
+  }
+  for (const e of world.enemies) e.enraged = (e.type === "TwinA" || e.type === "TwinB") && tw.length === 1 && world.enemies.filter(o => o.type === "TwinA" || o.type === "TwinB").length === 1;
+
+  // Telegraphs
+  if (S.tele) for (const e of world.enemies) {
+    if (e.spawnT > 0) continue;
+    if (e.type === "Charger" && e.phase === 1) line(e.x, e.y, e.facing, 260, rgb(0.3, 0.9, 0.9), 0.5);
+    if (e.type === "Lunger" && e.phase === 1) line(e.x, e.y, e.facing, 205, rgb(0.95, 0.35, 0.65), 0.55);
+    if (e.type === "Warden" && e.phase === 3) for (let k = 0; k < 4; k++) {
+      const a = Math.PI / 2 * k;
+      cx.strokeStyle = "rgba(255,90,115,0.07)"; cx.lineWidth = 10; seg(e, a, e.r, e.r + 420);
+      cx.strokeStyle = "rgba(255,115,140,0.18)"; cx.lineWidth = 2; seg(e, a, e.r, e.r + 420);
+    }
+    if (e.type === "HiveBomber") line(e.x, e.y, e.facing, 90, rgb(1, 0.5, 0.2), 0.18, 3);
+    if (e.type === "Medic") { cx.strokeStyle = css(e.d.col, 0.12); cx.setLineDash([6, 8]); cx.lineWidth = 1.5; cx.beginPath(); cx.arc(e.x, e.y, 180, 0, TAU); cx.stroke(); cx.setLineDash([]); }
+  }
+  // Shields
+  for (const e of world.enemies) {
+    if ((e.type === "HiveQueen" && e.phase === 1) || (e.type === "Lich" && e.phase === 1)) {
+      cx.fillStyle = css(e.type === "Lich" ? rgb(0.4, 1, 0.6) : rgb(1, 0.85, 0.3), 0.15); cx.beginPath(); cx.arc(e.x, e.y, e.r + 16, 0, TAU); cx.fill();
+      cx.strokeStyle = css(e.type === "Lich" ? rgb(0.5, 1, 0.7) : rgb(1, 0.9, 0.4), 0.8); cx.lineWidth = 3; cx.stroke();
+    }
+  }
+  // Enemies
+  for (const e of world.enemies) {
+    cx.save();
+    if (e.spawnT > 0) cx.globalAlpha = 0.35;
+    drawBody(cx, e, e.x, e.y, e.r, t, anim);
+    cx.restore();
+    if (S.hitbox) { cx.strokeStyle = "rgba(255,255,255,0.6)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(e.x, e.y, e.r, 0, TAU); cx.stroke(); }
+  }
+  // Bullets
+  for (const b of world.bullets) {
+    cx.fillStyle = css(b.col, 0.25); cx.beginPath(); cx.arc(b.x, b.y, b.r * 1.7, 0, TAU); cx.fill();
+    cx.fillStyle = css(b.col); cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, TAU); cx.fill();
+    if (b.boss) { cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.45, 0, TAU); cx.fill(); }
+    else { cx.fillStyle = "rgba(255,255,255,0.7)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.35, 0, TAU); cx.fill(); }
+  }
+  // FX (over)
+  for (const f of world.fx) {
+    const k = f.t / f.dur;
+    if (f.kind === "ring") { cx.strokeStyle = css(f.col, 1 - k); cx.lineWidth = 4; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU); cx.stroke(); }
+    if (f.kind === "boom") { cx.fillStyle = css(f.col, 0.35 * (1 - k)); cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); cx.fill(); cx.strokeStyle = css(f.col, 1 - k); cx.lineWidth = 3; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.5 + k), 0, TAU); cx.stroke(); }
+    if (f.kind === "bolt") {
+      cx.strokeStyle = css(f.col, 1 - k); cx.lineWidth = 3; cx.beginPath(); cx.moveTo(f.x + rnd(-60, 60), -20);
+      for (let s = 1; s <= 6; s++) cx.lineTo(f.x + rnd(-20, 20) * (1 - s / 6), -20 + (f.y + 20) * s / 6);
+      cx.stroke(); cx.fillStyle = css(f.col, 0.3 * (1 - k)); cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, TAU); cx.fill();
+    }
+  }
+  // Player dummy
+  const hit = p.flash > 0;
+  cx.fillStyle = hit ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)";
+  cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
+  cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
+  cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(p.x, p.y, p.hitR * 0.6, 0, TAU); cx.fill();
+  if (S.hitbox) { cx.strokeStyle = "rgba(255,255,255,0.9)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(p.x, p.y, p.hitR, 0, TAU); cx.stroke(); }
+  cx.fillStyle = "rgba(232,236,248,0.75)"; cx.font = "600 18px Barlow, sans-serif"; cx.textAlign = "center"; cx.fillText("Dummy", p.x, p.y - 22);
+  // Status
+  cx.textAlign = "left"; cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(232,236,248,0.6)";
+  cx.fillText(statusLine(), 20, H - 20);
+  if (!S.playing) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.fillText("PAUSED", 20, 38); }
+
+  function line(x, y, a, len, col, alpha, w = 6) {
+    cx.strokeStyle = css(col, alpha * 0.4); cx.lineWidth = w * 2.4; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); cx.stroke();
+    cx.strokeStyle = css(col, alpha); cx.lineWidth = w * 0.5; cx.stroke();
+  }
+  function seg(e, a, r0, r1) { cx.beginPath(); cx.moveTo(e.x + Math.cos(a) * r0, e.y + Math.sin(a) * r0); cx.lineTo(e.x + Math.cos(a) * r1, e.y + Math.sin(a) * r1); cx.stroke(); }
+}
+
+function statusLine() {
+  const e = world.enemies.find(o => o.type === S.sel || (S.sel === "Twins" && (o.type === "TwinA" || o.type === "TwinB")) || ((S.sel === "GravityWell" || S.sel === "CageWell") && o.type === "Singularity") || (S.sel === "HiveBomber" && o.type === "HiveQueen"));
+  if (!e) return "";
+  switch (e.type) {
+    case "Warden": return ["Spiral", "Rings", "Fan", "Cross (planted)", "Cross (moving)"][e.phase] + (S.lock ? "   (locked)" : `   loop ${(e.t % 30).toFixed(1)} / 30 s`);
+    case "HiveQueen": return ["Summoning", "Drones (shielded)", "Bombers", "Bullets"][e.t2] + `   ${e.phaseT.toFixed(1)} s in stage`;
+    case "Singularity": return ["Normal: spiral", "Pull", "Collapse", world.cages.length ? `Cage   ring ${Math.round(world.cages[0].r)} px` : "Cage (broken)", "Normal: lasers warning", "Normal: lasers"][e.phase] + (S.lock || e.cageDemo ? "   (locked)" : `   loop ${(e.t % 24).toFixed(1)} / 24 s`);
+    case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
+    case "Charger": return ["Circling", "Winding up", "Dashing"][e.phase];
+    case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
+    case "Devourer": return e.phase === 1 ? "HUNGRY: your shots heal it" : "Twin stream";
+    case "Lich": return e.phase === 1 ? "Immune (phylactery stands)" : "Vulnerable";
+    case "Eclipse": return `Phase ${e.phase + 1}`;
+    case "TwinA": case "TwinB": return (S.lock ? (S.lock === 1 ? "Lines" : "Cross") : (Math.floor(e.t / 5) % 2 === 0 ? "Lines" : "Cross")) + (world.enemies.filter(o => o.type === "TwinA" || o.type === "TwinB").length === 1 ? "   ENRAGED" : "");
+    default: return "";
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Roster
+// ---------------------------------------------------------------------------------------------
+const groupsEl = document.getElementById("groups");
+const cats = ["Melee", "Shooters", "Late game", "Bosses", "Summons"];
+const thumbs = [];
+function buildRoster() {
+  groupsEl.innerHTML = "";
+  thumbs.length = 0;
+  for (const c of cats) {
+    const list = E.filter(d => d.cat === c);
+    const g = document.createElement("div"); g.className = "group";
+    g.innerHTML = `<h3><span>${c}</span><span>${list.length}</span></h3>`;
+    const cards = document.createElement("div"); cards.className = "cards";
+    for (const d of list) {
+      const b = document.createElement("button"); b.className = "card"; b.type = "button"; b.dataset.id = d.id;
+      b.setAttribute("aria-label", nameOf(d));
+      const can = document.createElement("canvas"); can.width = 128; can.height = 128;
+      b.appendChild(can);
+      b.insertAdjacentHTML("beforeend", `<span class="nm">${nameOf(d)}</span><span class="wv">${d.boss ? "Boss · W" + d.wave : d.summon ? "Summon" : "Wave " + d.wave + "+"}</span>`);
+      b.addEventListener("click", () => select(d.id));
+      cards.appendChild(b);
+      const fake = d.id === "Twins" ? { type: "TwinA", d, id: 3, facing: 0.5, phase: 0 } : { type: d.id, d, id: d.id.length * 3, facing: -0.6, phase: d.id === "Spinner" ? 1 : 0 };
+      thumbs.push({ can, d, fake, btn: b });
+    }
+    g.appendChild(cards);
+    groupsEl.appendChild(g);
+  }
+}
+function drawThumbs(t) {
+  const anim = document.getElementById("animRoster").checked;
+  for (const th of thumbs) {
+    if (th.btn.hidden) continue;
+    const ctx = th.can.getContext("2d");
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 128, 128);
+    const d = th.d, r = d.r;
+    const sc = Math.min(2.4, 40 / (r + (d.melee ? 6 : d.id === "Shielder" ? 10 : 2)));
+    ctx.setTransform(sc, 0, 0, sc, 64, 64);
+    if (["Charger", "Lunger", "Brute", "Shard", "Mortar", "Shielder", "HiveBomber"].includes(d.id) && anim) th.fake.facing = -0.6 + Math.sin(t * 0.8 + r) * 0.6;
+    if (d.id === "Spinner") th.fake.phase = anim && (t % 3.3) < 1.3 ? 1 : 0;
+    if (d.id === "Devourer") th.fake.phase = anim && (t % 10) >= 7 ? 1 : 0;
+    drawBody(ctx, th.fake, 0, 0, r, t, anim);
+    if (d.id === "Twins") drawBody(ctx, { type: "TwinB", d, id: 9, facing: 0, phase: 0 }, r * 0.9, r * 0.9, r * 0.55, t, anim);
+  }
+}
+document.getElementById("search").addEventListener("input", ev => {
+  const q = ev.target.value.trim().toLowerCase();
+  for (const th of thumbs) th.btn.hidden = q && !(nameOf(th.d).toLowerCase().includes(q) || th.d.cat.toLowerCase().includes(q));
+  for (const g of groupsEl.children) g.hidden = [...g.querySelectorAll(".card")].every(c => c.hidden);
+});
+
+// ---------------------------------------------------------------------------------------------
+// Data sheet
+// ---------------------------------------------------------------------------------------------
+const fmt = (v, d = 0) => Number(v).toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+function renderSheet() {
+  const d = BY[S.sel];
+  document.getElementById("name").textContent = nameOf(d);
+  const chips = [];
+  chips.push(`<span class="chip ${d.boss ? "boss" : d.summon ? "summon" : d.melee ? "melee" : ""}">${d.boss ? "Boss" : d.summon ? "Summon" : d.melee ? "Melee" : d.cat === "Late game" ? "Late-game shooter" : "Shooter"}</span>`);
+  chips.push(`<span class="chip">${d.appears}</span>`);
+  document.getElementById("chips").innerHTML = chips.join("");
+  document.getElementById("lead").textContent = d.lead;
+
+  const elite = S.elite && !d.boss && !d.summon;
+  const hp = maxHp(d, S.wave, S.party, elite);
+  const rate = fireRate(S.wave, elite);
+  const contact = d.boss ? 25 + S.wave * 0.6 : d.contact || (d.melee ? 15 : 15);
+  const st = [
+    ["Health", `${fmt(hp)} <small>(base ${fmt(d.hp)}${d.id === "Twins" ? " each" : ""} · wave ${S.wave} · ${S.party}P${elite ? " · elite" : ""})</small>`],
+    ["Radius", `${fmt(d.r * (elite ? 1.25 : 1), 1)} px`],
+    ["Move speed", d.speed ? `${d.speed} px/s` : "Stationary"],
+    ["Contact damage", d.id === "HiveBomber" ? "Explodes (22)" : d.id === "Decoy" || d.id === "Phylactery" ? "15" : fmt(contact, 1)],
+    ["Fire-rate multiplier", `× ${rate.toFixed(2)}`],
+    ["XP / score", `${d.xp} / ${d.score}${elite ? " <small>(× 3 elite)</small>" : ""}`],
+    ["Appears", d.appears],
+  ];
+  if (!d.boss && !d.summon && S.wave >= 12) st.push(["Elite chance", `${Math.round(Math.min(35, 4 * (S.wave - 11)))}% at wave ${S.wave}`]);
+  document.getElementById("stats").innerHTML = st.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+
+  document.getElementById("rateNote").textContent = `· intervals at wave ${S.wave}${elite ? ", elite" : ""} in gold`;
+  const rows = d.attacks.map(a => {
+    const k = a.kind ? B[a.kind] : null;
+    const n = typeof a.n === "function" ? a.n(S.wave) + ` <small style="color:var(--muted)">(${a.nLabel})</small>` : a.n ?? "—";
+    let dmg = a.dmg !== undefined ? (typeof a.dmg === "function" ? `${a.dmg(S.wave)} <small style="color:var(--muted)">(${a.dmgLabel})</small>` : a.dmg) : k ? `${k.dmg} each` : "—";
+    let every = "—";
+    if (typeof a.every === "number") {
+      const eff = a.unscaled ? a.every : a.every / rate;
+      every = `${a.every} s` + (a.unscaled ? ` <small style="color:var(--muted)">(fixed)</small>` : ` → <span class="eff">${eff.toFixed(eff < 0.2 ? 3 : 2)} s</span>`);
+    } else if (a.every) every = `${a.every} s`;
+    const kind = k ? `<span class="dot" style="background:${css(k.col)}"></span>${k.name}` : "";
+    return `<tr><td><b>${a.name}</b><div style="color:var(--muted);font-size:12px">${a.pattern}${a.notes ? " · " + a.notes : ""}</div></td><td>${kind}</td><td class="n">${n}</td><td class="n">${a.speed ?? "—"}${typeof a.speed === "number" ? " px/s" : ""}</td><td class="n">${dmg}</td><td class="n">${every}</td></tr>`;
+  });
+  document.getElementById("attacks").innerHTML = `<thead><tr><th>Attack</th><th>Bullet</th><th>Count</th><th>Speed</th><th>Damage</th><th>Every</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  document.getElementById("notes").innerHTML = (d.notes || []).map(n => `<li>${n}</li>`).join("");
+  document.getElementById("notes").hidden = !(d.notes && d.notes.length);
+}
+function renderBulletTable() {
+  document.getElementById("bulletTable").innerHTML = `<thead><tr><th>Bullet</th><th>Damage</th><th>Radius</th><th>Fired by</th></tr></thead><tbody>` +
+    [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"]]
+      .map(([k, who]) => `<tr><td><span class="dot" style="background:${css(B[k].col)}"></span>${B[k].name}</td><td class="n">${B[k].dmg}</td><td class="n">${B[k].r} px</td><td>${who}</td></tr>`).join("") +
+    `<tr><td><span class="dot" style="background:${css(BY.HiveBomber.col)}"></span>Hive Bomber blast</td><td class="n">22</td><td class="n">60 px</td><td>Hive Queen</td></tr>` +
+    `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">70–75 px</td><td>Storm Herald, the Eclipse</td></tr></tbody>`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Controls
+// ---------------------------------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+function seg(id, key, cast = v => v, after) {
+  $(id).addEventListener("click", ev => {
+    const b = ev.target.closest("button"); if (!b) return;
+    S[key] = cast(b.dataset.v);
+    for (const x of $(id).children) x.classList.toggle("on", x === b);
+    after && after();
+  });
+}
+seg("speed", "speed", Number);
+seg("dummy", "dummy", String, () => { world.player.path = 0; });
+seg("party", "party", Number, () => { renderSheet(); });
+$("play").addEventListener("click", () => { S.playing = !S.playing; $("play").textContent = S.playing ? "Pause" : "Play"; });
+$("restart").addEventListener("click", () => restart());
+$("wave").addEventListener("change", ev => { S.wave = clamp(parseInt(ev.target.value) || 1, 1, 99); ev.target.value = S.wave; renderSheet(); });
+$("elite").addEventListener("change", ev => { S.elite = ev.target.checked; renderSheet(); restart(); });
+$("tele").addEventListener("change", ev => { S.tele = ev.target.checked; });
+$("hitbox").addEventListener("change", ev => { S.hitbox = ev.target.checked; });
+$("bodyAnim").addEventListener("change", ev => { S.bodyAnim = ev.target.checked; });
+cv.addEventListener("pointermove", ev => {
+  const r = cv.getBoundingClientRect();
+  S.mouse = { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H };
+});
+cv.addEventListener("pointerdown", ev => {
+  const r = cv.getBoundingClientRect();
+  S.mouse = { x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H };
+});
+
+function buildAttackRow() {
+  const d = BY[S.sel];
+  const row = $("attackRow"), lock = $("lock"), extra = $("extraBtns");
+  lock.innerHTML = ""; extra.innerHTML = "";
+  S.lock = 0;
+  if (d.locks) d.locks.forEach((l, i) => {
+    const b = document.createElement("button"); b.textContent = l; b.dataset.v = i; if (i === 0) b.classList.add("on");
+    lock.appendChild(b);
+  });
+  lock.hidden = !d.locks;
+  const addBtn = (label, fn) => { const b = document.createElement("button"); b.className = "btn"; b.textContent = label; b.type = "button"; b.addEventListener("click", fn); extra.appendChild(b); };
+  if (d.id === "Splitter") addBtn("Kill it", () => { const e = world.enemies.find(o => o.type === "Splitter"); if (!e) return; e.dead = true; addFx("boom", e.x, e.y, e.d.col, 40, 0.3); const n = e.elite ? 5 : 3; for (let i = 0; i < n; i++) spawn("Shard", e.x + Math.cos(TAU * i / n) * 20, e.y + Math.sin(TAU * i / n) * 20, 0, 0.15); });
+  if (d.id === "HiveQueen") addBtn("Kill her drones", () => { for (const o of world.enemies) if (o.type === "Shard") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 20, 0.3); } });
+  if (d.id === "Singularity" || d.id === "GravityWell") addBtn("Kill the corner wells", () => { for (const o of world.enemies) if (o.type === "GravityWell") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 25, 0.3); } });
+  if (d.id === "Singularity" || d.id === "CageWell") addBtn("Break my cage", () => { for (const o of world.enemies) if (o.type === "CageWell") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 20, 0.3); } });
+  if (d.id === "Lich") addBtn("Break the phylactery", () => { for (const o of world.enemies) if (o.type === "Phylactery") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 30, 0.3); } });
+  if (d.id === "Twins") addBtn("Kill Dusk", () => { const e = world.enemies.find(o => o.type === "TwinA"); if (e) { e.dead = true; addFx("boom", e.x, e.y, e.d.col, 60, 0.4); setTimeout(() => { if (S.sel === "Twins" && !world.enemies.some(o => o.type === "TwinA")) { const n = spawn("TwinA", e.x, e.y, 0, 0.6); n.t = e.t; addFx("ring", e.x, e.y, BY.Twins.col, 120, 0.6); } }, 6000 / S.speed); } });
+  if (d.id === "Nest" || d.id === "Lich" || d.id === "HiveQueen") addBtn("Clear the adds", () => { for (const o of world.enemies) if (o.parent && o.type !== "Phylactery" && o.type !== "GravityWell") o.dead = true; });
+  row.hidden = !d.locks && !extra.children.length;
+}
+$("lock").addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  S.lock = Number(b.dataset.v);
+  for (const x of $("lock").children) x.classList.toggle("on", x === b);
+  if (S.sel === "Eclipse" || S.sel === "Singularity") restart();
+});
+
+function restart() { newWorld(); }
+
+function select(id) {
+  S.sel = id;
+  for (const th of thumbs) th.btn.classList.toggle("sel", th.d.id === id);
+  const d = BY[id];
+  S.wave = d.wave; $("wave").value = d.wave;
+  buildAttackRow();
+  renderSheet();
+  newWorld();
+  try { localStorage.setItem("bestiary-sel", id); } catch (_) {}
+}
+
+// Readout
+let lastRead = 0;
+function updateReadout() {
+  const p = world.player, t = world.t;
+  const dps = t > 0 ? p.dmg / t : 0;
+  $("readout").innerHTML =
+    `<span>Time <b>${t.toFixed(1)} s</b></span>` +
+    `<span>Dummy damage taken <b class="${p.dmg > 0 ? "hot" : ""}">${fmt(p.dmg, 1)}</b></span>` +
+    `<span>Hits <b>${p.hits}</b></span>` +
+    `<span>Damage / s <b>${dps.toFixed(1)}</b></span>` +
+    `<span>Bullets on screen <b>${world.bullets.length}</b></span>` +
+    `<span>Enemies <b>${world.enemies.length}</b></span>`;
+}
+
+// Main loop
+let last = performance.now(), thumbT = 0, thumbAcc = 0;
+function frame(now) {
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (S.playing) {
+    let sim = dt * S.speed;
+    while (sim > 0) { const s = Math.min(1 / 60, sim); step(s); sim -= s; }
+  }
+  // keep the canvas crisp
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const wantW = Math.max(320, Math.round(r.width * dpr));
+  if (cv.width !== wantW) { cv.width = wantW; cv.height = Math.round(wantW * 9 / 16); }
+  drawArena();
+  thumbT += dt; thumbAcc += dt;
+  if (thumbAcc > 1 / 30) { drawThumbs(thumbT); thumbAcc = 0; }
+  if (now - lastRead > 200) { updateReadout(); lastRead = now; }
+  requestAnimationFrame(frame);
+}
+
+buildRoster();
+renderBulletTable();
+let start = "Warden";
+try { const s = localStorage.getItem("bestiary-sel"); if (s && BY[s]) start = s; } catch (_) {}
+select(start);
+drawThumbs(0);
+requestAnimationFrame(frame);
+})();
+</script>

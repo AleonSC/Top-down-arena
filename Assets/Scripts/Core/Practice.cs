@@ -106,7 +106,7 @@ namespace Arena
         {
             var sb = new StringBuilder();
             sb.AppendLine("# Top-Down Arena practice setup" + (string.IsNullOrEmpty(title) ? "" : ": " + title));
-            sb.AppendLine("# Load it from F1 > Practice Range. One line per wave: \"wave <level>: <enemy> x<count>, ...\".");
+            sb.AppendLine("# Load it in the lobby (Practice Range > Load). One line per wave: \"wave <level>: <enemy> x<count>, ...\".");
             sb.AppendLine("# The level sets how strong the enemies are (their health and fire rate, as on that wave of a run).");
             sb.AppendLine("loop: " + (Loop ? "yes" : "no"));
             foreach (var w in Waves)

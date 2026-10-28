@@ -60,8 +60,6 @@ namespace Arena
             return peer;
         }
 
-        public int ConnectionCount => conns.Count;
-
         public List<NetEvent> Poll()
         {
             events.Clear();
