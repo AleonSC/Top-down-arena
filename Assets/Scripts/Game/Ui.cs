@@ -22,6 +22,8 @@ namespace Arena
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
         static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, pill, rim;
+        static GUIStyle card, cardTint, cardRim;  // choice cards
+        static Texture2D chip;
         static Texture2D checkOn, checkOff;
 
         public static void Init()
@@ -37,9 +39,15 @@ namespace Arena
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
             rim = Style(Rounded(12, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 12);
 
-            button = Style(Rounded(8, new Color(1f, 1f, 1f), new Color(0.82f, 0.84f, 0.88f), new Color(1f, 1f, 1f, 0.55f), 1.5f), 8);
-            button.hover.background = Rounded(8, new Color(1f, 1f, 1f), new Color(0.95f, 0.96f, 1f), new Color(1f, 1f, 1f, 1f), 2f);
-            button.active.background = Rounded(8, new Color(0.7f, 0.72f, 0.76f), new Color(0.78f, 0.8f, 0.84f), new Color(1f, 1f, 1f, 0.6f), 1.5f);
+            // Buttons: a strong top-to-bottom shade (tinted by the button's colour) under a soft light rim.
+            button = Style(Rounded(10, new Color(1f, 1f, 1f), new Color(0.7f, 0.72f, 0.78f), new Color(1f, 1f, 1f, 0.38f), 1.5f), 10);
+            button.hover.background = Rounded(10, new Color(1f, 1f, 1f), new Color(0.84f, 0.86f, 0.92f), new Color(1f, 1f, 1f, 0.85f), 2f);
+            button.active.background = Rounded(10, new Color(0.66f, 0.68f, 0.74f), new Color(0.78f, 0.8f, 0.86f), new Color(1f, 1f, 1f, 0.5f), 1.5f);
+            // Choice cards: a dark card with a slate rim; the selected one is washed with its colour from the top.
+            card = Style(Rounded(10, new Color(0.137f, 0.157f, 0.22f, 1f), new Color(0.106f, 0.122f, 0.172f, 1f), new Color(0.2f, 0.235f, 0.337f, 1f), 1.5f), 10);
+            cardTint = Style(Rounded(10, new Color(1f, 1f, 1f, 0.42f), new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), 0f), 10);
+            cardRim = Style(Rounded(10, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.5f), 10);
+            chip = Circle(40, Color.white, Color.white);
             button.alignment = TextAnchor.MiddleCenter;
             button.fontSize = 16;
             button.fontStyle = FontStyle.Bold;
@@ -118,6 +126,36 @@ namespace Arena
 
         public static bool Button(Rect r, string text) => Button(r, text, Neutral);
 
+        /// A button with a small round icon chip before its label (e.g. a check on Ready, a play arrow on Start).
+        public static bool Button(Rect r, string text, Color tint, Texture2D icon)
+        {
+            if (icon == null)
+                return Button(r, text, tint);
+            bool clicked = Button(r, "", tint);
+            float tw = button.CalcSize(new GUIContent(text)).x - button.padding.horizontal;
+            float cs = Mathf.Min(22f, r.height - 16f), total = cs + 9f + tw;
+            float x = r.center.x - total / 2f;
+            var c = new Rect(x, r.center.y - cs / 2f, cs, cs);
+            var old = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.28f);
+            GUI.DrawTexture(c, chip);
+            GUI.color = old;
+            float isz = Mathf.Round(cs * 0.6f);
+            Icon(new Rect(c.center.x - isz / 2f, c.center.y - isz / 2f, isz, isz), icon);
+            Label(new Rect(c.xMax + 9f, r.y, tw + 8f, r.height), text, button.fontSize, Color.white, TextAnchor.MiddleLeft, true);
+            return clicked;
+        }
+
+        /// A ring that pulses outward around a button (e.g. Ready once you're ready). t = time in seconds.
+        public static void PulseRing(Rect r, Color c, float t)
+        {
+            float f = (t / 1.4f) % 1f, grow = 2f + 6f * f;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(c.r, c.g, c.b, 0.9f * (1f - f));
+            GUI.Box(new Rect(r.x - grow, r.y - grow, r.width + 2f * grow, r.height + 2f * grow), GUIContent.none, cardRim);
+            GUI.backgroundColor = old;
+        }
+
         /// A button with smaller text, for tight rows.
         public static bool SmallButton(Rect r, string text, Color tint, int size = 12)
         {
@@ -130,19 +168,53 @@ namespace Arena
 
         public static bool SmallButton(Rect r, string text, int size = 12) => SmallButton(r, text, Neutral, size);
 
-        /// One option of a row of choices. The selected one is filled with the accent color.
-        public static bool Choice(Rect r, string text, bool selected, Color accent)
+        /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
+        /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
+        /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null)
         {
+            bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = selected ? accent * 0.85f : new Color(0.17f, 0.19f, 0.26f);
-            int size = button.fontSize;
-            button.fontSize = 14;
-            button.normal.textColor = button.hover.textColor = selected ? Color.white : Color.Lerp(accent, Color.white, 0.35f);
-            bool clicked = GUI.Button(r, text, button);
-            button.normal.textColor = button.hover.textColor = Color.white;
-            button.fontSize = size;
+            if (selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
+            {
+                GUI.backgroundColor = new Color(accent.r, accent.g, accent.b, 0.22f);
+                GUI.Box(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), GUIContent.none, pill);
+            }
+            GUI.backgroundColor = Color.white;
+            GUI.Box(r, GUIContent.none, card);
+            if (selected)
+            {
+                GUI.backgroundColor = new Color(accent.r, accent.g, accent.b, 0.75f);
+                GUI.Box(r, GUIContent.none, cardTint);
+            }
+            if (selected || hover)
+            {
+                Color hc = Color.Lerp(accent, Color.white, 0.3f);
+                GUI.backgroundColor = selected ? accent : new Color(hc.r, hc.g, hc.b, 0.7f);
+                GUI.Box(r, GUIContent.none, cardRim);
+            }
             GUI.backgroundColor = old;
-            return clicked;
+            float barH = r.height >= 34f ? 3f : 2f;
+            Fill(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
+
+            Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
+            int size = r.height < 30f ? 12 : 14;
+            if (icon != null)
+            {
+                float isz = Mathf.Min(24f, r.height * 0.36f);
+                Icon(new Rect(r.center.x - isz / 2f, r.y + 6f, isz, isz), icon);
+                Label(new Rect(r.x, r.y + 8f + isz, r.width, 18f), text, 15, name, TextAnchor.MiddleCenter, true);
+                if (sub != null)
+                    Label(new Rect(r.x, r.y + 25f + isz, r.width, 14f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
+            }
+            else if (sub != null)
+            {
+                Label(new Rect(r.x, r.y + r.height / 2f - 18f, r.width, 20f), text, 15, name, TextAnchor.MiddleCenter, true);
+                Label(new Rect(r.x, r.y + r.height / 2f + 1f, r.width, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
+            }
+            else
+                Label(new Rect(r.x + 4f, r.y, r.width - 8f, r.height - barH), text, size, name, TextAnchor.MiddleCenter, true);
+            return GUI.Button(r, GUIContent.none, GUIStyle.none);
         }
 
         public static string Field(Rect r, string value, int maxLength)

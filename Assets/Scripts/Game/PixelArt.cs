@@ -145,6 +145,82 @@ namespace Arena
 
         static readonly Dictionary<string, string[]> Icons = new Dictionary<string, string[]>
         {
+            // Lobby role cards and button chips.
+            ["role_tank"] = new[]
+            {
+                "..kkkkkkkk..",
+                ".kbbbbbbbbk.",
+                ".kbwbbbbbbk.",
+                ".kbwbbbbbbk.",
+                ".kbbbbbbbbk.",
+                ".kbbbbbbbbk.",
+                ".kBbbbbbbBk.",
+                "..kBbbbbBk..",
+                "..kBbbbbBk..",
+                "...kBbbBk...",
+                "....kBBk....",
+                ".....kk.....",
+            },
+            ["role_healer"] = new[]
+            {
+                "....kkkk....",
+                "....knnk....",
+                "....kwnk....",
+                "....knnk....",
+                "kkkkknnkkkkk",
+                "knwnnnnnnnnk",
+                "knnnnnnnnnNk",
+                "kkkkknNkkkkk",
+                "....knNk....",
+                "....knNk....",
+                "....kNNk....",
+                "....kkkk....",
+            },
+            ["role_dps"] = new[]
+            {
+                "..........kk",
+                ".........kwk",
+                "........kwgk",
+                ".......kwgk.",
+                "......kwgk..",
+                ".....kwgk...",
+                "..k..kgk....",
+                "..kkkgk.....",
+                "...kok......",
+                "..kok.kk....",
+                ".kok........",
+                "kk..........",
+            },
+            ["ui_check"] = new[]
+            {
+                "............",
+                "..........ww",
+                ".........www",
+                "........www.",
+                ".......www..",
+                "ww....www...",
+                "www..www....",
+                ".wwwwww.....",
+                "..wwww......",
+                "...ww.......",
+                "............",
+                "............",
+            },
+            ["ui_play"] = new[]
+            {
+                "............",
+                "..ww........",
+                "..www.......",
+                "..wwww......",
+                "..wwwww.....",
+                "..wwwwww....",
+                "..wwwwww....",
+                "..wwwww.....",
+                "..wwww......",
+                "..www.......",
+                "..ww........",
+                "............",
+            },
             ["towershield"] = new[]
             {
                 "..kkkkkkkk..",

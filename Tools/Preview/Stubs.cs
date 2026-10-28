@@ -19,13 +19,13 @@ namespace UnityEngine {
   public static class Random { public static int Range(int a,int b){return a;} }
   public enum EventType { MouseDown, MouseUp, ScrollWheel, Repaint, Layout, Used }
   public class Event { public static Event current; public Vector2 mousePosition; public EventType type; public Vector2 delta; public int button; public void Use(){} }
-  public class GUIContent { public static GUIContent none; }
+  public class GUIContent { public string text; public GUIContent(){} public GUIContent(string t){ text = t; } public static GUIContent none; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
   public enum FontStyle { Normal, Bold }
   public class GUIStyleState { public Color textColor; public Texture2D background; }
-  public class RectOffset { public int left,right,top,bottom; public RectOffset(int l,int r,int t,int b){left=l;right=r;top=t;bottom=b;} }
+  public class RectOffset { public int left,right,top,bottom; public int horizontal { get { return left + right; } } public RectOffset(int l,int r,int t,int b){left=l;right=r;top=t;bottom=b;} }
   public enum TextureFormat { RGBA32 } public enum FilterMode { Point, Bilinear } public enum TextureWrapMode { Clamp, Repeat }
-  public class GUIStyle { public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
+  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2((c.text ?? "").Length * fontSize * 0.55f + 20f, fontSize + 8f); } public static GUIStyle none = new GUIStyle(); public GUIStyle(){} public GUIStyle(GUIStyle o){ if(o!=null){fontSize=o.fontSize; wordWrap=o.wordWrap; fontStyle=o.fontStyle; alignment=o.alignment; normal.textColor=o.normal.textColor; normal.background=o.normal.background; border=o.border;} } public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal=new GUIStyleState(), hover=new GUIStyleState(), active=new GUIStyleState(), focused=new GUIStyleState(); public RectOffset border=new RectOffset(0,0,0,0), padding, margin; }
   public sealed class GUILayoutOption {}
   public class GUISkin { public GUIStyle label = new GUIStyle(); }
   public class GUI { public static void SetNextControlName(string n){} public static string GetNameOfFocusedControl(){return "";}

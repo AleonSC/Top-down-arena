@@ -19,13 +19,13 @@ namespace UnityEngine {
   public static class Random { public static int Range(int a,int b){return a;} }
   public enum EventType { MouseDown, MouseUp, ScrollWheel, Repaint, Layout, Used }
   public class Event { public static Event current; public Vector2 mousePosition; public EventType type; public Vector2 delta; public int button; public void Use(){} }
-  public class GUIContent { public static GUIContent none; }
+  public class GUIContent { public string text; public GUIContent(){} public GUIContent(string t){ text = t; } public static GUIContent none; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
   public enum FontStyle { Normal, Bold }
   public class GUIStyleState { public Color textColor; public Texture2D background; }
-  public class RectOffset { public RectOffset(int l,int r,int t,int b){} }
+  public class RectOffset { public int left, right; public int horizontal { get { return left + right; } } public RectOffset(int l,int r,int t,int b){ left=l; right=r; } }
   public enum TextureFormat { RGBA32 } public enum FilterMode { Point, Bilinear } public enum TextureWrapMode { Clamp, Repeat }
-  public class GUIStyle { public static GUIStyle none; public GUIStyle(){} public GUIStyle(GUIStyle o){} public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal, hover, active, focused; public RectOffset border, padding, margin; }
+  public class GUIStyle { public Vector2 CalcSize(GUIContent c){ return new Vector2((c.text ?? "").Length * fontSize * 0.55f + 20f, fontSize + 8f); } public static GUIStyle none; public GUIStyle(){} public GUIStyle(GUIStyle o){} public int fontSize; public bool wordWrap, richText; public FontStyle fontStyle; public TextAnchor alignment; public float fixedHeight, fixedWidth; public GUIStyleState normal, hover, active, focused; public RectOffset border, padding, margin; }
   public class GUISkin { public GUIStyle label, button, textField, box; }
   public sealed class GUILayoutOption {}
   public class GUI { public static void SetNextControlName(string n){} public static string GetNameOfFocusedControl(){return "";} public static void BeginGroup(Rect r){} public static void EndGroup(){} public static Color backgroundColor; public static void Box(Rect r, GUIContent c, GUIStyle s){} public static string TextField(Rect r, string t, int max, GUIStyle s){return t;} public static float HorizontalSlider(Rect r, float v, float a, float b, GUIStyle s, GUIStyle t){return v;} public static bool Toggle(Rect r, bool v, GUIContent c, GUIStyle s){return v;} public static float HorizontalSlider(Rect r, float v, float a, float b){return v;} public static bool Toggle(Rect r, bool v, string t){return v;} public static bool enabled; public static bool Button(Rect r, string t, GUIStyle s){return false;} public static bool Button(Rect r, GUIContent c, GUIStyle s){return false;} public static GUISkin skin; public static Matrix4x4 matrix; public static Color color; public static void Label(Rect r, string t, GUIStyle s){} public static void DrawTexture(Rect r, Texture t){} }

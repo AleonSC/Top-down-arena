@@ -298,6 +298,8 @@ namespace Arena
             DrawPlayer(p, t, true);
         }
 
+        static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps" };  // PixelArt.cs
+
         void DrawLoadout(LobbyEntry me, Rect r, float t)
         {
             Ui.Panel(r);
@@ -334,8 +336,8 @@ namespace Arena
             for (int i = 0; i < Defs.Roles.Length; i++)
             {
                 var rc = ToColor(Defs.Roles[i].Color);
-                var b = new Rect(x + i * (third + gap), y + 28f, third, 48f);
-                if (Ui.Choice(b, "", (int)me.Role == i, rc))
+                var b = new Rect(x + i * (third + gap), y + 28f, third, 66f);
+                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP"))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
@@ -343,12 +345,9 @@ namespace Arena
                     weaponChoice = 0;
                     abilityChoice = 0;
                 }
-                bool on = (int)me.Role == i;
-                Ui.Label(new Rect(b.x, b.y + 5f, b.width, 22f), Defs.Roles[i].Name, 16, on ? Color.white : Color.Lerp(rc, Color.white, 0.3f), TextAnchor.MiddleCenter, true);
-                Ui.Label(new Rect(b.x, b.y + 26f, b.width, 16f), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", 11, on ? new Color(1f, 1f, 1f, 0.8f) : Ui.Muted, TextAnchor.MiddleCenter);
             }
-            Ui.Label(new Rect(x, y + 80f, w, 18f), Defs.Get(me.Role).Desc, 12, Ui.Muted);
-            y += 106f;
+            Ui.Label(new Rect(x, y + 98f, w, 18f), Defs.Get(me.Role).Desc, 12, Ui.Muted);
+            y += 122f;
 
             Ui.Heading(x, y, w, "Class");
             float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
@@ -481,7 +480,10 @@ namespace Arena
                 session.Leave("");
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W - 560f : W - 300f;
-            if (Ui.Button(new Rect(readyX, H - 70f, 240f, 48f), ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary))
+            var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
+            if (ready)
+                Ui.PulseRing(readyRect, new Color(1f, 0.85f, 0.48f), Time.unscaledTime);
+            if (Ui.Button(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check")))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -498,7 +500,7 @@ namespace Arena
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0);
                 string start = practice ? "Start practice" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
-                if (Ui.Button(new Rect(W - 300f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary))
+                if (Ui.Button(new Rect(W - 300f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play")))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }
