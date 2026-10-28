@@ -45,7 +45,7 @@ namespace UnityEngine {
     public static bool enabled = true;
     public static bool Button(Rect r, string t, GUIStyle s){ Styled(r, s, backgroundColor); if (t != null) Label(r, t, s); return false;} public static bool Button(Rect r, GUIContent c, GUIStyle s){return false;}
     public static GUISkin skin = new GUISkin(); public static Matrix4x4 matrix; public static Color color = new Color(1,1,1,1);
-    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+s.fontSize+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+t.Replace("\n","\n")); }
+    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+s.fontSize+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+t.Replace("\n","\\n")); }
     public static void DrawTexture(Rect r, Texture t){ var t2 = t as Texture2D; if (t2 != null && t2.px32 != null) { var sb = new System.Text.StringBuilder(); foreach (var c in t2.px32) sb.Append(c.r.ToString("x2")+c.g.ToString("x2")+c.b.ToString("x2")+c.a.ToString("x2")); Log.Add("img\t"+R(r)+"\t"+Clip()+"\t"+t2.w+"\t"+sb+"\t"+C(color)); return; } Log.Add("fill\t"+R(r)+"\t"+Clip()+"\t"+C(color)); } }
   public class GUILayout {
     public static void BeginArea(Rect r, GUIStyle s){} public static void EndArea(){} public static void Space(float p){} public static void FlexibleSpace(){}

@@ -127,6 +127,19 @@ class Shot {
       typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       GL.ToUi = false;
     }
+    else if (mode == "menu" || mode == "howto")
+    {
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
+      var hv = Environment.GetEnvironmentVariable("MOUSE");
+      if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      Event.current.type = EventType.Repaint;
+      set("glMaterial", new Material(null));
+      GL.ToUi = true;
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : "DrawHowToPlay", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
     else if (mode == "practicehud")
     {
       System.Collections.Generic.List<string> pr;
