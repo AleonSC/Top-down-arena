@@ -103,6 +103,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind < Defs.SmallShot)
                     DrawBigShot(b, t);
+            DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)

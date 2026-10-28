@@ -374,6 +374,9 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
+                    foreach (var pt in Patches.Values)  // a path's fire: burning now or about to (Paths.cs)
+                        if (pt.Kind == PatchKind.Fire && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                            d += w * 3f;
                     if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
                     if (sing != null)
@@ -395,6 +398,10 @@ namespace Arena
                 if (stayNear != null)
                     position += 0.25f * Math.Max(0f, p.DistanceTo(stayNear.Pos) - 220f) / 200f;
                 float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
+                if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
+                    foreach (var pt in Patches.Values)
+                        if (pt.Kind == PatchKind.Heal && pt.Pos.DistanceTo(p) < pt.Radius - 10f)
+                            position -= 0.3f;
                 float cost = d + position + steady;
                 if (cost < bestCost)
                 {

@@ -884,6 +884,7 @@ namespace Arena
                 if (tick % 120 == 0)
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
+            AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
             foreach (var e in Enemies.Values)
                 e.Flash = Math.Max(0f, e.Flash - dt);
             foreach (var p in Players.Values)
@@ -1155,6 +1156,7 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickNinjas(dt);   // Ninja.cs
             TickWaves(dt);
+            TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
             TickMinions(dt);
             TickOrbs(dt);

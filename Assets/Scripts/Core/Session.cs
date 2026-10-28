@@ -15,7 +15,7 @@ namespace Arena
         Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest, Ping, Pong,
         DevStats, SetKey, Sound,
         Practice, PracticeEdit, PracticeWave,
-        PathOffer, PathChosen,  // divergent paths: the two on offer; the one the host took (Paths.cs)  // the lobby's Practice Range setup; a client's edit to it; the practice wave being fought
+        PathOffer, PathChosen, PathPatch,  // divergent paths: the two on offer; the one the host took (Paths.cs)  // the lobby's Practice Range setup; a client's edit to it; the practice wave being fought
         Teleport,  // host -> all: a player is moved (the Ninja's Substitution); only that player's own game applies it
 
         // Fixed value so every version can understand it, whatever else changes.
@@ -64,7 +64,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 56;
+        public const int ProtocolVersion = 57;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

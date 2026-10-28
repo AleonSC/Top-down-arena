@@ -1420,6 +1420,90 @@ static class Program
 
     // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
     // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void PathHazardsTest(float dt)
+    {
+        // Paths, step 2: no path, Burning Grounds' fire and Sanctuary's pools.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var build = typeof(Game).GetMethod("BuildWave", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var offer = typeof(Game).GetMethod("OfferPaths", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 6 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.5f);
+
+        // No path: the plain arena for the stretch, noted in the route.
+        g.Wave = 5;
+        offer.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        g.ChoosePath(2);
+        Run(s, dt, 0.5f);
+        Check(g.PathOffer == null && g.CurrentPath == PathId.None && client.Game.PathOffer == null && client.Game.Route.Count == 1 && client.Game.Route[0] == PathId.None,
+            "the host can choose no path: the plain arena, noted in everyone's route");
+
+        // Burning Grounds.
+        g.CurrentPath = PathId.BurningGrounds; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7; g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        g.Patches.Clear();
+        Run(s, dt, Paths.FireEvery + 0.3f);
+        for (int k = 0; k < 20; k++) { client.Poll(); Thread.Sleep(2); }
+        Check(g.Patches.Count >= 1 && g.Patches.Keys.All(k => client.Game.Patches.ContainsKey(k)), "Burning Grounds starts fires, and everyone sees them");
+        var fire = g.Patches.Values.First();
+        var me = g.Players[1];
+        var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, fire.Pos, 0f, 0, false });
+        target.Hp = target.MaxHp = 1e5f;
+        float taken0 = me.Run.DamageTaken;
+        Run(s, dt, Paths.FireWarn * 0.5f, null, () => { me.Pos = fire.Pos; me.InvulnT = 0f; target.Pos = fire.Pos; target.FrozenT = 1f; });
+        float duringWarn = me.Run.DamageTaken - taken0;
+        float r0 = fire.Radius;
+        Run(s, dt, Paths.FireWarn + 1.5f, null, () => { me.Pos = fire.Pos; me.InvulnT = 0f; target.Pos = fire.Pos; target.FrozenT = 1f; });
+        float burned = me.Run.DamageTaken - taken0;
+        Console.WriteLine("  burning grounds: {0:0} damage during the warning, {1:0} once lit; the Brute lost {2:0}; radius {3:0} -> {4:0}", duringWarn, burned, target.MaxHp - target.Hp, r0, fire.Radius);
+        Check(duringWarn == 0f && burned > 0f && target.Hp < target.MaxHp && fire.Radius > r0, "fire warns first, then burns players and enemies, and spreads");
+        cleared.Invoke(g, null);
+        Run(s, dt, 0.5f);
+        Check(g.Patches.Count == 0 && client.Game.Patches.Count == 0, "clearing a wave puts the fires out everywhere");
+
+        // Sanctuary: 20% fewer enemies, healing pools, and the safe path's prize.
+        g.CurrentPath = PathId.None; g.Wave = 7;
+        build.Invoke(g, new object[] { 7 });
+        int plain = ((List<EnemyType>)queueField.GetValue(g)).Count;
+        g.CurrentPath = PathId.Sanctuary;
+        build.Invoke(g, new object[] { 7 });
+        int calm = ((List<EnemyType>)queueField.GetValue(g)).Count;
+        Check(calm <= plain * 0.85f && calm >= plain * 0.7f, "Sanctuary: a fifth fewer enemies (" + plain + " -> " + calm + ")");
+        g.State = MatchState.Fighting;
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        g.Patches.Clear();
+        Run(s, dt, Paths.PoolEvery + Paths.PoolWarn + 0.3f, null, () => { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; });
+        var pool = g.Patches.Values.FirstOrDefault(pt => pt.Kind == PatchKind.Heal);
+        me.Hp = me.MaxHp * 0.4f;
+        float hp0 = me.Hp;
+        if (pool != null)
+            Run(s, dt, 1.2f, null, () => { me.Pos = pool.Pos; keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; });
+        Check(pool != null && me.Hp > hp0 + Paths.PoolHeal * 0.8f, "Sanctuary's pools heal whoever stands in them");
+        me.Hp = me.MaxHp * 0.5f;
+        int rerolls = me.Rerolls;
+        g.Wave = 9; g.PathTo = 9;
+        cleared.Invoke(g, null);
+        Run(s, dt, 0.3f);
+        Check(me.Hp >= me.MaxHp - 0.5f && me.Rerolls == rerolls + 2 && g.CurrentPath == PathId.None, "the safe path's prize: a full heal and 2 rerolls");
+        host.Leave(""); client.Leave("");
+    }
+
     static void PathsTest(float dt)
     {
         // Divergent paths: after a boss the host picks one of two paths for the next four waves.
@@ -1473,9 +1557,10 @@ static class Program
         float ridgeFrac = ridge.Count(t => t == EnemyType.Sniper || t == EnemyType.Mortar || t == EnemyType.Grunt) / (float)ridge.Count;
         Console.WriteLine("  paths at wave 7: plain {0} enemies; Swarm Fields {1} ({2:0}% melee); Sniper Ridge {3} ({4:0}% snipers/mortars/grunts); Elite Gauntlet {5}",
             plain, swarm.Count, meleeFrac * 100f, ridge.Count, ridgeFrac * 100f, elite.Count);
-        Check(meleeFrac > 0.7f && swarm.Count > plain * 1.4f, "Swarm Fields: mostly melee rushers, about twice as many");
+        int baseCount = 4 + 2 * 7;  // the wave-7 enemy count before swarmers pair up (BuildWave)
+        Check(meleeFrac > 0.7f && swarm.Count >= baseCount * 1.5f, "Swarm Fields: mostly melee rushers, about twice as many");
         Check(ridgeFrac > 0.6f, "Sniper Ridge: mostly snipers, mortars and grunts");
-        Check(elite.Count <= plain / 2 + 1, "Elite Gauntlet: half as many enemies");
+        Check(elite.Count <= baseCount / 2 + 1, "Elite Gauntlet: half as many enemies");
         g.CurrentPath = PathId.SwarmFields;
         var brute = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 300f), 0f, 0, false });
         g.CurrentPath = PathId.None;
@@ -1724,6 +1809,7 @@ static class Program
         PracticeLobbyTest(dt);
         ModifiersTest(dt);
         PathsTest(dt);
+        PathHazardsTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;

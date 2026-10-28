@@ -368,7 +368,7 @@ bring the tab back, and click it to open the full card again (remembered on your
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
-boss; everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
+boss, or **no path** (the plain arena, no bonus or prize); everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
 the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 
 | Danger | While on the path | Prize (before the boss) |
@@ -382,9 +382,11 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Swarm Fields** | 2 | Mostly melee rushers (Swarmers, Brutes, Lungers), twice as many, at 60% health |
 | **Sniper Ridge** | 2 | Mostly Snipers, Mortars and Grunts; hardly any melee |
 | **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
+| **Burning Grounds** | 3 | Fire patches flash a warning ring, then ignite and spread for a few seconds; they burn you (10 + 0.4 per wave damage a second) and the enemies |
+| **Sanctuary** | 1 | Healing pools (10 HP a second) appear around the arena; 20% fewer enemies |
 
 A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
-paths (hazard floors, twists, arena rules) are planned in `Docs/Paths.md`.
+paths (twists, arena rules) are planned in `Docs/Paths.md`.
 
 ## Run modifiers
 

@@ -241,6 +241,9 @@ namespace Arena
                 case Msg.PathChosen:
                     ReadPathChosen(r);
                     break;
+                case Msg.PathPatch:
+                    ReadPathPatch(r);
+                    break;
                 case Msg.Spawn:
                 {
                     int n = r.ReadInt32();

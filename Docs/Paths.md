@@ -1,7 +1,7 @@
 # Divergent paths: design plan
 
-Status: **step 1 built** (framework + the three enemy-mix paths: Swarm Fields, Sniper Ridge, Elite Gauntlet);
-steps 2-4 planned. Decisions below were made with the owner (October 2026); numbers are first
+Status: **steps 1-2 built** (framework, the three enemy-mix paths, Burning Grounds, Sanctuary and the no-path
+option); steps 3-4 planned. Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -17,6 +17,7 @@ look, so the run feels like travelling somewhere.
 |---|---|
 | Does a path apply to the boss fight? | **No: regular waves only.** The path ends before the boss; boss fights stay standard, so boss balance and Boss Lab data hold. |
 | Who picks? | **The host decides.** Everyone sees both cards; only the host's click counts. |
+| A "no path" option? | **Yes:** the host can keep the plain arena for the stretch (no bonus, no prize). |
 | Which kinds of path? | **All four:** enemy mixes, arena rules, hazard floors, twists on you. |
 | How do harder paths pay off? | **Both:** a bonus while on the path and a prize at the end. |
 
@@ -94,7 +95,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 
 1. ✅ **Framework + enemy-mix paths:** the registry, offers, the Choose-your-path screen, bonus and prize, HUD chip,
    recordings, tests. Paths: Swarm Fields, Sniper Ridge, Elite Gauntlet.
-2. **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
+2. ✅ **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
 3. **Twists:** Frozen Lake, Blood Moon.
 4. **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor).
 
@@ -102,4 +103,3 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 
 - Names, floor looks and numbers are first drafts: change freely.
 - Should the very first stretch (waves 1-4) also get a choice, e.g. picked in the lobby?
-- Should the host be able to pick "no path" (the plain arena) as a third option?

@@ -21,18 +21,22 @@ namespace Arena
             {
                 string route = "Route so far:  ";
                 for (int i = 0; i < game.Route.Count; i++)
-                    route += (i > 0 ? "  >  " : "") + Paths.Get(game.Route[i]).Name;
+                    route += (i > 0 ? "  >  " : "") + Game.PathName(game.Route[i]);
                 Ui.Label(new Rect(0, 90f, W, 18f), route, 11, Ui.Muted, TextAnchor.MiddleCenter);
             }
-            float cw = 440f, ch = 470f, gap = 40f, y = 118f;
+            float cw = 440f, ch = 452f, gap = 40f, y = 116f;
             for (int i = 0; i < 2; i++)
             {
                 var r = new Rect(W / 2f - cw - gap / 2f + i * (cw + gap), y, cw, ch);
                 if (DrawPathCard(r, Paths.Get(offer[i]), t, i))
                     game.ChoosePath(i);
             }
-            string waitText = session.IsHost ? "You're the host: pick the path for everyone" : "Waiting for " + HostName() + " to pick the path";
-            Ui.Label(new Rect(0, y + ch + 14f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
+            // Or neither: the plain arena for this stretch, with no bonus and no prize.
+            var none = new Rect(W / 2f - 230f, y + ch + 12f, 460f, 34f);
+            if (session.IsHost && Ui.Button(none, "No path: stay on the plain arena (no bonus, no prize)", Ui.Neutral))
+                game.ChoosePath(2);
+            string waitText = session.IsHost ? "You're the host: pick the path for everyone" : "Waiting for " + HostName() + " to pick the path (or no path)";
+            Ui.Label(new Rect(0, none.yMax + 8f, W, 22f), waitText, 14, session.IsHost ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter, true);
         }
 
         bool DrawPathCard(Rect r, PathDef d, float t, int index)
@@ -45,6 +49,7 @@ namespace Arena
             if (BeginUiGl())
             {
                 DrawPathFloor(d, stage.x, stage.y, stage.width, stage.height, t, 1f);
+                DrawCardPatches(d, stage, t);
                 for (int k = 0; k < d.Showcase.Length; k++)
                     DrawEnemyPreview(d.Showcase[k], new V2(stage.x + stage.width * (k + 0.5f) / d.Showcase.Length, stage.center.y + (k % 2 == 0 ? -10f : 12f)), 46f, t + k + index, true);
                 EndUiGl();
@@ -117,6 +122,109 @@ namespace Arena
                             Line(new V2(xx, yy), new V2(xx, Mathf.Min(y + h, yy + sz)), 1.5f, line);
                     }
                     break;
+                case PathId.BurningGrounds:  // scorched earth with glowing cracks
+                    for (int i = 0; i < (int)(w * h / 9000f); i++)
+                    {
+                        V2 p = new V2(x + Hash(i * 5) * w, y + Hash(i * 5 + 1) * h);
+                        float glow = 0.5f + 0.5f * Mathf.Sin(t * 2f + i);
+                        var crack = new Rgba(1f, 0.45f, 0.15f, (0.1f + 0.12f * glow) * alpha);
+                        for (int k = 0; k < 3; k++)
+                        {
+                            V2 q = p + V2.FromAngle(Hash(i * 5 + 2 + k) * MathX.Tau) * (10f + 14f * Hash(i * 7 + k));
+                            if (q.X > x && q.X < x + w && q.Y > y && q.Y < y + h)
+                                Line(p, q, 1.5f, crack);
+                        }
+                    }
+                    break;
+                case PathId.Sanctuary:  // soft motes of light drifting up
+                    for (int i = 0; i < (int)(w * h / 5000f); i++)
+                    {
+                        float fy = MathX.Fmod(Hash(i * 3 + 1) + t * (0.02f + 0.03f * Hash(i * 3 + 2)), 1f);
+                        V2 p = new V2(x + Hash(i * 3) * w, y + h - fy * h);
+                        Circle(p, 1.5f + Hash(i) * 1.5f, new Rgba(0.6f, 0.9f, 1f, 0.25f * alpha * Mathf.Sin(fy * MathX.Pi)), 8);
+                    }
+                    break;
+            }
+        }
+
+        // --- Fire patches and healing pools ------------------------------------------------------------
+
+        void DrawPathPatches(float t)
+        {
+            foreach (var pt in game.Patches.Values)
+                DrawPatch(pt, t);
+        }
+
+        /// One patch (current GL coordinates). Fire: a warning ring that counts down to ignition, then burning
+        /// ground with flickering flame tongues and rising embers. Heal: a soft pool with rising plus signs.
+        void DrawPatch(PathPatch pt, float t)
+        {
+            float r = pt.Radius, fade = Mathf.Clamp01((pt.Life - pt.Age) / 1f);
+            if (pt.Kind == PatchKind.Fire)
+            {
+                if (!pt.Active)
+                {
+                    float f = pt.Age / pt.Warn, blink = MathX.Fmod(t, f > 0.7f ? 0.12f : 0.25f) < (f > 0.7f ? 0.06f : 0.125f) ? 1f : 0.5f;
+                    Circle(pt.Pos, r, new Rgba(1f, 0.35f, 0.1f, 0.06f + 0.14f * f), 32);
+                    Arc(pt.Pos, r, 2.5f, new Rgba(1f, 0.45f, 0.15f, 0.7f * blink), 32);
+                    Arc(pt.Pos, r * (1f - f), 2f, new Rgba(1f, 0.75f, 0.3f, 0.6f), 32);  // closes in until it lights
+                    return;
+                }
+                Circle(pt.Pos, r, new Rgba(0.9f, 0.25f, 0.08f, 0.32f * fade), 36);
+                Circle(pt.Pos, r * (0.62f + 0.05f * Mathf.Sin(t * 9f + pt.Id)), new Rgba(1f, 0.6f, 0.15f, 0.28f * fade), 28);
+                Circle(pt.Pos, r * 0.3f, new Rgba(1f, 0.9f, 0.45f, 0.22f * fade), 20);
+                for (int k = 0; k < 12; k++)  // flame tongues licking out of the edge
+                {
+                    float a = MathX.Tau * k / 12f + pt.Id, len = 10f + 7f * Mathf.Sin(t * 11f + k * 1.7f + pt.Id);
+                    V2 d = V2.FromAngle(a), s = d.Orthogonal();
+                    SetColor(new Rgba(1f, 0.5f + 0.2f * Mathf.Sin(t * 7f + k), 0.15f, 0.6f * fade));
+                    Tri(pt.Pos + d * (r + len), pt.Pos + d * (r - 6f) + s * 6f, pt.Pos + d * (r - 6f) - s * 6f);
+                }
+                for (int k = 0; k < 6; k++)  // embers rising
+                {
+                    float f = MathX.Fmod(t * 0.8f + k / 6f + pt.Id * 0.13f, 1f);
+                    V2 at = pt.Pos + new V2((Hash(pt.Id * 11 + k) - 0.5f) * r * 1.4f, r * 0.3f - f * r * 1.2f);
+                    Circle(at, 2f * (1f - f) + 0.6f, new Rgba(1f, 0.75f, 0.3f, 0.8f * (1f - f) * fade), 6);
+                }
+            }
+            else
+            {
+                float a = Mathf.Clamp01(pt.Age / pt.Warn) * fade, pulse = 0.5f + 0.5f * Mathf.Sin(t * 3f + pt.Id);
+                Circle(pt.Pos, r, new Rgba(0.4f, 0.85f, 1f, 0.16f * a), 36);
+                Circle(pt.Pos, r * 0.55f, new Rgba(0.7f, 0.95f, 1f, 0.12f * a), 28);
+                Arc(pt.Pos, r, 2.5f, new Rgba(0.6f, 0.95f, 1f, (0.45f + 0.3f * pulse) * a), 40);
+                for (int k = 0; k < 4; k++)  // plus signs drifting up
+                {
+                    float f = MathX.Fmod(t * 0.5f + k / 4f + pt.Id * 0.21f, 1f);
+                    V2 at = pt.Pos + new V2((Hash(pt.Id * 13 + k) - 0.5f) * r * 1.2f, r * 0.4f - f * r);
+                    var c = new Rgba(0.75f, 1f, 0.85f, 0.8f * Mathf.Sin(f * MathX.Pi) * a);
+                    Line(at - new V2(4f, 0f), at + new V2(4f, 0f), 2f, c);
+                    Line(at - new V2(0f, 4f), at + new V2(0f, 4f), 2f, c);
+                }
+            }
+        }
+
+        /// The path card's sample patches (fire cycling through warning and burning; a pool).
+        readonly PathPatch[] cardPatches = { new PathPatch { Id = 901 }, new PathPatch { Id = 902 } };
+
+        void DrawCardPatches(PathDef d, Rect stage, float t)
+        {
+            if (d.Id != PathId.BurningGrounds && d.Id != PathId.Sanctuary)
+                return;
+            for (int i = 0; i < 2; i++)
+            {
+                var pt = cardPatches[i];
+                bool fire = d.Id == PathId.BurningGrounds;
+                if (!fire && i == 1)
+                    break;
+                pt.Kind = fire ? PatchKind.Fire : PatchKind.Heal;
+                pt.Warn = fire ? Paths.FireWarn : Paths.PoolWarn;
+                pt.Life = fire ? 5f : 9f;
+                pt.R0 = fire ? 26f : 44f;
+                pt.R1 = fire ? 40f : 44f;
+                pt.Pos = new V2(stage.x + stage.width * (fire ? (i == 0 ? 0.22f : 0.78f) : 0.78f), stage.y + stage.height * (i == 0 ? 0.62f : 0.4f));
+                pt.Age = MathX.Fmod(t + i * 2.3f, pt.Life - 0.2f);
+                DrawPatch(pt, t);
             }
         }
 

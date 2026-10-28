@@ -787,6 +787,7 @@ namespace Arena
 
         void ClearEnemyBullets()
         {
+            Patches.Clear();  // a wave was cleared: the path's fire and pools go too (Paths.cs)
             scratchIds.Clear();
             foreach (var b in Bullets.Values)
                 if (Defs.IsEnemyShot(b.Kind))

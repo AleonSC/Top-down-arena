@@ -7,7 +7,26 @@ namespace Arena
     /// Divergent paths (Docs/Paths.md): after each boss the host picks one of two paths for the four regular waves
     /// before the next boss. A path changes the enemy mix (and, in later steps, the arena), pays a bonus to XP and
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
-    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet }
+    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary }
+
+    public enum PatchKind : byte { Fire, Heal }
+
+    /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
+    /// everyone once; each game then ages, grows and expires it the same way.
+    public class PathPatch
+    {
+        public int Id;
+        public PatchKind Kind;
+        public V2 Pos;
+        public float Age, Warn, Life, R0, R1;
+
+        /// Fire: warning until Warn, then burning. Heal: fading in until Warn.
+        public bool Active => Age >= Warn;
+        public bool Done => Age >= Life;
+
+        /// Fire spreads from R0 to R1 while it burns; pools stay the same size.
+        public float Radius => Kind == PatchKind.Fire && Active ? R0 + (R1 - R0) * Math.Min(1f, (Age - Warn) / Math.Max(0.01f, Life - Warn)) : R0;
+    }
 
     public class PathDef
     {
@@ -38,7 +57,26 @@ namespace Arena
                 Rules = new[] { "Half as many enemies", "Every one of them is elite (2.5x health, faster fire)" },
                 Floor = new Rgba(0.3f, 0.24f, 0.08f), Accent = new Rgba(1f, 0.85f, 0.3f),
                 Showcase = new[] { EnemyType.Charger, EnemyType.Spinner, EnemyType.Shielder } },
+            new PathDef { Id = PathId.BurningGrounds, Name = "Burning Grounds", Kind = "Hazard floor", Danger = 3,
+                Blurb = "Scorched earth that keeps catching fire.",
+                Rules = new[] { "Fire patches flash a warning, then ignite and spread", "They burn you and the enemies alike" },
+                Floor = new Rgba(0.2f, 0.09f, 0.05f), Accent = new Rgba(1f, 0.5f, 0.2f),
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Burster, EnemyType.Spinner } },
+            new PathDef { Id = PathId.Sanctuary, Name = "Sanctuary", Kind = "Hazard floor", Danger = 1,
+                Blurb = "Quiet ground with springs of healing light.",
+                Rules = new[] { "Healing pools appear around the arena", "20% fewer enemies" },
+                Floor = new Rgba(0.08f, 0.16f, 0.26f), Accent = new Rgba(0.5f, 0.9f, 1f),
+                Showcase = new[] { EnemyType.Grunt, EnemyType.Sniper, EnemyType.Medic } },
         };
+
+        // Burning Grounds and Sanctuary.
+        public const float FireWarn = 1.4f, FireLife = 9f, FireR0 = 55f, FireR1 = 115f, FireEvery = 2.2f;
+        public const int FireMax = 7;
+        public const float PoolWarn = 0.6f, PoolLife = 10f, PoolRadius = 80f, PoolEvery = 5f, PoolHeal = 10f;
+        public const int PoolMax = 3;
+        public const float PatchTick = 0.5f;
+        public static float FirePlayerDps(int wave) => 10f + 0.4f * wave;
+        public static float FireEnemyDps(int wave) => 20f + 1.5f * wave;
 
         public const int Length = 4;  // regular waves per path (the ones before the next boss)
 
@@ -91,7 +129,7 @@ namespace Arena
             PathOffer = null;
             Route.Clear();
             lastPath = PathId.None;
-            lastPathFromSeen = -1;
+            Patches.Clear();
         }
 
         /// Host, after a boss wave is cleared: offer two paths for the next stretch (not in the Practice Range or
@@ -117,12 +155,13 @@ namespace Arena
             DoLog("paths offered: " + PathOffer[0] + " / " + PathOffer[1]);
         }
 
-        /// The host picks one of the offered paths (index 0 or 1). Only the host's choice counts.
+        /// The host picks one of the offered paths (index 0 or 1), or 2 for no path (the plain arena, no bonus or
+        /// prize). Only the host's choice counts.
         public void ChoosePath(int index)
         {
-            if (!IsHost || PathOffer == null || index < 0 || index > 1)
+            if (!IsHost || PathOffer == null || index < 0 || index > 2)
                 return;
-            CurrentPath = PathOffer[index];
+            CurrentPath = index == 2 ? PathId.None : PathOffer[index];
             PathFrom = Wave + 1;
             PathTo = Wave + Paths.Length;
             PathOffer = null;
@@ -130,7 +169,7 @@ namespace Arena
             lastPath = CurrentPath;
             BroadcastPath();
             Sounds.Add(Sfx.Pick);
-            DoLog("path: " + Paths.Get(CurrentPath).Name + " for waves " + PathFrom + "-" + PathTo);
+            DoLog("path: " + PathName(CurrentPath) + " for waves " + PathFrom + "-" + PathTo);
         }
 
         void BroadcastPath()
@@ -149,13 +188,15 @@ namespace Arena
             CurrentPath = (PathId)r.ReadByte();
             PathFrom = r.ReadInt32();
             PathTo = r.ReadInt32();
-            PathOffer = null;
-            if (CurrentPath != PathId.None && (Route.Count == 0 || Route[Route.Count - 1] != CurrentPath || PathFrom != lastPathFromSeen))
+            if (PathOffer != null)  // this answers an offer (a path, or no path); otherwise a path just ended
                 Route.Add(CurrentPath);
-            lastPathFromSeen = PathFrom;
+            PathOffer = null;
+            if (CurrentPath == PathId.None)
+                Patches.Clear();
         }
 
-        int lastPathFromSeen = -1;
+        /// A path's name for the route and logs ("Plain arena" for no path).
+        public static string PathName(PathId id) => id == PathId.None ? "Plain arena" : Paths.Get(id).Name;
 
         /// Host, when the path's last wave is cleared: the prize, then back to the plain arena for the boss.
         void FinishPath()
@@ -185,12 +226,15 @@ namespace Arena
         }
 
         /// A path's enemy mix replaces a regular wave's (BuildWave).
-        bool BuildPathWave(int n, int count, List<EnemyType> pool, List<EnemyType> melee)
+        bool BuildPathWave(int n, ref int count, List<EnemyType> pool, List<EnemyType> melee)
         {
             if (!OnPath || n % 5 == 0)
                 return false;
             switch (CurrentPath)
             {
+                case PathId.Sanctuary:
+                    count = Math.Max(2, (int)(count * 0.8f));  // the usual mix, a fifth smaller
+                    return false;
                 case PathId.SwarmFields:
                 {
                     var rushers = new List<EnemyType> { EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger };
@@ -241,6 +285,103 @@ namespace Arena
                 e.MaxHp *= 0.6f;
             if (CurrentPath == PathId.EliteGauntlet && e.ParentId == 0)
                 elite = true;
+        }
+
+        // --- Hazard floors (Burning Grounds, Sanctuary) -------------------------------------------
+
+        public readonly Dictionary<int, PathPatch> Patches = new Dictionary<int, PathPatch>();
+        int nextPatchId = 1;
+        float patchSpawnT, patchTickT;
+
+        /// Every game: patches age and expire.
+        void AgePatches(float dt)
+        {
+            if (Patches.Count == 0)
+                return;
+            scratchIds.Clear();
+            foreach (var pt in Patches.Values)
+            {
+                pt.Age += dt;
+                if (pt.Done)
+                    scratchIds.Add(pt.Id);
+            }
+            foreach (int id in scratchIds)
+                Patches.Remove(id);
+        }
+
+        /// Host: spawn the path's patches during a wave, and apply their burns and heals.
+        void TickPaths(float dt)
+        {
+            bool fire = OnPathOf(PathId.BurningGrounds), heal = OnPathOf(PathId.Sanctuary);
+            if (State != MatchState.Fighting || (!fire && !heal))
+                return;
+            patchSpawnT -= dt;
+            if (patchSpawnT <= 0f)
+            {
+                patchSpawnT = fire ? Paths.FireEvery : Paths.PoolEvery;
+                int count = 0;
+                foreach (var pt in Patches.Values)
+                    count++;
+                if (count < (fire ? Paths.FireMax : Paths.PoolMax))
+                    SpawnPatch(fire ? PatchKind.Fire : PatchKind.Heal);
+            }
+            patchTickT -= dt;
+            if (patchTickT > 0f)
+                return;
+            patchTickT = Paths.PatchTick;
+            foreach (var pt in Patches.Values)
+            {
+                if (!pt.Active)
+                    continue;
+                float r = pt.Radius;
+                foreach (var p in Players.Values)
+                {
+                    if (p.Pos.DistanceTo(pt.Pos) > r + p.Def.HitR)
+                        continue;
+                    if (pt.Kind == PatchKind.Heal)
+                    {
+                        if (!p.Downed)
+                            Heal(p, Paths.PoolHeal * Paths.PatchTick, null);
+                    }
+                    else if (!p.Downed && p.InvulnT <= 0f)
+                        Damage(p, Paths.FirePlayerDps(Wave) * Paths.PatchTick, "Burning Grounds");
+                }
+                if (pt.Kind == PatchKind.Fire)
+                    foreach (var e in Enemies.Values)
+                        if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.DistanceTo(pt.Pos) < r + e.Radius)
+                            HurtEnemy(e, Paths.FireEnemyDps(Wave) * Paths.PatchTick, 0);
+            }
+        }
+
+        void SpawnPatch(PatchKind kind)
+        {
+            // Fire often starts near someone, so it keeps you moving; pools appear anywhere open.
+            V2 pos = new V2(Rand(90f, Width - 90f), Rand(90f, Height - 90f));
+            if (kind == PatchKind.Fire && rng.NextDouble() < 0.5 && Players.Count > 0)
+            {
+                var list = new List<Player>(Players.Values);
+                var p = list[rng.Next(list.Count)];
+                pos = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
+            }
+            var pt = kind == PatchKind.Fire
+                ? new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.FireWarn, Life = Paths.FireLife, R0 = Paths.FireR0, R1 = Paths.FireR1 }
+                : new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.PoolWarn, Life = Paths.PoolLife, R0 = Paths.PoolRadius, R1 = Paths.PoolRadius };
+            Patches[pt.Id] = pt;
+            var w = Proto.Begin(Msg.PathPatch);
+            w.Write(pt.Id);
+            w.Write((byte)pt.Kind);
+            w.Write(pt.Pos);
+            w.Write(pt.Warn);
+            w.Write(pt.Life);
+            w.Write(pt.R0);
+            w.Write(pt.R1);
+            session.Broadcast(Proto.End(w));
+        }
+
+        void ReadPathPatch(BinaryReader r)
+        {
+            var pt = new PathPatch { Id = r.ReadInt32(), Kind = (PatchKind)r.ReadByte(), Pos = r.ReadV2(), Warn = r.ReadSingle(), Life = r.ReadSingle(), R0 = r.ReadSingle(), R1 = r.ReadSingle() };
+            Patches[pt.Id] = pt;
         }
     }
 }
