@@ -64,7 +64,7 @@ namespace Arena
                         beamDmg *= 1.6f;
                         pierce += 2;
                     }
-                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = VeinBeamRange * k, Dmg = beamDmg, Pierce = pierce });
+                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = VeinBeamRange * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce });  // Velocity Rounds stretch it
                     break;
                 }
                 case WeaponId.TransfusionDarts:
@@ -159,7 +159,7 @@ namespace Arena
                 Player p;
                 if (!Players.TryGetValue(beam.Owner, out p) || p.Downed)
                     continue;
-                V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * (p.Def.BodyR + 4f);
+                V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * p.Def.BodyR;  // from your edge, like shots (so it ends where the aim line does)
                 BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits);
                 p.Run.ShotsFired++;
                 if (beamHits.Count > 0)

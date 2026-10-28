@@ -802,6 +802,24 @@ static class Program
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
+                if (w.Id == WeaponId.VeinTether)
+                {
+                    // A beam has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    Func<float, bool> Hits = edge =>
+                    {
+                        g.Enemies.Clear();
+                        var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
+                        dummy.Pos = new V2(120f + edge + dummy.Radius, 450f);
+                        dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+                        volley.Invoke(g, new object[] { me, 0f, extra });
+                        host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
+                        g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+                        return dummy.Hp < dummy.MaxHp;
+                    };
+                    bool inside = Hits(range - 4f), outside = Hits(range + Game.VeinBeamHalfWidth + 4f);
+                    if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (beam: inside hit " + inside + ", outside hit " + outside + ")");
+                    continue;
+                }
                 volley.Invoke(g, new object[] { me, 0f, extra });
                 var first = new HashSet<int>(g.Bullets.Values.Where(b => b.Owner == 1).Select(b => b.Id));
                 float far = 0f;

@@ -303,8 +303,7 @@ namespace Arena
                 case ChainStar: return 11f;
                 case BloodShot: return 4f;
                 case ClotShot: return 7f;
-                case LeechShot:
-                case VeinShot: return 3.5f;
+                case LeechShot: return 3.5f;
                 case TransfuseShot: return 3f;
                 case SanguineShot: return 6.5f;
                 case DropletShot: return 3f;

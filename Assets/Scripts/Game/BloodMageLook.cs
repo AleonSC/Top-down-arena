@@ -126,11 +126,11 @@ namespace Arena
             {
                 if (!game.BeamOn(p))
                     continue;
-                float range = Game.VeinBeamRange * (1f + 0.25f * game.ExtraShots(p));
+                float range = Game.VeinBeamRange * (1f + 0.25f * game.ExtraShots(p)) * p.Stats.ShotSpeedMult;
                 for (int v = 0; v <= p.Stats.Fan; v++)  // Barrage: a beam per stack, fanned like the shots
                 {
                     float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
-                    V2 dir = V2.FromAngle(aim), side = dir.Orthogonal(), from = p.Disp + dir * (p.Def.BodyR + 4f);
+                    V2 dir = V2.FromAngle(aim), side = dir.Orthogonal(), from = p.Disp + dir * p.Def.BodyR;
                     V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true);
                     float len = from.DistanceTo(end);
                     bool hit = len < range - 1f;
@@ -192,7 +192,6 @@ namespace Arena
                     Circle(b.Pos + dir * 2f - side * 2f, b.Radius * 0.35f, BloodRed, 8);
                     break;
                 case Defs.LeechShot:  // a streak of the beam
-                case Defs.VeinShot:
                     Line(b.Pos - dir * 14f, b.Pos + dir * 4f, 5f, c.WithAlpha(0.3f));
                     Line(b.Pos - dir * 12f, b.Pos + dir * 3f, 2f, c);
                     break;
