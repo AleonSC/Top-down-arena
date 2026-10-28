@@ -886,6 +886,7 @@ namespace Arena
                     DoLog(string.Format("wave {0} state {1} enemies {2} bullets {3} hp {4}", Wave, State, Enemies.Count, Bullets.Count, HpSummary()));
             }
             AgePatches(dt);  // Paths.cs (every game, so the floors look the same everywhere)
+            TickArenaRules(dt);
             foreach (var e in Enemies.Values)
                 e.Flash = Math.Max(0f, e.Flash - dt);
             foreach (var p in Players.Values)
@@ -1130,7 +1131,7 @@ namespace Arena
                 }
             }
 
-            me.Pos = WrapArena(me.Pos);
+            me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             if (IsHost)
             {
                 me.Firing = firing;
@@ -1158,7 +1159,7 @@ namespace Arena
             return false;
         }
 
-        static V2 ClampToArena(V2 pos, float r) => pos.Clamp(new V2(r, r), new V2(Width - r, Height - r));
+        V2 ClampToArena(V2 pos, float r) => pos.Clamp(ArenaMin + new V2(r, r), ArenaMax - new V2(r, r));
 
         /// Players wrap around: walking off one edge brings you in on the opposite side.
         public static V2 WrapArena(V2 pos) => new V2(MathX.Fmod(pos.X, Width), MathX.Fmod(pos.Y, Height));

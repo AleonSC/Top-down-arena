@@ -1477,11 +1477,13 @@ static class Program
         // Sanctuary: 20% fewer enemies, healing pools, and the safe path's prize.
         g.CurrentPath = PathId.None; g.Wave = 7;
         build.Invoke(g, new object[] { 7 });
-        int plain = ((List<EnemyType>)queueField.GetValue(g)).Count;
+        // Count spawn rolls, not heads: swarmers come in random pairs.
+        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Swarmer) / 2; };
+        int plain = Rolls();
         g.CurrentPath = PathId.Sanctuary;
         build.Invoke(g, new object[] { 7 });
-        int calm = ((List<EnemyType>)queueField.GetValue(g)).Count;
-        Check(calm <= plain * 0.85f && calm >= plain * 0.7f, "Sanctuary: a fifth fewer enemies (" + plain + " -> " + calm + ")");
+        int calm = Rolls();
+        Check(calm == (int)(plain * 0.8f), "Sanctuary: a fifth fewer enemies (" + plain + " -> " + calm + ")");
         g.State = MatchState.Fighting;
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         ((List<EnemyType>)queueField.GetValue(g)).Clear();
@@ -1501,6 +1503,94 @@ static class Program
         cleared.Invoke(g, null);
         Run(s, dt, 0.3f);
         Check(me.Hp >= me.MaxHp - 0.5f && me.Rerolls == rerolls + 2 && g.CurrentPath == PathId.None, "the safe path's prize: a full heal and 2 rerolls");
+        host.Leave(""); client.Leave("");
+    }
+
+    static void PathArenaRulesTest(float dt)
+    {
+        // Paths, step 4: Narrow Pass's walls (everyone, movement, spawns, bullets) and Fogbound's mist.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var spawnEnemy = typeof(Game).GetMethod("SpawnEnemy", flags);
+        var spawnBullet = typeof(Game).GetMethod("SpawnBullet", flags);
+        var broadcast = typeof(Game).GetMethod("BroadcastPath", flags);
+        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 6 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Run(s, dt, 20f, () => g.State == MatchState.Fighting);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        Run(s, dt, 0.1f);
+        var keepAlive = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 450f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        Action Hold = () => { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; };
+
+        // The walls close in for everyone.
+        g.CurrentPath = PathId.NarrowPass; g.PathFrom = 6; g.PathTo = 9;
+        broadcast.Invoke(g, null);
+        Run(s, dt, 0.5f, null, Hold);
+        Check(g.NarrowF > 0.1f && g.NarrowF < 0.6f, "Narrow Pass: the walls close in gradually, not all at once");
+        Run(s, dt, 1.5f, null, Hold);
+        var lo = g.ArenaMin; var hi = g.ArenaMax;
+        Console.WriteLine("  narrow pass: playable area {0:0}x{1:0} (from {2:0},{3:0}); client agrees: {4}", hi.X - lo.X, hi.Y - lo.Y, lo.X, lo.Y, client.Game.ArenaMin.X == lo.X);
+        Check(g.NarrowF == 1f && client.Game.NarrowF == 1f && lo.X == Paths.NarrowInsetX && client.Game.ArenaMax.Y == hi.Y, "Narrow Pass: the walls stand at the same place for everyone");
+
+        // The friend walks into the left wall: stopped, not wrapped round.
+        var friend = client.Game.Players[2];
+        for (int f = 0; f < 60 * 4; f++)
+        {
+            Hold();
+            Step(host, dt);
+            client.Poll();
+            client.Game.FixedStep(dt, new PlayerInput { Move = new V2(-1f, 0.3f), AimAt = new V2(640, 360) });
+            client.Game.Update(dt);
+            if (f % 2 == 0) Thread.Sleep(1);
+        }
+        Run(s, dt, 0.2f, null, Hold);
+        float r = friend.Def.BodyR, hostX = g.Players[2].Pos.X;
+        Console.WriteLine("  narrow pass: the friend stopped at x {0:0} (wall at {1:0}); the host sees {2:0}", friend.Pos.X, lo.X, hostX);
+        Check(Math.Abs(friend.Pos.X - (lo.X + r)) < 1f && Math.Abs(hostX - friend.Pos.X) < 3f, "Narrow Pass: the walls stop you (no wrapping round), for the host too");
+
+        // Enemies come in at the walls, not outside them.
+        bool allInside = true;
+        for (int k = 0; k < 40; k++)
+        {
+            int before = g.Enemies.Count;
+            spawnEnemy.Invoke(g, new object[] { k % 2 == 0 ? EnemyType.Grunt : EnemyType.Spinner });
+            foreach (var e in g.Enemies.Values)
+                if (e != keepAlive && (e.Pos.X < lo.X || e.Pos.X > hi.X || e.Pos.Y < lo.Y || e.Pos.Y > hi.Y))
+                    allInside = false;
+        }
+        Run(s, dt, 3f, null, () => { Hold(); foreach (var e in g.Enemies.Values) if (e != keepAlive && (e.Pos.X < lo.X || e.Pos.X > hi.X || e.Pos.Y < lo.Y || e.Pos.Y > hi.Y)) allInside = false; });
+        Check(allInside, "Narrow Pass: enemies spawn and move inside the walls");
+        foreach (var e in g.Enemies.Values) if (e != keepAlive) e.Hp = 0f;
+        Run(s, dt, 0.2f, null, Hold);
+
+        // Bullets stop at the walls.
+        var shot = (Bullet)spawnBullet.Invoke(g, new object[] { Defs.DpsShot, new V2(lo.X + 40f, 300f), new V2(-600f, 0f), 0f, 3f, 1f, 1, false, 0f });
+        Run(s, dt, 0.3f, null, Hold);
+        Check(!g.Bullets.ContainsKey(shot.Id), "Narrow Pass: bullets stop at the walls");
+
+        // The walls open again for the boss.
+        g.Wave = 9;
+        cleared.Invoke(g, null);
+        Run(s, dt, 2f, null, () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = 0; p.LegendaryQueue.Clear(); p.Offer = null; } });
+        Check(g.CurrentPath == PathId.None && g.NarrowF == 0f && client.Game.NarrowF == 0f && g.ArenaMin.X == 0f, "Narrow Pass: the walls open again before the boss");
+
+        // Fogbound: the mist rolls in on everyone's screen from the path alone (nothing else is sent).
+        g.CurrentPath = PathId.Fogbound; g.PathFrom = 11; g.PathTo = 14; g.Wave = 10;
+        broadcast.Invoke(g, null);
+        Run(s, dt, 2.5f);
+        Check(client.Game.FogF == 1f && g.FogF == 1f && g.NarrowF == 0f, "Fogbound: the mist rolls in for everyone");
         host.Leave(""); client.Leave("");
     }
 
@@ -1876,6 +1966,7 @@ static class Program
         PathsTest(dt);
         PathHazardsTest(dt);
         PathTwistsTest(dt);
+        PathArenaRulesTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;
@@ -3858,6 +3949,15 @@ static class Program
         if (args.Length > 2 && args[2] == "bosssound")
         {
             BossSoundTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
+        if (args.Length > 2 && args[2] == "paths")
+        {
+            PathsTest(1f / 60f);
+            PathHazardsTest(1f / 60f);
+            PathTwistsTest(1f / 60f);
+            PathArenaRulesTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

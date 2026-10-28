@@ -7,7 +7,7 @@ namespace Arena
     /// Divergent paths (Docs/Paths.md): after each boss the host picks one of two paths for the four regular waves
     /// before the next boss. A path changes the enemy mix (and, in later steps, the arena), pays a bonus to XP and
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
-    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon }
+    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass }
 
     public enum PatchKind : byte { Fire, Heal }
 
@@ -77,7 +77,21 @@ namespace Arena
                 Rules = new[] { "No health orbs and no regeneration", "Every kill heals its killer a little" },
                 Floor = new Rgba(0.24f, 0.05f, 0.07f), Accent = new Rgba(1f, 0.35f, 0.4f),
                 Showcase = new[] { EnemyType.Brute, EnemyType.Burster, EnemyType.Sniper } },
+            new PathDef { Id = PathId.Fogbound, Name = "Fogbound", Kind = "Arena rule", Danger = 2,
+                Blurb = "A thick mist rolls in. Stay close together.",
+                Rules = new[] { "You only see a short way around each player", "Enemies and bullets beyond fade into the mist" },
+                Floor = new Rgba(0.17f, 0.18f, 0.21f), Accent = new Rgba(0.8f, 0.86f, 0.95f),
+                Showcase = new[] { EnemyType.Lunger, EnemyType.Sniper, EnemyType.Swarmer } },
+            new PathDef { Id = PathId.NarrowPass, Name = "Narrow Pass", Kind = "Arena rule", Danger = 2,
+                Blurb = "A canyon pass hemmed in by glowing walls.",
+                Rules = new[] { "The arena closes in to a narrow pass", "Walls on every side: no wrapping round the edges" },
+                Floor = new Rgba(0.27f, 0.19f, 0.14f), Accent = new Rgba(1f, 0.7f, 0.45f),
+                Showcase = new[] { EnemyType.Brute, EnemyType.Charger, EnemyType.Grunt } },
         };
+
+        // Fogbound and Narrow Pass.
+        public const float FogSight = 350f, FogEdge = 130f, FogIn = 2f;  // clear radius, soft edge, seconds to roll in
+        public const float NarrowInsetX = 240f, NarrowInsetY = 90f, NarrowClose = 1.5f;  // 1120 x 720 between the walls
 
         // Frozen Lake and Blood Moon.
         public const float IceGrip = 3.2f, IceTopSpeed = 1.1f, IceEnemySpeed = 0.9f;
@@ -144,6 +158,7 @@ namespace Arena
             Route.Clear();
             lastPath = PathId.None;
             Patches.Clear();
+            NarrowF = FogF = 0f;
         }
 
         /// Host, after a boss wave is cleared: offer two paths for the next stretch (not in the Practice Range or
@@ -303,6 +318,49 @@ namespace Arena
                 elite = true;
         }
 
+        // --- Arena rules (Fogbound, Narrow Pass) ----------------------------------------------
+
+        /// How far Narrow Pass's walls have closed in, and how thick Fogbound's mist is (0-1). Every game eases them
+        /// the same way from the path, so nothing needs sending.
+        public float NarrowF, FogF;
+
+        /// The rule is on from the countdown before the path's first wave (the walls close in, the mist rolls in)
+        /// until its last wave is cleared.
+        bool ArenaRule(PathId id) => CurrentPath == id && (OnPath || Wave + 1 == PathFrom) && Practice == null;
+
+        void TickArenaRules(float dt)
+        {
+            NarrowF = MathX.MoveTowards(NarrowF, ArenaRule(PathId.NarrowPass) ? 1f : 0f, dt / Paths.NarrowClose);
+            FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) ? 1f : 0f, dt / Paths.FogIn);
+        }
+
+        /// Narrow Pass is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
+        public bool Walled => NarrowF > 0f;
+
+        /// The playable part of the arena: all of it, or the pass between Narrow Pass's walls.
+        public V2 ArenaMin
+        {
+            get
+            {
+                float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
+                return new V2(Paths.NarrowInsetX * f, Paths.NarrowInsetY * f);
+            }
+        }
+
+        public V2 ArenaMax => new V2(Width, Height) - ArenaMin;
+
+        /// A random spot in the playable arena, at least margin (mx across, my down) from its edges.
+        V2 RandomInArena(float mx, float my)
+        {
+            V2 lo = ArenaMin, hi = ArenaMax;
+            return new V2(Rand(lo.X + mx, hi.X - mx), Rand(lo.Y + my, hi.Y - my));
+        }
+
+        V2 RandomInArena(float margin) => RandomInArena(margin, margin);
+
+        /// A player's position after moving: wrapped round the edges, or held inside Narrow Pass's walls.
+        V2 KeepInArena(V2 pos, float r) => Walled ? ClampToArena(pos, r) : WrapArena(pos);
+
         // --- Hazard floors (Burning Grounds, Sanctuary) -------------------------------------------
 
         public readonly Dictionary<int, PathPatch> Patches = new Dictionary<int, PathPatch>();
@@ -372,7 +430,7 @@ namespace Arena
         void SpawnPatch(PatchKind kind)
         {
             // Fire often starts near someone, so it keeps you moving; pools appear anywhere open.
-            V2 pos = new V2(Rand(90f, Width - 90f), Rand(90f, Height - 90f));
+            V2 pos = RandomInArena(90f);
             if (kind == PatchKind.Fire && rng.NextDouble() < 0.5 && Players.Count > 0)
             {
                 var list = new List<Player>(Players.Values);

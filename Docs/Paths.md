@@ -1,7 +1,6 @@
 # Divergent paths: design plan
 
-Status: **steps 1-3 built** (framework, the three enemy-mix paths, Burning Grounds, Sanctuary, the no-path
-option, Frozen Lake and Blood Moon); step 4 planned. Decisions below were made with the owner (October 2026); numbers are first
+Status: **all 4 steps built**: the framework, the no-path option and all nine paths. Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -57,7 +56,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 | **Sniper Ridge** | Enemy mix | 2 | Mostly Snipers, Mortars and Grunts; few melee. Floor: rocky ridges. |
 | **Elite Gauntlet** | Enemy mix | 3 | Half as many enemies, every one elite. Floor: dark gold flagstones. |
 | **Fogbound** | Arena rule | 2 | You only see about 350 px around each player; enemies and bullets beyond fade out. Floor: misty grey. |
-| **Narrow Pass** | Arena rule | 2 | The arena shrinks to about 70% between glowing walls; no wrapping around the edges. Floor: canyon stone. |
+| **Narrow Pass** | Arena rule | 2 | The arena shrinks to 1120 x 720 (70% wide, 80% tall) between glowing walls; no wrapping around the edges, bullets stop at the walls. Floor: canyon stone. |
 | **Burning Grounds** | Hazard floor | 3 | Fire patches flash a warning, ignite and slowly spread; they burn enemies too. Floor: scorched earth. |
 | **Sanctuary** | Hazard floor | 1 | Healing pools appear around the arena; 20% fewer enemies. A recovery path. Floor: soft blue light. |
 | **Frozen Lake** | Twist | 2 | You slide with momentum (speed builds and carries); enemies are chilled 10% slower. Floor: cracked ice. |
@@ -97,7 +96,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
    recordings, tests. Paths: Swarm Fields, Sniper Ridge, Elite Gauntlet.
 2. ✅ **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
 3. ✅ **Twists:** Frozen Lake, Blood Moon.
-4. **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor).
+4. ✅ **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor: `Game.ArenaMin`/`ArenaMax`).
 
 ## Still open
 

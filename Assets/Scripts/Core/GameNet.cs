@@ -22,7 +22,7 @@ namespace Arena
             if (release > 0f && p.Weapon.Id == WeaponId.MendersBow)
                 p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
             if (!p.Downed)
-                p.Pos = WrapArena(pos);
+                p.Pos = KeepInArena(pos, 0f);
             p.Aim = aim;
             p.Firing = firing;
             p.Parrying = parry;

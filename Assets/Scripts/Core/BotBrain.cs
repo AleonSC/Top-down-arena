@@ -390,8 +390,16 @@ namespace Arena
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2f;
                 }
-                // Moving off the arena wraps you around: fine to escape that way, but don't plan on it.
-                if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
+                // Moving off the arena wraps you around: fine to escape that way, but don't plan on it. Narrow Pass's
+                // walls can't be crossed, and hugging them leaves no room to dodge.
+                if (Walled)
+                {
+                    V2 lo = ArenaMin, hi = ArenaMax;
+                    float room = Math.Min(Math.Min(p.X - lo.X, hi.X - p.X), Math.Min(p.Y - lo.Y, hi.Y - p.Y));
+                    if (room < 50f)
+                        d += 0.6f * (50f - room) / 50f;
+                }
+                else if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
                     d += 0.2f;
                 float dist = p.DistanceTo(anchor);
                 float position = 0.35f * Math.Min(4f, Math.Abs(dist - pref) / 200f) * (pref == 0f ? 3f : 1f);

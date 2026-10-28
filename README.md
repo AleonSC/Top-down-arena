@@ -386,9 +386,12 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Sanctuary** | 1 | Healing pools (10 HP a second) appear around the arena; 20% fewer enemies |
 | **Frozen Lake** | 2 | You slide with momentum (speed builds up and carries after you let go); enemies are 10% slower |
 | **Blood Moon** | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP (+0.1 per wave) |
+| **Fogbound** | 2 | A mist hides everything more than about 350 px from every player (shared sight: stay close) |
+| **Narrow Pass** | 2 | Glowing canyon walls close in to a 1120 x 720 pass: no wrapping round the edges, and bullets stop at the walls |
 
-A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
-paths (arena rules: Fogbound, Narrow Pass) are planned in `Docs/Paths.md`.
+A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. The
+mist rolls in and the walls close in during the countdown before a path's first wave, and lift before the boss.
+Design notes and the decisions behind them are in `Docs/Paths.md`.
 
 ## Run modifiers
 

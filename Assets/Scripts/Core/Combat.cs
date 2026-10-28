@@ -186,6 +186,10 @@ namespace Arena
                     wells.Add(e);
             bool wellsUp = wells.Count > 0;
             PrepareNinjaBullets(dt);  // Smoke Bombs and returning chain shuriken (Ninja.cs)
+            // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
+            V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
+            lo -= margin;
+            hi += margin;
             foreach (var b in Bullets.Values)
             {
                 if (b.AngVel != 0f)
@@ -196,9 +200,11 @@ namespace Arena
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 b.Life -= dt;
-                if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
+                if (b.Life <= 0f || b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y)
                 {
                     scratchIds.Add(b.Id);
+                    if (Walled && b.Life > 0f)
+                        AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
                     if (b.Burst > 0 && b.Life <= 0f)
                         landed.Add(b);
                 }
