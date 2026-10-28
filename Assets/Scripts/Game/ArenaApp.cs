@@ -140,7 +140,7 @@ namespace Arena
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
-            recordSessions = PlayerPrefs.GetInt("record_sessions", 0) == 1 || opts.ContainsKey("record");
+            recordSessions = PlayerPrefs.GetInt("record_sessions", 1) == 1 || opts.ContainsKey("record");
             ApplyRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
@@ -1691,6 +1691,8 @@ namespace Arena
         {
             var me = game.Me;
             DrawWavePlate();
+            if (game.Recorder != null)  // this match is being recorded (hosts only)
+                Ui.Label(new Rect(W - 70f, H - 20f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
             if (aimDebug && me != null)
                 DrawAimDebug(me);
             DrawBossBars();
