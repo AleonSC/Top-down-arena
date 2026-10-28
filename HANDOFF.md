@@ -81,7 +81,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 | File | Lines | What it holds |
 |---|---|---|
-| `ArenaApp.cs` | 2.8k | boot, input, layout/scaling, **world rendering in GL** (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, `DrawKnight`, effects), main menu, settings, how-to-play, HUD (wave plate, player cards, ability bar, Tab menu, upgrade picker, run summary), sound playback |
+| `ArenaApp.cs` | 0.45k | boot, command line, input and the frame loop (`Update`, `FixedUpdate`), layout/scaling, `OnGUI` dispatch, small shared helpers |
+| `WorldRenderer.cs` | 1.3k | **world rendering in GL**: `OnPostRender`, `DrawWorld` (floor) → `DrawArenaContents` (players, bullets, enemies, minions, zones, effects), `DrawEnemy`, `DrawPlayer`, `DrawKnight`, aim line / bow draw / cylinder overlays, GL primitives and clipping (`Tri`, `UiClip`, `BeginUiGl`/`UiModelAt`) |
+| `Hud.cs` | 1.0k | HUD: wave plate, player cards, boss bars, ability bar, mastery toasts, Tab menu, upgrade picker and cards, `StatsSidebar`, banners, run summary |
+| `Menus.cs` | 0.4k | main menu (title axis, plot corners), How to play, pause menu, settings and audio |
 | `LobbyUi.cs` | 0.5k | the lobby: "!" connection popup by the title (port, invite addresses), the hero card's live mini-arena (`DrawShowcase`, stepped from `FixedUpdate`), mode switch, party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby's picker card (bottom left: live thumbnail, arrows, dots); your pick is also drawn dimmed behind the arena (`DrawWorld`, `ArenaBgDim`) |
@@ -212,7 +215,7 @@ copies of the same numbers:
    `BuildWave`) and `Weapons.cs` (`FireVolley`, `WeaponRange`). Pure moves: low risk, big readability gain.
    *Done as pure moves (every line kept, verified by line multiset). `BuildWave` was already in `EnemyAI.cs`
    with the roster and stays there; the scattered constants stay at the top of `Game.cs` until item 14.*
-6. **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
+6. ✅ **Split done (Oct 2026); per-type drawing helpers next.** **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
    the 351-line `DrawWorld` and 268-line `DrawEnemy` would also benefit from per-type helpers), `Hud.cs`
    (wave plate, ability bar, Tab menu, picker, run summary) and `Menus.cs` (main menu, settings, how-to).
 7. **Split `Tools/SimTest/Program.cs` (3.7k lines)** into one file per system, replace the `args[2] ==` chain
@@ -261,8 +264,8 @@ Bump `Session.ProtocolVersion` and tell the owner whenever a message format chan
 before and after. Ask before deleting code, changing behaviour, or growing a step beyond what's described.
 
 1. ✅ Split `Game.cs` into `GameNet.cs`, `Combat.cs`, `Abilities.cs`, `Waves.cs`, `Weapons.cs` (item 5).
-2. Split `ArenaApp.cs` into `WorldRenderer.cs`, `Hud.cs`, `Menus.cs`; break `DrawWorld`/`DrawEnemy` into
-   per-type helpers (item 6). (`DrawArenaContents` was already pulled out of `DrawWorld` for the loadout preview.)
+2. Split `ArenaApp.cs` into `WorldRenderer.cs`, `Hud.cs`, `Menus.cs` (✅ done) ; break `DrawWorld`/`DrawEnemy` into
+   per-type helpers (item 6). Rendering is checked byte-for-byte with an offline harness (see section 3). (`DrawArenaContents` was already pulled out of `DrawWorld` for the loadout preview.)
 3. Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
    `music` suite, fixed seeds for the flaky tests (items 7, 15).
 4. Weapon numbers into `WeaponDef`; `WeaponRange`, bot range tables and upgrade texts read them; `aim` test
