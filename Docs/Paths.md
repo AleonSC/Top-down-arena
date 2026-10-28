@@ -1,7 +1,7 @@
 # Divergent paths: design plan
 
-Status: **steps 1-2 built** (framework, the three enemy-mix paths, Burning Grounds, Sanctuary and the no-path
-option); steps 3-4 planned. Decisions below were made with the owner (October 2026); numbers are first
+Status: **steps 1-3 built** (framework, the three enemy-mix paths, Burning Grounds, Sanctuary, the no-path
+option, Frozen Lake and Blood Moon); step 4 planned. Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -61,7 +61,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 | **Burning Grounds** | Hazard floor | 3 | Fire patches flash a warning, ignite and slowly spread; they burn enemies too. Floor: scorched earth. |
 | **Sanctuary** | Hazard floor | 1 | Healing pools appear around the arena; 20% fewer enemies. A recovery path. Floor: soft blue light. |
 | **Frozen Lake** | Twist | 2 | You slide with momentum (speed builds and carries); enemies are chilled 10% slower. Floor: cracked ice. |
-| **Blood Moon** | Twist | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP. Floor: red-lit. |
+| **Blood Moon** | Twist | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP (+0.1 per wave, so it keeps up late). Floor: red-lit. |
 
 ## Screens
 
@@ -96,7 +96,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 1. ✅ **Framework + enemy-mix paths:** the registry, offers, the Choose-your-path screen, bonus and prize, HUD chip,
    recordings, tests. Paths: Swarm Fields, Sniper Ridge, Elite Gauntlet.
 2. ✅ **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
-3. **Twists:** Frozen Lake, Blood Moon.
+3. ✅ **Twists:** Frozen Lake, Blood Moon.
 4. **Arena rules:** Fogbound, then Narrow Pass (the playable-rect refactor).
 
 ## Still open

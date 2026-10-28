@@ -7,7 +7,7 @@ namespace Arena
     /// Divergent paths (Docs/Paths.md): after each boss the host picks one of two paths for the four regular waves
     /// before the next boss. A path changes the enemy mix (and, in later steps, the arena), pays a bonus to XP and
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
-    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary }
+    public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon }
 
     public enum PatchKind : byte { Fire, Heal }
 
@@ -67,7 +67,21 @@ namespace Arena
                 Rules = new[] { "Healing pools appear around the arena", "20% fewer enemies" },
                 Floor = new Rgba(0.08f, 0.16f, 0.26f), Accent = new Rgba(0.5f, 0.9f, 1f),
                 Showcase = new[] { EnemyType.Grunt, EnemyType.Sniper, EnemyType.Medic } },
+            new PathDef { Id = PathId.FrozenLake, Name = "Frozen Lake", Kind = "Twist", Danger = 2,
+                Blurb = "A sheet of cracked ice. Mind your footing.",
+                Rules = new[] { "You slide: speed builds up and carries on", "Enemies are chilled: 10% slower" },
+                Floor = new Rgba(0.16f, 0.27f, 0.36f), Accent = new Rgba(0.65f, 0.92f, 1f),
+                Showcase = new[] { EnemyType.Charger, EnemyType.Lunger, EnemyType.Spinner } },
+            new PathDef { Id = PathId.BloodMoon, Name = "Blood Moon", Kind = "Twist", Danger = 3,
+                Blurb = "Under a red moon, only the hunt keeps you alive.",
+                Rules = new[] { "No health orbs and no regeneration", "Every kill heals its killer a little" },
+                Floor = new Rgba(0.24f, 0.05f, 0.07f), Accent = new Rgba(1f, 0.35f, 0.4f),
+                Showcase = new[] { EnemyType.Brute, EnemyType.Burster, EnemyType.Sniper } },
         };
+
+        // Frozen Lake and Blood Moon.
+        public const float IceGrip = 3.2f, IceTopSpeed = 1.1f, IceEnemySpeed = 0.9f;
+        public static float BloodMoonHeal(int wave) => 2f + 0.1f * wave;
 
         // Burning Grounds and Sanctuary.
         public const float FireWarn = 1.4f, FireLife = 9f, FireR0 = 55f, FireR1 = 115f, FireEvery = 2.2f;
@@ -283,6 +297,8 @@ namespace Arena
                 return;
             if (CurrentPath == PathId.SwarmFields && e.Def.Melee)
                 e.MaxHp *= 0.6f;
+            if (CurrentPath == PathId.FrozenLake)
+                e.Speed *= Paths.IceEnemySpeed;  // chilled by the ice
             if (CurrentPath == PathId.EliteGauntlet && e.ParentId == 0)
                 elite = true;
         }

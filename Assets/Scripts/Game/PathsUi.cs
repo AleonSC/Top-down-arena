@@ -48,8 +48,10 @@ namespace Arena
             var stage = new Rect(r.x + 14f, r.y + 14f, r.width - 28f, 170f);
             if (BeginUiGl())
             {
+                UiClip(stage);
                 DrawPathFloor(d, stage.x, stage.y, stage.width, stage.height, t, 1f);
                 DrawCardPatches(d, stage, t);
+                UiNoClip();
                 for (int k = 0; k < d.Showcase.Length; k++)
                     DrawEnemyPreview(d.Showcase[k], new V2(stage.x + stage.width * (k + 0.5f) / d.Showcase.Length, stage.center.y + (k % 2 == 0 ? -10f : 12f)), 46f, t + k + index, true);
                 EndUiGl();
@@ -136,6 +138,49 @@ namespace Arena
                         }
                     }
                     break;
+                case PathId.FrozenLake:  // cracked ice with slow sheens of light sliding across
+                {
+                    var crack = new Rgba(0.85f, 0.97f, 1f, 0.18f * alpha);
+                    for (int i = 0; i < (int)(w * h / 26000f) + 2; i++)
+                    {
+                        V2 p = new V2(x + Hash(i * 7) * w, y + Hash(i * 7 + 1) * h);
+                        float a = Hash(i * 7 + 2) * MathX.Tau;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            a += (Hash(i * 7 + 3 + k) - 0.5f) * 1.4f;
+                            V2 q = p + V2.FromAngle(a) * (18f + 26f * Hash(i * 9 + k));
+                            if (q.X < x || q.X > x + w || q.Y < y || q.Y > y + h)
+                                break;
+                            Line(p, q, 1.2f, crack);
+                            p = q;
+                        }
+                    }
+                    for (int k = 0; k < 3; k++)  // sheens
+                    {
+                        float f = MathX.Fmod(t * 0.06f + k / 3f, 1f), sx = x - w * 0.3f + f * w * 1.6f;
+                        V2 a0 = new V2(Mathf.Clamp(sx, x, x + w), y), a1 = new V2(Mathf.Clamp(sx + 40f, x, x + w), y);
+                        V2 b0 = new V2(Mathf.Clamp(sx - h * 0.4f, x, x + w), y + h), b1 = new V2(Mathf.Clamp(sx - h * 0.4f + 40f, x, x + w), y + h);
+                        SetColor(new Rgba(1f, 1f, 1f, 0.05f * alpha));
+                        Tri(a0, a1, b1);
+                        Tri(a0, b1, b0);
+                    }
+                    break;
+                }
+                case PathId.BloodMoon:  // a red moon in the corner and drifting red mist
+                {
+                    float mr = Mathf.Min(w, h) * 0.13f;
+                    V2 moon = new V2(x + w - mr * 1.6f, y + mr * 1.5f);
+                    Circle(moon, mr * 2.2f, new Rgba(1f, 0.2f, 0.25f, 0.06f * alpha), 32);
+                    Circle(moon, mr * 1.4f, new Rgba(1f, 0.25f, 0.3f, 0.1f * alpha), 32);
+                    Circle(moon, mr, new Rgba(0.85f, 0.2f, 0.22f, 0.55f * alpha), 32);
+                    Circle(moon + new V2(-mr * 0.3f, -mr * 0.2f), mr * 0.25f, new Rgba(0.6f, 0.1f, 0.12f, 0.4f * alpha), 16);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float mx = x + MathX.Fmod(Hash(i * 3) * w + t * (8f + 6f * Hash(i * 3 + 1)), w);
+                        Circle(new V2(mx, y + Hash(i * 3 + 2) * h), Mathf.Min(w, h) * (0.12f + 0.1f * Hash(i)), new Rgba(0.6f, 0.05f, 0.1f, 0.08f * alpha), 24);
+                    }
+                    break;
+                }
                 case PathId.Sanctuary:  // soft motes of light drifting up
                     for (int i = 0; i < (int)(w * h / 5000f); i++)
                     {

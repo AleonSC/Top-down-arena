@@ -325,6 +325,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
+        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured once a second.
@@ -1011,9 +1012,25 @@ namespace Arena
             {
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
+                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
             }
             else
-                me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * dt;
+            {
+                V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f);
+                if (OnPathOf(PathId.FrozenLake))
+                {
+                    // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
+                    iceVel += (want * Paths.IceTopSpeed - iceVel) * Math.Min(1f, Paths.IceGrip * dt);
+                    me.Pos += iceVel * dt;
+                }
+                else
+                {
+                    iceVel = want;
+                    me.Pos += want * dt;
+                }
+            }
+            if (me.Downed)
+                iceVel = V2.Zero;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
             if (!me.Downed && DashT <= 0f)
@@ -1258,7 +1275,8 @@ namespace Arena
                         FireFanned(p, p.Aim, 0);
                     }
                 }
-                p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
+                if (!OnPathOf(PathId.BloodMoon))  // Blood Moon (Paths.cs): no regeneration
+                    p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
                 if (p.Role == Role.Healer)
                 {
                     p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);

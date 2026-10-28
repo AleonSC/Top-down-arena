@@ -1504,6 +1504,71 @@ static class Program
         host.Leave(""); client.Leave("");
     }
 
+    static void PathTwistsTest(float dt)
+    {
+        // Paths, step 3: Frozen Lake's sliding and chill, Blood Moon's hunt.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1, StartWave = 6 };
+        host.Host(port, "Solo", Role.Dps);
+        var g = host.Game;
+        host.StartMatch();
+        for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++) Step(host, dt);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        Step(host, dt);
+        var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
+        keepAlive.Hp = keepAlive.MaxHp = 1e6f;
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Func<V2, float, float> Move = (dir, secs) =>
+        {
+            me.Pos = new V2(800f, 450f);
+            for (int f = 0; f < secs * 60; f++)
+            {
+                keepAlive.FrozenT = 1f; keepAlive.FireT = 9f;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Move = dir, AimAt = new V2(800f, 200f) });
+            }
+            return me.Pos.X - 800f;
+        };
+        Action Settle = () => { for (int f = 0; f < 120; f++) { keepAlive.FrozenT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 200f) }); } };
+
+        // Plain ground: you start at full speed and stop when you let go.
+        g.CurrentPath = PathId.None;
+        Settle();
+        float plainStart = Move(new V2(1f, 0f), 0.15f), plainCoast = Move(V2.Zero, 0.4f);
+        // Frozen Lake: speed builds, and you keep sliding.
+        g.CurrentPath = PathId.FrozenLake; g.PathFrom = 6; g.PathTo = 9; g.Wave = 7;
+        Settle();
+        float iceStart = Move(new V2(1f, 0f), 0.15f), iceCoast = Move(V2.Zero, 0.4f);
+        Console.WriteLine("  frozen lake: first 0.15 s {0:0} px (plain {1:0}); after letting go {2:0} px more (plain {3:0})", iceStart, plainStart, iceCoast, plainCoast);
+        Check(iceStart < plainStart * 0.7f && iceCoast > 20f && Math.Abs(plainCoast) < 1f, "Frozen Lake: speed builds up, and you slide on after letting go");
+        var chilled = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(900f, 300f), 0f, 0, false });
+        Check(Math.Abs(chilled.Speed - Defs.Get(EnemyType.Grunt).Speed * Paths.IceEnemySpeed) < 0.01f, "Frozen Lake: enemies are 10% slower");
+        chilled.Hp = 0f; Step(host, dt);
+
+        // Blood Moon: no regeneration, no orbs, kills heal.
+        g.CurrentPath = PathId.BloodMoon;
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp * 0.5f;
+        float hp0 = me.Hp;
+        for (int f = 0; f < 120; f++) { keepAlive.FrozenT = 1f; keepAlive.FireT = 9f; me.InvulnT = 1f; Step(host, dt); }
+        Check(Math.Abs(me.Hp - hp0) < 0.01f, "Blood Moon: no regeneration");
+        int orbs = g.Orbs.Count;
+        float before = me.Hp;
+        for (int k = 0; k < 10; k++)
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f + k * 10f, 300f), 0f, 0, false });
+            e.Hp = 0f; e.LastHitBy = 1;
+        }
+        keepAlive.FrozenT = 1f; Step(host, dt);
+        Console.WriteLine("  blood moon: 10 kills healed {0:0.#} HP (2 + 0.1 x wave {1} each)", me.Hp - before, g.Wave);
+        Check(g.Orbs.Count == orbs && Math.Abs(me.Hp - before - 10f * Paths.BloodMoonHeal(g.Wave)) < 0.5f, "Blood Moon: no orbs, and every kill heals its killer");
+        host.Leave("");
+    }
+
     static void PathsTest(float dt)
     {
         // Divergent paths: after a boss the host picks one of two paths for the next four waves.
@@ -1810,6 +1875,7 @@ static class Program
         ModifiersTest(dt);
         PathsTest(dt);
         PathHazardsTest(dt);
+        PathTwistsTest(dt);
 
         // Shield Wall now stops red aimed shots too.
         port = nextPort++;

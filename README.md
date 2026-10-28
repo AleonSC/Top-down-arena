@@ -384,9 +384,11 @@ the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
 | **Elite Gauntlet** | 3 | Half as many enemies, every one elite |
 | **Burning Grounds** | 3 | Fire patches flash a warning ring, then ignite and spread for a few seconds; they burn you (10 + 0.4 per wave damage a second) and the enemies |
 | **Sanctuary** | 1 | Healing pools (10 HP a second) appear around the arena; 20% fewer enemies |
+| **Frozen Lake** | 2 | You slide with momentum (speed builds up and carries after you let go); enemies are 10% slower |
+| **Blood Moon** | 3 | No health orbs and no regeneration, but every kill heals its killer 2 HP (+0.1 per wave) |
 
 A chip under the wave plate shows the path and the waves left. Session recordings note each wave's path. More
-paths (twists, arena rules) are planned in `Docs/Paths.md`.
+paths (arena rules: Fogbound, Narrow Pass) are planned in `Docs/Paths.md`.
 
 ## Run modifiers
 

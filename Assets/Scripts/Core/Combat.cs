@@ -538,6 +538,8 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
+                if (killer != null && e.Def.Xp > 0 && OnPathOf(PathId.BloodMoon))
+                    Heal(killer, Paths.BloodMoonHeal(Wave), null);  // Blood Moon: the hunt keeps you alive
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
                 DropOrbs(e, bossReward);
@@ -722,8 +724,8 @@ namespace Arena
                     SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
-            if (Has(RunMod.Famine))
-                return;  // run modifier: no health orbs (bosses still drop theirs)
+            if (Has(RunMod.Famine) || OnPathOf(PathId.BloodMoon))
+                return;  // run modifier / Blood Moon: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)
                 SpawnOrb(e.Pos, true);
