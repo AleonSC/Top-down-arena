@@ -9,6 +9,8 @@ Pick a role, then survive endless waves of enemies with a boss every 5th wave.
 There are no art assets: everything is drawn in code, and the game sets itself up when you
 press Play, so there are no scenes or prefabs to wire together.
 
+New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, testing and audit notes.
+
 ## Opening the project
 
 1. Install [Unity Hub](https://unity.com/download) and a **Unity 6** editor (6000.0 LTS).
