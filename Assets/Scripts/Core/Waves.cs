@@ -30,6 +30,11 @@ namespace Arena
 
         void TickWaves(float dt)
         {
+            if (ShowcaseMode)
+            {
+                TickShowcase(dt);  // the loadout preview's target dummies instead of waves (Showcase.cs)
+                return;
+            }
             switch (State)
             {
                 case MatchState.Intermission:

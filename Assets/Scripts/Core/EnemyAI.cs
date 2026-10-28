@@ -317,6 +317,8 @@ namespace Arena
                     e.SpawnT -= dt;
                     continue;
                 }
+                if (ShowcaseMode)
+                    continue;  // the loadout preview's target dummies stand still and never shoot (Showcase.cs)
                 if (e.FrozenT > 0f)  // Glacial Tomb: frozen solid, no moving or shooting
                 {
                     e.FrozenT -= dt;

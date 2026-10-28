@@ -88,7 +88,7 @@ namespace Arena
 
         public void GainMastery(Player p, AbilityId id, float xp)
         {
-            if (!IsHost || id == AbilityId.None || xp <= 0f)
+            if (!IsHost || id == AbilityId.None || xp <= 0f || ShowcaseMode)
                 return;
             float was;
             p.MasteryXp.TryGetValue(id, out was);

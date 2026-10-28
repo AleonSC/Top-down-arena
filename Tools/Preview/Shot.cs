@@ -108,6 +108,20 @@ class Shot {
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
       if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
+      // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability; ABILITY=n hovers that ability.
+      var lo = Environment.GetEnvironmentVariable("LOADOUT");
+      if (lo != null) { var q = lo.Split(','); var le = host.Lobby[host.MyId]; le.Role = (Role)int.Parse(q[0]); le.Kit = (Kit)int.Parse(q[1]); le.Weapon = byte.Parse(q[2]); le.Ability = byte.Parse(q[3]); }
+      var ab = Environment.GetEnvironmentVariable("ABILITY");
+      if (ab != null) set("abilityHover", int.Parse(ab));
+      {
+        var le = host.Lobby[host.MyId];
+        int shown = ab != null ? int.Parse(ab) : le.Ability;
+        var sc = new Showcase();
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null);
+        float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
+        for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
+        set("showcase", sc);
+      }
       GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       GL.ToUi = false;

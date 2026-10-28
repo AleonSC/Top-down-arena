@@ -57,6 +57,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Weapons.cs` | 0.37k | `FireRate`, `FirePlayer`, `FireVolley`, `ExtraShots`, Revolver and Mender's Bow, `WeaponRange`, `SetFrags` |
 | `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
 | `Waves.cs` | 0.12k | `TickWaves`, `WaveCleared`, `CheckGameOver` |
+| `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
 | `LateGame.cs` | 0.45k | bosses 25-50 (Colossus → Eclipse) |
 | `Singularity.cs` | 0.25k | wave-20 boss: corner wells, lasers, cages |
@@ -81,7 +82,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | File | Lines | What it holds |
 |---|---|---|
 | `ArenaApp.cs` | 2.8k | boot, input, layout/scaling, **world rendering in GL** (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, `DrawKnight`, effects), main menu, settings, how-to-play, HUD (wave plate, player cards, ability bar, Tab menu, upgrade picker, run summary), sound playback |
-| `LobbyUi.cs` | 0.4k | the lobby: "!" connection popup by the title (port, invite addresses), mode switch, party cards with live characters, loadout with hero preview, bottom bar |
+| `LobbyUi.cs` | 0.5k | the lobby: "!" connection popup by the title (port, invite addresses), the hero card's live mini-arena (`DrawShowcase`, stepped from `FixedUpdate`), mode switch, party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby picker; your pick is also drawn dimmed behind the arena (`DrawWorld`, `ArenaBgDim`) |
 | `BossLabUi.cs`, `DevMenu.cs` | 0.3k each | F1 tools |
@@ -101,6 +102,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
   Menus can draw game models on top of panels: `BeginUiGl()` / `UiModelAt(pos, zoom)` / `EndUiGl()` issue GL
   during IMGUI's Repaint (used by the lobby and Practice Range tiles).
+- **Loadout preview:** `DrawShowcase` swaps the `Showcase` game into `ArenaApp.game` and calls `DrawArenaContents`
+  (the part of `DrawWorld` between the floor and the overlays), clipped with `UiClip` (software clipping in `Tri`,
+  so it works the same in Unity and the preview tool).
 - **IMGUI gotcha:** with a modal open (F1 menu, Boss Lab setup) the screen underneath is drawn **only on
   Repaint**, otherwise its buttons steal clicks (see `modal` in `OnGUI`).
 - **Knight melee:** swings are queued (`pendingSwings`) and resolved in `Collide` via a pseudo-bullet
@@ -118,11 +122,11 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [mode]` builds and runs `Program.cs`.
   - `run.sh 1 30` = the **core** match tests (~164 checks).
-  - `run.sh 1 30 music` = the **feature** suite (~114 checks: parry, aim, mastery, budget, Boss Lab,
+  - `run.sh 1 30 music` = the **feature** suite (~117 checks: parry, aim, mastery, budget, Boss Lab,
     Singularity, Knight, boss sounds, weapon extras, revolver, bow, practice, weapon range...). The name is
     historical (it began as the music test). **Run both before committing.**
   - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
-    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, ... (see the `args[2] ==` chain
+    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, ... (see the `args[2] ==` chain
     near the end of `Program.cs`).
   - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
     own upgrade from extra projectiles" and "enemy bullets stay near the bullet budget" (limit 210; the peak
@@ -132,7 +136,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`.
   Modes: `hud`, `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `bg`
   (with `BG=0..9`), ... Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
-  `MOUSE=x,y`, `SOLO=1`, `INFO=1`, `BG=n` also works in `hud` (the arena background) (open the lobby's "!" connection popup). The renderer is approximate (no text fields, faint seams in big circles); use it to
+  `MOUSE=x,y`, `SOLO=1`, `INFO=1`, `BG=n` also works in `hud` (the arena background), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview) (open the lobby's "!" connection popup). The renderer is approximate (no text fields, faint seams in big circles); use it to
   check layout, then ask the owner to look in Unity.
 - **Reference pages:** `Docs/` (Armory, Bestiary) — see `Docs/README.md` for how to rebuild and where they're
   published. Their numbers are hand-copied from the code; update them with balance changes.
@@ -152,7 +156,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
-Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
+Lobby loadout preview is a live mini-arena (real game offline, target dummies, ability demo on hover/pick) · Lobby bottom bar: ready notes only with other players (no "Click Ready" prompt) · Your lobby background also shows dimmed behind the arena; lobby's "Pick Practice Range" hint removed · Lobby: hosting/port line and invite addresses moved into a popup behind a "!" button by the title · Lobby backgrounds (10, per player, still option) · lobby redesign + Practice Range moved into the lobby,
 shared and co-editable · Tab menu during upgrade picks; mastery XP line on ability tiles · aim line ends at
 weapon range (`Game.WeaponRange`, tested against real shots) · Lance: box hitbox 180×88 that slides out,
 1 s stun · Practice Range (first as an F1 tool) · Shield Wall blocks red shots · boss contact shove ·

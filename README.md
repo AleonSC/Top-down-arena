@@ -325,6 +325,13 @@ bosses come back around, tougher each time.
 | 45 | **The Devourer** | Gets **hungry** for 3 s of every 10: your shots **heal** it, so stop shooting |
 | 50 | **The Eclipse** | Final boss in 3 phases: spirals and rings → gravity wells and phantoms → lightning storms and a frantic spiral |
 
+## Loadout preview
+
+The hero card in the lobby shows your loadout in a small live arena: your character uses the chosen weapon
+on three target dummies, so you can see how it attacks. Hover an ability button (or pick one) and it casts
+that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
+the other players), so it always matches how weapons and abilities really behave.
+
 ## Lobby backgrounds
 
 The lobby's **Background** picker (top right) switches the animated background behind the menus: Spiral, Warp,
@@ -545,7 +552,8 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
-  - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with live character previews) and the Practice Range editor
+  - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with a live mini-arena preview) and the Practice Range editor
+  - `Showcase.cs`: the loadout preview: an offline copy of the game with target dummies
   - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types

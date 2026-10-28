@@ -325,6 +325,7 @@ namespace Arena
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
             game.FixedStep(Time.fixedDeltaTime, input);
             LabFixedStep(Time.fixedDeltaTime);
+            ShowcaseFixedStep(Time.fixedDeltaTime);  // the lobby's loadout preview (LobbyUi.cs)
         }
 
         /// Forget the highlighted card whenever a new set of cards is shown.
@@ -413,6 +414,47 @@ namespace Arena
             Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
             Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
 
+            DrawArenaContents(t);
+
+            if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
+                FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
+
+            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
+                DrawAimLine(game.Me, MouseArena(), t);
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol)
+                DrawCylinder(game.Me, t);
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
+                    DrawBowDraw(p, p.Id == game.MyId, t);
+
+            if (aimDebug && game.Me != null)
+            {
+                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
+                var me = game.Me;
+                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
+                if (game.LastShotId != 0)
+                {
+                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
+                    Bullet shot;
+                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
+                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
+                }
+            }
+
+            // Crosshair
+            V2 m = MouseArena();
+            var ch = new Rgba(1f, 1f, 1f, 0.7f);
+            Arc(m, 8f, 1.5f, ch, 16);
+            Line(m - new V2(13, 0), m - new V2(5, 0), 1.5f, ch);
+            Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
+            Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
+            Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
+        }
+
+        /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
+        /// lobby's loadout preview (a Showcase game swapped in as `game`).
+        void DrawArenaContents(float t)
+        {
             foreach (var p in game.Players.Values)
             {
                 if (p.Downed)
@@ -715,40 +757,6 @@ namespace Arena
                     }
                 }
             }
-
-            if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
-                FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
-
-            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
-                DrawAimLine(game.Me, MouseArena(), t);
-            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol)
-                DrawCylinder(game.Me, t);
-            foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
-                    DrawBowDraw(p, p.Id == game.MyId, t);
-
-            if (aimDebug && game.Me != null)
-            {
-                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
-                var me = game.Me;
-                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
-                if (game.LastShotId != 0)
-                {
-                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
-                    Bullet shot;
-                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
-                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
-                }
-            }
-
-            // Crosshair
-            V2 m = MouseArena();
-            var ch = new Rgba(1f, 1f, 1f, 0.7f);
-            Arc(m, 8f, 1.5f, ch, 16);
-            Line(m - new V2(13, 0), m - new V2(5, 0), 1.5f, ch);
-            Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
-            Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
-            Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
         }
 
         bool ImCaged()
@@ -1397,7 +1405,10 @@ namespace Arena
 
         // --- GL primitives (arena coordinates; everything is triangles) -------
 
-        Vector3 Px(V2 p) => new Vector3(offX + (glShift.X + p.X * glZoom) * drawScale, UnityEngine.Screen.height - (offY + (glShift.Y + p.Y * glZoom) * drawScale), 0f);
+        Vector3 Px(V2 p) => CanvasPx(glShift + p * glZoom);
+
+        /// A point on the UI canvas (or, while the world is drawn, in the arena) in screen pixels.
+        Vector3 CanvasPx(V2 u) => new Vector3(offX + u.X * drawScale, UnityEngine.Screen.height - (offY + u.Y * drawScale), 0f);
 
         /// Start drawing game models (GL) on top of the menus, in UI canvas coordinates. IMGUI draws in order
         /// on Repaint, so models land above the panels drawn before and below those drawn after. Returns
@@ -1420,7 +1431,22 @@ namespace Arena
             GL.PopMatrix();
             glZoom = 1f;
             glShift = V2.Zero;
+            glClipOn = false;
         }
+
+        // Clipping for menu previews (the loadout's mini-arena): triangles are cut to this UI canvas rect.
+        bool glClipOn;
+        Rect glClip;
+        readonly V2[] clipIn = new V2[9], clipOut = new V2[9];
+
+        /// Until EndUiGl (or UiNoClip), cut everything drawn to this rect of the UI canvas.
+        void UiClip(Rect r)
+        {
+            glClip = r;
+            glClipOn = true;
+        }
+
+        void UiNoClip() => glClipOn = false;
 
         /// Models drawn next sit around (0, 0), scaled by zoom and centred on `at` (UI canvas).
         void UiModelAt(V2 at, float zoom)
@@ -1433,9 +1459,57 @@ namespace Arena
 
         void Tri(V2 a, V2 b, V2 c)
         {
-            GL.Vertex(Px(a));
-            GL.Vertex(Px(b));
-            GL.Vertex(Px(c));
+            if (!glClipOn)
+            {
+                GL.Vertex(Px(a));
+                GL.Vertex(Px(b));
+                GL.Vertex(Px(c));
+                return;
+            }
+            V2 ua = glShift + a * glZoom, ub = glShift + b * glZoom, uc = glShift + c * glZoom;
+            float x0 = glClip.x, x1 = glClip.xMax, y0 = glClip.y, y1 = glClip.yMax;
+            if ((ua.X < x0 && ub.X < x0 && uc.X < x0) || (ua.X > x1 && ub.X > x1 && uc.X > x1) ||
+                (ua.Y < y0 && ub.Y < y0 && uc.Y < y0) || (ua.Y > y1 && ub.Y > y1 && uc.Y > y1))
+                return;  // all outside
+            if (InClip(ua) && InClip(ub) && InClip(uc))
+            {
+                GL.Vertex(CanvasPx(ua));
+                GL.Vertex(CanvasPx(ub));
+                GL.Vertex(CanvasPx(uc));
+                return;
+            }
+            // Cut the triangle against each edge in turn (Sutherland-Hodgman), then fan it back into triangles.
+            clipIn[0] = ua; clipIn[1] = ub; clipIn[2] = uc;
+            int n = 3;
+            n = ClipEdge(clipIn, n, clipOut, 0, x0, false);
+            n = ClipEdge(clipOut, n, clipIn, 0, x1, true);
+            n = ClipEdge(clipIn, n, clipOut, 1, y0, false);
+            n = ClipEdge(clipOut, n, clipIn, 1, y1, true);
+            for (int i = 1; i + 1 < n; i++)
+            {
+                GL.Vertex(CanvasPx(clipIn[0]));
+                GL.Vertex(CanvasPx(clipIn[i]));
+                GL.Vertex(CanvasPx(clipIn[i + 1]));
+            }
+        }
+
+        bool InClip(V2 u) => u.X >= glClip.x && u.X <= glClip.xMax && u.Y >= glClip.y && u.Y <= glClip.yMax;
+
+        /// Keeps the part of polygon src on one side of the line axis = at (max: keep below it), into dst.
+        static int ClipEdge(V2[] src, int n, V2[] dst, int axis, float at, bool max)
+        {
+            int m = 0;
+            for (int i = 0; i < n; i++)
+            {
+                V2 p = src[i], q = src[(i + 1) % n];
+                float pv = axis == 0 ? p.X : p.Y, qv = axis == 0 ? q.X : q.Y;
+                bool pin = max ? pv <= at : pv >= at, qin = max ? qv <= at : qv >= at;
+                if (pin)
+                    dst[m++] = p;
+                if (pin != qin)
+                    dst[m++] = V2.Lerp(p, q, (at - pv) / (qv - pv));
+            }
+            return m;
         }
 
         void Quad(V2 a, V2 b, V2 c, V2 d)

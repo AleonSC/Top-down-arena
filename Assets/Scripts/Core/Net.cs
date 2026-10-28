@@ -51,6 +51,9 @@ namespace Arena
             return peer;
         }
 
+        /// No network at all: a host nobody can reach (the lobby's loadout preview, Showcase).
+        public static NetPeer Offline() => new NetPeer { IsHost = true };
+
         public static NetPeer Join(string host, int port)
         {
             var peer = new NetPeer { IsHost = false };

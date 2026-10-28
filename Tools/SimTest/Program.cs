@@ -698,6 +698,49 @@ static class Program
 
     // Aim precision: a tiny change in where you point (a quarter of a degree) shows up exactly in
     // the direction of your shots, for the host and for a player who joined.
+    // The lobby's loadout preview (Showcase): an offline copy of the game where every weapon hits the
+    // target dummies and every Space ability gets cast, with no levelling or mastery building up.
+    static void ShowcaseTest(float dt)
+    {
+        var quiet = new List<string>();
+        var uncast = new List<string>();
+        bool grew = false;
+        int weapons = 0, abilities = 0;
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                var kit = (Kit)k;
+                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                {
+                    var sc = new Showcase();
+                    sc.Show(role, kit, w, Upgrades.RoleAbility(role, kit, 0), false);
+                    for (int f = 0; f < 360; f++)
+                        sc.Step(dt);
+                    var g = sc.Game;
+                    bool hit = g.Score > 0 || g.Enemies.Values.Any(e => e.Hp < e.MaxHp - 0.5f);
+                    if (hit) weapons++; else quiet.Add(sc.Me.Weapon.Name);
+                    sc.Stop();
+                }
+                for (int a = 0; a < Upgrades.RoleAbilityChoices; a++)
+                {
+                    var sc = new Showcase();
+                    var id = Upgrades.RoleAbility(role, kit, a);
+                    sc.Show(role, kit, 0, id, true);
+                    for (int f = 0; f < 300; f++)
+                        sc.Step(dt);
+                    var me = sc.Me;
+                    if (me.Slots[0].Id == id && me.Run.AbilitiesUsed >= 2) abilities++; else uncast.Add(Upgrades.Ability(id).Name + " (" + me.Run.AbilitiesUsed + ")");
+                    grew |= me.Level > 1 || me.MasteryXp.Values.Any(x => x > 0f);
+                    sc.Stop();
+                }
+            }
+        Console.WriteLine("  showcase: {0} weapons hit the dummies{1}; {2} abilities cast on a loop{3}", weapons,
+            quiet.Count > 0 ? " (silent: " + string.Join(", ", quiet) + ")" : "", abilities, uncast.Count > 0 ? " (not cast: " + string.Join(", ", uncast) + ")" : "");
+        Check(quiet.Count == 0, "the loadout preview: every weapon hits the target dummies");
+        Check(uncast.Count == 0, "the loadout preview: every Space ability is cast on a loop");
+        Check(!grew, "the loadout preview gives no XP or mastery");
+    }
+
     static void WeaponRangeTest(float dt)
     {
         // The aim line ends at Game.WeaponRange: check it against how far each weapon's shots really go.
@@ -3308,6 +3351,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "showcase")
+        {
+            ShowcaseTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "session")
         {
             var path = SessionTest(1f / 60f);
@@ -3344,6 +3393,7 @@ static class Program
         BowTest(dt);
         PracticeTest(dt);
         WeaponRangeTest(dt);
+        ShowcaseTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

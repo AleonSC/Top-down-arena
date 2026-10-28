@@ -15,6 +15,14 @@ namespace Arena
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
+        // The hero card's live mini-arena (Showcase.cs): the real game, offline, using your weapon on target
+        // dummies; it casts an ability while you hover one, and for a few seconds after you pick one.
+        Showcase showcase;
+        float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
+        int abilityHover = -1;     // the ability button under the mouse last frame
+        float abilityDemoUntil;
+        const float AbilityDemoTime = 5f;
+
         void DrawLobby()
         {
             float t = Time.unscaledTime;
@@ -313,19 +321,7 @@ namespace Arena
             // Hero card: your character on a glowing pedestal, with the numbers that matter.
             var hero = new Rect(r.x + 14f, r.y + 14f, 232f, r.height - 28f);
             Ui.Pill(hero, new Color(0.03f, 0.035f, 0.06f, 0.85f));
-            V2 stand = new V2(hero.center.x, hero.y + 108f);
-            if (BeginUiGl())
-            {
-                UiModelAt(stand, 1f);
-                for (int k = 0; k < 3; k++)  // pedestal glow
-                    Circle(V2.Zero, 78f - k * 16f, new Rgba(roleColor.r, roleColor.g, roleColor.b, 0.07f + 0.04f * k), 48);
-                Arc(V2.Zero, 78f, 2f, new Rgba(roleColor.r, roleColor.g, roleColor.b, 0.5f), 64);
-                float pulse = (t * 0.6f) % 1f;
-                Arc(V2.Zero, 40f + 40f * pulse, 2f, new Rgba(roleColor.r, roleColor.g, roleColor.b, 0.35f * (1f - pulse)), 48);
-                UiModelAt(stand, 2.1f);
-                DrawPreviewPlayer(me.Role, me.Kit, me.Weapon, t, true);
-                EndUiGl();
-            }
+            DrawShowcase(me, new Rect(hero.x + 8f, hero.y + 8f, hero.width - 16f, 180f), roleColor);
             float hy = hero.y + 196f;
             Ui.Fancy(new Rect(hero.x, hy, hero.width, 26f), Defs.KitName(me.Kit) + " " + Defs.Get(me.Role).Name, 20, Color.white, Color.Lerp(roleColor, Color.white, 0.3f), TextAnchor.MiddleCenter, roleColor);
             hy += 32f;
@@ -393,14 +389,93 @@ namespace Arena
             y += 106f;
 
             Ui.Heading(x, y, w, "Ability  ·  Space");
+            int hovered = -1;
             for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 36f), Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor))
+            {
+                var b = new Rect(x + i * (third + gap), y + 28f, third, 36f);
+                if (b.Contains(Event.current.mousePosition))
+                    hovered = i;
+                if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor))
                 {
                     session.RequestAbility(i);
                     abilityChoice = i;
+                    abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
                 }
+            }
+            if (Event.current.type == EventType.Repaint)
+                abilityHover = hovered;
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             Ui.Label(new Rect(x, y + 68f, w, 34f), ability.Desc + "  (" + ability.Cooldown.ToString("0.#") + " s cooldown)", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+        }
+
+        /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
+        void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
+        {
+            int shown = abilityHover >= 0 ? abilityHover : me.Ability;
+            bool demo = abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;
+            if (showcase == null)
+                showcase = new Showcase();
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo);
+            showcaseSeen = Time.unscaledTime;
+            if (!BeginUiGl())
+                return;
+            var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
+            var sg = showcase.Game;
+            float zoom = Mathf.Min(1.1f, view.height / (showcase.Distance + 190f));
+            V2 focus = Showcase.Home + new V2(0f, -showcase.Distance / 2f);
+            V2 centre = new V2(view.center.x, view.center.y);
+            UiModelAt(centre - focus * zoom, zoom);
+            UiClip(view);
+            // The floor: the arena's dark grid, scaled with the view.
+            float hw = view.width / 2f / zoom + 64f, hh = view.height / 2f / zoom + 64f;
+            FillRect(focus.X - hw, focus.Y - hh, hw * 2f, hh * 2f, new Rgba(0.05f, 0.06f, 0.09f, 0.9f));
+            var grid = new Rgba(1f, 1f, 1f, 0.04f);
+            for (float gx = (float)Math.Floor((focus.X - hw) / 64f) * 64f; gx <= focus.X + hw; gx += 64f)
+                Line(new V2(gx, focus.Y - hh), new V2(gx, focus.Y + hh), 1f / zoom, grid);
+            for (float gy = (float)Math.Floor((focus.Y - hh) / 64f) * 64f; gy <= focus.Y + hh; gy += 64f)
+                Line(new V2(focus.X - hw, gy), new V2(focus.X + hw, gy), 1f / zoom, grid);
+            Circle(Showcase.Home, 46f, rc.WithAlpha(0.08f), 32);  // where you stand
+            var real = game;
+            game = sg;  // the drawing code reads `game`
+            try
+            {
+                DrawArenaContents(sg.AnimT);
+                foreach (var p in sg.Players.Values)
+                    if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
+                        DrawBowDraw(p, true, sg.AnimT);
+            }
+            finally
+            {
+                game = real;
+            }
+            // A thin frame in the role's colour.
+            UiModelAt(V2.Zero, 1f);
+            UiNoClip();
+            var edge = rc.WithAlpha(0.45f);
+            Line(new V2(view.x, view.y), new V2(view.xMax, view.y), 1.5f, edge);
+            Line(new V2(view.x, view.yMax), new V2(view.xMax, view.yMax), 1.5f, edge);
+            Line(new V2(view.x, view.y), new V2(view.x, view.yMax), 1.5f, edge);
+            Line(new V2(view.xMax, view.y), new V2(view.xMax, view.yMax), 1.5f, edge);
+            EndUiGl();
+            if (demo)
+            {
+                var ab = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, shown));
+                Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), "SPACE  ·  " + ab.Name.ToUpperInvariant(), 10, Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);
+            }
+        }
+
+        /// The loadout preview runs only while the hero card is on screen.
+        void ShowcaseFixedStep(float dt)
+        {
+            if (showcase == null)
+                return;
+            if (session.Screen != AppScreen.Lobby || Time.unscaledTime - showcaseSeen > 0.5f)
+            {
+                showcase.Stop();
+                showcase = null;
+                return;
+            }
+            showcase.Step(dt);
         }
 
         void HeroStat(Rect hero, ref float y, string name, string value, float frac, Color c)

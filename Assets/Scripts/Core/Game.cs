@@ -638,6 +638,8 @@ namespace Arena
 
         void GrantXp(float amount)
         {
+            if (ShowcaseMode)
+                return;  // no levelling up in the loadout preview
             foreach (var p in Players.Values)
             {
                 p.Xp += amount;

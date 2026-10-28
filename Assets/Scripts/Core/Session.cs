@@ -111,6 +111,15 @@ namespace Arena
             return name.Length > 0 ? name : "Player";
         }
 
+        /// A private match with no network: this game hosts and nobody can join (the loadout preview, Showcase).
+        public void HostOffline(Role role, Kit kit, int weapon, int ability)
+        {
+            Leave("");
+            Net = NetPeer.Offline();
+            MyId = 1;
+            Lobby[1] = new LobbyEntry { Id = 1, Name = "Preview", Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
+        }
+
         public bool Host(int port, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
         {
             Leave("");
