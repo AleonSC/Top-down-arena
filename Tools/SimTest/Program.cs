@@ -1185,6 +1185,106 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Ability mastery: XP from use, levels give power and shorter cooldowns, level 5 unlocks a capstone.
+    static void MasteryTest(float dt)
+    {
+        var s = StartBuffed(dt, 3, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+        var host = s[0].Game;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var cast = typeof(Game).GetMethod("HostAbility", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        var hp = host.Players[1];
+        host.DevSetGod(1, true);
+        host.DevSetGod(2, true);
+        hp.Pos = s[1].Game.Players[1].Pos = new V2(600f, 450f);
+        // A frozen, unkillable dummy right next to the host.
+        Func<V2, Enemy> Dummy = at =>
+        {
+            var e = (Enemy)spawn.Invoke(host, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e6f;
+            return e;
+        };
+        foreach (var e in host.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        var dummy = Dummy(new V2(680f, 450f));
+        Action Hold = () => { foreach (var e in host.Enemies.Values) { e.FrozenT = 1f; if (e != dummy && e.Hp < 1e5f) e.Hp = 0f; } };
+        Run(s, dt, 0.3f, null, Hold);
+
+        host.GrantUpgrade(1, U("Shockwave"));
+        Run(s, dt, 0.2f);
+        int slot = Array.FindIndex(hp.Slots, sl => sl.Id == AbilityId.Shockwave);
+        Func<float> Xp = () => { float x; hp.MasteryXp.TryGetValue(AbilityId.Shockwave, out x); return x; };
+        float cd1 = host.Cooldown(hp, slot);
+        float before = dummy.Hp;
+        cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        float dmg1 = before - dummy.Hp, xpHit = Xp();
+        Run(s, dt, 0.1f, null, Hold);
+        // Cast with nothing in range: it still earns a little (instant abilities earn by what they hit).
+        hp.Pos = s[1].Game.Players[1].Pos = new V2(1400f, 800f);
+        cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        float xpMiss = Xp() - xpHit;
+        Console.WriteLine("  shockwave XP: {0:0.0} for a hit, {1:0.0} for a miss (cooldown {2:0.0}s)", xpHit, xpMiss, cd1);
+        Check(xpHit > 0f && xpMiss > 0f && xpMiss < xpHit * 0.8f, "abilities earn mastery XP, more when they land");
+
+        // Level 3: +16% damage, -8% cooldown.
+        host.GainMastery(hp, AbilityId.Shockwave, Game.MasteryXpFor[2] - Xp());
+        hp.Pos = s[1].Game.Players[1].Pos = new V2(600f, 450f);
+        Run(s, dt, 0.3f, null, Hold);
+        before = dummy.Hp;
+        cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        float dmg3 = before - dummy.Hp, cd3 = host.Cooldown(hp, slot);
+        var cp = s[1].Game.Players[1];
+        Console.WriteLine("  shockwave level {0}: damage {1:0.0} -> {2:0.0}, cooldown {3:0.00}s -> {4:0.00}s; client sees level {5}",
+            Game.MasteryLevel(hp, AbilityId.Shockwave), dmg1, dmg3, cd1, cd3, Game.MasteryLevel(cp, AbilityId.Shockwave));
+        Check(Game.MasteryLevel(hp, AbilityId.Shockwave) == 3 && Math.Abs(dmg3 / dmg1 - 1.16f) < 0.02f && Math.Abs(cd3 / cd1 - 0.92f) < 0.01f,
+            "each mastery level adds 8% potency and takes 4% off the cooldown");
+
+
+        // Capstones: Shockwave knocks back, Nova fires 48, Dash gets a charge, Mark hits three.
+        host.GainMastery(hp, AbilityId.Shockwave, 1e4f);
+        var pushed = Dummy(new V2(660f, 470f));
+        Run(s, dt, 0.3f, null, Hold);
+        V2 was = pushed.Pos;
+        cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        float shove = pushed.Pos.DistanceTo(was);
+        host.GrantUpgrade(1, U("Nova"));
+        Run(s, dt, 0.2f, null, Hold);
+        int nova = Array.FindIndex(hp.Slots, sl => sl.Id == AbilityId.Nova);
+        Func<int> NovaShots = () => host.Bullets.Values.Count(b => b.Kind == Defs.NovaShot);
+        foreach (var b in host.Bullets.Values.Where(b => b.Kind == Defs.NovaShot).ToList()) host.Bullets.Remove(b.Id);
+        cast.Invoke(host, new object[] { 1, nova, dummy.Pos, true });
+        int novaBase = NovaShots();
+        foreach (var b in host.Bullets.Values.Where(b => b.Kind == Defs.NovaShot).ToList()) host.Bullets.Remove(b.Id);
+        host.GainMastery(hp, AbilityId.Nova, 1e4f);
+        cast.Invoke(host, new object[] { 1, nova, dummy.Pos, true });
+        int novaMax = NovaShots();
+        var dp = host.Players[2];
+        int dash = Array.FindIndex(dp.Slots, sl => sl.Id == AbilityId.Dash);
+        int dashBefore = dash >= 0 ? dp.Slots[dash].MaxCharges : -1;
+        host.DevMasterAll(2);
+        Run(s, dt, 0.3f, null, Hold);
+        int dashAfter = dash >= 0 ? dp.Slots[dash].MaxCharges : -1, dashClient = dash >= 0 ? s[1].Game.Players[2].Slots[dash].MaxCharges : -1;
+        Console.WriteLine("  capstones: shockwave shoves {0:0} px, nova {1} -> {2} shots, dash charges {3} -> {4} (client {5}), {6} gold",
+            shove, novaBase, novaMax, dashBefore, dashAfter, dashClient, string.Join("/", dp.Slots.Where(sl => sl.Id != AbilityId.None).Select(sl => Game.MasteryLevel(dp, sl.Id))));
+        Check(shove > 100f && novaBase == 24 && novaMax == 48, "level 5 unlocks each ability's capstone");
+        Check(Game.MasteryLevel(cp, AbilityId.Shockwave) == 5 && host.MasteryToasts.Any(t => t.Ability == AbilityId.Shockwave && t.Level == 3)
+            && s[1].Game.MasteryToasts.Any(t => t.Ability == AbilityId.Dash && t.Level == 5),
+            "the player's own game knows the level (and shows a level-up popup)");
+        Check(dash < 0 || dashAfter == dashBefore + 1 && dashClient == dashAfter, "a mastered Dash gets an extra charge on both games");
+        Check(dp.Slots.Where(sl => sl.Id != AbilityId.None).All(sl => Game.Mastered(dp, sl.Id)), "the dev menu can master every ability");
+        Check(Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().Where(a => a != AbilityId.None).All(a => Game.Capstone(a).Length > 0), "every ability has a capstone");
+
+        // No XP between waves.
+        float xpNow = Xp();
+        host.State = MatchState.Intermission;
+        cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        Check(Xp() == xpNow, "no mastery XP outside a fight");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Spinners spray in bursts with breathers in between (they used to spray nonstop).
     static void SpinnerTest(float dt)
     {
@@ -2299,6 +2399,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "mastery")
+        {
+            MasteryTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "dev")
         {
             DevToolsTest(1f / 60f);
@@ -2341,6 +2447,7 @@ static class Program
         AimTest(dt);
         SpinnerTest(dt);
         DevToolsTest(dt);
+        MasteryTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);
         RevolverReloadTest(dt);

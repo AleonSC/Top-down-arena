@@ -138,6 +138,8 @@ namespace Arena
                     game.DevHeal(p.Id);
                 if (Ui.Button(new Rect(x + 256f, y, 100f, 28f), "Level up"))
                     game.DevLevelUp(p.Id);
+                if (Ui.Button(new Rect(x + 362f, y, 120f, 28f), "Max mastery"))
+                    game.DevMasterAll(p.Id);
                 if (Ui.Button(new Rect(x + w - 130f, y, 130f, 28f), "Reset stats", Ui.Danger))
                 {
                     game.DevResetStats(p.Id);

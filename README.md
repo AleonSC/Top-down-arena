@@ -126,6 +126,47 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites |
 | **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy |
 
+### Ability mastery
+
+Every ability (role abilities, the extra ones from upgrades, and ultimates) **levels up from 1 to 5 as you use
+it** during a run. Each cast during a fight earns XP equal to the ability's cooldown in seconds, so fast and
+slow abilities level at about the same pace. Instant abilities (Shockwave, Frost Nova, Mend Pulse, ...)
+earn by what they did: half for a cast that hit nothing, up to 1.5x for one that hit, healed or erased a
+lot. Casting between waves or with no enemies around earns nothing. Levels need 100 / 300 / 550 / 850 XP in
+total: about level 3 by wave 8-10 and level 5 by wave 20-25 if you use it whenever it's ready.
+
+- **Each level:** +8% to everything the ability does (damage, healing, shields, buff duration, and the zones,
+  minions and shots it creates) and 4% off its cooldown. Level 5 is +32% and -16%.
+- **Level 5 unlocks its capstone**, a change to how it works:
+
+| Ability | Capstone | Ability | Capstone |
+|---|---|---|---|
+| **Barrier** | Bullets that hit the barrier are reflected back as your own. | **Mend Pulse** | Also erases enemy bullets within its range. |
+| **Dash** | +1 charge. | **Shockwave** | Also knocks nearby enemies back 120 px. |
+| **Overdrive** | +1 extra projectile while it lasts. | **Blink** | Erases enemy bullets where you leave and where you land. |
+| **Nova** | Fires 48 shots instead of 24. | **Turret** | Deploys two turrets. |
+| **Roar** | Also knocks enemies within 250 px back and slows them for 2 s. | **Bulldoze** | Erases enemy bullets along the charge. |
+| **Haven** | Allies inside also take 30% less damage. | **Soul Link** | Lasts 9 s, and both of you are invulnerable for 1 s when it starts. |
+| **Cluster Grenade** | Throws a second grenade 80 px further. | **Mark for Death** | Marks the three enemies nearest your cursor. |
+| **Arcane Aegis** | Lasts 4.5 s and reflects bullets for double damage. | **Frost Nova** | Also erases enemy bullets around you. |
+| **Flame Wall** | The fire also slows enemies by 40%. | **Time Rewind** | Also erases enemy bullets around every player. |
+| **Arcane Ward** | The shield soaks 120 damage. | **Sanctify** | Also freezes enemies around you solid for 1.5 s (not bosses). |
+| **Meteor** | Leaves burning ground for 3 s. | **Blizzard** | Lasts 10 s. |
+| **Arcane Surge** | +1 extra projectile while it lasts. | **Golem Wall** | Raises five walls. |
+| **Earthquake** | Also freezes the enemies it hits for 1 s (not bosses). | **Guardian Spirit** | The guardian also heals you 6 HP/s. |
+| **Spirit Swarm** | Releases 8 sprites. | **Phoenix** | Revives at full health, and the phoenix keeps fighting. |
+| **Soul Lantern** | The lantern follows you. | **Bat Swarm** | Releases 14 bats. |
+| **Sacrifice** | Double explosion damage, and your companions return at once. | **Alpha Call** | Also summons 3 wolves for 6 s. |
+| **Fortress** | Lasts 12 s. | **Glacial Tomb** | Enemies stay frozen for 6 s and bosses take 500. |
+| **Titan** | The titan is bigger and stays for 25 s. | **Lifeline** | Everyone also gets 4 s of Overdrive. |
+| **Sanctum** | The dome is half again as wide (300 px). | **World Tree** | Lasts 16 s with 8 sprites. |
+| **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
+| **Legion** | Summons 10 wolves and 10 bats. |  |  |
+
+Your ability tiles show five pips for the level (the next one fills as it earns XP), and a popup appears when
+one levels up. In the **Tab** menu each ability shows its level; hover it to read what level 5 unlocks.
+Mastery resets each run.
+
 ## Levels and upgrades
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
@@ -264,7 +305,7 @@ rarity. The best number in each row is highlighted, with awards like **Most dama
 
 ## Loadout screen (Tab)
 
-Hold **Tab** during a match to see your stats, weapon, abilities (with charges and cooldowns) and every
+Hold **Tab** during a match to see your stats, weapon, abilities (with charges, cooldowns and mastery level) and every
 upgrade you've picked, rarest first. It only shows on your screen: the game **doesn't pause** and your
 friend isn't affected, so you can check it mid-fight (you can still move and shoot while it's up).
 
@@ -330,8 +371,9 @@ Press **F1** anywhere for the developer menu (Esc or F1 closes it):
   players back up and starts that wave after 2 s (boss waves show which boss you'll get).
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Edited stats show in gold, are sent to every player's game, and stay on top of upgrades they pick later;
-  **Reset stats** goes back to what their upgrades give. Also **God mode** (takes no damage), **Full heal**
-  and **Level up** (an extra upgrade pick). Joining players can see everyone's stats but not change them.
+  **Reset stats** goes back to what their upgrades give. Also **God mode** (takes no damage), **Full heal**,
+  **Level up** (an extra upgrade pick) and **Max mastery** (every ability they have to level 5).
+  Joining players can see everyone's stats but not change them.
 
 ### Session recording (for balancing)
 
@@ -376,6 +418,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `StatSheet.cs`: the stats shown beside the upgrade cards
   - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
   - `Ultimates.cs`: the nine ultimates
+  - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport

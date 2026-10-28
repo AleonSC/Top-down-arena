@@ -24,10 +24,14 @@ namespace Arena
         {
             if (target.Downed || amount <= 0f)
                 return 0f;
+            if (casting)
+                amount *= castPower;
             float applied = Math.Min(amount, target.MaxHp - target.Hp);
             if (applied <= 0f)
                 return 0f;
             target.Hp += applied;
+            if (casting)
+                castHits++;
             if (source != null)
                 source.Run.HealingDone += applied;
             Recorder?.Healed(source, applied);

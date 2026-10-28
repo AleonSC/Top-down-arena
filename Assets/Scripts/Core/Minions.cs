@@ -153,12 +153,15 @@ namespace Arena
         {
             var s = p.Stats;
             float dmg = s.DmgMult;
+            bool cap = castMastered;
+            float pw = castPower;
             switch (id)
             {
                 // Mage
                 case AbilityId.ArcaneAegis:
-                    p.AegisT = 3f;
-                    p.AegisHp = AegisCapacity;
+                    p.AegisT = cap ? 4.5f : 3f;
+                    p.AegisHp = AegisCapacity * pw;
+                    p.AegisReflectMult = pw * (cap ? 2f : 1f);
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.ArcaneShot), 50f, 0.4f, Sfx.Ability);
                     break;
                 case AbilityId.FrostNova:
@@ -170,10 +173,12 @@ namespace Arena
                         e.SlowT = 3f;
                         e.SlowMult = 0.1f;  // nearly frozen
                     }
+                    if (cap)
+                        EraseEnemyBullets(p.Pos, 220f);
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 220f, 0.5f, Sfx.Freeze);
                     break;
                 case AbilityId.FlameWall:
-                    AddZone(ZoneKind.FlameWall, p, target, 90f, 5f);
+                    AddZone(ZoneKind.FlameWall, p, target, 90f, 5f).ExtraSlow = cap ? 0.4f : 0f;
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.FlameWall).Color, 90f, 0.4f, Sfx.SpellFire);
                     break;
                 case AbilityId.TimeRewind:
@@ -191,6 +196,10 @@ namespace Arena
                         }
                         else if (!q.Downed)
                             q.Hp = Math.Max(q.Hp, Math.Min(q.MaxHp, hpThen));
+                        if (!q.Downed)
+                            castHits++;
+                        if (cap)
+                            EraseEnemyBullets(q.Pos, 200f);
                         BroadcastFx(FxKind.Ring, q.Pos, Defs.BulletColor(Defs.ArcaneShot), 60f, 0.6f, Sfx.None);
                     }
                     Sounds.Add(Sfx.Ability);
@@ -199,45 +208,41 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
                         {
-                            q.ShieldHp = 60f;
+                            q.ShieldHp = (cap ? 120f : 60f) * pw;
                             q.ShieldT = 8f;
+                            castHits++;
                         }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
                     break;
                 case AbilityId.Sanctify:
                 {
-                    var erase = new List<int>();
-                    foreach (var b in Bullets.Values)
-                        if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(p.Pos) < 280f)
-                            erase.Add(b.Id);
-                    foreach (int bid in erase)
-                    {
-                        Bullets.Remove(bid);
-                        pendingRemoved.Add(bid);
-                    }
+                    EraseEnemyBullets(p.Pos, 280f);
                     foreach (var q in Players.Values)
                         if (q.Pos.DistanceTo(p.Pos) < 280f)
                             Heal(q, 25f, p);
+                    if (cap)
+                        Freeze(p.Pos, 280f, 1.5f);
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.HolyShot), 280f, 0.5f, Sfx.SpellHoly);
                     break;
                 }
                 case AbilityId.Meteor:
-                    AddZone(ZoneKind.Meteor, p, target, 120f, 0.9f);  // the zone is the warning; it hits when it expires
+                    AddZone(ZoneKind.Meteor, p, target, 120f, 0.9f).Embers = cap;  // the zone is the warning; it hits when it expires
                     Sounds.Add(Sfx.SpellFire);
                     break;
                 case AbilityId.Blizzard:
-                    AddZone(ZoneKind.Blizzard, p, target, 130f, 5f);
+                    AddZone(ZoneKind.Blizzard, p, target, 130f, cap ? 10f : 5f);
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.Blizzard).Color, 130f, 0.4f, Sfx.Freeze);
                     break;
                 case AbilityId.ArcaneSurge:
-                    p.SurgeT = 5f;
+                    p.SurgeT = 5f * pw;
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.ArcaneShot), 70f, 0.4f, Sfx.Ability);
                     break;
                 // Summoner
                 case AbilityId.GolemWall:
                 {
                     V2 fwd = V2.FromAngle(p.Aim), side = fwd.Orthogonal();
-                    for (int i = -1; i <= 1; i++)
+                    int half = cap ? 2 : 1;
+                    for (int i = -half; i <= half; i++)
                         SpawnMinion(MinionKind.Wall, p, p.Pos + fwd * 90f + side * (i * 55f), 6f);
                     Sounds.Add(Sfx.Summon);
                     break;
@@ -258,6 +263,8 @@ namespace Arena
                                 HurtEnemy(e, 40f * dmg, p.Id);
                                 e.SlowT = Math.Max(e.SlowT, 2f);
                                 e.SlowMult = Math.Min(e.SlowMult, 0.5f);
+                                if (cap)
+                                    Freeze(e.Pos, 0f, 1f);
                                 break;
                             }
                     }
@@ -267,27 +274,33 @@ namespace Arena
                     break;
                 }
                 case AbilityId.GuardianSpirit:
-                    SpawnMinion(MinionKind.Guardian, p, p.Pos, 8f);
+                    SpawnMinion(MinionKind.Guardian, p, p.Pos, 8f);  // mastered: also heals you (TickMinions)
                     Sounds.Add(Sfx.Summon);
                     break;
                 case AbilityId.SpiritSwarm:
-                    for (int i = 0; i < 5; i++)
-                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / 5f) * 20f, 6f).HealRate = 10f;
+                {
+                    int sprites = cap ? 8 : 5;
+                    for (int i = 0; i < sprites; i++)
+                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / sprites) * 20f, 6f).HealRate = 10f * pw;
                     Sounds.Add(Sfx.Summon);
                     break;
+                }
                 case AbilityId.Phoenix:
                     SpawnMinion(MinionKind.Phoenix, p, p.Pos, 10f);
                     Sounds.Add(Sfx.Summon);
                     break;
                 case AbilityId.SoulLantern:
-                    AddZone(ZoneKind.Lantern, p, p.Pos, 120f, 5f);
+                    AddZone(ZoneKind.Lantern, p, p.Pos, 120f, 5f).Follow = cap;
                     BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Lantern).Color, 120f, 0.5f, Sfx.Ability);
                     break;
                 case AbilityId.BatSwarm:
-                    for (int i = 0; i < 8; i++)
-                        SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / 8f) * 15f, 6f);
+                {
+                    int bats = cap ? 14 : 8;
+                    for (int i = 0; i < bats; i++)
+                        SpawnMinion(MinionKind.Bat, p, p.Pos + V2.FromAngle(MathX.Tau * i / bats) * 15f, 6f);
                     Sounds.Add(Sfx.Summon);
                     break;
+                }
                 case AbilityId.Sacrifice:
                 {
                     var mine = new List<Minion>();
@@ -295,12 +308,15 @@ namespace Arena
                         if (m.Owner == p.Id)
                             mine.Add(m);
                     foreach (var m in mine)
-                        ExplodeMinion(m, 60f * dmg, 90f);
-                    p.CompanionCd = 3f;
+                        ExplodeMinion(m, 60f * dmg * (cap ? 2f : 1f), 90f);
+                    p.CompanionCd = cap ? 0f : 3f;
                     break;
                 }
                 case AbilityId.AlphaCall:
-                    p.FrenzyT = 6f;
+                    p.FrenzyT = 6f * pw;
+                    if (cap)
+                        for (int i = 0; i < 3; i++)
+                            SpawnMinion(MinionKind.Wolf, p, p.Pos + V2.FromAngle(MathX.Tau * i / 3f) * 30f, 6f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 120f, 0.4f, Sfx.Roar);
                     break;
                 default:
@@ -321,6 +337,13 @@ namespace Arena
             m.Disp = m.Pos;
             m.HealRate = m.Def.HealRate;
             m.BlockHp = m.Def.BlockCapacity;
+            if (casting)
+            {
+                m.Power = castPower;
+                m.Mastered = castMastered;
+                m.HealRate *= castPower;
+                m.BlockHp *= castPower;
+            }
             Minions[m.Id] = m;
             return m;
         }
@@ -429,7 +452,7 @@ namespace Arena
                 bool frenzy = owner.FrenzyT > 0f;
                 float speed = d.Speed * (frenzy ? 1.6f : 1f);
                 float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
-                float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale;
+                float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
@@ -536,19 +559,23 @@ namespace Arena
                 }
 
                 // The phoenix trades itself to bring back a downed ally.
+                // Mastered, it revives them at full health and keeps fighting.
+                if (m.Kind == MinionKind.Guardian && m.Mastered)
+                    Heal(owner, 6f * m.Power * dt, owner);
                 if (m.Kind == MinionKind.Phoenix)
                     foreach (var q in Players.Values)
                         if (q.Downed)
                         {
-                            RevivePlayer(q, 0.5f, owner);
+                            RevivePlayer(q, m.Mastered ? 1f : 0.5f, owner);
                             BroadcastFx(FxKind.Ring, q.Pos, d.Color, 90f, 0.6f, Sfx.Revive);
-                            expired.Add(m);
+                            if (!m.Mastered)
+                                expired.Add(m);
                             break;
                         }
             }
             foreach (var m in exploding)
                 if (Minions.ContainsKey(m.Id))
-                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m), m.Def.Range);
+                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power, m.Def.Range);
             foreach (var m in expired)
                 Minions.Remove(m.Id);
         }
@@ -597,6 +624,12 @@ namespace Arena
         {
             var z = new Zone { Id = nextZoneId++, Kind = kind, Owner = owner.Id, Pos = pos, Radius = radius, Duration = duration, T = duration, DmgMult = owner.Stats.DmgMult };
             z.BlockHp = z.Def.BlockCapacity;
+            if (casting)
+            {
+                z.DmgMult *= castPower;
+                z.HealMult = castPower;
+                z.BlockHp *= castPower;
+            }
             Zones[z.Id] = z;
             return z;
         }
@@ -608,6 +641,9 @@ namespace Arena
             {
                 var d = z.Def;
                 z.T -= dt;
+                Player follow;
+                if (z.Follow && Players.TryGetValue(z.Owner, out follow))
+                    z.Pos = follow.Pos;
                 if (z.T <= 0f)
                 {
                     expired.Add(z);
@@ -623,19 +659,20 @@ namespace Arena
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)
-                        Heal(q, d.HealRate * dt, PlayerOrNull(z.Owner));
+                        Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
                 }
-                if (d.Dps > 0f || d.Slow > 0f)
+                if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(z.Pos) > z.Radius + e.Radius)
                             continue;
                         if (d.Dps > 0f)
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
-                        if (d.Slow > 0f)
+                        float slow = Math.Max(d.Slow, z.ExtraSlow);
+                        if (slow > 0f)
                         {
                             e.SlowT = Math.Max(e.SlowT, 0.3f);
-                            e.SlowMult = Math.Min(e.SlowMult, 1f - d.Slow);
+                            e.SlowMult = Math.Min(e.SlowMult, 1f - slow);
                         }
                     }
             }
@@ -647,6 +684,14 @@ namespace Arena
                         if (e.SpawnT <= 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
                             HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
                     BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.BigExplode);
+                    Player caster;
+                    if (z.Embers && Players.TryGetValue(z.Owner, out caster))
+                    {
+                        // A mastered Meteor leaves burning ground (it doesn't block bullets).
+                        var burn = AddZone(ZoneKind.FlameWall, caster, z.Pos, 60f, 3f);
+                        burn.DmgMult = z.DmgMult;
+                        burn.BlockHp = 0f;
+                    }
                 }
                 Zones.Remove(z.Id);
             }

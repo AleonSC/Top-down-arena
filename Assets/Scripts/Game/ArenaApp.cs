@@ -1856,7 +1856,20 @@ namespace Arena
                     state = slot.Charges + "/" + slot.MaxCharges + " charges" + (slot.Charges < slot.MaxCharges ? "  ·  " + Mathf.CeilToInt(slot.Timer) + "s" : "");
                 Ui.Label(new Rect(tile.x + 8f, tile.y + 8f, tile.width - 16f, 18f), state, 12, slot.Charges > 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight, true);
                 bool bonus = i >= 1 && i <= Upgrades.BonusSlots;
-                Ui.Label(new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), 30f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                // Mastery: level pips by the name; hovering the tile shows what level 5 unlocks.
+                int level = Game.MasteryLevel(me, slot.Id);
+                float xp;
+                me.MasteryXp.TryGetValue(slot.Id, out xp);
+                float capW = 12f + (ult ? "ULT · F" : SlotKeys[i]).Length * 6.5f;  // same width DrawKeyCap uses
+                DrawMasteryPips(new Rect(tile.x + 18f + capW, tile.y + 14f, 0f, 6f), level, Game.MasteryProgress(xp));
+                Ui.Label(new Rect(tile.x + 18f + capW + 68f, tile.y + 8f, 70f, 18f), level >= Game.MasteryMax ? "MASTERED" : "Lv " + level, 10,
+                    level >= Game.MasteryMax ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+                bool hover = tile.Contains(Event.current.mousePosition);
+                var descR = new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), 30f);
+                if (hover || level >= Game.MasteryMax)
+                    Ui.Label(descR, (level >= Game.MasteryMax ? "" : "At Lv 5: ") + Game.Capstone(slot.Id), 11, level >= Game.MasteryMax ? Ui.Gold : new Color(0.75f, 0.85f, 1f), TextAnchor.UpperLeft, false, true);
+                else
+                    Ui.Label(descR, a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
                 if (bonus)  // move it to another key (swaps with whatever is there)
                 {
                     Ui.Label(new Rect(tile.xMax - 122f, tile.y + 30f, 114f, 14f), "MOVE TO", 9, Ui.Muted, TextAnchor.MiddleRight, true);
@@ -2400,6 +2413,47 @@ namespace Arena
                 if (slot.MaxCharges > 1)
                     for (int k = 0; k < slot.MaxCharges; k++)
                         Ui.Pill(new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f), k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
+                float xp;
+                me.MasteryXp.TryGetValue(slot.Id, out xp);
+                DrawMasteryPips(new Rect(r.x + 8f, r.yMax - 17f, 0f, 4f), Game.MasteryLevelFor(xp), Game.MasteryProgress(xp));
+            }
+            DrawMasteryToasts(x0 + total / 2f, y - 64f);
+        }
+
+        /// Five small bars for an ability's mastery level; the next one fills as it earns XP.
+        void DrawMasteryPips(Rect r, int level, float progress)
+        {
+            bool max = level >= Game.MasteryMax;
+            Color on = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
+            for (int k = 0; k < Game.MasteryMax; k++)
+            {
+                var pip = new Rect(r.x + k * 13f, r.y, 10f, r.height);
+                Ui.Fill(pip, new Color(1f, 1f, 1f, 0.22f));
+                if (k < level)
+                    Ui.Fill(pip, on);
+                else if (k == level && progress > 0f)
+                    Ui.Fill(new Rect(pip.x, pip.y, pip.width * progress, pip.height), new Color(on.r, on.g, on.b, 0.55f));
+            }
+        }
+
+        /// "Barrier · Mastery 3" when one of your abilities levels up.
+        void DrawMasteryToasts(float cx, float y)
+        {
+            var toasts = game.MasteryToasts;
+            for (int i = toasts.Count - 1; i >= 0; i--)
+            {
+                toasts[i].T -= Time.unscaledDeltaTime;
+                if (toasts[i].T <= 0f)
+                    toasts.RemoveAt(i);
+            }
+            for (int i = 0; i < toasts.Count && i < 3; i++)
+            {
+                var t = toasts[toasts.Count - 1 - i];
+                bool max = t.Level >= Game.MasteryMax;
+                float a = Mathf.Clamp01(t.T / 0.5f);
+                string text = Upgrades.Ability(t.Ability).Name + (max ? "  MASTERED: " + Game.Capstone(t.Ability) : "  ·  Mastery " + t.Level);
+                var c = max ? Ui.Gold : new Color(0.6f, 0.85f, 1f);
+                Ui.Shadowed(new Rect(cx - 400f, y - i * 22f, 800f, 20f), text, max ? 15 : 14, new Color(c.r, c.g, c.b, a), TextAnchor.MiddleCenter);
             }
         }
 

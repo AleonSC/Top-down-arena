@@ -72,6 +72,9 @@ namespace Arena
         public float ParryBumpT;               // host: a melee hit on the shield counts once per bump
         public bool ParryActive => Parrying && ParryBroken <= 0f && !Downed;
         public float BarrierHp, BarrierMax, AegisHp;  // damage the Barrier / Aegis can still soak (host)
+        public bool BarrierReflect;                   // host: a mastered Barrier sends bullets back
+        public float AegisReflectMult = 1f;           // host: a mastered Aegis reflects twice as hard
+        public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
@@ -176,6 +179,11 @@ namespace Arena
         public V2 Pos;
         public float Radius, T, Duration;
         public float DmgMult = 1f;  // host: owner's damage multiplier when cast
+        public float HealMult = 1f; // host: the casting ability's mastery
+        public float ExtraSlow;     // host: mastered Flame Wall also slows
+        public bool Follow;         // host: mastered Soul Lantern moves with its owner
+        public float DamageCut;     // host: mastered Haven: allies inside take less damage
+        public bool Embers;         // host: a mastered Meteor leaves burning ground
         public float BlockHp;       // host: damage it can still soak (blocking zones)
         public float GuardFrac;     // replicated BlockHp fraction, for drawing
         public ZoneDef Def => Kits.Get(Kind);
@@ -194,6 +202,8 @@ namespace Arena
         public float GuardFrac = 1f;     // replicated: 0 while staggered or broken
         public bool Companion;
         public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
+        public float Power = 1f;         // host: mastery of the ability that summoned it
+        public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
     }
 
@@ -532,7 +542,8 @@ namespace Arena
             for (int i = 0; i < ids.Length; i++)
             {
                 var slot = p.Slots[i];
-                int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges);
+                int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
+                    + (ids[i] == AbilityId.Dash && Mastered(p, AbilityId.Dash) ? 1 : 0);
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
                 {
@@ -566,8 +577,8 @@ namespace Arena
             if (id == AbilityId.None)
                 return 1f;
             if (slot == Upgrades.UltSlot)
-                return Upgrades.Ability(id).Cooldown;  // ultimates ignore cooldown upgrades
-            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult;
+                return Upgrades.Ability(id).Cooldown * MasteryCooldown(p, id);  // ultimates ignore cooldown upgrades
+            float cd = Upgrades.Ability(id).Cooldown * p.Stats.CdMult * MasteryCooldown(p, id);
             if (id == AbilityId.Dash)
                 cd *= p.Stats.DashCdMult;
             return cd;
@@ -1271,7 +1282,8 @@ namespace Arena
         }
 
         /// Extra projectiles from upgrades, plus two during Bullet Storm.
-        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? 2 : 0);
+        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
+            + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0) + (p.SurgeT > 0f && Mastered(p, AbilityId.ArcaneSurge) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol) -------------------------------------------
 
@@ -1543,22 +1555,38 @@ namespace Arena
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;
-            Recorder?.AbilityUsed(p, p.Slots[slot].Id);
+            var id0 = p.Slots[slot].Id;
+            Recorder?.AbilityUsed(p, id0);
+            bool hadTargets = State == MatchState.Fighting && AnyTarget();
+            BeginCast(p, id0);
+            CastAbility(p, slot, target);
+            EndCast(p, slot, id0, hadTargets);
+        }
+
+        /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
+        /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
+        void CastAbility(Player p, int slot, V2 target)
+        {
             var s = p.Stats;
+            bool cap = castMastered;
+            float pw = castPower;
             switch (p.Slots[slot].Id)
             {
                 case AbilityId.Barrier:
                     p.BarrierT = BarrierTime + s.BarrierBonusTime;
-                    p.BarrierMax = p.BarrierHp = BarrierCapacity * s.BarrierCapacityMult;
+                    p.BarrierMax = p.BarrierHp = BarrierCapacity * s.BarrierCapacityMult * pw;
+                    p.BarrierReflect = cap;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Ability);
                     break;
                 case AbilityId.Roar:
-                    p.TauntT = RoarTime + s.RoarBonusTime;
+                    p.TauntT = (RoarTime + s.RoarBonusTime) * pw;
                     foreach (var e in Enemies.Values)
                     {
                         e.TargetId = p.Id;
                         e.RetargetT = p.TauntT;
                     }
+                    if (cap)
+                        Knockback(p.Pos, 250f, 120f, 2f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.45f, 0.3f), 320f, 0.5f, Sfx.Roar);
                     break;
                 case AbilityId.Bulldoze:
@@ -1583,18 +1611,22 @@ namespace Arena
                             e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir.Orthogonal() : away) * 70f, e.Radius);
                         }
                     }
+                    if (cap)
+                        EraseAlong(from, target, 60f);
                     BroadcastFx(FxKind.Ring, target, new Rgba(0.5f, 0.75f, 1f), 60f, 0.35f, Sfx.Blink);
                     break;
                 }
                 case AbilityId.Haven:
                 {
                     var z = AddZone(ZoneKind.Haven, p, p.Pos, HavenRadius * s.HavenRadiusMult, HavenTime + s.HavenBonusTime);
+                    if (cap)
+                        z.DamageCut = 0.3f;
                     BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.Ability);
                     break;
                 }
                 case AbilityId.SoulLink:
                 {
-                    p.LinkT = LinkTime;
+                    p.LinkT = (cap ? 9f : LinkTime) * pw;
                     p.LinkTo = p.Id;
                     // Link to the nearest ally who's still standing (or any ally, if all are down).
                     Player best = null;
@@ -1604,6 +1636,10 @@ namespace Arena
                             best = q;
                     if (best != null)
                         p.LinkTo = best.Id;
+                    if (cap)
+                        foreach (var q in new[] { p, best })
+                            if (q != null && !q.Downed)
+                                q.InvulnT = Math.Max(q.InvulnT, 1f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 1f, 0.9f), 60f, 0.4f, Sfx.Ability);
                     break;
                 }
@@ -1613,18 +1649,32 @@ namespace Arena
                     var g = SpawnBullet(Defs.GrenadeShot, p.Pos, vel, 0f, GrenadeFlight, GrenadeDamage * s.DmgMult, p.Id);
                     g.Splash = GrenadeRadius * s.GrenadeRadiusMult;
                     g.Burst = 8 + s.GrenadeExtraShrapnel;
+                    if (cap)
+                    {
+                        // A second grenade lands 80 px past the first.
+                        V2 far = target + (target - p.Pos).Normalized() * 80f;
+                        var g2 = SpawnBullet(Defs.GrenadeShot, p.Pos, (far - p.Pos) / GrenadeFlight, 0f, GrenadeFlight, GrenadeDamage * s.DmgMult, p.Id);
+                        g2.Splash = g.Splash;
+                        g2.Burst = g.Burst;
+                    }
                     break;
                 }
                 case AbilityId.Mark:
                 {
-                    Enemy best = null;
-                    foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
-                            best = e;
-                    if (best != null)
+                    // The enemy nearest the cursor (the three nearest once mastered).
+                    var marked = new List<Enemy>();
+                    for (int n = 0; n < (cap ? 3 : 1); n++)
                     {
+                        Enemy best = null;
+                        foreach (var e in Enemies.Values)
+                            if (e.SpawnT <= 0f && !marked.Contains(e) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
+                                best = e;
+                        if (best == null)
+                            break;
+                        marked.Add(best);
                         best.MarkT = MarkTime;
-                        best.MarkMult = 1.5f + s.MarkBonus;
+                        best.MarkMult = 1f + (0.5f + s.MarkBonus) * pw;
+                        castHits++;
                         BroadcastFx(FxKind.Ring, best.Pos, new Rgba(1f, 0.25f, 0.25f), best.Radius + 30f, 0.5f, Sfx.Ability);
                     }
                     break;
@@ -1645,47 +1695,56 @@ namespace Arena
                         else
                             Heal(q, PulseHeal * s.PulseHealMult, p);
                     }
+                    if (cap)
+                        EraseEnemyBullets(p.Pos, range);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.4f, 1f, 0.55f), range, 0.6f, Sfx.Ability);
                     break;
                 }
                 case AbilityId.Shockwave:
                 {
-                    var erase = new List<int>();
-                    foreach (var b in Bullets.Values)
-                        if (Defs.IsEnemyShot(b.Kind) && b.Pos.DistanceTo(p.Pos) < ShockwaveRange)
-                            erase.Add(b.Id);
-                    foreach (int bid in erase)
-                    {
-                        Bullets.Remove(bid);
-                        pendingRemoved.Add(bid);
-                    }
+                    EraseEnemyBullets(p.Pos, ShockwaveRange);
                     foreach (var e in Enemies.Values)
                     {
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > ShockwaveRange + e.Radius)
                             continue;
                         HurtEnemy(e, ShockwaveDamage * s.DmgMult, p.Id);
                     }
+                    if (cap)
+                        Knockback(p.Pos, ShockwaveRange, 120f, 0f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.9f, 0.5f), ShockwaveRange, 0.45f, Sfx.Shockwave);
                     break;
                 }
                 case AbilityId.Overdrive:
-                    p.OverdriveT = OverdriveTime;
+                    p.OverdriveT = OverdriveTime * pw;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.4f, 0.3f), 60f, 0.4f, Sfx.Ability);
                     break;
                 case AbilityId.Blink:
                     p.InvulnT = Math.Max(p.InvulnT, 0.3f);
+                    if (cap)
+                    {
+                        EraseEnemyBullets(p.Pos, 120f);
+                        EraseEnemyBullets(target, 120f);
+                    }
                     BroadcastFx(FxKind.Ring, target, new Rgba(0.7f, 0.6f, 1f), 40f, 0.35f, Sfx.Blink);
                     break;
                 case AbilityId.Nova:
-                    for (int i = 0; i < 24; i++)
+                    int novaShots = cap ? 48 : 24;
+                    for (int i = 0; i < novaShots; i++)
                     {
-                        V2 dir = V2.FromAngle(p.Aim + MathX.Tau * i / 24f);
+                        V2 dir = V2.FromAngle(p.Aim + MathX.Tau * i / novaShots);
                         SpawnBullet(Defs.NovaShot, p.Pos + dir * p.Def.BodyR, dir * 480f, 0f, 1.2f, 22f * s.DmgMult, p.Id);
                     }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.95f, 0.8f, 1f), 50f, 0.3f, Sfx.Ability);
                     break;
                 case AbilityId.Turret:
-                    SpawnMinion(MinionKind.Turret, p, p.Pos, TurretTime);
+                    if (cap)
+                    {
+                        V2 side = V2.FromAngle(p.Aim).Orthogonal() * 30f;
+                        SpawnMinion(MinionKind.Turret, p, p.Pos + side, TurretTime);
+                        SpawnMinion(MinionKind.Turret, p, p.Pos - side, TurretTime);
+                    }
+                    else
+                        SpawnMinion(MinionKind.Turret, p, p.Pos, TurretTime);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 0.95f, 1f), 40f, 0.35f, Sfx.Ability);
                     break;
                 default:
@@ -1707,6 +1766,11 @@ namespace Arena
                 if (q.LinkT > 0f && q.LinkTo == p.Id && q != p)
                     amount *= 0.5f;  // a healer's Soul Link halves the damage
             amount *= p.Stats.DamageTaken;
+            float cut = 0f;
+            foreach (var z in Zones.Values)
+                if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
+                    cut = Math.Max(cut, z.DamageCut);
+            amount *= 1f - cut;  // a mastered Haven
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
@@ -1844,7 +1908,7 @@ namespace Arena
                 homing = Math.Max(homing, p.Stats.Homing);
             }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
-            b.Dmg = dmg;
+            b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
             {
                 if (modded)
@@ -2166,7 +2230,7 @@ namespace Arena
                         }
                         if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
                         {
-                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });  // Arcane Aegis
+                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult });  // Arcane Aegis
                             scratchIds.Add(b.Id);
                             p.AegisHp -= BlockerWear(b);
                             if (p.AegisHp <= 0f)
@@ -2176,6 +2240,8 @@ namespace Arena
                         if (blockable && p.BarrierT > 0f && Enters(b, p.Pos, p.BarrierRadius))
                         {
                             scratchIds.Add(b.Id);
+                            if (p.BarrierReflect)
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id });
                             p.BarrierHp -= BlockerWear(b);
                             if (p.BarrierHp <= 0f)
                             {
@@ -2338,6 +2404,11 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
+            if (casting)
+            {
+                dmg *= castPower;
+                castHits++;
+            }
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
             if (Hungry(e))
@@ -2631,6 +2702,7 @@ namespace Arena
                     w.Write((byte)s.Charges);
                     w.Write(s.Timer);
                 }
+                WriteMastery(w, p);
             }
             w.Write((short)Enemies.Count);
             foreach (var e in Enemies.Values)
@@ -2832,6 +2904,9 @@ namespace Arena
                     charges[k] = r.ReadByte();
                     timers[k] = r.ReadSingle();
                 }
+                Player mp;
+                Players.TryGetValue(id, out mp);
+                ReadMastery(r, mp);
 
                 Player p;
                 if (!Players.TryGetValue(id, out p))
