@@ -156,8 +156,9 @@ side (including the red aimed shots that barriers can't stop) and melee enemies 
 them back. While it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and
 can't be raised for 3 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**:
 for the first instant after raising it, blocked bullets are sent back at enemies and cost nothing (it has to
-have been down for half a second, so you can't spam it). The meter left of your abilities shows how much it
-has left. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
+have been down for half a second, so you can't spam it). A thin blue bar curving around the shield shows how much
+it has left, shrinking toward your aim as it wears and blinking red when it's nearly gone; when it breaks it
+cracks and shatters, and while it's lowered a faint bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
 Parry upgrades show up like any other card:
 

@@ -161,6 +161,8 @@ namespace Arena
             else if (p.ParryBroken > 0f && !p.Downed)  // broken: cracked pieces until it's back
                 for (int k = 0; k < 3; k++)
                     Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.45f, 0.45f, 0.35f), 4, p.Aim - 0.8f + k * 0.6f, 0.35f);
+            else if (p.Id == game.MyId && p.ParryHp < Game.ParryMax(p))  // lowered and refilling: your own gauge, faintly
+                DrawParryGauge(p, t, 0.4f);
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)  // golden bulwark
             {
                 Circle(p.Disp, p.Def.BodyR + 16f, new Rgba(1f, 0.8f, 0.35f, 0.15f), 32);
@@ -172,19 +174,34 @@ namespace Arena
                     Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
         }
 
-        /// The parry shield: an arc toward the cursor that dims as it wears.
+        /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.
         void DrawParryShield(Player p, float t)
         {
-            float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
             float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
             var sc = new Rgba(0.55f, 0.9f, 1f);
             float from = p.Aim - Game.ParryArc(p), span = Game.ParryArc(p) * 2f;
-            Arc(p.Disp, rr, 14f, sc.WithAlpha(0.3f + 0.25f * hp), 20, from, span);            // the shield's face
-            Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.7f + 0.3f * hp), 20, from, span);  // bright rim
+            Arc(p.Disp, rr, 14f, sc.WithAlpha(0.45f), 20, from, span);                          // the shield's face
+            Arc(p.Disp, rr + 7f, 4f, sc.Mix(Rgba.White, 0.6f).WithAlpha(0.95f), 20, from, span);  // bright rim
             for (int k = 0; k <= 1; k++)  // end caps
                 Circle(p.Disp + V2.FromAngle(from + span * k) * (rr + 2f), 4f, sc.Mix(Rgba.White, 0.4f), 8);
-            if (hp < 0.35f && MathX.Fmod(t, 0.2f) < 0.1f)  // about to break
-                Arc(p.Disp, rr + 7f, 4f, new Rgba(1f, 0.4f, 0.4f, 0.9f), 20, from, span);
+            DrawParryGauge(p, t, 1f);
+        }
+
+        /// The parry's durability: a thin blue bar just outside the shield's rim that shrinks toward your aim
+        /// as it wears, blinking red when nearly broken. Faint (alpha below 1) while the shield is lowered.
+        void DrawParryGauge(Player p, float t, float alpha)
+        {
+            float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
+            float rad = p.Def.BodyR + Game.ParryReach * 0.55f + 12.5f, half = Game.ParryArc(p);
+            var gc = new Rgba(0.37f, 0.71f, 1f);
+            var warn = new Rgba(1f, 0.42f, 0.42f);
+            Arc(p.Disp, rad, 4f, new Rgba(0.02f, 0.03f, 0.07f, 0.55f * alpha), 20, p.Aim - half, half * 2f);  // dark backing
+            Arc(p.Disp, rad, 2.5f, gc.WithAlpha(0.18f * alpha), 20, p.Aim - half, half * 2f);                // empty track
+            if (hp <= 0f)
+                return;
+            bool low = hp < 0.35f && alpha >= 1f;
+            Rgba c = low ? (MathX.Fmod(t, 0.2f) < 0.1f ? warn : gc.Mix(warn, 0.35f)) : gc;
+            Arc(p.Disp, rad, 2.5f, c.WithAlpha(0.95f * alpha), 20, p.Aim - half * hp, half * 2f * hp);
         }
 
         /// Players' big shots (kinds below Defs.SmallShot), drawn under enemies.
@@ -430,7 +447,92 @@ namespace Arena
                 case FxKind.Bolt:
                     DrawBoltFx(fx, f);
                     break;
+                case FxKind.Shatter:
+                    DrawShatterFx(fx, f);
+                    break;
             }
+        }
+
+        /// A parry shield breaking: cracks flash across it, then it bursts into jagged pieces with sparks.
+        /// The pieces come from a generator seeded by where it broke, so everyone sees the same burst.
+        void DrawShatterFx(Effect fx, float f)
+        {
+            V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;
+            float aim = mid.Angle, rr = mid.Length, half = fx.Radius, from = aim - half, span = half * 2f;
+            float r0 = rr - 7f, r1 = rr + 9f;
+            uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663) | 1u;
+            Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
+            const float crackEnd = 0.18f;
+            if (f < crackEnd)  // the shield whitens and cracks run across it
+            {
+                float k = f / crackEnd;
+                Arc(c, rr, 14f, fx.Color.Mix(Rgba.White, 0.5f).WithAlpha(0.6f), 20, from, span);
+                Arc(c, rr + 7f, 4f, Rgba.White.WithAlpha(0.95f), 20, from, span);
+                for (int n = 0; n < 5; n++)
+                {
+                    float a = from + span * (0.1f + 0.8f * rnd()), rad = r1 + 1f;
+                    V2 prev = c + V2.FromAngle(a) * rad;
+                    for (int s = 1; s <= 3; s++)
+                    {
+                        rad = r1 + 1f - (r1 - r0 + 2f) * s / 3f * Mathf.Min(1f, k * 1.4f);
+                        a += (rnd() - 0.5f) * 0.25f;
+                        V2 next = c + V2.FromAngle(a) * rad;
+                        Line(prev, next, 1.6f, Rgba.White.WithAlpha(0.6f + 0.4f * k));
+                        prev = next;
+                    }
+                }
+                return;
+            }
+            float g = (f - crackEnd) / (1f - crackEnd);
+            float e = 1f - (float)Math.Pow(1f - g, 2.6f), fade = Mathf.Max(0f, 1f - (float)Math.Pow(g, 1.4f));
+            Circle(c + V2.FromAngle(aim) * rr, (r1 - r0) * (0.4f + 0.5f * e), new Rgba(0.67f, 0.9f, 1f, 0.3f * (1f - g) * (1f - g)), 20);  // burst glow
+            var bright = fx.Color.Mix(Rgba.White, 0.7f).WithAlpha(fade);
+            for (int n = 0; n < 10; n++)  // sparks
+            {
+                V2 d = V2.FromAngle(aim + (rnd() - 0.5f) * span * 1.3f);
+                V2 tip = c + d * (rr + (40f + 50f * rnd()) * e);
+                Line(tip - d * 7f * (1f - g), tip, 2f, bright);
+            }
+            const int pieces = 9;
+            var edges = new float[pieces + 1];
+            for (int i = 1; i < pieces; i++)
+                edges[i] = (i + (rnd() - 0.5f) * 0.6f) / pieces;
+            edges[pieces] = 1f;
+            for (int i = 0; i < pieces; i++)
+            {
+                float a0 = from + span * edges[i] + 0.02f, a1 = from + span * edges[i + 1] - 0.02f;
+                float speed = 40f + 25f * rnd(), spin = (rnd() - 0.5f) * 5f;
+                V2 off = V2.FromAngle((a0 + a1) / 2f + (rnd() - 0.5f) * 0.4f) * (speed * e);
+                DrawShieldPiece(c, a0, a1, r0 + 2f * rnd(), r1 - 2f * rnd(), off, spin * e, (a1 - a0) * 0.25f, fx.Color.WithAlpha(0.55f * fade), bright);
+            }
+        }
+
+        /// One curved piece of a broken shield (angles a0..a1, radii r0..r1, pointed sides), moved by off and
+        /// turned by rot around its own middle.
+        void DrawShieldPiece(V2 c, float a0, float a1, float r0, float r1, V2 off, float rot, float jag, Rgba fill, Rgba edge)
+        {
+            const int n = 4;
+            float rm = (r0 + r1) / 2f;
+            V2 mid = c + V2.FromAngle((a0 + a1) / 2f) * rm;
+            var pts = new V2[2 * n + 4];
+            int m = 0;
+            for (int i = 0; i <= n; i++)
+                pts[m++] = c + V2.FromAngle(a0 + (a1 - a0) * i / n) * r1;
+            pts[m++] = c + V2.FromAngle(a1 + jag) * rm;
+            for (int i = n; i >= 0; i--)
+                pts[m++] = c + V2.FromAngle(a0 + (a1 - a0) * i / n) * r0;
+            pts[m++] = c + V2.FromAngle(a0 - jag) * rm;
+            float cs = Mathf.Cos(rot), sn = Mathf.Sin(rot);
+            for (int i = 0; i < m; i++)
+            {
+                V2 d = pts[i] - mid;
+                pts[i] = mid + off + new V2(d.X * cs - d.Y * sn, d.X * sn + d.Y * cs);
+            }
+            SetColor(fill);
+            for (int i = 0; i < m; i++)
+                Tri(mid + off, pts[i], pts[(i + 1) % m]);
+            for (int i = 0; i < n; i++)  // bright outer edge
+                Line(pts[i], pts[i + 1], 2.5f, edge);
         }
 
         /// A melee swing: a bright crescent sweeping across the arc, fading out (a jab or thrust is a streak).

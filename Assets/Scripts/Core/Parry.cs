@@ -17,6 +17,7 @@ namespace Arena
         const float ParryBreakTime = 3f;            // locked out after it breaks
         const float ParryRegenDelay = 0.8f, ParryRegen = 40f;
         const float CounterTime = 2.5f;             // Counterstance: faster fire after a perfect parry
+        const float ShatterTime = 0.65f;            // how long the breaking shield's pieces fly
 
         /// How much the shield soaks for this player (Reinforced Guard raises it).
         public static float ParryMax(Player p) => ParryCapacity * p.Stats.ParryCapacityMult;
@@ -78,7 +79,7 @@ namespace Arena
             {
                 p.ParryHp = 0f;
                 p.ParryBroken = ParryBreakTime;
-                BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(p.Aim) * (p.Def.BodyR + 10f), new Rgba(0.55f, 0.9f, 1f), 30f, 0.35f, Sfx.Hit);
+                BroadcastFx(FxKind.Shatter, p.Pos, p.Pos + V2.FromAngle(p.Aim) * (p.Def.BodyR + ParryReach * 0.55f), new Rgba(0.55f, 0.9f, 1f), HalfArc(p), ShatterTime, Sfx.Clang);
             }
             return p.Stats.MirrorChance > 0f && rng.NextDouble() < p.Stats.MirrorChance;  // Mirror Guard
         }

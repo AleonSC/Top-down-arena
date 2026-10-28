@@ -582,7 +582,7 @@ static class Program
         var seenShots = new HashSet<int>();
         foreach (var b in s[0].Game.Bullets.Values)
             seenShots.Add(b.Id);  // shots already in the air before raising it don't count
-        bool clientSeesIt = false, broke = false;
+        bool clientSeesIt = false, clientSeesShatter = false, broke = false;
         float takenWhileUp = -1f, upFor = 0f;
         s[0].Game.HoldParry = true;
         Run(s, dt, 12f, () => broke, () =>
@@ -595,6 +595,8 @@ static class Program
                     else if (b.Kind != Defs.GrenadeShot) myShots++;
                 }
             clientSeesIt |= s[1].Game.Players[1].Parrying;
+            foreach (var fx in s[1].Game.Effects)
+                clientSeesShatter |= fx.Kind == FxKind.Shatter;
             if (!broke) upFor += dt;
             if (me.ParryBroken > 0f && !broke)
             {
@@ -612,6 +614,7 @@ static class Program
         Check(myShots == 0, "you can't shoot while parrying");
         Check(reflected > 0, "a perfect parry sends the shots back");
         Check(clientSeesIt, "other players see your parry shield");
+        Check(clientSeesShatter, "other players see your parry shield shatter when it breaks");
         s[0].Game.HoldParry = false;
         s[0].Leave(""); s[1].Leave("");
     }

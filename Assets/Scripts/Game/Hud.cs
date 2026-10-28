@@ -630,19 +630,6 @@ namespace Arena
             Ui.Label(lv, "LV " + me.Level, 10, Ui.Gold, TextAnchor.MiddleCenter, true);
             Ui.Bar(new Rect(x0 + 58f, y - 17f, total - 58f, 6f), me.Xp / Defs.XpToNext(me.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.5f));
 
-            // Parry meter, just left of the abilities.
-            {
-                var r = new Rect(x0 - 78f, y, 70f, tileH);
-                bool broken = me.ParryBroken > 0f;
-                float hp = Mathf.Clamp01(me.ParryHp / Game.ParryMax(me));
-                var sc = new Color(0.55f, 0.9f, 1f);
-                Ui.HudPanel(r, me.ParryActive ? sc : broken ? new Color(1f, 0.4f, 0.4f) : (Color?)null);
-                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), "RMB", me.ParryActive ? sc : new Color(1f, 1f, 1f, 0.6f));
-                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 16f), broken ? "BROKEN" : "PARRY", 11,
-                    broken ? new Color(1f, 0.55f, 0.55f) : Color.white, TextAnchor.MiddleLeft, true);
-                Ui.Bar(new Rect(r.x + 8f, r.yMax - 12f, r.width - 16f, 5f), hp, broken ? new Color(1f, 0.45f, 0.45f) : sc, new Color(0f, 0f, 0f, 0.5f));
-            }
-
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
                 var slot = me.Slots[i];
