@@ -401,7 +401,7 @@ namespace Arena
 
         // The Hive Queen loops through three stages (Enemy.T2), timed by PhaseT:
         const int QueenStart = 0, QueenSwarm = 1, QueenBombers = 2, QueenBullets = 3;
-        const float QueenSwarmMax = 18f;    // she moves on after this long even if her swarm still stands
+        const float QueenSwarmTime = 2f;    // a short beat after summoning; the drones don't hold up the rest of the loop
         const float QueenBomberTime = 4.5f; // explosive drones, launched at where each player is
         const float QueenBulletTime = 10f;  // aimed fans for 5 s, then rings for 5 s
         const int QueenSwarmCap = 8;
@@ -697,6 +697,7 @@ namespace Arena
                         case QueenStart:
                         {
                             // Her shooting drones, tougher than ordinary shards: kill them all to drop her shield.
+                            // Each loop tops the swarm back up (to 8 at most).
                             int n = Math.Min(QueenSwarmCap - swarm, 3 + AlivePlayers());
                             for (int i = 0; i < n; i++)
                             {
@@ -709,7 +710,9 @@ namespace Arena
                             break;
                         }
                         case QueenSwarm:
-                            if (swarm == 0 && e.PhaseT > 1f || e.PhaseT > QueenSwarmMax)
+                            // Her drones are extra: the loop carries on (bombers, then bullets) while they fight,
+                            // and she stays shielded until they're all dead.
+                            if (e.PhaseT > QueenSwarmTime)
                                 QueenStage(e, QueenBombers);
                             break;
                         case QueenBombers:

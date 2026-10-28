@@ -1934,6 +1934,30 @@ static class Program
             Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
             s[0].Leave(""); s[1].Leave("");
         }
+        // Her drones don't hold up the fight: with all of them still alive, she carries on with
+        // bombers and bullets, and stays shielded the whole time.
+        {
+            var s = StartBuffed(dt, 10, 0);
+            Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var q = Find(s[0], EnemyType.HiveQueen);
+            var seenStages = new HashSet<int>();
+            bool alwaysShielded = true, bombers = false;
+            Run(s, dt, 14f, null, () =>
+            {
+                foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f;
+                seenStages.Add((int)q.T2);
+                bombers |= Find(s[0], EnemyType.HiveBomber) != null;
+                if ((int)q.T2 >= 2 && Find(s[0], EnemyType.Shard) != null) alwaysShielded &= q.Phase == 1;  // while bombing and shooting
+            });
+            int drones = 0;
+            foreach (var e in s[0].Game.Enemies.Values) if (e.Type == EnemyType.Shard) drones++;
+            Console.WriteLine("  queen with her drones alive: stages seen {0}, bombers {1}, {2} drones at the end, shielded throughout {3}",
+                string.Join(",", seenStages.OrderBy(x => x)), bombers, drones, alwaysShielded);
+            Check(seenStages.Contains(2) && seenStages.Contains(3) && bombers && drones > 0 && alwaysShielded,
+                "the Hive Queen's drones don't pause her: bombers and bullets carry on while they live (and she stays shielded)");
+            s[0].Leave(""); s[1].Leave("");
+        }
         // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones
         // aimed at where each player was when they launched, then her bullet patterns, then again.
         {
