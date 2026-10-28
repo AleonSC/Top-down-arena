@@ -186,7 +186,7 @@ namespace Arena
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
         /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null)
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
@@ -213,7 +213,7 @@ namespace Arena
             Fill(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
 
             Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
-            int size = r.height < 30f ? 12 : 14;
+            int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
             if (icon != null)
             {
                 float isz = Mathf.Min(24f, r.height * 0.36f);
@@ -228,7 +228,11 @@ namespace Arena
                 Label(new Rect(r.x, r.y + r.height / 2f + 1f, r.width, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
             }
             else
+            {
+                while (size > 10 && TextWidth(text, size, true) > r.width - 14f)
+                    size--;  // long names in narrow cards (six class buttons) shrink to fit
                 Label(new Rect(r.x + 4f, r.y, r.width - 8f, r.height - barH), text, size, name, TextAnchor.MiddleCenter, true);
+            }
             return GUI.Button(r, GUIContent.none, GUIStyle.none);
         }
 

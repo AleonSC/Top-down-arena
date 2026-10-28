@@ -356,8 +356,12 @@ namespace Arena
 
             Ui.Heading(x, y, w, "Class");
             float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
+            int kitSize = 14;  // one size for the whole row, small enough for the longest name
             for (int i = 0; i < Defs.KitCount; i++)
-                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 36f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor))
+                while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 14f)
+                    kitSize--;
+            for (int i = 0; i < Defs.KitCount; i++)
+                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 36f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, null, null, kitSize))
                 {
                     session.RequestKit((Kit)i);
                     kitChoice = (Kit)i;
