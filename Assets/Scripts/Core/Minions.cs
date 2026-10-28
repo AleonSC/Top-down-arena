@@ -26,7 +26,7 @@ namespace Arena
                 }
                 case WeaponId.FrostLance:
                 {
-                    var b = SpawnBullet(Defs.FrostShot, muzzle, dir * 700f, 0f, 0.9f, 14f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.FrostLance, muzzle, dir * 700f, 0f, 0.9f, 14f * dmg, p.Id);
                     b.Pierce += 1;
                     b.SlowAmt = 0.3f;
                     if (extra > 0)  // shatters into icicles that fly out to the sides

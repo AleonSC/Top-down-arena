@@ -99,7 +99,7 @@ your weapon. Per extra projectile:
 | | **Flak Cannon** | Slow, heavy shells that explode on impact | Shells scatter 2 bomblets that pop where they land |
 | | **Riot Repeater** | Steady single shots with a little spread | Fires in bursts: +1 round per burst, then a longer pause |
 | Tank · Mage | **Flame Burst** | A short-range cone of fire | +2 flames and 25% more reach |
-| | **Frost Lance** | Piercing ice shards that slow | Shards shatter into 2 icicles sideways on every hit |
+| | **Frost Lance** | Piercing ice spears that slow; the spearhead is wide (20 px), so it's easy to land | Spears shatter into 2 icicles sideways on every hit |
 | | **Storm Hammer** | Heavy orb, lightning chains to 3 | Chains to 1 more enemy |
 | Tank · Summoner | **Golem Staff** | Rocks, plus a bullet-blocking Golem | +1 Golem (up to 3) |
 | | **Bone Guard** | Darts, plus 2 orbiting skeleton shields | +1 Skeleton Guard |

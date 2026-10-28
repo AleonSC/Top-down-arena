@@ -741,6 +741,38 @@ static class Program
         Check(!grew, "the loadout preview gives no XP or mastery");
     }
 
+    static void FrostLanceTest(float dt)
+    {
+        // The Frost Lance flies as a wide spear: it clips a small enemy 15 px off its line, which the old 4.5 px shard missed.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Tank, 1, 0, Kit.Mage);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Check(me.Weapon.Id == WeaponId.FrostLance, "the Mage Tank's second weapon is the Frost Lance");
+        g.Enemies.Clear(); g.Bullets.Clear();
+        me.Pos = new V2(200f, 450f);
+        var shard = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shard, new V2(520f, 465f), 0f, 0, false });
+        shard.Hp = shard.MaxHp = 1e5f; shard.SpawnT = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        var lance = g.Bullets.Values.FirstOrDefault(b => b.Owner == 1);
+        float hp = shard.Hp;
+        for (int f = 0; f < 40; f++)
+        {
+            shard.Pos = new V2(520f, 465f); shard.FrozenT = 1f;
+            me.Pos = new V2(200f, 450f);
+            host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) });
+        }
+        Console.WriteLine("  frost lance: kind {0}, radius {1}, hit a Shard 15 px off its line: {2}", lance == null ? -1 : lance.Kind, lance == null ? 0f : lance.Radius, shard.Hp < hp);
+        Check(lance != null && lance.Kind == Defs.FrostLance && lance.Radius >= 10f && shard.Hp < hp, "the Frost Lance has a wide spearhead hitbox");
+        host.Leave("");
+    }
+
     static void WeaponRangeTest(float dt)
     {
         // The aim line ends at Game.WeaponRange: check it against how far each weapon's shots really go.
@@ -3564,6 +3596,7 @@ static class Program
         {
             AimTest(1f / 60f);
             WeaponRangeTest(1f / 60f);
+            FrostLanceTest(1f / 60f);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
@@ -3621,6 +3654,7 @@ static class Program
         BowTest(dt);
         PracticeTest(dt);
         WeaponRangeTest(dt);
+        FrostLanceTest(dt);
         ShowcaseTest(dt);
         ClassAbilityTest(dt);
         NinjaTest(dt);

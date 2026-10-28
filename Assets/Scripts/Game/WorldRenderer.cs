@@ -198,7 +198,7 @@ namespace Arena
                     Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
                 return;
             }
-            if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot || b.Kind == Defs.FrostShot)
+            if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot)
                 Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), Defs.BulletColor(b.Kind).WithAlpha(0.25f), 12);
             if (b.Kind == Defs.RailShot)
                 Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
@@ -273,6 +273,34 @@ namespace Arena
             p.Disp = real;
         }
 
+        /// The Frost Lance: a long ice spear flying point-first. The spearhead sits on the hitbox (the bullet's
+        /// radius), the shaft trails behind it with a frosty streak and a few glinting motes.
+        void DrawFrostLance(Bullet b, Rgba c, float t)
+        {
+            V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
+            float r = b.Radius;
+            V2 tip = b.Pos + dir * (r * 1.4f), back = b.Pos - dir * (r * 0.8f), neck = back - dir * 2f, tail = b.Pos - dir * (r * 3.6f);
+            var ice = new Rgba(0.78f, 0.94f, 1f);
+            Circle(b.Pos, r * 1.5f, c.WithAlpha(0.16f), 14);                         // cold glow round the head
+            Line(tail - dir * 16f, tail, 7f, c.WithAlpha(0.14f));                     // frost streak behind
+            Line(tail, neck, 3.5f, ice.WithAlpha(0.95f));                               // shaft
+            Line(tail, neck, 1.2f, Rgba.White.WithAlpha(0.7f));                         //   with a bright core
+            Line(neck + side * (r * 0.55f), neck - side * (r * 0.55f), 2.5f, ice);      // crossguard
+            V2 l = b.Pos + side * (r * 0.62f), rgt = b.Pos - side * (r * 0.62f);
+            SetColor(c.Mix(ice, 0.5f));                                                 // the faceted spearhead
+            Tri(tip, l, rgt);
+            Tri(l, back, rgt);
+            SetColor(Rgba.White.WithAlpha(0.85f));                                      // light catching one facet
+            Tri(tip, l, b.Pos);
+            Line(back, tip, 1.2f, Rgba.White.WithAlpha(0.8f));
+            for (int k = 0; k < 3; k++)                                                 // glinting frost motes
+            {
+                float f = MathX.Fmod(t * 3f + k * 0.33f + b.Id * 0.17f, 1f);
+                V2 at = tail + dir * (f * r * 2.4f) + side * ((k - 1) * 4f * Mathf.Sin(t * 9f + k));
+                Circle(at, 1.6f * (1f - f) + 0.6f, Rgba.White.WithAlpha(0.8f * (1f - f)), 6);
+            }
+        }
+
         /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
         void DrawSmallShot(Bullet b, float t)
         {
@@ -282,6 +310,11 @@ namespace Arena
             if (b.Kind >= Defs.StarShot && b.Kind <= Defs.ChainStar)
             {
                 DrawNinjaShot(b, c, t);
+                return;
+            }
+            if (b.Kind == Defs.FrostLance)
+            {
+                DrawFrostLance(b, c, t);
                 return;
             }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching

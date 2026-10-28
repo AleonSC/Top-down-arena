@@ -47,6 +47,11 @@ class Shot {
       me.Aim = -0.6f;
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
     }
+    if (Environment.GetEnvironmentVariable("FROST") != null) {
+      var sb2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int k = 0; k < 3; k++) { float a = -0.5f + k * 0.5f; sb2.Invoke(host.Game, new object[] { Defs.FrostLance, me.Pos + V2.FromAngle(a) * (90f + k * 60f), V2.FromAngle(a) * 700f, 0f, 1f, 14f, 1, false, 0f }); }
+      sb2.Invoke(host.Game, new object[] { Defs.FrostShot, me.Pos + new V2(-120f, 60f), new V2(-500f, 100f), 0f, 1f, 5f, 1, false, 0f });
+    }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 4; k++) { float a = -0.6f + k * 0.45f; sb.Invoke(host.Game, new object[] { Defs.ArrowShot, me.Pos + V2.FromAngle(a) * (60f + k * 30f), V2.FromAngle(a) * 900f, 0f, 1f, 40f, 1, false, 0f }); }

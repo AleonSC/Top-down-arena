@@ -337,9 +337,9 @@ const W = [
   { id: "Flame Burst", role: "Tank", kit: "Mage", every: 0.4, desc: "A short-range cone of fire.", shot: "Fire", xtra: "+2 flames and 25% more reach",
     rows: [["Flames", "6 in a ±20° cone"], ["Damage", "6 each"], ["Speed / range", "380–480 px/s · about 150 px"]], dmgPerVolley: 36,
     fire: (s, a, x) => { for (let i = 0; i < 6 + 2 * x; i++) s.bullet("Fire", a + rnd(-0.35, 0.35), rnd(380, 480), 0.35 * (1 + 0.25 * x), 6); } },
-  { id: "Frost Lance", role: "Tank", kit: "Mage", every: 0.35, desc: "Piercing ice shards that slow enemies.", shot: "Frost", xtra: "Shards shatter into 2 icicles (5 damage) sideways on every hit",
-    rows: [["Damage", "14"], ["Pierce", "1 extra enemy"], ["Slow", "30%"], ["Speed / range", "700 px/s · 630 px"]], dmgPerVolley: 14,
-    fire: (s, a, x) => s.bullet("Frost", a, 700, 0.9, 14, { pierce: 1, slow: true, frags: x ? { n: 2 * x, kind: "Frost", dmg: 5, speed: 500, life: 0.3, sideways: true } : null }) },
+  { id: "Frost Lance", role: "Tank", kit: "Mage", every: 0.35, desc: "Piercing ice spears with a wide head that slow enemies.", shot: "Frost", xtra: "Spears shatter into 2 icicles (5 damage) sideways on every hit",
+    rows: [["Damage", "14"], ["Hitbox", "20 px wide spearhead"], ["Pierce", "1 extra enemy"], ["Slow", "30%"], ["Speed / range", "700 px/s · 630 px"]], dmgPerVolley: 14,
+    fire: (s, a, x) => s.bullet("Frost", a, 700, 0.9, 14, { pierce: 1, slow: true, big: 10, lance: true, frags: x ? { n: 2 * x, kind: "Frost", dmg: 5, speed: 500, life: 0.3, sideways: true } : null }) },
   { id: "Storm Hammer", role: "Tank", kit: "Mage", every: 0.7, desc: "A heavy orb whose lightning chains to 3 nearby enemies.", shot: "Bolt", xtra: "Lightning chains to 1 more enemy",
     rows: [["Damage", "24, then 14.4 (60%) to each chained enemy within 170 px"], ["Chains", "3"], ["Speed / range", "420 px/s · 504 px"]], dmgPerVolley: 24,
     fire: (s, a, x) => s.bullet("Bolt", a, 420, 1.2, 24, { chain: 3 + x, big: 7 }) },
@@ -836,7 +836,7 @@ const rangeApi = {
     const p = from || range.player, sh = SHOT[kind], off = from ? 4 : 16;
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
       av: o.av || 0, life, r: o.big || sh.r, col: sh.col, dmg: o.raw ? dmg : dmg * WS.dmg, pierce: o.pierce || 0, splash: o.splash || 0, chain: o.chain || 0, slow: o.slow, trail: o.trail,
-      homing: o.homing || 0, frags: o.frags || null, split: o.split ? { ...o.split } : null, lob: o.lob, wave: o.wave, arrow: o.arrow, hit: new Set(o.hit || []) });
+      homing: o.homing || 0, frags: o.frags || null, split: o.split ? { ...o.split } : null, lob: o.lob, wave: o.wave, arrow: o.arrow, lance: o.lance, hit: new Set(o.hit || []) });
   },
 };
 function hitDummy(d, dmg) {
@@ -1047,6 +1047,17 @@ function drawRange() {
     ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, sl.reach, from, from + sweep); ctx.stroke();
   }
   for (const b of R.bullets) {
+    if (b.lance) {  // a Frost Lance spear: faceted ice head over the hitbox, shaft and frost streak behind
+      const a = Math.atan2(b.vy, b.vx), c = Math.cos(a), sn = Math.sin(a), px = -sn, py = c, r = b.r;
+      const tipX = b.x + c * r * 1.4, tipY = b.y + sn * r * 1.4, bkX = b.x - c * r * 0.8, bkY = b.y - sn * r * 0.8, tlX = b.x - c * r * 3.6, tlY = b.y - sn * r * 3.6;
+      ctx.fillStyle = "rgba(153,230,255,0.16)"; ctx.beginPath(); ctx.arc(b.x, b.y, r * 1.5, 0, TAU); ctx.fill();
+      ctx.strokeStyle = "rgba(153,230,255,0.15)"; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(tlX - c * 16, tlY - sn * 16); ctx.lineTo(tlX, tlY); ctx.stroke();
+      ctx.strokeStyle = "rgba(199,240,255,0.95)"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(tlX, tlY); ctx.lineTo(bkX - c * 2, bkY - sn * 2); ctx.stroke();
+      ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(bkX - c * 2 + px * r * 0.55, bkY - sn * 2 + py * r * 0.55); ctx.lineTo(bkX - c * 2 - px * r * 0.55, bkY - sn * 2 - py * r * 0.55); ctx.stroke();
+      ctx.fillStyle = "rgba(176,235,255,1)"; ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(b.x + px * r * 0.62, b.y + py * r * 0.62); ctx.lineTo(bkX, bkY); ctx.lineTo(b.x - px * r * 0.62, b.y - py * r * 0.62); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(b.x + px * r * 0.62, b.y + py * r * 0.62); ctx.lineTo(b.x, b.y); ctx.fill();
+      continue;
+    }
     if (b.arrow) {  // a Mender's Bow arrow: shaft, steel head, green fletching
       const a = Math.atan2(b.vy, b.vx), c = Math.cos(a), sn = Math.sin(a), px = -sn, py = c;
       ctx.strokeStyle = "rgba(199,153,97,1)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b.x - c * 15, b.y - sn * 15); ctx.lineTo(b.x + c * 3, b.y + sn * 3); ctx.stroke();

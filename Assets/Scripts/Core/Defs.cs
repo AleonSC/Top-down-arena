@@ -142,7 +142,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.FlakCannon, ExtraDesc = "Shells burst into 2 more bomblets on impact", Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
             new WeaponDef { Id = WeaponId.RiotRepeater, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
             new WeaponDef { Id = WeaponId.FlameBurst, ExtraDesc = "+2 flames and 25% more reach", Name = "Flame Burst", FireInterval = 0.4f, Desc = "A short-range cone of fire." },
-            new WeaponDef { Id = WeaponId.FrostLance, ExtraDesc = "Shards shatter into 2 more icicles on hit", Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice shards that slow enemies." },
+            new WeaponDef { Id = WeaponId.FrostLance, ExtraDesc = "Spears shatter into 2 more icicles on hit", Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice spears with a wide head that slow enemies." },
             new WeaponDef { Id = WeaponId.StormHammer, ExtraDesc = "Lightning chains to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
             new WeaponDef { Id = WeaponId.GolemStaff, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1 },
@@ -238,7 +238,8 @@ namespace Arena
             KnightWave = 30,   // a crescent of steel or light thrown by a swing
             ArrowShot = 31,    // a Mender's Bow arrow
             // Ninja
-            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37;
+            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
+            FrostLance = 38;  // the Frost Lance's spear (its shatter icicles are FrostShot)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -261,6 +262,7 @@ namespace Arena
                 case SwarmShot: return 3f;
                 case FireShot: return 6f;
                 case FrostShot: return 4.5f;
+                case FrostLance: return 10f;  // a wide spearhead: much easier to land than the old 4.5 px shard
                 case ArcaneShot: return 5f;
                 case HolyShot: return 9f;
                 case BoltShot: return 4f;
@@ -311,7 +313,8 @@ namespace Arena
                 case GrenadeShot: return new Rgba(0.75f, 0.85f, 0.4f);
                 case SwarmShot: return new Rgba(1f, 0.85f, 0.35f);
                 case FireShot: return new Rgba(1f, 0.45f, 0.15f);
-                case FrostShot: return new Rgba(0.6f, 0.9f, 1f);
+                case FrostShot:
+                case FrostLance: return new Rgba(0.6f, 0.9f, 1f);
                 case ArcaneShot: return new Rgba(0.75f, 0.45f, 1f);
                 case HolyShot: return new Rgba(1f, 0.95f, 0.6f);
                 case BoltShot: return new Rgba(0.75f, 0.85f, 1f);
