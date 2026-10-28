@@ -180,7 +180,8 @@ namespace Arena
                 e.Burning = e.BurnT > 0f;
                 e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
-                w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0)));
+                e.Bleeding = e.BleedT > 0f;
+                w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0)));
             }
             w.Write((byte)Minions.Count);
             foreach (var m in Minions.Values)
@@ -491,6 +492,7 @@ namespace Arena
                 e.Burning = (status & 2) != 0;
                 e.Chilled = (status & 4) != 0;
                 e.Frozen = (status & 8) != 0;
+                e.Bleeding = (status & 16) != 0;
                 e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
                 seen.Add(id);
             }

@@ -798,6 +798,7 @@ static class Program
                 me.Weapon = w;
                 me.Stats.ExtraShots = extra;
                 me.BowShotDraw = 0f;
+                me.SwingCount = 0;  // the Katana's every-4th lunge shouldn't depend on what was tested before it
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
@@ -812,7 +813,7 @@ static class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }
@@ -2686,6 +2687,71 @@ static class Program
     }
 
     // The Knight: melee weapons, bullet cutting, per-weapon extra projectiles, Barrage waves, mods, and every ability.
+    // Bear Totem (the summoner Tank's weapon): two quick claw swipes in front of you that make enemies bleed.
+    static void BearTotemTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 3 };
+        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.Summoner);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Dps", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Check(me.Weapon.Name == "Bear Totem" && me.Weapon.Melee && Math.Abs(g.WeaponRange(me) - Game.MeleeReach(me, Game.BearReach)) < 0.01f,
+            "Bear Totem is a melee weapon with " + (int)g.WeaponRange(me) + " px of reach");
+
+        var keep = new HashSet<Enemy>();
+        Func<V2, Enemy> Dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; keep.Add(e); return e; };
+        var front = Dummy(new V2(760f, 450f));
+        var behind = Dummy(new V2(640f, 450f));
+        int claws = 0, sides = 0;
+        var seenFx = new HashSet<Effect>();
+        Action<float, bool> Play = (secs, fire) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                me.Pos = new V2(700f, 450f);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = new V2(900f, 450f) }); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800, 450) }); client.Game.Update(dt);
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { e.FrozenT = 1f; }
+                front.Pos = new V2(760f, 450f); behind.Pos = new V2(640f, 450f);
+                foreach (var m in g.Minions.Values) m.Pos = new V2(200f, 800f);  // keep the Bear out of it
+                foreach (var fx in g.Effects) if (fx.Kind == FxKind.Claw && seenFx.Add(fx)) { claws++; sides += fx.Radius > 0f ? 1 : -1; }
+            }
+        };
+        Play(0.3f, false);
+        float hp0 = front.Hp, behind0 = behind.Hp;
+        Play(1f / 60f, true);   // one attack
+        Play(0.05f, false);
+        float afterFirst = hp0 - front.Hp;
+        Play(0.15f, false);
+        float afterBoth = hp0 - front.Hp;
+        Console.WriteLine("  bear totem: first swipe {0:0.0}, both {1:0.0}, claw effects {2}, bleed {3:0.0}/s for {4:0.0} s", afterFirst, afterBoth, claws, front.BleedDps, front.BleedT);
+        Check(claws == 2 && sides == 0 && afterFirst > 5f && afterBoth > afterFirst * 1.8f, "one attack is two quick swipes, raking one way then back");
+        Check(behind.Hp == behind0, "the claws only hit in front of you");
+        Check(front.BleedT > 2.5f && front.BleedDps > 0f, "a claw hit makes the enemy bleed");
+        Play(0.2f, false);
+        Check(client.Game.Enemies.ContainsKey(front.Id) && client.Game.Enemies[front.Id].Bleeding, "other players see the bleeding");
+        float hp1 = front.Hp;
+        Play(1f, false);
+        float bled = hp1 - front.Hp;
+        Play(3f, false);
+        float hp2 = front.Hp;
+        Play(1f, false);
+        Check(bled > 1f && front.Hp == hp2 && front.BleedT <= 0f && !client.Game.Enemies[front.Id].Bleeding, "bleeding hurts over time (" + bled.ToString("0.0") + " in a second), then stops after 3 s");
+        Play(4f, true);
+        float perHit = 11f * me.Stats.DmgMult * 0.3f;
+        Check(front.BleedDps > perHit * 3f && front.BleedDps <= perHit * 5f + 0.01f, "bleed stacks with each hit, up to five hits' worth (" + front.BleedDps.ToString("0.0") + "/s)");
+        host.Leave(""); client.Leave("");
+    }
+
     static void KnightTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -4200,6 +4266,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "bear")
+        {
+            BearTotemTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "bazaar")
         {
             BazaarTest(1f / 60f);
@@ -4227,6 +4299,7 @@ static class Program
         BossLabTest(dt);
         SingularityTest(dt);
         KnightTest(dt);
+        BearTotemTest(dt);
         BossSoundTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);

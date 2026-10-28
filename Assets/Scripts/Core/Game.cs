@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -145,7 +145,9 @@ namespace Arena
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
         public float BurnT, BurnDps;        // Incendiary Rounds (host)
         public int BurnBy;
-        public bool Burning, Chilled, Frozen;  // replicated, for drawing (Chilled = slowed but not frozen)
+        public float BleedT, BleedDps;      // Bear Totem's claws (host)
+        public int BleedBy;
+        public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public int LastHitBy;
         public bool Marked;

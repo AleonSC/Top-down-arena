@@ -19,6 +19,8 @@ namespace Arena
         public float Stun;            // freezes what it hits for this long (not bosses)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
+        public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
+        public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -55,6 +57,7 @@ namespace Arena
                 case WeaponId.Kusarigama: return KusariReach;
                 case WeaponId.BoStaff: return BoReach;
                 case WeaponId.Katana: return KatanaReach;
+                case WeaponId.BearTotem: return BearReach;
                 default: return 0f;
             }
         }
@@ -227,7 +230,10 @@ namespace Arena
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
             bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f;
-            if (box)
+            if (s.ClawSide != 0f)
+                BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, new Rgba(1f, 0.86f, 0.78f), s.ClawSide * s.HalfArc, 0.2f,
+                    s.Silent ? Sfx.None : Sfx.SwingLight);
+            else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else
@@ -284,6 +290,8 @@ namespace Arena
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                if (s.Bleed > 0f)
+                    ApplyBleed(e, dmg * s.Bleed, p.Id);  // Minions.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
                 {
                     e.FrozenT = Math.Max(e.FrozenT, s.Stun);

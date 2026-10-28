@@ -237,6 +237,9 @@ namespace Arena
                 case WeaponId.RiotRepeater:
                     SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
                     break;
+                case WeaponId.BearTotem:
+                    FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)
+                    break;
                 case WeaponId.LightBolt:
                     SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
                     for (int k = 0; k < extra; k++)  // smaller bolts that seek out the nearest enemy
@@ -343,7 +346,7 @@ namespace Arena
                 case WeaponId.ArcaneMissiles: shot = 520f * 1f; break;
                 case WeaponId.GolemStaff: shot = 480f * 0.6f; break;
                 case WeaponId.BoneGuard: case WeaponId.WolfWhistle: case WeaponId.ImpCaller: shot = 720f * 0.8f; break;
-                case WeaponId.BearTotem: shot = 500f * 0.22f; break;
+                case WeaponId.BearTotem: return MeleeReach(p, BearReach + 15f * x);
                 case WeaponId.SpriteStaff: case WeaponId.TotemStaff: case WeaponId.TreantRod: case WeaponId.WispLantern: shot = 600f * 1f; break;
                 // Ninjas
                 case WeaponId.ChainShuriken: shot = ChainStarSpeed * ChainStarOut; break;  // as far as it goes before it turns back

@@ -447,6 +447,9 @@ namespace Arena
                 case FxKind.Jab:
                     DrawJabFx(fx, f);
                     break;
+                case FxKind.Claw:
+                    DrawClawFx(fx, f);
+                    break;
                 case FxKind.Bolt:
                     DrawBoltFx(fx, f);
                     break;
@@ -574,6 +577,27 @@ namespace Arena
             float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;
             Arc(fx.Pos, reach * 0.78f, reach * 0.4f, fx.Color.WithAlpha(0.28f * (1f - f)), 24, from, sweep);
             Arc(fx.Pos, reach, 3f, Rgba.White.WithAlpha(0.9f * (1f - f)), 24, from, sweep);
+        }
+
+        /// Bear Totem: three claw marks rake across the arc (the sign of Radius says which way), over a faint
+        /// crescent; they draw on quickly, then fade.
+        void DrawClawFx(Effect fx, float f)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float reach = to.Length, aim = to.Angle, half = Mathf.Abs(fx.Radius), side = fx.Radius >= 0f ? 1f : -1f;
+            if (reach < 1f)
+                return;
+            float g = Mathf.Min(1f, f * 4f), fade = 1f - f, sweep = 2f * half * g;
+            float from = side > 0f ? aim - half : aim + half - sweep;  // rakes from one side to the other
+            Arc(fx.Pos, reach * 0.72f, reach * 0.5f, new Rgba(0.9f, 0.3f, 0.25f, 0.16f * fade), 20, from, sweep);
+            for (int k = -1; k <= 1; k++)
+            {
+                float r = reach * (0.78f + 0.13f * k);
+                float lag = (1 - k * side) * 0.06f;  // the marks are staggered a little, like a paw's claws
+                float a0 = from + (side > 0f ? 0f : sweep * lag), a1 = sweep * (1f - lag);
+                Arc(fx.Pos, r, 4.5f * fade + 1f, fx.Color.WithAlpha(0.9f * fade), 14, a0, a1);
+                Arc(fx.Pos, r, 1.5f, new Rgba(0.85f, 0.15f, 0.15f, 0.7f * fade), 14, a0, a1);  // a red core
+            }
         }
 
         /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
@@ -1097,6 +1121,17 @@ namespace Arena
                     Circle(at, (1f - f) * (4f + r * 0.28f), FireColor.Mix(new Rgba(1f, 0.85f, 0.3f), f).WithAlpha(0.9f * (1f - f)), 8);
                 }
             }
+            if (e.Bleeding)
+            {
+                col = col.Mix(BleedColor, 0.18f);
+                // Drops falling off it.
+                for (int k = 0; k < 3; k++)
+                {
+                    float f = MathX.Fmod(t * 1.3f + k * 0.33f + e.Id * 0.21f, 1f);
+                    V2 at = pos + new V2((k - 1f) * r * 0.5f, r * 0.2f + f * r * 1.1f);
+                    Circle(at, 2.2f + r * 0.08f, BleedColor.WithAlpha(0.85f * (1f - f)), 6);
+                }
+            }
             if (e.Marked)  // Mark for Death: a rotating red reticle
             {
                 var mc = new Rgba(1f, 0.2f, 0.2f, 0.9f);
@@ -1195,12 +1230,13 @@ namespace Arena
         static readonly Rgba FireColor = new Rgba(1f, 0.42f, 0.1f);
         static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
         static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
+        static readonly Rgba BleedColor = new Rgba(0.8f, 0.05f, 0.12f);
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, flame = burning, red crosshair = marked (takes extra damage).
+        /// slowed, flame = burning, blood drop = bleeding, red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
-            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Marked ? 1 : 0);
+            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1238,6 +1274,15 @@ namespace Arena
                 Circle(c + new V2(0f, 1.5f), size * 0.6f, FireColor, 10);       // flame: round base...
                 Polygon(c + new V2(0f, -2f + flick * 0.3f), size * 0.62f, 3, -MathX.Pi / 2f, FireColor);  // ...pointed top
                 Circle(c + new V2(0f, 2f), size * 0.3f, new Rgba(1f, 0.9f, 0.4f), 8);
+                x += step;
+            }
+            if (e.Bleeding)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                Circle(c + new V2(0f, 2f), size * 0.55f, BleedColor, 10);  // a blood drop: round base...
+                Polygon(c + new V2(0f, -2f), size * 0.55f, 3, -MathX.Pi / 2f, BleedColor);  // ...pointed top
+                Circle(c + new V2(-1.5f, 2f), size * 0.15f, new Rgba(1f, 0.6f, 0.6f), 6);
                 x += step;
             }
             if (e.Marked)

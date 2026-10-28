@@ -11,6 +11,50 @@ namespace Arena
         // --- Weapons -----------------------------------------------------------
 
         /// Mage and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
+        public const float BearReach = 85f;         // Bear Totem: how far the claws reach
+        const float BearArc = 110f, BearDamage = 11f, BearSwipeGap = 0.12f;
+        const float BearBleed = 0.3f;              // a claw hit bleeds for 30% of its damage per second...
+        const float BleedTime = 3f, BleedStacks = 5f;  // ...for 3 s, stacking up to five hits' worth
+
+        /// Bear Totem: two quick claw swipes in front of you, raking one way then back, that make enemies bleed.
+        /// Each extra projectile adds 15 px of reach and 25% more bleed.
+        void FireBearClaws(Player p, float aim, float dmg, int extra)
+        {
+            p.SwingCount++;
+            for (int k = 0; k < 2; k++)
+            {
+                float side = k == 0 ? 1f : -1f;
+                var s = NewSwing(p, aim + side * 0.12f, BearReach + 15f * extra, BearArc, BearDamage * dmg);
+                s.Delay = BearSwipeGap * k;
+                s.ClawSide = side;
+                s.Bleed = BearBleed * (1f + 0.25f * extra);
+                s.NoCut = true;  // claws, not a blade: they don't cut bullets
+                pendingSwings.Add(s);
+            }
+        }
+
+        /// Bleeding: each hit adds to the damage per second (up to five hits' worth) and restarts the 3 s.
+        void ApplyBleed(Enemy e, float dps, int owner)
+        {
+            if (dps <= 0f || e.Hp <= 0f)
+                return;
+            e.BleedDps = Math.Min(e.BleedDps + dps, dps * BleedStacks);
+            e.BleedT = BleedTime;
+            e.BleedBy = owner;
+        }
+
+        void TickBleed(Enemy e, float dt)
+        {
+            if (e.BleedT <= 0f)
+                return;
+            e.BleedT -= dt;
+            if (e.BleedT <= 0f)
+                e.BleedDps = 0f;
+            if (Hungry(e) || e.SpawnT > 0f || SoulBound(e))
+                return;
+            DotDamage(e, e.BleedDps * dt, e.BleedBy);
+        }
+
         void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
             switch (p.Weapon.Id)
@@ -86,15 +130,6 @@ namespace Arena
                 case WeaponId.ImpCaller:
                     SpawnBullet(Defs.BoneShot, muzzle, dir * 720f, 0f, 0.8f, (p.Weapon.Id == WeaponId.BoneGuard ? 7f : 6.5f) * dmg, p.Id);
                     break;
-                case WeaponId.BearTotem:
-                {
-                    // +2 claws and 15% wider swipes per extra projectile.
-                    int n = 5 + 2 * extra;
-                    float width = 1f + 0.15f * extra;
-                    for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BoneShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * width) * 500f, 0f, 0.22f, 9f * dmg, p.Id);
-                    break;
-                }
                 case WeaponId.SpriteStaff:
                 case WeaponId.TotemStaff:
                     SpawnBullet(Defs.SeedShot, muzzle, dir * 600f, 0f, 1f, 9f * dmg, p.Id);

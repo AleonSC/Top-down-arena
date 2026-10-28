@@ -325,6 +325,7 @@ namespace Arena
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
                 TickBurn(e, dt);
+                TickBleed(e, dt);  // Minions.cs
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;

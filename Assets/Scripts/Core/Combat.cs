@@ -685,15 +685,20 @@ namespace Arena
                 e.BurnDps = 0f;
             if (Hungry(e) || e.SpawnT > 0f || SoulBound(e))
                 return;
-            float dmg = e.BurnDps * dt;
+            DotDamage(e, e.BurnDps * dt, e.BurnBy);
+        }
+
+        /// Damage over time (burning, bleeding), credited to whoever caused it.
+        void DotDamage(Enemy e, float dmg, int by)
+        {
             Player p;
-            if (Players.TryGetValue(e.BurnBy, out p))
+            if (Players.TryGetValue(by, out p))
             {
                 Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
-                e.LastHitBy = e.BurnBy;
+                e.LastHitBy = by;
             }
             e.Hp -= dmg;
         }
