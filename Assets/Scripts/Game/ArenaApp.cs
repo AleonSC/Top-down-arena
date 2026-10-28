@@ -553,6 +553,7 @@ namespace Arena
                     Arc(o.Disp, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.8f), 24);
             }
             DrawReaperTether(t);
+            DrawSingularityHazards(t);
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             foreach (var p in game.Players.Values)
@@ -674,12 +675,65 @@ namespace Arena
             Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
         }
 
+        bool ImCaged()
+        {
+            foreach (var c in game.Cages.Values)
+                if (c.PlayerId == game.MyId)
+                    return true;
+            return false;
+        }
+
         bool AnyWells()
         {
             foreach (var o in game.Enemies.Values)
                 if (o.Type == EnemyType.GravityWell)
                     return true;
             return false;
+        }
+
+        float laserAngle;  // the Singularity's laser sweep, smoothed between snapshots
+
+        /// The Singularity's three lasers (a flickering warning first, then the beams) and the cage rings.
+        void DrawSingularityHazards(float t)
+        {
+            Enemy sing = null;
+            foreach (var e in game.Enemies.Values)
+                if (e.Type == EnemyType.Singularity && !game.IsSpawning(e))
+                    sing = e;
+            if (sing != null && (sing.Phase == Game.SingLaserWarn || sing.Phase == Game.SingLasers))
+            {
+                // Sweep smoothly at the known speed and ease toward the host's angle.
+                if (sing.Phase == Game.SingLasers)
+                    laserAngle += Game.LaserSpin * Time.deltaTime;
+                float diff = MathX.Fmod(sing.Facing - laserAngle + MathX.Pi, MathX.Tau) - MathX.Pi;
+                laserAngle += Mathf.Abs(diff) > 0.5f ? diff : diff * Mathf.Min(1f, Time.deltaTime * 8f);
+                for (int k = 0; k < Game.LaserCount; k++)
+                {
+                    V2 dir = V2.FromAngle(laserAngle + MathX.Tau * k / Game.LaserCount);
+                    V2 from = sing.Disp + dir * sing.Radius, to = sing.Disp + dir * 2000f;
+                    if (sing.Phase == Game.SingLaserWarn)
+                        Line(from, to, 2f, new Rgba(1f, 0.25f, 0.25f, 0.35f + 0.3f * Mathf.Sin(t * 30f)));
+                    else
+                    {
+                        Line(from, to, Game.LaserWidth + 12f, new Rgba(1f, 0.15f, 0.2f, 0.18f));
+                        Line(from, to, Game.LaserWidth, new Rgba(1f, 0.2f, 0.25f, 0.9f));
+                        Line(from, to, 2.5f, new Rgba(1f, 0.85f, 0.85f, 0.95f));
+                    }
+                }
+            }
+            else if (sing != null)
+                laserAngle = sing.Facing;
+
+            var cageCol = Defs.Get(EnemyType.CageWell).Color;
+            foreach (var c in game.Cages.Values)
+            {
+                if (c.Radius < 1f)
+                    continue;
+                bool mine = c.PlayerId == game.MyId;
+                Arc(c.Center, c.Radius, Game.CageWallWidth + 10f, new Rgba(cageCol.R, cageCol.G, cageCol.B, 0.15f), 64);
+                Arc(c.Center, c.Radius, Game.CageWallWidth, new Rgba(cageCol.R, cageCol.G, cageCol.B, mine ? 0.85f : 0.6f), 64);
+                Arc(c.Center, c.Radius, 2f, new Rgba(1f, 0.9f, 1f, 0.8f), 64, t * 2f, MathX.Pi * 1.4f);  // crackle
+            }
         }
 
         /// The beam between the Twin Reapers: crackling dusk-to-dawn colors. It hurts to touch.
@@ -1056,6 +1110,7 @@ namespace Arena
                     Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
                     break;
                 case EnemyType.GravityWell:  // a spinning black hole
+                case EnemyType.CageWell:
                     Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
                     Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;
@@ -1293,6 +1348,11 @@ namespace Arena
             InitStyles();
             Ui.Init();
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX, offY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
+            // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
+            // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
+            // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
+            bool modal = labSetupOpen || devMenuOpen;
+            if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
                 case AppScreen.Menu:
@@ -2146,8 +2206,13 @@ namespace Arena
                     note = "SOUL BOUND — hurt the other Reaper!";
                     noteColor = new Color(0.85f, 0.88f, 1f);
                 }
+                else if (e.Type == EnemyType.Singularity && ImCaged())
+                {
+                    note = "CAGED — shoot the wells around you!";
+                    noteColor = new Color(0.9f, 0.55f, 1f);
+                }
                 else if (e.Type == EnemyType.Singularity && AnyWells())
-                    note = "Its gravity wells swallow your shots — kill them!";
+                    note = "The corner wells swallow your shots — kill them!";
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
                     note = "IMMUNE — destroy the phylactery!";
                 else if (Game.Hungry(e))

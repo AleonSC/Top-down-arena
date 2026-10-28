@@ -487,6 +487,7 @@ namespace Arena
             RunTime = 0f;
             RunStatsReady = false;
             Hazards.Clear();
+            Cages.Clear();
             awaitingPick = false;
             rerollsAtRequest = -1;
             tick = 0;
@@ -988,6 +989,8 @@ namespace Arena
                 me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * dt;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
+            if (!me.Downed && DashT <= 0f)
+                me.Pos += WellDriftAt(me.Pos) * dt;  // the Singularity's corner wells (Singularity.cs)
 
             for (int slot = 0; slot < held.Length; slot++)
             {
@@ -1888,6 +1891,7 @@ namespace Arena
             ResetBossState();
             Zones.Clear();
             Hazards.Clear();
+            Cages.Clear();
             State = MatchState.Intermission;
             StateTimer = IntermissionTime;
             foreach (var p in Players.Values)
@@ -2111,7 +2115,7 @@ namespace Arena
                     continue;
                 float want = (w.Pos - b.Pos).Angle, have = b.Vel.Angle;
                 float diff = MathX.Fmod(want - have + MathX.Pi, MathX.Tau) - MathX.Pi;
-                float rate = (1.5f + 10f * (1f - d / WellPullRange)) * dt;
+                float rate = (2.5f + 12f * (1f - d / WellPullRange)) * dt;  // hard: a shot near a corner is lost
                 b.Vel = b.Vel.Rotated(Math.Max(-rate, Math.Min(rate, diff)));
                 b.Pulled = true;
                 return;  // one well at a time
@@ -2771,6 +2775,7 @@ namespace Arena
                 w.Write(z.GuardFrac);
             }
             WriteHazards(w);
+            WriteCages(w);
             w.Write((short)Orbs.Count);
             foreach (var o in Orbs.Values)
             {
@@ -3066,6 +3071,7 @@ namespace Arena
             }
 
             ReadHazards(r);
+            ReadCages(r);
 
             var seenOrbs = new HashSet<int>();
             int no = r.ReadInt16();

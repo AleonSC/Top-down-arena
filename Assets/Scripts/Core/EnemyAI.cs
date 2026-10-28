@@ -41,9 +41,7 @@ namespace Arena
         public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
         const int LateBossWave = 20;
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
-        const int WellCount = 4;
-        const float WellOrbit = 135f, WellRespawn = 15f;
-        public const float WellPullRange = 170f;  // players' shots this close bend into a gravity well
+        const float WellRespawn = 15f;
 
         // Replicated to clients in the snapshot.
         public V2 PullCenter;      // The Singularity's gravity well
@@ -335,7 +333,8 @@ namespace Arena
                     Players.TryGetValue(e.TargetId, out target);
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
-                Face(e, tpos, dt);
+                if (e.Type != EnemyType.Singularity)  // its Facing is the lasers' sweep, not where it looks
+                    Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);
                 if (State == MatchState.Fighting)
                 {
@@ -370,6 +369,7 @@ namespace Arena
 
             TickHazards(dt);
             TickReaperTether();
+            TickSingularityHazards(dt);
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
             if (twinPending)
@@ -768,32 +768,8 @@ namespace Arena
                     break;
                 }
                 case EnemyType.Singularity:
-                {
-                    // 12 s cycle: 4 s gravity pull, 2 s collapse rings, 6 s normal.
-                    float c = MathX.Fmod(e.T, 12f);
-                    e.Phase = (byte)(c < 4f ? 1 : c < 6f ? 2 : 0);
-                    if (e.Phase == 1)
-                    {
-                        PullCenter = e.Pos;
-                        PullStrength = SingularityPull;
-                    }
-                    // Gravity wells orbit it and swallow your shots. Kill all of them and they
-                    // come back 15 s later.
-                    int wells = CountChildren(e, EnemyType.GravityWell);
-                    e.T2 -= dt;
-                    if (wells > 0)
-                        e.T2 = Math.Max(e.T2, WellRespawn);
-                    else if (e.T2 <= 0f)
-                    {
-                        for (int i = 0; i < WellCount; i++)
-                        {
-                            var w = SpawnEnemyAt(EnemyType.GravityWell, e.Pos + V2.FromAngle(MathX.Tau * i / WellCount) * WellOrbit, 0.8f, e.Id);
-                            w.Ang = MathX.Tau * i / WellCount;
-                        }
-                        BroadcastFx(FxKind.Ring, e.Pos, Defs.Get(EnemyType.GravityWell).Color, WellOrbit + 40f, 0.6f, Sfx.Summon);
-                    }
+                    SingularitySpecial(e, dt);  // Singularity.cs
                     break;
-                }
             }
         }
 
@@ -961,29 +937,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Singularity:
-                    switch (e.Phase)
-                    {
-                        case 1:  // gravity pull: slow three-armed spiral
-                            e.FireT = 0.13f;
-                            e.Ang += 0.21f;
-                            for (int k = 0; k < 3; k++)
-                                EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 110f, Defs.SmallShot);
-                            break;
-                        case 2:  // collapse: rings
-                            e.FireT = 0.9f;
-                            e.Ang += 0.11f;
-                            for (int i = 0; i < 26; i++)
-                                EnemyShot(e, e.Ang + MathX.Tau * i / 26f, 170f, Defs.SmallShot);
-                            break;
-                        default:  // aimed fan plus a rotating cross
-                            e.FireT = 0.65f;
-                            e.Ang += 0.3f;
-                            for (int i = 0; i < 5; i++)
-                                EnemyShot(e, aim + (i - 2) * 0.15f, 200f, Defs.PierceShot);
-                            for (int d = 0; d < 4; d++)
-                                EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 150f, Defs.BigShot);
-                            break;
-                    }
+                    SingularityFire(e, aim);  // Singularity.cs
                     break;
             }
         }
@@ -1000,7 +954,7 @@ namespace Arena
         {
             if (e.Type == EnemyType.Singularity)
                 foreach (var o in Enemies.Values)
-                    if (o.Type == EnemyType.GravityWell)
+                    if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell)
                         o.Hp = 0f;  // its wells collapse with it
             if (e.Type == EnemyType.Splitter)
             {

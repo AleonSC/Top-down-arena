@@ -91,6 +91,8 @@ namespace Arena
                 c.Join("127.0.0.1", port, "Bot " + (i + 1), s.Role, s.Weapon, s.Ability, s.Kit);
                 Clients.Add(c);
             }
+            if (PlayerCount == 1)
+                host.StartMatch();  // nobody joins a solo fight, so start it straight away
             return true;
         }
 

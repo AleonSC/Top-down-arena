@@ -34,6 +34,7 @@ namespace Arena
             State = MatchState.Victory;
             Zones.Clear();
             Hazards.Clear();
+            Cages.Clear();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             BroadcastRunStats();
@@ -81,11 +82,8 @@ namespace Arena
                 }
                 case EnemyType.GravityWell:
                 {
-                    // Orbit the Singularity, between it and you.
-                    Enemy parent;
-                    if (!Enemies.TryGetValue(e.ParentId, out parent))
-                        return V2.Zero;
-                    var goal = parent.Pos + V2.FromAngle(e.Ang + e.T * 0.6f) * WellOrbit;
+                    // Holds its corner, bobbing a little.
+                    var goal = e.Waypoint + V2.FromAngle(e.T * 0.8f + e.Id) * 12f;
                     return (goal - e.Pos) / 30f;
                 }
                 default:  // Nest, Decoy, Phylactery stay put

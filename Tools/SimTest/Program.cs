@@ -1456,6 +1456,99 @@ static class Program
         Check(host.Screen == AppScreen.Menu && lab.Clients.Count == 0, "stopping the lab closes every seat");
     }
 
+    static void LaserDebug()
+    {
+        float dt = 1f / 60f;
+        var lab = new BossLab { Wave = 20, Skill = BotSkill.Good, PlayerCount = 1, Seed = 3 };
+        lab.Seats[0].Role = Role.Healer; lab.Seats[0].Kit = Kit.Mage;
+        var host = new Session();
+        lab.Start(host, nextPort++);
+        var g = host.Game;
+        g.DamageEvent = (p, a, src) => {
+            var sing = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Singularity);
+            float rel = sing == null ? 0 : (p.Pos - sing.Pos).Angle - sing.Facing;
+            Console.WriteLine("  t {0:0.00} hit {1:0} by {2} at ({3:0},{4:0}) dist {5:0} relAng {6:0.00} phase {7} danger {8:0.0} hp {9:0}",
+                g.RunTime, a, src, p.Pos.X, p.Pos.Y, sing == null ? 0 : p.Pos.DistanceTo(sing.Pos), MathX.Fmod(rel, MathX.Tau / 3f), sing?.Phase, g.BotDanger, p.Hp);
+            var mv = (V2)typeof(Game).GetField("botMove", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g);
+            Console.WriteLine("     onLaser now: {0}  move ({1:0.0},{2:0.0}) facing {3:0.00} downed {4} bot {5} lvl {6}", Enumerable.Range(0, 3).Any(k => Game.OnLaser(sing.Pos, sing.Facing + MathX.Tau * k / 3f, p.Pos, 12f)), mv.X, mv.Y, sing.Facing, p.Downed, g.Bot, g.BotLevel);
+        };
+        for (int f = 0; f < 60 * 25 && lab.Outcome == LabOutcome.Running; f++) { Step(host, dt); lab.Watch(dt); }
+        lab.Stop();
+    }
+
+    // The Singularity's reworked fight: corner wells, Pull -> Collapse -> Normal (spiral + sweeping lasers) -> Cage.
+    static void SingularityTest(float dt)
+    {
+        var s = StartBuffed(dt, 20, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && !g.IsSpawning(Find(s[0], EnemyType.Singularity)));
+        var sing = Find(s[0], EnemyType.Singularity);
+        sing.T = 0f;
+        Run(s, dt, 1.5f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var wells = g.Enemies.Values.Where(e => e.Type == EnemyType.GravityWell).ToList();
+        bool corners = wells.Count == 4 && wells.All(w => Math.Min(w.Pos.X, Game.Width - w.Pos.X) < 150f && Math.Min(w.Pos.Y, Game.Height - w.Pos.Y) < 150f);
+        Console.WriteLine("  corner wells: {0} at {1}", wells.Count, string.Join(" ", wells.Select(w => "(" + (int)w.Pos.X + "," + (int)w.Pos.Y + ")")));
+        Check(corners, "the Singularity's 4 gravity wells sit in the arena's corners");
+
+        // A player near a corner drifts toward its well; one in the middle doesn't.
+        var drift = typeof(Game).GetMethod("WellDriftAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var w0 = wells[0];
+        V2 nearPos = w0.Pos + (new V2(Game.Width / 2f, Game.Height / 2f) - w0.Pos).Normalized() * 200f;
+        V2 near = (V2)drift.Invoke(g, new object[] { nearPos });
+        V2 mid = (V2)drift.Invoke(g, new object[] { new V2(Game.Width / 2f, Game.Height / 2f) });
+        Console.WriteLine("  well drift: {0:0} px/s 200 px from a well, {1:0} in the middle", near.Length, mid.Length);
+        Check(near.Length > 10f && near.Length < 60f && Math.Abs(MathX.Fmod((w0.Pos - nearPos).Angle - near.Angle + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.1f && mid.Length < 1f, "corner wells drift nearby players slowly toward them");
+
+        // Attack order over one cycle, and what's fired.
+        var phases = new List<byte>();
+        var facings = new List<float>();
+        bool redShots = false, purpleInNormal = false;
+        int cagesSeenOnClient = 0, cageWells = 0;
+        float firstRadius = 0f, lastRadius = 0f;
+        sing.T = 0f;
+        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
+        Run(s, dt, 24f, null, () =>
+        {
+            foreach (var p in g.Players.Values) p.InvulnT = 1f;
+            if (phases.Count == 0 || phases[phases.Count - 1] != sing.Phase) phases.Add(sing.Phase);
+            if (sing.Phase == Game.SingLasers) facings.Add(sing.Facing);
+            foreach (var b in g.Bullets.Values)
+                if (b.Source == EnemyType.Singularity)
+                {
+                    redShots |= b.Kind == Defs.PierceShot;
+                    purpleInNormal |= b.Kind == Defs.BigShot;
+                }
+            cagesSeenOnClient = Math.Max(cagesSeenOnClient, s[1].Game.Cages.Count);
+            cageWells = Math.Max(cageWells, g.Enemies.Values.Count(e => e.Type == EnemyType.CageWell));
+            if (g.Cages.Count > 0) { if (firstRadius == 0f) firstRadius = g.Cages.Values.First().Radius; lastRadius = g.Cages.Values.First().Radius; }
+        });
+        string order = string.Join(" > ", phases.Select(p => p == Game.SingPull ? "Pull" : p == Game.SingCollapse ? "Collapse" : p == Game.SingNormal ? "Normal" : p == Game.SingLaserWarn ? "LaserWarning" : p == Game.SingLasers ? "Lasers" : "Cage"));
+        Console.WriteLine("  attack order: {0}", order);
+        Check(order.StartsWith("Pull > Collapse > Normal > LaserWarning > Lasers > Cage"), "the Singularity cycles Pull, Collapse, Normal (spiral, then lasers after a warning), Cage");
+        bool sweeps = facings.Count > 60 && facings.Last() - facings.First() > 0.3f * Game.LaserSpin * facings.Count * dt;
+        Console.WriteLine("  lasers swept {0:0.00} rad over {1:0.0} s; red shots {2}, purple spiral {3}", facings.Last() - facings.First(), facings.Count * dt, redShots, purpleInNormal);
+        Check(sweeps, "the three lasers sweep slowly around (counter-clockwise)");
+        Check(!redShots && purpleInNormal, "it fires the purple spiral but no red shots");
+        Console.WriteLine("  cages: {0} seen on the client, {1} cage wells, radius {2:0} -> {3:0}", cagesSeenOnClient, cageWells, firstRadius, lastRadius);
+        Check(cagesSeenOnClient == 2 && cageWells == 6 && lastRadius < firstRadius - 100f, "the cage attack rings every player with 3 small wells, shrinking (seen on the client)");
+
+        // Next cage: standing still inside hurts once the ring reaches you; shooting the wells frees you.
+        Run(s, dt, 30f, () => g.Cages.Count > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var me = g.Players[1];
+        var cage = g.Cages.Values.First(c => c.PlayerId == 1);
+        me.Pos = s[1].Game.Players[1].Pos = cage.Center;
+        float taken = me.Run.DamageTaken;
+        Run(s, dt, 8.5f, () => me.Run.DamageTaken > taken, () => { foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f; });
+        bool cageHurts = me.Run.DamageTaken > taken;
+        int freed = cage.Wells.Count;
+        foreach (int id in cage.Wells.ToList()) g.Enemies[id].Hp = 0f;
+        Run(s, dt, 0.3f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        Console.WriteLine("  caged player hurt when the ring closed: {0}; cage gone after its {1} wells died: {2}", cageHurts, freed, !g.Cages.ContainsKey(cage.Id));
+        Check(cageHurts && !g.Cages.ContainsKey(cage.Id), "the shrinking cage hurts when it reaches you, and breaks when its wells are shot down");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // Spinners spray in bursts with breathers in between (they used to spray nonstop).
     static void SpinnerTest(float dt)
     {
@@ -2476,7 +2569,7 @@ static class Program
             Check(pullSeen && closest < start.DistanceTo(center) - 100f, "The Singularity's gravity pulls the client's player in");
             s[1].Game.Bot = true;
 
-            // Its gravity wells: they orbit it, bend the players' shots into themselves, and come back after you kill them.
+            // Its corner wells bend the players' shots into themselves, and come back after you kill them.
             int wellsOnClient = 0, pulled = 0, compared = 0;
             float drift = 0f;
             var counted = new HashSet<int>();
@@ -2509,7 +2602,7 @@ static class Program
             });
             Console.WriteLine("  gravity wells: {0} on the client, {1} shots bent, drift {2:0.0}px over {3} samples", wellsOnClient, pulled, drift, compared);
             Check(wellsOnClient == 4, "the Singularity brings 4 gravity wells (seen on client)");
-            Check(pulled > 30 && drift < 40f, "gravity wells bend players' shots into themselves, in sync on the client");
+            Check(pulled > 10 && drift < 40f, "gravity wells bend players' shots into themselves, in sync on the client");
             foreach (var e in s[0].Game.Enemies.Values)
                 if (e.Type == EnemyType.GravityWell)
                     e.Hp = 0f;
@@ -2586,6 +2679,17 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "laserdebug")
+        {
+            LaserDebug();
+            return 0;
+        }
+        if (args.Length > 2 && args[2] == "singularity")
+        {
+            SingularityTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "lab")
         {
             LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray());
@@ -2648,6 +2752,7 @@ static class Program
         MasteryTest(dt);
         BudgetHomingTest(dt);
         BossLabTest(dt);
+        SingularityTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);
         RevolverReloadTest(dt);

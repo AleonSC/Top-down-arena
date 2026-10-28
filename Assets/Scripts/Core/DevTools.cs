@@ -110,6 +110,7 @@ namespace Arena
             ResetBossState();
             Zones.Clear();
             Hazards.Clear();
+            Cages.Clear();
             RemoveTemporaryMinions();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));

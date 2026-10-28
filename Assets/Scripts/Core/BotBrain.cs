@@ -104,13 +104,23 @@ namespace Arena
                     close = e;
                 }
             }
-            // Adds that protect the boss come first, like a player would learn to: the Lich's phylacteries,
-            // the Singularity's gravity wells and the Hive Queen's shield drones.
+            // Adds that protect the boss come first, like a player would learn to: the wells of a cage
+            // closing in, the Lich's phylacteries, the Singularity's corner wells and the Hive Queen's shield drones.
             Enemy key = null;
+            bool caged = false;
+            foreach (var c in Cages.Values)
+                caged |= c.PlayerId == me.Id;
             foreach (var e in Enemies.Values)
-                if (!IsSpawning(e) && e.Hp > 0f && (e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard)
+            {
+                if (IsSpawning(e) || e.Hp <= 0f)
+                    continue;
+                bool cageWell = e.Type == EnemyType.CageWell;
+                if (caged && !cageWell)
+                    continue;
+                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard)
                     && (key == null || e.Pos.DistanceSq(me.Pos) < key.Pos.DistanceSq(me.Pos)))
                     key = e;
+            }
             if (key != null)
                 target = key;
             Enemy shootAt = close ?? target;
@@ -286,6 +296,12 @@ namespace Arena
                     botSeen.Remove(id);
             }
 
+            // The Singularity's lasers (once they're warned) and cage walls.
+            Enemy sing = null;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Singularity && !IsSpawning(e) && (e.Phase == SingLaserWarn || e.Phase == SingLasers))
+                    sing = e;
+
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
             foreach (var e in Enemies.Values)
@@ -332,6 +348,16 @@ namespace Arena
                             d += w * 3f;
                     if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
+                    if (sing != null)
+                        for (int l = 0; l < LaserCount; l++)
+                            if (OnLaser(sing.Pos, sing.Facing + (sing.Phase == SingLasers ? LaserSpin * t : 0f) + MathX.Tau * l / LaserCount, p, LaserWidth / 2f + hitR + sk.Margin + 4f))
+                            {
+                                d += w * 2f;
+                                break;
+                            }
+                    foreach (var cg in Cages.Values)
+                        if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
+                            d += w * 2f;
                 }
                 // Moving off the arena wraps you around: fine to escape that way, but don't plan on it.
                 if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
