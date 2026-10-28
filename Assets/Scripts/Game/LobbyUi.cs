@@ -172,7 +172,7 @@ namespace Arena
             if (BeginUiGl())
             {
                 UiModelAt(new V2(face.center.x, face.center.y), 0.95f);
-                DrawPreviewPlayer(e.Role, e.Kit, e.Weapon, t + slot * 1.7f, false);
+                DrawPreviewPlayer(e.Role, e.Kit, e.Weapon, t + slot * 1.7f);
                 EndUiGl();
             }
             float tx = face.xMax + 14f;
@@ -282,9 +282,9 @@ namespace Arena
 
         // --- Loadout --------------------------------------------------------------
 
-        /// A player's character for a menu preview, aiming around (and swinging or shooting now and then).
+        /// A player's character for a menu preview (the party cards), aiming around.
         /// Call between BeginUiGl and EndUiGl, after UiModelAt.
-        void DrawPreviewPlayer(Role role, Kit kit, int weapon, float t, bool shots)
+        void DrawPreviewPlayer(Role role, Kit kit, int weapon, float t)
         {
             var p = previewPlayer;
             p.Role = role;
@@ -294,22 +294,6 @@ namespace Arena
             p.Hp = p.MaxHp = 1f;
             p.Disp = p.Pos = V2.Zero;
             p.Aim = -0.5f + 0.9f * Mathf.Sin(t * 0.7f);
-            if (shots)
-            {
-                V2 dir = V2.FromAngle(p.Aim);
-                if (p.Weapon.Melee)
-                {
-                    float f = (t % 1.4f) / 0.3f;  // a swing every 1.4 s
-                    if (f < 1f)
-                        Arc(V2.Zero, p.Def.BodyR + 22f, 6f * (1f - f), new Rgba(0.85f, 0.92f, 1f, 0.8f * (1f - f)), 16, p.Aim - 0.9f, 1.8f * Mathf.Min(1f, f * 2f));
-                }
-                else
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float d = p.Def.BodyR + 10f + ((t * 160f + k * 30f) % 90f);
-                        Circle(dir * d, 3f, p.Def.Color.WithAlpha(1f - (d - p.Def.BodyR) / 100f), 10);
-                    }
-            }
             DrawPlayer(p, t, true);
         }
 
