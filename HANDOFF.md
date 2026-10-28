@@ -282,13 +282,8 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    `ReadSnapshot`. Protocol bump (items 8, 9).
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
-7. **Divergent paths** (added by the owner; needs the registries). After each boss the party votes between
-   two paths for the next five waves; bosses stay fixed so balance and Boss Lab data hold. A path is a
-   definition: arena rules (walls instead of wrapping, smaller arena, a pull, fog, burning/healing ground),
-   an enemy mix (e.g. swarms, snipers, all-elite), a reward weighed against the risk (extra legendary vs.
-   heal/reroll) and a floor look. First version: 3-4 paths from rules and enemy mixes only; obstacles that
-   block bullets come later (bullets, enemy movement and bot dodging assume an open arena). Session
-   recordings note the path. Show the owner the design before building. Protocol bump.
+7. **Divergent paths**: designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
+   of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).
 9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
 
