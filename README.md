@@ -68,7 +68,7 @@ your weapon. Per extra projectile:
 | | **Bear Totem** | Wide claw swipes, plus a Bear | +2 claws, wider swipes, and the Bear's bites hit enemies around its target |
 | Healer · Soldier | **Light Bolt** | Accurate long-range bolts | +1 small homing bolt with every shot |
 | | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage). **Tap** for perfectly aimed shots (one every 0.45 s); **hold** to fan the hammer: after 0.2 s it empties the cylinder, a round every 0.07 s, each within 5° of your aim. Reloads in 1.2 s when empty, and slides rounds back in one at a time (every 0.25 s) once you stop shooting for 0.8 s | +2 rounds in the cylinder, loaded as heavy rounds |
-| | **Mender's Bow** | Arrows heal allies they pass | Arrows split into 1 more arrow 300 px out (they share the damage: 1.5x, 2x, ...) |
+| | **Mender's Bow** | **Hold to draw, release to fire** (you move at 85% while drawing). A tap looses a weak arrow (8 damage, heals 5); a full draw (0.9 s) hits for 40, flies at 950 px/s, pierces 2 and heals an ally it passes for 20. Let go within 0.25 s of full draw for a **perfect shot**: +25% (50 damage, heals 25). Holding longer keeps it at full; it never fires by itself | +1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single |
 | Healer · Mage | **Radiant Orb** | Slow piercing orbs that heal allies | +1 Light Orb circling you that hurts enemies and heals allies it touches |
 | | **Chain Light** | Bolts chain to 2 | Chains to 1 more enemy |
 | | **Prism Beam** | Rapid short beam; grazing heals | +30% length, +25% damage, +50% healing |

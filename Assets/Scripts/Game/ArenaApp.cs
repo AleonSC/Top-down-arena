@@ -641,6 +641,9 @@ namespace Arena
                 DrawAimLine(game.Me, MouseArena(), t);
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol)
                 DrawCylinder(game.Me, t);
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
+                    DrawBowDraw(p, p.Id == game.MyId, t);
 
             if (aimDebug && game.Me != null)
             {
@@ -2222,6 +2225,32 @@ namespace Arena
 
         /// The aim line: a soft glow from your gun toward the crosshair in your role's color, fading
         /// with distance, with motes drifting outward the way your shots fly.
+        /// Mender's Bow: a ring that fills as you draw (gold at full draw, pulsing while a release would be
+        /// perfect), and for your own bow an aim cone that narrows to a line.
+        void DrawBowDraw(Player p, bool mine, float t)
+        {
+            float c = game.BowCharge(p, p.DrawT);
+            bool full = c >= 1f, perfect = game.BowPerfect(p, p.DrawT);
+            float r = p.Def.BodyR + 11f;
+            var role = p.Def.Color;
+            var gold = new Rgba(1f, 0.82f, 0.3f);
+            Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
+            Arc(p.Disp, r, perfect ? 4f : 2.5f, (full ? gold : role).WithAlpha(perfect ? 0.75f + 0.25f * Mathf.Sin(t * 30f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            if (!mine)
+                return;
+            float cone = 0.2f * (1f - c);  // radians either side: 11 degrees at the start of a draw, a line at full
+            float len = 120f + 160f * c;
+            V2 from = p.Disp + V2.FromAngle(p.Aim) * (p.Def.BodyR + 6f);
+            var lc = (full ? gold : role.Mix(Rgba.White, 0.4f)).WithAlpha(perfect ? 0.8f : 0.45f);
+            if (cone > 0.01f)
+            {
+                Line(from, from + V2.FromAngle(p.Aim - cone) * len, 1.5f, lc);
+                Line(from, from + V2.FromAngle(p.Aim + cone) * len, 1.5f, lc);
+            }
+            else
+                Line(from, from + V2.FromAngle(p.Aim) * len, perfect ? 3f : 2f, lc);
+        }
+
         /// Revolver: the cylinder as pips in an arc under you (gold = heavy rounds), and a ring while reloading.
         void DrawCylinder(Player p, float t)
         {

@@ -759,11 +759,10 @@ static class Program
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
         var me = g.Players[1];
         var ally = g.Players[2];
-        V2 from = new V2(560f, 450f), center = new V2(700f, 450f);
+        V2 from = new V2(540f, 450f), center = new V2(700f, 450f);  // the nearest dummy is 100 px out
         Func<WeaponDef, int, float[]> Trial = (w, extra) =>
         {
-            // The Mender's Bow splits its arrows 300 px out, so it shoots at a far cluster.
-            center = w.Id == WeaponId.MendersBow ? new V2(1060f, 450f) : new V2(700f, 450f);
+            center = new V2(700f, 450f);
             queue.Clear();
             g.Enemies.Clear();
             g.Minions.Clear();
@@ -794,7 +793,8 @@ static class Program
                 foreach (var x in s)
                 {
                     x.Poll();
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = true } : new PlayerInput());
+                    // The bow fires when you let go: draw past full (1.25 s), release, repeat.
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = w.Id != WeaponId.MendersBow || f % 90 < 75 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
@@ -822,12 +822,13 @@ static class Program
             {
                 case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
                 case WeaponId.TotemStaff: ok = b[3] > a[3]; break;                       // totems more often
-                case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // arrows split (in flight)
+                case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
+                case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
                 case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
-                case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.15f; break;
+                case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
                 default: ok = ratio > 1.2f; break;
             }
             Console.WriteLine("  {0,-17} {1,6:0} -> {2,6:0} (x{3:0.00})  {4,4} -> {5,4}      {6} -> {7}{8}", w.Name, a[0], b[0], ratio, a[1], b[1], a[2], b[2], ok ? "" : "   <-- not stronger");
@@ -876,6 +877,7 @@ static class Program
                 me.Stats.Fan = fan;
                 me.Stats.ExtraShots = extra;
                 me.AmmoUsed = 0; me.ReloadT = 0f;
+                me.HeldT = 0f; me.Fanning = false; me.WasFiring = false; me.TapQueued = false;  // a fresh trigger pull
                 var seen = new HashSet<int>();
                 var shots = new List<Bullet>();
                 for (int f = 0; f < 60 && shots.Count == 0; f++)
@@ -1063,6 +1065,73 @@ static class Program
         Idle(2f);
         var again = Tap(16, 0.35f, true);
         Check(again[0] == 8, "and gets all eight back after reloading");
+        host.Leave(""); client.Leave("");
+    }
+
+    // Mender's Bow, drawn by the joining player: taps are weak, a full draw hits hard and pierces, a
+    // release right at full draw is perfect, drawing slows you, and the draw is timed on the shooter's side.
+    static void BowTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 1 };
+        host.Host(port, "Host", Role.Tank, 0);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Healer, 2);  // Mender's Bow
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var hp = host.Game.Players[client.Game.MyId];
+        var cme = client.Game.Players[client.Game.MyId];
+        host.Game.DevSetGod(hp.Id, true);
+        bool sawDrawOnHost = false;
+        Func<Func<int, bool>, int, V2, List<Bullet>> Play = (fireAt, frames, move) =>
+        {
+            var seen = new HashSet<int>(host.Game.Bullets.Keys);
+            var shots = new List<Bullet>();
+            for (int f = 0; f < frames; f++)
+            {
+                host.Game.Enemies.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = cme.Pos + new V2(400f, 0f), Fire = fireAt(f), Move = move } : new PlayerInput()); }
+                Thread.Sleep(1);
+                sawDrawOnHost |= hp.DrawT > 0.3f;
+                foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) shots.Add(b);
+            }
+            return shots;
+        };
+        Func<int, List<Bullet>> Draw = holdFrames => Play(f => f < holdFrames, holdFrames + 40, V2.Zero);
+        Draw(0);
+        var tap = Draw(2);
+        var half = Draw(30);       // 0.5 s
+        var perfect = Draw(57);    // 0.95 s: just past full draw
+        var full = Draw(120);      // 2 s: held well past it
+        Func<List<Bullet>, string> D = bs => bs.Count == 0 ? "none" : string.Join("/", bs.ConvertAll(b => b.Dmg.ToString("0.#") + " p" + b.Pierce + " heal " + (b.HealAlly * b.Dmg / 9f).ToString("0.#")));
+        Console.WriteLine("  bow: tap {0}; 0.5 s {1}; 0.95 s {2}; 2 s {3}", D(tap), D(half), D(perfect), D(full));
+        Check(tap.Count == 1 && Math.Abs(tap[0].Dmg - 8f) < 0.01f && tap[0].Pierce == 0, "a quick tap looses a weak arrow (8 damage)");
+        Check(half.Count == 1 && half[0].Dmg > 15f && half[0].Dmg < 30f, "a half draw hits for something in between");
+        Check(perfect.Count == 1 && Math.Abs(perfect[0].Dmg - 50f) < 0.01f && perfect[0].Pierce == 2 && Math.Abs(perfect[0].HealAlly * perfect[0].Dmg / 9f - 25f) < 0.1f,
+            "letting go right at full draw is a perfect shot: 50 damage, pierces 2, heals an ally 25");
+        Check(full.Count == 1 && Math.Abs(full[0].Dmg - 40f) < 0.01f && full[0].Pierce == 2 && full[0].Vel.Length > 900f, "holding past full draw keeps it at full (40 damage, fast, pierces 2), with no auto-fire");
+        Check(sawDrawOnHost, "the host sees the joining player's draw (for the draw ring)");
+
+        // Drawing slows you to 85%.
+        V2 a0 = cme.Pos; Play(f => false, 30, new V2(1f, 0f)); float walk = cme.Pos.DistanceTo(a0);
+        V2 b0 = cme.Pos; Play(f => true, 30, new V2(-1f, 0f)); float drawWalk = cme.Pos.DistanceTo(b0);
+        Play(f => false, 30, V2.Zero);
+        Console.WriteLine("  bow: walked {0:0} px in 0.5 s, {1:0} px while drawing", walk, drawWalk);
+        Check(drawWalk / walk > 0.8f && drawWalk / walk < 0.9f, "drawing slows you to 85% speed");
+
+        // Spamming taps is capped (a 0.25 s recovery between shots), and weaker than drawing.
+        var spam = Play(f => f % 6 < 2, 90, V2.Zero);
+        Console.WriteLine("  bow: clicking 10x a second for 1.5 s loosed {0} arrows", spam.Count);
+        Check(spam.Count >= 3 && spam.Count <= 6, "tap spam is limited by the recovery between shots");
+
+        // Extra projectiles nock more arrows, but only on a full draw.
+        host.Game.GrantUpgrade(hp.Id, Array.FindIndex(Upgrades.All, u => u.Name == "Multishot"));
+        host.Game.GrantUpgrade(hp.Id, Array.FindIndex(Upgrades.All, u => u.Name == "Multishot"));
+        Play(f => false, 40, V2.Zero);
+        var multiTap = Draw(2);
+        var multiFull = Draw(80);
+        Console.WriteLine("  bow +2: tap {0} arrow(s); full draw {1} arrows ({2})", multiTap.Count, multiFull.Count, D(multiFull));
+        Check(multiTap.Count == 1 && multiFull.Count == 3 && Math.Abs(multiFull[1].Dmg - 20f) < 0.01f, "with +2 extra projectiles a full draw looses 3 arrows (the extras at half damage); taps stay single");
         host.Leave(""); client.Leave("");
     }
 
@@ -2218,6 +2287,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "bow")
+        {
+            BowTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "keys")
         {
             KeybindTest(1f / 60f);
@@ -2269,6 +2344,7 @@ static class Program
         WeaponExtraTest(dt);
         KeybindTest(dt);
         RevolverReloadTest(dt);
+        BowTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

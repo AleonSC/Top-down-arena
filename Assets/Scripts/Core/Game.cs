@@ -60,6 +60,9 @@ namespace Arena
         public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
         public bool WasFiring, TapQueued, Fanning;  // Revolver (host): tap vs hold; a click that came too early; fanning the hammer
         public float HeldT;                    // Revolver (host): how long the trigger has been held
+        public float DrawT;                    // Mender's Bow: how long the current draw has been held (replicated; your own is local)
+        public float BowRelease;               // Mender's Bow (host): a release waiting to fire, as its draw time; the shooter measures it
+        public float BowShotDraw;              // Mender's Bow (host): the draw of the arrow being fired
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
         public float CounterT;                 // host: Counterstance fire-rate boost time left
@@ -149,8 +152,6 @@ namespace Arena
         public float FragDmg, FragSpeed, FragLife, FragSplash;
         public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
         public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
-        public float SplitT;      // host only: Mender's Bow arrows split into SplitN arrows when this runs out
-        public int SplitN;
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
         public EnemyType? Source; // host only: the enemy that fired it (for the session record)
     }
@@ -940,7 +941,7 @@ namespace Arena
                     aimAt = nearest.Pos;
                     me.Aim = (aimAt - me.Pos).Angle;
                 }
-                firing = !me.Downed;
+                firing = !me.Downed && (me.Weapon.Id != WeaponId.MendersBow || MathX.Fmod(botT, 1.2f) < 1f);  // bow: draw, then let go
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
                 if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
@@ -956,6 +957,7 @@ namespace Arena
                 }
             }
 
+            float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
             else if (DashT > 0f)
@@ -964,7 +966,7 @@ namespace Arena
                 me.Pos += DashDir * dashSpeed * dt;
             }
             else
-                me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * dt;
+                me.Pos += move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * dt;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
 
@@ -1025,6 +1027,8 @@ namespace Arena
             if (IsHost)
             {
                 me.Firing = firing;
+                if (bowRelease > 0f)
+                    me.BowRelease = bowRelease;
             }
             else
             {
@@ -1033,6 +1037,8 @@ namespace Arena
                 w.Write(me.Aim);
                 w.Write(firing);
                 w.Write(me.Parrying);
+                w.Write(me.DrawT);
+                w.Write(bowRelease);
                 session.SendToHost(Proto.End(w));
             }
         }
@@ -1056,9 +1062,13 @@ namespace Arena
             float aim = r.ReadSingle();
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
+            float draw = r.ReadSingle(), release = r.ReadSingle();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
+            p.DrawT = draw;
+            if (release > 0f && p.Weapon.Id == WeaponId.MendersBow)
+                p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
             if (!p.Downed)
                 p.Pos = WrapArena(pos);
             p.Aim = aim;
@@ -1165,6 +1175,8 @@ namespace Arena
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);
                 }
+                else if (p.Weapon.Id == WeaponId.MendersBow)
+                    TickBow(p);
                 else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
@@ -1274,6 +1286,62 @@ namespace Arena
 
         /// The last rounds in the cylinder are heavy (double damage): one, plus two per extra projectile.
         public int RevolverHeavy(Player p) => 1 + 2 * ExtraShots(p);
+
+        // --- Mender's Bow: hold to draw, release to fire ----------------------------------
+
+        public const float BowMinDraw = 0.15f;   // a quick tap still looses a weak arrow (drawn this far)
+        public const float BowFullDraw = 0.9f;   // a full draw (fire-rate upgrades shorten it)
+        public const float BowPerfectWindow = 0.25f;  // let go this soon after full draw for a perfect shot
+        const float BowPerfectBonus = 1.25f;
+        public const float BowRecover = 0.25f;   // after a shot, the next draw starts this much later
+        public const float BowDrawSlow = 0.85f;  // move speed while drawing
+
+        public float BowFull(Player p) => BowFullDraw / FireRate(p);
+
+        /// 0 for a tap, 1 at full draw.
+        public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
+
+        public bool BowPerfect(Player p, float draw) => draw >= BowFull(p) && draw <= BowFull(p) + BowPerfectWindow;
+
+        static float Lerp(float a, float b, float t) => a + (b - a) * t;
+
+        /// The host fires a bow shot when the shooter's release arrives (with how long they drew).
+        void TickBow(Player p)
+        {
+            if (p.BowRelease <= 0f || State == MatchState.GameOver)
+                return;
+            p.BowShotDraw = p.BowRelease;
+            p.BowRelease = 0f;
+            FirePlayer(p);
+        }
+
+        // Local draw state for this machine's player (the shooter measures the draw).
+        float bowDraw = -1f, bowCd;
+
+        /// Your own draw: starts when you hold fire (once the last shot has recovered); letting go fires.
+        /// Returns the draw time on the frame you let go, else 0.
+        float LocalBow(Player me, bool firing, float dt)
+        {
+            bowCd -= dt;
+            float release = 0f;
+            if (me.Weapon.Id != WeaponId.MendersBow || me.Downed || me.ParryActive)
+                bowDraw = -1f;  // the shield (or going down) cancels a draw
+            else if (firing)
+            {
+                if (bowDraw < 0f && bowCd <= 0f)
+                    bowDraw = 0f;
+                if (bowDraw >= 0f)
+                    bowDraw += dt;
+            }
+            else if (bowDraw >= 0f)
+            {
+                release = Math.Min(10f, Math.Max(BowMinDraw, bowDraw));
+                bowDraw = -1f;
+                bowCd = BowRecover / FireRate(me);
+            }
+            me.DrawT = Math.Max(0f, bowDraw);
+            return release;
+        }
 
         const float FanDelay = 0.2f;      // hold the trigger this long and you start fanning the hammer
         const float FanInterval = 0.07f;  // fanned rounds come this fast...
@@ -1399,13 +1467,26 @@ namespace Arena
                 }
                 case WeaponId.MendersBow:
                 {
-                    var b = SpawnBullet(Defs.HealerShot, muzzle, dir * 600f, 0f, 1.3f, 9f * dmg, p.Id);
-                    b.HealAlly = 7f;
-                    if (extra > 0)
+                    // Draw and release: the longer the draw, the harder, faster and farther the arrow.
+                    float c = BowCharge(p, p.BowShotDraw);
+                    bool perfect = BowPerfect(p, p.BowShotDraw);
+                    float bonus = perfect ? BowPerfectBonus : 1f;
+                    float baseDmg = Lerp(8f, 40f, c) * bonus, speed = Lerp(450f, 950f, c), reach = Lerp(500f, 900f, c);
+                    float heal = Lerp(5f, 20f, c) * bonus;
+                    // A full draw also looses an extra arrow (half damage) per extra projectile, in a tight fan.
+                    int arrows = c >= 1f ? 1 + extra : 1;
+                    for (int k = 0; k < arrows; k++)
                     {
-                        b.SplitT = 0.5f;  // 300 px out
-                        b.SplitN = 1 + extra;
+                        float a = aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.07f * ((k + 1) / 2));
+                        float d = baseDmg * (k == 0 ? 1f : 0.5f);
+                        var b = SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
+                        b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
+                        b.Pierce += c >= 1f ? 2 : c >= 0.5f ? 1 : 0;
+                        if (perfect)
+                            b.Radius = 6f;
                     }
+                    if (perfect)
+                        BroadcastFx(FxKind.Spark, muzzle, new Rgba(1f, 0.85f, 0.35f), 26f, 0.3f, Sfx.Pick);
                     break;
                 }
                 case WeaponId.TwinRifle:
@@ -1872,13 +1953,6 @@ namespace Arena
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * dt;
                 b.Life -= dt;
-                if (b.SplitN > 0 && (b.SplitT -= dt) <= 0f)
-                {
-                    arrowSplits.Add(b);
-                    scratchIds.Add(b.Id);
-                    pendingRemoved.Add(b.Id);
-                    continue;
-                }
                 if (b.Life <= 0f || b.Pos.X < -40f || b.Pos.Y < -40f || b.Pos.X > Width + 40f || b.Pos.Y > Height + 40f)
                 {
                     scratchIds.Add(b.Id);
@@ -1888,22 +1962,6 @@ namespace Arena
             }
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
-            // Host only: Mender's Bow arrows that split, fanned a little apart.
-            foreach (var b in arrowSplits)
-            {
-                for (int i = 0; i < b.SplitN; i++)
-                {
-                    float a = b.Vel.Angle + (i - (b.SplitN - 1) / 2f) * 0.12f;
-                    Player owner;
-                    float speedMult = Players.TryGetValue(b.Owner, out owner) ? owner.Stats.ShotSpeedMult : 1f;  // SpawnBullet applies it again
-                    var nb = SpawnBullet(b.Kind, b.Pos, V2.FromAngle(a) * (b.Vel.Length / speedMult), 0f, b.Life, b.Dmg, b.Owner);
-                    // The arrows share the damage: 1.5x in total for one extra projectile, 2x for two, and so on.
-                    nb.Dmg = b.Dmg * (1f + 0.5f * (b.SplitN - 1)) / b.SplitN;  // b.Dmg already includes any Arcane Surge bonus
-                    nb.HealAlly = b.HealAlly;
-                    nb.Pierce = b.Pierce;
-                }
-            }
-            arrowSplits.Clear();
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
@@ -2318,7 +2376,6 @@ namespace Arena
         // Swarm Rounds splits and Aegis reflections, queued while the bullet loop runs.
         readonly List<Bullet> splits = new List<Bullet>();
         readonly List<Bullet> frags = new List<Bullet>();
-        readonly List<Bullet> arrowSplits = new List<Bullet>();
         readonly List<Bullet> reflects = new List<Bullet>();
         readonly List<Bullet> ricochets = new List<Bullet>();
 
@@ -2556,6 +2613,7 @@ namespace Arena
                 w.Write(p.ShieldHp);
                 w.Write((byte)p.AmmoUsed);
                 w.Write(p.ReloadT);
+                w.Write(p.DrawT);
                 w.Write((short)p.Level);
                 w.Write(p.Xp);
                 w.Write((byte)p.PendingPicks);
@@ -2755,6 +2813,7 @@ namespace Arena
                 float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
                 int ammoUsed = r.ReadByte();
                 float reloadT = r.ReadSingle();
+                float drawT = r.ReadSingle();
                 int level = r.ReadInt16();
                 float xp = r.ReadSingle();
                 int pending = r.ReadByte();
@@ -2811,6 +2870,8 @@ namespace Arena
                 p.ShieldHp = shield;
                 p.AmmoUsed = ammoUsed;
                 p.ReloadT = reloadT;
+                if (id != MyId)
+                    p.DrawT = drawT;  // your own draw is measured here
                 p.Level = level;
                 p.Xp = xp;
                 p.PendingPicks = pending;
