@@ -2478,20 +2478,24 @@ namespace Arena
                     GUI.EndGroup();
                 }
                 DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
-                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), Upgrades.Ability(slot.Id).Name, 13, ready ? Color.white : new Color(1f, 1f, 1f, 0.78f), TextAnchor.MiddleLeft, true);
+                // Name: bright with a sheen when ready, dimmer while recharging.
+                Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, 15, ready ? Color.white : new Color(0.9f, 0.92f, 1f, 0.9f), nameBottom,
+                    TextAnchor.MiddleLeft, ready ? accent : (Color?)null);
                 if (ready)
-                    Ui.Label(new Rect(r.x + 8f, r.y + 7f, r.width - 16f, 16f), ultimate ? "READY!" : "READY", 10, ultimate ? Ui.Gold : Ui.Good, TextAnchor.MiddleRight, true);
+                {
+                    Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
+                    Ui.Fancy(new Rect(r.x + 8f, r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, hi, lo, TextAnchor.MiddleRight,
+                        new Color(lo.r, lo.g, lo.b, ultimate ? 0.6f + 0.4f * pulse : 0.8f));
+                }
                 else
-                    Ui.Shadowed(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
-                        14, Color.white, TextAnchor.MiddleRight);
+                    Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
+                        14, Color.white, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleRight);
                 // Recharge line along the bottom, and charge pips.
                 Ui.Bar(new Rect(r.x + 8f, r.yMax - 9f, r.width - 16f, 3f), fill, ready ? accent : new Color(0.5f, 0.6f, 0.8f), new Color(0f, 0f, 0f, 0.4f));
                 if (slot.MaxCharges > 1)
                     for (int k = 0; k < slot.MaxCharges; k++)
                         Ui.Pill(new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f), k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
-                float xp;
-                me.MasteryXp.TryGetValue(slot.Id, out xp);
-                DrawMasteryPips(new Rect(r.x + 8f, r.yMax - 17f, 0f, 4f), Game.MasteryLevelFor(xp), Game.MasteryProgress(xp));
             }
             DrawMasteryToasts(x0 + total / 2f, y - 64f);
         }
@@ -2539,7 +2543,7 @@ namespace Arena
             float w = 12f + key.Length * 6.5f;
             var cap = new Rect(r.x, r.y, w, r.height);
             Ui.Pill(cap, new Color(color.r, color.g, color.b, 0.2f * color.a + 0.05f));
-            Ui.Label(cap, key, 9, new Color(1f, 1f, 1f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter, true);
+            Ui.Fancy(cap, key, 9, new Color(1f, 1f, 1f, 0.55f + 0.45f * color.a), new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
         }
 
         void DrawUpgradePicker(Player me)

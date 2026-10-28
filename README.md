@@ -163,8 +163,8 @@ total: about level 3 by wave 8-10 and level 5 by wave 20-25 if you use it whenev
 | **Bullet Storm** | +4 extra projectiles instead of +2. | **Meteor Storm** | Twenty meteors. |
 | **Legion** | Summons 10 wolves and 10 bats. |  |  |
 
-Your ability tiles show five pips for the level (the next one fills as it earns XP), and a popup appears when
-one levels up. In the **Tab** menu each ability shows its level; hover it to read what level 5 unlocks.
+A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next
+one fills as it earns XP); hover it to read what level 5 unlocks.
 Mastery resets each run.
 
 ## Levels and upgrades

@@ -242,6 +242,32 @@ namespace Arena
             Label(r, text, size, color, align, bold);
         }
 
+        /// Game-style text: a soft glow, a dark outline, and a two-tone fill (the top half lighter than
+        /// the bottom, like a metallic sheen). glow = null for none.
+        public static void Fancy(Rect r, string text, int size, Color top, Color bottom, TextAnchor align = TextAnchor.MiddleLeft, Color? glow = null)
+        {
+            if (glow.HasValue)
+            {
+                var g = glow.Value;
+                var gc = new Color(g.r, g.g, g.b, 0.3f * g.a);
+                for (int k = 0; k < 8; k++)
+                {
+                    float a = k * Mathf.PI / 4f;
+                    Label(new Rect(r.x + Mathf.Cos(a) * 2.5f, r.y + Mathf.Sin(a) * 2.5f, r.width, r.height), text, size, gc, align, true);
+                }
+            }
+            var outline = new Color(0f, 0f, 0f, 0.85f * bottom.a);
+            Label(new Rect(r.x - 1f, r.y, r.width, r.height), text, size, outline, align, true);
+            Label(new Rect(r.x + 1f, r.y, r.width, r.height), text, size, outline, align, true);
+            Label(new Rect(r.x, r.y - 1f, r.width, r.height), text, size, outline, align, true);
+            Label(new Rect(r.x, r.y + 1.5f, r.width, r.height), text, size, outline, align, true);
+            Label(r, text, size, bottom, align, true);
+            // The top half again in the lighter color, clipped to the upper part of the glyphs.
+            GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * 0.5f + size * 0.02f));
+            Label(new Rect(0f, 0f, r.width, r.height), text, size, top, align, true);
+            GUI.EndGroup();
+        }
+
         // --- Texture generation -------------------------------------------------
 
         static GUIStyle Style(Texture2D bg, int radius)
