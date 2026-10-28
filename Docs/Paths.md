@@ -1,6 +1,7 @@
 # Divergent paths: design plan
 
-Status: **planned, not built.** Decisions below were made with the owner (October 2026); numbers are first
+Status: **step 1 built** (framework + the three enemy-mix paths: Swarm Fields, Sniper Ridge, Elite Gauntlet);
+steps 2-4 planned. Decisions below were made with the owner (October 2026); numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -91,7 +92,7 @@ Run modifiers (the lobby's Modifiers tab) stack with paths.
 
 ## Build order (each step shippable on its own)
 
-1. **Framework + enemy-mix paths:** the registry, offers, the Choose-your-path screen, bonus and prize, HUD chip,
+1. ✅ **Framework + enemy-mix paths:** the registry, offers, the Choose-your-path screen, bonus and prize, HUD chip,
    recordings, tests. Paths: Swarm Fields, Sniper Ridge, Elite Gauntlet.
 2. **Hazard floors:** Burning Grounds, Sanctuary (and bots handling them).
 3. **Twists:** Frozen Lake, Blood Moon.

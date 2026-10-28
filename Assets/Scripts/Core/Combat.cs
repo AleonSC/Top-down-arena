@@ -538,8 +538,8 @@ namespace Arena
                     if (e.Def.IsBoss)
                         killer.Run.BossKills++;
                 }
-                Score += e.Score * (e.Elite ? 3 : 1);
-                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1));
+                Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
+                GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
                 Enemies.Remove(e.Id);

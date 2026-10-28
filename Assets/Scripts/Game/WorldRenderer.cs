@@ -45,6 +45,7 @@ namespace Arena
             DrawMenuBackground(Time.time);
             drawScale = worldScale;
             FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
+            DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
             for (float x = 0; x <= AW; x += 64f)
                 Line(new V2(x, 0), new V2(x, AH), 1f, grid);

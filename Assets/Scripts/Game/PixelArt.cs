@@ -240,6 +240,21 @@ namespace Arena
                 "............",
                 "............",
             },
+            ["ui_skull"] = new[]
+            {
+                "............",
+                "...wwwwww...",
+                "..wwwwwwww..",
+                ".wwwwwwwwww.",
+                ".ww..ww..ww.",
+                ".ww..ww..ww.",
+                ".wwwwwwwwww.",
+                "..wwww.www..",
+                "...wwwwww...",
+                "...w.ww.w...",
+                "...wwwwww...",
+                "............",
+            },
             ["ui_play"] = new[]
             {
                 "............",

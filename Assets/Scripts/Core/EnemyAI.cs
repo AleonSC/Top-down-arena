@@ -181,6 +181,8 @@ namespace Arena
             var melee = new List<EnemyType> { EnemyType.Swarmer };
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
+            if (BuildPathWave(n, count, pool, melee))  // a path's own mix (Paths.cs)
+                return;
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
             {
@@ -235,6 +237,8 @@ namespace Arena
                 e.MaxHp *= Modifiers.ToughCrowdHp;
             if (Has(RunMod.SwiftFoes))
                 e.Speed *= Modifiers.SwiftFoesSpeed;
+            ApplyPathToEnemy(e, ref elite);  // Paths.cs
+            e.Elite = elite;
             if (elite)
             {
                 e.MaxHp *= 2.5f;

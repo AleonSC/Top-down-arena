@@ -428,6 +428,7 @@ namespace Arena
         {
             Stop();
             PracticeIndex = -1;
+            ResetPaths();
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
             for (int i = 0; i < n; i++)

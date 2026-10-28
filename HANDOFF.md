@@ -282,7 +282,7 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    `ReadSnapshot`. Protocol bump (items 8, 9).
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
-7. **Divergent paths**: designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
+7. **Divergent paths**: step 1 ✅ (framework + 3 enemy-mix paths). Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).
 9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).

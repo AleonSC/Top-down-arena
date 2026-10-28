@@ -235,6 +235,12 @@ namespace Arena
                 case Msg.PracticeWave:
                     PracticeIndex = r.ReadInt32();
                     break;
+                case Msg.PathOffer:
+                    ReadPathOffer(r);
+                    break;
+                case Msg.PathChosen:
+                    ReadPathChosen(r);
+                    break;
                 case Msg.Spawn:
                 {
                     int n = r.ReadInt32();
