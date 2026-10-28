@@ -266,7 +266,9 @@ namespace Arena
         void DrawPauseMenu()
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
-            var panel = new Rect(W / 2f - 240f, 45f, 480f, 630f);
+            // The pause menu on the left, the Field guide (Bestiary and Armory, ReferencePages.cs) on the right.
+            var panel = new Rect(W / 2f - 450f, 45f, 480f, 630f);
+            DrawFieldGuide(new Rect(panel.xMax + 24f, panel.y, 396f, panel.height), Time.unscaledTime);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
             Player by;

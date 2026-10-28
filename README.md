@@ -409,7 +409,9 @@ friend isn't affected, so you can check it mid-fight (you can still move and sho
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your
 and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
-a mute toggle, and **Leave game**. The same audio options are under **Settings** on the main menu, and
+a mute toggle, and **Leave game**. Beside it, the **Field guide** opens the **Bestiary** (every enemy and boss)
+and the **Armory** (every class, weapon, ability and upgrade) in your browser, with a live preview of each
+(in the Unity editor you can also open the local copy from `Docs/`). The same audio options are under **Settings** on the main menu, and
 they're saved between sessions.
 
 **Music:** everything is generated in code, like the sound effects. The menus and lobby play a synthwave
@@ -458,17 +460,19 @@ Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`,
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
 ### Developer tools (F1)
 
-Press **F1** anywhere for the developer menu (Esc or F1 closes it):
+Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs down the left, and a card at
+the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 
-- **Tools:** record sessions (below), open the sessions folder, the aim debug overlay (also F3), and a bot that
-  plays for you.
-- **Stage (host):** pick a wave with -5 / -1 / +1 / +5 and **Go to wave N**. It clears the arena, gets downed
-  players back up and starts that wave after 2 s (boss waves show which boss you'll get).
+- **Match (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
+  downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown
+  moving beside it. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
-  Edited stats show in gold, are sent to every player's game, and stay on top of upgrades they pick later;
-  **Reset stats** goes back to what their upgrades give. Also **God mode** (takes no damage), **Full heal**,
-  **Level up** (an extra upgrade pick) and **Max mastery** (every ability they have to level 5).
-  Joining players can see everyone's stats but not change them.
+  Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
+  game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
+  Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
+  (every ability they have to level 5). Joining players can see everyone's stats but not change them.
+- **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that
+  plays for you, open the practice folder, and the **Boss Lab**.
 
 ### Boss Lab (F1)
 

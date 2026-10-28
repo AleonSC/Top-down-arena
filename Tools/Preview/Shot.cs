@@ -76,7 +76,19 @@ class Shot {
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
       set("devWave", 10);
+      if (Environment.GetEnvironmentVariable("DEVTAB") != null) set("devTab", int.Parse(Environment.GetEnvironmentVariable("DEVTAB")));
+      if (Environment.GetEnvironmentVariable("FILTER") != null) set("devFilter", Environment.GetEnvironmentVariable("FILTER"));
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawDevMenu", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
+    else if (mode == "pause")
+    {
+      set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
+      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+      typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
+      GL.ToUi = false;
     }
     else if (mode == "bg")
     {
