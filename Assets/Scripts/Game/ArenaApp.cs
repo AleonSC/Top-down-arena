@@ -2111,26 +2111,24 @@ namespace Arena
         void DrawTabMenu(Player me)
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.6f));
-            var panel = new Rect(36f, 54f, W - 72f, 640f);
+            DrawTabStats(me, StatsSidebar(me));
+            var panel = new Rect(StatsSidebarW + 18f, 54f, W - StatsSidebarW - 18f - 24f, 640f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 12f, panel.width, 34f), "YOUR LOADOUT", 26, Color.white);
             Ui.Label(new Rect(panel.x, panel.y + 46f, panel.width, 18f),
                 Defs.KitName(me.Kit) + " " + me.Def.Name + "   ·   Level " + me.Level + "   ·   " + me.Rerolls + " reroll" + (me.Rerolls == 1 ? "" : "s") + " left",
                 13, ToColor(me.Def.Color), TextAnchor.MiddleCenter, true);
             float top = panel.y + 76f, bottom = panel.yMax - 16f;
-            const float pad = 16f, gap = 14f, statsW = 270f, abilW = 330f;
-            var statsBox = new Rect(panel.x + pad, top, statsW, bottom - top);
-            var abilBox = new Rect(statsBox.xMax + gap, top, abilW, bottom - top);
+            const float pad = 16f, gap = 14f, abilW = 330f;
+            var abilBox = new Rect(panel.x + pad, top, abilW, bottom - top);
             var upBox = new Rect(abilBox.xMax + gap, top, panel.xMax - pad - abilBox.xMax - gap, bottom - top);
-            DrawTabStats(me, statsBox);
             DrawTabAbilities(me, abilBox);
             DrawTabUpgrades(me, upBox);
         }
 
-        /// Stats, grouped so they're quick to scan.
+        /// Stats, grouped so they're quick to scan (in the stats sidebar).
         void DrawTabStats(Player me, Rect box)
         {
-            Ui.HudPanel(box);
             var lines = new Dictionary<string, string>();
             foreach (var line in StatSheet.Describe(me, me.Taken))
                 if (!line.Header && !lines.ContainsKey(line.Label))
@@ -2852,11 +2850,10 @@ namespace Arena
             float now = Time.unscaledTime;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.8f));
             // Stats on the left; the cards and buttons fill the rest.
-            const float statsX = 16f, statsW = 250f;
             const float cardW = 290f, cardH = 300f, gap = 22f;
-            float x0 = statsX + statsW + 22f;
+            float x0 = StatsSidebarW + 20f;
             float areaW = cardW * 3 + gap * 2, mid = x0 + areaW / 2f;
-            DrawStatPanel(me, new Rect(statsX, 110f, statsW, 560f));
+            DrawStatPanel(me, StatsSidebar(me));
 
             // Heading: a small tag, a big title, and how many picks are left.
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
@@ -3015,10 +3012,6 @@ namespace Arena
         /// Your current stats; with a card selected, the ones it would change show their new value.
         void DrawStatPanel(Player me, Rect r)
         {
-            Ui.Panel(r);
-            Ui.Label(new Rect(r.x + 14f, r.y + 10f, r.width - 28f, 22f), "YOUR STATS", 15, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Label(new Rect(r.x + 12f, r.y + 30f, r.width - 24f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12,
-                ToColor(me.Def.Color), TextAnchor.MiddleLeft);
             var now = StatSheet.Describe(me, me.Taken);
             List<StatLine> after = null;
             if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
@@ -3028,7 +3021,7 @@ namespace Arena
             }
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);
-            float y = r.y + 56f;
+            float y = r.y;
             for (int i = 0; i < lines.Count && y < r.yMax - 20f; i++)
             {
                 var line = lines[i];
@@ -3050,6 +3043,23 @@ namespace Arena
                 Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed && old == null ? "NEW " + value : value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
                 y += 20f;
             }
+        }
+
+        const float StatsSidebarW = 270f;
+
+        /// YOUR STATS (Tab menu and upgrade picker): a see-through strip down the whole left edge of the screen,
+        /// with the title and your weapon and ability at the top. Returns the space below for the stats.
+        Rect StatsSidebar(Player me)
+        {
+            var r = new Rect(0f, 0f, StatsSidebarW, H);
+            var rc = ToColor(me.Def.Color);
+            Ui.Fill(r, new Color(0.05f, 0.07f, 0.13f, 0.6f));
+            Ui.Fill(new Rect(r.xMax - 1f, 0f, 1f, H), new Color(1f, 1f, 1f, 0.22f));
+            Ui.Fill(new Rect(r.xMax - 5f, 0f, 4f, H), new Color(rc.r, rc.g, rc.b, 0.18f));
+            Ui.Label(new Rect(20f, 20f, r.width - 40f, 24f), "YOUR STATS", 16, Color.white, TextAnchor.MiddleLeft, true);
+            Label(new Rect(20f, 44f, r.width - 40f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.RoleAbility).Name, 12, rc, TextAnchor.MiddleLeft);
+            Ui.Fill(new Rect(20f, 70f, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.1f));
+            return new Rect(8f, 80f, r.width - 20f, H - 92f);
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)
