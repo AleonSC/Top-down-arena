@@ -10,7 +10,7 @@ namespace Arena
         public int Owner;
         public float Aim, Reach, HalfArc, Dmg, Knock, Delay;
         public int MaxTargets;        // 0 = everything in the arc; otherwise the nearest few (Rapier)
-        public bool CutAll;           // also cuts big orbs and mines (shield bash, mastered Whirlwind)
+        public bool CutAll;           // also cuts big orbs and mines (mastered Whirlwind)
         public float HealPerHit, HealRange;
         public int HealHits;          // most enemies a swing's healing counts (Holy Mace)
         public float HealSpin;        // heals allies near you once per swing (Censer)
@@ -39,7 +39,7 @@ namespace Arena
             switch (w)
             {
                 case WeaponId.Warhammer: return 100f;
-                case WeaponId.SwordShield: return 85f;
+                case WeaponId.Lance: return 150f;
                 case WeaponId.Halberd: return 160f;
                 case WeaponId.HolyMace: return 85f;
                 case WeaponId.Lightbringer: return 80f;
@@ -78,19 +78,13 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.SwordShield:
+                case WeaponId.Lance:
                 {
-                    int bashEvery = Math.Max(1, 3 - extra);
-                    if (p.SwingCount % bashEvery == 0)
-                    {
-                        var s = NewSwing(p, aim, 95f, 140f, 24f * dmg);
-                        s.Knock = 60f + 30f * Math.Max(0, extra - 2);
-                        s.CutAll = true;
-                        s.Heavy = true;
-                        pendingSwings.Add(s);
-                    }
-                    else
-                        pendingSwings.Add(NewSwing(p, aim + (p.SwingCount % 2 == 0 ? 0.15f : -0.15f), 85f, 110f, 19f * dmg));
+                    // A big jab straight ahead that drives everything it hits far back (not bosses or heavies).
+                    var s = NewSwing(p, aim, 150f + 30f * extra, 60f, 36f * dmg);
+                    s.Knock = 140f + 60f * extra;
+                    s.Heavy = true;
+                    pendingSwings.Add(s);
                     break;
                 }
                 case WeaponId.Halberd:
@@ -278,7 +272,7 @@ namespace Arena
             CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll);
         }
 
-        /// Swings slice small enemy bullets out of the air; a shield bash (CutAll) stops big orbs too.
+        /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.
         /// Bosses' red aimed shots always get through.
         int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all)
         {

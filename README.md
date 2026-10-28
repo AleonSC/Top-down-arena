@@ -44,13 +44,13 @@ use your damage and attack-speed bonuses too.
 
 Knights fight up close. Holding fire **swings** instead of shooting: each swing hits every enemy in its arc
 (the Rapier only the nearest), and **cuts small bullets out of the air** in front of you. Big orbs and mines get
-through (a Sword & Shield bash stops those too), and bosses' red aimed shots always do. Knights have 115%
+through (a mastered Whirlwind stops those too), and bosses' red aimed shots always do. Knights have 115%
 health to make up for standing in the thick of it, and deal about a third more damage than the ranged
 classes.
 
 | | Weapons | Space abilities | Ultimate |
 |---|---|---|---|
-| **Tank** | **Warhammer** (slow 150° smash, knocks back), **Sword & Shield** (quick cuts; every 3rd swing a shield bash that knocks back and blocks every bullet in front), **Halberd** (160 px thrust that hits everything on the blade) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
+| **Tank** | **Warhammer** (slow 150° smash, knocks back), **Lance** (a heavy 150 px jab that shoves enemies 140 px back), **Halberd** (160 px thrust that hits everything on the blade) | **Shield Wall** (4 s: blocks every bullet coming at your front 120°, soaks 400 boss damage), **Leap Slam** (leap up to 320 px to your cursor, untouchable in the air; 50 damage and a 1 s stun where you land), **Unbreakable** (5 s: take 50% less damage, hits heal you 15% of what they deal) | **Last Stand** (70 s): 8 s where you can't drop below 1 HP, every enemy targets you, and you deal +50% damage |
 | **Healer** | **Holy Mace** (each enemy hit heals you and allies near you for 2, up to 8 a swing), **Lightbringer** (sword cut plus a crescent of light that heals allies it passes), **Censer** (a flail whirled all the way round; each spin heals allies near you for 3) | **Consecrate** (6 s of blessed ground: allies heal 12 HP/s, enemies burn 20/s), **Guardian's Oath** (shield the ally nearest your cursor for 100, yourself for 50, for 6 s), **Lay on Hands** (heal the most hurt ally within 300 px for 70, or revive them at half health) | **Hallowed Blade** (80 s): a giant sword falls at your cursor for 200 damage around it, then blesses the ground for 8 s (allies heal 15 HP/s) |
 | **DPS** | **Twin Blades** (very fast alternating slashes), **Greatsword** (huge 170° sweeps), **Rapier** (thrusts at the nearest enemy; each hit in a row on it deals 10% more, up to +60%) | **Whirlwind** (spin for 2 s hitting everything within 110 px every 0.2 s and slicing small bullets), **Lunge** (dash 260 px toward your cursor hitting everything you pass for 35; two charges), **Battle Fury** (6 s: swing 40% faster, +25% damage) | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
@@ -109,7 +109,7 @@ your weapon. Per extra projectile:
 | | **Wisp Lantern** | Weak bolts, plus 3 shooting wisps | +1 Wisp |
 | | **Imp Caller** | Darts; exploding imps every 3 s | +1 Imp, arriving 50% faster |
 | Tank · Knight | **Warhammer** | Slow overhead smash: 150° arc, 100 px reach, 50 damage, knocks back | +1 aftershock: a second smash 0.2 s later (60% damage, more reach) |
-| | **Sword & Shield** | Quick 110° cuts (19); every 3rd swing a shield bash (24, knocks back, blocks every bullet in front) | Bashes come 1 swing sooner (every swing from 2 stacks), then knock back further |
+| | **Lance** | Heavy 150 px jab in a 60° cone (36 damage) that shoves enemies 140 px back (not bosses or heavies) | +30 px reach and +60 px knockback |
 | | **Halberd** | 160 px thrust (32) that hits everything along the blade | +30 px reach and a quick follow-up thrust (60% damage) |
 | Healer · Knight | **Holy Mace** | 120° swings (22); each enemy hit heals you and allies within 220 px for 2 (up to 8 a swing) | +1 HP healed per enemy hit, and 60 px more healing reach |
 | | **Lightbringer** | 100° sword cut (17) plus a crescent of light (12, pierces 2) that heals allies it passes for 6 | +1 crescent, fanned out |

@@ -1317,6 +1317,15 @@ namespace Arena
                     Circle(ball, 5f, new Rgba(1f, 0.85f, 0.45f), 10);
                     break;
                 }
+                case WeaponId.Lance:  // a long tapering lance with a round guard
+                {
+                    V2 butt = grip - dir * 8f, tipAt = grip + dir * (r + 40f);
+                    Line(butt, grip + dir * (r + 6f), 4f, new Rgba(0.75f, 0.6f, 0.4f));
+                    SetColor(Steel);
+                    Tri(tipAt, grip + dir * (r + 6f) + side * 4f, grip + dir * (r + 6f) - side * 4f);
+                    Arc(grip + dir * 4f, 6f, 2.5f, Steel, 10, p.Aim + MathX.Pi / 2f, MathX.Pi);  // vamplate
+                    break;
+                }
                 case WeaponId.TwinBlades:
                     Line(grip, grip + dir * (r + 12f), 3f, Steel);
                     Line(p.Disp - side * (r * 0.7f), p.Disp - side * (r * 0.7f) + dir * (r + 12f), 3f, Steel);
@@ -1327,8 +1336,6 @@ namespace Arena
                     Line(grip + side * 5f, grip - side * 5f, 3f, new Rgba(0.75f, 0.6f, 0.3f));  // crossguard
                     break;
             }
-            if (p.Weapon.Id == WeaponId.SwordShield)  // the shield on the other arm
-                Arc(p.Disp, r + 4f, 5f, Steel.WithAlpha(0.85f), 10, p.Aim - 1.2f - 0.6f, 0.9f);
             // Abilities
             if (p.WallT > 0f)
             {

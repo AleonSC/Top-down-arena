@@ -1706,8 +1706,19 @@ static class Program
         for (int f = 0; f < 90; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = dummy.Pos }); dummy.Pos = new V2(700f, 450f); waved |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave); }
         Console.WriteLine("  barrage waves {0}, dummy burning {1} (fan {2}, burn {3})", waved, dummy.BurnT > 0f, me.Stats.Fan, me.Stats.BurnFrac);
         Check(waved && dummy.BurnT > 0f, "Barrage throws sword waves and weapon mods apply to melee hits");
-        Check(Upgrades.DescFor(Upgrades.All[U("Piercing Rounds")], me.Weapon).Contains("reach") && Upgrades.DescFor(Upgrades.All[U("Multishot")], me.Weapon).Contains("bash"),
+        Check(Upgrades.DescFor(Upgrades.All[U("Piercing Rounds")], me.Weapon).Contains("reach") && Upgrades.DescFor(Upgrades.All[U("Multishot")], me.Weapon).Contains("knockback"),
             "upgrade cards describe what they do for a Knight weapon");
+
+        // The Lance shoves what it hits far back.
+        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
+        var shoved = Dummy(new V2(900f, 600f));
+        me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 1);
+        me.Pos = new V2(780f, 600f);
+        V2 shovedFrom = shoved.Pos;
+        for (int f = 0; f < 45; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1000f, 600f) }); shoved.FrozenT = 1f; Clear(); me.Pos = new V2(780f, 600f); }
+        Console.WriteLine("  lance: pushed a Brute {0:0} px", shoved.Pos.X - shovedFrom.X);
+        Check(me.Weapon.Name == "Lance" && shoved.Pos.X - shovedFrom.X > 120f, "the Lance jabs enemies far back");
+        shoved.Hp = 0f; keep.Remove(shoved);
 
         // Abilities (cast directly; all players are invulnerable to everything but what's tested).
         Func<AbilityId, int> Slot = id => { var p = g.Players.Values.First(q => q.Slots.Any(sl => sl.Id == id)); return Array.FindIndex(p.Slots, sl => sl.Id == id); };

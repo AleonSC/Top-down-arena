@@ -36,7 +36,7 @@ namespace Arena
         // Summoner
         GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, TotemStaff, WolfWhistle, WispLantern, ImpCaller,
         // Knight (melee)
-        Warhammer, SwordShield, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
+        Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
     }
 
     public class WeaponDef
@@ -150,8 +150,8 @@ namespace Arena
                 Companion = MinionKind.Bear, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.Warhammer, Melee = true, ExtraDesc = "+1 aftershock: a second smash 0.2 s later with 60% damage and more reach", Name = "Warhammer", FireInterval = 0.75f,
                 Desc = "Slow overhead smashes in a wide arc that knock enemies back." },
-            new WeaponDef { Id = WeaponId.SwordShield, Melee = true, ExtraDesc = "Shield bashes come 1 swing sooner (every swing at 2+), and knock back further", Name = "Sword & Shield", FireInterval = 0.32f,
-                Desc = "Quick sword cuts. Every third swing is a shield bash that knocks enemies back and blocks every bullet in front of you." },
+            new WeaponDef { Id = WeaponId.Lance, Melee = true, ExtraDesc = "+30 px reach and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
+                Desc = "A heavy jab in front of you that shoves enemies far back." },
             new WeaponDef { Id = WeaponId.Halberd, Melee = true, ExtraDesc = "+30 px reach and a quick follow-up thrust (60% damage)", Name = "Halberd", FireInterval = 0.55f,
                 Desc = "Long-reaching thrusts that hit everything along the blade." },
             // Healer
