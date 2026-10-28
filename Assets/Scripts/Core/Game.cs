@@ -1256,7 +1256,8 @@ namespace Arena
 
         public const int RevolverCylinder = 6;
         public const float RevolverReload = 1.2f;
-        const float RevolverIdleReload = 0.6f;  // stop shooting this long and it reloads on its own
+        const float RevolverTopUpDelay = 0.8f;  // stop shooting this long and it starts sliding rounds back in...
+        const float RevolverTopUpEach = 0.25f;  // ...one at a time (shooting stops it; it never locks you out)
         const float RevolverDamage = 24f;
 
         /// Six rounds, plus two per extra projectile.
@@ -1278,11 +1279,25 @@ namespace Arena
                 return;
             }
             int cap = RevolverCapacity(p);
-            p.ReloadIdle = p.Firing ? 0f : p.ReloadIdle + dt;
-            if (p.AmmoUsed >= cap || p.AmmoUsed > 0 && p.ReloadIdle >= RevolverIdleReload)
+            if (p.AmmoUsed >= cap)
             {
+                // Empty: a full reload, which you have to wait out.
                 p.ReloadT = RevolverReload / p.Stats.FireRateMult;
+                p.ReloadIdle = 0f;
                 Sounds.Add(Sfx.Pick);
+                return;
+            }
+            if (p.Firing || p.AmmoUsed == 0)
+            {
+                p.ReloadIdle = 0f;
+                return;
+            }
+            // Not shooting: top the cylinder up a round at a time.
+            p.ReloadIdle += dt;
+            if (p.ReloadIdle >= RevolverTopUpDelay + RevolverTopUpEach / p.Stats.FireRateMult)
+            {
+                p.AmmoUsed--;
+                p.ReloadIdle = RevolverTopUpDelay;
             }
         }
 

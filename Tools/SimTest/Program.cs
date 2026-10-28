@@ -966,6 +966,65 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Revolver, played by the joining player the way people actually shoot it: tapping. Each tap fires a
+    // round with no reload in between until the cylinder is empty; a pause tops it back up a round at a
+    // time; and Multishot's extra rounds really are there to fire.
+    static void RevolverReloadTest(float dt)
+    {
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 1 };
+        host.Host(port, "Host", Role.Tank, 0);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Healer, 1);  // Revolver
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var hp = host.Game.Players[client.Game.MyId];
+        var cme = client.Game.Players[client.Game.MyId];
+        Func<int, float, bool, int[]> Tap = (taps, every, untilEmpty) =>
+        {
+            // Tap fire (held for 3 frames) every `every` seconds; count rounds fired and reloads started.
+            var seen = new HashSet<int>(host.Game.Bullets.Keys);
+            int fired = 0, reloads = 0;
+            bool wasReloading = hp.ReloadT > 0f;
+            int frames = (int)(taps * every * 60);
+            for (int f = 0; f < frames; f++)
+            {
+                bool fire = f % (int)(every * 60) < 3;
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = new V2(1500f, 450f), Fire = fire } : new PlayerInput()); }
+                Thread.Sleep(1);
+                foreach (var b in host.Game.Bullets.Values)
+                    if (b.Owner == hp.Id && seen.Add(b.Id)) fired++;
+                bool reloading = hp.ReloadT > 0f;
+                if (reloading && !wasReloading) reloads++;
+                wasReloading = reloading;
+                if (untilEmpty && reloads > 0) break;
+            }
+            return new[] { fired, reloads };
+        };
+        Action<float> Idle = secs => { for (int f = 0; f < secs * 60; f++) { foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); } Thread.Sleep(1); } };
+
+        Idle(1f);
+        var slow = Tap(12, 0.7f, true);  // deliberate taps, slower than the old 0.6 s auto-reload
+        Console.WriteLine("  revolver: tapping every 0.7 s fired {0} rounds before the first reload", slow[0]);
+        Check(slow[0] == 6, "tapping the Revolver slowly fires all six rounds before it reloads");
+        Idle(2f);
+        Tap(3, 0.35f, false);
+        int afterThree = cme.AmmoUsed;
+        Idle(1.6f);  // 0.8 s, then a round every 0.25 s
+        Console.WriteLine("  revolver: after 3 shots the client shows {0} used; after a 1.6 s pause, {1} used", afterThree, cme.AmmoUsed);
+        Check(afterThree == 3 && cme.AmmoUsed == 0 && hp.ReloadT <= 0f, "a pause tops the cylinder back up a round at a time, without locking you out");
+
+        host.Game.GrantUpgrade(hp.Id, Array.FindIndex(Upgrades.All, u => u.Name == "Multishot"));
+        Idle(2f);
+        var multi = Tap(16, 0.35f, true);
+        Console.WriteLine("  revolver + Multishot: {0} rounds before the reload (capacity {1}, client sees {2})", multi[0], host.Game.RevolverCapacity(hp), client.Game.RevolverCapacity(cme));
+        Check(multi[0] == 8 && client.Game.RevolverCapacity(cme) == 8, "with Multishot the Revolver really fires eight rounds per cylinder");
+        Idle(2f);
+        var again = Tap(16, 0.35f, true);
+        Check(again[0] == 8, "and gets all eight back after reloading");
+        host.Leave(""); client.Leave("");
+    }
+
     // The F1 dev menu's host commands: hand-edited stats reach every player, god mode, and jumping to a wave.
     static void DevToolsTest(float dt)
     {
@@ -2088,6 +2147,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "revolver")
+        {
+            RevolverReloadTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "keys")
         {
             KeybindTest(1f / 60f);
@@ -2138,6 +2203,7 @@ static class Program
         DevToolsTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);
+        RevolverReloadTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
