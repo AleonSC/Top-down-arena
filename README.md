@@ -376,6 +376,41 @@ Press **F1** anywhere for the developer menu (Esc or F1 closes it):
   **Level up** (an extra upgrade pick) and **Max mastery** (every ability they have to level 5).
   Joining players can see everyone's stats but not change them.
 
+### Boss Lab (F1)
+
+**F1 → Boss Lab** sets up a boss fight on the real game and lets you watch bots play it, to see how each
+boss plays out and what to change.
+
+- **Setup:** pick the boss (by wave), 1-3 players and each one's role, class, weapon and ability. Tick
+  **I'll play this one** to take player 1 yourself. Choose the **bot skill** and the **upgrades**: by
+  default each player gets the number of level-up picks a team typically has at that wave (random picks,
+  measured from full runs), a legendary and a weapon mod for every boss already beaten, and ability mastery
+  for the wave.
+- **While it runs**, a panel on the right shows pause and 1x / 2x / 4x / 8x speed (**P** also pauses), fight
+  time, boss health, the team's DPS on the boss, enemy bullets on screen against the bullet budget, each
+  player's boss damage, damage taken, downs and ability casts, and what hit them most. **Restart** reruns the
+  same setup; **Setup** changes it.
+- When the boss dies, the party wipes, or 5 minutes pass, a result card shows the summary with **Run again**.
+- Lab fights aren't saved as session recordings. Starting the lab leaves any match you're in.
+
+**The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
+bullets, enemy bodies, lightning strikes and the Reapers' tether will be. They keep a distance that suits
+their weapon and role, lead their shots, and go for the adds that protect a boss first (phylacteries,
+gravity wells, the Queen's shield drones). They revive downed allies, heal when someone is hurt, use
+defensive abilities when things get tight, and use the rest on the boss.
+
+| Skill | Reacts after | Plans ahead | Keeps track of | Changes direction |
+|---|---|---|---|---|
+| Casual | 0.35 s | 0.3 s | nearest 6 bullets | ~4 times a second |
+| Good | 0.24 s | 0.4 s | nearest 12 bullets | ~7 times a second |
+| Expert | 0.15 s | 0.5 s | nearest 25 bullets | ~12 times a second |
+
+Bots don't parry, pick up health orbs, or reroll upgrades.
+
+From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]` runs
+fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
+Soldier, first weapon), `H/M/1` or `D/U/2` (U = Summoner).
+
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
@@ -421,6 +456,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
+  - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
   - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
   - `Session.cs`: hosting, joining, lobby and role selection, message types
   - `Net.cs`: small TCP transport

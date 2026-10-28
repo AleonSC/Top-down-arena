@@ -8,6 +8,7 @@ namespace Arena
     public class RunStats
     {
         public float DamageDealt, DamageTaken, HealingDone, BiggestHit;
+        public float BossDamage;  // host only (Boss Lab)
         public int Kills, EliteKills, BossKills, Downs, Revives, ShotsFired, ShotsHit, AbilitiesUsed;
 
         public float Accuracy => ShotsFired > 0 ? Math.Min(1f, (float)ShotsHit / ShotsFired) : 0f;

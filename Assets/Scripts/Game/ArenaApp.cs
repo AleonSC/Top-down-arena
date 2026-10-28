@@ -174,6 +174,7 @@ namespace Arena
         {
             session.Poll();
             game.Update(Time.deltaTime);
+            LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
@@ -191,20 +192,21 @@ namespace Arena
                 devMenuOpen = !devMenuOpen;
                 GUIUtility.keyboardControl = 0;
             }
-            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen;
+            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys).
             tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
                 && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
-            bool overlay = menuUp || choosing || tabHeld || game.State == MatchState.GameOver || game.State == MatchState.Victory;
+            bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
+            bool overlay = menuUp || choosing || tabHeld || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
             if (overlay && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
                 clickOnMenu = true;
             if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1))
                 clickOnMenu = false;
             mouseBlocked = overlay || clickOnMenu;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld;
+            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || watching || MouseOnLab();
 
             if (!menuUp)
             {
@@ -246,7 +248,9 @@ namespace Arena
 
             if (session.Screen == AppScreen.Game)
             {
-                if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
+                if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
+                    labSetupOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
                 else if (Input.GetKeyDown(KeyCode.Escape))
                 {
@@ -314,6 +318,7 @@ namespace Arena
             if (pauseMenuOpen || game.Paused)
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
             game.FixedStep(Time.fixedDeltaTime, input);
+            LabFixedStep(Time.fixedDeltaTime);
         }
 
         /// Forget the highlighted card whenever a new set of cards is shown.
@@ -1303,11 +1308,15 @@ namespace Arena
                     break;
                 case AppScreen.Game:
                     DrawHud();
-                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen)
+                    if (LabRunning)
+                        DrawLabPanel();
+                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen)
                         DrawPauseMenu();
                     break;
             }
-            if (devMenuOpen)
+            if (labSetupOpen)
+                DrawLabSetup();
+            else if (devMenuOpen)
                 DrawDevMenu();
         }
 

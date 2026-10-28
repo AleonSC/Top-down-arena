@@ -342,6 +342,7 @@ namespace Arena
         /// Dev: when set (on the host), each match is recorded to a new file in this folder.
         public string RecordFolder;
         public SessionRecorder Recorder;
+        public Action<Player, float, string> DamageEvent;  // host: every hit a player takes (Boss Lab)
         public bool BotRerolls = true;
         int botRerolledAt = -1;
         public Action<string> Log;
@@ -939,7 +940,14 @@ namespace Arena
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
             bool[] held = { input.Ability, input.AbilityQ, input.AbilityE, input.AbilityShift, input.Ultimate };
 
-            if (Bot)
+            if (Bot && BotLevel != BotSkill.Off)
+            {
+                botT += dt;
+                SmartBot(me, dt, ref move, ref aimAt, ref firing, held);  // BotBrain.cs
+                if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
+                    PickUpgrade(rng.Next(me.Offer.Length));
+            }
+            else if (Bot)
             {
                 botT += dt;
                 move = V2.FromAngle(botT * 0.9f + MyId);
@@ -1780,6 +1788,7 @@ namespace Arena
                 amount -= soak;
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
+            DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             p.Hp -= amount;
             p.InvulnT = HitIframes;
@@ -2445,6 +2454,8 @@ namespace Arena
                 }
                 e.LastHitBy = attacker;
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
+                if (e.Def.IsBoss)
+                    p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
@@ -2519,6 +2530,8 @@ namespace Arena
             {
                 Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
+                if (e.Def.IsBoss)
+                    p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 e.LastHitBy = e.BurnBy;
             }
             e.Hp -= dmg;

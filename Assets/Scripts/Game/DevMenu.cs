@@ -62,7 +62,13 @@ namespace Arena
             aimDebug = Ui.Toggle(new Rect(x, y, w, 26f), aimDebug, "Aim debug overlay  (F3)");
             y += 30f;
             game.Bot = Ui.Toggle(new Rect(x, y, w, 26f), game.Bot, "Bot plays for you");
-            return y + 30f;
+            y += 32f;
+            if (Ui.Button(new Rect(x, y, w, 32f), "Boss Lab: watch bots fight a boss", Ui.GoldButton))
+            {
+                devMenuOpen = false;
+                labSetupOpen = true;
+            }
+            return y + 38f;
         }
 
         void DrawDevStage(float x, float y, float w)
