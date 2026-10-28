@@ -11,17 +11,22 @@ namespace Arena
 
         int menuBg;
         bool menuBgAnimate = true;
+        bool bgPickerMin;            // the lobby's picker is minimized to a tab that fades away
+        float bgTabSeen = -100f;     // when the minimized tab was last shown (minimized or hovered)
+        const float BgTabStay = 3f, BgTabFade = 0.8f;
 
         void LoadBackgroundSettings()
         {
             menuBg = Mathf.Clamp(PlayerPrefs.GetInt("menu_bg", 0), 0, BackgroundNames.Length - 1);
             menuBgAnimate = PlayerPrefs.GetInt("menu_bg_anim", 1) == 1;
+            bgPickerMin = PlayerPrefs.GetInt("menu_bg_min", 0) == 1;
         }
 
         void SaveBackgroundSettings()
         {
             PlayerPrefs.SetInt("menu_bg", menuBg);
             PlayerPrefs.SetInt("menu_bg_anim", menuBgAnimate ? 1 : 0);
+            PlayerPrefs.SetInt("menu_bg_min", bgPickerMin ? 1 : 0);
             PlayerPrefs.Save();
         }
 
@@ -49,6 +54,11 @@ namespace Arena
         /// animation switch.
         void DrawBackgroundPicker(Rect r)
         {
+            if (bgPickerMin)
+            {
+                DrawBackgroundTab(r);
+                return;
+            }
             Ui.Card(r, Ui.Accent, 0.25f);
             var thumb = new Rect(r.x + 10f, r.y + 10f, (r.height - 20f) * W / H, r.height - 20f);
             float x = thumb.xMax + 14f, w = r.xMax - 12f - x;
@@ -84,7 +94,13 @@ namespace Arena
                 SetBackground(menuBg + 1);
 
             Ui.Label(new Rect(x, r.y + 8f, w, 16f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x, r.y + 8f, w, 16f), (menuBg + 1) + " / " + BackgroundNames.Length, 10, Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(x, r.y + 8f, w - 26f, 16f), (menuBg + 1) + " / " + BackgroundNames.Length, 10, Ui.Muted, TextAnchor.MiddleRight);
+            if (Ui.SmallButton(new Rect(r.xMax - 30f, r.y + 6f, 22f, 18f), "-", 14))  // minimize
+            {
+                bgPickerMin = true;
+                bgTabSeen = Time.unscaledTime;
+                SaveBackgroundSettings();
+            }
             if (Ui.Button(new Rect(x, r.y + 27f, 24f, 24f), "<"))
                 SetBackground(menuBg - 1);
             if (Ui.Button(new Rect(x + w - 24f, r.y + 27f, 24f, 24f), ">"))
@@ -98,6 +114,32 @@ namespace Arena
             if (anim != menuBgAnimate)
             {
                 menuBgAnimate = anim;
+                SaveBackgroundSettings();
+            }
+        }
+
+        /// The minimized picker: a slim tab at the bottom of where the card was. It stays a few seconds, then
+        /// fades away; hovering over it brings it back, and clicking it opens the full picker again.
+        void DrawBackgroundTab(Rect card)
+        {
+            var tab = new Rect(card.x, card.yMax - 30f, 214f, 30f);
+            float now = Time.unscaledTime;
+            var hot = new Rect(tab.x - 16f, tab.y - 24f, tab.width + 32f, tab.height + 40f);
+            if (hot.Contains(Event.current.mousePosition))
+                bgTabSeen = now;
+            float a = 1f - Mathf.Clamp01((now - bgTabSeen - BgTabStay) / BgTabFade);
+            if (a <= 0.01f)
+                return;
+            var old = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, a);
+            Ui.Pill(tab, new Color(0.09f, 0.11f, 0.17f, 0.92f));
+            Ui.Label(new Rect(tab.x + 12f, tab.y, 90f, tab.height), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(tab.x + 92f, tab.y, tab.width - 124f, tab.height), BackgroundNames[menuBg], 13, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(tab.xMax - 28f, tab.y, 20f, tab.height), "+", 16, Ui.Accent, TextAnchor.MiddleCenter, true);
+            GUI.color = old;
+            if (GUI.Button(tab, GUIContent.none, GUIStyle.none))
+            {
+                bgPickerMin = false;
                 SaveBackgroundSettings();
             }
         }

@@ -361,6 +361,9 @@ for the next one), arrows either side of the name and a dot per background (clic
 **Animated** for a still image. Each player's choice is saved on their own computer. Your pick also shows faintly behind the arena
 during matches (dimmed so the fight stays easy to read).
 
+The card's **-** button minimizes it to a slim tab that fades away after a few seconds; hover where it was to
+bring the tab back, and click it to open the full card again (remembered on your computer).
+
 ## Practice Range
 
 In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range

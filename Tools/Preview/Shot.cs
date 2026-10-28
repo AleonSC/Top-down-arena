@@ -113,6 +113,7 @@ class Shot {
       host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true };
       host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Mage, Weapon = 0, Ability = 1 };
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      if (Environment.GetEnvironmentVariable("BGMIN") != null) { set("bgPickerMin", true); set("bgTabSeen", 0f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;

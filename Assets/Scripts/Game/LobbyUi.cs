@@ -494,7 +494,6 @@ namespace Arena
             string note = session.Lobby.Count < 2 ? ""
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
-            Ui.Label(new Rect(210f, H - 78f, readyX - 230f, 26f), practice ? "PRACTICE RANGE" : "RUN", 11, practice ? PracticeColor : Ui.Accent, TextAnchor.MiddleRight, true);
             Ui.Label(new Rect(210f, H - 56f, readyX - 230f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
             if (session.IsHost)
             {
