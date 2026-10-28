@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -914,6 +915,54 @@ static class Program
             foreach (var b in first) foreach (var c in first) spreadY = Math.Max(spreadY, Math.Abs(b.Pos.Y - c.Pos.Y));
             Check(first.Count == 4 && spreadY > 25f, "the Twin Rifle with +2 fires four parallel barrels at once");
         }
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    // Bonus abilities go on the key you choose when you pick them, and can be moved in the Tab menu
+    // (cooldowns move with them). Tested from the joining player, so it goes through the host.
+    static void KeybindTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 2);
+        var host = s[0].Game;
+        var hp = host.Players[2];
+        var cp = s[1].Game.Players[2];
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        Action<string, int> Pick = (name, key) =>
+        {
+            host.State = MatchState.Intermission;
+            hp.Offer = new[] { U(name), U("Vitality"), U("Focus") };
+            hp.PendingPicks = 1;
+            cp.Offer = hp.Offer;
+            s[1].Game.PickUpgrade(0, key);
+            Run(s, dt, 0.3f);
+        };
+        Func<Game, Player, string> Keys = (gm, p) => string.Join(",", new[] { 1, 2, 3 }.Select(k => p.Slots[k].Id == AbilityId.None ? "-" : p.Slots[k].Id.ToString()));
+        Pick("Shockwave", 3);  // straight onto Shift
+        string a = Keys(host, hp);
+        Pick("Blink", 3);      // also Shift: Shockwave moves to a free key
+        string b = Keys(host, hp);
+        Console.WriteLine("  keys (Q,E,Shift): picked Shockwave on Shift -> {0}; then Blink on Shift -> {1}; client sees {2}", a, b, Keys(s[1].Game, cp));
+        Check(a == "-,-,Shockwave" && b == "Shockwave,-,Blink" && Keys(s[1].Game, cp) == b, "a new ability goes on the key you choose (an ability already there moves to a free key)");
+
+        // Use Blink so it's on cooldown, then move it from Shift to E in the Tab menu.
+        hp.Slots[3].Charges = 0;
+        hp.Slots[3].Timer = 5f;
+        cp.Slots[3].Charges = 0;
+        cp.Slots[3].Timer = 5f;
+        s[1].Game.SetAbilityKey(AbilityId.Blink, 2);
+        Run(s, dt, 0.3f);
+        string c = Keys(host, hp);
+        Console.WriteLine("  moved Blink to E: {0} (client {1}); its cooldown {2:0.0}s on the host, {3:0.0}s on the client", c, Keys(s[1].Game, cp), hp.Slots[2].Timer, cp.Slots[2].Timer);
+        Check(c == "Shockwave,Blink,-" && Keys(s[1].Game, cp) == c && hp.Slots[2].Charges == 0 && hp.Slots[2].Timer > 4f && cp.Slots[2].Timer > 4f,
+            "abilities can be moved to another key, and their cooldown moves with them");
+        s[1].Game.SetAbilityKey(AbilityId.Shockwave, 2);  // onto Blink's key: they swap
+        Run(s, dt, 0.3f);
+        Check(Keys(host, hp) == "Blink,Shockwave,-", "moving onto a taken key swaps the two abilities");
+        s[1].Game.SetAbilityKey(AbilityId.Nova, 1);  // an ability you don't have: ignored
+        Run(s, dt, 0.3f);
+        Check(Keys(host, hp) == "Blink,Shockwave,-", "you can't put an ability you don't have on a key");
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -2039,6 +2088,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "keys")
+        {
+            KeybindTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "dev")
         {
             DevToolsTest(1f / 60f);
@@ -2082,6 +2137,7 @@ static class Program
         SpinnerTest(dt);
         DevToolsTest(dt);
         WeaponExtraTest(dt);
+        KeybindTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }

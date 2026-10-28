@@ -79,7 +79,9 @@ namespace Arena
             label.alignment = align;
             label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
             label.wordWrap = wrap;
-            label.normal.textColor = color;
+            // Every state gets the same color: the default skin's hover color would otherwise light up
+            // the dark shadow copy under titles when the mouse is over them (it looked like doubled text).
+            label.normal.textColor = label.hover.textColor = label.active.textColor = label.focused.textColor = color;
             GUI.Label(r, text, label);
         }
 

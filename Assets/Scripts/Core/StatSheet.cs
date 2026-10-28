@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Arena
@@ -12,7 +13,8 @@ namespace Arena
     /// menu can also preview what a card would change.
     public static class StatSheet
     {
-        public static List<StatLine> Describe(Player p, List<int> taken)
+        /// newKey: for a preview that adds a new ability, the key it would go on (1-3; 0 = first free).
+        public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0)
         {
             var s = Upgrades.Compute(taken);
             var lines = new List<StatLine>();
@@ -45,9 +47,23 @@ namespace Arena
             if (bonus.Count > 0)
             {
                 lines.Add(new StatLine { Label = "Bonus abilities", Header = true });
+                // Laid out the way the player arranged their keys (and where a previewed new one would go).
                 string[] keys = { "Q", "E", "Shift" };
-                for (int i = 0; i < bonus.Count && i < keys.Length; i++)
-                    lines.Add(new StatLine { Label = keys[i], Value = bonus[i] });
+                var layout = (AbilityId[])p.BonusKeys.Clone();
+                AbilityId added = AbilityId.None;
+                foreach (int id in taken)
+                    if (Upgrades.All[id].Grants != AbilityId.None && Array.IndexOf(layout, Upgrades.All[id].Grants) < 0)
+                        added = Upgrades.All[id].Grants;
+                if (added != AbilityId.None)
+                {
+                    if (newKey >= 1)
+                        Game.PlaceOnKey(layout, added, newKey);
+                    else if (Array.IndexOf(layout, AbilityId.None) >= 0)
+                        layout[Array.IndexOf(layout, AbilityId.None)] = added;
+                }
+                for (int i = 0; i < keys.Length; i++)
+                    if (layout[i] != AbilityId.None)
+                        lines.Add(new StatLine { Label = keys[i], Value = Upgrades.Ability(layout[i]).Name });
                 lines.Add(new StatLine { Label = "Bonus charges", Value = (1 + s.ExtraCharges).ToString() });
             }
             if (mods.Count > 0)

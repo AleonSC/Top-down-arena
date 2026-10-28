@@ -47,6 +47,7 @@ namespace Arena
         void ApplyRecording() => game.RecordFolder = recordSessions ? SessionsFolder : null;
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
+        int pickKey;            // for a card that grants an ability: the key to put it on (1 = Q, 2 = E, 3 = Shift)
         string shownOffer = "";
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
         SoundBank sounds;
@@ -194,15 +195,16 @@ namespace Arena
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
-            bool overlay = menuUp || choosing || game.State == MatchState.GameOver || game.State == MatchState.Victory;
+            // Holding Tab opens the loadout, which has buttons (moving abilities between keys).
+            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
+                && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
+            bool overlay = menuUp || choosing || tabHeld || game.State == MatchState.GameOver || game.State == MatchState.Victory;
             if (overlay && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
                 clickOnMenu = true;
             if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1))
                 clickOnMenu = false;
             mouseBlocked = overlay || clickOnMenu;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp;
-            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp && !choosing
-                && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
+            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld;
 
             if (!menuUp)
             {
@@ -233,8 +235,11 @@ namespace Arena
             {
                 SyncSelection(me);
                 for (int k = 0; k < CardKeys.Length; k++)
-                    if (Input.GetKeyDown(CardKeys[k]) && k < me.Offer.Length)
+                    if (Input.GetKeyDown(CardKeys[k]) && k < me.Offer.Length && selectedCard != k)
+                    {
                         selectedCard = k;
+                        pickKey = 0;
+                    }
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
                 else if (Input.GetKeyDown(KeyCode.R)) game.RerollOffer();
             }
@@ -326,7 +331,11 @@ namespace Arena
         {
             if (selectedCard < 0 || game.RerollPending)
                 return;
-            game.PickUpgrade(selectedCard);
+            var me = game.Me;
+            int key = 0;
+            if (me != null && me.Offer != null && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
+                key = pickKey;
+            game.PickUpgrade(selectedCard, key);
             selectedCard = -1;
         }
 
@@ -1826,6 +1835,7 @@ namespace Arena
             Ui.Label(new Rect(x + 4f, y + 22f, w - 8f, 18f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
             y += 54f;
             Ui.Label(new Rect(x + 4f, y, w, 16f), "ABILITIES", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x + 4f, y, w - 8f, 16f), "click a key to move an ability", 10, Ui.Muted, TextAnchor.MiddleRight);
             y += 22f;
             for (int i = 0; i < me.Slots.Length; i++)
             {
@@ -1842,7 +1852,24 @@ namespace Arena
                 if (slot.MaxCharges > 1)
                     state = slot.Charges + "/" + slot.MaxCharges + " charges" + (slot.Charges < slot.MaxCharges ? "  ·  " + Mathf.CeilToInt(slot.Timer) + "s" : "");
                 Ui.Label(new Rect(tile.x + 8f, tile.y + 8f, tile.width - 16f, 18f), state, 12, slot.Charges > 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight, true);
-                Ui.Label(new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f, 30f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                bool bonus = i >= 1 && i <= Upgrades.BonusSlots;
+                Ui.Label(new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), 30f), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                if (bonus)  // move it to another key (swaps with whatever is there)
+                {
+                    Ui.Label(new Rect(tile.xMax - 122f, tile.y + 30f, 114f, 14f), "MOVE TO", 9, Ui.Muted, TextAnchor.MiddleRight, true);
+                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                    {
+                        var kr = new Rect(tile.xMax - 122f + (k - 1) * 39f, tile.y + 47f, k == 3 ? 44f : 34f, 24f);
+                        if (k == i)
+                            Ui.Pill(kr, new Color(1f, 1f, 1f, 0.12f));
+                        bool over = k != i && kr.Contains(Event.current.mousePosition);
+                        if (k != i)
+                            Ui.Pill(kr, over ? new Color(0.35f, 0.55f, 1f, 0.85f) : new Color(0.28f, 0.32f, 0.45f, 0.9f));
+                        Ui.Label(kr, SlotKeys[k], 10, Color.white, TextAnchor.MiddleCenter, true);
+                        if (k != i && GUI.Button(kr, GUIContent.none, GUIStyle.none))
+                            game.SetAbilityKey(slot.Id, k);
+                    }
+                }
                 y += 84f;
             }
         }
@@ -2400,13 +2427,39 @@ namespace Arena
                 // The card lifts a little when hovered and more when selected.
                 var r = new Rect(slot.x, slot.y - (selected ? 10f : hover ? 4f : 0f), slot.width, slot.height);
                 DrawUpgradeCard(me, i, u, r, grid, selected, hover, now);
-                if (GUI.Button(slot, GUIContent.none, GUIStyle.none))
+                if (GUI.Button(slot, GUIContent.none, GUIStyle.none) && selectedCard != i)
+                {
                     selectedCard = i;
+                    pickKey = 0;
+                }
             }
 
             // Confirm and reroll buttons under the cards.
             const float btnW = 280f;
             float by = top + rows * ch + (rows - 1) * gap + 26f;
+
+            // A card that grants a new ability: choose which key it goes on.
+            if (selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
+            {
+                var grant = Upgrades.All[me.Offer[selectedCard]].Grants;
+                if (pickKey < 1 || pickKey > Upgrades.BonusSlots)
+                {
+                    pickKey = 1;  // default: the first free key
+                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                        if (me.Slots[k].Id == AbilityId.None) { pickKey = k; break; }
+                }
+                const float keyW = 170f;
+                float kx = mid - (keyW * 3 + 16f) / 2f;
+                Ui.Label(new Rect(x0, by - 6f, areaW, 18f), "Put " + Upgrades.Ability(grant).Name + " on:", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                {
+                    var on = me.Slots[k].Id;
+                    string label = SlotKeys[k] + (on != AbilityId.None ? "  ·  swap " + Upgrades.Ability(on).Name : "  ·  empty");
+                    if (Ui.Choice(new Rect(kx + (k - 1) * (keyW + 8f), by + 14f, keyW, 32f), label, pickKey == k, ToColor(me.Def.Color)))
+                        pickKey = k;
+                }
+                by += 58f;
+            }
             bool wasEnabled = GUI.enabled;
             GUI.enabled = selectedCard >= 0 && !game.RerollPending;
             string confirmText = selectedCard >= 0 ? "Confirm  [Enter]" : "Pick a card first";  // the selected card shows its name
@@ -2485,10 +2538,9 @@ namespace Arena
                 return have > 0 ? "YOU HAVE " + have + " / " + u.MaxStacks : "NEW";
             if (u.Grants != AbilityId.None)
             {
-                int free = 1;
-                while (free < Upgrades.BonusSlots && me.Slots[free].Id != AbilityId.None)
-                    free++;
-                return "Goes in your " + SlotKeys[free] + " slot";
+                if (index == selectedCard && pickKey >= 1)
+                    return "Goes on " + SlotKeys[pickKey] + " (choose below)";
+                return "You choose its key";
             }
             if (u.Role.HasValue)
                 return Defs.Get(u.Role.Value).Name + " only";
@@ -2507,7 +2559,7 @@ namespace Arena
             if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
             {
                 var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
-                after = StatSheet.Describe(me, preview);
+                after = StatSheet.Describe(me, preview, pickKey);
             }
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);

@@ -244,11 +244,11 @@ bosses come back around, tougher each time.
 | Role ability | Space |
 | Parry | Hold right click |
 | Ultimate | F |
-| Bonus abilities | Q, E and Shift (once unlocked) |
+| Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |
 | Mute sound | M |
-| Stats & upgrades (just for you) | Hold Tab |
+| Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it) |
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
 | Aim debug overlay | F3 |

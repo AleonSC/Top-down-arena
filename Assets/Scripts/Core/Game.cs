@@ -90,6 +90,8 @@ namespace Arena
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
         public readonly List<int> Taken = new List<int>();
         public Stats Stats = new Stats();
+        // Which bonus ability sits on Q, E and Shift (the player picks; host-authoritative, sent with the upgrades).
+        public AbilityId[] BonusKeys = { AbilityId.None, AbilityId.None, AbilityId.None };
         public Dictionary<int, float> StatOverrides = new Dictionary<int, float>();  // dev menu: hand-edited stats (index into Game.StatFields)
         public bool DevGod;  // dev menu: takes no damage
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
@@ -499,15 +501,43 @@ namespace Arena
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
             ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.Kit);
-            int next = 1;
+            // Bonus abilities go on the keys their owner chose; any others take the first free key.
+            var granted = new List<AbilityId>();
             foreach (int t in p.Taken)
-                if (Upgrades.All[t].Grants != AbilityId.None && next <= Upgrades.BonusSlots)
-                    ids[next++] = Upgrades.All[t].Grants;
+                if (Upgrades.All[t].Grants != AbilityId.None && granted.Count < Upgrades.BonusSlots && !granted.Contains(Upgrades.All[t].Grants))
+                    granted.Add(Upgrades.All[t].Grants);
+            for (int k = 0; k < Upgrades.BonusSlots; k++)
+                if (granted.Contains(p.BonusKeys[k]) && Array.IndexOf(ids, p.BonusKeys[k]) < 0)
+                    ids[1 + k] = p.BonusKeys[k];
+            foreach (var g in granted)
+                if (Array.IndexOf(ids, g) < 0)
+                    for (int k = 1; k <= Upgrades.BonusSlots; k++)
+                        if (ids[k] == AbilityId.None)
+                        {
+                            ids[k] = g;
+                            break;
+                        }
+            for (int k = 0; k < Upgrades.BonusSlots; k++)
+                p.BonusKeys[k] = ids[1 + k];
+
+            // Charges and cooldowns follow an ability when it moves to another key.
+            var moved = new Dictionary<AbilityId, AbilitySlot>();
+            for (int i = 1; i <= Upgrades.BonusSlots; i++)
+                if (p.Slots[i].Id != AbilityId.None)
+                    moved[p.Slots[i].Id] = new AbilitySlot { Id = p.Slots[i].Id, Charges = p.Slots[i].Charges, MaxCharges = p.Slots[i].MaxCharges, Timer = p.Slots[i].Timer };
 
             for (int i = 0; i < ids.Length; i++)
             {
                 var slot = p.Slots[i];
                 int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges);
+                AbilitySlot was;
+                if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
+                {
+                    slot.Id = ids[i];
+                    slot.Charges = was.Charges;
+                    slot.MaxCharges = was.MaxCharges;
+                    slot.Timer = was.Timer;
+                }
                 if (slot.Id != ids[i])
                 {
                     slot.Id = ids[i];
@@ -591,7 +621,7 @@ namespace Arena
         }
 
         /// Called by the front end when the local player clicks an upgrade card.
-        public void PickUpgrade(int index)
+        public void PickUpgrade(int index, int key = 0)
         {
             var me = Me;
             if (me == null || me.Offer == null || index < 0 || index >= me.Offer.Length || RerollPending)
@@ -599,12 +629,13 @@ namespace Arena
             Sounds.Add(Sfx.Pick);
             if (IsHost)
             {
-                HostPick(MyId, index);
+                HostPick(MyId, index, key);
             }
             else
             {
                 var w = Proto.Begin(Msg.Pick);
                 w.Write((byte)index);
+                w.Write((byte)key);
                 session.SendToHost(Proto.End(w));
                 me.Offer = null;  // hide the cards until the host confirms
                 awaitingPick = true;
@@ -643,10 +674,12 @@ namespace Arena
 
         public void OnPick(int peer, BinaryReader r)
         {
-            HostPick(peer, r.ReadByte());
+            int index = r.ReadByte();
+            HostPick(peer, index, r.ReadByte());
         }
 
-        void HostPick(int id, int index)
+        /// key: for a card that grants a new ability, the key to put it on (1 = Q, 2 = E, 3 = Shift; 0 = first free).
+        void HostPick(int id, int index, int key = 0)
         {
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
@@ -659,6 +692,7 @@ namespace Arena
                 p.PendingMods = Math.Max(0, p.PendingMods - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
+            PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
             GrantUpgrade(id, upgrade);
             NextOffer(p);
             DoLog(p.Role + " picked " + Upgrades.All[upgrade].Name);
@@ -699,12 +733,70 @@ namespace Arena
                 return;
             p.Taken.Add(upgrade);
             Recalc(p);
+            BroadcastUpgrades(p);
+        }
+
+        void BroadcastUpgrades(Player p)
+        {
             var w = Proto.Begin(Msg.Upgrades);
             w.Write(p.Id);
             w.Write((byte)p.Taken.Count);
             foreach (int t in p.Taken)
                 w.Write((byte)t);
+            foreach (var k in p.BonusKeys)
+                w.Write((byte)k);
             session.Broadcast(Proto.End(w));
+        }
+
+        /// Put a bonus ability on a key (1 = Q, 2 = E, 3 = Shift). Whatever was there swaps to its old key.
+        public static void PlaceOnKey(AbilityId[] k, AbilityId id, int key)
+        {
+            if (key < 1 || key > Upgrades.BonusSlots || id == AbilityId.None)
+                return;
+            int from = Array.IndexOf(k, id);
+            var displaced = k[key - 1];
+            k[key - 1] = id;
+            if (from >= 0 && from != key - 1)
+                k[from] = displaced;  // a swap
+            else if (from < 0 && displaced != AbilityId.None)
+            {
+                int free = Array.IndexOf(k, AbilityId.None);  // a new ability: the old one moves to a free key
+                if (free >= 0)
+                    k[free] = displaced;
+            }
+        }
+
+        /// The local player moves a bonus ability to another key (the Tab menu).
+        public void SetAbilityKey(AbilityId id, int key)
+        {
+            var me = Me;
+            if (me == null)
+                return;
+            if (IsHost)
+            {
+                HostSetKey(MyId, id, key);
+                return;
+            }
+            var w = Proto.Begin(Msg.SetKey);
+            w.Write((byte)id);
+            w.Write((byte)key);
+            session.SendToHost(Proto.End(w));
+        }
+
+        public void OnSetKey(int peer, BinaryReader r)
+        {
+            var id = (AbilityId)r.ReadByte();
+            HostSetKey(peer, id, r.ReadByte());
+        }
+
+        void HostSetKey(int playerId, AbilityId id, int key)
+        {
+            Player p;
+            if (!Players.TryGetValue(playerId, out p) || Array.IndexOf(p.BonusKeys, id) < 0)
+                return;  // you can only move abilities you have
+            PlaceOnKey(p.BonusKeys, id, key);
+            Recalc(p);
+            BroadcastUpgrades(p);
         }
 
         public bool AnyonePicking()
@@ -2541,6 +2633,8 @@ namespace Arena
                     p.Taken.Clear();
                     for (int i = 0; i < n; i++)
                         p.Taken.Add(r.ReadByte());
+                    for (int k = 0; k < p.BonusKeys.Length; k++)
+                        p.BonusKeys[k] = (AbilityId)r.ReadByte();
                     Recalc(p);
                     if (id == MyId)
                         awaitingPick = false;
