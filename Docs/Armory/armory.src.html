@@ -448,9 +448,9 @@ const W = [
     rows: [["Damage", "4 every 0.08 s (50/s) to the first enemy on your aim line; Pierce lets it pass through more"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "instant beam · 350 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.beam("Vein", a, 350 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // DPS
-  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Fast parallel twin stream.", shot: "Dps", xtra: "+1 barrel (side by side, 10 px apart)",
-    rows: [["Damage", "6.5 per barrel (2 barrels, 10 px apart)"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 13,
-    fire: (s, a, x) => { const n = 2 + x, ox = -Math.sin(a), oy = Math.cos(a); for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 10; s.bullet("Dps", a, 820, 1, 6.5, { ox: ox * o, oy: oy * o }); } } },
+  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Fast parallel twin stream (5 per barrel), straying up to 2°.", shot: "Dps", xtra: "+1 barrel (side by side, 10 px apart)",
+    rows: [["Damage", "5 per barrel (2 barrels, 10 px apart)"], ["Spread", "±2° per volley"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 10,
+    fire: (s, a, x) => { a += rnd(-1, 1) * Math.PI / 90; const n = 2 + x, ox = -Math.sin(a), oy = Math.cos(a); for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 10; s.bullet("Dps", a, 820, 1, 5, { ox: ox * o, oy: oy * o }); } } },
   { id: "Railgun", role: "DPS", kit: "Soldier", every: 0.7, desc: "Slow, devastating shots that pierce 3 enemies.", shot: "Rail", xtra: "Throws 2 shrapnel shards (11 damage) sideways at every enemy it pierces",
     rows: [["Damage", "45"], ["Pierce", "3 extra enemies"], ["Speed / range", "1600 px/s · 1120 px"]], dmgPerVolley: 45,
     fire: (s, a, x) => s.bullet("Rail", a, 1600, 0.7, 45, { pierce: 3, trail: true, frags: x ? { n: 2 * x, kind: "Dps", dmg: 11, speed: 600, life: 0.3, sideways: true } : null }) },

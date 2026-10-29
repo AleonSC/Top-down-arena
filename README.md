@@ -136,7 +136,7 @@ your weapon. Per extra projectile:
 | Healer · Summoner | **Sprite Staff** | Seeds, plus 2 healing sprites | +1 Sprite |
 | | **Treant Rod** | Healing bolts, plus a Treant guard | The Treant grows 30%: blocks more, hits harder, reaches farther |
 | | **Totem Staff** | Seeds; plants a healing totem every 10 s | Totems 60% more often |
-| DPS · Soldier | **Twin Rifle** | Fast parallel twin stream | +1 barrel |
+| DPS · Soldier | **Twin Rifle** | Fast parallel twin stream (5 per barrel), straying up to 2° | +1 barrel |
 | | **Railgun** | Slow shots that pierce 3 | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast, inaccurate spray | +1 bullet per shot (half damage) and a wider spray |
 | DPS · Mage | **Fireball** | Explodes on impact | Splits into 2 small fireballs on impact |

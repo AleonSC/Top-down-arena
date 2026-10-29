@@ -204,7 +204,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream." },
+            new WeaponDef { Id = WeaponId.TwinRifle, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream (5 per barrel), straying up to 2°." },
             new WeaponDef { Id = WeaponId.Railgun, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
             new WeaponDef { Id = WeaponId.BurstSmg, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
             new WeaponDef { Id = WeaponId.Fireball, ExtraDesc = "Splits into 2 small fireballs on impact", Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
