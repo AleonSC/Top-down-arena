@@ -24,6 +24,11 @@ namespace Arena
         const float NovaDamage = 20f, NovaHeal = 3f;
         const float MoonCut = 0.6f, RainSteal = 0.2f;
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
+        public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
+        public const int ClotMaxBase = 5;
+        public const float ClotCutEach = 0.04f, ClotHold = 3f, ClotFade = 0.5f;  // each Clot stack; how long they hold, then one fades per ClotFade
+        const float ClotBurstReach = 1.3f, ClotBurstMult = 2f, ClotBurstKnock = 50f;
+        static readonly Rgba LashRed = new Rgba(0.85f, 0.1f, 0.18f);
         const float ImplodeSplash = 55f, ImplodeSplashDamage = 15f, ImplodePull = 18f, ImplodeChain = 180f, ImplodeChainMult = 0.6f;
 
         // --- Weapons ------------------------------------------------------------------
@@ -36,9 +41,25 @@ namespace Arena
             {
                 case WeaponId.BloodLash:
                 {
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 130f, w.Damage * dmg);
+                    p.ClotMax = ClotMaxBase + extra;
+                    if (p.Clot >= p.ClotMax)
+                    {
+                        // Clot Burst: every stack spent on one lash all round you that shoves and taunts.
+                        var b = NewSwing(p, aim, (w.Reach + w.Grow * extra) * ClotBurstReach, 360f, w.Damage * ClotBurstMult * dmg);
+                        b.NoCut = true;
+                        b.Knock = ClotBurstKnock;
+                        b.Taunt = LashTaunt;
+                        b.Heavy = true;
+                        pendingSwings.Add(b);
+                        p.Clot = 0;
+                        p.ClotT = 0f;
+                        BroadcastFx(FxKind.Ring, p.Pos, LashRed, b.Reach, 0.35f, Sfx.SpellArcane);
+                        break;
+                    }
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 110f, w.Damage * dmg);
                     s.NoCut = true;  // a whip of blood, not a blade
-                    s.SelfHeal = 3f + extra;
+                    s.Tip = s.Reach * LashTipFrom;
+                    s.Clots = true;
                     pendingSwings.Add(s);
                     break;
                 }
@@ -478,6 +499,40 @@ namespace Arena
         /// Damage cut from Blood Rite and a mastered Crimson Pact (Damage).
         float BloodCut(Player p) => Math.Max(BloodRiteUp(p) ? MoonCut : 0f, p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f);
 
+        /// Blood Lash's Clot: each stack takes 4% off the damage you take.
+        public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
+
+        void AddClot(Player p, int n)
+        {
+            p.Clot = Math.Min(p.ClotMax, p.Clot + n);
+            p.ClotT = ClotHold;
+        }
+
+        /// A Blood Lash hit: the tip cracks (its double damage is already in) and taunts; closer in, the enemy is
+        /// flung out to the tip, where the next lash cracks it.
+        void LashHit(Player p, Enemy e, Swing s, bool crack)
+        {
+            if (crack)
+            {
+                TauntEnemy(p, e, LashTaunt);
+                BroadcastFx(FxKind.Ring, e.Pos, LashRed, e.Radius + 10f, 0.18f, Sfx.None);
+                return;
+            }
+            if (Heavy(e))
+                return;
+            V2 away = (e.Pos - p.Pos).Normalized();
+            if (away.IsZero)
+                away = V2.FromAngle(s.Aim);
+            e.Pos = ClampToArena(p.Pos + away * (s.Tip + e.Radius * 0.5f), e.Radius);
+        }
+
+        /// This enemy goes for `p` for a while (a Clot Burst, a cracking Blood Lash).
+        void TauntEnemy(Player p, Enemy e, float time)
+        {
+            e.TargetId = p.Id;
+            e.RetargetT = Math.Max(e.RetargetT, time);
+        }
+
         /// Damage about to come off a player's health (after shields): Crimson Pact stores it, Blood Rite turns it
         /// into healing for everyone else.
         void BloodTookHit(Player p, float amount)
@@ -784,7 +839,13 @@ namespace Arena
                 {
                     p.PactT = p.RushT = 0f;
                     p.ApoUp = false;
+                    p.Clot = 0;
                     continue;
+                }
+                if (p.Clot > 0 && (p.ClotT -= dt) <= 0f)  // Clot holds while you keep hitting, then fades a stack at a time
+                {
+                    p.Clot--;
+                    p.ClotT = ClotFade;
                 }
                 if (p.PactT > 0f)
                 {

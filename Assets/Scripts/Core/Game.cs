@@ -64,6 +64,8 @@ namespace Arena
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public int Clot, ClotMax = 5;                 // Blood Lash: Clot stacks and the most it can hold (replicated)
+        public float ClotT;                           // host: until the next Clot stack fades
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
         public bool PactMastered, RushMastered, ApoUp;
         public readonly List<int> Grasp = new List<int>();  // Leech Tendrils: the enemies held right now (replicated)

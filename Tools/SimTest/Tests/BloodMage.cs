@@ -322,6 +322,44 @@ static partial class Program
         keep.Remove(i2); keep.Remove(i3); i2.Hp = i3.Hp = 0f;
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 0);
 
+        // Blood Lash: the tip cracks for double and taunts, closer in flings out to the tip, and every hit clots.
+        keep.Remove(d1); d1.Hp = 0f;
+        place(1, 300f); run(0.2f);
+        hp.Hp = hp.MaxHp; hp.Clot = 0;
+        var close = dummy(new V2(360f, 450f));
+        var far = dummy(new V2(415f, 450f));
+        close.TargetId = far.TargetId = 2;
+        close.RetargetT = far.RetargetT = 10f;  // so only the crack retargets them
+        float n0 = close.Hp, f0 = far.Hp;
+        var fire = typeof(Game).GetMethod("FireVolley", flags);
+        fire.Invoke(g, new object[] { hp, 0f, 0 });
+        run(0.1f);
+        float nearDmg = n0 - close.Hp, tipDmg = f0 - far.Hp, flung = close.Pos.DistanceTo(hp.Pos);
+        bool clotSeen = client.Game.Players[1].Clot == 3;
+        Console.WriteLine("  blood lash: close {0:0.0} (flung to {1:0} px), tip {2:0.0}; clot {3} (client saw it {4}); targets {5} {6}", nearDmg, flung, tipDmg, hp.Clot, clotSeen, close.TargetId, far.TargetId);
+        Check(nearDmg > 0f && Math.Abs(tipDmg - nearDmg * Game.LashCrack) < 0.5f && far.TargetId == 1 && close.TargetId == 2
+            && close.Pos.DistanceTo(hp.Pos) + close.Radius >= Game.MeleeReach(hp, hp.Weapon.Reach) * Game.LashTipFrom,
+            "Blood Lash: the tip cracks for double damage and taunts; an enemy hit closer in is flung out to the tip");
+        Check(hp.Clot == 3 && clotSeen, "each Blood Lash hit adds a Clot stack, two from the tip (and clients see it)");
+        hp.DevGod = false;
+        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        hp.DevGod = true;
+        float clotTaken = hp.MaxHp - hp.Hp;
+        Check(Math.Abs(clotTaken - 100f * (1f - 3f * Game.ClotCutEach)) < 0.5f, "each Clot stack takes 4% off the damage you take");
+        hp.Clot = 5;  // full: the next lash bursts all round you
+        var behind = dummy(new V2(240f, 450f));
+        behind.TargetId = 2; behind.RetargetT = 10f;
+        float b0 = behind.Hp;
+        fire.Invoke(g, new object[] { hp, 0f, 0 });
+        run(0.1f);
+        Console.WriteLine("  clot burst: behind took {0:0.0}; clot now {1}", b0 - behind.Hp, hp.Clot);
+        Check(b0 - behind.Hp > 0f && hp.Clot == 0 && behind.TargetId == 1, "at full Clot the next lash bursts all round you, spends it, and taunts");
+        hp.Clot = 3; hp.ClotT = Game.ClotHold;
+        run(Game.ClotHold + 0.6f);
+        Check(hp.Clot == 1, "Clot holds for 3 s without hits, then fades a stack every 0.5 s");
+        foreach (var e in new[] { close, far, behind }) { keep.Remove(e); e.Hp = 0f; }
+        hp.Clot = 0;
+
         // Blood Rite: 60% less damage, and the damage you take heals your allies.
         hp.Hp = hp.MaxHp; cp.Hp = cp.MaxHp * 0.3f;
         hp.Slots[Upgrades.UltSlot].Charges = 1;

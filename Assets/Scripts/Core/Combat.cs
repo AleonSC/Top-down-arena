@@ -30,6 +30,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
+            amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
