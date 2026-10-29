@@ -103,9 +103,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SoulLink, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
-                Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate.",
+                Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate. Alone, you link to a ghost of yourself that fights beside you.",
                 Capstone = "Lasts 9 s, and both of you are invulnerable for 1 s when it starts.",
-                Bot = b => b.AllyHurt,
+                Bot = b => b.AllyHurt || b.Players == 1 && b.HaveTarget,
             },
             new AbilityDef
             {
@@ -194,6 +194,8 @@ namespace Arena
                             best = q;
                     if (best != null)
                         p.LinkTo = best.Id;
+                    else
+                        SpawnSoulGhost(p, p.LinkT, cap);  // alone: a ghost of you to link to (SoulGhost.cs)
                     if (cap)
                         foreach (var q in new[] { p, best })
                             if (q != null && !q.Downed)

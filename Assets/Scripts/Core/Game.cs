@@ -251,7 +251,8 @@ namespace Arena
         public bool Companion;
         public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
         public float Power = 1f;         // host: mastery of the ability that summoned it
-        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's health, and its contact-damage cooldown
+        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's or Soul Ghost's health, and its contact-damage cooldown
+        public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
     }
@@ -1292,6 +1293,8 @@ namespace Arena
                     Heal(p, heal, p);
                     if (Players.TryGetValue(p.LinkTo, out q) && q != p)
                         Heal(q, heal, p);
+                    else
+                        HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
                 }
                 p.FireCd -= dt;
                 if (p.Downed)

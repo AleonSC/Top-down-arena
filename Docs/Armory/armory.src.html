@@ -533,8 +533,8 @@ const A = [
     stats: [["Radius", "260 px"], ["Heal", "60"], ["Downed allies", "Revived with 50% health"]], demo: { type: "burst", r: 260, col: [0.4, 1, 0.55], heal: 60 }, ups: ["Greater Mending"] },
   { id: "Haven", slot: "Space", role: "Healer", kit: "Soldier", cd: 16, desc: "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3× quicker.",
     stats: [["Radius", "130 px"], ["Lasts", "6 s"], ["Heal", "15 HP/s"], ["Revive", "3× faster inside"]], demo: { type: "zone", r: 130, dur: 6, col: [0.4, 1, 0.6], at: "self", heal: true }, ups: ["Hallowed Ground"] },
-  { id: "Soul Link", slot: "Space", role: "Healer", kit: "Soldier", cd: 18, desc: "Tether to your ally for 6 s: they take half damage and you both regenerate.",
-    stats: [["Lasts", "6 s"], ["Ally takes", "50% damage"], ["Both heal", "8 HP/s"]], demo: { type: "link", dur: 6, col: [0.6, 1, 0.9] }, ups: ["Kindred Spirits"] },
+  { id: "Soul Link", slot: "Space", role: "Healer", kit: "Soldier", cd: 18, desc: "Tether to your ally for 6 s: they take half damage and you both regenerate. Alone, you link to a Soul Ghost of yourself that fights beside you.",
+    stats: [["Lasts", "6 s"], ["Ally takes", "50% damage"], ["Both heal", "8 HP/s"], ["Alone", "A Soul Ghost: half your health, fires light bolts (11 every 0.3 s, 460 px) at enemies, takes half damage and heals with the link, fades when it ends"]], demo: { type: "link", dur: 6, col: [0.6, 1, 0.9] }, ups: ["Kindred Spirits"] },
   // Healer Elementalist
   { id: "Time Rewind", slot: "Space", role: "Healer", kit: "Elementalist", cd: 22, desc: "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
     stats: [["Looks back", "4 s (health recorded every 0.25 s)"], ["Affects", "Every player; never lowers health"], ["Undone downs", "Back up with 1.5 s invulnerability"]], demo: { type: "rewind", col: [0.75, 0.45, 1] } },
