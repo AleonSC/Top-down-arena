@@ -101,9 +101,9 @@ namespace Arena
                 case WeaponId.Fireball:
                 {
                     var b = SpawnBullet(Defs.FireShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 60f;
+                    b.Splash = 60f * AreaMult(p);
                     if (extra > 0)  // splits into small fireballs on impact
-                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f, false);
+                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f * AreaMult(p), false);
                     break;
                 }
                 case WeaponId.ArcLightning:
@@ -162,7 +162,9 @@ namespace Arena
         }
 
         /// Lightning jumps from the enemy that was hit to the nearest others.
-        void ChainLightning(Enemy from, float dmg, int jumps, int owner)
+        const float ChainReach = 170f;  // how far lightning jumps between enemies
+
+        void ChainLightning(Enemy from, float dmg, int jumps, int owner, float reach = ChainReach)
         {
             var hit = new HashSet<int> { from.Id };
             Enemy cur = from;
@@ -170,7 +172,7 @@ namespace Arena
             {
                 Enemy next = null;
                 foreach (var e in Enemies.Values)
-                    if (!hit.Contains(e.Id) && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(cur.Pos) < 170f &&
+                    if (!hit.Contains(e.Id) && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(cur.Pos) < reach &&
                         (next == null || e.Pos.DistanceSq(cur.Pos) < next.Pos.DistanceSq(cur.Pos)))
                         next = e;
                 if (next == null)

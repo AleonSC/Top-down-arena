@@ -84,8 +84,9 @@ namespace Arena
             {
                 p = Players[owner];
                 vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
-                homing = Math.Max(homing, p.Stats.Homing);
-                dmg *= 1f - HomingDamageCost * p.Stats.Homing;  // Homing Rounds trade damage for forgiveness
+                if (!AreaWeapon(p.Weapon.Id))  // area weapons get bigger areas instead (AreaMult)
+                    homing = Math.Max(homing, p.Stats.Homing);
+                dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
             }
             if (owner == 0 && Defs.IsEnemyShot(kind))
                 enemyShots++;
@@ -251,6 +252,15 @@ namespace Arena
 
         /// Homing Rounds (2 turn per stack) cost 5% damage per point of turn: 10% a stack.
         public const float HomingDamageCost = 0.05f;
+
+        /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, Storm Hammer's
+        /// lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
+        /// the same damage cost.
+        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether;
+        public const float HomingAreaPerStack = 0.25f;
+        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
+        static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
         const float HomingRange = 260f, HomingCone = 0.7f;  // only enemies within 260 px and ~45 degrees of the shot's path
 
         /// Homing Rounds: bend toward the nearest enemy close ahead, so near misses connect but a shot
@@ -659,7 +669,7 @@ namespace Arena
         void OnBulletHit(Bullet b, Enemy e)
         {
             if (b.Chain > 0)
-                ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner);
+                ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
                 e.SlowT = Math.Max(e.SlowT, 1.5f);

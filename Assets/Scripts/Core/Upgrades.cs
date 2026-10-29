@@ -380,11 +380,26 @@ namespace Arena
                 return weapon.Name + ": " + weapon.ExtraDesc;
             if (u.Name == "Iron Volley")
                 return weapon.Name + ": " + weapon.ExtraDesc + ". Also +25% damage";
+            string area;
+            if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
+                return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
             string knight;
             if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
                 return knight;
             return u.Desc;
         }
+
+        /// What Homing Rounds grow on each area weapon (Game.AreaWeapon) instead of bending its shots.
+        static readonly Dictionary<WeaponId, string> AreaDesc = new Dictionary<WeaponId, string>
+        {
+            { WeaponId.Implosion, "the collapse hurts and pulls in enemies 25% farther out" },
+            { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
+            { WeaponId.Fireball, "blasts (and split fireballs) 25% wider" },
+            { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
+            { WeaponId.StormHammer, "lightning jumps 25% farther between enemies" },
+            { WeaponId.ClotBolt, "blood pools 25% wider" },
+            { WeaponId.VeinTether, "the beam 25% wider" },
+        };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.
         static readonly Dictionary<string, string> KnightDesc = new Dictionary<string, string>
