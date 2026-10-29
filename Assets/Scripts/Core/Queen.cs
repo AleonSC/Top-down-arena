@@ -129,7 +129,7 @@ namespace Arena
             return best;
         }
 
-        QueenState QueenOf(Enemy e) => e.Queen ?? (e.Queen = new QueenState { TurnLen = QueenTimes[0][0], Turn = QueenTurns[0][0], Step = 0 });
+        QueenState QueenOf(Enemy e) => e.Queen ?? (e.Queen = new QueenState { Turn = QueenTurn.Rest, Step = -1 });  // QueenSpecial starts her first turn
 
         /// The Hive Queen in play, if any.
         public Enemy TheQueen()
@@ -223,6 +223,8 @@ namespace Arena
         void QueenSpecial(Enemy e, V2 tpos, float dt)
         {
             var q = QueenOf(e);
+            if (q.Step < 0)
+                NextQueenTurn(e, q);  // her first turn: the drones
             float frac = e.MaxHp > 0f ? e.Hp / e.MaxHp : 1f;
             TrackPlayerSpeeds(q, dt);
             TickQueenCells(q, dt);
