@@ -26,7 +26,7 @@ namespace Arena
 
     public partial class Game
     {
-        public BotSkill BotLevel;  // Off = the simple test bot (walks in circles, shoots the nearest enemy)
+        public BotSkill BotLevel;  // Off = the simple test bot (walks in circles, shoots the nearest enemy); F1 "Bot plays for you" uses Good
 
         /// Human limits: a person reacts late, plans a short way ahead, can only keep track of the nearest
         /// few bullets, changes direction a few times a second, and moves in 8 directions (WASD).

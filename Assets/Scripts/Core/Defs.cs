@@ -224,7 +224,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ClotBolt, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
                 Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s." },
             new WeaponDef { Id = WeaponId.LeechBeam, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
-                Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second each, and 25% of it heals you." },
+                Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on." },
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Speed = 650f, Life = 1.3f, Damage = 11f, ExtraDesc = "+1 homing bolt with every shot", Name = "Light Bolt", FireInterval = 0.25f, Desc = "Accurate long-range bolts." },
             new WeaponDef { Id = WeaponId.Pistol, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
