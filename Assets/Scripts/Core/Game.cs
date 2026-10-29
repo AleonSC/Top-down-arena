@@ -66,6 +66,7 @@ namespace Arena
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
         public bool PactMastered, RushMastered, ApoUp;
+        public readonly List<int> Grasp = new List<int>();  // Leech Tendrils: the enemies held right now (replicated)
         public float WallHp, WhirlTick, WhirlPower = 1f;  // host
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
@@ -155,6 +156,7 @@ namespace Arena
         public int BleedBy;
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
+        public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
         public int LastHitBy;
         public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;

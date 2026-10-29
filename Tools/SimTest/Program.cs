@@ -155,7 +155,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt),
+        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => LeechGraspTest(Dt),
     };
 
     static void RunFeatures()
@@ -187,7 +187,7 @@ static partial class Program
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("ninja", "the Ninja", () => NinjaTest(Dt)),
-        Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => BloodMageTest(Dt)),
+        Test("blood", "the Blood Mage", () => VeinBeamTest(Dt), () => LeechGraspTest(Dt), () => BloodMageTest(Dt)),
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
         Test("late", "waves 11-13: new enemies and elites", () => LateGameEnemies(Dt)),
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),

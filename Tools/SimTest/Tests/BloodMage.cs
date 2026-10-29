@@ -67,6 +67,90 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    // Leech Tendrils grasp the enemies in an arc in front of you for as long as you hold fire: they're stunned,
+    // drained slowly and the drain heals you; let go and they're free.
+    static void LeechGraspTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 3 };
+        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.BloodMage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 8, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        Check(me.Weapon.Id == WeaponId.LeechBeam && me.Weapon.Name == "Leech Tendrils", "the Hemomancer tank's third weapon is Leech Tendrils");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        client.Game.Players[2].Pos = new V2(300f, 200f);
+        V2 at = new V2(600f, 450f);
+        Func<V2, Enemy> Foe = pos =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, pos, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f;
+            return e;
+        };
+        // Three in the arc (one off to the side, 30 degrees), one more in the arc but farther, one behind you.
+        var a = Foe(at + V2.FromAngle(0f) * 90f);
+        var b = Foe(at + V2.FromAngle(0.52f) * 110f);
+        var c = Foe(at + V2.FromAngle(-0.3f) * 120f);
+        var d = Foe(at + V2.FromAngle(0.1f) * 150f);
+        var behind = Foe(at - new V2(90f, 0f));
+        var all = new[] { a, b, c, d, behind };
+        var hp0 = all.Select(e => e.Hp).ToArray();
+        V2 dPos = d.Pos, behindPos = behind.Pos;
+        Action<bool, float> Hold = (fire, secs) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                me.Pos = at;
+                foreach (var e in all) e.FireT = 9f;
+                d.Pos = dPos; behind.Pos = behindPos; d.FrozenT = behind.FrozenT = 0.1f;  // these two wait where they are
+                host.Poll();
+                g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at + new V2(300f, 0f) });
+                g.Update(dt);
+                Step(client, dt);
+                if (f % 2 == 0) Thread.Sleep(1);
+            }
+        };
+        Hold(true, 0.1f);
+        V2 bStart = b.Pos;
+        Hold(true, 1.9f);
+        var dealt = all.Select((e, i) => hp0[i] - e.Hp).ToArray();
+        var seen = client.Game.Players[1].Grasp.ToList();
+        Console.WriteLine("  leech tendrils: held {0}; damage in 2 s: {1}; the friend sees {2} held", string.Join(",", me.Grasp), string.Join(", ", dealt.Select(x => x.ToString("0"))), seen.Count);
+        Check(me.Grasp.Count == 3 && me.Grasp.Contains(a.Id) && me.Grasp.Contains(b.Id) && me.Grasp.Contains(c.Id), "the tendrils grab the three nearest enemies in the arc in front of you");
+        Check(dealt[3] == 0f && dealt[4] == 0f, "a fourth enemy waits for a free tendril, and nothing behind you is touched");
+        Check(dealt[0] > 18f && dealt[0] < 28f, "held enemies are drained slowly (about 12 a second)");
+        Check(a.GraspT > 0f && b.Pos.DistanceTo(bStart) < 1f, "held enemies are stunned in place");
+        Check(seen.Count == 3, "other players see who the tendrils hold");
+        Check(g.Bullets.Values.All(x => x.Owner != 1), "the tendrils fire no bullets");
+        // Let go and they're free.
+        Hold(false, 0.5f);
+        Check(me.Grasp.Count == 0 && a.GraspT <= 0f, "let go of fire and the tendrils let go");
+        // The leech: 25% of the damage heals you, slowly.
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp * 0.5f;
+        float before = me.Hp, aHp = a.Hp;
+        Hold(true, 1f);
+        float healed = me.Hp - before;
+        Console.WriteLine("  leech tendrils: healed {0:0.0} HP in 1 s holding three", healed);
+        Check(healed > 5f && healed < 14f, "the tendrils heal you slowly for some of what they drain");
+        // A held enemy that gets away (pushed far off) slips free.
+        a.Pos = at + new V2(400f, 0f);
+        Hold(true, 0.3f);
+        Check(!me.Grasp.Contains(a.Id) && me.Grasp.Contains(d.Id), "an enemy pulled out of reach slips free and a free tendril grabs the next");
+        host.Leave(""); client.Leave("");
+    }
+
     static void BloodMageTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;

@@ -9,8 +9,11 @@ namespace Arena
     public partial class Game
     {
         const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.3f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
+        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
+        public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
+        public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
+        const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 3f;
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
@@ -51,11 +54,9 @@ namespace Arena
                     break;
                 }
                 case WeaponId.LeechBeam:
-                {
-                    float k = 1f + w.Grow * extra;
-                    SpawnBullet(Defs.LeechShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * w.Speed, 0f, w.Life * k, w.Damage * k * dmg, p.Id);
+                    // Leech Tendrils: no projectile; each tick the tendrils hold on, reach for more and drain (Collide).
+                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg });
                     break;
-                }
                 case WeaponId.VeinTether:
                 {
                     // A real beam: it hits whatever is on your aim line right now, so you have to keep it on them.
@@ -153,6 +154,77 @@ namespace Arena
         }
 
         readonly List<KeyValuePair<float, Enemy>> beamOrder = new List<KeyValuePair<float, Enemy>>();
+
+        // --- Leech Tendrils: hold to grasp the enemies in front of you ----------------------
+
+        class Grasp { public int Owner, Extra; public float Aim, Dmg; }
+
+        readonly List<Grasp> pendingGrasps = new List<Grasp>();
+        readonly List<Enemy> graspNew = new List<Enemy>();
+
+        /// How far Leech Tendrils reach from the player's edge.
+        public float GraspReach(Player p) => (p.Weapon.Reach + p.Weapon.Grow * ExtraShots(p)) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch them
+
+        /// Is the enemy (its body) within the tendrils' arc in front of you?
+        public static bool InGraspArc(V2 from, float aim, V2 pos, float radius)
+        {
+            V2 rel = pos - from;
+            float d = rel.Length;
+            if (d <= radius)
+                return true;
+            float cos = (rel.X * (float)Math.Cos(aim) + rel.Y * (float)Math.Sin(aim)) / d;
+            float off = (float)Math.Acos(Math.Max(-1f, Math.Min(1f, cos))), slack = (float)Math.Asin(radius / d);
+            return off <= GraspArc / 2f + slack;
+        }
+
+        /// Called from Collide after the beams: each tick, held enemies too far away (or dead) slip free, free
+        /// tendrils grab the nearest enemies in the arc in front of you, and every held enemy is stunned and drained.
+        void ResolveGrasps()
+        {
+            foreach (var gr in pendingGrasps)
+            {
+                Player p;
+                if (!Players.TryGetValue(gr.Owner, out p) || p.Downed)
+                    continue;
+                float reach = p.Def.BodyR + GraspReach(p);
+                int max = GraspTendrils + gr.Extra + p.Stats.Fan;
+                Enemy e;
+                p.Grasp.RemoveAll(id => !Enemies.TryGetValue(id, out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo);
+                if (p.Grasp.Count > max)
+                    p.Grasp.RemoveRange(max, p.Grasp.Count - max);
+                // Free tendrils reach for the nearest enemies in the arc (shields turn them away).
+                graspNew.Clear();
+                foreach (var o in Enemies.Values)
+                    if (!IsSpawning(o) && o.Hp > 0f && !p.Grasp.Contains(o.Id) && o.Pos.DistanceTo(p.Pos) - o.Radius <= reach
+                        && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius) && !BlocksShot(o, p.Pos))
+                        graspNew.Add(o);
+                graspNew.Sort((a, b) => a.Pos.DistanceSq(p.Pos).CompareTo(b.Pos.DistanceSq(p.Pos)));
+                for (int i = 0; i < graspNew.Count && p.Grasp.Count < max; i++)
+                    p.Grasp.Add(graspNew[i].Id);
+                p.Run.ShotsFired++;
+                if (p.Grasp.Count > 0)
+                    p.Run.ShotsHit++;
+                foreach (int id in p.Grasp)
+                {
+                    if (!Enemies.TryGetValue(id, out e) || e.Hp <= 0f)
+                        continue;  // killed by another tendril's on-hit effects
+                    if (!e.Def.IsBoss)
+                        e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
+                    V2 dir = (e.Pos - p.Pos).Normalized();
+                    float hit = gr.Dmg * NinjaHitMult(p.Id, Defs.LeechShot, e);
+                    HurtEnemy(e, hit, p.Id);
+                    var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
+                    BloodShotHit(pseudo, e, hit);  // the leech
+                    OnBulletHit(pseudo, e);
+                }
+            }
+            pendingGrasps.Clear();
+        }
+
+        /// Are this player's Leech Tendrils out? (Each screen draws them itself, from the held enemies in the snapshot.)
+        public bool GraspOn(Player p) =>
+            p.Weapon.Id == WeaponId.LeechBeam && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            && State != MatchState.GameOver && State != MatchState.Victory;
 
         // --- Implosion: click an enemy and its blood collapses inward ---------------------
 
@@ -706,6 +778,8 @@ namespace Arena
             {
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.SanguineRain)
                     rainSteal = Math.Max(rainSteal, Mastered(p, AbilityId.SanguineRain) ? 0.3f : RainSteal);
+                if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))
+                    p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)
                 {
                     p.PactT = p.RushT = 0f;

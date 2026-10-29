@@ -52,6 +52,11 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.LeechBeam)
+            {
+                FireVolley(p, aim, extra);  // Barrage adds a tendril instead (BloodMage.cs)
+                return;
+            }
             if (p.Weapon.Id == WeaponId.Implosion)
             {
                 FireVolley(p, aim, extra + p.Stats.Fan);  // no direction to fan in: each copy is another implosion
@@ -339,6 +344,8 @@ namespace Arena
                     return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
+                case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
+                    return p.Def.BodyR + GraspReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing

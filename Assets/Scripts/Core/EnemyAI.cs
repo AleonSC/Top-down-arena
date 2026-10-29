@@ -335,6 +335,11 @@ namespace Arena
                     e.SlowT = Math.Max(e.SlowT, e.FrozenT);
                     continue;
                 }
+                if (e.GraspT > 0f)  // held by Leech Tendrils (BloodMage.cs)
+                {
+                    e.GraspT -= dt;
+                    continue;
+                }
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);

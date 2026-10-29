@@ -37,6 +37,17 @@ class Shot {
       me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true;
       if (Environment.GetEnvironmentVariable("VEIN") == "1") foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim) * 230f; break; }
     }
+    if (Environment.GetEnvironmentVariable("LEECH") != null) {
+      // Leech Tendrils: LEECH=<n> enemies held in the arc (0 = free tendrils feeling about).
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.LeechBeam); me.Kit = Kit.BloodMage; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true; me.Grasp.Clear();
+      int held = int.Parse(Environment.GetEnvironmentVariable("LEECH")), k = 0;
+      foreach (var e in host.Game.Enemies.Values) {
+        if (k < held) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim + (k - (held - 1) / 2f) * 0.42f) * (120f + 25f * (k % 2)); me.Grasp.Add(e.Id); }
+        else if (e.Pos.DistanceTo(me.Pos) < 260f) e.Pos = e.Disp = me.Pos + (e.Pos - me.Pos).Normalized() * 260f;
+        k++;
+      }
+    }
     if (Environment.GetEnvironmentVariable("IMPLODE") != null) {
       // Implosion: the cursor on an enemy (its target marker), and implosions going off at IMPLODE=<0..1> of the way through.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.Implosion); me.Kit = Kit.BloodMage; host.Game.Bot = false;

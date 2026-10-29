@@ -388,9 +388,9 @@ const W = [
   { id: "Clot Bolt", role: "Tank", kit: "Hemomancer", every: 0.75, desc: "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it.", shot: "Clot", xtra: "+1 bolt, fanned out",
     rows: [["Damage", "26"], ["Pool", "70 px where it hits, slows enemies 40% for 3 s"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 26,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Clot", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.2 * (n - 1)), 520, 1, 26, { pool: 70 }); } },
-  { id: "Leech Beam", role: "Tank", kit: "Hemomancer", every: 0.08, desc: "A rapid short beam of blood. 30% of the damage it deals heals you.", shot: "Leech", xtra: "+25% beam length and +25% damage",
-    rows: [["Damage", "4"], ["Heals you", "30% of its damage"], ["Speed / range", "1100 px/s · 330 px"]], dmgPerVolley: 4,
-    fire: (s, a, x) => s.bullet("Leech", a + rnd(-0.02, 0.02), 1100, 0.3 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
+  { id: "Leech Tendrils", role: "Tank", kit: "Hemomancer", every: 0.1, grasp: true, desc: "Hold to lash out blood tendrils in an arc in front of you. They grasp up to 3 enemies for as long as you hold on: held enemies are stunned, drained slowly, and the drain heals you.", shot: "Leech", xtra: "+1 tendril and +20 px reach",
+    rows: [["Grasp", "Up to 3 enemies in a 70° arc, 160 px from your edge (nearest first); held while you hold fire, and they slip free past 130% of the reach"], ["Stun", "Held enemies can't move or shoot (bosses are held and drained, but not stunned)"], ["Damage", "1.2 every 0.1 s (12/s) to each held enemy"], ["Heals you", "25% of its damage (3/s for each held enemy)"], ["Barrage", "+1 tendril a stack"], ["Speed / range", "instant · 160 px"]], dmgPerVolley: 1.2,
+    fire: (s, a, x, fan = 0) => s.grasp(a, 160 + 20 * x, 3 + x + fan, 1.2) },
   // Healer
   { id: "Light Bolt", role: "Healer", kit: "Soldier", every: 0.25, desc: "Accurate long-range bolts.", shot: "Healer", xtra: "+1 small homing bolt (6 damage) with every shot",
     rows: [["Damage", "11"], ["Speed / range", "650 px/s · 845 px"]], dmgPerVolley: 11,
@@ -1000,6 +1000,20 @@ const rangeApi = {
     range.beams = (range.beams || []).filter(b => b.a !== a);
     range.beams.push({ a, from, len: end, hit: on.length > 0, t: 0, col: SHOT[kind].col });
   },
+  // Leech Tendrils: keep hold of the dummies already grasped (unless out of reach), grab the nearest in the arc
+  // with any free tendril, and drain every held one.
+  grasp(a, reach, n, dmg) {
+    const p = range.player, g = range.grasp || (range.grasp = { held: [] }), edge = 16;
+    const gap = d => Math.hypot(d.x - p.x, d.y - p.y) - d.r - edge;
+    g.held = g.held.filter(d => gap(d) <= reach * 1.3).slice(0, n);
+    const free = range.dummies.filter(d => !g.held.includes(d) && gap(d) <= reach && (() => {
+      const dx = d.x - p.x, dy = d.y - p.y, l = Math.hypot(dx, dy), diff = Math.abs(((Math.atan2(dy, dx) - a + Math.PI) % TAU + TAU) % TAU - Math.PI);
+      return diff <= 35 * Math.PI / 180 + Math.asin(Math.min(1, d.r / Math.max(1, l)));
+    })()).sort((u, v) => gap(u) - gap(v));
+    while (g.held.length < n && free.length) g.held.push(free.shift());
+    for (const d of g.held) hitDummy(d, dmg * WS.dmg);
+    Object.assign(g, { a, reach, n, t: 0 });
+  },
   // An implosion (Implosion): the dummy you aim at collapses, the ones touching it take splash, and each extra
   // collapses the nearest dummy not hit yet within 180 px (or the target again) for 60%.
   implode(dmg, extra) {
@@ -1035,6 +1049,7 @@ function fireFanned(w, aim, extra) {
     return;
   }
   if (w.implode) { w.fire(rangeApi, aim, extra + WS.fan); return; }  // nowhere to fan: each copy is another implosion
+  if (w.grasp) { w.fire(rangeApi, aim, extra, WS.fan); return; }      // each copy is another tendril
   for (let v = 0; v <= WS.fan; v++) w.fire(rangeApi, aim + (v === 0 ? 0 : (v % 2 ? 1 : -1) * 0.14 * Math.floor((v + 1) / 2)), extra);
 }
 function revolverShot(aim) {
@@ -1111,6 +1126,7 @@ function stepRange(dt) {
   }
   R.slashes = R.slashes.filter(sl => sl.t < 0 || sl.t < (sl.box ? 0.26 : 0.22));
   R.beams = (R.beams || []).filter(b => (b.t += dt) < 0.12);
+  if (R.grasp && (R.grasp.t += dt) > 0.2) R.grasp = null;  // let go and the tendrils let go
   // Bullets
   const keep = [], spawned = [];
   for (const b of R.bullets) {
@@ -1235,6 +1251,48 @@ function drawNinjaShot(ctx, b, t) {
   }
   ctx.restore();
 }
+// Leech Tendrils, as in the game: a tendril curls out to each held dummy and coils round it, drops riding it
+// home; free tendrils writhe across the arc, feeling for something to grab.
+function drawTendril(ctx, x0, y0, bx, by, x1, y1, w0, w1, phase, alpha) {
+  const n = 14, pt = u => [x0 * (1 - u) ** 2 + bx * 2 * u * (1 - u) + x1 * u * u, y0 * (1 - u) ** 2 + by * 2 * u * (1 - u) + y1 * u * u];
+  const pts = [[x0, y0]];
+  for (let i = 1; i <= n; i++) {
+    const u = i / n, [ax, ay] = pt(u), [px, py] = pt(u - 1 / n), l = Math.hypot(ax - px, ay - py) || 1, o = 3 * Math.sin(u * 9 - phase) * Math.sin(u * Math.PI);
+    pts.push([ax - (ay - py) / l * o, ay + (ax - px) / l * o]);
+  }
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const [col, extra] of [[`rgba(90,8,20,${0.9 * alpha})`, 2.5], [css(SHOT.Leech.col, alpha), 0]])
+    for (let i = 1; i <= n; i++) { ctx.strokeStyle = col; ctx.lineWidth = w0 + (w1 - w0) * i / n + extra; ctx.beginPath(); ctx.moveTo(...pts[i - 1]); ctx.lineTo(...pts[i]); ctx.stroke(); }
+  ctx.strokeStyle = `rgba(255,180,185,${0.6 * alpha})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(...pts[0]); for (let i = 1; i <= 10; i++) ctx.lineTo(...pts[i]); ctx.stroke();
+  ctx.strokeStyle = `rgba(242,230,209,${0.7 * alpha})`; ctx.lineWidth = 1.2;
+  for (let i = 2; i <= n; i += 4) { const [ax, ay] = pts[i], [px, py] = pts[i - 1], l = Math.hypot(ax - px, ay - py) || 1, w = (w0 + (w1 - w0) * i / n) * 0.5 + 3;
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax - (ay - py) / l * w + (ax - px) * 0.6, ay + (ax - px) / l * w + (ay - py) * 0.6); ctx.stroke(); }
+  ctx.lineCap = "butt"; ctx.lineJoin = "miter";
+  return pt;
+}
+function drawGrasp(ctx, g, p, t) {
+  const half = 35 * Math.PI / 180, col = SHOT.Leech.col;
+  ctx.strokeStyle = css(col, 0.15); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 16 + g.reach, g.a - half, g.a + half); ctx.stroke();
+  g.held.forEach((d, i) => {
+    const ra = g.a + (g.n <= 1 ? 0 : (i / (g.n - 1) - 0.5) * half), rx = p.x + Math.cos(ra) * 16, ry = p.y + Math.sin(ra) * 16;
+    const dx = d.x - rx, dy = d.y - ry, l = Math.hypot(dx, dy), ex = d.x - dx / l * d.r * 0.7, ey = d.y - dy / l * d.r * 0.7;
+    const bx = rx + Math.cos(ra) * l * 0.45, by = ry + Math.sin(ra) * l * 0.45;
+    const pt = drawTendril(ctx, rx, ry, bx, by, ex, ey, 6.5, 3, t * 9 + i * 7, 1);
+    const sq = 0.5 + 0.5 * Math.sin(t * 6 + i), coil = d.r + 3 - 1.5 * sq, spin = t * 1.8 + i;
+    for (const [r, w, from, sweep] of [[coil, 5.5, spin, 4.4], [coil + 4, 4, spin + 3.6, 2.6]]) {
+      ctx.strokeStyle = "rgba(90,8,20,0.9)"; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(d.x, d.y, r, from, from + sweep); ctx.stroke();
+      ctx.strokeStyle = css(col, 0.95); ctx.lineWidth = w * 0.5; ctx.beginPath(); ctx.arc(d.x, d.y, r, from, from + sweep); ctx.stroke();
+    }
+    for (let k = 0; k < 3; k++) { const q = (t * 0.9 + k / 3 + i * 0.17) % 1, [x, y] = pt(1 - q); ctx.fillStyle = `rgba(255,140,150,${0.95 * Math.sin(q * Math.PI)})`; ctx.beginPath(); ctx.arc(x, y, 2.4, 0, TAU); ctx.fill(); }
+  });
+  const free = Math.min(3, g.n - g.held.length);
+  for (let k = 0; k < free; k++) {
+    const sway = Math.sin(t * 2.3 + k * 2.1), spread = free === 1 ? 0 : k / (free - 1) - 0.5, a = g.a + spread * 2 * half + 0.1 * sway;
+    const l = g.reach * (g.held.length ? 0.35 : 0.6 + 0.25 * Math.sin(t * 3.1 + k * 1.7)), c = Math.cos(a), sn = Math.sin(a);
+    const rx = p.x + Math.cos(g.a + spread * 0.8) * 16, ry = p.y + Math.sin(g.a + spread * 0.8) * 16, o = l * 0.12 * Math.sin(t * 4 + k), b = -l * 0.1 * sway;
+    drawTendril(ctx, rx, ry, rx + c * l * 0.5 - sn * b, ry + sn * l * 0.5 + c * b, rx + c * l - sn * o, ry + sn * l + c * o, 5, 1.2, t * 11 + k * 3, g.held.length ? 0.55 : 0.85);
+  }
+}
 function drawRange() {
   const cv = $("wCanvas"); fitCanvas(cv, 12 / 5);
   const ctx = cv.getContext("2d"), sc = cv.width / 1200, R = range, w = WBY[WS.sel], p = R.player;
@@ -1268,6 +1326,7 @@ function drawRange() {
     }
     ctx.lineCap = "butt";
   }
+  if (R.grasp) drawGrasp(ctx, R.grasp, p, t);
   for (const sl of R.slashes) {  // swing arcs
     if (sl.t < 0) continue;
     const k = sl.t / 0.22, full = sl.half >= Math.PI - 0.01, from = full ? sl.a + R.t * 6 : sl.a - sl.half, sweep = 2 * sl.half * Math.min(1, k * 3);
@@ -1383,7 +1442,7 @@ function renderWeaponSheet() {
     ["Damage per volley", w.bow ? "8 tap · 40 full · 50 perfect" : w.revolver ? "24 (heavy rounds 48)" : `${fmt(w.dmgPerVolley, 1)}`],
     ["Damage per second", sustained || `${fmt(wDps(w), 1)} <small>(direct hits, no upgrades)</small>`],
     ["Each extra projectile", w.xtra],
-    w.melee ? ["Reach", `${weaponRange(w)} px <small>(Piercing Rounds add 10% a stack)</small>`] : w.implode ? ["Reach", "480 px to the enemy you click <small>(Velocity Rounds stretch it)</small>"] : ["Bullet", `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${css(SHOT[w.shot].col)}"></span> radius ${SHOT[w.shot].r} px`],
+    w.melee ? ["Reach", `${weaponRange(w)} px <small>(Piercing Rounds add 10% a stack)</small>`] : w.implode ? ["Reach", "480 px to the enemy you click <small>(Velocity Rounds stretch it)</small>"] : w.grasp ? ["Reach", "160 px from your edge, in a 70° arc <small>(Velocity Rounds stretch it)</small>"] : ["Bullet", `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${css(SHOT[w.shot].col)}"></span> radius ${SHOT[w.shot].r} px`],
   ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   $("wTable").innerHTML = `<tbody>${w.rows.map(([k, v]) => `<tr><td style="white-space:nowrap;color:var(--muted)">${k}</td><td>${v}</td></tr>`).join("")}</tbody>`;
   const notes = [

@@ -44,9 +44,21 @@ namespace Arena
                     Circle(grip + dir * 5f, 5f, BloodDark.WithAlpha(a), 10);
                     Circle(grip + dir * 6f + side * 1.5f, 2.5f, BloodRed.WithAlpha(a), 8);
                     break;
-                case WeaponId.LeechBeam:  // a fanged crescent
-                case WeaponId.VeinTether:
-                    Arc(grip + dir * 4f, 6f, 2.5f, (p.Weapon.Id == WeaponId.VeinTether ? Defs.BulletColor(Defs.VeinShot) : BloodRed).WithAlpha(a), 10, p.Aim - 1f, 2f);
+                case WeaponId.LeechBeam:  // a knot of three little tendrils curling from the palm
+                    Circle(grip + dir * 3f, 3f, BloodDark.WithAlpha(a), 8);
+                    for (int k = -1; k <= 1; k++)
+                    {
+                        V2 prev = grip + dir * 3f;
+                        for (int i = 1; i <= 4; i++)
+                        {
+                            V2 pt = grip + dir * (3f + i * 2.6f) + side * (k * i * 1.6f + Mathf.Sin(t * 7f + i * 1.1f + k * 2f) * 1.2f * i / 4f);
+                            Line(prev, pt, 2.2f - 0.35f * i, BloodRed.WithAlpha(a));
+                            prev = pt;
+                        }
+                    }
+                    break;
+                case WeaponId.VeinTether:  // a fanged crescent
+                    Arc(grip + dir * 4f, 6f, 2.5f, Defs.BulletColor(Defs.VeinShot).WithAlpha(a), 10, p.Aim - 1f, 2f);
                     break;
                 case WeaponId.TransfusionDarts:  // a syringe
                     Line(grip - dir * 3f, grip + dir * 7f, 3.5f, new Rgba(0.9f, 0.9f, 0.95f, 0.8f * a));
@@ -210,6 +222,98 @@ namespace Arena
                     else
                         Circle(end, 3f + pulse, c.WithAlpha(0.4f), 10);
                 }
+            }
+        }
+
+        /// Leech Tendrils (each screen draws them from the held enemies in the snapshot): a tendril of blood curls
+        /// out to each held enemy and coils round it, drops riding it back into the caster; free tendrils writhe
+        /// out across the arc, feeling for something to grab.
+        void DrawLeechTendrils(float t)
+        {
+            var c = Defs.BulletColor(Defs.LeechShot);
+            foreach (var p in game.Players.Values)
+            {
+                if (!game.GraspOn(p))
+                    continue;
+                float reach = game.GraspReach(p), half = Game.GraspArc / 2f;
+                int max = Game.GraspTendrils + game.ExtraShots(p) + p.Stats.Fan, held = 0;
+                Arc(p.Disp, p.Def.BodyR + reach, 1.5f, c.WithAlpha(0.1f), 20, p.Aim - half, Game.GraspArc);  // how far they reach
+                foreach (int id in p.Grasp)
+                {
+                    Enemy e;
+                    if (!game.Enemies.TryGetValue(id, out e))
+                        continue;
+                    // Roots spread across your front, so the tendrils fan out before they bend to their prey.
+                    float rootAng = p.Aim + (max <= 1 ? 0f : (held / (max - 1f) - 0.5f) * half);
+                    V2 root = p.Disp + V2.FromAngle(rootAng) * p.Def.BodyR;
+                    V2 toE = e.Disp - root;
+                    float len = toE.Length;
+                    V2 end = len > e.Radius ? e.Disp - toE / len * (e.Radius * 0.7f) : e.Disp;
+                    V2 bend = root + V2.FromAngle(rootAng) * (len * 0.45f);
+                    DrawTendril(root, bend, end, 6.5f, 3f, t * 9f + id, 1f);
+                    // Coiled round the enemy, tightening and loosening.
+                    float squeeze = 0.5f + 0.5f * Mathf.Sin(t * 6f + id);
+                    float coil = e.Radius + 3f - 1.5f * squeeze, spin = t * 1.8f + id;
+                    Arc(e.Disp, coil, 5.5f, BloodDark.WithAlpha(0.9f), 18, spin, 4.4f);
+                    Arc(e.Disp, coil, 3f, c.WithAlpha(0.95f), 18, spin, 4.4f);
+                    Arc(e.Disp, coil + 4f, 4f, BloodDark.WithAlpha(0.85f), 14, spin + 3.6f, 2.6f);
+                    Arc(e.Disp, coil + 4f, 2f, c.WithAlpha(0.9f), 14, spin + 3.6f, 2.6f);
+                    for (int k = 0; k < 4; k++)  // thorns biting in
+                    {
+                        V2 d = V2.FromAngle(spin + 0.4f + k * 1.1f);
+                        Line(e.Disp + d * (coil + 2f), e.Disp + d * (coil - 3f - squeeze * 2f), 1.5f, Bone.WithAlpha(0.8f));
+                    }
+                    // The drain: drops riding the tendril home.
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float f = MathX.Fmod(t * 0.9f + k / 3f + id * 0.17f, 1f), u = 1f - f;
+                        V2 at = Bezier(root, bend, end, u), ahead = Bezier(root, bend, end, Mathf.Max(0f, u - 0.05f)) - at;
+                        DrawDrop(at, 2.4f, ahead.IsZero ? -toE.Normalized() : ahead.Normalized(), new Rgba(1f, 0.55f, 0.6f, 0.95f * Mathf.Sin(f * MathX.Pi)));
+                    }
+                    held++;
+                }
+                // Free tendrils feel about the arc for something to grab.
+                int free = Mathf.Min(3, max - held);
+                for (int k = 0; k < free; k++)
+                {
+                    float sway = Mathf.Sin(t * 2.3f + k * 2.1f + p.Id);
+                    float spread = free == 1 ? 0f : k / (free - 1f) - 0.5f;
+                    float ang = p.Aim + spread * Game.GraspArc + 0.1f * sway;
+                    float l = reach * (held > 0 ? 0.35f : 0.6f + 0.25f * Mathf.Sin(t * 3.1f + k * 1.7f));
+                    V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
+                    V2 root = p.Disp + V2.FromAngle(p.Aim + spread * 0.8f) * p.Def.BodyR;
+                    V2 tip = root + dir * l + side * (l * 0.12f * Mathf.Sin(t * 4f + k));
+                    DrawTendril(root, root + dir * (l * 0.5f) - side * (l * 0.1f * sway), tip, 5f, 1.2f, t * 11f + k * 3f, held > 0 ? 0.55f : 0.85f);
+                }
+                Circle(p.Disp + V2.FromAngle(p.Aim) * p.Def.BodyR, 5f + Mathf.Sin(t * 10f), c.WithAlpha(0.5f), 12);
+            }
+        }
+
+        static V2 Bezier(V2 a, V2 b, V2 c, float u) => a * ((1f - u) * (1f - u)) + b * (2f * u * (1f - u)) + c * (u * u);
+
+        /// One tendril along a curve from root to tip: a dark rim, a crimson core and a pale sheen, thinning from
+        /// `w0` to `w1`, rippling along its length (`phase`) but fixed at both ends.
+        void DrawTendril(V2 root, V2 bend, V2 tip, float w0, float w1, float phase, float alpha)
+        {
+            const int n = 14;
+            var c = Defs.BulletColor(Defs.LeechShot);
+            V2 prev = root;
+            for (int i = 1; i <= n; i++)
+            {
+                float u = i / (float)n;
+                V2 at = Bezier(root, bend, tip, u), along = at - Bezier(root, bend, tip, u - 1f / n);
+                V2 side = along.IsZero ? new V2(0f, 0f) : along.Normalized().Orthogonal();
+                V2 pt = at + side * (3f * Mathf.Sin(u * 9f - phase) * Mathf.Sin(u * MathX.Pi));
+                float w = w0 + (w1 - w0) * u;
+                Line(prev, pt, w + 2.5f, BloodDark.WithAlpha(0.9f * alpha));
+                Circle(pt, (w + 2.5f) / 2f, BloodDark.WithAlpha(0.9f * alpha), 6);
+                Line(prev, pt, w, c.WithAlpha(alpha));
+                Circle(pt, w / 2f, c.WithAlpha(alpha), 6);
+                if (u < 0.7f)
+                    Line(prev, pt, w * 0.3f, new Rgba(1f, 0.7f, 0.72f, 0.6f * alpha));
+                if (i % 4 == 2)  // a thorn
+                    Line(pt, pt + side * (w * 0.5f + 3f) + (pt - prev) * 0.6f, 1.2f, Bone.WithAlpha(0.7f * alpha));
+                prev = pt;
             }
         }
 

@@ -253,9 +253,9 @@ static partial class Program
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam)
                 {
-                    // A beam or an implosion has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam, an implosion or a tendril has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         g.Enemies.Clear();

@@ -123,6 +123,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
+            DrawLeechTendrils(t);
             DrawImplodeMark(t);
             foreach (var p in game.Players.Values)
             {

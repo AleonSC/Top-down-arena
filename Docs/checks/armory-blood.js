@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   await p.waitForTimeout(300);
   await p.screenshot({ path: process.argv[3] + '/arm-blood-class.png', fullPage: false });
   await p.click('text=Weapons');
-  for (const w of ['Blood Lash', 'Leech Beam', 'Transfusion Darts', 'Sanguine Orb', 'Vein Tether', 'Blood Bolts', 'Implosion', 'Bone Spear']) { await p.locator('#weaponList .item').filter({ hasText: w }).first().click(); await p.waitForTimeout(900); }
+  for (const w of ['Blood Lash', 'Leech Tendrils', 'Transfusion Darts', 'Sanguine Orb', 'Vein Tether', 'Blood Bolts', 'Implosion', 'Bone Spear']) { await p.locator('#weaponList .item').filter({ hasText: w }).first().click(); await p.waitForTimeout(900); }
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-bonespear.png' });
   await p.locator('#weaponList .item').filter({ hasText: 'Clot Bolt' }).first().click(); await p.waitForTimeout(1300);
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-clot.png' });
