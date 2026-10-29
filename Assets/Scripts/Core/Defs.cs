@@ -41,7 +41,7 @@ namespace Arena
         // Ninja (Ninja.cs): thrown blades and quick melee
         Kusarigama, BoStaff, ChainShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
-        BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, HemoSpray, BoneSpear,
+        BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
     }
 
     public class WeaponDef
@@ -230,15 +230,15 @@ namespace Arena
                 Desc = "Rapid throwing knives. +50% damage to enemies that aren't targeting you." },
             new WeaponDef { Id = WeaponId.BloodBolts, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
                 Desc = "Fast bolts of blood (9)." },
-            new WeaponDef { Id = WeaponId.HemoSpray, ExtraDesc = "+2 droplets", Name = "Hemo Spray", FireInterval = 0.35f,
-                Desc = "A fan of 5 piercing droplets (7 each)." },
+            new WeaponDef { Id = WeaponId.Implosion, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
+                Desc = "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in." },
             new WeaponDef { Id = WeaponId.BoneSpear, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
                 Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health." },
         };
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 
-        public static string KitName(Kit k) => k == Kit.BloodMage ? "Blood Mage" : k.ToString();
+        public static string KitName(Kit k) => k == Kit.BloodMage ? "Hemomancer" : k == Kit.Mage ? "Elementalist" : k.ToString();
 
         /// Mages and summoners trade some health for their spells and minions; knights wear armour to get close;
         /// ninjas are quick and lightly protected; blood mages keep their full health to spend.
@@ -264,7 +264,7 @@ namespace Arena
             StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
             FrostLance = 38,  // the Frost Lance's spear (its shatter icicles are FrostShot)
             // Blood Mage
-            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, DropletShot = 45, BoneSpearShot = 46;
+            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46;
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -308,7 +308,7 @@ namespace Arena
                 case LeechShot: return 3.5f;
                 case TransfuseShot: return 3f;
                 case SanguineShot: return 6.5f;
-                case DropletShot: return 3f;
+                case ImplodeShot: return 3f;
                 case BoneSpearShot: return 6f;
                 case BigShot: return 10f;
                 case MineShot: return 9f;
@@ -366,7 +366,7 @@ namespace Arena
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
                 case GustShot: return new Rgba(0.7f, 1f, 0.85f);
                 case BloodShot:
-                case DropletShot: return new Rgba(0.9f, 0.12f, 0.2f);
+                case ImplodeShot: return new Rgba(0.9f, 0.12f, 0.2f);
                 case ClotShot: return new Rgba(0.6f, 0.05f, 0.12f);
                 case LeechShot: return new Rgba(1f, 0.25f, 0.3f);
                 case VeinShot: return new Rgba(1f, 0.35f, 0.5f);

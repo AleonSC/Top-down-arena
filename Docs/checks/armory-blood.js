@@ -4,11 +4,11 @@ const { chromium } = require('playwright');
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   await p.goto('file://' + process.argv[2]);
   await p.waitForTimeout(500);
-  await p.locator('.cell').filter({ hasText: 'Blood Mage DPS' }).first().click();
+  await p.locator('.cell').filter({ hasText: 'Hemomancer DPS' }).first().click();
   await p.waitForTimeout(300);
   await p.screenshot({ path: process.argv[3] + '/arm-blood-class.png', fullPage: false });
   await p.click('text=Weapons');
-  for (const w of ['Blood Lash', 'Leech Beam', 'Transfusion Darts', 'Sanguine Orb', 'Vein Tether', 'Blood Bolts', 'Hemo Spray', 'Bone Spear']) { await p.locator('#weaponList .item').filter({ hasText: w }).first().click(); await p.waitForTimeout(900); }
+  for (const w of ['Blood Lash', 'Leech Beam', 'Transfusion Darts', 'Sanguine Orb', 'Vein Tether', 'Blood Bolts', 'Implosion', 'Bone Spear']) { await p.locator('#weaponList .item').filter({ hasText: w }).first().click(); await p.waitForTimeout(900); }
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-bonespear.png' });
   await p.locator('#weaponList .item').filter({ hasText: 'Clot Bolt' }).first().click(); await p.waitForTimeout(1300);
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-clot.png' });

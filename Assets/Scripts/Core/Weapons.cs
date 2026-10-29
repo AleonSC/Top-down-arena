@@ -52,6 +52,11 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Implosion)
+            {
+                FireVolley(p, aim, extra + p.Stats.Fan);  // no direction to fan in: each copy is another implosion
+                return;
+            }
             for (int v = 0; v <= p.Stats.Fan; v++)
                 FireVolley(p, aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2)), extra);
         }
@@ -364,7 +369,7 @@ namespace Arena
                 case WeaponId.TransfusionDarts: shot = 850f * 0.85f; break;
                 case WeaponId.SanguineOrb: shot = 420f * 1.4f; break;
                 case WeaponId.BloodBolts: shot = 800f * 0.8f; break;
-                case WeaponId.HemoSpray: shot = 620f * 0.5f; break;
+                case WeaponId.Implosion: shot = ImplodeRange; break;  // how far away you can click (BloodMage.cs)
                 case WeaponId.BoneSpear: shot = 1000f * 0.9f; break;
                 case WeaponId.BloodLash: return MeleeReach(p, LashReach + 20f * x);
                 case WeaponId.Kusarigama: return MeleeReach(p, KusariReach + 20f * x);

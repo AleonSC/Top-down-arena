@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -49,6 +49,7 @@ namespace Arena
         public string Name;
         public V2 Pos, Disp;
         public float Aim;
+        public V2 AimAt;         // the point they're aiming at (Implosion picks the enemy under it; sent with inputs)
         public bool Firing;
         public bool FiringSeen;  // holding fire, as everyone's screen knows it (for drawing beams; synced in snapshots)
         public float Hp, MaxHp;
@@ -1167,6 +1168,7 @@ namespace Arena
 
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
+            me.AimAt = aimAt;
             if (IsHost)
             {
                 me.Firing = firing;
@@ -1178,6 +1180,7 @@ namespace Arena
                 var w = Proto.Begin(Msg.Input);
                 w.Write(me.Pos);
                 w.Write(me.Aim);
+                w.Write(me.AimAt);
                 w.Write(firing);
                 w.Write(me.Parrying);
                 w.Write(me.DrawT);
@@ -1296,7 +1299,7 @@ namespace Arena
                 }
                 else if (p.Weapon.Id == WeaponId.MendersBow)
                     TickBow(p);
-                else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver)
+                else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

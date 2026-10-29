@@ -66,6 +66,7 @@ namespace Arena
                 case WeaponId.MendersBow: return 950f;
                 case WeaponId.Railgun: return 2000f;
                 case WeaponId.Fireball: return 450f;
+                case WeaponId.Implosion: return 1e6f;  // instant: aim right at them
                 default: return 700f;
             }
         }

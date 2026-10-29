@@ -57,9 +57,10 @@ namespace Arena
                     Circle(grip + dir * 5f, 6f, BloodRed.WithAlpha(0.3f * a), 10);
                     Circle(grip + dir * 5f, 3.5f, BloodRed.WithAlpha(a), 10);
                     break;
-                case WeaponId.HemoSpray:  // droplets gathered in the hand
-                    for (int k = -1; k <= 1; k++)
-                        Circle(grip + dir * 5f + side * (k * 3f), 2f, BloodRed.WithAlpha(a), 6);
+                case WeaponId.Implosion:  // a clenched knot of blood, drops circling into it
+                    Circle(grip + dir * 5f, 3.5f, BloodDark.WithAlpha(a), 8);
+                    for (int k = 0; k < 3; k++)
+                        Circle(grip + dir * 5f + V2.FromAngle(-t * 7f + k * MathX.Tau / 3f) * 5f, 1.5f, BloodRed.WithAlpha(a), 6);
                     break;
                 case WeaponId.BoneSpear:  // a bone spear held back, ready to throw
                     Line(grip - dir * 10f, grip + dir * (r + 8f), 3f, Bone.WithAlpha(a));
@@ -114,6 +115,48 @@ namespace Arena
                         DrawDrop(at, 2.2f, new V2(0f, 1f), BloodRed.WithAlpha(0.8f * (1f - f)));
                     }
                 }
+        }
+
+        /// Implosion: the enemy your click would hit gets four blood ticks pointing in at it.
+        void DrawImplodeMark(float t)
+        {
+            var me = game.Me;
+            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion)
+                return;
+            var e = game.ImplodeTarget(me, me.AimAt, true);
+            if (e == null)
+                return;
+            float r = e.Radius + 9f + 2f * Mathf.Sin(t * 10f);
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(t * 1.5f + k * MathX.Pi / 2f);
+                Line(e.Disp + d * (r + 7f), e.Disp + d * r, 2.5f, BloodRed.WithAlpha(0.85f));
+            }
+            Arc(e.Disp, r, 1.2f, BloodRed.WithAlpha(0.35f), 24);
+        }
+
+        /// An Implosion going off: a ring and drops of blood rushing in, the core darkening, then a small pop.
+        void DrawImplodeFx(Effect fx, float f)
+        {
+            const float inward = 0.7f;  // the collapse; the rest of the time is the pop
+            if (f < inward)
+            {
+                float g = f / inward, ease = g * g;
+                float r = fx.Radius * (1f - ease);
+                Arc(fx.Pos, Mathf.Max(1f, r), 3f, fx.Color.WithAlpha(0.4f + 0.6f * g), 32);
+                for (int k = 0; k < 8; k++)
+                {
+                    V2 d = V2.FromAngle(k * MathX.Tau / 8f + g * 1.2f);
+                    DrawDrop(fx.Pos + d * (r + 6f), 2.5f, -d, fx.Color.WithAlpha(0.9f));
+                }
+                Circle(fx.Pos, 4f + 8f * g, BloodDark.WithAlpha(0.8f * g), 16);
+            }
+            else
+            {
+                float g = (f - inward) / (1f - inward);
+                Circle(fx.Pos, 12f * (1f - g) + 2f, BloodDark.WithAlpha(1f - g), 16);
+                Arc(fx.Pos, 6f + 18f * g, 2f, fx.Color.WithAlpha(1f - g), 20);
+            }
         }
 
         /// Vein Tether's beams (each screen works out where they stop from where the enemies are drawn): a pulsing
@@ -211,7 +254,7 @@ namespace Arena
                     SetColor(c);
                     Tri(b.Pos + dir * 10f, b.Pos + side * 4f, b.Pos - side * 4f);
                     break;
-                default:  // BloodShot, DropletShot: drops of blood
+                default:  // BloodShot: drops of blood
                     Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.25f), 10);
                     DrawDrop(b.Pos, b.Radius, dir, c);
                     break;

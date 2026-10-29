@@ -913,22 +913,23 @@ static class Program
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
-                if (w.Id == WeaponId.VeinTether)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion)
                 {
-                    // A beam has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam or an implosion has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         g.Enemies.Clear();
                         var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
                         dummy.Pos = new V2(120f + edge + dummy.Radius, 450f);
                         dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+                        me.AimAt = dummy.Pos;  // an implosion goes where you click
                         volley.Invoke(g, new object[] { me, 0f, extra });
                         host.Poll(); dummy.FrozenT = 1f; dummy.Pos = new V2(120f + edge + dummy.Radius, 450f); me.Pos = new V2(120f, 450f);
                         g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                         return dummy.Hp < dummy.MaxHp;
                     };
-                    bool inside = Hits(range - 4f), outside = Hits(range + Game.VeinBeamHalfWidth + 4f);
-                    if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (beam: inside hit " + inside + ", outside hit " + outside + ")");
+                    bool inside = Hits(range - 4f), outside = Hits(range + (w.Id == WeaponId.VeinTether ? Game.VeinBeamHalfWidth : 0f) + 4f);
+                    if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
                     continue;
                 }
                 volley.Invoke(g, new object[] { me, 0f, extra });
@@ -1476,7 +1477,7 @@ static class Program
             "Blood Mage weapons sit in the role/class tables without shifting the others");
         Check(Upgrades.RoleAbility(Role.Healer, Kit.BloodMage, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
             && Upgrades.Ultimate(Role.Dps, Kit.BloodMage) == AbilityId.CrimsonApotheosis && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
-            && Upgrades.Ultimate(Role.Tank, Kit.BloodMage) == AbilityId.BloodRite && Defs.KitName(Kit.BloodMage) == "Blood Mage",
+            && Upgrades.Ultimate(Role.Tank, Kit.BloodMage) == AbilityId.BloodRite && Defs.KitName(Kit.BloodMage) == "Hemomancer" && Defs.KitName(Kit.Mage) == "Elementalist",
             "Blood Mage abilities and ultimates map to the right role and class");
 
         int port = nextPort++;
@@ -1609,6 +1610,27 @@ static class Program
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 2);
         typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
         Check(Math.Abs(hp.Hp - 48f) < 0.01f && g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Bone Spear costs 2 health a throw");
+
+        // Implosion: the enemy you click collapses (34), enemies against it take 15 and are pulled in;
+        // an extra projectile collapses one more enemy nearby (60%). Nothing under the cursor, nothing fires.
+        hp.Hp = hp.MaxHp;
+        place(1, 600f); run(0.2f);
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 1);
+        var i2 = dummy(d1.Pos + new V2(0f, d1.Radius * 2f + 20f));
+        var i3 = dummy(d1.Pos + new V2(0f, -150f));
+        float gap0 = i2.Pos.DistanceTo(d1.Pos);
+        float a1 = d1.Hp, a2 = i2.Hp, a3 = i3.Hp;
+        Check(hp.Weapon.Id == WeaponId.Implosion && g.ImplodeTarget(hp, d1.Pos + new V2(d1.Radius + 10f, 0f)) == d1
+            && g.ImplodeTarget(hp, d1.Pos + new V2(-200f, 0f)) == null && g.ImplodeTarget(hp, new V2(1590f, 450f)) == null,
+            "Implosion picks the enemy under the cursor (with a little slack), nothing on empty ground or out of reach");
+        hp.AimAt = d1.Pos;
+        typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 1 });
+        run(0.1f);
+        float t1 = a1 - d1.Hp, t2 = a2 - i2.Hp, t3 = a3 - i3.Hp;
+        Console.WriteLine("  implosion: target {0:0.0}, touching {1:0.0} (pulled {2:0.0} px), chained {3:0.0}", t1, t2, gap0 - i2.Pos.DistanceTo(d1.Pos), t3);
+        Check(Math.Abs(t1 - 34f) < 0.5f && Math.Abs(t2 - 15f) < 0.5f && Math.Abs(t3 - 34f * 0.6f) < 0.5f && i2.Pos.DistanceTo(d1.Pos) < gap0 - 10f,
+            "Implosion: 34 to the target, 15 to an enemy against it (pulled in), and an extra collapses another enemy for 60%");
+        keep.Remove(i2); keep.Remove(i3); i2.Hp = i3.Hp = 0f;
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 0);
 
         // Blood Rite: 60% less damage, and the damage you take heals your allies.

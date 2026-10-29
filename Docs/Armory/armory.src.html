@@ -281,11 +281,11 @@ const ROLES = [
 ];
 const KITS = [
   { id: "Soldier", hpMult: 1, desc: "Guns. The original kit." },
-  { id: "Mage", hpMult: 0.85, desc: "Spells: fire, frost, lightning and arcane. 85% health." },
+  { id: "Elementalist", hpMult: 0.85, desc: "Spells: fire, frost, lightning and arcane. 85% health." },
   { id: "Summoner", hpMult: 0.9, desc: "Weapons that bring companions that fight beside you. 90% health." },
   { id: "Knight", hpMult: 1.15, desc: "Melee: swings hit everything in the arc and cut small bullets out of the air. Armoured: 115% health." },
   { id: "Ninja", hpMult: 0.85, speedMult: 1.12, desc: "Thrown blades and quick melee, with tricks and misdirection. Fast (+12% move speed), 85% health." },
-  { id: "Blood Mage", hpMult: 1, desc: "Blood spells that drain and heal. Every Space ability costs health (never below 1 HP); Blood Price: up to +40% damage the lower your health; all hits heal you for 3% of the damage. Full health." },
+  { id: "Hemomancer", hpMult: 1, desc: "Blood spells that drain and heal. Every Space ability costs health (never below 1 HP); Blood Price: up to +40% damage the lower your health; all hits heal you for 3% of the damage. Full health." },
 ];
 const SHOT = {
   Tank: { col: [0.5, 0.75, 1], r: 5 }, Healer: { col: [0.5, 1, 0.65], r: 4.5 }, Dps: { col: [1, 0.7, 0.35], r: 3.5 }, Flak: { col: [0.7, 0.85, 1], r: 8 },
@@ -294,7 +294,7 @@ const SHOT = {
   Rock: { col: [0.7, 0.6, 0.5], r: 6 }, Knight: { col: [0.85, 0.92, 1], r: 11 }, Minion: { col: [0.85, 1, 0.95], r: 3.5 }, Turret: { col: [0.6, 0.95, 1], r: 4 }, Nova: { col: [0.95, 0.8, 1], r: 6 },
   Star: { col: [0.8, 0.85, 0.95], r: 5.5, shape: "star" }, ChainStar: { col: [0.8, 0.85, 0.95], r: 11, shape: "star" }, Needle: { col: [0.55, 1, 0.75], r: 3, shape: "needle" },
   Kunai: { col: [0.8, 0.85, 0.95], r: 4, shape: "kunai" }, Ofuda: { col: [1, 0.92, 0.75], r: 6, shape: "ofuda" }, Gust: { col: [0.7, 1, 0.85], r: 9, shape: "gust" },
-  Blood: { col: [0.9, 0.12, 0.2], r: 4, shape: "drop" }, Droplet: { col: [0.9, 0.12, 0.2], r: 3, shape: "drop" }, Clot: { col: [0.6, 0.05, 0.12], r: 7, shape: "clot" },
+  Blood: { col: [0.9, 0.12, 0.2], r: 4, shape: "drop" }, Implode: { col: [0.9, 0.12, 0.2], r: 3, shape: "drop" }, Clot: { col: [0.6, 0.05, 0.12], r: 7, shape: "clot" },
   Leech: { col: [1, 0.25, 0.3], r: 3.5, shape: "streak" }, Vein: { col: [1, 0.35, 0.5], r: 3.5, shape: "streak" }, Transfuse: { col: [1, 0.5, 0.55], r: 3, shape: "needle" },
   Sanguine: { col: [0.85, 0.1, 0.25], r: 6.5, shape: "orb" }, BoneSpear: { col: [0.95, 0.9, 0.82], r: 6, shape: "spear" },
 };
@@ -318,19 +318,19 @@ const MINIONS = {
 };
 const ZONES = [
   { name: "Haven", col: [0.4, 1, 0.6], from: "Haven (Healer · Soldier)", r: "130 px", dur: "6 s", effect: "Allies inside heal 15 HP/s; downed allies revive 3× faster" },
-  { name: "Flame Wall", col: [1, 0.45, 0.15], from: "Flame Wall (Tank · Mage)", r: "90 px", dur: "5 s", effect: "30 damage/s to enemies inside; blocks enemy bullets (soaks 300 boss damage)" },
-  { name: "Blizzard", col: [0.6, 0.85, 1], from: "Blizzard (DPS · Mage)", r: "130 px", dur: "5 s", effect: "20 damage/s and 60% slow to enemies inside" },
+  { name: "Flame Wall", col: [1, 0.45, 0.15], from: "Flame Wall (Tank · Elementalist)", r: "90 px", dur: "5 s", effect: "30 damage/s to enemies inside; blocks enemy bullets (soaks 300 boss damage)" },
+  { name: "Blizzard", col: [0.6, 0.85, 1], from: "Blizzard (DPS · Elementalist)", r: "130 px", dur: "5 s", effect: "20 damage/s and 60% slow to enemies inside" },
   { name: "Soul Lantern", col: [1, 0.9, 0.5], from: "Soul Lantern (Healer · Summoner)", r: "120 px", dur: "5 s", effect: "Allies inside heal 5 HP/s and can't go down" },
   { name: "Healing Totem", col: [0.5, 0.9, 0.4], from: "Totem Staff (planted every 10 s)", r: "90 px", dur: "8 s", effect: "Allies inside heal 8 HP/s" },
   { name: "Meteor", col: [1, 0.35, 0.15], from: "Meteor, Meteor Storm", r: "120 px (90 in a storm)", dur: "0.9 s warning", effect: "150 damage to everything inside when it lands" },
-  { name: "Sanctum", col: [1, 0.92, 0.55], from: "Sanctum (Healer · Mage ultimate)", r: "200 px", dur: "7 s", effect: "Allies inside heal 20 HP/s and can't go down; bullets can't get in (soaks 1500 boss damage)" },
+  { name: "Sanctum", col: [1, 0.92, 0.55], from: "Sanctum (Healer · Elementalist ultimate)", r: "200 px", dur: "7 s", effect: "Allies inside heal 20 HP/s and can't go down; bullets can't get in (soaks 1500 boss damage)" },
   { name: "World Tree", col: [0.4, 0.9, 0.4], from: "World Tree (Healer · Summoner ultimate)", r: "170 px", dur: "10 s", effect: "Allies heal 18 HP/s; enemies take 20 damage/s and are slowed 40%" },
   { name: "Consecrated Ground", col: [1, 0.85, 0.45], from: "Consecrate (Healer · Knight); Hallowed Blade", r: "130 px (200 from Hallowed Blade)", dur: "6 s (8 s)", effect: "Allies inside heal 12 HP/s (15 from Hallowed Blade); enemies take 20 damage/s" },
   { name: "Smoke Bomb", col: [0.62, 0.62, 0.7], from: "Smoke Bomb (Tank · Ninja)", r: "140 px", dur: "5 s", effect: "Enemy bullets inside move at half speed; allies inside take 30% less damage" },
   { name: "Healing Mist", col: [0.55, 1, 0.8], from: "Healing Mist (Healer · Ninja)", r: "130 px, follows you", dur: "6 s", effect: "Allies inside heal 10 HP/s" },
   { name: "Spirit Ward", col: [1, 0.85, 0.6], from: "Spirit Ward (Healer · Ninja)", r: "140 px", dur: "8 s", effect: "Allies inside heal 6 HP/s; downed allies revive 3× faster" },
-  { name: "Siphon Field", col: [0.85, 0.15, 0.3], from: "Siphon Field (Healer · Blood Mage)", r: "140 px", dur: "6 s", effect: "Enemies inside lose 10 HP/s; allies inside heal 10 HP/s" },
-  { name: "Blood Pool", col: [0.6, 0.05, 0.12], from: "Clot Bolt (Tank · Blood Mage), where it hits", r: "70 px", dur: "3 s", effect: "Enemies inside are slowed by 40%" },
+  { name: "Siphon Field", col: [0.85, 0.15, 0.3], from: "Siphon Field (Healer · Hemomancer)", r: "140 px", dur: "6 s", effect: "Enemies inside lose 10 HP/s; allies inside heal 10 HP/s" },
+  { name: "Blood Pool", col: [0.6, 0.05, 0.12], from: "Clot Bolt (Tank · Hemomancer), where it hits", r: "70 px", dur: "3 s", effect: "Enemies inside are slowed by 40%" },
   { name: "Hallowed Blade", col: [1, 0.95, 0.65], from: "Hallowed Blade (Healer · Knight ultimate)", r: "200 px", dur: "0.6 s warning", effect: "200 damage when the sword lands, then Consecrated Ground there" },
 ];
 
@@ -347,13 +347,13 @@ const W = [
   { id: "Riot Repeater", role: "Tank", kit: "Soldier", every: 0.18, desc: "Steady single shots with a little spread.", shot: "Tank", xtra: "Fires in bursts: +1 round per burst, then a 60% longer pause",
     rows: [["Damage", "11"], ["Spread", "±3.4°"], ["Speed / range", "600 px/s · 480 px"]], dmgPerVolley: 11,
     fire: (s, a) => s.bullet("Tank", a + rnd(-0.06, 0.06), 600, 0.8, 11) },
-  { id: "Flame Burst", role: "Tank", kit: "Mage", every: 0.4, desc: "A short-range cone of fire.", shot: "Fire", xtra: "+2 flames and 25% more reach",
+  { id: "Flame Burst", role: "Tank", kit: "Elementalist", every: 0.4, desc: "A short-range cone of fire.", shot: "Fire", xtra: "+2 flames and 25% more reach",
     rows: [["Flames", "6 in a ±20° cone"], ["Damage", "6 each"], ["Speed / range", "380–480 px/s · about 150 px"]], dmgPerVolley: 36,
     fire: (s, a, x) => { for (let i = 0; i < 6 + 2 * x; i++) s.bullet("Fire", a + rnd(-0.35, 0.35), rnd(380, 480), 0.35 * (1 + 0.25 * x), 6); } },
-  { id: "Frost Lance", role: "Tank", kit: "Mage", every: 0.35, desc: "Piercing ice spears with a wide head that slow enemies.", shot: "Frost", xtra: "Spears shatter into 2 icicles (5 damage) sideways on every hit",
+  { id: "Frost Lance", role: "Tank", kit: "Elementalist", every: 0.35, desc: "Piercing ice spears with a wide head that slow enemies.", shot: "Frost", xtra: "Spears shatter into 2 icicles (5 damage) sideways on every hit",
     rows: [["Damage", "14"], ["Hitbox", "20 px wide spearhead"], ["Pierce", "1 extra enemy"], ["Slow", "30%"], ["Speed / range", "700 px/s · 630 px"]], dmgPerVolley: 14,
     fire: (s, a, x) => s.bullet("Frost", a, 700, 0.9, 14, { pierce: 1, slow: true, big: 10, lance: true, frags: x ? { n: 2 * x, kind: "Frost", dmg: 5, speed: 500, life: 0.3, sideways: true } : null }) },
-  { id: "Storm Hammer", role: "Tank", kit: "Mage", every: 0.7, desc: "A heavy orb whose lightning chains to 3 nearby enemies.", shot: "Bolt", xtra: "Lightning chains to 1 more enemy",
+  { id: "Storm Hammer", role: "Tank", kit: "Elementalist", every: 0.7, desc: "A heavy orb whose lightning chains to 3 nearby enemies.", shot: "Bolt", xtra: "Lightning chains to 1 more enemy",
     rows: [["Damage", "24, then 14.4 (60%) to each chained enemy within 170 px"], ["Chains", "3"], ["Speed / range", "420 px/s · 504 px"]], dmgPerVolley: 24,
     fire: (s, a, x) => s.bullet("Bolt", a, 420, 1.2, 24, { chain: 3 + x, big: 7 }) },
   { id: "Golem Staff", role: "Tank", kit: "Summoner", every: 0.5, desc: "Hurls rocks. A stone Golem fights beside you and blocks bullets.", shot: "Rock", companion: ["Golem", 1, 3], xtra: "+1 Golem (up to 3)",
@@ -382,13 +382,13 @@ const W = [
   { id: "Chain Shuriken", role: "Tank", kit: "Ninja", every: 0.7, desc: "A heavy spinning star that flies out and comes back, cutting through everything both ways.", shot: "ChainStar", xtra: "+1 shuriken, fanned out",
     rows: [["Damage", "22, to everything it passes, out and back"], ["Flight", "620 px/s out for 0.42 s, then back the way it came"], ["Speed / range", "620 px/s · 260 px"]], dmgPerVolley: 44,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("ChainStar", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.3 * (n - 1)), 620, 0.84, 22, { pierce: 99, ret: 0.42 }); } },
-  { id: "Blood Lash", role: "Tank", kit: "Blood Mage", melee: true, reach: 110, every: 0.5, desc: "A whip of blood lashed in a wide arc. Heals you 3 for each enemy it hits.", shot: "Knight", xtra: "+20 px reach and +1 HP healed per enemy hit",
+  { id: "Blood Lash", role: "Tank", kit: "Hemomancer", melee: true, reach: 110, every: 0.5, desc: "A whip of blood lashed in a wide arc. Heals you 3 for each enemy it hits.", shot: "Knight", xtra: "+20 px reach and +1 HP healed per enemy hit",
     rows: [["Whip", "130° arc, 110 px reach, 24 damage"], ["Heals you", "3 per enemy hit"], ["Cuts", "Nothing: it's blood"]], dmgPerVolley: 24,
     fire: (s, a, x) => s.swing(a, 110 + 20 * x, 130, 24) },
-  { id: "Clot Bolt", role: "Tank", kit: "Blood Mage", every: 0.75, desc: "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it.", shot: "Clot", xtra: "+1 bolt, fanned out",
+  { id: "Clot Bolt", role: "Tank", kit: "Hemomancer", every: 0.75, desc: "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it.", shot: "Clot", xtra: "+1 bolt, fanned out",
     rows: [["Damage", "26"], ["Pool", "70 px where it hits, slows enemies 40% for 3 s"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 26,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Clot", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.2 * (n - 1)), 520, 1, 26, { pool: 70 }); } },
-  { id: "Leech Beam", role: "Tank", kit: "Blood Mage", every: 0.08, desc: "A rapid short beam of blood. 30% of the damage it deals heals you.", shot: "Leech", xtra: "+25% beam length and +25% damage",
+  { id: "Leech Beam", role: "Tank", kit: "Hemomancer", every: 0.08, desc: "A rapid short beam of blood. 30% of the damage it deals heals you.", shot: "Leech", xtra: "+25% beam length and +25% damage",
     rows: [["Damage", "4"], ["Heals you", "30% of its damage"], ["Speed / range", "1100 px/s · 330 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.bullet("Leech", a + rnd(-0.02, 0.02), 1100, 0.3 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // Healer
@@ -403,13 +403,13 @@ const W = [
     xtra: "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single",
     rows: [["Tap", "8 damage, 450 px/s, heals 5"], ["Full draw (0.9 s)", "40 damage, 950 px/s, pierces 2, heals 20"], ["Perfect release", "Within 0.25 s of full draw: +25% (50 damage, heals 25)"],
       ["In between", "Scales with the draw; pierces 1 from half draw"], ["While drawing", "85% move speed; holding past full keeps it at full (no auto-fire)"], ["Recovery", "0.25 s after each shot before the next draw starts"], ["Speed / range", "450–950 px/s · 500–900 px"]], dmgPerVolley: 40 },
-  { id: "Radiant Orb", role: "Healer", kit: "Mage", every: 0.5, desc: "Slow piercing orbs that heal allies they pass through.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
+  { id: "Radiant Orb", role: "Healer", kit: "Elementalist", every: 0.5, desc: "Slow piercing orbs that heal allies they pass through.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
     rows: [["Damage", "14"], ["Pierce", "2 extra enemies"], ["Heals an ally it passes", "10"], ["Speed / range", "300 px/s · 540 px"]], dmgPerVolley: 14,
     fire: (s, a) => s.bullet("Holy", a, 300, 1.8, 14, { pierce: 2 }) },
-  { id: "Chain Light", role: "Healer", kit: "Mage", every: 0.3, desc: "Bolts of light that chain to 2 more enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
+  { id: "Chain Light", role: "Healer", kit: "Elementalist", every: 0.3, desc: "Bolts of light that chain to 2 more enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
     rows: [["Damage", "10, then 6 (60%) to each chained enemy"], ["Chains", "2"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 10,
     fire: (s, a, x) => s.bullet("Bolt", a, 800, 0.8, 10, { chain: 2 + x }) },
-  { id: "Prism Beam", role: "Healer", kit: "Mage", every: 0.06, desc: "A rapid short-range beam. Grazing your ally heals them.", shot: "Arcane", xtra: "+30% beam length, +25% damage and +50% healing",
+  { id: "Prism Beam", role: "Healer", kit: "Elementalist", every: 0.06, desc: "A rapid short-range beam. Grazing your ally heals them.", shot: "Arcane", xtra: "+30% beam length, +25% damage and +50% healing",
     rows: [["Damage", "4"], ["Heals an ally it passes", "2"], ["Spread", "±1.7°"], ["Speed / range", "1200 px/s · 420 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.bullet("Arcane", a + rnd(-0.03, 0.03), 1200, 0.35 * (1 + 0.3 * x), 4 * (1 + 0.25 * x)) },
   { id: "Sprite Staff", role: "Healer", kit: "Summoner", every: 0.35, desc: "Seed shots. Two sprites fly to whoever is hurt and heal them.", shot: "Seed", companion: ["Sprite", 2], xtra: "+1 Sprite",
@@ -438,13 +438,13 @@ const W = [
   { id: "Ofuda", role: "Healer", kit: "Ninja", every: 0.5, desc: "Slow paper charms that home in and burst, healing allies near the burst.", shot: "Ofuda", xtra: "+1 charm, fanned out",
     rows: [["Damage", "25 direct + 15 (60%) to others within 60 px"], ["Homing", "Turns 3 rad/s toward the nearest enemy"], ["Heals", "8 to allies within 100 px of the burst"], ["Speed / range", "360 px/s · 576 px"]], dmgPerVolley: 25,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Ofuda", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.4 * (n - 1)), 360, 1.6, 25, { splash: 60, homing: 3 }); } },
-  { id: "Transfusion Darts", role: "Healer", kit: "Blood Mage", every: 0.2, desc: "Darts that heal an ally they reach for 8, at a cost of 3 of your own health.", shot: "Transfuse", xtra: "+1 dart, fanned out",
+  { id: "Transfusion Darts", role: "Healer", kit: "Hemomancer", every: 0.2, desc: "Darts that heal an ally they reach for 8, at a cost of 3 of your own health.", shot: "Transfuse", xtra: "+1 dart, fanned out",
     rows: [["Damage", "7"], ["Heals an ally it reaches", "8, costing you 3"], ["Speed / range", "850 px/s · 722 px"]], dmgPerVolley: 7,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Transfuse", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.08 * (n - 1)), 850, 0.85, 7); } },
-  { id: "Sanguine Orb", role: "Healer", kit: "Blood Mage", every: 0.45, desc: "Homing orbs of blood. Enemies they kill have a 40% chance to drop a small health orb.", shot: "Sanguine", xtra: "+1 orb, fanned out",
+  { id: "Sanguine Orb", role: "Healer", kit: "Hemomancer", every: 0.45, desc: "Homing orbs of blood. Enemies they kill have a 40% chance to drop a small health orb.", shot: "Sanguine", xtra: "+1 orb, fanned out",
     rows: [["Damage", "16"], ["Homing", "Turns 3 rad/s toward the nearest enemy"], ["Kills", "40% chance of a small health orb (15 HP)"], ["Speed / range", "420 px/s · 588 px"]], dmgPerVolley: 16,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Sanguine", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.35 * (n - 1)), 420, 1.4, 16, { homing: 3 }); } },
-  { id: "Vein Tether", role: "Healer", kit: "Blood Mage", every: 0.08, desc: "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.", shot: "Vein", xtra: "+25% beam length and +25% damage",
+  { id: "Vein Tether", role: "Healer", kit: "Hemomancer", every: 0.08, desc: "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.", shot: "Vein", xtra: "+25% beam length and +25% damage",
     rows: [["Damage", "4 every 0.08 s (50/s) to the first enemy on your aim line; Pierce lets it pass through more"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "instant beam · 350 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.beam("Vein", a, 350 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // DPS
@@ -457,13 +457,13 @@ const W = [
   { id: "Burst SMG", role: "DPS", kit: "Soldier", every: 0.055, desc: "Sprays very fast, inaccurate shots.", shot: "Dps", xtra: "+1 bullet per shot (half damage) and a 35% wider spray",
     rows: [["Damage", "5"], ["Spread", "±9.2°"], ["Speed / range", "760 px/s · 608 px"]], dmgPerVolley: 5,
     fire: (s, a, x) => { const sp = 0.16 * (1 + 0.35 * x); for (let i = 0; i <= x; i++) s.bullet("Dps", a + rnd(-sp, sp), 760, 0.8, i ? 2.5 : 5); } },
-  { id: "Fireball", role: "DPS", kit: "Mage", every: 0.45, desc: "Fireballs that explode on impact.", shot: "Fire", xtra: "Splits into 2 small fireballs (8 damage, 30 px blast) on impact",
+  { id: "Fireball", role: "DPS", kit: "Elementalist", every: 0.45, desc: "Fireballs that explode on impact.", shot: "Fire", xtra: "Splits into 2 small fireballs (8 damage, 30 px blast) on impact",
     rows: [["Damage", "22 direct + 13.2 (60%) to others within 60 px"], ["Speed / range", "520 px/s · 624 px"]], dmgPerVolley: 22,
     fire: (s, a, x) => s.bullet("Fire", a, 520, 1.2, 22, { splash: 60, big: 8, frags: x ? { n: 2 * x, kind: "Fire", dmg: 8, speed: 380, life: 0.35, splash: 30 } : null }) },
-  { id: "Arc Lightning", role: "DPS", kit: "Mage", every: 0.25, desc: "Bolts that chain to 4 nearby enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
+  { id: "Arc Lightning", role: "DPS", kit: "Elementalist", every: 0.25, desc: "Bolts that chain to 4 nearby enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
     rows: [["Damage", "12, then 7.2 (60%) to each chained enemy"], ["Chains", "4"], ["Speed / range", "900 px/s · 540 px"]], dmgPerVolley: 12,
     fire: (s, a, x) => s.bullet("Bolt", a, 900, 0.6, 12, { chain: 4 + x }) },
-  { id: "Arcane Missiles", role: "DPS", kit: "Mage", every: 0.3, desc: "Three curving missiles per cast.", shot: "Arcane", xtra: "+1 missile, and missiles home in on enemies",
+  { id: "Arcane Missiles", role: "DPS", kit: "Elementalist", every: 0.3, desc: "Three curving missiles per cast.", shot: "Arcane", xtra: "+1 missile, and missiles home in on enemies",
     rows: [["Missiles", "3, fanned ±23° and curving back in at 69°/s"], ["Damage", "7 each"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 21,
     fire: (s, a, x) => { const k = 3 + x; for (let i = 0; i < k; i++) { const f = i * 2 / (k - 1) - 1; s.bullet("Arcane", a + f * 0.4, 520, 1, 7, x ? { homing: 4 } : { av: -f * 1.2 }); } } },
   { id: "Wolf Whistle", role: "DPS", kit: "Summoner", every: 0.3, desc: "Darts. Two wolves hunt down enemies.", shot: "Bone", companion: ["Wolf", 2], xtra: "+1 Wolf",
@@ -490,13 +490,13 @@ const W = [
   { id: "Kunai", role: "DPS", kit: "Ninja", every: 0.12, desc: "Rapid throwing knives. +50% damage to enemies that aren't targeting you.", shot: "Kunai", xtra: "+1 knife, fanned out (half damage)",
     rows: [["Damage", "8 (12 against enemies that aren't after you)"], ["Speed / range", "850 px/s · 637 px"]], dmgPerVolley: 8,
     fire: (s, a, x) => { for (let i = 0; i <= x; i++) s.bullet("Kunai", a + (i === 0 ? 0 : (i % 2 ? 1 : -1) * 0.07 * Math.floor((i + 1) / 2)), 850, 0.75, i ? 4 : 8); } },
-  { id: "Blood Bolts", role: "DPS", kit: "Blood Mage", every: 0.13, desc: "Fast bolts of blood. They gain the most from Blood Price.", shot: "Blood", xtra: "+1 bolt, fanned out",
+  { id: "Blood Bolts", role: "DPS", kit: "Hemomancer", every: 0.13, desc: "Fast bolts of blood. They gain the most from Blood Price.", shot: "Blood", xtra: "+1 bolt, fanned out",
     rows: [["Damage", "9"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 9,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Blood", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.07 * (n - 1)), 800, 0.8, 9); } },
-  { id: "Hemo Spray", role: "DPS", kit: "Blood Mage", every: 0.35, desc: "A fan of 5 piercing droplets.", shot: "Droplet", xtra: "+2 droplets",
-    rows: [["Droplets", "5 across 30°, pierce 1"], ["Damage", "7 each"], ["Speed / range", "620 px/s · 310 px"]], dmgPerVolley: 35,
-    fire: (s, a, x) => { const n = 5 + 2 * x; for (let i = 0; i < n; i++) s.bullet("Droplet", a + (i / (n - 1) - 0.5) * 0.52, 620, 0.5, 7, { pierce: 1 }); } },
-  { id: "Bone Spear", role: "DPS", kit: "Blood Mage", every: 0.8, desc: "A heavy spear that pierces 3 enemies. Each throw costs 2 health.", shot: "BoneSpear", xtra: "+1 spear, fanned out (costs no more health)",
+  { id: "Implosion", role: "DPS", kit: "Hemomancer", every: 0.45, implode: true, desc: "Click an enemy and its blood collapses inside it, hurting and pulling in the enemies pressed against it. No projectile: nothing fires unless your cursor is on an enemy.", shot: "Implode", xtra: "+1 implosion: another enemy near your target collapses too (60% damage; your target again if no one is near)",
+    rows: [["Target", "The enemy under your cursor (26 px of slack), up to 480 px away"], ["Damage", "34 to the target"], ["Splash", "15 to enemies within 55 px of its edge, pulled 18 px in (not bosses or heavies)"], ["Shields", "Ignored: it happens inside them"]], dmgPerVolley: 34,
+    fire: (s, a, x) => s.implode(34, x) },
+  { id: "Bone Spear", role: "DPS", kit: "Hemomancer", every: 0.8, desc: "A heavy spear that pierces 3 enemies. Each throw costs 2 health.", shot: "BoneSpear", xtra: "+1 spear, fanned out (costs no more health)",
     rows: [["Damage", "60"], ["Pierce", "3 extra enemies"], ["Costs", "2 health a throw (never below 1 HP)"], ["Speed / range", "1000 px/s · 900 px"]], dmgPerVolley: 60,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("BoneSpear", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.12 * (n - 1)), 1000, 0.9, 60, { pierce: 3 }); } },
 ];
@@ -514,12 +514,12 @@ const A = [
   { id: "Bulldoze", slot: "Space", role: "Tank", kit: "Soldier", cd: 9, desc: "Charge forward, damaging and knocking back everything in your path.",
     stats: [["Charge", "0.35 s at 750 px/s (about 260 px)"], ["Damage", "60 to everything within 30 px of the path"], ["Knockback", "70 px (not bosses or heavies)"], ["Invulnerable", "While charging"]],
     demo: { type: "dash", dist: 262, dur: 0.35, col: [0.5, 0.75, 1], hit: 30 }, ups: ["Juggernaut"] },
-  // Tank Mage
-  { id: "Arcane Aegis", slot: "Space", role: "Tank", kit: "Mage", cd: 11, desc: "For 3 s, enemy bullets that touch you are reflected back as your own.",
+  // Tank Elementalist
+  { id: "Arcane Aegis", slot: "Space", role: "Tank", kit: "Elementalist", cd: 11, desc: "For 3 s, enemy bullets that touch you are reflected back as your own.",
     stats: [["Lasts", "3 s"], ["Reflects", "Bullets entering your body + 24 px"], ["Soaks", "300 boss damage, then ends"]], demo: { type: "bubble", r: 42, dur: 3, col: [0.75, 0.45, 1], reflect: true } },
-  { id: "Frost Nova", slot: "Space", role: "Tank", kit: "Mage", cd: 12, desc: "Freeze every enemy near you for 3 s and deal 40 damage.",
+  { id: "Frost Nova", slot: "Space", role: "Tank", kit: "Elementalist", cd: 12, desc: "Freeze every enemy near you for 3 s and deal 40 damage.",
     stats: [["Radius", "220 px"], ["Damage", "40"], ["Slow", "90% for 3 s"]], demo: { type: "burst", r: 220, col: [0.6, 0.9, 1], freeze: 3 } },
-  { id: "Flame Wall", slot: "Space", role: "Tank", kit: "Mage", cd: 14, desc: "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
+  { id: "Flame Wall", slot: "Space", role: "Tank", kit: "Elementalist", cd: 14, desc: "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
     stats: [["Radius", "90 px at your cursor"], ["Lasts", "5 s"], ["Damage", "30 per second"], ["Blocks", "Enemy bullets until it soaks 300 boss damage"]], demo: { type: "zone", r: 90, dur: 5, col: [1, 0.45, 0.15], at: "cursor", block: true, burn: true } },
   // Tank Summoner
   { id: "Golem Wall", slot: "Space", role: "Tank", kit: "Summoner", cd: 13, desc: "Raise three stone walls in front of you for 6 s that block bullets.",
@@ -535,12 +535,12 @@ const A = [
     stats: [["Radius", "130 px"], ["Lasts", "6 s"], ["Heal", "15 HP/s"], ["Revive", "3× faster inside"]], demo: { type: "zone", r: 130, dur: 6, col: [0.4, 1, 0.6], at: "self", heal: true }, ups: ["Hallowed Ground"] },
   { id: "Soul Link", slot: "Space", role: "Healer", kit: "Soldier", cd: 18, desc: "Tether to your ally for 6 s: they take half damage and you both regenerate.",
     stats: [["Lasts", "6 s"], ["Ally takes", "50% damage"], ["Both heal", "8 HP/s"]], demo: { type: "link", dur: 6, col: [0.6, 1, 0.9] }, ups: ["Kindred Spirits"] },
-  // Healer Mage
-  { id: "Time Rewind", slot: "Space", role: "Healer", kit: "Mage", cd: 22, desc: "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
+  // Healer Elementalist
+  { id: "Time Rewind", slot: "Space", role: "Healer", kit: "Elementalist", cd: 22, desc: "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
     stats: [["Looks back", "4 s (health recorded every 0.25 s)"], ["Affects", "Every player; never lowers health"], ["Undone downs", "Back up with 1.5 s invulnerability"]], demo: { type: "rewind", col: [0.75, 0.45, 1] } },
-  { id: "Arcane Ward", slot: "Space", role: "Healer", kit: "Mage", cd: 14, desc: "Shield you and your ally for 60 damage for 8 s.",
+  { id: "Arcane Ward", slot: "Space", role: "Healer", kit: "Elementalist", cd: 14, desc: "Shield you and your ally for 60 damage for 8 s.",
     stats: [["Reach", "Players within 300 px"], ["Shield", "60 damage"], ["Lasts", "8 s"]], demo: { type: "burst", r: 300, col: [0.5, 0.7, 1], shield: true } },
-  { id: "Sanctify", slot: "Space", role: "Healer", kit: "Mage", cd: 12, desc: "Erase enemy bullets around you and heal everyone nearby for 25.",
+  { id: "Sanctify", slot: "Space", role: "Healer", kit: "Elementalist", cd: 12, desc: "Erase enemy bullets around you and heal everyone nearby for 25.",
     stats: [["Radius", "280 px"], ["Erases", "Every enemy bullet inside"], ["Heal", "25"]], demo: { type: "burst", r: 280, col: [1, 0.95, 0.6], erase: true } },
   // Healer Summoner
   { id: "Spirit Swarm", slot: "Space", role: "Healer", kit: "Summoner", cd: 14, desc: "Release 5 healing sprites for 6 s.",
@@ -556,12 +556,12 @@ const A = [
     stats: [["Throw", "Up to 380 px, lands in 0.55 s"], ["Blast", "80 damage within 110 px"], ["Shrapnel", "8 pieces, 9.6 damage each"]], demo: { type: "grenade", col: [0.75, 0.85, 0.4] }, ups: ["Bigger Boom"] },
   { id: "Mark for Death", slot: "Space", role: "DPS", kit: "Soldier", cd: 12, desc: "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
     stats: [["Lasts", "6 s"], ["Damage taken", "+50% from everyone"]], demo: { type: "mark", dur: 6, col: [1, 0.25, 0.25] }, ups: ["Exploit Weakness"] },
-  // DPS Mage
-  { id: "Meteor", slot: "Space", role: "DPS", kit: "Mage", cd: 10, desc: "Call a meteor at your cursor: after a short warning it hits for 150 damage.",
+  // DPS Elementalist
+  { id: "Meteor", slot: "Space", role: "DPS", kit: "Elementalist", cd: 10, desc: "Call a meteor at your cursor: after a short warning it hits for 150 damage.",
     stats: [["Radius", "120 px"], ["Warning", "0.9 s"], ["Damage", "150"]], demo: { type: "meteor", r: 120, n: 1, col: [1, 0.35, 0.15] } },
-  { id: "Blizzard", slot: "Space", role: "DPS", kit: "Mage", cd: 14, desc: "A storm at your cursor for 5 s that slows and damages enemies.",
+  { id: "Blizzard", slot: "Space", role: "DPS", kit: "Elementalist", cd: 14, desc: "A storm at your cursor for 5 s that slows and damages enemies.",
     stats: [["Radius", "130 px"], ["Lasts", "5 s"], ["Damage", "20 per second"], ["Slow", "60%"]], demo: { type: "zone", r: 130, dur: 5, col: [0.6, 0.85, 1], at: "cursor", burn: true, snow: true } },
-  { id: "Arcane Surge", slot: "Space", role: "DPS", kit: "Mage", cd: 16, desc: "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
+  { id: "Arcane Surge", slot: "Space", role: "DPS", kit: "Elementalist", cd: 16, desc: "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
     stats: [["Lasts", "5 s"], ["Damage", "+60%"], ["Pierce", "+2 enemies"]], demo: { type: "buff", dur: 5, col: [0.75, 0.45, 1], shots: true } },
   // DPS Summoner
   { id: "Bat Swarm", slot: "Space", role: "DPS", kit: "Summoner", cd: 12, desc: "Release 8 bats that hunt enemies for 6 s.",
@@ -580,19 +580,19 @@ const A = [
   // Ultimates
   { id: "Fortress", slot: "Ultimate", role: "Tank", kit: "Soldier", cd: 70, desc: "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
     stats: [["Lasts", "8 s"], ["Damage taken", "−75%"], ["On cast", "Erases bullets within 220 px; shoves enemies within 200 px back 120 px"]], demo: { type: "burst", r: 220, col: [1, 0.8, 0.35], erase: true, after: { type: "buff", dur: 8, taunt: true } } },
-  { id: "Glacial Tomb", slot: "Ultimate", role: "Tank", kit: "Mage", cd: 75, desc: "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
+  { id: "Glacial Tomb", slot: "Ultimate", role: "Tank", kit: "Elementalist", cd: 75, desc: "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
     stats: [["Reach", "The whole arena"], ["Enemies", "40 damage and frozen solid for 4 s"], ["Bosses", "250 damage"]], demo: { type: "burst", r: 1400, col: [0.6, 0.9, 1], erase: true, freeze: 4 } },
   { id: "Titan", slot: "Ultimate", role: "Tank", kit: "Summoner", cd: 80, desc: "Summon a stone titan for 15 s that smashes enemies and blocks bullets.",
     stats: [["Lasts", "15 s"], ["Slam", "70 damage within 100 px every 1.1 s"], ["Blocks", "46 px around it, soaks 1000 boss damage"]], demo: { type: "summon", minion: "Titan", n: 1, dur: 15 } },
   { id: "Lifeline", slot: "Ultimate", role: "Healer", kit: "Soldier", cd: 90, desc: "Instantly revive and fully heal the whole party, with 3 s of invulnerability.",
     stats: [["Reach", "Every player, anywhere"], ["Effect", "Revive, full heal, 3 s invulnerable"]], demo: { type: "burst", r: 1400, col: [0.4, 1, 0.55], heal: 999 } },
-  { id: "Sanctum", slot: "Ultimate", role: "Healer", kit: "Mage", cd: 80, desc: "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in.",
+  { id: "Sanctum", slot: "Ultimate", role: "Healer", kit: "Elementalist", cd: 80, desc: "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in.",
     stats: [["Radius", "200 px"], ["Lasts", "7 s"], ["Inside", "20 HP/s, can't go down"], ["Blocks", "Bullets coming in (soaks 1500 boss damage)"]], demo: { type: "zone", r: 200, dur: 7, col: [1, 0.92, 0.55], at: "self", block: true, heal: true } },
   { id: "World Tree", slot: "Ultimate", role: "Healer", kit: "Summoner", cd: 80, desc: "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites.",
     stats: [["Radius", "170 px"], ["Lasts", "10 s"], ["Allies", "18 HP/s, plus 4 sprites (10 HP/s each)"], ["Enemies", "20 damage/s and 40% slow"]], demo: { type: "zone", r: 170, dur: 10, col: [0.4, 0.9, 0.4], at: "self", heal: true, burn: true, sprites: 4 } },
   { id: "Bullet Storm", slot: "Ultimate", role: "DPS", kit: "Soldier", cd: 60, desc: "For 6 s you fire three times as fast, with +2 extra projectiles.",
     stats: [["Lasts", "6 s"], ["Fire rate", "× 3"], ["Extra projectiles", "+2 (each weapon upgrades its own way: see Weapons)"]], demo: { type: "buff", dur: 6, col: [1, 0.6, 0.25], shots: true, storm: true } },
-  { id: "Meteor Storm", slot: "Ultimate", role: "DPS", kit: "Mage", cd: 70, desc: "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
+  { id: "Meteor Storm", slot: "Ultimate", role: "DPS", kit: "Elementalist", cd: 70, desc: "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
     stats: [["Meteors", "12, aimed at enemies, one every 0.2 s"], ["Each", "150 damage within 90 px"]], demo: { type: "meteor", r: 90, n: 12, col: [1, 0.35, 0.15] } },
   { id: "Legion", slot: "Ultimate", role: "DPS", kit: "Summoner", cd: 70, desc: "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
     stats: [["Summons", "6 Wolves + 6 Bats"], ["Lasts", "10 s"], ["Frenzy", "All minions: 1.6× speed, 2× attack rate, 1.3× damage"]], demo: { type: "summon", minion: "Wolf", n: 6, extra: "Bat", dur: 10 } },
@@ -646,30 +646,30 @@ const A = [
     stats: [["Lasts", "5 s"], ["Heal", "20 HP/s to everyone"], ["Erases", "Enemy bullets within 100 px of any ally"]], demo: { type: "buff", dur: 5, col: [1, 0.7, 0.85] } },
   { id: "Death Lotus", slot: "Ultimate", role: "DPS", kit: "Ninja", cd: 65, desc: "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.",
     stats: [["Targets", "Up to 8 within 350 px of your cursor"], ["Damage", "100 each"], ["You", "Invulnerable for 1 s"]], demo: { type: "burst", r: 350, col: [1, 0.55, 0.75] } },
-  // Blood Mage: every Space ability costs health (never below 1 HP)
-  { id: "Blood Shell", slot: "Space", role: "Tank", kit: "Blood Mage", cd: 9, desc: "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
+  // Hemomancer: every Space ability costs health (never below 1 HP)
+  { id: "Blood Shell", slot: "Space", role: "Tank", kit: "Hemomancer", cd: 9, desc: "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
     stats: [["Costs", "15% of your max health"], ["Shield", "3× what you paid (108 for a full-health Tank)"], ["Lasts", "5 s"]], demo: { type: "buff", dur: 5, col: [0.85, 0.12, 0.2] }, ups: ["Hardened Blood"] },
-  { id: "Crimson Pact", slot: "Space", role: "Tank", kit: "Blood Mage", cd: 10, desc: "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150%.",
+  { id: "Crimson Pact", slot: "Space", role: "Tank", kit: "Hemomancer", cd: 10, desc: "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150%.",
     stats: [["Costs", "10% of your max health"], ["Taunt", "Every enemy, 4 s"], ["Burst", "150% of the damage you took, within 220 px"]], demo: { type: "buff", dur: 4, col: [0.85, 0.12, 0.2], ring: 260, taunt: true }, ups: ["Blood Oath"] },
-  { id: "Exsanguinate", slot: "Space", role: "Tank", kit: "Blood Mage", cd: 8, desc: "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
+  { id: "Exsanguinate", slot: "Space", role: "Tank", kit: "Hemomancer", cd: 8, desc: "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
     stats: [["Costs", "10% of your max health"], ["Reach", "220 px"], ["Pull", "60 px toward you (not heavies)"], ["Drain", "20 damage to each, 20 healing to you each"]], demo: { type: "burst", r: 220, col: [0.85, 0.12, 0.2] }, ups: ["Deep Veins"] },
-  { id: "Blood Gift", slot: "Space", role: "Healer", kit: "Blood Mage", cd: 8, desc: "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you.",
+  { id: "Blood Gift", slot: "Space", role: "Healer", kit: "Hemomancer", cd: 8, desc: "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you.",
     stats: [["Costs", "25% of your current health"], ["Ally heals", "2× what you paid"], ["Alone", "A shield of 2× what you paid, 5 s"]], demo: { type: "burst", r: 300, col: [0.85, 0.12, 0.2], heal: 60 }, ups: ["Lifeblood"] },
-  { id: "Siphon Field", slot: "Space", role: "Healer", kit: "Blood Mage", cd: 11, desc: "Pay 10% of your max health for a field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
+  { id: "Siphon Field", slot: "Space", role: "Healer", kit: "Hemomancer", cd: 11, desc: "Pay 10% of your max health for a field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
     stats: [["Costs", "10% of your max health"], ["Radius", "140 px"], ["Lasts", "6 s"], ["Enemies", "10 damage/s"], ["Allies", "10 HP/s"]], demo: { type: "zone", r: 140, dur: 6, col: [0.85, 0.12, 0.2], at: "self", heal: true, burn: true }, ups: ["Hungry Earth"] },
-  { id: "Martyr", slot: "Space", role: "Healer", kit: "Blood Mage", cd: 16, desc: "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid.",
+  { id: "Martyr", slot: "Space", role: "Healer", kit: "Hemomancer", cd: 16, desc: "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid.",
     stats: [["Costs", "40% of your max health"], ["Revive", "The downed ally nearest your cursor, anywhere, at 50%"], ["No one down", "The most hurt ally heals 2× what you paid"]], demo: { type: "burst", r: 1400, col: [0.85, 0.12, 0.2], heal: 999 }, ups: ["Saint's Blood"] },
-  { id: "Blood Boil", slot: "Space", role: "DPS", kit: "Blood Mage", cd: 8, desc: "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
+  { id: "Blood Boil", slot: "Space", role: "DPS", kit: "Hemomancer", cd: 8, desc: "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
     stats: [["Costs", "20% of your max health"], ["Reach", "260 px"], ["Burst", "After 1 s, 3× what you paid (57 for a full-health DPS)"]], demo: { type: "meteor", r: 40, n: 4, col: [0.85, 0.12, 0.2] }, ups: ["Boiling Point"] },
-  { id: "Frenzy Pact", slot: "Space", role: "DPS", kit: "Blood Mage", cd: 11, desc: "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
+  { id: "Frenzy Pact", slot: "Space", role: "DPS", kit: "Hemomancer", cd: 11, desc: "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
     stats: [["Costs", "5% of your max health, then 3 HP/s (never below 1 HP)"], ["Lasts", "6 s"], ["Fire rate", "+50%"], ["Lifesteal", "+10% of damage dealt"]], demo: { type: "buff", dur: 6, col: [0.85, 0.12, 0.2], shots: true }, ups: ["Bloodrush"] },
-  { id: "Hemo Nova", slot: "Space", role: "DPS", kit: "Blood Mage", cd: 6, desc: "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
+  { id: "Hemo Nova", slot: "Space", role: "DPS", kit: "Hemomancer", cd: 6, desc: "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
     stats: [["Costs", "10% of your max health"], ["Bolts", "16 in a ring, 20 damage each"], ["Heals you", "3 per bolt that hits"], ["Speed / range", "600 px/s · 420 px"]], demo: { type: "nova", col: [0.85, 0.12, 0.2] }, ups: ["Crimson Tide"] },
-  { id: "Blood Rite", slot: "Ultimate", role: "Tank", kit: "Blood Mage", cd: 75, desc: "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
+  { id: "Blood Rite", slot: "Ultimate", role: "Tank", kit: "Hemomancer", cd: 75, desc: "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
     stats: [["Lasts", "8 s"], ["Taunt", "Every enemy"], ["Damage taken", "−60%"], ["Allies", "Each heals what you take"]], demo: { type: "buff", dur: 8, col: [0.85, 0.12, 0.2], ring: 240, taunt: true } },
-  { id: "Sanguine Rain", slot: "Ultimate", role: "Healer", kit: "Blood Mage", cd: 80, desc: "For 6 s, every hit any ally lands heals them for 20% of its damage.",
+  { id: "Sanguine Rain", slot: "Ultimate", role: "Healer", kit: "Hemomancer", cd: 80, desc: "For 6 s, every hit any ally lands heals them for 20% of its damage.",
     stats: [["Lasts", "6 s"], ["Everyone", "Heals 20% of the damage they deal"]], demo: { type: "buff", dur: 6, col: [0.85, 0.12, 0.2] } },
-  { id: "Crimson Apotheosis", slot: "Ultimate", role: "DPS", kit: "Blood Mage", cd: 65, desc: "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
+  { id: "Crimson Apotheosis", slot: "Ultimate", role: "DPS", kit: "Hemomancer", cd: 65, desc: "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
     stats: [["Lasts", "6 s"], ["Health", "Can't drop below 1"], ["Blood Price", "Up to +100% instead of +40%"], ["Then", "Heal half the damage you dealt"]], demo: { type: "buff", dur: 6, col: [0.85, 0.12, 0.2], shots: true, storm: true } },
   // Parry
   { id: "Parry", slot: "Parry", cd: 0, desc: "Hold right click to raise a shield toward your cursor. You can't shoot while it's up. It soaks damage until it breaks, then recharges.",
@@ -686,18 +686,18 @@ const CAPSTONE = {"Barrier": "Bullets that hit the barrier are reflected back as
 };
 let masteryLvl = 1;
 const ROLE_ABIL = {
-  "Tank/Soldier": ["Barrier", "Roar", "Bulldoze"], "Tank/Mage": ["Arcane Aegis", "Frost Nova", "Flame Wall"], "Tank/Summoner": ["Golem Wall", "Earthquake", "Guardian Spirit"],
-  "Healer/Soldier": ["Mend Pulse", "Haven", "Soul Link"], "Healer/Mage": ["Time Rewind", "Arcane Ward", "Sanctify"], "Healer/Summoner": ["Spirit Swarm", "Phoenix", "Soul Lantern"],
-  "DPS/Soldier": ["Dash", "Cluster Grenade", "Mark for Death"], "DPS/Mage": ["Meteor", "Blizzard", "Arcane Surge"], "DPS/Summoner": ["Bat Swarm", "Sacrifice", "Alpha Call"],
+  "Tank/Soldier": ["Barrier", "Roar", "Bulldoze"], "Tank/Elementalist": ["Arcane Aegis", "Frost Nova", "Flame Wall"], "Tank/Summoner": ["Golem Wall", "Earthquake", "Guardian Spirit"],
+  "Healer/Soldier": ["Mend Pulse", "Haven", "Soul Link"], "Healer/Elementalist": ["Time Rewind", "Arcane Ward", "Sanctify"], "Healer/Summoner": ["Spirit Swarm", "Phoenix", "Soul Lantern"],
+  "DPS/Soldier": ["Dash", "Cluster Grenade", "Mark for Death"], "DPS/Elementalist": ["Meteor", "Blizzard", "Arcane Surge"], "DPS/Summoner": ["Bat Swarm", "Sacrifice", "Alpha Call"],
   "Tank/Knight": ["Shield Wall", "Leap Slam", "Unbreakable"], "Healer/Knight": ["Consecrate", "Guardian's Oath", "Lay on Hands"], "DPS/Knight": ["Whirlwind", "Lunge", "Battle Fury"],
   "Tank/Ninja": ["Shadow Clone", "Smoke Bomb", "Iron Body"], "Healer/Ninja": ["Healing Mist", "Substitution", "Spirit Ward"], "DPS/Ninja": ["Shadow Step", "Vanish", "Blade Fan"],
-  "Tank/Blood Mage": ["Blood Shell", "Crimson Pact", "Exsanguinate"], "Healer/Blood Mage": ["Blood Gift", "Siphon Field", "Martyr"], "DPS/Blood Mage": ["Blood Boil", "Frenzy Pact", "Hemo Nova"],
+  "Tank/Hemomancer": ["Blood Shell", "Crimson Pact", "Exsanguinate"], "Healer/Hemomancer": ["Blood Gift", "Siphon Field", "Martyr"], "DPS/Hemomancer": ["Blood Boil", "Frenzy Pact", "Hemo Nova"],
 };
-const ULT = { "Tank/Soldier": "Fortress", "Tank/Mage": "Glacial Tomb", "Tank/Summoner": "Titan", "Healer/Soldier": "Lifeline", "Healer/Mage": "Sanctum", "Healer/Summoner": "World Tree",
-  "DPS/Soldier": "Bullet Storm", "DPS/Mage": "Meteor Storm", "DPS/Summoner": "Legion",
+const ULT = { "Tank/Soldier": "Fortress", "Tank/Elementalist": "Glacial Tomb", "Tank/Summoner": "Titan", "Healer/Soldier": "Lifeline", "Healer/Elementalist": "Sanctum", "Healer/Summoner": "World Tree",
+  "DPS/Soldier": "Bullet Storm", "DPS/Elementalist": "Meteor Storm", "DPS/Summoner": "Legion",
   "Tank/Knight": "Last Stand", "Healer/Knight": "Hallowed Blade", "DPS/Knight": "Blade Tempest",
   "Tank/Ninja": "Thousand Clones", "Healer/Ninja": "Blossom Storm", "DPS/Ninja": "Death Lotus",
-  "Tank/Blood Mage": "Blood Rite", "Healer/Blood Mage": "Sanguine Rain", "DPS/Blood Mage": "Crimson Apotheosis" };
+  "Tank/Hemomancer": "Blood Rite", "Healer/Hemomancer": "Sanguine Rain", "DPS/Hemomancer": "Crimson Apotheosis" };
 
 // Upgrades. apply(stats) mirrors Upgrades.cs.
 const RAR = {
@@ -831,6 +831,21 @@ function grid(ctx, w, h) {
   for (let y = 0; y <= h; y += 60) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
   ctx.stroke();
 }
+// Implosion: a ring and drops of blood rushing in, the core darkening, then a small pop (as in the game).
+function drawImplode(ctx, f, k) {
+  const dark = [0.35, 0.03, 0.08];
+  if (k < 0.7) {
+    const g = k / 0.7, r = f.r * (1 - g * g);
+    ctx.strokeStyle = css(f.col, 0.4 + 0.6 * g); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, Math.max(1, r), 0, TAU); ctx.stroke();
+    ctx.fillStyle = css(f.col, 0.9);
+    for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + g * 1.2; ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * (r + 6), f.y + Math.sin(a) * (r + 6), 2.5, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = css(dark, 0.8 * g); ctx.beginPath(); ctx.arc(f.x, f.y, 4 + 8 * g, 0, TAU); ctx.fill();
+  } else {
+    const g = (k - 0.7) / 0.3;
+    ctx.fillStyle = css(dark, 1 - g); ctx.beginPath(); ctx.arc(f.x, f.y, 12 * (1 - g) + 2, 0, TAU); ctx.fill();
+    ctx.strokeStyle = css(f.col, 1 - g); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 6 + 18 * g, 0, TAU); ctx.stroke();
+  }
+}
 function dummy(ctx, d, t) {
   ctx.fillStyle = d.flash > 0 ? "rgba(255,255,255,0.95)" : css(d.col || [1, 0.35, 0.35]);
   poly(ctx, d.x, d.y, d.r, d.sides || 3, t * 0.4 + d.x * 0.01); ctx.fill();
@@ -883,7 +898,7 @@ function buildClasses() {
     }
   }
   const maxHp = 240, maxSp = 240;
-  $("roleTable").innerHTML = `<thead><tr><th>Role</th><th>Health (Soldier / Mage / Summoner / Knight / Ninja / Blood Mage)</th><th>Speed</th><th>Hitbox</th><th>Body</th><th>Notes</th></tr></thead><tbody>` +
+  $("roleTable").innerHTML = `<thead><tr><th>Role</th><th>Health (Soldier / Elementalist / Summoner / Knight / Ninja / Hemomancer)</th><th>Speed</th><th>Hitbox</th><th>Body</th><th>Notes</th></tr></thead><tbody>` +
     ROLES.map(r => `<tr><td><span class="swatch" style="display:inline-block;vertical-align:-1px;margin-right:6px;background:${css(r.col)}"></span><b>${r.id}</b></td>
       <td class="n">${KITS.map(k => fmt(r.hp * k.hpMult)).join(" / ")}<div class="bar" style="margin-top:4px"><i style="width:${r.hp / maxHp * 100}%;background:${css(r.col)}"></i></div></td>
       <td class="n">${r.speed} px/s<div class="bar" style="margin-top:4px"><i style="width:${r.speed / maxSp * 100}%;background:${css(r.col)}"></i></div></td>
@@ -905,7 +920,7 @@ function renderClass() {
   const R = ROLES.find(r => r.id === cls.role), K = KITS.find(k => k.id === cls.kit), key = cls.role + "/" + cls.kit;
   $("clsName").textContent = `${cls.kit} ${cls.role}`;
   $("clsName").style.color = css(R.col);
-  $("clsChip").textContent = cls.kit === "Soldier" ? "Guns" : cls.kit === "Mage" ? "Spells" : cls.kit === "Knight" ? "Melee" : cls.kit === "Ninja" ? "Blades" : cls.kit === "Blood Mage" ? "Blood" : "Minions";
+  $("clsChip").textContent = cls.kit === "Soldier" ? "Guns" : cls.kit === "Elementalist" ? "Spells" : cls.kit === "Knight" ? "Melee" : cls.kit === "Ninja" ? "Blades" : cls.kit === "Hemomancer" ? "Blood" : "Minions";
   $("clsLead").textContent = `${R.desc} ${K.desc}`;
   $("clsStats").innerHTML = [
     ["Health", `${fmt(R.hp * K.hpMult)} <small>(${R.hp} × ${K.hpMult})</small>`],
@@ -985,6 +1000,21 @@ const rangeApi = {
     range.beams = (range.beams || []).filter(b => b.a !== a);
     range.beams.push({ a, from, len: end, hit: on.length > 0, t: 0, col: SHOT[kind].col });
   },
+  // An implosion (Implosion): the dummy you aim at collapses, the ones touching it take splash, and each extra
+  // collapses the nearest dummy not hit yet within 180 px (or the target again) for 60%.
+  implode(dmg, extra) {
+    const tgt = range.dummies[0], hit = new Set([tgt]);
+    const go = (d, k, splash) => {
+      hitDummy(d, dmg * k * WS.dmg);
+      if (splash) for (const o of range.dummies) if (o !== d && Math.hypot(o.x - d.x, o.y - d.y) < d.r + 55 + o.r) { hit.add(o); hitDummy(o, 15 * k * WS.dmg); }
+      range.fx.push({ x: d.x, y: d.y, r: splash ? d.r + 55 : d.r + 16, col: SHOT.Implode.col, t: 0, dur: 0.35, implode: true });
+    };
+    go(tgt, 1, true);
+    for (let i = 0; i < extra; i++) {
+      const nx = range.dummies.filter(o => !hit.has(o) && Math.hypot(o.x - tgt.x, o.y - tgt.y) < 180 + o.r).sort((u, v) => Math.hypot(u.x - tgt.x, u.y - tgt.y) - Math.hypot(v.x - tgt.x, v.y - tgt.y))[0] || tgt;
+      hit.add(nx); go(nx, 0.6, false);
+    }
+  },
   bullet(kind, a, speed, life, dmg, o = {}, from) {
     const p = from || range.player, sh = SHOT[kind], off = from ? 4 : 16;
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
@@ -1004,6 +1034,7 @@ function fireFanned(w, aim, extra) {
     for (let v = 1; v <= WS.fan; v++) rangeApi.bullet("Knight", aim + (v % 2 ? 1 : -1) * 0.14 * Math.floor((v + 1) / 2), 650, 0.5, 9, { wave: true });
     return;
   }
+  if (w.implode) { w.fire(rangeApi, aim, extra + WS.fan); return; }  // nowhere to fan: each copy is another implosion
   for (let v = 0; v <= WS.fan; v++) w.fire(rangeApi, aim + (v === 0 ? 0 : (v % 2 ? 1 : -1) * 0.14 * Math.floor((v + 1) / 2)), extra);
 }
 function revolverShot(aim) {
@@ -1216,7 +1247,7 @@ function drawRange() {
     for (let x = 200; x <= 1200; x += 200) { ctx.fillStyle = "rgba(142,151,179,0.4)"; ctx.font = "500 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.fillText(`${x - p.x}px`, x, 490); }
   }
   for (const d of R.dummies) dummy(ctx, d, anim() ? t : 0);
-  for (const f of R.fx) { const k = f.t / f.dur; if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
+  for (const f of R.fx) { const k = f.t / f.dur; if (f.implode) { drawImplode(ctx, f, k); continue; } if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
   for (const f of R.bolts) { ctx.strokeStyle = `rgba(190,215,255,${1 - f.t / f.dur})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(f.a.x, f.a.y);
     for (let s = 1; s < 5; s++) ctx.lineTo(f.a.x + (f.b.x - f.a.x) * s / 5 + rnd(-8, 8), f.a.y + (f.b.y - f.a.y) * s / 5 + rnd(-8, 8)); ctx.lineTo(f.b.x, f.b.y); ctx.stroke(); }
   for (const b of R.beams || []) {  // Vein Tether: a pulsing blood beam with veins twisting along it, drops flowing home on a hit
@@ -1352,7 +1383,7 @@ function renderWeaponSheet() {
     ["Damage per volley", w.bow ? "8 tap · 40 full · 50 perfect" : w.revolver ? "24 (heavy rounds 48)" : `${fmt(w.dmgPerVolley, 1)}`],
     ["Damage per second", sustained || `${fmt(wDps(w), 1)} <small>(direct hits, no upgrades)</small>`],
     ["Each extra projectile", w.xtra],
-    w.melee ? ["Reach", `${weaponRange(w)} px <small>(Piercing Rounds add 10% a stack)</small>`] : ["Bullet", `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${css(SHOT[w.shot].col)}"></span> radius ${SHOT[w.shot].r} px`],
+    w.melee ? ["Reach", `${weaponRange(w)} px <small>(Piercing Rounds add 10% a stack)</small>`] : w.implode ? ["Reach", "480 px to the enemy you click <small>(Velocity Rounds stretch it)</small>"] : ["Bullet", `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${css(SHOT[w.shot].col)}"></span> radius ${SHOT[w.shot].r} px`],
   ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   $("wTable").innerHTML = `<tbody>${w.rows.map(([k, v]) => `<tr><td style="white-space:nowrap;color:var(--muted)">${k}</td><td>${v}</td></tr>`).join("")}</tbody>`;
   const notes = [

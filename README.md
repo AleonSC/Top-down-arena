@@ -24,18 +24,18 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Mage, Summoner, Knight, Ninja, Blood Mage), then
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer), then
 one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
 their role and class.
 
 - **Soldier**: guns and gear, full health.
-- **Mage**: spells (fire, frost, lightning, arcane), 85% health.
+- **Elementalist**: spells (fire, frost, lightning, arcane), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
 - **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see below).
-- **Blood Mage**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its health; full health (see below).
+- **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its health; full health (see below).
 
-| | Soldier | Mage | Summoner |
+| | Soldier | Elementalist | Summoner |
 |---|---|---|---|
 | **Tank** (240 HP, enemies prefer you) | Weapons: Scattergun, Flak Cannon, Riot Repeater<br>Abilities: Barrier, Roar, Bulldoze | Weapons: Flame Burst, Frost Lance (slows), Storm Hammer (chain lightning)<br>Abilities: **Arcane Aegis** (reflects bullets), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets) | Weapons: Golem Staff (+ bullet-blocking Golem), Bone Guard (+ 2 orbiting skeleton shields), Bear Totem (melee claws that cause bleeding, + Bear)<br>Abilities: **Golem Wall** (3 stone walls), **Earthquake** (you and every minion slam), **Guardian Spirit** (eats nearby bullets for 8 s) |
 | **Healer** (120 HP, healing aura) | Weapons: Light Bolt, Revolver, Mender's Bow<br>Abilities: Mend Pulse, Haven, Soul Link | Weapons: Radiant Orb (heals allies it passes), Chain Light, Prism Beam (grazing heals)<br>Abilities: **Time Rewind** (health back to 4 s ago, even undoing a downing), **Arcane Ward** (60 HP shields), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (+ 2 healing sprites), Treant Rod (+ Treant guard, healing bolts), Totem Staff (plants healing totems)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (allies near it can't go down) |
@@ -78,9 +78,9 @@ Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix 
 | **Healer** | **Medicine Darts** (fast needles that heal allies they pass for 4), **Spirit Fan** (a short gust that heals allies in it and blows small enemy bullets back), **Ofuda** (slow homing paper charms that burst for 25 and heal allies near the burst for 8) | **Healing Mist** (a mist follows you for 6 s: allies inside heal 10 HP/s), **Substitution** (swap places with the ally nearest your cursor and shield them for 60; alone, slip toward your cursor and shield yourself), **Spirit Ward** (a talisman at your cursor for 8 s: allies near it regenerate and revive 3x faster) | **Blossom Storm** (80 s): for 5 s the whole party heals 20 HP/s and enemy bullets near every ally are erased |
 | **DPS** | **Shuriken** (fans of 3 stars that ricochet once), **Katana** (fast 110° slashes; every 4th is a long lunging cut for double damage), **Kunai** (rapid knives, +50% damage to enemies that aren't targeting you) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80), **Vanish** (for 3 s enemies lose track of you; your next hit deals double), **Blade Fan** (12 kunai in a ring, 18 each) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each |
 
-### The Blood Mage
+### The Hemomancer
 
-Health is the Blood Mage's resource. It has full health and normal speed, and:
+Health is the Hemomancer's resource. It has full health and normal speed, and:
 
 - **Every Space ability costs health**, a share of your max health shown on the card (Blood Gift: of your
   current health). A cost can't take you below 1 HP: at 1 HP the ability still goes off, but anything that
@@ -92,7 +92,7 @@ Health is the Blood Mage's resource. It has full health and normal speed, and:
 |---|---|---|---|
 | **Tank** | **Blood Lash** (a 110 px, 130° whip of blood, 24; heals you 3 per enemy hit), **Clot Bolt** (a heavy bolt, 26, that leaves a pool of blood slowing enemies 40% for 3 s), **Leech Beam** (a rapid short beam; 30% of its damage heals you) | **Blood Shell** (15%: a shield worth three times what you paid, 5 s), **Crimson Pact** (10%: every enemy targets you for 4 s, then the damage you took bursts back out at 150% within 220 px), **Exsanguinate** (10%: pull enemies within 220 px in and drain 20 from each into you) | **Blood Rite** (75 s): for 8 s every enemy targets you and you take 60% less damage; the damage you take heals your allies |
 | **Healer** | **Transfusion Darts** (darts that heal an ally they reach for 8, costing you 3), **Sanguine Orb** (homing orbs, 16; their kills have a 40% chance to drop a small health orb), **Vein Tether** (a real beam: it hurts whatever is on your aim line, so keep it on your target; 40% of its damage heals, split between you and the nearest ally) | **Blood Gift** (25% of current health: the most hurt ally heals twice what you paid; alone, a shield for you), **Siphon Field** (10%: a 140 px field at your feet for 6 s, enemies inside lose 10 HP/s and allies heal 10 HP/s), **Martyr** (40%: revive the downed ally nearest your cursor, anywhere, at 50%; if no one is down, the most hurt ally heals twice what you paid) | **Sanguine Rain** (80 s): for 6 s every hit any ally lands heals them for 20% of its damage |
-| **DPS** | **Blood Bolts** (fast bolts, 9), **Hemo Spray** (a fan of 5 piercing droplets, 7 each), **Bone Spear** (a heavy spear, 60, that pierces 3; each throw costs 2 health) | **Blood Boil** (20%: enemies within 260 px burst after 1 s for three times what you paid), **Frenzy Pact** (5%: for 6 s fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s), **Hemo Nova** (10%: a ring of 16 blood bolts, 20 each, each that hits heals you 3) | **Crimson Apotheosis** (65 s): for 6 s you can't drop below 1 HP and Blood Price goes up to +100%; when it ends you heal for half the damage you dealt |
+| **DPS** | **Blood Bolts** (fast bolts, 9), **Implosion** (click an enemy: its blood collapses inward, 34, hurting enemies against it for 15 and pulling them in; fires only with your cursor on an enemy, up to 480 px away), **Bone Spear** (a heavy spear, 60, that pierces 3; each throw costs 2 health) | **Blood Boil** (20%: enemies within 260 px burst after 1 s for three times what you paid), **Frenzy Pact** (5%: for 6 s fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s), **Hemo Nova** (10%: a ring of 16 blood bolts, 20 each, each that hits heals you 3) | **Crimson Apotheosis** (65 s): for 6 s you can't drop below 1 HP and Blood Price goes up to +100%; when it ends you heal for half the damage you dealt |
 
 Capstones (level 5): Blood Shell also erases bullets within 160 px · Crimson Pact: 30% less damage while it
 lasts · Exsanguinate also slows what it drains by 50% for 2 s · Blood Gift also heals others within 200 px of
@@ -121,7 +121,7 @@ your weapon. Per extra projectile:
 | Tank · Soldier | **Scattergun** | Short-range spread of 5 pellets | +2 pellets and a 15% tighter cone |
 | | **Flak Cannon** | Slow, heavy shells that explode on impact | Shells scatter 2 bomblets that pop where they land |
 | | **Riot Repeater** | Steady single shots with a little spread | Fires in bursts: +1 round per burst, then a longer pause |
-| Tank · Mage | **Flame Burst** | A short-range cone of fire | +2 flames and 25% more reach |
+| Tank · Elementalist | **Flame Burst** | A short-range cone of fire | +2 flames and 25% more reach |
 | | **Frost Lance** | Piercing ice spears that slow; the spearhead is wide (20 px), so it's easy to land | Spears shatter into 2 icicles sideways on every hit |
 | | **Storm Hammer** | Heavy orb, lightning chains to 3 | Chains to 1 more enemy |
 | Tank · Summoner | **Golem Staff** | Rocks, plus a bullet-blocking Golem | +1 Golem (up to 3) |
@@ -130,7 +130,7 @@ your weapon. Per extra projectile:
 | Healer · Soldier | **Light Bolt** | Accurate long-range bolts | +1 small homing bolt with every shot |
 | | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage). **Tap** for perfectly aimed shots (one every 0.45 s); **hold** to fan the hammer: after 0.2 s it empties the cylinder, a round every 0.07 s, each within 5° of your aim. Reloads in 1.2 s when empty, and slides rounds back in one at a time (every 0.25 s) once you stop shooting for 0.8 s | +2 rounds in the cylinder, loaded as heavy rounds |
 | | **Mender's Bow** | **Hold to draw, release to fire** (you move at 85% while drawing). A tap looses a weak arrow (8 damage, heals 5); a full draw (0.9 s) hits for 40, flies at 950 px/s, pierces 2 and heals an ally it passes for 20. Let go within 0.25 s of full draw for a **perfect shot**: +25% (50 damage, heals 25). Holding longer keeps it at full; it never fires by itself | +1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single |
-| Healer · Mage | **Radiant Orb** | Slow piercing orbs that heal allies | +1 Light Orb circling you that hurts enemies and heals allies it touches |
+| Healer · Elementalist | **Radiant Orb** | Slow piercing orbs that heal allies | +1 Light Orb circling you that hurts enemies and heals allies it touches |
 | | **Chain Light** | Bolts chain to 2 | Chains to 1 more enemy |
 | | **Prism Beam** | Rapid short beam; grazing heals | +30% length, +25% damage, +50% healing |
 | Healer · Summoner | **Sprite Staff** | Seeds, plus 2 healing sprites | +1 Sprite |
@@ -139,7 +139,7 @@ your weapon. Per extra projectile:
 | DPS · Soldier | **Twin Rifle** | Fast parallel twin stream | +1 barrel |
 | | **Railgun** | Slow shots that pierce 3 | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast, inaccurate spray | +1 bullet per shot (half damage) and a wider spray |
-| DPS · Mage | **Fireball** | Explodes on impact | Splits into 2 small fireballs on impact |
+| DPS · Elementalist | **Fireball** | Explodes on impact | Splits into 2 small fireballs on impact |
 | | **Arc Lightning** | Bolts chain to 4 | Chains to 1 more enemy |
 | | **Arcane Missiles** | 3 curving missiles | +1 missile, and they home in |
 | DPS · Summoner | **Wolf Whistle** | Darts, plus 2 wolves | +1 Wolf |
@@ -163,14 +163,14 @@ your weapon. Per extra projectile:
 | DPS · Ninja | **Shuriken** | Fans of 3 stars (9) that ricochet once | +1 star in the fan |
 | | **Katana** | 110° slashes (20); every 4th is a 170 px lunging cut (40) | +1 cut: each slash strikes once more (60% damage) |
 | | **Kunai** | Rapid knives (8), +50% on enemies that aren't targeting you | +1 knife, fanned out (half damage) |
-| Tank · Blood Mage | **Blood Lash** | 130° whip (24) with 110 px reach; heals you 3 per enemy hit | +20 px reach and +1 HP healed per hit |
+| Tank · Hemomancer | **Blood Lash** | 130° whip (24) with 110 px reach; heals you 3 per enemy hit | +20 px reach and +1 HP healed per hit |
 | | **Clot Bolt** | A heavy bolt (26) that leaves a 70 px pool slowing enemies 40% for 3 s | +1 bolt, fanned out |
 | | **Leech Beam** | A rapid short beam (4); 30% of its damage heals you | +25% beam length and +25% damage |
-| Healer · Blood Mage | **Transfusion Darts** | Darts (7) that heal an ally they reach for 8, costing you 3 | +1 dart, fanned out |
+| Healer · Hemomancer | **Transfusion Darts** | Darts (7) that heal an ally they reach for 8, costing you 3 | +1 dart, fanned out |
 | | **Sanguine Orb** | Homing orbs (16); kills may drop a small health orb (40%) | +1 orb, fanned out |
 | | **Vein Tether** | An instant beam, 350 px: 4 damage every 0.08 s to the first enemy on your aim line (Pierce passes through more, Barrage adds fanned beams; shields stop it). Only what you hold it on gets hurt. 40% of its damage heals you and the nearest ally | +25% beam length and +25% damage |
-| DPS · Blood Mage | **Blood Bolts** | Fast bolts (9) | +1 bolt, fanned out |
-| | **Hemo Spray** | A fan of 5 piercing droplets (7 each) | +2 droplets |
+| DPS · Hemomancer | **Blood Bolts** | Fast bolts (9) | +1 bolt, fanned out |
+| | **Implosion** | No projectile: click an enemy (up to 480 px away) and its blood collapses inward (34), hurting enemies within 55 px of it (15) and pulling them 18 px in; ignores shields. Holding fire with nothing under the cursor waits | +1 implosion: another enemy near your target collapses too (60% damage; the target again if no one is near) |
 | | **Bone Spear** | A heavy spear (60) that pierces 3; each throw costs 2 health | +1 spear, fanned out (costs no more health) |
 
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
@@ -209,7 +209,7 @@ Parry upgrades show up like any other card:
 comes with your role and class and only changes if you pick a different one. Ultimates have long cooldowns
 that upgrades don't shorten, and start each match half charged. The HUD shows the charge in the gold slot.
 
-| | Soldier | Mage | Summoner | Knight |
+| | Soldier | Elementalist | Summoner | Knight |
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
@@ -278,7 +278,7 @@ have chosen.
 |---|---|---|
 | **Common** | white | Small stat boosts: +8% damage, +8% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
-| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Blood Mages: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, Boiling Point, Bloodrush, Crimson Tide), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
+| **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Hemomancers: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, Boiling Point, Bloodrush, Crimson Tide), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability on **Q**, **E** or **Shift** (you choose the key; each one only once): a universal one (Shockwave, Overdrive, Blink, Nova or Turret), or one of your **class's two other Space abilities**, the ones you didn't pick in the lobby (these count triple, so about 6 in 11 very rare cards are class abilities) |
 | **Legendary** | orange | Unique weapon upgrades, **only from bosses**: after a boss dies, each player picks one of that boss's three (can't be rerolled) |
 | **Weapon mod** | teal | Also **after every boss**, right after its legendary: choose any mod from the full list (each stacks up to 3 times) |
@@ -702,11 +702,11 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
   - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode
   - `StatSheet.cs`: the stats shown beside the upgrade cards
-  - `Kits.cs` / `Minions.cs`: minion and zone definitions; mage and summoner weapons, abilities and minion AI
+  - `Kits.cs` / `Minions.cs`: minion and zone definitions; Elementalist (code: `Kit.Mage`) and Summoner weapons, abilities and minion AI
   - `Ultimates.cs`: the nine ultimates
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
-  - `Ninja.cs` / `BloodMage.cs`: the Ninja and Blood Mage classes: weapons, abilities and ultimates
+  - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab

@@ -12,6 +12,7 @@ namespace Arena
         {
             V2 pos = r.ReadV2();
             float aim = r.ReadSingle();
+            V2 aimAt = r.ReadV2();
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
@@ -24,6 +25,7 @@ namespace Arena
             if (!p.Downed)
                 p.Pos = KeepInArena(pos, 0f);
             p.Aim = aim;
+            p.AimAt = aimAt;
             p.Firing = firing;
             p.Parrying = parry;
         }
