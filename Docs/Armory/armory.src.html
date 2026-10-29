@@ -403,9 +403,9 @@ const W = [
     xtra: "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single",
     rows: [["Tap", "8 damage, 450 px/s, heals 5"], ["Full draw (0.9 s)", "40 damage, 950 px/s, pierces 2, heals 20"], ["Perfect release", "Within 0.25 s of full draw: +25% (50 damage, heals 25)"],
       ["In between", "Scales with the draw; pierces 1 from half draw"], ["While drawing", "85% move speed; holding past full keeps it at full (no auto-fire)"], ["Recovery", "0.25 s after each shot before the next draw starts"], ["Speed / range", "450–950 px/s · 500–900 px"]], dmgPerVolley: 40 },
-  { id: "Radiant Orb", role: "Healer", kit: "Elementalist", every: 0.5, desc: "Slow piercing orbs that heal allies they pass through.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
-    rows: [["Damage", "14"], ["Pierce", "2 extra enemies"], ["Heals an ally it passes", "10"], ["Speed / range", "300 px/s · 540 px"]], dmgPerVolley: 14,
-    fire: (s, a) => s.bullet("Holy", a, 300, 1.8, 14, { pierce: 2 }) },
+  { id: "Radiant Orb", role: "Healer", kit: "Elementalist", every: 0.2, desc: "Hold to cast an orb of light out to your cursor; it stays there for as long as you hold. Drag it through enemies to burn them and over allies to heal them; let go and it fades.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
+    rows: [["Orb", "20 px, flies at 750 px/s to your cursor, up to 520 px from you"], ["Damage", "8 to every enemy it touches, 5 times a second"], ["Heals", "4 to every ally it touches, 5 times a second"], ["Hold", "It stays out while you hold fire (and goes when you parry or let go)"]], dmgPerVolley: 8,
+    fire: (s, a) => s.orb(8) },
   { id: "Chain Light", role: "Healer", kit: "Elementalist", every: 0.3, desc: "Bolts of light that chain to 2 more enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
     rows: [["Damage", "10, then 6 (60%) to each chained enemy"], ["Chains", "2"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 10,
     fire: (s, a, x) => s.bullet("Bolt", a, 800, 0.8, 10, { chain: 2 + x }) },
@@ -1033,6 +1033,12 @@ const rangeApi = {
       hit.add(nx); go(nx, 0.6, false);
     }
   },
+  // The Radiant Orb (held): out from you to the target dummy, burning every dummy it touches each tick.
+  orb(dmg) {
+    const p = range.player;
+    if (!range.orb) range.orb = { x: p.x + 16, y: p.y };
+    for (const d of range.dummies) if (Math.hypot(d.x - range.orb.x, d.y - range.orb.y) < 20 + d.r) hitDummy(d, dmg * WS.dmg);
+  },
   bullet(kind, a, speed, life, dmg, o = {}, from) {
     const p = from || range.player, sh = SHOT[kind], off = from ? 4 : 16;
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
@@ -1131,6 +1137,7 @@ function stepRange(dt) {
   }
   R.slashes = R.slashes.filter(sl => sl.t < 0 || sl.t < (sl.box ? 0.26 : 0.22));
   R.beams = (R.beams || []).filter(b => (b.t += dt) < 0.12);
+  if (R.orb) { const tg = R.dummies[0], dx = tg.x - R.orb.x, dy = tg.y - R.orb.y, l = Math.hypot(dx, dy), step = Math.min(l, 750 * dt); if (l > 0) { R.orb.x += dx / l * step; R.orb.y += dy / l * step; } }
   if (R.grasp && (R.grasp.t += dt) > 0.2) R.grasp = null;  // let go and the tendrils let go
   // Bullets
   const keep = [], spawned = [];
@@ -1315,6 +1322,16 @@ function drawRange() {
   for (const f of R.fx) { const k = f.t / f.dur; if (f.implode) { drawImplode(ctx, f, k); continue; } if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
   for (const f of R.bolts) { ctx.strokeStyle = `rgba(190,215,255,${1 - f.t / f.dur})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(f.a.x, f.a.y);
     for (let s = 1; s < 5; s++) ctx.lineTo(f.a.x + (f.b.x - f.a.x) * s / 5 + rnd(-8, 8), f.a.y + (f.b.y - f.a.y) * s / 5 + rnd(-8, 8)); ctx.lineTo(f.b.x, f.b.y); ctx.stroke(); }
+  if (R.orb) {  // the Radiant Orb: a beam of light back to you, a soft glow, turning rays and a bright core
+    const o = R.orb, c = SHOT.Holy.col, pl = R.player, pulse = 0.5 + 0.5 * Math.sin(R.t * 8);
+    ctx.strokeStyle = css(c, 0.35); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pl.x, pl.y); ctx.lineTo(o.x, o.y); ctx.stroke();
+    ctx.fillStyle = css(c, 0.12 + 0.05 * pulse); ctx.beginPath(); ctx.arc(o.x, o.y, 32, 0, TAU); ctx.fill();
+    ctx.fillStyle = css(c, 0.28); ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, TAU); ctx.fill();
+    ctx.strokeStyle = css(c, 0.6); ctx.lineWidth = 2;
+    for (let k = 0; k < 6; k++) { const a = R.t * 1.5 + k * TAU / 6; ctx.beginPath(); ctx.moveTo(o.x + Math.cos(a) * 11, o.y + Math.sin(a) * 11); ctx.lineTo(o.x + Math.cos(a) * (21 + 3 * pulse), o.y + Math.sin(a) * (21 + 3 * pulse)); ctx.stroke(); }
+    ctx.fillStyle = css(c, 1); ctx.beginPath(); ctx.arc(o.x, o.y, 9 + 1.5 * pulse, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(o.x, o.y, 4.4, 0, TAU); ctx.fill();
+  }
   for (const b of R.beams || []) {  // Vein Tether: a pulsing blood beam with veins twisting along it, drops flowing home on a hit
     const c = Math.cos(b.a), sn = Math.sin(b.a), ex = b.from.x + c * b.len, ey = b.from.y + sn * b.len, pulse = 0.5 + 0.5 * Math.sin(t * 18), f = b.hit ? 1 : 0.55;
     ctx.lineCap = "round";

@@ -123,6 +123,8 @@ namespace Arena
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
         public V2 LightPos, LightDisp;  // Searchlight: its pool (replicated), and where this screen draws it (Stun.cs)
+        public bool RadiantOn;              // Radiant Orb: held out (replicated; RadiantOrb.cs)
+        public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
@@ -929,6 +931,7 @@ namespace Arena
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
+            StepRadiantDisplay(dt);    // Radiant Orbs (RadiantOrb.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
@@ -1297,6 +1300,8 @@ namespace Arena
                         HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
                 }
                 p.FireCd -= dt;
+                if (p.Weapon.Id == WeaponId.RadiantOrb)
+                    TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
                 if (p.Downed)
                     continue;
                 if (p.StunShots > 0)
@@ -1308,7 +1313,7 @@ namespace Arena
                 }
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

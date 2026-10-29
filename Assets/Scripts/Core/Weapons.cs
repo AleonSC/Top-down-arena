@@ -340,6 +340,8 @@ namespace Arena
                     return p.Def.BodyR + w.Reach * AreaMult(p);
                 case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
                     return p.Def.BodyR + GraspReach(p);
+                case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)
+                    return RadiantReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing
