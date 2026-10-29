@@ -104,6 +104,7 @@ namespace Arena
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
             LoadBackgroundSettings();
+            LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();
         }
 
@@ -234,6 +235,7 @@ namespace Arena
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
+            TextEditKeys();  // F4: the dev text editor
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             hudT = MathX.MoveTowards(hudT, hudShown ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
@@ -390,7 +392,8 @@ namespace Arena
             // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
-            bool modal = labSetupOpen || devMenuOpen;
+            TextEditBeginGui();
+            bool modal = labSetupOpen || devMenuOpen || textEditOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
@@ -413,17 +416,21 @@ namespace Arena
                         DrawPauseMenu();
                     break;
             }
-            if (labSetupOpen)
-                DrawLabSetup();
-            else if (devMenuOpen)
-                DrawDevMenu();
+            if (!textEditOpen || Event.current.type == EventType.Repaint)
+            {
+                if (labSetupOpen)
+                    DrawLabSetup();
+                else if (devMenuOpen)
+                    DrawDevMenu();
+            }
+            TextEditEndGui();
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)
         {
             var style = new GUIStyle(labelStyle) { fontSize = size, alignment = align, wordWrap = false, fontStyle = bold ? FontStyle.Bold : FontStyle.Normal };
             style.normal.textColor = color;
-            GUI.Label(r, text, style);
+            GUI.Label(r, Ui.Shown(r, text), style);
         }
 
         static void Box(Rect r, Color c)

@@ -206,6 +206,13 @@ namespace Arena
             y += 32f;
             game.Bot = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
             y += 32f;
+            bool editText = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
+            if (editText != textEditMode)
+            {
+                SetTextEditMode(editText);
+                devMenuOpen = !editText;  // out of the way, so you can click the text you want
+            }
+            y += 32f;
             if (Ui.Button(new Rect(ov.x + 16f, y, 190f, 30f), "Open practice folder"))
                 OpenFolder(PracticeFolder);
 

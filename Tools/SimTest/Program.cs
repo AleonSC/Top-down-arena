@@ -1523,6 +1523,27 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // The dev text editor's overrides: exact text, numbers kept by the game, the file round trip.
+    static void TextOverridesTest()
+    {
+        TextOverrides.Clear();
+        TextOverrides.Set("Class", "Character class");
+        TextOverrides.Set("Pay 15% of your max health", "Spend 15% of your max health");
+        Check(TextOverrides.Apply("Class") == "Character class" && TextOverrides.Apply("Classes") == "Classes", "an edited text shows in its place (only that exact text)");
+        Check(TextOverrides.Apply("Pay 40% of your max health") == "Spend 40% of your max health", "an edit keeps the game's numbers (one edit covers every number)");
+        Check(TextOverrides.Problem("Wave 6 / 50", "Round 6") != null && TextOverrides.Problem("Wave 6 / 50", "Round 6 of 50") == null
+            && TextOverrides.Problem("Class", "Class 2") != null && TextOverrides.Problem("Class", " ") != null, "an edit must keep the same count of numbers and can't be empty");
+        TextOverrides.Set("Two\nlines\twith tab\\", "Ok\nthen");
+        string file = TextOverrides.Serialize();
+        TextOverrides.Clear();
+        TextOverrides.Parse(file);
+        Check(TextOverrides.Count == 3 && TextOverrides.Apply("Two\nlines\twith tab\\") == "Ok\nthen" && TextOverrides.Apply("Class") == "Character class",
+            "the overrides file keeps every edit (new lines, tabs and backslashes too)");
+        TextOverrides.Set("Class", "Class");
+        Check(!TextOverrides.Has("Class") && TextOverrides.Apply("Class") == "Class", "setting a text back to the original removes the edit");
+        TextOverrides.Clear();
+    }
+
     static void KeybindTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -4496,6 +4517,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "textedit")
+        {
+            TextOverridesTest();
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "blood")
         {
             VeinBeamTest(1f / 60f);
@@ -4569,6 +4596,7 @@ static class Program
         ClassAbilityTest(dt);
         NinjaTest(dt);
         BloodMageTest(dt);
+        TextOverridesTest();
         VeinBeamTest(dt);
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;

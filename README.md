@@ -600,7 +600,21 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to level 5). Joining players can see everyone's stats but not change them.
 - **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that
-  plays for you, open the practice folder, and the **Boss Lab**.
+  plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+
+### Editing text in the game (F4)
+
+**F4** (or F1 → Tools → *Edit any text on screen*) turns on text editing: the text under the mouse is outlined in
+gold; click it to change it in a box, then **Save**. The change shows straight away, everywhere that same text
+appears, and is kept in `TextOverrides.txt` (at the top of the project when running in the Unity editor; in a
+build, in the game's data folder). **Back to original** undoes an edit. F4, Esc or the banner's **Done** leaves the
+mode (while it's on, clicking text edits it instead of pressing the button).
+
+Numbers come from the game: an edit has to keep the same count of numbers, and they're filled in for you (so one
+edit of "Pay 15% of your max health..." also covers 20%). To make edits permanent in the code, run
+`python3 Tools/TextEdits/fold.py` (add `--dry-run` to see first): it rewrites every string literal that is exactly
+an edited text and takes those edits out of `TextOverrides.txt`. Texts the code builds from pieces (like
+"Wave " + number) stay in the file, still working, for changing by hand.
 
 ### Boss Lab (F1)
 

@@ -161,8 +161,21 @@ class Shot {
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);
       }
-      GL.ToUi = true;
+      // TEXTEDIT=1: the dev text editor's mode (outlines the text under MOUSE); TEXTEDIT=<text>: its edit box for that text
+      // (TEXTBUF = what's typed). Drawn twice, as in the game the outline is the text picked the frame before.
+      var te = Environment.GetEnvironmentVariable("TEXTEDIT");
+      var beginTe = typeof(ArenaApp).GetMethod("TextEditBeginGui", f2); var endTe = typeof(ArenaApp).GetMethod("TextEditEndGui", f2);
+      if (te != null) {
+        set("textEditMode", true);
+        GL.ToUi = true; beginTe.Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null); endTe.Invoke(app, null); GL.ToUi = false;
+        GUI.Log.Clear(); GL.Tris.Clear();
+        typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
+        if (te != "1") { set("textEditOriginal", te); set("textEditBuffer", Environment.GetEnvironmentVariable("TEXTBUF") ?? te); set("textEditNote", ""); set("textEditOpen", true); }
+        GL.ToUi = true; beginTe.Invoke(app, null);
+      }
+      else GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "menu" || mode == "howto")

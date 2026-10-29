@@ -90,7 +90,7 @@ namespace Arena
             // Every state gets the same color: the default skin's hover color would otherwise light up
             // the dark shadow copy under titles when the mouse is over them (it looked like doubled text).
             label.normal.textColor = label.hover.textColor = label.active.textColor = label.focused.textColor = color;
-            GUI.Label(r, text, label);
+            GUI.Label(r, Shown(r, text), label);
         }
 
         /// How wide a label of this text would be.
@@ -112,7 +112,7 @@ namespace Arena
         /// Small uppercase section heading with a line under it.
         public static void Heading(float x, float y, float w, string text)
         {
-            Label(new Rect(x, y, w, 20f), text.ToUpperInvariant(), 12, Muted, TextAnchor.MiddleLeft, true);
+            Label(new Rect(x, y, w, 20f), Shown(new Rect(x, y, w, 20f), text).ToUpperInvariant(), 12, Muted, TextAnchor.MiddleLeft, true);
             Fill(new Rect(x, y + 21f, w, 1f), new Color(1f, 1f, 1f, 0.08f));
         }
 
@@ -134,7 +134,7 @@ namespace Arena
         {
             var old = GUI.backgroundColor;
             GUI.backgroundColor = tint;
-            bool clicked = GUI.Button(r, text, button);
+            bool clicked = GUI.Button(r, Shown(r, text), button);
             GUI.backgroundColor = old;
             return clicked;
         }
@@ -239,6 +239,84 @@ namespace Arena
         public static string Field(Rect r, string value, int maxLength)
         {
             return GUI.TextField(r, value, maxLength, field);
+        }
+
+        static GUIStyle area;
+
+        /// A multi-line text box (the dev text editor).
+        public static string Area(Rect r, string value)
+        {
+            if (area == null)
+                area = new GUIStyle(field) { wordWrap = true, alignment = TextAnchor.UpperLeft, padding = new RectOffset(10, 10, 8, 8), fontSize = 15 };
+            return GUI.TextArea(r, value, area);
+        }
+
+        // --- Dev text editing (DevTextEdit.cs) -----------------------------------------
+        // Every label and button goes through Shown: it swaps in edited text (TextOverrides), and in text-edit
+        // mode notes the smallest text under the mouse and outlines the one picked last frame.
+
+        public static bool PickText;   // text-edit mode is on
+        public static bool NoPick;     // drawing the editor itself: not pickable
+        public static string Hovered;  // the text under the mouse, as the code draws it (before any edit)
+        static Rect hoveredRect, pickRect;
+        static string pickText;
+        static float pickArea;
+        static bool outlined;
+
+        /// Call at the start of each OnGUI pass.
+        public static void BeginPick()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            pickText = null;
+            pickArea = float.MaxValue;
+            outlined = false;
+        }
+
+        /// Call once everything pickable is drawn.
+        public static void EndPick()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            Hovered = PickText ? pickText : null;
+            hoveredRect = pickRect;
+        }
+
+        public static string Shown(Rect r, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+            if (PickText && !NoPick && Event.current.type == EventType.Repaint)
+            {
+                if (text == Hovered && !outlined && r.x == hoveredRect.x && r.y == hoveredRect.y && r.width == hoveredRect.width && r.height == hoveredRect.height)
+                {
+                    outlined = true;
+                    var old = Alpha;
+                    Alpha = 1f;
+                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, r.height + 2f), new Color(1f, 0.8f, 0.3f, 0.16f));
+                    Fill(new Rect(r.x - 2f, r.y - 1f, r.width + 4f, 1.5f), Gold);
+                    Fill(new Rect(r.x - 2f, r.yMax - 0.5f, r.width + 4f, 1.5f), Gold);
+                    Fill(new Rect(r.x - 2f, r.y - 1f, 1.5f, r.height + 2f), Gold);
+                    Fill(new Rect(r.xMax + 0.5f, r.y - 1f, 1.5f, r.height + 2f), Gold);
+                    Alpha = old;
+                }
+                float a = r.width * r.height;
+                if (a < pickArea && r.Contains(Event.current.mousePosition) && HasLetter(text))
+                {
+                    pickArea = a;
+                    pickText = text;
+                    pickRect = r;
+                }
+            }
+            return TextOverrides.Apply(text);
+        }
+
+        static bool HasLetter(string s)
+        {
+            foreach (char c in s)
+                if (char.IsLetter(c))
+                    return true;
+            return false;
         }
 
         /// r should be 18 px tall (the thumb's size); the track is drawn through its middle.
