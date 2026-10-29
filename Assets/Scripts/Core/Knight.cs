@@ -239,6 +239,8 @@ namespace Arena
                         continue;
                     if (!BlocksShot(e, origin))
                         hits.Add(e);
+                    else
+                        WearShield(e, s.Dmg);
                     continue;
                 }
                 if (d - e.Radius > s.Reach)
@@ -247,7 +249,10 @@ namespace Arena
                 if (!full && AngleTo(origin, e.Pos, s.Aim) > s.HalfArc + slack && d > e.Radius + p.Def.BodyR)
                     continue;
                 if (BlocksShot(e, origin))
-                    continue;  // shields stop swords too
+                {
+                    WearShield(e, s.Dmg);
+                    continue;  // shields stop swords too (and wear)
+                }
                 hits.Add(e);
             }
             if (s.MaxTargets > 0 && hits.Count > s.MaxTargets)
@@ -345,6 +350,94 @@ namespace Arena
         }
 
         // --- Abilities ------------------------------------------------------------------
+
+        /// The Knight's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] KnightAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.ShieldWall, Kit = Kit.Knight, Role = Role.Tank, Choice = 0,
+                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), even red aimed shots. Bosses can break it (it soaks 400 of their damage).",
+                Capstone = "Bullets that hit the shield are reflected back as your own.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.LeapSlam, Kit = Kit.Knight, Role = Role.Tank, Choice = 1,
+                Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s.",
+                Capstone = "The landing also erases enemy bullets within 160 px.",
+                Bot = b => b.HaveTarget && b.TargetD > 140f && b.TargetD < 340f || b.BotDanger > 2.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Unbreakable, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
+                Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal.",
+                Capstone = "Lasts 8 s.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
+                Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second.",
+                Capstone = "The blessed ground follows you.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
+                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Shield the ally nearest your cursor for 100 damage (and yourself for 50) for 6 s.",
+                Capstone = "Everyone within 300 px gets the full shield.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.LayOnHands, Kit = Kit.Knight, Role = Role.Healer, Choice = 2,
+                Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down.",
+                Capstone = "Also heals everyone else near them for half as much.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Whirlwind, Kit = Kit.Knight, Role = Role.Dps, Choice = 0,
+                Name = "Whirlwind", Cooldown = 10f, Desc = "Spin for 2 s, hitting everything within 110 px for 12 every 0.2 s and slicing small bullets out of the air.",
+                Capstone = "Lasts 3 s and cuts every bullet except red aimed shots.",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 150f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Lunge, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true, ExtraCharges = 1, CapstoneCharge = true,
+                Name = "Lunge", Cooldown = 6f, Desc = "Dash 260 px toward your cursor, hitting everything you pass for 35. Two charges.",
+                Capstone = "+1 charge (three in all).",
+                Bot = b => b.HaveTarget && b.TargetD > 110f && b.TargetD < 300f || b.BotDanger > 2.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BattleFury, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,
+                Name = "Battle Fury", Cooldown = 16f, Desc = "For 6 s you swing 40% faster and deal 25% more damage.",
+                Capstone = "+1 extra projectile while it lasts.",
+                Bot = b => b.HaveTarget && b.TargetD < 220f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage.",
+                Capstone = "Lasts 12 s.",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 220f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.HallowedBlade, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn).",
+                Capstone = "Three swords fall: one at your cursor and one either side.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BladeTempest, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Blade Tempest", Cooldown = 65f, Desc = "For 6 s every swing also hurls three piercing sword beams.",
+                Capstone = "Five sword beams a swing instead of three.",
+                Bot = b => b.HaveTarget && b.TargetD < 220f,
+            },
+        };
 
         /// Knight abilities and ultimates. Returns false if `id` isn't one.
         bool KnightAbility(Player p, AbilityId id, V2 target)

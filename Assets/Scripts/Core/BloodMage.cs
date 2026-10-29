@@ -431,6 +431,95 @@ namespace Arena
             public bool Splash;
         }
 
+        /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] BloodMageAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.BloodShell, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 0,
+                Name = "Blood Shell", Cooldown = 9f, HealthCost = 0.15f, Desc = "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
+                Capstone = "Also erases enemy bullets within 160 px.",
+                Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.4f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.CrimsonPact, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 1,
+                Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px.",
+                Capstone = "You take 30% less damage while it lasts.",
+                Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.6f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Exsanguinate, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 2,
+                Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
+                Capstone = "Also slows the enemies it drains by 50% for 2 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BloodGift, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 0,
+                Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you.",
+                Capstone = "Also heals everyone else within 200 px of them for half as much.",
+                Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SiphonField, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 1,
+                Name = "Siphon Field", Cooldown = 11f, HealthCost = 0.1f, Desc = "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
+                Capstone = "The field follows you.",
+                Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Martyr, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 2,
+                Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid.",
+                Capstone = "You're invulnerable for 2 s after the sacrifice.",
+                Bot = b => b.AllyDown,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BloodBoil, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 0,
+                Name = "Blood Boil", Cooldown = 8f, HealthCost = 0.2f, Desc = "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
+                Capstone = "Each burst also hits enemies within 80 px of it.",
+                Bot = b => b.HaveTarget && b.TargetD < 250f && b.Me.Hp > b.Me.MaxHp * 0.45f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.FrenzyPact, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 1,
+                Name = "Frenzy Pact", Cooldown = 11f, HealthCost = 0.05f, Desc = "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
+                Capstone = "No health drain.",
+                Bot = b => b.HaveTarget && b.TargetD < 500f && b.Me.Hp > b.Me.MaxHp * 0.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.HemoNova, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 2,
+                Name = "Hemo Nova", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
+                Capstone = "Bolts pierce 2 enemies.",
+                Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BloodRite, Kit = Kit.BloodMage, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Name = "Blood Rite", Cooldown = 75f, Desc = "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
+                Capstone = "Lasts 12 s.",
+                Bot = b => b.Danger || b.HaveTarget && b.Players > 1,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SanguineRain, Kit = Kit.BloodMage, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage.",
+                Capstone = "Lasts 9 s and heals 30%.",
+                Bot = b => b.AllyHurt && b.HaveTarget,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.CrimsonApotheosis, Kit = Kit.BloodMage, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Crimson Apotheosis", Cooldown = 65f, Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
+                Capstone = "Lasts 9 s.",
+                Bot = b => b.HaveTarget && b.TargetD < 500f,
+            },
+        };
+
         /// Blood Mage abilities and ultimates. Returns false if `id` isn't one. castPaid is what this cast cost.
         bool BloodAbility(Player p, AbilityId id, V2 target)
         {

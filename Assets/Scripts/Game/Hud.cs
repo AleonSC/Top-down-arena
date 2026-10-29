@@ -21,6 +21,7 @@ namespace Arena
                     Ui.Label(new Rect(W - 70f, 34f, 62f, 16f), "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawBossBars();
             });
+            DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
             if (aimDebug && me != null)
                 DrawAimDebug(me);
 
@@ -500,6 +501,12 @@ namespace Arena
                 c = new Color(0.45f, 0.88f, 1f);
                 return WardenStageName(w.Stage) + " — STUNNED!";
             }
+            foreach (var g in game.Enemies.Values)
+                if (g.Type == EnemyType.Guard)
+                {
+                    c = new Color(0.45f, 0.65f, 1f);
+                    return WardenStageName(w.Stage) + " — THE GUARDS ARE COMING FOR YOU";
+                }
             if (w.Turn == WardenTurn.Light && w.LightMode == WardenLight.Lock)
             {
                 c = new Color(1f, 0.4f, 0.35f);

@@ -17,6 +17,10 @@ namespace Arena
 
         public const float EliteSize = 1.25f;
         const float ShieldHalfAngle = 1.13f;  // Shielder blocks shots within ~65 degrees of where it faces
+        // A Shielder's shield holds this share of its health; blocked hits wear it down, and it crumbles by itself
+        // at ShieldDecay of its strength a second, cracking as it goes (Phase 1-3), until it shatters (Phase 4).
+        const float ShieldShare = 0.6f, ShieldDecay = 0.03f;
+        public const byte ShieldBroken = 4;
         const float TwinReviveTime = 6f;
         const float TwinReviveHp = 0.6f;       // a revived Reaper comes back with this much health
         const float SoulBondGap = 0.1f;        // the more-hurt Reaper turns immune once it's this far behind...
@@ -162,6 +166,8 @@ namespace Arena
             if (n >= 26) pool.Add(EnemyType.Juggernaut);
             if (n >= 31) pool.Add(EnemyType.Nest);
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
+            if (n <= 3)
+                count += 2;  // the first waves get a couple more of the same, so the opening isn't too quiet
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             // The first waves are melee rushers; shooters take over a little more each wave until
@@ -234,6 +240,8 @@ namespace Arena
                 e.Radius *= EliteSize;
             }
             e.Hp = e.MaxHp;
+            if (type == EnemyType.Shielder)
+                e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
             Recorder?.EnemySpawned(e);
             e.Pos = ClampToArena(pos, e.Radius);
             e.Disp = e.Pos;
@@ -445,6 +453,23 @@ namespace Arena
             e.Facing = want;
         }
 
+        /// A hit the shield stopped (or time) wears it down; it cracks in three steps, then shatters.
+        void WearShield(Enemy e, float amount)
+        {
+            if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken || e.ShieldMax <= 0f)
+                return;
+            e.ShieldHp -= amount;
+            float frac = e.ShieldHp / e.ShieldMax;
+            byte phase = (byte)(frac <= 0f ? ShieldBroken : frac <= 0.25f ? 3 : frac <= 0.5f ? 2 : frac <= 0.75f ? 1 : 0);
+            if (phase == e.Phase)
+                return;
+            e.Phase = phase;
+            if (phase == ShieldBroken)
+                BroadcastFx(FxKind.Shatter, e.Pos, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 7f), new Rgba(0.7f, 0.85f, 1f), ShieldHalfAngle, 0.6f, Sfx.Clang);
+            else
+                BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 7f), new Rgba(0.8f, 0.9f, 1f), 16f, 0.25f, Sfx.Hit);
+        }
+
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
         bool BlocksShot(Enemy e, V2 from)
         {
@@ -456,7 +481,7 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (e.Type == EnemyType.Lich && e.Phase == 1)
                 return true;  // protected while its phylactery stands
-            if (e.Type != EnemyType.Shielder)
+            if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
             return diff < ShieldHalfAngle;
@@ -578,6 +603,9 @@ namespace Arena
                 case EnemyType.Rioter:
                     v = RioterMove(e, tpos);  // Warden.cs
                     break;
+                case EnemyType.Guard:
+                    v = GuardMove(e, tpos);  // Warden.cs
+                    break;
                 case EnemyType.HiveQueen:
                     v = QueenMove(e, tpos, ref speed);  // Queen.cs
                     break;
@@ -611,6 +639,9 @@ namespace Arena
             }
             switch (e.Type)
             {
+                case EnemyType.Shielder:
+                    WearShield(e, e.ShieldMax * ShieldDecay * dt);
+                    break;
                 case EnemyType.Boss:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
                     break;
@@ -840,7 +871,10 @@ namespace Arena
         bool OnEnemyKilled(Enemy e)
         {
             if (e.Type == EnemyType.Boss)
+            {
                 ClearRioters();  // the riot's over (Warden.cs)
+                ClearGuards();
+            }
             if (e.Type == EnemyType.HiveQueen)
                 ClearQueenAdds(e);  // her eggs, bombers and drones go with her (Queen.cs)
             if (e.Type == EnemyType.Singularity)

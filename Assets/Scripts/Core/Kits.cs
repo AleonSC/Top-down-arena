@@ -80,7 +80,7 @@ namespace Arena
             new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
             new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static },
-            new MinionDef { Name = "Warden's Guard", Radius = 12f, Sides = 8, Color = new Rgba(0.5f, 0.62f, 0.85f), Move = MinionMove.Escort, Speed = 240f,
+            new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
         };
 

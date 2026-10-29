@@ -346,6 +346,7 @@ namespace Arena
                         {
                             if (BlocksShot(e, b.Pos))
                             {
+                                WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 scratchIds.Add(b.Id);
                                 break;
                             }
@@ -833,9 +834,14 @@ namespace Arena
         {
             Patches.Clear();  // a wave was cleared: the path's fire and pools go too (Paths.cs)
             scratchIds.Clear();
+            int pops = 0;
             foreach (var b in Bullets.Values)
                 if (Defs.IsEnemyShot(b.Kind))
+                {
                     scratchIds.Add(b.Id);
+                    if (pops++ < 160)  // each one pops as it goes (on every game; nothing sent)
+                        AddFx(FxKind.Spark, b.Pos, Defs.BulletColor(b.Kind), b.Radius + 6f, 0.3f);
+                }
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
         }

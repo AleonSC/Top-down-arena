@@ -23,6 +23,104 @@ namespace Arena
             EndCast(p, slot, id0, hadTargets);
         }
 
+        /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] SoldierAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.Barrier, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0,
+                Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).",
+                Capstone = "Bullets that hit the barrier are reflected back as your own.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.MendPulse, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Instant = true,
+                Name = "Mend Pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies.",
+                Capstone = "Also erases enemy bullets within its range.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Dash, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
+                Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability.",
+                Capstone = "+1 charge.",
+                Bot = b => b.BotDanger > 2.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Shockwave, Instant = true,
+                Name = "Shockwave", Cooldown = 14f, Desc = "Erase enemy bullets around you and damage nearby enemies.",
+                Capstone = "Also knocks nearby enemies back 120 px.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Overdrive,
+                Name = "Overdrive", Cooldown = 18f, Desc = "Double fire rate for 5 seconds.",
+                Capstone = "+1 extra projectile while it lasts.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Blink,
+                Name = "Blink", Cooldown = 7f, Desc = "Teleport toward your cursor.",
+                Capstone = "Erases enemy bullets where you leave and where you land.",
+                Bot = b => b.BotDanger > 2.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Nova, Instant = true,
+                Name = "Nova", Cooldown = 9f, Desc = "Fire a ring of 24 heavy shots.",
+                Capstone = "Fires 48 shots instead of 24.",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Turret,
+                Name = "Turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for 10 seconds.",
+                Capstone = "Deploys two turrets.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Roar, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Instant = true,
+                Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you for 5 s, and you take 40% less damage meanwhile.",
+                Capstone = "Also knocks enemies within 250 px back and slows them for 2 s.",
+                Bot = b => b.HaveTarget && b.Players > 1,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Bulldoze, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Instant = true,
+                Name = "Bulldoze", Cooldown = 9f, Desc = "Charge forward, damaging and knocking back everything in your path.",
+                Capstone = "Erases enemy bullets along the charge.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Haven, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
+                Name = "Haven", Cooldown = 16f, Desc = "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker.",
+                Capstone = "Allies inside also take 30% less damage.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SoulLink, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
+                Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate.",
+                Capstone = "Lasts 9 s, and both of you are invulnerable for 1 s when it starts.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Grenade, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1,
+                Name = "Cluster Grenade", Cooldown = 6f, Desc = "Throw a grenade at your cursor that explodes into shrapnel.",
+                Capstone = "Throws a second grenade 80 px further.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Mark, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Instant = true,
+                Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
+                Capstone = "Marks the three enemies nearest your cursor.",
+            },
+        };
+
         /// The ability's effect. Runs inside BeginCast/EndCast, so damage and healing it does directly
         /// (and the zones, minions and shots it makes) are scaled by its mastery. castMastered = its capstone.
         void CastAbility(Player p, int slot, V2 target)

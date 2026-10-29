@@ -25,6 +25,26 @@ static partial class Program
         Check(StatSheet.Describe(p, withCard).Find(l => l.Label == "Fire rate").Value == "108%", "stat preview reflects the selected card");
     }
 
+    // Every ability has one complete entry, and every lobby place (Space choice, ultimate) holds exactly one.
+    static void CheckAbilityRegistry()
+    {
+        var ids = Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().Where(a => a != AbilityId.None).ToList();
+        bool complete = ids.All(a => Upgrades.Ability(a).Id == a && !string.IsNullOrEmpty(Upgrades.Ability(a).Name)
+            && !string.IsNullOrEmpty(Upgrades.Ability(a).Desc) && !string.IsNullOrEmpty(Upgrades.Ability(a).Capstone));
+        var placed = new List<AbilityId>();
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                placed.Add(Upgrades.Ultimate(role, (Kit)k));
+                for (int c = 0; c < Upgrades.RoleAbilityChoices; c++)
+                    placed.Add(Upgrades.RoleAbility(role, (Kit)k, c));
+            }
+        bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
+            && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)
+            && ids.Count(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly) == placed.Count;
+        Check(complete && lobby, "every ability has a complete entry, and each lobby place holds exactly one");
+    }
+
     static void CheckOffers()
     {
         var rng = new Random(1);

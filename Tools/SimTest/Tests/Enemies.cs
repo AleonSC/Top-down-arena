@@ -174,6 +174,56 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // Shielders' shields wear down: blocked hits crack them and they crumble on their own, then shatter.
+    static void ShielderTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var s = StartBuffed(dt, 9, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        var me = g.Players[1];
+        Action Others = () => { foreach (var e in g.Enemies.Values) if (e.Type != EnemyType.Shielder) e.Hp = 0f; foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+
+        // Shoot its shield from the front: it cracks, then shatters, and then shots get through.
+        var sh = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shielder, new V2(800f, 300f), 0.1f, 0, false });
+        me.Pos = new V2(800f, 600f);
+        var phases = new List<byte>();
+        float hpBefore = 0f; bool clientBroken = false;
+        Run(s, dt, 8f, () => sh.Phase >= Game.ShieldBroken, () =>
+        {
+            Others();
+            me.Pos = new V2(800f, 600f);
+            sh.Pos = new V2(800f, 300f);
+            if (phases.Count == 0 || phases[phases.Count - 1] != sh.Phase) phases.Add(sh.Phase);
+            hpBefore = sh.Hp;
+            shoot.Invoke(g, new object[] { Defs.DpsShot, sh.Pos + new V2(0f, 60f), new V2(0f, -900f), 0f, 1f, 12f, 1, false, 0f });
+        });
+        Run(s, dt, 0.3f, null, () => { Others(); me.Pos = new V2(800f, 600f); sh.Pos = new V2(800f, 300f); });
+        var ce = Find(s[1], EnemyType.Shielder);
+        clientBroken = ce != null && ce.Phase >= Game.ShieldBroken;
+        float hpAt = sh.Hp;
+        Run(s, dt, 1f, null, () =>
+        {
+            Others(); me.Pos = new V2(800f, 600f); sh.Pos = new V2(800f, 300f);
+            shoot.Invoke(g, new object[] { Defs.DpsShot, sh.Pos + new V2(0f, 60f), new V2(0f, -900f), 0f, 1f, 12f, 1, false, 0f });
+        });
+        Console.WriteLine("  shielder: shield steps {0}, health while blocking {1:0} -> after it broke {2:0}, client saw it break {3}",
+            string.Join(">", phases), hpBefore, sh.Hp, clientBroken);
+        Check(phases.Count >= 4 && phases[0] == 0 && sh.Phase >= Game.ShieldBroken && clientBroken, "blocked shots crack a Shielder's shield until it shatters (seen on client)");
+        Check(sh.Hp < hpAt, "once the shield is gone, shots from the front hurt it");
+
+        // Left alone, a shield crumbles by itself.
+        sh.Hp = 0f;
+        var sh2 = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shielder, new V2(800f, 300f), 0.1f, 0, false });
+        Run(s, dt, 10f, null, () => { Others(); me.Pos = new V2(200f, 800f); });
+        Console.WriteLine("  shielder left alone 10 s: shield step {0}", sh2.Phase);
+        Check(sh2.Phase >= 1 && sh2.Phase < Game.ShieldBroken, "a Shielder's shield cracks over time on its own");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     /// Waves 25-50: late enemies, the six new bosses' mechanics, victory and endless mode.
     static void LateWaves(float dt)
     {

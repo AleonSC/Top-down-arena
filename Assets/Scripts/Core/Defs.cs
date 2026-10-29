@@ -17,6 +17,7 @@ namespace Arena
         CageWell,    // the Singularity's small wells that ring a player in a shrinking cage
         Rioter,      // the Warden's riot: prisoners who run at whoever's nearest, the Warden included (Warden.cs)
         HiveEgg,     // the Hive Queen's eggs: break them before they hatch into drones (Queen.cs)
+        Guard,       // the Warden's riot guards: they beat the rioters left after 10 s, then come for you (Warden.cs)
     }
 
     public class RoleDef
@@ -143,6 +144,7 @@ namespace Arena
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
             new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
             new EnemyDef { Name = "Hive Egg", Hp = 60f, Radius = 15f, Speed = 0f, Score = 4, Xp = 3, Sides = 10, Color = new Rgba(0.96f, 0.92f, 0.78f), Melee = true },
+            new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 4, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f },
         };
 
         public const int WeaponsPerRole = 3;

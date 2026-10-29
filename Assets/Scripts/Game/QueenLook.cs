@@ -114,10 +114,9 @@ namespace Arena
             var q = e.Queen;
             if (q == null)
                 return;
-            if (q.TransT > 0f)
+            if (q.TransT > 0f)  // changing stage (can't be hurt): StageShiftLook.cs
             {
-                Circle(pos, r + 14f, new Rgba(1f, 1f, 1f, 0.08f), 32);
-                Arc(pos, r + 12f, 3f, new Rgba(1f, 1f, 1f, 0.5f + 0.4f * Mathf.Sin(t * 18f)), 40);
+                DrawStageShiftBoss(e, pos, r, t);
                 return;
             }
             if (q.Stage >= QueenStage.Frenzy)

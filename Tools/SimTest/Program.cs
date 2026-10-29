@@ -151,7 +151,7 @@ static partial class Program
     // The feature suite, in its long-standing order.
     static readonly Action[] FeatureTests =
     {
-        MusicTest, () => ParryTest(Dt), () => SessionTest(Dt), () => ParryUpgradeTest(Dt), () => AimTest(Dt), () => SpinnerTest(Dt), () => DevToolsTest(Dt),
+        MusicTest, () => ParryTest(Dt), () => SessionTest(Dt), () => ParryUpgradeTest(Dt), () => AimTest(Dt), () => SpinnerTest(Dt), () => ShielderTest(Dt), () => DevToolsTest(Dt),
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
@@ -191,6 +191,7 @@ static partial class Program
         Test("melee", "early melee rushers", () => MeleeTest(Dt)),
         Test("late", "waves 11-13: new enemies and elites", () => LateGameEnemies(Dt)),
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
+        Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
         Test("wardenloot", "the Warden's legendaries: Stun Gun and Warden's Guard", () => WardenLootTest(Dt)),
         Test("queen", "the Hive Queen", () => QueenTest(Dt)),

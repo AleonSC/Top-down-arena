@@ -19,6 +19,7 @@ static partial class Program
 
         CheckOffers();
         CheckStatSheet();
+        CheckAbilityRegistry();
 
         var host = new Session { AutoStart = 2, StartWave = startWave };
         host.Game.Bot = true;

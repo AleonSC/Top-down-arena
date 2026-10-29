@@ -157,10 +157,9 @@ namespace Arena
             var w = e.Warden;
             if (w == null)
                 return;
-            if (w.TransT > 0f)  // changing stage: a pulsing shell, can't be hurt
+            if (w.TransT > 0f)  // changing stage (can't be hurt): StageShiftLook.cs
             {
-                Circle(pos, r + 14f, new Rgba(1f, 1f, 1f, 0.08f), 32);
-                Arc(pos, r + 12f, 3f, new Rgba(1f, 1f, 1f, 0.5f + 0.4f * Mathf.Sin(t * 18f)), 40);
+                DrawStageShiftBoss(e, pos, r, t);
                 return;
             }
             if (w.Stage >= WardenStage.Riot)  // red-hot
@@ -245,21 +244,34 @@ namespace Arena
             }
         }
 
-        /// A Warden's Guard (Stun.cs): a steel-blue uniform with a peaked cap, a baton held out toward what
-        /// it's after, and a health bar once it's been hurt.
+        /// A Warden's Guard (Stun.cs): one of the riot's guards (same body, visor and baton), on your side: a ring in its
+        /// owner's colour under it, and a health bar once it's been hurt.
         void DrawWardenGuard(Minion m, float t)
         {
             var c = m.Def.Color;
             float r = m.Def.Radius;
-            V2 dir = V2.FromAngle(m.Aim), side = dir.Orthogonal();
+            Player owner;
+            var mark = game.Players.TryGetValue(m.Owner, out owner) ? owner.Def.Color : Rgba.White;
+            Circle(m.Disp, r + 7f, mark.WithAlpha(0.18f), 20);
+            Arc(m.Disp, r + 6f, 2f, mark.WithAlpha(0.8f), 24);
             Polygon(m.Disp, r, m.Def.Sides, m.Aim, c);
-            Arc(m.Disp, r * 0.62f, 4f, new Rgba(0.14f, 0.18f, 0.3f), 14, m.Aim + MathX.Pi - 1.2f, 2.4f);  // the cap, worn toward the back
-            Line(m.Disp + dir * (r * 0.2f) - side * (r * 0.5f), m.Disp + dir * (r * 0.2f) + side * (r * 0.5f), 2f, new Rgba(0.98f, 0.8f, 0.25f, 0.9f));  // badge stripe
-            V2 hand = m.Disp + side * (r * 0.8f), tip = hand + dir * 14f;
-            Line(hand, tip, 3f, new Rgba(0.16f, 0.18f, 0.24f));
-            Circle(tip, 2.5f + 0.8f * Mathf.Sin(t * 20f + m.Id), StunCol, 8);
+            V2 f = V2.FromAngle(m.Aim), side = f.Orthogonal();
+            Line(m.Disp + f * (r * 0.25f) - side * (r * 0.55f), m.Disp + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
+            V2 grip = m.Disp + side * (r * 0.8f), tip = grip + V2.FromAngle(m.Aim + 0.5f * Mathf.Sin(t * 9f + m.Id)) * (r + 12f);
+            Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
+            Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
             if (m.GuardFrac < 0.999f)
-                Bar(m.Disp + new V2(-15f, -r - 9f), 30f, 3.5f, Mathf.Clamp01(m.GuardFrac), new Rgba(0.5f, 0.8f, 1f));
+                Bar(m.Disp + new V2(-15f, -r - 10f), 30f, 3.5f, Mathf.Clamp01(m.GuardFrac), mark);
+        }
+
+        /// A guard: a riot helmet's visor and a baton held out the way it's facing.
+        void DrawGuardDetails(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            Line(pos + f * (r * 0.25f) - side * (r * 0.55f), pos + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
+            V2 grip = pos + side * (r * 0.8f), tip = grip + V2.FromAngle(e.Facing + 0.5f * Mathf.Sin(t * 9f + e.Id)) * (r + 12f);
+            Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
+            Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
         }
 
         /// A rioter: an orange jumpsuit with a dark band across it.

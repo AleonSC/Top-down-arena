@@ -42,6 +42,7 @@ namespace Arena
 
         // Host only.
         public int Step, Plant = -1, GatesSent, DoorsOpened;
+        public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
         public float TurnLen, Caught, RingT, GasTickT, ChargeLeft;
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
@@ -65,8 +66,12 @@ namespace Arena
         const float GateDamage = 12f, GateEvery = 4f;
         // Gas canisters: with the 1st and 3rd gate, near the target; a cloud 90 px wide for 5 s, 8 damage a second.
         const float GasRadius = 90f, GasFlight = 1f, GasLife = 5f, GasDps = 8f;
-        // The riot: doors burst open, rioters pour out; the baton charge.
-        const int RiotersPerDoor = 3;
+        // The riot: doors burst open, rioters pour out (nine a door); any left after RiotTime bring the guards, who
+        // beat them down and then come for the players. Then the baton charge.
+        const int RiotersPerDoor = 9;
+        const float RiotTime = 10f, RiotOvertime = 10f;
+        const float GuardHit = 25f, GuardSwing = 0.45f, GuardReach = 10f;
+        const int GuardsMin = 3, GuardsMax = 8;
         const float RioterHit = 0.006f;  // a rioter that reaches the Warden takes this much of its health
         const float ShieldHalfArc = 1.05f, ShieldTurn = 1.05f;
         const float ChargeWarn = 0.9f, ChargeSpeed = 700f, ChargeLength = 620f;
@@ -171,6 +176,7 @@ namespace Arena
                 {
                     w.TransT = 0f;
                     EnterWardenStage(e, w.TransTo);
+                    StageStartBurst(e, w.Stage == WardenStage.Riot ? new Rgba(1f, 0.5f, 0.2f) : new Rgba(0.35f, 0.65f, 1f));
                 }
                 e.Phase = (byte)w.Turn;
                 return;
@@ -229,7 +235,13 @@ namespace Arena
                         float want = (target.Pos - e.Pos).Angle, diff = MathX.Fmod(want - w.Aux + MathX.Pi, MathX.Tau) - MathX.Pi;
                         w.Aux += Math.Max(-ShieldTurn * dt, Math.Min(ShieldTurn * dt, diff));
                     }
-                    if (w.TurnT > 4f && CountRioters() == 0)
+                    int left = CountRioters();
+                    if (w.TurnT >= RiotTime && left > 0 && !w.GuardsCalled)
+                    {
+                        CallGuards(w, left);  // too slow: the guards come in to beat them down
+                        w.TurnLen = RiotTime + RiotOvertime;
+                    }
+                    if (w.TurnT > 4f && left == 0)
                         w.TurnT = w.TurnLen;  // all dealt with: on to the charge
                     break;
                 }
@@ -251,10 +263,18 @@ namespace Arena
             if (w.Turn == WardenTurn.Rioters || w.Turn == WardenTurn.Charge)
                 e.Facing = w.Aux;
             RiotersReachWarden(e);
+            GuardsBeatRioters(dt);
 
             bool waitForRing = w.Turn == WardenTurn.Light && (w.LightMode == WardenLight.Lock || w.LightMode == WardenLight.Ring);
             if (w.Stage != WardenStage.LastStand && w.TurnT >= w.TurnLen && !waitForRing)
                 NextWardenTurn(e, w, target);
+        }
+
+        /// A new stage starts with a bang: a flash and a wide ring from the boss.
+        void StageStartBurst(Enemy e, Rgba color)
+        {
+            BroadcastFx(FxKind.Boom, e.Pos, Rgba.White, e.Radius + 70f, 0.4f, Sfx.BigExplode);
+            BroadcastFx(FxKind.Ring, e.Pos, color, 1100f, 0.9f, Sfx.None);
         }
 
         void EnterWardenStage(Enemy e, WardenStage stage)
@@ -299,6 +319,7 @@ namespace Arena
             w.Plant = -1;
             w.GatesSent = 0;
             w.DoorsOpened = 0;
+            w.GuardsCalled = false;
             w.LightMode = WardenLight.Off;
             e.FireT = 0.3f;
             switch (w.Turn)
@@ -603,8 +624,8 @@ namespace Arena
                 doors.Remove(pick);
                 V2 d = RiotDoors[pick];
                 V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
-                for (int i = 0; i < RiotersPerDoor; i++)
-                    SpawnEnemyAt(EnemyType.Rioter, d + inward * 40f + inward.Orthogonal() * ((i - 1) * 30f), 0.3f, 0);
+                for (int i = 0; i < RiotersPerDoor; i++)  // three rows of three, pouring in
+                    SpawnEnemyAt(EnemyType.Rioter, d + inward * (40f + (i / 3) * 30f) + inward.Orthogonal() * ((i % 3 - 1) * 30f), 0.3f + (i / 3) * 0.25f, 0);
                 BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.Explode);
                 w.DoorsOpened++;
             }
@@ -624,6 +645,79 @@ namespace Arena
             var ids = new List<int>();
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.Rioter)
+                    ids.Add(e.Id);
+            foreach (int id in ids)
+                Enemies.Remove(id);
+        }
+
+        /// The guards: one for every four rioters left (3-8), through the doors.
+        void CallGuards(WardenState w, int rioters)
+        {
+            w.GuardsCalled = true;
+            int n = Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4));
+            for (int i = 0; i < n; i++)
+            {
+                V2 d = RiotDoors[(i + rng.Next(RiotDoors.Length)) % RiotDoors.Length];
+                V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
+                SpawnEnemyAt(EnemyType.Guard, d + inward * 40f + inward.Orthogonal() * Rand(-30f, 30f), 0.4f, 0);
+                BroadcastFx(FxKind.Ring, d + inward * 30f, Defs.Get(EnemyType.Guard).Color, 70f, 0.5f, Sfx.None);
+            }
+            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), Defs.Get(EnemyType.Guard).Color, 900f, 0.7f, Sfx.BossCharge);
+            DoLog("the Warden's guards come in: " + n);
+        }
+
+        /// Guards swing their batons at any rioter in reach.
+        void GuardsBeatRioters(float dt)
+        {
+            foreach (var g in Enemies.Values)
+            {
+                if (g.Type != EnemyType.Guard || g.SpawnT > 0f)
+                    continue;
+                g.T2 -= dt;
+                if (g.T2 > 0f)
+                    continue;
+                Enemy hit = null;
+                foreach (var r in Enemies.Values)
+                    if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f && r.Hp > 0f && r.Pos.DistanceTo(g.Pos) < g.Radius + r.Radius + GuardReach)
+                    {
+                        hit = r;
+                        break;
+                    }
+                if (hit == null)
+                    continue;
+                g.T2 = GuardSwing;
+                g.Facing = (hit.Pos - g.Pos).Angle;
+                BroadcastFx(FxKind.Slash, g.Pos, g.Pos + V2.FromAngle(g.Facing) * (g.Radius + 26f), new Rgba(0.6f, 0.75f, 1f), 0.9f, 0.16f, Sfx.SwingLight);
+                hit.Hp -= GuardHit;  // a beating, not a kill anyone earns
+                hit.LastHitBy = 0;
+                if (hit.Hp <= 0f)
+                    BroadcastFx(FxKind.Spark, hit.Pos, new Rgba(1f, 0.6f, 0.3f), 20f, 0.3f, Sfx.Hit);
+            }
+        }
+
+        /// Guards go for the nearest rioter while any are left, then for the players.
+        V2 GuardMove(Enemy e, V2 tpos)
+        {
+            V2 goal = tpos;
+            float best = float.MaxValue;
+            foreach (var r in Enemies.Values)
+                if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f)
+                {
+                    float d = r.Pos.DistanceSq(e.Pos);
+                    if (d < best)
+                    {
+                        best = d;
+                        goal = r.Pos;
+                    }
+                }
+            return (goal - e.Pos).Normalized();
+        }
+
+        void ClearGuards()
+        {
+            var ids = new List<int>();
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Guard)
                     ids.Add(e.Id);
             foreach (int id in ids)
                 Enemies.Remove(id);

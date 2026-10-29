@@ -16,6 +16,19 @@ namespace Arena
 
         // --- Stun Gun ---------------------------------------------------------------------
 
+        /// The Stun Gun, from the Warden's legendary card (Q / E / Shift only). (Upgrades.Abilities gathers it.)
+        internal static readonly AbilityDef[] WardenAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.StunGun,
+                Name = "Stun Gun", Cooldown = 14f,
+                Desc = "Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired.",
+                Capstone = "Nine shots instead of six.",
+                Bot = b => b.HaveTarget && b.TargetD < 560f,
+            },
+        };
+
         /// Cast: the weapon goes away and the stun gun comes out, loaded.
         void DrawStunGun(Player p, bool mastered)
         {

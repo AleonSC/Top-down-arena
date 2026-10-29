@@ -72,19 +72,7 @@ namespace Arena
             GainMastery(p, id, Cooldown(p, slot) * eff);
         }
 
-        static bool InstantAbility(AbilityId id)
-        {
-            switch (id)
-            {
-                case AbilityId.Shockwave: case AbilityId.MendPulse: case AbilityId.FrostNova: case AbilityId.Earthquake:
-                case AbilityId.Sanctify: case AbilityId.Bulldoze: case AbilityId.Sacrifice: case AbilityId.TimeRewind:
-                case AbilityId.ArcaneWard: case AbilityId.GlacialTomb: case AbilityId.Lifeline: case AbilityId.Roar:
-                case AbilityId.Nova: case AbilityId.Mark: case AbilityId.Lunge:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        static bool InstantAbility(AbilityId id) => Upgrades.Ability(id).Instant;
 
         public void GainMastery(Player p, AbilityId id, float xp)
         {
@@ -203,91 +191,7 @@ namespace Arena
         }
 
         /// What each ability's level-5 capstone does.
-        public static string Capstone(AbilityId id)
-        {
-            switch (id)
-            {
-                case AbilityId.Barrier: return "Bullets that hit the barrier are reflected back as your own.";
-                case AbilityId.MendPulse: return "Also erases enemy bullets within its range.";
-                case AbilityId.Dash: return "+1 charge.";
-                case AbilityId.Shockwave: return "Also knocks nearby enemies back 120 px.";
-                case AbilityId.Overdrive: return "+1 extra projectile while it lasts.";
-                case AbilityId.Blink: return "Erases enemy bullets where you leave and where you land.";
-                case AbilityId.Nova: return "Fires 48 shots instead of 24.";
-                case AbilityId.Turret: return "Deploys two turrets.";
-                case AbilityId.Roar: return "Also knocks enemies within 250 px back and slows them for 2 s.";
-                case AbilityId.Bulldoze: return "Erases enemy bullets along the charge.";
-                case AbilityId.Haven: return "Allies inside also take 30% less damage.";
-                case AbilityId.SoulLink: return "Lasts 9 s, and both of you are invulnerable for 1 s when it starts.";
-                case AbilityId.Grenade: return "Throws a second grenade 80 px further.";
-                case AbilityId.Mark: return "Marks the three enemies nearest your cursor.";
-                case AbilityId.ArcaneAegis: return "Lasts 4.5 s and reflects bullets for double damage.";
-                case AbilityId.FrostNova: return "Also erases enemy bullets around you.";
-                case AbilityId.FlameWall: return "The fire also slows enemies by 40%.";
-                case AbilityId.TimeRewind: return "Also erases enemy bullets around every player.";
-                case AbilityId.ArcaneWard: return "The shield soaks 120 damage.";
-                case AbilityId.Sanctify: return "Also freezes enemies around you solid for 1.5 s (not bosses).";
-                case AbilityId.Meteor: return "Leaves burning ground for 3 s.";
-                case AbilityId.Blizzard: return "Lasts 10 s.";
-                case AbilityId.ArcaneSurge: return "+1 extra projectile while it lasts.";
-                case AbilityId.GolemWall: return "Raises five walls.";
-                case AbilityId.Earthquake: return "Also freezes the enemies it hits for 1 s (not bosses).";
-                case AbilityId.GuardianSpirit: return "The guardian also heals you 6 HP/s.";
-                case AbilityId.SpiritSwarm: return "Releases 8 sprites.";
-                case AbilityId.Phoenix: return "Revives at full health, and the phoenix keeps fighting.";
-                case AbilityId.SoulLantern: return "The lantern follows you.";
-                case AbilityId.BatSwarm: return "Releases 14 bats.";
-                case AbilityId.Sacrifice: return "Double explosion damage, and your companions return at once.";
-                case AbilityId.AlphaCall: return "Also summons 3 wolves for 6 s.";
-                case AbilityId.Fortress: return "Lasts 12 s.";
-                case AbilityId.GlacialTomb: return "Enemies stay frozen for 6 s and bosses take 500.";
-                case AbilityId.Titan: return "The titan is bigger and stays for 25 s.";
-                case AbilityId.Lifeline: return "Everyone also gets 4 s of Overdrive.";
-                case AbilityId.Sanctum: return "The dome is half again as wide (300 px).";
-                case AbilityId.WorldTree: return "Lasts 16 s with 8 sprites.";
-                case AbilityId.BulletStorm: return "+4 extra projectiles instead of +2.";
-                case AbilityId.MeteorStorm: return "Twenty meteors.";
-                case AbilityId.Legion: return "Summons 10 wolves and 10 bats.";
-                case AbilityId.ShieldWall: return "Bullets that hit the shield are reflected back as your own.";
-                case AbilityId.LeapSlam: return "The landing also erases enemy bullets within 160 px.";
-                case AbilityId.Unbreakable: return "Lasts 8 s.";
-                case AbilityId.Consecrate: return "The blessed ground follows you.";
-                case AbilityId.GuardiansOath: return "Everyone within 300 px gets the full shield.";
-                case AbilityId.LayOnHands: return "Also heals everyone else near them for half as much.";
-                case AbilityId.Whirlwind: return "Lasts 3 s and cuts every bullet except red aimed shots.";
-                case AbilityId.Lunge: return "+1 charge (three in all).";
-                case AbilityId.BattleFury: return "+1 extra projectile while it lasts.";
-                case AbilityId.LastStand: return "Lasts 12 s.";
-                case AbilityId.HallowedBlade: return "Three swords fall: one at your cursor and one either side.";
-                case AbilityId.BladeTempest: return "Five sword beams a swing instead of three.";
-                case AbilityId.ShadowClone: return "Leaves two clones.";
-                case AbilityId.SmokeBomb: return "Enemies inside the smoke are also slowed by 40%.";
-                case AbilityId.IronBody: return "The shockwave also erases enemy bullets within 160 px.";
-                case AbilityId.HealingMist: return "Lasts 9 s.";
-                case AbilityId.Substitution: return "You and your ally are both invulnerable for 1 s after the swap.";
-                case AbilityId.SpiritWard: return "The ward follows you.";
-                case AbilityId.ShadowStep: return "+1 charge.";
-                case AbilityId.Vanish: return "Erases enemy bullets around you when you vanish.";
-                case AbilityId.BladeFan: return "Throws twice as many kunai.";
-                case AbilityId.ThousandClones: return "Eight clones.";
-                case AbilityId.BlossomStorm: return "Lasts 8 s.";
-                case AbilityId.DeathLotus: return "Strikes up to 14 enemies.";
-                case AbilityId.BloodShell: return "Also erases enemy bullets within 160 px.";
-                case AbilityId.CrimsonPact: return "You take 30% less damage while it lasts.";
-                case AbilityId.Exsanguinate: return "Also slows the enemies it drains by 50% for 2 s.";
-                case AbilityId.BloodGift: return "Also heals everyone else within 200 px of them for half as much.";
-                case AbilityId.SiphonField: return "The field follows you.";
-                case AbilityId.Martyr: return "You're invulnerable for 2 s after the sacrifice.";
-                case AbilityId.BloodBoil: return "Each burst also hits enemies within 80 px of it.";
-                case AbilityId.FrenzyPact: return "No health drain.";
-                case AbilityId.HemoNova: return "Bolts pierce 2 enemies.";
-                case AbilityId.BloodRite: return "Lasts 12 s.";
-                case AbilityId.SanguineRain: return "Lasts 9 s and heals 30%.";
-                case AbilityId.CrimsonApotheosis: return "Lasts 9 s.";
-                case AbilityId.StunGun: return "Nine shots instead of six.";
-                default: return "";
-            }
-        }
+        public static string Capstone(AbilityId id) => id == AbilityId.None ? "" : Upgrades.Ability(id).Capstone;
 
         /// "Barrier reached level 3" popups for your own abilities (the front end draws and ages them).
         public readonly List<MasteryToast> MasteryToasts = new List<MasteryToast>();
