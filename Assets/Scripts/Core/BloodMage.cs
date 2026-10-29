@@ -228,14 +228,14 @@ namespace Arena
                 p.Run.ShotsFired++;
                 if (p.Grasp.Count > 0)
                     p.Run.ShotsHit++;
-                foreach (int id in p.Grasp)
+                for (int i = 0, held = p.Grasp.Count; i < held && i < p.Grasp.Count; i++)
                 {
-                    if (!Enemies.TryGetValue(id, out e) || e.Hp <= 0f)
+                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
                         continue;  // killed by another tendril's on-hit effects
                     if (!e.Def.IsBoss)
                         e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
                     V2 dir = (e.Pos - p.Pos).Normalized();
-                    float hit = gr.Dmg * HomingCost(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);
+                    float hit = gr.Dmg * TendrilsOn(max, held, i) * HomingCost(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);  // one drain per tendril on it
                     HurtEnemy(e, hit, p.Id);
                     var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
                     BloodShotHit(pseudo, e, hit);  // the leech
@@ -244,6 +244,10 @@ namespace Arena
             }
             pendingGrasps.Clear();
         }
+
+        /// How many of `max` tendrils hold the i-th of `held` enemies: one each, and spare tendrils (nothing else
+        /// in reach) pile onto the ones already held, nearest first. A lone boss gets all of them.
+        public static int TendrilsOn(int max, int held, int i) => held <= 0 ? 0 : 1 + Math.Max(0, max - held) / held + (i < Math.Max(0, max - held) % held ? 1 : 0);
 
         /// Are this player's Leech Tendrils out? (Each screen draws them itself, from the held enemies in the snapshot.)
         public bool GraspOn(Player p) =>

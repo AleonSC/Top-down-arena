@@ -247,19 +247,32 @@ namespace Arena
                 float reach = game.GraspReach(p), arc = Game.GraspArcFor(p), half = arc / 2f;
                 int max = Game.GraspTendrils + game.ExtraShots(p) + p.Stats.Fan, held = 0;
                 Arc(p.Disp, p.Def.BodyR + reach, 1.5f, c.WithAlpha(0.1f), 20, p.Aim - half, arc);  // how far they reach
-                foreach (int id in p.Grasp)
+                for (int g = 0; g < p.Grasp.Count; g++)
                 {
+                    int id = p.Grasp[g];
                     Enemy e;
                     if (!game.Enemies.TryGetValue(id, out e))
                         continue;
-                    // Roots spread across your front, so the tendrils fan out before they bend to their prey.
-                    float rootAng = p.Aim + (max <= 1 ? 0f : (held / (max - 1f) - 0.5f) * half);
-                    V2 root = p.Disp + V2.FromAngle(rootAng) * p.Def.BodyR;
-                    V2 toE = e.Disp - root;
-                    float len = toE.Length;
-                    V2 end = len > e.Radius ? e.Disp - toE / len * (e.Radius * 0.7f) : e.Disp;
-                    V2 bend = root + V2.FromAngle(rootAng) * (len * 0.45f);
-                    DrawTendril(root, bend, end, 6.5f, 3f, t * 9f + id, 1f);
+                    int on = Game.TendrilsOn(max, p.Grasp.Count, g);  // spare tendrils pile onto what's held
+                    for (int j = 0; j < on; j++, held++)
+                    {
+                        // Roots spread across your front, so the tendrils fan out before they bend to their prey.
+                        float rootAng = p.Aim + (max <= 1 ? 0f : (held / (max - 1f) - 0.5f) * half);
+                        V2 root = p.Disp + V2.FromAngle(rootAng) * p.Def.BodyR;
+                        V2 toE = e.Disp - root;
+                        float len = toE.Length;
+                        V2 end = len > e.Radius ? e.Disp - toE / len * (e.Radius * 0.7f) : e.Disp;
+                        end += toE.Orthogonal() / Mathf.Max(1f, len) * (e.Radius * 0.5f * (on <= 1 ? 0f : j / (on - 1f) - 0.5f));  // several bite in side by side
+                        V2 bend = root + V2.FromAngle(rootAng) * (len * 0.45f);
+                        DrawTendril(root, bend, end, 6.5f, 3f, t * 9f + id + j * 2.3f, 1f);
+                        // The drain: drops riding the tendril home.
+                        for (int k = 0; k < 3; k++)
+                        {
+                            float f = MathX.Fmod(t * 0.9f + k / 3f + id * 0.17f + j * 0.29f, 1f), u = 1f - f;
+                            V2 at = Bezier(root, bend, end, u), ahead = Bezier(root, bend, end, Mathf.Max(0f, u - 0.05f)) - at;
+                            DrawDrop(at, 2.4f, ahead.IsZero ? -toE.Normalized() : ahead.Normalized(), new Rgba(1f, 0.55f, 0.6f, 0.95f * Mathf.Sin(f * MathX.Pi)));
+                        }
+                    }
                     // Coiled round the enemy, tightening and loosening.
                     float squeeze = 0.5f + 0.5f * Mathf.Sin(t * 6f + id);
                     float coil = e.Radius + 3f - 1.5f * squeeze, spin = t * 1.8f + id;
@@ -272,14 +285,6 @@ namespace Arena
                         V2 d = V2.FromAngle(spin + 0.4f + k * 1.1f);
                         Line(e.Disp + d * (coil + 2f), e.Disp + d * (coil - 3f - squeeze * 2f), 1.5f, Bone.WithAlpha(0.8f));
                     }
-                    // The drain: drops riding the tendril home.
-                    for (int k = 0; k < 3; k++)
-                    {
-                        float f = MathX.Fmod(t * 0.9f + k / 3f + id * 0.17f, 1f), u = 1f - f;
-                        V2 at = Bezier(root, bend, end, u), ahead = Bezier(root, bend, end, Mathf.Max(0f, u - 0.05f)) - at;
-                        DrawDrop(at, 2.4f, ahead.IsZero ? -toE.Normalized() : ahead.Normalized(), new Rgba(1f, 0.55f, 0.6f, 0.95f * Mathf.Sin(f * MathX.Pi)));
-                    }
-                    held++;
                 }
                 // Free tendrils feel about the arc for something to grab.
                 int free = Mathf.Min(3, max - held);
