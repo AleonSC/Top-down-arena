@@ -223,6 +223,47 @@ namespace Arena
             }
         }
 
+        /// The Stun Gun drawn (Stun.cs): a stubby gun out in front with crackling prongs, and a pip per shot left.
+        void DrawHeldStunGun(Player p, float t)
+        {
+            if (p.StunShots <= 0 || p.Downed)
+                return;
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal(), grip = p.Disp + dir * (p.Def.BodyR + 2f);
+            Line(grip, grip + dir * 11f, 7f, new Rgba(0.2f, 0.24f, 0.32f));
+            Line(grip + dir * 2f, grip + dir * 9f, 3f, new Rgba(0.98f, 0.8f, 0.25f));  // the warning stripe
+            for (int k = -1; k <= 1; k += 2)
+                Line(grip + dir * 11f + side * (2.5f * k), grip + dir * 15f + side * (2.5f * k), 1.5f, StunCol);
+            if (Mathf.Sin(t * 30f + p.Id) > 0f)
+                Line(grip + dir * 15f + side * 2.5f, grip + dir * 15f - side * 2.5f, 1.5f, new Rgba(0.9f, 0.98f, 1f, 0.9f));
+            int max = Mathf.Max(Game.StunGunShots, p.StunShots);
+            float r = p.Def.BodyR + 13f, span = Mathf.Min(MathX.Pi * 0.9f, max * 0.2f);
+            for (int i = 0; i < max; i++)
+            {
+                float a = MathX.Pi / 2f + span / 2f - span * (max == 1 ? 0.5f : (float)i / (max - 1));
+                Circle(p.Disp + V2.FromAngle(a) * r, 2.8f, StunCol.WithAlpha(i < p.StunShots ? 0.95f : 0.15f), 8);
+            }
+        }
+
+        /// A Warden's Guard (Stun.cs): one of the riot's guards (same body, visor and baton), on your side: a ring in its
+        /// owner's colour under it, and a health bar once it's been hurt.
+        void DrawWardenGuard(Minion m, float t)
+        {
+            var c = m.Def.Color;
+            float r = m.Def.Radius;
+            Player owner;
+            var mark = game.Players.TryGetValue(m.Owner, out owner) ? owner.Def.Color : Rgba.White;
+            Circle(m.Disp, r + 7f, mark.WithAlpha(0.18f), 20);
+            Arc(m.Disp, r + 6f, 2f, mark.WithAlpha(0.8f), 24);
+            Polygon(m.Disp, r, m.Def.Sides, m.Aim, c);
+            V2 f = V2.FromAngle(m.Aim), side = f.Orthogonal();
+            Line(m.Disp + f * (r * 0.25f) - side * (r * 0.55f), m.Disp + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
+            V2 grip = m.Disp + side * (r * 0.8f), tip = grip + V2.FromAngle(m.Aim + 0.5f * Mathf.Sin(t * 9f + m.Id)) * (r + 12f);
+            Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
+            Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
+            if (m.GuardFrac < 0.999f)
+                Bar(m.Disp + new V2(-15f, -r - 10f), 30f, 3.5f, Mathf.Clamp01(m.GuardFrac), mark);
+        }
+
         /// A guard: a riot helmet's visor and a baton held out the way it's facing.
         void DrawGuardDetails(Enemy e, V2 pos, float r, float t)
         {

@@ -652,6 +652,25 @@ static partial class Program
         Console.WriteLine("  homing x3: near miss hit {0}, sideways shot turned {1:0.00} rad, shot damage {2:0.0} of 10", nearHit, wideTurn, near.Dmg);
         Check(nearHit && wideTurn < 0.05f, "Homing Rounds fix near misses but don't hunt enemies off to the side");
         Check(Math.Abs(near.Dmg - 7f) < 0.01f, "Homing Rounds cost 10% damage per stack");
+
+        // On area weapons Homing Rounds grow the area instead: a Fireball's blast is 75% wider at 3 stacks and
+        // doesn't bend; an Implosion reaches an enemy past its usual 55 px; the card says so.
+        var hp = g.Players[2];
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.Mage, 0);
+        g.Bullets.Clear();
+        volley.Invoke(g, new object[] { hp, 0f, 0 });
+        var ball = g.Bullets.Values.First(b => b.Owner == 2);
+        Console.WriteLine("  homing x3 on a Fireball: blast {0:0} px (60 normally), turn {1:0}, damage {2:0.0}", ball.Splash, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
+        Check(Math.Abs(ball.Splash - 105f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
+            "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 1);
+        var core = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f, 600f), 0f, 0, false });
+        var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f + 2f * core.Radius + 80f, 600f), 0f, 0, false });
+        core.SpawnT = far.SpawnT = 0f; core.Hp = core.MaxHp = far.Hp = far.MaxHp = 1e6f;
+        typeof(Game).GetMethod("Collapse", flags).Invoke(g, new object[] { hp, core, 1f, true, new Rgba(1f, 0f, 0f) });
+        Check(far.Hp < far.MaxHp && Upgrades.DescFor(Upgrades.All[Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds")], hp.Weapon).StartsWith("Implosion: the collapse"),
+            "an Implosion with Homing Rounds reaches enemies past its usual 55 px, and the card says what Homing does for it");
         s[0].Leave(""); s[1].Leave("");
     }
 }

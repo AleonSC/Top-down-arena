@@ -395,6 +395,7 @@ namespace Arena
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
             s.Byte(ref p.AmmoUsed);
+            s.Byte(ref p.StunShots);
             s.Float(ref p.ReloadT);
             float drawT = p.DrawT;
             s.Float(ref drawT);
@@ -530,7 +531,8 @@ namespace Arena
                 aim = m.Aim;
                 t = m.T;
                 duration = m.Duration;
-                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
+                m.GuardFrac = m.Kind == MinionKind.WardenGuard ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard: its health
+                    : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;
             }

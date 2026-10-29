@@ -133,7 +133,7 @@ namespace Arena
         void DrawImplodeMark(float t)
         {
             var me = game.Me;
-            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion)
+            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion || me.StunShots > 0)
                 return;
             var e = game.ImplodeTarget(me, me.AimAt, true);
             if (e == null)
@@ -186,13 +186,14 @@ namespace Arena
                 {
                     float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
                     V2 dir = V2.FromAngle(aim), side = dir.Orthogonal(), from = p.Disp + dir * p.Def.BodyR;
-                    V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true);
+                    float wide = Game.AreaMult(p);  // Homing Rounds widen it
+                    V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true, Game.VeinBeamHalfWidth * wide);
                     float len = from.DistanceTo(end);
                     bool hit = len < range - 1f;
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 18f + p.Id);
                     float tipFade = hit ? 1f : 0.55f;
-                    Line(from, end, 15f + 3f * pulse, c.WithAlpha(0.1f * tipFade));
-                    Line(from, end, 6f + 1.5f * pulse, c.WithAlpha(0.55f * tipFade));
+                    Line(from, end, (15f + 3f * pulse) * wide, c.WithAlpha(0.1f * tipFade));
+                    Line(from, end, (6f + 1.5f * pulse) * wide, c.WithAlpha(0.55f * tipFade));
                     Line(from, end, 2f, new Rgba(1f, 0.8f, 0.85f, 0.9f * tipFade));
                     // Two veins twisting around the beam.
                     for (int s = 0; s < 2; s++)

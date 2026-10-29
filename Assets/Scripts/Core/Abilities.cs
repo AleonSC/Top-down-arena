@@ -285,6 +285,9 @@ namespace Arena
                     }
                     BroadcastFx(FxKind.Ring, target, new Rgba(0.7f, 0.6f, 1f), 40f, 0.35f, Sfx.Blink);
                     break;
+                case AbilityId.StunGun:
+                    DrawStunGun(p, cap);  // Stun.cs
+                    break;
                 case AbilityId.Nova:
                     int novaShots = cap ? 48 : 24;
                     for (int i = 0; i < novaShots; i++)

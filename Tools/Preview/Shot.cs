@@ -48,6 +48,18 @@ class Shot {
         k++;
       }
     }
+    if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
+      // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
+      System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);
+      host.Game.GrantUpgrade(1, UL("Warden's Guard")); host.Game.GrantUpgrade(1, UL("Warden's Guard")); host.Game.GrantUpgrade(1, UL("Stun Gun"));
+      for (int f = 0; f < 90; f++) { Step(host); Thread.Sleep(1); }
+      foreach (var m in host.Game.Minions.Values) if (m.Kind == MinionKind.WardenGuard) { m.Hp = m.MaxHp * 0.6f; break; }
+      host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f;
+      foreach (var m in host.Game.Minions.Values) if (m.Kind == MinionKind.WardenGuard) { m.Pos = m.Disp = me.Pos + V2.FromAngle(m.Id) * 40f; m.Aim = -0.4f; }
+      Step(host);
+      me.StunShots = 4;
+      foreach (var sl in me.Slots) if (sl.Id == AbilityId.StunGun) { sl.Charges = 0; sl.Timer = Upgrades.Ability(AbilityId.StunGun).Cooldown; }
+    }
     if (Environment.GetEnvironmentVariable("IMPLODE") != null) {
       // Implosion: the cursor on an enemy (its target marker), and implosions going off at IMPLODE=<0..1> of the way through.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.Implosion); me.Kit = Kit.BloodMage; host.Game.Bot = false;
@@ -268,7 +280,7 @@ class Shot {
     {
       var rng = new System.Random(4);
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
-      foreach (var n in new[] { "Hollow Points", "Hollow Points", "Sharpened Rounds", "Quick Trigger", "Hair Trigger", "Fortitude", "Vitality", "Vitality", "Regeneration", "Focus", "Clarity", "Thick Skin", "Second Charge", "Multishot", "Multishot", "Piercing Rounds", "Overcharge", "Shockwave", "Blink", "Nova", "Warden's Halo", "Iron Volley", "Swarm Rounds", "Twin Fang", "Collapse Rounds", "Homing Rounds", "Homing Rounds", "Incendiary Rounds", "Shock Rounds", "Velocity Rounds", "Light Boots", "Sprinter", "Mending", "Executioner", "Royal Jelly" })
+      foreach (var n in new[] { "Hollow Points", "Hollow Points", "Sharpened Rounds", "Quick Trigger", "Hair Trigger", "Fortitude", "Vitality", "Vitality", "Regeneration", "Focus", "Clarity", "Thick Skin", "Second Charge", "Multishot", "Multishot", "Piercing Rounds", "Overcharge", "Shockwave", "Blink", "Nova", "Warden's Guard", "Stun Gun", "Swarm Rounds", "Twin Fang", "Collapse Rounds", "Homing Rounds", "Homing Rounds", "Incendiary Rounds", "Shock Rounds", "Velocity Rounds", "Light Boots", "Sprinter", "Mending", "Executioner", "Royal Jelly" })
         host.Game.GrantUpgrade(1, U(n));
       if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
       me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
@@ -299,8 +311,8 @@ class Shot {
       Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
       if (mode == "picker" && Environment.GetEnvironmentVariable("KEYS") != null) { host.Game.GrantUpgrade(1, U("Overdrive")); me.Offer = new[] { U("Shockwave"), U("Blink"), U("Nova") }; }
       else if (mode == "picker" && Environment.GetEnvironmentVariable("PICKCARDS") != null) me.Offer = Array.ConvertAll(Environment.GetEnvironmentVariable("PICKCARDS").Split(','), n => U(n));
-      else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Iron Volley") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
-      else if (mode == "legendary") { me.Offer = new[] { U("Warden's Halo"), U("Iron Volley"), U("Ringburst") }; me.OfferLegendary = true; }
+      else if (mode == "picker") me.Offer = Environment.GetEnvironmentVariable("REVOLVER") != null ? new[] { U("Multishot"), U("Hollow Points"), U("Barrage") } : Environment.GetEnvironmentVariable("PARRYCARDS") != null ? new[] { U("Reinforced Guard"), U("Counterstance"), U("Wide Guard") } : new[] { U("Hollow Points"), U("Multishot"), U("Blink") };
+      else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Ringburst") }; me.OfferLegendary = true; }
       else { me.Offer = Upgrades.ModOffer(me.Role, me.RoleAbility, me.Taken); me.OfferMod = true; }
       me.PendingPicks = 2;
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);

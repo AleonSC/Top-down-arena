@@ -88,7 +88,7 @@ namespace Arena
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
                         var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
-                        b.Splash = 60f;
+                        b.Splash = 60f * AreaMult(p);
                         b.HealBurst = 8f;
                     }
                     break;

@@ -19,10 +19,10 @@ namespace Arena
         public readonly Dictionary<int, Hazard> Hazards = new Dictionary<int, Hazard>();
         int nextHazardId = 1;
 
-        static bool IsLateGame(EnemyType t) => t >= EnemyType.Phantom && t <= EnemyType.GravityWell;
+        static bool IsLateGame(EnemyType t) => Defs.Get(t).Late;
 
         /// Too heavy to slow down, shove around or knock back.
-        static bool Heavy(Enemy e) => e.Def.IsBoss || e.Type == EnemyType.Juggernaut || e.Type == EnemyType.Nest || e.Type == EnemyType.Phylactery;
+        static bool Heavy(Enemy e) => e.Def.IsBoss || e.Def.Heavy;
 
         /// The Devourer heals from your shots while it's hungry.
         public static bool Hungry(Enemy e) => e.Type == EnemyType.Devourer && e.Phase == 1;
