@@ -148,6 +148,17 @@ static partial class Program
         a.Pos = at + new V2(400f, 0f);
         Hold(true, 0.3f);
         Check(!me.Grasp.Contains(a.Id) && me.Grasp.Contains(d.Id), "an enemy pulled out of reach slips free and a free tendril grabs the next");
+        // Alone in reach, an enemy gets every tendril: three drains at once (about 36 a second).
+        foreach (var e in all) if (e != a) e.Hp = 0f;
+        a.Pos = at + new V2(90f, 0f);
+        Hold(true, 0.3f);
+        float alone0 = a.Hp;
+        Hold(true, 2f);
+        float alone = alone0 - a.Hp;
+        Console.WriteLine("  leech tendrils: {0:0} damage in 2 s to a lone enemy (all {1} tendrils on it)", alone, Game.TendrilsOn(3, 1, 0));
+        Check(me.Grasp.Count == 1 && Game.TendrilsOn(3, 1, 0) == 3 && alone > 3f * 18f && alone < 3f * 28f,
+            "spare tendrils pile onto the enemies already held: a lone one takes all three");
+        Check(Game.TendrilsOn(5, 2, 0) == 3 && Game.TendrilsOn(5, 2, 1) == 2 && Game.TendrilsOn(3, 3, 2) == 1, "spare tendrils are shared out, nearest first");
         host.Leave(""); client.Leave("");
     }
 

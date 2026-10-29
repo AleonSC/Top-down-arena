@@ -388,8 +388,8 @@ const W = [
   { id: "Clot Bolt", role: "Tank", kit: "Hemomancer", every: 0.75, desc: "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it.", shot: "Clot", xtra: "+1 bolt, fanned out",
     rows: [["Damage", "26"], ["Pool", "70 px where it hits, slows enemies 40% for 3 s"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 26,
     fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Clot", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.2 * (n - 1)), 520, 1, 26, { pool: 70 }); } },
-  { id: "Leech Tendrils", role: "Tank", kit: "Hemomancer", every: 0.1, grasp: true, desc: "Hold to lash out blood tendrils in an arc in front of you. They grasp up to 3 enemies for as long as you hold on: held enemies are stunned, drained slowly, and the drain heals you.", shot: "Leech", xtra: "+1 tendril and +20 px reach",
-    rows: [["Grasp", "Up to 3 enemies in a 70° arc, 160 px from your edge (nearest first); held while you hold fire, and they slip free past 130% of the reach"], ["Stun", "Held enemies can't move or shoot (bosses are held and drained, but not stunned)"], ["Damage", "1.2 every 0.1 s (12/s) to each held enemy"], ["Heals you", "25% of its damage (3/s for each held enemy)"], ["Barrage", "+1 tendril a stack"], ["Speed / range", "instant · 160 px"]], dmgPerVolley: 1.2,
+  { id: "Leech Tendrils", role: "Tank", kit: "Hemomancer", every: 0.1, grasp: true, desc: "Hold to lash out blood tendrils in an arc in front of you. They grasp up to 3 enemies for as long as you hold on: held enemies are stunned, drained slowly, and the drain heals you. Spare tendrils pile onto what's held, so a lone enemy takes them all.", shot: "Leech", xtra: "+1 tendril and +20 px reach",
+    rows: [["Grasp", "Up to 3 enemies in a 70° arc, 160 px from your edge (nearest first); held while you hold fire, and they slip free past 130% of the reach"], ["Stun", "Held enemies can't move or shoot (bosses are held and drained, but not stunned)"], ["Damage", "1.2 every 0.1 s (12/s) per tendril; spare tendrils pile onto held enemies (a lone one takes all 3: 36/s)"], ["Heals you", "25% of its damage (3/s per tendril)"], ["Barrage", "+1 tendril a stack"], ["Speed / range", "instant · 160 px"]], dmgPerVolley: 1.2,
     fire: (s, a, x, fan = 0) => s.grasp(a, 160 + 20 * x, 3 + x + fan, 1.2) },
   // Healer
   { id: "Light Bolt", role: "Healer", kit: "Soldier", every: 0.25, desc: "Accurate long-range bolts.", shot: "Healer", xtra: "+1 small homing bolt (6 damage) with every shot",
@@ -1014,7 +1014,8 @@ const rangeApi = {
       return diff <= 35 * Math.PI / 180 + Math.asin(Math.min(1, d.r / Math.max(1, l)));
     })()).sort((u, v) => gap(u) - gap(v));
     while (g.held.length < n && free.length) g.held.push(free.shift());
-    for (const d of g.held) hitDummy(d, dmg * WS.dmg);
+    // Spare tendrils pile onto the dummies already held, nearest first.
+    g.held.forEach((d, i) => { const spare = Math.max(0, n - g.held.length), on = 1 + Math.floor(spare / g.held.length) + (i < spare % g.held.length ? 1 : 0); hitDummy(d, dmg * on * WS.dmg); });
     Object.assign(g, { a, reach, n, t: 0 });
   },
   // An implosion (Implosion): the dummy you aim at collapses, the ones touching it take splash, and each extra

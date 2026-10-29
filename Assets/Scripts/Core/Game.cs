@@ -984,8 +984,6 @@ namespace Arena
             {
                 botT += dt;
                 SmartBot(me, dt, ref move, ref aimAt, ref firing, held);  // BotBrain.cs
-                if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
-                    PickUpgrade(rng.Next(me.Offer.Length));
             }
             else if (Bot)
             {
@@ -1003,9 +1001,12 @@ namespace Arena
                 firing = !me.Downed && (me.Weapon.Id != WeaponId.MendersBow || MathX.Fmod(botT, 1.2f) < 1f);  // bow: draw, then let go
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
+            }
+            if (Bot)
+            {
+                // Both bots: level-up picks (reroll once per pick while rerolls last, then pick at random) and the Bazaar.
                 if (me.Offer != null && MathX.Fmod(botT, 0.5f) < dt)
                 {
-                    // Reroll once per pick while rerolls last, then pick at random.
                     if (BotRerolls && me.Rerolls > 0 && botRerolledAt != me.Taken.Count)
                     {
                         botRerolledAt = me.Taken.Count;

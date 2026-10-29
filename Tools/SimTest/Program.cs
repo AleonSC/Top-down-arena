@@ -155,7 +155,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => FlamethrowerTest(Dt),
+        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt),
     };
 
     static void RunFeatures()
@@ -209,6 +209,7 @@ static partial class Program
         Test("dev", "the F1 dev tools", () => DevToolsTest(Dt)),
         Test("textedit", "the dev text editor's overrides", TextOverridesTest),
         Test("labtest", "the Boss Lab", () => BossLabTest(Dt)),
+        Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
         new Suite { Name = "session", What = "session recording (run.sh 1 30 session [copy-to])", Run = args =>
             Seeded("session", () => { var path = SessionTest(Dt); if (args.Length > 3 && path != null) File.Copy(path, args[3], true); }) },
         // Reports and debug tools (no pass/fail).

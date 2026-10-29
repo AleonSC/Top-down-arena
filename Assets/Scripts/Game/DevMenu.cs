@@ -204,7 +204,12 @@ namespace Arena
             y = DevCard(ov, "Overlays and helpers", "Just for you, on this computer.", Ui.Accent);
             aimDebug = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
             y += 32f;
-            game.Bot = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
+            bool bot = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
+            if (bot != game.Bot)
+            {
+                game.Bot = bot;
+                game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
+            }
             y += 32f;
             bool editText = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
             if (editText != textEditMode)
