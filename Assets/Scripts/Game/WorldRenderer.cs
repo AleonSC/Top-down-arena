@@ -65,7 +65,7 @@ namespace Arena
 
             if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
                 DrawAimLine(game.Me, MouseArena(), t);
-            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol)
+            if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
@@ -106,6 +106,7 @@ namespace Arena
                     DrawBigShot(b, t);
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
+            DrawPlayerSearchlights(t);
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
@@ -124,11 +125,13 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
+            DrawLeechTendrils(t);
             DrawImplodeMark(t);
             foreach (var p in game.Players.Values)
             {
                 DrawPlayerWrapped(p, t);
                 DrawStunned(p, t);  // WardenLook.cs
+                DrawHeldStunGun(p, t);
             }
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot)
@@ -349,7 +352,7 @@ namespace Arena
                 DrawBloodShot(b, c, t);  // BloodMageLook.cs
                 return;
             }
-            if (b.Kind == Defs.StunShot)
+            if (b.Kind == Defs.StunShot || b.Kind == Defs.StunBolt)  // the Stun Gun fires the Warden's own stun shots
             {
                 DrawStunShot(b, t);  // WardenLook.cs
                 return;
@@ -858,6 +861,11 @@ namespace Arena
             if (m.Kind == MinionKind.Clone)
             {
                 DrawClone(m, t);
+                return;
+            }
+            if (m.Kind == MinionKind.WardenGuard)
+            {
+                DrawWardenGuard(m, t);  // WardenLook.cs
                 return;
             }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;

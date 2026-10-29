@@ -30,6 +30,7 @@ namespace Arena
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
             amount *= 1f - IronBodyCut(p);  // the Ninja's Iron Body
             amount *= 1f - BloodCut(p);     // Blood Rite, a mastered Crimson Pact
+            amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
             if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
@@ -84,8 +85,9 @@ namespace Arena
             {
                 p = Players[owner];
                 vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
-                homing = Math.Max(homing, p.Stats.Homing);
-                dmg *= 1f - HomingDamageCost * p.Stats.Homing;  // Homing Rounds trade damage for forgiveness
+                if (!AreaWeapon(p.Weapon.Id))  // area weapons get bigger areas instead (AreaMult)
+                    homing = Math.Max(homing, p.Stats.Homing);
+                dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
             }
             if (owner == 0 && Defs.IsEnemyShot(kind))
                 enemyShots++;
@@ -251,6 +253,15 @@ namespace Arena
 
         /// Homing Rounds (2 turn per stack) cost 5% damage per point of turn: 10% a stack.
         public const float HomingDamageCost = 0.05f;
+
+        /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
+        /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
+        /// the same damage cost.
+        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam;
+        public const float HomingAreaPerStack = 0.25f;
+        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
+        static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
         const float HomingRange = 260f, HomingCone = 0.7f;  // only enemies within 260 px and ~45 degrees of the shot's path
 
         /// Homing Rounds: bend toward the nearest enemy close ahead, so near misses connect but a shot
@@ -325,6 +336,7 @@ namespace Arena
             ricochets.Clear();
             ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
             ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
+            ResolveGrasps();  // Leech Tendrils' holds
             ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
@@ -380,7 +392,7 @@ namespace Arena
                 }
                 else
                 {
-                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b))
+                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b) || GuardStopsBullet(b))  // GuardStopsBullet: Stun.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -611,6 +623,8 @@ namespace Arena
             }
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
+            if (attacker > 0)
+                dmg *= LitMult(e);  // in a Searchlight (Stun.cs)
             if (Hungry(e))
             {
                 e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);  // the Devourer feeds on your shots
@@ -661,7 +675,8 @@ namespace Arena
         void OnBulletHit(Bullet b, Enemy e)
         {
             if (b.Chain > 0)
-                ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner);
+                ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
+            StunBoltHit(b, e);  // Stun.cs
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
                 e.SlowT = Math.Max(e.SlowT, 1.5f);
@@ -741,11 +756,6 @@ namespace Arena
             {
                 Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
-            }
-            for (int i = 0; i < s.KillRing; i++)
-            {
-                V2 d = V2.FromAngle(MathX.Tau * i / s.KillRing);
-                SpawnBullet(Defs.NovaShot, e.Pos + d * e.Radius, d * 420f, 0f, 0.7f, 10f * s.DmgMult, p.Id);
             }
             if (s.BroodChance > 0f && rng.NextDouble() < s.BroodChance)
                 SpawnMinion(MinionKind.Turret, p, e.Pos, 4f);

@@ -90,7 +90,7 @@ Health is the Hemomancer's resource. It has full health and normal speed, and:
 
 | | Weapons | Space abilities (cost) | Ultimate |
 |---|---|---|---|
-| **Tank** | **Blood Lash** (a 110 px, 130° whip of blood, 24; heals you 3 per enemy hit), **Clot Bolt** (a heavy bolt, 26, that leaves a pool of blood slowing enemies 40% for 3 s), **Leech Beam** (a rapid short beam; 30% of its damage heals you) | **Blood Shell** (15%: a shield worth three times what you paid, 5 s), **Crimson Pact** (10%: every enemy targets you for 4 s, then the damage you took bursts back out at 150% within 220 px), **Exsanguinate** (10%: pull enemies within 220 px in and drain 20 from each into you) | **Blood Rite** (75 s): for 8 s every enemy targets you and you take 60% less damage; the damage you take heals your allies |
+| **Tank** | **Blood Lash** (a 110 px, 130° whip of blood, 24; heals you 3 per enemy hit), **Clot Bolt** (a heavy bolt, 26, that leaves a pool of blood slowing enemies 40% for 3 s), **Leech Tendrils** (hold fire: blood tendrils grasp up to 3 enemies in a 70° arc in front of you for as long as you hold on; they're stunned and drained slowly, and 25% of the drain heals you) | **Blood Shell** (15%: a shield worth three times what you paid, 5 s), **Crimson Pact** (10%: every enemy targets you for 4 s, then the damage you took bursts back out at 150% within 220 px), **Exsanguinate** (10%: pull enemies within 220 px in and drain 20 from each into you) | **Blood Rite** (75 s): for 8 s every enemy targets you and you take 60% less damage; the damage you take heals your allies |
 | **Healer** | **Transfusion Darts** (darts that heal an ally they reach for 8, costing you 3), **Sanguine Orb** (homing orbs, 16; their kills have a 40% chance to drop a small health orb), **Vein Tether** (a real beam: it hurts whatever is on your aim line, so keep it on your target; 40% of its damage heals, split between you and the nearest ally) | **Blood Gift** (25% of current health: the most hurt ally heals twice what you paid; alone, a shield for you), **Siphon Field** (10%: a 140 px field at your feet for 6 s, enemies inside lose 10 HP/s and allies heal 10 HP/s), **Martyr** (40%: revive the downed ally nearest your cursor, anywhere, at 50%; if no one is down, the most hurt ally heals twice what you paid) | **Sanguine Rain** (80 s): for 6 s every hit any ally lands heals them for 20% of its damage |
 | **DPS** | **Blood Bolts** (fast bolts, 9), **Implosion** (click an enemy: its blood collapses inward, 34, hurting enemies against it for 15 and pulling them in; fires only with your cursor on an enemy, up to 480 px away), **Bone Spear** (a heavy spear, 60, that pierces 3; each throw costs 2 health) | **Blood Boil** (20%: enemies within 260 px burst after 1 s for three times what you paid), **Frenzy Pact** (5%: for 6 s fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s), **Hemo Nova** (10%: a ring of 16 blood bolts, 20 each, each that hits heals you 3) | **Crimson Apotheosis** (65 s): for 6 s you can't drop below 1 HP and Blood Price goes up to +100%; when it ends you heal for half the damage you dealt |
 
@@ -112,8 +112,8 @@ them), and blink before vanishing after 12 seconds.
 Each role picks one of three starting weapons in the lobby. Damage, fire rate and Piercing upgrades work
 with all of them.
 
-**Extra projectiles** (Multishot, Iron Volley, and +2 during Bullet Storm) upgrade each weapon in its own
-way instead of adding more bullets in a line. The Multishot and Iron Volley cards show what they'll do for
+**Extra projectiles** (Multishot, and +2 during Bullet Storm) upgrade each weapon in its own
+way instead of adding more bullets in a line. The Multishot card shows what it'll do for
 your weapon. Per extra projectile:
 
 | Class | Weapon | Base | Each extra projectile |
@@ -165,7 +165,7 @@ your weapon. Per extra projectile:
 | | **Kunai** | Rapid knives (8), +50% on enemies that aren't targeting you | +1 knife, fanned out (half damage) |
 | Tank · Hemomancer | **Blood Lash** | 130° whip (24) with 110 px reach; heals you 3 per enemy hit | +20 px reach and +1 HP healed per hit |
 | | **Clot Bolt** | A heavy bolt (26) that leaves a 70 px pool slowing enemies 40% for 3 s | +1 bolt, fanned out |
-| | **Leech Beam** | A rapid short beam (4); 30% of its damage heals you | +25% beam length and +25% damage |
+| | **Leech Tendrils** | Hold fire: tendrils lash out across a 70° arc (160 px from your edge) and grasp the nearest 3 enemies for as long as you hold on (Barrage adds a tendril a stack; shields turn them away; a held enemy slips free past 130% of the reach). Held enemies can't move or shoot (bosses are held and drained but not stunned) and take 1.2 every 0.1 s (12/s each); 25% of it heals you. Let go and they're free | +1 tendril and +20 px reach |
 | Healer · Hemomancer | **Transfusion Darts** | Darts (7) that heal an ally they reach for 8, costing you 3 | +1 dart, fanned out |
 | | **Sanguine Orb** | Homing orbs (16); kills may drop a small health orb (40%) | +1 orb, fanned out |
 | | **Vein Tether** | An instant beam, 350 px: 4 damage every 0.08 s to the first enemy on your aim line (Pierce passes through more, Barrage adds fanned beams; shields stop it). Only what you hold it on gets hurt. 40% of its damage heals you and the nearest ally | +25% beam length and +25% damage |
@@ -285,7 +285,7 @@ have chosen.
 
 | Boss | Legendary weapon upgrades |
 |---|---|
-| The Warden | **Warden's Halo** (every 4th volley adds a ring of 8 shots) · **Iron Volley** (+1 projectile, +25% damage) · **Ringburst** (kills burst into 6 shots) |
+| The Warden | **Warden's Guard** (one of the Warden's guards walks at your side and fights enemies within 240 px of you with its baton, 14 damage every 0.7 s; it has 150 health + 15 per wave, enemy shots and bodies hurt it, and a fallen guard is replaced 15 s later; +1 guard per stack) · **Stun Gun** (a new Q / E / Shift ability, 14 s: draw a stun gun with 6 shots, 15 damage each, that stun enemies for 1.5 s (bosses are slowed 50% instead); your weapon is away until they're spent, and only then does the cooldown start; capstone: 9 shots) · **Searchlight** (a pool of light, 110 px, chases your cursor at 1100 px/s; enemies in it take 25% more damage from every player, and one held in it for 2 s is stunned for 1 s, bosses slowed 40% instead, then can't be locked again for 3 s; the 2nd stack widens it to 140 px, the 3rd makes it +40%) |
 | Hive Queen | **Swarm Rounds** (shots split into 3 on hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (20% of kills spawn a 4 s mini-turret) |
 | Twin Reapers | **Executioner** (double damage below 35% HP) · **Twin Fang** (25% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
 | The Singularity | **Collapse Rounds** (shots implode on impact) · **Graviton Rounds** (hits slow enemies 40%) · **Dark Matter** (+2 pierce, +20% damage) |
@@ -294,7 +294,7 @@ have chosen.
 
 | Mod | Per stack |
 |---|---|
-| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder |
+| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc or lightning's jump, for the same damage cost |
 | **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack |
 | **Incendiary Rounds** | Hits set enemies on fire for 3 s, burning 25% of the hit's damage per second |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
@@ -710,6 +710,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
+  - `Stun.cs`: the Warden's legendaries: the Stun Gun ability and Warden's Guard companions
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab

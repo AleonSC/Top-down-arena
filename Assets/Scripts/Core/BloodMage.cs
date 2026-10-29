@@ -9,8 +9,11 @@ namespace Arena
     public partial class Game
     {
         const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.3f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
+        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
+        public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
+        public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
+        const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 3f;
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
@@ -21,6 +24,11 @@ namespace Arena
         const float NovaDamage = 20f, NovaHeal = 3f;
         const float MoonCut = 0.6f, RainSteal = 0.2f;
         public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
+        public const float LashTipFrom = 0.7f, LashCrack = 2f, LashTaunt = 1.5f;  // Blood Lash: the outer 30% of its reach cracks
+        public const int ClotMaxBase = 5;
+        public const float ClotCutEach = 0.04f, ClotHold = 3f, ClotFade = 0.5f;  // each Clot stack; how long they hold, then one fades per ClotFade
+        const float ClotBurstReach = 1.3f, ClotBurstMult = 2f, ClotBurstKnock = 50f;
+        static readonly Rgba LashRed = new Rgba(0.85f, 0.1f, 0.18f);
         const float ImplodeSplash = 55f, ImplodeSplashDamage = 15f, ImplodePull = 18f, ImplodeChain = 180f, ImplodeChainMult = 0.6f;
 
         // --- Weapons ------------------------------------------------------------------
@@ -33,9 +41,25 @@ namespace Arena
             {
                 case WeaponId.BloodLash:
                 {
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 130f, w.Damage * dmg);
+                    p.ClotMax = ClotMaxBase + extra;
+                    if (p.Clot >= p.ClotMax)
+                    {
+                        // Clot Burst: every stack spent on one lash all round you that shoves and taunts.
+                        var b = NewSwing(p, aim, (w.Reach + w.Grow * extra) * ClotBurstReach, 360f, w.Damage * ClotBurstMult * dmg);
+                        b.NoCut = true;
+                        b.Knock = ClotBurstKnock;
+                        b.Taunt = LashTaunt;
+                        b.Heavy = true;
+                        pendingSwings.Add(b);
+                        p.Clot = 0;
+                        p.ClotT = 0f;
+                        BroadcastFx(FxKind.Ring, p.Pos, LashRed, b.Reach, 0.35f, Sfx.SpellArcane);
+                        break;
+                    }
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 110f, w.Damage * dmg);
                     s.NoCut = true;  // a whip of blood, not a blade
-                    s.SelfHeal = 3f + extra;
+                    s.Tip = s.Reach * LashTipFrom;
+                    s.Clots = true;
                     pendingSwings.Add(s);
                     break;
                 }
@@ -45,29 +69,27 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Pool = ClotPoolRadius;
+                        b.Pool = ClotPoolRadius * AreaMult(p);
                         b.PoolTime = ClotPoolTime;
                     }
                     break;
                 }
                 case WeaponId.LeechBeam:
-                {
-                    float k = 1f + w.Grow * extra;
-                    SpawnBullet(Defs.LeechShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * w.Speed, 0f, w.Life * k, w.Damage * k * dmg, p.Id);
+                    // Leech Tendrils: no projectile; each tick the tendrils hold on, reach for more and drain (Collide).
+                    pendingGrasps.Add(new Grasp { Owner = p.Id, Aim = aim, Extra = extra, Dmg = w.Damage * dmg });
                     break;
-                }
                 case WeaponId.VeinTether:
                 {
                     // A real beam: it hits whatever is on your aim line right now, so you have to keep it on them.
                     float k = 1f + w.Grow * extra;
-                    float beamDmg = w.Damage * k * dmg * (casting && !firingWeapon ? castPower : 1f);
+                    float beamDmg = w.Damage * k * dmg * HomingCost(p) * (casting && !firingWeapon ? castPower : 1f);
                     int pierce = p.Stats.Pierce;
                     if (p.SurgeT > 0f)  // Arcane Surge, as on bullets
                     {
                         beamDmg *= 1.6f;
                         pierce += 2;
                     }
-                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce });  // Velocity Rounds stretch it
+                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce, HalfWidth = VeinBeamHalfWidth * AreaMult(p) });  // Velocity Rounds stretch it
                     break;
                 }
                 case WeaponId.TransfusionDarts:
@@ -115,7 +137,7 @@ namespace Arena
 
         // --- Vein Tether's beam ----------------------------------------------------------
 
-        class VeinBeam { public int Owner, Pierce; public float Aim, Range, Dmg; }
+        class VeinBeam { public int Owner, Pierce; public float Aim, Range, Dmg, HalfWidth; }
 
         readonly List<VeinBeam> pendingBeams = new List<VeinBeam>();
         readonly List<Enemy> beamHits = new List<Enemy>();
@@ -123,7 +145,7 @@ namespace Arena
         /// Where a beam from `from` along `aim` stops: at the first enemy it can't pass (a shield, or the last it
         /// pierces), else at its full range. Fills `hits` (if given) with the enemies it touches, nearest first.
         /// The host uses real positions; screens pass `drawn` to use where enemies are drawn.
-        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false)
+        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false, float halfWidth = VeinBeamHalfWidth)
         {
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             beamOrder.Clear();
@@ -132,7 +154,7 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Hp <= 0f)
                     continue;
                 V2 rel = (drawn ? e.Disp : e.Pos) - from;
-                float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + VeinBeamHalfWidth;
+                float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + halfWidth;
                 if (across > reach || along < -e.Radius || along - e.Radius > range)
                     continue;
                 float enter = along - (float)Math.Sqrt(Math.Max(0f, reach * reach - across * across));
@@ -153,6 +175,80 @@ namespace Arena
         }
 
         readonly List<KeyValuePair<float, Enemy>> beamOrder = new List<KeyValuePair<float, Enemy>>();
+
+        // --- Leech Tendrils: hold to grasp the enemies in front of you ----------------------
+
+        class Grasp { public int Owner, Extra; public float Aim, Dmg; }
+
+        readonly List<Grasp> pendingGrasps = new List<Grasp>();
+        readonly List<Enemy> graspNew = new List<Enemy>();
+
+        /// How far Leech Tendrils reach from the player's edge.
+        public float GraspReach(Player p) => (p.Weapon.Reach + p.Weapon.Grow * ExtraShots(p)) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch them
+
+        /// How wide the player's tendrils reach (Homing Rounds widen it 25% a stack).
+        public static float GraspArcFor(Player p) => GraspArc * AreaMult(p);
+
+        /// Is the enemy (its body) within the tendrils' arc (`arc` wide) in front of you?
+        public static bool InGraspArc(V2 from, float aim, V2 pos, float radius, float arc = GraspArc)
+        {
+            V2 rel = pos - from;
+            float d = rel.Length;
+            if (d <= radius)
+                return true;
+            float cos = (rel.X * (float)Math.Cos(aim) + rel.Y * (float)Math.Sin(aim)) / d;
+            float off = (float)Math.Acos(Math.Max(-1f, Math.Min(1f, cos))), slack = (float)Math.Asin(radius / d);
+            return off <= arc / 2f + slack;
+        }
+
+        /// Called from Collide after the beams: each tick, held enemies too far away (or dead) slip free, free
+        /// tendrils grab the nearest enemies in the arc in front of you, and every held enemy is stunned and drained.
+        void ResolveGrasps()
+        {
+            foreach (var gr in pendingGrasps)
+            {
+                Player p;
+                if (!Players.TryGetValue(gr.Owner, out p) || p.Downed)
+                    continue;
+                float reach = p.Def.BodyR + GraspReach(p);
+                int max = GraspTendrils + gr.Extra + p.Stats.Fan;
+                Enemy e;
+                p.Grasp.RemoveAll(id => !Enemies.TryGetValue(id, out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo);
+                if (p.Grasp.Count > max)
+                    p.Grasp.RemoveRange(max, p.Grasp.Count - max);
+                // Free tendrils reach for the nearest enemies in the arc (shields turn them away).
+                graspNew.Clear();
+                foreach (var o in Enemies.Values)
+                    if (!IsSpawning(o) && o.Hp > 0f && !p.Grasp.Contains(o.Id) && o.Pos.DistanceTo(p.Pos) - o.Radius <= reach
+                        && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius, GraspArcFor(p)) && !BlocksShot(o, p.Pos))
+                        graspNew.Add(o);
+                graspNew.Sort((a, b) => a.Pos.DistanceSq(p.Pos).CompareTo(b.Pos.DistanceSq(p.Pos)));
+                for (int i = 0; i < graspNew.Count && p.Grasp.Count < max; i++)
+                    p.Grasp.Add(graspNew[i].Id);
+                p.Run.ShotsFired++;
+                if (p.Grasp.Count > 0)
+                    p.Run.ShotsHit++;
+                foreach (int id in p.Grasp)
+                {
+                    if (!Enemies.TryGetValue(id, out e) || e.Hp <= 0f)
+                        continue;  // killed by another tendril's on-hit effects
+                    if (!e.Def.IsBoss)
+                        e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
+                    V2 dir = (e.Pos - p.Pos).Normalized();
+                    float hit = gr.Dmg * HomingCost(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);
+                    HurtEnemy(e, hit, p.Id);
+                    var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
+                    BloodShotHit(pseudo, e, hit);  // the leech
+                    OnBulletHit(pseudo, e);
+                }
+            }
+            pendingGrasps.Clear();
+        }
+
+        /// Are this player's Leech Tendrils out? (Each screen draws them itself, from the held enemies in the snapshot.)
+        public bool GraspOn(Player p) =>
+            p.Weapon.Id == WeaponId.LeechBeam && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            && State != MatchState.GameOver && State != MatchState.Victory;
 
         // --- Implosion: click an enemy and its blood collapses inward ---------------------
 
@@ -225,7 +321,7 @@ namespace Arena
         {
             imploded.Add(e);
             HitImplode(p, e, p.Weapon.Damage * mult);
-            float r = e.Radius + ImplodeSplash;
+            float r = e.Radius + ImplodeSplash * AreaMult(p);  // Homing Rounds widen it
             if (splash)
                 foreach (var o in Enemies.Values)
                 {
@@ -246,7 +342,7 @@ namespace Arena
 
         void HitImplode(Player p, Enemy e, float dmg)
         {
-            float hit = dmg * NinjaHitMult(p.Id, Defs.ImplodeShot, e);
+            float hit = dmg * HomingCost(p) * NinjaHitMult(p.Id, Defs.ImplodeShot, e);
             HurtEnemy(e, hit, p.Id);
             var pseudo = new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = hit, Kind = Defs.ImplodeShot };
             BloodShotHit(pseudo, e, hit);
@@ -263,7 +359,7 @@ namespace Arena
                 if (!Players.TryGetValue(beam.Owner, out p) || p.Downed)
                     continue;
                 V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * p.Def.BodyR;  // from your edge, like shots (so it ends where the aim line does)
-                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits);
+                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits, false, beam.HalfWidth);
                 p.Run.ShotsFired++;
                 if (beamHits.Count > 0)
                     p.Run.ShotsHit++;
@@ -281,7 +377,7 @@ namespace Arena
 
         /// Is this player's Vein Tether beam showing? (Each screen draws the beams itself.)
         public bool BeamOn(Player p) =>
-            p.Weapon.Id == WeaponId.VeinTether && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            p.Weapon.Id == WeaponId.VeinTether && p.StunShots == 0 && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
             && State != MatchState.GameOver && State != MatchState.Victory;
 
         /// Shot i of n, fanned out `step` radians apart around the aim.
@@ -405,6 +501,40 @@ namespace Arena
 
         /// Damage cut from Blood Rite and a mastered Crimson Pact (Damage).
         float BloodCut(Player p) => Math.Max(BloodRiteUp(p) ? MoonCut : 0f, p.PactT > 0f && p.PactMastered ? PactMasteredCut : 0f);
+
+        /// Blood Lash's Clot: each stack takes 4% off the damage you take.
+        public static float ClotCut(Player p) => Math.Min(0.5f, ClotCutEach * p.Clot);
+
+        void AddClot(Player p, int n)
+        {
+            p.Clot = Math.Min(p.ClotMax, p.Clot + n);
+            p.ClotT = ClotHold;
+        }
+
+        /// A Blood Lash hit: the tip cracks (its double damage is already in) and taunts; closer in, the enemy is
+        /// flung out to the tip, where the next lash cracks it.
+        void LashHit(Player p, Enemy e, Swing s, bool crack)
+        {
+            if (crack)
+            {
+                TauntEnemy(p, e, LashTaunt);
+                BroadcastFx(FxKind.Ring, e.Pos, LashRed, e.Radius + 10f, 0.18f, Sfx.None);
+                return;
+            }
+            if (Heavy(e))
+                return;
+            V2 away = (e.Pos - p.Pos).Normalized();
+            if (away.IsZero)
+                away = V2.FromAngle(s.Aim);
+            e.Pos = ClampToArena(p.Pos + away * (s.Tip + e.Radius * 0.5f), e.Radius);
+        }
+
+        /// This enemy goes for `p` for a while (a Clot Burst, a cracking Blood Lash).
+        void TauntEnemy(Player p, Enemy e, float time)
+        {
+            e.TargetId = p.Id;
+            e.RetargetT = Math.Max(e.RetargetT, time);
+        }
 
         /// Damage about to come off a player's health (after shields): Crimson Pact stores it, Blood Rite turns it
         /// into healing for everyone else.
@@ -706,11 +836,19 @@ namespace Arena
             {
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.SanguineRain)
                     rainSteal = Math.Max(rainSteal, Mastered(p, AbilityId.SanguineRain) ? 0.3f : RainSteal);
+                if (p.Grasp.Count > 0 && (p.Downed || !p.Firing || p.ParryActive || p.Weapon.Id != WeaponId.LeechBeam))
+                    p.Grasp.Clear();  // let go of fire and the tendrils let go too
                 if (p.Downed)
                 {
                     p.PactT = p.RushT = 0f;
                     p.ApoUp = false;
+                    p.Clot = 0;
                     continue;
+                }
+                if (p.Clot > 0 && (p.ClotT -= dt) <= 0f)  // Clot holds while you keep hitting, then fades a stack at a time
+                {
+                    p.Clot--;
+                    p.ClotT = ClotFade;
                 }
                 if (p.PactT > 0f)
                 {

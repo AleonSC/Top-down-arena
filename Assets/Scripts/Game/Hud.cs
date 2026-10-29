@@ -863,6 +863,8 @@ namespace Arena
                     Ui.Fancy(new Rect(r.x + 8f, r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, hi, lo, TextAnchor.MiddleRight,
                         new Color(lo.r, lo.g, lo.b, ultimate ? 0.6f + 0.4f * pulse : 0.8f));
                 }
+                else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
+                    Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 12, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
                 else
                     Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
                         14, Color.white, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleRight);

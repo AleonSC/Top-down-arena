@@ -24,6 +24,7 @@ namespace Arena
         // Blood Mage (Space), then the Blood Mage ultimates
         BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
         BloodRite, SanguineRain, CrimsonApotheosis,
+        StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
         None = 255,
     }
 
@@ -80,7 +81,7 @@ namespace Arena
         public int NovaExtraBolts;
 
         // Legendary weapon upgrades from bosses.
-        public int HaloEvery, KillRing, SplitShots;
+        public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
         public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit;
 
         // Weapon mods, one picked after each boss (and its legendary).
@@ -120,9 +121,9 @@ namespace Arena
 
         /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
-        /// BloodMage.cs. An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
+        /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.MageAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities);
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities);
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -292,12 +293,14 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Halo", Desc = "Every 4th volley also fires a ring of 8 shots around you",
-                Apply = s => s.HaloEvery = s.HaloEvery == 0 ? 4 : Math.Max(2, s.HaloEvery - 1) },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Iron Volley", Desc = "+1 projectile per volley and +25% damage",
-                Apply = s => { s.ExtraShots += 1; s.DmgMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Ringburst", Desc = "Enemies you kill burst into a ring of 6 shots",
-                Apply = s => s.KillRing += 6 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Guard",
+                Desc = "One of the Warden's riot guards switches sides: it follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
+                Apply = s => s.Guards += 1 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, Grants = AbilityId.StunGun, Name = "Stun Gun",
+                Desc = "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired" },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
+                Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
+                Apply = s => s.Searchlight += 1 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit",
                 Apply = s => s.SplitShots += 3 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Royal Jelly", Desc = "Every hit heals you 1 HP (up to 10 HP per second)",
@@ -371,20 +374,34 @@ namespace Arena
             return new[] { own[0], own[1], own[2] };
         }
 
-        /// The card text for this weapon: Multishot and Iron Volley say what an extra projectile does for it.
+        /// The card text for this weapon: Multishot says what an extra projectile does for it.
         public static string DescFor(UpgradeDef u, WeaponDef weapon)
         {
             if (weapon == null || weapon.ExtraDesc == null)
                 return u.Desc;
             if (u.Name == "Multishot")
                 return weapon.Name + ": " + weapon.ExtraDesc;
-            if (u.Name == "Iron Volley")
-                return weapon.Name + ": " + weapon.ExtraDesc + ". Also +25% damage";
+            string area;
+            if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
+                return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
             string knight;
             if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
                 return knight;
             return u.Desc;
         }
+
+        /// What Homing Rounds grow on each area weapon (Game.AreaWeapon) instead of bending its shots.
+        static readonly Dictionary<WeaponId, string> AreaDesc = new Dictionary<WeaponId, string>
+        {
+            { WeaponId.Implosion, "the collapse hurts and pulls in enemies 25% farther out" },
+            { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
+            { WeaponId.Fireball, "blasts (and split fireballs) 25% wider" },
+            { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
+            { WeaponId.StormHammer, "lightning jumps 25% farther between enemies" },
+            { WeaponId.ClotBolt, "blood pools 25% wider" },
+            { WeaponId.VeinTether, "the beam 25% wider" },
+            { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
+        };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.
         static readonly Dictionary<string, string> KnightDesc = new Dictionary<string, string>

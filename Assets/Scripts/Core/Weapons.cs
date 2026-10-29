@@ -14,15 +14,7 @@ namespace Arena
         void FirePlayer(Player p, float spread = 0f)
         {
             float dmg = p.Stats.DmgMult;
-            p.Volleys++;
-            firingWeapon = true;
-            if (p.Stats.HaloEvery > 0 && p.Volleys % p.Stats.HaloEvery == 0)
-                for (int i = 0; i < 8; i++)
-                {
-                    V2 d = V2.FromAngle(p.Aim + MathX.Tau * i / 8f);
-                    SpawnBullet(Defs.NovaShot, p.Pos + d * p.Def.BodyR, d * 450f, 0f, 0.8f, 9f * dmg, p.Id);
-                }
-            // Each extra projectile (Multishot, Iron Volley, Bullet Storm) upgrades the weapon in its own way.
+            // Each extra projectile (Multishot, Bullet Storm) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
             if (p.Weapon.Id == WeaponId.Pistol)
@@ -50,6 +42,11 @@ namespace Arena
                 firingWeapon = true;
                 FireKnightWaves(p, aim);
                 firingWeapon = false;
+                return;
+            }
+            if (p.Weapon.Id == WeaponId.LeechBeam)
+            {
+                FireVolley(p, aim, extra);  // Barrage adds a tendril instead (BloodMage.cs)
                 return;
             }
             if (p.Weapon.Id == WeaponId.Implosion)
@@ -116,7 +113,7 @@ namespace Arena
         {
             bowCd -= dt;
             float release = 0f;
-            if (me.Weapon.Id != WeaponId.MendersBow || me.Downed || me.ParryActive)
+            if (me.Weapon.Id != WeaponId.MendersBow || me.Downed || me.ParryActive || me.StunShots > 0)
                 bowDraw = -1f;  // the shield (or going down) cancels a draw
             else if (firing)
             {
@@ -234,9 +231,9 @@ namespace Arena
                 case WeaponId.FlakCannon:
                 {
                     var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 70f;
+                    b.Splash = 70f * AreaMult(p);
                     if (extra > 0)  // bomblets scatter around the impact and pop where they land
-                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f, false);
+                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
                     break;
                 }
                 case WeaponId.RiotRepeater:
@@ -329,6 +326,8 @@ namespace Arena
         /// code reads the same ones; SimTest checks it against real shots). The aim line uses it.
         public float WeaponRange(Player p)
         {
+            if (p.StunShots > 0)
+                return StunGunRange(p);  // Stun.cs
             int x = ExtraShots(p);
             var w = p.Weapon;
             switch (w.Id)
@@ -339,6 +338,8 @@ namespace Arena
                     return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
+                case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
+                    return p.Def.BodyR + GraspReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing

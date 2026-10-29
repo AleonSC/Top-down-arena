@@ -64,8 +64,11 @@ namespace Arena
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public int Clot, ClotMax = 5;                 // Blood Lash: Clot stacks and the most it can hold (replicated)
+        public float ClotT;                           // host: until the next Clot stack fades
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
         public bool PactMastered, RushMastered, ApoUp;
+        public readonly List<int> Grasp = new List<int>();  // Leech Tendrils: the enemies held right now (replicated)
         public float WallHp, WhirlTick, WhirlPower = 1f;  // host
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
@@ -117,7 +120,9 @@ namespace Arena
         public readonly List<EnemyType> LegendaryQueue = new List<EnemyType>();
         public int PendingMods;      // weapon mods still to pick (one per boss, after its legendary)
         public bool OfferMod;        // the current offer is the weapon mod list
-        public int Volleys;          // host: shots fired, for Warden's Halo
+        public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
+        public float GuardCd;        // host: until the next Warden's Guard arrives
+        public V2 LightPos, LightDisp;  // Searchlight: its pool (replicated), and where this screen draws it (Stun.cs)
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
@@ -137,6 +142,7 @@ namespace Arena
     public class Enemy
     {
         public int Id;
+        public float LitT;      // host: seconds held in a Searchlight (below 0: just locked, resting) (Stun.cs)
         public EnemyType Type;
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
@@ -155,6 +161,7 @@ namespace Arena
         public int BleedBy;
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
+        public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
         public int LastHitBy;
         public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;
@@ -239,6 +246,7 @@ namespace Arena
         public bool Companion;
         public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
         public float Power = 1f;         // host: mastery of the ability that summoned it
+        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's health, and its contact-damage cooldown
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
     }
@@ -278,46 +286,8 @@ namespace Arena
         public const float Width = 1600f, Height = 900f;
 
         const int SnapshotEvery = 3;  // ticks
-        public const int StartingRerolls = 2;
-        const float OrbChance = 0.18f;      // small health orb drop chance per kill
-        const float BigOrbChance = 0.03f;   // rare large health orb
-        public const float OrbHeal = 15f;
-        public const float BigOrbHeal = 60f;
-        public const float OrbLifetime = 12f;
-        const float OrbMagnetRange = 110f;
-        const int BossRerolls = 2;
-        public const float PassiveRegen = 0.5f;  // HP per second for everyone
-        const float StartDelay = 3f;
-        const float IntermissionTime = 4f;
-        const float ContactDamage = 15f;
-        const float HitIframes = 0.35f;
-        const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
         float shoveT;
         V2 shoveDir;
-        const float ReviveRange = 70f;
-        const float ReviveTime = 3f;
-        public const float AuraRange = 170f;
-        const float AuraHeal = 9f;
-        const float BarrierTime = 4f;
-        const float BarrierCapacity = 360f;
-        const float AegisCapacity = 300f;
-        public const float BarrierRadius = 105f;
-        const float PulseRange = 260f;
-        const float PulseHeal = 60f;
-        public const float DashTime = 0.18f;
-        const float DashSpeed = 1200f;
-        const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
-        const float RoarTime = 5f, RoarReduction = 0.4f;
-        const float HavenRadius = 130f, HavenTime = 6f;
-        const float LinkTime = 6f, LinkHeal = 8f;
-        const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeRadius = 110f, GrenadeDamage = 80f;
-        const float MarkTime = 6f;
-        const float SpellRange = 420f;
-        const float BlinkRange = 300f;
-        const float ShockwaveRange = 230f;
-        const float ShockwaveDamage = 60f;
-        const float OverdriveTime = 5f;
-        const float TurretTime = 10f;
 
         readonly Session session;
         readonly Random rng = NewRng();
@@ -644,8 +614,8 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges)
-                    continue;
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s))
+                    continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
                 {
@@ -937,6 +907,7 @@ namespace Arena
             UpdateWardenView(dt);  // Warden.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
+            StepLightDisplay(dt);  // Searchlights (Stun.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
@@ -1227,6 +1198,7 @@ namespace Arena
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
             TickMinions(dt);
+            TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
             MoveBullets(dt);
             Collide();
@@ -1303,7 +1275,9 @@ namespace Arena
                 p.FireCd -= dt;
                 if (p.Downed)
                     continue;
-                if (p.Weapon.Id == WeaponId.Pistol)
+                if (p.StunShots > 0)
+                    TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
+                else if (p.Weapon.Id == WeaponId.Pistol)
                 {
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);

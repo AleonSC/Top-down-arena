@@ -30,16 +30,10 @@ namespace Arena
         public readonly List<PracticeWave> Waves = new List<PracticeWave>();
         public bool Loop;
 
-        /// Everything you can put in a practice wave, in the order the picker shows them.
-        /// (Boss summons like Gravity Wells and Hive Bombers come with their boss.)
-        public static readonly EnemyType[] Choices =
-        {
-            EnemyType.Swarmer, EnemyType.Brute, EnemyType.Lunger, EnemyType.Grunt, EnemyType.Burster, EnemyType.Sniper, EnemyType.Spinner,
-            EnemyType.Charger, EnemyType.Splitter, EnemyType.Shard, EnemyType.Mortar, EnemyType.Shielder, EnemyType.Medic,
-            EnemyType.Phantom, EnemyType.Hexer, EnemyType.Juggernaut, EnemyType.Nest,
-            EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist,
-            EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
-        };
+        /// Everything you can put in a practice wave, in the order the picker shows them: each EnemyDef's Picker group,
+        /// then EnemyType order. (Boss summons like Gravity Wells and Hive Bombers are Hidden: they come with their boss.)
+        public static readonly EnemyType[] Choices = ((EnemyType[])Enum.GetValues(typeof(EnemyType)))
+            .Where(t => Defs.Get(t).Picker != PickerGroup.Hidden).OrderBy(t => Defs.Get(t).Picker).ThenBy(t => (int)t).ToArray();
 
         public PracticePlan Copy()
         {
@@ -52,40 +46,7 @@ namespace Arena
         public static string NameOf(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : Defs.Get(t).Name;
 
         /// One line on what each enemy does (shown when you hover it in the Practice Range).
-        public static string BlurbOf(EnemyType t)
-        {
-            switch (t)
-            {
-                case EnemyType.Swarmer: return "Small and fast melee rusher that weaves toward you in pairs.";
-                case EnemyType.Brute: return "Slow, tough melee bruiser that hits hard (24) when it reaches you.";
-                case EnemyType.Lunger: return "Circles in close, flashes a pink line, then leaps along it.";
-                case EnemyType.Grunt: return "Fires aimed 3-shot spreads.";
-                case EnemyType.Burster: return "Fires rings of bullets; more in each ring on later waves.";
-                case EnemyType.Sniper: return "Fast, accurate shots from far away.";
-                case EnemyType.Spinner: return "Wanders and sprays spirals in bursts; it spins up while bursting.";
-                case EnemyType.Charger: return "Flashes a red line, then dashes along it and bursts into a ring.";
-                case EnemyType.Splitter: return "Splits into 3 fast Shards when killed.";
-                case EnemyType.Shard: return "Tiny and fast. Comes from Splitters, Nests and the Hive Queen.";
-                case EnemyType.Mortar: return "Lobs bombs at where you stand; they burst into a ring on landing.";
-                case EnemyType.Shielder: return "A front shield blocks shots and swings. It turns slowly: flank it.";
-                case EnemyType.Medic: return "Heals nearby enemies every few seconds. Kill it first.";
-                case EnemyType.Phantom: return "Flickers, blinks next to you and bursts into a ring.";
-                case EnemyType.Hexer: return "Fires curving pincer shots that close in from both sides.";
-                case EnemyType.Juggernaut: return "Armored and slow, can't be slowed or knocked back. Rotating stars of orbs.";
-                case EnemyType.Nest: return "Stationary spawner that keeps hatching Shards until destroyed.";
-                case EnemyType.Boss: return "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters.";
-                case EnemyType.HiveQueen: return "Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm.";
-                case EnemyType.TwinA: return "Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale.";
-                case EnemyType.Singularity: return "Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages.";
-                case EnemyType.Colossus: return "Boss (wave 25): huge stomp rings with one gap, and thrown rocks.";
-                case EnemyType.Duelist: return "Boss (wave 30): teleports and leaves decoys that burst unless killed.";
-                case EnemyType.Lich: return "Boss (wave 35): immune while its phylactery stands; raises skeletons.";
-                case EnemyType.StormHerald: return "Boss (wave 40): lightning strikes where you stand. Keep moving.";
-                case EnemyType.Devourer: return "Boss (wave 45): hungry for 3 s of every 10, when your shots heal it. Hold fire.";
-                case EnemyType.Eclipse: return "Final boss (wave 50): spirals and rings, then wells and phantoms, then storms.";
-                default: return "";
-            }
-        }
+        public static string BlurbOf(EnemyType t) => Defs.Get(t).Blurb ?? "";
 
         public static PracticePlan Default()
         {

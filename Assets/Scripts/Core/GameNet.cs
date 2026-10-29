@@ -376,6 +376,17 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.StunT);
+            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
+            s.Byte(ref grasped);
+            if (s.Reading)
+                p.Grasp.Clear();
+            for (int k = 0; k < grasped; k++)
+            {
+                int held = s.Reading ? 0 : p.Grasp[k];
+                s.Int(ref held);
+                if (s.Reading)
+                    p.Grasp.Add(held);
+            }
             s.Float(ref p.WallT);
             s.Float(ref p.UnbreakT);
             s.Float(ref p.FuryT);
@@ -384,7 +395,11 @@ namespace Arena
             s.Float(ref p.IronT);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
+            s.Byte(ref p.Clot);
+            s.Byte(ref p.ClotMax);
             s.Byte(ref p.AmmoUsed);
+            s.Byte(ref p.StunShots);
+            s.Vec(ref p.LightPos);
             s.Float(ref p.ReloadT);
             float drawT = p.DrawT;
             s.Float(ref drawT);
@@ -520,7 +535,8 @@ namespace Arena
                 aim = m.Aim;
                 t = m.T;
                 duration = m.Duration;
-                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
+                m.GuardFrac = m.Kind == MinionKind.WardenGuard ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard: its health
+                    : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;
             }

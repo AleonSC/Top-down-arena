@@ -67,6 +67,90 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    // Leech Tendrils grasp the enemies in an arc in front of you for as long as you hold fire: they're stunned,
+    // drained slowly and the drain heals you; let go and they're free.
+    static void LeechGraspTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 3 };
+        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.BloodMage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 8, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        Check(me.Weapon.Id == WeaponId.LeechBeam && me.Weapon.Name == "Leech Tendrils", "the Hemomancer tank's third weapon is Leech Tendrils");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        Run(s, dt, 0.2f);
+        client.Game.Players[2].Pos = new V2(300f, 200f);
+        V2 at = new V2(600f, 450f);
+        Func<V2, Enemy> Foe = pos =>
+        {
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, pos, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f;
+            return e;
+        };
+        // Three in the arc (one off to the side, 30 degrees), one more in the arc but farther, one behind you.
+        var a = Foe(at + V2.FromAngle(0f) * 90f);
+        var b = Foe(at + V2.FromAngle(0.52f) * 110f);
+        var c = Foe(at + V2.FromAngle(-0.3f) * 120f);
+        var d = Foe(at + V2.FromAngle(0.1f) * 150f);
+        var behind = Foe(at - new V2(90f, 0f));
+        var all = new[] { a, b, c, d, behind };
+        var hp0 = all.Select(e => e.Hp).ToArray();
+        V2 dPos = d.Pos, behindPos = behind.Pos;
+        Action<bool, float> Hold = (fire, secs) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                me.Pos = at;
+                foreach (var e in all) e.FireT = 9f;
+                d.Pos = dPos; behind.Pos = behindPos; d.FrozenT = behind.FrozenT = 0.1f;  // these two wait where they are
+                host.Poll();
+                g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at + new V2(300f, 0f) });
+                g.Update(dt);
+                Step(client, dt);
+                if (f % 2 == 0) Thread.Sleep(1);
+            }
+        };
+        Hold(true, 0.1f);
+        V2 bStart = b.Pos;
+        Hold(true, 1.9f);
+        var dealt = all.Select((e, i) => hp0[i] - e.Hp).ToArray();
+        var seen = client.Game.Players[1].Grasp.ToList();
+        Console.WriteLine("  leech tendrils: held {0}; damage in 2 s: {1}; the friend sees {2} held", string.Join(",", me.Grasp), string.Join(", ", dealt.Select(x => x.ToString("0"))), seen.Count);
+        Check(me.Grasp.Count == 3 && me.Grasp.Contains(a.Id) && me.Grasp.Contains(b.Id) && me.Grasp.Contains(c.Id), "the tendrils grab the three nearest enemies in the arc in front of you");
+        Check(dealt[3] == 0f && dealt[4] == 0f, "a fourth enemy waits for a free tendril, and nothing behind you is touched");
+        Check(dealt[0] > 18f && dealt[0] < 28f, "held enemies are drained slowly (about 12 a second)");
+        Check(a.GraspT > 0f && b.Pos.DistanceTo(bStart) < 1f, "held enemies are stunned in place");
+        Check(seen.Count == 3, "other players see who the tendrils hold");
+        Check(g.Bullets.Values.All(x => x.Owner != 1), "the tendrils fire no bullets");
+        // Let go and they're free.
+        Hold(false, 0.5f);
+        Check(me.Grasp.Count == 0 && a.GraspT <= 0f, "let go of fire and the tendrils let go");
+        // The leech: 25% of the damage heals you, slowly.
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp * 0.5f;
+        float before = me.Hp, aHp = a.Hp;
+        Hold(true, 1f);
+        float healed = me.Hp - before;
+        Console.WriteLine("  leech tendrils: healed {0:0.0} HP in 1 s holding three", healed);
+        Check(healed > 5f && healed < 14f, "the tendrils heal you slowly for some of what they drain");
+        // A held enemy that gets away (pushed far off) slips free.
+        a.Pos = at + new V2(400f, 0f);
+        Hold(true, 0.3f);
+        Check(!me.Grasp.Contains(a.Id) && me.Grasp.Contains(d.Id), "an enemy pulled out of reach slips free and a free tendril grabs the next");
+        host.Leave(""); client.Leave("");
+    }
+
     static void BloodMageTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -237,6 +321,44 @@ static partial class Program
             "Implosion: 34 to the target, 15 to an enemy against it (pulled in), and an extra collapses another enemy for 60%");
         keep.Remove(i2); keep.Remove(i3); i2.Hp = i3.Hp = 0f;
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 0);
+
+        // Blood Lash: the tip cracks for double and taunts, closer in flings out to the tip, and every hit clots.
+        keep.Remove(d1); d1.Hp = 0f;
+        place(1, 300f); run(0.2f);
+        hp.Hp = hp.MaxHp; hp.Clot = 0;
+        var close = dummy(new V2(360f, 450f));
+        var far = dummy(new V2(415f, 450f));
+        close.TargetId = far.TargetId = 2;
+        close.RetargetT = far.RetargetT = 10f;  // so only the crack retargets them
+        float n0 = close.Hp, f0 = far.Hp;
+        var fire = typeof(Game).GetMethod("FireVolley", flags);
+        fire.Invoke(g, new object[] { hp, 0f, 0 });
+        run(0.1f);
+        float nearDmg = n0 - close.Hp, tipDmg = f0 - far.Hp, flung = close.Pos.DistanceTo(hp.Pos);
+        bool clotSeen = client.Game.Players[1].Clot == 3;
+        Console.WriteLine("  blood lash: close {0:0.0} (flung to {1:0} px), tip {2:0.0}; clot {3} (client saw it {4}); targets {5} {6}", nearDmg, flung, tipDmg, hp.Clot, clotSeen, close.TargetId, far.TargetId);
+        Check(nearDmg > 0f && Math.Abs(tipDmg - nearDmg * Game.LashCrack) < 0.5f && far.TargetId == 1 && close.TargetId == 2
+            && close.Pos.DistanceTo(hp.Pos) + close.Radius >= Game.MeleeReach(hp, hp.Weapon.Reach) * Game.LashTipFrom,
+            "Blood Lash: the tip cracks for double damage and taunts; an enemy hit closer in is flung out to the tip");
+        Check(hp.Clot == 3 && clotSeen, "each Blood Lash hit adds a Clot stack, two from the tip (and clients see it)");
+        hp.DevGod = false;
+        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        hp.DevGod = true;
+        float clotTaken = hp.MaxHp - hp.Hp;
+        Check(Math.Abs(clotTaken - 100f * (1f - 3f * Game.ClotCutEach)) < 0.5f, "each Clot stack takes 4% off the damage you take");
+        hp.Clot = 5;  // full: the next lash bursts all round you
+        var behind = dummy(new V2(240f, 450f));
+        behind.TargetId = 2; behind.RetargetT = 10f;
+        float b0 = behind.Hp;
+        fire.Invoke(g, new object[] { hp, 0f, 0 });
+        run(0.1f);
+        Console.WriteLine("  clot burst: behind took {0:0.0}; clot now {1}", b0 - behind.Hp, hp.Clot);
+        Check(b0 - behind.Hp > 0f && hp.Clot == 0 && behind.TargetId == 1, "at full Clot the next lash bursts all round you, spends it, and taunts");
+        hp.Clot = 3; hp.ClotT = Game.ClotHold;
+        run(Game.ClotHold + 0.6f);
+        Check(hp.Clot == 1, "Clot holds for 3 s without hits, then fades a stack every 0.5 s");
+        foreach (var e in new[] { close, far, behind }) { keep.Remove(e); e.Hp = 0f; }
+        hp.Clot = 0;
 
         // Blood Rite: 60% less damage, and the damage you take heals your allies.
         hp.Hp = hp.MaxHp; cp.Hp = cp.MaxHp * 0.3f;
