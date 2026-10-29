@@ -246,7 +246,7 @@ namespace Arena
             if (d == null)
                 return;
             var lastBoss = BossForWave(Math.Max(5, PathFrom - 1));
-            var key = IsTwin(lastBoss) ? EnemyType.TwinA : lastBoss;
+            var key = IsReaper(lastBoss) ? EnemyType.TwinA : lastBoss;
             if (d.Id == PathId.Bazaar)
                 OpenShop();  // the shop is its prize (Shop.cs)
             else foreach (var p in Players.Values)

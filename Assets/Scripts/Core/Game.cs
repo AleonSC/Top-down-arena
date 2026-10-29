@@ -908,6 +908,7 @@ namespace Arena
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
             UpdateQueenView(dt);   // Queen.cs
+            UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);

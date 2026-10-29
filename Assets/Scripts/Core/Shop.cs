@@ -83,7 +83,7 @@ namespace Arena
             while (shelf.Count < 4)
                 shelf.Add(-1);
             var boss = BossForWave(Math.Max(5, PathFrom - 1));
-            var legendaries = Upgrades.LegendaryOffer(rng, IsTwin(boss) ? EnemyType.TwinA : boss, p.Role, p.RoleAbility, p.Taken);
+            var legendaries = Upgrades.LegendaryOffer(rng, IsReaper(boss) ? EnemyType.TwinA : boss, p.Role, p.RoleAbility, p.Taken);
             shelf.Add(legendaries != null && legendaries.Length > 0 ? legendaries[rng.Next(legendaries.Length)] : -1);
             var mods = Upgrades.ModOffer(p.Role, p.RoleAbility, p.Taken);
             shelf.Add(mods != null ? mods[rng.Next(mods.Length)] : -1);

@@ -54,33 +54,6 @@ namespace Arena
             return null;
         }
 
-        /// The Reapers' tether: a beam between the two that sweeps the arena as they circle.
-        /// Touching it hurts; dashing through it is fine.
-        void TickReaperTether()
-        {
-            Enemy a = null, b = null;
-            foreach (var e in Enemies.Values)
-                if (IsTwin(e.Type) && !IsSpawning(e))
-                {
-                    if (a == null) a = e; else b = e;
-                }
-            if (a == null || b == null)
-                return;
-            V2 d = b.Pos - a.Pos;
-            float len = Math.Max(1f, d.Length);
-            V2 dir = d / len;
-            foreach (var p in Players.Values)
-            {
-                if (p.Downed || p.InvulnT > 0f)
-                    continue;
-                float along = (p.Pos.X - a.Pos.X) * dir.X + (p.Pos.Y - a.Pos.Y) * dir.Y;
-                if (along < a.Radius || along > len - b.Radius)
-                    continue;
-                if (p.Pos.DistanceTo(a.Pos + dir * along) < TetherWidth / 2f + p.Def.HitR)
-                    Damage(p, 18f + Wave * 0.4f, "Twin Reapers (tether)");
-            }
-        }
-
         public const float TetherWidth = 8f;
 
         void ResetBossState()
@@ -88,6 +61,7 @@ namespace Arena
             PullStrength = 0f;
             TwinReviveT = 0f;
             twinPending = false;
+            Reapers = null;
         }
 
         // --- Waves -------------------------------------------------------------
@@ -364,7 +338,7 @@ namespace Arena
                             EnemyFire(e, tpos);
                     }
                 }
-                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || QueenAirborne(e))
+                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e))
                     continue;  // blew up this tick, explodes instead of bumping, an egg, or the Hive Queen up in a dive
                 // Bosses and heavies hurt to stand in, more so later on.
                 float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
@@ -393,10 +367,15 @@ namespace Arena
             }
 
             TickHazards(dt);
-            TickReaperTether();
+            TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
+            if (twinPending && ReapersJoined)
+            {
+                twinPending = false;  // they fused: nothing left to revive (Reapers.cs)
+                TwinReviveT = 0f;
+            }
             if (twinPending)
             {
                 TwinReviveT = Math.Max(0f, TwinReviveT - dt);
@@ -473,6 +452,8 @@ namespace Arena
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
         bool BlocksShot(Enemy e, V2 from)
         {
+            if (ReaperImmune(e))
+                return true;  // the Twin Reapers changing stage (Reapers.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
@@ -611,13 +592,11 @@ namespace Arena
                     break;
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
-                {
-                    // The twins circle the arena on opposite sides.
-                    float a = e.T * 0.47f + (e.Type == EnemyType.TwinA ? 0f : MathX.Pi);
-                    var goal = new V2(Width / 2f + (float)Math.Cos(a) * Width * 0.26f, Height / 2f + (float)Math.Sin(a) * Height * 0.28f);
-                    v = (goal - e.Pos) / 60f;
+                    v = ReaperMove(e, tpos, ref speed);  // Reapers.cs
                     break;
-                }
+                case EnemyType.DualReaper:
+                    v = DualMove(e, tpos, ref speed);  // Reapers.cs
+                    break;
             }
             if (IsLateGame(e.Type))
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
@@ -648,9 +627,9 @@ namespace Arena
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
                 {
-                    // Soul Bond: whichever Reaper is clearly more hurt is immune until you even them out.
+                    // Soul Bond: whichever Reaper is clearly more hurt is immune until you even them out (Twilight only).
                     var other = OtherTwin(e);
-                    if (other == null || e.Phase == 1)
+                    if (other == null || e.Phase == 1 || (Reapers != null && Reapers.Stage != ReaperStage.Twilight))
                         break;
                     float gap = other.Hp / other.MaxHp - e.Hp / e.MaxHp;
                     if (e.Phase == 0 && gap > SoulBondGap)
@@ -836,23 +815,10 @@ namespace Arena
                     break;
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
-                    if ((int)(e.T / 5f) % 2 == 0)
-                    {
-                        // Three "lines": bullets at rising speeds that stretch into streaks.
-                        e.FireT = 1.4f;
-                        for (int l = -1; l <= 1; l++)
-                            for (int k = 0; k < 6; k++)
-                                EnemyShot(e, aim + l * 0.5f, 140f + k * 35f, l == 0 ? Defs.PierceShot : Defs.SmallShot);
-                    }
-                    else
-                    {
-                        // A rotating cross.
-                        e.FireT = 0.9f;
-                        e.Ang += 0.35f;
-                        for (int d = 0; d < 4; d++)
-                            for (int k = 0; k < 3; k++)
-                                EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 120f + k * 50f, Defs.SmallShot);
-                    }
+                    ReaperFire(e, tpos);  // Reapers.cs
+                    break;
+                case EnemyType.DualReaper:
+                    e.FireT = 0.2f;  // its lasers and scythes are timed by the fight (Reapers.cs)
                     break;
                 case EnemyType.Singularity:
                     SingularityFire(e, aim);  // Singularity.cs
@@ -876,7 +842,11 @@ namespace Arena
                 ClearGuards();
             }
             if (e.Type == EnemyType.HiveQueen)
-                ClearQueenAdds(e);  // her eggs, bombers and drones go with her (Queen.cs)
+                ClearQueenAdds(e);
+            if (e.Type == EnemyType.ReaperPillar)
+                PillarFell(e);  // leaves a hole (Reapers.cs)
+            if (e.Type == EnemyType.DualReaper)
+                ClearPillars();  // her eggs, bombers and drones go with her (Queen.cs)
             if (e.Type == EnemyType.Singularity)
                 foreach (var o in Enemies.Values)
                     if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell)
@@ -896,7 +866,7 @@ namespace Arena
                 foreach (var o in Enemies.Values)
                     if (IsTwin(o.Type) && o.Id != e.Id && o.Hp > 0f)
                         other = o;
-                if (other != null)
+                if (other != null && !ReapersJoined)
                 {
                     // The survivor enrages; kill it before the timer runs out or this one comes back.
                     other.Phase = 1;
@@ -914,7 +884,7 @@ namespace Arena
             if (bossRewarded)
                 return false;
             bossRewarded = true;
-            var bossKey = IsTwin(e.Type) ? EnemyType.TwinA : e.Type;
+            var bossKey = IsReaper(e.Type) ? EnemyType.TwinA : e.Type;
             foreach (var p in Players.Values)
             {
                 p.Rerolls += BossRerolls;

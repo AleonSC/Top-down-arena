@@ -538,6 +538,36 @@ namespace Arena
         static string QueenStageName(QueenStage s) =>
             s == QueenStage.Swarm ? "SWARM" : s == QueenStage.Honeycomb ? "HONEYCOMB" : s == QueenStage.Frenzy ? "FRENZY" : "LAST STAND";
 
+        /// The Reapers' stage under their health bars, and what to do about the Dual Reaper.
+        string ReaperNote(Enemy e, ReaperFight R, ref Color c)
+        {
+            if (R.Trans != 0)
+            {
+                c = new Color(0.9f, 0.92f, 1f);
+                return R.Trans == 1 ? "CAN'T BE HURT — THEY'RE FUSING" : "CAN'T BE HURT — IT'S SPLITTING";
+            }
+            if (e.Type == EnemyType.TwinB)
+                return null;  // Dusk's bar speaks for both
+            if (R.Stage == ReaperStage.Twilight)
+            {
+                c = new Color(0.77f, 0.55f, 1f);
+                return "TWILIGHT";
+            }
+            if (R.Stage == ReaperStage.Sundered)
+            {
+                c = new Color(1f, 0.4f, 0.4f);
+                return "SUNDERED";
+            }
+            c = new Color(1f, 0.8f, 0.35f);
+            if (R.Trapped)
+                return R.ShieldFrac > 0f ? "TRAPPED — BREAK ITS SHIELD!" : "OPEN — HIT IT NOW!";
+            if (R.Turn == ReaperTurn.Chase)
+                return "ARMORED — LURE IT INTO A HOLE";
+            if (R.Turn == ReaperTurn.Lasers)
+                return "ARMORED — KILL THE PILLARS";
+            return "THE DUAL REAPER";
+        }
+
         static string WardenStageName(WardenStage s) =>
             s == WardenStage.Count ? "COUNT" : s == WardenStage.Lockdown ? "LOCKDOWN" : s == WardenStage.Riot ? "RIOT" : "LAST STAND";
 
@@ -583,6 +613,8 @@ namespace Arena
                     note = "Phase " + (e.Phase + 1) + " of 3";
                 else if (e.Type == EnemyType.Boss && e.Warden != null)
                     note = WardenNote(e.Warden, ref noteColor);
+                else if (Game.IsReaper(e.Type) && game.Reapers != null)
+                    note = ReaperNote(e, game.Reapers, ref noteColor);
                 float h = note != null ? 62f : 46f;
                 var panel = new Rect(x0, y, panelW, h);
                 Ui.HudPanel(panel, col);
@@ -602,6 +634,8 @@ namespace Arena
             string warning = null;
             if (game.TwinReviveT > 0f)
                 warning = "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!";
+            else if (game.Reapers != null && game.Reapers.Suck > 0f)
+                warning = "THE PILLARS STOOD — it's pulling you in!";
             else if (game.PullStrength > 0f)
                 warning = "GRAVITY WELL — run!";
             if (warning != null)

@@ -9,6 +9,122 @@ using Arena;
 static partial class Program
 {
     // The Warden (Warden.cs): a prison riot in three stages by health, one mechanic per turn.
+    /// The Twin Reapers' three stages (Reapers.cs): Twilight, the fused Dual Reaper, then Sundered.
+    static void ReapersTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        var s = StartBuffed(dt, 15, 0);
+        var g = s[0].Game; var cg = s[1].Game;
+        g.Bot = false; cg.Bot = false;
+        g.DevSetGod(1, true);
+        Run(s, dt, 15, () => { var a0 = Find(s[0], EnemyType.TwinA); var b0 = Find(s[0], EnemyType.TwinB); return a0 != null && b0 != null && a0.SpawnT <= 0f && b0.SpawnT <= 0f; });
+        var me = g.Players[1]; var friend = g.Players[2];
+        Action<V2> PutFriend = pos => { friend.Pos = pos; cg.Players[2].Pos = pos; };
+        Action Park = () => { me.Pos = new V2(60f, 840f); };
+        var a = Find(s[0], EnemyType.TwinA); var b = Find(s[0], EnemyType.TwinB);
+        Check(a.MaxHp > 0f && Defs.Get(EnemyType.TwinA).Hp == 2600f, "the Twin Reapers have 2600 health each");
+
+        // Twilight: one turn at a time; the tether only burns on its sweep, which follows its target.
+        var seen = new List<ReaperTurn>();
+        float tetherDmg = 0f; float sweepGap0 = -1f, sweepGap1 = 0f;
+        Run(s, dt, 21f, null, () =>
+        {
+            Park(); friend.Hp = friend.MaxHp;
+            var R = g.Reapers; if (R == null) return;
+            if (seen.Count == 0 || seen[seen.Count - 1] != R.Turn) seen.Add(R.Turn);
+            a.TargetId = b.TargetId = 2;
+            if (R.Turn == ReaperTurn.Sweep)
+            {
+                if (sweepGap0 < 0f) { PutFriend(new V2(1300f, 600f)); sweepGap0 = R.SweepC.DistanceTo(friend.Pos); }
+                else PutFriend(new V2(1300f, 600f));
+                sweepGap1 = R.SweepC.DistanceTo(friend.Pos);
+            }
+            else PutFriend(new V2(1500f, 820f));
+        });
+        Console.WriteLine("  reapers twilight turns: " + string.Join(", ", seen) + "; sweep centre to the friend " + sweepGap0.ToString("0") + " -> " + sweepGap1.ToString("0"));
+        Check(seen.Count >= 6 && seen[0] == ReaperTurn.Sweep && seen[2] == ReaperTurn.Lines && seen[4] == ReaperTurn.Cross, "Twilight: tether sweep, lines, cross, with breathers between");
+        Check(sweepGap1 < sweepGap0 - 100f, "the tether sweep follows its target");
+        Check(cg.Reapers != null && cg.Reapers.Stage == ReaperStage.Twilight, "clients see the Reapers' fight");
+        // Stand on the tether during a sweep.
+        Run(s, dt, 30f, () => g.Reapers.Turn == ReaperTurn.Sweep && g.Reapers.TurnT > 1f, Park);
+        float t0 = friend.Run.DamageTaken;
+        Run(s, dt, 1f, null, () => { Park(); PutFriend(V2.Lerp(a.Pos, b.Pos, 0.5f)); foreach (var bl in new List<Bullet>(g.Bullets.Values)) if (Defs.IsEnemyShot(bl.Kind)) g.Bullets.Remove(bl.Id); });
+        tetherDmg = friend.Run.DamageTaken - t0;
+        Check(tetherDmg > 0f, "the lit tether hurts");
+
+        // The fusion at 65%: they can't be hurt, then one Dual Reaper with their health; the power-up blasts.
+        a.Hp = a.MaxHp * 0.6f; b.Hp = b.MaxHp * 0.6f;
+        float maxSum = a.MaxHp + b.MaxHp, hpSum = a.Hp + b.Hp;
+        Run(s, dt, 0.2f, null, Park);
+        float ha = a.Hp; hurt.Invoke(g, new object[] { a, 300f, 1 });
+        bool immune = g.Reapers.Trans == 1 && a.Hp == ha;
+        float tf = friend.Run.DamageTaken;
+        Run(s, dt, 4.6f, () => g.Reapers.Trans == 0 && g.Reapers.Stage == ReaperStage.Dual, () => { Park(); PutFriend(new V2(1200f, 700f)); friend.Hp = friend.MaxHp; });
+        var d = Find(s[0], EnemyType.DualReaper);
+        float blastDmg = friend.Run.DamageTaken - tf;
+        Console.WriteLine("  reapers fusion: immune {0}, dual {1}, health {2:0}/{3:0} (twins had {4:0}/{5:0}), power-up hit the friend for {6:0}", immune, d != null, d?.Hp, d?.MaxHp, hpSum, maxSum, blastDmg);
+        Check(immune && d != null && Find(s[0], EnemyType.TwinA) == null && Math.Abs(d.MaxHp - maxSum) < 1f && Math.Abs(d.Hp - hpSum) < 20f, "at 65% they fuse into the Dual Reaper (can't be hurt meanwhile), keeping their health");
+        Check(blastDmg >= 40f, "the power-up blasts hurt whoever stays in a marked circle");
+        Run(s, dt, 1f, null, Park);
+        int pillars = g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar);
+        Check(g.Reapers.Turn == ReaperTurn.Lasers && pillars == 4 && cg.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 4, "the Dual Reaper fires its lasers and raises 4 pillars (everyone sees them)");
+        float hd = d.Hp; hurt.Invoke(g, new object[] { d, 100f, 0 });
+        Check(Math.Abs(hd - d.Hp - 35f) < 1f, "the Dual Reaper is armored (a third of the damage)");
+
+        // Leave the pillars standing: it pulls everyone in, then blows.
+        bool pulled = false; tf = friend.Run.DamageTaken;
+        Run(s, dt, 14f, () => g.Reapers.TurnT < 1f && pulled, () => { Park(); PutFriend(new V2(900f, 450f)); friend.Hp = friend.MaxHp; pulled |= cg.PullStrength > 0f; });
+        Console.WriteLine("  reapers pillars stood: pulled on the client {0}, friend took {1:0}", pulled, friend.Run.DamageTaken - tf);
+        Check(pulled && friend.Run.DamageTaken - tf >= 40f, "pillars left standing: it pulls you in and blows up");
+
+        // Kill the pillars: holes, then the chase.
+        foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.ReaperPillar) e.Hp = 0f;
+        Run(s, dt, 3f, () => g.Reapers.Turn == ReaperTurn.Chase, Park);
+        Check(g.Reapers.Holes.Count == 4 && g.Reapers.Turn == ReaperTurn.Chase && cg.Reapers.Holes.Count == 4, "every pillar killed leaves a hole; then it chases you");
+        V2 dp = d.Pos; tf = friend.Run.DamageTaken;
+        Run(s, dt, 1.5f, null, () => { Park(); PutFriend(d.Pos + new V2(0f, 100f)); friend.Hp = friend.MaxHp; });
+        Check(friend.Run.DamageTaken - tf >= 26f, "its scythes hit on both sides as it chases");
+
+        // Into a hole: shield, then open (extra damage), then back to the middle and round again.
+        d.Pos = g.Reapers.Holes[0];
+        Run(s, dt, 0.2f, null, Park);
+        Check(g.Reapers.Trapped && cg.Reapers.Trapped, "lured over a hole, it falls in (everyone sees it)");
+        hd = d.Hp; hurt.Invoke(g, new object[] { d, 100f, 0 });
+        bool shieldTook = d.Hp == hd;
+        hurt.Invoke(g, new object[] { d, d.MaxHp, 0 });
+        hd = d.Hp; hurt.Invoke(g, new object[] { d, 100f, 0 });
+        Check(shieldTook && Math.Abs(hd - d.Hp - 150f) < 1f && g.Reapers.Open > 0f, "its shield takes hits until broken, then it's open and takes extra damage");
+        Run(s, dt, 6f, () => g.Reapers.Turn == ReaperTurn.Lasers && g.Reapers.Leap <= 0f && !g.Reapers.Trapped, Park);
+        Run(s, dt, 0.8f, null, Park);
+        Check(g.Reapers.Holes.Count == 0 && d.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 10f && g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 4,
+            "then it leaps back to the middle, the holes close, and new pillars rise");
+
+        // The split at 30%: Dusk and Dawn again, sharing what was left.
+        d.Hp = d.MaxHp * 0.29f; float dualHp = d.Hp;
+        Run(s, dt, 2.8f, () => g.Reapers.Trans == 0 && g.Reapers.Stage == ReaperStage.Sundered, Park);
+        a = Find(s[0], EnemyType.TwinA); b = Find(s[0], EnemyType.TwinB);
+        Check(a != null && b != null && Find(s[0], EnemyType.DualReaper) == null && Math.Abs(a.Hp + b.Hp - dualHp) < 20f && g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 0,
+            "at 30% it splits back into Dusk and Dawn, sharing its health");
+
+        // Sundered: reap, spiral, crossfire.
+        seen.Clear(); bool marked = false; tf = friend.Run.DamageTaken;
+        Run(s, dt, 22f, null, () =>
+        {
+            Park(); friend.Hp = friend.MaxHp;
+            if (a.Hp < a.MaxHp * 0.2f) a.Hp = a.MaxHp * 0.25f;
+            if (b.Hp < b.MaxHp * 0.2f) b.Hp = b.MaxHp * 0.25f;
+            a.TargetId = b.TargetId = 2; a.RetargetT = b.RetargetT = 99f;
+            if (g.Reapers.Turn == ReaperTurn.Reap) PutFriend(new V2(900f, 600f)); else PutFriend(new V2(1500f, 820f));
+            marked |= cg.Reapers.ReapA.Phase == 1 || cg.Reapers.ReapB.Phase == 1;
+            if (seen.Count == 0 || seen[seen.Count - 1] != g.Reapers.Turn) seen.Add(g.Reapers.Turn);
+        });
+        Console.WriteLine("  reapers sundered turns: " + string.Join(", ", seen) + "; reaps marked on the client " + marked);
+        Check(seen.Count >= 5 && seen[0] == ReaperTurn.Reap && seen[2] == ReaperTurn.Spiral && seen[4] == ReaperTurn.Crossfire, "Sundered: reap, twin spiral, then crossfire");
+        Check(marked, "each reap is marked first (everyone sees it)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     /// The Hive Queen's three stages (Queen.cs): Swarm, Honeycomb, Frenzy, then a last stand.
     static void QueenTest(float dt)
     {
