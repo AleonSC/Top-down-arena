@@ -184,7 +184,7 @@ namespace Arena
         {
             float half = (body.width - 14f) / 2f;
             // Recording.
-            var rec = new Rect(body.x, body.y, half, 170f);
+            var rec = new Rect(body.x, body.y, half, 200f);
             float y = DevCard(rec, "Session recording", "Saves each match you host as JSON for balancing.", new Color(1f, 0.45f, 0.45f));
             bool on = Ui.Toggle(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
@@ -200,7 +200,7 @@ namespace Arena
             Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, Ui.Muted);
 
             // Overlays and the bot.
-            var ov = new Rect(body.x + half + 14f, body.y, half, 170f);
+            var ov = new Rect(body.x + half + 14f, body.y, half, 200f);
             y = DevCard(ov, "Overlays and helpers", "Just for you, on this computer.", Ui.Accent);
             aimDebug = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
             y += 32f;
@@ -222,7 +222,7 @@ namespace Arena
                 OpenFolder(PracticeFolder);
 
             // Boss Lab.
-            var lab = new Rect(body.x, body.y + 184f, body.width, 150f);
+            var lab = new Rect(body.x, body.y + 214f, body.width, 150f);
             y = DevCard(lab, "Boss Lab", "Watch bots that play like people fight any boss, with any party, at up to 8x speed, and see what hurts them.", Ui.Gold);
             if (Ui.Button(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
             {
