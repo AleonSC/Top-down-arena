@@ -563,7 +563,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Check(me.Weapon.Name == "Bear Totem" && me.Weapon.Melee && Math.Abs(g.WeaponRange(me) - Game.MeleeReach(me, Game.BearReach)) < 0.01f,
+        Check(me.Weapon.Name == "Bear Totem" && me.Weapon.Melee && Math.Abs(g.WeaponRange(me) - Game.MeleeReach(me, Defs.WeaponOf(WeaponId.BearTotem).Reach)) < 0.01f,
             "Bear Totem is a melee weapon with " + (int)g.WeaponRange(me) + " px of reach");
 
         var keep = new HashSet<Enemy>();

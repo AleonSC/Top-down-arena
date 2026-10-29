@@ -42,22 +42,8 @@ namespace Arena
         float botThinkT, botClock;
         public float BotDanger;  // how dangerous the bot's best option looked (for the lab's readout)
 
-        /// Where this weapon wants to be fought from, and roughly how fast its shots fly (for leading).
-        static float PreferredRange(WeaponId w)
-        {
-            switch (w)
-            {
-                case WeaponId.Scattergun: return 210f;
-                case WeaponId.FlameBurst: return 170f;
-                case WeaponId.StormHammer: return 220f;
-                case WeaponId.RadiantOrb: return 260f;
-                case WeaponId.BurstSmg: case WeaponId.ArcLightning: return 280f;
-                case WeaponId.Railgun: return 460f;
-                case WeaponId.MendersBow: case WeaponId.FrostLance: case WeaponId.Fireball: return 390f;
-                default: return 330f;
-            }
-        }
-
+        /// Roughly how fast this weapon's shots fly (for leading). Where it wants to be fought from is
+        /// WeaponDef.BotRange.
         static float ShotSpeedFor(WeaponId w)
         {
             switch (w)
@@ -136,7 +122,7 @@ namespace Arena
                 if (!q.Downed && (lowest == null || q.Hp / q.MaxHp < lowest.Hp / lowest.MaxHp))
                     lowest = q;
             }
-            float pref = PreferredRange(me.Weapon.Id) - (me.Role == Role.Tank ? 40f : 0f);
+            float pref = me.Weapon.BotRange - (me.Role == Role.Tank ? 40f : 0f);
             if (me.Weapon.Melee)  // in swinging distance of the target's edge
                 pref = MeleeReach(me, MeleeRange(me.Weapon.Id)) * 0.7f + (target != null ? target.Radius : 0f);
             V2 anchor = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);

@@ -700,7 +700,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
 ## Code layout
 
 - `Assets/Scripts/Core/`: plain C# with no Unity dependency
-  - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
+  - `Defs.cs`: role, enemy, bullet and weapon stats (each weapon's shot speed, lifetime, damage, reach and growth per extra projectile); tweak numbers here to rebalance
   - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
   - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
   - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode

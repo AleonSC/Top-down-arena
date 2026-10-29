@@ -260,12 +260,12 @@ copies of the same numbers:
 
 | Adding a... | Touches |
 |---|---|
-| **Weapon** | `Defs` (definition) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` (behaviour) · `Game.WeaponRange` (speed × life copied again) · `Knight.MeleeRange` · `BotBrain` range table · `ArenaApp.DrawKnight`/draw code · `Upgrades` extra-projectile text · README · Armory |
+| **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
 | **Ability** | `AbilityId` · `Upgrades` (def, description, role/kit tables) · `Game.CastAbility` / `Minions.KitAbility` / `Knight.KnightAbility` / `Ultimates` · `Mastery` capstone text and effect · `BotBrain.WantAbility` · `PixelArt` icon by name · README · Armory |
 | **Enemy** | `EnemyType` + `Defs` · `EnemyAI` (roster, move, fire, special) · `ArenaApp.DrawEnemy` · `Practice.BlurbOf` + `Choices` · README · Bestiary |
 
 **Recommendations**
-1. **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
+1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
    `WeaponRange`, bot ranges, upgrade texts, the Armory and balance tweaks read one place. `WeaponRange`
    currently duplicates every speed/life literal (guarded by the `aim` test, but still double work).
 2. **An ability registry**: one entry per ability with its cast function, bot heuristic, capstone and text,
@@ -338,8 +338,11 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
 3. ✅ Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
    `music` suite, fixed seeds for the flaky tests (items 7, 15). Now `Tests/*.cs`, `run.sh list`, `features`
    (alias `music`), seeds per test (`SEED=random` to vary).
-4. Weapon numbers into `WeaponDef`; `WeaponRange`, bot range tables and upgrade texts read them; `aim` test
-   must pass (item 1).
+4. ✅ Weapon numbers into `WeaponDef` (`Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`); the firing code,
+   `WeaponRange`, `MeleeRange` and the bots read them (item 1). Proven unchanged: every weapon's bullets and swings
+   at 0-3 extra projectiles, field for field, and the `aim` and `extra` outputs, identical before and after.
+   Texts (`Desc`, `ExtraDesc`) still state their numbers by hand; the bots' lead-speed guesses (`ShotSpeedFor`) are
+   left as they were (they differ from the real speeds, so reading `Speed` would change how bots aim).
 5. Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; reuse scratch collections in
    `ReadSnapshot`. Protocol bump (items 8, 9).
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
@@ -355,7 +358,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next item is 4 (weapon numbers into `WeaponDef`), then 5, 6, 8, 9. Paths are feature-complete
+**Where to pick up:** the next item is 5 (symmetric serialisation), then 6, 8, 9. Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

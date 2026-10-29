@@ -67,7 +67,7 @@ static partial class Program
         Check(Math.Abs(off - 1.5f) < 0.01f && Math.Abs(on - 1f) < 0.01f, "Kunai deal 50% more to enemies that aren't targeting you");
 
         // Chain Shuriken: turns back halfway, on the host and the client alike.
-        var star = (Bullet)shoot.Invoke(g, new object[] { Defs.ChainStar, new V2(300f, 300f), new V2(Game.ChainStarSpeed, 0f), 0f, Game.ChainStarOut * 2f, 20f, 1, false, 0f });
+        var star = (Bullet)shoot.Invoke(g, new object[] { Defs.ChainStar, new V2(300f, 300f), new V2(Defs.WeaponOf(WeaponId.ChainShuriken).Speed, 0f), 0f, Game.ChainStarOut * 2f, 20f, 1, false, 0f });
         run(0.6f);
         Bullet cstar;
         bool back = g.Bullets.ContainsKey(star.Id) && star.Vel.X < 0f && client.Game.Bullets.TryGetValue(star.Id, out cstar) && cstar.Vel.X < 0f;

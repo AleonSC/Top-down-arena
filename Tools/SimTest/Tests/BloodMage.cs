@@ -55,7 +55,7 @@ static partial class Program
         Console.WriteLine("  vein tether: {0:0} damage in 1 s on target, {1:0} aimed away; no bullets ({2}); the friend sees the beam: {3}", onTarget, offTarget, g.Bullets.Count - bulletsBefore, clientSees);
         Check(onTarget > 30f && offTarget == 0f, "Vein Tether only hurts while you hold the beam on the enemy");
         Check(g.Bullets.Values.All(b => b.Kind != Defs.VeinShot) && clientSees, "it's a beam, not bullets, and other players see it firing");
-        target.Pos = new V2(600f + Game.VeinBeamRange + 60f, 450f);
+        target.Pos = new V2(600f + Defs.WeaponOf(WeaponId.VeinTether).Reach + 60f, 450f);
         Check(Beam(target.Pos, 0.5f) == 0f, "the beam doesn't reach past its range");
         target.Pos = new V2(800f, 450f);
         g.DevSetGod(1, false);
