@@ -128,9 +128,14 @@ class Shot {
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
     }
     if (Environment.GetEnvironmentVariable("FROST") != null) {
-      var sb2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
-      for (int k = 0; k < 3; k++) { float a = -0.5f + k * 0.5f; sb2.Invoke(host.Game, new object[] { Defs.FrostLance, me.Pos + V2.FromAngle(a) * (90f + k * 60f), V2.FromAngle(a) * 700f, 0f, 1f, 14f, 1, false, 0f }); }
-      sb2.Invoke(host.Game, new object[] { Defs.FrostShot, me.Pos + new V2(-120f, 60f), new V2(-500f, 100f), 0f, 1f, 5f, 1, false, 0f });
+      // The Frost Lance's icicle FROST=<0..1> of the way through, with its splinters once they've gone off.
+      float x = float.Parse(Environment.GetEnvironmentVariable("FROST")), it = x * Game.IcicleFxTime, st = it - Game.SplinterDelay;
+      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.3f; host.Game.Bot = false;
+      V2 tipAt = me.Pos + V2.FromAngle(me.Aim) * 230f;
+      var frost = Defs.BulletColor(Defs.FrostShot);
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Icicle, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.IcicleHalfWidth, Dur = Game.IcicleFxTime, T = it });
+      if (st > 0f && st < 0.3f)
+        host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = 0.3f, T = st });
     }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

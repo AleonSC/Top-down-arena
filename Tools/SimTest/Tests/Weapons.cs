@@ -461,7 +461,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.Icicle)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }
@@ -531,7 +531,7 @@ static partial class Program
 
     static void FrostLanceTest(float dt)
     {
-        // The Frost Lance flies as a wide spear: it clips a small enemy 15 px off its line, which the old 4.5 px shard missed.
+        // The Frost Lance: an icicle juts out from you, then splinters off its sides into enemies beside it. Both slow.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -545,19 +545,23 @@ static partial class Program
         Check(me.Weapon.Id == WeaponId.FrostLance, "the Mage Tank's second weapon is the Frost Lance");
         g.Enemies.Clear(); g.Bullets.Clear();
         me.Pos = new V2(200f, 450f);
-        var shard = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shard, new V2(520f, 465f), 0f, 0, false });
-        shard.Hp = shard.MaxHp = 1e5f; shard.SpawnT = 0f;
+        var spots = new[] { new V2(350f, 450f), new V2(300f, 495f), new V2(300f, 560f), new V2(480f, 450f) };  // on the line, beside it, too far beside, past its point
+        var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+        Action pin = () => { for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; } me.Pos = new V2(200f, 450f); };
+        Action<int> step = n => { for (int f = 0; f < n; f++) { pin(); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
         volley.Invoke(g, new object[] { me, 0f, 0 });
-        var lance = g.Bullets.Values.FirstOrDefault(b => b.Owner == 1);
-        float hp = shard.Hp;
-        for (int f = 0; f < 40; f++)
-        {
-            shard.Pos = new V2(520f, 465f); shard.FrozenT = 1f;
-            me.Pos = new V2(200f, 450f);
-            host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) });
-        }
-        Console.WriteLine("  frost lance: kind {0}, radius {1}, hit a Shard 15 px off its line: {2}", lance == null ? -1 : lance.Kind, lance == null ? 0f : lance.Radius, shard.Hp < hp);
-        Check(lance != null && lance.Kind == Defs.FrostLance && lance.Radius >= 10f && shard.Hp < hp, "the Frost Lance has a wide spearhead hitbox");
+        step(2);
+        float[] early = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        step(20);
+        float[] took = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        Console.WriteLine("  frost lance: line {0:0.0} (after 2 ticks {1:0.0}), beside {2:0.0} (after 2 ticks {3:0.0}), far beside {4:0.0}, past the point {5:0.0}; bullets {6}",
+            took[0], early[0], took[1], early[1], took[2], took[3], g.Bullets.Values.Count(b => b.Owner == 1));
+        Check(early[0] > 0f && took[0] == early[0] && took[2] == 0f && took[3] == 0f && !g.Bullets.Values.Any(b => b.Owner == 1),
+            "the Frost Lance is an icicle out from you to its reach: no flying spear, only what's on its line is hit at once (and only once)");
+        Check(early[1] == 0f && Math.Abs(took[1] - took[0] * Game.SplinterMult) < 0.5f,
+            "a moment later it splinters off its sides into enemies beside it for half damage");
+        Check(dummies[0].SlowT > 0f && dummies[1].SlowT > 0f && dummies[0].SlowMult < 0.75f && dummies[1].SlowMult < 0.75f, "the icicle and its splinters both slow");
+        Check(Math.Abs(g.WeaponRange(me) - Game.MeleeReach(me, me.Weapon.Reach)) < 0.5f, "the aim line reaches as far as the icicle");
         host.Leave("");
     }
 
