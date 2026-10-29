@@ -236,6 +236,7 @@ namespace Arena
                 {
                     q.TransT = 0f;
                     EnterQueenStage(e, q.TransTo);
+                    StageStartBurst(e, q.Stage == QueenStage.Frenzy ? new Rgba(1f, 0.38f, 0.22f) : new Rgba(1f, 0.67f, 0.15f));
                 }
                 e.Phase = 0;
                 return;

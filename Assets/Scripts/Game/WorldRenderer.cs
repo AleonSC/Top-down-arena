@@ -107,6 +107,7 @@ namespace Arena
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
+            DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
@@ -1202,6 +1203,23 @@ namespace Arena
         }
 
         /// Each type's details on top of its body.
+        /// A Shielder's shield: dimmer and more cracked as it wears (Phase 1-3); gone once it shatters (Phase 4).
+        void DrawShielderShield(Enemy e, V2 pos, float r)
+        {
+            if (e.Phase >= Game.ShieldBroken)
+                return;
+            float from = e.Facing - 1.13f, span = 2.26f;
+            Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f - 0.15f * e.Phase), 20, from, span);
+            // Cracks: fixed for each Shielder (from its id), more of them at each step.
+            for (int k = 0; k < e.Phase * 2; k++)
+            {
+                float u = 0.12f + 0.76f * (((e.Id * 37 + k * 61) % 97) / 96f), a = from + span * u;
+                V2 p0 = pos + V2.FromAngle(a) * (r + 9.5f), p1 = pos + V2.FromAngle(a + (k % 2 == 0 ? 0.06f : -0.06f)) * (r + 7f), p2 = pos + V2.FromAngle(a + (k % 2 == 0 ? 0.02f : -0.02f)) * (r + 4.5f);
+                Line(p0, p1, 1.4f, new Rgba(0.15f, 0.2f, 0.35f, 0.95f));
+                Line(p1, p2, 1.4f, new Rgba(0.15f, 0.2f, 0.35f, 0.95f));
+            }
+        }
+
         void DrawEnemyDetails(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             switch (e.Type)
@@ -1212,11 +1230,14 @@ namespace Arena
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, col);  // WardenLook.cs
                     break;
+                case EnemyType.Guard:
+                    DrawGuardDetails(e, pos, r, t);  // WardenLook.cs
+                    break;
                 case EnemyType.HiveEgg:
                     DrawEggDetails(e, pos, r, t);  // QueenLook.cs
                     break;
                 case EnemyType.Shielder:
-                    Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);
+                    DrawShielderShield(e, pos, r);
                     break;
                 case EnemyType.Medic:
                     Line(pos - new V2(r * 0.5f, 0), pos + new V2(r * 0.5f, 0), 3f, Rgba.White);

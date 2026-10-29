@@ -157,10 +157,9 @@ namespace Arena
             var w = e.Warden;
             if (w == null)
                 return;
-            if (w.TransT > 0f)  // changing stage: a pulsing shell, can't be hurt
+            if (w.TransT > 0f)  // changing stage (can't be hurt): StageShiftLook.cs
             {
-                Circle(pos, r + 14f, new Rgba(1f, 1f, 1f, 0.08f), 32);
-                Arc(pos, r + 12f, 3f, new Rgba(1f, 1f, 1f, 0.5f + 0.4f * Mathf.Sin(t * 18f)), 40);
+                DrawStageShiftBoss(e, pos, r, t);
                 return;
             }
             if (w.Stage >= WardenStage.Riot)  // red-hot
@@ -222,6 +221,16 @@ namespace Arena
                 Line(p1, p2, 1.5f, new Rgba(0.8f, 0.96f, 1f, 0.85f));
                 Line(p2, p3, 1.5f, new Rgba(0.8f, 0.96f, 1f, 0.85f));
             }
+        }
+
+        /// A guard: a riot helmet's visor and a baton held out the way it's facing.
+        void DrawGuardDetails(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            Line(pos + f * (r * 0.25f) - side * (r * 0.55f), pos + f * (r * 0.25f) + side * (r * 0.55f), 3.5f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
+            V2 grip = pos + side * (r * 0.8f), tip = grip + V2.FromAngle(e.Facing + 0.5f * Mathf.Sin(t * 9f + e.Id)) * (r + 12f);
+            Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));  // the baton
+            Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
         }
 
         /// A rioter: an orange jumpsuit with a dark band across it.

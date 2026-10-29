@@ -163,6 +163,7 @@ namespace Arena
         public bool Spawning;  // replicated SpawnT > 0 on clients
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
+        public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
     }
 
     public class Bullet

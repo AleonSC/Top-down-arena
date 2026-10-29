@@ -246,6 +246,33 @@ static partial class Program
         Run(s, dt, 1f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); });
         Check(w.Hp < hpR, "rioters that reach the Warden hurt it");
 
+        // Rioters still standing at 10 s bring the guards: they beat the rioters down, then come for the players.
+        int before = 0;
+        Run(s, dt, 12f, () => g.Enemies.Values.Any(e => e.Type == EnemyType.Guard), () =>
+        {
+            me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); cg.Players[2].Pos = friend.Pos;
+            before = Math.Max(before, g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter));  // the second two doors burst at 3 s
+            foreach (var r in g.Enemies.Values) if (r.Type == EnemyType.Rioter && w.Warden.TurnT > 3.5f) r.Pos = new V2(1450f, 780f);  // keep them away from the Warden
+        });
+        int guards = g.Enemies.Values.Count(e => e.Type == EnemyType.Guard);
+        Run(s, dt, 0.3f, null, null);
+        bool clientGuards = cg.Enemies.Values.Any(e => e.Type == EnemyType.Guard);
+        int atGuards = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
+        Run(s, dt, 12f, () => g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter) == 0, () =>
+        {
+            me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); cg.Players[2].Pos = friend.Pos;
+            foreach (var p in g.Players.Values) p.InvulnT = 1f;
+            foreach (var r in g.Enemies.Values) if (r.Type == EnemyType.Rioter) r.Pos = new V2(1450f, 780f);  // held in the corner for the guards
+        });
+        int afterBeating = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
+        float gap0 = g.Enemies.Values.Where(e => e.Type == EnemyType.Guard).Select(e => Math.Min(e.Pos.DistanceTo(me.Pos), e.Pos.DistanceTo(friend.Pos))).DefaultIfEmpty(9999f).Min();
+        Run(s, dt, 3f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); cg.Players[2].Pos = friend.Pos; foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        float gap1 = g.Enemies.Values.Where(e => e.Type == EnemyType.Guard).Select(e => Math.Min(e.Pos.DistanceTo(me.Pos), e.Pos.DistanceTo(friend.Pos))).DefaultIfEmpty(9999f).Min();
+        Console.WriteLine("  warden guards: {0} rioters before, {1} when {2} guards came (client saw them {3}), {4} after the beating; nearest guard to a player {5:0} -> {6:0} px",
+            before, atGuards, guards, clientGuards, afterBeating, gap0, gap1);
+        Check(before >= 18 && guards >= 3 && clientGuards, "the riot pours out 9 a door; rioters left at 10 s bring the guards (everyone sees them)");
+        Check(afterBeating < atGuards && gap1 < gap0, "the guards beat the rioters down, then come for the players");
+
         // The last stand below 10%: the rioters scatter.
         w.Hp = w.MaxHp * 0.09f;
         Run(s, dt, 3f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);

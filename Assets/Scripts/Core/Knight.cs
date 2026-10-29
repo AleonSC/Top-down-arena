@@ -239,6 +239,8 @@ namespace Arena
                         continue;
                     if (!BlocksShot(e, origin))
                         hits.Add(e);
+                    else
+                        WearShield(e, s.Dmg);
                     continue;
                 }
                 if (d - e.Radius > s.Reach)
@@ -247,7 +249,10 @@ namespace Arena
                 if (!full && AngleTo(origin, e.Pos, s.Aim) > s.HalfArc + slack && d > e.Radius + p.Def.BodyR)
                     continue;
                 if (BlocksShot(e, origin))
-                    continue;  // shields stop swords too
+                {
+                    WearShield(e, s.Dmg);
+                    continue;  // shields stop swords too (and wear)
+                }
                 hits.Add(e);
             }
             if (s.MaxTargets > 0 && hits.Count > s.MaxTargets)
