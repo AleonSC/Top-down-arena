@@ -23,6 +23,8 @@ namespace Arena
         int abilityHover = -1;     // the ability button under the mouse last frame
         float abilityDemoUntil;
         const float AbilityDemoTime = 5f;
+        float ultDemoUntil;        // clicking the ultimate on the hero card shows it for a while
+        const float UltDemoTime = 12f;
 
         void DrawLobby()
         {
@@ -328,7 +330,17 @@ namespace Arena
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
             Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
             hy += 8f;
-            Ui.Label(new Rect(hero.x + 14f, hy, hero.width - 28f, 16f), "ULTIMATE  ·  F", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            // Click the ultimate to watch it in the preview above.
+            var ultArea = new Rect(hero.x + 6f, hy - 4f, hero.width - 12f, hero.yMax - hy - 2f);
+            bool ultOn = Time.unscaledTime < ultDemoUntil, ultHover = ultArea.Contains(Event.current.mousePosition);
+            if (ultOn || ultHover)
+                Ui.Pill(ultArea, new Color(1f, 0.8f, 0.35f, ultOn ? 0.12f : 0.06f));
+            Ui.Label(new Rect(hero.x + 14f, hy, hero.width - 28f, 16f), ultOn ? "ULTIMATE  ·  F  ·  PREVIEWING" : "ULTIMATE  ·  F  ·  CLICK TO PREVIEW", 10, ultOn || ultHover ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
+            if (GUI.Button(ultArea, GUIContent.none, GUIStyle.none))
+            {
+                ultDemoUntil = ultOn ? 0f : Time.unscaledTime + UltDemoTime;  // a second click stops it
+                abilityDemoUntil = 0f;
+            }
             Ui.Fancy(new Rect(hero.x + 14f, hy + 14f, hero.width - 28f, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(hero.x + 14f, hy + 38f, hero.width - 28f, hero.yMax - hy - 44f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
 
@@ -393,6 +405,7 @@ namespace Arena
                     session.RequestAbility(i);
                     abilityChoice = i;
                     abilityDemoUntil = Time.unscaledTime + AbilityDemoTime;
+                    ultDemoUntil = 0f;
                 }
             }
             if (Event.current.type == EventType.Repaint)
@@ -405,10 +418,11 @@ namespace Arena
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
             int shown = abilityHover >= 0 ? abilityHover : me.Ability;
-            bool demo = abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;
+            bool ult = abilityHover < 0 && Time.unscaledTime < ultDemoUntil;  // hovering an ability shows that instead
+            bool demo = ult || abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.RoleAbility(me.Role, me.Kit, shown), demo, ult);
             showcaseSeen = Time.unscaledTime;
             if (!BeginUiGl())
                 return;
@@ -452,8 +466,9 @@ namespace Arena
             EndUiGl();
             if (demo)
             {
-                var ab = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, shown));
-                Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), "SPACE  ·  " + ab.Name.ToUpperInvariant(), 10, Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);
+                var ab = Upgrades.Ability(ult ? Upgrades.Ultimate(me.Role, me.Kit) : Upgrades.RoleAbility(me.Role, me.Kit, shown));
+                Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), (ult ? "ULTIMATE  ·  " : "SPACE  ·  ") + ab.Name.ToUpperInvariant(), 10,
+                    ult ? Ui.Gold : Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);
             }
         }
 

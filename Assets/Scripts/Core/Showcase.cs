@@ -10,6 +10,7 @@ namespace Arena
     public class Showcase
     {
         public const float AbilityEvery = 3.5f;  // seconds between demo casts (cooldowns are skipped)
+        public const float UltimateEvery = 9f;   // ...and between ultimate casts (most last several seconds)
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
@@ -20,7 +21,7 @@ namespace Arena
         Kit kit;
         int weapon = -1;
         AbilityId ability = AbilityId.None;
-        bool demoAbility;
+        bool demoAbility, ultimate;
         float t, castT;
         bool castHeld;
 
@@ -32,16 +33,18 @@ namespace Arena
         /// shoves them further (the Lance), so the preview can zoom out to keep them in view.
         public float Extent { get; private set; } = 250f;
 
-        /// Show this loadout. A new weapon (or role or class) restarts the scene; a different ability just
-        /// swaps the Space ability. demo: cast the ability every few seconds.
-        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo)
+        /// Show this loadout. Anything new (weapon, role, class, the ability shown, or switching to the
+        /// ultimate) restarts the scene, so nothing from the last demo plays on. demo: cast the ability every
+        /// few seconds; ultimate: cast your ultimate (F) instead.
+        public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false)
         {
-            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon)
+            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate)
             {
                 this.role = role;
                 this.kit = kit;
                 this.weapon = weapon;
                 this.ability = ability;
+                this.ultimate = ultimate;
                 session.HostOffline(role, kit, weapon, 0);
                 Game.ShowcaseMode = true;
                 Game.HostStart();
@@ -52,12 +55,6 @@ namespace Arena
                 Extent = Distance;
                 t = 0f;
                 castT = FirstCast;
-            }
-            else if (ability != this.ability)
-            {
-                this.ability = ability;
-                Game.ShowcaseSetAbility(ability);
-                castT = Math.Max(0.3f, FirstCast - t);
             }
             if (demo && !demoAbility)
                 castT = Math.Min(castT, Math.Max(0.3f, FirstCast - t));
@@ -83,11 +80,14 @@ namespace Arena
                     castHeld = false;
                 else if (castT <= 0f)
                 {
-                    Game.ShowcaseRefill();
+                    Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
-                    castT = AbilityEvery;
+                    castT = ultimate ? UltimateEvery : AbilityEvery;
                 }
-                input.Ability = castHeld;
+                if (ultimate)
+                    input.Ultimate = castHeld;
+                else
+                    input.Ability = castHeld;
             }
             Game.FixedStep(dt, input);
             Game.Update(dt);
@@ -144,14 +144,14 @@ namespace Arena
             }
         }
 
-        /// The demo cast comes off cooldown straight away.
-        public void ShowcaseRefill()
+        /// The demo cast (Space, or the ultimate's slot) comes off cooldown straight away.
+        public void ShowcaseRefill(int slot = 0)
         {
             var me = Me;
             if (me == null)
                 return;
-            me.Slots[0].Charges = me.Slots[0].MaxCharges;
-            me.Slots[0].Timer = 0f;
+            me.Slots[slot].Charges = me.Slots[slot].MaxCharges;
+            me.Slots[slot].Timer = 0f;
         }
 
         /// Instead of waves: keep the dummies standing (a dead one comes back a moment later).

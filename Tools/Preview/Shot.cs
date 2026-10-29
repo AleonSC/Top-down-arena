@@ -157,7 +157,9 @@ class Shot {
         var le = host.Lobby[host.MyId];
         int shown = ab != null ? int.Parse(ab) : le.Ability;
         var sc = new Showcase();
-        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null);
+        bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
+        if (ultDemo) set("ultDemoUntil", 1e9f);
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);

@@ -853,6 +853,37 @@ static class Program
         Check(quiet.Count == 0, "the loadout preview: every weapon hits the target dummies");
         Check(uncast.Count == 0, "the loadout preview: every Space ability is cast on a loop");
         Check(!grew, "the loadout preview gives no XP or mastery");
+
+        // Switching to another ability restarts the preview: nothing from the last one plays on.
+        {
+            var sc = new Showcase();
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Haven, true);
+            for (int f = 0; f < 120; f++) sc.Step(dt);
+            bool zoneUp = sc.Game.Zones.Count > 0;
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.SoulLink, true);
+            sc.Step(dt);
+            Console.WriteLine("  showcase switch: Haven's zone up {0}; after switching to Soul Link: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
+            Check(zoneUp && sc.Game.Zones.Count == 0 && sc.Me.Run.AbilitiesUsed == 0, "switching the previewed ability restarts the preview (the last one's effects are gone)");
+            sc.Stop();
+        }
+
+        // The ultimate can be previewed too: every role and class's ultimate is cast on a loop.
+        var ultsUncast = new List<string>();
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                var kit = (Kit)k;
+                var sc = new Showcase();
+                sc.Show(role, kit, 0, Upgrades.RoleAbility(role, kit, 0), true, true);
+                for (int f = 0; f < 120; f++) sc.Step(dt);
+                var me = sc.Me;
+                var ult = Upgrades.Ultimate(role, kit);
+                if (me.Slots[Upgrades.UltSlot].Id != ult || me.Run.AbilitiesUsed < 1 || me.Slots[Upgrades.UltSlot].Charges >= me.Slots[Upgrades.UltSlot].MaxCharges)
+                    ultsUncast.Add(Upgrades.Ability(ult).Name);
+                sc.Stop();
+            }
+        Console.WriteLine("  showcase ultimates: {0} of {1} cast{2}", 3 * Defs.KitCount - ultsUncast.Count, 3 * Defs.KitCount, ultsUncast.Count > 0 ? " (not cast: " + string.Join(", ", ultsUncast) + ")" : "");
+        Check(ultsUncast.Count == 0, "the loadout preview casts every ultimate when you click it");
     }
 
     static void FrostLanceTest(float dt)
