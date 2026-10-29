@@ -16,7 +16,7 @@ and tool is described there). This document is the developer-facing overview; re
 - **A run:** 50 waves, a boss every 5 (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
   Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
   cards (rerolls available); each boss gives a legendary upgrade and a weapon mod.
-- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Mage, Summoner, Knight, Ninja), then one
+- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer; in code the Elementalist is still `Kit.Mage` and the Hemomancer `Kit.BloodMage`, only `Defs.KitName` shows the new names), then one
   of 3 weapons and one of 3 Space abilities for that combination. Each role × kit has an ultimate (F).
   Bonus abilities on Q/E/Shift come from very rare upgrade cards. Abilities level up with use (**mastery**,
   levels 1-5, with a level-5 "capstone" bonus each).
@@ -58,13 +58,14 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | File | Lines | What it holds |
 |---|---|---|
 | `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and constants, lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
-| `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), `SendSnapshot`/`ReadSnapshot`, `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
+| `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), the snapshot (`SyncSnapshot` and its `SyncPlayer`/`SyncEnemy`/`SyncMinion`/`SyncZone`/`SyncOrb`; `SyncMastery`, `SyncShop`, `SyncWarden`, `SyncHazards`, `SyncCages` live with their systems), `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
+| `NetSync.cs` | 0.03k | one pass that writes (host) or reads (client) each field by `ref`, so a snapshot field is listed once for both sides |
 | `Combat.cs` | 0.8k | bullets (`SpawnBullet`, `MoveBullets`, homing `Steer`, gravity wells), `Collide`, damage to players (`Damage`, `RevivePlayer`) and enemies (`HurtEnemy`), on-hit/on-kill effects, burn, orbs |
 | `Weapons.cs` | 0.37k | `FireRate`, `FirePlayer`, `FireVolley`, `ExtraShots`, Revolver and Mender's Bow, `WeaponRange`, `SetFrags` |
 | `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
 | `Waves.cs` | 0.12k | `TickWaves`, `WaveCleared`, `CheckGameOver` |
 | `Ninja.cs` | 0.45k | the Ninja: `FireNinjaWeapon`, `NinjaAbility`, Substitution's `MovePlayer` (`Msg.Teleport`), Shadow Step's landing, clones and Vanish (`NinjaTarget`), Smoke Bomb's slowed bullets, `TickNinjas` |
-| `BloodMage.cs` | 0.45k | the Blood Mage: `FireBloodWeapon`, `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
+| `BloodMage.cs` | 0.55k | the Hemomancer (`Kit.BloodMage`): `FireBloodWeapon`, Implosion (`ImplodeTarget` picks the enemy under `Player.AimAt`, `ImplodeReady` holds fire without one, `pendingImplosions`/`ResolveImplosions` from `Collide`, `FxKind.Implode`), `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
 | `TextOverrides.cs` | 0.15k | the dev text editor's edits: `Apply` (what to show; digit runs are "#" in keys, so numbers stay the game's), `Problem` (an edit must keep its numbers), `TextOverrides.txt` load/save |
 | `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
@@ -119,7 +120,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 65) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 66) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -152,20 +153,27 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
-- **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [mode]` builds and runs `Program.cs`.
-  - `run.sh 1 30` = the **core** match tests (~164 checks).
-  - `run.sh 1 30 music` = the **feature** suite (~175 checks: parry, aim, mastery, budget, Boss Lab,
-    Singularity, Knight, boss sounds, weapon extras, revolver, bow, practice, weapon range...). The name is
-    historical (it began as the music test). **Run both before committing.**
-  - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
-    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, `blood`, `textedit`, `paths` (all path tests, ~30 checks), ... (see the `args[2] ==` chain
-    near the end of `Program.cs`).
-  - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
-    own upgrade from extra projectiles" "enemy bullets stay near the bullet budget" (limit 210; the peak
-    varies about 175-235 between runs, on the original code too) and, rarely, "regular waves can't wear a Barrier
-    down" (core suite; fails when no enemy happens to shoot near the tank in its 5 s window), and "Mirror Guard"
-    (rare), and "Swarm Fields: mostly melee rushers, about twice as many" (random; about 29-32 enemies against a
-    29.4 threshold). Also "fire warns first, then burns players and enemies" (paths; fails when an enemy shot lands during the warning). The bullet-budget one fails about 1 run in 4-5 (re-measured Oct 2026: peaks 195-245).
+- **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the
+  **`Suites` table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`,
+  `Parry`, `Knight`, `Ninja`, `BloodMage`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `TextEdit`). `run.sh list` prints every suite.
+  - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
+  - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
+    **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
+  - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
+    `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, ... Reports (numbers, no pass/fail):
+    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `laserdebug`. A new test: add it to its system's file, then to the
+    `Suites` table (and to `FeatureTests` if it belongs in the feature suite).
+  - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
+    it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
+    come out the same each run. `SEED=random` gives fresh rolls; `SEED=<n>` tries another fixed set. Timing
+    between the host and client threads still varies a little, so a check that only just passes can still
+    flicker. The real game never seeds, so it stays random.
+  - Formerly flaky checks, now steady under the seeds (each passed 4+ runs in a row in Oct 2026): perfect
+    parry, extra projectiles, bullet budget, Barrier vs regular waves, Mirror Guard, Swarm Fields / Sniper Ridge
+    mixes, fire warning, the session's "regeneration" entry. "Once broken, the parry stops blocking" used to wait
+    for the Warden to fire; it now fires its own test shot. If one starts failing for every run, it's a real
+    break (or that seed found an edge): check it with `SEED=random` a few times before blaming the seed.
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
     `T/K/1` (Tank Knight, second weapon; `N` = Ninja, `B` = Blood Mage).
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 11 fixed, seeded scenes (every enemy and minion
@@ -207,7 +215,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 **Blood Mage class (Oct 2026, protocol 61):** 6th kit for all three roles: health as a resource (Space abilities cost health, never below 1 HP; Blood Price up to +40% damage at low health; 3% lifesteal), 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; `blood` test suite; preview `BLOOD=n`.
 
-**This session (Oct 2026), newest first:** The Hive Queen is a 3-stage hive (owner-approved mockup): `Queen.cs` + `QueenLook.cs` (wax floor, sealing cells, dive shadow, spray aim, bees, eggs, honey globs and puddles) + stage notes on the boss bar; her old overlapping loop is gone (drones now get their own turn); `queen` sim mode (also in the feature suite), old Hive Queen checks moved to the new loop; preview `QUEEN=<health fraction>`; protocol 65 · The Warden is a 3-stage prison riot (owner-approved mockup): `Warden.cs` (logic) + `WardenLook.cs` (corner watchtower, searchlight, gates drawn as chevroned push bullets, riot doors, shield, charge line, stun sparks, rioters) + gas look in `PathsUi.cs` + stage note on the boss bar; mechanics take turns except the Lockdown's cross + gates + gas; `Player.StunT` and the `WardenState` ride the snapshot; new `EnemyType.Rioter`, `Defs.StunShot`, `PatchKind.Gas`; `warden` sim mode (also in the feature suite); preview `WARDEN=<health fraction>` holds it in a stage; protocol 64 · Vein Tether is a real beam (`BloodMage.cs`: `pendingBeams`/`ResolveBeams` from `Collide`, `BeamEnd` raycast shared with drawing; `Player.FiringSeen` synced so every screen draws everyone's beam, `DrawVeinBeams`; Armory `s.beam`, `Docs/checks/armory-vein.js`); protocol 63 · Bear Totem (summoner Tank) is now melee: `FireBearClaws` queues two quick claw swipes (110°, 85 px, 11 damage, 0.12 s apart, raking opposite ways; `Swing.ClawSide`, drawn by `FxKind.Claw`) that don't cut bullets, and each hit bleeds (`Swing.Bleed`, `ApplyBleed`/`TickBleed`: 30% of the hit per second for 3 s, stacking to five hits; replicated status bit 16, drops and a blood-drop icon); `DotDamage` shared with burning; `bear` sim mode; protocol 62 · H hides/shows the HUD (`hudShown`/`hudT`, `HudGroup` staggers four pieces with slide + scale + ease-out-back + fade; `Ui.Alpha`/`Ui.Faded` make GUI.color-setting draws fade too; preview flag `HUDT=0..1`) · The Bazaar (a 10th path, 1 skull): kills on its waves give every player the same gold (`GoldPerXp` 0.3), and its prize is a shop before the boss (`Shop.cs`, `ShopUi.cs`): per-player shelf of 4 upgrades + a legendary + a weapon mod priced by rarity, services (restock, remove an upgrade, full heal, revive token), giving gold (reopens a done player's shop), no timer (closes when everyone is Done; the host can close it after 60 s), leftover gold becomes each player's own XP; bots shop by themselves; gold shows as a chip above the wave panel (`DrawGoldChip`; preview `GOLD=n`); preview mode `shop` (`SHOPSEL`, `GIVE=1`, `REMOVE=1`) and `PATHOFFER=bazaar`; protocol 60 · HUD moved to the bottom (owner picked mockup C of three): wave panel and your card flank the ability bar, teammates as slim rows, boss bars wide at the top · Session recorder check (format 2): mode (run / practice), endless runs record their real end (they used to stay "victory" at wave 50), path offers/choices/prizes, healing received by source, floor damage to enemies, dev tool use, each player's final abilities and mastery; `report.py` shows paths, healing sources, dev-tool flags and leaves Practice Range sessions out (`--practice` to include) · Divergent paths, all 4 steps (protocols 57-59): framework and the
+**This session (Oct 2026), newest first:** The Hive Queen is a 3-stage hive (owner-approved mockup): `Queen.cs` + `QueenLook.cs` (wax floor, sealing cells, dive shadow, spray aim, bees, eggs, honey globs and puddles) + stage notes on the boss bar; her old overlapping loop is gone (drones now get their own turn); `queen` sim mode (also in the feature suite), old Hive Queen checks moved to the new loop; preview `QUEEN=<health fraction>`; protocol 66 · Classes renamed on screen: Mage → **Elementalist**, Blood Mage → **Hemomancer** (`Defs.KitName`; enum names, files and methods unchanged) · Hemo Spray replaced by **Implosion** (Hemomancer DPS, `WeaponId.Implosion`, `Defs.ImplodeShot`): click an enemy within 480 px (26 px slack) and it collapses (34), enemies within 55 px take 15 and are pulled 18 px in; extras/Barrage chain to another enemy within 180 px (60%); no target = no shot and no cooldown spent; the cursor point now rides the input message (`Player.AimAt`); target marker `DrawImplodeMark`, effect `DrawImplodeFx` (`BloodMageLook.cs`); preview `IMPLODE=<0..1>`; Armory `s.implode`; protocol 65 · The Warden is a 3-stage prison riot (owner-approved mockup): `Warden.cs` (logic) + `WardenLook.cs` (corner watchtower, searchlight, gates drawn as chevroned push bullets, riot doors, shield, charge line, stun sparks, rioters) + gas look in `PathsUi.cs` + stage note on the boss bar; mechanics take turns except the Lockdown's cross + gates + gas; `Player.StunT` and the `WardenState` ride the snapshot; new `EnemyType.Rioter`, `Defs.StunShot`, `PatchKind.Gas`; `warden` sim mode (also in the feature suite); preview `WARDEN=<health fraction>` holds it in a stage; protocol 64 · Vein Tether is a real beam (`BloodMage.cs`: `pendingBeams`/`ResolveBeams` from `Collide`, `BeamEnd` raycast shared with drawing; `Player.FiringSeen` synced so every screen draws everyone's beam, `DrawVeinBeams`; Armory `s.beam`, `Docs/checks/armory-vein.js`); protocol 63 · Bear Totem (summoner Tank) is now melee: `FireBearClaws` queues two quick claw swipes (110°, 85 px, 11 damage, 0.12 s apart, raking opposite ways; `Swing.ClawSide`, drawn by `FxKind.Claw`) that don't cut bullets, and each hit bleeds (`Swing.Bleed`, `ApplyBleed`/`TickBleed`: 30% of the hit per second for 3 s, stacking to five hits; replicated status bit 16, drops and a blood-drop icon); `DotDamage` shared with burning; `bear` sim mode; protocol 62 · H hides/shows the HUD (`hudShown`/`hudT`, `HudGroup` staggers four pieces with slide + scale + ease-out-back + fade; `Ui.Alpha`/`Ui.Faded` make GUI.color-setting draws fade too; preview flag `HUDT=0..1`) · The Bazaar (a 10th path, 1 skull): kills on its waves give every player the same gold (`GoldPerXp` 0.3), and its prize is a shop before the boss (`Shop.cs`, `ShopUi.cs`): per-player shelf of 4 upgrades + a legendary + a weapon mod priced by rarity, services (restock, remove an upgrade, full heal, revive token), giving gold (reopens a done player's shop), no timer (closes when everyone is Done; the host can close it after 60 s), leftover gold becomes each player's own XP; bots shop by themselves; gold shows as a chip above the wave panel (`DrawGoldChip`; preview `GOLD=n`); preview mode `shop` (`SHOPSEL`, `GIVE=1`, `REMOVE=1`) and `PATHOFFER=bazaar`; protocol 60 · HUD moved to the bottom (owner picked mockup C of three): wave panel and your card flank the ability bar, teammates as slim rows, boss bars wide at the top · Session recorder check (format 2): mode (run / practice), endless runs record their real end (they used to stay "victory" at wave 50), path offers/choices/prizes, healing received by source, floor damage to enemies, dev tool use, each player's final abilities and mastery; `report.py` shows paths, healing sources, dev-tool flags and leaves Practice Range sessions out (`--practice` to include) · Divergent paths, all 4 steps (protocols 57-59): framework and the
 Choose-your-path screen, Swarm Fields / Sniper Ridge / Elite Gauntlet, Burning Grounds and Sanctuary (hazard
 patches, bots avoid fire and seek pools), the "no path" option, Frozen Lake (momentum movement in
 `LocalControl`: `iceVel`, `Paths.IceGrip`) and Blood Moon (no orbs/regen, kills heal), Fogbound (client-side
@@ -254,12 +262,12 @@ copies of the same numbers:
 
 | Adding a... | Touches |
 |---|---|
-| **Weapon** | `Defs` (definition) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` (behaviour) · `Game.WeaponRange` (speed × life copied again) · `Knight.MeleeRange` · `BotBrain` range table · `ArenaApp.DrawKnight`/draw code · `Upgrades` extra-projectile text · README · Armory |
+| **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
 | **Ability** | `AbilityId` · `Upgrades` (def, description, role/kit tables) · `Game.CastAbility` / `Minions.KitAbility` / `Knight.KnightAbility` / `Ultimates` · `Mastery` capstone text and effect · `BotBrain.WantAbility` · `PixelArt` icon by name · README · Armory |
 | **Enemy** | `EnemyType` + `Defs` · `EnemyAI` (roster, move, fire, special) · `ArenaApp.DrawEnemy` · `Practice.BlurbOf` + `Choices` · README · Bestiary |
 
 **Recommendations**
-1. **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
+1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
    `WeaponRange`, bot ranges, upgrade texts, the Armory and balance tweaks read one place. `WeaponRange`
    currently duplicates every speed/life literal (guarded by the `aim` test, but still double work).
 2. **An ability registry**: one entry per ability with its cast function, bot heuristic, capstone and text,
@@ -279,17 +287,19 @@ copies of the same numbers:
 6. ✅ **Done (Oct 2026).** **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
    the 351-line `DrawWorld` and 268-line `DrawEnemy` would also benefit from per-type helpers), `Hud.cs`
    (wave plate, ability bar, Tab menu, picker, run summary) and `Menus.cs` (main menu, settings, how-to).
-7. **Split `Tools/SimTest/Program.cs` (3.7k lines)** into one file per system, replace the `args[2] ==` chain
+7. ✅ **Done (Oct 2026).** **Split `Tools/SimTest/Program.cs` (3.7k lines)** into one file per system, replace the `args[2] ==` chain
    with a table of named suites, and add an `all` suite. **Rename the `music` suite** (it runs the whole
-   feature suite, which is confusing) and make the default run everything.
+   feature suite, which is confusing) and make the default run everything. (Done as `Tests/*.cs`, the `Suites`
+   table, `features` with `music` kept as an alias, and `all`; the default stays `core` so the usual two-step
+   check doesn't run the core suite twice.)
 
 ### 6.4 Networking
 
-8. **Snapshot read/write are hand-paired** (136 `Write` calls in `Game.cs`): adding a replicated field means
+8. ✅ **Done (Oct 2026):** the snapshot is one `Sync*` pass per entity over a `NetSync` (writes on the host, reads on a client); same bytes as before, so no protocol bump. **Snapshot read/write were hand-paired** (136 `Write` calls in `Game.cs`): adding a replicated field means
    editing `SendSnapshot` and `ReadSnapshot` in lockstep plus a protocol bump, and a mismatch silently
    corrupts the stream. A symmetric `Serialize(IStream)` per entity (one method that both reads and writes)
    would remove that whole class of bug.
-9. `ReadSnapshot` allocates several `HashSet`/`List`s **per snapshot** (20 Hz on clients); reuse scratch
+9. ✅ **Done (Oct 2026):** scratch fields (`snapSeen`, `snapGone`, ...) in `GameNet.cs`. `ReadSnapshot` allocated several `HashSet`/`List`s **per snapshot** (20 Hz on clients); reuse scratch
    collections like `Collide` already does. Small GC win on the client.
 10. Bandwidth is fine for 3 players over Tailscale (full state at 20 Hz, no bullets). Delta compression isn't
     needed unless player counts grow.
@@ -308,7 +318,7 @@ copies of the same numbers:
 
 14. **Tunables are scattered constants** across `Game.cs`, `EnemyAI.cs`, `Knight.cs`, `Defs.cs`. A single
     `Balance.cs` (or a JSON file the dev menu can reload) would make tuning sessions much faster.
-15. **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable.
+15. ✅ **Done (Oct 2026).** **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable. (`Game.SeedForTests`; see section 3.)
 16. The F1 **"Bot plays for you"** still uses the simple test bot; the Boss Lab's smart bot (`BotSkill.Good`)
     would make it far more useful for play-testing. Keep the simple bot for the sim tests.
 
@@ -327,12 +337,19 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
 1. ✅ Split `Game.cs` into `GameNet.cs`, `Combat.cs`, `Abilities.cs`, `Waves.cs`, `Weapons.cs` (item 5).
 2. ✅ Split `ArenaApp.cs` into `WorldRenderer.cs`, `Hud.cs`, `Menus.cs`; `DrawArenaContents` and `DrawEnemy` broken
    into helpers (item 6). Checked byte-for-byte with `Tools/RenderCheck`. (`DrawArenaContents` was already pulled out of `DrawWorld` for the loadout preview.)
-3. Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
-   `music` suite, fixed seeds for the flaky tests (items 7, 15).
-4. Weapon numbers into `WeaponDef`; `WeaponRange`, bot range tables and upgrade texts read them; `aim` test
-   must pass (item 1).
-5. Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; reuse scratch collections in
-   `ReadSnapshot`. Protocol bump (items 8, 9).
+3. ✅ Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
+   `music` suite, fixed seeds for the flaky tests (items 7, 15). Now `Tests/*.cs`, `run.sh list`, `features`
+   (alias `music`), seeds per test (`SEED=random` to vary).
+4. ✅ Weapon numbers into `WeaponDef` (`Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`); the firing code,
+   `WeaponRange`, `MeleeRange` and the bots read them (item 1). Proven unchanged: every weapon's bullets and swings
+   at 0-3 extra projectiles, field for field, and the `aim` and `extra` outputs, identical before and after.
+   Texts (`Desc`, `ExtraDesc`) still state their numbers by hand; the bots' lead-speed guesses (`ShotSpeedFor`) are
+   left as they were (they differ from the real speeds, so reading `Speed` would change how bots aim).
+5. ✅ Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; scratch collections reused
+   (items 8, 9). The byte layout is unchanged, so **no protocol bump**: a seeded host/client harness compared every
+   snapshot's bytes and the client's whole state after reading it, old code vs new, over 7 runs (all six classes,
+   waves 5-40, forced hazards, shop, shelves, offers and Warden gates): identical. To add a replicated field, add
+   one `s.Float(ref ...)` (etc.) line in the right `Sync*` method and bump the protocol.
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
@@ -346,7 +363,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next items are 3 (SimTest reorganisation) or 8 (Balance.cs). Paths are feature-complete
+**Where to pick up:** the next item is 6 (registries: show the owner the design first), then 8, 9. Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

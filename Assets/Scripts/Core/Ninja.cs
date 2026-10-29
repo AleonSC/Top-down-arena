@@ -8,8 +8,8 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        const float KusariReach = 130f, KusariPull = 40f, BoReach = 90f, KatanaReach = 95f, KatanaLungeReach = 170f;
-        public const float ChainStarSpeed = 620f, ChainStarOut = 0.42f;  // flies out this long, then comes back as long
+        const float KusariPull = 40f, KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
+        public const float ChainStarOut = 0.42f;  // a Chain Shuriken flies out this long, then comes back as long
         const float StepRange = 450f, StepDamage = 80f;
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
@@ -24,18 +24,19 @@ namespace Arena
         void FireNinjaWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
             p.SwingCount++;
-            switch (p.Weapon.Id)
+            var w = p.Weapon;  // its Speed, Life, Damage, Reach and Grow (Defs)
+            switch (w.Id)
             {
                 case WeaponId.Kusarigama:
                 {
-                    var s = NewSwing(p, aim, KusariReach + 20f * extra, 120f, 26f * dmg);
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 120f, w.Damage * dmg);
                     s.Knock = -(KusariPull + 15f * extra);  // the chain yanks them in
                     s.NoCut = true;
                     pendingSwings.Add(s);
                     break;
                 }
                 case WeaponId.BoStaff:
-                    pendingSwings.Add(NewSwing(p, aim, BoReach + 20f * extra, 360f, 16f * dmg));
+                    pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
                     break;
                 case WeaponId.ChainShuriken:
                 {
@@ -43,7 +44,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.3f * (n - 1));
-                        SpawnBullet(Defs.ChainStar, muzzle, V2.FromAngle(a) * ChainStarSpeed, 0f, ChainStarOut * 2f, 22f * dmg, p.Id).Pierce += 99;
+                        SpawnBullet(Defs.ChainStar, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
                     }
                     break;
                 }
@@ -53,7 +54,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.08f * (n - 1));
-                        var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * 900f, 0f, 0.8f, 7f * dmg, p.Id);
+                        var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.HealAlly = 4f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
                     }
                     break;
@@ -61,10 +62,10 @@ namespace Arena
                 case WeaponId.SpiritFan:
                 {
                     // A gust: five short-lived puffs that heal allies they pass, and small enemy bullets in front blown back.
-                    float reach = 1f + 0.25f * extra;
+                    float reach = 1f + w.Grow * extra;
                     for (int i = 0; i < 5; i++)
                     {
-                        var b = SpawnBullet(Defs.GustShot, muzzle, V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f) * 420f, 0f, 0.3f * reach, 6f * dmg, p.Id);
+                        var b = SpawnBullet(Defs.GustShot, muzzle, V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);
                         b.Pierce += 99;
                         b.HealAlly = (3f + extra) * 9f / 6f;
                     }
@@ -86,7 +87,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * 360f, 0f, 1.6f, 25f * dmg, p.Id, false, 3f);
+                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
                         b.Splash = 60f;
                         b.HealBurst = 8f;
                     }
@@ -96,20 +97,20 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * 700f, 0f, 0.75f, 9f * dmg, p.Id).Bounces += 1;
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Bounces += 1;
                     break;
                 }
                 case WeaponId.Katana:
                 {
                     // Every 4th draw is a long lunging cut.
                     bool lunge = p.SwingCount % 4 == 0;
-                    var s = lunge ? NewSwing(p, aim, KatanaLungeReach, 30f, 40f * dmg) : NewSwing(p, aim, KatanaReach, 110f, 20f * dmg);
+                    var s = lunge ? NewSwing(p, aim, KatanaLungeReach, 30f, w.Damage * 2f * dmg) : NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
                     s.Thrust = lunge;
                     s.Heavy = lunge;
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)
                     {
-                        var c = NewSwing(p, aim + (k % 2 == 1 ? 0.2f : -0.2f), KatanaReach, 110f, 12f * dmg);
+                        var c = NewSwing(p, aim + (k % 2 == 1 ? 0.2f : -0.2f), w.Reach, 110f, 12f * dmg);
                         c.Delay = 0.05f * k;
                         c.Silent = true;
                         pendingSwings.Add(c);
@@ -122,7 +123,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (i == 0 ? 0f : (i % 2 == 1 ? 1f : -1f) * 0.07f * ((i + 1) / 2));
-                        SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * 850f, 0f, 0.75f, (i == 0 ? 8f : 4f) * dmg, p.Id);
+                        SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
                     }
                     break;
                 }

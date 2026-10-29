@@ -659,56 +659,53 @@ namespace Arena
 
         // --- Replication ----------------------------------------------------------------------------
 
-        void WriteWarden(BinaryWriter wr, Enemy e)
+        void SyncWarden(NetSync s, Enemy e)
         {
-            var w = e.Warden;
-            wr.Write(w != null);
-            if (w == null)
-                return;
-            wr.Write((byte)w.Stage);
-            wr.Write((byte)w.Turn);
-            wr.Write(w.TurnT);
-            wr.Write(w.TransT);
-            wr.Write((byte)w.TransTo);
-            wr.Write(w.Light);
-            wr.Write((byte)w.LightMode);
-            wr.Write(w.LightT);
-            wr.Write(w.Aux);
-            wr.Write(w.Dashing);
-            wr.Write((byte)w.Gates.Count);
-            foreach (var g in w.Gates)
-            {
-                wr.Write(g.Front);
-                wr.Write((sbyte)g.Dir);
-                wr.Write(g.Gap1);
-                wr.Write(g.Gap2);
-                wr.Write(g.Warn);
-            }
-        }
-
-        void ReadWarden(BinaryReader r, Enemy e)
-        {
-            if (!r.ReadBoolean())
+            bool has = e.Warden != null;
+            s.Bool(ref has);
+            if (!has)
                 return;
             var w = e.Warden ?? (e.Warden = new WardenState());
-            w.Stage = (WardenStage)r.ReadByte();
-            w.Turn = (WardenTurn)r.ReadByte();
-            w.TurnT = r.ReadSingle();
-            w.TransT = r.ReadSingle();
-            w.TransTo = (WardenStage)r.ReadByte();
-            V2 light = r.ReadV2();
-            var mode = (WardenLight)r.ReadByte();
-            if (mode == WardenLight.Follow && w.LightMode != WardenLight.Follow && w.LightMode != WardenLight.Lock)
-                w.LightDisp = light;  // just switched on: don't slide in from where it was
-            w.Light = light;
-            w.LightMode = mode;
-            w.LightT = r.ReadSingle();
-            w.Aux = r.ReadSingle();
-            w.Dashing = r.ReadBoolean();
-            int n = r.ReadByte();
-            w.Gates.Clear();
-            for (int i = 0; i < n; i++)
-                w.Gates.Add(new WardenGate { Front = r.ReadSingle(), Dir = r.ReadSByte(), Gap1 = r.ReadSingle(), Gap2 = r.ReadSingle(), Warn = r.ReadSingle() });
+            int stage = (int)w.Stage, turn = (int)w.Turn, transTo = (int)w.TransTo, mode = (int)w.LightMode;
+            V2 light = w.Light;
+            s.Byte(ref stage);
+            s.Byte(ref turn);
+            s.Float(ref w.TurnT);
+            s.Float(ref w.TransT);
+            s.Byte(ref transTo);
+            s.Vec(ref light);
+            s.Byte(ref mode);
+            if (s.Reading)
+            {
+                w.Stage = (WardenStage)stage;
+                w.Turn = (WardenTurn)turn;
+                w.TransTo = (WardenStage)transTo;
+                if ((WardenLight)mode == WardenLight.Follow && w.LightMode != WardenLight.Follow && w.LightMode != WardenLight.Lock)
+                    w.LightDisp = light;  // just switched on: don't slide in from where it was
+                w.Light = light;
+                w.LightMode = (WardenLight)mode;
+            }
+            s.Float(ref w.LightT);
+            s.Float(ref w.Aux);
+            s.Bool(ref w.Dashing);
+            int n = w.Gates.Count;
+            s.Byte(ref n);
+            if (s.Reading)
+            {
+                w.Gates.Clear();
+                for (int i = 0; i < n; i++)
+                    w.Gates.Add(new WardenGate());
+            }
+            foreach (var g in w.Gates)
+            {
+                int dir = (int)g.Dir;
+                s.Float(ref g.Front);
+                s.SByte(ref dir);
+                g.Dir = dir;
+                s.Float(ref g.Gap1);
+                s.Float(ref g.Gap2);
+                s.Float(ref g.Warn);
+            }
         }
 
         /// Every game, each frame: smooth the searchlight and (on clients) move the gates between snapshots.

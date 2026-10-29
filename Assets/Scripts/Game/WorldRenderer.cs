@@ -122,6 +122,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
+            DrawImplodeMark(t);
             foreach (var p in game.Players.Values)
             {
                 DrawPlayerWrapped(p, t);
@@ -479,6 +480,9 @@ namespace Arena
                     break;
                 case FxKind.Shatter:
                     DrawShatterFx(fx, f);
+                    break;
+                case FxKind.Implode:
+                    DrawImplodeFx(fx, f);  // BloodMageLook.cs
                     break;
             }
         }

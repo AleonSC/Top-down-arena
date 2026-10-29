@@ -12,6 +12,7 @@ namespace Arena
         {
             V2 pos = r.ReadV2();
             float aim = r.ReadSingle();
+            V2 aimAt = r.ReadV2();
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
@@ -24,6 +25,7 @@ namespace Arena
             if (!p.Downed)
                 p.Pos = KeepInArena(pos, 0f);
             p.Aim = aim;
+            p.AimAt = aimAt;
             p.Firing = firing;
             p.Parrying = parry;
         }
@@ -97,137 +99,7 @@ namespace Arena
         void SendSnapshot()
         {
             var w = Proto.Begin(Msg.Snapshot);
-            w.Write((byte)State);
-            w.Write(Wave);
-            w.Write(StateTimer);
-            w.Write(Remaining);
-            w.Write(Score);
-            w.Write(Paused);
-            w.Write(PausedBy);
-            w.Write(Endless);
-            w.Write(PullCenter);
-            w.Write(PullStrength);
-            w.Write(TwinReviveT);
-            w.Write(ShopOpen);
-            w.Write(ShopT);
-            w.Write((byte)Players.Count);
-            foreach (var p in Players.Values)
-            {
-                w.Write(p.Id);
-                w.Write(p.Pos);
-                w.Write(p.Aim);
-                w.Write(p.Hp);
-                w.Write(p.Downed);
-                w.Write(p.Revive);
-                w.Write(p.BarrierT);
-                p.BarrierFrac = p.BarrierMax > 0f ? p.BarrierHp / p.BarrierMax : 1f;  // the host draws from this too
-                w.Write(p.BarrierFrac);
-                w.Write(p.InvulnT);
-                w.Write(p.OverdriveT);
-                w.Write(p.TauntT);
-                w.Write(p.LinkT);
-                w.Write(p.LinkTo);
-                w.Write(p.AegisT);
-                w.Write(p.SurgeT);
-                w.Write(p.FrenzyT);
-                w.Write(p.UltT);
-                w.Write(p.Parrying);
-                w.Write(p.Firing);
-                w.Write(p.ParryHp);
-                w.Write(p.ParryBroken);
-                w.Write(p.ShieldHp);
-                w.Write(p.StunT);
-                w.Write(p.WallT);
-                w.Write(p.UnbreakT);
-                w.Write(p.FuryT);
-                w.Write(p.WhirlT);
-                w.Write(p.VanishT);
-                w.Write(p.IronT);
-                w.Write(p.PactT);
-                w.Write(p.RushT);
-                w.Write((byte)p.AmmoUsed);
-                w.Write(p.ReloadT);
-                w.Write(p.DrawT);
-                w.Write((short)p.Level);
-                w.Write(p.Xp);
-                w.Write((byte)p.PendingPicks);
-                w.Write((short)p.Rerolls);
-                w.Write((byte)p.PendingLegendary);
-                w.Write(p.OfferLegendary);
-                w.Write((byte)p.PendingMods);
-                w.Write(p.OfferMod);
-                w.Write((byte)(p.Offer != null ? p.Offer.Length : 0));
-                if (p.Offer != null)
-                    foreach (int o in p.Offer)
-                        w.Write((byte)o);
-                foreach (var s in p.Slots)
-                {
-                    w.Write((byte)s.Charges);
-                    w.Write(s.Timer);
-                }
-                WriteMastery(w, p);
-                WriteShop(w, p);
-            }
-            w.Write((short)Enemies.Count);
-            foreach (var e in Enemies.Values)
-            {
-                w.Write(e.Id);
-                w.Write((byte)e.Type);
-                w.Write(e.Pos);
-                w.Write(e.Hp);
-                w.Write(e.MaxHp);
-                w.Write(e.SpawnT > 0f);
-                w.Write(e.Facing);
-                w.Write(e.Phase);
-                w.Write(e.Elite);
-                e.Marked = e.MarkT > 0f;  // the host draws from these too
-                e.Burning = e.BurnT > 0f;
-                e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
-                e.Chilled = e.SlowT > 0f && !e.Frozen;
-                e.Bleeding = e.BleedT > 0f;
-                w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0)));
-                if (e.Type == EnemyType.Boss)
-                    WriteWarden(w, e);  // Warden.cs
-                else if (e.Type == EnemyType.HiveQueen)
-                    WriteQueen(w, e);   // Queen.cs
-            }
-            w.Write((byte)Minions.Count);
-            foreach (var m in Minions.Values)
-            {
-                w.Write(m.Id);
-                w.Write((byte)m.Kind);
-                w.Write(m.Owner);
-                w.Write(m.Pos);
-                w.Write(m.Aim);
-                w.Write(m.T);
-                w.Write(m.Duration);
-                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
-                w.Write(m.GuardFrac);
-                w.Write(m.Scale);
-            }
-            w.Write((byte)Zones.Count);
-            foreach (var z in Zones.Values)
-            {
-                w.Write(z.Id);
-                w.Write((byte)z.Kind);
-                w.Write(z.Owner);
-                w.Write(z.Pos);
-                w.Write(z.Radius);
-                w.Write(z.T);
-                w.Write(z.Duration);
-                z.GuardFrac = z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
-                w.Write(z.GuardFrac);
-            }
-            WriteHazards(w);
-            WriteCages(w);
-            w.Write((short)Orbs.Count);
-            foreach (var o in Orbs.Values)
-            {
-                w.Write(o.Id);
-                w.Write(o.Big);
-                w.Write(o.Pos);
-                w.Write(o.Life);
-            }
+            SyncSnapshot(new NetSync(w));
             session.Broadcast(Proto.End(w));
         }
 
@@ -353,147 +225,261 @@ namespace Arena
             }
         }
 
-        void ReadSnapshot(BinaryReader r)
+        void ReadSnapshot(BinaryReader r) => SyncSnapshot(new NetSync(r));
+
+        // Reused by every snapshot a client reads (no per-snapshot allocations for these).
+        readonly HashSet<int> snapSeen = new HashSet<int>();
+        readonly List<int> snapGone = new List<int>();
+        readonly List<Enemy> snapGoneEnemies = new List<Enemy>();
+        readonly int[] snapCharges = new int[Upgrades.SlotCount];
+        readonly float[] snapTimers = new float[Upgrades.SlotCount];
+        readonly Player snapSkip = new Player { Id = -1 };  // soaks up a player this game doesn't know
+
+        /// The snapshot, 20 times a second: the host writes the match's state and clients read it, both through
+        /// this one method (NetSync), so a field can't be written in one order and read in another. To replicate
+        /// something new, add one line in the right Sync method and bump Session.ProtocolVersion.
+        void SyncSnapshot(NetSync s)
         {
-            State = (MatchState)r.ReadByte();
-            Wave = r.ReadInt32();
-            StateTimer = r.ReadSingle();
-            Remaining = r.ReadInt32();
-            Score = r.ReadInt32();
-            Paused = r.ReadBoolean();
-            PausedBy = r.ReadInt32();
-            Endless = r.ReadBoolean();
-            PullCenter = r.ReadV2();
-            PullStrength = r.ReadSingle();
-            TwinReviveT = r.ReadSingle();
-            ShopOpen = r.ReadBoolean();
-            ShopT = r.ReadSingle();
-            int np = r.ReadByte();
-            for (int i = 0; i < np; i++)
+            int state = (int)State;
+            s.Byte(ref state);
+            State = (MatchState)state;
+            s.Int(ref Wave);
+            s.Float(ref StateTimer);
+            s.Int(ref Remaining);
+            s.Int(ref Score);
+            s.Bool(ref Paused);
+            s.Int(ref PausedBy);
+            s.Bool(ref Endless);
+            s.Vec(ref PullCenter);
+            s.Float(ref PullStrength);
+            s.Float(ref TwinReviveT);
+            s.Bool(ref ShopOpen);
+            s.Float(ref ShopT);
+
+            int count = Players.Count;
+            s.Byte(ref count);
+            if (s.Reading)
+                for (int i = 0; i < count; i++)
+                    SyncPlayer(s, null);
+            else
+                foreach (var p in Players.Values)
+                    SyncPlayer(s, p);
+
+            count = Enemies.Count;
+            s.Short(ref count);
+            if (s.Reading)
             {
-                int id = r.ReadInt32();
-                V2 pos = r.ReadV2();
-                float aim = r.ReadSingle(), hp = r.ReadSingle();
-                bool downed = r.ReadBoolean();
-                float revive = r.ReadSingle(), barrier = r.ReadSingle(), barrierFrac = r.ReadSingle(), invuln = r.ReadSingle(), overdrive = r.ReadSingle();
-                float taunt = r.ReadSingle(), link = r.ReadSingle();
-                int linkTo = r.ReadInt32();
-                float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
-                bool parrying = r.ReadBoolean();
-                bool firingSeen = r.ReadBoolean();
-                float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle(), stunT = r.ReadSingle();
-                float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
-                float vanishT = r.ReadSingle(), ironT = r.ReadSingle(), pactT = r.ReadSingle(), rushT = r.ReadSingle();
-                int ammoUsed = r.ReadByte();
-                float reloadT = r.ReadSingle();
-                float drawT = r.ReadSingle();
-                int level = r.ReadInt16();
-                float xp = r.ReadSingle();
-                int pending = r.ReadByte();
-                int rerolls = r.ReadInt16();
-                int pendingLegendary = r.ReadByte();
-                bool offerLegendary = r.ReadBoolean();
-                int pendingMods = r.ReadByte();
-                bool offerMod = r.ReadBoolean();
-                var offer = new int[r.ReadByte()];
-                for (int k = 0; k < offer.Length; k++)
-                    offer[k] = r.ReadByte();
-                var charges = new int[Upgrades.SlotCount];
-                var timers = new float[Upgrades.SlotCount];
+                snapSeen.Clear();
+                for (int i = 0; i < count; i++)
+                    snapSeen.Add(SyncEnemy(s, null));
+                snapGoneEnemies.Clear();
+                foreach (var e in Enemies.Values)
+                    if (!snapSeen.Contains(e.Id))
+                        snapGoneEnemies.Add(e);
+                foreach (var e in snapGoneEnemies)
+                {
+                    DeathFx(e, e.Disp);
+                    Enemies.Remove(e.Id);
+                }
+            }
+            else
+                foreach (var e in Enemies.Values)
+                    SyncEnemy(s, e);
+
+            count = Minions.Count;
+            s.Byte(ref count);
+            if (s.Reading)
+            {
+                snapSeen.Clear();
+                for (int i = 0; i < count; i++)
+                    snapSeen.Add(SyncMinion(s, null));
+                RemoveUnseen(Minions);
+            }
+            else
+                foreach (var m in Minions.Values)
+                    SyncMinion(s, m);
+
+            count = Zones.Count;
+            s.Byte(ref count);
+            if (s.Reading)
+            {
+                Zones.Clear();
+                for (int i = 0; i < count; i++)
+                    SyncZone(s, null);
+            }
+            else
+                foreach (var z in Zones.Values)
+                    SyncZone(s, z);
+
+            SyncHazards(s);  // LateGame.cs
+            SyncCages(s);    // Singularity.cs
+
+            count = Orbs.Count;
+            s.Short(ref count);
+            if (s.Reading)
+            {
+                snapSeen.Clear();
+                for (int i = 0; i < count; i++)
+                    snapSeen.Add(SyncOrb(s, null));
+                RemoveUnseen(Orbs);
+            }
+            else
+                foreach (var o in Orbs.Values)
+                    SyncOrb(s, o);
+        }
+
+        /// Drop what the last snapshot didn't mention (snapSeen holds what it did).
+        void RemoveUnseen<T>(Dictionary<int, T> all)
+        {
+            snapGone.Clear();
+            foreach (int id in all.Keys)
+                if (!snapSeen.Contains(id))
+                    snapGone.Add(id);
+            foreach (int id in snapGone)
+                all.Remove(id);
+        }
+
+        /// A player. p is null when reading: the id picks who it is. Your own position, aim, cooldowns, parry, and
+        /// bow draw are your game's own, so those aren't overwritten for you.
+        void SyncPlayer(NetSync s, Player p)
+        {
+            int id = p != null ? p.Id : 0;
+            s.Int(ref id);
+            if (s.Reading && !Players.TryGetValue(id, out p))
+                p = snapSkip;
+            bool known = p != snapSkip, mine = s.Reading && id == MyId;
+            V2 pos = p.Pos;
+            float aim = p.Aim, hp = p.Hp;
+            s.Vec(ref pos);
+            s.Float(ref aim);
+            s.Float(ref hp);
+            s.Bool(ref p.Downed);
+            s.Float(ref p.Revive);
+            s.Float(ref p.BarrierT);
+            if (!s.Reading)
+                p.BarrierFrac = p.BarrierMax > 0f ? p.BarrierHp / p.BarrierMax : 1f;  // the host draws from this too
+            s.Float(ref p.BarrierFrac);
+            s.Float(ref p.InvulnT);
+            s.Float(ref p.OverdriveT);
+            s.Float(ref p.TauntT);
+            s.Float(ref p.LinkT);
+            s.Int(ref p.LinkTo);
+            s.Float(ref p.AegisT);
+            s.Float(ref p.SurgeT);
+            s.Float(ref p.FrenzyT);
+            s.Float(ref p.UltT);
+            bool parrying = p.Parrying, firing = p.Firing;  // a client sees the host's Firing as FiringSeen
+            s.Bool(ref parrying);
+            s.Bool(ref firing);
+            s.Float(ref p.ParryHp);
+            s.Float(ref p.ParryBroken);
+            s.Float(ref p.ShieldHp);
+            s.Float(ref p.StunT);
+            s.Float(ref p.WallT);
+            s.Float(ref p.UnbreakT);
+            s.Float(ref p.FuryT);
+            s.Float(ref p.WhirlT);
+            s.Float(ref p.VanishT);
+            s.Float(ref p.IronT);
+            s.Float(ref p.PactT);
+            s.Float(ref p.RushT);
+            s.Byte(ref p.AmmoUsed);
+            s.Float(ref p.ReloadT);
+            float drawT = p.DrawT;
+            s.Float(ref drawT);
+            s.Short(ref p.Level);
+            s.Float(ref p.Xp);
+            s.Byte(ref p.PendingPicks);
+            int rerolls = p.Rerolls;
+            s.Short(ref rerolls);
+            s.Byte(ref p.PendingLegendary);
+            s.Bool(ref p.OfferLegendary);
+            s.Byte(ref p.PendingMods);
+            s.Bool(ref p.OfferMod);
+            int offers = p.Offer != null ? p.Offer.Length : 0;
+            s.Byte(ref offers);
+            var offer = s.Reading ? (offers > 0 ? new int[offers] : null) : p.Offer;
+            for (int k = 0; k < offers; k++)
+                s.Byte(ref offer[k]);
+            for (int k = 0; k < Upgrades.SlotCount; k++)
+            {
+                snapCharges[k] = p.Slots[k].Charges;
+                snapTimers[k] = p.Slots[k].Timer;
+                s.Byte(ref snapCharges[k]);
+                s.Float(ref snapTimers[k]);
+            }
+            SyncMastery(s, p, known);  // Mastery.cs (it may Recalc, which touches health and slots: those come after)
+            SyncShop(s, p);            // Shop.cs
+            if (!s.Reading || !known)
+                return;
+
+            if (!mine)
+            {
+                p.Pos = pos;
+                p.Aim = aim;
                 for (int k = 0; k < Upgrades.SlotCount; k++)
                 {
-                    charges[k] = r.ReadByte();
-                    timers[k] = r.ReadSingle();
+                    p.Slots[k].Charges = snapCharges[k];
+                    p.Slots[k].Timer = snapTimers[k];
                 }
-                Player mp;
-                Players.TryGetValue(id, out mp);
-                ReadMastery(r, mp);
-                ReadShop(r, mp);
-
-                Player p;
-                if (!Players.TryGetValue(id, out p))
-                    continue;
-                if (id != MyId)
-                {
-                    p.Pos = pos;
-                    p.Aim = aim;
-                    // Your own cooldowns are tracked locally; only copy the ally's.
-                    for (int k = 0; k < Upgrades.SlotCount; k++)
-                    {
-                        p.Slots[k].Charges = charges[k];
-                        p.Slots[k].Timer = timers[k];
-                    }
-                }
-                if (hp < p.Hp)
-                    p.Flash = 0.1f;
-                p.Hp = hp;
-                p.Downed = downed;
-                p.Revive = revive;
-                p.BarrierT = barrier;
-                p.BarrierFrac = barrierFrac;
-                p.InvulnT = invuln;
-                p.OverdriveT = overdrive;
-                p.TauntT = taunt;
-                p.LinkT = link;
-                p.LinkTo = linkTo;
-                p.AegisT = aegis;
-                p.SurgeT = surge;
-                p.FrenzyT = frenzy;
-                p.UltT = ult;
-                if (id != MyId)
-                {
-                    p.Parrying = parrying;  // your own comes from your mouse, without the round trip
-                    p.FiringSeen = firingSeen;
-                }
-                p.ParryHp = parryHp;
-                p.ParryBroken = parryBroken;
-                p.ShieldHp = shield;
-                p.StunT = stunT;
-                p.WallT = wallT;
-                p.UnbreakT = unbreakT;
-                p.VanishT = vanishT;
-                p.IronT = ironT;
-                p.PactT = pactT;
-                p.RushT = rushT;
-                p.FuryT = furyT;
-                p.WhirlT = whirlT;
-                p.AmmoUsed = ammoUsed;
-                p.ReloadT = reloadT;
-                if (id != MyId)
-                    p.DrawT = drawT;  // your own draw is measured here
-                p.Level = level;
-                p.Xp = xp;
-                p.PendingPicks = pending;
-                p.Rerolls = rerolls;
-                p.PendingLegendary = pendingLegendary;
-                p.OfferLegendary = offerLegendary;
-                p.PendingMods = pendingMods;
-                p.OfferMod = offerMod;
-                if (id == MyId && RerollPending && (rerolls < rerollsAtRequest || offer.Length == 0))
-                    rerollsAtRequest = -1;
-                p.Offer = offer.Length == 0 || (id == MyId && awaitingPick) ? null : offer;
+                p.Parrying = parrying;  // your own comes from your mouse, without the round trip
+                p.FiringSeen = firing;
+                p.DrawT = drawT;        // your own draw is measured here
             }
+            if (hp < p.Hp)
+                p.Flash = 0.1f;
+            p.Hp = hp;
+            p.Rerolls = rerolls;
+            if (mine && RerollPending && (rerolls < rerollsAtRequest || offers == 0))
+                rerollsAtRequest = -1;
+            p.Offer = offer == null || (mine && awaitingPick) ? null : offer;
+        }
 
-            var seen = new HashSet<int>();
-            int ne = r.ReadInt16();
-            for (int i = 0; i < ne; i++)
+        /// An enemy; returns its id. Reading, a new id brings a new enemy.
+        int SyncEnemy(NetSync s, Enemy e)
+        {
+            int id = 0, type = 0;
+            V2 pos = default(V2);
+            float hp = 0f, maxHp = 0f, facing = 0f;
+            bool spawning = false, elite = false;
+            byte phase = 0, status = 0;
+            if (!s.Reading)
             {
-                int id = r.ReadInt32();
-                var type = (EnemyType)r.ReadByte();
-                V2 pos = r.ReadV2();
-                float hp = r.ReadSingle(), maxHp = r.ReadSingle();
-                bool spawning = r.ReadBoolean();
-                float facing = r.ReadSingle();
-                byte phase = r.ReadByte();
-                bool elite = r.ReadBoolean();
-                byte status = r.ReadByte();
-                Enemy e;
-                if (!Enemies.TryGetValue(id, out e))
-                {
-                    var d = Defs.Get(type);
-                    e = new Enemy { Id = id, Type = type, Def = d, Radius = d.Radius, Pos = pos, Disp = pos, Hp = hp };
-                    Enemies[id] = e;
-                }
+                id = e.Id;
+                type = (int)e.Type;
+                pos = e.Pos;
+                hp = e.Hp;
+                maxHp = e.MaxHp;
+                spawning = e.SpawnT > 0f;
+                facing = e.Facing;
+                phase = e.Phase;
+                elite = e.Elite;
+                e.Marked = e.MarkT > 0f;  // the host draws from these too
+                e.Burning = e.BurnT > 0f;
+                e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
+                e.Chilled = e.SlowT > 0f && !e.Frozen;
+                e.Bleeding = e.BleedT > 0f;
+                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0));
+            }
+            s.Int(ref id);
+            s.Byte(ref type);
+            s.Vec(ref pos);
+            s.Float(ref hp);
+            s.Float(ref maxHp);
+            s.Bool(ref spawning);
+            s.Float(ref facing);
+            s.Byte(ref phase);
+            s.Bool(ref elite);
+            s.Byte(ref status);
+            var kind = (EnemyType)type;
+            if (s.Reading && !Enemies.TryGetValue(id, out e))
+            {
+                var d = Defs.Get(kind);
+                e = new Enemy { Id = id, Type = kind, Def = d, Radius = d.Radius, Pos = pos, Disp = pos, Hp = hp };
+                Enemies[id] = e;
+            }
+            if (s.Reading)
+            {
                 if (hp < e.Hp)
                     e.Flash = 0.06f;
                 e.Pos = pos;
@@ -508,36 +494,49 @@ namespace Arena
                 e.Chilled = (status & 4) != 0;
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
-                if (type == EnemyType.Boss)
-                    ReadWarden(r, e);  // Warden.cs
-                else if (type == EnemyType.HiveQueen)
-                    ReadQueen(r, e);   // Queen.cs
-                e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
-                seen.Add(id);
             }
-            var gone = new List<Enemy>();
-            foreach (var e in Enemies.Values)
-                if (!seen.Contains(e.Id))
-                    gone.Add(e);
-            foreach (var e in gone)
-            {
-                DeathFx(e, e.Disp);
-                Enemies.Remove(e.Id);
-            }
+            if (kind == EnemyType.Boss)
+                SyncWarden(s, e);  // Warden.cs
+            else if (kind == EnemyType.HiveQueen)
+                SyncQueen(s, e);   // Queen.cs
+            if (s.Reading)
+                e.Radius = Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
+            return id;
+        }
 
-            var seenMinions = new HashSet<int>();
-            int nm = r.ReadByte();
-            for (int i = 0; i < nm; i++)
+        /// A minion; returns its id. Reading, a new id brings a new minion.
+        int SyncMinion(NetSync s, Minion m)
+        {
+            int id = 0, kind = 0, owner = 0;
+            V2 pos = default(V2);
+            float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f;
+            if (!s.Reading)
             {
-                int id = r.ReadInt32();
-                var kind = (MinionKind)r.ReadByte();
-                int owner = r.ReadInt32();
-                V2 pos = r.ReadV2();
-                float aim = r.ReadSingle(), t = r.ReadSingle(), duration = r.ReadSingle(), guard = r.ReadSingle(), scale = r.ReadSingle();
-                Minion m;
+                id = m.Id;
+                kind = (int)m.Kind;
+                owner = m.Owner;
+                pos = m.Pos;
+                aim = m.Aim;
+                t = m.T;
+                duration = m.Duration;
+                m.GuardFrac = m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
+                guard = m.GuardFrac;
+                scale = m.Scale;
+            }
+            s.Int(ref id);
+            s.Byte(ref kind);
+            s.Int(ref owner);
+            s.Vec(ref pos);
+            s.Float(ref aim);
+            s.Float(ref t);
+            s.Float(ref duration);
+            s.Float(ref guard);
+            s.Float(ref scale);
+            if (s.Reading)
+            {
                 if (!Minions.TryGetValue(id, out m))
                 {
-                    m = new Minion { Id = id, Kind = kind, Owner = owner, Pos = pos, Disp = pos };
+                    m = new Minion { Id = id, Kind = (MinionKind)kind, Owner = owner, Pos = pos, Disp = pos };
                     Minions[id] = m;
                 }
                 m.Pos = pos;
@@ -546,35 +545,44 @@ namespace Arena
                 m.Duration = duration;
                 m.GuardFrac = guard;
                 m.Scale = scale;
-                seenMinions.Add(id);
             }
-            var goneMinions = new List<int>();
-            foreach (int id in Minions.Keys)
-                if (!seenMinions.Contains(id))
-                    goneMinions.Add(id);
-            foreach (int id in goneMinions)
-                Minions.Remove(id);
+            return id;
+        }
 
-            Zones.Clear();
-            int nz = r.ReadByte();
-            for (int i = 0; i < nz; i++)
-            {
-                var z = new Zone { Id = r.ReadInt32(), Kind = (ZoneKind)r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle(), GuardFrac = r.ReadSingle() };
+        /// A ground zone (clients rebuild the list from each snapshot).
+        void SyncZone(NetSync s, Zone z)
+        {
+            if (s.Reading)
+                z = new Zone();
+            else
+                z.GuardFrac = z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
+            int kind = (int)z.Kind;
+            s.Int(ref z.Id);
+            s.Byte(ref kind);
+            z.Kind = (ZoneKind)kind;
+            s.Int(ref z.Owner);
+            s.Vec(ref z.Pos);
+            s.Float(ref z.Radius);
+            s.Float(ref z.T);
+            s.Float(ref z.Duration);
+            s.Float(ref z.GuardFrac);
+            if (s.Reading)
                 Zones[z.Id] = z;
-            }
+        }
 
-            ReadHazards(r);
-            ReadCages(r);
-
-            var seenOrbs = new HashSet<int>();
-            int no = r.ReadInt16();
-            for (int i = 0; i < no; i++)
+        /// A health orb; returns its id.
+        int SyncOrb(NetSync s, Orb o)
+        {
+            int id = o != null ? o.Id : 0;
+            bool big = o != null && o.Big;
+            V2 pos = o != null ? o.Pos : default(V2);
+            float life = o != null ? o.Life : 0f;
+            s.Int(ref id);
+            s.Bool(ref big);
+            s.Vec(ref pos);
+            s.Float(ref life);
+            if (s.Reading)
             {
-                int id = r.ReadInt32();
-                bool big = r.ReadBoolean();
-                V2 pos = r.ReadV2();
-                float life = r.ReadSingle();
-                Orb o;
                 if (!Orbs.TryGetValue(id, out o))
                 {
                     o = new Orb { Id = id, Big = big, Pos = pos, Disp = pos };
@@ -582,14 +590,8 @@ namespace Arena
                 }
                 o.Pos = pos;
                 o.Life = life;
-                seenOrbs.Add(id);
             }
-            var expired = new List<int>();
-            foreach (int id in Orbs.Keys)
-                if (!seenOrbs.Contains(id))
-                    expired.Add(id);
-            foreach (int id in expired)
-                Orbs.Remove(id);
+            return id;
         }
     }
 }

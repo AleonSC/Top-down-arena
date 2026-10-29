@@ -163,7 +163,7 @@ namespace Arena
                 case WeaponId.SanguineOrb:
                 case WeaponId.VeinTether:
                 case WeaponId.BloodBolts:
-                case WeaponId.HemoSpray: return Sfx.SpellArcane;
+                case WeaponId.Implosion: return Sfx.SpellArcane;
                 default: return Sfx.Throw;  // summoner staffs, darts and rocks
             }
         }
@@ -325,6 +325,7 @@ namespace Arena
             ricochets.Clear();
             ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
             ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
+            ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind == Defs.GrenadeShot)

@@ -52,6 +52,11 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Implosion)
+            {
+                FireVolley(p, aim, extra + p.Stats.Fan);  // no direction to fan in: each copy is another implosion
+                return;
+            }
             for (int v = 0; v <= p.Stats.Fan; v++)
                 FireVolley(p, aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2)), extra);
         }
@@ -67,7 +72,6 @@ namespace Arena
         public const float RevolverReload = 1.2f;
         const float RevolverTopUpDelay = 0.8f;  // stop shooting this long and it starts sliding rounds back in...
         const float RevolverTopUpEach = 0.25f;  // ...one at a time (shooting stops it; it never locks you out)
-        const float RevolverDamage = 24f;
 
         /// Six rounds, plus two per extra projectile.
         public int RevolverCapacity(Player p) => RevolverCylinder + 2 * ExtraShots(p);
@@ -215,7 +219,8 @@ namespace Arena
             float dmg = p.Stats.DmgMult;
             V2 dir = V2.FromAngle(aim);
             V2 muzzle = p.Pos + dir * p.Def.BodyR;
-            switch (p.Weapon.Id)
+            var w = p.Weapon;  // its Speed, Life and Damage (Defs)
+            switch (w.Id)
             {
                 case WeaponId.Scattergun:
                 {
@@ -223,29 +228,29 @@ namespace Arena
                     int n = 5 + 2 * extra;
                     float cone = 0.52f * (float)Math.Pow(0.85, extra);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * 520f, 0f, 0.5f, 7f * dmg, p.Id);
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 }
                 case WeaponId.FlakCannon:
                 {
-                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * 380f, 0f, 1.1f, 30f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Splash = 70f;
                     if (extra > 0)  // bomblets scatter around the impact and pop where they land
                         SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f, false);
                     break;
                 }
                 case WeaponId.RiotRepeater:
-                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * 600f, 0f, 0.8f, 11f * dmg, p.Id);
+                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 case WeaponId.BearTotem:
                     FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)
                     break;
                 case WeaponId.LightBolt:
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * 650f, 0f, 1.3f, 11f * dmg, p.Id);
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     for (int k = 0; k < extra; k++)  // smaller bolts that seek out the nearest enemy
                     {
                         float a = aim + (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * (k / 2));
-                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * 600f, 0f, 1.3f, 6f * dmg, p.Id, false, 6f).Radius = 3f;
+                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * 600f, 0f, w.Life, 6f * dmg, p.Id, false, 6f).Radius = 3f;
                     }
                     break;
                 case WeaponId.Pistol:
@@ -253,7 +258,7 @@ namespace Arena
                     // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
                     int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
                     bool heavy = left <= RevolverHeavy(p);
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * 700f, 0f, 1.1f, RevolverDamage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = heavy ? 6f : 4.5f;
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = heavy ? 6f : 4.5f;
                     break;
                 }
                 case WeaponId.MendersBow:
@@ -282,16 +287,16 @@ namespace Arena
                 }
                 case WeaponId.TwinRifle:
                 {
-                    // Parallel barrels, 10 px apart: two, plus one per extra projectile.
+                    // Parallel barrels, 10 px apart: two, plus one per extra projectile. Each volley strays up to 2°.
                     int n = 2 + extra;
-                    V2 side = dir.Orthogonal();
+                    V2 v = V2.FromAngle(aim + Rand(-TwinRifleSpread, TwinRifleSpread)), side = v.Orthogonal();
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), v * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 }
                 case WeaponId.Railgun:
                 {
-                    var b = SpawnBullet(Defs.RailShot, muzzle, dir * 1600f, 0f, 0.7f, 45f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 3;
                     if (extra > 0)
                         SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
@@ -302,15 +307,15 @@ namespace Arena
                     // +1 bullet per shot per extra projectile (at half damage), sprayed a little wider.
                     float spray = 0.16f * (1f + 0.35f * extra);
                     for (int i = 0; i <= extra; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * 760f, 0f, 0.8f, (i == 0 ? 5f : 2.5f) * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
                     break;
                 }
                 default:
-                    if (p.Weapon.Id >= WeaponId.BloodLash)
+                    if (w.Id >= WeaponId.BloodLash)
                         FireBloodWeapon(p, aim, dir, muzzle, dmg, extra);  // BloodMage.cs
-                    else if (p.Weapon.Id >= WeaponId.Kusarigama)
+                    else if (w.Id >= WeaponId.Kusarigama)
                         FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra);  // Ninja.cs
-                    else if (p.Weapon.Melee)
+                    else if (w.Melee)
                         FireKnightWeapon(p, aim, dmg, extra);  // Knight.cs
                     else
                         FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
@@ -319,66 +324,31 @@ namespace Arena
             firingWeapon = false;
         }
 
-        /// How far the player's weapon reaches from their centre right now: a shot's speed times its lifetime
-        /// (with Velocity Rounds) plus the muzzle offset, or a melee weapon's reach. Keep in step with FireVolley,
-        /// FireKitWeapon and FireKnightWeapon (SimTest checks it against real shots). The aim line uses it.
+        /// How far the player's weapon reaches from their centre right now: a shot's speed times its lifetime (with
+        /// Velocity Rounds) plus the muzzle offset, or a swing's reach, from the weapon's numbers in Defs (the firing
+        /// code reads the same ones; SimTest checks it against real shots). The aim line uses it.
         public float WeaponRange(Player p)
         {
             int x = ExtraShots(p);
-            float shot;
-            switch (p.Weapon.Id)
+            var w = p.Weapon;
+            switch (w.Id)
             {
-                case WeaponId.Scattergun: shot = 520f * 0.5f; break;
-                case WeaponId.FlakCannon: shot = 380f * 1.1f; break;
-                case WeaponId.RiotRepeater: shot = 600f * 0.8f; break;
-                case WeaponId.LightBolt: shot = 650f * 1.3f; break;
-                case WeaponId.Pistol: shot = 700f * 1.1f; break;
-                case WeaponId.MendersBow: shot = Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f); break;
-                case WeaponId.TwinRifle: shot = 820f * 1f; break;
-                case WeaponId.Railgun: shot = 1600f * 0.7f; break;
-                case WeaponId.BurstSmg: shot = 760f * 0.8f; break;
-                case WeaponId.FlameBurst: shot = 480f * 0.35f * (1f + 0.25f * x); break;
-                case WeaponId.FrostLance: shot = 700f * 0.9f; break;
-                case WeaponId.StormHammer: shot = 420f * 1.2f; break;
-                case WeaponId.RadiantOrb: shot = 300f * 1.8f; break;
-                case WeaponId.ChainLight: shot = 800f * 0.8f; break;
-                case WeaponId.PrismBeam: shot = 1200f * 0.35f * (1f + 0.3f * x); break;
-                case WeaponId.Fireball: shot = 520f * 1.2f; break;
-                case WeaponId.ArcLightning: shot = 900f * 0.6f; break;
-                case WeaponId.ArcaneMissiles: shot = 520f * 1f; break;
-                case WeaponId.GolemStaff: shot = 480f * 0.6f; break;
-                case WeaponId.BoneGuard: case WeaponId.WolfWhistle: case WeaponId.ImpCaller: shot = 720f * 0.8f; break;
-                case WeaponId.BearTotem: return MeleeReach(p, BearReach + 15f * x);
-                case WeaponId.SpriteStaff: case WeaponId.TotemStaff: case WeaponId.TreantRod: case WeaponId.WispLantern: shot = 600f * 1f; break;
-                // Ninjas
-                case WeaponId.ChainShuriken: shot = ChainStarSpeed * ChainStarOut; break;  // as far as it goes before it turns back
-                case WeaponId.MedicineDarts: shot = 900f * 0.8f; break;
-                case WeaponId.SpiritFan: shot = 420f * 0.3f * (1f + 0.25f * x); break;
-                case WeaponId.Ofuda: shot = 360f * 1.6f; break;
-                case WeaponId.Shuriken: shot = 700f * 0.75f; break;
-                case WeaponId.Kunai: shot = 850f * 0.75f; break;
-                // Blood Mages
-                case WeaponId.ClotBolt: shot = 520f * 1f; break;
-                case WeaponId.LeechBeam: shot = 1100f * 0.3f * (1f + 0.25f * x); break;
-                case WeaponId.VeinTether: shot = VeinBeamRange * (1f + 0.25f * x); break;  // a beam from your edge (BloodMage.cs)
-                case WeaponId.TransfusionDarts: shot = 850f * 0.85f; break;
-                case WeaponId.SanguineOrb: shot = 420f * 1.4f; break;
-                case WeaponId.BloodBolts: shot = 800f * 0.8f; break;
-                case WeaponId.HemoSpray: shot = 620f * 0.5f; break;
-                case WeaponId.BoneSpear: shot = 1000f * 0.9f; break;
-                case WeaponId.BloodLash: return MeleeReach(p, LashReach + 20f * x);
-                case WeaponId.Kusarigama: return MeleeReach(p, KusariReach + 20f * x);
-                case WeaponId.BoStaff: return MeleeReach(p, BoReach + 20f * x);
-                // Knights: the reach of the swing.
-                case WeaponId.Warhammer: return MeleeReach(p, 100f + 30f * x);
-                case WeaponId.Lance: return MeleeReach(p, LanceReach + 30f * x);
-                case WeaponId.Halberd: return MeleeReach(p, 160f + 30f * x);
-                case WeaponId.Censer: return MeleeReach(p, 80f + 20f * x);
-                case WeaponId.Lightbringer: return Math.Max(MeleeReach(p, 80f), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);  // its sword waves
-                case WeaponId.Greatsword: return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, 125f);
-                default: return p.Weapon.Melee ? MeleeReach(p, MeleeRange(p.Weapon.Id)) : 600f;
+                case WeaponId.MendersBow:  // as far as the current draw sends it
+                    return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                case WeaponId.ChainShuriken:  // as far as it goes before it turns back
+                    return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
+                case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
+                    return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
+                case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
+                    return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
+                case WeaponId.Lightbringer:  // its sword waves reach past the swing
+                    return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);
+                case WeaponId.Greatsword:  // extra projectiles add sword beams
+                    return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, w.Reach);
             }
-            return p.Def.BodyR + shot * p.Stats.ShotSpeedMult;
+            if (w.Melee)
+                return MeleeReach(p, w.Reach + w.Grow * x);
+            return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
         }
 
         /// On hit, the bullet throws `n` fragments: out to the sides, or all around.
@@ -392,6 +362,8 @@ namespace Arena
             b.FragSplash = splash;
             b.FragSideways = sideways;
         }
+
+        const float TwinRifleSpread = 2f * MathX.Pi / 180f;
 
         bool firingWeapon;  // set while a player's weapon fires, to tag gun shots for accuracy
     }

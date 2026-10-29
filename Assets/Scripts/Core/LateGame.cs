@@ -427,28 +427,32 @@ namespace Arena
             }
         }
 
-        void WriteHazards(BinaryWriter w)
+        void SyncHazards(NetSync s)
         {
-            w.Write((byte)Hazards.Count);
-            foreach (var h in Hazards.Values)
+            int n = Hazards.Count;
+            s.Byte(ref n);
+            if (s.Reading)
             {
-                w.Write(h.Id);
-                w.Write(h.Pos);
-                w.Write(h.Radius);
-                w.Write(h.T);
-                w.Write(h.Duration);
+                Hazards.Clear();
+                for (int i = 0; i < n; i++)
+                {
+                    var h = new Hazard();
+                    SyncHazard(s, h);
+                    Hazards[h.Id] = h;
+                }
             }
+            else
+                foreach (var h in Hazards.Values)
+                    SyncHazard(s, h);
         }
 
-        void ReadHazards(BinaryReader r)
+        static void SyncHazard(NetSync s, Hazard h)
         {
-            Hazards.Clear();
-            int n = r.ReadByte();
-            for (int i = 0; i < n; i++)
-            {
-                var h = new Hazard { Id = r.ReadInt32(), Pos = r.ReadV2(), Radius = r.ReadSingle(), T = r.ReadSingle(), Duration = r.ReadSingle() };
-                Hazards[h.Id] = h;
-            }
+            s.Int(ref h.Id);
+            s.Vec(ref h.Pos);
+            s.Float(ref h.Radius);
+            s.Float(ref h.T);
+            s.Float(ref h.Duration);
         }
     }
 }

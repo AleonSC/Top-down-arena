@@ -37,6 +37,18 @@ class Shot {
       me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f; me.FiringSeen = true; me.Firing = true;
       if (Environment.GetEnvironmentVariable("VEIN") == "1") foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim) * 230f; break; }
     }
+    if (Environment.GetEnvironmentVariable("IMPLODE") != null) {
+      // Implosion: the cursor on an enemy (its target marker), and implosions going off at IMPLODE=<0..1> of the way through.
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.Implosion); me.Kit = Kit.BloodMage; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.35f;
+      int k = 0;
+      foreach (var e in host.Game.Enemies.Values) {
+        e.Pos = e.Disp = me.Pos + V2.FromAngle(me.Aim + 0.5f * k) * (230f + 40f * k);
+        if (k == 0) me.AimAt = e.Disp;
+        else if (k < 3) host.Game.Effects.Add(new Effect { Kind = FxKind.Implode, Pos = e.Disp, Color = Defs.BulletColor(Defs.ImplodeShot), Radius = e.Radius + 55f, Dur = 0.35f, T = 0.35f * float.Parse(Environment.GetEnvironmentVariable("IMPLODE")) });
+        if (++k == 3) break;
+      }
+    }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
     var app = new ArenaApp();
     var f2 = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -160,7 +172,9 @@ class Shot {
         var le = host.Lobby[host.MyId];
         int shown = ab != null ? int.Parse(ab) : le.Ability;
         var sc = new Showcase();
-        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null);
+        bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
+        if (ultDemo) set("ultDemoUntil", 1e9f);
+        sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.RoleAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo);
         float st = float.Parse(Environment.GetEnvironmentVariable("SHOWT") ?? "2.5");
         for (int f = 0; f < (int)(st * 60f); f++) sc.Step(1f / 60f);
         set("showcase", sc);

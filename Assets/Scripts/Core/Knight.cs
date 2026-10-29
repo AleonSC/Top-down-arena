@@ -34,35 +34,15 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
-        public const float LanceHalfWidth = 44f, LanceReach = 180f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
+        public const float LanceHalfWidth = 44f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
 
         // --- Weapons ------------------------------------------------------------------
 
         /// How far a melee weapon reaches (Piercing Rounds lengthen it 10% a stack).
         public static float MeleeReach(Player p, float baseReach) => baseReach * (1f + 0.1f * p.Stats.Pierce);
 
-        /// The range a weapon wants to be fought from (bots use it; ranged weapons return 0).
-        public static float MeleeRange(WeaponId w)
-        {
-            switch (w)
-            {
-                case WeaponId.Warhammer: return 100f;
-                case WeaponId.Lance: return LanceReach;
-                case WeaponId.Halberd: return 160f;
-                case WeaponId.HolyMace: return 85f;
-                case WeaponId.Lightbringer: return 80f;
-                case WeaponId.Censer: return 80f;
-                case WeaponId.TwinBlades: return 75f;
-                case WeaponId.Greatsword: return 125f;
-                case WeaponId.Rapier: return 130f;
-                case WeaponId.Kusarigama: return KusariReach;
-                case WeaponId.BoStaff: return BoReach;
-                case WeaponId.Katana: return KatanaReach;
-                case WeaponId.BearTotem: return BearReach;
-                case WeaponId.BloodLash: return LashReach;
-                default: return 0f;
-            }
-        }
+        /// A melee weapon's base swing reach (Defs; bots and tests use it).
+        public static float MeleeRange(WeaponId w) => Defs.WeaponOf(w).Reach;
 
         Swing NewSwing(Player p, float aim, float reach, float arcDeg, float dmg)
         {
@@ -73,17 +53,18 @@ namespace Arena
         void FireKnightWeapon(Player p, float aim, float dmg, int extra)
         {
             p.SwingCount++;
-            switch (p.Weapon.Id)
+            var w = p.Weapon;  // its Reach, Damage and Grow (Defs)
+            switch (w.Id)
             {
                 case WeaponId.Warhammer:
                 {
-                    var s = NewSwing(p, aim, 100f, 150f, 50f * dmg);
+                    var s = NewSwing(p, aim, w.Reach, 150f, w.Damage * dmg);
                     s.Knock = 35f;
                     s.Heavy = true;
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)  // aftershocks
                     {
-                        var a = NewSwing(p, aim, 100f + 30f * k, 150f, 30f * dmg);
+                        var a = NewSwing(p, aim, w.Reach + w.Grow * k, 150f, 30f * dmg);
                         a.Delay = 0.2f * k;
                         a.Knock = 20f;
                         a.Heavy = true;
@@ -94,7 +75,7 @@ namespace Arena
                 case WeaponId.Lance:
                 {
                     // A big jab straight ahead that drives everything it hits far back (not bosses or heavies).
-                    var s = NewSwing(p, aim, LanceReach + 30f * extra, 0f, 36f * dmg);
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * dmg);
                     s.HalfWidth = LanceHalfWidth + 12f * extra;
                     s.Stun = LanceStun;
                     s.Knock = 140f + 60f * extra;
@@ -105,8 +86,8 @@ namespace Arena
                 }
                 case WeaponId.Halberd:
                 {
-                    float reach = 160f + 30f * extra;
-                    var h = NewSwing(p, aim, reach, 40f, 32f * dmg);
+                    float reach = w.Reach + w.Grow * extra;
+                    var h = NewSwing(p, aim, reach, 40f, w.Damage * dmg);
                     h.Thrust = true;
                     pendingSwings.Add(h);
                     if (extra > 0)
@@ -120,7 +101,7 @@ namespace Arena
                 }
                 case WeaponId.HolyMace:
                 {
-                    var s = NewSwing(p, aim, 85f, 120f, 22f * dmg);
+                    var s = NewSwing(p, aim, w.Reach, 120f, w.Damage * dmg);
                     s.HealPerHit = 2f + extra;
                     s.HealRange = 220f + 60f * extra;
                     s.HealHits = 4;
@@ -129,7 +110,7 @@ namespace Arena
                 }
                 case WeaponId.Lightbringer:
                 {
-                    pendingSwings.Add(NewSwing(p, aim, 80f, 100f, 17f * dmg));
+                    pendingSwings.Add(NewSwing(p, aim, w.Reach, 100f, w.Damage * dmg));
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
@@ -142,7 +123,7 @@ namespace Arena
                 }
                 case WeaponId.Censer:
                 {
-                    var s = NewSwing(p, aim, 80f + 20f * extra, 360f, 14f * dmg);
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg);
                     s.HealSpin = 3f + extra;
                     s.HealRange = 140f;
                     pendingSwings.Add(s);
@@ -151,10 +132,10 @@ namespace Arena
                 case WeaponId.TwinBlades:
                 {
                     float side = p.SwingCount % 2 == 0 ? 0.2f : -0.2f;
-                    pendingSwings.Add(NewSwing(p, aim + side, 75f, 90f, 15f * dmg));
+                    pendingSwings.Add(NewSwing(p, aim + side, w.Reach, 90f, w.Damage * dmg));
                     for (int k = 1; k <= extra; k++)
                     {
-                        var c = NewSwing(p, aim - side * (k % 2 == 1 ? 1f : -1f), 75f, 90f, 9f * dmg);
+                        var c = NewSwing(p, aim - side * (k % 2 == 1 ? 1f : -1f), w.Reach, 90f, 9f * dmg);
                         c.Delay = 0.05f * k;
                         c.Silent = true;
                         pendingSwings.Add(c);
@@ -163,7 +144,7 @@ namespace Arena
                 }
                 case WeaponId.Greatsword:
                 {
-                    var s = NewSwing(p, aim, 125f, 170f, 60f * dmg);
+                    var s = NewSwing(p, aim, w.Reach, 170f, w.Damage * dmg);
                     s.Heavy = true;
                     pendingSwings.Add(s);
                     for (int i = 0; i < extra; i++)
@@ -176,7 +157,7 @@ namespace Arena
                 }
                 case WeaponId.Rapier:
                 {
-                    var s = NewSwing(p, aim, 130f, 36f, 18f * dmg);
+                    var s = NewSwing(p, aim, w.Reach, 36f, w.Damage * dmg);
                     s.Rapier = true;
                     s.Thrust = true;
                     s.MaxTargets = 1 + extra;

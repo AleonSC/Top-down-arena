@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Arena
 {
@@ -689,60 +688,50 @@ namespace Arena
 
         // --- Replication ----------------------------------------------------------------------------
 
-        void WriteQueen(BinaryWriter wr, Enemy e)
+        void SyncQueen(NetSync s, Enemy e)
         {
-            var q = e.Queen;
-            wr.Write(q != null);
-            if (q == null)
-                return;
-            wr.Write((byte)q.Stage);
-            wr.Write((byte)q.Turn);
-            wr.Write(q.TurnT);
-            wr.Write(q.TransT);
-            wr.Write((byte)q.TransTo);
-            wr.Write(q.Aux);
-            wr.Write(q.CloudOn);
-            wr.Write(q.CloudHome);
-            wr.Write(q.Cloud);
-            wr.Write(q.Shadow);
-            wr.Write(q.DiveT);
-            wr.Write((byte)q.Dives);
-            wr.Write((ushort)q.Cells.Count);
-            foreach (var c in q.Cells)
-            {
-                wr.Write(c.Index);
-                wr.Write(c.T);
-            }
-        }
-
-        void ReadQueen(BinaryReader r, Enemy e)
-        {
-            if (!r.ReadBoolean())
+            bool has = e.Queen != null;
+            s.Bool(ref has);
+            if (!has)
                 return;
             var q = e.Queen ?? (e.Queen = new QueenState());
-            q.Stage = (QueenStage)r.ReadByte();
-            q.Turn = (QueenTurn)r.ReadByte();
-            q.TurnT = r.ReadSingle();
-            q.TransT = r.ReadSingle();
-            q.TransTo = (QueenStage)r.ReadByte();
-            q.Aux = r.ReadSingle();
+            int stage = (int)q.Stage, turn = (int)q.Turn, transTo = (int)q.TransTo, dives = q.Dives;
             bool wasOn = q.CloudOn;
-            q.CloudOn = r.ReadBoolean();
-            q.CloudHome = r.ReadBoolean();
-            q.Cloud = r.ReadV2();
-            if (q.CloudOn && !wasOn)
-                q.CloudDisp = q.Cloud;  // just let loose: don't slide in from where it was
-            q.Shadow = r.ReadV2();
-            q.DiveT = r.ReadSingle();
-            q.Dives = r.ReadByte();
-            int n = r.ReadUInt16();
-            q.Cells.Clear();
-            for (int i = 0; i < n; i++)
+            s.Byte(ref stage);
+            s.Byte(ref turn);
+            s.Float(ref q.TurnT);
+            s.Float(ref q.TransT);
+            s.Byte(ref transTo);
+            s.Float(ref q.Aux);
+            s.Bool(ref q.CloudOn);
+            s.Bool(ref q.CloudHome);
+            s.Vec(ref q.Cloud);
+            s.Vec(ref q.Shadow);
+            s.Float(ref q.DiveT);
+            s.Byte(ref dives);
+            if (s.Reading)
             {
-                ushort idx = r.ReadUInt16();
-                float t = r.ReadSingle();
-                if (idx < HiveCells.Length)
-                    q.Cells.Add(new QueenCell { Index = idx, T = t, Hit = true });
+                q.Stage = (QueenStage)stage;
+                q.Turn = (QueenTurn)turn;
+                q.TransTo = (QueenStage)transTo;
+                q.Dives = dives;
+                if (q.CloudOn && !wasOn)
+                    q.CloudDisp = q.Cloud;  // just let loose: don't slide in from where it was
+            }
+            int n = q.Cells.Count;
+            s.Short(ref n);
+            if (s.Reading)
+            {
+                q.Cells.Clear();
+                for (int i = 0; i < n; i++)
+                    q.Cells.Add(new QueenCell { Hit = true });
+            }
+            foreach (var c in q.Cells)
+            {
+                int idx = c.Index;
+                s.Short(ref idx);
+                s.Float(ref c.T);
+                c.Index = (ushort)Math.Max(0, Math.Min(HiveCells.Length - 1, idx));
             }
         }
 
