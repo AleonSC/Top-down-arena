@@ -470,6 +470,8 @@ namespace Arena
             Running = true;
             lastMyHp = Me != null ? Me.Hp : 0f;
             session.Screen = AppScreen.Game;
+            if (Recorder != null && !Recorder.Ended)
+                Recorder.End(this, "restarted");  // a new match started over one still going: finish its file first
             Recorder = null;
             if (IsHost && RecordFolder != null)
             {
@@ -479,10 +481,11 @@ namespace Arena
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
-        public void Stop()
+        /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
+        public void Stop(string how = "left")
         {
             if (Recorder != null && Running)
-                Recorder.End(this, "left");
+                Recorder.End(this, how);
             Running = false;
             State = MatchState.Idle;
             Wave = 0;

@@ -169,6 +169,13 @@ namespace Arena
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
 
+        // Closing the game ends a match in progress, so its recording is saved as "quit".
+        void OnApplicationQuit()
+        {
+            game.Stop("quit");
+            session.Leave("");
+        }
+
         void OnDestroy()
         {
             session.Leave("");

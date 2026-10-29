@@ -79,7 +79,8 @@ namespace Arena
         readonly DateTime started = DateTime.Now;
         int playerCount, startWave;
         string modifiers = "";
-        float sampleT, now;
+        float sampleT, saveT = AutosaveEvery, now;
+        const float AutosaveEvery = 10f;  // a run in progress is written this often, so a crash or a closed window keeps nearly all of it
         string outcome = "in progress";
         int endWave, endScore;
         float endTime;
@@ -141,6 +142,16 @@ namespace Arena
             {
                 lastBot = g.Bot;
                 Dev(g, "bot plays for the host: " + (g.Bot ? "on" : "off"));
+            }
+            saveT -= dt;
+            if (saveT <= 0f && !Ended)
+            {
+                saveT = AutosaveEvery;
+                endWave = g.Wave;
+                endTime = now;
+                endScore = g.Score;
+                UpdateLoadouts(g);
+                Save();
             }
             fighting = g.State == MatchState.Fighting;
             if (!fighting)

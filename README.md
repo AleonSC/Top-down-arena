@@ -660,8 +660,10 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 **● REC** in the top-right corner shows a match is being recorded. The Unity editor and a built game keep
 separate settings, so check it in each. While you **host**, every match (solo or with friends) is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
 `%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
-covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave, so a crash
-keeps everything up to the last cleared wave.
+covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so
+a crash keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game,
+Back to lobby), "quit" (the game was closed) or "restarted" (a new match started over it); a file whose outcome
+still reads "in progress" is from a run that crashed.
 
 Each file records:
 

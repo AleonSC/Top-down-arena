@@ -545,6 +545,13 @@ static partial class Program
         }
         Run(s, dt, 120, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);
         string path = host.Game.Recorder != null ? host.Game.Recorder.Path : null;
+        // Saved as it goes: before anyone leaves, the file already holds the run so far (a closed window or crash keeps it).
+        string mid = path != null && File.Exists(path) ? File.ReadAllText(path) : "";
+        var m = System.Text.RegularExpressions.Regex.Match(mid, "\"end\": \\{\\s*\"outcome\": \"in progress\",\\s*\"wave\": (\\d+),\\s*\"time\": ([0-9.]+)");
+        float savedAt = m.Success ? float.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) : -1f;
+        bool autosaved = m.Success && savedAt > host.Game.RunTime - 11f;
+        Console.WriteLine("  saved mid-run: {0} (at {1:0.0} s of {2:0.0}, {3:0.0} KB)", autosaved, savedAt, host.Game.RunTime, mid.Length / 1024.0);
+        Check(autosaved, "a run is saved as it goes, so quitting or crashing mid-wave keeps it");
         host.Leave(""); client.Leave("");  // ends the recording ("left")
         bool ok = path != null && File.Exists(path);
         string text = ok ? File.ReadAllText(path) : "";
