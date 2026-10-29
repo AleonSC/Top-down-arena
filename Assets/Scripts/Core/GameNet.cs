@@ -20,7 +20,7 @@ namespace Arena
             if (!Players.TryGetValue(peer, out p))
                 return;
             p.DrawT = draw;
-            if (release > 0f && p.Weapon.Id == WeaponId.MendersBow)
+            if (release > 0f && ChargeWeapon(p.Weapon.Id))
                 p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
             if (!p.Downed)
                 p.Pos = KeepInArena(pos, 0f);

@@ -72,7 +72,7 @@ namespace Arena
             if (me.Pos.DistanceTo(Home) > 10f && Game.DashT <= 0f)
                 input.Move = (Home - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
-            input.Fire = me.Weapon.Id != WeaponId.MendersBow || MathX.Fmod(t, 1.3f) < 1.05f;
+            input.Fire = !Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f;
             if (demoAbility)
             {
                 castT -= dt;

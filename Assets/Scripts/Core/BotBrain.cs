@@ -169,7 +169,7 @@ namespace Arena
 
             // --- Fire: hold the trigger; the bow draws to full, then lets go.
             firing = shootAt != null;
-            if (me.Weapon.Id == WeaponId.MendersBow && bowDraw >= BowFull(me))
+            if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
 
             // --- Abilities.

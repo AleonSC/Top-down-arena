@@ -49,7 +49,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = aimAt }); g.Update(dt);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = !Game.ChargeWeapon(me.Weapon.Id) || f % 60 < 45, AimAt = aimAt }); g.Update(dt);  // the Warhammer charges, then slams
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800, 450) }); client.Game.Update(dt);
                 Clear();
                 if (dummy != null) { dummy.FrozenT = 1f; dummy.Pos = new V2(700f, 450f); }
@@ -103,8 +103,8 @@ static partial class Program
         bool skewer = second.Hp < before2;
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 1);
         int waves0 = g.Bullets.Values.Count(b => b.Kind == Defs.KnightWave);
-        for (int f = 0; f < 50; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); }
-        bool beams = g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1);
+        bool beams = false;  // watched every frame: the beams only live 0.6 s
+        for (int f = 0; f < 50; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(710f, 450f) }); beams |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave && b.Owner == 1); }
         second.Hp = 0f;
         Console.WriteLine("  Multishot: rapier skewers a 2nd enemy {0}; greatsword throws beams {1}", skewer, beams);
         Check(skewer && beams, "extra projectiles upgrade each Knight weapon its own way");

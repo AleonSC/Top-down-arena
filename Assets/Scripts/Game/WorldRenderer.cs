@@ -70,6 +70,8 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                     DrawBowDraw(p, p.Id == game.MyId, t);
+                else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
+                    DrawHammerCharge(p, p.Id == game.MyId, t);
 
             if (aimDebug && game.Me != null)
             {
@@ -1458,9 +1460,16 @@ namespace Arena
             switch (p.Weapon.Id)
             {
                 case WeaponId.Warhammer:
-                    Line(grip, grip + dir * (r + 12f), 3f, new Rgba(0.6f, 0.45f, 0.3f));
-                    Polygon(grip + dir * (r + 14f), 6f, 4, p.Aim, Steel);
+                {
+                    // Charging: the hammer is raised up and back over your shoulder, and glows as the charge builds.
+                    float c = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;
+                    V2 hd = V2.FromAngle(p.Aim - 1.9f * c);
+                    Line(grip, grip + hd * (r + 12f), 3f, new Rgba(0.6f, 0.45f, 0.3f));
+                    if (c > 0f)
+                        Circle(grip + hd * (r + 14f), 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 12);
+                    Polygon(grip + hd * (r + 14f), 6f + 2f * c, 4, p.Aim - 1.9f * c, Steel);
                     break;
+                }
                 case WeaponId.HolyMace:  // the Quarterstaff: a long pole held in both hands, capped in gold at each end
                 {
                     V2 a = grip - dir * (r * 0.9f), b = grip + dir * (r + 24f);
@@ -1835,6 +1844,29 @@ namespace Arena
             }
             else
                 Line(from, from + V2.FromAngle(p.Aim) * len, perfect ? 3f : 2f, lc);
+        }
+
+        /// The Warhammer's charge: a ring filling round you (gold when full) and, for your own, the strip it will
+        /// slam, brighter the harder it will hit.
+        void DrawHammerCharge(Player p, bool mine, float t)
+        {
+            float c = game.BowCharge(p, p.DrawT);
+            bool full = c >= 1f;
+            var gold = new Rgba(1f, 0.82f, 0.3f);
+            float r = p.Def.BodyR + 11f;
+            Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
+            Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            if (!mine)
+                return;
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal(), from = p.Disp + dir * p.Def.BodyR;
+            float reach = Game.MeleeReach(p, p.Weapon.Reach), w = Game.HammerHalfWidth;
+            var col = (full ? gold : new Rgba(0.9f, 0.85f, 0.75f)).WithAlpha(0.25f + 0.4f * c);
+            V2 a = from + side * w, b = from - side * w, cc = b + dir * reach, d = a + dir * reach;
+            SetColor(col.WithAlpha(0.06f + 0.12f * c));
+            Quad(a, b, cc, d);
+            Line(a, d, 2f, col);
+            Line(b, cc, 2f, col);
+            Line(d, cc, 2f, col);
         }
 
         /// Revolver: the cylinder as pips in an arc under you (gold = heavy rounds), and a ring while reloading.

@@ -171,6 +171,7 @@ namespace Arena
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
+        public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
     }
 
@@ -1001,7 +1002,7 @@ namespace Arena
                     aimAt = nearest.Pos;
                     me.Aim = (aimAt - me.Pos).Angle;
                 }
-                firing = !me.Downed && (me.Weapon.Id != WeaponId.MendersBow || MathX.Fmod(botT, 1.2f) < 1f);  // bow: draw, then let go
+                firing = !me.Downed && (!ChargeWeapon(me.Weapon.Id) || MathX.Fmod(botT, 1.2f) < 1f);  // bow and Warhammer: charge, then let go
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
             }
@@ -1287,8 +1288,8 @@ namespace Arena
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);
                 }
-                else if (p.Weapon.Id == WeaponId.MendersBow)
-                    TickBow(p);
+                else if (ChargeWeapon(p.Weapon.Id))
+                    TickBow(p);  // the bow and the Warhammer fire when you let go
                 else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

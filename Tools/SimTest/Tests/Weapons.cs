@@ -137,6 +137,81 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    static void TankKnightTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        V2 from = new V2(500f, 450f);
+        Func<V2, Enemy> Dummy = at =>
+        {
+            var d = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+            d.MaxHp = d.Hp = 1e5f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
+            return d;
+        };
+        // Hold fire for `hold` frames, let go, and watch for a second.
+        Action<int, V2> Attack = (hold, aimAt) =>
+        {
+            for (int f = 0; f < hold + 60; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = f < hold } : new PlayerInput()); }
+            }
+        };
+
+        // The Warhammer: tap or charge, then slam a strip in front of you.
+        me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 0);
+        Check(me.Weapon.Name == "Warhammer" && Game.ChargeWeapon(me.Weapon.Id), "the Warhammer charges up like a bow");
+        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+        var front = Dummy(new V2(610f, 450f));
+        var side = Dummy(new V2(560f, 560f));  // off to the side: inside a wide arc, outside the strip
+        float stunTap = 0f, stunFull = 0f;
+        Attack(3, new V2(800f, 450f));
+        float tap = front.MaxHp - front.Hp;
+        front.Hp = front.MaxHp; front.FrozenT = 0f;
+        for (int f = 0; f < 140; f++)
+        {
+            me.Pos = from; queue.Clear();
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = f < 80 } : new PlayerInput()); }
+            stunFull = Math.Max(stunFull, front.FrozenT);
+        }
+        float full = front.MaxHp - front.Hp;
+        front.Hp = front.MaxHp; front.FrozenT = 0f;
+        for (int f = 0; f < 70; f++)
+        {
+            me.Pos = from; queue.Clear();
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = f < 3 } : new PlayerInput()); }
+            stunTap = Math.Max(stunTap, front.FrozenT);
+        }
+        Console.WriteLine("  warhammer: tap {0:0} dmg, stun {1:0.00} s; full charge {2:0} dmg, stun {3:0.00} s; side dummy took {4:0}",
+            tap, stunTap, full, stunFull, side.MaxHp - side.Hp);
+        Check(tap > 0f && full > tap * 2.5f, "the slam's damage grows with the charge");
+        Check(stunTap > 0f && stunFull > stunTap + 0.3f, "the slam stuns what it hits, longer at full charge");
+        Check(side.Hp == side.MaxHp, "the slam hits a strip in front, not the sides");
+
+        // The Halberd: a thin cone swept across; each enemy hit once a sweep.
+        me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 2);
+        Check(me.Weapon.Name == "Halberd", "the Knight Tank's third weapon is the Halberd");
+        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+        var a = Dummy(new V2(500f + 170f * (float)Math.Cos(0.6), 450f - 170f * (float)Math.Sin(0.6)));
+        var b = Dummy(new V2(670f, 450f));
+        var c = Dummy(new V2(500f + 170f * (float)Math.Cos(0.6), 450f + 170f * (float)Math.Sin(0.6)));
+        var far = Dummy(new V2(500f + 120f * (float)Math.Cos(1.3), 450f + 120f * (float)Math.Sin(1.3)));  // outside the sweep
+        Attack(1, new V2(800f, 450f));
+        float dmg = me.Weapon.Damage * me.Stats.DmgMult;
+        Console.WriteLine("  halberd: hits {0:0} / {1:0} / {2:0} (one swing {3:0}); outside the sweep took {4:0}",
+            a.MaxHp - a.Hp, b.MaxHp - b.Hp, c.MaxHp - c.Hp, dmg, far.MaxHp - far.Hp);
+        Check(a.Hp < a.MaxHp && b.Hp < b.MaxHp && c.Hp < c.MaxHp, "the Halberd sweeps across, reaching enemies on both sides of the aim");
+        Check(b.MaxHp - b.Hp < dmg * 1.5f, "each enemy is hit once a sweep, however many steps pass over it");
+        Check(far.Hp == far.MaxHp, "enemies outside the sweep are safe");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void WeaponExtraTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -183,7 +258,7 @@ static partial class Program
                 {
                     x.Poll();
                     // The bow fires when you let go: draw past full (1.25 s), release, repeat.
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = w.Id != WeaponId.MendersBow || f % 90 < 75 } : new PlayerInput());
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;

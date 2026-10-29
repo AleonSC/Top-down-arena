@@ -87,6 +87,9 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p);
 
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow and the Warhammer.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer;
+
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
 
@@ -113,7 +116,7 @@ namespace Arena
         {
             bowCd -= dt;
             float release = 0f;
-            if (me.Weapon.Id != WeaponId.MendersBow || me.Downed || me.ParryActive || me.StunShots > 0)
+            if (!ChargeWeapon(me.Weapon.Id) || me.Downed || me.ParryActive || me.StunShots > 0)
                 bowDraw = -1f;  // the shield (or going down) cancels a draw
             else if (firing)
             {

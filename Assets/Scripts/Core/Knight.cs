@@ -25,6 +25,7 @@ namespace Arena
         public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack, closer ones are flung out to it
         public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
         public float Taunt;           // taunts what it hits for this long (a Clot Burst)
+        public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -38,6 +39,13 @@ namespace Arena
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
         public const float LanceHalfWidth = 44f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
+        // The Warhammer: a charged slam on a 100 px wide box in front of you.
+        public const float HammerHalfWidth = 50f;
+        const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
+        // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
+        const int HalberdSteps = 6;
+        const float HalberdSweep = 0.7f, HalberdConeDeg = 18f, HalberdStepTime = 0.035f;
+        int sweepCount;
 
         // --- Weapons ------------------------------------------------------------------
 
@@ -61,18 +69,22 @@ namespace Arena
             {
                 case WeaponId.Warhammer:
                 {
-                    var s = NewSwing(p, aim, w.Reach, 150f, w.Damage * dmg);
-                    s.Knock = 35f;
-                    s.Heavy = true;
-                    pendingSwings.Add(s);
-                    for (int k = 1; k <= extra; k++)  // aftershocks
+                    // Hold to charge, let go to slam: a rectangle in front of you. The charge sets the damage (a quarter
+                    // for a tap, all of it at full) and how long what it hits is stunned.
+                    float c = BowCharge(p, p.BowShotDraw);
+                    float stun = HammerStunMin + (HammerStunMax - HammerStunMin) * c, power = HammerTap + (1f - HammerTap) * c;
+                    for (int k = 0; k <= extra; k++)  // each extra projectile: an aftershock slam, further out
                     {
-                        var a = NewSwing(p, aim, w.Reach + w.Grow * k, 150f, 30f * dmg);
-                        a.Delay = 0.2f * k;
-                        a.Knock = 20f;
-                        a.Heavy = true;
-                        pendingSwings.Add(a);
+                        var s = NewSwing(p, aim, w.Reach + w.Grow * k, 0f, w.Damage * dmg * power * (k == 0 ? 1f : 0.6f));
+                        s.HalfWidth = HammerHalfWidth;
+                        s.Stun = stun;
+                        s.Heavy = true;
+                        s.Thrust = true;
+                        s.Delay = 0.2f * k;
+                        pendingSwings.Add(s);
                     }
+                    V2 hitAt = p.Pos + V2.FromAngle(aim) * (p.Def.BodyR + w.Reach * 0.65f);
+                    BroadcastFx(FxKind.Boom, hitAt, new Rgba(0.85f, 0.8f, 0.7f), 40f + 50f * c, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
                     break;
                 }
                 case WeaponId.Lance:
@@ -89,16 +101,21 @@ namespace Arena
                 }
                 case WeaponId.Halberd:
                 {
+                    // A long, thin cone that sweeps across in front of you; each enemy is hit once a sweep.
+                    // An extra projectile sweeps it back again (60% damage).
                     float reach = w.Reach + w.Grow * extra;
-                    var h = NewSwing(p, aim, reach, 40f, w.Damage * dmg);
-                    h.Thrust = true;
-                    pendingSwings.Add(h);
-                    if (extra > 0)
+                    for (int pass = 0; pass <= Math.Min(1, extra); pass++)
                     {
-                        var f = NewSwing(p, aim, reach, 40f, 19f * dmg);
-                        f.Delay = 0.12f;
-                        f.Thrust = true;
-                        pendingSwings.Add(f);
+                        int group = ++sweepCount;
+                        for (int i = 0; i < HalberdSteps; i++)
+                        {
+                            float f = (float)i / (HalberdSteps - 1) * 2f - 1f;
+                            var h = NewSwing(p, aim + (pass == 0 ? f : -f) * HalberdSweep, reach, HalberdConeDeg, w.Damage * dmg * (pass == 0 ? 1f : 0.6f));
+                            h.Sweep = group;
+                            h.Delay = HalberdStepTime * i + pass * (HalberdStepTime * HalberdSteps + 0.08f);
+                            h.Silent = i > 0;
+                            pendingSwings.Add(h);
+                        }
                     }
                     break;
                 }
@@ -265,6 +282,12 @@ namespace Arena
                     continue;  // shields stop swords too (and wear)
                 }
                 hits.Add(e);
+            }
+            if (s.Sweep > 0)
+            {
+                hits.RemoveAll(e => e.SweepMark == s.Sweep);  // already hit by an earlier step of this sweep
+                foreach (var e in hits)
+                    e.SweepMark = s.Sweep;
             }
             if (s.MaxTargets > 0 && hits.Count > s.MaxTargets)
             {
