@@ -78,7 +78,7 @@ static partial class Program
         }
     }
 
-    // Damage per second of every weapon on one big target (melee from up close, the rest from 250 px).
+    // Damage per second of every weapon on one big target (melee from up close, the rest from 250 px, or 3/4 of their reach if that's shorter).
     static void WeaponDpsReport(float dt)
     {
         var host = new Session { AutoStart = 1, StartWave = 3 };
@@ -103,7 +103,8 @@ static partial class Program
                     me.Weapon = weapon;
                     var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
                     target.Hp = target.MaxHp = 1e7f;
-                    float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : 250f;
+                    me.Weapon = weapon;
+                    float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Min(250f, g.WeaponRange(me) * 0.75f);  // short-range guns stand in reach
                     me.Pos = new V2(800f - range, 450f);
                     float t = 0f, startHp = target.Hp;
                     for (int f = 0; f < 60 * 8; f++)

@@ -7,7 +7,7 @@ namespace Arena
     public partial class Game
     {
         const float MinionChaseRange = 600f;
-        public const float FlameBurn = 5f, FlameBurnTime = 3f;  // the Flamethrower sets what it hits burning: 5 a second for 3 s
+        public const float FlameBurn = 5f, FlameBurnTime = 3f, FlamePierced = 1f / 3f;  // the Flamethrower sets what it hits burning: 5 a second for 3 s; after the first enemy a flame does a third
 
         // --- Weapons -----------------------------------------------------------
 
@@ -68,7 +68,7 @@ namespace Arena
                     float reach = w.Life * (1f + w.Grow * extra);
                     for (int i = 0; i < 2 + extra; i++)
                     {
-                        var b = SpawnBullet(Defs.FlameShot, muzzle, V2.FromAngle(aim + Rand(-0.26f, 0.26f)) * Rand(0.8f * w.Speed, w.Speed), 0f, reach, w.Damage * dmg, p.Id);
+                        var b = SpawnBullet(Defs.FlameShot, muzzle, V2.FromAngle(aim + Rand(-0.2f, 0.2f)) * (i == 0 ? w.Speed : Rand(0.8f * w.Speed, w.Speed)), 0f, reach, w.Damage * dmg, p.Id);  // the lead flame goes the whole way
                         b.Pierce += 99;
                         b.Ignite = FlameBurn * dmg;
                     }

@@ -196,8 +196,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Scattergun, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
             new WeaponDef { Id = WeaponId.FlakCannon, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets on impact", Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
             new WeaponDef { Id = WeaponId.RiotRepeater, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
-            new WeaponDef { Id = WeaponId.Flamethrower, Speed = 480f, Life = 0.4f, Damage = 2f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
-                Desc = "A short-range stream of fire: flames pass through enemies and set them burning (5 a second for 3 s)." },
+            new WeaponDef { Id = WeaponId.Flamethrower, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
+                Desc = "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s)." },
             new WeaponDef { Id = WeaponId.FrostLance, Speed = 700f, Life = 0.9f, Damage = 14f, BotRange = 390f, ExtraDesc = "Spears shatter into 2 more icicles on hit", Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice spears with a wide head that slow enemies." },
             new WeaponDef { Id = WeaponId.StormHammer, Speed = 420f, Life = 1.2f, Damage = 24f, BotRange = 220f, ExtraDesc = "Lightning chains to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
             new WeaponDef { Id = WeaponId.GolemStaff, Speed = 480f, Life = 0.6f, Damage = 8f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
@@ -334,8 +334,8 @@ namespace Arena
             FrostLance = 38,  // the Frost Lance's spear (its shatter icicles are FrostShot)
             // Blood Mage
             BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
-            StunBolt = 47,
-            FlameShot = 48;  // a Flamethrower flame  // the Stun Gun's bolt (Stun.cs)
+            StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
+            FlameShot = 48;  // a Flamethrower flame
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 

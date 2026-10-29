@@ -679,6 +679,11 @@ namespace Arena
             StunBoltHit(b, e);  // Stun.cs
             if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts
             {
+                if (!b.Pierced)  // full damage to the first enemy, half to the ones behind
+                {
+                    b.Pierced = true;
+                    b.Dmg *= FlamePierced;
+                }
                 e.BurnT = Math.Max(e.BurnT, FlameBurnTime);
                 e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
                 e.BurnBy = b.Owner;

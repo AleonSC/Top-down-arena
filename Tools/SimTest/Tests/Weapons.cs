@@ -463,7 +463,8 @@ static partial class Program
         host.Leave("");
     }
 
-    // The Flamethrower: a short stream whose flames pass through enemies and set them burning, which goes on after you stop.
+    // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
+    // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -498,7 +499,7 @@ static partial class Program
         float afterwards = h0 - near.Hp;
         Console.WriteLine("  flamethrower: 1 s on two enemies in a row: {0:0} and {1:0} (one out of reach: {2:0}); burning {3}; {4:0.0} more in the next second from the fire",
             n1, b1, f1, burning, afterwards);
-        Check(n1 > 30f && b1 > 30f && f1 == 0f, "the Flamethrower's flames pass through the first enemy, and don't reach far");
+        Check(n1 > 70f && b1 > 15f && n1 > b1 * 2f && f1 == 0f, "the Flamethrower's flames hit the first enemy hardest, carry on through it for less, and don't reach far");
         Check(burning && Math.Abs(afterwards - Game.FlameBurn) < 1.5f, "what it hits keeps burning (" + Game.FlameBurn + " a second) after you stop");
         host.Leave("");
     }

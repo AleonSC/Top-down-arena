@@ -121,7 +121,7 @@ your weapon. Per extra projectile:
 | Tank · Soldier | **Scattergun** | Short-range spread of 5 pellets | +2 pellets and a 15% tighter cone |
 | | **Flak Cannon** | Slow, heavy shells that explode on impact | Shells scatter 2 bomblets that pop where they land |
 | | **Riot Repeater** | Steady single shots with a little spread | Fires in bursts: +1 round per burst, then a longer pause |
-| Tank · Elementalist | **Flamethrower** | A short stream of fire (about 190 px): 2 flames every 0.06 s, 2 damage each, that pass through every enemy and set it burning (5 a second for 3 s, renewed by every hit) | +1 flame a burst and 25% more reach |
+| Tank · Elementalist | **Flamethrower** | A short stream of fire (about 190 px): 2 flames every 0.06 s that hit the first enemy for 3 and carry on through the rest for 1, setting them burning (5 a second for 3 s, renewed by every hit) | +1 flame a burst and 25% more reach |
 | | **Frost Lance** | Piercing ice spears that slow; the spearhead is wide (20 px), so it's easy to land | Spears shatter into 2 icicles sideways on every hit |
 | | **Storm Hammer** | Heavy orb, lightning chains to 3 | Chains to 1 more enemy |
 | Tank · Summoner | **Golem Staff** | Rocks, plus a bullet-blocking Golem | +1 Golem (up to 3) |

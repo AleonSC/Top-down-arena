@@ -192,6 +192,7 @@ namespace Arena
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
         public float Ignite;      // host only: sets enemies hit burning for this much a second (Flamethrower)
+        public bool Pierced;      // host only: a Flamethrower flame that has hit its first enemy (it does less after)
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left
