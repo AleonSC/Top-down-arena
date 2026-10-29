@@ -153,7 +153,7 @@ static partial class Program
     {
         MusicTest, () => ParryTest(Dt), () => SessionTest(Dt), () => ParryUpgradeTest(Dt), () => AimTest(Dt), () => SpinnerTest(Dt), () => ShielderTest(Dt), () => DevToolsTest(Dt),
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
-        () => WardenTest(Dt), () => QueenTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
+        () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
         () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt),
     };
@@ -194,6 +194,7 @@ static partial class Program
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
         Test("queen", "the Hive Queen", () => QueenTest(Dt)),
+        Test("reapers", "the Twin Reapers", () => ReapersTest(Dt)),
         Test("singularity", "the Singularity", () => SingularityTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),

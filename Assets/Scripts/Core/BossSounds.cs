@@ -14,8 +14,10 @@ namespace Arena
             {
                 case EnemyType.Boss: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
                 case EnemyType.HiveQueen: return e.Queen == null ? 0 : (int)e.Queen.Stage * 100 + (e.Queen.TransT > 0f ? 50 : (int)e.Queen.Turn);
-                case EnemyType.TwinA: return e.Phase * 10 + (int)(e.T / 5f) % 2;  // one Reaper speaks for both
-                case EnemyType.TwinB: return e.Phase * 10;
+                case EnemyType.TwinA:  // one Reaper speaks for both (and the Dual Reaper for itself)
+                case EnemyType.DualReaper:
+                    return Reapers == null ? e.Phase * 10 : (int)Reapers.Stage * 100 + (Reapers.Trans != 0 ? 50 : (int)Reapers.Turn) + e.Phase * 1000;
+                case EnemyType.TwinB: return e.Phase * 1000;
                 case EnemyType.Singularity: return e.Phase;
                 case EnemyType.Lich: return e.Phase * 10 + (int)(e.T / 5f) % 2;
                 case EnemyType.Devourer: return e.Phase;
@@ -43,7 +45,15 @@ namespace Arena
                         return Sfx.BossChime;
                     return turn == QueenTurn.Bombers || turn == QueenTurn.Barrage || turn == QueenTurn.Cloud || turn == QueenTurn.Dive ? Sfx.BossCharge : Sfx.BossShift;
                 }
-                case EnemyType.TwinA: case EnemyType.TwinB: return sig >= 10 ? Sfx.BossChime : Sfx.BossShift;  // enraged or soul-bound / new pattern
+                case EnemyType.TwinA: case EnemyType.TwinB: case EnemyType.DualReaper:  // enraged or soul-bound chimes; a breather is quiet (Reapers.cs)
+                {
+                    int turn = sig % 100;
+                    if (sig >= 1000)
+                        return Sfx.BossChime;
+                    if (turn == 50 || turn == (int)ReaperTurn.Rest)
+                        return Sfx.None;
+                    return turn == (int)ReaperTurn.Sweep || turn == (int)ReaperTurn.Lasers || turn == (int)ReaperTurn.Chase || turn == (int)ReaperTurn.Reap ? Sfx.BossCharge : Sfx.BossShift;
+                }
                 case EnemyType.Singularity:
                     switch (sig)
                     {

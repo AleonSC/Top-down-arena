@@ -107,6 +107,7 @@ namespace Arena
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
+            DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -737,30 +738,6 @@ namespace Arena
             }
         }
 
-        /// The beam between the Twin Reapers: crackling dusk-to-dawn colors. It hurts to touch.
-        void DrawReaperTether(float t)
-        {
-            Enemy a = null, b = null;
-            foreach (var e in game.Enemies.Values)
-                if (Game.IsTwin(e.Type) && !game.IsSpawning(e))
-                {
-                    if (a == null) a = e; else b = e;
-                }
-            if (a == null || b == null)
-                return;
-            V2 from = a.Disp, to = b.Disp, n = (to - from).Normalized().Orthogonal();
-            Line(from, to, Game.TetherWidth + 8f, new Rgba(0.75f, 0.4f, 1f, 0.18f));
-            Line(from, to, Game.TetherWidth, new Rgba(0.85f, 0.5f, 1f, 0.85f));
-            // A jagged core so it reads as dangerous.
-            V2 prev = from;
-            for (int k = 1; k <= 16; k++)
-            {
-                V2 pt = k == 16 ? to : V2.Lerp(from, to, k / 16f) + n * (3f * Mathf.Sin(t * 30f + k * 1.7f));
-                Line(prev, pt, 2f, new Rgba(1f, 0.95f, 1f, 0.9f));
-                prev = pt;
-            }
-        }
-
         void DrawZone(Zone z, float t)
         {
             var d = z.Def;
@@ -931,7 +908,7 @@ namespace Arena
                 col = col.WithAlpha(0.35f);
             }
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !spawning)
+            if (e.Def.Melee && !spawning && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar)
                 DrawMeleeSpikes(e, pos, r, col, t);
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
             if (e.Elite)
@@ -998,6 +975,10 @@ namespace Arena
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
                     DrawTwinShell(e, pos, r, t);
+                    DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                    break;
+                case EnemyType.DualReaper:
+                    DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
                     break;
                 case EnemyType.Singularity:
                     if (e.Phase == 1)  // gravity well: rings shrinking inward
@@ -1235,6 +1216,12 @@ namespace Arena
                     break;
                 case EnemyType.HiveEgg:
                     DrawEggDetails(e, pos, r, t);  // QueenLook.cs
+                    break;
+                case EnemyType.DualReaper:
+                    DrawDualDetails(e, pos, r, t);  // ReaperLook.cs
+                    break;
+                case EnemyType.ReaperPillar:
+                    DrawPillarDetails(e, pos, r, t);  // ReaperLook.cs
                     break;
                 case EnemyType.Shielder:
                     DrawShielderShield(e, pos, r);

@@ -936,6 +936,7 @@ namespace Arena
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
             UpdateQueenView(dt);   // Queen.cs
+            UpdateReaperView(dt);  // Reapers.cs
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);

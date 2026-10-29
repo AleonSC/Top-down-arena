@@ -253,6 +253,7 @@ namespace Arena
             s.Vec(ref PullCenter);
             s.Float(ref PullStrength);
             s.Float(ref TwinReviveT);
+            SyncReapers(s);  // Reapers.cs
             s.Bool(ref ShopOpen);
             s.Float(ref ShopT);
 

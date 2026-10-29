@@ -297,7 +297,7 @@ namespace Arena
                 foreach (var e in game.Enemies.Values)
                     if (e.Def.IsBoss)
                     {
-                        var key = Game.IsTwin(e.Type) ? EnemyType.TwinA : e.Type;
+                        var key = Game.IsReaper(e.Type) ? EnemyType.TwinA : e.Type;
                         sounds.RequestBossTrack(key);
                         wanted = SoundBank.BossTrackId(key);
                         break;

@@ -14,12 +14,33 @@ namespace Arena
             public int Number;         // the stage it's changing to (2, 3)
             public string Name, Line;
             public Rgba Color, Second;
-            public bool Warden;
+            public bool Warden, Reapers;
         }
 
         static bool CurrentShift(Game g, out StageShift s)
         {
             s = default(StageShift);
+            var R = g.Reapers;
+            if (R != null && R.Trans != 0)
+            {
+                Enemy boss = null;
+                foreach (var e in g.Enemies.Values)
+                    if (e.Type == EnemyType.DualReaper || (boss == null && e.Type == EnemyType.TwinA))
+                        boss = e;
+                if (boss != null)
+                {
+                    bool fuse = R.Trans == 1;
+                    s = new StageShift
+                    {
+                        Boss = boss, Progress = Mathf.Clamp01(R.TransT / (fuse ? Game.FuseTime : Game.SplitTime)), Number = fuse ? 2 : 3, Reapers = true,
+                        Name = fuse ? "THE DUAL REAPER" : "SUNDERED",
+                        Line = fuse ? "Dusk and Dawn become one" : "The tether snaps",
+                        Color = fuse ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f),
+                        Second = fuse ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(1f, 0.6f, 0.75f),
+                    };
+                    return true;
+                }
+            }
             foreach (var e in g.Enemies.Values)
             {
                 if (e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f)
@@ -77,6 +98,16 @@ namespace Arena
                     Tri(c, c + d0 * 1900f, c + d1 * 1900f);
                     SetColor(col.WithAlpha(0.1f));
                     Tri(c, c + V2.FromAngle(a - 0.08f) * 1900f, c + V2.FromAngle(a + 0.08f) * 1900f);
+                }
+            }
+            else if (s.Reapers)
+            {
+                // Dusk's pink and Dawn's blue streaming in from the edges.
+                for (int k = 0; k < 24; k++)
+                {
+                    float f = MathX.Fmod(t * 0.9f + k / 24f, 1f), a = k * 2.399f;
+                    V2 at = c + V2.FromAngle(a) * (900f * (1f - Ease(f)) + 60f);
+                    Line(at, at + V2.FromAngle(a) * 40f, 3f, (k % 2 == 0 ? new Rgba(1f, 0.35f, 0.6f) : new Rgba(0.45f, 0.55f, 1f)).WithAlpha(0.6f * Mathf.Sin(f * MathX.Pi)));
                 }
             }
             else
