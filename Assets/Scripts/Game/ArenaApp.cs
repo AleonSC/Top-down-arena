@@ -208,13 +208,14 @@ namespace Arena
                 && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && game.PathOffer != null;
-            bool overlay = menuUp || choosing || tabHeld || pathChoice || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
+            bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
+            bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
             if (overlay && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
                 clickOnMenu = true;
             if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1))
                 clickOnMenu = false;
             mouseBlocked = overlay || clickOnMenu;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || watching || MouseOnLab();
+            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab();
 
             if (!menuUp)
             {
