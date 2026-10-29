@@ -101,9 +101,9 @@ namespace Arena
                 case WeaponId.Fireball:
                 {
                     var b = SpawnBullet(Defs.FireShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 60f;
+                    b.Splash = 60f * AreaMult(p);
                     if (extra > 0)  // splits into small fireballs on impact
-                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f, false);
+                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f * AreaMult(p), false);
                     break;
                 }
                 case WeaponId.ArcLightning:
@@ -162,7 +162,9 @@ namespace Arena
         }
 
         /// Lightning jumps from the enemy that was hit to the nearest others.
-        void ChainLightning(Enemy from, float dmg, int jumps, int owner)
+        const float ChainReach = 170f;  // how far lightning jumps between enemies
+
+        void ChainLightning(Enemy from, float dmg, int jumps, int owner, float reach = ChainReach)
         {
             var hit = new HashSet<int> { from.Id };
             Enemy cur = from;
@@ -170,7 +172,7 @@ namespace Arena
             {
                 Enemy next = null;
                 foreach (var e in Enemies.Values)
-                    if (!hit.Contains(e.Id) && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(cur.Pos) < 170f &&
+                    if (!hit.Contains(e.Id) && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(cur.Pos) < reach &&
                         (next == null || e.Pos.DistanceSq(cur.Pos) < next.Pos.DistanceSq(cur.Pos)))
                         next = e;
                 if (next == null)
@@ -546,6 +548,7 @@ namespace Arena
             // Summoner weapons keep their companions topped up; the totem staff plants totems.
             foreach (var p in Players.Values)
             {
+                TickGuards(p, dt);  // Warden's Guard (Stun.cs)
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
@@ -554,7 +557,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion)
+                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard)
                         {
                             have++;
                             surplus = m;
@@ -608,6 +611,7 @@ namespace Arena
                     }
                 }
                 var d = m.Def;
+                m.HurtT -= dt;
                 if (m.StaggerT > 0f)
                 {
                     m.StaggerT -= dt;
@@ -650,6 +654,9 @@ namespace Arena
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
                         break;
                     }
+                    case MinionMove.Escort:
+                        target = MoveGuard(m, owner, speed, dt);  // Stun.cs
+                        break;
                     case MinionMove.FollowOwner:
                     {
                         // The treant stands in front of you; the guardian spirit hovers on you.

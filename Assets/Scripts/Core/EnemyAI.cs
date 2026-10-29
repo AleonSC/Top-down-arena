@@ -371,6 +371,7 @@ namespace Arena
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
                     : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
                     : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;
+                GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 foreach (var p in Players.Values)
                 {
                     if (p.Downed || p.InvulnT > 0f)

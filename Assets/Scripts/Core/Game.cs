@@ -119,7 +119,8 @@ namespace Arena
         public readonly List<EnemyType> LegendaryQueue = new List<EnemyType>();
         public int PendingMods;      // weapon mods still to pick (one per boss, after its legendary)
         public bool OfferMod;        // the current offer is the weapon mod list
-        public int Volleys;          // host: shots fired, for Warden's Halo
+        public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
+        public float GuardCd;        // host: until the next Warden's Guard arrives
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
@@ -241,6 +242,7 @@ namespace Arena
         public bool Companion;
         public float Scale = 1f;         // replicated: Treant Rod's treant grows with extra projectiles
         public float Power = 1f;         // host: mastery of the ability that summoned it
+        public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's health, and its contact-damage cooldown
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
     }
@@ -646,8 +648,8 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges)
-                    continue;
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s))
+                    continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 s.Timer -= dt;
                 if (s.Timer <= 0f)
                 {
@@ -1304,7 +1306,9 @@ namespace Arena
                 p.FireCd -= dt;
                 if (p.Downed)
                     continue;
-                if (p.Weapon.Id == WeaponId.Pistol)
+                if (p.StunShots > 0)
+                    TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
+                else if (p.Weapon.Id == WeaponId.Pistol)
                 {
                     TickRevolver(p, dt);
                     RevolverTrigger(p, dt);

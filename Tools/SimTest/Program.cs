@@ -155,7 +155,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt),
+        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt),
     };
 
     static void RunFeatures()
@@ -193,6 +193,7 @@ static partial class Program
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
+        Test("wardenloot", "the Warden's legendaries: Stun Gun and Warden's Guard", () => WardenLootTest(Dt)),
         Test("queen", "the Hive Queen", () => QueenTest(Dt)),
         Test("singularity", "the Singularity", () => SingularityTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),

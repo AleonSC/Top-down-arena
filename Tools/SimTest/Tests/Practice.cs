@@ -15,6 +15,10 @@ static partial class Program
         var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
         var cast = typeof(Game).GetMethod("HostAbility", flags);
 
+        // The picker lists what each EnemyDef says, and every listed enemy has a blurb.
+        Check(PracticePlan.Choices.Length > 20 && PracticePlan.Choices.All(t => PracticePlan.BlurbOf(t).Length > 0)
+            && PracticePlan.Choices.Distinct().Count() == PracticePlan.Choices.Length, "every enemy in the Practice picker has a blurb");
+
         // Text format: what's saved loads back the same; typos are reported, not fatal.
         var plan = new PracticePlan { Loop = false };
         var w1 = new PracticeWave { Level = 2 }; w1.Counts[EnemyType.Grunt] = 3; w1.Counts[EnemyType.Sniper] = 2;
