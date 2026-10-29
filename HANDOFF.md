@@ -57,7 +57,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 | File | Lines | What it holds |
 |---|---|---|
-| `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and constants, lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
+| `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and engine constants (arena size, snapshot rate), lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
 | `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), the snapshot (`SyncSnapshot` and its `SyncPlayer`/`SyncEnemy`/`SyncMinion`/`SyncZone`/`SyncOrb`; `SyncMastery`, `SyncShop`, `SyncWarden`, `SyncHazards`, `SyncCages` live with their systems), `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
 | `NetSync.cs` | 0.03k | one pass that writes (host) or reads (client) each field by `ref`, so a snapshot field is listed once for both sides |
 | `Combat.cs` | 0.8k | bullets (`SpawnBullet`, `MoveBullets`, homing `Steer`, gravity wells), `Collide`, damage to players (`Damage`, `RevivePlayer`) and enemies (`HurtEnemy`), on-hit/on-kill effects, burn, orbs |
@@ -68,6 +68,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BloodMage.cs` | 0.55k | the Hemomancer (`Kit.BloodMage`): `FireBloodWeapon`, Implosion (`ImplodeTarget` picks the enemy under `Player.AimAt`, `ImplodeReady` holds fire without one, `pendingImplosions`/`ResolveImplosions` from `Collide`, `FxKind.Implode`), `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
 | `TextOverrides.cs` | 0.15k | the dev text editor's edits: `Apply` (what to show; digit runs are "#" in keys, so numbers stay the game's), `Problem` (an edit must keep its numbers), `TextOverrides.txt` load/save |
 | `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
+| `Balance.cs` | 0.07k | **the general balance numbers** (waves, rerolls, regen and health orbs, reviving, contact damage, the Healer's aura, Soldier and card-only abilities, Mage spell range), and an index of where every other system's numbers live |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
 | `LateGame.cs` | 0.45k | bosses 25-50 (Colossus → Eclipse) |
 | `Warden.cs` | 0.7k | wave-5 boss, a prison riot in three stages (Count / Lockdown / Riot + last stand): turn tables, searchlight + stun + shackle ring, gates of push bullets (`WardenGatePush` runs on each player's own game), tear gas (a `PathPatch`), rioters, riot shield, baton charge; `WriteWarden`/`ReadWarden` after the boss's snapshot record |
@@ -283,7 +284,7 @@ copies of the same numbers:
    `Combat.cs` (`Collide`, damage, on-hit effects), `Abilities.cs` (`CastAbility`), `Waves.cs` (`TickWaves`,
    `BuildWave`) and `Weapons.cs` (`FireVolley`, `WeaponRange`). Pure moves: low risk, big readability gain.
    *Done as pure moves (every line kept, verified by line multiset). `BuildWave` was already in `EnemyAI.cs`
-   with the roster and stays there; the scattered constants stay at the top of `Game.cs` until item 14.*
+   with the roster and stays there; the scattered constants stayed at the top of `Game.cs` until item 14 moved them to `Balance.cs`.*
 6. ✅ **Done (Oct 2026).** **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
    the 351-line `DrawWorld` and 268-line `DrawEnemy` would also benefit from per-type helpers), `Hud.cs`
    (wave plate, ability bar, Tab menu, picker, run summary) and `Menus.cs` (main menu, settings, how-to).
@@ -316,7 +317,7 @@ copies of the same numbers:
 
 ### 6.6 Balance tooling
 
-14. **Tunables are scattered constants** across `Game.cs`, `EnemyAI.cs`, `Knight.cs`, `Defs.cs`. A single
+14. ✅ **Done (Oct 2026), owner's choice "general rules + index":** `Balance.cs` holds the general numbers (moved verbatim from `Game.cs` and `EnemyAI.cs`) and its header lists where each class, boss and system keeps its own block (beside its code). Numbers written inline in code stay put; a dev-menu-reloadable file was not built. **Tunables are scattered constants** across `Game.cs`, `EnemyAI.cs`, `Knight.cs`, `Defs.cs`. A single
     `Balance.cs` (or a JSON file the dev menu can reload) would make tuning sessions much faster.
 15. ✅ **Done (Oct 2026).** **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable. (`Game.SeedForTests`; see section 3.)
 16. The F1 **"Bot plays for you"** still uses the simple test bot; the Boss Lab's smart bot (`BotSkill.Good`)
@@ -362,7 +363,7 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    name, blurb, late/heavy checks and the picker's list was identical before and after.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
-8. Gather the scattered balance constants into `Balance.cs` (item 14).
+8. ✅ Gather the scattered balance constants into `Balance.cs` (item 14). Pure move: a dump of all 323 constants on `Game` (name, value, visibility) was identical before and after.
 9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
 
 Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
@@ -371,7 +372,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next item is 8 (`Balance.cs`), then 9. Paths are feature-complete
+**Where to pick up:** the next item is 9 (F1 bot uses `BotSkill.Good`). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

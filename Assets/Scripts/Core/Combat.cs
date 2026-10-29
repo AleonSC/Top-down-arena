@@ -254,11 +254,11 @@ namespace Arena
         /// Homing Rounds (2 turn per stack) cost 5% damage per point of turn: 10% a stack.
         public const float HomingDamageCost = 0.05f;
 
-        /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, Storm Hammer's
-        /// lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
+        /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
+        /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
         /// the same damage cost.
         public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
-            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether;
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam;
         public const float HomingAreaPerStack = 0.25f;
         public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;

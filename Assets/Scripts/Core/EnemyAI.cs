@@ -13,9 +13,6 @@ namespace Arena
             EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse,
         };
 
-        public const int MaxWave = 50;
-
-        public const float EliteSize = 1.25f;
         const float ShieldHalfAngle = 1.13f;  // Shielder blocks shots within ~65 degrees of where it faces
         // A Shielder's shield holds this share of its health; blocked hits wear it down, and it crumbles by itself
         // at ShieldDecay of its strength a second, cracking as it goes (Phase 1-3), until it shatters (Phase 4).
@@ -31,8 +28,6 @@ namespace Arena
 
         /// The boss that appears on a boss wave (every 5th).
         public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
-        const int LateBossWave = 20;
-        const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
         const float WellRespawn = 15f;
 
         // Replicated to clients in the snapshot.

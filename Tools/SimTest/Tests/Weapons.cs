@@ -664,6 +664,12 @@ static partial class Program
         Console.WriteLine("  homing x3 on a Fireball: blast {0:0} px (60 normally), turn {1:0}, damage {2:0.0}", ball.Splash, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
         Check(Math.Abs(ball.Splash - 105f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
+        // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 2);
+        V2 at = hp.Pos + V2.FromAngle(50f * MathX.Pi / 180f) * 100f;
+        Check(hp.Weapon.Name == "Leech Tendrils" && Math.Abs(Game.GraspArcFor(hp) - Game.GraspArc * 1.75f) < 0.001f
+            && Game.InGraspArc(hp.Pos, 0f, at, 5f, Game.GraspArcFor(hp)) && !Game.InGraspArc(hp.Pos, 0f, at, 5f),
+            "Leech Tendrils with Homing Rounds reach across a wider arc (75% at 3 stacks)");
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 1);
         var core = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f, 600f), 0f, 0, false });
         var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f + 2f * core.Radius + 80f, 600f), 0f, 0, false });

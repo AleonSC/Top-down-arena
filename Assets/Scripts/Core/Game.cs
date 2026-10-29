@@ -286,46 +286,8 @@ namespace Arena
         public const float Width = 1600f, Height = 900f;
 
         const int SnapshotEvery = 3;  // ticks
-        public const int StartingRerolls = 2;
-        const float OrbChance = 0.18f;      // small health orb drop chance per kill
-        const float BigOrbChance = 0.03f;   // rare large health orb
-        public const float OrbHeal = 15f;
-        public const float BigOrbHeal = 60f;
-        public const float OrbLifetime = 12f;
-        const float OrbMagnetRange = 110f;
-        const int BossRerolls = 2;
-        public const float PassiveRegen = 0.5f;  // HP per second for everyone
-        const float StartDelay = 3f;
-        const float IntermissionTime = 4f;
-        const float ContactDamage = 15f;
-        const float HitIframes = 0.35f;
-        const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
         float shoveT;
         V2 shoveDir;
-        const float ReviveRange = 70f;
-        const float ReviveTime = 3f;
-        public const float AuraRange = 170f;
-        const float AuraHeal = 9f;
-        const float BarrierTime = 4f;
-        const float BarrierCapacity = 360f;
-        const float AegisCapacity = 300f;
-        public const float BarrierRadius = 105f;
-        const float PulseRange = 260f;
-        const float PulseHeal = 60f;
-        public const float DashTime = 0.18f;
-        const float DashSpeed = 1200f;
-        const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
-        const float RoarTime = 5f, RoarReduction = 0.4f;
-        const float HavenRadius = 130f, HavenTime = 6f;
-        const float LinkTime = 6f, LinkHeal = 8f;
-        const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeRadius = 110f, GrenadeDamage = 80f;
-        const float MarkTime = 6f;
-        const float SpellRange = 420f;
-        const float BlinkRange = 300f;
-        const float ShockwaveRange = 230f;
-        const float ShockwaveDamage = 60f;
-        const float OverdriveTime = 5f;
-        const float TurretTime = 10f;
 
         readonly Session session;
         readonly Random rng = NewRng();
