@@ -195,6 +195,7 @@ const B = {
   big:    { name: "Big orb",      dmg: 20, r: 10,  col: rgb(0.85, 0.35, 1) },
   pierce: { name: "Aimed shot",   dmg: 16, r: 6.5, col: rgb(1, 0.12, 0.12) },
   mine:   { name: "Mortar bomb",  dmg: 18, r: 9,   col: rgb(1, 0.55, 0.2) },
+  stun:   { name: "Stun shot",    dmg: 8,  r: 7,   col: rgb(0.43, 0.88, 1) },
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -276,8 +277,8 @@ const E = [
 
   // Bosses
   { id: "Warden", label: "The Warden", cat: "Bosses", boss: true, hp: 2400, r: 46, speed: 45, sides: 8, col: rgb(1, 0.25, 0.5), xp: 150, score: 300, wave: 5,
-    appears: "Wave 5 (with wave ÷ 2 Grunts)", lead: "A prison riot in three stages, one mechanic at a time. Count (100–65%): sways through the middle — rings, a spiral (holding still), aimed fans, then a searchlight from the corner tower. Lockdown (65–30%): the cross runs alongside gates of push bullets and tear gas. Riot (30–0%): cell doors burst open and rioters pour out while it hides behind a riot shield, then a baton charge; below 10% it makes a last stand in the middle. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile. (The preview here loops its four bullet attacks.)",
-    locks: ["Cycle", "Spiral", "Rings", "Fan", "Cross"],
+    appears: "Wave 5 (with wave ÷ 2 Grunts)", lead: "A prison riot in three stages, one mechanic at a time. Count (100–65%): sways through the middle — rings, a spiral (holding still), aimed fans, then a searchlight from the corner tower. Lockdown (65–30%): the cross runs alongside gates of push bullets and tear gas. Riot (30–0%): cell doors burst open and rioters pour out while it hides behind a riot shield, then a baton charge; below 10% it makes a last stand in the middle. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile. (Nothing hurts it here, so the preview plays each stage in turn — or lock one below.)",
+    locks: ["Cycle", "Count", "Lockdown", "Riot", "Last stand"],
     attacks: [
       { name: "Rings (5 s)", pattern: "Ring of big orbs, +6.9° per volley", kind: "big", n: 26, speed: 110, every: 1 },
       { name: "Spiral (6 s)", pattern: "4 arms, +10.9° per volley; it stands still", kind: "small", n: 4, speed: 150, every: 0.07 },
@@ -438,13 +439,14 @@ function newWorld() {
 }
 
 function spawn(type, x, y, parent = 0, spawnT = 0.4) {
-  const d = BY[type] || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
+  const d = BY[type] || RIOT[type] || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
   const elite = S.elite && d && !d.boss && !d.summon;
   const r = (d ? d.r : 10) * (elite ? 1.25 : 1);
   const e = { id: nextId++, type, d, x: clamp(x, r, W - r), y: clamp(y, r, H - r), r, t: 0, spawnT, fireT: rnd(0.3, 1.2), phaseT: rnd(1, 3),
     ang: rnd(0, TAU), facing: Math.PI / 2, phase: 0, t2: 0, strafe: Math.random() < 0.5 ? 1 : -1, wp: { x, y }, parent, elite, hp: 1 };
   if (type === "GravityWell") e.ang = 0;
   world.enemies.push(e);
+  if (type === "Warden") wardenInit(e);
   return e;
 }
 const children = (p, type) => world.enemies.filter(o => o.parent === p.id && o.type === type && !o.dead);
@@ -461,11 +463,210 @@ function keepDistance(dx, dy, dl, want) {
   return [0, 0];
 }
 
-function wardenAttack(e) {
-  if (S.sel === "Warden" && S.lock > 0) return S.lock - 1;
-  const t = e.t % 30; return t < 18 ? Math.floor(t / 6) : 3;
+// The Warden (Warden.cs): a prison riot in three stages, picked by its health in the game. Nothing hurts it here,
+// so "Cycle" plays each stage in turn: the Count once round, the Lockdown twice, the Riot once, 10 s of last stand.
+const WD = {
+  turns: [["Rings", "Rest", "Spiral", "Rest", "Fan", "Rest", "Light", "Rest"], ["Cross", "Rest"], ["Rioters", "Rest", "Charge", "Rest"], ["Last"]],
+  times: [[5, 1, 6, 1, 4, 2, 18, 1], [12, 2], [10, 1, 0.9 + 620 / 700 + 0.3, 1], [10]],
+  loops: [1, 2, 1, 1],
+  stages: ["Count", "Lockdown", "Riot", "Last stand"],
+  doors: [[0, 260], [0, 640], [W, 260], [W, 640], [500, H], [1100, H]],
+  tower: { x: 40, y: 40 }, lightR: 105, gateRows: 5, gateGap: 16, gateR: 7, door: 90,
+};
+// The riot's extras (not on the roster): rioters run at whoever's nearest, the Warden included; guards beat them.
+const RIOT = {
+  Rioter: { id: "Rioter", r: 12, speed: 110, sides: 8, col: rgb(1, 0.55, 0.2), melee: true, summon: true, contact: 10 },
+  RiotGuard: { id: "RiotGuard", r: 13, speed: 125, sides: 8, col: rgb(0.35, 0.55, 1), melee: true, summon: true, contact: 14 },
+};
+const theWarden = () => world.enemies.find(o => o.type === "Warden" && !o.dead);
+const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
+const clearRiot = (guards) => { for (const o of world.enemies) if (o.type === "Rioter" || (guards && o.type === "RiotGuard")) o.dead = true; };
+
+function wardenInit(e) {
+  e.w = { stage: S.sel === "Warden" && S.lock ? S.lock - 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0,
+    light: { x: 800, y: 110 }, mode: "off", lt: 0, caught: 0, shackle: [], aux: 0, dashing: false, plant: -1,
+    gates: [], gas: [], sent: 0, doors: [], guards: false, chargeLeft: 0, ringT: 0 };
+  wardenNext(e);
 }
-const crossDashing = e => (e.t % 3) < 1;
+function wardenNext(e) {
+  const w = e.w, p = world.player, turns = WD.turns[w.stage];
+  if (w.turn === "Rioters") clearRiot(false);  // whoever's left scatters
+  if (++w.step >= turns.length) {
+    w.step = 0;
+    if (++w.loop >= WD.loops[w.stage] && !(S.sel === "Warden" && S.lock)) { wardenTransition(e, (w.stage + 1) % 4); return; }
+  }
+  w.turn = turns[w.step]; w.len = WD.times[w.stage][w.step]; w.tt = 0;
+  w.dashing = false; w.plant = -1; w.sent = 0; w.doors = []; w.guards = false; w.mode = "off"; e.fireT = 0.3;
+  if (w.turn === "Light") { w.mode = "follow"; w.lt = 0; w.caught = 0; w.light = { x: 800, y: 110 }; }
+  if (w.turn === "Cross") w.dashing = true;
+  if (w.turn === "Charge") { w.aux = ang(e, p); w.chargeLeft = 620; }
+  if (w.turn === "Rioters") w.aux = ang(e, p);
+  if (w.turn === "Last") w.ringT = 0;
+}
+function wardenTransition(e, to) {
+  const w = e.w;
+  w.trans = 2; w.to = to; w.turn = "Rest"; w.mode = "off"; w.gates = []; w.gas = []; w.shackle = [];
+  clearRiot(true); world.bullets = [];
+  const col = to === 2 ? rgb(1, 0.5, 0.2) : rgb(0.35, 0.65, 1);
+  addFx("ring", e.x, e.y, col, 900, 0.8);
+  if (to === 2) for (const [x, y] of WD.doors) addFx("boom", x, y, rgb(1, 0.55, 0.2), 90, 0.6);
+}
+function wardenEnter(e, stage) {
+  const w = e.w;
+  w.stage = stage; w.step = -1; w.loop = 0; w.turn = "";
+  wardenNext(e);
+  addFx("boom", e.x, e.y, rgb(1, 1, 1), e.r + 70, 0.4);
+  addFx("ring", e.x, e.y, stage === 2 ? rgb(1, 0.5, 0.2) : rgb(0.35, 0.65, 1), 1100, 0.9);
+}
+
+function wardenTick(e, dt) {
+  const w = e.w, p = world.player;
+  wardenGates(w, dt); wardenGas(w, dt);
+  if (w.trans > 0) { w.trans -= dt; if (w.trans <= 0) { w.trans = 0; wardenEnter(e, w.to); } return; }
+  w.tt += dt;
+  switch (w.turn) {
+    case "Light": wardenLight(e, w, dt); break;
+    case "Cross": {
+      // Every 3 s: dash 1 s to a new spot in the middle, then plant and fire for 2 s. Meanwhile three gates, 4 s apart.
+      const plant = Math.floor(w.tt / 3);
+      if (plant !== w.plant) {
+        w.plant = plant;
+        for (let i = 0; i < 8; i++) { e.wp = { x: rnd(W * 0.28, W * 0.72), y: rnd(H * 0.3, H * 0.7) }; const d = dist(e.wp, e); if (d > 160 && d < 330) break; }
+      }
+      w.dashing = w.tt % 3 < 1;
+      if (w.sent < 3 && w.tt >= 0.2 + w.sent * 4) { wardenGate(w, w.sent % 2 === 0 ? 1 : -1); if (w.sent !== 1) wardenGasLob(e, w); w.sent++; }
+      break;
+    }
+    case "Rioters": {
+      if (w.doors.length === 0 || (w.doors.length === 2 && w.tt >= 3)) wardenDoors(w, 2);
+      const diff = ((ang(e, p) - w.aux + Math.PI) % TAU + TAU) % TAU - Math.PI;
+      w.aux += clamp(diff, -1.05 * dt, 1.05 * dt);  // the shield turns slowly toward you
+      const left = rioters().length;
+      if (w.tt >= 10 && left > 0 && !w.guards) { wardenGuards(w, left); w.len = 20; }
+      if (w.tt > 4 && left === 0) w.tt = w.len;  // all dealt with: on to the charge
+      break;
+    }
+    case "Charge":
+      if (w.tt >= 0.9 && w.chargeLeft > 0) {
+        w.chargeLeft -= 700 * dt;
+        const nx = e.x + Math.cos(w.aux) * 700 * dt, ny = e.y + Math.sin(w.aux) * 700 * dt;
+        if (nx < e.r || nx > W - e.r || ny < e.r || ny > H - e.r) w.chargeLeft = 0;  // stops at a wall
+      }
+      break;
+    case "Last": w.ringT -= dt; break;
+  }
+  if (w.turn === "Rioters" || w.turn === "Charge") e.facing = w.aux;
+  const waitRing = w.turn === "Light" && (w.mode === "lock" || w.mode === "ring");
+  if (w.tt >= w.len && !waitRing) wardenNext(e);
+}
+
+// The searchlight: hunts you at 150 px/s; 0.25 s in its bright middle locks it on, 0.6 s later a shackle ring closes.
+function wardenLight(e, w, dt) {
+  const p = world.player;
+  w.lt += dt;
+  const follow = () => { const l = dist(p, w.light); if (l > 0) { const s = Math.min(l, 150 * dt); w.light.x += (p.x - w.light.x) / l * s; w.light.y += (p.y - w.light.y) / l * s; } };
+  if (w.mode === "follow") {
+    follow();
+    w.caught = dist(p, w.light) < WD.lightR * 0.6 ? w.caught + dt : Math.max(0, w.caught - dt * 1.5);
+    if (w.caught >= 0.25) { w.mode = "lock"; w.lt = 0; w.caught = 0; }
+  } else if (w.mode === "lock") {
+    follow();
+    if (w.lt >= 0.6) { wardenShackle(e, w, { x: w.light.x, y: w.light.y }); w.mode = "ring"; w.lt = 0; }
+  } else if (w.mode === "ring") {
+    w.shackle = w.shackle.filter(b => world.bullets.includes(b));
+    if (!w.shackle.length) { w.mode = "follow"; w.lt = 0; }  // dark until the ring has closed
+  }
+}
+function wardenShackle(e, w, at) {
+  // 28 big orbs 420 px out closing at 110 px/s, a 4-orb gap facing as far from the Warden as still opens into the arena.
+  const toWarden = Math.atan2(e.y - at.y, e.x - at.x);
+  let away = toWarden + Math.PI, best = -9;
+  for (let k = 0; k < 24; k++) {
+    const a = TAU * k / 24, gx = at.x + Math.cos(a) * 240, gy = at.y + Math.sin(a) * 240;
+    if (gx < 70 || gx > W - 70 || gy < 70 || gy > H - 70) continue;
+    const score = -Math.cos(a - toWarden);
+    if (score > best) { best = score; away = a; }
+  }
+  w.shackle = [];
+  const life = (420 - 18) / 110;
+  for (let i = 0; i < 28; i++) {
+    const a = away + TAU * i / 28, off = Math.abs(((a - away + Math.PI) % TAU + TAU) % TAU - Math.PI);
+    if (off < TAU * 2.1 / 28) continue;  // the gap
+    const b = { x: at.x + Math.cos(a) * 420, y: at.y + Math.sin(a) * 420, vx: -Math.cos(a) * 110, vy: -Math.sin(a) * 110, av: 0,
+      r: B.big.r, col: B.big.col, dmg: B.big.dmg, life, boss: true, kind: "big", stay: true };
+    world.bullets.push(b); w.shackle.push(b);
+  }
+  addFx("ring", at.x, at.y, rgb(0.85, 0.35, 1), 420, 0.5);
+}
+
+// The gates: five rows of push bullets sweeping the arena at 180 px/s, two 90 px doors near the side walls.
+const gateBack = g => g.front - g.dir * (WD.gateRows - 1) * WD.gateGap;
+const inGateGap = (g, x) => (x > g.gap1 + 4 && x < g.gap1 + WD.door - 4) || (x > g.gap2 + 4 && x < g.gap2 + WD.door - 4);
+function wardenGate(w, dir) {
+  w.gates.push({ dir, front: dir > 0 ? 6 : H - 6, warn: 0.8, gap1: rnd(70, W * 0.28 - WD.door - 40), gap2: rnd(W * 0.72 + 40, W - WD.door - 70), hit: false, rolled: false });
+}
+function wardenGates(w, dt) {
+  const p = world.player, pad = WD.gateR + p.hitR;
+  for (const g of w.gates) {
+    if (g.warn > 0) { g.warn -= dt; continue; }
+    const mid = (g.front + gateBack(g)) / 2, ahead = (p.y - mid) * g.dir > 0;  // which side you were on
+    g.front += g.dir * 180 * dt;
+    const back = gateBack(g);
+    if (p.y < Math.min(g.front, back) - pad || p.y > Math.max(g.front, back) + pad || inGateGap(g, p.x)) continue;
+    if (!g.hit) { g.hit = true; p.inv = 0; hurt(12); }
+    let y = ahead ? g.front + g.dir * (pad + 2) : back - g.dir * (pad + 2);
+    if (y < p.hitR || y > H - p.hitR) {  // pinned against the edge: it rolls over you
+      y = back - g.dir * (pad + 2);
+      if (!g.rolled) { g.rolled = true; p.inv = 0; hurt(12); }
+    }
+    p.y = y;
+  }
+  w.gates = w.gates.filter(g => g.dir > 0 ? gateBack(g) < H + 20 : gateBack(g) > -20);
+}
+
+// Tear gas: lobbed near you with the 1st and 3rd gate, lands after 1 s, a 90 px cloud for 5 s at 8 damage a second.
+function wardenGasLob(e, w) {
+  const p = world.player, a = rnd(0, TAU), d = rnd(60, 220);
+  let x = clamp(p.x + Math.cos(a) * d, 100, W - 100), y = clamp(p.y + Math.sin(a) * d, 100, H - 100);
+  const l = Math.hypot(x - e.x, y - e.y);
+  if (l < 90 + e.r) { x = clamp(x + (x - e.x) / (l || 1) * (90 + e.r), 100, W - 100); y = clamp(y + (y - e.y) / (l || 1) * (90 + e.r), 100, H - 100); }
+  w.gas.push({ x, y, t: -1 });
+  addFx("target", x, y, rgb(0.6, 0.95, 0.4), 90, 1);
+}
+function wardenGas(w, dt) {
+  const p = world.player;
+  for (const g of w.gas) {
+    g.t += dt;
+    if (g.t >= 0 && dist(p, g) < 90 + p.hitR) p.dmg += 8 * dt;
+  }
+  w.gas = w.gas.filter(g => g.t < 5);
+}
+
+// The riot: two doors burst open, two more at 3 s, nine rioters each; any left at 10 s bring 3-8 guards.
+function wardenDoors(w, count) {
+  for (let k = 0; k < count; k++) {
+    const free = [0, 1, 2, 3, 4, 5].filter(i => !w.doors.includes(i)), pick = free[Math.floor(Math.random() * free.length)];
+    w.doors.push(pick);
+    const [dx, dy] = WD.doors[pick], ix = dx <= 0 ? 1 : dx >= W ? -1 : 0, iy = ix ? 0 : -1;
+    for (let i = 0; i < 9; i++) {
+      const along = 40 + Math.floor(i / 3) * 30, side = (i % 3 - 1) * 30;
+      const r = spawn("Rioter", dx + ix * along - iy * side, dy + iy * along + ix * side, 0, 0.3 + Math.floor(i / 3) * 0.25);
+      r.hp = 40;
+    }
+    addFx("boom", dx + ix * 20, dy + iy * 20, rgb(1, 0.55, 0.2), 70, 0.5);
+  }
+}
+function wardenGuards(w, left) {
+  w.guards = true;
+  const n = clamp(Math.floor((left + 3) / 4), 3, 8);
+  for (let i = 0; i < n; i++) {
+    const [dx, dy] = WD.doors[Math.floor(Math.random() * 6)], ix = dx <= 0 ? 1 : dx >= W ? -1 : 0, iy = ix ? 0 : -1, side = rnd(-30, 30);
+    const g = spawn("RiotGuard", dx + ix * 40 - iy * side, dy + iy * 40 + ix * side, 0, 0.4);
+    g.t2 = 0;
+    addFx("ring", g.x, g.y, RIOT.RiotGuard.col, 70, 0.5);
+  }
+  addFx("ring", 800, 450, RIOT.RiotGuard.col, 900, 0.7);
+}
 function phaseByTime(e, period) { return Math.floor(e.t / period) % 2; }
 
 function move(e, dt) {
@@ -499,15 +700,37 @@ function move(e, dt) {
       if (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 20) e.wp = { x: rnd(150, W - 150), y: rnd(150, H - 150) };
       { const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) || 1; v = [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l]; }
       break;
-    case "Warden": case "HiveQueen":
-      if (e.type === "Warden" && wardenAttack(e) === 3) {
-        const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y);
-        v = crossDashing(e) && l > 8 ? [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l] : [0, 0]; speed = 340; break;
-      } else {
-        const gx = 800 + Math.sin(e.t * 0.5) * 1600 * 0.3, gy = 150 + Math.sin(e.t * 0.8) * 40;
+    case "Warden": {
+      // It holds still while firing a stream (the spiral, the cross's plants, the last stand); otherwise it keeps moving.
+      const w = e.w;
+      const toward = (gx, gy, s) => { const l = Math.hypot(gx - e.x, gy - e.y); speed = s; v = l < 6 ? [0, 0] : l < s * dt ? [(gx - e.x) / (s * dt), (gy - e.y) / (s * dt)] : [(gx - e.x) / l, (gy - e.y) / l]; };
+      if (w.trans > 0 || w.turn === "Last") toward(800, 450, 420);
+      else if (w.turn === "Spiral") v = [0, 0];
+      else if (w.turn === "Cross") { if (w.dashing) toward(e.wp.x, e.wp.y, 340); else v = [0, 0]; }
+      else if (w.turn === "Charge") { if (w.tt >= 0.9 && w.chargeLeft > 0) { speed = 700; v = [Math.cos(w.aux), Math.sin(w.aux)]; } }
+      else {
+        let gx, gy;
+        if (w.stage === 0) { gx = 800 + Math.sin(e.t * 0.5) * W * 0.3; gy = 450 + Math.sin(e.t * 0.8) * 40; }       // sways through the middle
+        else if (w.stage === 1) { gx = 800 + Math.cos(e.t * 0.4) * 120; gy = 450 + Math.sin(e.t * 0.4) * 80; }      // near the middle
+        else { gx = p.x + Math.cos(e.t * 0.25) * 320; gy = p.y + Math.sin(e.t * 0.25) * 320; }                      // works round you, 320 px out
         v = [(gx - e.x) / 60, (gy - e.y) / 60];
       }
       break;
+    }
+    case "Rioter": {
+      const wd = theWarden(), goal = wd && dist(wd, e) < dl ? wd : p, a = ang(e, goal), s = Math.sin(e.t * 3 + e.id) * 0.25;
+      v = [Math.cos(a) - Math.sin(a) * s, Math.sin(a) + Math.cos(a) * s]; break;
+    }
+    case "RiotGuard": {
+      let goal = p, best = Infinity;
+      for (const r of world.enemies) if (r.type === "Rioter" && !r.dead && r.spawnT <= 0 && dist(r, e) < best) { best = dist(r, e); goal = r; }
+      const a = ang(e, goal); v = [Math.cos(a), Math.sin(a)]; break;
+    }
+    case "HiveQueen": {
+      const gx = 800 + Math.sin(e.t * 0.5) * 1600 * 0.3, gy = 150 + Math.sin(e.t * 0.8) * 40;
+      v = [(gx - e.x) / 60, (gy - e.y) / 60];
+      break;
+    }
     case "TwinA": case "TwinB": {
       const a = e.t * 0.47 + (e.type === "TwinA" ? 0 : Math.PI);
       const gx = 800 + Math.cos(a) * 1600 * 0.26, gy = 450 + Math.sin(a) * 900 * 0.28;
@@ -545,7 +768,8 @@ function face(e, dt) {
   if (e.type === "Charger" && e.phase !== 0) return;
   if (e.type === "Lunger" && e.phase >= 2) return;
   if (e.type === "HiveBomber" || e.type === "Singularity") return;  // its facing is the laser sweep
-  if (e.type === "Warden" && wardenAttack(e) === 3) { e.facing = 0; return; }
+  if (e.type === "RiotGuard" && e.t2 > 0) return;  // mid-swing
+  if (e.type === "Warden" && e.w && ["Cross", "Rioters", "Charge"].includes(e.w.turn)) { if (e.w.turn === "Cross") e.facing = 0; return; }
   if (e.type === "Shielder") {
     const diff = ((want - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI;
     e.facing += clamp(diff, -1.6 * dt, 1.6 * dt); return;
@@ -577,19 +801,20 @@ function special(e, dt) {
   const late = ["Phantom", "Nest", "Colossus", "Duelist", "Decoy", "Lich", "StormHerald", "Devourer", "Eclipse"].includes(e.type);
   if (late) e.phaseT -= dt;
   switch (e.type) {
-    case "Warden": {
-      const atk = wardenAttack(e);
-      e.phase = atk === 3 && crossDashing(e) ? 4 : atk;
-      if (atk === 3) {
-        const plant = Math.floor(e.t / 3);
-        if (plant !== e.t2) {
-          e.t2 = plant;
-          for (let i = 0; i < 8; i++) {
-            e.wp = { x: rnd(1600 * 0.28, 1600 * 0.72), y: rnd(900 * 0.3, 900 * 0.7) };
-            const d = Math.hypot(e.wp.x - e.x, e.wp.y - e.y); if (d > 160 && d < 330) break;
-          }
-        }
-      }
+    case "Warden": wardenTick(e, dt); break;
+    case "Rioter": {  // one that reaches the Warden lands a blow on it and is gone
+      const wd = theWarden();
+      if (wd && dist(wd, e) < wd.r + e.r) { e.dead = true; addFx("boom", e.x, e.y, rgb(1, 0.7, 0.3), 18, 0.3); }
+      break;
+    }
+    case "RiotGuard": {  // batons: 25 a swing to any rioter in reach
+      e.t2 -= dt;
+      if (e.t2 > 0) break;
+      const r = world.enemies.find(o => o.type === "Rioter" && !o.dead && o.spawnT <= 0 && dist(o, e) < e.r + o.r + 10);
+      if (!r) break;
+      e.t2 = 0.45; e.facing = ang(e, r); e.swing = 0.16;
+      r.hp -= 25;
+      if (r.hp <= 0) { r.dead = true; addFx("boom", r.x, r.y, rgb(1, 0.6, 0.3), 20, 0.3); }
       break;
     }
     case "TwinA": case "TwinB": break;
@@ -765,14 +990,33 @@ function fire(e) {
     }
     case "Shielder": e.fireT = 2.2; for (let i = 0; i < 5; i++) shot(e, e.facing + (i - 2) * 0.15, 190, "small"); break;
     case "Medic": e.fireT = 2.5; shot(e, aim, 160, "small"); break;
-    case "Warden":
-      switch (wardenAttack(e)) {
-        case 3: e.fireT = 0.075; if (crossDashing(e)) break; for (let k = 0; k < 4; k++) shot(e, Math.PI / 2 * k, 240, "small"); break;
-        case 0: e.fireT = 0.07; e.ang += 0.19; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); break;
-        case 1: e.fireT = 1; e.ang += 0.12; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 110, "big"); break;
-        default: e.fireT = 0.45; for (let i = 0; i < 9; i++) shot(e, aim + (i - 4) * 0.12, 210, "pierce");
+    case "Warden": {
+      const w = e.w;
+      if (w.trans > 0) { e.fireT = 0.2; break; }
+      switch (w.turn) {
+        case "Rings": e.fireT = 1; e.ang += 0.12; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 110, "big"); break;
+        case "Spiral": e.fireT = 0.07; e.ang += 0.19; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); break;
+        case "Fan": e.fireT = 0.45; for (let i = 0; i < 9; i++) shot(e, aim + (i - 4) * 0.12, 210, "pierce"); break;
+        case "Light": e.fireT = 0.75; if (w.mode === "follow" && w.tt > 0.6) shot(e, aim, 280, "stun"); break;
+        case "Cross": e.fireT = 0.075; if (!w.dashing) for (let k = 0; k < 4; k++) shot(e, Math.PI / 2 * k, 240, "small"); break;
+        case "Rioters": e.fireT = 1.4; if (w.tt > 0.6) for (let i = 0; i < 7; i++) shot(e, w.aux + (i - 3) * 0.11, 230, "small"); break;  // a shotgun from behind the shield
+        case "Charge":
+          e.fireT = 0.035;
+          if (w.tt >= 0.9 && w.chargeLeft > 0) for (const s of [1, -1]) {
+            const a = w.aux + s * Math.PI / 2;
+            world.bullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, av: 0, r: B.small.r, col: B.small.col, dmg: B.small.dmg, life: 8, boss: true, kind: "small" });
+          }
+          break;
+        case "Last":
+          e.fireT = 0.08;
+          if (Math.hypot(e.x - 800, e.y - 450) > 8) break;
+          e.ang += 0.19; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small");
+          if (w.ringT <= 0) { w.ringT = 1.2; for (let i = 0; i < 26; i++) shot(e, e.ang * 0.5 + TAU * i / 26, 110, "big"); }
+          break;
+        default: e.fireT = 0.1;  // a breather
       }
       break;
+    }
     case "HiveQueen":
       if (e.t2 === 1) e.fireT = 0.3;
       else if (e.t2 === 2) { e.fireT = 0.9; launchBomber(e, p); }
@@ -866,6 +1110,7 @@ function contactDamage(e) {
 
 function movePlayer(dt) {
   const p = world.player;
+  if (p.stun > 0) return;  // the Warden's stun shot
   if (S.dummy === "circle") {
     p.path += dt * p.speed / 230;
     const tx = 800 + Math.cos(p.path) * 230, ty = 560 + Math.sin(p.path) * 230;
@@ -891,7 +1136,7 @@ function step(dt) {
   world.t += dt;
   world.pull = null;
   const p = world.player;
-  p.inv = Math.max(0, p.inv - dt); p.flash = Math.max(0, (p.flash || 0) - dt);
+  p.inv = Math.max(0, p.inv - dt); p.flash = Math.max(0, (p.flash || 0) - dt); p.stun = Math.max(0, (p.stun || 0) - dt);
   const twinsAlive = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && !o.dead).length;
   for (const e of [...world.enemies]) {
     if (e.dead) continue;
@@ -936,8 +1181,8 @@ function step(dt) {
       addFx("boom", b.x, b.y, B.mine.col, 30, 0.3);
       continue;
     }
-    if (b.life <= 0 || b.x < -40 || b.y < -40 || b.x > W + 40 || b.y > H + 40) continue;
-    if (Math.hypot(b.x - p.x, b.y - p.y) < b.r + p.hitR && hurt(b.dmg)) continue;  // passes through while invulnerable
+    if (b.life <= 0 || (!b.stay && (b.x < -40 || b.y < -40 || b.x > W + 40 || b.y > H + 40))) continue;
+    if (Math.hypot(b.x - p.x, b.y - p.y) < b.r + p.hitR && hurt(b.dmg)) { if (b.kind === "stun") p.stun = 1; continue; }  // passes through while invulnerable
     keep.push(b);
   }
   world.bullets = keep;
@@ -1057,6 +1302,7 @@ function drawArena() {
       cx.strokeStyle = css(f.col, 0.3 + 0.5 * k); cx.beginPath(); cx.arc(f.x, f.y, f.r * (1.8 - 0.8 * k), 0, TAU); cx.stroke();
     }
   }
+  drawWardenYard(t);
   // Tether
   const tw = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && o.spawnT <= 0);
   if (tw.length === 2) {
@@ -1088,7 +1334,7 @@ function drawArena() {
     if (e.spawnT > 0) continue;
     if (e.type === "Charger" && e.phase === 1) line(e.x, e.y, e.facing, 260, rgb(0.3, 0.9, 0.9), 0.5);
     if (e.type === "Lunger" && e.phase === 1) line(e.x, e.y, e.facing, 205, rgb(0.95, 0.35, 0.65), 0.55);
-    if (e.type === "Warden" && e.phase === 3) for (let k = 0; k < 4; k++) {
+    if (e.type === "Warden" && e.w && e.w.trans <= 0 && e.w.turn === "Cross" && !e.w.dashing) for (let k = 0; k < 4; k++) {
       const a = Math.PI / 2 * k;
       cx.strokeStyle = "rgba(255,90,115,0.07)"; cx.lineWidth = 10; seg(e, a, e.r, e.r + 420);
       cx.strokeStyle = "rgba(255,115,140,0.18)"; cx.lineWidth = 2; seg(e, a, e.r, e.r + 420);
@@ -1129,6 +1375,11 @@ function drawArena() {
       cx.stroke(); cx.fillStyle = css(f.col, 0.3 * (1 - k)); cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, TAU); cx.fill();
     }
   }
+  // Guards' baton swings
+  for (const g of world.enemies) if (g.type === "RiotGuard" && g.swing > 0) {
+    g.swing -= 1 / 60;
+    cx.strokeStyle = "rgba(153,191,255,0.9)"; cx.lineWidth = 4; seg(g, g.facing, g.r, g.r + 26);
+  }
   // Player dummy
   const hit = p.flash > 0;
   cx.fillStyle = hit ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)";
@@ -1136,6 +1387,9 @@ function drawArena() {
   cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
   cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(p.x, p.y, p.hitR * 0.6, 0, TAU); cx.fill();
   if (S.hitbox) { cx.strokeStyle = "rgba(255,255,255,0.9)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(p.x, p.y, p.hitR, 0, TAU); cx.stroke(); }
+  if (p.stun > 0) {  // stunned: a ring that runs down with it
+    cx.strokeStyle = css(B.stun.col, 0.9); cx.lineWidth = 3; cx.beginPath(); cx.arc(p.x, p.y, 24, -Math.PI / 2, -Math.PI / 2 + TAU * p.stun); cx.stroke();
+  }
   cx.fillStyle = "rgba(232,236,248,0.75)"; cx.font = "600 18px Barlow, sans-serif"; cx.textAlign = "center"; cx.fillText("Dummy", p.x, p.y - 22);
   // Status
   cx.textAlign = "left"; cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(232,236,248,0.6)";
@@ -1149,11 +1403,94 @@ function drawArena() {
   function seg(e, a, r0, r1) { cx.beginPath(); cx.moveTo(e.x + Math.cos(a) * r0, e.y + Math.sin(a) * r0); cx.lineTo(e.x + Math.cos(a) * r1, e.y + Math.sin(a) * r1); cx.stroke(); }
 }
 
+/** The Warden's prison yard: riot doors, the corner watchtower and its searchlight, tear gas, gates, and on the
+ *  Warden itself the riot shield, the baton charge's line and the last stand. */
+function drawWardenYard(t) {
+  const e = theWarden();
+  if (!e || !e.w) return;
+  const w = e.w, riot = (w.trans > 0 ? w.to : w.stage) >= 2;
+  for (const [dx, dy] of WD.doors) {
+    const bottom = dy >= H - 1, x = bottom ? dx - 55 : dx <= 0 ? 0 : W - 16, y = bottom ? H - 16 : dy - 55, ww = bottom ? 110 : 16, hh = bottom ? 16 : 110;
+    cx.fillStyle = riot ? `rgba(255,128,38,${0.3 + 0.08 * Math.sin(t * 4)})` : "rgba(153,166,199,0.22)"; cx.fillRect(x, y, ww, hh);
+    cx.strokeStyle = riot ? "rgba(255,153,77,0.8)" : "rgba(191,204,230,0.5)"; cx.lineWidth = 2; cx.beginPath();
+    for (let i = 1; i < 5; i++) if (bottom) { cx.moveTo(x + i * 22, y); cx.lineTo(x + i * 22, y + hh); } else { cx.moveTo(x, y + i * 22); cx.lineTo(x + ww, y + i * 22); }
+    cx.stroke();
+  }
+  for (const g of w.gas) if (g.t >= 0) {
+    const a = Math.min(1, g.t * 3, (5 - g.t) * 2);
+    for (let k = 0; k < 5; k++) {
+      const ox = Math.cos(t * 0.7 + k * 1.3) * 22, oy = Math.sin(t * 0.9 + k * 2.1) * 18;
+      cx.fillStyle = `rgba(150,240,100,${0.07 * a})`; cx.beginPath(); cx.arc(g.x + ox, g.y + oy, 90 * (0.55 + k * 0.1), 0, TAU); cx.fill();
+    }
+    cx.strokeStyle = `rgba(160,245,110,${0.35 * a})`; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(g.x, g.y, 90, 0, TAU); cx.stroke();
+  }
+  const lit = w.trans <= 0 && w.turn === "Light" && (w.mode === "follow" || w.mode === "lock"), locked = lit && w.mode === "lock";
+  const lc = locked ? "255,110,90" : "255,240,200", T = WD.tower;
+  if (lit) {
+    const on = w.mode === "follow" && w.lt < 0.35 && Math.floor(w.lt * 20) % 2 ? 0.35 : 1;  // flickers on
+    const L = w.light, a = Math.atan2(L.y - T.y, L.x - T.x), sx = -Math.sin(a), sy = Math.cos(a), r = WD.lightR;
+    cx.fillStyle = `rgba(${lc},${0.08 * on})`; cx.beginPath();
+    cx.moveTo(T.x - sx * 6, T.y - sy * 6); cx.lineTo(T.x + sx * 6, T.y + sy * 6); cx.lineTo(L.x + sx * r * 0.95, L.y + sy * r * 0.95); cx.lineTo(L.x - sx * r * 0.95, L.y - sy * r * 0.95); cx.fill();
+    for (let k = 0; k < 5; k++) { cx.fillStyle = `rgba(${lc},${(0.035 + k * 0.018) * on})`; cx.beginPath(); cx.arc(L.x, L.y, r * (1.2 - k * 0.18), 0, TAU); cx.fill(); }
+    cx.strokeStyle = `rgba(${lc},${0.45 * on})`; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(L.x, L.y, r, 0, TAU); cx.stroke();
+    if (locked) {  // brackets closing in
+      const br = 30 + (1 - Math.min(1, w.lt / 0.6)) * 60;
+      cx.strokeStyle = `rgba(255,110,90,${0.7 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 3;
+      for (let q = 0; q < 4; q++) { const a0 = w.lt * 3 + q * Math.PI / 2 - 0.3; cx.beginPath(); cx.arc(L.x, L.y, br, a0, a0 + 0.6); cx.stroke(); }
+    }
+  }
+  cx.fillStyle = "rgba(26,31,51,0.95)"; cx.fillRect(0, 0, 80, 80);
+  cx.strokeStyle = "rgba(255,230,158,0.5)"; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(80, 0); cx.lineTo(80, 80); cx.lineTo(0, 80); cx.stroke();
+  cx.beginPath(); cx.arc(T.x, T.y, 20, 0, TAU); cx.stroke();
+  if (lit) { cx.fillStyle = `rgba(${lc},0.2)`; cx.beginPath(); cx.arc(T.x, T.y, 30, 0, TAU); cx.fill(); }
+  cx.fillStyle = lit ? (locked ? "#ff9980" : "#fff7db") : "rgba(115,115,133,0.7)"; cx.beginPath(); cx.arc(T.x, T.y, 9, 0, TAU); cx.fill();
+  for (const g of w.gates) {
+    const top = g.dir > 0;
+    if (g.warn > 0) {  // the edge blinks and the doors light up first
+      cx.fillStyle = `rgba(115,166,255,${0.22 * (0.4 + 0.4 * Math.sin(t * 20))})`; cx.fillRect(0, top ? 0 : H - 14, W, 14);
+      cx.fillStyle = "rgba(128,255,166,0.8)"; cx.fillRect(g.gap1, top ? 0 : H - 18, WD.door, 18); cx.fillRect(g.gap2, top ? 0 : H - 18, WD.door, 18);
+      continue;
+    }
+    const r = WD.gateR;
+    for (let row = 0; row < WD.gateRows; row++) {
+      const y = g.front - g.dir * row * WD.gateGap;
+      if (y < -20 || y > H + 20) continue;
+      for (let x = 13 + (row % 2) * 13; x < W; x += 26) {
+        if ((x > g.gap1 - 6 && x < g.gap1 + WD.door + 6) || (x > g.gap2 - 6 && x < g.gap2 + WD.door + 6)) continue;
+        cx.fillStyle = "rgba(166,199,255,0.16)"; cx.beginPath(); cx.arc(x, y, r * 1.6, 0, TAU); cx.fill();
+        cx.fillStyle = row === 0 ? "#b3cdff" : "#6f8fd9"; cx.fillRect(x - r, y - r, r * 2, r * 2);
+        cx.strokeStyle = "rgba(26,36,69,0.95)"; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x - 4, y - g.dir * 2); cx.lineTo(x, y + g.dir * 2.5); cx.lineTo(x + 4, y - g.dir * 2); cx.stroke();
+      }
+    }
+  }
+  // On the Warden
+  if (w.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(e.x, e.y, e.r + 14, 0, TAU); cx.stroke(); return; }
+  if (w.stage >= 2) { cx.fillStyle = `rgba(255,120,40,${0.12 + 0.06 * Math.sin(t * 8)})`; cx.beginPath(); cx.arc(e.x, e.y, e.r + 18, 0, TAU); cx.fill(); }
+  if (w.turn === "Rioters") {  // the riot shield, 120° toward you
+    cx.strokeStyle = "rgba(199,219,255,0.2)"; cx.lineWidth = 18; cx.beginPath(); cx.arc(e.x, e.y, e.r + 16, w.aux - 1.05, w.aux + 1.05); cx.stroke();
+    cx.strokeStyle = "rgba(204,224,255,0.9)"; cx.lineWidth = 7; cx.stroke();
+  }
+  if (w.turn === "Charge" && w.tt < 0.9 && S.tele) {
+    const a = 0.35 + 0.35 * Math.sin(t * 24), ex = e.x + Math.cos(w.aux) * 620, ey = e.y + Math.sin(w.aux) * 620;
+    cx.lineCap = "round"; cx.strokeStyle = `rgba(255,122,51,${a * 0.5})`; cx.lineWidth = 92; cx.beginPath(); cx.moveTo(e.x, e.y); cx.lineTo(ex, ey); cx.stroke();
+    cx.lineCap = "butt"; cx.strokeStyle = `rgba(255,153,77,${a})`; cx.lineWidth = 3; cx.stroke();
+  }
+  if (w.turn === "Last") { cx.strokeStyle = "rgba(255,102,51,0.8)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(e.x, e.y, e.r + 10 + 3 * Math.sin(t * 14), 0, TAU); cx.stroke(); }
+}
+
 function statusLine() {
   const e = world.enemies.find(o => o.type === S.sel || (S.sel === "Twins" && (o.type === "TwinA" || o.type === "TwinB")) || ((S.sel === "GravityWell" || S.sel === "CageWell") && o.type === "Singularity") || (S.sel === "HiveBomber" && o.type === "HiveQueen"));
   if (!e) return "";
   switch (e.type) {
-    case "Warden": return ["Spiral", "Rings", "Fan", "Cross (planted)", "Cross (moving)"][e.phase] + (S.lock ? "   (locked)" : `   loop ${(e.t % 30).toFixed(1)} / 30 s`);
+    case "Warden": {
+      const w = e.w;
+      if (w.trans > 0) return `Changing to ${WD.stages[w.to]} (can't be hurt)`;
+      const what = { Rest: "Breather", Rings: "Rings", Spiral: "Spiral", Fan: "Fan", Last: "Spiral + rings",
+        Light: { follow: "Searchlight: hunting", lock: "Searchlight: LOCKED ON", ring: "Searchlight: shackle closing" }[w.mode],
+        Cross: (w.dashing ? "Cross (moving)" : "Cross (planted)") + (w.gates.length ? `, ${w.gates.length} gate${w.gates.length > 1 ? "s" : ""}` : ""),
+        Rioters: `Rioters: ${rioters().length} left` + (w.guards ? ", guards in" : ""), Charge: w.tt < 0.9 ? "Baton charge: winding up" : "Baton charge" }[w.turn];
+      return `${WD.stages[w.stage]}: ${what}   ${w.tt.toFixed(1)} / ${w.len.toFixed(0)} s` + (S.lock ? "   (locked)" : "");
+    }
     case "HiveQueen": return ["Summoning", "Drones (shielded)", "Bombers", "Bullets"][e.t2] + `   ${e.phaseT.toFixed(1)} s in stage`;
     case "Singularity": return ["Normal: spiral", "Pull", "Collapse", world.cages.length ? `Cage   ring ${Math.round(world.cages[0].r)} px` : "Cage (broken)", "Normal: lasers warning", "Normal: lasers"][e.phase] + (S.lock || e.cageDemo ? "   (locked)" : `   loop ${(e.t % 24).toFixed(1)} / 24 s`);
     case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
@@ -1267,7 +1604,7 @@ function renderSheet() {
 }
 function renderBulletTable() {
   document.getElementById("bulletTable").innerHTML = `<thead><tr><th>Bullet</th><th>Damage</th><th>Radius</th><th>Fired by</th></tr></thead><tbody>` +
-    [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"]]
+    [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"], ["stun", "The Warden's searchlight (stuns you for 1 s)"]]
       .map(([k, who]) => `<tr><td><span class="dot" style="background:${css(B[k].col)}"></span>${B[k].name}</td><td class="n">${B[k].dmg}</td><td class="n">${B[k].r} px</td><td>${who}</td></tr>`).join("") +
     `<tr><td><span class="dot" style="background:${css(BY.HiveBomber.col)}"></span>Hive Bomber blast</td><td class="n">22</td><td class="n">60 px</td><td>Hive Queen</td></tr>` +
     `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">70–75 px</td><td>Storm Herald, the Eclipse</td></tr></tbody>`;
@@ -1321,6 +1658,7 @@ function buildAttackRow() {
   if (d.id === "Singularity" || d.id === "CageWell") addBtn("Break my cage", () => { for (const o of world.enemies) if (o.type === "CageWell") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 20, 0.3); } });
   if (d.id === "Lich") addBtn("Break the phylactery", () => { for (const o of world.enemies) if (o.type === "Phylactery") { o.dead = true; addFx("boom", o.x, o.y, o.d.col, 30, 0.3); } });
   if (d.id === "Twins") addBtn("Kill Dusk", () => { const e = world.enemies.find(o => o.type === "TwinA"); if (e) { e.dead = true; addFx("boom", e.x, e.y, e.d.col, 60, 0.4); setTimeout(() => { if (S.sel === "Twins" && !world.enemies.some(o => o.type === "TwinA")) { const n = spawn("TwinA", e.x, e.y, 0, 0.6); n.t = e.t; addFx("ring", e.x, e.y, BY.Twins.col, 120, 0.6); } }, 6000 / S.speed); } });
+  if (d.id === "Warden") addBtn("Beat the rioters", () => { for (const o of rioters()) { o.dead = true; addFx("boom", o.x, o.y, RIOT.Rioter.col, 18, 0.3); } });
   if (d.id === "Nest" || d.id === "Lich" || d.id === "HiveQueen") addBtn("Clear the adds", () => { for (const o of world.enemies) if (o.parent && o.type !== "Phylactery" && o.type !== "GravityWell") o.dead = true; });
   row.hidden = !d.locks && !extra.children.length;
 }
@@ -1328,7 +1666,7 @@ $("lock").addEventListener("click", ev => {
   const b = ev.target.closest("button"); if (!b) return;
   S.lock = Number(b.dataset.v);
   for (const x of $("lock").children) x.classList.toggle("on", x === b);
-  if (S.sel === "Eclipse" || S.sel === "Singularity") restart();
+  if (S.sel === "Eclipse" || S.sel === "Singularity" || S.sel === "Warden") restart();
 });
 
 function restart() { newWorld(); }
@@ -1384,5 +1722,6 @@ try { const s = localStorage.getItem("bestiary-sel"); if (s && BY[s]) start = s;
 select(start);
 drawThumbs(0);
 requestAnimationFrame(frame);
+window.bestiaryDebug = { S, step, restart, statusLine, WD, get world() { return world; } };  // for Docs/checks
 })();
 </script>

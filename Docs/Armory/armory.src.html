@@ -8,6 +8,7 @@
 :root {
   --bg: #0a0c12; --panel: #121521; --panel-2: #181c2b; --line: #262b3f;
   --fg: #e8ecf8; --muted: #8e97b3; --accent: #5b8cff; --gold: #ffcc59; --danger: #ff5a6e; --good: #6be38a;
+  --accent-soft: #1f2c55; --hover: #1f2436; --edge: #3a4260;
   --tank: #5999ff; --healer: #59ff8c; --dps: #ff8c40;
   --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
   --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
@@ -50,18 +51,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .lead { margin: 0; color: #c9cfe3; max-width: 80ch; }
 .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .stage canvas { display: block; width: 100%; height: auto; aspect-ratio: 12 / 5; background: #0d1019; touch-action: none; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
+/* Demo controls: transport buttons on the left, then labelled fields (label above its control) that wrap as a group. */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.transport { display: flex; gap: 6px; padding-right: 18px; border-right: 1px solid var(--line); align-self: stretch; align-items: flex-end; }
+.field { display: grid; gap: 5px; justify-items: start; min-width: 0; }
+.field.toggles { display: flex; flex-direction: column; gap: 4px; align-self: center; }
 .sep { width: 1px; height: 22px; background: var(--line); }
-button.btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 5px 10px; font: 500 13px var(--font-body); cursor: pointer; }
-button.btn:hover { border-color: #3a4260; }
-button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 32px; padding: 0 14px; background: var(--panel); border: 1px solid var(--edge);
+  color: var(--fg); border-radius: 7px; font: 600 13px var(--font-body); letter-spacing: 0.01em; cursor: pointer; white-space: nowrap; transition: background 0.12s, border-color 0.12s, transform 0.06s; }
+button.btn:hover { background: var(--hover); border-color: #4a5478; }
+button.btn:active { transform: translateY(1px); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 92px; }
+button.btn.primary:hover { background: #7aa2ff; border-color: #7aa2ff; }
+button.btn.play::before { content: ""; width: 9px; height: 11px; background: linear-gradient(90deg, currentColor 0 34%, transparent 34% 66%, currentColor 66%); }
+button.btn.play.paused::before { width: 10px; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+button.btn.again::before { content: "\21BB"; font-size: 15px; line-height: 1; }
 .lbl { font-size: 12px; color: var(--muted); }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.seg button { border: 0; background: var(--panel-2); color: var(--fg); padding: 5px 9px; font: 500 12px var(--font-body); cursor: pointer; }
-.seg button + button { border-left: 1px solid var(--line); }
-.seg button.on { background: #22305a; color: #fff; }
-label.tg { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: #c9cfe3; cursor: pointer; }
-label.tg input { accent-color: var(--accent); }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted);
+  font: 600 12.5px var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer; transition: background 0.12s, color 0.12s; }
+.seg button:hover { color: var(--fg); background: var(--hover); }
+.seg button.on { color: #fff; background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+label.tg { display: inline-flex; gap: 7px; align-items: center; font-size: 13px; color: #c9cfe3; cursor: pointer; }
+label.tg input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+@media (max-width: 640px) { .transport { border-right: 0; padding-right: 0; width: 100%; } }
 .readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 12px; border-top: 1px solid var(--line); font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .readout b { color: var(--fg); font-weight: 500; }
 .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
@@ -107,11 +121,21 @@ tr:last-child td { border-bottom: 0; }
 .ucard .ds { font-size: 13px; color: #c9cfe3; grid-column: 2; }
 .ucard .rq { font-size: 11.5px; color: var(--muted); grid-column: 1 / -1; }
 .ucard .stk { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: 12px; color: var(--muted); }
-.ucard .stk button { width: 26px; height: 24px; padding: 0; background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 5px; cursor: pointer; font: 600 14px var(--font-body); }
+.ucard .stk .step { display: inline-flex; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.ucard .stk .step b { min-width: 26px; text-align: center; font-variant-numeric: tabular-nums; }
+.ucard .stk button { width: 28px; height: 26px; padding: 0; background: transparent; border: 0; color: var(--fg); border-radius: 6px; cursor: pointer; font: 600 16px/1 var(--font-body); transition: background 0.12s; }
+.ucard .stk button:hover { background: var(--hover); }
+.ucard .stk button[data-d="1"] { color: var(--accent); }
+.ucard .stk button:disabled { color: var(--line); cursor: default; background: transparent; }
 .ucard.have { border-color: #3d4a78; background: #1a2036; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; }
-.filters button { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 99px; padding: 4px 10px; font: 500 12px var(--font-body); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-.filters button.on { border-color: currentColor; }
+.filters button { background: transparent; border: 1px dashed var(--edge); color: var(--muted); border-radius: 99px; height: 30px; padding: 0 12px; font: 600 12.5px var(--font-body);
+  font-variant-numeric: tabular-nums; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; transition: background 0.12s, opacity 0.12s; }
+.filters button .swatch { opacity: 0.35; }
+.filters button:hover { background: var(--hover); }
+.filters button.on { border: 1px solid currentColor; background: color-mix(in srgb, currentColor 13%, transparent); }
+.filters button.on .swatch { opacity: 1; }
+.filters button:not(.on) { color: var(--muted) !important; }
 .odds { display: grid; gap: 6px; }
 .odds .row { display: grid; grid-template-columns: 90px 1fr 48px; gap: 8px; align-items: center; font-size: 13px; }
 .odds .row span:last-child { font-family: var(--font-data); text-align: right; font-size: 12px; }
@@ -171,22 +195,25 @@ tr:last-child td { border-bottom: 0; }
       <section class="stage">
         <canvas id="wCanvas" width="1200" height="500"></canvas>
         <div class="controls">
-          <button class="btn primary" id="wPlay">Pause</button>
-          <button class="btn" id="wReset">Reset</button>
-          <span class="lbl">Extra projectiles</span>
-          <div class="seg" id="wExtra"><button data-v="0" class="on">0</button><button data-v="1">+1</button><button data-v="2">+2</button><button data-v="3">+3</button></div>
-          <span class="lbl">Barrage</span>
-          <div class="seg" id="wFan"><button data-v="0" class="on">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div>
-          <span id="wTrigWrap" style="display:inline-flex;gap:8px;align-items:center"><span class="lbl">Trigger</span>
-          <div class="seg" id="wTrig"><button data-v="tap" class="on">Tap</button><button data-v="hold">Hold (fan the hammer)</button></div></span>
-          <span id="wDrawWrap" style="display:inline-flex;gap:8px;align-items:center"><span class="lbl">Draw</span>
-          <div class="seg" id="wDraw"><button data-v="tap">Tap</button><button data-v="perfect" class="on">Perfect release</button><button data-v="full">Hold past full</button></div></span>
-          <span class="lbl">Damage</span>
-          <div class="seg" id="wDmg"><button data-v="1" class="on">×1</button><button data-v="1.5">×1.5</button><button data-v="2">×2</button></div>
-          <span class="lbl">Fire rate</span>
-          <div class="seg" id="wRate"><button data-v="1" class="on">×1</button><button data-v="1.5">×1.5</button><button data-v="2">×2</button></div>
-          <label class="tg"><input type="checkbox" id="wSweep"> Sweep aim</label>
-          <label class="tg"><input type="checkbox" id="wRange" checked> Show range</label>
+          <div class="transport">
+            <button type="button" class="btn primary play" id="wPlay">Pause</button>
+            <button type="button" class="btn again" id="wReset">Reset</button>
+          </div>
+          <div class="field"><span class="lbl">Extra projectiles</span>
+            <div class="seg" id="wExtra" role="group" aria-label="Extra projectiles"><button type="button" data-v="0" class="on">0</button><button type="button" data-v="1">+1</button><button type="button" data-v="2">+2</button><button type="button" data-v="3">+3</button></div></div>
+          <div class="field"><span class="lbl">Barrage</span>
+            <div class="seg" id="wFan" role="group" aria-label="Barrage"><button type="button" data-v="0" class="on">0</button><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+          <div class="field" id="wTrigWrap"><span class="lbl">Trigger</span>
+            <div class="seg" id="wTrig" role="group" aria-label="Trigger"><button type="button" data-v="tap" class="on">Tap</button><button type="button" data-v="hold">Hold (fan the hammer)</button></div></div>
+          <div class="field" id="wDrawWrap"><span class="lbl">Draw</span>
+            <div class="seg" id="wDraw" role="group" aria-label="Draw"><button type="button" data-v="tap">Tap</button><button type="button" data-v="perfect" class="on">Perfect release</button><button type="button" data-v="full">Hold past full</button></div></div>
+          <div class="field"><span class="lbl">Damage</span>
+            <div class="seg" id="wDmg" role="group" aria-label="Damage"><button type="button" data-v="1" class="on">×1</button><button type="button" data-v="1.5">×1.5</button><button type="button" data-v="2">×2</button></div></div>
+          <div class="field"><span class="lbl">Fire rate</span>
+            <div class="seg" id="wRate" role="group" aria-label="Fire rate"><button type="button" data-v="1" class="on">×1</button><button type="button" data-v="1.5">×1.5</button><button type="button" data-v="2">×2</button></div></div>
+          <div class="field toggles">
+            <label class="tg"><input type="checkbox" id="wSweep"> Sweep aim</label>
+            <label class="tg"><input type="checkbox" id="wRange" checked> Show range</label></div>
         </div>
         <div class="readout" id="wReadout"></div>
       </section>
@@ -206,12 +233,15 @@ tr:last-child td { border-bottom: 0; }
       <section class="stage">
         <canvas id="aCanvas" width="1200" height="500"></canvas>
         <div class="controls">
-          <button class="btn primary" id="aPlay">Pause</button>
-          <button class="btn" id="aCast">Cast again</button>
-          <span class="lbl">Speed</span>
-          <div class="seg" id="aSpeed"><button data-v="0.5">½×</button><button data-v="1" class="on">1×</button><button data-v="2">2×</button></div>
-          <label class="tg"><input type="checkbox" id="aBullets" checked> Incoming bullets</label>
-          <label class="tg"><input type="checkbox" id="aRadii" checked> Show radii</label>
+          <div class="transport">
+            <button type="button" class="btn primary play" id="aPlay">Pause</button>
+            <button type="button" class="btn again" id="aCast">Cast again</button>
+          </div>
+          <div class="field"><span class="lbl">Speed</span>
+            <div class="seg" id="aSpeed" role="group" aria-label="Speed"><button type="button" data-v="0.5">½×</button><button type="button" data-v="1" class="on">1×</button><button type="button" data-v="2">2×</button></div></div>
+          <div class="field toggles">
+            <label class="tg"><input type="checkbox" id="aBullets" checked> Incoming bullets</label>
+            <label class="tg"><input type="checkbox" id="aRadii" checked> Show radii</label></div>
         </div>
         <div class="readout" id="aReadout"></div>
       </section>
@@ -1806,12 +1836,12 @@ function renderUpgrades() {
   const g = $("ugrid"); g.innerHTML = "";
   for (const u of U) {
     if (!rarOn.has(u.rar)) continue;
-    const r = RAR[u.rar], n = build[u.name] || 0;
+    const r = RAR[u.rar], n = build[u.name] || 0, max = u.max >= 99 ? 20 : u.max;
     const req = [u.req ? `Needs ${u.req}` : "", u.boss ? `From ${u.boss}` : "", u.grants ? `Takes a Q / E / Shift slot (3 max)` : "", u.max < 99 ? `Stacks up to ${u.max}` : "Stacks without limit"].filter(Boolean).join(" · ");
     const el = document.createElement("div"); el.className = "ucard" + (n ? " have" : "");
     el.style.borderLeft = `3px solid ${css(r.col)}`;
     el.innerHTML = `<canvas width="48" height="48"></canvas><span class="nm">${u.name}</span><span class="rar" style="color:${css(r.col)}">${r.label}</span><span class="ds">${u.desc}</span><span class="rq">${req}</span>
-      <span class="stk"><button type="button" data-u="${u.name}" data-d="-1" aria-label="Remove one ${u.name}">−</button><b style="color:var(--fg)">${n}</b><button type="button" data-u="${u.name}" data-d="1" aria-label="Add one ${u.name}">+</button><span>in build</span></span>`;
+      <span class="stk"><span class="step"><button type="button" data-u="${u.name}" data-d="-1" aria-label="Remove one ${u.name}"${n ? "" : " disabled"}>−</button><b style="color:var(--fg)">${n}</b><button type="button" data-u="${u.name}" data-d="1" aria-label="Add one ${u.name}"${max && n >= max ? " disabled" : ""}>+</button></span><span>in build</span></span>`;
     drawIcon(el.querySelector("canvas"), ICONS.names[u.name]);
     g.appendChild(el);
   }
@@ -1874,10 +1904,10 @@ seg("wDraw", v => { WS.draw = v; newRange(); });
 seg("wRate", v => { WS.rate = Number(v); renderWeaponSheet(); newRange(); });
 $("wSweep").addEventListener("change", e => WS.sweep = e.target.checked);
 $("wRange").addEventListener("change", e => WS.range = e.target.checked);
-$("wPlay").addEventListener("click", () => { WS.playing = !WS.playing; $("wPlay").textContent = WS.playing ? "Pause" : "Play"; });
+$("wPlay").addEventListener("click", () => { WS.playing = !WS.playing; $("wPlay").textContent = WS.playing ? "Pause" : "Play"; $("wPlay").classList.toggle("paused", !WS.playing); });
 $("wReset").addEventListener("click", newRange);
 seg("aSpeed", v => AS.speed = Number(v));
-$("aPlay").addEventListener("click", () => { AS.playing = !AS.playing; $("aPlay").textContent = AS.playing ? "Pause" : "Play"; });
+$("aPlay").addEventListener("click", () => { AS.playing = !AS.playing; $("aPlay").textContent = AS.playing ? "Pause" : "Play"; $("aPlay").classList.toggle("paused", !AS.playing); });
 $("aCast").addEventListener("click", newDemo);
 $("aBullets").addEventListener("change", e => { AS.bullets = e.target.checked; if (!AS.bullets) demo.bullets = demo.bullets.filter(b => b.mine); });
 $("aRadii").addEventListener("change", e => AS.radii = e.target.checked);
