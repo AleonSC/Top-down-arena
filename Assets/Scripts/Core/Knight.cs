@@ -111,6 +111,9 @@ namespace Arena
                         var s = NewSwing(p, aim + (k == 0 ? 0f : (k % 2 == 1 ? 0.25f : -0.25f)), w.Reach, 150f, w.Damage * dmg * (k == 0 ? 1f : 0.6f));
                         s.Knock = StaffKnock;
                         s.Deflect = true;
+                        s.HealPerHit = 2f;  // each enemy hit heals you and allies near you (as the Holy Mace did)
+                        s.HealRange = 220f;
+                        s.HealHits = 4;
                         s.Delay = 0.14f * k;
                         pendingSwings.Add(s);
                     }
