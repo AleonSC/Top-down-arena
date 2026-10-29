@@ -186,8 +186,11 @@ namespace Arena
         /// How far Leech Tendrils reach from the player's edge.
         public float GraspReach(Player p) => (p.Weapon.Reach + p.Weapon.Grow * ExtraShots(p)) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch them
 
-        /// Is the enemy (its body) within the tendrils' arc in front of you?
-        public static bool InGraspArc(V2 from, float aim, V2 pos, float radius)
+        /// How wide the player's tendrils reach (Homing Rounds widen it 25% a stack).
+        public static float GraspArcFor(Player p) => GraspArc * AreaMult(p);
+
+        /// Is the enemy (its body) within the tendrils' arc (`arc` wide) in front of you?
+        public static bool InGraspArc(V2 from, float aim, V2 pos, float radius, float arc = GraspArc)
         {
             V2 rel = pos - from;
             float d = rel.Length;
@@ -195,7 +198,7 @@ namespace Arena
                 return true;
             float cos = (rel.X * (float)Math.Cos(aim) + rel.Y * (float)Math.Sin(aim)) / d;
             float off = (float)Math.Acos(Math.Max(-1f, Math.Min(1f, cos))), slack = (float)Math.Asin(radius / d);
-            return off <= GraspArc / 2f + slack;
+            return off <= arc / 2f + slack;
         }
 
         /// Called from Collide after the beams: each tick, held enemies too far away (or dead) slip free, free
@@ -217,7 +220,7 @@ namespace Arena
                 graspNew.Clear();
                 foreach (var o in Enemies.Values)
                     if (!IsSpawning(o) && o.Hp > 0f && !p.Grasp.Contains(o.Id) && o.Pos.DistanceTo(p.Pos) - o.Radius <= reach
-                        && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius) && !BlocksShot(o, p.Pos))
+                        && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius, GraspArcFor(p)) && !BlocksShot(o, p.Pos))
                         graspNew.Add(o);
                 graspNew.Sort((a, b) => a.Pos.DistanceSq(p.Pos).CompareTo(b.Pos.DistanceSq(p.Pos)));
                 for (int i = 0; i < graspNew.Count && p.Grasp.Count < max; i++)
@@ -232,7 +235,7 @@ namespace Arena
                     if (!e.Def.IsBoss)
                         e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
                     V2 dir = (e.Pos - p.Pos).Normalized();
-                    float hit = gr.Dmg * NinjaHitMult(p.Id, Defs.LeechShot, e);
+                    float hit = gr.Dmg * HomingCost(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);
                     HurtEnemy(e, hit, p.Id);
                     var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
                     BloodShotHit(pseudo, e, hit);  // the leech

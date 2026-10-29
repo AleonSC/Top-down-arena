@@ -244,9 +244,9 @@ namespace Arena
             {
                 if (!game.GraspOn(p))
                     continue;
-                float reach = game.GraspReach(p), half = Game.GraspArc / 2f;
+                float reach = game.GraspReach(p), arc = Game.GraspArcFor(p), half = arc / 2f;
                 int max = Game.GraspTendrils + game.ExtraShots(p) + p.Stats.Fan, held = 0;
-                Arc(p.Disp, p.Def.BodyR + reach, 1.5f, c.WithAlpha(0.1f), 20, p.Aim - half, Game.GraspArc);  // how far they reach
+                Arc(p.Disp, p.Def.BodyR + reach, 1.5f, c.WithAlpha(0.1f), 20, p.Aim - half, arc);  // how far they reach
                 foreach (int id in p.Grasp)
                 {
                     Enemy e;
@@ -287,7 +287,7 @@ namespace Arena
                 {
                     float sway = Mathf.Sin(t * 2.3f + k * 2.1f + p.Id);
                     float spread = free == 1 ? 0f : k / (free - 1f) - 0.5f;
-                    float ang = p.Aim + spread * Game.GraspArc + 0.1f * sway;
+                    float ang = p.Aim + spread * arc + 0.1f * sway;
                     float l = reach * (held > 0 ? 0.35f : 0.6f + 0.25f * Mathf.Sin(t * 3.1f + k * 1.7f));
                     V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
                     V2 root = p.Disp + V2.FromAngle(p.Aim + spread * 0.8f) * p.Def.BodyR;

@@ -399,6 +399,7 @@ namespace Arena
             { WeaponId.StormHammer, "lightning jumps 25% farther between enemies" },
             { WeaponId.ClotBolt, "blood pools 25% wider" },
             { WeaponId.VeinTether, "the beam 25% wider" },
+            { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
         };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.
