@@ -167,5 +167,86 @@ namespace Arena
                 HurtGuard(m, contact);
             }
         }
+
+        // --- Searchlight ------------------------------------------------------------------
+
+        public const float SearchRadius = 110f, SearchWideRadius = 140f, SearchSpeed = 1100f;
+        const float SearchMark = 0.25f, SearchBigMark = 0.4f, SearchLock = 2f, SearchStun = 1f, SearchRest = 3f, SearchBossSlow = 0.4f;
+
+        /// How wide a player's light is: 110 px, 140 px from the second stack.
+        public static float SearchlightRadius(Player p) => p.Stats.Searchlight >= 2 ? SearchWideRadius : SearchRadius;
+
+        static float SearchlightMark(Player p) => p.Stats.Searchlight >= 3 ? SearchBigMark : SearchMark;
+
+        /// Is this enemy in that player's light? (Its middle has to be inside, with a little of its body.)
+        static bool Lit(Player p, V2 pos, float radius) => p.Stats.Searchlight > 0 && !p.Downed && pos.DistanceTo(p.LightPos) < SearchlightRadius(p) + radius * 0.5f;
+
+        /// HurtEnemy: an enemy in anyone's light takes more damage from every player (the strongest light counts).
+        float LitMult(Enemy e)
+        {
+            float best = 0f;
+            foreach (var p in Players.Values)
+                if (Lit(p, e.Pos, e.Radius))
+                    best = Math.Max(best, SearchlightMark(p));
+            return 1f + best;
+        }
+
+        /// Host: each light chases its owner's cursor; an enemy held in a light for SearchLock seconds is stunned
+        /// (bosses slowed), then can't be locked again for SearchRest seconds.
+        void TickSearchlights(float dt)
+        {
+            bool any = false;
+            foreach (var p in Players.Values)
+                if (p.Stats.Searchlight > 0)
+                {
+                    any = true;
+                    p.LightPos += (p.AimAt - p.LightPos).LimitLength(SearchSpeed * dt);
+                }
+            if (!any)
+                return;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                if (e.LitT < 0f)
+                {
+                    e.LitT = Math.Min(0f, e.LitT + dt);  // resting after a lock
+                    continue;
+                }
+                bool lit = false;
+                foreach (var p in Players.Values)
+                    lit |= Lit(p, e.Pos, e.Radius);
+                e.LitT = lit ? e.LitT + dt : Math.Max(0f, e.LitT - dt * 2f);
+                if (e.LitT < SearchLock)
+                    continue;
+                e.LitT = -SearchRest;
+                if (e.Def.IsBoss)
+                {
+                    e.SlowT = Math.Max(e.SlowT, SearchStun);
+                    e.SlowMult = Math.Min(e.SlowMult, 1f - SearchBossSlow);
+                }
+                else
+                {
+                    e.FrozenT = Math.Max(e.FrozenT, SearchStun);
+                    e.SlowT = Math.Max(e.SlowT, SearchStun);
+                }
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.95f, 0.78f), e.Radius + 26f, 0.4f, Sfx.SpellZap);
+            }
+        }
+
+        /// Every screen: where to draw each light. Your own chases your cursor here just as the host's copy does (so it
+        /// doesn't wait on snapshots); others chase where the host has them.
+        public void StepLightDisplay(float dt)
+        {
+            foreach (var p in Players.Values)
+            {
+                if (p.Stats.Searchlight <= 0)
+                    continue;
+                V2 goal = p.Id == MyId ? p.AimAt : p.LightPos;
+                if (p.LightDisp.IsZero)
+                    p.LightDisp = goal;
+                p.LightDisp += (goal - p.LightDisp).LimitLength(SearchSpeed * dt);
+            }
+        }
     }
 }

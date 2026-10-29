@@ -621,6 +621,8 @@ namespace Arena
             }
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
+            if (attacker > 0)
+                dmg *= LitMult(e);  // in a Searchlight (Stun.cs)
             if (Hungry(e))
             {
                 e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);  // the Devourer feeds on your shots
@@ -752,11 +754,6 @@ namespace Arena
             {
                 Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
-            }
-            for (int i = 0; i < s.KillRing; i++)
-            {
-                V2 d = V2.FromAngle(MathX.Tau * i / s.KillRing);
-                SpawnBullet(Defs.NovaShot, e.Pos + d * e.Radius, d * 420f, 0f, 0.7f, 10f * s.DmgMult, p.Id);
             }
             if (s.BroodChance > 0f && rng.NextDouble() < s.BroodChance)
                 SpawnMinion(MinionKind.Turret, p, e.Pos, 4f);

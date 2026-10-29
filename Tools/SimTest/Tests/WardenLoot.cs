@@ -16,8 +16,8 @@ static partial class Program
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
 
         var own = Enumerable.Range(0, Upgrades.All.Length).Where(i => Upgrades.All[i].Boss == EnemyType.Boss).Select(i => Upgrades.All[i].Name).ToArray();
-        Check(U("Warden's Halo") < 0 && U("Iron Volley") < 0 && own.Contains("Warden's Guard") && own.Contains("Stun Gun")
-            && Upgrades.All[U("Stun Gun")].Grants == AbilityId.StunGun, "the Warden's legendaries: Warden's Guard and Stun Gun (" + string.Join(", ", own) + ")");
+        Check(U("Warden's Halo") < 0 && U("Iron Volley") < 0 && own.Contains("Warden's Guard") && own.Contains("Stun Gun") && own.Contains("Searchlight") && U("Ringburst") < 0
+            && Upgrades.All[U("Stun Gun")].Grants == AbilityId.StunGun, "the Warden's legendaries: Warden's Guard, Stun Gun and Searchlight (" + string.Join(", ", own) + ")");
 
         var s = StartBuffed(dt, 3, 0);
         var g = s[0].Game;
@@ -117,6 +117,26 @@ static partial class Program
         g.GrantUpgrade(2, U("Warden's Guard"));
         drive(1.5f, false, new V2(800f, 100f));
         Check(Guards(g).Count == 2, "a second stack brings a second guard");
+
+        // Searchlight: a light on your cursor; enemies in it take 25% more from everyone, and one held in it 2 s is stunned.
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        g.GrantUpgrade(2, U("Searchlight"));
+        var lit = dummy(new V2(800f, 450f));
+        var dark = dummy(new V2(800f, 150f));
+        drive(1f, false, lit.Pos);
+        Console.WriteLine("  searchlight: on the host at {0:0},{1:0}; the friend has it at {2:0},{3:0} (cursor 800,450)", hp.LightPos.X, hp.LightPos.Y, cp.LightDisp.X, cp.LightDisp.Y);
+        Check(hp.LightPos.DistanceTo(lit.Pos) < 2f && cp.LightDisp.DistanceTo(lit.Pos) < 2f, "the searchlight follows your cursor (on the host and on your own screen)");
+        Func<Enemy, float> Hit = e => { float before = e.Hp; hurt.Invoke(g, new object[] { e, 10f, 1 }); return before - e.Hp; };
+        float inLight = Hit(lit), outOfLight = Hit(dark);
+        Console.WriteLine("  searchlight: a 10-damage hit from your friend does {0:0.0} in the light, {1:0.0} out of it", inLight, outOfLight);
+        Check(Math.Abs(inLight - 12.5f) < 0.01f && Math.Abs(outOfLight - 10f) < 0.01f, "enemies in the light take 25% more damage, from anyone");
+        int frames = 0;
+        while (frames < 200 && lit.FrozenT <= 0.5f) { drive(1f / 60f, false, lit.Pos); frames++; }
+        Console.WriteLine("  searchlight: stunned after {0:0.00} s more in the light", frames / 60f);
+        Check(lit.FrozenT > 0.5f && frames < 150 && dark.FrozenT <= 0f, "an enemy held in the light for 2 s is stunned (one outside isn't)");
+        g.GrantUpgrade(2, U("Searchlight")); g.GrantUpgrade(2, U("Searchlight"));
+        drive(0.2f, false, lit.Pos);
+        Check(Game.SearchlightRadius(hp) == Game.SearchWideRadius && Math.Abs(Hit(lit) - 14f) < 0.01f, "three stacks: a wider light and +40%");
         s[0].Leave(""); s[1].Leave("");
     }
 }

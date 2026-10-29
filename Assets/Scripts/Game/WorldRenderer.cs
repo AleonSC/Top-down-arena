@@ -106,6 +106,7 @@ namespace Arena
                     DrawBigShot(b, t);
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
+            DrawPlayerSearchlights(t);
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)

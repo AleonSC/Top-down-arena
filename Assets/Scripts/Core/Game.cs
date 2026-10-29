@@ -122,6 +122,7 @@ namespace Arena
         public bool OfferMod;        // the current offer is the weapon mod list
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
+        public V2 LightPos, LightDisp;  // Searchlight: its pool (replicated), and where this screen draws it (Stun.cs)
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
@@ -141,6 +142,7 @@ namespace Arena
     public class Enemy
     {
         public int Id;
+        public float LitT;      // host: seconds held in a Searchlight (below 0: just locked, resting) (Stun.cs)
         public EnemyType Type;
         public EnemyDef Def;
         public V2 Pos, Disp, Waypoint;
@@ -942,6 +944,7 @@ namespace Arena
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
             UpdateQueenView(dt);   // Queen.cs
+            StepLightDisplay(dt);  // Searchlights (Stun.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
@@ -1232,6 +1235,7 @@ namespace Arena
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
             TickMinions(dt);
+            TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
             MoveBullets(dt);
             Collide();

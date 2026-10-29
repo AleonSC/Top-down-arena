@@ -88,6 +88,31 @@ namespace Arena
             }
         }
 
+        /// Players' Searchlights (Stun.cs): a beam from the player to a pool of light on their cursor, rimmed in their
+        /// colour, with every enemy caught in it outlined (they take extra damage while lit).
+        void DrawPlayerSearchlights(float t)
+        {
+            foreach (var p in game.Players.Values)
+            {
+                if (p.Stats.Searchlight <= 0 || p.Downed)
+                    continue;
+                V2 pool = p.LightDisp, d = pool - p.Disp;
+                float r = Game.SearchlightRadius(p);
+                if (d.Length > r)
+                {
+                    V2 side = d.Normalized().Orthogonal();
+                    SetColor(LightCol.WithAlpha(0.05f));
+                    Quad(p.Disp - side * 4f, p.Disp + side * 4f, pool + side * r * 0.9f, pool - side * r * 0.9f);
+                }
+                for (int k = 0; k < 4; k++)
+                    Circle(pool, r * (1.1f - k * 0.2f), LightCol.WithAlpha(0.03f + k * 0.015f), 40);
+                Arc(pool, r, 1.5f, p.Def.Color.Mix(LightCol, 0.5f).WithAlpha(0.55f), 48);
+                foreach (var e in game.Enemies.Values)
+                    if (!game.IsSpawning(e) && e.Disp.DistanceTo(pool) < r + e.Radius * 0.5f)
+                        Arc(e.Disp, e.Radius + 5f, 2f, LightCol.WithAlpha(0.6f + 0.3f * Mathf.Sin(t * 10f + e.Id)), 24);
+            }
+        }
+
         // --- The gates ------------------------------------------------------------------------------------
 
         /// A gate of push bullets: steel-blue blocks, staggered like bricks, each with a chevron pointing the way

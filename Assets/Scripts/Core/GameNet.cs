@@ -398,6 +398,7 @@ namespace Arena
             s.Byte(ref p.ClotMax);
             s.Byte(ref p.AmmoUsed);
             s.Byte(ref p.StunShots);
+            s.Vec(ref p.LightPos);
             s.Float(ref p.ReloadT);
             float drawT = p.DrawT;
             s.Float(ref drawT);
