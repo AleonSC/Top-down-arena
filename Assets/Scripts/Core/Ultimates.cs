@@ -25,6 +25,70 @@ namespace Arena
             return erase.Count;
         }
 
+        /// The Soldier, Mage and Summoner ultimates. Their cooldowns aren't shortened by cooldown upgrades. (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] UltimateAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.Fortress, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Name = "Fortress", Cooldown = 70f, Desc = "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
+                Capstone = "Lasts 12 s.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.GlacialTomb, Kit = Kit.Mage, Role = Role.Tank, Choice = AbilityDef.Ult, Instant = true,
+                Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
+                Capstone = "Enemies stay frozen for 6 s and bosses take 500.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Titan, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Name = "Titan", Cooldown = 80f, Desc = "Summon a stone titan for 15 s that smashes enemies and blocks bullets (it soaks 1000 boss damage).",
+                Capstone = "The titan is bigger and stays for 25 s.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Lifeline, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Ult, Instant = true,
+                Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal the whole party, with 3 s of invulnerability.",
+                Capstone = "Everyone also gets 4 s of Overdrive.",
+                Bot = b => b.AllyDown || b.Me.Hp < b.Me.MaxHp * 0.3f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Sanctum, Kit = Kit.Mage, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in.",
+                Capstone = "The dome is half again as wide (300 px).",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.WorldTree, Kit = Kit.Summoner, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites.",
+                Capstone = "Lasts 16 s with 8 sprites.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BulletStorm, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles.",
+                Capstone = "+4 extra projectiles instead of +2.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.MeteorStorm, Kit = Kit.Mage, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
+                Capstone = "Twenty meteors.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Legion, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
+                Capstone = "Summons 10 wolves and 10 bats.",
+            },
+        };
+
         void Ultimate(Player p, AbilityId id, V2 target)
         {
             float dmg = p.Stats.DmgMult;

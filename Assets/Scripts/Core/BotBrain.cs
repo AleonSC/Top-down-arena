@@ -11,6 +11,19 @@ namespace Arena
     /// strikes and the Reapers' tether will be over the next half second, keeps a distance that suits
     /// its role and weapon, leads its shots, revives downed allies and uses abilities when they make sense.
     /// Runs on the bot's own game (host or client) with the same information a player has.
+    /// What the smart bot knows when it decides whether to use an ability (each AbilityDef.Bot reads it).
+    public struct BotSense
+    {
+        public Player Me;
+        public bool Danger;      // in danger: a risky spot or low health
+        public bool AllyHurt;    // you or an ally is hurt, or one is down
+        public bool AllyDown;
+        public bool HaveTarget;
+        public float TargetD;    // distance to its target (9999 without one)
+        public int Players;      // players in the match
+        public float BotDanger;  // how dangerous its best spot looked (above 2.5: get out)
+    }
+
     public partial class Game
     {
         public BotSkill BotLevel;  // Off = the simple test bot (walks in circles, shoots the nearest enemy)
@@ -186,77 +199,14 @@ namespace Arena
 
         bool WantAbility(AbilityId id, Player me, bool danger, bool allyHurt, bool allyDown, float targetD, bool haveTarget)
         {
-            switch (id)
+            var rule = Upgrades.Ability(id).Bot;
+            if (rule == null)
+                return haveTarget && targetD < 520f;  // most abilities hurt the boss: use it when it's in reach
+            return rule(new BotSense
             {
-                // Healing and saving allies
-                case AbilityId.MendPulse: case AbilityId.Sanctify: case AbilityId.Haven: case AbilityId.SoulLink:
-                case AbilityId.TimeRewind: case AbilityId.SpiritSwarm: case AbilityId.Sanctum: case AbilityId.WorldTree:
-                    return allyHurt || danger && id == AbilityId.Sanctify;
-                case AbilityId.Lifeline:
-                    return allyDown || me.Hp < me.MaxHp * 0.3f;
-                case AbilityId.Phoenix: case AbilityId.SoulLantern:
-                    return allyHurt && haveTarget;
-                // Defensive
-                case AbilityId.Barrier: case AbilityId.ArcaneAegis: case AbilityId.ArcaneWard: case AbilityId.Shockwave:
-                case AbilityId.GolemWall: case AbilityId.GuardianSpirit: case AbilityId.Fortress: case AbilityId.GlacialTomb:
-                    return danger;
-                case AbilityId.FrostNova: case AbilityId.Earthquake: case AbilityId.Nova:
-                    return danger || haveTarget && targetD < 230f;
-                case AbilityId.Dash: case AbilityId.Blink:
-                    return BotDanger > 2.5f;
-                case AbilityId.Roar:
-                    return haveTarget && Players.Count > 1;
-                // Knight
-                case AbilityId.ShieldWall: case AbilityId.Unbreakable:
-                    return danger;
-                case AbilityId.Consecrate: case AbilityId.GuardiansOath: case AbilityId.LayOnHands:
-                    return allyHurt;
-                case AbilityId.LeapSlam:
-                    return haveTarget && targetD > 140f && targetD < 340f || BotDanger > 2.5f;
-                case AbilityId.Lunge:
-                    return haveTarget && targetD > 110f && targetD < 300f || BotDanger > 2.5f;
-                case AbilityId.Whirlwind:
-                    return danger || haveTarget && targetD < 150f;
-                case AbilityId.BattleFury: case AbilityId.BladeTempest:
-                    return haveTarget && targetD < 220f;
-                case AbilityId.LastStand:
-                    return danger || haveTarget && targetD < 220f;
-                // Ninja
-                case AbilityId.ShadowClone: case AbilityId.SmokeBomb: case AbilityId.IronBody: case AbilityId.Vanish: case AbilityId.ThousandClones:
-                    return danger;
-                case AbilityId.HealingMist: case AbilityId.SpiritWard: case AbilityId.BlossomStorm:
-                    return allyHurt;
-                case AbilityId.Substitution:
-                    return allyDown || allyHurt && danger;
-                case AbilityId.ShadowStep:
-                    return haveTarget && targetD > 120f && targetD < 440f || BotDanger > 2.5f;
-                case AbilityId.BladeFan:
-                    return danger || haveTarget && targetD < 260f;
-                // Blood Mage: Space abilities cost health, so not when it's already low (Martyr excepted)
-                case AbilityId.BloodShell:
-                    return danger && me.Hp > me.MaxHp * 0.4f;
-                case AbilityId.CrimsonPact:
-                    return haveTarget && targetD < 260f && me.Hp > me.MaxHp * 0.6f;
-                case AbilityId.Exsanguinate: case AbilityId.HemoNova:
-                    return haveTarget && targetD < 220f && me.Hp > me.MaxHp * 0.35f;
-                case AbilityId.BloodGift: case AbilityId.SiphonField:
-                    return allyHurt && me.Hp > me.MaxHp * 0.5f;
-                case AbilityId.Martyr:
-                    return allyDown;
-                case AbilityId.BloodBoil:
-                    return haveTarget && targetD < 250f && me.Hp > me.MaxHp * 0.45f;
-                case AbilityId.FrenzyPact:
-                    return haveTarget && targetD < 500f && me.Hp > me.MaxHp * 0.5f;
-                case AbilityId.BloodRite:
-                    return danger || haveTarget && Players.Count > 1;
-                case AbilityId.SanguineRain:
-                    return allyHurt && haveTarget;
-                case AbilityId.CrimsonApotheosis:
-                    return haveTarget && targetD < 500f;
-                // Everything else hurts the boss: use it when it's in reach
-                default:
-                    return haveTarget && targetD < 520f;
-            }
+                Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
+                Players = Players.Count, BotDanger = BotDanger,
+            });
         }
 
         /// Enemy velocities, from how far each moved since last frame (smoothed).

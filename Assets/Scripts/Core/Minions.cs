@@ -184,6 +184,135 @@ namespace Arena
 
         // --- Abilities ---------------------------------------------------------
 
+        /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] MageAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.ArcaneAegis, Kit = Kit.Mage, Role = Role.Tank, Choice = 0,
+                Name = "Arcane Aegis", Cooldown = 11f, Desc = "For 3 s, enemy bullets that touch you are reflected back as your own.",
+                Capstone = "Lasts 4.5 s and reflects bullets for double damage.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.FrostNova, Kit = Kit.Mage, Role = Role.Tank, Choice = 1, Instant = true,
+                Name = "Frost Nova", Cooldown = 12f, Desc = "Freeze every enemy near you for 3 s and deal 40 damage.",
+                Capstone = "Also erases enemy bullets around you.",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.FlameWall, Kit = Kit.Mage, Role = Role.Tank, Choice = 2,
+                Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
+                Capstone = "The fire also slows enemies by 40%.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.TimeRewind, Kit = Kit.Mage, Role = Role.Healer, Choice = 0, Instant = true,
+                Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
+                Capstone = "Also erases enemy bullets around every player.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ArcaneWard, Kit = Kit.Mage, Role = Role.Healer, Choice = 1, Instant = true,
+                Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and your ally for 60 damage for 8 s.",
+                Capstone = "The shield soaks 120 damage.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Sanctify, Kit = Kit.Mage, Role = Role.Healer, Choice = 2, Instant = true,
+                Name = "Sanctify", Cooldown = 12f, Desc = "Erase enemy bullets around you and heal everyone nearby for 25.",
+                Capstone = "Also freezes enemies around you solid for 1.5 s (not bosses).",
+                Bot = b => b.AllyHurt || b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Meteor, Kit = Kit.Mage, Role = Role.Dps, Choice = 0,
+                Name = "Meteor", Cooldown = 10f, Desc = "Call a meteor at your cursor: after a short warning it hits for 150 damage.",
+                Capstone = "Leaves burning ground for 3 s.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Blizzard, Kit = Kit.Mage, Role = Role.Dps, Choice = 1,
+                Name = "Blizzard", Cooldown = 14f, Desc = "A storm at your cursor for 5 s that slows and damages enemies.",
+                Capstone = "Lasts 10 s.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ArcaneSurge, Kit = Kit.Mage, Role = Role.Dps, Choice = 2,
+                Name = "Arcane Surge", Cooldown = 16f, Desc = "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
+                Capstone = "+1 extra projectile while it lasts.",
+            },
+        };
+
+        /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] SummonerAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.GolemWall, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0,
+                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three stone walls in front of you for 6 s that block bullets.",
+                Capstone = "Raises five walls.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Earthquake, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Instant = true,
+                Name = "Earthquake", Cooldown = 10f, Desc = "You and every minion you have slam the ground, damaging and slowing enemies.",
+                Capstone = "Also freezes the enemies it hits for 1 s (not bosses).",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.GuardianSpirit, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2,
+                Name = "Guardian Spirit", Cooldown = 18f, Desc = "A guardian follows you for 8 s and absorbs every bullet near it.",
+                Capstone = "The guardian also heals you 6 HP/s.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SpiritSwarm, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0,
+                Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release 5 healing sprites for 6 s.",
+                Capstone = "Releases 8 sprites.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
+                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If your ally goes down, it revives them instantly.",
+                Capstone = "Revives at full health, and the phoenix keeps fighting.",
+                Bot = b => b.AllyHurt && b.HaveTarget,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SoulLantern, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2,
+                Name = "Soul Lantern", Cooldown = 20f, Desc = "For 5 s, allies near the lantern can't go down.",
+                Capstone = "The lantern follows you.",
+                Bot = b => b.AllyHurt && b.HaveTarget,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BatSwarm, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0,
+                Name = "Bat Swarm", Cooldown = 12f, Desc = "Release 8 bats that hunt enemies for 6 s.",
+                Capstone = "Releases 14 bats.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Sacrifice, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Instant = true,
+                Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later.",
+                Capstone = "Double explosion damage, and your companions return at once.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
+                Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions frenzy for 6 s: faster, and they attack twice as often.",
+                Capstone = "Also summons 3 wolves for 6 s.",
+            },
+        };
+
         void KitAbility(Player p, AbilityId id, V2 target)
         {
             var s = p.Stats;

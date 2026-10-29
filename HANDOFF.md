@@ -76,17 +76,17 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Minions.cs` | 0.7k | Mage and Summoner weapons and abilities, companions/minions |
 | `Knight.cs` | 0.6k | Knight melee: swings (`Swing`, `LandSwing`, Lance box), sword waves, Knight abilities |
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
-| `Mastery.cs` | 0.3k | ability XP/levels and capstones |
+| `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
 | `Parry.cs`, `Pause.cs`, `DevTools.cs`, `StatSheet.cs`, `RunStats.cs`, `Kits.cs` | small | as named |
 | `BossSounds.cs` | 0.1k | soft audio cues when bosses start attacks |
 | `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |
 | `Shop.cs` | 0.3k | the Bazaar: gold per kill (`GrantGold`, `GoldPerXp`), `OpenShop` / per-player shelf (`RollShelf`), `ShopAction`s (`Shop` → `Msg.Shop` → `HostShop`), giving gold (`Msg.ShopGift`, notices), `CloseShop` (leftover gold → XP), revive token, `BotShop`, snapshot fields |
 | `Modifiers.cs` | 0.07k | `RunMod` flags and `ModDef`s; `Game.Mods` / `Has()`; sent in the lobby message |
 | `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, enemy blurbs, building a practice wave |
-| `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use |
+| `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
 | `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (stats, colours) |
-| `Upgrades.cs` | 0.45k | upgrade cards, abilities, per-weapon/Knight descriptions |
+| `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
 | `SessionRecorder.cs` | 0.5k | the session JSON recorder |
@@ -263,14 +263,14 @@ copies of the same numbers:
 | Adding a... | Touches |
 |---|---|
 | **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
-| **Ability** | `AbilityId` · `Upgrades` (def, description, role/kit tables) · `Game.CastAbility` / `Minions.KitAbility` / `Knight.KnightAbility` / `Ultimates` · `Mastery` capstone text and effect · `BotBrain.WantAbility` · `PixelArt` icon by name · README · Armory |
+| **Ability** | `AbilityId` · its `AbilityDef` entry in its class's file (lobby place, name, cooldown, texts, capstone, instant, charges, bot rule; since Oct 2026) · its cast `case` next to the entry (`CastAbility` / `KitAbility` / `KnightAbility` / `NinjaAbility` / `BloodAbility` / `Ultimate`), including what its capstone does · `PixelArt` icon by name · README · Armory |
 | **Enemy** | `EnemyType` + `Defs` · `EnemyAI` (roster, move, fire, special) · `ArenaApp.DrawEnemy` · `Practice.BlurbOf` + `Choices` · README · Bestiary |
 
 **Recommendations**
 1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
    `WeaponRange`, bot ranges, upgrade texts, the Armory and balance tweaks read one place. `WeaponRange`
    currently duplicates every speed/life literal (guarded by the `aim` test, but still double work).
-2. **An ability registry**: one entry per ability with its cast function, bot heuristic, capstone and text,
+2. ✅ **Done (Oct 2026):** one `AbilityDef` per ability, kept beside its class's cast code (`SoldierAbilities` in `Abilities.cs`, `MageAbilities`/`SummonerAbilities` in `Minions.cs`, `UltimateAbilities` in `Ultimates.cs`, `KnightAbilities`, `NinjaAbilities`, `BloodMageAbilities`); `Upgrades.Abilities` gathers them and the lobby tables are built from each entry's `Kit`/`Role`/`Choice` (the game refuses to start if a place is empty or doubled; sim test `every ability has a complete entry`). Casts stay in each class's switch (owner's choice). **An ability registry**: one entry per ability with its cast function, bot heuristic, capstone and text,
    instead of 5+ parallel switches. Adding a Knight-sized class took most of a session because of this.
 3. **An enemy registry** in the same spirit (definition + blurb + draw style + AI hooks), so the Practice
    Range, Bestiary and README tables could be generated rather than hand-kept.
@@ -350,8 +350,14 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    snapshot's bytes and the client's whole state after reading it, old code vs new, over 7 runs (all six classes,
    waves 5-40, forced hazards, shop, shelves, offers and Warden gates): identical. To add a replicated field, add
    one `s.Float(ref ...)` (etc.) line in the right `Sync*` method and bump the protocol.
-6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
-   commits.
+6. Ability registry and enemy registry (items 2, 3). Design agreed with the owner: data entries, casts and AI stay
+   in their switches; entries live in each class's file; enemies get data only (blurb, picker order, flags).
+   ✅ Abilities: a fingerprint of all 77 abilities' data, the lobby tables, every upgrade card, max charges and
+   ~15,000 bot decisions per ability was identical before and after. To add an ability: an `AbilityId`, an entry
+   in its class's list, its cast `case`, an icon.
+   *Known red test (not from the registry):* "enemy bullets stay near the bullet budget" (wave 21 peaks at 214 enemy
+   bullets, the test allows 210) has failed since `e6b6e37` (shields wear down, the riot brings guards); it passed
+   on the commit before. Pushed with the owner's OK; the fix belongs with that change.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).

@@ -27,10 +27,22 @@ namespace Arena
         None = 255,
     }
 
+    /// Everything about one ability except its cast code (which is in its class's file, next to its entry).
     public class AbilityDef
     {
+        public const int CardOnly = -1, Ult = 3;
+
+        public AbilityId Id;
+        public Kit Kit;
+        public Role Role;
+        public int Choice = CardOnly;  // its place in the lobby: Space choice 0-2 for Role and Kit, Ult, or CardOnly (very rare cards only)
         public string Name, Desc;
+        public string Capstone;        // what mastering it (level 5) adds
         public float Cooldown;
+        public bool Instant;           // earns mastery XP by what it hits (0.5x for nothing, up to 1.5x); lasting ones earn the full amount
+        public int ExtraCharges;       // charges beyond the first
+        public bool CapstoneCharge;    // mastering it adds a charge
+        public Func<BotSense, bool> Bot;  // when the smart bot uses it (BotBrain.cs); null: when a target is within 520 px
         public float HealthCost;   // the Blood Mage's abilities cost this much of your max health (it can't take you below 1)
         public bool CostsCurrent;  // ...or of your current health (Blood Gift)
     }
@@ -106,131 +118,19 @@ namespace Arena
         public const int BonusSlots = 3; // Q, E and Shift, filled by very rare upgrades
         public const int UltSlot = 4;
 
-        public static readonly AbilityDef[] Abilities =
-        {
-            new AbilityDef { Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage)." },
-            new AbilityDef { Name = "Mend Pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies." },
-            new AbilityDef { Name = "Dash", Cooldown = 3.5f, Desc = "Quick dash with brief invulnerability." },
-            new AbilityDef { Name = "Shockwave", Cooldown = 14f, Desc = "Erase enemy bullets around you and damage nearby enemies." },
-            new AbilityDef { Name = "Overdrive", Cooldown = 18f, Desc = "Double fire rate for 5 seconds." },
-            new AbilityDef { Name = "Blink", Cooldown = 7f, Desc = "Teleport toward your cursor." },
-            new AbilityDef { Name = "Nova", Cooldown = 9f, Desc = "Fire a ring of 24 heavy shots." },
-            new AbilityDef { Name = "Turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for 10 seconds." },
-            new AbilityDef { Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you for 5 s, and you take 40% less damage meanwhile." },
-            new AbilityDef { Name = "Bulldoze", Cooldown = 9f, Desc = "Charge forward, damaging and knocking back everything in your path." },
-            new AbilityDef { Name = "Haven", Cooldown = 16f, Desc = "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker." },
-            new AbilityDef { Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate." },
-            new AbilityDef { Name = "Cluster Grenade", Cooldown = 6f, Desc = "Throw a grenade at your cursor that explodes into shrapnel." },
-            new AbilityDef { Name = "Mark for Death", Cooldown = 12f, Desc = "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s." },
-            // Mage
-            new AbilityDef { Name = "Arcane Aegis", Cooldown = 11f, Desc = "For 3 s, enemy bullets that touch you are reflected back as your own." },
-            new AbilityDef { Name = "Frost Nova", Cooldown = 12f, Desc = "Freeze every enemy near you for 3 s and deal 40 damage." },
-            new AbilityDef { Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets." },
-            new AbilityDef { Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing." },
-            new AbilityDef { Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and your ally for 60 damage for 8 s." },
-            new AbilityDef { Name = "Sanctify", Cooldown = 12f, Desc = "Erase enemy bullets around you and heal everyone nearby for 25." },
-            new AbilityDef { Name = "Meteor", Cooldown = 10f, Desc = "Call a meteor at your cursor: after a short warning it hits for 150 damage." },
-            new AbilityDef { Name = "Blizzard", Cooldown = 14f, Desc = "A storm at your cursor for 5 s that slows and damages enemies." },
-            new AbilityDef { Name = "Arcane Surge", Cooldown = 16f, Desc = "For 5 s your shots deal 60% more damage and pierce 2 more enemies." },
-            // Summoner
-            new AbilityDef { Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three stone walls in front of you for 6 s that block bullets." },
-            new AbilityDef { Name = "Earthquake", Cooldown = 10f, Desc = "You and every minion you have slam the ground, damaging and slowing enemies." },
-            new AbilityDef { Name = "Guardian Spirit", Cooldown = 18f, Desc = "A guardian follows you for 8 s and absorbs every bullet near it." },
-            new AbilityDef { Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release 5 healing sprites for 6 s." },
-            new AbilityDef { Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If your ally goes down, it revives them instantly." },
-            new AbilityDef { Name = "Soul Lantern", Cooldown = 20f, Desc = "For 5 s, allies near the lantern can't go down." },
-            new AbilityDef { Name = "Bat Swarm", Cooldown = 12f, Desc = "Release 8 bats that hunt enemies for 6 s." },
-            new AbilityDef { Name = "Sacrifice", Cooldown = 10f, Desc = "All your minions explode; your companions return 3 s later." },
-            new AbilityDef { Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions frenzy for 6 s: faster, and they attack twice as often." },
-            // Ultimates. Their cooldowns aren't shortened by cooldown upgrades.
-            new AbilityDef { Name = "Fortress", Cooldown = 70f, Desc = "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away." },
-            new AbilityDef { Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead)." },
-            new AbilityDef { Name = "Titan", Cooldown = 80f, Desc = "Summon a stone titan for 15 s that smashes enemies and blocks bullets (it soaks 1000 boss damage)." },
-            new AbilityDef { Name = "Lifeline", Cooldown = 90f, Desc = "Instantly revive and fully heal the whole party, with 3 s of invulnerability." },
-            new AbilityDef { Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in." },
-            new AbilityDef { Name = "World Tree", Cooldown = 80f, Desc = "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites." },
-            new AbilityDef { Name = "Bullet Storm", Cooldown = 60f, Desc = "For 6 s you fire three times as fast, with +2 extra projectiles." },
-            new AbilityDef { Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each." },
-            new AbilityDef { Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy." },
-            // Knight
-            new AbilityDef { Name = "Shield Wall", Cooldown = 12f, Desc = "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), even red aimed shots. Bosses can break it (it soaks 400 of their damage)." },
-            new AbilityDef { Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s." },
-            new AbilityDef { Name = "Unbreakable", Cooldown = 16f, Desc = "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal." },
-            new AbilityDef { Name = "Consecrate", Cooldown = 14f, Desc = "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second." },
-            new AbilityDef { Name = "Guardian's Oath", Cooldown = 15f, Desc = "Shield the ally nearest your cursor for 100 damage (and yourself for 50) for 6 s." },
-            new AbilityDef { Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down." },
-            new AbilityDef { Name = "Whirlwind", Cooldown = 10f, Desc = "Spin for 2 s, hitting everything within 110 px for 12 every 0.2 s and slicing small bullets out of the air." },
-            new AbilityDef { Name = "Lunge", Cooldown = 6f, Desc = "Dash 260 px toward your cursor, hitting everything you pass for 35. Two charges." },
-            new AbilityDef { Name = "Battle Fury", Cooldown = 16f, Desc = "For 6 s you swing 40% faster and deal 25% more damage." },
-            new AbilityDef { Name = "Last Stand", Cooldown = 70f, Desc = "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage." },
-            new AbilityDef { Name = "Hallowed Blade", Cooldown = 80f, Desc = "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn)." },
-            new AbilityDef { Name = "Blade Tempest", Cooldown = 65f, Desc = "For 6 s every swing also hurls three piercing sword beams." },
-            // Ninja
-            new AbilityDef { Name = "Shadow Clone", Cooldown = 14f, Desc = "Leave a decoy for 5 s that every enemy targets. It bursts for 60 damage when it ends." },
-            new AbilityDef { Name = "Smoke Bomb", Cooldown = 14f, Desc = "A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage." },
-            new AbilityDef { Name = "Iron Body", Cooldown = 12f, Desc = "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50." },
-            new AbilityDef { Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s: allies inside heal 10 HP/s." },
-            new AbilityDef { Name = "Substitution", Cooldown = 12f, Desc = "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself." },
-            new AbilityDef { Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster." },
-            new AbilityDef { Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80." },
-            new AbilityDef { Name = "Vanish", Cooldown = 16f, Desc = "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage." },
-            new AbilityDef { Name = "Blade Fan", Cooldown = 9f, Desc = "Throw 12 kunai in a ring around you, 18 damage each." },
-            new AbilityDef { Name = "Thousand Clones", Cooldown = 70f, Desc = "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends." },
-            new AbilityDef { Name = "Blossom Storm", Cooldown = 80f, Desc = "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally." },
-            new AbilityDef { Name = "Death Lotus", Cooldown = 65f, Desc = "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each." },
-            // Blood Mage: every Space ability costs health
-            new AbilityDef { Name = "Blood Shell", Cooldown = 9f, HealthCost = 0.15f, Desc = "Pay 15% of your max health for a shield worth three times as much, for 5 s." },
-            new AbilityDef { Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f,
-                Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px." },
-            new AbilityDef { Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you." },
-            new AbilityDef { Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true,
-                Desc = "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you." },
-            new AbilityDef { Name = "Siphon Field", Cooldown = 11f, HealthCost = 0.1f,
-                Desc = "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s." },
-            new AbilityDef { Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f,
-                Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid." },
-            new AbilityDef { Name = "Blood Boil", Cooldown = 8f, HealthCost = 0.2f, Desc = "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid." },
-            new AbilityDef { Name = "Frenzy Pact", Cooldown = 11f, HealthCost = 0.05f,
-                Desc = "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s." },
-            new AbilityDef { Name = "Hemo Nova", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3." },
-            new AbilityDef { Name = "Blood Rite", Cooldown = 75f, Desc = "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies." },
-            new AbilityDef { Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage." },
-            new AbilityDef { Name = "Crimson Apotheosis", Cooldown = 65f,
-                Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt." },
-        };
+        /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
+        /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
+        /// BloodMage.cs. An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
+        public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.MageAbilities, Game.SummonerAbilities,
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities);
 
         /// Each role and class has its own ultimate; it can't be changed.
-        static readonly AbilityId[] Ultimates =
-        {
-            AbilityId.Fortress, AbilityId.GlacialTomb, AbilityId.Titan, AbilityId.LastStand, AbilityId.ThousandClones, AbilityId.BloodRite,  // Tank: Soldier, Mage, Summoner, Knight, Ninja, Blood Mage
-            AbilityId.Lifeline, AbilityId.Sanctum, AbilityId.WorldTree, AbilityId.HallowedBlade, AbilityId.BlossomStorm, AbilityId.SanguineRain,  // Healer
-            AbilityId.BulletStorm, AbilityId.MeteorStorm, AbilityId.Legion, AbilityId.BladeTempest, AbilityId.DeathLotus, AbilityId.CrimsonApotheosis,  // DPS
-        };
+        static readonly AbilityId[] Ultimates = LobbyTable(true);
 
         public static AbilityId Ultimate(Role r, Kit kit) => Ultimates[(int)r * Defs.KitCount + (int)kit];
 
         /// The three Space abilities for each role and kit, picked in the lobby.
-        static readonly AbilityId[] RoleAbilities =
-        {
-            AbilityId.Barrier, AbilityId.Roar, AbilityId.Bulldoze,                // Tank: Soldier
-            AbilityId.ArcaneAegis, AbilityId.FrostNova, AbilityId.FlameWall,      // Tank: Mage
-            AbilityId.GolemWall, AbilityId.Earthquake, AbilityId.GuardianSpirit,  // Tank: Summoner
-            AbilityId.ShieldWall, AbilityId.LeapSlam, AbilityId.Unbreakable,      // Tank: Knight
-            AbilityId.ShadowClone, AbilityId.SmokeBomb, AbilityId.IronBody,       // Tank: Ninja
-            AbilityId.BloodShell, AbilityId.CrimsonPact, AbilityId.Exsanguinate,  // Tank: Blood Mage
-            AbilityId.MendPulse, AbilityId.Haven, AbilityId.SoulLink,             // Healer: Soldier
-            AbilityId.TimeRewind, AbilityId.ArcaneWard, AbilityId.Sanctify,       // Healer: Mage
-            AbilityId.SpiritSwarm, AbilityId.Phoenix, AbilityId.SoulLantern,      // Healer: Summoner
-            AbilityId.Consecrate, AbilityId.GuardiansOath, AbilityId.LayOnHands,  // Healer: Knight
-            AbilityId.HealingMist, AbilityId.Substitution, AbilityId.SpiritWard,  // Healer: Ninja
-            AbilityId.BloodGift, AbilityId.SiphonField, AbilityId.Martyr,         // Healer: Blood Mage
-            AbilityId.Dash, AbilityId.Grenade, AbilityId.Mark,                    // DPS: Soldier
-            AbilityId.Meteor, AbilityId.Blizzard, AbilityId.ArcaneSurge,          // DPS: Mage
-            AbilityId.BatSwarm, AbilityId.Sacrifice, AbilityId.AlphaCall,         // DPS: Summoner
-            AbilityId.Whirlwind, AbilityId.Lunge, AbilityId.BattleFury,           // DPS: Knight
-            AbilityId.ShadowStep, AbilityId.Vanish, AbilityId.BladeFan,           // DPS: Ninja
-            AbilityId.BloodBoil, AbilityId.FrenzyPact, AbilityId.HemoNova,        // DPS: Blood Mage
-        };
+        static readonly AbilityId[] RoleAbilities = LobbyTable(false);
 
         public static AbilityId RoleAbility(Role r, Kit kit, int choice) =>
             RoleAbilities[((int)r * Defs.KitCount + (int)kit) * RoleAbilityChoices + (choice >= 0 && choice < RoleAbilityChoices ? choice : 0)];
@@ -238,6 +138,45 @@ namespace Arena
         public const int RoleAbilityChoices = 3;
 
         public static AbilityDef Ability(AbilityId id) => Abilities[(int)id];
+
+        static AbilityDef[] Registry(params AbilityDef[][] lists)
+        {
+            var all = new AbilityDef[Enum.GetValues(typeof(AbilityId)).Length - 1];  // every id but None
+            foreach (var list in lists)
+                foreach (var a in list)
+                {
+                    if (all[(int)a.Id] != null)
+                        throw new InvalidOperationException("Two AbilityDefs for " + a.Id);
+                    all[(int)a.Id] = a;
+                }
+            for (int i = 0; i < all.Length; i++)
+                if (all[i] == null)
+                    throw new InvalidOperationException("No AbilityDef for " + (AbilityId)i);
+            return all;
+        }
+
+        /// The lobby's ultimates (one per role and class) or Space choices (RoleAbilityChoices per role and class),
+        /// from where each entry says it goes. Every place must be filled exactly once.
+        static AbilityId[] LobbyTable(bool ultimates)
+        {
+            int per = ultimates ? 1 : RoleAbilityChoices;
+            var table = new AbilityId[3 * Defs.KitCount * per];
+            for (int i = 0; i < table.Length; i++)
+                table[i] = AbilityId.None;
+            foreach (var a in Abilities)
+            {
+                if (a.Choice == AbilityDef.CardOnly || ultimates != (a.Choice == AbilityDef.Ult))
+                    continue;
+                int i = ((int)a.Role * Defs.KitCount + (int)a.Kit) * per + (ultimates ? 0 : a.Choice);
+                if (table[i] != AbilityId.None)
+                    throw new InvalidOperationException(a.Id + " and " + table[i] + " are in the same lobby place");
+                table[i] = a.Id;
+            }
+            int empty = Array.IndexOf(table, AbilityId.None);
+            if (empty >= 0)
+                throw new InvalidOperationException("No " + (ultimates ? "ultimate" : "Space ability") + " for lobby place " + empty);
+            return table;
+        }
 
 
         public static readonly UpgradeDef[] All = WithClassAbilities(new[]

@@ -151,6 +151,94 @@ namespace Arena
 
         // --- Abilities ------------------------------------------------------------------
 
+        /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
+        internal static readonly AbilityDef[] NinjaAbilities =
+        {
+            new AbilityDef
+            {
+                Id = AbilityId.ShadowClone, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0,
+                Name = "Shadow Clone", Cooldown = 14f, Desc = "Leave a decoy for 5 s that every enemy targets. It bursts for 60 damage when it ends.",
+                Capstone = "Leaves two clones.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SmokeBomb, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1,
+                Name = "Smoke Bomb", Cooldown = 14f, Desc = "A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage.",
+                Capstone = "Enemies inside the smoke are also slowed by 40%.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.IronBody, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
+                Name = "Iron Body", Cooldown = 12f, Desc = "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50.",
+                Capstone = "The shockwave also erases enemy bullets within 160 px.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.HealingMist, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
+                Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s: allies inside heal 10 HP/s.",
+                Capstone = "Lasts 9 s.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Substitution, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1,
+                Name = "Substitution", Cooldown = 12f, Desc = "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself.",
+                Capstone = "You and your ally are both invulnerable for 1 s after the swap.",
+                Bot = b => b.AllyDown || b.AllyHurt && b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SpiritWard, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2,
+                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster.",
+                Capstone = "The ward follows you.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ShadowStep, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
+                Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.",
+                Capstone = "+1 charge.",
+                Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 440f || b.BotDanger > 2.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.Vanish, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1,
+                Name = "Vanish", Cooldown = 16f, Desc = "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage.",
+                Capstone = "Erases enemy bullets around you when you vanish.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BladeFan, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2,
+                Name = "Blade Fan", Cooldown = 9f, Desc = "Throw 12 kunai in a ring around you, 18 damage each.",
+                Capstone = "Throws twice as many kunai.",
+                Bot = b => b.Danger || b.HaveTarget && b.TargetD < 260f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ThousandClones, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Name = "Thousand Clones", Cooldown = 70f, Desc = "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends.",
+                Capstone = "Eight clones.",
+                Bot = b => b.Danger,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BlossomStorm, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Name = "Blossom Storm", Cooldown = 80f, Desc = "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally.",
+                Capstone = "Lasts 8 s.",
+                Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.DeathLotus, Kit = Kit.Ninja, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Death Lotus", Cooldown = 65f, Desc = "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.",
+                Capstone = "Strikes up to 14 enemies.",
+            },
+        };
+
         /// Ninja abilities and ultimates. Returns false if `id` isn't one.
         bool NinjaAbility(Player p, AbilityId id, V2 target)
         {

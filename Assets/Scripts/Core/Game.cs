@@ -596,10 +596,9 @@ namespace Arena
             for (int i = 0; i < ids.Length; i++)
             {
                 var slot = p.Slots[i];
-                int max = ids[i] == AbilityId.None ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
-                    + (ids[i] == AbilityId.Dash && Mastered(p, AbilityId.Dash) ? 1 : 0)
-                    + (ids[i] == AbilityId.ShadowStep && Mastered(p, AbilityId.ShadowStep) ? 1 : 0)
-                    + (ids[i] == AbilityId.Lunge ? 1 + (Mastered(p, AbilityId.Lunge) ? 1 : 0) : 0);  // Lunge has two charges
+                var def = ids[i] == AbilityId.None ? null : Upgrades.Ability(ids[i]);
+                int max = def == null ? 0 : i == Upgrades.UltSlot ? 1 : 1 + (i == 0 ? p.Stats.RoleCharges : p.Stats.ExtraCharges)
+                    + def.ExtraCharges + (def.CapstoneCharge && Mastered(p, def.Id) ? 1 : 0);
                 AbilitySlot was;
                 if (slot.Id != ids[i] && ids[i] != AbilityId.None && moved.TryGetValue(ids[i], out was))
                 {
