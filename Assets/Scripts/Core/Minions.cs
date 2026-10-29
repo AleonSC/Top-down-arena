@@ -87,12 +87,7 @@ namespace Arena
                     SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 3 + extra;
                     break;
                 case WeaponId.RadiantOrb:
-                {
-                    var b = SpawnBullet(Defs.HolyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Pierce += 2;
-                    b.HealAlly = 10f;
-                    break;  // extra projectiles become Light Orbs circling you (TickMinions)
-                }
+                    break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)
                 case WeaponId.ChainLight:
                     SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 2 + extra;
                     break;

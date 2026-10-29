@@ -410,6 +410,27 @@ static partial class Program
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
+                if (w.Id == WeaponId.RadiantOrb)
+                {
+                    // Held out to its reach (the aim line's end), the orb touches an enemy against its edge but not one just past it.
+                    Func<float, bool> Touches = gap =>
+                    {
+                        g.Enemies.Clear();
+                        var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
+                        dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+                        V2 at = new V2(120f + range + Game.RadiantRadius + dummy.Radius + gap, 450f);
+                        for (int f = 0; f < 90; f++)
+                        {
+                            dummy.Pos = at; dummy.FrozenT = 1f; me.Pos = new V2(120f, 450f);
+                            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1500f, 450f) });
+                        }
+                        for (int f = 0; f < 10; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }  // let go
+                        return dummy.Hp < dummy.MaxHp;
+                    };
+                    bool touch = Touches(-4f), past = Touches(4f);
+                    if (touch && !past) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (orb: touching hit " + touch + ", past hit " + past + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt)
                 {
                     // A beam, an implosion, a tendril or a repulsion blast has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
@@ -876,5 +897,64 @@ static partial class Program
         Check(far.Hp < far.MaxHp && Upgrades.DescFor(Upgrades.All[Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds")], hp.Weapon).StartsWith("Implosion: the collapse"),
             "an Implosion with Homing Rounds reaches enemies past its usual 55 px, and the card says what Homing does for it");
         s[0].Leave(""); s[1].Leave("");
+    }
+
+    // Radiant Orb: held out on the cursor, dragged through enemies (it burns them) and over allies (it heals them).
+    static void RadiantOrbTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var queueField = typeof(Game).GetField("spawnQueue", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Mage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        g.Bot = client.Game.Bot = false;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true);
+        Check(me.Weapon.Id == WeaponId.RadiantOrb, "the Elementalist Healer's first weapon is the Radiant Orb");
+        var dummy = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(700f, 300f), 0f, 0, false });
+        dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+        Action<float, bool, V2> hold = (secs, fire, at) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                ((List<EnemyType>)queueField.GetValue(g)).Clear();
+                foreach (var e in g.Enemies.Values) if (e != dummy) e.Hp = 0f;
+                dummy.Pos = new V2(700f, 300f); dummy.FrozenT = 1f; dummy.FireT = 9f;
+                me.Pos = me.Disp = new V2(400f, 450f);
+                client.Game.Players[2].Pos = new V2(400f, 650f);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at }); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(400f, 900f) }); client.Game.Update(dt);
+                if (f % 2 == 0) Thread.Sleep(1);
+            }
+        };
+        hold(0.3f, false, dummy.Pos);
+        float hp0 = dummy.Hp;
+        hold(2f, true, dummy.Pos);
+        float burned = hp0 - dummy.Hp;
+        var seen = client.Game.Players[1];
+        Console.WriteLine("  radiant orb: held on an enemy 2 s: {0:0} damage; the orb {1:0} px from it (the friend sees it on: {2}, {3:0} px off)",
+            burned, me.RadiantPos.DistanceTo(dummy.Pos), seen.RadiantOn, seen.RadiantPos.DistanceTo(me.RadiantPos));
+        Check(burned > 50f && me.RadiantPos.DistanceTo(dummy.Pos) < 5f && seen.RadiantOn && seen.RadiantPos.DistanceTo(me.RadiantPos) < 30f,
+            "holding fire casts the orb out to your cursor, where it burns the enemy (and your friend sees it)");
+        ally.Hp = ally.MaxHp * 0.3f;
+        float a0 = ally.Hp, hp1 = dummy.Hp;
+        hold(1.5f, true, new V2(400f, 650f));  // drag it over to your friend
+        Console.WriteLine("  radiant orb: dragged onto your friend: healed {0:0.0} in 1.5 s; the enemy took {1:0} meanwhile", ally.Hp - a0, hp1 - dummy.Hp);
+        Check(ally.Hp > a0 + 10f, "dragging the orb over an ally heals them");
+        hold(1f, true, new V2(1500f, 450f));
+        Check(me.RadiantPos.DistanceTo(me.Pos) <= g.RadiantReach(me) + 0.5f, "it stops at its reach (" + g.RadiantReach(me) + " px) however far your cursor goes");
+        hold(0.3f, false, dummy.Pos);
+        float hp2 = dummy.Hp;
+        hold(1f, false, dummy.Pos);
+        Check(!me.RadiantOn && !seen.RadiantOn && dummy.Hp == hp2, "let go and it's gone");
+        host.Leave(""); client.Leave("");
     }
 }

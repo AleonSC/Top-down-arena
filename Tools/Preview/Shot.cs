@@ -51,6 +51,13 @@ class Shot {
         k++;
       }
     }
+    if (Environment.GetEnvironmentVariable("RADIANT") != null) {
+      // The Radiant Orb held out on an enemy up and to the right.
+      me.Weapon = Defs.WeaponOf(WeaponId.RadiantOrb); host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 450f);
+      V2 at = me.Pos + V2.FromAngle(-0.5f) * 250f;
+      foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = at + new V2(10f, 0f); break; }
+      for (int f = 0; f < 60; f++) { me.Pos = new V2(700f, 450f); host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { Fire = true, AimAt = at }); host.Game.Update(1f / 60f); }
+    }
     if (Environment.GetEnvironmentVariable("SOULGHOST") != null) {
       // Soul Link cast alone: the Soul Ghost beside you, tethered, a little hurt, SOULGHOST=<seconds> in.
       host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(-0.4f) * 300f;

@@ -127,6 +127,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
+            DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
             foreach (var p in game.Players.Values)
@@ -249,6 +250,31 @@ namespace Arena
             float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
             Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
             Arc(h.Pos, h.Radius, 2.5f, (f > 0.7f && MathX.Fmod(t, 0.1f) < 0.05f ? Rgba.White : hc).WithAlpha(0.85f), 40);
+        }
+
+        /// Radiant Orbs held out (RadiantOrb.cs): a faint beam of light back to the caster, and the orb itself, a soft
+        /// glow around a bright core with slow-turning rays.
+        void DrawRadiantOrbs(float t)
+        {
+            var c = Defs.BulletColor(Defs.HolyShot);
+            foreach (var p in game.Players.Values)
+            {
+                if (!p.RadiantOn || p.Downed || p.Weapon.Id != WeaponId.RadiantOrb)
+                    continue;
+                V2 o = p.RadiantDisp;
+                float r = Game.RadiantRadius * Game.AreaMult(p), pulse = 0.5f + 0.5f * Mathf.Sin(t * 8f + p.Id);
+                Line(p.Disp, o, 6f, c.WithAlpha(0.08f));
+                Line(p.Disp, o, 1.5f, c.WithAlpha(0.35f));
+                Circle(o, r * 1.6f, c.WithAlpha(0.1f + 0.05f * pulse), 28);
+                Circle(o, r, c.WithAlpha(0.28f), 28);
+                for (int k = 0; k < 6; k++)
+                {
+                    V2 d = V2.FromAngle(t * 1.5f + k * MathX.Tau / 6f);
+                    Line(o + d * (r * 0.55f), o + d * (r * (1.05f + 0.15f * pulse)), 2f, c.WithAlpha(0.6f));
+                }
+                Circle(o, r * 0.45f + 1.5f * pulse, c, 16);
+                Circle(o, r * 0.22f, Rgba.White, 10);
+            }
         }
 
         /// Soul Link's tether (to an ally, or to your Soul Ghost when you're alone), and Roar's ring.
