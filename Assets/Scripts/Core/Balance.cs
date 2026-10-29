@@ -36,6 +36,7 @@ namespace Arena
         const float OrbChance = 0.18f;      // small health orb drop chance per kill
         const float BigOrbChance = 0.03f;   // rare large health orb
         public const float OrbHeal = 15f;
+        public const float TinyOrbHeal = 6f;   // the Repulsion Cannon knocks these loose (Repulsion.cs)
         public const float BigOrbHeal = 60f;
         public const float OrbLifetime = 12f;
         const float OrbMagnetRange = 110f;

@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -170,6 +170,7 @@ namespace Arena
         public bool Spawning;  // replicated SpawnT > 0 on clients
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
+        public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
     }
 
@@ -207,12 +208,12 @@ namespace Arena
     public class Orb
     {
         public int Id;
-        public bool Big;
+        public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : 6f;
-        public float Heal => Big ? Game.BigOrbHeal : Game.OrbHeal;
+        public float Radius => Big ? 11f : Tiny ? 4f : 6f;
+        public float Heal => Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
     /// An area on the ground: Haven, Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.

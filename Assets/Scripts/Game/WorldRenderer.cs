@@ -277,9 +277,9 @@ namespace Arena
             // Blink during the last 3 seconds before the orb disappears.
             if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
                 return;
-            float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : 8f) + o.Id);
+            float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : o.Tiny ? 11f : 8f) + o.Id);
             float r = o.Radius * pulse;
-            var green = new Rgba(0.35f, 1f, 0.5f);
+            var green = o.Tiny ? new Rgba(0.55f, 1f, 0.75f) : new Rgba(0.35f, 1f, 0.5f);  // tiny orbs are paler
             Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
             Circle(o.Disp, r, green, 16);
             Line(o.Disp - new V2(r * 0.55f, 0), o.Disp + new V2(r * 0.55f, 0), o.Big ? 3f : 2f, Rgba.White);
@@ -500,11 +500,45 @@ namespace Arena
                 case FxKind.Implode:
                     DrawImplodeFx(fx, f);  // BloodMageLook.cs
                     break;
+                case FxKind.Repulse:
+                    DrawRepulseFx(fx, f);
+                    break;
             }
         }
 
         /// A parry shield breaking: cracks flash across it, then it bursts into jagged pieces with sparks.
         /// The pieces come from a generator seeded by where it broke, so everyone sees the same burst.
+        /// The Repulsion Cannon's blast: a cone of air that flashes, then pressure waves rolling out to its reach,
+        /// with streaks flying along it. Pos is the gun, Pos2 the reach along the aim, Radius half the cone.
+        void DrawRepulseFx(Effect fx, float f)
+        {
+            V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;
+            float aim = mid.Angle, reach = mid.Length, half = fx.Radius;
+            var col = fx.Color;
+            if (f < 0.25f)  // the cone flashes
+            {
+                float k = 1f - f / 0.25f;
+                SetColor(col.WithAlpha(0.22f * k));
+                for (int i = 0; i < 10; i++)
+                {
+                    float a0 = aim - half + 2f * half * i / 10f, a1 = aim - half + 2f * half * (i + 1) / 10f;
+                    Tri(c, c + V2.FromAngle(a0) * reach, c + V2.FromAngle(a1) * reach);
+                }
+            }
+            for (int k = 0; k < 3; k++)  // pressure waves
+            {
+                float g = Mathf.Clamp01(f * 1.6f - k * 0.18f);
+                if (g <= 0f || g >= 1f)
+                    continue;
+                Arc(c, 20f + (reach - 20f) * g, 5f * (1f - g) + 1.5f, col.Mix(Rgba.White, 0.4f).WithAlpha(0.85f * (1f - g)), 14, aim - half, 2f * half);
+            }
+            for (int i = 0; i < 7; i++)  // streaks
+            {
+                float a = aim - half * 0.85f + 1.7f * half * i / 6f, d0 = reach * (0.2f + 0.8f * f), d1 = d0 + 30f;
+                Line(c + V2.FromAngle(a) * d0, c + V2.FromAngle(a) * Mathf.Min(reach, d1), 2f, Rgba.White.WithAlpha(0.6f * (1f - f)));
+            }
+        }
+
         void DrawShatterFx(Effect fx, float f)
         {
             V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;

@@ -54,6 +54,48 @@ static partial class Program
     // Extra projectiles upgrade each weapon in its own way. Every weapon fires at a cluster of dummies
     // with 0 and then 2 extra projectiles; each must get stronger in its own way, and none turns
     // into a line of bullets.
+    /// The Repulsion Cannon (Soldier Healer): a cone blast that shoves enemies away, does a little damage and knocks
+    /// tiny health orbs loose.
+    static void RepulsionTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 0);
+        Check(me.Weapon.Name == "Repulsion Cannon", "the Soldier Healer's first weapon is the Repulsion Cannon");
+        queue.Clear(); g.Enemies.Clear(); g.Orbs.Clear();
+        V2 from = new V2(500f, 450f);
+        Func<V2, EnemyType, Enemy> Dummy = (at, t) => { var e = (Enemy)spawn.Invoke(g, new object[] { t, at, 0f, 0, false }); e.MaxHp = e.Hp = 1e5f; e.Speed = 0f; e.FireT = 99f; return e; };
+        var front = Dummy(new V2(680f, 450f), EnemyType.Grunt);   // in the cone
+        var side = Dummy(new V2(560f, 300f), EnemyType.Grunt);    // 68 degrees off the aim: outside it
+        var boss = Dummy(new V2(700f, 520f), EnemyType.Boss);     // in the cone, too heavy to shove
+        V2 f0 = front.Pos, b0 = boss.Pos;
+        me.Pos = from;
+        foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true } : new PlayerInput()); }
+        float pushed = front.Pos.X - f0.X;
+        Console.WriteLine("  repulsion: front pushed {0:0} px, took {1:0}; side took {2:0}; boss moved {3:0} px, took {4:0}", pushed, front.MaxHp - front.Hp, side.MaxHp - side.Hp, boss.Pos.DistanceTo(b0), boss.MaxHp - boss.Hp);
+        Check(pushed > 60f && front.Hp < front.MaxHp && side.Hp == side.MaxHp, "it blasts enemies in its cone away and hurts them a little (not ones outside it)");
+        Check(boss.Pos.DistanceTo(b0) < 1f && boss.Hp < boss.MaxHp, "bosses take the damage but don't budge");
+        // Keep blasting: tiny orbs come loose, everyone sees them, and they heal a little.
+        int tiny = 0; bool clientTiny = false;
+        for (int f = 0; f < 8 * 60; f++)
+        {
+            me.Pos = from; front.Pos = f0; boss.Pos = b0; queue.Clear();
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true } : new PlayerInput()); }
+            tiny = Math.Max(tiny, g.Orbs.Values.Count(o => o.Tiny));
+            clientTiny |= s[1].Game.Orbs.Values.Any(o => o.Tiny);
+        }
+        var orb = g.Orbs.Values.FirstOrDefault(o => o.Tiny);
+        Console.WriteLine("  repulsion: {0} tiny orbs about after 8 s of blasting (client saw them {1}), heal {2}", tiny, clientTiny, orb != null ? orb.Heal : 0f);
+        Check(tiny >= 2 && clientTiny && orb != null && orb.Heal < Game.OrbHeal && orb.Radius < 6f, "enemies it hits shed tiny health orbs (smaller than the others; everyone sees them)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void WeaponExtraTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -253,9 +295,9 @@ static partial class Program
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
                 float range = g.WeaponRange(me);
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt)
                 {
-                    // A beam, an implosion or a tendril has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam, an implosion, a tendril or a repulsion blast has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         g.Enemies.Clear();

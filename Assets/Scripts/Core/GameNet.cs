@@ -591,18 +591,19 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0;
-            bool big = o != null && o.Big;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
             s.Bool(ref big);
+            s.Bool(ref tiny);
             s.Vec(ref pos);
             s.Float(ref life);
             if (s.Reading)
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

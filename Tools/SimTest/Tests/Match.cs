@@ -440,7 +440,7 @@ static partial class Program
         int port = nextPort++;
         var host = new Session { AutoStart = 2, StartWave = 3 };
         host.Game.Bot = true;
-        host.Host(port, "Host", Role.Healer, 0, 0);  // Light Bolt + Mend Pulse
+        host.Host(port, "Host", Role.Healer, 0, 0);  // Repulsion Cannon + Mend Pulse
         var client = new Session();
         client.Game.Bot = true;
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0);

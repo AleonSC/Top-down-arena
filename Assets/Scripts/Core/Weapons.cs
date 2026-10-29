@@ -243,12 +243,7 @@ namespace Arena
                     FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)
                     break;
                 case WeaponId.LightBolt:
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    for (int k = 0; k < extra; k++)  // smaller bolts that seek out the nearest enemy
-                    {
-                        float a = aim + (k % 2 == 0 ? 1f : -1f) * (0.35f + 0.15f * (k / 2));
-                        SpawnBullet(Defs.HealerShot, muzzle, V2.FromAngle(a) * 600f, 0f, w.Life, 6f * dmg, p.Id, false, 6f).Radius = 3f;
-                    }
+                    FireRepulsion(p, aim, dmg, extra);  // the Repulsion Cannon (Repulsion.cs)
                     break;
                 case WeaponId.Pistol:
                 {
@@ -338,6 +333,8 @@ namespace Arena
                     return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
+                case WeaponId.LightBolt:  // the Repulsion Cannon's cone
+                    return p.Def.BodyR + w.Reach * AreaMult(p);
                 case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
                     return p.Def.BodyR + GraspReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
