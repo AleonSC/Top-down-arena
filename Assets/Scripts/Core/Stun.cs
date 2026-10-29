@@ -123,17 +123,22 @@ namespace Arena
             return target;
         }
 
-        /// Damage to a guard; at zero it falls, and its owner's next guard is on the way.
+        /// Minions with health that enemies can hurt: Warden's Guards and Soul Ghosts (SoulGhost.cs).
+        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.SoulGhost;
+
+        /// Damage to a guard (or a Soul Ghost); at zero it falls, and a guard's owner has the next one on the way.
         void HurtGuard(Minion m, float dmg)
         {
             if (m.Hp <= 0f || !Minions.ContainsKey(m.Id))
                 return;
+            if (m.Kind == MinionKind.SoulGhost)
+                dmg = GhostDamage(m, dmg);  // its Soul Link halves it (SoulGhost.cs)
             m.Hp -= dmg;
             if (m.Hp > 0f)
                 return;
             Minions.Remove(m.Id);
             Player owner;
-            if (Players.TryGetValue(m.Owner, out owner))
+            if (m.Kind == MinionKind.WardenGuard && Players.TryGetValue(m.Owner, out owner))
                 owner.GuardCd = GuardRespawn;
             BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, 30f, 0.35f, Sfx.Hit);
         }
@@ -144,7 +149,7 @@ namespace Arena
             if (Defs.Unblockable(b.Kind))
                 return false;
             foreach (var m in Minions.Values)
-                if (m.Kind == MinionKind.WardenGuard && b.Pos.DistanceTo(m.Pos) < m.Def.Radius + b.Radius)  // its body, from any side
+                if (HasHealth(m) && b.Pos.DistanceTo(m.Pos) < m.Def.Radius + b.Radius)  // its body, from any side
                 {
                     HurtGuard(m, b.Dmg);
                     return true;
@@ -159,7 +164,7 @@ namespace Arena
         {
             guardsHit.Clear();
             foreach (var m in Minions.Values)
-                if (m.Kind == MinionKind.WardenGuard && m.HurtT <= 0f && m.Pos.DistanceTo(e.Pos) < e.Radius + m.Def.Radius + 4f)  // it stands right up against what it fights
+                if (HasHealth(m) && m.HurtT <= 0f && m.Pos.DistanceTo(e.Pos) < e.Radius + m.Def.Radius + 4f)  // it stands right up against what it fights
                     guardsHit.Add(m);
             foreach (var m in guardsHit)
             {
