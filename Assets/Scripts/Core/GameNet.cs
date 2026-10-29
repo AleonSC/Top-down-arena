@@ -136,6 +136,7 @@ namespace Arena
                 w.Write(p.ParryHp);
                 w.Write(p.ParryBroken);
                 w.Write(p.ShieldHp);
+                w.Write(p.StunT);
                 w.Write(p.WallT);
                 w.Write(p.UnbreakT);
                 w.Write(p.FuryT);
@@ -185,6 +186,8 @@ namespace Arena
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
                 w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0)));
+                if (e.Type == EnemyType.Boss)
+                    WriteWarden(w, e);  // Warden.cs
             }
             w.Write((byte)Minions.Count);
             foreach (var m in Minions.Values)
@@ -376,7 +379,7 @@ namespace Arena
                 float aegis = r.ReadSingle(), surge = r.ReadSingle(), frenzy = r.ReadSingle(), ult = r.ReadSingle();
                 bool parrying = r.ReadBoolean();
                 bool firingSeen = r.ReadBoolean();
-                float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle();
+                float parryHp = r.ReadSingle(), parryBroken = r.ReadSingle(), shield = r.ReadSingle(), stunT = r.ReadSingle();
                 float wallT = r.ReadSingle(), unbreakT = r.ReadSingle(), furyT = r.ReadSingle(), whirlT = r.ReadSingle();
                 float vanishT = r.ReadSingle(), ironT = r.ReadSingle(), pactT = r.ReadSingle(), rushT = r.ReadSingle();
                 int ammoUsed = r.ReadByte();
@@ -443,6 +446,7 @@ namespace Arena
                 p.ParryHp = parryHp;
                 p.ParryBroken = parryBroken;
                 p.ShieldHp = shield;
+                p.StunT = stunT;
                 p.WallT = wallT;
                 p.UnbreakT = unbreakT;
                 p.VanishT = vanishT;
@@ -502,6 +506,8 @@ namespace Arena
                 e.Chilled = (status & 4) != 0;
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
+                if (type == EnemyType.Boss)
+                    ReadWarden(r, e);  // Warden.cs
                 e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
                 seen.Add(id);
             }

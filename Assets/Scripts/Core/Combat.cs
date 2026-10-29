@@ -439,6 +439,11 @@ namespace Arena
                             {
                                 Damage(p, b.Dmg, ShotSource(b));
                                 scratchIds.Add(b.Id);
+                                if (b.Kind == Defs.StunShot && !p.Downed)
+                                {
+                                    p.StunT = StunTime;  // the Warden's stun shot: stuck for 1 s (Warden.cs)
+                                    BroadcastFx(FxKind.Spark, p.Pos, Defs.BulletColor(Defs.StunShot), 30f, 0.35f, Sfx.SpellZap);
+                                }
                             }
                             break;
                         }
@@ -591,6 +596,8 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
+            if (WardenImmune(e))
+                return;  // the Warden, changing stage (Warden.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

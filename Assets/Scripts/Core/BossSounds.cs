@@ -12,7 +12,7 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss: return WardenAttack(e);
+                case EnemyType.Boss: return e.Warden == null ? 0 : (int)e.Warden.Stage * 100 + (e.Warden.TransT > 0f ? 50 : (int)e.Warden.Turn);
                 case EnemyType.HiveQueen: return (int)e.T2;
                 case EnemyType.TwinA: return e.Phase * 10 + (int)(e.T / 5f) % 2;  // one Reaper speaks for both
                 case EnemyType.TwinB: return e.Phase * 10;
@@ -29,7 +29,11 @@ namespace Arena
         {
             switch (e.Type)
             {
-                case EnemyType.Boss: return sig == WardenCross ? Sfx.BossCharge : Sfx.BossShift;
+                case EnemyType.Boss:  // a stage change chimes (StartWardenTransition); the light and the charge rise; a breather is quiet
+                {
+                    var turn = (WardenTurn)(sig % 100);
+                    return sig % 100 == 50 || turn == WardenTurn.Rest ? Sfx.None : turn == WardenTurn.Light || turn == WardenTurn.Charge ? Sfx.BossCharge : Sfx.BossShift;
+                }
                 case EnemyType.HiveQueen: return sig == QueenSwarm ? Sfx.BossChime : sig == QueenBombers ? Sfx.BossCharge : sig == QueenBullets ? Sfx.BossShift : Sfx.None;
                 case EnemyType.TwinA: case EnemyType.TwinB: return sig >= 10 ? Sfx.BossChime : Sfx.BossShift;  // enraged or soul-bound / new pattern
                 case EnemyType.Singularity:

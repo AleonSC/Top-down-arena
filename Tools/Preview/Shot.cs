@@ -20,9 +20,10 @@ class Shot {
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
       if (Environment.GetEnvironmentVariable("SINGT") != null && f == (int)(seconds * 60) - 120) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity) e.T = float.Parse(Environment.GetEnvironmentVariable("SINGT"));
-      if (Environment.GetEnvironmentVariable("WARDEN_CROSS") != null && f == (int)(seconds * 60) - 170) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.T = 17.95f;
+      // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
+      if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
     }
-    foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) Console.WriteLine("warden T {0:0.0} phase {1} pos {2:0},{3:0}", e.T, e.Phase, e.Pos.X, e.Pos.Y);
+    foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) Console.WriteLine("warden stage {0} turn {1} turnT {2:0.0} trans {3:0.0} light {4} gates {5} pos {6:0},{7:0}", e.Warden?.Stage, e.Warden?.Turn, e.Warden?.TurnT, e.Warden?.TransT, e.Warden?.LightMode, e.Warden?.Gates.Count, e.Pos.X, e.Pos.Y);
     var me = host.Game.Players[1]; if (Environment.GetEnvironmentVariable("PARRY") == null) me.Hp = me.MaxHp * 0.62f; me.ShieldHp = 40f; me.Xp = Defs.XpToNext(me.Level) * 0.4f;
     me.Slots[1].Charges = 0; me.Slots[1].Timer = 4.2f;
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }

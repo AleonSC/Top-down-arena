@@ -15,6 +15,7 @@ namespace Arena
         Swarmer, Brute, Lunger,
         HiveBomber,  // the Hive Queen's explosive drones: fly straight at where you were and blow up
         CageWell,    // the Singularity's small wells that ring a player in a shrinking cage
+        Rioter,      // the Warden's riot: prisoners who run at whoever's nearest, the Warden included (Warden.cs)
     }
 
     public class RoleDef
@@ -130,6 +131,7 @@ namespace Arena
             new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
+            new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
         };
 
         public const int WeaponsPerRole = 3;
@@ -252,7 +254,7 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14,
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15,
             // more player kinds (enemy kinds are 10-19)
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
             KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
@@ -312,6 +314,7 @@ namespace Arena
                 case MineShot: return 9f;
                 case PierceShot: return 6.5f;
                 case FastShot: return 4.5f;
+                case StunShot: return 7f;
                 default: return 6f;
             }
         }
@@ -324,6 +327,7 @@ namespace Arena
                 case MineShot: return 18f;
                 case PierceShot: return 16f;
                 case FastShot: return 15f;
+                case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 default: return 12f;
             }
         }
@@ -373,6 +377,7 @@ namespace Arena
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);
+                case StunShot: return new Rgba(0.43f, 0.88f, 1f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
         }

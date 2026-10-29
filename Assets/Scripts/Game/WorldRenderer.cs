@@ -105,6 +105,7 @@ namespace Arena
                 if (b.Kind < Defs.SmallShot)
                     DrawBigShot(b, t);
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
+            DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
@@ -121,7 +122,10 @@ namespace Arena
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
             foreach (var p in game.Players.Values)
+            {
                 DrawPlayerWrapped(p, t);
+                DrawStunned(p, t);  // WardenLook.cs
+            }
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot)
                     DrawSmallShot(b, t);
@@ -338,6 +342,11 @@ namespace Arena
             if (b.Kind >= Defs.BloodShot && b.Kind <= Defs.BoneSpearShot)
             {
                 DrawBloodShot(b, c, t);  // BloodMageLook.cs
+                return;
+            }
+            if (b.Kind == Defs.StunShot)
+            {
+                DrawStunShot(b, t);  // WardenLook.cs
                 return;
             }
             if (b.Kind == Defs.FrostLance)
@@ -955,8 +964,7 @@ namespace Arena
                         Circle(pos, r + 8f + 3f * Mathf.Sin(t * 20f), new Rgba(1f, 0.6f, 0.2f, 0.25f), 24);
                     break;
                 case EnemyType.Boss:
-                    if (e.Phase == 3)
-                        DrawWardenCrossGuides(e, pos, r);
+                    DrawWardenUnderlay(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.Lunger:
                     DrawLungerTell(e, pos, r, col, t);
@@ -1193,6 +1201,9 @@ namespace Arena
             {
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
+                    break;
+                case EnemyType.Rioter:
+                    DrawRioterDetails(e, pos, r, col);  // WardenLook.cs
                     break;
                 case EnemyType.Shielder:
                     Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);

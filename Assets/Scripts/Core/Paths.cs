@@ -9,7 +9,7 @@ namespace Arena
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
     public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass, Bazaar }
 
-    public enum PatchKind : byte { Fire, Heal }
+    public enum PatchKind : byte { Fire, Heal, Gas }  // Gas: the Warden's canisters (Warden.cs)
 
     /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
     /// everyone once; each game then ages, grows and expires it the same way.
@@ -455,9 +455,16 @@ namespace Arena
                 var p = list[rng.Next(list.Count)];
                 pos = ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 240f), 60f);
             }
-            var pt = kind == PatchKind.Fire
-                ? new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.FireWarn, Life = Paths.FireLife, R0 = Paths.FireR0, R1 = Paths.FireR1 }
-                : new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = Paths.PoolWarn, Life = Paths.PoolLife, R0 = Paths.PoolRadius, R1 = Paths.PoolRadius };
+            if (kind == PatchKind.Fire)
+                SpawnPatchAt(kind, pos, Paths.FireWarn, Paths.FireLife, Paths.FireR0, Paths.FireR1);
+            else
+                SpawnPatchAt(kind, pos, Paths.PoolWarn, Paths.PoolLife, Paths.PoolRadius, Paths.PoolRadius);
+        }
+
+        /// A patch on the ground, told to everyone once.
+        void SpawnPatchAt(PatchKind kind, V2 pos, float warn, float life, float r0, float r1)
+        {
+            var pt = new PathPatch { Id = nextPatchId++, Kind = kind, Pos = pos, Warn = warn, Life = life, R0 = r0, R1 = r1 };
             Patches[pt.Id] = pt;
             var w = Proto.Begin(Msg.PathPatch);
             w.Write(pt.Id);

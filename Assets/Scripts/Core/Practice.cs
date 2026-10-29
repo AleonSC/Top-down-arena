@@ -73,7 +73,7 @@ namespace Arena
                 case EnemyType.Hexer: return "Fires curving pincer shots that close in from both sides.";
                 case EnemyType.Juggernaut: return "Armored and slow, can't be slowed or knocked back. Rotating stars of orbs.";
                 case EnemyType.Nest: return "Stationary spawner that keeps hatching Shards until destroyed.";
-                case EnemyType.Boss: return "Boss (wave 5): spirals, orb rings, aimed fans and cross streams.";
+                case EnemyType.Boss: return "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters.";
                 case EnemyType.HiveQueen: return "Boss (wave 10): immune behind shooting drones, then bombers and fans.";
                 case EnemyType.TwinA: return "Boss pair (wave 15): Soul Bond, a sweeping tether, and an enrage.";
                 case EnemyType.Singularity: return "Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages.";

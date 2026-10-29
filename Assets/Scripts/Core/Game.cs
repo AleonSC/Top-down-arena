@@ -69,6 +69,7 @@ namespace Arena
         public bool WallReflect, WhirlAll;               // host: mastered Shield Wall / Whirlwind
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
         public float BossContactT;  // host: a boss's body can only hurt you once a second
+        public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
         public float UltT;                     // Fortress / Bullet Storm time left
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
@@ -159,6 +160,7 @@ namespace Arena
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients
+        public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
     }
 
     public class Bullet
@@ -922,6 +924,9 @@ namespace Arena
                 return;
             AnimT += dt;
             TickShopNotices(dt);
+            UpdateWardenView(dt);  // Warden.cs
+            foreach (var p in Players.Values)
+                p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
             foreach (var p in Players.Values)
                 // Snap instead of sliding across the screen when the player wraps around an edge.
@@ -985,6 +990,7 @@ namespace Arena
                 TickSlots(me, dt);  // the host ticks everyone's slots in TickPlayers
             V2 move = input.Move.LimitLength(1f);
             V2 aimAt = input.AimAt;
+            V2 before = me.Pos;
             me.Aim = (aimAt - me.Pos).Angle;
             me.Parrying = (input.Parry || HoldParry) && !me.Downed;
             bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
@@ -1058,6 +1064,12 @@ namespace Arena
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
             if (!me.Downed && DashT <= 0f)
                 me.Pos += WellDriftAt(me.Pos) * dt;  // the Singularity's corner wells (Singularity.cs)
+            if (me.StunT > 0f && !me.Downed)
+            {
+                me.Pos = before;  // stunned by the Warden: stuck where you are
+                DashT = 0f;
+            }
+            WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)

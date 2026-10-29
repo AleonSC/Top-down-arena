@@ -486,6 +486,32 @@ namespace Arena
 
         /// Name and health bar for each boss on the field, plus warnings for their mechanics: wide across the
         /// top middle, which the rest of the HUD leaves free.
+        /// The Warden's stage under its health bar, and what to watch for.
+        string WardenNote(WardenState w, ref Color c)
+        {
+            if (w.TransT > 0f)
+            {
+                c = new Color(0.9f, 0.92f, 1f);
+                return "CAN'T BE HURT — " + WardenStageName(w.TransTo) + " is coming";
+            }
+            var me = game.Me;
+            if (me != null && me.StunT > 0f)
+            {
+                c = new Color(0.45f, 0.88f, 1f);
+                return WardenStageName(w.Stage) + " — STUNNED!";
+            }
+            if (w.Turn == WardenTurn.Light && w.LightMode == WardenLight.Lock)
+            {
+                c = new Color(1f, 0.4f, 0.35f);
+                return WardenStageName(w.Stage) + " — SPOTTED!";
+            }
+            c = w.Stage == WardenStage.Count ? new Color(1f, 0.92f, 0.65f) : w.Stage == WardenStage.Lockdown ? new Color(0.7f, 0.8f, 1f) : new Color(1f, 0.55f, 0.3f);
+            return WardenStageName(w.Stage);
+        }
+
+        static string WardenStageName(WardenStage s) =>
+            s == WardenStage.Count ? "COUNT" : s == WardenStage.Lockdown ? "LOCKDOWN" : s == WardenStage.Riot ? "RIOT" : "LAST STAND";
+
         void DrawBossBars()
         {
             float panelW = 640f, y = 12f, x0 = W / 2f - panelW / 2f;
@@ -524,6 +550,8 @@ namespace Arena
                 }
                 else if (e.Type == EnemyType.Eclipse)
                     note = "Phase " + (e.Phase + 1) + " of 3";
+                else if (e.Type == EnemyType.Boss && e.Warden != null)
+                    note = WardenNote(e.Warden, ref noteColor);
                 float h = note != null ? 62f : 46f;
                 var panel = new Rect(x0, y, panelW, h);
                 Ui.HudPanel(panel, col);

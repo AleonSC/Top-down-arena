@@ -549,6 +549,117 @@ static class Program
         }
     }
 
+    // The Warden (Warden.cs): a prison riot in three stages by health, one mechanic per turn.
+    static void WardenTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var blocks = typeof(Game).GetMethod("BlocksShot", flags);
+        var s = StartBuffed(dt, 5, 0);
+        var g = s[0].Game; var cg = s[1].Game;
+        g.Bot = false; cg.Bot = false;  // the players stand where the test puts them
+        g.DevSetGod(1, true);
+        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Boss);
+        var me = g.Players[1]; var friend = g.Players[2];
+        Action Clear = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Grunt) e.Hp = 0f; };
+        Check(w != null && Math.Abs(w.Pos.X - Game.Width / 2f) < 5f && Math.Abs(w.Pos.Y - Game.Height / 2f) < 5f, "the Warden appears in the middle of the arena");
+
+        // Count: its turns in order, holding still for the spiral.
+        var seen = new List<WardenTurn>();
+        V2 spiralAt = V2.Zero; bool spiralMoved = false;
+        Run(s, dt, 27f, null, () =>
+        {
+            Clear();
+            var t = w.Warden.Turn;
+            if (seen.Count == 0 || seen[seen.Count - 1] != t) { seen.Add(t); if (t == WardenTurn.Spiral) spiralAt = w.Pos; }
+            if (t == WardenTurn.Spiral && w.Pos.DistanceTo(spiralAt) > 1f) spiralMoved = true;
+            me.Pos = new V2(200f, 800f); friend.Pos = new V2(1400f, 800f);
+        });
+        Console.WriteLine("  warden count turns: " + string.Join(", ", seen));
+        Check(seen.Count >= 7 && seen[0] == WardenTurn.Rings && seen[2] == WardenTurn.Spiral && seen[4] == WardenTurn.Fan && seen[6] == WardenTurn.Light && seen[1] == WardenTurn.Rest,
+            "Count: orb rings, spiral, aimed fan, searchlight, with a breather between each");
+        Check(!spiralMoved, "the Warden holds still while it spirals");
+        Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's stage");
+
+        // The searchlight: a stun shot stops you, the light catches you, a shackle ring drops round you.
+        while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
+        while (w.Warden.Turn != WardenTurn.Light) { Clear(); me.Pos = new V2(60f, 60f); Step(s[0], dt); Step(s[1], dt); }
+        float hp0 = w.Hp;
+        int shackleBefore = g.Bullets.Values.Count(b => b.Kind == Defs.BigShot);
+        friend.Pos = new V2(1400f, 800f);
+        bool stunned = false, clientStunned = false, caught = false;
+        V2 clientAt = V2.Zero;
+        int ringOrbs = 0;
+        Run(s, dt, 8f, () => caught && w.Warden.LightMode == WardenLight.Ring, () =>
+        {
+            Clear();
+            w.TargetId = 2; w.RetargetT = 99f;  // the light hunts the friend (the host is in god mode)
+            me.Pos = new V2(60f, 60f);
+            var t = g.Players[w.TargetId];
+            foreach (var b in g.Bullets.Values) if (b.Kind == Defs.StunShot) { b.Pos = t.Pos; break; }  // make the next stun shot land
+            stunned |= t.StunT > 0f;
+            if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { if (!clientStunned) clientAt = cg.Players[2].Pos; clientStunned = true; }
+            caught |= w.Warden.LightMode == WardenLight.Lock;
+        });
+        int ring = w.Warden.Shackle.Count;
+        Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, ring orbs {2}, target {3}", stunned, caught, ring, w.TargetId);
+        Check(stunned && caught && ring >= 20, "a stun shot stops you, the searchlight catches you, and a shackle ring closes in");
+        Check(clientStunned, "the stun reaches the stunned player's own game");
+        Run(s, dt, 6f, () => w.Warden.Turn != WardenTurn.Light, Clear);
+        Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
+
+        // Lockdown at 65%: 2 s where it can't be hurt, the screen cleared.
+        w.Hp = w.MaxHp * 0.64f;
+        Run(s, dt, 0.2f, null, Clear);
+        float during = w.Hp;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        hurt.Invoke(g, new object[] { w, 500f, 1 });
+        Check(w.Warden.TransT > 0f && w.Hp == during && (bool)blocks.Invoke(g, new object[] { w, w.Pos + new V2(0f, 200f) }) && g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) == 0,
+            "at 65% it changes stage: it can't be hurt for 2 s and the screen is cleared");
+        Run(s, dt, 2.2f, null, Clear);
+        Check(w.Warden.Stage == WardenStage.Lockdown && w.Warden.Turn == WardenTurn.Cross && cg.Enemies[w.Id].Warden.Stage == WardenStage.Lockdown, "then Lockdown: the cross (everyone sees it)");
+
+        // The gates: everyone sees them; one shoves the friend (on the friend's own game) and hurts once, or twice when it rolls over them.
+        int gates = 0, gas = 0; float taken0 = friend.Run.DamageTaken; bool clientGate = false;
+        var seenGas = new HashSet<int>();
+        float friendStart = 0f; bool startSet = false, pushed = false;
+        Run(s, dt, 11.5f, null, () =>
+        {
+            Clear();
+            me.Pos = new V2(60f, 60f);
+            gates = Math.Max(gates, w.Warden.Gates.Count);
+            clientGate |= cg.Enemies[w.Id].Warden.Gates.Count > 0;
+            foreach (var pt in g.Patches.Values) if (pt.Kind == PatchKind.Gas) seenGas.Add(pt.Id);
+            if (!startSet && w.Warden.Gates.Count > 0) { cg.Players[2].Pos = new V2(800f, 700f); friendStart = 700f; startSet = true; }
+            if (startSet && cg.Players[2].Pos.Y > friendStart + 30f) pushed = true;
+        });
+        float gateDmg = friend.Run.DamageTaken - taken0;
+        Console.WriteLine("  warden lockdown: {0} gates at once, {1} gas clouds, friend pushed {2}, friend took {3:0} (gates and gas)", gates, seenGas.Count, pushed, gateDmg);
+        Check(gates >= 1 && clientGate && seenGas.Count == 2, "Lockdown: gates sweep across (everyone sees them) with gas from the 1st and 3rd");
+        Check(pushed && gateDmg > 0f, "a gate shoves you along on your own game, and hurts");
+
+        // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.
+        w.Hp = w.MaxHp * 0.29f;
+        Run(s, dt, 2.6f, null, Clear);
+        Check(w.Warden.Stage == WardenStage.Riot && w.Warden.Turn == WardenTurn.Rioters, "at 30%: the riot");
+        Run(s, dt, 0.6f, null, Clear);
+        int rioters = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
+        V2 front = w.Pos + V2.FromAngle(w.Warden.Aux) * 200f, behind = w.Pos - V2.FromAngle(w.Warden.Aux) * 200f;
+        Check(rioters >= 6 && (bool)blocks.Invoke(g, new object[] { w, front }) && !(bool)blocks.Invoke(g, new object[] { w, behind }),
+            "the doors burst open (" + rioters + " rioters) and the riot shield stops shots from the front only");
+        me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f);
+        foreach (var r in g.Enemies.Values) if (r.Type == EnemyType.Rioter) r.Pos = w.Pos + new V2(80f, 0f);
+        float hpR = w.Hp;
+        Run(s, dt, 1f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); });
+        Check(w.Hp < hpR, "rioters that reach the Warden hurt it");
+
+        // The last stand below 10%: the rioters scatter.
+        w.Hp = w.MaxHp * 0.09f;
+        Run(s, dt, 3f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);
+        Check(w.Warden.Stage == WardenStage.LastStand && g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter) == 0, "below 10%: the last stand, and the rioters scatter");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // The parry: blocks a boss's fire from the front, breaks after its limit, stops you shooting,
     // reflects shots on a perfect parry, and everyone sees it.
     static void ParryTest(float dt)
@@ -689,7 +800,7 @@ static class Program
         Run(s, dt, 1f, null, pin);  // shield down long enough that raising it is a fresh parry
         s[0].Game.Bot = true;       // aims at the Warden
         s[0].Game.HoldParry = true;
-        Run(s, dt, 4f, null, pin);
+        Run(s, dt, 8f, () => reflected > 10 && counter, pin);  // up to 8 s: the Warden rests between its attacks
         s[0].Game.HoldParry = false;
         float plain = 12f * me.Stats.DmgMult;
         Console.WriteLine("  mirror/riposte: {0} shots reflected, strongest {1:0.0} (plain reflect {2:0.0}), counterstance {3}", reflected, biggestReflect, plain, counter);
@@ -3832,7 +3943,7 @@ static class Program
             var tank = s[0].Game.Players[1];
             if (mode == "flame wall")
                 s[0].Game.AddZone(ZoneKind.FlameWall, tank, boss.Pos, 90f, 30f);
-            int escaped = 0, frame = 0;
+            int escaped = 0, frame = 0, bossShots = 0, plain = 0;
             float hpBefore = s[0].Game.Players[2].Hp + s[0].Game.Players[1].Hp;
             Run(s, dt, 8, null, () =>
             {
@@ -3850,20 +3961,21 @@ static class Program
                     if (e != b)
                         e.Hp = 0f;             // only the boss's own bullets count
                 if (++frame % 10 == 0)
+                {
                     foreach (var bl in s[0].Game.Bullets.Values)
                         if (Defs.IsEnemyShot(bl.Kind) && bl.Pos.DistanceTo(b.Pos) > 200f)
                             escaped++;
+                    // The client is told which bullets are the boss's, so it can draw them differently.
+                    foreach (var bl in s[1].Game.Bullets.Values)
+                        if (Defs.IsEnemyShot(bl.Kind))
+                        {
+                            if (bl.FromBoss) bossShots++; else plain++;
+                        }
+                }
             });
             Console.WriteLine("  {0} on the boss: {1} boss bullet sightings beyond 200 px", mode, escaped);
             if (mode == "barrier")
             {
-                // The client is told which bullets are the boss's, so it can draw them differently.
-                int bossShots = 0, plain = 0;
-                foreach (var bl in s[1].Game.Bullets.Values)
-                    if (Defs.IsEnemyShot(bl.Kind))
-                    {
-                        if (bl.FromBoss) bossShots++; else plain++;
-                    }
                 Console.WriteLine("  client sees {0} boss bullets and {1} unflagged enemy bullets", bossShots, plain);
                 Check(bossShots > 0 && plain == 0, "the client knows which bullets are a boss's");
             }
@@ -4048,14 +4160,15 @@ static class Program
 
     static void BossMechanics(float dt)
     {
-        // The Warden's fourth attack: it dashes to a spot, plants, and fires straight streams up, down,
-        // left and right (a static "+" that cuts the arena into quadrants), then moves and does it again.
+        // The Warden's Lockdown cross: it dashes to a spot, plants, and fires straight streams up, down, left and
+        // right (a static "+" that cuts the arena into quadrants), then moves and does it again, four times.
         {
             var s = StartBuffed(dt, 5, 0);
             Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
             var w = Find(s[0], EnemyType.Boss);
             s[0].Game.Bot = s[1].Game.Bot = false;
-            w.T = 17.9f;  // jump to just before the fourth attack (the first three last 6 s each)
+            // Drop it into the Lockdown, and wait for the cross to start.
+            Run(s, dt, 8, () => w.Warden != null && w.Warden.Turn == WardenTurn.Cross && w.Warden.TransT <= 0f, () => w.Hp = Math.Min(w.Hp, w.MaxHp * 0.6f));
             V2 start = w.Pos;
             float farthest = 0f, movedWhileFiring = 0f, crossTime = 0f, guidesWhileMoving = 0f;
             V2 lastPos = w.Pos;
@@ -4067,14 +4180,17 @@ static class Program
             {
                 foreach (var p in s[0].Game.Players.Values)
                     p.InvulnT = 1f;
+                w.Hp = Math.Max(w.Hp, w.MaxHp * 0.5f);
                 var cw = Find(s[1], EnemyType.Boss);
-                phaseOnClient |= cw != null && cw.Phase == 3;
-                movingOnClient |= cw != null && cw.Phase == 4;
-                if (w.Phase == 3 || w.Phase == 4)
+                bool cCross = cw != null && cw.Warden != null && cw.Warden.Turn == WardenTurn.Cross;
+                phaseOnClient |= cCross && !cw.Warden.Dashing;
+                movingOnClient |= cCross && cw.Warden.Dashing;
+                bool cross = w.Warden.Turn == WardenTurn.Cross, planted = cross && !w.Warden.Dashing;
+                if (cross)
                     crossTime += dt;
-                if (w.Phase == 3 && w.Pos.DistanceTo(lastPos) > 0.5f)
-                    guidesWhileMoving += dt;
-                if (w.Phase != 3)
+                if (planted && w.Pos.DistanceTo(lastPos) > 0.5f)
+                    guidesWhileMoving += dt;  // the guides show while planted
+                if (!planted)
                 {
                     lastPos = w.Pos;
                     return;
@@ -4550,6 +4666,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "warden")
+        {
+            WardenTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "bear")
         {
             BearTotemTest(1f / 60f);
@@ -4584,6 +4706,7 @@ static class Program
         SingularityTest(dt);
         KnightTest(dt);
         BearTotemTest(dt);
+        WardenTest(dt);
         BossSoundTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);

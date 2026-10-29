@@ -259,6 +259,11 @@ namespace Arena
         void DrawPatch(PathPatch pt, float t)
         {
             float r = pt.Radius, fade = Mathf.Clamp01((pt.Life - pt.Age) / 1f);
+            if (pt.Kind == PatchKind.Gas)
+            {
+                DrawGasPatch(pt, r, fade, t);
+                return;
+            }
             if (pt.Kind == PatchKind.Fire)
             {
                 if (!pt.Active)
@@ -488,6 +493,29 @@ namespace Arena
             for (int k = 0; k < d.Danger; k++)
                 Ui.Icon(new Rect(chip.xMax - 8f - (d.Danger - k) * 15f, chip.y + 4f, 12f, 12f), PixelArt.Get("ui_skull"), new Color(1f, 0.5f, 0.5f));
             return 24f;
+        }
+
+        /// The Warden's tear gas: a target ring while the canister's in the air, then a churning green cloud.
+        void DrawGasPatch(PathPatch pt, float r, float fade, float t)
+        {
+            if (!pt.Active)
+            {
+                float f = pt.Age / pt.Warn;
+                Arc(pt.Pos, r, 2.5f, new Rgba(0.6f, 1f, 0.35f, 0.4f + 0.4f * f), 32);
+                Arc(pt.Pos, r * (1f - f), 2f, new Rgba(0.75f, 1f, 0.5f, 0.6f), 32);
+                Line(pt.Pos - new V2(10f, 0f), pt.Pos + new V2(10f, 0f), 2f, new Rgba(0.7f, 1f, 0.45f, 0.7f));
+                Line(pt.Pos - new V2(0f, 10f), pt.Pos + new V2(0f, 10f), 2f, new Rgba(0.7f, 1f, 0.45f, 0.7f));
+                return;
+            }
+            float grow = Mathf.Clamp01((pt.Age - pt.Warn) / 0.4f);
+            Circle(pt.Pos, r * grow, new Rgba(0.45f, 0.8f, 0.25f, 0.18f * fade), 36);
+            for (int k = 0; k < 7; k++)  // puffs churning round inside it
+            {
+                float a = t * (0.5f + 0.1f * k) * (k % 2 == 0 ? 1f : -1f) + k * 0.9f + pt.Id, d = r * (0.25f + 0.08f * k);
+                V2 at = pt.Pos + V2.FromAngle(a) * Mathf.Min(d, r * 0.62f) * grow;
+                Circle(at, r * (0.34f + 0.04f * Mathf.Sin(t * 2f + k)) * grow, new Rgba(0.6f, 0.9f, 0.35f, 0.14f * fade), 20);
+            }
+            Arc(pt.Pos, r * grow, 2f, new Rgba(0.7f, 1f, 0.4f, 0.35f * fade), 40);
         }
     }
 }
