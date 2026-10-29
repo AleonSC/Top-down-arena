@@ -19,6 +19,7 @@ namespace Arena
         public float Stun;            // freezes what it hits for this long (not bosses)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
+        public bool Deflect;          // bats enemy bullets in the arc back as your own (the Quarterstaff: it parries as it swings)
         public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
         public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
         public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack, closer ones are flung out to it
@@ -103,11 +104,16 @@ namespace Arena
                 }
                 case WeaponId.HolyMace:
                 {
-                    var s = NewSwing(p, aim, w.Reach, 120f, w.Damage * dmg);
-                    s.HealPerHit = 2f + extra;
-                    s.HealRange = 220f + 60f * extra;
-                    s.HealHits = 4;
-                    pendingSwings.Add(s);
+                    // The Quarterstaff: a wide sweep that knocks enemies back and parries bullets as it goes;
+                    // each extra projectile follows up with the other end of the staff.
+                    for (int k = 0; k <= extra; k++)
+                    {
+                        var s = NewSwing(p, aim + (k == 0 ? 0f : (k % 2 == 1 ? 0.25f : -0.25f)), w.Reach, 150f, w.Damage * dmg * (k == 0 ? 1f : 0.6f));
+                        s.Knock = StaffKnock;
+                        s.Deflect = true;
+                        s.Delay = 0.14f * k;
+                        pendingSwings.Add(s);
+                    }
                     break;
                 }
                 case WeaponId.Lightbringer:
@@ -320,8 +326,39 @@ namespace Arena
                     if (q.Pos.DistanceTo(origin) < s.HealRange)
                         Heal(q, s.HealSpin, p);
 
-            if (!s.NoCut)
+            if (s.Deflect)
+                DeflectBullets(p, origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc);
+            else if (!s.NoCut)
                 CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
+        }
+
+        const float StaffKnock = 70f, DeflectSpeed = 520f, DeflectDamage = 12f;
+
+        /// The Quarterstaff parries as it swings: enemy bullets in the arc (big orbs too, but never red aimed shots) are
+        /// batted back out the way the staff was swinging, as the swinger's own holy shots.
+        int DeflectBullets(Player p, V2 origin, float aim, float reach, float halfArc)
+        {
+            var hit = new List<Bullet>();
+            foreach (var b in Bullets.Values)
+            {
+                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
+                    continue;
+                if (b.Pos.DistanceTo(origin) > reach + b.Radius || AngleTo(origin, b.Pos, aim) > halfArc)
+                    continue;
+                hit.Add(b);
+            }
+            foreach (var b in hit)
+            {
+                Bullets.Remove(b.Id);
+                pendingRemoved.Add(b.Id);
+                V2 away = (b.Pos - origin).Normalized();
+                if (away.IsZero)
+                    away = V2.FromAngle(aim);
+                SpawnBullet(Defs.HolyShot, b.Pos, away * DeflectSpeed, 0f, 1f, DeflectDamage * p.Stats.DmgMult, p.Id);
+            }
+            if (hit.Count > 0)
+                BroadcastFx(FxKind.Spark, origin + V2.FromAngle(aim) * reach * 0.6f, new Rgba(1f, 0.92f, 0.6f), 26f, 0.25f, Sfx.Clang);
+            return hit.Count;
         }
 
         /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.

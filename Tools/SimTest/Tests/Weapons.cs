@@ -96,6 +96,45 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    /// The Quarterstaff (Knight Healer): wide sweeps that knock enemies back and parry bullets as they swing.
+    static void QuarterstaffTest(float dt)
+    {
+        var s = StartBuffed(dt, 1, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        Run(s, dt, 3, () => s[0].Game.State == MatchState.Fighting);
+        var g = s[0].Game;
+        var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", bf);
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
+        var me = g.Players[1];
+        me.Weapon = Defs.Weapon(Role.Healer, Kit.Knight, 0);
+        Check(me.Weapon.Name == "Quarterstaff", "the Knight Healer's first weapon is the Quarterstaff");
+        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+        V2 from = new V2(500f, 450f);
+        var dummy = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(590f, 450f), 0f, 0, false });
+        dummy.MaxHp = dummy.Hp = 1e5f; dummy.Speed = 0f; dummy.FireT = 99f;
+        V2 d0 = dummy.Pos;
+        // Enemy bullets coming at the swing: a small one, a big orb, and a red aimed shot (which gets through).
+        var small = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, new V2(570f, 420f), new V2(-150f, 0f), 0f, 5f, 12f, 0, false, 0f });
+        var big = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(575f, 480f), new V2(-110f, 0f), 0f, 5f, 20f, 0, false, 0f });
+        var red = (Bullet)shoot.Invoke(g, new object[] { Defs.PierceShot, new V2(580f, 450f), new V2(-200f, 0f), 0f, 5f, 16f, 0, false, 0f });
+        int idSmall = small.Id, idBig = big.Id, idRed = red.Id;
+        int before = g.Bullets.Values.Count(b => b.Owner == 1 && b.Kind == Defs.HolyShot);
+        for (int f = 0; f < 10; f++)
+        {
+            me.Pos = from; queue.Clear();
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = f == 0 } : new PlayerInput()); }
+        }
+        int deflected = g.Bullets.Values.Count(b => b.Owner == 1 && b.Kind == Defs.HolyShot && b.Vel.X > 0f) - before;
+        Console.WriteLine("  quarterstaff: dummy pushed {0:0} px, took {1:0}; {2} bullets batted back; small gone {3}, big gone {4}, red still flying {5}",
+            dummy.Pos.X - d0.X, dummy.MaxHp - dummy.Hp, deflected, !g.Bullets.ContainsKey(idSmall), !g.Bullets.ContainsKey(idBig), g.Bullets.ContainsKey(idRed));
+        Check(dummy.Pos.X - d0.X > 50f && dummy.Hp < dummy.MaxHp, "its swings knock enemies back and hurt them");
+        Check(deflected == 2 && !g.Bullets.ContainsKey(idSmall) && !g.Bullets.ContainsKey(idBig) && g.Bullets.ContainsKey(idRed),
+            "each swing parries: bullets in its arc fly back at enemies as yours (red aimed shots get through)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void WeaponExtraTest(float dt)
     {
         var s = StartBuffed(dt, 1, 0);
@@ -177,7 +216,6 @@ static partial class Program
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
                 case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
-                case WeaponId.HolyMace: ok = ratio > 0.9f && a[0] > 0f; break;              // heals more per hit (checked in KnightTest's tables); damage unchanged
                 default: ok = ratio > 1.2f; break;
             }
             Console.WriteLine("  {0,-17} {1,6:0} -> {2,6:0} (x{3:0.00})  {4,4} -> {5,4}      {6} -> {7}{8}", w.Name, a[0], b[0], ratio, a[1], b[1], a[2], b[2], ok ? "" : "   <-- not stronger");

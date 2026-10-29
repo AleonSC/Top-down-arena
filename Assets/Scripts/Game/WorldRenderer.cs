@@ -1457,10 +1457,18 @@ namespace Arena
             V2 grip = p.Disp + side * (r * 0.7f);
             switch (p.Weapon.Id)
             {
-                case WeaponId.Warhammer: case WeaponId.HolyMace:
+                case WeaponId.Warhammer:
                     Line(grip, grip + dir * (r + 12f), 3f, new Rgba(0.6f, 0.45f, 0.3f));
-                    Polygon(grip + dir * (r + 14f), 6f, p.Weapon.Id == WeaponId.HolyMace ? 6 : 4, p.Aim, p.Weapon.Id == WeaponId.HolyMace ? new Rgba(1f, 0.9f, 0.5f) : Steel);
+                    Polygon(grip + dir * (r + 14f), 6f, 4, p.Aim, Steel);
                     break;
+                case WeaponId.HolyMace:  // the Quarterstaff: a long pole held in both hands, capped in gold at each end
+                {
+                    V2 a = grip - dir * (r * 0.9f), b = grip + dir * (r + 24f);
+                    Line(a, b, 3.5f, new Rgba(0.62f, 0.46f, 0.28f));
+                    Circle(a, 3f, new Rgba(1f, 0.88f, 0.45f), 8);
+                    Circle(b, 3.5f, new Rgba(1f, 0.88f, 0.45f), 8);
+                    break;
+                }
                 case WeaponId.Halberd: case WeaponId.Rapier:
                     Line(grip - dir * 6f, grip + dir * (r + (p.Weapon.Id == WeaponId.Halberd ? 30f : 22f)), p.Weapon.Id == WeaponId.Halberd ? 3f : 2f, Steel);
                     if (p.Weapon.Id == WeaponId.Halberd)
