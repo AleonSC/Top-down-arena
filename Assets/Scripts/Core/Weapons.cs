@@ -282,11 +282,11 @@ namespace Arena
                 }
                 case WeaponId.TwinRifle:
                 {
-                    // Parallel barrels, 10 px apart: two, plus one per extra projectile.
+                    // Parallel barrels, 10 px apart: two, plus one per extra projectile. Each volley strays up to 2°.
                     int n = 2 + extra;
-                    V2 side = dir.Orthogonal();
+                    V2 v = V2.FromAngle(aim + Rand(-TwinRifleSpread, TwinRifleSpread)), side = v.Orthogonal();
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), dir * 820f, 0f, 1f, 6.5f * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), v * 820f, 0f, 1f, 5f * dmg, p.Id);
                     break;
                 }
                 case WeaponId.Railgun:
@@ -392,6 +392,8 @@ namespace Arena
             b.FragSplash = splash;
             b.FragSideways = sideways;
         }
+
+        const float TwinRifleSpread = 2f * MathX.Pi / 180f;
 
         bool firingWeapon;  // set while a player's weapon fires, to tag gun shots for accuracy
     }
