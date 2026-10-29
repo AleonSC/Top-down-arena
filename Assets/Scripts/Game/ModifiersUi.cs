@@ -18,12 +18,15 @@ namespace Arena
             Ui.Fancy(new Rect(x, y, w, 28f), "RUN MODIFIERS", 20, Color.white, Color.Lerp(ModColor, Color.white, 0.4f), TextAnchor.MiddleLeft, ModColor);
             int n = Modifiers.Count(session.Modifiers);
             Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModColor, TextAnchor.MiddleRight, true);
+            if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
+                foreach (var d in Modifiers.All)
+                    session.SetModifier(d.Mod, false);
             Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Click a card to switch it on or off. They last the whole run, for everyone (Practice Range too)."
                 : "The host picks these. They last the whole run, for everyone.", 12, Ui.Muted);
-            y += 58f;
+            y += 54f;
 
-            const int cols = 2;
-            const float gap = 12f, ch = 92f;
+            const int cols = 3;
+            const float gap = 8f, ch = 94f;
             float cw = (w - gap * (cols - 1)) / cols;
             for (int i = 0; i < Modifiers.All.Length; i++)
             {
@@ -32,13 +35,6 @@ namespace Arena
                 bool on = (session.Modifiers & d.Mod) != 0;
                 if (DrawModCard(c, d, on, host, t))
                     session.SetModifier(d.Mod, !on);
-            }
-            if (n > 0 && host)
-            {
-                float by = y + ((Modifiers.All.Length + cols - 1) / cols) * (ch + gap) + 2f;
-                if (Ui.Button(new Rect(x, by, 160f, 30f), "Turn all off"))
-                    foreach (var d in Modifiers.All)
-                        session.SetModifier(d.Mod, false);
             }
         }
 
@@ -50,11 +46,11 @@ namespace Arena
             if (on)
                 Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(ModColor.r, ModColor.g, ModColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
             // Name, then what it does.
-            Ui.Fancy(new Rect(c.x + 16f, c.y + 10f, c.width - 120f, 26f), d.Name, 17, Color.white, on ? Color.Lerp(ModColor, Color.white, 0.5f) : new Color(0.82f, 0.86f, 0.96f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(c.x + 16f, c.y + 38f, c.width - 32f, 36f), d.Desc, 12, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
+            Ui.Fancy(new Rect(c.x + 14f, c.y + 10f, c.width - 120f, 26f), d.Name, 16, Color.white, on ? Color.Lerp(ModColor, Color.white, 0.5f) : new Color(0.82f, 0.86f, 0.96f), TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(c.x + 14f, c.y + 34f, c.width - 26f, 36f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
             // Harder / easier / risky tag, and the switch.
             string tag = d.Lean == ModLean.Harder ? "HARDER" : d.Lean == ModLean.Easier ? "EASIER" : "RISKY";
-            Ui.Badge(new Rect(c.x + 16f, c.yMax - 24f, 64f, 16f), tag, new Color(lean.r * 0.7f, lean.g * 0.7f, lean.b * 0.7f));
+            Ui.Badge(new Rect(c.x + 14f, c.yMax - 21f, 64f, 16f), tag, new Color(lean.r * 0.7f, lean.g * 0.7f, lean.b * 0.7f));
             var sw = new Rect(c.xMax - 66f, c.y + 12f, 50f, 22f);
             Ui.Pill(sw, on ? new Color(ModColor.r * 0.85f, ModColor.g * 0.85f, ModColor.b * 0.85f) : new Color(1f, 1f, 1f, 0.1f));
             var knob = new Rect(on ? sw.xMax - 20f : sw.x + 2f, sw.y + 2f, 18f, 18f);

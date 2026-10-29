@@ -579,9 +579,11 @@ namespace Arena
                 }
                 if (killer != null && e.Def.Xp > 0 && OnPathOf(PathId.BloodMoon))
                     Heal(killer, Paths.BloodMoonHeal(Wave), null, "Blood Moon");  // Blood Moon: the hunt keeps you alive
+                else if (killer != null && e.Def.Xp > 0 && Has(RunMod.Bloodlust))
+                    Heal(killer, Paths.BloodMoonHeal(Wave), null, "Bloodlust");
                 Score += (int)Math.Round(e.Score * (e.Elite ? 3 : 1) * PathBonus);
                 GrantXp(e.Def.Xp * (e.Elite ? 3 : 1) * PathBonus);
-                if (OnPathOf(PathId.Bazaar))
+                if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush))
                     GrantGold(e);  // Shop.cs
                 DropOrbs(e, bossReward);
                 DeathFx(e, e.Pos);
@@ -789,7 +791,7 @@ namespace Arena
                     SpawnOrb(e.Pos + V2.FromAngle(MathX.Tau * i / 4f) * 40f, false);
                 return;
             }
-            if (Has(RunMod.Famine) || OnPathOf(PathId.BloodMoon))
+            if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon))
                 return;  // run modifier / Blood Moon: no health orbs (bosses still drop theirs)
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)

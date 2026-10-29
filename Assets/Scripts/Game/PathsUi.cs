@@ -360,6 +360,14 @@ namespace Arena
         {
             if (game.NarrowF > 0f)
                 DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, game.NarrowF, Paths.Get(PathId.NarrowPass).Accent, t);
+            else if (game.TinyInset.X > 0.5f)
+            {
+                // Tiny Arena: the same rock, glowing brighter while it moves.
+                float f = Mathf.Clamp01(game.TinyInset.X / 40f) * (game.TinyMoving ? 0.999f : 1f);
+                DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, f, TinyAccent, t);
+            }
+            if (game.NightF > 0f)
+                DrawNight(t);
             if (game.FogF > 0f)
             {
                 fogLights.Clear();
@@ -428,6 +436,62 @@ namespace Arena
                     Quad(c - along * 5f, c + n, c + along * 5f, c - n);
                 }
             }
+        }
+
+        static readonly Rgba TinyAccent = new Rgba(1f, 0.45f, 0.35f);
+
+        // Nightfall: dark everywhere but round each player and in each player's lantern beam.
+        const float NightSight = 210f, NightEdge = 90f, NightBeam = 560f, NightBeamHalf = 0.42f, NightCell = 30f;
+        float[] nightAlpha;
+
+        void DrawNight(float t)
+        {
+            int nx = Mathf.CeilToInt(AW / NightCell), ny = Mathf.CeilToInt(AH / NightCell);
+            if (nightAlpha == null || nightAlpha.Length < (nx + 1) * (ny + 1))
+                nightAlpha = new float[(nx + 1) * (ny + 1)];
+            for (int j = 0; j <= ny; j++)
+                for (int i = 0; i <= nx; i++)
+                {
+                    V2 p = new V2(Mathf.Min(AW, i * NightCell), Mathf.Min(AH, j * NightCell));
+                    float dark = 1f;
+                    foreach (var pl in game.Players.Values)
+                    {
+                        V2 rel = p - pl.Disp;
+                        float d = rel.Length;
+                        float round = Smooth((d - NightSight) / NightEdge);
+                        // The lantern: a cone toward where they aim, fading toward its far end.
+                        float off = Mathf.Abs(MathX.Fmod(rel.Angle - pl.Aim + MathX.Pi, MathX.Tau) - MathX.Pi);
+                        float beam = d < 1f ? 0f : Mathf.Max(Smooth((off - NightBeamHalf) / 0.18f), Smooth((d - NightBeam) / 160f) * 0.85f + 0.15f * d / NightBeam);
+                        if (!pl.Downed)
+                            round = Mathf.Min(round, beam);
+                        dark = Mathf.Min(dark, round);
+                    }
+                    nightAlpha[j * (nx + 1) + i] = 0.93f * game.NightF * dark;
+                }
+            for (int j = 0; j < ny; j++)
+                for (int i = 0; i < nx; i++)
+                {
+                    int k = j * (nx + 1) + i;
+                    float a00 = nightAlpha[k], a10 = nightAlpha[k + 1], a01 = nightAlpha[k + nx + 1], a11 = nightAlpha[k + nx + 2];
+                    if (a00 + a10 + a01 + a11 <= 0.001f)
+                        continue;
+                    V2 p00 = new V2(i * NightCell, j * NightCell), p11 = new V2(Mathf.Min(AW, p00.X + NightCell), Mathf.Min(AH, p00.Y + NightCell));
+                    V2 p10 = new V2(p11.X, p00.Y), p01 = new V2(p00.X, p11.Y);
+                    NightVertex(p00, a00); NightVertex(p10, a10); NightVertex(p11, a11);
+                    NightVertex(p00, a00); NightVertex(p11, a11); NightVertex(p01, a01);
+                }
+        }
+
+        static float Smooth(float x)
+        {
+            x = Mathf.Clamp01(x);
+            return x * x * (3f - 2f * x);
+        }
+
+        void NightVertex(V2 p, float a)
+        {
+            GL.Color(new Color(0.015f, 0.02f, 0.06f, a));
+            GL.Vertex(Px(p));
         }
 
         /// One layer of strata between two points: a wavy line seeded by k.

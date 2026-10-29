@@ -458,6 +458,12 @@ as chips above the wave panel during the match, and session recordings list them
 | Swift Foes | Enemies move 30% faster | Harder |
 | Famine | Enemies never drop health orbs (bosses still do) | Harder |
 | Lucky | Everyone starts with 3 extra upgrade rerolls | Easier |
+| Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool (not in the Practice Range) | Easier |
+| Practiced | Abilities gain mastery twice as fast | Easier |
+| Bloodlust | Every kill heals its killer (2 HP + 0.1 per wave, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (Healers' own regeneration included; their aura still heals) | Risky |
+| Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
+| Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
+| Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
 
 ## Practice Range
 

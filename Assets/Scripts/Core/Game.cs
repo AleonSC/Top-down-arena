@@ -459,9 +459,21 @@ namespace Arena
                 Recalc(p);
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
+                if (Has(RunMod.HeadStart) && Practice == null)
+                {
+                    // Head Start: the picks of the first levels, and a legendary from the first boss's pool.
+                    p.Level = Modifiers.HeadStartLevel;
+                    if (IsHost)
+                    {
+                        p.PendingPicks += Modifiers.HeadStartLevel - 1;
+                        var first = BossForWave(5);
+                        p.LegendaryQueue.Add(IsReaper(first) ? EnemyType.TwinA : first);
+                        NextOffer(p);
+                    }
+                }
                 Players[id] = p;
                 lastDowned[id] = false;
-                lastLevel[id] = 1;
+                lastLevel[id] = p.Level;
             }
             Wave = Math.Max(0, startWave - 1);
             State = MatchState.Intermission;
@@ -1309,15 +1321,18 @@ namespace Arena
                         FireFanned(p, p.Aim, 0);
                     }
                 }
-                if (!OnPathOf(PathId.BloodMoon))  // Blood Moon (Paths.cs): no regeneration
+                if (!OnPathOf(PathId.BloodMoon) && !Has(RunMod.Bloodlust))  // Blood Moon (Paths.cs) and Bloodlust: no regeneration
                 {
                     Recorder?.HealReceived(p, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.MaxHp - p.Hp), "regeneration");
                     p.Hp = Math.Min(p.MaxHp, p.Hp + (PassiveRegen + p.Stats.Regen) * dt);
                 }
                 if (p.Role == Role.Healer)
                 {
-                    Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
-                    p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
+                    if (!Has(RunMod.Bloodlust))
+                    {
+                        Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
+                        p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
+                    }
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
                             Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p);

@@ -70,7 +70,7 @@ namespace Arena
                 p.Restocks = 0;
                 RollShelf(p);
             }
-            DoLog("the Bazaar opens");
+            DoLog(CurrentPath == PathId.Bazaar ? "the Bazaar opens" : "the shop opens");
         }
 
         void RollShelf(Player p)
@@ -217,12 +217,13 @@ namespace Arena
             ShopOpen = false;
             foreach (var p in Players.Values)
             {
-                if (p.Gold > 0)
+                if (p.Gold > 0 && !Has(RunMod.GoldRush))  // Gold Rush keeps it for the next shop
                 {
                     GrantXpTo(p, p.Gold * GoldToXp);
                     DoLog(p.Role + ": " + p.Gold + " leftover gold -> XP");
                 }
-                p.Gold = 0;
+                if (!Has(RunMod.GoldRush))
+                    p.Gold = 0;
                 p.ShopDone = false;
                 for (int i = 0; i < ShelfSize; i++)
                     p.Shelf[i] = -1;

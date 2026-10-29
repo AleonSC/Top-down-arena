@@ -166,7 +166,8 @@ namespace Arena
             Route.Clear();
             lastPath = PathId.None;
             Patches.Clear();
-            NarrowF = FogF = 0f;
+            NarrowF = FogF = NightF = 0f;
+            TinyInset = V2.Zero;
             ShopOpen = false;
             ShopT = 0f;
         }
@@ -347,18 +348,45 @@ namespace Arena
         {
             NarrowF = MathX.MoveTowards(NarrowF, ArenaRule(PathId.NarrowPass) ? 1f : 0f, dt / Paths.NarrowClose);
             FogF = MathX.MoveTowards(FogF, ArenaRule(PathId.Fogbound) ? 1f : 0f, dt / Paths.FogIn);
+            V2 tiny = TinyTarget();
+            TinyMoving = TinyInset.DistanceTo(tiny) > 0.01f;
+            TinyInset = new V2(MathX.MoveTowards(TinyInset.X, tiny.X, dt * TinySpeed), MathX.MoveTowards(TinyInset.Y, tiny.Y, dt * TinySpeed * Height / Width));
+            NightF = MathX.MoveTowards(NightF, Has(RunMod.Nightfall) && State != MatchState.Idle ? 1f : 0f, dt / Paths.FogIn);
         }
 
-        /// Narrow Pass is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
-        public bool Walled => NarrowF > 0f;
+        // --- Tiny Arena and Nightfall (run modifiers) -------------------------------------------
 
-        /// The playable part of the arena: all of it, or the pass between Narrow Pass's walls.
+        /// Tiny Arena: how far its walls stand in from each edge, and whether they're still moving.
+        /// Nightfall: how dark it is (0-1). Every game works both out from the wave, so nothing needs sending.
+        public V2 TinyInset;
+        public bool TinyMoving;
+        public float NightF;
+        public const float TinyShrink = 0.75f, TinyMinArea = 0.4f, TinySpeed = 220f;  // room kept per boss, the least it gets to, px/s across
+
+        /// After each boss the walls take a quarter of the room (a quarter of its area, down to 40%); they open
+        /// for the next boss's countdown and fight, since the bosses' mechanics use the whole arena.
+        V2 TinyTarget()
+        {
+            if (!Has(RunMod.TinyArena) || Practice != null || State == MatchState.Idle)
+                return V2.Zero;
+            int upcoming = State == MatchState.Intermission ? Wave + 1 : Wave;
+            if (upcoming % 5 == 0)
+                return V2.Zero;
+            int bosses = (upcoming - 1) / 5;
+            float s = (float)Math.Sqrt(Math.Max(TinyMinArea, Math.Pow(TinyShrink, bosses)));
+            return new V2(Width * (1f - s) / 2f, Height * (1f - s) / 2f);
+        }
+
+        /// Narrow Pass or Tiny Arena is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
+        public bool Walled => NarrowF > 0f || TinyInset.X > 0.5f;
+
+        /// The playable part of the arena: all of it, or what's inside Narrow Pass's or Tiny Arena's walls.
         public V2 ArenaMin
         {
             get
             {
                 float f = NarrowF * NarrowF * (3f - 2f * NarrowF);
-                return new V2(Paths.NarrowInsetX * f, Paths.NarrowInsetY * f);
+                return new V2(Math.Max(Paths.NarrowInsetX * f, TinyInset.X), Math.Max(Paths.NarrowInsetY * f, TinyInset.Y));
             }
         }
 

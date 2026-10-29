@@ -14,6 +14,12 @@ namespace Arena
         SwiftFoes = 8,
         Famine = 16,
         Lucky = 32,
+        HeadStart = 64,
+        Practiced = 128,
+        Bloodlust = 256,
+        GoldRush = 512,
+        TinyArena = 1024,
+        Nightfall = 2048,
     }
 
     public enum ModLean { Harder, Easier, Risky }
@@ -35,10 +41,18 @@ namespace Arena
             new ModDef { Mod = RunMod.SwiftFoes, Name = "Swift Foes", Desc = "Enemies move 30% faster.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Famine, Name = "Famine", Desc = "Enemies never drop health orbs.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Lucky, Name = "Lucky", Desc = "Everyone starts with 3 extra upgrade rerolls.", Lean = ModLean.Easier },
+            new ModDef { Mod = RunMod.HeadStart, Name = "Head Start", Desc = "Everyone starts at level 3 with a free legendary pick.", Lean = ModLean.Easier },
+            new ModDef { Mod = RunMod.Practiced, Name = "Practiced", Desc = "Abilities gain mastery twice as fast.", Lean = ModLean.Easier },
+            new ModDef { Mod = RunMod.Bloodlust, Name = "Bloodlust", Desc = "Every kill heals its killer, but no health orbs drop and nobody regenerates.", Lean = ModLean.Risky },
+            new ModDef { Mod = RunMod.GoldRush, Name = "Gold Rush", Desc = "Every kill drops gold, and a shop opens before each boss. Unspent gold is kept.", Lean = ModLean.Easier },
+            new ModDef { Mod = RunMod.TinyArena, Name = "Tiny Arena", Desc = "After each boss, walls take a quarter of the room (down to 40%).", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.Nightfall, Name = "Nightfall", Desc = "It's dark: you see a short way round each player, plus where you aim.", Lean = ModLean.Harder },
         };
 
         public const float GlassCannonDealt = 1.5f, GlassCannonTaken = 1.5f, ToughCrowdHp = 1.5f, FrenzyFire = 1.3f, SwiftFoesSpeed = 1.3f;
         public const int LuckyRerolls = 3;
+        public const int HeadStartLevel = 3;
+        public const float PracticedMastery = 2f;
 
         public static int Count(RunMod mods)
         {

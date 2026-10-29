@@ -81,6 +81,8 @@ namespace Arena
             float was;
             p.MasteryXp.TryGetValue(id, out was);
             int before = MasteryLevelFor(was);
+            if (Has(RunMod.Practiced))
+                xp *= Modifiers.PracticedMastery;
             float now = Math.Min(MasteryXpFor[MasteryMax - 1], was + xp);
             p.MasteryXp[id] = now;
             int after = MasteryLevelFor(now);

@@ -113,6 +113,8 @@ namespace Arena
             StateTimer = IntermissionTime;
             if (CurrentPath != PathId.None && Wave >= PathTo)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
+            if (Has(RunMod.GoldRush) && (Wave + 1) % 5 == 0 && !ShopOpen && Practice == null && (Wave < MaxWave || Endless))
+                OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
                 if (p.Downed)
