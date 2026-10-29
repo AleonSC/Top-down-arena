@@ -383,6 +383,8 @@ namespace Arena
             s.Float(ref p.IronT);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
+            s.Byte(ref p.Clot);
+            s.Byte(ref p.ClotMax);
             s.Byte(ref p.AmmoUsed);
             s.Float(ref p.ReloadT);
             float drawT = p.DrawT;

@@ -21,7 +21,9 @@ namespace Arena
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
         public float Bleed;           // each hit bleeds for this much of its damage per second (Bear Totem)
         public float ClawSide;        // != 0: a bear-claw swipe, drawn as claw marks raking this way (+1 / -1)
-        public float SelfHeal;        // heals the swinger this much per enemy hit (the Blood Mage's Blood Lash)
+        public float Tip;             // > 0: a whip (the Blood Mage's Blood Lash): hits beyond this distance crack, closer ones are flung out to it
+        public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
+        public float Taunt;           // taunts what it hits for this long (a Clot Burst)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -220,7 +222,7 @@ namespace Arena
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else
-                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, s.Tip > 0f || s.Clots ? LashRed : Defs.BulletColor(Defs.KnightSlash), s.Thrust ? -s.HalfArc : s.HalfArc, s.Heavy ? 0.24f : 0.16f,
                     s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
@@ -268,6 +270,9 @@ namespace Arena
             foreach (var e in hits)
             {
                 float dmg = s.Dmg;
+                bool crack = s.Tip > 0f && e.Pos.DistanceTo(origin) + e.Radius >= s.Tip;
+                if (crack)
+                    dmg *= LashCrack;
                 if (s.Rapier)
                 {
                     // Each hit in a row on the same enemy deals 10% more (up to +60%).
@@ -303,8 +308,12 @@ namespace Arena
                         if (q.Pos.DistanceTo(origin) < s.HealRange)
                             Heal(q, s.HealPerHit, p);
                 }
-                if (s.SelfHeal > 0f)
-                    Heal(p, s.SelfHeal, p);
+                if (s.Tip > 0f)
+                    LashHit(p, e, s, crack);  // BloodMage.cs
+                else if (s.Taunt > 0f)
+                    TauntEnemy(p, e, s.Taunt);
+                if (s.Clots)
+                    AddClot(p, crack ? 2 : 1);
             }
             if (s.HealSpin > 0f)
                 foreach (var q in Players.Values)

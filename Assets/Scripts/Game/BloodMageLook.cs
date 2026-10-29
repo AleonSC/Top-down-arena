@@ -71,6 +71,14 @@ namespace Arena
                     DrawDrop(grip + dir * 5f, 3.5f, dir, BloodRed.WithAlpha(a));
                     break;
             }
+            if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot: dark scabs plating you, glowing when a Clot Burst is ready
+            {
+                bool ready = p.Clot >= p.ClotMax;
+                float seg = MathX.Tau / p.ClotMax;
+                var plate = ready ? BloodRed.WithAlpha((0.7f + 0.3f * Mathf.Sin(t * 12f)) * a) : BloodDark.WithAlpha(0.9f * a);
+                for (int k = 0; k < p.Clot; k++)
+                    Arc(p.Disp, r + 3f, 3f, plate, 6, p.Aim + seg * k + 0.08f, seg - 0.16f);
+            }
             // Abilities
             if (p.PactT > 0f)  // Crimson Pact: a ring of thorns, pulsing as it stores damage
                 for (int k = 0; k < 10; k++)

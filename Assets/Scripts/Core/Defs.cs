@@ -180,8 +180,9 @@ namespace Arena
                 Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air." },
             new WeaponDef { Id = WeaponId.ChainShuriken, Speed = 620f, Life = 0.84f, Damage = 22f, ExtraDesc = "+1 shuriken, fanned out", Name = "Chain Shuriken", FireInterval = 0.7f,
                 Desc = "A heavy spinning star that flies out and comes back, cutting through everything both ways." },
-            new WeaponDef { Id = WeaponId.BloodLash, Damage = 24f, Reach = 110f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per enemy hit", Name = "Blood Lash", FireInterval = 0.5f,
-                Desc = "A whip of blood lashed in a wide arc (110 px, 130°). Heals you 3 for each enemy it hits." },
+            new WeaponDef { Id = WeaponId.BloodLash, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
+                Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
+                    + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
             new WeaponDef { Id = WeaponId.ClotBolt, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
                 Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s." },
             new WeaponDef { Id = WeaponId.LeechBeam, Speed = 1100f, Life = 0.3f, Damage = 4f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Leech Beam", FireInterval = 0.08f,
