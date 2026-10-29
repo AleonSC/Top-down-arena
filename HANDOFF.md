@@ -151,20 +151,27 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
-- **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [mode]` builds and runs `Program.cs`.
-  - `run.sh 1 30` = the **core** match tests (~164 checks).
-  - `run.sh 1 30 music` = the **feature** suite (~175 checks: parry, aim, mastery, budget, Boss Lab,
-    Singularity, Knight, boss sounds, weapon extras, revolver, bow, practice, weapon range...). The name is
-    historical (it began as the music test). **Run both before committing.**
-  - Single systems: `knight`, `practice`, `extra`, `aim`, `parry`, `lab`, `singularity`, `bosses`, `dps`,
-    `budget`, `mastery`, `bow`, `revolver`, `three`, `late`, `ults`, `mods`, `showcase`, `classcards`, `ninja`, `blood`, `textedit`, `paths` (all path tests, ~30 checks), ... (see the `args[2] ==` chain
-    near the end of `Program.cs`).
-  - Known flaky checks (pass on rerun): "a perfect parry sends the shots back", "every weapon gets its
-    own upgrade from extra projectiles" "enemy bullets stay near the bullet budget" (limit 210; the peak
-    varies about 175-235 between runs, on the original code too) and, rarely, "regular waves can't wear a Barrier
-    down" (core suite; fails when no enemy happens to shoot near the tank in its 5 s window), and "Mirror Guard"
-    (rare), and "Swarm Fields: mostly melee rushers, about twice as many" (random; about 29-32 enemies against a
-    29.4 threshold). Also "fire warns first, then burns players and enemies" (paths; fails when an enemy shot lands during the warning). The bullet-budget one fails about 1 run in 4-5 (re-measured Oct 2026: peaks 195-245).
+- **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the
+  **`Suites` table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`,
+  `Parry`, `Knight`, `Ninja`, `BloodMage`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `TextEdit`). `run.sh list` prints every suite.
+  - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
+  - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
+    **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
+  - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
+    `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, ... Reports (numbers, no pass/fail):
+    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `laserdebug`. A new test: add it to its system's file, then to the
+    `Suites` table (and to `FeatureTests` if it belongs in the feature suite).
+  - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
+    it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
+    come out the same each run. `SEED=random` gives fresh rolls; `SEED=<n>` tries another fixed set. Timing
+    between the host and client threads still varies a little, so a check that only just passes can still
+    flicker. The real game never seeds, so it stays random.
+  - Formerly flaky checks, now steady under the seeds (each passed 4+ runs in a row in Oct 2026): perfect
+    parry, extra projectiles, bullet budget, Barrier vs regular waves, Mirror Guard, Swarm Fields / Sniper Ridge
+    mixes, fire warning, the session's "regeneration" entry. "Once broken, the parry stops blocking" used to wait
+    for the Warden to fire; it now fires its own test shot. If one starts failing for every run, it's a real
+    break (or that seed found an edge): check it with `SEED=random` a few times before blaming the seed.
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
     `T/K/1` (Tank Knight, second weapon; `N` = Ninja, `B` = Blood Mage).
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 11 fixed, seeded scenes (every enemy and minion
@@ -278,9 +285,11 @@ copies of the same numbers:
 6. ✅ **Done (Oct 2026).** **Split `ArenaApp.cs` (2.8k lines)** into `WorldRenderer.cs` (`DrawWorld`, `DrawEnemy`, `DrawPlayer`, fx;
    the 351-line `DrawWorld` and 268-line `DrawEnemy` would also benefit from per-type helpers), `Hud.cs`
    (wave plate, ability bar, Tab menu, picker, run summary) and `Menus.cs` (main menu, settings, how-to).
-7. **Split `Tools/SimTest/Program.cs` (3.7k lines)** into one file per system, replace the `args[2] ==` chain
+7. ✅ **Done (Oct 2026).** **Split `Tools/SimTest/Program.cs` (3.7k lines)** into one file per system, replace the `args[2] ==` chain
    with a table of named suites, and add an `all` suite. **Rename the `music` suite** (it runs the whole
-   feature suite, which is confusing) and make the default run everything.
+   feature suite, which is confusing) and make the default run everything. (Done as `Tests/*.cs`, the `Suites`
+   table, `features` with `music` kept as an alias, and `all`; the default stays `core` so the usual two-step
+   check doesn't run the core suite twice.)
 
 ### 6.4 Networking
 
@@ -307,7 +316,7 @@ copies of the same numbers:
 
 14. **Tunables are scattered constants** across `Game.cs`, `EnemyAI.cs`, `Knight.cs`, `Defs.cs`. A single
     `Balance.cs` (or a JSON file the dev menu can reload) would make tuning sessions much faster.
-15. **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable.
+15. ✅ **Done (Oct 2026).** **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable. (`Game.SeedForTests`; see section 3.)
 16. The F1 **"Bot plays for you"** still uses the simple test bot; the Boss Lab's smart bot (`BotSkill.Good`)
     would make it far more useful for play-testing. Keep the simple bot for the sim tests.
 
@@ -326,8 +335,9 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
 1. ✅ Split `Game.cs` into `GameNet.cs`, `Combat.cs`, `Abilities.cs`, `Waves.cs`, `Weapons.cs` (item 5).
 2. ✅ Split `ArenaApp.cs` into `WorldRenderer.cs`, `Hud.cs`, `Menus.cs`; `DrawArenaContents` and `DrawEnemy` broken
    into helpers (item 6). Checked byte-for-byte with `Tools/RenderCheck`. (`DrawArenaContents` was already pulled out of `DrawWorld` for the loadout preview.)
-3. Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
-   `music` suite, fixed seeds for the flaky tests (items 7, 15).
+3. ✅ Reorganise `Tools/SimTest/Program.cs`: one file per system, a table of named suites plus `all`, rename the
+   `music` suite, fixed seeds for the flaky tests (items 7, 15). Now `Tests/*.cs`, `run.sh list`, `features`
+   (alias `music`), seeds per test (`SEED=random` to vary).
 4. Weapon numbers into `WeaponDef`; `WeaponRange`, bot range tables and upgrade texts read them; `aim` test
    must pass (item 1).
 5. Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; reuse scratch collections in
@@ -345,7 +355,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next items are 3 (SimTest reorganisation) or 8 (Balance.cs). Paths are feature-complete
+**Where to pick up:** the next item is 4 (weapon numbers into `WeaponDef`), then 5, 6, 8, 9. Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

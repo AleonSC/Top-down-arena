@@ -1,0 +1,560 @@
+using System.Linq;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading;
+using Arena;
+
+// Bosses: the Warden, the Singularity, boss sound cues, and every late boss's mechanics.
+static partial class Program
+{
+    // The Warden (Warden.cs): a prison riot in three stages by health, one mechanic per turn.
+    static void WardenTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var blocks = typeof(Game).GetMethod("BlocksShot", flags);
+        var s = StartBuffed(dt, 5, 0);
+        var g = s[0].Game; var cg = s[1].Game;
+        g.Bot = false; cg.Bot = false;  // the players stand where the test puts them
+        g.DevSetGod(1, true);
+        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+        var w = Find(s[0], EnemyType.Boss);
+        var me = g.Players[1]; var friend = g.Players[2];
+        Action Clear = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Grunt) e.Hp = 0f; };
+        Check(w != null && Math.Abs(w.Pos.X - Game.Width / 2f) < 5f && Math.Abs(w.Pos.Y - Game.Height / 2f) < 5f, "the Warden appears in the middle of the arena");
+
+        // Count: its turns in order, holding still for the spiral.
+        var seen = new List<WardenTurn>();
+        V2 spiralAt = V2.Zero; bool spiralMoved = false;
+        Run(s, dt, 27f, null, () =>
+        {
+            Clear();
+            var t = w.Warden.Turn;
+            if (seen.Count == 0 || seen[seen.Count - 1] != t) { seen.Add(t); if (t == WardenTurn.Spiral) spiralAt = w.Pos; }
+            if (t == WardenTurn.Spiral && w.Pos.DistanceTo(spiralAt) > 1f) spiralMoved = true;
+            me.Pos = new V2(200f, 800f); friend.Pos = new V2(1400f, 800f);
+        });
+        Console.WriteLine("  warden count turns: " + string.Join(", ", seen));
+        Check(seen.Count >= 7 && seen[0] == WardenTurn.Rings && seen[2] == WardenTurn.Spiral && seen[4] == WardenTurn.Fan && seen[6] == WardenTurn.Light && seen[1] == WardenTurn.Rest,
+            "Count: orb rings, spiral, aimed fan, searchlight, with a breather between each");
+        Check(!spiralMoved, "the Warden holds still while it spirals");
+        Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's stage");
+
+        // The searchlight: a stun shot stops you, the light catches you, a shackle ring drops round you.
+        while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
+        while (w.Warden.Turn != WardenTurn.Light) { Clear(); me.Pos = new V2(60f, 60f); Step(s[0], dt); Step(s[1], dt); }
+        float hp0 = w.Hp;
+        int shackleBefore = g.Bullets.Values.Count(b => b.Kind == Defs.BigShot);
+        friend.Pos = new V2(1400f, 800f);
+        bool stunned = false, clientStunned = false, caught = false;
+        V2 clientAt = V2.Zero;
+        int ringOrbs = 0;
+        Run(s, dt, 8f, () => caught && w.Warden.LightMode == WardenLight.Ring, () =>
+        {
+            Clear();
+            w.TargetId = 2; w.RetargetT = 99f;  // the light hunts the friend (the host is in god mode)
+            me.Pos = new V2(60f, 60f);
+            var t = g.Players[w.TargetId];
+            foreach (var b in g.Bullets.Values) if (b.Kind == Defs.StunShot) { b.Pos = t.Pos; break; }  // make the next stun shot land
+            stunned |= t.StunT > 0f;
+            if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { if (!clientStunned) clientAt = cg.Players[2].Pos; clientStunned = true; }
+            caught |= w.Warden.LightMode == WardenLight.Lock;
+        });
+        int ring = w.Warden.Shackle.Count;
+        Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, ring orbs {2}, target {3}", stunned, caught, ring, w.TargetId);
+        Check(stunned && caught && ring >= 20, "a stun shot stops you, the searchlight catches you, and a shackle ring closes in");
+        Check(clientStunned, "the stun reaches the stunned player's own game");
+        Run(s, dt, 6f, () => w.Warden.Turn != WardenTurn.Light, Clear);
+        Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
+
+        // Lockdown at 65%: 2 s where it can't be hurt, the screen cleared.
+        w.Hp = w.MaxHp * 0.64f;
+        Run(s, dt, 0.2f, null, Clear);
+        float during = w.Hp;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        hurt.Invoke(g, new object[] { w, 500f, 1 });
+        Check(w.Warden.TransT > 0f && w.Hp == during && (bool)blocks.Invoke(g, new object[] { w, w.Pos + new V2(0f, 200f) }) && g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) == 0,
+            "at 65% it changes stage: it can't be hurt for 2 s and the screen is cleared");
+        Run(s, dt, 2.2f, null, Clear);
+        Check(w.Warden.Stage == WardenStage.Lockdown && w.Warden.Turn == WardenTurn.Cross && cg.Enemies[w.Id].Warden.Stage == WardenStage.Lockdown, "then Lockdown: the cross (everyone sees it)");
+
+        // The gates: everyone sees them; one shoves the friend (on the friend's own game) and hurts once, or twice when it rolls over them.
+        int gates = 0, gas = 0; float taken0 = friend.Run.DamageTaken; bool clientGate = false;
+        var seenGas = new HashSet<int>();
+        float friendStart = 0f; bool startSet = false, pushed = false;
+        Run(s, dt, 11.5f, null, () =>
+        {
+            Clear();
+            me.Pos = new V2(60f, 60f);
+            gates = Math.Max(gates, w.Warden.Gates.Count);
+            clientGate |= cg.Enemies[w.Id].Warden.Gates.Count > 0;
+            foreach (var pt in g.Patches.Values) if (pt.Kind == PatchKind.Gas) seenGas.Add(pt.Id);
+            if (!startSet && w.Warden.Gates.Count > 0) { cg.Players[2].Pos = new V2(800f, 700f); friendStart = 700f; startSet = true; }
+            if (startSet && cg.Players[2].Pos.Y > friendStart + 30f) pushed = true;
+        });
+        float gateDmg = friend.Run.DamageTaken - taken0;
+        Console.WriteLine("  warden lockdown: {0} gates at once, {1} gas clouds, friend pushed {2}, friend took {3:0} (gates and gas)", gates, seenGas.Count, pushed, gateDmg);
+        Check(gates >= 1 && clientGate && seenGas.Count == 2, "Lockdown: gates sweep across (everyone sees them) with gas from the 1st and 3rd");
+        Check(pushed && gateDmg > 0f, "a gate shoves you along on your own game, and hurts");
+
+        // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.
+        w.Hp = w.MaxHp * 0.29f;
+        Run(s, dt, 2.6f, null, Clear);
+        Check(w.Warden.Stage == WardenStage.Riot && w.Warden.Turn == WardenTurn.Rioters, "at 30%: the riot");
+        Run(s, dt, 0.6f, null, Clear);
+        int rioters = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
+        V2 front = w.Pos + V2.FromAngle(w.Warden.Aux) * 200f, behind = w.Pos - V2.FromAngle(w.Warden.Aux) * 200f;
+        Check(rioters >= 6 && (bool)blocks.Invoke(g, new object[] { w, front }) && !(bool)blocks.Invoke(g, new object[] { w, behind }),
+            "the doors burst open (" + rioters + " rioters) and the riot shield stops shots from the front only");
+        me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f);
+        foreach (var r in g.Enemies.Values) if (r.Type == EnemyType.Rioter) r.Pos = w.Pos + new V2(80f, 0f);
+        float hpR = w.Hp;
+        Run(s, dt, 1f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); });
+        Check(w.Hp < hpR, "rioters that reach the Warden hurt it");
+
+        // The last stand below 10%: the rioters scatter.
+        w.Hp = w.MaxHp * 0.09f;
+        Run(s, dt, 3f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);
+        Check(w.Warden.Stage == WardenStage.LastStand && g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter) == 0, "below 10%: the last stand, and the rioters scatter");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    // The Singularity's reworked fight: corner wells, Pull -> Collapse -> Normal (spiral + sweeping lasers) -> Cage.
+    static void SingularityTest(float dt)
+    {
+        var s = StartBuffed(dt, 20, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && !g.IsSpawning(Find(s[0], EnemyType.Singularity)));
+        var sing = Find(s[0], EnemyType.Singularity);
+        sing.T = 0f;
+        Run(s, dt, 1.5f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var wells = g.Enemies.Values.Where(e => e.Type == EnemyType.GravityWell).ToList();
+        bool corners = wells.Count == 4 && wells.All(w => Math.Min(w.Pos.X, Game.Width - w.Pos.X) < 150f && Math.Min(w.Pos.Y, Game.Height - w.Pos.Y) < 150f);
+        Console.WriteLine("  corner wells: {0} at {1}", wells.Count, string.Join(" ", wells.Select(w => "(" + (int)w.Pos.X + "," + (int)w.Pos.Y + ")")));
+        Check(corners, "the Singularity's 4 gravity wells sit in the arena's corners");
+
+        // A player near a corner drifts toward its well; one in the middle doesn't.
+        var drift = typeof(Game).GetMethod("WellDriftAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var w0 = wells[0];
+        V2 nearPos = w0.Pos + (new V2(Game.Width / 2f, Game.Height / 2f) - w0.Pos).Normalized() * 200f;
+        V2 near = (V2)drift.Invoke(g, new object[] { nearPos });
+        V2 mid = (V2)drift.Invoke(g, new object[] { new V2(Game.Width / 2f, Game.Height / 2f) });
+        Console.WriteLine("  well drift: {0:0} px/s 200 px from a well, {1:0} in the middle", near.Length, mid.Length);
+        Check(near.Length > 10f && near.Length < 60f && Math.Abs(MathX.Fmod((w0.Pos - nearPos).Angle - near.Angle + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.1f && mid.Length < 1f, "corner wells drift nearby players slowly toward them");
+
+        // Attack order over one cycle, and what's fired.
+        var phases = new List<byte>();
+        var facings = new List<float>();
+        bool redShots = false, purpleInNormal = false;
+        int cagesSeenOnClient = 0, cageWells = 0;
+        float firstRadius = 0f, lastRadius = 0f;
+        sing.T = 0f;
+        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
+        Run(s, dt, 24f, null, () =>
+        {
+            foreach (var p in g.Players.Values) p.InvulnT = 1f;
+            if (phases.Count == 0 || phases[phases.Count - 1] != sing.Phase) phases.Add(sing.Phase);
+            if (sing.Phase == Game.SingLasers) facings.Add(sing.Facing);
+            foreach (var b in g.Bullets.Values)
+                if (b.Source == EnemyType.Singularity)
+                {
+                    redShots |= b.Kind == Defs.PierceShot;
+                    purpleInNormal |= b.Kind == Defs.BigShot;
+                }
+            cagesSeenOnClient = Math.Max(cagesSeenOnClient, s[1].Game.Cages.Count);
+            cageWells = Math.Max(cageWells, g.Enemies.Values.Count(e => e.Type == EnemyType.CageWell));
+            if (g.Cages.Count > 0) { if (firstRadius == 0f) firstRadius = g.Cages.Values.First().Radius; lastRadius = g.Cages.Values.First().Radius; }
+        });
+        string order = string.Join(" > ", phases.Select(p => p == Game.SingPull ? "Pull" : p == Game.SingCollapse ? "Collapse" : p == Game.SingNormal ? "Normal" : p == Game.SingLaserWarn ? "LaserWarning" : p == Game.SingLasers ? "Lasers" : "Cage"));
+        Console.WriteLine("  attack order: {0}", order);
+        Check(order.StartsWith("Pull > Collapse > Normal > LaserWarning > Lasers > Cage"), "the Singularity cycles Pull, Collapse, Normal (spiral, then lasers after a warning), Cage");
+        bool sweeps = facings.Count > 60 && facings.Last() - facings.First() > 0.3f * Game.LaserSpin * facings.Count * dt;
+        Console.WriteLine("  lasers swept {0:0.00} rad over {1:0.0} s; red shots {2}, purple spiral {3}", facings.Last() - facings.First(), facings.Count * dt, redShots, purpleInNormal);
+        Check(sweeps, "the three lasers sweep slowly around (counter-clockwise)");
+        Check(!redShots && purpleInNormal, "it fires the purple spiral but no red shots");
+        Console.WriteLine("  cages: {0} seen on the client, {1} cage wells, radius {2:0} -> {3:0}", cagesSeenOnClient, cageWells, firstRadius, lastRadius);
+        Check(cagesSeenOnClient == 2 && cageWells == 6 && lastRadius < firstRadius - 100f, "the cage attack rings every player with 3 small wells, shrinking (seen on the client)");
+
+        // Next cage: standing still inside hurts once the ring reaches you; shooting the wells frees you.
+        Run(s, dt, 30f, () => g.Cages.Count > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var me = g.Players[1];
+        var cage = g.Cages.Values.First(c => c.PlayerId == 1);
+        me.Pos = s[1].Game.Players[1].Pos = cage.Center;
+        float taken = me.Run.DamageTaken;
+        Run(s, dt, 8.5f, () => me.Run.DamageTaken > taken, () => { foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f; });
+        bool cageHurts = me.Run.DamageTaken > taken;
+        int freed = cage.Wells.Count;
+        foreach (int id in cage.Wells.ToList()) g.Enemies[id].Hp = 0f;
+        Run(s, dt, 0.3f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        Console.WriteLine("  caged player hurt when the ring closed: {0}; cage gone after its {1} wells died: {2}", cageHurts, freed, !g.Cages.ContainsKey(cage.Id));
+        Check(cageHurts && !g.Cages.ContainsKey(cage.Id), "the shrinking cage hurts when it reaches you, and breaks when its wells are shot down");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    static void LaserDebug()
+    {
+        float dt = 1f / 60f;
+        var lab = new BossLab { Wave = 20, Skill = BotSkill.Good, PlayerCount = 1, Seed = 3 };
+        lab.Seats[0].Role = Role.Healer; lab.Seats[0].Kit = Kit.Mage;
+        var host = new Session();
+        lab.Start(host, nextPort++);
+        var g = host.Game;
+        g.DamageEvent = (p, a, src) => {
+            var sing = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Singularity);
+            float rel = sing == null ? 0 : (p.Pos - sing.Pos).Angle - sing.Facing;
+            Console.WriteLine("  t {0:0.00} hit {1:0} by {2} at ({3:0},{4:0}) dist {5:0} relAng {6:0.00} phase {7} danger {8:0.0} hp {9:0}",
+                g.RunTime, a, src, p.Pos.X, p.Pos.Y, sing == null ? 0 : p.Pos.DistanceTo(sing.Pos), MathX.Fmod(rel, MathX.Tau / 3f), sing?.Phase, g.BotDanger, p.Hp);
+            var mv = (V2)typeof(Game).GetField("botMove", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g);
+            Console.WriteLine("     onLaser now: {0}  move ({1:0.0},{2:0.0}) facing {3:0.00} downed {4} bot {5} lvl {6}", Enumerable.Range(0, 3).Any(k => Game.OnLaser(sing.Pos, sing.Facing + MathX.Tau * k / 3f, p.Pos, 12f)), mv.X, mv.Y, sing.Facing, p.Downed, g.Bot, g.BotLevel);
+        };
+        for (int f = 0; f < 60 * 25 && lab.Outcome == LabOutcome.Running; f++) { Step(host, dt); lab.Watch(dt); }
+        lab.Stop();
+    }
+
+    // Bosses play soft cues for their abilities, heard on both games.
+    static void BossSoundTest(float dt)
+    {
+        var s = StartBuffed(dt, 20, 0);
+        s[0].Game.DevSetGod(1, true); s[0].Game.DevSetGod(2, true);
+        Run(s, dt, 15, () => s[0].Game.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null);
+        clientHeard.Clear();
+        Run(s, dt, 25);
+        var heard = clientHeard.Where(x => x.ToString().StartsWith("Boss")).ToList();
+        Console.WriteLine("  client heard boss cues: " + string.Join(", ", heard.GroupBy(x => x).Select(gr => gr.Key + " x" + gr.Count())));
+        Check(heard.Contains(Sfx.BossCharge) && heard.Contains(Sfx.BossPulse) && heard.Contains(Sfx.BossChime) && heard.Contains(Sfx.BossShift) && heard.Count < 20,
+            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    static void BossMechanics(float dt)
+    {
+        // The Warden's Lockdown cross: it dashes to a spot, plants, and fires straight streams up, down, left and
+        // right (a static "+" that cuts the arena into quadrants), then moves and does it again, four times.
+        {
+            var s = StartBuffed(dt, 5, 0);
+            Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Boss); return b != null && b.SpawnT <= 0f; });
+            var w = Find(s[0], EnemyType.Boss);
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            // Drop it into the Lockdown, and wait for the cross to start.
+            Run(s, dt, 8, () => w.Warden != null && w.Warden.Turn == WardenTurn.Cross && w.Warden.TransT <= 0f, () => w.Hp = Math.Min(w.Hp, w.MaxHp * 0.6f));
+            V2 start = w.Pos;
+            float farthest = 0f, movedWhileFiring = 0f, crossTime = 0f, guidesWhileMoving = 0f;
+            V2 lastPos = w.Pos;
+            bool phaseOnClient = false, movingOnClient = false;
+            var plants = new List<V2>();
+            int onAxes = 0, offAxes = 0;
+            var seen = new HashSet<int>();
+            Run(s, dt, 13f, null, () =>
+            {
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
+                w.Hp = Math.Max(w.Hp, w.MaxHp * 0.5f);
+                var cw = Find(s[1], EnemyType.Boss);
+                bool cCross = cw != null && cw.Warden != null && cw.Warden.Turn == WardenTurn.Cross;
+                phaseOnClient |= cCross && !cw.Warden.Dashing;
+                movingOnClient |= cCross && cw.Warden.Dashing;
+                bool cross = w.Warden.Turn == WardenTurn.Cross, planted = cross && !w.Warden.Dashing;
+                if (cross)
+                    crossTime += dt;
+                if (planted && w.Pos.DistanceTo(lastPos) > 0.5f)
+                    guidesWhileMoving += dt;  // the guides show while planted
+                if (!planted)
+                {
+                    lastPos = w.Pos;
+                    return;
+                }
+                if (plants.Count == 0 || plants[plants.Count - 1].DistanceTo(w.Pos) > 100f)
+                    plants.Add(w.Pos);
+                farthest = Math.Max(farthest, w.Pos.DistanceTo(start));
+                bool fired = false;
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Kind == Defs.SmallShot && b.FromBoss && seen.Add(b.Id) && b.Pos.DistanceTo(w.Pos) < w.Radius + 12f)
+                    {
+                        fired = true;
+                        // Each shot leaves straight along one of the four axes.
+                        float rel = MathX.Fmod(b.Vel.Angle + MathX.Pi / 4f, MathX.Pi / 2f) - MathX.Pi / 4f;
+                        if (Math.Abs(rel) < 0.01f && b.AngVel == 0f) onAxes++; else offAxes++;
+                    }
+                if (fired)
+                    movedWhileFiring = Math.Max(movedWhileFiring, w.Pos.DistanceTo(lastPos));
+                lastPos = w.Pos;
+            });
+            Console.WriteLine("  warden cross: lasted {0:0.0}s, {1} plants, client saw firing {2} / moving {3}, moved {4:0}px between plants, {5:0.00}s of guides while moving, moved {6:0.0}px per tick while firing, shots on the axes {7}, off {8}",
+                crossTime, plants.Count, phaseOnClient, movingOnClient, farthest, guidesWhileMoving, movedWhileFiring, onAxes, offAxes);
+            Check(phaseOnClient && movingOnClient && farthest > 150f, "the Warden's cross attack moves it to new spots (seen on client)");
+            Check(Math.Abs(crossTime - 12f) < 0.3f && plants.Count >= 4, "the Warden's cross lasts 12 s across four plants");
+            Check(guidesWhileMoving == 0f, "the cross guides are hidden while the Warden moves");
+            Check(onAxes > 100 && offAxes == 0 && movedWhileFiring < 0.5f, "the Warden's cross is a static '+' along the axes, fired while it stands still");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Hive Queen (wave 10): summons a swarm and is immune while it's big.
+        {
+            var s = StartBuffed(dt, 10, 25);
+            bool shielded = false, swarm = false, dead = false, seenQueen = false;
+            Run(s, dt, 70, () => dead, () =>
+            {
+                var q = Find(s[1], EnemyType.HiveQueen);
+                seenQueen |= q != null;
+                shielded |= q != null && q.Phase == 1;
+                swarm |= Find(s[1], EnemyType.Shard) != null;
+                dead = seenQueen && Find(s[0], EnemyType.HiveQueen) == null;
+            });
+            Check(swarm && shielded, "Hive Queen summons a swarm and shields herself (seen on client)");
+            Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Her drones don't hold up the fight: with all of them still alive, she carries on with
+        // bombers and bullets, and stays shielded the whole time.
+        {
+            var s = StartBuffed(dt, 10, 0);
+            Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var q = Find(s[0], EnemyType.HiveQueen);
+            var seenStages = new HashSet<int>();
+            bool alwaysShielded = true, bombers = false;
+            Run(s, dt, 14f, null, () =>
+            {
+                foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f;
+                seenStages.Add((int)q.T2);
+                bombers |= Find(s[0], EnemyType.HiveBomber) != null;
+                if ((int)q.T2 >= 2 && Find(s[0], EnemyType.Shard) != null) alwaysShielded &= q.Phase == 1;  // while bombing and shooting
+            });
+            int drones = 0;
+            foreach (var e in s[0].Game.Enemies.Values) if (e.Type == EnemyType.Shard) drones++;
+            Console.WriteLine("  queen with her drones alive: stages seen {0}, bombers {1}, {2} drones at the end, shielded throughout {3}",
+                string.Join(",", seenStages.OrderBy(x => x)), bombers, drones, alwaysShielded);
+            Check(seenStages.Contains(2) && seenStages.Contains(3) && bombers && drones > 0 && alwaysShielded,
+                "the Hive Queen's drones don't pause her: bombers and bullets carry on while they live (and she stays shielded)");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones
+        // aimed at where each player was when they launched, then her bullet patterns, then again.
+        {
+            var s = StartBuffed(dt, 10, 0);
+            Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var q = Find(s[0], EnemyType.HiveQueen);
+            Check(q.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f, "bosses appear in the middle of the arena");
+            q.Pos = new V2(800f, 140f);  // she spawns in the middle; move her clear of the runners' circles
+            Run(s, dt, 1.5f);
+            bool shieldUp = q.Phase == 1 && Find(s[0], EnemyType.Shard) != null && (int)q.T2 == 1;
+            bool bombersEarly = Find(s[0], EnemyType.HiveBomber) != null;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Type == EnemyType.Shard) e.Hp = 0f;
+            var stages = new List<int> { (int)q.T2 };
+            var aimedAt = new Dictionary<int, V2>();
+            var lastPos = new Dictionary<int, V2>();
+            int launched = 0, onTarget = 0, offTarget = 0, aimedRight = 0, fans = 0;
+            bool clientBomber = false, clientMarker = false, resummoned = false;
+            float hpBefore = 1f, hpAfter = 1f, t = 0f;  // minus damage taken so far, when the bomber stage starts / ends
+            Run(s, dt, 26f, null, () =>
+            {
+                t += dt;
+                int st = (int)q.T2;
+                if (stages[stages.Count - 1] != st) stages.Add(st);
+                // Both players keep running in circles.
+                int k = 0;
+                foreach (var p in s[0].Game.Players.Values)
+                {
+                    // Separate circles, so neither runs into the spot a bomber was sent at the other.
+                    p.Pos = new V2(800f, 480f) + V2.FromAngle(t * 1.1f + k * MathX.Pi) * (k == 0 ? 300f : 130f);
+                    k++;
+                    Player cp;
+                    if (s[1].Game.Players.TryGetValue(p.Id, out cp)) cp.Pos = p.Pos;  // the joining player reports its own position
+                    if (st != 2) p.Hp = p.MaxHp;
+                }
+                if (st == 2 && hpBefore > 0f) hpBefore = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
+                if (st == 3 && hpAfter > 0f) hpAfter = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
+                if (st == 1 && stages.Count > 3) resummoned = true;
+                foreach (var e in s[0].Game.Enemies.Values)
+                {
+                    if (e.Type != EnemyType.HiveBomber) continue;
+                    if (!aimedAt.ContainsKey(e.Id))
+                    {
+                        launched++;
+                        aimedAt[e.Id] = e.Waypoint;
+                        foreach (var p in s[0].Game.Players.Values)
+                            if (p.Pos.DistanceTo(e.Waypoint) < 15f) { aimedRight++; break; }  // within a frame or two of running
+                    }
+                    lastPos[e.Id] = e.Pos;
+                }
+                foreach (var id in new List<int>(lastPos.Keys))
+                    if (!s[0].Game.Enemies.ContainsKey(id))
+                    {
+                        if (lastPos[id].DistanceTo(aimedAt[id]) < 25f) onTarget++; else offTarget++;
+                        lastPos.Remove(id);
+                    }
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Kind == Defs.PierceShot && b.Source == EnemyType.HiveQueen) { fans++; break; }
+                clientBomber |= Find(s[1], EnemyType.HiveBomber) != null;
+                foreach (var fx in s[1].Game.Effects) clientMarker |= fx.Kind == FxKind.Target;
+            });
+            Console.WriteLine("  queen loop: stages {0}; {1} bombers launched ({2} aimed at a player's spot), {3} blew up on their spot, {4} elsewhere; running players lost {5:0} HP to them; fans {6}",
+                string.Join(">", stages), launched, aimedRight, onTarget, offTarget, hpBefore - hpAfter, fans);
+            Check(shieldUp && !bombersEarly, "the Hive Queen opens with shooting drones and is shielded while they live");
+            Check(stages.Count >= 4 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && resummoned, "the Hive Queen loops: drones, then bombers, then bullets, then drones again");
+            Check(launched >= 8 && aimedRight == launched && onTarget >= launched - 2 && clientBomber && clientMarker,
+                "Hive bombers fly to where a player was when they launched and blow up there (seen on client, with a marker)");
+            Check(hpBefore - hpAfter < 45f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
+            // ...but standing still gets you blown up.
+            {
+                foreach (var e in s[0].Game.Enemies.Values) if (e.Type != EnemyType.HiveQueen) e.Hp = 0f;
+                q.T2 = 1; q.PhaseT = 0f;  // hold her in the drone stage (no drones left to shoot)
+                Run(s, dt, 0.1f);
+                var still = s[0].Game.Players[1];
+                still.Hp = still.MaxHp; still.InvulnT = 0f;
+                typeof(Game).GetMethod("LaunchBomber", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .Invoke(s[0].Game, new object[] { q, still.Pos });
+                V2 at = still.Pos;
+                float taken0 = still.Run.DamageTaken;
+                Run(s, dt, 2.5f, null, () => { still.Pos = at; if ((int)q.T2 != 1) { q.T2 = 1; q.PhaseT = 0f; } });
+                Check(still.Run.DamageTaken - taken0 >= 20f, "a Hive bomber blows up a player who stands still");
+            }
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Twin Reapers (wave 15): killing one enrages the other; it revives unless both die in time.
+        {
+            var s = StartBuffed(dt, 15, 0);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f);
+            s[0].Game.Bot = s[1].Game.Bot = false;  // stop shooting so the survivor lives
+            Find(s[0], EnemyType.TwinA).Hp = 0f;
+            bool enraged = false, timerShown = false;
+            Run(s, dt, 2, null, () =>
+            {
+                var b = Find(s[1], EnemyType.TwinB);
+                enraged |= b != null && b.Phase == 1;
+                timerShown |= s[1].Game.TwinReviveT > 0f;
+            });
+            Check(Find(s[0], EnemyType.TwinA) == null && enraged && timerShown, "killing one twin enrages the other and starts the revive timer (seen on client)");
+            Run(s, dt, 8, () => Find(s[0], EnemyType.TwinA) != null);
+            Run(s, dt, 0.5f);
+            var revived = Find(s[1], EnemyType.TwinA);
+            Check(revived != null && revived.Hp <= revived.MaxHp * 0.61f && revived.Hp > revived.MaxHp * 0.5f, "the fallen twin revives at 60% health");
+            int before = s[0].Game.Players[1].Rerolls;
+            Find(s[0], EnemyType.TwinA).Hp = 0f;
+            Find(s[0], EnemyType.TwinB).Hp = 0f;
+            Run(s, dt, 1);
+            Check(Find(s[0], EnemyType.TwinA) == null && Find(s[0], EnemyType.TwinB) == null && s[0].Game.TwinReviveT == 0f
+                && s[0].Game.Players[1].Rerolls == before + 2, "killing both together ends the fight with one reward");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // Twin Reapers: Soul Bond makes the more-hurt one immune, and their tether hurts.
+        {
+            var s = StartBuffed(dt, 15, 0);
+            Run(s, dt, 15, () => Find(s[0], EnemyType.TwinA) != null && Find(s[0], EnemyType.TwinB) != null && Find(s[0], EnemyType.TwinB).SpawnT <= 0f
+                && Find(s[0], EnemyType.TwinA).SpawnT <= 0f);
+            var a = Find(s[0], EnemyType.TwinA);
+            var b = Find(s[0], EnemyType.TwinB);
+            a.Hp = a.MaxHp * 0.5f;
+            b.Hp = b.MaxHp;
+            bool boundOnClient = false;
+            Run(s, dt, 0.5f, null, () => { var ca = Find(s[1], EnemyType.TwinA); boundOnClient |= ca != null && ca.Phase == 2; });
+            // Shoot only the bound one: the bots skip immune targets, so aim them by hand via a host-side check.
+            float hpBound = a.Hp;
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (!e.Def.IsBoss)
+                    e.Hp = 0f;
+            Run(s, dt, 3);
+            bool immune = a.Hp >= hpBound - 0.01f && Game.SoulBound(a);
+            bool otherHurt = b.Hp < b.MaxHp;  // the bots turned to the other Reaper instead
+            b.Hp = b.MaxHp * 0.52f;
+            Run(s, dt, 0.5f);
+            bool released = !Game.SoulBound(a);
+            Console.WriteLine("  soul bond: bound on client {0}, immune {1}, bots switched {2}, released {3}", boundOnClient, immune, otherHurt, released);
+            Check(boundOnClient && immune && released, "Soul Bond: the more-hurt Reaper is immune until the other is evened out (seen on client)");
+            Check(otherHurt, "bots switch to the Reaper that can be hurt");
+
+            // Stand on the tether between them.
+            s[0].Game.Bot = s[1].Game.Bot = false;
+            var p = s[0].Game.Players[1];
+            float hpBefore = 0f;
+            bool hurt = false;
+            Run(s, dt, 1.5f, null, () =>
+            {
+                var ta = Find(s[0], EnemyType.TwinA);
+                var tb = Find(s[0], EnemyType.TwinB);
+                if (ta == null || tb == null)
+                    return;
+                p.Pos = V2.Lerp(ta.Pos, tb.Pos, 0.5f);
+                foreach (var bl in new List<Bullet>(s[0].Game.Bullets.Values))
+                    if (Defs.IsEnemyShot(bl.Kind))
+                        s[0].Game.Bullets.Remove(bl.Id);  // only the tether should hurt
+                if (hpBefore == 0f)
+                    hpBefore = p.Hp;
+                hurt |= p.Hp < hpBefore - 5f;
+            });
+            Console.WriteLine("  tether: hp {0:0} -> {1:0}", hpBefore, p.Hp);
+            Check(hurt, "the Reapers' tether hurts players standing in it");
+            s[0].Leave(""); s[1].Leave("");
+        }
+        // The Singularity (wave 20): gravity phases pull players in.
+        {
+            var s = StartBuffed(dt, 20, 0);
+            Run(s, dt, 15, () => s[0].Game.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && Find(s[0], EnemyType.Singularity).SpawnT <= 0f);
+            s[1].Game.Bot = false;  // the friend stands still; only the pull should move them
+            V2 start = s[1].Game.Players[2].Pos;
+            bool pullSeen = false;
+            float closest = float.MaxValue;
+            V2 center = new V2(Game.Width / 2f, Game.Height / 2f);
+            Run(s, dt, 13, null, () =>
+            {
+                pullSeen |= s[1].Game.PullStrength > 0f;
+                closest = Math.Min(closest, s[1].Game.Players[2].Pos.DistanceTo(center));
+            });
+            Console.WriteLine("  singularity: friend started {0:F0}px from the boss, got pulled to {1:F0}px", start.DistanceTo(center), closest);
+            Check(pullSeen && closest < start.DistanceTo(center) - 100f, "The Singularity's gravity pulls the client's player in");
+            s[1].Game.Bot = true;
+
+            // Its corner wells bend the players' shots into themselves, and come back after you kill them.
+            int wellsOnClient = 0, pulled = 0, compared = 0;
+            float drift = 0f;
+            var counted = new HashSet<int>();
+            int frame = 0;
+            Run(s, dt, 6, null, () =>
+            {
+                int n = 0;
+                foreach (var e in s[1].Game.Enemies.Values)
+                    if (e.Type == EnemyType.GravityWell)
+                        n++;
+                wellsOnClient = Math.Max(wellsOnClient, n);
+                foreach (var b in s[0].Game.Bullets.Values)
+                    if (b.Pulled && counted.Add(b.Id))
+                        pulled++;
+                foreach (var p in s[0].Game.Players.Values)
+                    p.InvulnT = 1f;
+                if (++frame % 60 == 0)
+                {
+                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    foreach (var b in s[1].Game.Bullets.Values)
+                    {
+                        Bullet hb;
+                        if (s[0].Game.Bullets.TryGetValue(b.Id, out hb) && hb.Pulled)
+                        {
+                            drift = Math.Max(drift, hb.Pos.DistanceTo(b.Pos));
+                            compared++;
+                        }
+                    }
+                }
+            });
+            Console.WriteLine("  gravity wells: {0} on the client, {1} shots bent, drift {2:0.0}px over {3} samples", wellsOnClient, pulled, drift, compared);
+            Check(wellsOnClient == 4, "the Singularity brings 4 gravity wells (seen on client)");
+            Check(pulled > 10 && drift < 40f, "gravity wells bend players' shots into themselves, in sync on the client");
+            foreach (var e in s[0].Game.Enemies.Values)
+                if (e.Type == EnemyType.GravityWell)
+                    e.Hp = 0f;
+            Run(s, dt, 2);
+            bool gone = Find(s[0], EnemyType.GravityWell) == null;
+            Run(s, dt, 16, () => Find(s[0], EnemyType.GravityWell) != null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; });
+            bool back = Find(s[0], EnemyType.GravityWell) != null;
+            var sing = Find(s[0], EnemyType.Singularity);
+            if (sing != null)
+                sing.Hp = 0f;
+            Run(s, dt, 2);
+            bool collapsed = Find(s[0], EnemyType.GravityWell) == null;
+            Console.WriteLine("  wells killed {0}, came back {1}, collapsed with the boss {2}", gone, back, collapsed);
+            Check(gone && back && collapsed, "gravity wells return 15 s after you kill them, and collapse when the Singularity dies");
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+}

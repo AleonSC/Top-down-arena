@@ -585,7 +585,10 @@ TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
-they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
+they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
+`core`; `features` runs every feature test, `all` runs both, and `run.sh list` shows every suite. Tests live in
+`Tools/SimTest/Tests/`, one file per system, and their random rolls are seeded so a run is repeatable
+(`SEED=random` for fresh rolls).
 ### Developer tools (F1)
 
 Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs down the left, and a card at
