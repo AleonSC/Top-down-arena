@@ -198,7 +198,7 @@ static partial class Program
         Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, ring orbs {2}, target {3}", stunned, caught, ring, w.TargetId);
         Check(stunned && caught && ring >= 20, "a stun shot stops you, the searchlight catches you, and a shackle ring closes in");
         Check(clientStunned, "the stun reaches the stunned player's own game");
-        Run(s, dt, 6f, () => w.Warden.Turn != WardenTurn.Light, Clear);
+        Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
         Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
 
         // Lockdown at 65%: 2 s where it can't be hurt, the screen cleared.

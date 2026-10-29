@@ -81,7 +81,7 @@ namespace Arena
         };
         static readonly float[][] StageTimes =
         {
-            new[] { 5f, 1f, 6f, 1f, 4f, 2f, 6f, 1f },  // the fast fan last, so the arena is clear when the light comes on
+            new[] { 5f, 1f, 6f, 1f, 4f, 2f, 18f, 1f },  // the fast fan last, so the arena is clear when the light comes on; the light hunts for 18 s
             new[] { 12f, 2f },
             new[] { 10f, 1f, ChargeWarn + ChargeLength / ChargeSpeed + 0.3f, 1f },
             new[] { 999f },
