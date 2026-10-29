@@ -509,6 +509,28 @@ namespace Arena
             return WardenStageName(w.Stage);
         }
 
+        /// The Hive Queen's stage under her health bar, and what to watch for.
+        string QueenNote(Enemy e, ref Color c)
+        {
+            var q = e.Queen;
+            if (q.TransT > 0f)
+            {
+                c = new Color(0.9f, 0.92f, 1f);
+                return "CAN'T BE HURT — " + QueenStageName(q.TransTo) + " is coming";
+            }
+            c = q.Stage == QueenStage.Swarm ? new Color(1f, 0.82f, 0.3f) : q.Stage == QueenStage.Honeycomb ? new Color(1f, 0.65f, 0.15f) : new Color(1f, 0.45f, 0.3f);
+            if (e.Phase == 1)
+                return "SWARM — SHIELDED, kill her drones!";
+            if (q.Turn == QueenTurn.Eggs)
+                return "HONEYCOMB — break the eggs before they hatch!";
+            if (Game.QueenAir(q) > 0.5f)
+                return "FRENZY — DIVING, get out from under her!";
+            return QueenStageName(q.Stage);
+        }
+
+        static string QueenStageName(QueenStage s) =>
+            s == QueenStage.Swarm ? "SWARM" : s == QueenStage.Honeycomb ? "HONEYCOMB" : s == QueenStage.Frenzy ? "FRENZY" : "LAST STAND";
+
         static string WardenStageName(WardenStage s) =>
             s == WardenStage.Count ? "COUNT" : s == WardenStage.Lockdown ? "LOCKDOWN" : s == WardenStage.Riot ? "RIOT" : "LAST STAND";
 
@@ -522,7 +544,9 @@ namespace Arena
                 var col = ToColor(e.Def.Color);
                 string note = null;
                 Color noteColor = Ui.Warn;
-                if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
+                if (e.Type == EnemyType.HiveQueen && e.Queen != null)
+                    note = QueenNote(e, ref noteColor);
+                else if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
                     note = "SHIELDED — kill her swarm!";
                 else if (Game.IsTwin(e.Type) && e.Phase == 1)
                 {

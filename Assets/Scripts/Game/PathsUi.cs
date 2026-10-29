@@ -264,6 +264,17 @@ namespace Arena
                 DrawGasPatch(pt, r, fade, t);
                 return;
             }
+            if (pt.Kind == PatchKind.Honey)
+            {
+                if (pt.Active)  // a sticky amber puddle (the glob is still in the air until then)
+                {
+                    float a = Mathf.Clamp01((pt.Age - pt.Warn) / 0.15f) * Mathf.Clamp01((pt.Life - pt.Age) / 0.5f);
+                    Circle(pt.Pos, r, new Rgba(0.86f, 0.55f, 0.08f, 0.45f * a), 28);
+                    Circle(pt.Pos + new V2(-r * 0.25f, -r * 0.2f), r * 0.3f, new Rgba(1f, 0.86f, 0.47f, 0.35f * a), 14);
+                    Arc(pt.Pos, r, 2f, new Rgba(1f, 0.75f, 0.3f, 0.5f * a), 28);
+                }
+                return;
+            }
             if (pt.Kind == PatchKind.Fire)
             {
                 if (!pt.Active)

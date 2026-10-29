@@ -356,8 +356,8 @@ namespace Arena
                             EnemyFire(e, tpos);
                     }
                 }
-                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber)
-                    continue;  // blew up this tick, or explodes instead of bumping
+                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || QueenAirborne(e))
+                    continue;  // blew up this tick, explodes instead of bumping, an egg, or the Hive Queen up in a dive
                 // Bosses and heavies hurt to stand in, more so later on.
                 float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
@@ -444,21 +444,11 @@ namespace Arena
             e.Facing = want;
         }
 
-        const float QueenSwarmHp = 3f;  // the Hive Queen's shards have 3x normal shard health
-
-        // The Hive Queen loops through three stages (Enemy.T2), timed by PhaseT:
-        const int QueenStart = 0, QueenSwarm = 1, QueenBombers = 2, QueenBullets = 3;
-        const float QueenSwarmTime = 2f;    // a short beat after summoning; the drones don't hold up the rest of the loop
-        const float QueenBomberTime = 4.5f; // explosive drones, launched at where each player is
-        const float QueenBulletTime = 10f;  // aimed fans for 5 s, then rings for 5 s
-        const int QueenSwarmCap = 8;
-        const float BomberBlast = 60f, BomberDamage = 22f;
-
         /// Shielders block shots from the front; the Hive Queen is immune while her swarm protects her.
         bool BlocksShot(Enemy e, V2 from)
         {
-            if (e.Type == EnemyType.HiveQueen && e.Phase == 1)
-                return true;
+            if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
+                return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
                 return true;  // changing stage, or behind its riot shield (Warden.cs)
             if (SoulBound(e))
@@ -469,13 +459,6 @@ namespace Arena
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
             return diff < ShieldHalfAngle;
-        }
-
-        void QueenStage(Enemy e, int stage)
-        {
-            e.T2 = stage;
-            e.PhaseT = 0f;
-            e.FireT = 0.6f;  // a beat before each stage starts firing
         }
 
         int AlivePlayers()
@@ -539,7 +522,8 @@ namespace Arena
                     v = KeepDistance(dir, dist, 160f);
                     break;
                 case EnemyType.Shard:
-                    v = KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
+                    v = DroneGoingHome(e) ? DroneHomeMove(e, ref speed)  // the Hive Queen's drones, flying back into her (Queen.cs)
+                        : KeepDistance(dir, dist, 180f) + dir.Orthogonal() * e.Strafe;
                     break;
                 case EnemyType.Mortar:
                     v = KeepDistance(dir, dist, 450f) + dir.Orthogonal() * e.Strafe * 0.4f;
@@ -594,11 +578,8 @@ namespace Arena
                     v = RioterMove(e, tpos);  // Warden.cs
                     break;
                 case EnemyType.HiveQueen:
-                {
-                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.5f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.8f) * 40f);
-                    v = (goal - e.Pos) / 60f;
+                    v = QueenMove(e, tpos, ref speed);  // Queen.cs
                     break;
-                }
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
                 {
@@ -709,47 +690,8 @@ namespace Arena
                     }
                     break;
                 case EnemyType.HiveQueen:
-                {
-                    int swarm = 0;
-                    foreach (var o in Enemies.Values)
-                        if (o.ParentId == e.Id && o.Type == EnemyType.Shard)
-                            swarm++;
-                    e.Phase = (byte)(swarm > 0 ? 1 : 0);  // shielded until every one of her shooting drones is dead
-                    e.PhaseT += dt;
-                    switch ((int)e.T2)
-                    {
-                        case QueenStart:
-                        {
-                            // Her shooting drones, tougher than ordinary shards: kill them all to drop her shield.
-                            // Each loop tops the swarm back up (to 8 at most).
-                            int n = Math.Min(QueenSwarmCap - swarm, 3 + AlivePlayers());
-                            for (int i = 0; i < n; i++)
-                            {
-                                var drone = SpawnEnemyAt(EnemyType.Shard, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / n) * 70f, 0.5f, e.Id);
-                                drone.MaxHp *= QueenSwarmHp;
-                                drone.Hp = drone.MaxHp;
-                            }
-                            BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.Ability);
-                            QueenStage(e, QueenSwarm);
-                            break;
-                        }
-                        case QueenSwarm:
-                            // Her drones are extra: the loop carries on (bombers, then bullets) while they fight,
-                            // and she stays shielded until they're all dead.
-                            if (e.PhaseT > QueenSwarmTime)
-                                QueenStage(e, QueenBombers);
-                            break;
-                        case QueenBombers:
-                            if (e.PhaseT > QueenBomberTime)
-                                QueenStage(e, QueenBullets);
-                            break;
-                        default:
-                            if (e.PhaseT > QueenBulletTime)
-                                QueenStage(e, QueenStart);
-                            break;
-                    }
+                    QueenSpecial(e, tpos, dt);  // Queen.cs: her stages and turns
                     break;
-                }
                 case EnemyType.HiveBomber:
                 {
                     // Blows up when it reaches the spot it was launched at, or on touching anyone on the way.
@@ -858,30 +800,7 @@ namespace Arena
                     WardenFire(e, tpos);  // Warden.cs
                     break;
                 case EnemyType.HiveQueen:
-                    if ((int)e.T2 == QueenSwarm)
-                        e.FireT = 0.3f;  // her drones do the shooting
-                    else if ((int)e.T2 == QueenBombers)
-                    {
-                        // One explosive drone per player, aimed at where they are right now: keep moving.
-                        e.FireT = 0.9f;
-                        foreach (var p in Players.Values)
-                            if (!p.Downed)
-                                LaunchBomber(e, p.Pos);
-                    }
-                    else if (e.PhaseT < QueenBulletTime / 2f)
-                    {
-                        // Aimed fan, with gaps wide enough to slip through even up close.
-                        e.FireT = 0.9f;
-                        for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.22f, 200f, Defs.PierceShot);
-                    }
-                    else
-                    {
-                        e.FireT = 1.6f;
-                        e.Ang += 0.15f;
-                        for (int i = 0; i < 20; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 20f, 100f, Defs.BigShot);
-                    }
+                    QueenFire(e, tpos);  // Queen.cs
                     break;
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
@@ -921,6 +840,8 @@ namespace Arena
         {
             if (e.Type == EnemyType.Boss)
                 ClearRioters();  // the riot's over (Warden.cs)
+            if (e.Type == EnemyType.HiveQueen)
+                ClearQueenAdds(e);  // her eggs, bombers and drones go with her (Queen.cs)
             if (e.Type == EnemyType.Singularity)
                 foreach (var o in Enemies.Values)
                     if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell)

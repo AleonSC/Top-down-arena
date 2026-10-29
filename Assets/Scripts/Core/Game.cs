@@ -161,6 +161,7 @@ namespace Arena
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
+        public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
     }
 
     public class Bullet
@@ -925,6 +926,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
+            UpdateQueenView(dt);   // Queen.cs
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
@@ -1045,7 +1047,7 @@ namespace Arena
             }
             else
             {
-                V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f);
+                V2 want = move * me.Speed * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos);
                 if (OnPathOf(PathId.FrozenLake))
                 {
                     // Frozen Lake (Paths.cs): speed builds toward where you're heading and carries on when you let go.
@@ -1073,7 +1075,7 @@ namespace Arena
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
-                    if (e.Def.IsBoss && !IsSpawning(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
+                    if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
                     {
                         V2 away = me.Pos - e.Pos;
                         shoveDir = away.IsZero ? V2.FromAngle(me.Aim + MathX.Pi) : away.Normalized();

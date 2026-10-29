@@ -106,6 +106,7 @@ namespace Arena
                     DrawBigShot(b, t);
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
+            DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
@@ -129,6 +130,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot)
                     DrawSmallShot(b, t);
+            DrawQueenSwarm(t);  // QueenLook.cs
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
         }
@@ -347,6 +349,11 @@ namespace Arena
             if (b.Kind == Defs.StunShot)
             {
                 DrawStunShot(b, t);  // WardenLook.cs
+                return;
+            }
+            if (b.Kind == Defs.HoneyShot)
+            {
+                DrawHoneyShot(b);  // QueenLook.cs
                 return;
             }
             if (b.Kind == Defs.FrostLance)
@@ -981,11 +988,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.HiveQueen:
-                    if (e.Phase == 1)  // shielded by her swarm
-                    {
-                        Circle(pos, r + 16f, new Rgba(1f, 0.85f, 0.3f, 0.15f), 40);
-                        Arc(pos, r + 16f, 3f, new Rgba(1f, 0.9f, 0.4f, 0.8f), 40);
-                    }
+                    DrawQueenUnderlay(e, pos, r, t);  // QueenLook.cs
                     break;
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
@@ -1204,6 +1207,9 @@ namespace Arena
                     break;
                 case EnemyType.Rioter:
                     DrawRioterDetails(e, pos, r, col);  // WardenLook.cs
+                    break;
+                case EnemyType.HiveEgg:
+                    DrawEggDetails(e, pos, r, t);  // QueenLook.cs
                     break;
                 case EnemyType.Shielder:
                     Arc(pos, r + 7f, 4f, new Rgba(0.7f, 0.85f, 1f, 0.9f), 20, e.Facing - 1.13f, 2.26f);

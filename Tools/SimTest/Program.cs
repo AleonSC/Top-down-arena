@@ -660,6 +660,140 @@ static class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    /// The Hive Queen's three stages (Queen.cs): Swarm, Honeycomb, Frenzy, then a last stand.
+    static void QueenTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var blocks = typeof(Game).GetMethod("BlocksShot", flags);
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        var s = StartBuffed(dt, 10, 0);
+        var g = s[0].Game; var cg = s[1].Game;
+        g.Bot = false; cg.Bot = false;
+        g.DevSetGod(1, true);
+        Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.HiveQueen); return b != null && b.SpawnT <= 0f; });
+        var q = Find(s[0], EnemyType.HiveQueen);
+        var me = g.Players[1]; var friend = g.Players[2];
+        Action KillDrones = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Shard) e.Hp = 0f; };
+        Action Park = () => { me.Pos = new V2(60f, 840f); };
+        Action<V2> PutFriend = pos => { friend.Pos = pos; cg.Players[2].Pos = pos; };  // the friend's own game moves them
+
+        // Swarm: one turn at a time.
+        var seen = new List<QueenTurn>();
+        Run(s, dt, 22f, null, () =>
+        {
+            KillDrones(); Park();
+            PutFriend(new V2(1400f, 800f)); friend.Hp = friend.MaxHp;
+            var t = q.Queen.Turn;
+            if (seen.Count == 0 || seen[seen.Count - 1] != t) seen.Add(t);
+        });
+        Console.WriteLine("  queen swarm turns: " + string.Join(", ", seen));
+        Check(seen.Count >= 8 && seen[0] == QueenTurn.Drones && seen[1] == QueenTurn.Rest && seen[2] == QueenTurn.Bombers && seen[4] == QueenTurn.Fan && seen[6] == QueenTurn.Rings,
+            "Swarm: drones, bombers, aimed fan, orb rings, with a breather between each");
+        Check(cg.Enemies.ContainsKey(q.Id) && cg.Enemies[q.Id].Queen != null && cg.Enemies[q.Id].Queen.Stage == QueenStage.Swarm, "clients see the Hive Queen's stage");
+
+        // Honeycomb at 65%: 2 s where she can't be hurt, the screen cleared.
+        q.Hp = q.MaxHp * 0.64f;
+        Run(s, dt, 0.2f, null, Park);
+        float during = q.Hp;
+        hurt.Invoke(g, new object[] { q, 500f, 1 });
+        Check(q.Queen.TransT > 0f && q.Hp == during && (bool)blocks.Invoke(g, new object[] { q, q.Pos + new V2(0f, 200f) })
+            && g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) == 0 && g.Enemies.Values.Count(e => e.Type == EnemyType.Shard || e.Type == EnemyType.HiveBomber) == 0,
+            "at 65% she changes stage: she can't be hurt for 2 s and the screen is cleared");
+        Run(s, dt, 2.2f, null, Park);
+        Check(q.Queen.Stage == QueenStage.Honeycomb && q.Queen.Turn == QueenTurn.Eggs, "then Honeycomb: she lays eggs");
+
+        // Eggs: break two, let two hatch into drones.
+        Run(s, dt, 1f, null, Park);
+        var eggs = g.Enemies.Values.Where(e => e.Type == EnemyType.HiveEgg).ToList();
+        bool clientEggs = cg.Enemies.Values.Count(e => e.Type == EnemyType.HiveEgg) == eggs.Count;
+        for (int i = 0; i < 2 && i < eggs.Count; i++) eggs[i].Hp = 0f;
+        Run(s, dt, 6f, () => q.Queen.Turn != QueenTurn.Eggs, () => { Park(); foreach (var p in g.Players.Values) p.Hp = p.MaxHp; });
+        Run(s, dt, 0.1f, null, Park);
+        int hatched = g.Enemies.Values.Count(e => e.Type == EnemyType.Shard), eggsLeft = g.Enemies.Values.Count(e => e.Type == EnemyType.HiveEgg);
+        Console.WriteLine("  queen eggs: {0} laid (client saw them {1}), 2 broken, {2} drones hatched, {3} eggs left", eggs.Count, clientEggs, hatched, eggsLeft);
+        Check(eggs.Count == 4 && clientEggs && hatched == 4 && eggsLeft == 0, "4 eggs; the ones you don't break hatch into 2 drones each");
+
+        // Sealing cells: she holds still; standing still in your cell gets you hurt; everyone sees the cells.
+        Run(s, dt, 3f, () => q.Queen.Turn == QueenTurn.Cells, () => { KillDrones(); Park(); });
+        V2 at = q.Pos; bool moved = false, clientCells = false;
+        float taken = friend.Run.DamageTaken;
+        Run(s, dt, 6.2f, () => q.Queen.Turn != QueenTurn.Cells, () =>
+        {
+            KillDrones(); Park();
+            PutFriend(new V2(800f, 600f)); friend.Hp = friend.MaxHp;
+            moved |= q.Pos.DistanceTo(at) > 1f;
+            clientCells |= cg.Enemies[q.Id].Queen.Cells.Count > 0;
+        });
+        float cellDmg = friend.Run.DamageTaken - taken;
+        Console.WriteLine("  queen cells: friend standing still took {0:0}, she moved {1}, client saw cells {2}", cellDmg, moved, clientCells);
+        Check(cellDmg >= 18f && !moved && clientCells, "sealing cells hurt whoever stands in them (everyone sees them); she holds still");
+
+        // Nectar spray: honey globs, and puddles that slow you on your own game.
+        Run(s, dt, 3f, () => q.Queen.Turn == QueenTurn.Spray, () => { KillDrones(); Park(); });
+        var honeyIds = new HashSet<int>(); int globs = 0; var seenGlob = new HashSet<int>();
+        Run(s, dt, 5.5f, () => q.Queen.Turn != QueenTurn.Spray, () =>
+        {
+            KillDrones(); Park();
+            PutFriend(new V2(1500f, 80f));
+            foreach (var pt in cg.Patches.Values) if (pt.Kind == PatchKind.Honey) honeyIds.Add(pt.Id);
+            foreach (var b in g.Bullets.Values) if (b.Kind == Defs.HoneyShot && seenGlob.Add(b.Id)) globs++;
+        });
+        var puddle = cg.Patches.Values.FirstOrDefault(pt => pt.Kind == PatchKind.Honey && pt.Active);
+        float slow = puddle == null ? 1f : (float)typeof(Game).GetMethod("HoneySlowAt", flags).Invoke(cg, new object[] { puddle.Pos });
+        Console.WriteLine("  queen spray: {0} globs, {1} honey puddles on the client, slow there x{2:0.00}", globs, honeyIds.Count, slow);
+        Check(globs >= 30 && honeyIds.Count >= 8 && slow < 0.6f, "the nectar spray leaves honey puddles that slow you (seen on client)");
+
+        // Frenzy at 30%: the swarm cloud hunts the nearest player.
+        q.Hp = q.MaxHp * 0.29f;
+        Run(s, dt, 2.6f, null, () => { KillDrones(); Park(); });
+        Check(q.Queen.Stage == QueenStage.Frenzy && q.Queen.Turn == QueenTurn.Cloud && q.Queen.CloudOn, "at 30%: Frenzy, starting with the swarm cloud");
+        taken = friend.Run.DamageTaken;
+        bool clientCloud = false; float cloudGap = 999f;
+        me.Pos = new V2(60f, 840f);
+        Run(s, dt, 3f, null, () =>
+        {
+            KillDrones(); Park();
+            PutFriend(new V2(900f, 600f)); friend.Hp = friend.MaxHp;
+            clientCloud |= cg.Enemies[q.Id].Queen.CloudOn;
+            cloudGap = q.Queen.Cloud.DistanceTo(friend.Pos);
+        });
+        float beeDmg = friend.Run.DamageTaken - taken;
+        Run(s, dt, 8f, () => q.Queen.Turn != QueenTurn.Cloud, () => { KillDrones(); Park(); });
+        Console.WriteLine("  queen cloud: reached the friend (gap {0:0}), stinging {1:0}; client saw it {2}; turn over {3}", cloudGap, beeDmg, clientCloud, q.Queen.Turn != QueenTurn.Cloud);
+        Check(cloudGap < 20f && beeDmg > 0f && clientCloud && q.Queen.Turn != QueenTurn.Cloud, "the swarm cloud hunts a player who stands still and stings, then flies home");
+
+        // Royal dive: her shadow lands on her target, she can't be hurt in the air, a ring where she lands.
+        Run(s, dt, 3f, () => q.Queen.Turn == QueenTurn.Dive, Park);
+        taken = friend.Run.DamageTaken;
+        bool immuneInAir = false, clientDive = false; int rings = 0;
+        int landedNear = 0;
+        Run(s, dt, 6.5f, () => q.Queen.Turn != QueenTurn.Dive, () =>
+        {
+            KillDrones(); Park();
+            q.TargetId = 2; q.RetargetT = 99f;
+            PutFriend(new V2(1000f, 500f)); friend.Hp = friend.MaxHp;
+            if (Game.QueenAir(q.Queen) > 0.8f && !immuneInAir) { float h0 = q.Hp; hurt.Invoke(g, new object[] { q, 50f, 1 }); immuneInAir = q.Hp == h0; }
+            clientDive |= cg.Enemies[q.Id].Queen.Turn == QueenTurn.Dive;
+            if (q.Queen.Landed && q.Queen.DiveT < 1.32f) { rings++; if (q.Queen.Shadow.DistanceTo(friend.Pos) < 30f) landedNear++; }
+        });
+        float diveDmg = friend.Run.DamageTaken - taken;
+        Console.WriteLine("  queen dive: friend took {0:0}, immune in the air {1}, landings near the target {2}, client saw it {3}", diveDmg, immuneInAir, landedNear, clientDive);
+        Check(diveDmg >= 25f && immuneInAir && landedNear >= 2 && clientDive, "the royal dive lands on its target (can't be hurt in the air)");
+
+        // Bomber barrage: two per player per volley (one leads you).
+        Run(s, dt, 3f, () => q.Queen.Turn == QueenTurn.Barrage, Park);
+        var bomberIds = new HashSet<int>();
+        Run(s, dt, 0.75f, null, () => { Park(); PutFriend(new V2(1000f, 500f)); foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.HiveBomber) bomberIds.Add(e.Id); });
+        Console.WriteLine("  queen barrage: {0} bombers in the first volley", bomberIds.Count);
+        Check(bomberIds.Count == 4, "the barrage sends two bombers at each player");
+
+        // Last stand below 10%.
+        q.Hp = q.MaxHp * 0.09f;
+        Run(s, dt, 4f, () => q.Queen.Stage == QueenStage.LastStand && q.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 10f, Park);
+        Check(q.Queen.Stage == QueenStage.LastStand && q.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 10f, "below 10%: the last stand, in the middle");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     // The parry: blocks a boss's fire from the front, breaks after its limit, stops you shooting,
     // reflects shots on a perfect parry, and everyone sees it.
     static void ParryTest(float dt)
@@ -4235,28 +4369,28 @@ static class Program
             Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
             s[0].Leave(""); s[1].Leave("");
         }
-        // Her drones don't hold up the fight: with all of them still alive, she carries on with
-        // bombers and bullets, and stays shielded the whole time.
+        // Her drones get their own turn: while any live she's shielded and waits (no bombers) for up to 10 s;
+        // then the ones left fly back into her and heal her.
         {
             var s = StartBuffed(dt, 10, 0);
             Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
             s[0].Game.Bot = s[1].Game.Bot = false;
             var q = Find(s[0], EnemyType.HiveQueen);
-            var seenStages = new HashSet<int>();
-            bool alwaysShielded = true, bombers = false;
-            Run(s, dt, 14f, null, () =>
+            bool alwaysShielded = true, bombersEarly = false;
+            q.Hp = q.MaxHp * 0.9f;
+            Run(s, dt, 9.5f, null, () =>
             {
                 foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f;
-                seenStages.Add((int)q.T2);
-                bombers |= Find(s[0], EnemyType.HiveBomber) != null;
-                if ((int)q.T2 >= 2 && Find(s[0], EnemyType.Shard) != null) alwaysShielded &= q.Phase == 1;  // while bombing and shooting
+                bombersEarly |= Find(s[0], EnemyType.HiveBomber) != null;
+                alwaysShielded &= q.Phase == 1 && q.Queen.Turn == QueenTurn.Drones;
             });
-            int drones = 0;
-            foreach (var e in s[0].Game.Enemies.Values) if (e.Type == EnemyType.Shard) drones++;
-            Console.WriteLine("  queen with her drones alive: stages seen {0}, bombers {1}, {2} drones at the end, shielded throughout {3}",
-                string.Join(",", seenStages.OrderBy(x => x)), bombers, drones, alwaysShielded);
-            Check(seenStages.Contains(2) && seenStages.Contains(3) && bombers && drones > 0 && alwaysShielded,
-                "the Hive Queen's drones don't pause her: bombers and bullets carry on while they live (and she stays shielded)");
+            float hpBefore = q.Hp;
+            Run(s, dt, 6f, () => Find(s[0], EnemyType.Shard) == null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; });
+            bool home = Find(s[0], EnemyType.Shard) == null;
+            Console.WriteLine("  queen with her drones alive: shielded throughout {0}, bombers early {1}, drones flew home {2}, health {3:0.0}% -> {4:0.0}%",
+                alwaysShielded, bombersEarly, home, hpBefore / q.MaxHp * 100f, q.Hp / q.MaxHp * 100f);
+            Check(alwaysShielded && !bombersEarly, "the Hive Queen waits behind her drones' shield while they live");
+            Check(home && q.Hp > hpBefore + q.MaxHp * 0.05f && q.Phase == 0, "drones left after 10 s fly back into her and heal her");
             s[0].Leave(""); s[1].Leave("");
         }
         // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones
@@ -4269,21 +4403,21 @@ static class Program
             Check(q.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f, "bosses appear in the middle of the arena");
             q.Pos = new V2(800f, 140f);  // she spawns in the middle; move her clear of the runners' circles
             Run(s, dt, 1.5f);
-            bool shieldUp = q.Phase == 1 && Find(s[0], EnemyType.Shard) != null && (int)q.T2 == 1;
+            bool shieldUp = q.Phase == 1 && Find(s[0], EnemyType.Shard) != null && q.Queen.Turn == QueenTurn.Drones;
             bool bombersEarly = Find(s[0], EnemyType.HiveBomber) != null;
             foreach (var e in s[0].Game.Enemies.Values)
                 if (e.Type == EnemyType.Shard) e.Hp = 0f;
-            var stages = new List<int> { (int)q.T2 };
+            var stages = new List<int> { (int)q.Queen.Turn };
             var aimedAt = new Dictionary<int, V2>();
             var lastPos = new Dictionary<int, V2>();
             int launched = 0, onTarget = 0, offTarget = 0, aimedRight = 0, fans = 0;
             bool clientBomber = false, clientMarker = false, resummoned = false;
             float hpBefore = 1f, hpAfter = 1f, t = 0f;  // minus damage taken so far, when the bomber stage starts / ends
-            Run(s, dt, 26f, null, () =>
+            Run(s, dt, 24f, null, () =>
             {
                 t += dt;
-                int st = (int)q.T2;
-                if (stages[stages.Count - 1] != st) stages.Add(st);
+                int st = (int)q.Queen.Turn;
+                if (st != (int)QueenTurn.Rest && stages[stages.Count - 1] != st) stages.Add(st);
                 // Both players keep running in circles.
                 int k = 0;
                 foreach (var p in s[0].Game.Players.Values)
@@ -4297,7 +4431,7 @@ static class Program
                 }
                 if (st == 2 && hpBefore > 0f) hpBefore = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
                 if (st == 3 && hpAfter > 0f) hpAfter = -(s[0].Game.Players[1].Run.DamageTaken + s[0].Game.Players[2].Run.DamageTaken);
-                if (st == 1 && stages.Count > 3) resummoned = true;
+                if (st == 1 && stages.Count > 4) resummoned = true;
                 foreach (var e in s[0].Game.Enemies.Values)
                 {
                     if (e.Type != EnemyType.HiveBomber) continue;
@@ -4324,14 +4458,14 @@ static class Program
             Console.WriteLine("  queen loop: stages {0}; {1} bombers launched ({2} aimed at a player's spot), {3} blew up on their spot, {4} elsewhere; running players lost {5:0} HP to them; fans {6}",
                 string.Join(">", stages), launched, aimedRight, onTarget, offTarget, hpBefore - hpAfter, fans);
             Check(shieldUp && !bombersEarly, "the Hive Queen opens with shooting drones and is shielded while they live");
-            Check(stages.Count >= 4 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && resummoned, "the Hive Queen loops: drones, then bombers, then bullets, then drones again");
+            Check(stages.Count >= 5 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && stages[3] == 4 && resummoned, "the Hive Queen loops, one turn at a time: drones, bombers, fan, rings, then drones again");
             Check(launched >= 8 && aimedRight == launched && onTarget >= launched - 2 && clientBomber && clientMarker,
                 "Hive bombers fly to where a player was when they launched and blow up there (seen on client, with a marker)");
             Check(hpBefore - hpAfter < 45f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
             // ...but standing still gets you blown up.
             {
                 foreach (var e in s[0].Game.Enemies.Values) if (e.Type != EnemyType.HiveQueen) e.Hp = 0f;
-                q.T2 = 1; q.PhaseT = 0f;  // hold her in the drone stage (no drones left to shoot)
+                q.Queen.Turn = QueenTurn.Rest; q.Queen.TurnT = 0f;  // hold her in a breather
                 Run(s, dt, 0.1f);
                 var still = s[0].Game.Players[1];
                 still.Hp = still.MaxHp; still.InvulnT = 0f;
@@ -4339,7 +4473,7 @@ static class Program
                     .Invoke(s[0].Game, new object[] { q, still.Pos });
                 V2 at = still.Pos;
                 float taken0 = still.Run.DamageTaken;
-                Run(s, dt, 2.5f, null, () => { still.Pos = at; if ((int)q.T2 != 1) { q.T2 = 1; q.PhaseT = 0f; } });
+                Run(s, dt, 2.5f, null, () => { still.Pos = at; q.Queen.Turn = QueenTurn.Rest; q.Queen.TurnT = 0f; });
                 Check(still.Run.DamageTaken - taken0 >= 20f, "a Hive bomber blows up a player who stands still");
             }
             s[0].Leave(""); s[1].Leave("");
@@ -4672,6 +4806,12 @@ static class Program
             Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
             return failures == 0 ? 0 : 1;
         }
+        if (args.Length > 2 && args[2] == "queen")
+        {
+            QueenTest(1f / 60f);
+            Console.WriteLine(failures == 0 ? "ALL PASSED" : failures + " FAILED");
+            return failures == 0 ? 0 : 1;
+        }
         if (args.Length > 2 && args[2] == "bear")
         {
             BearTotemTest(1f / 60f);
@@ -4707,6 +4847,7 @@ static class Program
         KnightTest(dt);
         BearTotemTest(dt);
         WardenTest(dt);
+        QueenTest(dt);
         BossSoundTest(dt);
         WeaponExtraTest(dt);
         KeybindTest(dt);

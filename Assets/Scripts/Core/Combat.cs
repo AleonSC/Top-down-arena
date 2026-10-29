@@ -596,8 +596,8 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
-            if (WardenImmune(e))
-                return;  // the Warden, changing stage (Warden.cs)
+            if (WardenImmune(e) || QueenImmune(e))
+                return;  // the Warden or the Hive Queen changing stage, or the Queen up in a dive
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

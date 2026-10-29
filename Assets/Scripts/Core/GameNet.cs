@@ -188,6 +188,8 @@ namespace Arena
                 w.Write((byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0)));
                 if (e.Type == EnemyType.Boss)
                     WriteWarden(w, e);  // Warden.cs
+                else if (e.Type == EnemyType.HiveQueen)
+                    WriteQueen(w, e);   // Queen.cs
             }
             w.Write((byte)Minions.Count);
             foreach (var m in Minions.Values)
@@ -508,6 +510,8 @@ namespace Arena
                 e.Bleeding = (status & 16) != 0;
                 if (type == EnemyType.Boss)
                     ReadWarden(r, e);  // Warden.cs
+                else if (type == EnemyType.HiveQueen)
+                    ReadQueen(r, e);   // Queen.cs
                 e.Radius = Defs.Get(type).Radius * (elite ? EliteSize : 1f);
                 seen.Add(id);
             }
