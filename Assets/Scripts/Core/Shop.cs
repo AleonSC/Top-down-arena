@@ -297,34 +297,15 @@ namespace Arena
                 Shop(ShopAction.Done, 1);
         }
 
-        void WriteShop(BinaryWriter w, Player p)
+        void SyncShop(NetSync s, Player p)
         {
-            w.Write(p.Gold);
-            w.Write(p.ShopDone);
-            w.Write(p.ReviveToken);
-            w.Write((byte)p.Restocks);
-            w.Write(p.ShelfSold);
+            s.Int(ref p.Gold);
+            s.Bool(ref p.ShopDone);
+            s.Bool(ref p.ReviveToken);
+            s.Byte(ref p.Restocks);
+            s.Byte(ref p.ShelfSold);
             for (int i = 0; i < ShelfSize; i++)
-                w.Write((short)p.Shelf[i]);
-        }
-
-        void ReadShop(BinaryReader r, Player p)
-        {
-            int gold = r.ReadInt32();
-            bool done = r.ReadBoolean(), token = r.ReadBoolean();
-            int restocks = r.ReadByte();
-            byte sold = r.ReadByte();
-            var shelf = new int[ShelfSize];
-            for (int i = 0; i < ShelfSize; i++)
-                shelf[i] = r.ReadInt16();
-            if (p == null)
-                return;
-            p.Gold = gold;
-            p.ShopDone = done;
-            p.ReviveToken = token;
-            p.Restocks = restocks;
-            p.ShelfSold = sold;
-            Array.Copy(shelf, p.Shelf, ShelfSize);
+                s.Short(ref p.Shelf[i]);
         }
     }
 }

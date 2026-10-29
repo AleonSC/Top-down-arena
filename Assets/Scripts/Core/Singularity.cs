@@ -228,27 +228,31 @@ namespace Arena
             return drift;
         }
 
-        void WriteCages(BinaryWriter w)
+        void SyncCages(NetSync s)
         {
-            w.Write((byte)Cages.Count);
-            foreach (var c in Cages.Values)
+            int n = Cages.Count;
+            s.Byte(ref n);
+            if (s.Reading)
             {
-                w.Write(c.Id);
-                w.Write(c.PlayerId);
-                w.Write(c.Center);
-                w.Write(c.Radius);
+                Cages.Clear();
+                for (int i = 0; i < n; i++)
+                {
+                    var c = new Cage();
+                    SyncCage(s, c);
+                    Cages[c.Id] = c;
+                }
             }
+            else
+                foreach (var c in Cages.Values)
+                    SyncCage(s, c);
         }
 
-        void ReadCages(BinaryReader r)
+        static void SyncCage(NetSync s, Cage c)
         {
-            Cages.Clear();
-            int n = r.ReadByte();
-            for (int i = 0; i < n; i++)
-            {
-                var c = new Cage { Id = r.ReadInt32(), PlayerId = r.ReadInt32(), Center = r.ReadV2(), Radius = r.ReadSingle() };
-                Cages[c.Id] = c;
-            }
+            s.Int(ref c.Id);
+            s.Int(ref c.PlayerId);
+            s.Vec(ref c.Center);
+            s.Float(ref c.Radius);
         }
     }
 }

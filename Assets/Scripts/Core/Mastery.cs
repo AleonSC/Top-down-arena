@@ -173,25 +173,20 @@ namespace Arena
         }
 
         // Snapshot: each slot's ability XP (everyone needs it for capstones like Dash's extra charge and the HUD).
-        void WriteMastery(System.IO.BinaryWriter w, Player p)
-        {
-            foreach (var s in p.Slots)
-            {
-                float xp;
-                p.MasteryXp.TryGetValue(s.Id, out xp);
-                w.Write((byte)s.Id);
-                w.Write(xp);
-            }
-        }
-
-        void ReadMastery(System.IO.BinaryReader r, Player p)
+        // known: false while reading a player this game doesn't have (the values are read and dropped).
+        void SyncMastery(NetSync s, Player p, bool known)
         {
             bool levelChanged = false;
             for (int k = 0; k < Upgrades.SlotCount; k++)
             {
-                var id = (AbilityId)r.ReadByte();
-                float xp = r.ReadSingle();
-                if (p == null || id == AbilityId.None)
+                var slotId = p.Slots[k].Id;
+                float xp;
+                p.MasteryXp.TryGetValue(slotId, out xp);
+                int idByte = (int)slotId;
+                s.Byte(ref idByte);
+                s.Float(ref xp);
+                var id = (AbilityId)idByte;
+                if (!s.Reading || !known || id == AbilityId.None)
                     continue;
                 float was;
                 p.MasteryXp.TryGetValue(id, out was);
@@ -203,7 +198,7 @@ namespace Arena
                 }
                 p.MasteryXp[id] = xp;
             }
-            if (levelChanged && p != null)
+            if (levelChanged)
                 Recalc(p);
         }
 

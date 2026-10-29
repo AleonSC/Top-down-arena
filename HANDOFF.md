@@ -58,7 +58,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | File | Lines | What it holds |
 |---|---|---|
 | `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and constants, lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
-| `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), `SendSnapshot`/`ReadSnapshot`, `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
+| `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), the snapshot (`SyncSnapshot` and its `SyncPlayer`/`SyncEnemy`/`SyncMinion`/`SyncZone`/`SyncOrb`; `SyncMastery`, `SyncShop`, `SyncWarden`, `SyncHazards`, `SyncCages` live with their systems), `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
+| `NetSync.cs` | 0.03k | one pass that writes (host) or reads (client) each field by `ref`, so a snapshot field is listed once for both sides |
 | `Combat.cs` | 0.8k | bullets (`SpawnBullet`, `MoveBullets`, homing `Steer`, gravity wells), `Collide`, damage to players (`Damage`, `RevivePlayer`) and enemies (`HurtEnemy`), on-hit/on-kill effects, burn, orbs |
 | `Weapons.cs` | 0.37k | `FireRate`, `FirePlayer`, `FireVolley`, `ExtraShots`, Revolver and Mender's Bow, `WeaponRange`, `SetFrags` |
 | `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
@@ -293,11 +294,11 @@ copies of the same numbers:
 
 ### 6.4 Networking
 
-8. **Snapshot read/write are hand-paired** (136 `Write` calls in `Game.cs`): adding a replicated field means
+8. ✅ **Done (Oct 2026):** the snapshot is one `Sync*` pass per entity over a `NetSync` (writes on the host, reads on a client); same bytes as before, so no protocol bump. **Snapshot read/write were hand-paired** (136 `Write` calls in `Game.cs`): adding a replicated field means
    editing `SendSnapshot` and `ReadSnapshot` in lockstep plus a protocol bump, and a mismatch silently
    corrupts the stream. A symmetric `Serialize(IStream)` per entity (one method that both reads and writes)
    would remove that whole class of bug.
-9. `ReadSnapshot` allocates several `HashSet`/`List`s **per snapshot** (20 Hz on clients); reuse scratch
+9. ✅ **Done (Oct 2026):** scratch fields (`snapSeen`, `snapGone`, ...) in `GameNet.cs`. `ReadSnapshot` allocated several `HashSet`/`List`s **per snapshot** (20 Hz on clients); reuse scratch
    collections like `Collide` already does. Small GC win on the client.
 10. Bandwidth is fine for 3 players over Tailscale (full state at 20 Hz, no bullets). Delta compression isn't
     needed unless player counts grow.
@@ -343,8 +344,11 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    at 0-3 extra projectiles, field for field, and the `aim` and `extra` outputs, identical before and after.
    Texts (`Desc`, `ExtraDesc`) still state their numbers by hand; the bots' lead-speed guesses (`ShotSpeedFor`) are
    left as they were (they differ from the real speeds, so reading `Speed` would change how bots aim).
-5. Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; reuse scratch collections in
-   `ReadSnapshot`. Protocol bump (items 8, 9).
+5. ✅ Symmetric serialise per entity replacing `SendSnapshot`/`ReadSnapshot`; scratch collections reused
+   (items 8, 9). The byte layout is unchanged, so **no protocol bump**: a seeded host/client harness compared every
+   snapshot's bytes and the client's whole state after reading it, old code vs new, over 7 runs (all six classes,
+   waves 5-40, forced hazards, shop, shelves, offers and Warden gates): identical. To add a replicated field, add
+   one `s.Float(ref ...)` (etc.) line in the right `Sync*` method and bump the protocol.
 6. Ability registry and enemy registry (items 2, 3): show the owner the design first, then migrate in small
    commits.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
@@ -358,7 +362,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next item is 5 (symmetric serialisation), then 6, 8, 9. Paths are feature-complete
+**Where to pick up:** the next item is 6 (registries: show the owner the design first), then 8, 9. Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the
