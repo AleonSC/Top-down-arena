@@ -76,11 +76,23 @@ namespace Arena
                 }
                 case WeaponId.FrostLance:
                 {
-                    var b = SpawnBullet(Defs.FrostLance, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Pierce += 1;
-                    b.SlowAmt = 0.3f;
-                    if (extra > 0)  // shatters into icicles that fly out to the sides
-                        SetFrags(b, 2 * extra, Defs.FrostShot, 5f * dmg, 500f, 0.3f, 0f, true);
+                    // A great icicle juts out from you along your aim, then splinters off its sides into
+                    // whatever stands beside it. Both slow.
+                    dmg *= HomingCost(p);  // Homing Rounds widen the splinters instead (AreaMult)
+                    var ice = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * dmg);
+                    ice.HalfWidth = IcicleHalfWidth;
+                    ice.Ice = 1;
+                    ice.Slow = IcicleSlow;
+                    ice.NoCut = true;
+                    pendingSwings.Add(ice);
+                    var shards = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * SplinterMult * dmg);
+                    shards.HalfWidth = (SplinterReach + SplinterGrow * extra) * AreaMult(p);
+                    shards.Hollow = IcicleHalfWidth;
+                    shards.Delay = SplinterDelay;
+                    shards.Ice = 2;
+                    shards.Slow = IcicleSlow;
+                    shards.NoCut = true;
+                    pendingSwings.Add(shards);
                     break;
                 }
                 case WeaponId.StormHammer:

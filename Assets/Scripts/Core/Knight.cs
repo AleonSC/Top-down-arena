@@ -26,6 +26,9 @@ namespace Arena
         public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
         public float Taunt;           // taunts what it hits for this long (a Clot Burst)
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
+        public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
+        public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
+        public float Slow;            // slows what it hits by this much (as frost shots do)
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -38,7 +41,9 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
-        public const float LanceHalfWidth = 44f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
+        public const float LanceHalfWidth = 44f, LanceStun = 1f;
+        public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
+        public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a charged slam on a 100 px wide box in front of you.
         public const float HammerHalfWidth = 50f;
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
@@ -244,6 +249,9 @@ namespace Arena
             if (s.ClawSide != 0f)
                 BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, new Rgba(1f, 0.86f, 0.78f), s.ClawSide * s.HalfArc, 0.2f,
                     s.Silent ? Sfx.None : Sfx.SwingLight);
+            else if (s.Ice != 0)
+                BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
+                    s.Ice == 1 ? IcicleFxTime : 0.3f, Sfx.None);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
@@ -263,7 +271,7 @@ namespace Arena
                     // The Lance's box: from your body out to its reach, HalfWidth either side of the aim line.
                     V2 rel = e.Pos - origin;
                     float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
-                    if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius)
+                    if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius || across < s.Hollow)
                         continue;
                     if (!BlocksShot(e, origin))
                         hits.Add(e);
@@ -314,7 +322,7 @@ namespace Arena
                 }
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id);  // Minions.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
