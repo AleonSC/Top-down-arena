@@ -82,10 +82,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |
 | `Shop.cs` | 0.3k | the Bazaar: gold per kill (`GrantGold`, `GoldPerXp`), `OpenShop` / per-player shelf (`RollShelf`), `ShopAction`s (`Shop` → `Msg.Shop` → `HostShop`), giving gold (`Msg.ShopGift`, notices), `CloseShop` (leftover gold → XP), revive token, `BotShop`, snapshot fields |
 | `Modifiers.cs` | 0.07k | `RunMod` flags and `ModDef`s; `Game.Mods` / `Has()`; sent in the lobby message |
-| `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, enemy blurbs, building a practice wave |
+| `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, the picker list (`Choices`, built from each `EnemyDef.Picker`), building a practice wave |
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
-| `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (stats, colours) |
+| `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
@@ -264,7 +264,7 @@ copies of the same numbers:
 |---|---|
 | **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
 | **Ability** | `AbilityId` · its `AbilityDef` entry in its class's file (lobby place, name, cooldown, texts, capstone, instant, charges, bot rule; since Oct 2026) · its cast `case` next to the entry (`CastAbility` / `KitAbility` / `KnightAbility` / `NinjaAbility` / `BloodAbility` / `Ultimate`), including what its capstone does · `PixelArt` icon by name · README · Armory |
-| **Enemy** | `EnemyType` + `Defs` · `EnemyAI` (roster, move, fire, special) · `ArenaApp.DrawEnemy` · `Practice.BlurbOf` + `Choices` · README · Bestiary |
+| **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldRenderer.DrawEnemy` · README · Bestiary |
 
 **Recommendations**
 1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then
@@ -272,7 +272,7 @@ copies of the same numbers:
    currently duplicates every speed/life literal (guarded by the `aim` test, but still double work).
 2. ✅ **Done (Oct 2026):** one `AbilityDef` per ability, kept beside its class's cast code (`SoldierAbilities` in `Abilities.cs`, `MageAbilities`/`SummonerAbilities` in `Minions.cs`, `UltimateAbilities` in `Ultimates.cs`, `KnightAbilities`, `NinjaAbilities`, `BloodMageAbilities`); `Upgrades.Abilities` gathers them and the lobby tables are built from each entry's `Kit`/`Role`/`Choice` (the game refuses to start if a place is empty or doubled; sim test `every ability has a complete entry`). Casts stay in each class's switch (owner's choice). **An ability registry**: one entry per ability with its cast function, bot heuristic, capstone and text,
    instead of 5+ parallel switches. Adding a Knight-sized class took most of a session because of this.
-3. **An enemy registry** in the same spirit (definition + blurb + draw style + AI hooks), so the Practice
+3. ✅ **Done (Oct 2026), data only (owner's choice):** each `EnemyDef` holds its Practice `Blurb`, its picker group (`PickerGroup`: the picker lists by group, then `EnemyType` order) and `Late`/`Heavy` flags; `BlurbOf`, `Choices`, `IsLateGame` and `Heavy` read them. AI, drawing, boss sounds and music stay per-type switches. **An enemy registry** in the same spirit (definition + blurb + draw style + AI hooks), so the Practice
    Range, Bestiary and README tables could be generated rather than hand-kept.
 4. **Generate the reference docs** (README tables, Armory/Bestiary data) from the definitions with a small
    tool, so balance changes don't need three manual edits.
@@ -358,6 +358,8 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    *Known red test (not from the registry):* "enemy bullets stay near the bullet budget" (wave 21 peaks at 214 enemy
    bullets, the test allows 210) has failed since `e6b6e37` (shields wear down, the riot brings guards); it passed
    on the commit before. Pushed with the owner's OK; the fix belongs with that change.
+   ✅ Enemies: blurb, picker group, late and heavy flags in each `EnemyDef`; a fingerprint of every enemy's data,
+   name, blurb, late/heavy checks and the picker's list was identical before and after.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. Gather the scattered balance constants into `Balance.cs` (item 14).
@@ -369,7 +371,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next item is 6 (registries: show the owner the design first), then 8, 9. Paths are feature-complete
+**Where to pick up:** the next item is 8 (`Balance.cs`), then 9. Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

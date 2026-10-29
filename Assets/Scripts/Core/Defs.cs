@@ -69,6 +69,9 @@ namespace Arena
         public float BotRange = 330f;  // how far away bots like to fight with it
     }
 
+    /// Where the Practice Range's picker lists an enemy: by group, then in EnemyType order.
+    public enum PickerGroup : byte { Hidden, Melee, Ranged, Late, Boss }
+
     public class EnemyDef
     {
         public float Hp, Radius, Speed;
@@ -78,6 +81,10 @@ namespace Arena
         public Rgba Color;
         public float Contact;  // melee: damage when it touches you (0 = the default contact damage)
         public bool Melee;
+        public bool Late;      // its AI is in LateGame.cs (LateMove, LateSpecial, LateFire)
+        public bool Heavy;     // too heavy to slow down, shove around or knock back (bosses always are)
+        public PickerGroup Picker;  // where the Practice Range's picker lists it (Hidden: only comes with its boss)
+        public string Blurb;   // one line on what it does (the Practice Range shows it on hover)
     }
 
     /// Stats for roles, enemies and bullets. Tweak numbers here to rebalance.
@@ -108,38 +115,65 @@ namespace Arena
         // Indexed by EnemyType.
         public static readonly EnemyDef[] Enemies =
         {
-            new EnemyDef { Name = "Grunt", Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f) },
-            new EnemyDef { Name = "Burster", Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f) },
-            new EnemyDef { Name = "Sniper", Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f) },
-            new EnemyDef { Name = "Spinner", Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f) },
-            new EnemyDef { Name = "The Warden", IsBoss = true, Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f) },
-            new EnemyDef { Name = "Charger", Hp = 90f, Radius = 15f, Speed = 70f, Score = 20, Xp = 18, Sides = 3, Color = new Rgba(0.3f, 0.9f, 0.9f) },
-            new EnemyDef { Name = "Splitter", Hp = 120f, Radius = 19f, Speed = 50f, Score = 20, Xp = 16, Sides = 4, Color = new Rgba(0.6f, 1f, 0.3f) },
-            new EnemyDef { Name = "Shard", Hp = 25f, Radius = 8f, Speed = 130f, Score = 5, Xp = 4, Sides = 3, Color = new Rgba(0.8f, 1f, 0.55f) },
-            new EnemyDef { Name = "Mortar", Hp = 80f, Radius = 16f, Speed = 40f, Score = 20, Xp = 18, Sides = 7, Color = new Rgba(0.95f, 0.55f, 0.3f) },
-            new EnemyDef { Name = "Shielder", Hp = 140f, Radius = 17f, Speed = 60f, Score = 25, Xp = 22, Sides = 6, Color = new Rgba(0.6f, 0.7f, 0.9f) },
-            new EnemyDef { Name = "Medic", Hp = 70f, Radius = 13f, Speed = 75f, Score = 25, Xp = 20, Sides = 4, Color = new Rgba(1f, 0.5f, 0.75f) },
-            new EnemyDef { Name = "Hive Queen", IsBoss = true, Hp = 3000f, Radius = 44f, Speed = 40f, Score = 400, Xp = 180, Sides = 6, Color = new Rgba(1f, 0.8f, 0.2f) },
-            new EnemyDef { Name = "Reaper of Dusk", IsBoss = true, Hp = 1800f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f) },
+            new EnemyDef { Name = "Grunt", Hp = 60f, Radius = 14f, Speed = 85f, Score = 10, Xp = 10, Sides = 3, Color = new Rgba(1f, 0.35f, 0.35f),
+                Picker = PickerGroup.Ranged, Blurb = "Fires aimed 3-shot spreads." },
+            new EnemyDef { Name = "Burster", Hp = 110f, Radius = 17f, Speed = 55f, Score = 20, Xp = 18, Sides = 6, Color = new Rgba(0.8f, 0.4f, 1f),
+                Picker = PickerGroup.Ranged, Blurb = "Fires rings of bullets; more in each ring on later waves." },
+            new EnemyDef { Name = "Sniper", Hp = 50f, Radius = 12f, Speed = 95f, Score = 15, Xp = 14, Sides = 4, Color = new Rgba(1f, 0.9f, 0.3f),
+                Picker = PickerGroup.Ranged, Blurb = "Fast, accurate shots from far away." },
+            new EnemyDef { Name = "Spinner", Hp = 150f, Radius = 18f, Speed = 35f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f),
+                Picker = PickerGroup.Ranged, Blurb = "Wanders and sprays spirals in bursts; it spins up while bursting." },
+            new EnemyDef { Name = "The Warden", IsBoss = true, Hp = 2400f, Radius = 46f, Speed = 45f, Score = 300, Xp = 150, Sides = 8, Color = new Rgba(1f, 0.25f, 0.5f),
+                Picker = PickerGroup.Boss, Blurb = "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters." },
+            new EnemyDef { Name = "Charger", Hp = 90f, Radius = 15f, Speed = 70f, Score = 20, Xp = 18, Sides = 3, Color = new Rgba(0.3f, 0.9f, 0.9f),
+                Picker = PickerGroup.Ranged, Blurb = "Flashes a red line, then dashes along it and bursts into a ring." },
+            new EnemyDef { Name = "Splitter", Hp = 120f, Radius = 19f, Speed = 50f, Score = 20, Xp = 16, Sides = 4, Color = new Rgba(0.6f, 1f, 0.3f),
+                Picker = PickerGroup.Ranged, Blurb = "Splits into 3 fast Shards when killed." },
+            new EnemyDef { Name = "Shard", Hp = 25f, Radius = 8f, Speed = 130f, Score = 5, Xp = 4, Sides = 3, Color = new Rgba(0.8f, 1f, 0.55f),
+                Picker = PickerGroup.Ranged, Blurb = "Tiny and fast. Comes from Splitters, Nests and the Hive Queen." },
+            new EnemyDef { Name = "Mortar", Hp = 80f, Radius = 16f, Speed = 40f, Score = 20, Xp = 18, Sides = 7, Color = new Rgba(0.95f, 0.55f, 0.3f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs bombs at where you stand; they burst into a ring on landing." },
+            new EnemyDef { Name = "Shielder", Hp = 140f, Radius = 17f, Speed = 60f, Score = 25, Xp = 22, Sides = 6, Color = new Rgba(0.6f, 0.7f, 0.9f),
+                Picker = PickerGroup.Ranged, Blurb = "A front shield blocks shots and swings. It turns slowly: flank it." },
+            new EnemyDef { Name = "Medic", Hp = 70f, Radius = 13f, Speed = 75f, Score = 25, Xp = 20, Sides = 4, Color = new Rgba(1f, 0.5f, 0.75f),
+                Picker = PickerGroup.Ranged, Blurb = "Heals nearby enemies every few seconds. Kill it first." },
+            new EnemyDef { Name = "Hive Queen", IsBoss = true, Hp = 3000f, Radius = 44f, Speed = 40f, Score = 400, Xp = 180, Sides = 6, Color = new Rgba(1f, 0.8f, 0.2f),
+                Picker = PickerGroup.Boss, Blurb = "Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm." },
+            new EnemyDef { Name = "Reaper of Dusk", IsBoss = true, Hp = 1800f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(1f, 0.35f, 0.6f),
+                Picker = PickerGroup.Boss, Blurb = "Boss pair (wave 15): Soul Bond, a sweeping tether, and an enrage." },
             new EnemyDef { Name = "Reaper of Dawn", IsBoss = true, Hp = 1800f, Radius = 34f, Speed = 95f, Score = 250, Xp = 100, Sides = 5, Color = new Rgba(0.45f, 0.55f, 1f) },
-            new EnemyDef { Name = "The Singularity", IsBoss = true, Hp = 3600f, Radius = 40f, Speed = 0f, Score = 500, Xp = 220, Sides = 10, Color = new Rgba(0.6f, 0.35f, 1f) },
-            new EnemyDef { Name = "Phantom", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 4, Color = new Rgba(0.55f, 0.85f, 1f) },
-            new EnemyDef { Name = "Hexer", Hp = 100f, Radius = 14f, Speed = 60f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(0.75f, 0.3f, 0.9f) },
-            new EnemyDef { Name = "Juggernaut", Hp = 420f, Radius = 26f, Speed = 32f, Score = 60, Xp = 50, Sides = 8, Color = new Rgba(0.55f, 0.55f, 0.62f) },
-            new EnemyDef { Name = "Nest", Hp = 260f, Radius = 22f, Speed = 0f, Score = 40, Xp = 35, Sides = 6, Color = new Rgba(0.7f, 0.9f, 0.4f) },
-            new EnemyDef { Name = "The Colossus", IsBoss = true, Hp = 6800f, Radius = 54f, Speed = 35f, Score = 600, Xp = 260, Sides = 6, Color = new Rgba(0.78f, 0.62f, 0.45f) },
-            new EnemyDef { Name = "The Duelist", IsBoss = true, Hp = 6000f, Radius = 30f, Speed = 80f, Score = 650, Xp = 280, Sides = 4, Color = new Rgba(0.85f, 0.85f, 1f) },
-            new EnemyDef { Name = "The Duelist", Hp = 70f, Radius = 30f, Speed = 0f, Score = 0, Xp = 0, Sides = 4, Color = new Rgba(0.85f, 0.85f, 1f) },  // decoy
-            new EnemyDef { Name = "The Lich", IsBoss = true, Hp = 5000f, Radius = 36f, Speed = 45f, Score = 700, Xp = 300, Sides = 7, Color = new Rgba(0.5f, 1f, 0.75f) },
-            new EnemyDef { Name = "Phylactery", Hp = 600f, Radius = 18f, Speed = 0f, Score = 50, Xp = 0, Sides = 4, Color = new Rgba(0.4f, 1f, 0.6f) },
-            new EnemyDef { Name = "Storm Herald", IsBoss = true, Hp = 6000f, Radius = 40f, Speed = 55f, Score = 800, Xp = 320, Sides = 9, Color = new Rgba(0.55f, 0.75f, 1f) },
-            new EnemyDef { Name = "The Devourer", IsBoss = true, Hp = 6500f, Radius = 50f, Speed = 40f, Score = 900, Xp = 340, Sides = 12, Color = new Rgba(0.85f, 0.28f, 0.38f) },
-            new EnemyDef { Name = "The Eclipse", IsBoss = true, Hp = 9000f, Radius = 52f, Speed = 30f, Score = 2000, Xp = 500, Sides = 16, Color = new Rgba(1f, 0.85f, 0.4f) },
-            new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f) },
+            new EnemyDef { Name = "The Singularity", IsBoss = true, Hp = 3600f, Radius = 40f, Speed = 0f, Score = 500, Xp = 220, Sides = 10, Color = new Rgba(0.6f, 0.35f, 1f),
+                Picker = PickerGroup.Boss, Blurb = "Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages." },
+            new EnemyDef { Name = "Phantom", Hp = 90f, Radius = 13f, Speed = 90f, Score = 25, Xp = 22, Sides = 4, Color = new Rgba(0.55f, 0.85f, 1f),
+                Picker = PickerGroup.Late, Late = true, Blurb = "Flickers, blinks next to you and bursts into a ring." },
+            new EnemyDef { Name = "Hexer", Hp = 100f, Radius = 14f, Speed = 60f, Score = 25, Xp = 22, Sides = 5, Color = new Rgba(0.75f, 0.3f, 0.9f),
+                Picker = PickerGroup.Late, Late = true, Blurb = "Fires curving pincer shots that close in from both sides." },
+            new EnemyDef { Name = "Juggernaut", Hp = 420f, Radius = 26f, Speed = 32f, Score = 60, Xp = 50, Sides = 8, Color = new Rgba(0.55f, 0.55f, 0.62f),
+                Picker = PickerGroup.Late, Late = true, Heavy = true, Blurb = "Armored and slow, can't be slowed or knocked back. Rotating stars of orbs." },
+            new EnemyDef { Name = "Nest", Hp = 260f, Radius = 22f, Speed = 0f, Score = 40, Xp = 35, Sides = 6, Color = new Rgba(0.7f, 0.9f, 0.4f),
+                Picker = PickerGroup.Late, Late = true, Heavy = true, Blurb = "Stationary spawner that keeps hatching Shards until destroyed." },
+            new EnemyDef { Name = "The Colossus", IsBoss = true, Hp = 6800f, Radius = 54f, Speed = 35f, Score = 600, Xp = 260, Sides = 6, Color = new Rgba(0.78f, 0.62f, 0.45f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 25): huge stomp rings with one gap, and thrown rocks." },
+            new EnemyDef { Name = "The Duelist", IsBoss = true, Hp = 6000f, Radius = 30f, Speed = 80f, Score = 650, Xp = 280, Sides = 4, Color = new Rgba(0.85f, 0.85f, 1f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 30): teleports and leaves decoys that burst unless killed." },
+            new EnemyDef { Name = "The Duelist", Hp = 70f, Radius = 30f, Speed = 0f, Score = 0, Xp = 0, Sides = 4, Color = new Rgba(0.85f, 0.85f, 1f), Late = true },  // decoy
+            new EnemyDef { Name = "The Lich", IsBoss = true, Hp = 5000f, Radius = 36f, Speed = 45f, Score = 700, Xp = 300, Sides = 7, Color = new Rgba(0.5f, 1f, 0.75f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 35): immune while its phylactery stands; raises skeletons." },
+            new EnemyDef { Name = "Phylactery", Hp = 600f, Radius = 18f, Speed = 0f, Score = 50, Xp = 0, Sides = 4, Color = new Rgba(0.4f, 1f, 0.6f), Late = true, Heavy = true },
+            new EnemyDef { Name = "Storm Herald", IsBoss = true, Hp = 6000f, Radius = 40f, Speed = 55f, Score = 800, Xp = 320, Sides = 9, Color = new Rgba(0.55f, 0.75f, 1f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 40): lightning strikes where you stand. Keep moving." },
+            new EnemyDef { Name = "The Devourer", IsBoss = true, Hp = 6500f, Radius = 50f, Speed = 40f, Score = 900, Xp = 340, Sides = 12, Color = new Rgba(0.85f, 0.28f, 0.38f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 45): hungry for 3 s of every 10, when your shots heal it. Hold fire." },
+            new EnemyDef { Name = "The Eclipse", IsBoss = true, Hp = 9000f, Radius = 52f, Speed = 30f, Score = 2000, Xp = 500, Sides = 16, Color = new Rgba(1f, 0.85f, 0.4f),
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50): spirals and rings, then wells and phantoms, then storms." },
+            new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
             // Melee
-            new EnemyDef { Name = "Swarmer", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f },
-            new EnemyDef { Name = "Brute", Hp = 110f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f },
-            new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f },
+            new EnemyDef { Name = "Swarmer", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
+                Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher that weaves toward you in pairs." },
+            new EnemyDef { Name = "Brute", Hp = 110f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
+                Picker = PickerGroup.Melee, Blurb = "Slow, tough melee bruiser that hits hard (24) when it reaches you." },
+            new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f,
+                Picker = PickerGroup.Melee, Blurb = "Circles in close, flashes a pink line, then leaps along it." },
             new EnemyDef { Name = "Hive Bomber", Hp = 30f, Radius = 10f, Speed = 330f, Score = 2, Xp = 0, Sides = 3, Color = new Rgba(1f, 0.45f, 0.15f), Melee = true },
             new EnemyDef { Name = "Cage Well", Hp = 40f, Radius = 11f, Speed = 0f, Score = 5, Xp = 2, Sides = 6, Color = new Rgba(0.85f, 0.4f, 1f), Melee = true },
             new EnemyDef { Name = "Rioter", Hp = 40f, Radius = 12f, Speed = 110f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(1f, 0.55f, 0.2f), Melee = true, Contact = 10f },
