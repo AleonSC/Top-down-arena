@@ -113,4 +113,33 @@ static partial class Program
         lab.Stop();
         Check(host.Screen == AppScreen.Menu && lab.Clients.Count == 0, "stopping the lab closes every seat");
     }
+
+    // F1 "Bot plays for you" drives the Boss Lab's smart bot (BotSkill.Good): it fights through waves, picks its
+    // level-up cards and finishes shopping in the Bazaar by itself.
+    static void F1BotTest(float dt)
+    {
+        var cleared = typeof(Game).GetMethod("WaveCleared", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1, StartWave = 1 };
+        host.Host(port, "Bot", Role.Dps);
+        var g = host.Game;
+        g.Bot = true; g.BotLevel = BotSkill.Good;
+        host.StartMatch();
+        g.DevSetGod(1, true);  // god mode only stops it dying; it still has to clear the waves
+        var me = g.Players[1];
+        for (int f = 0; f < 60 * 120 && g.Wave < 4; f++) Step(host, dt);
+        Console.WriteLine("  F1 bot: wave {0}, {1} cards taken, {2} picks pending, score {3}", g.Wave, me.Taken.Count, me.PendingPicks, g.Score);
+        Check(g.Wave >= 4 && me.Taken.Count > 0 && g.Score > 0, "the F1 smart bot clears waves and picks its level-up cards");
+
+        g.CurrentPath = PathId.Bazaar; g.PathFrom = 6; g.PathTo = 9; g.Wave = 9;
+        for (int f = 0; f < 60 * 20 && !(g.State == MatchState.Fighting && g.Enemies.Count > 0); f++) Step(host, dt);
+        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        me.Gold = 300;
+        int taken = me.Taken.Count;
+        cleared.Invoke(g, null);
+        bool opened = false;
+        for (int f = 0; f < 60 * 15 && !(opened && g.State == MatchState.Fighting); f++) { Step(host, dt); opened |= g.ShopOpen; }
+        Check(opened && g.State == MatchState.Fighting && !g.ShopOpen && me.Taken.Count > taken, "the F1 smart bot shops in the Bazaar, finishes, and the run carries on");
+        host.Leave("");
+    }
 }

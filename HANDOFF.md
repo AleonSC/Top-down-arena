@@ -254,7 +254,7 @@ The codebase is kept tidy as features change, so very little was dead. Removed (
 "no corner" option and a stale "F1 > Practice Range" line in saved practice files (leftovers of the old F1
 Practice Range). Scans covered unused methods, fields that are written but never read, and unused enum
 values; nothing else qualified. The **simple test bot** in `LocalControl` (`Bot` without a `BotLevel`) is
-**not** dead: most sim tests rely on its predictability, and F1 "Bot plays for you" uses it.
+**not** dead: most sim tests rely on its predictability (and the `--bot` launch option uses it). F1 "Bot plays for you" uses the smart bot since Oct 2026.
 
 ### 6.2 Where coding is slow: one feature, many places (highest value)
 
@@ -320,7 +320,7 @@ copies of the same numbers:
 14. ✅ **Done (Oct 2026), owner's choice "general rules + index":** `Balance.cs` holds the general numbers (moved verbatim from `Game.cs` and `EnemyAI.cs`) and its header lists where each class, boss and system keeps its own block (beside its code). Numbers written inline in code stay put; a dev-menu-reloadable file was not built. **Tunables are scattered constants** across `Game.cs`, `EnemyAI.cs`, `Knight.cs`, `Defs.cs`. A single
     `Balance.cs` (or a JSON file the dev menu can reload) would make tuning sessions much faster.
 15. ✅ **Done (Oct 2026).** **Flaky tests** use the game's RNG: give each test a fixed seed so results are repeatable. (`Game.SeedForTests`; see section 3.)
-16. The F1 **"Bot plays for you"** still uses the simple test bot; the Boss Lab's smart bot (`BotSkill.Good`)
+16. ✅ **Done (Oct 2026):** the F1 toggle sets `BotLevel = BotSkill.Good` (and `Off` when turned off). Both bot kinds share the level-up pick/reroll and Bazaar shopping code (`FixedStep` in `Game.cs`), so the smart bot no longer stalls in a shop; sim test `f1bot`. The F1 **"Bot plays for you"** used to use the simple test bot; the Boss Lab's smart bot (`BotSkill.Good`)
     would make it far more useful for play-testing. Keep the simple bot for the sim tests.
 
 ### 6.7 Suggested order
@@ -364,7 +364,7 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
    of 9 paths, screens, engineering notes and a 4-step build order). Doesn't need the registries. Protocol bump.
 8. ✅ Gather the scattered balance constants into `Balance.cs` (item 14). Pure move: a dump of all 323 constants on `Game` (name, value, visibility) was identical before and after.
-9. F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests (item 16).
+9. ✅ F1 "Bot plays for you" uses the smart bot (`BotSkill.Good`); the simple bot stays for tests and `--bot` (item 16).
 
 Side requests done along the way (Oct 2026): lobby "!" connection popup, arena shows your lobby background,
 live mini-arena loadout preview, aim line capped at range, background picker card, Cartesian Colosseum
@@ -372,7 +372,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the next item is 9 (F1 bot uses `BotSkill.Good`). Paths are feature-complete
+**Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-13 (networking and allocation notes), and the known red test "enemy bullets stay near the bullet budget" (see step 6). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the
