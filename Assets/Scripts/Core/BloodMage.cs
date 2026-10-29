@@ -45,7 +45,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Pool = ClotPoolRadius;
+                        b.Pool = ClotPoolRadius * AreaMult(p);
                         b.PoolTime = ClotPoolTime;
                     }
                     break;
@@ -60,14 +60,14 @@ namespace Arena
                 {
                     // A real beam: it hits whatever is on your aim line right now, so you have to keep it on them.
                     float k = 1f + w.Grow * extra;
-                    float beamDmg = w.Damage * k * dmg * (casting && !firingWeapon ? castPower : 1f);
+                    float beamDmg = w.Damage * k * dmg * HomingCost(p) * (casting && !firingWeapon ? castPower : 1f);
                     int pierce = p.Stats.Pierce;
                     if (p.SurgeT > 0f)  // Arcane Surge, as on bullets
                     {
                         beamDmg *= 1.6f;
                         pierce += 2;
                     }
-                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce });  // Velocity Rounds stretch it
+                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce, HalfWidth = VeinBeamHalfWidth * AreaMult(p) });  // Velocity Rounds stretch it
                     break;
                 }
                 case WeaponId.TransfusionDarts:
@@ -115,7 +115,7 @@ namespace Arena
 
         // --- Vein Tether's beam ----------------------------------------------------------
 
-        class VeinBeam { public int Owner, Pierce; public float Aim, Range, Dmg; }
+        class VeinBeam { public int Owner, Pierce; public float Aim, Range, Dmg, HalfWidth; }
 
         readonly List<VeinBeam> pendingBeams = new List<VeinBeam>();
         readonly List<Enemy> beamHits = new List<Enemy>();
@@ -123,7 +123,7 @@ namespace Arena
         /// Where a beam from `from` along `aim` stops: at the first enemy it can't pass (a shield, or the last it
         /// pierces), else at its full range. Fills `hits` (if given) with the enemies it touches, nearest first.
         /// The host uses real positions; screens pass `drawn` to use where enemies are drawn.
-        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false)
+        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false, float halfWidth = VeinBeamHalfWidth)
         {
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             beamOrder.Clear();
@@ -132,7 +132,7 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Hp <= 0f)
                     continue;
                 V2 rel = (drawn ? e.Disp : e.Pos) - from;
-                float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + VeinBeamHalfWidth;
+                float along = rel.X * dir.X + rel.Y * dir.Y, across = Math.Abs(rel.X * side.X + rel.Y * side.Y), reach = e.Radius + halfWidth;
                 if (across > reach || along < -e.Radius || along - e.Radius > range)
                     continue;
                 float enter = along - (float)Math.Sqrt(Math.Max(0f, reach * reach - across * across));
@@ -225,7 +225,7 @@ namespace Arena
         {
             imploded.Add(e);
             HitImplode(p, e, p.Weapon.Damage * mult);
-            float r = e.Radius + ImplodeSplash;
+            float r = e.Radius + ImplodeSplash * AreaMult(p);  // Homing Rounds widen it
             if (splash)
                 foreach (var o in Enemies.Values)
                 {
@@ -246,7 +246,7 @@ namespace Arena
 
         void HitImplode(Player p, Enemy e, float dmg)
         {
-            float hit = dmg * NinjaHitMult(p.Id, Defs.ImplodeShot, e);
+            float hit = dmg * HomingCost(p) * NinjaHitMult(p.Id, Defs.ImplodeShot, e);
             HurtEnemy(e, hit, p.Id);
             var pseudo = new Bullet { Pos = e.Pos, Vel = (e.Pos - p.Pos).Normalized(), Owner = p.Id, Dmg = hit, Kind = Defs.ImplodeShot };
             BloodShotHit(pseudo, e, hit);
@@ -263,7 +263,7 @@ namespace Arena
                 if (!Players.TryGetValue(beam.Owner, out p) || p.Downed)
                     continue;
                 V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * p.Def.BodyR;  // from your edge, like shots (so it ends where the aim line does)
-                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits);
+                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits, false, beam.HalfWidth);
                 p.Run.ShotsFired++;
                 if (beamHits.Count > 0)
                     p.Run.ShotsHit++;

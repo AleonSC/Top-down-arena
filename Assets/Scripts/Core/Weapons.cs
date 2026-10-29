@@ -14,7 +14,7 @@ namespace Arena
         void FirePlayer(Player p, float spread = 0f)
         {
             float dmg = p.Stats.DmgMult;
-            // Each extra projectile (Multishot, Iron Volley, Bullet Storm) upgrades the weapon in its own way.
+            // Each extra projectile (Multishot, Bullet Storm) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
             if (p.Weapon.Id == WeaponId.Pistol)
@@ -226,9 +226,9 @@ namespace Arena
                 case WeaponId.FlakCannon:
                 {
                     var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 70f;
+                    b.Splash = 70f * AreaMult(p);
                     if (extra > 0)  // bomblets scatter around the impact and pop where they land
-                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f, false);
+                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
                     break;
                 }
                 case WeaponId.RiotRepeater:
