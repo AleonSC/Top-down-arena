@@ -119,7 +119,7 @@ namespace Arena
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
-            var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing, Radius = Defs.BulletRadius(kind) };
+            var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Life0 = life, FromBoss = fromBoss, Homing = homing, Radius = Defs.BulletRadius(kind) };
             Bullets[id] = b;
             if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot)
                 NoteShot(b);
@@ -150,7 +150,7 @@ namespace Arena
                 case WeaponId.TwinRifle: return Sfx.ShotAssault;
                 case WeaponId.Railgun: return Sfx.ShotSniper;
                 case WeaponId.BurstSmg: return Sfx.ShotSmg;
-                case WeaponId.FlameBurst:
+                case WeaponId.Flamethrower:
                 case WeaponId.Fireball: return Sfx.SpellFire;
                 case WeaponId.FrostLance: return Sfx.SpellFrost;
                 case WeaponId.StormHammer:
@@ -675,6 +675,12 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
+            if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts
+            {
+                e.BurnT = Math.Max(e.BurnT, FlameBurnTime);
+                e.BurnDps = Math.Max(e.BurnDps, b.Ignite);
+                e.BurnBy = b.Owner;
+            }
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
                 e.SlowT = Math.Max(e.SlowT, 1.5f);

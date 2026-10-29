@@ -48,6 +48,20 @@ class Shot {
         k++;
       }
     }
+    if (Environment.GetEnvironmentVariable("FLAME") != null) {
+      // The Flamethrower held on a few enemies for FLAME=<seconds>: the stream and the burning.
+      me.Weapon = Defs.WeaponOf(WeaponId.Flamethrower); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(700f, 450f);
+      int k = 0;
+      foreach (var e in host.Game.Enemies.Values) { if (k < 3) { e.Pos = e.Disp = me.Pos + new V2(90f + 45f * k, -40f + 40f * k); e.Hp = e.MaxHp = 1e5f; } else e.Pos = e.Disp = new V2(100f + 20f * k, 120f); k++; }
+      V2 at = me.Pos + new V2(200f, 0f);
+      for (int f = 0; f < 60 * float.Parse(Environment.GetEnvironmentVariable("FLAME")); f++) {
+        int j = 0; foreach (var e in host.Game.Enemies.Values) { if (j < 3) { e.Pos = me.Pos + new V2(90f + 45f * j, -40f + 40f * j); e.FireT = 9f; } j++; }
+        me.Pos = new V2(700f, 450f);
+        host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { Fire = true, AimAt = at }); host.Game.Update(1f / 60f);
+      }
+      foreach (var e in host.Game.Enemies.Values) Console.WriteLine("flame: {0} burning {1} hp lost {2:0}", e.Type, e.Burning, e.MaxHp - e.Hp);
+    }
     if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
       // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
       System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);

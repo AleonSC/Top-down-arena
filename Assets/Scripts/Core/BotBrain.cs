@@ -61,7 +61,7 @@ namespace Arena
         {
             switch (w)
             {
-                case WeaponId.FlameBurst: return 430f;
+                case WeaponId.Flamethrower: return 430f;
                 case WeaponId.MendersBow: return 950f;
                 case WeaponId.Railgun: return 2000f;
                 case WeaponId.Fireball: return 450f;

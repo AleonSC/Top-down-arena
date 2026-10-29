@@ -7,6 +7,7 @@ namespace Arena
     public partial class Game
     {
         const float MinionChaseRange = 600f;
+        public const float FlameBurn = 5f, FlameBurnTime = 3f;  // the Flamethrower sets what it hits burning: 5 a second for 3 s
 
         // --- Weapons -----------------------------------------------------------
 
@@ -60,12 +61,17 @@ namespace Arena
             switch (w.Id)
             {
                 // Mage
-                case WeaponId.FlameBurst:
+                case WeaponId.Flamethrower:
                 {
-                    // +2 flames and 25% more reach per extra projectile.
+                    // A steady stream: two flames a burst (+1 and 25% more reach per extra projectile) that pass
+                    // through enemies and set them burning.
                     float reach = w.Life * (1f + w.Grow * extra);
-                    for (int i = 0; i < 6 + 2 * extra; i++)
-                        SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, w.Speed), 0f, reach, w.Damage * dmg, p.Id);
+                    for (int i = 0; i < 2 + extra; i++)
+                    {
+                        var b = SpawnBullet(Defs.FlameShot, muzzle, V2.FromAngle(aim + Rand(-0.26f, 0.26f)) * Rand(0.8f * w.Speed, w.Speed), 0f, reach, w.Damage * dmg, p.Id);
+                        b.Pierce += 99;
+                        b.Ignite = FlameBurn * dmg;
+                    }
                     break;
                 }
                 case WeaponId.FrostLance:

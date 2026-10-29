@@ -347,9 +347,9 @@ const W = [
   { id: "Riot Repeater", role: "Tank", kit: "Soldier", every: 0.18, desc: "Steady single shots with a little spread.", shot: "Tank", xtra: "Fires in bursts: +1 round per burst, then a 60% longer pause",
     rows: [["Damage", "11"], ["Spread", "±3.4°"], ["Speed / range", "600 px/s · 480 px"]], dmgPerVolley: 11,
     fire: (s, a) => s.bullet("Tank", a + rnd(-0.06, 0.06), 600, 0.8, 11) },
-  { id: "Flame Burst", role: "Tank", kit: "Elementalist", every: 0.4, desc: "A short-range cone of fire.", shot: "Fire", xtra: "+2 flames and 25% more reach",
-    rows: [["Flames", "6 in a ±20° cone"], ["Damage", "6 each"], ["Speed / range", "380–480 px/s · about 150 px"]], dmgPerVolley: 36,
-    fire: (s, a, x) => { for (let i = 0; i < 6 + 2 * x; i++) s.bullet("Fire", a + rnd(-0.35, 0.35), rnd(380, 480), 0.35 * (1 + 0.25 * x), 6); } },
+  { id: "Flamethrower", role: "Tank", kit: "Elementalist", every: 0.06, desc: "A short-range stream of fire. Its flames pass through enemies and set them burning.", shot: "Fire", xtra: "+1 flame a burst and 25% more reach",
+    rows: [["Stream", "2 flames every 0.06 s, within ±15° of your aim"], ["Damage", "2 a flame; flames pass through every enemy"], ["Burning", "5 a second for 3 s (renewed by every hit)"], ["Speed / range", "384–480 px/s · about 190 px"]], dmgPerVolley: 4,
+    fire: (s, a, x) => { for (let i = 0; i < 2 + x; i++) s.bullet("Fire", a + rnd(-0.26, 0.26), rnd(384, 480), 0.4 * (1 + 0.25 * x), 2, { pierce: 99, ignite: 5 }); } },
   { id: "Frost Lance", role: "Tank", kit: "Elementalist", every: 0.35, desc: "Piercing ice spears with a wide head that slow enemies.", shot: "Frost", xtra: "Spears shatter into 2 icicles (5 damage) sideways on every hit",
     rows: [["Damage", "14"], ["Hitbox", "20 px wide spearhead"], ["Pierce", "1 extra enemy"], ["Slow", "30%"], ["Speed / range", "700 px/s · 630 px"]], dmgPerVolley: 14,
     fire: (s, a, x) => s.bullet("Frost", a, 700, 0.9, 14, { pierce: 1, slow: true, big: 10, lance: true, frags: x ? { n: 2 * x, kind: "Frost", dmg: 5, speed: 500, life: 0.3, sideways: true } : null }) },
@@ -1037,7 +1037,7 @@ const rangeApi = {
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
       av: o.av || 0, life, r: o.big || sh.r, col: sh.col, dmg: o.raw ? dmg : dmg * WS.dmg, pierce: o.pierce || 0, splash: o.splash || 0, chain: o.chain || 0, slow: o.slow, trail: o.trail,
       homing: o.homing || 0, frags: o.frags || null, split: o.split ? { ...o.split } : null, lob: o.lob, wave: o.wave, arrow: o.arrow, lance: o.lance, hit: new Set(o.hit || []),
-      ret: o.ret || 0, bounce: o.bounce || 0, shape: sh.shape, spin: rnd(0, TAU), pool: o.pool || 0 });
+      ret: o.ret || 0, bounce: o.bounce || 0, shape: sh.shape, spin: rnd(0, TAU), pool: o.pool || 0, ignite: o.ignite || 0 });
   },
 };
 function hitDummy(d, dmg) {
@@ -1096,7 +1096,8 @@ function stepBow(dt) {
 function stepRange(dt) {
   const w = WBY[WS.sel], R = range, p = R.player;
   R.t += dt;
-  for (const d of R.dummies) { d.y = d.by + Math.sin(R.t * 0.9 + d.ph * 1.3) * 18; d.flash = Math.max(0, d.flash - dt); d.slow = Math.max(0, d.slow - dt); }
+  for (const d of R.dummies) { d.y = d.by + Math.sin(R.t * 0.9 + d.ph * 1.3) * 18; d.flash = Math.max(0, d.flash - dt); d.slow = Math.max(0, d.slow - dt);
+    if (d.burn > 0) { d.burn -= dt; R.dealt += d.burnDps * dt; if (d.burn <= 0) d.burnDps = 0; } }
   R.aim = WS.sweep ? Math.sin(R.t * 0.8) * 0.35 : Math.atan2(R.dummies[0].y - p.y, R.dummies[0].x - p.x);
   // Fire
   if (w.revolver) stepRevolver(dt);
@@ -1156,6 +1157,7 @@ function stepRange(dt) {
       if (b.hit.has(d) || Math.hypot(b.x - d.x, b.y - d.y) > d.r + b.r) continue;
       b.hit.add(d); hitDummy(d, b.dmg);
       if (b.slow) d.slow = 1;
+      if (b.ignite) { d.burn = 3; d.burnDps = Math.max(d.burnDps || 0, b.ignite * WS.dmg); }  // the Flamethrower sets it burning
       if (b.splash) { for (const o of R.dummies) if (o !== d && Math.hypot(o.x - b.x, o.y - b.y) < b.splash + o.r) hitDummy(o, b.dmg * 0.6); R.fx.push({ x: b.x, y: b.y, r: b.splash, col: b.col, t: 0, dur: 0.3 }); }
       if (b.chain) {
         let cur = d; const seen = new Set([d]);

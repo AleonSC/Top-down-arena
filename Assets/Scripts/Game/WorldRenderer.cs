@@ -351,6 +351,17 @@ namespace Arena
                 DrawBloodShot(b, c, t);  // BloodMageLook.cs
                 return;
             }
+            if (b.Kind == Defs.FlameShot)
+            {
+                // A Flamethrower flame: small and white-hot at the nozzle, swelling and reddening as it goes, then gone.
+                float age = 1f - Mathf.Clamp01(b.Life / Mathf.Max(0.01f, b.Life0)), r = 3.5f + 11f * age;
+                var hot = new Rgba(1f, 0.95f, 0.65f);
+                var col = age < 0.5f ? hot.Mix(Defs.BulletColor(b.Kind), age * 2f) : Defs.BulletColor(b.Kind).Mix(new Rgba(0.75f, 0.15f, 0.08f), (age - 0.5f) * 2f);
+                float a = 0.85f * (1f - age * age);
+                Circle(b.Pos, r * 1.7f, col.WithAlpha(0.18f * a), 12);
+                Circle(b.Pos, r, col.WithAlpha(a), 10);
+                return;
+            }
             if (b.Kind == Defs.StunShot || b.Kind == Defs.StunBolt)  // the Stun Gun fires the Warden's own stun shots
             {
                 DrawStunShot(b, t);  // WardenLook.cs

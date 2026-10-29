@@ -179,6 +179,7 @@ namespace Arena
         public byte Kind;
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
+        public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
@@ -189,6 +190,7 @@ namespace Arena
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
         public float SlowAmt;     // host only: frost slows enemies hit
+        public float Ignite;      // host only: sets enemies hit burning for this much a second (Flamethrower)
         public bool FromBoss;     // fired by a boss (only these wear blockers down; drawn with a dark core)
         public float Homing;      // Homing Rounds: turn rate toward the nearest enemy (host corrects clients)
         public int Bounces;       // host only: Ricochet bounces left

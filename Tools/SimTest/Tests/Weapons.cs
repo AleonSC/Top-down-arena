@@ -383,6 +383,46 @@ static partial class Program
         host.Leave("");
     }
 
+    // The Flamethrower: a short stream whose flames pass through enemies and set them burning, which goes on after you stop.
+    static void FlamethrowerTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Mage);
+        var g = host.Game;
+        g.Bot = false;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Check(me.Weapon.Id == WeaponId.Flamethrower, "the Elementalist Tank's first weapon is the Flamethrower");
+        g.Enemies.Clear(); g.Bullets.Clear();
+        Func<float, Enemy> dummy = x => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(x, 450f), 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; };
+        var near = dummy(300f); var behind = dummy(345f); var far = dummy(520f);
+        Action<float, bool> run = (secs, fire) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in new[] { near, behind, far }) { e.Pos = new V2(e == near ? 300f : e == behind ? 345f : 520f, 450f); e.FrozenT = 1f; }
+                me.Pos = new V2(200f, 450f);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = new V2(900f, 450f) }); g.Update(dt);
+            }
+        };
+        run(1f, true);
+        float n1 = near.MaxHp - near.Hp, b1 = behind.MaxHp - behind.Hp, f1 = far.MaxHp - far.Hp;
+        bool burning = near.BurnT > 0f && behind.BurnT > 0f;
+        run(0.6f, false);  // the last flames burn out
+        float h0 = near.Hp;
+        run(1f, false);
+        float afterwards = h0 - near.Hp;
+        Console.WriteLine("  flamethrower: 1 s on two enemies in a row: {0:0} and {1:0} (one out of reach: {2:0}); burning {3}; {4:0.0} more in the next second from the fire",
+            n1, b1, f1, burning, afterwards);
+        Check(n1 > 30f && b1 > 30f && f1 == 0f, "the Flamethrower's flames pass through the first enemy, and don't reach far");
+        Check(burning && Math.Abs(afterwards - Game.FlameBurn) < 1.5f, "what it hits keeps burning (" + Game.FlameBurn + " a second) after you stop");
+        host.Leave("");
+    }
+
     // Revolver, played by the joining player the way people actually shoot it: tapping. Each tap fires a
     // round with no reload in between until the cylinder is empty; a pause tops it back up a round at a
     // time; and Multishot's extra rounds really are there to fire.
