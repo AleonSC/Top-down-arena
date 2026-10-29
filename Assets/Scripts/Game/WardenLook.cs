@@ -224,6 +224,44 @@ namespace Arena
             }
         }
 
+        /// The Stun Gun drawn (Stun.cs): a stubby gun out in front with crackling prongs, and a pip per shot left.
+        void DrawHeldStunGun(Player p, float t)
+        {
+            if (p.StunShots <= 0 || p.Downed)
+                return;
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal(), grip = p.Disp + dir * (p.Def.BodyR + 2f);
+            Line(grip, grip + dir * 11f, 7f, new Rgba(0.2f, 0.24f, 0.32f));
+            Line(grip + dir * 2f, grip + dir * 9f, 3f, new Rgba(0.98f, 0.8f, 0.25f));  // the warning stripe
+            for (int k = -1; k <= 1; k += 2)
+                Line(grip + dir * 11f + side * (2.5f * k), grip + dir * 15f + side * (2.5f * k), 1.5f, StunCol);
+            if (Mathf.Sin(t * 30f + p.Id) > 0f)
+                Line(grip + dir * 15f + side * 2.5f, grip + dir * 15f - side * 2.5f, 1.5f, new Rgba(0.9f, 0.98f, 1f, 0.9f));
+            int max = Mathf.Max(Game.StunGunShots, p.StunShots);
+            float r = p.Def.BodyR + 13f, span = Mathf.Min(MathX.Pi * 0.9f, max * 0.2f);
+            for (int i = 0; i < max; i++)
+            {
+                float a = MathX.Pi / 2f + span / 2f - span * (max == 1 ? 0.5f : (float)i / (max - 1));
+                Circle(p.Disp + V2.FromAngle(a) * r, 2.8f, StunCol.WithAlpha(i < p.StunShots ? 0.95f : 0.15f), 8);
+            }
+        }
+
+        /// A Warden's Guard (Stun.cs): a steel-blue uniform with a peaked cap, a baton held out toward what
+        /// it's after, and a health bar once it's been hurt.
+        void DrawWardenGuard(Minion m, float t)
+        {
+            var c = m.Def.Color;
+            float r = m.Def.Radius;
+            V2 dir = V2.FromAngle(m.Aim), side = dir.Orthogonal();
+            Polygon(m.Disp, r, m.Def.Sides, m.Aim, c);
+            Arc(m.Disp, r * 0.62f, 4f, new Rgba(0.14f, 0.18f, 0.3f), 14, m.Aim + MathX.Pi - 1.2f, 2.4f);  // the cap, worn toward the back
+            Line(m.Disp + dir * (r * 0.2f) - side * (r * 0.5f), m.Disp + dir * (r * 0.2f) + side * (r * 0.5f), 2f, new Rgba(0.98f, 0.8f, 0.25f, 0.9f));  // badge stripe
+            V2 hand = m.Disp + side * (r * 0.8f), tip = hand + dir * 14f;
+            Line(hand, tip, 3f, new Rgba(0.16f, 0.18f, 0.24f));
+            Circle(tip, 2.5f + 0.8f * Mathf.Sin(t * 20f + m.Id), StunCol, 8);
+            if (m.GuardFrac < 0.999f)
+                Bar(m.Disp + new V2(-15f, -r - 9f), 30f, 3.5f, Mathf.Clamp01(m.GuardFrac), new Rgba(0.5f, 0.8f, 1f));
+        }
+
         /// A rioter: an orange jumpsuit with a dark band across it.
         void DrawRioterDetails(Enemy e, V2 pos, float r, Rgba col)
         {

@@ -290,7 +290,8 @@ namespace Arena
             StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
             FrostLance = 38,  // the Frost Lance's spear (its shatter icicles are FrostShot)
             // Blood Mage
-            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46;
+            BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
+            StunBolt = 47;  // the Stun Gun's bolt (Stun.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -341,6 +342,7 @@ namespace Arena
                 case PierceShot: return 6.5f;
                 case FastShot: return 4.5f;
                 case StunShot: return 7f;
+                case StunBolt: return 5f;
                 case HoneyShot: return 9f;
                 default: return 6f;
             }
@@ -405,7 +407,8 @@ namespace Arena
                 case MineShot: return new Rgba(1f, 0.55f, 0.2f);
                 case PierceShot: return new Rgba(1f, 0.12f, 0.12f);
                 case FastShot: return new Rgba(1f, 0.95f, 0.4f);
-                case StunShot: return new Rgba(0.43f, 0.88f, 1f);
+                case StunShot:
+                case StunBolt: return new Rgba(0.43f, 0.88f, 1f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }

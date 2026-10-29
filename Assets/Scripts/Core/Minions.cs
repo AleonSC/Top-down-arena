@@ -417,6 +417,7 @@ namespace Arena
             // Summoner weapons keep their companions topped up; the totem staff plants totems.
             foreach (var p in Players.Values)
             {
+                TickGuards(p, dt);  // Warden's Guard (Stun.cs)
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
@@ -425,7 +426,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion)
+                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard)
                         {
                             have++;
                             surplus = m;
@@ -479,6 +480,7 @@ namespace Arena
                     }
                 }
                 var d = m.Def;
+                m.HurtT -= dt;
                 if (m.StaggerT > 0f)
                 {
                     m.StaggerT -= dt;
@@ -521,6 +523,9 @@ namespace Arena
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
                         break;
                     }
+                    case MinionMove.Escort:
+                        target = MoveGuard(m, owner, speed, dt);  // Stun.cs
+                        break;
                     case MinionMove.FollowOwner:
                     {
                         // The treant stands in front of you; the guardian spirit hovers on you.

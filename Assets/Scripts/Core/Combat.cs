@@ -379,7 +379,7 @@ namespace Arena
                 }
                 else
                 {
-                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b))
+                    if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b) || GuardStopsBullet(b))  // GuardStopsBullet: Stun.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -659,6 +659,7 @@ namespace Arena
         {
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner);
+            StunBoltHit(b, e);  // Stun.cs
             if (b.SlowAmt > 0f && !e.Def.IsBoss)
             {
                 e.SlowT = Math.Max(e.SlowT, 1.5f);

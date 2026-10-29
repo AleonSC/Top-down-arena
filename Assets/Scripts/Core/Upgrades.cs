@@ -24,6 +24,7 @@ namespace Arena
         // Blood Mage (Space), then the Blood Mage ultimates
         BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
         BloodRite, SanguineRain, CrimsonApotheosis,
+        StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
         None = 255,
     }
 
@@ -68,7 +69,7 @@ namespace Arena
         public int NovaExtraBolts;
 
         // Legendary weapon upgrades from bosses.
-        public int HaloEvery, KillRing, SplitShots;
+        public int Guards, KillRing, SplitShots;  // Guards: Warden's Guard companions (Stun.cs)
         public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit;
 
         // Weapon mods, one picked after each boss (and its legendary).
@@ -197,6 +198,8 @@ namespace Arena
             new AbilityDef { Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage." },
             new AbilityDef { Name = "Crimson Apotheosis", Cooldown = 65f,
                 Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt." },
+            new AbilityDef { Name = "Stun Gun", Cooldown = 14f,
+                Desc = "Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired." },
         };
 
         /// Each role and class has its own ultimate; it can't be changed.
@@ -353,10 +356,11 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.VeryRare, Grants = AbilityId.Turret, Name = "Turret", Desc = "New ability: deploy a turret that shoots for 10 seconds" },
 
             // Legendary: unique weapon upgrades, only from killing bosses (three per boss).
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Halo", Desc = "Every 4th volley also fires a ring of 8 shots around you",
-                Apply = s => s.HaloEvery = s.HaloEvery == 0 ? 4 : Math.Max(2, s.HaloEvery - 1) },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Iron Volley", Desc = "+1 projectile per volley and +25% damage",
-                Apply = s => { s.ExtraShots += 1; s.DmgMult += 0.25f; } },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Warden's Guard",
+                Desc = "One of the Warden's guards follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
+                Apply = s => s.Guards += 1 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, Grants = AbilityId.StunGun, Name = "Stun Gun",
+                Desc = "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired" },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Ringburst", Desc = "Enemies you kill burst into a ring of 6 shots",
                 Apply = s => s.KillRing += 6 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit",
@@ -432,15 +436,13 @@ namespace Arena
             return new[] { own[0], own[1], own[2] };
         }
 
-        /// The card text for this weapon: Multishot and Iron Volley say what an extra projectile does for it.
+        /// The card text for this weapon: Multishot says what an extra projectile does for it.
         public static string DescFor(UpgradeDef u, WeaponDef weapon)
         {
             if (weapon == null || weapon.ExtraDesc == null)
                 return u.Desc;
             if (u.Name == "Multishot")
                 return weapon.Name + ": " + weapon.ExtraDesc;
-            if (u.Name == "Iron Volley")
-                return weapon.Name + ": " + weapon.ExtraDesc + ". Also +25% damage";
             string knight;
             if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
                 return knight;

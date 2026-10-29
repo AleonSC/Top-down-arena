@@ -284,6 +284,7 @@ namespace Arena
                 case AbilityId.BloodRite: return "Lasts 12 s.";
                 case AbilityId.SanguineRain: return "Lasts 9 s and heals 30%.";
                 case AbilityId.CrimsonApotheosis: return "Lasts 9 s.";
+                case AbilityId.StunGun: return "Nine shots instead of six.";
                 default: return "";
             }
         }

@@ -7,10 +7,11 @@ namespace Arena
         Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
         LightOrb,  // Radiant Orb's extra projectiles: circles you, hurting enemies and healing allies it touches
         Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
+        WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
         None = 255,
     }
 
-    public enum MinionMove : byte { Static, Orbit, Chase, FollowHurt, FollowOwner }
+    public enum MinionMove : byte { Static, Orbit, Chase, FollowHurt, FollowOwner, Escort }  // Escort: fights near its owner (MoveGuard)
 
     public enum MinionAttack : byte { None, Shoot, Bite, Slam, Explode, Heal }
 
@@ -79,6 +80,8 @@ namespace Arena
             new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
             new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static },
+            new MinionDef { Name = "Warden's Guard", Radius = 12f, Sides = 8, Color = new Rgba(0.5f, 0.62f, 0.85f), Move = MinionMove.Escort, Speed = 240f,
+                Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
         };
 
         // Indexed by ZoneKind.

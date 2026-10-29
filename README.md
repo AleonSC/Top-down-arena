@@ -112,8 +112,8 @@ them), and blink before vanishing after 12 seconds.
 Each role picks one of three starting weapons in the lobby. Damage, fire rate and Piercing upgrades work
 with all of them.
 
-**Extra projectiles** (Multishot, Iron Volley, and +2 during Bullet Storm) upgrade each weapon in its own
-way instead of adding more bullets in a line. The Multishot and Iron Volley cards show what they'll do for
+**Extra projectiles** (Multishot, and +2 during Bullet Storm) upgrade each weapon in its own
+way instead of adding more bullets in a line. The Multishot card shows what it'll do for
 your weapon. Per extra projectile:
 
 | Class | Weapon | Base | Each extra projectile |
@@ -285,7 +285,7 @@ have chosen.
 
 | Boss | Legendary weapon upgrades |
 |---|---|
-| The Warden | **Warden's Halo** (every 4th volley adds a ring of 8 shots) · **Iron Volley** (+1 projectile, +25% damage) · **Ringburst** (kills burst into 6 shots) |
+| The Warden | **Warden's Guard** (one of the Warden's guards walks at your side and fights enemies within 240 px of you with its baton, 14 damage every 0.7 s; it has 150 health + 15 per wave, enemy shots and bodies hurt it, and a fallen guard is replaced 15 s later; +1 guard per stack) · **Stun Gun** (a new Q / E / Shift ability, 14 s: draw a stun gun with 6 shots, 15 damage each, that stun enemies for 1.5 s (bosses are slowed 50% instead); your weapon is away until they're spent, and only then does the cooldown start; capstone: 9 shots) · **Ringburst** (kills burst into 6 shots) |
 | Hive Queen | **Swarm Rounds** (shots split into 3 on hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (20% of kills spawn a 4 s mini-turret) |
 | Twin Reapers | **Executioner** (double damage below 35% HP) · **Twin Fang** (25% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
 | The Singularity | **Collapse Rounds** (shots implode on impact) · **Graviton Rounds** (hits slow enemies 40%) · **Dark Matter** (+2 pierce, +20% damage) |
@@ -710,6 +710,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
+  - `Stun.cs`: the Warden's legendaries: the Stun Gun ability and Warden's Guard companions
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab

@@ -121,7 +121,7 @@ namespace Arena
         void DrawImplodeMark(float t)
         {
             var me = game.Me;
-            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion)
+            if (me == null || me.Downed || me.Weapon.Id != WeaponId.Implosion || me.StunShots > 0)
                 return;
             var e = game.ImplodeTarget(me, me.AimAt, true);
             if (e == null)

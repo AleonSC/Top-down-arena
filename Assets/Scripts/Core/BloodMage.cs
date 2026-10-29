@@ -281,7 +281,7 @@ namespace Arena
 
         /// Is this player's Vein Tether beam showing? (Each screen draws the beams itself.)
         public bool BeamOn(Player p) =>
-            p.Weapon.Id == WeaponId.VeinTether && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
+            p.Weapon.Id == WeaponId.VeinTether && p.StunShots == 0 && !p.Downed && !p.ParryActive && (p.Id == MyId || !IsHost ? p.FiringSeen : p.Firing)
             && State != MatchState.GameOver && State != MatchState.Victory;
 
         /// Shot i of n, fanned out `step` radians apart around the aim.

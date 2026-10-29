@@ -253,6 +253,8 @@ namespace Arena
                     return allyHurt && haveTarget;
                 case AbilityId.CrimsonApotheosis:
                     return haveTarget && targetD < 500f;
+                case AbilityId.StunGun:  // draw it with something in range to stun
+                    return haveTarget && targetD < 560f && me.StunShots == 0;
                 // Everything else hurts the boss: use it when it's in reach
                 default:
                     return haveTarget && targetD < 520f;
