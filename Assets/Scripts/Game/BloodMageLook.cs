@@ -169,7 +169,7 @@ namespace Arena
             {
                 if (!game.BeamOn(p))
                     continue;
-                float range = Game.VeinBeamRange * (1f + 0.25f * game.ExtraShots(p)) * p.Stats.ShotSpeedMult;
+                float range = p.Weapon.Reach * (1f + p.Weapon.Grow * game.ExtraShots(p)) * p.Stats.ShotSpeedMult;
                 for (int v = 0; v <= p.Stats.Fan; v++)  // Barrage: a beam per stack, fanned like the shots
                 {
                     float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));

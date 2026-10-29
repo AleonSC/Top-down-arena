@@ -8,9 +8,9 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        const float LashReach = 110f, ClotPoolRadius = 70f, ClotPoolTime = 3f;
+        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.3f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
-        public const float VeinBeamRange = 350f, VeinBeamHalfWidth = 6f, VeinBeamDamage = 4f;  // per tick (FireInterval 0.08 s)
+        public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float BoneSpearCost = 2f, TransfuseCost = 3f;
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
@@ -20,19 +20,20 @@ namespace Arena
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
         const float MoonCut = 0.6f, RainSteal = 0.2f;
-        public const float ImplodeRange = 480f, ImplodeGrab = 26f;  // how far away you can click, and how near an enemy the click must land
-        const float ImplodeDamage = 34f, ImplodeSplash = 55f, ImplodeSplashDamage = 15f, ImplodePull = 18f, ImplodeChain = 180f, ImplodeChainMult = 0.6f;
+        public const float ImplodeGrab = 26f;  // how near an enemy the click must land (how far away you can click, and the damage, are the weapon's Reach and Damage)
+        const float ImplodeSplash = 55f, ImplodeSplashDamage = 15f, ImplodePull = 18f, ImplodeChain = 180f, ImplodeChainMult = 0.6f;
 
         // --- Weapons ------------------------------------------------------------------
 
         /// A Blood Mage weapon's attack. `extra` is the number of extra projectiles; each weapon uses them its own way.
         void FireBloodWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
-            switch (p.Weapon.Id)
+            var w = p.Weapon;  // its Speed, Life, Damage, Reach and Grow (Defs)
+            switch (w.Id)
             {
                 case WeaponId.BloodLash:
                 {
-                    var s = NewSwing(p, aim, LashReach + 20f * extra, 130f, 24f * dmg);
+                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 130f, w.Damage * dmg);
                     s.NoCut = true;  // a whip of blood, not a blade
                     s.SelfHeal = 3f + extra;
                     pendingSwings.Add(s);
@@ -43,7 +44,7 @@ namespace Arena
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
-                        var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * 520f, 0f, 1f, 26f * dmg, p.Id);
+                        var b = SpawnBullet(Defs.ClotShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.2f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.Pool = ClotPoolRadius;
                         b.PoolTime = ClotPoolTime;
                     }
@@ -51,22 +52,22 @@ namespace Arena
                 }
                 case WeaponId.LeechBeam:
                 {
-                    float k = 1f + 0.25f * extra;
-                    SpawnBullet(Defs.LeechShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * 1100f, 0f, 0.3f * k, 4f * k * dmg, p.Id);
+                    float k = 1f + w.Grow * extra;
+                    SpawnBullet(Defs.LeechShot, muzzle, V2.FromAngle(aim + Rand(-0.02f, 0.02f)) * w.Speed, 0f, w.Life * k, w.Damage * k * dmg, p.Id);
                     break;
                 }
                 case WeaponId.VeinTether:
                 {
                     // A real beam: it hits whatever is on your aim line right now, so you have to keep it on them.
-                    float k = 1f + 0.25f * extra;
-                    float beamDmg = VeinBeamDamage * k * dmg * (casting && !firingWeapon ? castPower : 1f);
+                    float k = 1f + w.Grow * extra;
+                    float beamDmg = w.Damage * k * dmg * (casting && !firingWeapon ? castPower : 1f);
                     int pierce = p.Stats.Pierce;
                     if (p.SurgeT > 0f)  // Arcane Surge, as on bullets
                     {
                         beamDmg *= 1.6f;
                         pierce += 2;
                     }
-                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = VeinBeamRange * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce });  // Velocity Rounds stretch it
+                    pendingBeams.Add(new VeinBeam { Owner = p.Id, Aim = aim, Range = w.Reach * k * p.Stats.ShotSpeedMult, Dmg = beamDmg, Pierce = pierce });  // Velocity Rounds stretch it
                     break;
                 }
                 case WeaponId.TransfusionDarts:
@@ -74,7 +75,7 @@ namespace Arena
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
-                        var b = SpawnBullet(Defs.TransfuseShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.08f)) * 850f, 0f, 0.85f, 7f * dmg, p.Id);
+                        var b = SpawnBullet(Defs.TransfuseShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.08f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.HealAlly = 8f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
                     }
                     break;
@@ -83,14 +84,14 @@ namespace Arena
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * 420f, 0f, 1.4f, 16f * dmg, p.Id, false, 3f);
+                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
                     break;
                 }
                 case WeaponId.BloodBolts:
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BloodShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.07f)) * 800f, 0f, 0.8f, 9f * dmg, p.Id);
+                        SpawnBullet(Defs.BloodShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.07f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 }
                 case WeaponId.Implosion:
@@ -106,7 +107,7 @@ namespace Arena
                     PayHealth(p, BoneSpearCost);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * 1000f, 0f, 0.9f, 60f * dmg, p.Id).Pierce += 3;
+                        SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 3;
                     break;
                 }
             }
@@ -200,7 +201,7 @@ namespace Arena
                 p.Run.ShotsFired++;
                 p.Run.ShotsHit++;
                 imploded.Clear();
-                Collapse(p, e, ImplodeDamage * im.Dmg, true, blood);
+                Collapse(p, e, im.Dmg, true, blood);
                 for (int k = 0; k < im.Extra; k++)
                 {
                     Enemy next = null;
@@ -212,17 +213,18 @@ namespace Arena
                         next = e;
                     if (next == null)
                         break;
-                    Collapse(p, next, ImplodeDamage * ImplodeChainMult * im.Dmg, false, blood);
+                    Collapse(p, next, ImplodeChainMult * im.Dmg, false, blood);
                 }
             }
             pendingImplosions.Clear();
         }
 
-        /// One enemy's blood collapsing: its damage, the splash to enemies touching it, and the effect.
-        void Collapse(Player p, Enemy e, float dmg, bool splash, Rgba blood)
+        /// One enemy's blood collapsing: its damage (the weapon's, times `mult`), the splash to enemies touching it,
+        /// and the effect.
+        void Collapse(Player p, Enemy e, float mult, bool splash, Rgba blood)
         {
             imploded.Add(e);
-            HitImplode(p, e, dmg);
+            HitImplode(p, e, p.Weapon.Damage * mult);
             float r = e.Radius + ImplodeSplash;
             if (splash)
                 foreach (var o in Enemies.Values)
@@ -230,7 +232,7 @@ namespace Arena
                     if (o == e || IsSpawning(o) || o.Hp <= 0f || o.Pos.DistanceTo(e.Pos) >= r + o.Radius)
                         continue;
                     imploded.Add(o);
-                    HitImplode(p, o, ImplodeSplashDamage / ImplodeDamage * dmg);
+                    HitImplode(p, o, ImplodeSplashDamage * mult);
                     if (!Heavy(o))  // sucked in toward the collapse, never inside it
                     {
                         V2 toward = e.Pos - o.Pos;

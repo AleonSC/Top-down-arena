@@ -318,7 +318,15 @@ namespace Arena
         const float TurretTime = 10f;
 
         readonly Session session;
-        readonly Random rng = new Random();
+        readonly Random rng = NewRng();
+
+        // Tests (Tools/SimTest) can make every game's random rolls repeatable: SeedForTests gives each game
+        // made after it a seed drawn from one sequence. The real game never calls it, so it stays random.
+        static Random testSeeds;
+
+        public static void SeedForTests(int seed) => testSeeds = new Random(seed);
+
+        static Random NewRng() => testSeeds != null ? new Random(testSeeds.Next()) : new Random();
 
         public bool Running;
         public MatchState State = MatchState.Idle;

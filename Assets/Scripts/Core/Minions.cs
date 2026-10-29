@@ -11,8 +11,7 @@ namespace Arena
         // --- Weapons -----------------------------------------------------------
 
         /// Mage and summoner weapons. `extra` is the number of extra projectiles (see FireVolley).
-        public const float BearReach = 85f;         // Bear Totem: how far the claws reach
-        const float BearArc = 110f, BearDamage = 11f, BearSwipeGap = 0.12f;
+        const float BearArc = 110f, BearSwipeGap = 0.12f;  // Bear Totem (its reach and damage are in Defs)
         const float BearBleed = 0.3f;              // a claw hit bleeds for 30% of its damage per second...
         const float BleedTime = 3f, BleedStacks = 5f;  // ...for 3 s, stacking up to five hits' worth
 
@@ -24,7 +23,7 @@ namespace Arena
             for (int k = 0; k < 2; k++)
             {
                 float side = k == 0 ? 1f : -1f;
-                var s = NewSwing(p, aim + side * 0.12f, BearReach + 15f * extra, BearArc, BearDamage * dmg);
+                var s = NewSwing(p, aim + side * 0.12f, p.Weapon.Reach + p.Weapon.Grow * extra, BearArc, p.Weapon.Damage * dmg);
                 s.Delay = BearSwipeGap * k;
                 s.ClawSide = side;
                 s.Bleed = BearBleed * (1f + 0.25f * extra);
@@ -57,20 +56,21 @@ namespace Arena
 
         void FireKitWeapon(Player p, float aim, V2 dir, V2 muzzle, float dmg, int extra)
         {
-            switch (p.Weapon.Id)
+            var w = p.Weapon;  // its Speed, Life and Damage (Defs)
+            switch (w.Id)
             {
                 // Mage
                 case WeaponId.FlameBurst:
                 {
                     // +2 flames and 25% more reach per extra projectile.
-                    float reach = 0.35f * (1f + 0.25f * extra);
+                    float reach = w.Life * (1f + w.Grow * extra);
                     for (int i = 0; i < 6 + 2 * extra; i++)
-                        SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, 480f), 0f, reach, 6f * dmg, p.Id);
+                        SpawnBullet(Defs.FireShot, muzzle, V2.FromAngle(aim + Rand(-0.35f, 0.35f)) * Rand(380f, w.Speed), 0f, reach, w.Damage * dmg, p.Id);
                     break;
                 }
                 case WeaponId.FrostLance:
                 {
-                    var b = SpawnBullet(Defs.FrostLance, muzzle, dir * 700f, 0f, 0.9f, 14f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.FrostLance, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 1;
                     b.SlowAmt = 0.3f;
                     if (extra > 0)  // shatters into icicles that fly out to the sides
@@ -78,36 +78,36 @@ namespace Arena
                     break;
                 }
                 case WeaponId.StormHammer:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 420f, 0f, 1.2f, 24f * dmg, p.Id).Chain = 3 + extra;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 3 + extra;
                     break;
                 case WeaponId.RadiantOrb:
                 {
-                    var b = SpawnBullet(Defs.HolyShot, muzzle, dir * 300f, 0f, 1.8f, 14f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.HolyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 2;
                     b.HealAlly = 10f;
                     break;  // extra projectiles become Light Orbs circling you (TickMinions)
                 }
                 case WeaponId.ChainLight:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 800f, 0f, 0.8f, 10f * dmg, p.Id).Chain = 2 + extra;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 2 + extra;
                     break;
                 case WeaponId.PrismBeam:
                 {
                     // +30% length, +25% damage and +50% healing per extra projectile.
-                    var b = SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * 1200f, 0f, 0.35f * (1f + 0.3f * extra),
-                        4f * (1f + 0.25f * extra) * dmg, p.Id);
+                    var b = SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * w.Speed, 0f, w.Life * (1f + w.Grow * extra),
+                        w.Damage * (1f + 0.25f * extra) * dmg, p.Id);
                     b.HealAlly = 2f * (1f + 0.5f * extra);
                     break;
                 }
                 case WeaponId.Fireball:
                 {
-                    var b = SpawnBullet(Defs.FireShot, muzzle, dir * 520f, 0f, 1.2f, 22f * dmg, p.Id);
+                    var b = SpawnBullet(Defs.FireShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Splash = 60f;
                     if (extra > 0)  // splits into small fireballs on impact
                         SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f, false);
                     break;
                 }
                 case WeaponId.ArcLightning:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * 900f, 0f, 0.6f, 12f * dmg, p.Id).Chain = 4 + extra;
+                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 4 + extra;
                     break;
                 case WeaponId.ArcaneMissiles:
                 {
@@ -116,29 +116,29 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float f = i * 2f / (n - 1) - 1f;
-                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * 520f, extra > 0 ? 0f : -f * 1.2f, 1f, 7f * dmg, p.Id, false, extra > 0 ? 4f : 0f);
+                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * w.Speed, extra > 0 ? 0f : -f * 1.2f, w.Life, w.Damage * dmg, p.Id, false, extra > 0 ? 4f : 0f);
                     }
                     break;
                 }
                 // Summoner (extra projectiles mostly add companions: see CompanionCount)
                 case WeaponId.GolemStaff:
                     for (int i = -1; i <= 1; i++)
-                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + i * 0.12f) * 480f, 0f, 0.6f, 8f * dmg, p.Id);
+                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + i * 0.12f) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
                 case WeaponId.ImpCaller:
-                    SpawnBullet(Defs.BoneShot, muzzle, dir * 720f, 0f, 0.8f, (p.Weapon.Id == WeaponId.BoneGuard ? 7f : 6.5f) * dmg, p.Id);
+                    SpawnBullet(Defs.BoneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 case WeaponId.SpriteStaff:
                 case WeaponId.TotemStaff:
-                    SpawnBullet(Defs.SeedShot, muzzle, dir * 600f, 0f, 1f, 9f * dmg, p.Id);
+                    SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 case WeaponId.TreantRod:
-                    SpawnBullet(Defs.SeedShot, muzzle, dir * 600f, 0f, 1f, 8f * dmg, p.Id).HealAlly = 7f;
+                    SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).HealAlly = 7f;
                     break;
                 case WeaponId.WispLantern:
-                    SpawnBullet(Defs.ArcaneShot, muzzle, dir * 600f, 0f, 1f, 8f * dmg, p.Id);
+                    SpawnBullet(Defs.ArcaneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
             }
         }

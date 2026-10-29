@@ -136,7 +136,7 @@ your weapon. Per extra projectile:
 | Healer · Summoner | **Sprite Staff** | Seeds, plus 2 healing sprites | +1 Sprite |
 | | **Treant Rod** | Healing bolts, plus a Treant guard | The Treant grows 30%: blocks more, hits harder, reaches farther |
 | | **Totem Staff** | Seeds; plants a healing totem every 10 s | Totems 60% more often |
-| DPS · Soldier | **Twin Rifle** | Fast parallel twin stream | +1 barrel |
+| DPS · Soldier | **Twin Rifle** | Fast parallel twin stream (5 per barrel), straying up to 2° | +1 barrel |
 | | **Railgun** | Slow shots that pierce 3 | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast, inaccurate spray | +1 bullet per shot (half damage) and a wider spray |
 | DPS · Elementalist | **Fireball** | Explodes on impact | Splits into 2 small fireballs on impact |
@@ -585,7 +585,10 @@ TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
-they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds]`, needs Mono).
+they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
+`core`; `features` runs every feature test, `all` runs both, and `run.sh list` shows every suite. Tests live in
+`Tools/SimTest/Tests/`, one file per system, and their random rolls are seeded so a run is repeatable
+(`SEED=random` for fresh rolls).
 ### Developer tools (F1)
 
 Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs down the left, and a card at
@@ -697,7 +700,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
 ## Code layout
 
 - `Assets/Scripts/Core/`: plain C# with no Unity dependency
-  - `Defs.cs`: role, enemy and bullet stats; tweak numbers here to rebalance
+  - `Defs.cs`: role, enemy, bullet and weapon stats (each weapon's shot speed, lifetime, damage, reach and growth per extra projectile); tweak numbers here to rebalance
   - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
   - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
   - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode
