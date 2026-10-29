@@ -115,6 +115,7 @@ static partial class Program
         var dummy = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(590f, 450f), 0f, 0, false });
         dummy.MaxHp = dummy.Hp = 1e5f; dummy.Speed = 0f; dummy.FireT = 99f;
         V2 d0 = dummy.Pos;
+        me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
         // Enemy bullets coming at the swing: a small one, a big orb, and a red aimed shot (which gets through).
         var small = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, new V2(570f, 420f), new V2(-150f, 0f), 0f, 5f, 12f, 0, false, 0f });
         var big = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, new V2(575f, 480f), new V2(-110f, 0f), 0f, 5f, 20f, 0, false, 0f });
@@ -130,6 +131,7 @@ static partial class Program
         Console.WriteLine("  quarterstaff: dummy pushed {0:0} px, took {1:0}; {2} bullets batted back; small gone {3}, big gone {4}, red still flying {5}",
             dummy.Pos.X - d0.X, dummy.MaxHp - dummy.Hp, deflected, !g.Bullets.ContainsKey(idSmall), !g.Bullets.ContainsKey(idBig), g.Bullets.ContainsKey(idRed));
         Check(dummy.Pos.X - d0.X > 50f && dummy.Hp < dummy.MaxHp, "its swings knock enemies back and hurt them");
+        Check(me.Hp > hp0, "each enemy it hits heals you (and allies near you)");
         Check(deflected == 2 && !g.Bullets.ContainsKey(idSmall) && !g.Bullets.ContainsKey(idBig) && g.Bullets.ContainsKey(idRed),
             "each swing parries: bullets in its arc fly back at enemies as yours (red aimed shots get through)");
         s[0].Leave(""); s[1].Leave("");

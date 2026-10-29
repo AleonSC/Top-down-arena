@@ -240,7 +240,7 @@ namespace Arena
                 Companion = MinionKind.Treant, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.TotemStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
             new WeaponDef { Id = WeaponId.HolyMace, Damage = 18f, Reach = 105f, Melee = true, ExtraDesc = "+1 strike with the other end of the staff (60% damage)", Name = "Quarterstaff", FireInterval = 0.5f,
-                Desc = "Wide staff sweeps that knock enemies back, and bat enemy bullets in the arc back at them (all but red aimed shots)." },
+                Desc = "Wide staff sweeps that knock enemies back and bat enemy bullets in the arc back at them (all but red aimed shots). Every enemy hit heals you and allies near you for 2 (up to 8 a swing)." },
             new WeaponDef { Id = WeaponId.Lightbringer, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
                 Desc = "Sword swings that also send a short crescent of light, which heals allies it passes." },
             new WeaponDef { Id = WeaponId.Censer, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
