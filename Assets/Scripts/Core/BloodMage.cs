@@ -8,13 +8,14 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
+        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;
+        public const float PoolCongeal = 1f, PoolStuck = 1f, PoolGuard = 0.15f;  // a Clot Bolt's pool congeals after this long, sticking enemies in it; its owner takes less inside  // (each weapon's main reach, speed and damage are in Defs)
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
-        public const float BoneSpearCost = 2f, TransfuseCost = 3f;
+        public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
@@ -98,7 +99,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.TransfuseShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.08f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.HealAlly = 8f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
+                        b.HealAlly = TransfuseHeal * 9f / w.Damage;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
                     }
                     break;
                 }
@@ -406,6 +407,9 @@ namespace Arena
                 case Defs.LeechShot:
                     Heal(p, dmg * LeechSteal, p);
                     break;
+                case Defs.TransfuseShot:
+                    Heal(p, TransfuseSteal, p);  // a sliver of the enemy's blood (it's for giving, not for soloing)
+                    break;
                 case Defs.VeinShot:
                 {
                     // Split between you and the nearest ally (all yours if no one is near).
@@ -559,6 +563,19 @@ namespace Arena
             if (taken != null)
                 foreach (int id in taken)
                     Zones.Remove(id);
+        }
+
+        /// A Clot Bolt's pool sets: enemies still in it are stuck for a moment (not bosses).
+        void CongealPool(Zone z)
+        {
+            z.Congealed = true;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && !e.Def.IsBoss && e.Pos.DistanceTo(z.Pos) <= z.Radius + e.Radius)
+                {
+                    e.FrozenT = Math.Max(e.FrozenT, PoolStuck);
+                    e.SlowT = Math.Max(e.SlowT, PoolStuck);
+                }
+            BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.3f, Sfx.None);
         }
 
         /// Transfusion Darts cost the healer some of their own health for each ally they heal.

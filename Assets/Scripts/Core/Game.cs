@@ -73,6 +73,7 @@ namespace Arena
         public V2 LastIncense;                        // host: where the Censer last left incense
         public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
         public float ComboT;
+        public float SheathT;                         // Katana: how long since it last cut (replicated: at KatanaSheath it's sheathed, glinting)
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
         public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
         public float HookT;                           //   for this much longer (replicated)
@@ -280,6 +281,7 @@ namespace Arena
         public float BlockHp;       // host: damage it can still soak (blocking zones)
         public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Totem's charge)
         public float Charge;        // host: a thrown Totem's charge from seed hits near it
+        public bool Congealed;      // host: a Blood Pool that has set (BloodMage.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
 

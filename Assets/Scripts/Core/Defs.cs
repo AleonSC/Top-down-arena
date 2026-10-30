@@ -62,7 +62,7 @@ namespace Arena
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
 
         // The main attack's numbers, in one place: the code that fires it, WeaponRange (the aim line) and the bots
-        // all read these. Secondary parts (fragments, sword waves, a Katana's lunge, heals) stay with the weapon's code.
+        // all read these. Secondary parts (fragments, sword waves, a Katana's quick-draw, heals) stay with the weapon's code.
         public float Speed, Life;      // a shot's speed (px/s) and lifetime (s): it reaches Speed × Life
         public float Damage;           // the main shot's or swing's damage (before upgrades)
         public float Reach;            // a swing's reach (px), or a beam's length
@@ -229,7 +229,7 @@ namespace Arena
                 Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
             new WeaponDef { Id = WeaponId.ClotBolt, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
-                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s." },
+                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool." },
             new WeaponDef { Id = WeaponId.LeechBeam, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on." },
             // Healer
@@ -264,7 +264,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Ofuda, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
                 Desc = "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it." },
             new WeaponDef { Id = WeaponId.TransfusionDarts, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
-                Desc = "Darts that heal an ally they reach for 8, at a cost of 3 of your own health." },
+                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5)." },
             new WeaponDef { Id = WeaponId.SanguineOrb, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
                 Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. "
                     + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s)." },
@@ -297,11 +297,11 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Greatsword, Damage = 60f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
                 Desc = "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets." },
             new WeaponDef { Id = WeaponId.Rapier, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
-                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%)." },
+                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%). Each thrust skewers up to 3 enemy bullets along its line (not red aimed shots), and each adds to the streak." },
             new WeaponDef { Id = WeaponId.Shuriken, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes." },
             new WeaponDef { Id = WeaponId.Katana, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Fast 110° quick-draw slashes; every 4th is a long lunging cut for double damage." },
+                Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
             new WeaponDef { Id = WeaponId.Kunai, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
                 Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double." },
             new WeaponDef { Id = WeaponId.BloodBolts, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,

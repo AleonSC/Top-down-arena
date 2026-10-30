@@ -8,7 +8,7 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        const float KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
+        public const float KatanaSheath = 0.6f, KatanaDrawReach = 220f, KatanaDrawMult = 2.5f, KatanaDrawWidth = 22f;  // hold off this long and the next cut is a quick-draw (each weapon's main reach, speed and damage are in Defs)
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
@@ -109,11 +109,19 @@ namespace Arena
                 }
                 case WeaponId.Katana:
                 {
-                    // Every 4th draw is a long lunging cut.
-                    bool lunge = p.SwingCount % 4 == 0;
-                    var s = lunge ? NewSwing(p, aim, KatanaLungeReach, 30f, w.Damage * 2f * dmg) : NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
-                    s.Thrust = lunge;
-                    s.Heavy = lunge;
+                    // Held off long enough, the blade was sheathed: this one is a quick-draw cut through everything in its line.
+                    bool draw = p.SheathT >= KatanaSheath;
+                    p.SheathT = 0f;
+                    Swing s;
+                    if (draw)
+                    {
+                        s = NewSwing(p, aim, KatanaDrawReach, 20f, w.Damage * KatanaDrawMult * dmg);
+                        s.HalfWidth = KatanaDrawWidth;
+                        s.DrawCut = true;
+                        s.Heavy = true;
+                    }
+                    else
+                        s = NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)
                     {
@@ -935,6 +943,8 @@ namespace Arena
                         p.DoseHps = 0f;
                 }
                 p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
+                if (p.Weapon.Id == WeaponId.Katana && !p.Firing && !p.Downed)
+                    p.SheathT = Math.Min(5f, p.SheathT + dt);  // holding off: the blade goes back in its sheath
             }
             foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
                 if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))

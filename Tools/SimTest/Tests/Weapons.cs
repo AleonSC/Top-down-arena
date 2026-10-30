@@ -1664,6 +1664,136 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    static void LastFourTest(float dt)
+    {
+        // Clot Bolt pools congeal, sticking enemies and guarding their owner; Transfusion Darts give an ally a lot for a little
+        // and steal a sliver from enemies; the Rapier skewers bullets into its streak; the Katana's sheathed quick-draw cut.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.BloodMage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(300f, 450f), allyAt = new V2(300f, 150f);
+        var keep = new List<Enemy>();
+        var pins = new Dictionary<Enemy, V2>();
+        Func<V2, float, Enemy> dummy = (at, hp) => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = hp; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
+        Action<float, PlayerInput> play = (secs, input) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
+                me.Pos = from;
+                ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, input); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Zones.Clear(); };
+        play(0.3f, new PlayerInput());
+
+        // Clot Bolt: the pool congeals after a second, sticking the enemy in it; standing in it, you take less.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ClotBolt);
+        var stuck = dummy(from + new V2(200f, 0f), 1e5f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.6f, new PlayerInput());
+        var pool = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.BloodPool);
+        bool wetFree = stuck.FrozenT <= 0f;
+        play(0.8f, new PlayerInput());
+        bool setStuck = stuck.FrozenT > 0f;
+        g.DevSetGod(1, false);
+        me.Hp = me.MaxHp; damage.Invoke(g, new object[] { me, 20f, "Test" }); float outside = me.MaxHp - me.Hp;
+        if (pool != null) from = pool.Pos;
+        play(0.02f, new PlayerInput());
+        me.Hp = me.MaxHp; damage.Invoke(g, new object[] { me, 20f, "Test" }); float inside = me.MaxHp - me.Hp;
+        g.DevSetGod(1, true);
+        Console.WriteLine("  clot bolt: pool {0}; enemy free while wet {1}, stuck once it congealed {2}; 20 damage taken outside {3:0.0}, in your pool {4:0.0}",
+            pool != null, wetFree, setStuck, outside, inside);
+        Check(pool != null && wetFree && setStuck, "a Clot Bolt's pool congeals after a second, sticking the enemies in it");
+        Check(Math.Abs(inside - outside * (1f - Game.PoolGuard)) < 0.6f, "you take less damage standing in your own pool");
+        from = new V2(300f, 450f);
+        reset();
+
+        // Transfusion Darts: a hurt ally gets a lot, you pay a little; an enemy hit steals a sliver.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TransfusionDarts);
+        allyAt = from + new V2(200f, 0f);
+        play(0.2f, new PlayerInput());
+        Func<float> drift = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(0.5f, new PlayerInput()); return me.Hp - h; };  // your own healing meanwhile (regen, aura)
+        float selfHeal = drift();
+        ally.Hp = ally.MaxHp * 0.3f; me.Hp = me.MaxHp * 0.5f;
+        float ah = ally.Hp, mh = me.Hp;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.5f, new PlayerInput());
+        float given = ally.Hp - ah, paid = mh - me.Hp + selfHeal;
+        allyAt = new V2(300f, 150f);
+        play(0.2f, new PlayerInput());
+        dummy(from + new V2(200f, 0f), 1e5f);
+        me.Hp = me.MaxHp * 0.5f; float before = me.Hp;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.5f, new PlayerInput());
+        float stolen = me.Hp - before - selfHeal;
+        Console.WriteLine("  transfusion darts: one dart gave an ally {0:0.0} for {1:0.0} of yours; one dart into an enemy healed you {2:0.00}", given, paid, stolen);
+        Check(Math.Abs(given - Game.TransfuseHeal) < 1f && Math.Abs(paid - Game.TransfuseCost) < 0.5f, "Transfusion Darts give a hurt ally a lot of health for a little of yours");
+        Check(stolen >= Game.TransfuseSteal - 0.05f && stolen < 1.2f, "Transfusion Darts steal only a sliver from enemies");
+        reset();
+
+        // Rapier: a thrust skewers enemy bullets along its line (3 at most), each adding to the streak.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Rapier);
+        var mark = dummy(from + new V2(120f, 0f), 1e5f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.1f, new PlayerInput());
+        int s0 = me.RapierStreak;
+        var shots = new List<Bullet>();
+        for (int k = 0; k < 5; k++)
+            shots.Add((Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(30f + 18f * k, 0f), new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f }));
+        var aside = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(60f, 80f), new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.05f, new PlayerInput());
+        int skewered = shots.Count(b => !g.Bullets.ContainsKey(b.Id));
+        bool asideLeft = g.Bullets.ContainsKey(aside.Id);
+        Console.WriteLine("  rapier: streak {0} -> {1}; skewered {2} of 5 bullets on its line, one off the line left alone {3}", s0, me.RapierStreak, skewered, asideLeft);
+        Check(skewered == Game.RapierSkewerMax && asideLeft, "a Rapier thrust skewers up to 3 enemy bullets along its line");
+        Check(me.RapierStreak >= Math.Min(6, s0 + 1 + Game.RapierSkewerMax), "each skewered bullet adds to the Rapier's streak");
+        reset();
+
+        // Katana: held off, the blade sheathes; the next cut is a long quick-draw through everything in its line.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);
+        me.Hp = me.MaxHp;  // (Blood Price would change the damage as health moves)
+        var nearK = dummy(from + new V2(60f, 0f), 1e5f);
+        var farK = dummy(from + new V2(200f, 0f), 1e5f);
+        me.SheathT = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.1f, new PlayerInput());
+        float plainNear = nearK.MaxHp - nearK.Hp, plainFar = farK.MaxHp - farK.Hp;
+        play(Game.KatanaSheath + 0.1f, new PlayerInput());
+        bool sheathed = me.SheathT >= Game.KatanaSheath, seen = client.Game.Players[1].SheathT >= Game.KatanaSheath;
+        float range = g.WeaponRange(me);
+        nearK.Hp = nearK.MaxHp; farK.Hp = farK.MaxHp;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.1f, new PlayerInput());
+        float drawNear = nearK.MaxHp - nearK.Hp, drawFar = farK.MaxHp - farK.Hp;
+        Console.WriteLine("  katana: a plain cut hit near {0:0} / far {1:0}; sheathed {2} (client saw {3}, aim line {4:0} px); the quick-draw hit near {5:0} / far {6:0}; unsheathed after {7}",
+            plainNear, plainFar, sheathed, seen, range, drawNear, drawFar, me.SheathT < Game.KatanaSheath);
+        Check(plainNear > 0f && plainFar == 0f, "a plain Katana slash keeps its short reach");
+        Check(sheathed && seen && range > 200f, "holding off sheathes the Katana (synced, and its aim line reaches the quick-draw)");
+        Check(Math.Abs(drawNear - plainNear * Game.KatanaDrawMult) < 1.5f && Math.Abs(drawFar - drawNear) < 1.5f && me.SheathT < Game.KatanaSheath,
+            "the sheathed Katana's quick-draw cuts through everything in its line for 2.5x");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

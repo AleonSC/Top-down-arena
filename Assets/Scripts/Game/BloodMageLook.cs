@@ -454,7 +454,18 @@ namespace Arena
                 Circle(z.Pos, z.Radius * 0.85f, c.WithAlpha(0.2f * fade), 32);
                 for (int k = 0; k < 5; k++)
                     Circle(z.Pos + V2.FromAngle(k * 1.3f + z.Id) * (z.Radius * 0.6f), z.Radius * 0.3f, c.WithAlpha(0.12f * fade), 16);
-                Circle(z.Pos + new V2(-z.Radius * 0.3f, -z.Radius * 0.3f), z.Radius * 0.15f, new Rgba(1f, 0.6f, 0.6f, 0.25f), 10);  // a glint
+                if (z.Duration - z.T >= Game.PoolCongeal)  // congealed: a dark crust, cracked
+                {
+                    var crust = new Rgba(0.3f, 0.02f, 0.06f, 0.75f * fade);
+                    Arc(z.Pos, z.Radius * 0.85f, 3f, crust, 32);
+                    for (int k = 0; k < 4; k++)
+                    {
+                        V2 d0 = V2.FromAngle(k * 1.6f + z.Id);
+                        Line(z.Pos + d0 * (z.Radius * 0.2f), z.Pos + d0.Rotated(0.3f) * (z.Radius * 0.7f), 1.5f, crust);
+                    }
+                }
+                else
+                    Circle(z.Pos + new V2(-z.Radius * 0.3f, -z.Radius * 0.3f), z.Radius * 0.15f, new Rgba(1f, 0.6f, 0.6f, 0.25f), 10);  // still wet: a glint
             }
         }
     }

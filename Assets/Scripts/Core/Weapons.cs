@@ -454,6 +454,8 @@ namespace Arena
                     return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);
                 case WeaponId.FrostLance:  // the icicle, out from you
                     return MeleeReach(p, w.Reach + w.Grow * x);
+                case WeaponId.Katana:  // sheathed, the quick-draw cut reaches much further (Ninja.cs)
+                    return MeleeReach(p, p.SheathT >= KatanaSheath ? KatanaDrawReach : w.Reach);
                 case WeaponId.Greatsword:  // extra projectiles add sword beams
                     return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, w.Reach);
             }

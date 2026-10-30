@@ -2128,7 +2128,18 @@ namespace Arena
                     break;
                 case WeaponId.Katana:  // a long thin blade with a small square guard
                     Line(grip - dir * 5f, grip, 3f, NinjaCloth.WithAlpha(a));
-                    Line(grip, grip + dir * (r + 20f), 2.5f, Steel.WithAlpha(a));
+                    if (p.SheathT >= Game.KatanaSheath)
+                    {
+                        // Sheathed for a quick-draw: the blade in a dark scabbard, a glint running along it.
+                        Line(grip, grip + dir * (r + 20f), 4f, new Rgba(0.16f, 0.13f, 0.2f, a));
+                        float gl = MathX.Fmod(t * 1.6f, 1f);
+                        V2 at = grip + dir * ((r + 20f) * gl), sd = dir.Orthogonal();
+                        var shine = new Rgba(1f, 1f, 1f, a * (0.5f + 0.5f * Mathf.Sin(t * 12f)));
+                        Line(at - dir * 4f, at + dir * 4f, 1.5f, shine);
+                        Line(at - sd * 4f, at + sd * 4f, 1.5f, shine);
+                    }
+                    else
+                        Line(grip, grip + dir * (r + 20f), 2.5f, Steel.WithAlpha(a));
                     Polygon(grip, 3.5f, 4, p.Aim + MathX.Pi / 4f, new Rgba(0.75f, 0.6f, 0.3f, a));
                     break;
                 default:  // Kunai: a knife with a ring pommel

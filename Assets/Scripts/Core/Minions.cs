@@ -1576,6 +1576,8 @@ namespace Arena
                     else if (d.HealRate > 0f)
                         Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
                 }
+                if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
+                    CongealPool(z);  // BloodMage.cs
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {

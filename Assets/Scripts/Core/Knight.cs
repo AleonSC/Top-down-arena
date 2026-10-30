@@ -29,6 +29,7 @@ namespace Arena
         public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
+        public bool DrawCut;          // the Katana's quick-draw cut: a box (HalfWidth) drawn as a long thin slash, not a jab
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -325,6 +326,8 @@ namespace Arena
             else if (s.Ice != 0)
                 BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
                     s.Ice == 1 ? IcicleFxTime : 0.3f, Sfx.None);
+            else if (s.DrawCut)
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
@@ -442,6 +445,16 @@ namespace Arena
 
             if (s.Deflect)
                 DeflectBullets(p, origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc);
+            else if (s.Rapier)
+            {
+                // The Rapier skewers enemy bullets along its line (big ones too, never red aimed shots); each one adds to the streak.
+                int skewered = CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc, true, RapierSkewerWidth, RapierSkewerMax);
+                if (skewered > 0)
+                {
+                    p.RapierStreak = Math.Min(6, p.RapierStreak + skewered);
+                    BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
+                }
+            }
             else if (!s.NoCut)
                 CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
         }
@@ -477,11 +490,16 @@ namespace Arena
 
         /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.
         /// Bosses' red aimed shots always get through.
-        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f)
+        public const float RapierSkewerWidth = 14f;
+        public const int RapierSkewerMax = 3;
+
+        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f, int max = int.MaxValue)
         {
             var cut = new List<int>();
             foreach (var b in Bullets.Values)
             {
+                if (cut.Count >= max)
+                    break;
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
                     continue;
                 if (!all && b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)

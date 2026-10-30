@@ -23,8 +23,12 @@ namespace Arena
                 amount *= Modifiers.GlassCannonTaken;
             float cut = 0f;
             foreach (var z in Zones.Values)
+            {
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, z.DamageCut);
+                if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
+                    cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+            }
             amount *= 1f - cut;  // a mastered Haven
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);

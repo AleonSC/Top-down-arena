@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const names = ["Scattergun", "Flak Cannon", "Riot Repeater", "Kusarigama", "Bo Staff", "Blood Lash", "Prism Beam", "Sprite Staff", "Treant Rod", "Totem Staff",
   "Lightbringer", "Censer", "Medicine Darts", "Spirit Fan", "Ofuda", "Twin Rifle", "Railgun", "Burst SMG", "Arcane Missiles", "Wolf Whistle", "Wisp Lantern",
-  "Imp Caller", "Twin Blades", "Greatsword", "Shuriken", "Kunai", "Blood Bolts", "Bone Spear"];
+  "Imp Caller", "Twin Blades", "Greatsword", "Shuriken", "Kunai", "Blood Bolts", "Bone Spear", "Clot Bolt", "Transfusion Darts", "Rapier", "Katana"];
 if (process.argv[4]) names.splice(0, names.length, ...process.argv[4].split(','));
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1400, height: 1000 } });
