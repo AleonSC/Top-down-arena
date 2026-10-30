@@ -56,6 +56,19 @@ namespace Arena
                     };
                     return true;
                 }
+                if (e.Type == EnemyType.Singularity && e.Sing != null && e.Sing.TransT > 0f)
+                {
+                    bool acc = e.Sing.TransTo == SingStage.Accretion;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Sing.TransT / 2f), Number = (int)e.Sing.TransTo + 1,
+                        Name = acc ? "ACCRETION" : "SPAGHETTIFY",
+                        Line = acc ? "The wells fall in" : "Nothing escapes",
+                        Color = acc ? new Rgba(0.75f, 0.45f, 1f) : new Rgba(1f, 0.45f, 0.85f),
+                        Second = acc ? new Rgba(0.9f, 0.75f, 1f) : new Rgba(0.5f, 0.84f, 1f),
+                    };
+                    return true;
+                }
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null && e.Queen.TransT > 0f)
                 {
                     var to = e.Queen.TransTo;

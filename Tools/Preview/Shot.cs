@@ -19,7 +19,14 @@ class Shot {
       foreach (var p in host.Game.Players.Values) { p.InvulnT = 1f; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
-      if (Environment.GetEnvironmentVariable("SINGT") != null && f == (int)(seconds * 60) - 120) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity) e.T = float.Parse(Environment.GetEnvironmentVariable("SINGT"));
+      // SING=<health fraction>: hold the Singularity there (so the shot lands in that stage); SINGTURN=<turn> skips its
+      // turns until that one (Pull, Collapse, Lasers, Cage, Slingshot, TwinLasers, Hawking, WhiteHole, Split, Last).
+      if (Environment.GetEnvironmentVariable("SING") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("SING"));
+        var want = Environment.GetEnvironmentVariable("SINGTURN");
+        if (want != null && e.Sing != null && e.Sing.TransT <= 0f && e.Sing.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Sing.TurnT = 999f;
+      }
       // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
       if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
       // REAPERS=<health fraction>: the same for the Twin Reapers (or the Dual Reaper).
