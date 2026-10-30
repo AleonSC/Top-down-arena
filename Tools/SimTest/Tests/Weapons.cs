@@ -748,6 +748,27 @@ static partial class Program
         Check(cone && one[0] > 0f && arcs1 == 1, "Chain Light flashes a cone of light, and one enemy in it takes all of its damage");
         Check(four.Take(4).All(d => Math.Abs(d - one[0] / 4f) < 0.2f) && four[4] == 0f && four[5] == 0f && arcs4 == 4,
             "with four enemies in the cone each takes a quarter, light arcs to each, and nothing outside it is hit");
+        // Barrage: more cones side by side, each sharing its own damage; a lone enemy is still in just one.
+        var fanned = typeof(Game).GetMethod("FireFanned", flags);
+        Func<V2[], int, float[]> CastFanned = (spots, fan) =>
+        {
+            g.Enemies.Clear(); g.Effects.Clear();
+            var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+            me.Pos = from; me.Stats.Fan = fan;
+            fanned.Invoke(g, new object[] { me, 0f, 0 });
+            me.Stats.Fan = 0;
+            return dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        };
+        V2 beside = from + V2.FromAngle(2f * Game.LightConeHalf) * 200f;  // the middle of the first Barrage cone
+        var lone = CastFanned(new[] { from + new V2(200f, 0f) }, 3);
+        int cones = g.Effects.Count(fx => fx.Kind == FxKind.LightCone);
+        var noBarrage = CastFanned(new[] { beside }, 0);
+        var withBarrage = CastFanned(new[] { from + new V2(200f, 0f), beside }, 1);
+        Console.WriteLine("  chain light + barrage: lone enemy takes {0:0.0} with 3 stacks ({1} cones); beside the cone {2:0.0} without, {3:0.0} with (and the one ahead {4:0.0})",
+            lone[0], cones, noBarrage[0], withBarrage[1], withBarrage[0]);
+        Check(cones == 4 && Math.Abs(lone[0] - one[0]) < 0.2f, "Barrage on Chain Light adds cones, but a lone enemy still takes one cone's damage");
+        Check(noBarrage[0] == 0f && Math.Abs(withBarrage[1] - one[0]) < 0.2f && Math.Abs(withBarrage[0] - one[0]) < 0.2f,
+            "each Barrage cone sits beside the first and shares out its own damage");
         host.Leave("");
     }
 
@@ -884,6 +905,23 @@ static partial class Program
         Check(tap[0] > 0f && tap[1] == 0f && full[0] > 0f && full[1] > 0f && full[2] == 0f && full[3] == 0f && Math.Abs(far - Game.Width * 0.5f) < 1f,
             "Arc Lightning shocks everything in its strip: a tap reaches a little way, a full charge half the arena, nothing past or beside it");
         Check(ds2[1].FrozenT > 0.3f, "its shock stuns briefly");
+        // Barrage: parallel strips side by side; an enemy ahead is shocked once, one beside the strip only with Barrage.
+        var fanned = typeof(Game).GetMethod("FireFanned", flags);
+        var side = new[] { from + new V2(300f, 0f), from + new V2(300f, 2f * Game.ArcHalfWidth) };
+        Func<int, float[]> Strip = fan =>
+        {
+            var ds = dummies(side);
+            me.Pos = from; me.Stats.Fan = fan; me.BowShotDraw = g.BowFull(me);
+            fanned.Invoke(g, new object[] { me, 0f, 0 });
+            me.Stats.Fan = 0;
+            return ds.Select(e => e.MaxHp - e.Hp).ToArray();
+        };
+        var plain = Strip(0);
+        var barraged = Strip(3);
+        int strips = g.Effects.Count(fx => fx.Kind == FxKind.ArcField);
+        Console.WriteLine("  arc lightning + barrage: ahead {0:0.0} -> {1:0.0}, beside {2:0.0} -> {3:0.0}; {4} strips", plain[0], barraged[0], plain[1], barraged[1], strips);
+        Check(strips == 4 && Math.Abs(barraged[0] - plain[0]) < 0.2f && plain[1] == 0f && Math.Abs(barraged[1] - plain[0]) < 0.2f,
+            "Barrage on Arc Lightning adds parallel strips beside the first: more ground, but nothing is shocked twice");
         host.Leave("");
     }
 

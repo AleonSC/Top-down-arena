@@ -44,9 +44,9 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
-            if (p.Weapon.Id == WeaponId.LeechBeam)
+            if (p.Weapon.Id == WeaponId.LeechBeam || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning)
             {
-                FireVolley(p, aim, extra);  // Barrage adds a tendril instead (BloodMage.cs)
+                FireVolley(p, aim, extra);  // Barrage adds a tendril, cones side by side or parallel strips instead (BloodMage.cs, Minions.cs)
                 return;
             }
             if (p.Weapon.Id == WeaponId.Implosion)

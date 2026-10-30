@@ -213,12 +213,20 @@ namespace Arena
         public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch it
         public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it
 
+        /// Barrage adds strips side by side, parallel to the first and alternating sides, so they never overlap: an
+        /// enemy anywhere in them is shocked once.
         void ArcField(Player p, float aim, float dmg, float c)
         {
             float len = ArcLength(p, c), half = ArcWidth(p);
             V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
             var bolt = Defs.BulletColor(Defs.BoltShot);
-            BroadcastFx(FxKind.ArcField, p.Pos, p.Pos + dir * len, bolt, half, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
+            int n = 1 + p.Stats.Fan;
+            var shifts = new float[n];  // each strip's middle, sideways from yours
+            for (int v = 0; v < n; v++)
+                shifts[v] = v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 2f * half * ((v + 1) / 2);
+            for (int v = 0; v < n; v++)
+                BroadcastFx(FxKind.ArcField, p.Pos + side * shifts[v], p.Pos + side * shifts[v] + dir * len, bolt, half, 0.35f,
+                    v > 0 ? Sfx.None : c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
             p.Run.ShotsFired++;
             bool any = false;
             foreach (var e in Enemies.Values)
@@ -226,8 +234,14 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Hp <= 0f)
                     continue;
                 V2 rel = e.Pos - p.Pos;
-                float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
-                if (along < -e.Radius - p.Def.BodyR || along > len + e.Radius || across > half + e.Radius)
+                float along = Dot(rel, dir), across = Dot(rel, side);
+                if (along < -e.Radius - p.Def.BodyR || along > len + e.Radius)
+                    continue;
+                int strip = -1;
+                for (int v = 0; v < n && strip < 0; v++)
+                    if (Math.Abs(across - shifts[v]) <= half + e.Radius)
+                        strip = v;
+                if (strip < 0)
                     continue;
                 if (BlocksShot(e, p.Pos))
                 {
@@ -239,7 +253,7 @@ namespace Arena
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.BoltShot }, e);
                 if (!e.Def.IsBoss)
                     e.FrozenT = Math.Max(e.FrozenT, ArcStun);
-                BroadcastFx(FxKind.Bolt, p.Pos + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from the strip's middle line
+                BroadcastFx(FxKind.Bolt, p.Pos + side * shifts[strip] + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
             }
             if (any)
                 p.Run.ShotsHit++;
@@ -250,13 +264,23 @@ namespace Arena
         public const float LightConeReach = 320f, LightConeHalf = 0.6f, LightConeGrow = 0.25f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
         public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra);
 
+        /// Barrage adds cones edge to edge beside the first, alternating sides (evenly round you if they'd go all the
+        /// way round). Each enemy belongs to one cone only, the one it's nearest the middle of, and each cone shares
+        /// its own damage out, so Barrage reaches more enemies but a lone one still takes one cone's worth.
         void LightCone(Player p, float aim, float total, int extra)
         {
             float reach = LightConeLength(p, extra), half = LightConeHalf * AreaMult(p);  // Homing Rounds widen it
-            V2 dir = V2.FromAngle(aim);
+            int n = 1 + p.Stats.Fan;
+            float step = Math.Min(2f * half, MathX.Tau / n);
+            var aims = new float[n];
+            for (int v = 0; v < n; v++)
+                aims[v] = aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * step * ((v + 1) / 2));
             var light = Defs.BulletColor(Defs.HolyShot);
-            BroadcastFx(FxKind.LightCone, p.Pos, p.Pos + dir * reach, light, half, 0.3f, Sfx.None);
-            var hits = new List<Enemy>();
+            foreach (float a in aims)
+                BroadcastFx(FxKind.LightCone, p.Pos, p.Pos + V2.FromAngle(a) * reach, light, half, 0.3f, Sfx.None);
+            var hits = new List<Enemy>[n];
+            for (int v = 0; v < n; v++)
+                hits[v] = new List<Enemy>();
             foreach (var e in Enemies.Values)
             {
                 if (e.SpawnT > 0f || e.Hp <= 0f)
@@ -265,25 +289,42 @@ namespace Arena
                 if (d - e.Radius > reach)
                     continue;
                 float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
-                if (AngleTo(p.Pos, e.Pos, aim) > half + slack && d > e.Radius + p.Def.BodyR)
+                int best = -1;
+                float bestOff = float.MaxValue;
+                for (int v = 0; v < n; v++)
+                {
+                    float off = AngleTo(p.Pos, e.Pos, aims[v]);
+                    if ((off <= half + slack || d <= e.Radius + p.Def.BodyR) && off < bestOff)
+                    {
+                        best = v;
+                        bestOff = off;
+                    }
+                }
+                if (best < 0)
                     continue;
                 if (BlocksShot(e, p.Pos))
                     WearShield(e, total);
                 else
-                    hits.Add(e);
+                    hits[best].Add(e);
             }
             p.Run.ShotsFired++;
-            if (hits.Count == 0)
-                return;
-            p.Run.ShotsHit++;
-            float share = total / hits.Count;
-            V2 from = p.Pos + dir * p.Def.BodyR;
-            foreach (var e in hits)
+            bool any = false;
+            for (int v = 0; v < n; v++)
             {
-                HurtEnemy(e, share, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
-                BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, Sfx.None);
+                if (hits[v].Count == 0)
+                    continue;
+                any = true;
+                float share = total / hits[v].Count;
+                V2 dir = V2.FromAngle(aims[v]), from = p.Pos + dir * p.Def.BodyR;
+                foreach (var e in hits[v])
+                {
+                    HurtEnemy(e, share, p.Id);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
+                    BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, Sfx.None);
+                }
             }
+            if (any)
+                p.Run.ShotsHit++;
         }
 
         /// Bone Guard: darts stick in enemies; the third within BoneDartHold cages it (not bosses). Caged enemies
