@@ -65,7 +65,7 @@ namespace Arena
                 case EnemyType.Juggernaut:
                     return KeepDistance(dir, dist, 140f);
                 case EnemyType.Colossus:
-                    return KeepDistance(dir, dist, 200f);
+                    return ColossusMove(e, dir, dist, ref speed);  // Colossus.cs
                 case EnemyType.Duelist:
                     return DuelistMove(e, tpos, dir, dist, ref speed);  // Duelist.cs
                 case EnemyType.Devourer:
@@ -123,17 +123,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Colossus:
-                    if (e.PhaseT <= 0f)
-                    {
-                        // Stomp: a huge ring with one gap to slip through.
-                        e.PhaseT = 4f;
-                        const int n = 48;
-                        int gap = rng.Next(n);
-                        for (int i = 0; i < n; i++)
-                            if ((i - gap + n) % n >= 5)
-                                EnemyShot(e, MathX.Tau * i / n, 150f, Defs.SmallShot);
-                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, e.Radius * 2f, 0.4f, Sfx.BossPulse);
-                    }
+                    ColossusSpecial(e, tpos, dt);  // Colossus.cs: its stages, turns, stomp rings, plates and lava
                     break;
                 case EnemyType.Duelist:
                     DuelistSpecial(e, tpos, dt);  // Duelist.cs: its stages, turns, dashes and salutes
@@ -251,9 +241,7 @@ namespace Arena
                         EnemyShot(e, e.Ang + MathX.Tau * k / 8f, 110f, Defs.BigShot);
                     break;
                 case EnemyType.Colossus:
-                    e.FireT = 1.2f;
-                    for (int i = -1; i <= 1; i++)
-                        EnemyShot(e, aim + i * 0.18f, 170f, Defs.PierceShot);
+                    ColossusFire(e, aim);  // Colossus.cs: its rock volley, between turns
                     break;
                 case EnemyType.Duelist:
                     DuelistFire(e, aim);  // Duelist.cs

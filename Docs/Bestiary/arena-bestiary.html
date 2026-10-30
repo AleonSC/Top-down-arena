@@ -338,10 +338,22 @@ const E = [
       { name: "Last stand (below 10%)", pattern: "The horizon swells to 190 px, the pull doubles to 110 px/s; a 3-arm spiral, and a ring of 18 big orbs every 1.6 s", kind: "small", n: 3, speed: 150, every: 0.1 }],
     notes: ["Corner gravity wells: 4 at the start of each stage, one 110 px in from each corner (260 HP each). Your shots within 420 px bend hard into them, and players within 480 px drift toward them (up to 45 px/s). Killed, they stay gone until the next stage.", "Hits give the usual 0.35 s of invulnerability, so standing in a laser or the disk hurts about 3 times a second."] },
   { id: "Colossus", label: "The Colossus", cat: "Bosses", boss: true, hp: 6800, r: 54, speed: 35, sides: 6, col: rgb(0.78, 0.62, 0.45), xp: 260, score: 600, wave: 25,
-    appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "Lumbers toward you (200 px) and stomps every 4 s: a huge ring with one gap to slip through.",
+    appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "A stone giant in three stages that breaks down as it goes, one attack at a time with breathers between. Awakening (100–65%): it walks at you (200 px off) with its rock volley between turns — Stomps, Boulders, Fissures. Crumbling (65–30%): its armour falls as four plates of cover and it walks faster (55 px/s) — Charge, Rockslide, Aftershocks. Molten Core (30–10%): everything leaves lava — Lava stomps, Meteors, Cave-in. Last stand below 10%: it kneels in the middle. Each stage change takes 2 s: it can't be hurt and the screen clears.",
     attacks: [
-      { name: "Volley", pattern: "3 aimed shots, 10.3° apart", kind: "pierce", n: 3, speed: 170, every: 1.2 },
-      { name: "Stomp", pattern: "Ring of 48 with a 5-shot gap (37.5°) in a random spot", kind: "small", n: 43, speed: 150, every: 4, unscaled: true }] },
+      { name: "Volley (between turns)", pattern: "3 aimed shots, 10.3° apart (Awakening breathers and Boulders, Crumbling breathers, the last stand)", kind: "pierce", n: 3, speed: 170, every: 1.2 },
+      { name: "Stomp rings", pattern: "A ring of push blocks (two rows, like the Warden's gates) spreads from its feet at 150 px/s after a 0.45 s pulse, with one green gap of about 38° (two in Lava stomps and the last stand). You can't cross it: walk into it and it shoves you back, get caught and it carries you out, get pinned against the edge and it rolls over you (hurts again). Slip through a gap", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave once per ring (again if it rolls over you)", every: null },
+      { name: "Stomps (6 s, Awakening)", pattern: "Three stomp rings 2 s apart, each gap 60° round from the last", dmg: "ring", every: null },
+      { name: "Boulders (5 s, Awakening)", pattern: "Every 1.2 s a boulder at where you're heading: a shadow grows for 1.1 s, then 30 damage within 60 px and a burst of 10 small shots", kind: "small", n: 10, speed: 140, every: 1.2 },
+      { name: "Fissures (5 s, Awakening)", pattern: "Twice, a crack races toward you at 600 px/s (up to 900 px); 0.6 s after it stops, small shots fly out of both sides every 45 px", kind: "small", n: 40, speed: 120, every: 2.5 },
+      { name: "Fallen plates (Crumbling)", pattern: "Four slabs (110 × 34 px) that stop bullets from both sides; enemy shots wear one away after 40 hits. You can't walk through them", dmg: "—", every: null },
+      { name: "Charge (6 s, Crumbling)", pattern: "Twice: a red lane toward you for 1 s, then it charges at 700 px/s (up to 1100 px) and stomps a ring where it stops. A plate in its way breaks, and it's dazed for 1.5 s: it takes 50% more damage", dmg: "contact", every: null },
+      { name: "Rockslide (7 s, Crumbling)", pattern: "Rows of 13 big orbs roll in from the top or the left at 180 px/s, a row every 1.4 s, each with a 3-orb gap that moves along. Plates shelter you", kind: "big", n: 10, speed: 180, every: 1.4 },
+      { name: "Aftershocks (6 s, Crumbling)", pattern: "Rings of 30 with two gaps that turn 20° a ring", kind: "small", n: 26, speed: 170, every: 0.7 },
+      { name: "Lava (Molten Core)", pattern: "Pools glow for 0.5 s, then burn 20 a second for 6 s (overlapping pools don't stack). They don't hurt enemies", dmg: "20/s", every: null },
+      { name: "Lava stomps (6 s, Molten Core)", pattern: "A stomp ring every 1.5 s with gaps to your sides, and a 90 px pool where it stood", dmg: "ring", every: null },
+      { name: "Meteors (6 s, Molten Core)", pattern: "Two volleys of three meteors at you, 0.5 s apart: a 1.2 s shadow, 40 damage within 70 px, a ring of 14 big orbs and a 70 px pool", kind: "big", n: 14, speed: 130, every: 0.5 },
+      { name: "Cave-in (6 s, Molten Core)", pattern: "12 shadows (ten anywhere, two by each player); after 1.2 s pillars fall (30 damage), stand for 3 s as cover, then shatter into 6 small shots", kind: "small", n: 6, speed: 150, every: null },
+      { name: "Last stand (below 10%)", pattern: "Kneels in the middle: a stomp ring with two gaps every 1.6 s, its volley, and a meteor at you every 3 s (no pool)", dmg: "ring", every: null }] },
   { id: "Duelist", label: "The Duelist", cat: "Bosses", boss: true, hp: 6000, r: 30, speed: 80, sides: 4, col: rgb(0.85, 0.85, 1), xp: 280, score: 650, wave: 30,
     appears: "Wave 30 (alone)", lead: "A duel in three stages, one technique at a time with breathers between. En Garde (100–65%): it strafes 280 px out — Volleys, Lunge, Guard, and a Blink that leaves a decoy. Masquerade (65–30%): three identical decoys circle you with it, and only its shots are solid — then a Crossing and a lunge chain. To the Death (30–10%): a dueling circle you can't leave; it Salutes before it lunges, and a perfect parry knocks it off balance (2.5 s, +50% damage) — Flurry and Guard too. Below 10% the circle closes and it spins. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
     locks: ["Cycle", "Fan", "Triple"],
@@ -411,7 +423,7 @@ const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
-const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 3, Duelist: 2.8, Lich: 3.2, StormHerald: 4, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
+const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 4, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);

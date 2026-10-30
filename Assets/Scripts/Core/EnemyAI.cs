@@ -465,6 +465,8 @@ namespace Arena
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
                 return true;  // the Duelist changing stage, or its guard from the front (Duelist.cs)
+            if (ColossusImmune(e))
+                return true;  // the Colossus changing stage (Colossus.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
