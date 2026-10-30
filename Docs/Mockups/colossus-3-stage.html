@@ -1,0 +1,529 @@
+<title>Colossus Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design proposal in the game's own field-manual look (sibling of the Singularity mockup, the Armory and
+   the Bestiary): the live arena first, then the health track that splits the fight, then one section per stage
+   with its turn timeline. Single dark look by choice: it mirrors the arena. Stone and magma instead of the void. */
+:root {
+  --bg: #0c0b0a; --panel: #171513; --panel-2: #1d1a17; --line: #2e2924; --edge: #4a4038;
+  --fg: #efe9e2; --muted: #a39686; --stone: #c79e73; --magma: #ff7a3a; --gold: #ffcc59; --good: #6be38a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--magma); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: #d8cfc4; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--stone); }
+header { display: grid; gap: 10px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* The arena */
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #12100e; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.field { display: grid; gap: 5px; justify-items: start; }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #2a241f; }
+.seg button.on { color: #fff; background: #3a2617; box-shadow: inset 0 0 0 1px var(--magma); }
+button:focus-visible { outline: 2px solid var(--magma); outline-offset: 1px; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 9px 14px; border-top: 1px solid var(--line); font: 12px var(--font-data); color: var(--muted); }
+.readout b { color: var(--fg); font-weight: 500; }
+
+/* The health track */
+.track { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bar div { padding: 8px 10px; font: 600 12px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.bar div small { display: block; font: 400 11px var(--font-data); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.bar .s1 { background: #2a2219; } .bar .s2 { background: #33251a; } .bar .s3 { background: #3d2316; } .bar .s4 { background: #4a1c14; }
+.bar div.on { box-shadow: inset 0 -3px 0 var(--magma); }
+.ticks { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; font: 11px var(--font-data); color: var(--muted); }
+.ticks span:last-child { display: flex; justify-content: space-between; }
+
+/* Stage sections */
+.stages { display: grid; gap: 18px; }
+.st { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.st .hd { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.st .hp { font: 500 12px var(--font-data); color: var(--muted); }
+.tl { display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.tl div { display: flex; align-items: center; justify-content: center; font: 600 11px var(--font-body); color: var(--fg); white-space: nowrap; overflow: hidden; min-width: 0; }
+.tl .rest { background: transparent; color: var(--muted); font-weight: 400; background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,0.04) 5px 10px); }
+.tl-scale { font: 11px var(--font-data); color: var(--muted); }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.m { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; min-width: 0; align-content: start; }
+.m b { font: 600 15px var(--font-body); }
+.m b i { font-style: normal; font: 500 12px var(--font-data); color: var(--muted); margin-left: 6px; }
+.m p { font-size: 14px; color: #d8cfc4; }
+.m .new { font: 600 10px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-left: 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.notes .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: #d8cfc4; }
+.notes code { font: 12.5px var(--font-data); color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Boss proposal · wave 25</div>
+    <h1>The Colossus, <span>in three stages</span></h1>
+    <p class="lead">Today it walks at you, stomps a ring with one gap every 4 s and throws a 3-rock volley, for the whole fight. This mockup splits it like the Warden, the Hive Queen and the Singularity: three stages by health, one attack at a time with breathers between, a 2 s stage change that clears the screen, and a last stand below 10%. It breaks down as it goes: armour, then shell, then a molten core. The arena below plays each stage with a test dummy; pick one to watch it, or let it cycle.</p>
+  </header>
+
+  <section class="stage" aria-label="Live mockup">
+    <canvas id="arena" width="1600" height="900"></canvas>
+    <div class="controls">
+      <div class="field"><span class="lbl">Stage</span>
+        <div class="seg" id="stagePick" role="group" aria-label="Stage"><button type="button" id="st-cycle" data-v="-1" class="on">Cycle</button><button type="button" id="st-0" data-v="0">Awakening</button><button type="button" id="st-1" data-v="1">Crumbling</button><button type="button" id="st-2" data-v="2">Molten Core</button><button type="button" id="st-3" data-v="3">Last stand</button></div></div>
+      <div class="field"><span class="lbl">Speed</span>
+        <div class="seg" id="speedPick" role="group" aria-label="Speed"><button type="button" id="sp-0" data-v="0">Pause</button><button type="button" id="sp-1" data-v="1" class="on">1×</button><button type="button" id="sp-2" data-v="2">2×</button></div></div>
+    </div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="track" aria-label="Health track">
+    <h3>Its health bar, split into stages</h3>
+    <div class="bar" id="bar">
+      <div class="s1" data-v="0">Awakening<small>100–65%</small></div>
+      <div class="s2" data-v="1">Crumbling<small>65–30%</small></div>
+      <div class="s3" data-v="2">Molten Core<small>30–10%</small></div>
+      <div class="s4" data-v="3">Last<small>&lt;10%</small></div>
+    </div>
+    <div class="ticks mono"><span>100%</span><span>65%</span><span>30%</span><span><span>10%</span><span>0</span></span></div>
+  </section>
+
+  <div class="stages" id="stages"></div>
+
+  <section class="notes">
+    <div class="box">
+      <h3>What it keeps</h3>
+      <ul>
+        <li>The stomp: a 48-shot ring with one gap, at 150 px/s. It's stage 1's main turn, and it also lands every Charge.</li>
+        <li>The rock volley: 3 aimed piercing shots, about 10° apart, every 1.2 s, between turns in stages 1 and 2.</li>
+        <li>Walking at you, 200 px off. It speeds up as it sheds armour (35 → 55 px/s), then kneels for the last stand.</li>
+        <li>Its bullet kinds: small shots, piercing rocks and big orbs.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>What's new</h3>
+      <ul>
+        <li><b>Boulders and meteors:</b> thrown at where you're heading, with a shadow that grows before they land, then a burst of shots.</li>
+        <li><b>Fissure:</b> a crack races toward you, then erupts along its whole length. A line hazard the game doesn't have yet.</li>
+        <li><b>Fallen plates:</b> cover that blocks shots both ways, so hiding costs you damage. Charges smash them, and smashing one dazes the Colossus (+50% damage).</li>
+        <li><b>Rockslide:</b> rows of rocks roll in from an edge with a moving gap. Plates shelter you from them.</li>
+        <li><b>Lava:</b> in stage 3 everything leaves burning pools, so the arena fills up and you keep moving.</li>
+        <li><b>Cave-in:</b> pillars fall at marked spots, stand as cover for 3 s, then shatter into shots.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>To build it</h3>
+      <ul>
+        <li>Stage, turn and timers in a <code>ColossusState</code> on the boss, synced like <code>WardenState</code>; thresholds 65 / 30 / 10%.</li>
+        <li>Reuse: <code>Hazard</code> warning circles for boulders, meteors and the cave-in; the Warden's baton charge for Charge; path fire patches for lava pools.</li>
+        <li>New: plates and pillars as zones that stop bullets from both sides (Flame Wall only stops enemy ones); the fissure as a line hazard; rockslide rows.</li>
+        <li>Health: <code>BossHpMult</code> for the Colossus (3× now) should come down and be retuned in the Boss Lab for 60–120 s, plus Bestiary entries, a Boss Lab stage lock and sim tests per stage.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+const W = 1600, H = 900, TAU = Math.PI * 2, MID = { x: 800, y: 450 };
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// --- The proposal (one source for the arena and the write-up) -------------------------------------------------
+const STAGES = [
+  { name: "Awakening", hp: "100–65%", col: "#c79e73",
+    lead: "Still in full armour, it walks after you as it does now, 200 px off, throwing its 3-rock volley between turns. Its turns put a thrown boulder and a ground fissure next to today's stomp.",
+    turns: [["Stomps", 6], ["", 1], ["Boulders", 5], ["", 1], ["Fissures", 5], ["", 1.5]],
+    mech: [
+      ["Stomps", "6 s", "Three stomps 2 s apart: rings of 48 small shots at 150 px/s with a 5-shot gap, as now. Each gap is 60° round from the last, so you have to move between stomps."],
+      ["Boulders", "5 s", "Every 1.2 s it hurls a boulder at where you're heading. A shadow grows for 1.1 s, then it lands (30 damage within 60 px) and bursts into 10 small shots at 140 px/s.", true],
+      ["Fissures", "5 s", "Twice, a crack races from its feet toward you at 600 px/s, out to 900 px. 0.6 s after it stops, the whole crack erupts, throwing small shots out of both sides every 45 px at 120 px/s. Step off the line.", true],
+      ["Rock volley", "breathers", "Today's 3 aimed piercing shots, about 10° apart at 170 px/s, every 1.2 s: during breathers and Boulders."],
+    ] },
+  { name: "Crumbling", hp: "65–30%", col: "#e0a35a",
+    lead: "Its armour breaks off: four stone plates crash down as cover, and the lighter Colossus walks at 55 px/s (35 now). The plates block bullets from both sides, so hiding behind one costs you your own shots.",
+    turns: [["Charge", 6], ["", 1], ["Rockslide", 7], ["", 1], ["Aftershocks", 6], ["", 1.5]],
+    mech: [
+      ["Fallen plates", "all stage", "Four slabs, 110 × 34 px, at fixed spots. They stop enemy bullets and your shots alike; each crumbles after 40 enemy hits. Any left vanish at the next stage.", true],
+      ["Charge", "6 s", "Twice: a red line marks your position for 1 s, then it charges down it at 700 px/s and stomps a ring where it stops. A plate in the way stops it and breaks, and the Colossus is dazed for 1.5 s, taking 50% more damage.", true],
+      ["Rockslide", "7 s", "Rows of 13 big rocks roll in from one edge at 180 px/s, a row every 1.4 s, each with a 3-rock gap that shifts along. Plates shelter you from them.", true],
+      ["Aftershocks", "6 s", "Rings of 30 small shots every 0.7 s with two gaps that turn 20° a ring, so the safe lanes spiral out."],
+    ] },
+  { name: "Molten Core", hp: "30–10%", col: "#ff7a3a",
+    lead: "The shell splits and the molten core glows through the cracks. Everything it does now leaves lava behind, so the arena fills up and you keep moving.",
+    turns: [["Lava stomps", 6], ["", 1], ["Meteors", 6], ["", 1], ["Cave-in", 6], ["", 1.5]],
+    mech: [
+      ["Lava pools", "all stage", "Glow for 0.5 s, then hurt 20 a second to stand in for 6 s. Enemies aren't hurt by them.", true],
+      ["Lava stomps", "6 s", "A stomp every 1.5 s with two gaps, each leaving a 90 px pool where it stands. It keeps walking at you, so the pools trail behind it."],
+      ["Meteors", "6 s", "Twice, it rips up 3 burning boulders and throws them at you 0.5 s apart: a 1.2 s shadow, 40 damage within 70 px, a ring of 14 big orbs and a 70 px pool where each lands.", true],
+      ["Cave-in", "6 s", "The ceiling gives: 12 shadows across the arena, two of them by you, then rock pillars fall (30 damage). Each stands for 3 s and blocks shots, then shatters into 6 small shots.", true],
+    ] },
+  { name: "Last stand", hp: "below 10%", col: "#ff4f3a",
+    lead: "It drops to one knee in the middle and won't move again: stomps, its volley and a meteor at you every 3 s, until it's dead.",
+    turns: [["Stomps + meteors", 10]],
+    mech: [
+      ["Last stand", "until it dies", "A stomp every 1.6 s with two gaps, each turned a quarter of a gap from the last. Its volley every 1.2 s. A meteor at you every 3 s (no pool). It can't be dazed."],
+    ] },
+];
+const TURN_COL = { Stomps: "#6b5236", Boulders: "#7a5a32", Fissures: "#8a4b2a", Charge: "#8a2e2e", Rockslide: "#6d5a40", Aftershocks: "#7a4a30", "Lava stomps": "#9b4320", Meteors: "#a8461e", "Cave-in": "#6b4a3a", "Stomps + meteors": "#a82e1e" };
+
+// --- The write-up ------------------------------------------------------------------------------------------------
+$("stages").innerHTML = STAGES.map((st, i) => {
+  const total = st.turns.reduce((a, t) => a + t[1], 0);
+  return `<section class="st" id="stage-${i}">
+    <div class="hd"><h2 style="color:${st.col}">${st.name}</h2><span class="hp">${st.hp} health</span></div>
+    <p class="lead">${st.lead}</p>
+    <div><div class="tl" aria-label="Turn order, ${total} s a loop">${st.turns.map(([n, s]) => n ? `<div style="flex:${s};background:${TURN_COL[n]}">${n} ${s} s</div>` : `<div class="rest" style="flex:${s}">${s} s</div>`).join("")}</div>
+    <div class="tl-scale">${i === 3 ? "until it dies" : `one loop: ${total} s, then it repeats until the next stage`}</div></div>
+    <div class="mech">${st.mech.map(([n, t, d, isNew]) => `<div class="m"><b>${n}<i>${t}</i>${isNew ? `<span class="new">new</span>` : ""}</b><p>${d}</p></div>`).join("")}</div>
+  </section>`;
+}).join("");
+
+// --- The arena -----------------------------------------------------------------------------------------------------
+const S = { lock: -1, speed: 1 };
+const PLATES = [[520, 290, 110, 34], [1080, 290, 110, 34], [430, 600, 34, 110], [1170, 600, 34, 110]];
+let w;
+function reset(stage) {
+  w = { t: 0, stage, tt: 0, turn: 0, trans: 0, loops: 0,
+    boss: { x: MID.x, y: 200, ang: 0, gapA: rnd(0, TAU), fire: 0.3, vol: 1.2, met: 3, daze: 0, charge: null, spin: 0 },
+    bullets: [], shots: [], fx: [], marks: [], cracks: [], plates: [], pools: [], pillars: [], slideEdge: 0, slideGap: 0,
+    blocked: 0, landed: 0, fireCd: 0,
+    p: { x: 800, y: 700, tx: 800, ty: 700, vx: 0, vy: 0, hits: 0, inv: 0 } };
+  if (stage === 1) { w.plates = PLATES.map(([x, y, pw, ph]) => ({ x, y, w: pw, h: ph, hp: 40 })); for (const q of w.plates) w.fx.push({ x: q.x, y: q.y, r: 80, t: 0, dur: 0.6, col: "#c79e73" }); }
+  if (stage === 3) { w.boss.x = MID.x; w.boss.y = MID.y; }
+  startTurn();
+}
+const st = () => STAGES[w.stage];
+const turnName = () => st().turns[w.turn][0];
+function startTurn() {
+  w.tt = 0;
+  const b = w.boss;
+  b.fire = 0.3; b.charge = null; b.fired = 0;
+  if (turnName() === "Rockslide") { w.slideEdge = (w.slideEdge + 1) % 2; w.slideGap = Math.floor(rnd(0, 10)); }
+}
+function nextTurn() {
+  w.turn++;
+  if (w.turn >= st().turns.length) {
+    w.turn = 0; w.loops++;
+    if (S.lock < 0) { w.trans = 2; return; }
+  }
+  startTurn();
+}
+function shot(x, y, a, sp, kind, o = {}) {
+  const r = kind === "big" ? 11 : kind === "rock" ? 14 : kind === "pierce" ? 7 : 6;
+  w.bullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, kind, life: 10, ...o });
+}
+// A ring of n shots with gaps: each gap is `len` shots wide, centred on the angles in `gaps`.
+function ring(x, y, n, gaps, len, sp, kind) {
+  for (let i = 0; i < n; i++) {
+    const a = TAU * i / n;
+    if (gaps.some(g => { const d = Math.abs(((a - g + Math.PI) % TAU + TAU) % TAU - Math.PI); return d < (len / 2) * TAU / n; })) continue;
+    shot(x, y, a, sp, kind);
+  }
+}
+function stomp(gaps, len = 5) {
+  const b = w.boss;
+  ring(b.x, b.y, 48, gaps, len, 150, "small");
+  w.fx.push({ x: b.x, y: b.y, r: 130, t: 0, dur: 0.45, col: STAGES[w.stage].col });
+}
+const aimAtP = () => Math.atan2(w.p.y - w.boss.y, w.p.x - w.boss.x);
+const lead = (k) => ({ x: clamp(w.p.x + w.p.vx * k, 60, W - 60), y: clamp(w.p.y + w.p.vy * k, 60, H - 60) });
+function throwAt(at, kind) {
+  const b = w.boss;
+  w.marks.push({ x: at.x, y: at.y, fx: b.x, fy: b.y, r: kind === "boulder" ? 60 : kind === "pillar" ? 40 : 70, t: 0, dur: kind === "boulder" ? 1.1 : 1.2, kind });
+}
+function inPlate(q, x, y, r) { return x > q.x - q.w / 2 - r && x < q.x + q.w / 2 + r && y > q.y - q.h / 2 - r && y < q.y + q.h / 2 + r; }
+const hit = () => { const p = w.p; if (p.inv <= 0) { p.hits++; p.inv = 0.35; } };
+
+function step(dt) {
+  w.t += dt;
+  const b = w.boss, p = w.p;
+  // Stage change: can't be hurt, the screen clears, then the next stage
+  if (w.trans > 0) {
+    w.trans -= dt; w.bullets = []; w.marks = []; w.cracks = []; w.pillars = [];
+    if (w.trans <= 0) { const next = (w.stage + 1) % 4; reset(next); w.fx.push({ x: w.boss.x, y: w.boss.y, r: 1100, t: 0, dur: 0.9, col: STAGES[next].col }); }
+    moveDummy(dt); fxStep(dt); return;
+  }
+  w.tt += dt;
+  const n = turnName();
+  // Walking: 200 px off you, faster once the armour is gone; kneels for the last stand; never while charging or dazed
+  b.daze = Math.max(0, b.daze - dt);
+  if (!b.charge && b.daze <= 0) {
+    const speed = w.stage === 0 ? 35 : w.stage === 1 ? 55 : w.stage === 2 ? 40 : 0;
+    const dx = p.x - b.x, dy = p.y - b.y, d = Math.hypot(dx, dy) || 1;
+    if (w.stage === 3) { b.x += (MID.x - b.x) * Math.min(1, dt * 2); b.y += (MID.y - b.y) * Math.min(1, dt * 2); }
+    else if (d > 200) { b.x += dx / d * speed * dt; b.y += dy / d * speed * dt; }
+    b.x = clamp(b.x, 70, W - 70); b.y = clamp(b.y, 70, H - 70);
+  }
+  // The volley between turns (stages 1 and 2) and through the last stand
+  b.vol -= dt;
+  if (b.vol <= 0 && ((w.stage === 0 && (n === "" || n === "Boulders")) || (w.stage === 1 && n === "") || w.stage === 3)) {
+    b.vol = 1.2; const a = aimAtP(); for (let i = -1; i <= 1; i++) shot(b.x, b.y, a + i * 0.18, 170, "pierce");
+  }
+  // Turns
+  b.fire -= dt;
+  if (b.fire <= 0) {
+    switch (n) {
+      case "Stomps": b.fire = 2; b.gapA += TAU / 6; stomp([b.gapA]); break;
+      case "Boulders": b.fire = 1.2; throwAt(lead(1.1), "boulder"); break;
+      case "Fissures": {
+        b.fire = 2.5; const a = aimAtP();
+        const jag = []; for (let k = 0; k <= 20; k++) jag.push(rnd(-10, 10));
+        w.cracks.push({ x: b.x, y: b.y, a, len: 0, max: 900, t: 0, jag, erupted: false });
+        break;
+      }
+      case "Charge": if (!b.charge && b.fired < 2) { b.fire = 3; b.fired++; b.charge = { phase: "aim", t: 1, a: aimAtP(), run: 0 }; } else b.fire = 0.2; break;
+      case "Rockslide": {
+        b.fire = 1.4;
+        const rows = 13, gap = w.slideGap; w.slideGap = (w.slideGap + 2) % (rows - 2);
+        for (let i = 0; i < rows; i++) {
+          if (i >= gap && i < gap + 3) continue;
+          if (w.slideEdge === 0) shot((i + 0.5) * W / rows, -20, Math.PI / 2, 180, "rock");
+          else shot(-20, (i + 0.5) * H / rows, 0, 180, "rock");
+        }
+        break;
+      }
+      case "Aftershocks": b.fire = 0.7; b.ang += 20 * Math.PI / 180; ring(b.x, b.y, 30, [b.ang, b.ang + Math.PI], 3, 170, "small"); break;
+      case "Lava stomps": b.fire = 1.5; b.gapA = aimAtP() + Math.PI / 2; stomp([b.gapA, b.gapA + Math.PI]); w.pools.push({ x: b.x, y: b.y, r: 90, t: 0, dur: 6 }); break;
+      case "Meteors": {
+        if (b.fired < 6) { b.fire = b.fired % 3 === 2 ? 2.4 : 0.5; b.fired++; throwAt({ x: p.x, y: p.y }, "meteor"); } else b.fire = 9;
+        break;
+      }
+      case "Cave-in": {
+        b.fire = 9;
+        for (let k = 0; k < 10; k++) throwAt({ x: rnd(80, W - 80), y: rnd(80, H - 80) }, "pillar");
+        for (let k = 0; k < 2; k++) { const a = rnd(0, TAU); throwAt({ x: clamp(p.x + Math.cos(a) * 45, 60, W - 60), y: clamp(p.y + Math.sin(a) * 45, 60, H - 60) }, "pillar"); }
+        break;
+      }
+      case "Stomps + meteors": b.fire = 1.6; b.gapA += Math.PI / 2 + (TAU / 48) * 1.25; stomp([b.gapA, b.gapA + Math.PI]); break;
+      default: b.fire = 0.1;
+    }
+  }
+  if (w.stage === 3) { b.met -= dt; if (b.met <= 0) { b.met = 3; throwAt({ x: p.x, y: p.y }, "lastmeteor"); } }
+  // The charge: aim for 1 s, then run until a wall or a plate
+  if (b.charge) {
+    const c = b.charge;
+    if (c.phase === "aim") { c.t -= dt; if (c.t <= 0) c.phase = "run"; }
+    else {
+      const sp = 700 * dt; b.x += Math.cos(c.a) * sp; b.y += Math.sin(c.a) * sp; c.run += sp;
+      let stop = b.x < 70 || b.x > W - 70 || b.y < 70 || b.y > H - 70 || c.run > 1100;
+      for (const q of w.plates) if (q.hp > 0 && inPlate(q, b.x, b.y, 50)) { q.hp = 0; stop = true; b.daze = 1.5; w.fx.push({ x: q.x, y: q.y, r: 90, t: 0, dur: 0.5, col: "#ffcc59" }); }
+      if (Math.hypot(b.x - p.x, b.y - p.y) < 54 + 14) hit();
+      if (stop) { b.x = clamp(b.x, 70, W - 70); b.y = clamp(b.y, 70, H - 70); b.charge = null; b.gapA = aimAtP() + Math.PI; stomp([b.gapA]); }
+    }
+  }
+  // Fissures: grow, wait, erupt
+  for (const c of w.cracks) {
+    c.t += dt;
+    if (c.len < c.max) c.len = Math.min(c.max, c.len + 600 * dt);
+    else if (!c.erupted) { c.wait = (c.wait || 0) + dt; if (c.wait >= 0.6) { c.erupted = true; c.fade = 0.5;
+      for (let d = 45; d < c.len; d += 45) { const x = c.x + Math.cos(c.a) * d, y = c.y + Math.sin(c.a) * d; if (x < 0 || y < 0 || x > W || y > H) break; shot(x, y, c.a + Math.PI / 2, 120, "small"); shot(x, y, c.a - Math.PI / 2, 120, "small"); }
+      w.fx.push({ x: c.x + Math.cos(c.a) * c.len / 2, y: c.y + Math.sin(c.a) * c.len / 2, r: 60, t: 0, dur: 0.4, col: "#ff9a4a" }); } }
+    else c.fade -= dt;
+  }
+  w.cracks = w.cracks.filter(c => !c.erupted || c.fade > 0);
+  // Landings: boulders, meteors and pillars
+  for (const m of w.marks) {
+    m.t += dt;
+    if (m.t >= m.dur && !m.done) {
+      m.done = true;
+      if (Math.hypot(p.x - m.x, p.y - m.y) < m.r) hit();
+      if (m.kind === "boulder") ring(m.x, m.y, 10, [], 0, 140, "small");
+      if (m.kind === "meteor" || m.kind === "lastmeteor") { ring(m.x, m.y, 14, [], 0, 130, "big"); if (m.kind === "meteor") w.pools.push({ x: m.x, y: m.y, r: 70, t: 0, dur: 6 }); }
+      if (m.kind === "pillar") w.pillars.push({ x: m.x, y: m.y, r: 28, t: 3 });
+      w.fx.push({ x: m.x, y: m.y, r: m.r + 20, t: 0, dur: 0.4, col: m.kind === "boulder" || m.kind === "pillar" ? "#c79e73" : "#ff7a3a" });
+    }
+  }
+  w.marks = w.marks.filter(m => !m.done);
+  for (const q of w.pillars) { q.t -= dt; if (q.t <= 0) { ring(q.x, q.y, 6, [], 0, 150, "small"); w.fx.push({ x: q.x, y: q.y, r: 40, t: 0, dur: 0.3, col: "#c79e73" }); } }
+  w.pillars = w.pillars.filter(q => q.t > 0);
+  for (const q of w.pools) q.t += dt;
+  w.pools = w.pools.filter(q => q.t < q.dur);
+  // Bullets: plates and pillars stop them
+  for (const q of w.bullets) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    for (const pl of w.plates) if (pl.hp > 0 && inPlate(pl, q.x, q.y, q.r)) { q.life = 0; pl.hp--; break; }
+    for (const pi of w.pillars) if (Math.hypot(q.x - pi.x, q.y - pi.y) < pi.r + q.r) q.life = 0;
+  }
+  for (const pl of w.plates) if (pl.hp <= 0 && !pl.gone) { pl.gone = true; w.fx.push({ x: pl.x, y: pl.y, r: 70, t: 0, dur: 0.4, col: "#c79e73" }); }
+  w.bullets = w.bullets.filter(q => q.life > 0 && q.x > -60 && q.y > -60 && q.x < W + 60 && q.y < H + 60);
+  // The dummy: hits are counted, not healed
+  p.inv = Math.max(0, p.inv - dt);
+  for (const q of w.bullets) if (Math.hypot(q.x - p.x, q.y - p.y) < q.r + 7) hit();
+  for (const q of w.pools) if (q.t > 0.5 && Math.hypot(q.x - p.x, q.y - p.y) < q.r) hit();
+  playerShots(dt);
+  moveDummy(dt);
+  fxStep(dt);
+  if (w.tt >= st().turns[w.turn][1]) nextTurn();
+}
+function fxStep(dt) { for (const f of w.fx) f.t += dt; w.fx = w.fx.filter(f => f.t < f.dur); }
+
+// The dummy shoots at the Colossus. Plates and pillars stop its shots too.
+function playerShots(dt) {
+  const p = w.p, b = w.boss;
+  if ((w.fireCd -= dt) <= 0) {
+    w.fireCd = 0.15;
+    const a = Math.atan2(b.y - p.y, b.x - p.x);
+    w.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, life: 1.6 });
+  }
+  for (const q of w.shots) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.life <= 0) continue;
+    if (w.plates.some(pl => pl.hp > 0 && inPlate(pl, q.x, q.y, 4)) || w.pillars.some(pi => Math.hypot(q.x - pi.x, q.y - pi.y) < pi.r + 4)) { q.life = 0; w.blocked++; continue; }
+    if (Math.hypot(q.x - b.x, q.y - b.y) < 54) { q.life = 0; w.landed++; }
+  }
+  w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
+}
+function moveDummy(dt) {
+  // The dummy wanders between points 260-560 px from the Colossus, at a class's walking speed, avoiding lava.
+  const p = w.p, b = w.boss;
+  const bad = (x, y) => w.pools.some(q => Math.hypot(q.x - x, q.y - y) < q.r + 20) || Math.hypot(b.x - x, b.y - y) < 240;
+  if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * 0.35 || bad(p.tx, p.ty)) {
+    for (let k = 0; k < 14; k++) { const a = rnd(0, TAU), r = rnd(260, 560), tx = b.x + Math.cos(a) * r, ty = b.y + Math.sin(a) * r * 0.8;
+      if (tx > 60 && tx < W - 60 && ty > 60 && ty < H - 60 && !bad(tx, ty)) { p.tx = tx; p.ty = ty; break; } }
+  }
+  const dx = p.tx - p.x, dy = p.ty - p.y, l = Math.hypot(dx, dy) || 1, sp = Math.min(l, 215 * dt);
+  const ox = p.x, oy = p.y;
+  p.x = clamp(p.x + dx / l * sp, 14, W - 14); p.y = clamp(p.y + dy / l * sp, 14, H - 14);
+  for (const pl of w.plates) if (pl.hp > 0 && inPlate(pl, p.x, p.y, 14)) { p.x = ox; p.y = oy; p.tx = p.x + rnd(-200, 200); p.ty = p.y + rnd(-200, 200); }
+  p.vx = (p.x - ox) / Math.max(dt, 1e-3); p.vy = (p.y - oy) / Math.max(dt, 1e-3);
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------------
+const cv = $("arena"), cx = cv.getContext("2d");
+function circle(x, y, r, fill) { cx.fillStyle = fill; cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.fill(); }
+function draw() {
+  const b = w.boss, p = w.p, t = w.t, n = w.trans > 0 ? "" : turnName();
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  // Quake shake on stomps and landings
+  const shake = w.fx.reduce((a, f) => Math.max(a, f.r > 100 && f.r < 200 ? (1 - f.t / f.dur) * 5 : 0), 0);
+  cx.fillStyle = "#12100e"; cx.fillRect(0, 0, W, H);
+  cx.translate(rnd(-shake, shake), rnd(-shake, shake));
+  cx.strokeStyle = "rgba(200,170,130,0.06)"; cx.lineWidth = 1; cx.beginPath();
+  for (let x = 0; x <= W; x += 80) { cx.moveTo(x, 0); cx.lineTo(x, H); } for (let y = 0; y <= H; y += 80) { cx.moveTo(0, y); cx.lineTo(W, y); } cx.stroke();
+  // Lava pools (glow first, then burn)
+  for (const q of w.pools) {
+    const warm = q.t < 0.5, fade = Math.min(1, (q.dur - q.t) / 0.8);
+    const g = cx.createRadialGradient(q.x, q.y, 0, q.x, q.y, q.r);
+    g.addColorStop(0, `rgba(255,${warm ? 160 : 120},60,${(warm ? 0.25 : 0.75) * fade})`); g.addColorStop(0.75, `rgba(220,60,20,${(warm ? 0.15 : 0.55) * fade})`); g.addColorStop(1, "rgba(120,20,10,0)");
+    cx.fillStyle = g; cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, TAU); cx.fill();
+    if (!warm) for (let k = 0; k < 3; k++) circle(q.x + Math.cos(t * 1.3 + k * 2.1) * q.r * 0.45, q.y + Math.sin(t * 1.7 + k * 2.1) * q.r * 0.45, 4 + 2 * Math.sin(t * 4 + k), `rgba(255,220,120,${0.6 * fade})`);
+  }
+  // Fissures
+  for (const c of w.cracks) {
+    const seg = c.max / 20, alpha = c.erupted ? Math.max(0, c.fade / 0.5) : 1;
+    cx.beginPath();
+    for (let k = 0; k <= 20 && k * seg <= c.len; k++) { const d = k * seg, j = c.jag[k], x = c.x + Math.cos(c.a) * d - Math.sin(c.a) * j, y = c.y + Math.sin(c.a) * d + Math.cos(c.a) * j; k ? cx.lineTo(x, y) : cx.moveTo(x, y); }
+    const ready = c.len >= c.max;
+    cx.strokeStyle = `rgba(20,10,5,${0.9 * alpha})`; cx.lineWidth = 12; cx.stroke();
+    cx.strokeStyle = ready && !c.erupted ? `rgba(255,${140 + 80 * Math.sin(t * 30)},60,${alpha})` : `rgba(255,120,50,${0.7 * alpha})`; cx.lineWidth = ready ? 5 : 3; cx.stroke();
+  }
+  // Charge line
+  if (b.charge && b.charge.phase === "aim") {
+    const c = b.charge; cx.beginPath(); cx.moveTo(b.x, b.y); cx.lineTo(b.x + Math.cos(c.a) * 1100, b.y + Math.sin(c.a) * 1100);
+    cx.strokeStyle = `rgba(255,70,70,${0.25 + 0.25 * Math.sin(t * 25)})`; cx.lineWidth = 108; cx.stroke();
+    cx.strokeStyle = "rgba(255,90,90,0.9)"; cx.lineWidth = 2; cx.setLineDash([14, 10]); cx.stroke(); cx.setLineDash([]);
+  }
+  // Landing shadows
+  for (const m of w.marks) {
+    const k = m.t / m.dur, hot = m.kind !== "boulder" && m.kind !== "pillar";
+    circle(m.x, m.y, m.r * (0.3 + 0.7 * k), `rgba(0,0,0,${0.25 + 0.35 * k})`);
+    cx.strokeStyle = hot ? "rgba(255,120,60,0.85)" : "rgba(220,190,150,0.8)"; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(m.x, m.y, m.r, 0, TAU); cx.stroke();
+    if (m.kind !== "pillar") {  // the rock in flight, on an arc from where it was thrown
+      const x = m.fx + (m.x - m.fx) * k, y = m.fy + (m.y - m.fy) * k - Math.sin(k * Math.PI) * 220, r = m.kind === "boulder" ? 20 : 26;
+      circle(x, y, r, hot ? "#5a2a18" : "#8a7056"); cx.strokeStyle = hot ? "#ff8a3a" : "#c79e73"; cx.lineWidth = 3; cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.stroke();
+      if (hot) circle(x, y, r * 0.45, `rgba(255,170,70,${0.7 + 0.3 * Math.sin(t * 20)})`);
+    } else circle(m.x, m.y - (1 - k) * 260, 22, `rgba(140,112,86,${k})`);
+  }
+  // Plates and pillars
+  for (const q of w.plates) {
+    if (q.hp <= 0) continue;
+    cx.fillStyle = "#5e4c3c"; cx.fillRect(q.x - q.w / 2, q.y - q.h / 2, q.w, q.h);
+    cx.strokeStyle = "#c79e73"; cx.lineWidth = 3; cx.strokeRect(q.x - q.w / 2, q.y - q.h / 2, q.w, q.h);
+    cx.strokeStyle = "rgba(20,12,8,0.9)"; cx.lineWidth = 2; const cracks = Math.floor((40 - q.hp) / 8);
+    for (let k = 0; k < cracks; k++) { cx.beginPath(); const hz = q.w > q.h; const ax = hz ? q.x - q.w / 2 + (k + 1) * q.w / 6 : q.x - q.w / 2, ay = hz ? q.y - q.h / 2 : q.y - q.h / 2 + (k + 1) * q.h / 6; cx.moveTo(ax, ay); cx.lineTo(ax + (hz ? 6 : q.w * 0.6), ay + (hz ? q.h * 0.6 : 6)); cx.stroke(); }
+  }
+  for (const q of w.pillars) { circle(q.x, q.y + 6, q.r + 4, "rgba(0,0,0,0.4)"); circle(q.x, q.y, q.r, "#6e5a46"); cx.strokeStyle = q.t < 0.6 ? `rgba(255,220,180,${0.5 + 0.5 * Math.sin(t * 30)})` : "#c79e73"; cx.lineWidth = 3; cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, TAU); cx.stroke(); }
+  // The Colossus
+  colossus(b.x, b.y, t);
+  // Bullets
+  for (const q of w.bullets) {
+    if (q.kind === "rock") { circle(q.x, q.y, q.r + 4, "rgba(0,0,0,0.35)"); circle(q.x, q.y, q.r, "#9a7a5a"); cx.strokeStyle = "#e0c49c"; cx.lineWidth = 2; cx.beginPath(); cx.arc(q.x, q.y, q.r, t * 4, t * 4 + 3); cx.stroke(); continue; }
+    if (q.kind === "pierce") { const a = Math.atan2(q.vy, q.vx); cx.strokeStyle = "rgba(255,190,90,0.3)"; cx.lineWidth = 14; cx.beginPath(); cx.moveTo(q.x - Math.cos(a) * 16, q.y - Math.sin(a) * 16); cx.lineTo(q.x + Math.cos(a) * 6, q.y + Math.sin(a) * 6); cx.stroke(); cx.strokeStyle = "#ffbe5a"; cx.lineWidth = 7; cx.stroke(); continue; }
+    const col = q.kind === "big" ? "217,89,255" : "255,77,115";
+    circle(q.x, q.y, q.r * 1.7, `rgba(${col},0.25)`); circle(q.x, q.y, q.r, `rgb(${col})`); circle(q.x, q.y, q.r * 0.45, "rgba(20,0,20,0.75)");
+  }
+  for (const f of w.fx) { const k = f.t / f.dur; cx.strokeStyle = f.col; cx.globalAlpha = 1 - k; cx.lineWidth = 4; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU); cx.stroke(); cx.globalAlpha = 1; }
+  // The dummy's shots
+  for (const q of w.shots) circle(q.x, q.y, 4, "#7dffa8");
+  // Dummy
+  circle(p.x, p.y, 14, p.inv > 0.2 ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)");
+  cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.stroke();
+  circle(p.x, p.y, 4, "#fff");
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  // Stage banner
+  cx.textAlign = "left"; cx.font = "700 30px Oxanium, sans-serif"; cx.fillStyle = w.trans > 0 ? "#fff" : st().col;
+  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 40, H - 58);
+  cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(239,233,226,0.65)";
+  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s`, 40, H - 28);
+  if (S.speed === 0) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "right"; cx.fillText("PAUSED", W - 40, H - 28); cx.textAlign = "left"; }
+  const plates = w.plates.filter(q => q.hp > 0).length;
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span><span>Shots landed <b>${w.landed}</b></span>${w.stage === 1 || w.stage === 2 ? `<span>Shots stopped by cover <b>${w.blocked}</b></span>` : ""}${w.stage === 1 ? `<span>Plates <b>${plates} / 4</b></span>` : ""}${w.stage === 2 ? `<span>Lava pools <b>${w.pools.length}</b></span>` : ""}<span>Bullets <b>${w.bullets.length}</b></span>`;
+  for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
+}
+// The Colossus: a stone hexagon (as in the game, 54 px) that breaks down stage by stage.
+function colossus(x, y, t) {
+  const b = w.boss, s = w.trans > 0 ? w.stage : w.stage, r = 54, kneel = s === 3;
+  const face = Math.atan2(w.p.y - y, w.p.x - x), rot = face + Math.PI / 6;
+  circle(x, y + 10, r + 8, "rgba(0,0,0,0.45)");
+  if (s >= 2) { const g = cx.createRadialGradient(x, y, 10, x, y, r + 40); g.addColorStop(0, `rgba(255,120,40,${0.35 + 0.15 * Math.sin(t * 5)})`); g.addColorStop(1, "rgba(255,80,20,0)"); cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, r + 40, 0, TAU); cx.fill(); }
+  const hex = (rr) => { cx.beginPath(); for (let k = 0; k < 6; k++) { const a = rot + TAU * k / 6, px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * (kneel ? 0.85 : 1); k ? cx.lineTo(px, py) : cx.moveTo(px, py); } cx.closePath(); };
+  hex(r); cx.fillStyle = s >= 2 ? "#3e2c22" : s === 1 ? "#7e6650" : "#8f7458"; cx.fill();
+  cx.strokeStyle = b.daze > 0 ? `rgba(255,220,90,${0.6 + 0.4 * Math.sin(t * 20)})` : "#c79e73"; cx.lineWidth = 4; cx.stroke();
+  if (s === 0) { hex(r - 14); cx.strokeStyle = "rgba(60,44,30,0.9)"; cx.lineWidth = 3; cx.stroke(); }  // armour plates
+  if (s >= 1) {  // cracks, glowing from stage 3
+    cx.strokeStyle = s >= 2 ? `rgba(255,${130 + 60 * Math.sin(t * 6)},50,0.95)` : "rgba(30,20,12,0.9)"; cx.lineWidth = s >= 2 ? 4 : 3;
+    for (let k = 0; k < (s >= 2 ? 5 : 3); k++) { const a = rot + k * 1.3; cx.beginPath(); cx.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8); cx.lineTo(x + Math.cos(a + 0.25) * r * 0.55, y + Math.sin(a + 0.25) * r * 0.55); cx.lineTo(x + Math.cos(a - 0.1) * r * 0.95, y + Math.sin(a - 0.1) * r * 0.95); cx.stroke(); }
+  }
+  if (s >= 2) circle(x, y, 14 + 2 * Math.sin(t * 6), `rgba(255,190,90,${0.85})`);
+  // Eyes toward the dummy
+  for (const k of [-0.35, 0.35]) circle(x + Math.cos(face + k) * r * 0.55, y + Math.sin(face + k) * r * 0.55, 5, s >= 2 ? "#ffd27a" : "#ffe9b8");
+  if (b.daze > 0) { cx.fillStyle = "#ffcc59"; cx.font = "700 20px Oxanium, sans-serif"; cx.textAlign = "center"; cx.fillText("DAZED  +50%", x, y - r - 16); cx.textAlign = "left"; }
+  if (w.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(x, y, r + 14, 0, TAU); cx.stroke(); }
+}
+
+// --- Controls and loop ---------------------------------------------------------------------------------------------
+function pickStage(v) {
+  S.lock = v;
+  for (const x of $("stagePick").children) x.classList.toggle("on", +x.dataset.v === v);
+  reset(Math.max(0, v));
+}
+$("stagePick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (btn) pickStage(+btn.dataset.v); });
+$("bar").addEventListener("click", ev => { const d = ev.target.closest("[data-v]"); if (d) pickStage(+d.dataset.v); });
+$("speedPick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (!btn) return; S.speed = +btn.dataset.v; for (const x of $("speedPick").children) x.classList.toggle("on", x === btn); });
+reset(0);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  for (let k = 0; k < S.speed; k++) step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
