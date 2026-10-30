@@ -651,8 +651,10 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e))
-                return;  // a boss changing stage, or the Queen up in a dive
+            if (ShardPassesHit(e, dmg, attacker))
+                return;  // a Singularity shard: the core takes it (Singularity.cs)
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass))
+                return;  // a boss changing stage, the Queen up in a dive, the Singularity split
             if (!DualReaperHit(e, ref dmg))
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
             if (attacker > 0 && Has(RunMod.GlassCannon))

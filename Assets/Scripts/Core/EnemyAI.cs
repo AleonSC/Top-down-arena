@@ -28,7 +28,6 @@ namespace Arena
 
         /// The boss that appears on a boss wave (every 5th).
         public static EnemyType BossForWave(int wave) => BossCycle[(Math.Max(5, wave) / 5 - 1) % BossCycle.Length];
-        const float WellRespawn = 15f;
 
         // Replicated to clients in the snapshot.
         public V2 PullCenter;      // The Singularity's gravity well
@@ -462,6 +461,8 @@ namespace Arena
         {
             if (ReaperImmune(e))
                 return true;  // the Twin Reapers changing stage (Reapers.cs)
+            if (SingImmune(e))
+                return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
@@ -857,8 +858,8 @@ namespace Arena
                 ClearPillars();  // her eggs, bombers and drones go with her (Queen.cs)
             if (e.Type == EnemyType.Singularity)
                 foreach (var o in Enemies.Values)
-                    if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell)
-                        o.Hp = 0f;  // its wells collapse with it
+                    if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell || o.Type == EnemyType.SingShard)
+                        o.Hp = 0f;  // its wells and shards collapse with it
             if (e.Type == EnemyType.Splitter)
             {
                 int n = e.Elite ? 5 : 3;

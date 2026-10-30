@@ -117,7 +117,7 @@ namespace Arena
                 bool cageWell = e.Type == EnemyType.CageWell;
                 if (caged && !cageWell)
                     continue;
-                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard)
+                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard)
                     && (key == null || e.Pos.DistanceSq(me.Pos) < key.Pos.DistanceSq(me.Pos)))
                     key = e;
             }
@@ -282,11 +282,18 @@ namespace Arena
                     botSeen.Remove(id);
             }
 
-            // The Singularity's lasers (once they're warned) and cage walls.
-            Enemy sing = null;
+            // The Singularity's lasers (once they're warned), its accretion disk and cage walls.
+            Enemy sing = null, disk = null;
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Singularity && !IsSpawning(e) && (e.Phase == SingLaserWarn || e.Phase == SingLasers))
-                    sing = e;
+                if (e.Type == EnemyType.Singularity && !IsSpawning(e))
+                {
+                    if (e.Phase == SingLaserWarn || e.Phase == SingLasers)
+                        sing = e;
+                    if (DiskUp(e))
+                        disk = e;
+                }
+            int lasers = sing != null ? SingLaserCount(sing) : 0;
+            float laserSpin = sing != null ? SingLaserSpin(sing) : 0f;
 
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
@@ -308,7 +315,7 @@ namespace Arena
                 {
                     float t = k * step;
                     p = me.Pos + dir * speed * t;
-                    if (PullStrength > 0f)
+                    if (PullStrength != 0f)
                         p += (PullCenter - me.Pos).Normalized() * PullStrength * t;
                     float w = 1.6f - t / T;  // sooner hits matter more
                     foreach (var b in botThreats)
@@ -338,12 +345,28 @@ namespace Arena
                     if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
                     if (sing != null)
-                        for (int l = 0; l < LaserCount; l++)
-                            if (OnLaser(sing.Pos, sing.Facing + (sing.Phase == SingLasers ? LaserSpin * t : 0f) + MathX.Tau * l / LaserCount, p, LaserWidth / 2f + hitR + sk.Margin + 4f))
+                        for (int l = 0; l < lasers; l++)
+                            if (OnLaser(sing.Pos, sing.Facing + (sing.Phase == SingLasers ? laserSpin * t : 0f) + MathX.Tau * l / lasers, p, LaserWidth / 2f + hitR + sk.Margin + 4f))
                             {
                                 d += w * 2f;
                                 break;
                             }
+                    if (disk != null)  // where the disk's orbs will be by then
+                    {
+                        float orbReach = DiskOrbR + hitR + sk.Margin + 4f, dc = p.DistanceTo(disk.Pos);
+                        if (Math.Abs(dc - DiskInnerR) < orbReach || Math.Abs(dc - DiskOuterR) < orbReach)
+                        {
+                            disk.Sing.DiskT += t;
+                            for (int ring = 0; ring < 2; ring++)
+                                for (int i = 0; i < (ring == 0 ? DiskInnerN : DiskOuterN); i++)
+                                {
+                                    V2 at;
+                                    if (DiskOrb(disk.Sing, disk.Pos, ring, i, out at) && at.DistanceTo(p) < orbReach)
+                                        d += w * 2f;
+                                }
+                            disk.Sing.DiskT -= t;
+                        }
+                    }
                     foreach (var cg in Cages.Values)
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2f;

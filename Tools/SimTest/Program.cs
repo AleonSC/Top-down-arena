@@ -216,7 +216,7 @@ static partial class Program
         Test("soulghost", "Soul Link alone: the Soul Ghost", () => SoulGhostTest(Dt)),
         Test("queen", "the Hive Queen", () => QueenTest(Dt)),
         Test("reapers", "the Twin Reapers", () => ReapersTest(Dt)),
-        Test("singularity", "the Singularity", () => SingularityTest(Dt)),
+        Test("singularity", "the Singularity's three stages and last stand", () => SingularityTest(Dt), () => SingularityCageTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),
         Test("exploit", "parking a blocker on a boss", () => ExploitTest(Dt)),
