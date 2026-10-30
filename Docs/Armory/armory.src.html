@@ -8,6 +8,7 @@
 :root {
   --bg: #0a0c12; --panel: #121521; --panel-2: #181c2b; --line: #262b3f;
   --fg: #e8ecf8; --muted: #8e97b3; --accent: #5b8cff; --gold: #ffcc59; --danger: #ff5a6e; --good: #6be38a;
+  --accent-soft: #1f2c55; --hover: #1f2436; --edge: #3a4260;
   --tank: #5999ff; --healer: #59ff8c; --dps: #ff8c40;
   --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
   --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
@@ -50,18 +51,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .lead { margin: 0; color: #c9cfe3; max-width: 80ch; }
 .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .stage canvas { display: block; width: 100%; height: auto; aspect-ratio: 12 / 5; background: #0d1019; touch-action: none; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); }
+/* Demo controls: transport buttons on the left, then labelled fields (label above its control) that wrap as a group. */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.transport { display: flex; gap: 6px; padding-right: 18px; border-right: 1px solid var(--line); align-self: stretch; align-items: flex-end; }
+.field { display: grid; gap: 5px; justify-items: start; min-width: 0; }
+.field.toggles { display: flex; flex-direction: column; gap: 4px; align-self: center; }
 .sep { width: 1px; height: 22px; background: var(--line); }
-button.btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 5px 10px; font: 500 13px var(--font-body); cursor: pointer; }
-button.btn:hover { border-color: #3a4260; }
-button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 32px; padding: 0 14px; background: var(--panel); border: 1px solid var(--edge);
+  color: var(--fg); border-radius: 7px; font: 600 13px var(--font-body); letter-spacing: 0.01em; cursor: pointer; white-space: nowrap; transition: background 0.12s, border-color 0.12s, transform 0.06s; }
+button.btn:hover { background: var(--hover); border-color: #4a5478; }
+button.btn:active { transform: translateY(1px); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 92px; }
+button.btn.primary:hover { background: #7aa2ff; border-color: #7aa2ff; }
+button.btn.play::before { content: ""; width: 9px; height: 11px; background: linear-gradient(90deg, currentColor 0 34%, transparent 34% 66%, currentColor 66%); }
+button.btn.play.paused::before { width: 10px; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+button.btn.again::before { content: "\21BB"; font-size: 15px; line-height: 1; }
 .lbl { font-size: 12px; color: var(--muted); }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.seg button { border: 0; background: var(--panel-2); color: var(--fg); padding: 5px 9px; font: 500 12px var(--font-body); cursor: pointer; }
-.seg button + button { border-left: 1px solid var(--line); }
-.seg button.on { background: #22305a; color: #fff; }
-label.tg { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: #c9cfe3; cursor: pointer; }
-label.tg input { accent-color: var(--accent); }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted);
+  font: 600 12.5px var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer; transition: background 0.12s, color 0.12s; }
+.seg button:hover { color: var(--fg); background: var(--hover); }
+.seg button.on { color: #fff; background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+label.tg { display: inline-flex; gap: 7px; align-items: center; font-size: 13px; color: #c9cfe3; cursor: pointer; }
+label.tg input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+@media (max-width: 640px) { .transport { border-right: 0; padding-right: 0; width: 100%; } }
 .readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 12px; border-top: 1px solid var(--line); font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .readout b { color: var(--fg); font-weight: 500; }
 .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
@@ -107,11 +121,21 @@ tr:last-child td { border-bottom: 0; }
 .ucard .ds { font-size: 13px; color: #c9cfe3; grid-column: 2; }
 .ucard .rq { font-size: 11.5px; color: var(--muted); grid-column: 1 / -1; }
 .ucard .stk { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-family: var(--font-data); font-size: 12px; color: var(--muted); }
-.ucard .stk button { width: 26px; height: 24px; padding: 0; background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 5px; cursor: pointer; font: 600 14px var(--font-body); }
+.ucard .stk .step { display: inline-flex; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.ucard .stk .step b { min-width: 26px; text-align: center; font-variant-numeric: tabular-nums; }
+.ucard .stk button { width: 28px; height: 26px; padding: 0; background: transparent; border: 0; color: var(--fg); border-radius: 6px; cursor: pointer; font: 600 16px/1 var(--font-body); transition: background 0.12s; }
+.ucard .stk button:hover { background: var(--hover); }
+.ucard .stk button[data-d="1"] { color: var(--accent); }
+.ucard .stk button:disabled { color: var(--line); cursor: default; background: transparent; }
 .ucard.have { border-color: #3d4a78; background: #1a2036; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; }
-.filters button { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 99px; padding: 4px 10px; font: 500 12px var(--font-body); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-.filters button.on { border-color: currentColor; }
+.filters button { background: transparent; border: 1px dashed var(--edge); color: var(--muted); border-radius: 99px; height: 30px; padding: 0 12px; font: 600 12.5px var(--font-body);
+  font-variant-numeric: tabular-nums; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; transition: background 0.12s, opacity 0.12s; }
+.filters button .swatch { opacity: 0.35; }
+.filters button:hover { background: var(--hover); }
+.filters button.on { border: 1px solid currentColor; background: color-mix(in srgb, currentColor 13%, transparent); }
+.filters button.on .swatch { opacity: 1; }
+.filters button:not(.on) { color: var(--muted) !important; }
 .odds { display: grid; gap: 6px; }
 .odds .row { display: grid; grid-template-columns: 90px 1fr 48px; gap: 8px; align-items: center; font-size: 13px; }
 .odds .row span:last-child { font-family: var(--font-data); text-align: right; font-size: 12px; }
@@ -171,22 +195,27 @@ tr:last-child td { border-bottom: 0; }
       <section class="stage">
         <canvas id="wCanvas" width="1200" height="500"></canvas>
         <div class="controls">
-          <button class="btn primary" id="wPlay">Pause</button>
-          <button class="btn" id="wReset">Reset</button>
-          <span class="lbl">Extra projectiles</span>
-          <div class="seg" id="wExtra"><button data-v="0" class="on">0</button><button data-v="1">+1</button><button data-v="2">+2</button><button data-v="3">+3</button></div>
-          <span class="lbl">Barrage</span>
-          <div class="seg" id="wFan"><button data-v="0" class="on">0</button><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div>
-          <span id="wTrigWrap" style="display:inline-flex;gap:8px;align-items:center"><span class="lbl">Trigger</span>
-          <div class="seg" id="wTrig"><button data-v="tap" class="on">Tap</button><button data-v="hold">Hold (fan the hammer)</button></div></span>
-          <span id="wDrawWrap" style="display:inline-flex;gap:8px;align-items:center"><span class="lbl">Draw</span>
-          <div class="seg" id="wDraw"><button data-v="tap">Tap</button><button data-v="perfect" class="on">Perfect release</button><button data-v="full">Hold past full</button></div></span>
-          <span class="lbl">Damage</span>
-          <div class="seg" id="wDmg"><button data-v="1" class="on">×1</button><button data-v="1.5">×1.5</button><button data-v="2">×2</button></div>
-          <span class="lbl">Fire rate</span>
-          <div class="seg" id="wRate"><button data-v="1" class="on">×1</button><button data-v="1.5">×1.5</button><button data-v="2">×2</button></div>
-          <label class="tg"><input type="checkbox" id="wSweep"> Sweep aim</label>
-          <label class="tg"><input type="checkbox" id="wRange" checked> Show range</label>
+          <div class="transport">
+            <button type="button" class="btn primary play" id="wPlay">Pause</button>
+            <button type="button" class="btn again" id="wReset">Reset</button>
+          </div>
+          <div class="field"><span class="lbl">Extra projectiles</span>
+            <div class="seg" id="wExtra" role="group" aria-label="Extra projectiles"><button type="button" data-v="0" class="on">0</button><button type="button" data-v="1">+1</button><button type="button" data-v="2">+2</button><button type="button" data-v="3">+3</button></div></div>
+          <div class="field"><span class="lbl">Barrage</span>
+            <div class="seg" id="wFan" role="group" aria-label="Barrage"><button type="button" data-v="0" class="on">0</button><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button></div></div>
+          <div class="field" id="wTrigWrap"><span class="lbl">Trigger</span>
+            <div class="seg" id="wTrig" role="group" aria-label="Trigger"><button type="button" data-v="tap" class="on">Tap</button><button type="button" data-v="hold">Hold (fan the hammer)</button></div></div>
+          <div class="field" id="wDrawWrap"><span class="lbl">Draw</span>
+            <div class="seg" id="wDraw" role="group" aria-label="Draw"><button type="button" data-v="tap">Tap</button><button type="button" data-v="perfect" class="on">Perfect release</button><button type="button" data-v="full">Hold past full</button></div></div>
+          <div class="field" id="wChargeWrap"><span class="lbl">Let go at</span>
+            <div class="seg" id="wCharge" role="group" aria-label="Let go at"><button type="button" data-v="tap">Tap</button><button type="button" data-v="half">Half charge</button><button type="button" data-v="full" class="on">Full charge</button></div></div>
+          <div class="field"><span class="lbl">Damage</span>
+            <div class="seg" id="wDmg" role="group" aria-label="Damage"><button type="button" data-v="1" class="on">×1</button><button type="button" data-v="1.5">×1.5</button><button type="button" data-v="2">×2</button></div></div>
+          <div class="field"><span class="lbl">Fire rate</span>
+            <div class="seg" id="wRate" role="group" aria-label="Fire rate"><button type="button" data-v="1" class="on">×1</button><button type="button" data-v="1.5">×1.5</button><button type="button" data-v="2">×2</button></div></div>
+          <div class="field toggles">
+            <label class="tg"><input type="checkbox" id="wSweep"> Sweep aim</label>
+            <label class="tg"><input type="checkbox" id="wRange" checked> Show range</label></div>
         </div>
         <div class="readout" id="wReadout"></div>
       </section>
@@ -206,12 +235,15 @@ tr:last-child td { border-bottom: 0; }
       <section class="stage">
         <canvas id="aCanvas" width="1200" height="500"></canvas>
         <div class="controls">
-          <button class="btn primary" id="aPlay">Pause</button>
-          <button class="btn" id="aCast">Cast again</button>
-          <span class="lbl">Speed</span>
-          <div class="seg" id="aSpeed"><button data-v="0.5">½×</button><button data-v="1" class="on">1×</button><button data-v="2">2×</button></div>
-          <label class="tg"><input type="checkbox" id="aBullets" checked> Incoming bullets</label>
-          <label class="tg"><input type="checkbox" id="aRadii" checked> Show radii</label>
+          <div class="transport">
+            <button type="button" class="btn primary play" id="aPlay">Pause</button>
+            <button type="button" class="btn again" id="aCast">Cast again</button>
+          </div>
+          <div class="field"><span class="lbl">Speed</span>
+            <div class="seg" id="aSpeed" role="group" aria-label="Speed"><button type="button" data-v="0.5">½×</button><button type="button" data-v="1" class="on">1×</button><button type="button" data-v="2">2×</button></div></div>
+          <div class="field toggles">
+            <label class="tg"><input type="checkbox" id="aBullets" checked> Incoming bullets</label>
+            <label class="tg"><input type="checkbox" id="aRadii" checked> Show radii</label></div>
         </div>
         <div class="readout" id="aReadout"></div>
       </section>
@@ -296,7 +328,8 @@ const SHOT = {
   Kunai: { col: [0.8, 0.85, 0.95], r: 4, shape: "kunai" }, Ofuda: { col: [1, 0.92, 0.75], r: 6, shape: "ofuda" }, Gust: { col: [0.7, 1, 0.85], r: 9, shape: "gust" },
   Blood: { col: [0.9, 0.12, 0.2], r: 4, shape: "drop" }, Implode: { col: [0.9, 0.12, 0.2], r: 3, shape: "drop" }, Clot: { col: [0.6, 0.05, 0.12], r: 7, shape: "clot" },
   Leech: { col: [1, 0.25, 0.3], r: 3.5, shape: "streak" }, Vein: { col: [1, 0.35, 0.5], r: 3.5, shape: "streak" }, Transfuse: { col: [1, 0.5, 0.55], r: 3, shape: "needle" },
-  Sanguine: { col: [0.85, 0.1, 0.25], r: 6.5, shape: "orb" }, BoneSpear: { col: [0.95, 0.9, 0.82], r: 6, shape: "spear" },
+  Sanguine: { col: [0.85, 0.1, 0.25], r: 6.5, shape: "orb" }, Fuma: { col: [0.8, 0.85, 0.95], r: 20, shape: "star" },
+  Hammer: { col: [0.75, 0.85, 1], r: 11 }, Boulder: { col: [0.62, 0.54, 0.45], r: 16 }, Fireball: { col: [1, 0.5, 0.15], r: 15 }, BoneSpear: { col: [0.95, 0.9, 0.82], r: 6, shape: "spear" },
 };
 const MINIONS = {
   Turret: { r: 13, sides: 6, col: [0.6, 0.95, 1], move: "Stays put", attack: "Shoots", every: 0.25, dmg: 9, range: 520 },
@@ -304,10 +337,10 @@ const MINIONS = {
   "Skeleton Guard": { r: 10, sides: 4, col: [0.92, 0.9, 0.8], move: "Orbits you (55 px)", attack: "Bite", every: 0.5, dmg: 8, block: 16, cap: 90 },
   Bear: { r: 15, sides: 7, col: [0.6, 0.4, 0.25], move: "Chases (200 px/s)", attack: "Bite", every: 0.6, dmg: 22 },
   Sprite: { r: 6, sides: 4, col: [0.5, 1, 0.6], move: "Flies to the most-hurt ally", attack: "Heals 5 HP/s (10 from abilities) within 60 px", heal: true },
-  Treant: { r: 20, sides: 6, col: [0.35, 0.7, 0.3], move: "Stands in front of you", attack: "Slam", every: 1.2, dmg: 15, range: 50, block: 28, cap: 260 },
-  Wolf: { r: 10, sides: 3, col: [0.7, 0.7, 0.8], move: "Chases (260 px/s)", attack: "Bite", every: 0.5, dmg: 12 },
-  Wisp: { r: 6, sides: 5, col: [0.85, 1, 0.95], move: "Orbits you (40 px)", attack: "Shoots", every: 0.5, dmg: 7, range: 380 },
-  Imp: { r: 8, sides: 3, col: [1, 0.35, 0.2], move: "Chases (240 px/s)", attack: "Explodes on contact", dmg: 45, range: 70 },
+  Treant: { r: 20, sides: 6, col: [0.35, 0.7, 0.3], move: "Roots where it stands; walks after you past 360 px", attack: "Slam", every: 1.2, dmg: 15, range: 50, block: 28, cap: 260 },
+  Wolf: { r: 10, sides: 3, col: [0.7, 0.7, 0.8], move: "Chases (260 px/s), hunting your prey first", attack: "Bite", every: 0.5, dmg: 12 },
+  Wisp: { r: 6, sides: 5, col: [0.85, 1, 0.95], move: "Orbits you (40 px); your shots send it out (650 px/s) and it comes back", attack: "Strikes the enemy nearest your cursor", dmg: 22, range: 420 },
+  Imp: { r: 8, sides: 3, col: [1, 0.35, 0.2], move: "Waits by you; charges your cursor when you fire (300 px/s)", attack: "Explodes on contact (held: merges into one big imp)", dmg: 45, range: 70 },
   Bat: { r: 6, sides: 3, col: [0.55, 0.4, 0.7], move: "Chases (320 px/s)", attack: "Bite", every: 0.4, dmg: 6 },
   Phoenix: { r: 12, sides: 5, col: [1, 0.6, 0.2], move: "Orbits you (70 px)", attack: "Shoots fire", every: 0.35, dmg: 12, range: 450 },
   "Guardian Spirit": { r: 22, sides: 8, col: [0.55, 0.75, 1], move: "Hovers on you", attack: "Absorbs bullets within 75 px", block: 75, cap: 400 },
@@ -321,7 +354,9 @@ const ZONES = [
   { name: "Flame Wall", col: [1, 0.45, 0.15], from: "Flame Wall (Tank · Elementalist)", r: "90 px", dur: "5 s", effect: "30 damage/s to enemies inside; blocks enemy bullets (soaks 300 boss damage)" },
   { name: "Blizzard", col: [0.6, 0.85, 1], from: "Blizzard (DPS · Elementalist)", r: "130 px", dur: "5 s", effect: "20 damage/s and 60% slow to enemies inside" },
   { name: "Soul Lantern", col: [1, 0.9, 0.5], from: "Soul Lantern (Healer · Summoner)", r: "120 px", dur: "5 s", effect: "Allies inside heal 5 HP/s and can't go down" },
-  { name: "Healing Totem", col: [0.5, 0.9, 0.4], from: "Totem Staff (planted every 10 s)", r: "90 px", dur: "8 s", effect: "Allies inside heal 8 HP/s" },
+  { name: "Healing Totem", col: [0.5, 0.9, 0.4], from: "Totem Staff (thrown to your cursor every 10 s)", r: "90 px", dur: "8 s", effect: "Allies inside heal 8 HP/s; 6 seed hits on enemies within 150 px pulse 25 healing to allies within 150 px" },
+  { name: "Incense", col: [0.8, 0.72, 0.9], from: "Censer (Healer · Knight), every 45 px you move", r: "45 px", dur: "3 s", effect: "Allies inside heal 4 HP/s; enemy shots fired from inside stray up to 20°" },
+  { name: "Ofuda Ward", col: [1, 0.95, 0.85], from: "Ofuda (Healer · Ninja), where each charm lands (up to 5)", r: "26 px trigger", dur: "10 s", effect: "An enemy stepping on it sets it off: 25 to enemies within 70 px, 12 healing to allies within 110 px" },
   { name: "Meteor", col: [1, 0.35, 0.15], from: "Meteor, Meteor Storm", r: "120 px (90 in a storm)", dur: "0.9 s warning", effect: "150 damage to everything inside when it lands" },
   { name: "Sanctum", col: [1, 0.92, 0.55], from: "Sanctum (Healer · Elementalist ultimate)", r: "200 px", dur: "7 s", effect: "Allies inside heal 20 HP/s and can't go down; bullets can't get in (soaks 1500 boss damage)" },
   { name: "World Tree", col: [0.4, 0.9, 0.4], from: "World Tree (Healer · Summoner ultimate)", r: "170 px", dur: "10 s", effect: "Allies heal 18 HP/s; enemies take 20 damage/s and are slowed 40%" },
@@ -338,29 +373,36 @@ const ZONES = [
 // Bullet Storm) the way that weapon does it. `xtra` is the card text for one extra projectile.
 const W = [
   // Tank
-  { id: "Scattergun", role: "Tank", kit: "Soldier", every: 0.45, desc: "Short-range spread of 5 pellets.", shot: "Tank", xtra: "+2 pellets and a 15% tighter cone",
-    rows: [["Pellets", "5 across 30°"], ["Damage", "7 each"], ["Speed / range", "520 px/s · 260 px"]], dmgPerVolley: 35,
-    fire: (s, a, x) => { const n = 5 + 2 * x, cone = 0.52 * Math.pow(0.85, x); for (let i = 0; i < n; i++) s.bullet("Tank", a + (i / (n - 1) - 0.5) * cone, 520, 0.5, 7); } },
-  { id: "Flak Cannon", role: "Tank", kit: "Soldier", every: 0.8, desc: "Slow, heavy shells that explode on impact.", shot: "Flak", xtra: "Shells scatter 2 bomblets that pop where they land (10 damage within 45 px)",
-    rows: [["Damage", "30 direct + 18 (60%) to others within 70 px"], ["Speed / range", "380 px/s · 418 px"]], dmgPerVolley: 30,
-    fire: (s, a, x) => s.bullet("Flak", a, 380, 1.1, 30, { splash: 70, frags: x ? { n: 2 * x, kind: "Flak", dmg: 10, speed: 260, life: 0.3, splash: 45, lob: true } : null }) },
-  { id: "Riot Repeater", role: "Tank", kit: "Soldier", every: 0.18, desc: "Steady single shots with a little spread.", shot: "Tank", xtra: "Fires in bursts: +1 round per burst, then a 60% longer pause",
-    rows: [["Damage", "11"], ["Spread", "±3.4°"], ["Speed / range", "600 px/s · 480 px"]], dmgPerVolley: 11,
-    fire: (s, a) => s.bullet("Tank", a + rnd(-0.06, 0.06), 600, 0.8, 11) },
+  { id: "Scattergun", role: "Tank", kit: "Soldier", every: 0.45, desc: "A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.", shot: "Tank", xtra: "+2 pellets and a 15% tighter cone",
+    volley: "35 · 70 point-blank",
+    rows: [["Pellets", "5 across 30°, 7 each"], ["Point-blank", "A pellet that hits within 120 px of you (to the enemy's edge) does double (14) and shoves the enemy 16 px back (not bosses or heavies)"], ["Speed / range", "520 px/s · 260 px"]], dmgPerVolley: 35,
+    fire: (s, a, x) => { const n = 5 + 2 * x, cone = 0.52 * Math.pow(0.85, x), p = range.player, close = d => Math.hypot(d.x - p.x, d.y - p.y) - d.r <= 120;
+      for (let i = 0; i < n; i++) s.bullet("Tank", a + (i / (n - 1) - 0.5) * cone, 520, 0.5, 7, { mult: d => close(d) ? 2 : 1, on: d => { if (close(d)) shove(d, p.x, p.y, 16); } }); } },
+  { id: "Flak Cannon", role: "Tank", kit: "Soldier", every: 0.8, desc: "Shells fly over enemies to your cursor and burst in the air there (30 within 80 px), destroying enemy bullets caught in the burst.", shot: "Flak", xtra: "The burst scatters 2 bomblets that pop where they land (10 damage within 45 px)",
+    span: () => 418,
+    rows: [["Airburst", "Flies over enemies to your cursor (at least 60 px out, at most 418 px) and bursts there: 30 to every enemy within 80 px"], ["Shreds bullets", "Enemy bullets in the burst are destroyed (red aimed shots get through)"], ["Speed / range", "380 px/s · 418 px"]], dmgPerVolley: 30,
+    fire: (s, a, x) => { const far = Math.min(418, Math.max(60, s.cursor().dist - 18)); s.bullet("Flak", a, 380, far / 380, 30, { lob: true, splash: 80, big: 7, burst: true, frags: x ? { n: 2 * x, kind: "Flak", dmg: 10, speed: 260, life: 0.3, splash: 45 } : null }); },
+    tick: (R, dt) => foeShots(R, dt), under: (ctx, R) => drawFoes(ctx, R) },
+  { id: "Riot Repeater", role: "Tank", kit: "Soldier", every: 0.18, desc: "Steady single shots with a little spread. Each round that hits suppresses the enemy: it shoots 8% slower, up to 50% (25% for bosses), fading quickly.", shot: "Tank", xtra: "Fires in bursts: +1 round per burst, then a 60% longer pause",
+    rows: [["Damage", "11"], ["Spread", "±3.4°"], ["Suppression", "Each round that hits: the enemy shoots 8% slower, up to 50% (25% for bosses), fading 25% a second (the grey gauge)"], ["Speed / range", "600 px/s · 480 px"]], dmgPerVolley: 11,
+    fire: (s, a) => s.bullet("Tank", a + rnd(-0.06, 0.06), 600, 0.8, 11, { on: d => { d.supp = Math.min(0.5, d.supp + 0.08); } }) },
   { id: "Flamethrower", role: "Tank", kit: "Elementalist", every: 0.06, desc: "A short-range stream of fire. Each flame hits the first enemy hardest, carries on through the rest, and sets them burning.", shot: "Fire", xtra: "+1 flame a burst and 25% more reach",
     rows: [["Stream", "2 flames every 0.06 s, within ±11° of your aim"], ["Damage", "3 to the first enemy a flame hits, then 1 to each one behind"], ["Burning", "5 a second for 3 s (renewed by every hit)"], ["Speed / range", "384–480 px/s · about 190 px"]], dmgPerVolley: 6,
     fire: (s, a, x) => { for (let i = 0; i < 2 + x; i++) s.bullet("Fire", a + rnd(-0.2, 0.2), rnd(384, 480), 0.4 * (1 + 0.25 * x), 3, { pierce: 99, ignite: 5, falloff: 1 / 3 }); } },
-  { id: "Frost Lance", role: "Tank", kit: "Elementalist", every: 0.35, desc: "Piercing ice spears with a wide head that slow enemies.", shot: "Frost", xtra: "Spears shatter into 2 icicles (5 damage) sideways on every hit",
-    rows: [["Damage", "14"], ["Hitbox", "20 px wide spearhead"], ["Pierce", "1 extra enemy"], ["Slow", "30%"], ["Speed / range", "700 px/s · 630 px"]], dmgPerVolley: 14,
-    fire: (s, a, x) => s.bullet("Frost", a, 700, 0.9, 14, { pierce: 1, slow: true, big: 10, lance: true, frags: x ? { n: 2 * x, kind: "Frost", dmg: 5, speed: 500, life: 0.3, sideways: true } : null }) },
-  { id: "Storm Hammer", role: "Tank", kit: "Elementalist", every: 0.7, desc: "A heavy orb whose lightning chains to 3 nearby enemies.", shot: "Bolt", xtra: "Lightning chains to 1 more enemy",
-    rows: [["Damage", "24, then 14.4 (60%) to each chained enemy within 170 px"], ["Chains", "3"], ["Speed / range", "420 px/s · 504 px"]], dmgPerVolley: 24,
-    fire: (s, a, x) => s.bullet("Bolt", a, 420, 1.2, 24, { chain: 3 + x, big: 7 }) },
-  { id: "Golem Staff", role: "Tank", kit: "Summoner", every: 0.5, desc: "Hurls rocks. A stone Golem fights beside you and blocks bullets.", shot: "Rock", companion: ["Golem", 1, 3], xtra: "+1 Golem (up to 3)",
-    rows: [["Rocks", "3 across 14°"], ["Damage", "8 each"], ["Speed / range", "480 px/s · 288 px"], ["Companion", "1 Golem"]], dmgPerVolley: 24,
-    fire: (s, a) => { for (let i = -1; i <= 1; i++) s.bullet("Rock", a + i * 0.12, 480, 0.6, 8); } },
-  { id: "Bone Guard", role: "Tank", kit: "Summoner", every: 0.3, desc: "Bone darts. Two skeleton guards circle you and block bullets.", shot: "Bone", companion: ["Skeleton Guard", 2], xtra: "+1 Skeleton Guard",
-    rows: [["Damage", "7"], ["Speed / range", "720 px/s · 576 px"], ["Companions", "2 Skeleton Guards"]], dmgPerVolley: 7, fire: (s, a) => s.bullet("Bone", a, 720, 0.8, 7) },
+  { id: "Frost Lance", role: "Tank", kit: "Elementalist", every: 0.4, desc: "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow.", shot: "Frost", xtra: "+30 px longer icicle, and its splinters fly 15 px further",
+    span: () => Math.round((230 + 30 * WS.extra) * (1 + 0.1 * WS.pierce)),
+    rows: [["Icicle", "230 px straight ahead, 28 px wide: 18 to everything in it, at once"], ["Splinters", "0.15 s later, off both sides along its whole length: 9 (50%) to enemies up to 60 px beside it"], ["Slow", "30% for 1.5 s, from both (not bosses)"], ["Upgrades", "Piercing Rounds lengthen it 10% a stack; Homing Rounds widen the splinters 25% a stack instead of bending"]], dmgPerVolley: 18,
+    fire: (s, a, x) => { const len = 230 + 30 * x; s.swing(a, len, 0, 18, { box: 14, slow: true, icicle: 1, dur: 0.4 }); s.swing(a, len, 0, 9, { box: 60 + 15 * x, hollow: 14, slow: true, icicle: 2, delay: 0.15, dur: 0.3 }); } },
+  { id: "Storm Hammer", role: "Tank", kit: "Elementalist", every: 0.7, desc: "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage.", shot: "Hammer", xtra: "+15% hammer damage, and the electrified enemy arcs to 1 more enemy",
+    rows: [["Hammer", "40 to the first enemy it hits; it stops there"], ["Electrified", "Arcs to the 3 nearest enemies within 170 px at 0, 0.5 and 1 s: 5 each (12.5% of the hammer)"], ["Again", "A new hammer on an electrified enemy starts it over"], ["Speed / range", "460 px/s · 506 px"]], dmgPerVolley: 40,
+    fire: (s, a, x) => s.bullet("Hammer", a, 460, 1.1, 40 * (1 + 0.15 * x), { shock: 3 + x, hammer: true }) },
+  { id: "Golem Staff", role: "Tank", kit: "Summoner", every: 1.15, charge: true, desc: "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.", shot: "Boulder", companion: ["Golem", 1, 3], xtra: "+1 Golem (up to 3)",
+    span: () => Math.round(140 + 320 * chargeLevel()), volley: "20 tap · 40 full charge",
+    rows: [["Charge", "Hold fire: full in 0.9 s (fire-rate upgrades shorten it), then 0.25 s before the next"], ["Throw", "140 px for a tap up to 460 px at full charge, landing 0.4 to 0.7 s later; it flies over enemies"], ["Crush", "20 for a tap up to 40 at full charge, to everything within 75 px of where it lands"], ["Companion", "1 Golem"]], dmgPerVolley: 40,
+    release: (s, a, c) => { const dist = 140 + 320 * c, fl = 0.4 + 0.3 * c; s.bullet("Boulder", a, dist / fl, fl, 40 * (0.5 + 0.5 * c), { lob: true, splash: 75, boulder: fl }); } },
+  { id: "Bone Guard", role: "Tank", kit: "Summoner", every: 0.3, desc: "Bone darts that stick in enemies: the third in one enemy cages it for 1.5 s (not bosses). Two skeleton guards circle you, block bullets, and shoot at caged enemies.", shot: "Bone", companion: ["Skeleton Guard", 2], xtra: "+1 Skeleton Guard",
+    rows: [["Damage", "7"], ["Darts", "Stay in an enemy for 3 s; the third cages it for 1.5 s, so it can't move or shoot (not bosses). Then darts don't count on it for 1 s"], ["Guards", "While an enemy is caged within 320 px, the Skeleton Guards shoot it: 8 every 0.5 s"], ["Speed / range", "720 px/s · 576 px"], ["Companions", "2 Skeleton Guards"]], dmgPerVolley: 7,
+    fire: (s, a) => s.bullet("Bone", a, 720, 0.8, 7, { dart: true }) },
   { id: "Bear Totem", role: "Tank", kit: "Summoner", melee: true, reach: 85, every: 0.45, desc: "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.", shot: "Knight", companion: ["Bear", 1, 1], xtra: "+15 px reach, 25% more bleed, and the Bear's bites hit enemies within 55 px of its target (40% per stack)",
     rows: [["Swipes", "2, 0.12 s apart, raking one way then back: 110° arc, 85 px reach, 11 damage each"], ["Bleed", "30% of each hit's damage per second for 3 s, stacking up to five hits' worth"], ["Cuts", "Nothing: they're claws"], ["Companion", "1 Bear"]], dmgPerVolley: 22,
     fire: (s, a, x) => { s.swing(a + 0.12, 85 + 15 * x, 110, 11); s.swing(a - 0.12, 85 + 15 * x, 110, 11, { delay: 0.12 }); } },
@@ -373,21 +415,55 @@ const W = [
   { id: "Halberd", role: "Tank", kit: "Knight", melee: true, reach: 200, every: 0.6, desc: "Sweeps a long, thin blade across in front of you, hitting each enemy once a sweep.", shot: "Knight", xtra: "+30 px reach and a return sweep (60% damage)",
     rows: [["Sweep", "An 18° blade, 200 px long, swept across 80° in 0.18 s"], ["Damage", "30 to each enemy it passes, once a sweep"], ["Cuts", "Small bullets the blade passes"]], dmgPerVolley: 30,
     fire: (s, a, x) => { for (let p = 0; p <= Math.min(1, x); p++) for (let i = 0; i < 6; i++) { const f = (i / 5 * 2 - 1) * (p ? -1 : 1); s.swing(a + f * 0.7, 200 + 30 * x, 18, p ? 18 : 30, { delay: 0.035 * i + p * 0.29 }); } } },
-  { id: "Kusarigama", role: "Tank", kit: "Ninja", melee: true, reach: 130, every: 0.55, desc: "A chain-sickle whipped in a wide arc that yanks enemies 40 px toward you.", shot: "Knight", xtra: "+20 px reach and the chain yanks 15 px harder",
-    rows: [["Whip", "120° arc, 130 px reach, 26 damage"], ["Pull", "40 px toward you (never into you; not bosses or heavies)"], ["Cuts", "Nothing: it's a chain"]], dmgPerVolley: 26,
-    fire: (s, a, x) => s.swing(a, 130 + 20 * x, 120, 26, { knock: -(40 + 15 * x) }) },
-  { id: "Bo Staff", role: "Tank", kit: "Ninja", melee: true, reach: 90, every: 0.4, desc: "A staff spun all the way around you that cuts small bullets out of the air.", shot: "Knight", xtra: "+20 px reach",
-    rows: [["Spin", "All the way round, 90 px reach, 16 damage"], ["Cuts", "Small bullets around you"]], dmgPerVolley: 16,
-    fire: (s, a, x) => s.swing(a, 90 + 20 * x, 360, 16) },
-  { id: "Chain Shuriken", role: "Tank", kit: "Ninja", every: 0.7, desc: "A heavy spinning star that flies out and comes back, cutting through everything both ways.", shot: "ChainStar", xtra: "+1 shuriken, fanned out",
-    rows: [["Damage", "22, to everything it passes, out and back"], ["Flight", "620 px/s out for 0.42 s, then back the way it came"], ["Speed / range", "620 px/s · 260 px"]], dmgPerVolley: 44,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("ChainStar", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.3 * (n - 1)), 620, 0.84, 22, { pierce: 99, ret: 0.42 }); } },
-  { id: "Blood Lash", role: "Tank", kit: "Hemomancer", melee: true, reach: 110, every: 0.5, desc: "A whip of blood lashed in a wide arc. Heals you 3 for each enemy it hits.", shot: "Knight", xtra: "+20 px reach and +1 HP healed per enemy hit",
-    rows: [["Whip", "130° arc, 110 px reach, 24 damage"], ["Heals you", "3 per enemy hit"], ["Cuts", "Nothing: it's blood"]], dmgPerVolley: 24,
-    fire: (s, a, x) => s.swing(a, 110 + 20 * x, 130, 24) },
-  { id: "Clot Bolt", role: "Tank", kit: "Hemomancer", every: 0.75, desc: "A heavy bolt that leaves a pool of blood where it hits, slowing enemies in it.", shot: "Clot", xtra: "+1 bolt, fanned out",
-    rows: [["Damage", "26"], ["Pool", "70 px where it hits, slows enemies 40% for 3 s"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 26,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Clot", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.2 * (n - 1)), 520, 1, 26, { pool: 70 }); } },
+  { id: "Kusarigama", role: "Tank", kit: "Ninja", melee: true, reach: 280, every: 0.55, desc: "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun).", shot: "Knight", xtra: "+40 px throw and +30% slash damage",
+    volley: "26 hook · 52 slash",
+    rows: [["Throw", "Straight out, 280 px and 32 px wide: hooks the first enemy it hits for 26. The hook holds 2.5 s"], ["Reel", "Fire again (from 0.25 s after the hook) to pull yourself in to it at 1100 px/s"], ["Slash", "As you land: 52 in a 160° arc, 100 px, to everything in front of you, and a 0.5 s stun (not bosses)"], ["Cuts", "Nothing: it's a chain"]], dmgPerVolley: 39,
+    fire: (s, a, x) => { const R = range, p = R.player, h = R.hook;
+      if (h && R.t - h.at >= 0.25 && R.t - h.at <= 2.5) {  // reel in and slash
+        const d = h.d, dx = d.x - p.x, dy = d.y - p.y, l = Math.hypot(dx, dy), stop = Math.max(0, l - d.r - 22); R.hook = null;
+        const dur = s.dash(p.x + dx / l * stop, p.y + dy / l * stop, 1100);
+        s.swing(Math.atan2(dy, dx), 100, 160, 52 * (1 + 0.3 * x), { delay: dur, on: o => { o.stun = Math.max(o.stun, 0.5); } }); return;
+      }
+      const len = (280 + 40 * x) * (1 + 0.1 * WS.pierce), d = s.ray(a, len, 16);
+      R.chain = { a, len: d ? Math.hypot(d.x - p.x, d.y - p.y) : len, t: 0 };
+      if (d) { hitDummy(d, 26 * WS.dmg); R.hook = { d, at: R.t }; } },
+    tick: (R, dt) => { if (R.chain) R.chain.t += dt; if (R.hook && R.t - R.hook.at > 2.5) R.hook = null; },
+    paint: (ctx, R) => { const p = R.player, c = R.chain; let ex, ey, al;  // the chain out to the sickle, held taut while hooked
+      if (R.hook) { ex = R.hook.d.x; ey = R.hook.d.y; al = 1; } else if (c && c.t < 0.25) { ex = p.x + Math.cos(c.a) * c.len; ey = p.y + Math.sin(c.a) * c.len; al = 1 - c.t / 0.25; } else return;
+      const a = Math.atan2(ey - p.y, ex - p.x);
+      ctx.strokeStyle = `rgba(175,185,205,${al})`; ctx.lineWidth = 2; ctx.setLineDash([5, 3]); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = `rgba(240,244,252,${al})`; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(ex, ey, 10, a - 2.4, a + 0.5); ctx.stroke(); } },
+  { id: "Bo Staff", role: "Tank", kit: "Ninja", melee: true, reach: 90, every: 0.4, desc: "A staff spun all the way around you (90 px) that cuts small bullets out of the air. Click while moving to vault 150 px, striking everything you pass (24); once every 1.2 s.", shot: "Knight", xtra: "+20 px reach and a 30 px longer vault",
+    rows: [["Spin", "All the way round, 90 px reach, 16 damage"], ["Vault", "Click while moving: you vault 150 px toward your aim at 900 px/s, hitting everything within 34 px of your path for 24 (150%); once every 1.2 s"], ["Cuts", "Small bullets around you"]], dmgPerVolley: 16,
+    fire: (s, a, x) => { const R = range, p = R.player;
+      if (R.t - (R.cd.vault ?? -9) >= 1.2 && !R.dash) { R.cd.vault = R.t; const len = 150 + 30 * x; s.swing(a, len, 0, 24, { box: 34 }); s.dash(p.x + Math.cos(a) * len, p.y + Math.sin(a) * len, 900); return; }
+      s.swing(a, 90 + 20 * x, 360, 16); } },
+  { id: "Fuma Shuriken", role: "Tank", kit: "Ninja", every: 0.7, desc: "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways.", shot: "Fuma", xtra: "+1 shuriken, looping the other way",
+    span: () => 380, volley: "30 to everything it cuts, out and again on the way back",
+    rows: [["Loop", "An oval 380 px out and 220 px wide, back where you threw it in 1.1 s (it doesn't follow you)"], ["Damage", "30 to everything it cuts, on the way out and again on the way back"], ["Extra shurikens", "Loop the other way; every second pair is 15% bigger"]], dmgPerVolley: 60,
+    fire: (s, a, x) => { for (let i = 0; i <= x; i++) s.bullet("Fuma", a, 0, 1.1, 30, { pierce: 99, fuma: { side: i % 2 ? -1 : 1, size: 1 + 0.15 * Math.floor(i / 2) } }); } },
+  { id: "Blood Lash", role: "Tank", kit: "Hemomancer", melee: true, reach: 130, every: 0.5, desc: "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you.", shot: "Knight", xtra: "+20 px reach and +1 max Clot",
+    volley: "24 · 48 at the tip · 48 Clot Burst",
+    rows: [["Whip", "110° arc, 130 px reach, 24 damage"], ["Tip", "The outer 30% cracks: double damage (48), and the enemy targets you for 1.5 s"], ["Fling", "Enemies hit closer in are flung out to the tip (not bosses or heavies)"],
+      ["Clot", "+1 a hit, +2 from the tip, up to 5 (the pips round you): 4% less damage taken each. They hold 3 s after the last, then one fades every 0.5 s"], ["Clot Burst", "At full Clot your next lash spends it all: 48 to everything within 169 px, all round you, shoving them 50 px and taunting"], ["Cuts", "Nothing: it's blood"]], dmgPerVolley: 24,
+    fire: (s, a, x) => { const R = range, p = R.player, reach = 130 + 20 * x, max = 5 + x;
+      if ((R.clot || 0) >= max) { R.clot = 0; s.swing(a, reach * 1.3, 360, 48, { col: 2, on: d => shove(d, p.x, p.y, 50) }); R.fx.push({ x: p.x, y: p.y, r: reach * 1.3 * (1 + 0.1 * WS.pierce), col: [0.85, 0.1, 0.18], t: 0, dur: 0.35 }); return; }
+      const tip = reach * (1 + 0.1 * WS.pierce) * 0.7, crack = d => Math.hypot(d.x - p.x, d.y - p.y) + d.r >= tip;
+      s.swing(a, reach, 110, 24, { col: 2, mult: d => crack(d) ? 2 : 1, on: d => { const c = crack(d); R.clot = Math.min(max, (R.clot || 0) + (c ? 2 : 1)); R.clotT = R.t;
+        if (c) R.floats.push({ x: d.x, y: d.y - 34, text: "CRACK", col: [1, 0.35, 0.4], t: 0, dur: 0.6, size: 12 }); else shove(d, p.x, p.y, tip + d.r * 0.5 - Math.hypot(d.x - p.x, d.y - p.y)); } }); },
+    tick: (R, dt) => { if (R.clot > 0 && R.t - R.clotT > 3) { if ((R.clotFade = (R.clotFade || 0) + dt) >= 0.5) { R.clotFade = 0; R.clot--; } } else R.clotFade = 0; },
+    paint: (ctx, R, t) => { const p = R.player, max = 5 + WS.extra;  // Clot pips: dark red, bright when filled
+      for (let i = 0; i < max; i++) { const a = -Math.PI / 2 + (i - (max - 1) / 2) * 0.32, on = i < (R.clot || 0);
+        ctx.fillStyle = on ? "rgba(225,30,50,0.95)" : "rgba(120,20,30,0.35)"; ctx.beginPath(); ctx.arc(p.x + Math.cos(a) * 30, p.y + Math.sin(a) * 30, on ? 3.4 : 2.6, 0, TAU); ctx.fill(); } } },
+  { id: "Clot Bolt", role: "Tank", kit: "Hemomancer", every: 0.75, desc: "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool.", shot: "Clot", xtra: "+1 bolt, fanned out",
+    rows: [["Damage", "26"], ["Pool", "70 px where it hits, slows enemies 40% for 3 s"], ["Congeal", "After 1 s the pool sets (the dark crust): enemies still in it are stuck for 1 s (not bosses)"], ["Guard", "You take 15% less damage while standing in your own pool"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 26,
+    setup: R => { R.pools = []; },
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Clot", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.2 * (n - 1)), 520, 1, 26, { pool: 70, on: (d, b) => { range.pools.push({ x: b.x, y: b.y, t: 0 }); } }); },
+    tick: (R, dt) => { for (const z of R.pools) { z.t += dt; if (!z.set && z.t >= 1) { z.set = true; for (const d of R.dummies) if (Math.hypot(d.x - z.x, d.y - z.y) <= 70 + d.r) d.stun = Math.max(d.stun, 1); R.fx.push({ x: z.x, y: z.y, r: 70, col: SHOT.Clot.col, t: 0, dur: 0.3 }); } }
+      R.pools = R.pools.filter(z => z.t < 3); },
+    under: (ctx, R) => { for (const z of R.pools) if (z.set) {  // congealed: a dark crust, cracked
+      const f = 1 - Math.max(0, (z.t - 2.5) / 0.5); ctx.strokeStyle = `rgba(77,5,15,${0.8 * f})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, 60, 0, TAU); ctx.stroke(); ctx.lineWidth = 1.5;
+      for (let k = 0; k < 4; k++) { const a = k * 1.6 + z.x * 0.01; ctx.beginPath(); ctx.moveTo(z.x + Math.cos(a) * 14, z.y + Math.sin(a) * 14); ctx.lineTo(z.x + Math.cos(a + 0.3) * 48, z.y + Math.sin(a + 0.3) * 48); ctx.stroke(); } } } },
   { id: "Leech Tendrils", role: "Tank", kit: "Hemomancer", every: 0.1, grasp: true, desc: "Hold to lash out blood tendrils in an arc in front of you. They grasp up to 3 enemies for as long as you hold on: held enemies are stunned, drained slowly, and the drain heals you. Spare tendrils pile onto what's held, so a lone enemy takes them all.", shot: "Leech", xtra: "+1 tendril and +20 px reach",
     rows: [["Grasp", "Up to 3 enemies in a 70° arc, 160 px from your edge (nearest first); held while you hold fire, and they slip free past 130% of the reach"], ["Stun", "Held enemies can't move or shoot (bosses are held and drained, but not stunned)"], ["Damage", "1.2 every 0.1 s (12/s) per tendril; spare tendrils pile onto held enemies (a lone one takes all 3: 36/s)"], ["Heals you", "25% of its damage (3/s per tendril)"], ["Barrage", "+1 tendril a stack"], ["Speed / range", "instant · 160 px"]], dmgPerVolley: 1.2,
     fire: (s, a, x, fan = 0) => s.grasp(a, 160 + 20 * x, 3 + x + fan, 1.2) },
@@ -403,102 +479,273 @@ const W = [
     xtra: "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single",
     rows: [["Tap", "8 damage, 450 px/s, heals 5"], ["Full draw (0.9 s)", "40 damage, 950 px/s, pierces 2, heals 20"], ["Perfect release", "Within 0.25 s of full draw: +25% (50 damage, heals 25)"],
       ["In between", "Scales with the draw; pierces 1 from half draw"], ["While drawing", "85% move speed; holding past full keeps it at full (no auto-fire)"], ["Recovery", "0.25 s after each shot before the next draw starts"], ["Speed / range", "450–950 px/s · 500–900 px"]], dmgPerVolley: 40 },
-  { id: "Radiant Orb", role: "Healer", kit: "Elementalist", every: 0.5, desc: "Slow piercing orbs that heal allies they pass through.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
-    rows: [["Damage", "14"], ["Pierce", "2 extra enemies"], ["Heals an ally it passes", "10"], ["Speed / range", "300 px/s · 540 px"]], dmgPerVolley: 14,
-    fire: (s, a) => s.bullet("Holy", a, 300, 1.8, 14, { pierce: 2 }) },
-  { id: "Chain Light", role: "Healer", kit: "Elementalist", every: 0.3, desc: "Bolts of light that chain to 2 more enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
-    rows: [["Damage", "10, then 6 (60%) to each chained enemy"], ["Chains", "2"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 10,
-    fire: (s, a, x) => s.bullet("Bolt", a, 800, 0.8, 10, { chain: 2 + x }) },
-  { id: "Prism Beam", role: "Healer", kit: "Elementalist", every: 0.06, desc: "A rapid short-range beam. Grazing your ally heals them.", shot: "Arcane", xtra: "+30% beam length, +25% damage and +50% healing",
-    rows: [["Damage", "4"], ["Heals an ally it passes", "2"], ["Spread", "±1.7°"], ["Speed / range", "1200 px/s · 420 px"]], dmgPerVolley: 4,
-    fire: (s, a, x) => s.bullet("Arcane", a + rnd(-0.03, 0.03), 1200, 0.35 * (1 + 0.3 * x), 4 * (1 + 0.25 * x)) },
-  { id: "Sprite Staff", role: "Healer", kit: "Summoner", every: 0.35, desc: "Seed shots. Two sprites fly to whoever is hurt and heal them.", shot: "Seed", companion: ["Sprite", 2], xtra: "+1 Sprite",
-    rows: [["Damage", "9"], ["Speed / range", "600 px/s · 600 px"], ["Companions", "2 Sprites (5 HP/s each)"]], dmgPerVolley: 9, fire: (s, a) => s.bullet("Seed", a, 600, 1, 9) },
-  { id: "Treant Rod", role: "Healer", kit: "Summoner", every: 0.3, desc: "Bolts heal allies they pass. A Treant guards you and blocks bullets.", shot: "Seed", companion: ["Treant", 1, 1], grows: true,
-    xtra: "The Treant grows 30%: blocks more, hits harder and reaches farther",
-    rows: [["Damage", "8"], ["Heals an ally it passes", "7"], ["Speed / range", "600 px/s · 600 px"], ["Companion", "1 Treant"]], dmgPerVolley: 8, fire: (s, a) => s.bullet("Seed", a, 600, 1, 8) },
-  { id: "Totem Staff", role: "Healer", kit: "Summoner", every: 0.35, desc: "Seed shots. Plants a healing totem where you stand every 10 s.", shot: "Seed", xtra: "Plants totems 60% more often",
-    rows: [["Damage", "9"], ["Speed / range", "600 px/s · 600 px"], ["Totem", "Every 10 s: 90 px, 8 HP/s for 8 s"]], dmgPerVolley: 9, fire: (s, a) => s.bullet("Seed", a, 600, 1, 9) },
+  { id: "Radiant Orb", role: "Healer", kit: "Elementalist", every: 0.2, desc: "Hold to cast an orb of light out to your cursor; it stays there for as long as you hold. Drag it through enemies to burn them and over allies to heal them; let go and it fades.", shot: "Holy", companion: ["Light Orb", 0], xtra: "+1 Light Orb circling you (85 px) that hurts enemies (12 every 0.35 s) and heals allies it touches",
+    rows: [["Orb", "20 px, flies at 750 px/s to your cursor, up to 520 px from you"], ["Damage", "8 to every enemy it touches, 5 times a second"], ["Heals", "4 to every ally it touches, 5 times a second"], ["Hold", "It stays out while you hold fire (and goes when you parry or let go)"]], dmgPerVolley: 8,
+    fire: (s, a) => s.orb(8) },
+  { id: "Chain Light", role: "Healer", kit: "Elementalist", every: 0.5, desc: "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each.", shot: "Holy", xtra: "+25% damage and a 15% longer cone", ownFan: true,
+    span: () => Math.round(320 * (1 + 0.15 * WS.extra)),
+    fanNote: "Barrage (Rare, up to 3) adds a cone of light beside the first per stack, edge to edge, each sharing its own 40. It reaches more enemies; a lone enemy is still in one cone, so it never stacks.",
+    rows: [["Cone", "320 px from you, 69° across, instant"], ["Damage", "40 shared between every enemy in it: one alone takes all 40, four take 10 each"], ["Light", "Arcs to each enemy it hits"]], dmgPerVolley: 40,
+    fire: (s, a, x, fan) => s.cones(a, 320 * (1 + 0.15 * x), 0.6, 40 * (1 + 0.25 * x), fan) },
+  { id: "Prism Beam", role: "Healer", kit: "Elementalist", every: 0.06, desc: "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them.", shot: "Arcane", xtra: "+30% beam length, +25% damage and +50% healing",
+    ally: [245, 250],
+    rows: [["Damage", "4"], ["Through an ally", "Heals them 2, and the beam splits into three fanned 16° apart beyond them, each at full damage (they fly at least 0.3 s)"], ["Spread", "±1.7°"], ["Speed / range", "1200 px/s · 420 px"]], dmgPerVolley: 4,
+    fire: (s, a, x) => s.bullet("Arcane", a + rnd(-0.03, 0.03), 1200, 0.35 * (1 + 0.3 * x), 4 * (1 + 0.25 * x), { heal: 2 * (1 + 0.5 * x), onAlly: b => {
+      const cur = Math.atan2(b.vy, b.vx), sp = Math.hypot(b.vx, b.vy); b.life = Math.max(b.life, 0.3);
+      for (const k of [-1, 1]) range.later.push({ ...b, vx: Math.cos(cur + k * 0.28) * sp, vy: Math.sin(cur + k * 0.28) * sp, hit: new Set() }); } }) },
+  { id: "Sprite Staff", role: "Healer", kit: "Summoner", every: 0.35, desc: "Seed shots that stick in enemies. Two sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another for 6 s (up to 4 more).", shot: "Seed", companion: ["Sprite", 2], xtra: "+1 Sprite",
+    rows: [["Damage", "9"], ["Seeds", "Stay in the enemy they hit for 4 s (the green specks); kill it while it's seeded and a sprite springs out for 6 s, up to 4 freed at once"], ["Speed / range", "600 px/s · 600 px"], ["Companions", "2 Sprites (5 HP/s each)"]], dmgPerVolley: 9,
+    fire: (s, a) => s.bullet("Seed", a, 600, 1, 9, { on: d => { d.seedT = 4; } }) },
+  { id: "Treant Rod", role: "Healer", kit: "Summoner", every: 0.3, desc: "Bolts heal allies they pass. Your Treant roots where it stands and blocks bullets; a vine runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).", shot: "Seed", companion: ["Treant", 1, 1], grows: true,
+    xtra: "The Treant grows 30%: blocks more, hits harder and reaches farther", root: [395, 250], ally: [250, 256],
+    rows: [["Damage", "8"], ["Heals an ally it passes", "7"], ["Treant", "Roots where it stands; if you get 360 px from it, it walks back until it's 160 px from you"], ["Vine", "From you to the Treant, 28 px wide: allies on it heal 8 HP/s; enemies on it are slowed 50% and take 6 a second"], ["Speed / range", "600 px/s · 600 px"], ["Companion", "1 Treant"]], dmgPerVolley: 8,
+    fire: (s, a) => s.bullet("Seed", a, 600, 1, 8, { heal: 7 }),
+    tick: (R, dt) => { const tr = R.minions[0]; if (!tr) return; const p = R.player, dx = tr.x - p.x, dy = tr.y - p.y, l = Math.hypot(dx, dy) || 1;
+      const on = (x, y, r) => { const u = clamp(((x - p.x) * dx + (y - p.y) * dy) / (l * l), 0, 1); return Math.hypot(p.x + dx * u - x, p.y + dy * u - y) <= 14 + r; };
+      for (const d of R.dummies) if (on(d.x, d.y, d.r)) { d.slow = 1; d.vine = (d.vine || 0) + 6 * WS.dmg * dt; if (d.vine >= 3) { hitDummy(d, d.vine); d.vine = 0; } }
+      if (R.ally && on(R.ally.x, R.ally.y, 14) && (R.vineHeal = (R.vineHeal || 0) + dt) >= 0.5) { R.vineHeal = 0; healFloat(R.ally.x, R.ally.y, 4); } },
+    under: (ctx, R, t) => { const tr = R.minions[0]; if (!tr) return; const p = R.player, dx = tr.x - p.x, dy = tr.y - p.y, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;  // the vine, leaves along it
+      ctx.fillStyle = "rgba(90,200,90,0.08)"; ctx.beginPath(); ctx.moveTo(p.x + nx * 14, p.y + ny * 14); ctx.lineTo(tr.x + nx * 14, tr.y + ny * 14); ctx.lineTo(tr.x - nx * 14, tr.y - ny * 14); ctx.lineTo(p.x - nx * 14, p.y - ny * 14); ctx.fill();
+      for (const ph of [0, Math.PI]) { ctx.strokeStyle = ph ? "rgba(70,150,60,0.9)" : "rgba(120,210,90,0.9)"; ctx.lineWidth = 2.5; ctx.beginPath();
+        for (let u = 0; u <= l; u += 8) { const o = 4 * Math.sin(u * 0.08 + ph + t * 2); ctx.lineTo(p.x + dx / l * u + nx * o, p.y + dy / l * u + ny * o); } ctx.stroke(); }
+      ctx.fillStyle = "rgba(140,230,110,0.9)"; for (let u = 20; u < l; u += 34) { const o = (u / 34 % 2 ? 1 : -1) * 7; ctx.beginPath(); ctx.ellipse(p.x + dx / l * u + nx * o, p.y + dy / l * u + ny * o, 4.5, 2.2, Math.atan2(dy, dx) + (o > 0 ? 0.6 : -0.6), 0, TAU); ctx.fill(); } } },
+  { id: "Totem Staff", role: "Healer", kit: "Summoner", every: 0.35, desc: "Seed shots. Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Seed hits on enemies near your totems charge them: at 6, a totem pulses 25 healing to allies near it.", shot: "Seed", xtra: "Throws totems 60% more often",
+    ally: [285, 340],
+    rows: [["Damage", "9"], ["Totem", "Every 10 s your next shot also throws one to your cursor, up to 400 px: allies within 90 px heal 8 HP/s for 8 s"], ["Charge", "Each seed hit on an enemy within 150 px of a totem charges it (the pips); at 6 it pulses 25 healing to allies within 150 px"], ["Speed / range", "600 px/s · 600 px"]], dmgPerVolley: 9,
+    setup: R => { R.totems = []; },
+    fire: (s, a, x) => { const R = range;
+      s.bullet("Seed", a, 600, 1, 9, { on: d => { for (const z of R.totems) if (Math.hypot(z.x - d.x, z.y - d.y) <= 150 && ++z.charge >= 6) { z.charge = 0; R.fx.push({ x: z.x, y: z.y, r: 150, col: [0.5, 0.9, 0.4], t: 0, dur: 0.5 });
+        if (R.ally && Math.hypot(R.ally.x - z.x, R.ally.y - z.y) <= 150) healFloat(R.ally.x, R.ally.y, 25); } } });
+      if (R.t - (R.cd.totem ?? -99) >= 10 / (1 + 0.6 * x)) { R.cd.totem = R.t; const dist = Math.min(400, s.cursor().dist);
+        s.bullet("Seed", a, 500, Math.max(0.05, (dist - 16) / 500), 0, { lob: true, big: 6, land: b => R.totems.push({ x: b.x, y: b.y, t: 0, charge: 0, tick: 0 }) }); } },
+    tick: (R, dt) => { for (const z of R.totems) { z.t += dt; if (R.ally && Math.hypot(R.ally.x - z.x, R.ally.y - z.y) <= 90 + 14 && (z.tick += dt) >= 1) { z.tick = 0; healFloat(R.ally.x, R.ally.y, 8); } } R.totems = R.totems.filter(z => z.t < 8); },
+    under: (ctx, R, t) => { for (const z of R.totems) {  // the totem: a carved pole, its healing ring, and its charge
+      ctx.fillStyle = "rgba(128,230,102,0.08)"; ctx.beginPath(); ctx.arc(z.x, z.y, 90, 0, TAU); ctx.fill(); ctx.strokeStyle = "rgba(128,230,102,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = "rgba(150,110,70,1)"; ctx.fillRect(z.x - 5, z.y - 22, 10, 26); ctx.fillStyle = "rgba(128,230,102,1)"; ctx.beginPath(); ctx.arc(z.x, z.y - 24, 5, 0, TAU); ctx.fill();
+      for (let i = 0; i < 6; i++) { ctx.fillStyle = i < z.charge ? "rgba(170,255,140,1)" : "rgba(170,255,140,0.2)"; ctx.beginPath(); ctx.arc(z.x - 12.5 + i * 5, z.y + 10, 1.8, 0, TAU); ctx.fill(); } } } },
   { id: "Quarterstaff", role: "Healer", kit: "Knight", melee: true, reach: 105, every: 0.5, desc: "Wide staff sweeps that knock enemies back and bat enemy bullets in the arc back at them (all but red aimed shots). Every enemy hit heals you and allies near you for 2 (up to 8 a swing).", shot: "Knight",
     xtra: "+1 strike with the other end of the staff (60% damage)",
     rows: [["Swing", "150° arc, 105 px reach, 18 damage, 70 px knockback"], ["Parry", "Enemy bullets in the arc fly back as your shots (12 damage); red aimed shots get through"], ["Healing", "2 HP to you and allies within 220 px per enemy hit (counts up to 4 a swing)"]], dmgPerVolley: 18,
     fire: (s, a, x) => { s.swing(a, 105, 150, 18, { knock: 70 }); for (let k = 1; k <= x; k++) s.swing(a + (k % 2 ? 0.25 : -0.25), 105, 150, 10.8, { knock: 70, delay: 0.14 * k }); } },
-  { id: "Lightbringer", role: "Healer", kit: "Knight", melee: true, reach: 80, every: 0.5, desc: "Sword swings that also send a short crescent of light, which heals allies it passes.", shot: "Knight", xtra: "+1 crescent of light, fanned out",
-    rows: [["Swing", "100° arc, 80 px reach, 17 damage"], ["Crescent", "12 damage, pierces 2, 600 px/s for 270 px; heals an ally it passes for 6"]], dmgPerVolley: 29,
-    fire: (s, a, x) => { s.swing(a, 80, 100, 17); const n = 1 + x; for (let i = 0; i < n; i++) { const f = n === 1 ? 0 : i * 2 / (n - 1) - 1; s.bullet("Knight", a + f * 0.2 * (n - 1), 600, 0.45, 12, { pierce: 2, wave: true }); } } },
-  { id: "Censer", role: "Healer", kit: "Knight", melee: true, reach: 80, every: 0.4, desc: "A flail whirled all the way around you. Each spin heals allies near you for 3.", shot: "Knight", xtra: "+20 px reach and +1 HP healed per spin",
-    rows: [["Spin", "All the way round, 80 px reach, 14 damage"], ["Healing", "3 HP to allies within 140 px per spin"]], dmgPerVolley: 14,
-    fire: (s, a, x) => s.swing(a, 80 + 20 * x, 360, 14) },
-  { id: "Medicine Darts", role: "Healer", kit: "Ninja", every: 0.18, desc: "Fast needles. Each one that passes an ally heals them for 4.", shot: "Needle", xtra: "+1 dart, fanned out",
-    rows: [["Damage", "7"], ["Heals an ally it passes", "4"], ["Speed / range", "900 px/s · 720 px"]], dmgPerVolley: 7,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Needle", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.08 * (n - 1)), 900, 0.8, 7); } },
-  { id: "Spirit Fan", role: "Healer", kit: "Ninja", every: 0.4, desc: "A short gust that heals allies in it for 3 and pushes small enemy bullets back.", shot: "Gust", xtra: "+25% reach and +1 HP healed",
-    rows: [["Gust", "5 puffs across 40°, 6 damage each, pierce everything"], ["Heals", "3 per puff to an ally it passes"], ["Bullets", "Small enemy bullets within 130 px in front are blown back"], ["Speed / range", "420 px/s · 126 px"]], dmgPerVolley: 30,
-    fire: (s, a, x) => { const k = 1 + 0.25 * x; for (let i = 0; i < 5; i++) s.bullet("Gust", a + (i / 4 - 0.5) * 0.7, 420, 0.3 * k, 6, { pierce: 99 }); } },
-  { id: "Ofuda", role: "Healer", kit: "Ninja", every: 0.5, desc: "Slow paper charms that home in and burst, healing allies near the burst.", shot: "Ofuda", xtra: "+1 charm, fanned out",
-    rows: [["Damage", "25 direct + 15 (60%) to others within 60 px"], ["Homing", "Turns 3 rad/s toward the nearest enemy"], ["Heals", "8 to allies within 100 px of the burst"], ["Speed / range", "360 px/s · 576 px"]], dmgPerVolley: 25,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Ofuda", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.4 * (n - 1)), 360, 1.6, 25, { splash: 60, homing: 3 }); } },
-  { id: "Transfusion Darts", role: "Healer", kit: "Hemomancer", every: 0.2, desc: "Darts that heal an ally they reach for 8, at a cost of 3 of your own health.", shot: "Transfuse", xtra: "+1 dart, fanned out",
-    rows: [["Damage", "7"], ["Heals an ally it reaches", "8, costing you 3"], ["Speed / range", "850 px/s · 722 px"]], dmgPerVolley: 7,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Transfuse", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.08 * (n - 1)), 850, 0.85, 7); } },
-  { id: "Sanguine Orb", role: "Healer", kit: "Hemomancer", every: 0.45, desc: "Homing orbs of blood. Enemies they kill have a 40% chance to drop a small health orb.", shot: "Sanguine", xtra: "+1 orb, fanned out",
-    rows: [["Damage", "16"], ["Homing", "Turns 3 rad/s toward the nearest enemy"], ["Kills", "40% chance of a small health orb (15 HP)"], ["Speed / range", "420 px/s · 588 px"]], dmgPerVolley: 16,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Sanguine", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.35 * (n - 1)), 420, 1.4, 16, { homing: 3 }); } },
+  { id: "Lightbringer", role: "Healer", kit: "Knight", melee: true, reach: 80, every: 0.5, desc: "Sword swings that also send a short crescent of light, which heals allies it passes. Every enemy you hit fills a light gauge; at 12, your next swing's crescents heal three times as much.", shot: "Knight", xtra: "+1 crescent of light, fanned out",
+    rows: [["Swing", "100° arc, 80 px reach, 17 damage"], ["Crescent", "12 damage, pierces 2, 600 px/s for 270 px; heals an ally it passes for 6"], ["Light gauge", "+1 for each enemy your swings hit (the ring round you); at 12 your next swing's crescents are radiant (gold) and heal 18"]], dmgPerVolley: 29,
+    fire: (s, a, x) => { const R = range, radiant = (R.light || 0) >= 12; if (radiant) R.light = 0;
+      s.swing(a, 80, 100, 17, { on: () => { R.light = Math.min(12, (R.light || 0) + 1); } });
+      const n = 1 + x; for (let i = 0; i < n; i++) { const f = n === 1 ? 0 : i * 2 / (n - 1) - 1;
+        s.bullet("Knight", a + f * 0.2 * (n - 1), 600, 0.45, 12, { pierce: 2, wave: true, heal: radiant ? 18 : 6, look: radiant ? (ctx, b) => { const ba = Math.atan2(b.vy, b.vx);
+          ctx.strokeStyle = "rgba(255,215,90,0.35)"; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(b.x - Math.cos(ba) * 8, b.y - Math.sin(ba) * 8, b.r + 6, ba - 0.85, ba + 0.85); ctx.stroke();
+          ctx.strokeStyle = "rgba(255,235,150,1)"; ctx.lineWidth = 3; ctx.stroke(); } : undefined }); } },
+    paint: (ctx, R) => { const p = R.player, k = (R.light || 0) / 12;  // the light gauge
+      ctx.strokeStyle = "rgba(255,230,140,0.15)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 28, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = k >= 1 ? "rgba(255,215,90,1)" : "rgba(255,240,180,0.85)"; ctx.beginPath(); ctx.arc(p.x, p.y, 28, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.01, k)); ctx.stroke(); } },
+  { id: "Censer", role: "Healer", kit: "Knight", melee: true, reach: 80, every: 0.4, desc: "A flail whirled all the way around you. Each spin heals allies near you for 3. As you move it leaves a trail of incense (3 s) that heals allies in it, and enemy shots fired from inside it stray.", shot: "Knight", xtra: "+20 px reach and +1 HP healed per spin",
+    rows: [["Spin", "All the way round, 80 px reach, 14 damage"], ["Healing", "3 HP to allies within 140 px per spin"], ["Incense", "Every 45 px you move, a 45 px puff that lasts 3 s: allies in it heal 4 HP/s; enemy shots fired from inside it stray up to 20° either side (on the range you pace up and down to show it)"]], dmgPerVolley: 14,
+    setup: R => { R.incense = []; R.lastPuff = { ...R.player }; },
+    fire: (s, a, x) => s.swing(a, 80 + 20 * x, 360, 14),
+    tick: (R, dt) => { const p = R.player; R.home.y = 250 + Math.sin(R.t * 1.1) * 50;
+      if (Math.hypot(p.x - R.lastPuff.x, p.y - R.lastPuff.y) >= 45) { R.lastPuff = { x: p.x, y: p.y }; R.incense.push({ x: p.x, y: p.y, t: 0, ph: rnd(0, TAU) }); }
+      R.incense.forEach(z => z.t += dt); R.incense = R.incense.filter(z => z.t < 3); },
+    under: (ctx, R, t) => { for (const z of R.incense) { const f = 1 - z.t / 3;  // drifting smoke, a little gold in it
+      ctx.fillStyle = `rgba(200,180,230,${0.16 * f})`; ctx.beginPath(); ctx.arc(z.x, z.y, 45, 0, TAU); ctx.fill();
+      for (let k = 0; k < 3; k++) { const a = z.ph + k * 2.1 + t * 0.6; ctx.fillStyle = `rgba(235,215,160,${0.35 * f})`; ctx.beginPath(); ctx.arc(z.x + Math.cos(a) * 20, z.y + Math.sin(a) * 14 - z.t * 6, 9, 0, TAU); ctx.fill(); } } } },
+  { id: "Medicine Darts", role: "Healer", kit: "Ninja", every: 0.18, desc: "Fast needles that dose what they hit. Enemies: a stack of poison (2 a second for 3 s). Hurt allies: a stack of healing (2 a second for 3 s). Up to 5 stacks each.", shot: "Needle", xtra: "+1 dart, fanned out",
+    rows: [["Damage", "7"], ["Poison", "Each dart that hits an enemy adds a stack (the green bubbles): 2 a second for 3 s, renewed by every dart, up to 5 stacks (10 a second)"], ["Healing", "A dart that reaches a hurt ally doses them instead: a stack of 2 HP a second for 3 s, up to 5"], ["Speed / range", "900 px/s · 720 px"]], dmgPerVolley: 7,
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Needle", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.08 * (n - 1)), 900, 0.8, 7, { on: d => { d.poison = Math.min(5, d.poison + 1); d.poisonT = 3; } }); } },
+  { id: "Spirit Fan", role: "Healer", kit: "Ninja", every: 0.4, desc: "A short gust that heals allies in it for 3 and pushes small enemy bullets back. Shots alternate: one blows enemies in front away, the next draws them in.", shot: "Gust", xtra: "+25% reach and +1 HP healed",
+    rows: [["Gust", "5 puffs across 40°, 6 damage each, pierce everything"], ["Push and pull", "Shots alternate: one blows enemies in front of you (about 170 px, 52° across) 60 px away, the next draws them 60 px in (not bosses or heavies)"], ["Heals", "3 per puff to an ally it passes"], ["Bullets", "Small enemy bullets within 130 px in front are blown back"], ["Speed / range", "420 px/s · 126 px"]], dmgPerVolley: 30,
+    fire: (s, a, x) => { const R = range, p = R.player, k = 1 + 0.25 * x, draw = R.fanDraw = !R.fanDraw, reach = 14 + 126 * k + 30;
+      for (let i = 0; i < 5; i++) s.bullet("Gust", a + (i / 4 - 0.5) * 0.7, 420, 0.3 * k, 6, { pierce: 99 });
+      for (const d of R.dummies) { const dx = d.x - p.x, dy = d.y - p.y, l = Math.hypot(dx, dy), off = Math.abs(((Math.atan2(dy, dx) - a + Math.PI) % TAU + TAU) % TAU - Math.PI);
+        if (l - d.r <= reach && off <= 0.45 + Math.asin(Math.min(1, d.r / l))) { shove(d, p.x, p.y, draw ? -Math.min(60, l - d.r - 30) : 60); R.floats.push({ x: d.x, y: d.y - 34, text: draw ? "IN" : "AWAY", col: [0.7, 1, 0.9], t: 0, dur: 0.5, size: 11 }); } }
+      R.fx.push({ cone: true, a, reach, half: 0.45, x: p.x, y: p.y, col: SHOT.Gust.col, t: 0, dur: 0.25 }); } },
+  { id: "Ofuda", role: "Healer", kit: "Ninja", every: 0.5, desc: "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it.", shot: "Ofuda", xtra: "+1 charm, fanned out",
+    span: () => 460, ally: [290, 340],
+    rows: [["Throw", "Each charm flies over enemies to your cursor (up to 460 px) and lies there as a ward"], ["Wards", "Up to 5 at once, for 10 s each; an enemy that comes within 26 px sets one off"], ["Burst", "25 to every enemy within 70 px; 12 healing to allies within 110 px"], ["Speed / range", "360 px/s · 460 px"]], dmgPerVolley: 25,
+    setup: R => { R.wards = []; },
+    fire: (s, a, x) => { const R = range, dist = Math.min(460, s.cursor().dist), n = 1 + x;
+      for (let i = 0; i < n; i++) s.bullet("Ofuda", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.4 * (n - 1)), 360, Math.max(0.05, (dist - 16) / 360), 25, { lob: true, land: b => { R.wards.push({ x: b.x, y: b.y, t: 0, dmg: b.dmg }); if (R.wards.length > 5) R.wards.shift(); } }); },
+    tick: (R, dt) => { for (const z of R.wards) { z.t += dt; if (z.gone || !R.dummies.some(d => Math.hypot(d.x - z.x, d.y - z.y) < 26 + d.r)) continue;
+        z.gone = true; for (const d of R.dummies) if (Math.hypot(d.x - z.x, d.y - z.y) < 70 + d.r) hitDummy(d, z.dmg);
+        R.fx.push({ x: z.x, y: z.y, r: 70, col: SHOT.Ofuda.col, t: 0, dur: 0.35 }); if (R.ally && Math.hypot(R.ally.x - z.x, R.ally.y - z.y) <= 110 + 14) healFloat(R.ally.x, R.ally.y, 12); }
+      R.wards = R.wards.filter(z => !z.gone && z.t < 10); },
+    under: (ctx, R, t) => { for (const z of R.wards) {  // a charm lying flat: its trigger ring, the paper and its red seal
+      ctx.strokeStyle = css(SHOT.Ofuda.col, 0.3 + 0.15 * Math.sin(t * 4 + z.x)); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(z.x, z.y, 26, 0, TAU); ctx.stroke();
+      ctx.fillStyle = css(SHOT.Ofuda.col); ctx.fillRect(z.x - 5, z.y - 8, 10, 16); ctx.strokeStyle = "#e33"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(z.x, z.y - 5); ctx.lineTo(z.x, z.y + 5); ctx.stroke(); } } },
+  { id: "Transfusion Darts", role: "Healer", kit: "Hemomancer", every: 0.2, desc: "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5).", shot: "Transfuse", xtra: "+1 dart, fanned out",
+    ally: [250, 340],
+    rows: [["Damage", "7"], ["Transfuse", "A dart that reaches a hurt ally gives them 20 health and costs you 4 (on the range every third dart goes to your teammate)"], ["Steal", "Each enemy hit heals you 0.5: a sliver, so it's for giving, not soloing"], ["Speed / range", "850 px/s · 722 px"]], dmgPerVolley: 7,
+    fire: (s, a, x) => { const R = range, p = R.player, toAlly = (R.tf = (R.tf || 0) + 1) % 3 === 0;
+      if (toAlly) a = Math.atan2(R.ally.y - p.y, R.ally.x - p.x);
+      const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Transfuse", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.08 * (n - 1)), 850, 0.85, 7, {
+        heal: 20, onAlly: () => { R.floats.push({ x: p.x, y: p.y - 30, text: "-4", col: [1, 0.45, 0.5], t: 0, dur: 0.7, size: 12 }); return true; },
+        on: () => { healFloat(p.x, p.y, 0.5); } }); } },
+  { id: "Sanguine Orb", role: "Healer", kit: "Hemomancer", every: 0.45, desc: "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s).", shot: "Sanguine", xtra: "+1 orb, fanned out",
+    rows: [["Homing", "Flies straight, then turns hard (9 rad/s) onto an enemy within 110 px ahead of it"], ["Coat", "Circles the enemy it touches for 0.45 s, then 16 and a bleed stack (30% of the hit a second for 3 s, up to 5 stacks)"], ["Heal reserve", "+10 a coat, up to 100. With 25 or more, an orb that touches a hurt ally coats them instead: 30 health over 4 s, for 25"], ["Speed / range", "420 px/s · 588 px"]], dmgPerVolley: 16,
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Sanguine", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.35 * (n - 1)), 420, 1.4, 16, { seek: true, coat: true }); } },
   { id: "Vein Tether", role: "Healer", kit: "Hemomancer", every: 0.08, desc: "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.", shot: "Vein", xtra: "+25% beam length and +25% damage",
     rows: [["Damage", "4 every 0.08 s (50/s) to the first enemy on your aim line; Pierce lets it pass through more"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "instant beam · 350 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.beam("Vein", a, 350 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // DPS
-  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Fast parallel twin stream (5 per barrel), straying up to 2°.", shot: "Dps", xtra: "+1 barrel (side by side, 10 px apart)",
-    rows: [["Damage", "5 per barrel (2 barrels, 10 px apart)"], ["Spread", "±2° per volley"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 10,
-    fire: (s, a, x) => { a += rnd(-1, 1) * Math.PI / 90; const n = 2 + x, ox = -Math.sin(a), oy = Math.cos(a); for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 10; s.bullet("Dps", a, 820, 1, 5, { ox: ox * o, oy: oy * o }); } } },
-  { id: "Railgun", role: "DPS", kit: "Soldier", every: 0.7, desc: "Slow, devastating shots that pierce 3 enemies.", shot: "Rail", xtra: "Throws 2 shrapnel shards (11 damage) sideways at every enemy it pierces",
-    rows: [["Damage", "45"], ["Pierce", "3 extra enemies"], ["Speed / range", "1600 px/s · 1120 px"]], dmgPerVolley: 45,
-    fire: (s, a, x) => s.bullet("Rail", a, 1600, 0.7, 45, { pierce: 3, trail: true, frags: x ? { n: 2 * x, kind: "Dps", dmg: 11, speed: 600, life: 0.3, sideways: true } : null }) },
-  { id: "Burst SMG", role: "DPS", kit: "Soldier", every: 0.055, desc: "Sprays very fast, inaccurate shots.", shot: "Dps", xtra: "+1 bullet per shot (half damage) and a 35% wider spray",
-    rows: [["Damage", "5"], ["Spread", "±9.2°"], ["Speed / range", "760 px/s · 608 px"]], dmgPerVolley: 5,
-    fire: (s, a, x) => { const sp = 0.16 * (1 + 0.35 * x); for (let i = 0; i <= x; i++) s.bullet("Dps", a + rnd(-sp, sp), 760, 0.8, i ? 2.5 : 5); } },
-  { id: "Fireball", role: "DPS", kit: "Elementalist", every: 0.45, desc: "Fireballs that explode on impact.", shot: "Fire", xtra: "Splits into 2 small fireballs (8 damage, 30 px blast) on impact",
-    rows: [["Damage", "22 direct + 13.2 (60%) to others within 60 px"], ["Speed / range", "520 px/s · 624 px"]], dmgPerVolley: 22,
-    fire: (s, a, x) => s.bullet("Fire", a, 520, 1.2, 22, { splash: 60, big: 8, frags: x ? { n: 2 * x, kind: "Fire", dmg: 8, speed: 380, life: 0.35, splash: 30 } : null }) },
-  { id: "Arc Lightning", role: "DPS", kit: "Elementalist", every: 0.25, desc: "Bolts that chain to 4 nearby enemies.", shot: "Bolt", xtra: "Bolts chain to 1 more enemy",
-    rows: [["Damage", "12, then 7.2 (60%) to each chained enemy"], ["Chains", "4"], ["Speed / range", "900 px/s · 540 px"]], dmgPerVolley: 12,
-    fire: (s, a, x) => s.bullet("Bolt", a, 900, 0.6, 12, { chain: 4 + x }) },
-  { id: "Arcane Missiles", role: "DPS", kit: "Elementalist", every: 0.3, desc: "Three curving missiles per cast.", shot: "Arcane", xtra: "+1 missile, and missiles home in on enemies",
-    rows: [["Missiles", "3, fanned ±23° and curving back in at 69°/s"], ["Damage", "7 each"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 21,
-    fire: (s, a, x) => { const k = 3 + x; for (let i = 0; i < k; i++) { const f = i * 2 / (k - 1) - 1; s.bullet("Arcane", a + f * 0.4, 520, 1, 7, x ? { homing: 4 } : { av: -f * 1.2 }); } } },
-  { id: "Wolf Whistle", role: "DPS", kit: "Summoner", every: 0.3, desc: "Darts. Two wolves hunt down enemies.", shot: "Bone", companion: ["Wolf", 2], xtra: "+1 Wolf",
-    rows: [["Damage", "6.5"], ["Speed / range", "720 px/s · 576 px"], ["Companions", "2 Wolves"]], dmgPerVolley: 6.5, fire: (s, a) => s.bullet("Bone", a, 720, 0.8, 6.5) },
-  { id: "Wisp Lantern", role: "DPS", kit: "Summoner", every: 0.45, desc: "Weak bolts. Three wisps orbit you and shoot.", shot: "Arcane", companion: ["Wisp", 3], xtra: "+1 Wisp",
-    rows: [["Damage", "8"], ["Speed / range", "600 px/s · 600 px"], ["Companions", "3 Wisps"]], dmgPerVolley: 8, fire: (s, a) => s.bullet("Arcane", a, 600, 1, 8) },
-  { id: "Imp Caller", role: "DPS", kit: "Summoner", every: 0.35, desc: "Darts. Calls an imp every 3 s that charges an enemy and explodes.", shot: "Bone", companion: ["Imp", 3], xtra: "+1 Imp, and they arrive 50% faster",
-    rows: [["Damage", "6.5"], ["Speed / range", "720 px/s · 576 px"], ["Companions", "Up to 3 Imps, a new one every 3 s"]], dmgPerVolley: 6.5, fire: (s, a) => s.bullet("Bone", a, 720, 0.8, 6.5) },
-  { id: "Twin Blades", role: "DPS", kit: "Knight", melee: true, reach: 75, every: 0.16, desc: "Very fast alternating slashes.", shot: "Knight", xtra: "+1 cut: each swing strikes once more (60% damage)",
-    rows: [["Slash", "90° arc, 75 px reach, 15 damage, alternating sides"]], dmgPerVolley: 15,
-    fire: (s, a, x) => { const side = ++range.swings % 2 ? 0.2 : -0.2; s.swing(a + side, 75, 90, 15); for (let k = 1; k <= x; k++) s.swing(a - side, 75, 90, 9, { delay: 0.05 * k }); } },
-  { id: "Greatsword", role: "DPS", kit: "Knight", melee: true, reach: 125, every: 0.7, desc: "Huge sweeping cuts with long reach.", shot: "Knight", xtra: "+1 sword beam: each sweep launches a piercing crescent (40% damage)",
-    rows: [["Sweep", "170° arc, 125 px reach, 60 damage"], ["Sword beam (per extra)", "24 damage, pierces everything, 700 px/s for 420 px"]], dmgPerVolley: 60,
-    fire: (s, a, x) => { s.swing(a, 125, 170, 60); for (let i = 0; i < x; i++) { const f = x === 1 ? 0 : i * 2 / (x - 1) - 1; s.bullet("Knight", a + f * 0.25, 700, 0.6, 24, { pierce: 99, wave: true }); } } },
-  { id: "Rapier", role: "DPS", kit: "Knight", melee: true, reach: 130, every: 0.28, desc: "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%).", shot: "Knight", xtra: "Skewers 1 more enemy behind the first",
-    rows: [["Thrust", "36° wide, 130 px reach, 18 damage to the nearest enemy"], ["Streak", "+10% per hit in a row on the same enemy, up to +60% (28.8)"]], dmgPerVolley: 18,
-    fire: (s, a, x) => s.swing(a, 130, 36, 18, { targets: 1 + x, rapier: true, thrust: true }) },
-  { id: "Shuriken", role: "DPS", kit: "Ninja", every: 0.35, desc: "Fans of 3 spinning stars that ricochet to one more enemy.", shot: "Star", xtra: "+1 star in the fan",
-    rows: [["Stars", "3 across 25°"], ["Damage", "9 each"], ["Ricochet", "Once, to the nearest enemy within 300 px (75% damage)"], ["Speed / range", "700 px/s · 525 px"]], dmgPerVolley: 27,
-    fire: (s, a, x) => { const n = 3 + x; for (let i = 0; i < n; i++) s.bullet("Star", a + (i / (n - 1) - 0.5) * 0.22 * (n - 1), 700, 0.75, 9, { bounce: 1 }); } },
-  { id: "Katana", role: "DPS", kit: "Ninja", melee: true, reach: 95, every: 0.3, desc: "Fast quick-draw slashes; every 4th is a long lunging cut for double damage.", shot: "Knight", xtra: "+1 cut: each slash strikes once more (60% damage)",
-    rows: [["Slash", "110° arc, 95 px reach, 20 damage"], ["Every 4th", "A 170 px lunging cut for 40"], ["Cuts", "Small bullets in the arc"]], dmgPerVolley: 25,
-    fire: (s, a, x) => { if (++range.swings % 4 === 0) s.swing(a, 170, 30, 40, { thrust: true }); else s.swing(a, 95, 110, 20); for (let k = 1; k <= x; k++) s.swing(a + (k % 2 ? 0.2 : -0.2), 95, 110, 12, { delay: 0.05 * k }); } },
-  { id: "Kunai", role: "DPS", kit: "Ninja", every: 0.12, desc: "Rapid throwing knives. +50% damage to enemies that aren't targeting you.", shot: "Kunai", xtra: "+1 knife, fanned out (half damage)",
-    rows: [["Damage", "8 (12 against enemies that aren't after you)"], ["Speed / range", "850 px/s · 637 px"]], dmgPerVolley: 8,
-    fire: (s, a, x) => { for (let i = 0; i <= x; i++) s.bullet("Kunai", a + (i === 0 ? 0 : (i % 2 ? 1 : -1) * 0.07 * Math.floor((i + 1) / 2)), 850, 0.75, i ? 4 : 8); } },
-  { id: "Blood Bolts", role: "DPS", kit: "Hemomancer", every: 0.13, desc: "Fast bolts of blood. They gain the most from Blood Price.", shot: "Blood", xtra: "+1 bolt, fanned out",
-    rows: [["Damage", "9"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 9,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Blood", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.07 * (n - 1)), 800, 0.8, 9); } },
+  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.", shot: "Dps", xtra: "+1 barrel",
+    volley: "10 · 20 in crossfire",
+    rows: [["Damage", "5 per barrel (2 barrels, 28 px apart)"], ["Crossing", "The streams angle in to cross at your cursor's distance (120 px up to their full range); your aim line marks it with an X"], ["Crossfire", "A hit within 45 px of the crossing does double (10)"], ["Spread", "±2° per volley"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 10,
+    fire: (s, a, x) => { const p = range.player; a += rnd(-1, 1) * Math.PI / 90; const n = 2 + x, c = Math.cos(a), sn = Math.sin(a), dist = clamp(s.cursor().dist, 120, 820), cx = p.x + c * dist, cy = p.y + sn * dist;
+      for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 28, fx = p.x + c * 16 - sn * o, fy = p.y + sn * 16 + c * o, ba = Math.atan2(cy - fy, cx - fx);
+        s.bullet("Dps", ba, 820, 1, 5, { ox: fx - p.x - Math.cos(ba) * 16, oy: fy - p.y - Math.sin(ba) * 16, mult: d => Math.hypot(d.x - cx, d.y - cy) <= 45 + d.r ? 2 : 1 }); } },
+    paint: (ctx, R) => { const p = R.player, d = R.dummies[0], dist = clamp(Math.hypot(d.x - p.x, d.y - p.y), 120, 820), x = p.x + Math.cos(R.aim) * dist, y = p.y + Math.sin(R.aim) * dist;  // the crossing
+      ctx.strokeStyle = "rgba(255,190,110,0.85)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 7, y - 7); ctx.lineTo(x + 7, y + 7); ctx.moveTo(x + 7, y - 7); ctx.lineTo(x - 7, y + 7); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,190,110,0.2)"; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(x, y, 45, 0, TAU); ctx.stroke(); ctx.setLineDash([]); } },
+  { id: "Railgun", role: "DPS", kit: "Soldier", every: 0.7, desc: "Slow, devastating shots that pierce 3 enemies. The round's path stays charged for 1 s behind it, hurting anything in it (25 a second).", shot: "Rail", xtra: "Throws 2 shrapnel shards (11 damage) sideways at every enemy it pierces",
+    rows: [["Damage", "45"], ["Pierce", "3 extra enemies"], ["Charged path", "For 1 s behind the round, its path (20 px wide) hurts anything in it: 25 a second"], ["Speed / range", "1600 px/s · 1120 px"]], dmgPerVolley: 45,
+    setup: R => { R.trails = []; },
+    fire: (s, a, x) => { const p = range.player; s.bullet("Rail", a, 1600, 0.7, 45, { pierce: 3, trail: true, frags: x ? { n: 2 * x, kind: "Dps", dmg: 11, speed: 600, life: 0.3, sideways: true } : null });
+      range.trails.push({ x: p.x + Math.cos(a) * 16, y: p.y + Math.sin(a) * 16, a, age: 0 }); },
+    tick: (R, dt) => { for (const tr of R.trails) { tr.age += dt; const head = Math.min(1120, 1600 * tr.age), tail = Math.max(0, 1600 * (tr.age - 1)), c = Math.cos(tr.a), sn = Math.sin(tr.a);
+        for (const d of R.dummies) { const dx = d.x - tr.x, dy = d.y - tr.y, along = dx * c + dy * sn;
+          if (along >= tail - d.r && along <= head + d.r && Math.abs(-dx * sn + dy * c) <= 10 + d.r && (d.ion = (d.ion || 0) + 25 * WS.dmg * dt) >= 5) { hitDummy(d, d.ion); d.ion = 0; } } }
+      R.trails = R.trails.filter(tr => 1600 * (tr.age - 1) < 1120); },
+    under: (ctx, R, t) => { for (const tr of R.trails) { const head = Math.min(1120, 1600 * tr.age), tail = Math.max(0, 1600 * (tr.age - 1)), c = Math.cos(tr.a), sn = Math.sin(tr.a), f = 0.6 + 0.4 * Math.sin(t * 40 + tr.age * 9);
+      ctx.strokeStyle = css(SHOT.Rail.col, 0.18); ctx.lineWidth = 20; ctx.beginPath(); ctx.moveTo(tr.x + c * tail, tr.y + sn * tail); ctx.lineTo(tr.x + c * head, tr.y + sn * head); ctx.stroke();
+      ctx.strokeStyle = css(SHOT.Rail.col, 0.7 * f); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tr.x + c * tail, tr.y + sn * tail);
+      for (let u = tail + 24; u < head; u += 24) { const o = rnd(-5, 5); ctx.lineTo(tr.x + c * u - sn * o, tr.y + sn * u + c * o); } ctx.lineTo(tr.x + c * head, tr.y + sn * head); ctx.stroke(); } } },
+  { id: "Burst SMG", role: "DPS", kit: "Soldier", every: 0.055, desc: "Sprays very fast shots. Keep firing to spin it up (2 s): the spray tightens and damage climbs to +60%. It winds down fast when you stop.", shot: "Dps", xtra: "+1 bullet per shot (half damage) and a 35% wider spray",
+    volley: "5 · 8 spun up",
+    rows: [["Damage", "5, climbing to 8 spun up"], ["Spin-up", "Holding fire spins it up over 2 s (the ring round you): the spray tightens from ±9° to ±2° and damage climbs to +60%. It winds down in 0.6 s when you stop"], ["Speed / range", "760 px/s · 608 px"]], dmgPerVolley: 5,
+    fire: (s, a, x) => { const k = range.spin || 0, sp = (0.16 - 0.12 * k) * (1 + 0.35 * x), m = 1 + 0.6 * k; for (let i = 0; i <= x; i++) s.bullet("Dps", a + rnd(-sp, sp), 760, 0.8, (i ? 2.5 : 5) * m); },
+    tick: (R, dt) => { R.spin = Math.min(1, (R.spin || 0) + dt / 2); },
+    paint: (ctx, R) => { const p = R.player, k = R.spin || 0;
+      ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 26, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = k >= 1 ? "rgba(255,170,70,1)" : "rgba(255,210,150,0.85)"; ctx.beginPath(); ctx.arc(p.x, p.y, 26, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.01, k)); ctx.stroke(); } },
+  { id: "Fireball", role: "DPS", kit: "Elementalist", every: 0.5, desc: "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s).", shot: "Fireball", xtra: "+1 fireball, fanned out",
+    rows: [["Damage", "22 to every enemy it rolls through; it doesn't stop"], ["Burn", "8 a second for 3 s (the strongest burn counts; they don't add up)"], ["Size", "15 px radius"], ["Speed / range", "430 px/s · 602 px"]], dmgPerVolley: 22,
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Fireball", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.22 * (n - 1)), 430, 1.4, 22, { pierce: 99, ignite: 8, fireball: true }); } },
+  { id: "Arc Lightning", role: "DPS", kit: "Elementalist", every: 1.15, charge: true, ownFan: true, desc: "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun).", shot: "Bolt", xtra: "+25% damage",
+    span: () => Math.round(160 + 640 * chargeLevel()), volley: "40 to everything in the strip",
+    fanNote: "Barrage (Rare, up to 3) adds a strip of lightning side by side with the first per stack. It covers more ground; nothing is shocked twice.",
+    rows: [["Charge", "Hold fire: full in 0.9 s (fire-rate upgrades shorten it), then 0.25 s before the next"], ["Strip", "Straight ahead from you, 90 px wide: 160 px for a tap up to 800 px (half the arena) at full charge"], ["Damage", "40 to everything in it, once each"], ["Stun", "0.4 s (not bosses)"]], dmgPerVolley: 40,
+    release: (s, a, c, x, fan) => s.strip(a, 160 + 640 * c, 45, 40 * (1 + 0.25 * x), fan) },
+  { id: "Arcane Missiles", role: "DPS", kit: "Elementalist", every: 0.3, desc: "Each cast conjures 3 missiles into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim.", shot: "Arcane", xtra: "+1 missile a cast, +2 in orbit, and faster launches",
+    span: () => 300,
+    rows: [["Cast", "3 missiles (7 each) into orbit 34 px round you, up to 6"], ["Launch", "While an enemy is within 300 px, one launches at the nearest every 0.08 s, homing (6 rad/s)"], ["Orbit full", "A cast flies at your aim instead: its missiles fanned ±23°, curving back in"], ["Speed / range", "520 px/s · 520 px"]], dmgPerVolley: 21,
+    setup: R => { R.orbit = 0; R.launchCd = 0; },
+    fire: (s, a, x) => { const R = range, n = 3 + x, cap = 6 + 2 * x;
+      if (R.orbit >= cap) { for (let i = 0; i < n; i++) { const f = i * 2 / (n - 1) - 1; s.bullet("Arcane", a + f * 0.4, 520, 1, 7, { av: -f * 1.2 }); } return; }
+      R.orbit = Math.min(cap, R.orbit + n); },
+    tick: (R, dt) => { const p = R.player; R.launchCd -= dt;
+      const near = R.dummies.filter(d => Math.hypot(d.x - p.x, d.y - p.y) - d.r <= 300).sort((u, v) => Math.hypot(u.x - p.x, u.y - p.y) - Math.hypot(v.x - p.x, v.y - p.y))[0];
+      if (near && R.orbit > 0 && R.launchCd <= 0) { R.launchCd = 0.08 / (1 + 0.35 * WS.extra); R.orbit--;
+        const oa = R.t * 4 + R.orbit * TAU / (6 + 2 * WS.extra), ox = p.x + Math.cos(oa) * 34, oy = p.y + Math.sin(oa) * 34;
+        rangeApi.bullet("Arcane", Math.atan2(near.y - oy, near.x - ox), 520, 1, 7, { homing: 6 }, { x: ox, y: oy }); } },
+    paint: (ctx, R) => { const p = R.player, cap = 6 + 2 * WS.extra; for (let i = 0; i < R.orbit; i++) { const a = R.t * 4 + i * TAU / cap, x = p.x + Math.cos(a) * 34, y = p.y + Math.sin(a) * 34;
+      ctx.fillStyle = css(SHOT.Arcane.col, 0.3); ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU); ctx.fill(); ctx.fillStyle = css(SHOT.Arcane.col); ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU); ctx.fill(); } } },
+  { id: "Wolf Whistle", role: "DPS", kit: "Summoner", every: 0.3, desc: "Darts mark the enemy they hit as prey, and your two wolves hunt it. When every wolf bites it within a second: a takedown (20 per wolf and a 0.6 s stun).", shot: "Bone", companion: ["Wolf", 2], xtra: "+1 Wolf",
+    rows: [["Damage", "6.5"], ["Prey", "The enemy a dart hits is marked for 4 s (the latest dart moves the mark); your wolves hunt it"], ["Takedown", "Every wolf biting the prey within 1 s: 20 per wolf and a 0.6 s stun (not bosses)"], ["Speed / range", "720 px/s · 576 px"], ["Companions", "2 Wolves"]], dmgPerVolley: 6.5,
+    fire: (s, a) => s.bullet("Bone", a, 720, 0.8, 6.5, { on: d => { range.prey = d; range.preyT = 4; } }),
+    tick: (R, dt) => { if (R.prey && (R.preyT -= dt) <= 0) R.prey = null; },
+    paint: (ctx, R, t) => { const d = R.prey; if (!d) return;  // the prey mark: a turning red reticle
+      ctx.strokeStyle = "rgba(255,90,80,0.9)"; ctx.lineWidth = 2; const r = d.r + 9;
+      for (let k = 0; k < 4; k++) { const a = t * 2 + k * Math.PI / 2; ctx.beginPath(); ctx.arc(d.x, d.y, r, a, a + 0.9); ctx.stroke(); } } },
+  { id: "Wisp Lantern", role: "DPS", kit: "Summoner", every: 0.25, desc: "Three wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor (22), strikes it and comes back.", shot: "Arcane", companion: ["Wisp", 3], xtra: "+1 Wisp, and each shot sends one more",
+    span: () => 420,
+    rows: [["Shots", "Each shot sends one waiting wisp (one more per extra) at the enemy nearest your cursor (within 120 px of it), up to 420 px away; with none waiting, nothing goes"], ["Damage", "22 a strike"], ["Wisps", "Fly at 650 px/s, strike and come straight back to their place (they give up after 2.5 s)"], ["Companions", "3 Wisps"]], dmgPerVolley: 22,
+    fire: (s, a, x) => { const R = range, c = s.cursor(), p = R.player;
+      const tgt = R.dummies.filter(d => Math.hypot(d.x - c.x, d.y - c.y) <= 120 + d.r && Math.hypot(d.x - p.x, d.y - p.y) <= 420 + d.r).sort((u, v) => Math.hypot(u.x - c.x, u.y - c.y) - Math.hypot(v.x - c.x, v.y - c.y))[0];
+      if (!tgt) return; let n = 1 + x;
+      for (const m of R.minions) if (n > 0 && m.kind === "Wisp" && !m.sent) { m.sent = { d: tgt, t: 0, dmg: 22 * WS.dmg, back: false }; n--; } } },
+  { id: "Imp Caller", role: "DPS", kit: "Summoner", every: 0.35, charge: true, ownFan: true, desc: "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.", shot: "Bone", companion: ["Imp", 3], xtra: "+1 Imp, and they arrive 50% faster",
+    span: () => 600, volley: "45 an imp · 169 for 3 merged",
+    rows: [["Imps", "One arrives every 3 s, up to 3, and waits by you"], ["Tap", "Every waiting imp charges (300 px/s) at the enemy nearest your cursor and blows up on it: 45 to everything within 70 px"], ["Hold (full charge)", "With 2 or more waiting, they merge into one big imp first: its blast is 125% of theirs put together (3 imps: 169) and wider (on the range, it waits for every imp)"], ["Companions", "Up to 3 Imps, a new one every 3 s"]], dmgPerVolley: 5.25,
+    release: (s, a, c) => { const R = range, cur = s.cursor(), idle = R.minions.filter(m => m.kind === "Imp" && !m.sent);
+      if (!idle.length || c >= 1 && idle.length < companionCount(WBY["Imp Caller"])) return;  // held: wait for the full pack to merge
+      const tgt = R.dummies.reduce((b, o) => !b || Math.hypot(o.x - cur.x, o.y - cur.y) < Math.hypot(b.x - cur.x, b.y - cur.y) ? o : b, null);
+      if (c >= 1 && idle.length >= 2) { const big = idle[0]; big.power = idle.length * 1.25; big.scale = 1 + 0.25 * (idle.length - 1);
+        R.minions = R.minions.filter(m => !idle.includes(m) || m === big); R.fx.push({ x: big.x, y: big.y, r: 30 * big.scale, col: MINIONS.Imp.col, t: 0, dur: 0.3 }); big.sent = { d: tgt, t: 0, back: false }; }
+      else idle.forEach(m => { m.sent = { d: tgt, t: 0, back: false }; }); } },
+  { id: "Twin Blades", role: "DPS", kit: "Knight", melee: true, reach: 75, every: 0.16, desc: "Very fast alternating slashes. Land 10 in a row and your next one is a dash-strike: you lunge 140 px through enemies for triple damage.", shot: "Knight", xtra: "+1 cut: each swing strikes once more (60% damage)",
+    rows: [["Slash", "90° arc, 75 px reach, 15 damage, alternating sides"], ["Combo", "+1 for each hit, if it lands within 1.2 s of the last (else it starts over); at 10 (the pips) your next slash is a dash-strike"], ["Dash-strike", "You lunge 140 px toward your aim at 1000 px/s, hitting everything within 30 px of your path for 45 (triple)"]], dmgPerVolley: 15,
+    fire: (s, a, x) => { const R = range, p = R.player;
+      if ((R.combo || 0) >= 10 && !R.dash) { R.combo = 0; s.swing(a, 140, 0, 45, { box: 30 }); s.dash(p.x + Math.cos(a) * 140, p.y + Math.sin(a) * 140, 1000); return; }
+      const add = () => { R.combo = R.t - (R.comboT ?? -9) <= 1.2 ? Math.min(10, (R.combo || 0) + 1) : 1; R.comboT = R.t; };
+      const side = ++R.swings % 2 ? 0.2 : -0.2; s.swing(a + side, 75, 90, 15, { on: add }); for (let k = 1; k <= x; k++) s.swing(a - side, 75, 90, 9, { delay: 0.05 * k, on: add }); },
+    paint: (ctx, R) => { const p = R.player, n = R.combo || 0; for (let i = 0; i < 10; i++) { ctx.fillStyle = i < n ? (n >= 10 ? "rgba(255,200,80,1)" : "rgba(230,240,255,0.95)") : "rgba(230,240,255,0.15)";
+      ctx.beginPath(); ctx.arc(p.x - 22.5 + i * 5, p.y + 30, 2, 0, TAU); ctx.fill(); } } },
+  { id: "Greatsword", role: "DPS", kit: "Knight", melee: true, reach: 125, every: 0.7, desc: "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets.", shot: "Knight", xtra: "+1 sword beam: each sweep launches a piercing crescent (40% damage)",
+    rows: [["Sweep", "170° arc, 125 px reach, 60 damage"], ["Steel crescent", "The sweep's edge hangs for 0.5 s: enemy bullets that cross it (within 16 px of the edge) are stopped"], ["Sword beam (per extra)", "24 damage, pierces everything, 700 px/s for 420 px"]], dmgPerVolley: 60,
+    setup: R => { R.steel = []; },
+    fire: (s, a, x) => { const R = range, p = R.player; s.swing(a, 125, 170, 60); R.steel.push({ x: p.x, y: p.y, a, r: 125 * (1 + 0.1 * WS.pierce), t: 0 });
+      for (let i = 0; i < x; i++) { const f = x === 1 ? 0 : i * 2 / (x - 1) - 1; s.bullet("Knight", a + f * 0.25, 700, 0.6, 24, { pierce: 99, wave: true }); } },
+    tick: (R, dt) => { R.steel.forEach(c => c.t += dt); R.steel = R.steel.filter(c => c.t < 0.5);
+      foeShots(R, dt, f => R.steel.some(c => Math.abs(Math.hypot(f.x - c.x, f.y - c.y) - c.r) <= 16 + 3 && Math.abs(((Math.atan2(f.y - c.y, f.x - c.x) - c.a + Math.PI) % TAU + TAU) % TAU - Math.PI) <= 85 * Math.PI / 180)); },
+    under: (ctx, R, t) => { drawFoes(ctx, R); for (const c of R.steel) { const f = 1 - c.t / 0.5, h = 85 * Math.PI / 180;  // the hanging edge of steel
+      ctx.strokeStyle = `rgba(200,215,235,${0.3 * f})`; ctx.lineWidth = 32; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, c.a - h, c.a + h); ctx.stroke();
+      ctx.strokeStyle = `rgba(245,250,255,${0.95 * f})`; ctx.lineWidth = 3; ctx.stroke(); } } },
+  { id: "Rapier", role: "DPS", kit: "Knight", melee: true, reach: 130, every: 0.28, desc: "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%). Each thrust skewers up to 3 enemy bullets along its line (not red aimed shots), and each adds to the streak.", shot: "Knight", xtra: "Skewers 1 more enemy behind the first",
+    rows: [["Thrust", "36° wide, 130 px reach, 18 damage to the nearest enemy"], ["Streak", "+10% per hit in a row on the same enemy, up to +60% (28.8)"], ["Skewer", "Each thrust destroys up to 3 enemy bullets within 14 px of its line (big ones too, never red aimed shots); each one adds a streak stack"]], dmgPerVolley: 18,
+    fire: (s, a, x) => { const R = range, p = R.player, len = 130 * (1 + 0.1 * WS.pierce) + 7, c = Math.cos(a), sn = Math.sin(a); let n = 0;
+      R.foes = (R.foes || []).filter(f => { const dx = f.x - p.x, dy = f.y - p.y, along = dx * c + dy * sn; if (n < 3 && along > 0 && along < len && Math.abs(-dx * sn + dy * c) <= 14 + 3) { n++; R.fx.push({ x: f.x, y: f.y, r: 7, col: [1, 1, 1], t: 0, dur: 0.2 }); return false; } return true; });
+      if (n) R.streak = Math.min(6, R.streak + n);
+      s.swing(a, 130, 36, 18, { targets: 1 + x, rapier: true, thrust: true }); },
+    tick: (R, dt) => foeShots(R, dt), under: (ctx, R) => drawFoes(ctx, R),
+    paint: (ctx, R) => { const p = R.player; for (let i = 0; i < 6; i++) { ctx.fillStyle = i < R.streak ? "rgba(255,215,110,1)" : "rgba(230,240,255,0.15)"; ctx.beginPath(); ctx.arc(p.x - 12.5 + i * 5, p.y + 30, 2, 0, TAU); ctx.fill(); } } },
+  { id: "Shuriken", role: "DPS", kit: "Ninja", every: 0.35, desc: "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes.", shot: "Star", xtra: "+1 star in the fan",
+    rows: [["Stars", "3 across 25°, 9 each; each sticks in the enemy it hits for 5 s (up to 15 stuck at once)"], ["Recall", "Double-tap fire: every stuck star rips out for another 9, then flies back to you at 700 px/s, cutting what it passes for 4.5 (50%). On the range, every 5th throw is a recall"], ["Speed / range", "700 px/s · 525 px"]], dmgPerVolley: 27,
+    setup: R => { R.stuck = []; R.throws = 0; },
+    fire: (s, a, x) => { const R = range, p = R.player;
+      if (++R.throws % 5 === 0 && R.stuck.length) {  // recall: rip them out and fly them home
+        for (const st of R.stuck) { const d = st.d; hitDummy(d, st.dmg); s.bullet("Star", Math.atan2(p.y - d.y, p.x - d.x), 700, Math.hypot(p.x - d.x, p.y - d.y) / 700, st.dmg * 0.5, { raw: true, pierce: 99, hit: [d] }, { x: d.x, y: d.y }); }
+        R.floats.push({ x: p.x, y: p.y - 34, text: "RECALL", col: [0.85, 0.9, 1], t: 0, dur: 0.7, size: 12 }); R.stuck = []; return;
+      }
+      const n = 3 + x; for (let i = 0; i < n; i++) s.bullet("Star", a + (i / (n - 1) - 0.5) * 0.22 * (n - 1), 700, 0.75, 9, { on: (d, b, hd) => { R.stuck.push({ d, dmg: hd, a: Math.atan2(b.y - d.y, b.x - d.x), t: 0 }); if (R.stuck.length > 15) R.stuck.shift(); return "stop"; } }); },
+    tick: (R, dt) => { R.stuck.forEach(st => st.t += dt); R.stuck = R.stuck.filter(st => st.t < 5); },
+    paint: (ctx, R) => { for (const st of R.stuck) { const d = st.d, x = d.x + Math.cos(st.a) * d.r, y = d.y + Math.sin(st.a) * d.r;  // stars stuck in the dummies
+      ctx.save(); ctx.translate(x, y); ctx.rotate(st.a); ctx.fillStyle = css(SHOT.Star.col); for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(0, 1.8); ctx.lineTo(0, -1.8); ctx.fill(); ctx.rotate(Math.PI / 2); } ctx.restore(); } } },
+  { id: "Katana", role: "DPS", kit: "Ninja", melee: true, reach: 95, every: 0.3, desc: "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage.", shot: "Knight", xtra: "+1 cut: each slash strikes once more (60% damage)",
+    volley: "20 · 50 quick-draw",
+    rows: [["Slash", "110° arc, 95 px reach, 20 damage"], ["Sheathe", "Stop firing for 0.6 s and the blade goes back in its sheath (a glint runs along it); your aim line stretches to 220 px"], ["Quick-draw", "The next cut: 220 px straight ahead, 44 px wide, through every enemy in it, for 50 (2.5×). On the range you pause after every third slash"], ["Cuts", "Small bullets in the arc"]], dmgPerVolley: 20,
+    span: () => Math.round((range && range.sheath >= 0.6 ? 220 : 95) * (1 + 0.1 * WS.pierce)),
+    fire: (s, a, x) => { const R = range, draw = R.sheath >= 0.6; R.sheath = 0;
+      if (draw) s.swing(a, 220, 20, 50, { box: 22, cut: true, thrust: true });
+      else { s.swing(a, 95, 110, 20); if (++R.swings % 3 === 0) R.fireCd += 0.65 / WS.rate; }  // hold off after three slashes, to sheathe it
+      for (let k = 1; k <= x; k++) s.swing(a + (k % 2 ? 0.2 : -0.2), 95, 110, 12, { delay: 0.05 * k }); },
+    setup: R => { R.sheath = 0; },
+    tick: (R, dt) => { R.sheath += dt; },
+    paint: (ctx, R, t) => { if (R.sheath < 0.6) return; const p = R.player, a = R.aim, c = Math.cos(a), sn = Math.sin(a), g = (t * 1.6) % 1, x = p.x + c * (20 + 30 * g), y = p.y + sn * (20 + 30 * g);  // sheathed: the scabbard and a glint
+      ctx.strokeStyle = "rgba(40,33,51,1)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(p.x + c * 18, p.y + sn * 18); ctx.lineTo(p.x + c * 52, p.y + sn * 52); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,255,255,${0.6 + 0.4 * Math.sin(t * 12)})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + 4, y); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4); ctx.stroke(); } },
+  { id: "Kunai", role: "DPS", kit: "Ninja", every: 0.12, desc: "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double.", shot: "Kunai", xtra: "+1 knife, fanned out (half damage)",
+    rows: [["Damage", "8 (12 against enemies that aren't after you)"], ["Shadow kunai", "Every 4th throw (the dark one): it leaves a mark where it hits or stops, for 3 s"], ["Blink", "Double-tap fire (within 0.3 s) while a mark is down: you blink to it, and your next hit within 1.5 s lands double. On the range you blink whenever a mark is down"], ["Speed / range", "850 px/s · 637 px"]], dmgPerVolley: 8,
+    fire: (s, a, x) => { const R = range;
+      if (R.mark && R.t - R.mark.at >= 0.6) {  // blink to the mark: the next hit lands double
+        const m = R.mark, dx = m.x - R.home.x, dy = m.y - R.home.y, l = Math.hypot(dx, dy) || 1, tx = m.x - dx / l * 40, ty = m.y - dy / l * 40, p = R.player; R.mark = null;
+        R.fx.push({ x: p.x, y: p.y, r: 20, col: [0.55, 0.45, 0.8], t: 0, dur: 0.3 }, { x: tx, y: ty, r: 20, col: [0.55, 0.45, 0.8], t: 0, dur: 0.3 });
+        R.dash = { x0: tx, y0: ty, x1: tx, y1: ty, t: 0, dur: 0.05 }; R.ambush = R.t + 1.5; return;
+      }
+      const shadow = ++R.kunai % 4 === 0;
+      for (let i = 0; i <= x; i++) s.bullet("Kunai", a + (i === 0 ? 0 : (i % 2 ? 1 : -1) * 0.07 * Math.floor((i + 1) / 2)), 850, 0.75, i ? 4 : 8, {
+        mult: () => { if (R.ambush && R.t <= R.ambush) { R.ambush = 0; R.floats.push({ x: R.player.x, y: R.player.y - 34, text: "x2", col: [0.8, 0.7, 1], t: 0, dur: 0.6, size: 13 }); return 2; } return 1; },
+        end: shadow && i === 0 ? b => { R.mark = { x: b.x, y: b.y, at: R.t }; } : undefined,
+        look: shadow && i === 0 ? (ctx, b) => { const ba = Math.atan2(b.vy, b.vx); ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(ba); ctx.fillStyle = "rgba(120,90,190,0.35)"; ctx.beginPath(); ctx.arc(0, 0, 8, 0, TAU); ctx.fill();
+          ctx.strokeStyle = "#2a2440"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(0, 0); ctx.stroke(); ctx.fillStyle = "rgba(150,120,230,1)"; ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(0, 3); ctx.lineTo(0, -3); ctx.fill(); ctx.restore(); } : undefined }); },
+    setup: R => { R.kunai = 0; },
+    under: (ctx, R, t) => { const m = R.mark; if (!m) return;  // the mark: a turning shadow diamond
+      ctx.save(); ctx.translate(m.x, m.y + 26); ctx.rotate(t * 2); ctx.strokeStyle = "rgba(150,120,230,0.9)"; ctx.lineWidth = 2; ctx.strokeRect(-7, -7, 14, 14); ctx.restore(); } },
+  { id: "Blood Bolts", role: "DPS", kit: "Hemomancer", every: 0.13, desc: "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px.", shot: "Blood", xtra: "+1 bolt, fanned out",
+    volley: "9 · every 5th in one enemy bursts for 36",
+    rows: [["Damage", "9"], ["Hemorrhage", "Bolts stick in an enemy (the red marks); the fifth within 2 s of the last bursts: 36 (four bolts' worth) to it and every enemy within 80 px"], ["Speed / range", "800 px/s · 640 px"]], dmgPerVolley: 9,
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("Blood", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.07 * (n - 1)), 800, 0.8, 9, { on: (d, b, hd) => { d.hemoT = 2;
+      if (++d.hemo >= 5) { d.hemo = 0; d.hemoT = 0; for (const o of range.dummies) if (o === d || Math.hypot(o.x - d.x, o.y - d.y) <= 80 + o.r) hitDummy(o, hd * 4); range.fx.push({ x: d.x, y: d.y, r: 80, col: [0.85, 0.1, 0.18], t: 0, dur: 0.4 }); } } }); } },
   { id: "Implosion", role: "DPS", kit: "Hemomancer", every: 0.45, implode: true, desc: "Click an enemy and its blood collapses inside it, hurting and pulling in the enemies pressed against it. No projectile: nothing fires unless your cursor is on an enemy.", shot: "Implode", xtra: "+1 implosion: another enemy near your target collapses too (60% damage; your target again if no one is near)",
     rows: [["Target", "The enemy under your cursor (26 px of slack), up to 480 px away"], ["Damage", "34 to the target"], ["Splash", "15 to enemies within 55 px of its edge, pulled 18 px in (not bosses or heavies)"], ["Shields", "Ignored: it happens inside them"]], dmgPerVolley: 34,
     fire: (s, a, x) => s.implode(34, x) },
-  { id: "Bone Spear", role: "DPS", kit: "Hemomancer", every: 0.8, desc: "A heavy spear that pierces 3 enemies. Each throw costs 2 health.", shot: "BoneSpear", xtra: "+1 spear, fanned out (costs no more health)",
-    rows: [["Damage", "60"], ["Pierce", "3 extra enemies"], ["Costs", "2 health a throw (never below 1 HP)"], ["Speed / range", "1000 px/s · 900 px"]], dmgPerVolley: 60,
-    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("BoneSpear", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.12 * (n - 1)), 1000, 0.9, 60, { pierce: 3 }); } },
+  { id: "Bone Spear", role: "DPS", kit: "Hemomancer", every: 0.8, desc: "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back.", shot: "BoneSpear", xtra: "+1 spear, fanned out (costs no more health)",
+    rows: [["Damage", "60"], ["Pierce", "3 extra enemies"], ["Costs", "2 health a throw (never below 1 HP)"], ["Stuck", "It stays where it stops for 8 s; walk over it (16 px) to take the 2 health back"], ["Speed / range", "1000 px/s · 900 px"]], dmgPerVolley: 60,
+    setup: R => { R.spears = []; },
+    fire: (s, a, x) => { const n = 1 + x; for (let i = 0; i < n; i++) s.bullet("BoneSpear", a + (n === 1 ? 0 : (i / (n - 1) - 0.5) * 0.12 * (n - 1)), 1000, 0.9, 60, { pierce: 3, end: b => range.spears.push({ x: b.x, y: b.y, a: Math.atan2(b.vy, b.vx), t: 0 }) }); },
+    tick: (R, dt) => { R.spears.forEach(sp => sp.t += dt); R.spears = R.spears.filter(sp => sp.t < 8 && sp.x > -20 && sp.x < 1220 && sp.y > -20 && sp.y < 520); },
+    under: (ctx, R) => { for (const sp of R.spears) {  // spears stuck in the ground, a soft glow to walk over
+      ctx.fillStyle = "rgba(255,90,100,0.15)"; ctx.beginPath(); ctx.arc(sp.x, sp.y, 16, 0, TAU); ctx.fill();
+      ctx.save(); ctx.translate(sp.x, sp.y); ctx.rotate(sp.a); ctx.strokeStyle = css(SHOT.BoneSpear.col); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(4, 0); ctx.stroke();
+      ctx.fillStyle = css(SHOT.BoneSpear.col); ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(2, 4); ctx.lineTo(2, -4); ctx.fill(); ctx.restore(); } } },
 ];
 const WBY = Object.fromEntries(W.map(w => [w.id, w]));
 // Base damage per second; the Revolver's counts tapping through a full cylinder and its reload.
@@ -967,7 +1214,8 @@ function drawClassCanvas(t) {
 // ---------------------------------------------------------------------------------------------
 // Weapons: a firing range
 // ---------------------------------------------------------------------------------------------
-const WS = { sel: "Revolver", playing: true, extra: 0, fan: 0, pierce: 0, dmg: 1, rate: 1, sweep: false, range: true, trigger: "tap", draw: "perfect" };
+const WS = { sel: "Revolver", playing: true, extra: 0, fan: 0, pierce: 0, dmg: 1, rate: 1, sweep: false, range: true, trigger: "tap", draw: "perfect", charge: "full" };
+const chargeLevel = () => ({ tap: 0, half: 0.5, full: 1 })[WS.charge];
 let range;
 function companionCount(w) {
   if (!w.companion) return 0;
@@ -978,20 +1226,72 @@ function companionCount(w) {
 function newRange() {
   const w = WBY[WS.sel];
   range = { t: 0, bullets: [], fx: [], floats: [], bolts: [], slashes: [], swings: 0, streak: 0, streakOn: null, burstLeft: 0, burstT: 0, fireCd: 0.2, dealt: 0, aim: 0, minions: [], minionCd: 0,
-    ammoUsed: 0, reloadT: 0, idle: 0, held: 0, fanning: false,
+    ammoUsed: 0, reloadT: 0, idle: 0, held: 0, fanning: false, shocks: [], coats: [], reserve: 0,
     player: { x: 190, y: 250 },
     // A cluster close in (spreads, chains, fragments and companions all have something to hit), plus two farther back.
     dummies: [{ x: 300, y: 250 }, { x: 360, y: 185 }, { x: 360, y: 315 }, { x: 425, y: 250 }, { x: 480, y: 170 }, { x: 480, y: 330 }, { x: 720, y: 250 }, { x: 980, y: 220 }]
-      .map((d, i) => ({ ...d, r: 18, sides: 3 + (i % 5), by: d.y, ph: i, flash: 0, slow: 0, hp: 0 })) };
-  if (w.melee) range.player.x = 300 - 18 - w.reach * 0.6;  // knights stand in swinging distance
+      .map((d, i) => ({ ...d, r: 18, sides: 3 + (i % 5), by: d.y, oby: d.y, bx: d.x, ph: i, flash: 0, slow: 0, hp: 0, bob: 0, cage: 0, cageImm: 0, darts: 0, dartT: 0, stun: 0, bleed: 0, bleedDps: 0,
+        poison: 0, poisonT: 0, supp: 0, seedT: 0, hemo: 0, hemoT: 0 })), later: [], ally: null, dash: null, cd: {} };
+  if (w.melee) range.player.x = 300 - 18 - Math.min(w.reach, 150) * 0.6;  // knights stand in swinging distance
+  range.home = { ...range.player };
+  if (w.ally) range.ally = { x: w.ally[0], y: w.ally[1] };  // a teammate stands on the range for the weapons that heal
+  if (w.setup) w.setup(range);
   if (w.companion) {
     const kind = w.companion[0], n = companionCount(w);
-    for (let i = 0; i < n; i++) range.minions.push({ kind, d: MINIONS[kind], x: 190 + Math.cos(i * 2) * 40, y: 250 + Math.sin(i * 2) * 40, ang: TAU * i / Math.max(1, n), cd: rnd(0, 0.5), scale: w.grows ? 1 + 0.3 * WS.extra : 1 });
+    for (let i = 0; i < n; i++) range.minions.push({ kind, d: MINIONS[kind], x: 190 + Math.cos(i * 2) * 40, y: 250 + Math.sin(i * 2) * 40, ang: TAU * i / Math.max(1, n), cd: rnd(0, 0.5), scale: w.grows ? 1 + 0.3 * WS.extra : 1,
+      root: w.root ? { x: w.root[0], y: w.root[1] } : null });
   }
 }
 const rangeApi = {
   // A melee swing: hits every dummy in the arc (or the nearest few), after an optional delay.
-  swing(a, reach, arcDeg, dmg, o = {}) { range.slashes.push({ a, reach: reach * (1 + 0.1 * WS.pierce), half: arcDeg * Math.PI / 360, dmg: dmg * WS.dmg, delay: o.delay || 0, t: -1, knock: o.knock || 0, targets: o.targets || 0, rapier: o.rapier, bash: o.bash, thrust: o.thrust, box: o.box || 0 }); },
+  swing(a, reach, arcDeg, dmg, o = {}) { range.slashes.push({ a, reach: reach * (1 + 0.1 * WS.pierce), half: arcDeg * Math.PI / 360, dmg: dmg * WS.dmg, delay: o.delay || 0, t: -1, knock: o.knock || 0, targets: o.targets || 0, rapier: o.rapier, bash: o.bash, thrust: o.thrust, box: o.box || 0,
+    hollow: o.hollow || 0, slow: o.slow, icicle: o.icicle || 0, dur: o.dur || 0, mult: o.mult, on: o.on, col: o.col, cut: o.cut }); },
+  // Where the cursor is: on the target dummy (the range aims at it), as a point and a distance from you.
+  cursor() { const p = range.player, d = range.dummies[0], dist = Math.hypot(d.x - p.x, d.y - p.y); return { x: p.x + Math.cos(range.aim) * dist, y: p.y + Math.sin(range.aim) * dist, dist }; },
+  // A dash: you move to (x, y) at `speed`, then walk back to your spot.
+  dash(x, y, speed) { const p = range.player; range.dash = { x0: p.x, y0: p.y, x1: x, y1: y, t: 0, dur: Math.max(0.05, Math.hypot(x - p.x, y - p.y) / speed) }; return range.dash.dur; },
+  // The first dummy on a line from you (within `half` of it, up to `len`), or null.
+  ray(a, len, half) { const p = range.player, c = Math.cos(a), sn = Math.sin(a); let best = null, bestAt = 1e9;
+    for (const d of range.dummies) { const dx = d.x - p.x, dy = d.y - p.y, along = dx * c + dy * sn, across = Math.abs(-dx * sn + dy * c);
+      if (along < 0 || along > len + d.r || across > half + d.r || along >= bestAt) continue; best = d; bestAt = along; }
+    return best; },
+  // Chain Light: a cone whose damage is shared between every dummy in it. Barrage cones sit edge to edge, and each
+  // dummy belongs only to the cone whose middle it's nearest.
+  cones(a, reach, half, total, fan) {
+    const p = range.player, n = 1 + fan, step = Math.min(2 * half, TAU / n), dirs = [];
+    for (let v = 0; v < n; v++) dirs.push(a + (v === 0 ? 0 : (v % 2 ? 1 : -1) * step * Math.ceil(v / 2)));
+    const groups = dirs.map(() => []);
+    for (const d of range.dummies) {
+      const dx = d.x - p.x, dy = d.y - p.y, l = Math.hypot(dx, dy);
+      if (l - d.r > reach) continue;
+      let best = -1, bestOff = 9;
+      dirs.forEach((da, v) => { const off = Math.abs(((Math.atan2(dy, dx) - da + Math.PI) % TAU + TAU) % TAU - Math.PI);
+        if (off <= half + Math.asin(Math.min(1, d.r / Math.max(1, l))) && off < bestOff) { best = v; bestOff = off; } });
+      if (best >= 0) groups[best].push(d);
+    }
+    dirs.forEach((da, v) => {
+      for (const d of groups[v]) {
+        hitDummy(d, total / groups[v].length * WS.dmg);
+        const ta = Math.atan2(d.y - p.y, d.x - p.x);
+        range.bolts.push({ a: { x: p.x + Math.cos(ta) * 16, y: p.y + Math.sin(ta) * 16 }, b: { x: d.x, y: d.y }, t: 0, dur: 0.2, col: SHOT.Holy.col });
+      }
+      range.fx.push({ cone: true, a: da, reach, half, x: p.x, y: p.y, col: SHOT.Holy.col, t: 0, dur: 0.3 });
+    });
+  },
+  // Arc Lightning: a strip of ground from you; Barrage strips lie side by side, and nothing is shocked twice.
+  strip(a, len, half, dmg, fan) {
+    const p = range.player, c = Math.cos(a), sn = Math.sin(a), seen = new Set();
+    for (let v = 0; v <= fan; v++) {
+      const shift = v === 0 ? 0 : (v % 2 ? 1 : -1) * 2 * half * Math.ceil(v / 2), hits = [];
+      for (const d of range.dummies) {
+        if (seen.has(d)) continue;
+        const dx = d.x - p.x, dy = d.y - p.y, along = dx * c + dy * sn, across = -dx * sn + dy * c;
+        if (along < -(d.r + 16) || along > len + d.r || Math.abs(across - shift) > half + d.r) continue;
+        seen.add(d); hits.push({ x: d.x, y: d.y }); hitDummy(d, dmg * WS.dmg); d.stun = Math.max(d.stun, 0.4);
+      }
+      range.fx.push({ strip: true, a, len, half, shift, x: p.x, y: p.y, hits, col: SHOT.Bolt.col, t: 0, dur: 0.35 });
+    }
+  },
   // A beam (Vein Tether): hits the first dummy on the aim line at once (more with Pierce), and shows briefly.
   beam(kind, a, len, dmg) {
     const p = range.player, c = Math.cos(a), sn = Math.sin(a), from = { x: p.x + c * 16, y: p.y + sn * 16 };
@@ -1033,14 +1333,35 @@ const rangeApi = {
       hit.add(nx); go(nx, 0.6, false);
     }
   },
+  // The Radiant Orb (held): out from you to the target dummy, burning every dummy it touches each tick.
+  orb(dmg) {
+    const p = range.player;
+    if (!range.orb) range.orb = { x: p.x + 16, y: p.y };
+    for (const d of range.dummies) if (Math.hypot(d.x - range.orb.x, d.y - range.orb.y) < 20 + d.r) hitDummy(d, dmg * WS.dmg);
+  },
   bullet(kind, a, speed, life, dmg, o = {}, from) {
     const p = from || range.player, sh = SHOT[kind], off = from ? 4 : 16;
     range.bullets.push({ x: p.x + Math.cos(a) * off + (o.ox || 0), y: p.y + Math.sin(a) * off + (o.oy || 0), vx: Math.cos(a) * speed, vy: Math.sin(a) * speed,
       av: o.av || 0, life, r: o.big || sh.r, col: sh.col, dmg: o.raw ? dmg : dmg * WS.dmg, pierce: o.pierce || 0, splash: o.splash || 0, chain: o.chain || 0, slow: o.slow, trail: o.trail,
       homing: o.homing || 0, frags: o.frags || null, split: o.split ? { ...o.split } : null, lob: o.lob, wave: o.wave, arrow: o.arrow, lance: o.lance, hit: new Set(o.hit || []),
-      ret: o.ret || 0, bounce: o.bounce || 0, shape: sh.shape, spin: rnd(0, TAU), pool: o.pool || 0, ignite: o.ignite || 0, falloff: o.falloff || 0 });
+      ret: o.ret || 0, bounce: o.bounce || 0, shape: sh.shape, spin: rnd(0, TAU), pool: o.pool || 0, ignite: o.ignite || 0, falloff: o.falloff || 0,
+      shock: o.shock || 0, hammer: o.hammer, boulder: o.boulder || 0, dart: o.dart, seek: o.seek, coat: o.coat, fireball: o.fireball,
+      fuma: o.fuma ? { ...o.fuma, t: 0, x0: p.x, y0: p.y, fx: Math.cos(a), fy: Math.sin(a), back: false } : null,
+      mult: o.mult, on: o.on, burst: o.burst, heal: o.heal || 0, onAlly: o.onAlly, land: o.land, end: o.end, ion: o.ion, look: o.look });
+    return range.bullets[range.bullets.length - 1];
   },
 };
+// Push a dummy `px` away from (x, y) (negative pulls it in); it drifts back to its spot.
+function shove(d, x, y, px) { const dx = d.x - x, dy = d.y - y, l = Math.hypot(dx, dy) || 1; d.x += dx / l * px; d.by += dy / l * px; }
+// Enemy pellets drifting at you (for the Flak Cannon and Greatsword, which stop them); `stop(f)` stops one.
+function foeShots(R, dt, stop) {
+  R.foes = R.foes || []; R.foeCd = (R.foeCd || 0) - dt;
+  if (R.foeCd <= 0) { R.foeCd = 0.3; const d = R.dummies[Math.floor(rnd(0, 4))], a = Math.atan2(R.player.y - d.y, R.player.x - d.x) + rnd(-0.12, 0.12); R.foes.push({ x: d.x + Math.cos(a) * d.r, y: d.y + Math.sin(a) * d.r, vx: Math.cos(a) * 170, vy: Math.sin(a) * 170 }); }
+  for (const f of R.foes) { f.x += f.vx * dt; f.y += f.vy * dt; if (stop && stop(f)) { f.gone = true; R.fx.push({ x: f.x, y: f.y, r: 6, col: [1, 1, 1], t: 0, dur: 0.15 }); } else if (Math.hypot(f.x - R.player.x, f.y - R.player.y) < 14) f.gone = true; }
+  R.foes = R.foes.filter(f => !f.gone);
+}
+function drawFoes(ctx, R) { for (const f of R.foes || []) { ctx.fillStyle = "rgba(255,90,80,0.3)"; ctx.beginPath(); ctx.arc(f.x, f.y, 6, 0, TAU); ctx.fill(); ctx.fillStyle = "rgba(255,110,90,1)"; ctx.beginPath(); ctx.arc(f.x, f.y, 3.5, 0, TAU); ctx.fill(); } }
+function healFloat(x, y, n) { range.floats.push({ x: x + rnd(-6, 6), y: y - 24, text: "+" + fmt(n, 1), col: [0.45, 1, 0.55], t: 0, dur: 0.8, size: 13 }); }
 function hitDummy(d, dmg) {
   d.flash = 0.08; range.dealt += dmg;
   range.floats.push({ x: d.x + rnd(-8, 8), y: d.y - d.r - 6, text: fmt(dmg, 1), col: [1, 0.95, 0.6], t: 0, dur: 0.7, size: 13 });
@@ -1053,7 +1374,7 @@ function fireFanned(w, aim, extra) {
     return;
   }
   if (w.implode) { w.fire(rangeApi, aim, extra + WS.fan); return; }  // nowhere to fan: each copy is another implosion
-  if (w.grasp) { w.fire(rangeApi, aim, extra, WS.fan); return; }      // each copy is another tendril
+  if (w.grasp || w.ownFan) { w.fire(rangeApi, aim, extra, WS.fan); return; }  // each copy is another tendril, cone of light...
   for (let v = 0; v <= WS.fan; v++) w.fire(rangeApi, aim + (v === 0 ? 0 : (v % 2 ? 1 : -1) * 0.14 * Math.floor((v + 1) / 2)), extra);
 }
 function revolverShot(aim) {
@@ -1094,15 +1415,43 @@ function stepBow(dt) {
   if (perfect) R.floats.push({ x: R.player.x, y: R.player.y - 30, text: "PERFECT", col: [1, 0.82, 0.3], t: 0, dur: 0.8, size: 13 });
   R.drawT = 0; R.bowCd = 0.25 / WS.rate;
 }
+// Golem Staff and Arc Lightning: hold to charge (full in 0.9 s), let go at the chosen charge, 0.25 s before the next.
+function stepCharge(dt, w) {
+  const R = range, full = 0.9 / WS.rate, c = chargeLevel(), hold = 0.15 + c * (full - 0.15);
+  R.bowCd = (R.bowCd || 0) - dt;
+  if (R.bowCd > 0) { R.drawT = 0; return; }
+  R.drawT = (R.drawT || 0) + dt;
+  if (R.drawT < hold) return;
+  for (let v = 0; v <= (w.ownFan ? 0 : WS.fan); v++)
+    w.release(rangeApi, R.aim + (v === 0 ? 0 : (v % 2 ? 1 : -1) * 0.14 * Math.ceil(v / 2)), c, WS.extra, w.ownFan ? WS.fan : 0);
+  R.drawT = 0; R.bowCd = 0.25 / WS.rate;
+}
 function stepRange(dt) {
   const w = WBY[WS.sel], R = range, p = R.player;
   R.t += dt;
-  for (const d of R.dummies) { d.y = d.by + Math.sin(R.t * 0.9 + d.ph * 1.3) * 18; d.flash = Math.max(0, d.flash - dt); d.slow = Math.max(0, d.slow - dt);
-    if (d.burn > 0) { d.burn -= dt; R.dealt += d.burnDps * dt; if (d.burn <= 0) d.burnDps = 0; } }
+  for (const d of R.dummies) {
+    if (!(d.cage > 0 || d.stun > 0)) d.bob += dt;  // caged or stunned dummies hold still
+    d.y = d.by + Math.sin(d.bob * 0.9 + d.ph * 1.3) * 18; d.flash = Math.max(0, d.flash - dt); d.slow = Math.max(0, d.slow - dt); d.stun = Math.max(0, d.stun - dt);
+    if (d.burn > 0) { d.burn -= dt; R.dealt += d.burnDps * dt; if (d.burn <= 0) d.burnDps = 0; }
+    if (d.bleed > 0) { d.bleed -= dt; R.dealt += d.bleedDps * dt; if (d.bleed <= 0) d.bleedDps = 0; }
+    if (d.dartT > 0 && (d.dartT -= dt) <= 0) d.darts = 0;
+    if (d.cage > 0 && (d.cage -= dt) <= 0) d.cageImm = 1;
+    d.cageImm = Math.max(0, d.cageImm - dt);
+    const back = Math.min(1, dt * 3); d.x += (d.bx - d.x) * back; d.by += (d.oby - d.by) * back;  // shoved dummies drift back
+    if (d.poison > 0) { R.dealt += 2 * d.poison * WS.dmg * dt; if ((d.poisonT -= dt) <= 0) d.poison = 0; }  // Medicine Darts: 2 a second a stack
+    d.supp = Math.max(0, d.supp - 0.25 * dt); d.seedT = Math.max(0, d.seedT - dt);
+    if (d.hemoT > 0 && (d.hemoT -= dt) <= 0) d.hemo = 0;
+  }
+  if (R.dash) {  // dashing (a reel, vault, dash-strike or blink), then walking back
+    const ds = R.dash; ds.t += dt; const k = Math.min(1, ds.t / ds.dur);
+    p.x = ds.x0 + (ds.x1 - ds.x0) * k; p.y = ds.y0 + (ds.y1 - ds.y0) * k; if (k >= 1 && ds.t > ds.dur + 0.25) R.dash = null;
+  } else { const dx = R.home.x - p.x, dy = R.home.y - p.y, l = Math.hypot(dx, dy), st = Math.min(l, 300 * dt); if (l > 0.5) { p.x += dx / l * st; p.y += dy / l * st; } }
+  if (w.tick) w.tick(R, dt);
   R.aim = WS.sweep ? Math.sin(R.t * 0.8) * 0.35 : Math.atan2(R.dummies[0].y - p.y, R.dummies[0].x - p.x);
   // Fire
   if (w.revolver) stepRevolver(dt);
   else if (w.bow) stepBow(dt);
+  else if (w.charge) stepCharge(dt, w);
   else {
     R.fireCd -= dt;
     if (R.fireCd <= 0) {
@@ -1119,18 +1468,39 @@ function stepRange(dt) {
     if (sl.delay > 0) continue;
     sl.t = 0;
     let hits = R.dummies.filter(d => { const dx = d.x - p.x, dy = d.y - p.y, l = Math.hypot(dx, dy);
-      if (sl.box) { const along = dx * Math.cos(sl.a) + dy * Math.sin(sl.a), across = Math.abs(-dx * Math.sin(sl.a) + dy * Math.cos(sl.a)); return along > -d.r - 14 && along < sl.reach + d.r && across < sl.box + d.r; }
+      if (sl.box) { const along = dx * Math.cos(sl.a) + dy * Math.sin(sl.a), across = Math.abs(-dx * Math.sin(sl.a) + dy * Math.cos(sl.a)); return along > -d.r - 14 && along < sl.reach + d.r && across < sl.box + d.r && across >= sl.hollow; }
       if (l - d.r > sl.reach) return false;
       const diff = Math.abs(((Math.atan2(dy, dx) - sl.a + Math.PI) % TAU + TAU) % TAU - Math.PI); return sl.half >= Math.PI - 0.01 || diff <= sl.half + Math.asin(Math.min(1, d.r / Math.max(1, l))); });
     if (sl.targets) hits = hits.sort((u, v) => Math.hypot(u.x - p.x, u.y - p.y) - Math.hypot(v.x - p.x, v.y - p.y)).slice(0, sl.targets);
     for (const d of hits) {
       let dmg = sl.dmg;
       if (sl.rapier) { R.streak = d === R.streakOn ? Math.min(6, R.streak + 1) : 0; R.streakOn = d; dmg *= 1 + 0.1 * R.streak; }
+      if (sl.mult) dmg *= sl.mult(d, sl);
       hitDummy(d, dmg);
+      if (sl.slow) d.slow = 1;
+      if (sl.on) sl.on(d, sl);
     }
   }
-  R.slashes = R.slashes.filter(sl => sl.t < 0 || sl.t < (sl.box ? 0.26 : 0.22));
+  R.slashes = R.slashes.filter(sl => sl.t < 0 || sl.t < (sl.dur || (sl.box ? 0.26 : 0.22)));
+  // Storm Hammer: an electrified dummy arcs to its nearest neighbours three times, 0.5 s apart
+  for (const sh of R.shocks) {
+    if ((sh.t -= dt) > 0) continue;
+    sh.t = 0.5; sh.left--;
+    const near = R.dummies.filter(o => o !== sh.d && Math.hypot(o.x - sh.d.x, o.y - sh.d.y) < 170 + o.r).sort((u, v) => Math.hypot(u.x - sh.d.x, u.y - sh.d.y) - Math.hypot(v.x - sh.d.x, v.y - sh.d.y)).slice(0, sh.jumps);
+    for (const o of near) { hitDummy(o, sh.dmg); R.bolts.push({ a: { x: sh.d.x, y: sh.d.y }, b: { x: o.x, y: o.y }, t: 0, dur: 0.15 }); }
+    R.fx.push({ x: sh.d.x, y: sh.d.y, r: sh.d.r + 14, col: SHOT.Hammer.col, t: 0, dur: 0.25 });
+  }
+  R.shocks = R.shocks.filter(sh => sh.left > 0);
+  // Sanguine Orb: a coat lands after 0.45 s circling: the hit, a bleed stack and 10 heal reserve
+  for (const ct of R.coats) {
+    if ((ct.t += dt) < 0.45) continue;
+    const d = ct.d; hitDummy(d, ct.dmg);
+    const stack = 0.3 * ct.dmg; d.bleed = 3; d.bleedDps = Math.min(d.bleedDps + stack, stack * 5);
+    R.reserve = Math.min(100, R.reserve + 10);
+  }
+  R.coats = R.coats.filter(ct => ct.t < 0.45);
   R.beams = (R.beams || []).filter(b => (b.t += dt) < 0.12);
+  if (R.orb) { const tg = R.dummies[0], dx = tg.x - R.orb.x, dy = tg.y - R.orb.y, l = Math.hypot(dx, dy), step = Math.min(l, 750 * dt); if (l > 0) { R.orb.x += dx / l * step; R.orb.y += dy / l * step; } }
   if (R.grasp && (R.grasp.t += dt) > 0.2) R.grasp = null;  // let go and the tendrils let go
   // Bullets
   const keep = [], spawned = [];
@@ -1141,23 +1511,56 @@ function stepRange(dt) {
       const diff = ((want - cur + Math.PI) % TAU + TAU) % TAU - Math.PI, turn = clamp(diff, -b.homing * dt, b.homing * dt);
       b.vx = Math.cos(cur + turn) * sp; b.vy = Math.sin(cur + turn) * sp;
     }
+    if (b.seek) {  // Sanguine Orb: straight on until an enemy is within 110 px ahead, then a hard turn onto it
+      const sp = Math.hypot(b.vx, b.vy), hx = b.vx / sp, hy = b.vy / sp;
+      const tgt = R.dummies.filter(o => { const dx = o.x - b.x, dy = o.y - b.y, l = Math.hypot(dx, dy) || 1; return l < 110 && (dx * hx + dy * hy) / l > 0.3; })
+        .sort((u, v) => Math.hypot(u.x - b.x, u.y - b.y) - Math.hypot(v.x - b.x, v.y - b.y))[0];
+      if (tgt) { const want = Math.atan2(tgt.y - b.y, tgt.x - b.x), cur = Math.atan2(b.vy, b.vx), turn = clamp(((want - cur + Math.PI) % TAU + TAU) % TAU - Math.PI, -9 * dt, 9 * dt);
+        b.vx = Math.cos(cur + turn) * sp; b.vy = Math.sin(cur + turn) * sp; }
+    }
     if (b.av) { const c = Math.cos(b.av * dt), s = Math.sin(b.av * dt), vx = b.vx * c - b.vy * s; b.vy = b.vx * s + b.vy * c; b.vx = vx; }
-    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-    if (b.ret && !b.turned && b.life <= b.ret) { b.vx = -b.vx; b.vy = -b.vy; b.turned = true; b.hit = new Set(); }  // the Chain Shuriken comes back
+    if (b.fuma) {  // Fuma Shuriken: an oval loop from where it was thrown, 380 px out and back in 1.1 s
+      const f = b.fuma; f.t += dt;
+      const k = TAU * Math.min(f.t, 1.1) / 1.1, ox = f.fy, oy = -f.fx, side = -f.side * 110 * Math.sin(k), out = 190 * (1 - Math.cos(k));
+      const nx = f.x0 + f.size * (side * ox + out * f.fx), ny = f.y0 + f.size * (side * oy + out * f.fy);
+      b.vx = (nx - b.x) / dt; b.vy = (ny - b.y) / dt; b.x = nx; b.y = ny;
+      if (!f.back && k >= Math.PI) { f.back = true; b.hit = new Set(); }  // on the way back it cuts them all again
+    } else { b.x += b.vx * dt; b.y += b.vy * dt; }
+    b.life -= dt;
+    if (b.ret && !b.turned && b.life <= b.ret) { b.vx = -b.vx; b.vy = -b.vy; b.turned = true; b.hit = new Set(); }  // a throw that comes back
     if (b.split && (b.split.t -= dt) <= 0) {  // Mender's Bow: the arrow splits, sharing its damage
       const n = b.split.n, share = b.dmg * (1 + 0.5 * (n - 1)) / n, cur = Math.atan2(b.vy, b.vx), sp = Math.hypot(b.vx, b.vy);
       for (let i = 0; i < n; i++) spawned.push([cur + (i - (n - 1) / 2) * 0.12, sp, b.life, share, b]);
       continue;
     }
     if (b.lob) {  // a bomblet: flies over and pops where it lands
-      if (b.life <= 0) { for (const o of R.dummies) if (Math.hypot(o.x - b.x, o.y - b.y) < b.splash + o.r) hitDummy(o, b.dmg); R.fx.push({ x: b.x, y: b.y, r: b.splash, col: b.col, t: 0, dur: 0.25 }); continue; }
+      if (b.life <= 0) {
+        if (b.land) { b.land(b); continue; }
+        for (const o of R.dummies) if (Math.hypot(o.x - b.x, o.y - b.y) < b.splash + o.r) hitDummy(o, b.dmg); R.fx.push({ x: b.x, y: b.y, r: b.splash, col: b.col, t: 0, dur: 0.25 });
+        if (b.burst && R.foes) R.foes = R.foes.filter(f => Math.hypot(f.x - b.x, f.y - b.y) > b.splash || !R.fx.push({ x: f.x, y: f.y, r: 6, col: [1, 0.4, 0.35], t: 0, dur: 0.2 }));  // shredded in the burst
+        if (b.frags) for (let i = 0, off = rnd(0, TAU); i < b.frags.n; i++)  // the Flak Cannon's bomblets scatter from the burst
+          rangeApi.bullet(b.frags.kind, off + TAU * i / b.frags.n, b.frags.speed, b.frags.life, b.frags.dmg * WS.dmg, { splash: b.frags.splash, lob: true, raw: true, big: 5 }, { x: b.x, y: b.y });
+        continue;
+      }
       keep.push(b); continue;
     }
     let dead = b.life <= 0 || b.x > 1240 || b.x < -40 || b.y < -40 || b.y > 540;
+    if (!dead && R.ally && (b.heal || b.onAlly) && !b.healed && Math.hypot(b.x - R.ally.x, b.y - R.ally.y) < 14 + b.r + 4) {  // passing a teammate
+      b.healed = true; if (b.heal) healFloat(R.ally.x, R.ally.y, b.heal); if (b.onAlly && b.onAlly(b)) dead = true;
+    }
     if (!dead) for (const d of R.dummies) {
       if (b.hit.has(d) || Math.hypot(b.x - d.x, b.y - d.y) > d.r + b.r) continue;
-      b.hit.add(d); hitDummy(d, b.dmg);
+      b.hit.add(d);
+      if (b.coat) { R.coats.push({ d, t: 0, dmg: b.dmg }); dead = true; break; }  // it circles the dummy, then covers it
+      const hd = b.mult ? b.dmg * b.mult(d, b) : b.dmg;
+      hitDummy(d, hd);
+      if (b.on && b.on(d, b, hd) === "stop") { dead = true; break; }
       if (b.slow) d.slow = 1;
+      if (b.shock) { R.shocks = R.shocks.filter(sh => sh.d !== d); R.shocks.push({ d, left: 3, t: 0, jumps: b.shock, dmg: b.dmg * 0.125 }); }
+      if (b.dart && !(d.cage > 0) && !(d.cageImm > 0)) {  // Bone Guard: the third dart cages it
+        d.dartT = 3;
+        if (++d.darts >= 3) { d.darts = 0; d.cage = 1.5; R.fx.push({ x: d.x, y: d.y, r: d.r + 16, col: SHOT.Bone.col, t: 0, dur: 0.3 }); }
+      }
       if (b.ignite) { d.burn = 3; d.burnDps = Math.max(d.burnDps || 0, b.ignite * WS.dmg); }  // the Flamethrower sets it burning
       if (b.falloff && !b.fell) { b.fell = true; b.dmg *= b.falloff; }  // ...and does less to the ones behind the first
       if (b.splash) { for (const o of R.dummies) if (o !== d && Math.hypot(o.x - b.x, o.y - b.y) < b.splash + o.r) hitDummy(o, b.dmg * 0.6); R.fx.push({ x: b.x, y: b.y, r: b.splash, col: b.col, t: 0, dur: 0.3 }); }
@@ -1182,35 +1585,59 @@ function stepRange(dt) {
       }
       if (b.pierce > 0) b.pierce--; else { dead = true; break; }
     }
-    if (!dead) keep.push(b);
+    if (!dead) keep.push(b); else if (b.end) b.end(b);
   }
-  R.bullets = keep;
+  R.bullets = keep.concat(R.later); R.later = [];
   for (const [a, sp, life, dmg, b] of spawned) R.bullets.push({ ...b, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life, dmg, split: null, hit: new Set() });
   // Companions
   for (const m of R.minions) {
     const d = m.d, sc = m.scale || 1; m.cd -= dt;
-    const tgt = R.dummies.reduce((best, o) => !best || Math.hypot(o.x - m.x, o.y - m.y) < Math.hypot(best.x - m.x, best.y - m.y) ? o : best, null);
+    let tgt = R.dummies.reduce((best, o) => !best || Math.hypot(o.x - m.x, o.y - m.y) < Math.hypot(best.x - m.x, best.y - m.y) ? o : best, null);
+    if (m.kind === "Wolf" && R.prey) tgt = R.prey;  // Wolf Whistle: the pack hunts the marked prey
+    if (m.sent) {  // a wisp or imp you sent: out to its target (a wisp strikes and comes back, an imp blows up)
+      const st = m.sent, sp = m.kind === "Imp" ? 300 : 650; st.t += dt;
+      const gx = st.back ? p.x + Math.cos(m.ang) * 40 : st.d.x, gy = st.back ? p.y + Math.sin(m.ang) * 40 : st.d.y, dx = gx - m.x, dy = gy - m.y, l = Math.hypot(dx, dy);
+      if (l > 0) { m.x += dx / l * Math.min(l, sp * dt); m.y += dy / l * Math.min(l, sp * dt); }
+      if (!st.back && l < st.d.r + d.r * (m.scale || 1) + 4) {
+        if (m.kind === "Imp") { const rr = d.range * (m.scale || 1); for (const o of R.dummies) if (Math.hypot(o.x - m.x, o.y - m.y) < rr + o.r) hitDummy(o, d.dmg * (m.power || 1) * WS.dmg); R.fx.push({ x: m.x, y: m.y, r: rr, col: d.col, t: 0, dur: 0.4 }); m.dead = true; }
+        else { hitDummy(st.d, st.dmg); st.back = true; }
+      }
+      if (st.back && l < 6 || st.t > 2.5) m.sent = null;
+      continue;
+    }
+    if (m.kind === "Imp") { m.ang += dt * 1.5; m.x += (p.x + Math.cos(m.ang) * 30 - m.x) * Math.min(1, dt * 6); m.y += (p.y + Math.sin(m.ang) * 30 - m.y) * Math.min(1, dt * 6); continue; }  // waits by you
     if (m.kind === "Skeleton Guard" || m.kind === "Wisp" || m.kind === "Light Orb") { const sp = { Wisp: 2.5, "Light Orb": 2.2 }[m.kind] || 1.6, rr = { Wisp: 40, "Light Orb": 85 }[m.kind] || 55; m.ang += sp * dt; m.x = p.x + Math.cos(m.ang) * rr; m.y = p.y + Math.sin(m.ang) * rr; }
     else if (m.kind === "Sprite") { m.ang += dt * 2; m.x = p.x + Math.cos(m.ang) * 26; m.y = p.y - 20 + Math.sin(m.ang) * 10; }
-    else if (m.kind === "Treant") { m.x += (p.x + 45 - m.x) * Math.min(1, dt * 4); m.y += (p.y - m.y) * Math.min(1, dt * 4); }
+    else if (m.kind === "Treant") { const hx = m.root ? m.root.x : p.x + 45, hy = m.root ? m.root.y : p.y; m.x += (hx - m.x) * Math.min(1, dt * 4); m.y += (hy - m.y) * Math.min(1, dt * 4); }
     else if (tgt) { const sp = { Golem: 110, Bear: 200, Wolf: 260, Imp: 240 }[m.kind] || 150; const dx = tgt.x - m.x, dy = tgt.y - m.y, l = Math.hypot(dx, dy), stop = tgt.r + d.r; if (l > stop) { m.x += dx / l * Math.min(sp * dt, l - stop); m.y += dy / l * Math.min(sp * dt, l - stop); } }
     if (!tgt) continue;
+    if (m.kind === "Skeleton Guard") {  // they shoot an enemy caged within 320 px
+      const caged = R.dummies.filter(o => o.cage > 0 && Math.hypot(o.x - m.x, o.y - m.y) < 320)[0];
+      if (caged && m.cd <= 0) { m.cd = 0.5 / WS.rate; rangeApi.bullet("Minion", Math.atan2(caged.y - m.y, caged.x - m.x), 650, 320 / 650, 8, {}, m); }
+      if (caged) continue;
+    }
     const dist = Math.hypot(tgt.x - m.x, tgt.y - m.y);
     if (d.attack === "Shoots" && m.cd <= 0 && dist < d.range) { m.cd = d.every; rangeApi.bullet("Minion", Math.atan2(tgt.y - m.y, tgt.x - m.x), 650, d.range / 650, d.dmg, {}, m); }
     if ((d.attack === "Bite" || d.touch) && m.cd <= 0 && dist < tgt.r + d.r + 6) {
       m.cd = d.every; hitDummy(tgt, d.dmg * WS.dmg);
+      if (m.kind === "Wolf" && tgt === R.prey) {  // every wolf biting the prey within a second: a takedown
+        m.bitT = R.t; const pack = R.minions.filter(o => o.kind === "Wolf");
+        if (pack.every(o => o.bitT !== undefined && R.t - o.bitT <= 1)) { hitDummy(tgt, 20 * pack.length * WS.dmg); tgt.stun = Math.max(tgt.stun, 0.6); pack.forEach(o => o.bitT = undefined);
+          R.fx.push({ x: tgt.x, y: tgt.y, r: tgt.r + 22, col: d.col, t: 0, dur: 0.4 }); R.floats.push({ x: tgt.x, y: tgt.y - 40, text: "TAKEDOWN", col: [1, 0.82, 0.3], t: 0, dur: 0.8, size: 13 }); }
+      }
       if (m.kind === "Bear" && WS.extra > 0) { for (const o of R.dummies) if (o !== tgt && Math.hypot(o.x - tgt.x, o.y - tgt.y) < 55 + o.r) hitDummy(o, d.dmg * WS.dmg * Math.min(1, 0.4 * WS.extra)); R.fx.push({ x: tgt.x, y: tgt.y, r: 55, col: d.col, t: 0, dur: 0.25 }); }
     }
     if (d.attack === "Slam" && m.cd <= 0 && dist < d.range * sc + tgt.r) { m.cd = d.every; for (const o of R.dummies) if (Math.hypot(o.x - m.x, o.y - m.y) < d.range * sc + o.r) hitDummy(o, d.dmg * sc * WS.dmg); R.fx.push({ x: m.x, y: m.y, r: d.range * sc, col: d.col, t: 0, dur: 0.3 }); }
     if (d.attack === "Explodes on contact" && dist < tgt.r + d.r + 6) { for (const o of R.dummies) if (Math.hypot(o.x - m.x, o.y - m.y) < d.range + o.r) hitDummy(o, d.dmg * WS.dmg); R.fx.push({ x: m.x, y: m.y, r: d.range, col: d.col, t: 0, dur: 0.35 }); m.dead = true; }
   }
   if (R.minions.some(m => m.dead)) R.minions = R.minions.filter(m => !m.dead);
-  if (w.companion && w.companion[0] === "Imp") { R.minionCd -= dt; if (R.minions.length < companionCount(w) && R.minionCd <= 0) { R.minionCd = 3 / (1 + 0.5 * WS.extra); R.minions.push({ kind: "Imp", d: MINIONS.Imp, x: p.x + 20, y: p.y, ang: 0, cd: 0 }); } }
+  if (w.companion && w.companion[0] === "Imp") { R.minionCd -= dt; if (R.minions.length < companionCount(w) && R.minionCd <= 0) { R.minionCd = 3 / (1 + 0.5 * WS.extra); R.minions.push({ kind: "Imp", d: MINIONS.Imp, x: p.x + 20, y: p.y, ang: rnd(0, TAU), cd: 0 }); } }
   for (const f of R.fx) f.t += dt; R.fx = R.fx.filter(f => f.t < f.dur);
   for (const f of R.floats) f.t += dt; R.floats = R.floats.filter(f => f.t < f.dur);
   for (const f of R.bolts) f.t += dt; R.bolts = R.bolts.filter(f => f.t < f.dur);
 }
 function weaponRange(w) {
+  if (w.span) return w.span();
   if (w.melee) return Math.round(w.reach * (1 + 0.1 * WS.pierce));
   const m = w.rows.find(r => r[0].startsWith("Speed"));
   const n = m ? parseFloat(m[1].split("·")[1]) : 0;
@@ -1309,12 +1736,68 @@ function drawRange() {
     const rr = weaponRange(w);
     if (rr) { ctx.strokeStyle = "rgba(255,204,89,0.25)"; ctx.setLineDash([6, 8]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, rr, -0.7, 0.7); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = "rgba(255,204,89,0.6)"; ctx.font = "500 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "left"; ctx.fillText(`range ${rr} px`, p.x + rr * Math.cos(0.7) + 6, p.y + rr * Math.sin(0.7)); }
-    for (let x = 200; x <= 1200; x += 200) { ctx.fillStyle = "rgba(142,151,179,0.4)"; ctx.font = "500 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.fillText(`${x - p.x}px`, x, 490); }
+    for (let x = 200; x <= 1200; x += 200) { ctx.fillStyle = "rgba(142,151,179,0.4)"; ctx.font = "500 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.fillText(`${Math.round(x - R.home.x)}px`, x, 490); }
   }
+  if (w.under) w.under(ctx, R, t);  // things on the ground: incense, wards, a vine, a charged path...
+  if (R.ally) drawPlayer(ctx, R.ally.x, R.ally.y, "Tank", Math.PI, t, { alpha: 0.85 });
   for (const d of R.dummies) dummy(ctx, d, anim() ? t : 0);
-  for (const f of R.fx) { const k = f.t / f.dur; if (f.implode) { drawImplode(ctx, f, k); continue; } if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
-  for (const f of R.bolts) { ctx.strokeStyle = `rgba(190,215,255,${1 - f.t / f.dur})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(f.a.x, f.a.y);
+  for (const d of R.dummies) {
+    if (d.poison > 0) for (let k = 0; k < d.poison; k++) { const q = (t * 0.8 + k / d.poison + d.ph * 0.2) % 1; ctx.fillStyle = `rgba(140,230,90,${0.9 * (1 - q)})`; ctx.beginPath(); ctx.arc(d.x - 8 + k * 4, d.y - d.r - q * 16, 2.4, 0, TAU); ctx.fill(); }
+    if (d.supp > 0.01) { ctx.strokeStyle = "rgba(160,170,190,0.85)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(d.x, d.y, d.r + 9, Math.PI * 1.25, Math.PI * 1.25 + Math.PI * 1.5 * d.supp / 0.5); ctx.stroke(); }  // suppressed: a grey gauge
+    if (d.seedT > 0) { ctx.fillStyle = css(SHOT.Seed.col); for (let k = 0; k < 3; k++) { const a = t + k * TAU / 3; ctx.beginPath(); ctx.arc(d.x + Math.cos(a) * (d.r - 3), d.y + Math.sin(a) * (d.r - 3), 2.5, 0, TAU); ctx.fill(); } }
+    if (d.hemo > 0) { ctx.strokeStyle = "rgba(217,26,46,0.95)"; ctx.lineWidth = 2; for (let k = 0; k < d.hemo; k++) { const a = -2.4 + k * 0.45; ctx.beginPath(); ctx.moveTo(d.x + Math.cos(a) * (d.r - 3), d.y + Math.sin(a) * (d.r - 3)); ctx.lineTo(d.x + Math.cos(a) * (d.r + 5), d.y + Math.sin(a) * (d.r + 5)); ctx.stroke(); } }
+    if (d.cage > 0) {  // bone bars
+      const bc = SHOT.Bone.col, cr = d.r + 6;
+      ctx.strokeStyle = css(bc, 0.35 + 0.2 * Math.sin(t * 10)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y, cr + 5, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = css(bc, 0.95); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(d.x, d.y, cr, 0, TAU); ctx.stroke();
+      for (let k = 0; k < 7; k++) { const a = TAU * k / 7; ctx.beginPath(); ctx.moveTo(d.x + Math.cos(a) * (cr - 5), d.y + Math.sin(a) * (cr - 5)); ctx.lineTo(d.x + Math.cos(a) * (cr + 5), d.y + Math.sin(a) * (cr + 5)); ctx.stroke(); }
+    } else for (let k = 0; k < d.darts; k++) {  // darts sticking in it
+      const a = -Math.PI * 0.8 + k * 0.5; ctx.strokeStyle = css(SHOT.Bone.col); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(d.x + Math.cos(a) * (d.r - 4), d.y + Math.sin(a) * (d.r - 4)); ctx.lineTo(d.x + Math.cos(a) * (d.r + 6), d.y + Math.sin(a) * (d.r + 6)); ctx.stroke();
+    }
+    if (d.stun > 0) { ctx.strokeStyle = css(SHOT.Bolt.col, 0.6 + 0.4 * Math.sin(t * 40)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y, d.r + 5, t * 6, t * 6 + 4); ctx.stroke(); }
+    if (R.shocks.some(sh => sh.d === d)) { ctx.strokeStyle = css(SHOT.Hammer.col, 0.5 + 0.5 * Math.sin(t * 50)); ctx.lineWidth = 1.5;
+      for (let k = 0; k < 4; k++) { const a = rnd(0, TAU); ctx.beginPath(); ctx.moveTo(d.x + Math.cos(a) * d.r, d.y + Math.sin(a) * d.r); ctx.lineTo(d.x + Math.cos(a + 0.3) * (d.r + 9), d.y + Math.sin(a + 0.3) * (d.r + 9)); ctx.stroke(); } }
+    if (d.bleed > 0) { ctx.fillStyle = "rgba(217,26,46,0.85)"; const k = (t * 1.5 + d.ph * 0.3) % 1; ctx.beginPath(); ctx.arc(d.x + 6, d.y + d.r * 0.3 + k * 18, 2.2, 0, TAU); ctx.fill(); }
+  }
+  for (const ct of R.coats) {  // blood circling the dummy it's about to cover
+    const d = ct.d, k = ct.t / 0.45, col = SHOT.Sanguine.col;
+    for (let j = 0; j < 4; j++) { const a = k * TAU * 1.5 + j * TAU / 4, rr = d.r * (1.15 - 0.5 * k); ctx.fillStyle = css(col, 0.9); ctx.beginPath(); ctx.arc(d.x + Math.cos(a) * rr, d.y + Math.sin(a) * rr, 3, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = css(col, 0.18 * k); ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, TAU); ctx.fill();
+  }
+  for (const f of R.fx) { const k = f.t / f.dur; if (f.implode) { drawImplode(ctx, f, k); continue; }
+    if (f.cone) {  // Chain Light: a fan of light that grows out, white edges and rays
+      const g = 0.6 + 0.4 * Math.min(1, k / 0.15), r = f.reach * g, fade = 1 - k;
+      ctx.fillStyle = css(f.col, 0.22 * fade); ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, r, f.a - f.half, f.a + f.half); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = `rgba(255,255,255,${0.7 * fade})`; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.strokeStyle = css(f.col, 0.5 * fade); for (let j = 0; j < 5; j++) { const a = f.a - f.half * 0.8 + j * f.half * 0.4; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + Math.cos(a) * r * 0.95, f.y + Math.sin(a) * r * 0.95); ctx.stroke(); }
+      continue;
+    }
+    if (f.strip) {  // Arc Lightning: the shocked strip, jagged bolts along it and one to each dummy hit
+      const c = Math.cos(f.a), sn = Math.sin(f.a), fade = 1 - k;
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a);
+      ctx.fillStyle = css(f.col, 0.16 * fade); ctx.fillRect(0, f.shift - f.half, f.len, 2 * f.half);
+      ctx.strokeStyle = css(f.col, 0.7 * fade); ctx.lineWidth = 2; ctx.strokeRect(0, f.shift - f.half, f.len, 2 * f.half);
+      for (let j = 0; j < 3; j++) { const y0 = f.shift + (j - 1) * f.half * 0.55; ctx.strokeStyle = j === 1 ? `rgba(255,255,255,${0.95 * fade})` : css(f.col, 0.8 * fade); ctx.lineWidth = j === 1 ? 3 : 1.5;
+        ctx.beginPath(); ctx.moveTo(0, y0); for (let u = 30; u < f.len; u += 30) ctx.lineTo(u, y0 + rnd(-12, 12)); ctx.lineTo(f.len, y0); ctx.stroke(); }
+      ctx.restore();
+      ctx.strokeStyle = `rgba(255,255,255,${0.8 * fade})`; ctx.lineWidth = 1.5;
+      for (const h of f.hits) { const along = (h.x - f.x) * c + (h.y - f.y) * sn, mx = f.x + c * along - sn * f.shift, my = f.y + sn * along + c * f.shift;
+        ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo((mx + h.x) / 2 + rnd(-6, 6), (my + h.y) / 2 + rnd(-6, 6)); ctx.lineTo(h.x, h.y); ctx.stroke(); }
+      continue;
+    } if (f.pool) { ctx.fillStyle = css(f.col, 0.3 * (1 - k * k)); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); continue; } ctx.strokeStyle = css(f.col, 1 - k); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (0.4 + 0.6 * k), 0, TAU); ctx.stroke(); }
+  for (const f of R.bolts) { ctx.strokeStyle = f.col ? css(f.col, 1 - f.t / f.dur) : `rgba(190,215,255,${1 - f.t / f.dur})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(f.a.x, f.a.y);
     for (let s = 1; s < 5; s++) ctx.lineTo(f.a.x + (f.b.x - f.a.x) * s / 5 + rnd(-8, 8), f.a.y + (f.b.y - f.a.y) * s / 5 + rnd(-8, 8)); ctx.lineTo(f.b.x, f.b.y); ctx.stroke(); }
+  if (R.orb) {  // the Radiant Orb: a beam of light back to you, a soft glow, turning rays and a bright core
+    const o = R.orb, c = SHOT.Holy.col, pl = R.player, pulse = 0.5 + 0.5 * Math.sin(R.t * 8);
+    ctx.strokeStyle = css(c, 0.35); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(pl.x, pl.y); ctx.lineTo(o.x, o.y); ctx.stroke();
+    ctx.fillStyle = css(c, 0.12 + 0.05 * pulse); ctx.beginPath(); ctx.arc(o.x, o.y, 32, 0, TAU); ctx.fill();
+    ctx.fillStyle = css(c, 0.28); ctx.beginPath(); ctx.arc(o.x, o.y, 20, 0, TAU); ctx.fill();
+    ctx.strokeStyle = css(c, 0.6); ctx.lineWidth = 2;
+    for (let k = 0; k < 6; k++) { const a = R.t * 1.5 + k * TAU / 6; ctx.beginPath(); ctx.moveTo(o.x + Math.cos(a) * 11, o.y + Math.sin(a) * 11); ctx.lineTo(o.x + Math.cos(a) * (21 + 3 * pulse), o.y + Math.sin(a) * (21 + 3 * pulse)); ctx.stroke(); }
+    ctx.fillStyle = css(c, 1); ctx.beginPath(); ctx.arc(o.x, o.y, 9 + 1.5 * pulse, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(o.x, o.y, 4.4, 0, TAU); ctx.fill();
+  }
   for (const b of R.beams || []) {  // Vein Tether: a pulsing blood beam with veins twisting along it, drops flowing home on a hit
     const c = Math.cos(b.a), sn = Math.sin(b.a), ex = b.from.x + c * b.len, ey = b.from.y + sn * b.len, pulse = 0.5 + 0.5 * Math.sin(t * 18), f = b.hit ? 1 : 0.55;
     ctx.lineCap = "round";
@@ -1337,7 +1820,26 @@ function drawRange() {
   for (const sl of R.slashes) {  // swing arcs
     if (sl.t < 0) continue;
     const k = sl.t / 0.22, full = sl.half >= Math.PI - 0.01, from = full ? sl.a + R.t * 6 : sl.a - sl.half, sweep = 2 * sl.half * Math.min(1, k * 3);
-    if (sl.box) {  // the Lance: its box slides out from you, lance tip on the leading edge
+    if (sl.icicle === 1) {  // Frost Lance: a tapering icicle eases out from you, frost ridges and cracks as it fades
+      const k2 = sl.t / sl.dur, g = 1 - (1 - Math.min(1, k2 / 0.2)) ** 3, fade = k2 < 0.35 ? 1 : 1 - (k2 - 0.35) / 0.65, len = sl.reach * g, w = sl.box;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(sl.a);
+      ctx.fillStyle = `rgba(199,240,255,${0.25 * fade})`; ctx.beginPath(); ctx.moveTo(10, -w - 5); ctx.lineTo(len + 8, 0); ctx.lineTo(10, w + 5); ctx.fill();
+      ctx.fillStyle = `rgba(199,240,255,${0.95 * fade})`; ctx.beginPath(); ctx.moveTo(12, -w); ctx.lineTo(len, 0); ctx.lineTo(12, w); ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${0.8 * fade})`; ctx.beginPath(); ctx.moveTo(12, -w * 0.35); ctx.lineTo(len * 0.95, 0); ctx.lineTo(12, 0); ctx.fill();
+      if (k2 > 0.35) { ctx.strokeStyle = `rgba(110,170,210,${0.7 * fade})`; ctx.lineWidth = 1.2;
+        for (let j = 1; j < 5; j++) { const u = len * j / 5, hw = w * (1 - u / len); ctx.beginPath(); ctx.moveTo(u, -hw); ctx.lineTo(u + 8, hw * 0.3); ctx.stroke(); } }
+      ctx.restore(); continue;
+    }
+    if (sl.icicle === 2) {  // ...and its splinters fly off both sides along its length
+      const k2 = sl.t / sl.dur, g = Math.min(1, k2 / 0.6), fade = 1 - k2, n = Math.max(4, Math.round(sl.reach / 22));
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(sl.a);
+      ctx.fillStyle = `rgba(153,230,255,${0.08 * fade})`; ctx.fillRect(14, -sl.box, sl.reach - 14, 2 * sl.box);
+      ctx.strokeStyle = `rgba(199,240,255,${0.95 * fade})`; ctx.lineWidth = 2;
+      for (let j = 0; j < n; j++) for (const sg of [1, -1]) { const u = 20 + (sl.reach - 20) * (j + 0.5) / n, o = sg * (14 + (sl.box - 14) * g);
+        ctx.beginPath(); ctx.moveTo(u - 3, o - sg * 7); ctx.lineTo(u + 2, o); ctx.stroke(); }
+      ctx.restore(); continue;
+    }
+    if (sl.box && !sl.cut) {  // the Lance: its box slides out from you, lance tip on the leading edge
       const k2 = sl.t / 0.26; if (k2 >= 1) continue;
       let g = Math.min(1, k2 / 0.35); g = 1 - (1 - g) ** 3; const fade = k2 < 0.35 ? 1 : 1 - (k2 - 0.35) / 0.65, front = sl.reach * g, c = Math.cos(sl.a), sn = Math.sin(sl.a), w = sl.box;
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(sl.a);
@@ -1361,10 +1863,12 @@ function drawRange() {
       continue;
     }
     if (sl.half < 0.2) { ctx.strokeStyle = `rgba(230,240,255,${0.9 * (1 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + Math.cos(sl.a) * sl.reach, p.y + Math.sin(sl.a) * sl.reach); ctx.stroke(); continue; }
-    ctx.strokeStyle = `rgba(215,235,255,${0.28 * (1 - k)})`; ctx.lineWidth = sl.reach * 0.4; ctx.beginPath(); ctx.arc(p.x, p.y, sl.reach * 0.78, from, from + sweep); ctx.stroke();
-    ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, sl.reach, from, from + sweep); ctx.stroke();
+    const tint = sl.col === 2 ? ["225,40,60", "255,120,130"] : ["215,235,255", "255,255,255"];  // a blood whip is red
+    ctx.strokeStyle = `rgba(${tint[0]},${0.28 * (1 - k)})`; ctx.lineWidth = sl.reach * 0.4; ctx.beginPath(); ctx.arc(p.x, p.y, sl.reach * 0.78, from, from + sweep); ctx.stroke();
+    ctx.strokeStyle = `rgba(${tint[1]},${0.9 * (1 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, sl.reach, from, from + sweep); ctx.stroke();
   }
   for (const b of R.bullets) {
+    if (b.look) { b.look(ctx, b, t); continue; }
     if (b.lance) {  // a Frost Lance spear: faceted ice head over the hitbox, shaft and frost streak behind
       const a = Math.atan2(b.vy, b.vx), c = Math.cos(a), sn = Math.sin(a), px = -sn, py = c, r = b.r;
       const tipX = b.x + c * r * 1.4, tipY = b.y + sn * r * 1.4, bkX = b.x - c * r * 0.8, bkY = b.y - sn * r * 0.8, tlX = b.x - c * r * 3.6, tlY = b.y - sn * r * 3.6;
@@ -1384,6 +1888,30 @@ function drawRange() {
         for (const sg of [1, -1]) { ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx - c * 4 + px * 3.5 * sg, ty - sn * 4 + py * 3.5 * sg); ctx.stroke(); } }
       continue;
     }
+    if (b.hammer) {  // Storm Hammer: a tumbling war hammer, sparks off it
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(t * 14 + b.spin);
+      ctx.fillStyle = css(b.col, 0.2); ctx.beginPath(); ctx.arc(0, 0, b.r + 6, 0, TAU); ctx.fill();
+      ctx.strokeStyle = "rgba(140,105,75,1)"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(0, 11); ctx.lineTo(0, -6); ctx.stroke();
+      ctx.fillStyle = css(b.col); ctx.fillRect(-9, -12, 18, 9); ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.fillRect(-9, -12, 18, 2.5);
+      ctx.restore();
+      ctx.strokeStyle = css(b.col, 0.8); ctx.lineWidth = 1.5; for (let k = 0; k < 2; k++) { const a = rnd(0, TAU); ctx.beginPath(); ctx.moveTo(b.x + Math.cos(a) * 12, b.y + Math.sin(a) * 12); ctx.lineTo(b.x + Math.cos(a) * 19, b.y + Math.sin(a) * 19); ctx.stroke(); }
+      continue;
+    }
+    if (b.boulder) {  // Golem Staff: the boulder high in its arc, its shadow on the ground shrinking as it rises
+      const k = 1 - b.life / b.boulder, h = Math.sin(Math.PI * k) * (40 + 90 * (b.boulder - 0.4) / 0.3), sh = 1 - 0.4 * h / 130;
+      ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.beginPath(); ctx.ellipse(b.x, b.y, b.r * sh, b.r * 0.55 * sh, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = css(b.col); poly(ctx, b.x, b.y - h, b.r, 7, t * 3 + b.spin); ctx.fill(); ctx.strokeStyle = "rgba(60,50,40,0.9)"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.beginPath(); ctx.arc(b.x - 4, b.y - h - 5, b.r * 0.35, 0, TAU); ctx.fill();
+      continue;
+    }
+    if (b.fireball) {  // Fireball: a flame trail, an orange body, a hot core and a white heart
+      const sp = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / sp, uy = b.vy / sp;
+      for (let k = 4; k >= 1; k--) { ctx.fillStyle = `rgba(255,${100 + 20 * k},40,${0.12 * (5 - k)})`; ctx.beginPath(); ctx.arc(b.x - ux * k * 9 + rnd(-2, 2), b.y - uy * k * 9 + rnd(-2, 2), b.r * (1 - k * 0.15), 0, TAU); ctx.fill(); }
+      ctx.fillStyle = css(b.col); ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, TAU); ctx.fill();
+      ctx.fillStyle = "rgba(255,199,77,1)"; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.65, 0, TAU); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.32, 0, TAU); ctx.fill();
+      continue;
+    }
     if (b.shape) { drawNinjaShot(ctx, b, t); continue; }
     if (b.wave) { const a = Math.atan2(b.vy, b.vx); ctx.strokeStyle = "rgba(230,240,255,0.95)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x - Math.cos(a) * 8, b.y - Math.sin(a) * 8, b.r + 6, a - 0.85, a + 0.85); ctx.stroke(); continue; }
     if (b.trail) { ctx.strokeStyle = css(b.col, 0.4); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.04, b.y - b.vy * 0.04); ctx.stroke(); }
@@ -1394,7 +1922,8 @@ function drawRange() {
     if (m.kind === "Light Orb") { ctx.fillStyle = css(m.d.col, 0.22); ctx.beginPath(); ctx.arc(m.x, m.y, m.d.r * 2.4, 0, TAU); ctx.fill(); }
     ctx.fillStyle = css(m.d.col); poly(ctx, m.x, m.y, m.d.r * sc, m.d.sides, t * 1.5); ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 1.5; ctx.stroke();
     if (m.d.block) { ctx.strokeStyle = css(m.d.col, 0.25); ctx.beginPath(); ctx.arc(m.x, m.y, m.d.block * sc, 0, TAU); ctx.stroke(); } }
-  drawPlayer(ctx, p.x, p.y, w.role, R.aim, t);
+  drawPlayer(ctx, p.x, p.y, w.role, R.aim, t, { alpha: R.dash && R.dash.t < R.dash.dur ? 0.65 : 1 });
+  if (w.paint) w.paint(ctx, R, t);
   if (w.bow && range.drawT > 0) {  // the draw ring (gold at full) and an aim cone that narrows to a line
     const full = 0.9 / WS.rate, c = Math.max(0, Math.min(1, (range.drawT - 0.15) / (full - 0.15))), gold = c >= 1;
     ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 28, 0, TAU); ctx.stroke();
@@ -1411,6 +1940,21 @@ function drawRange() {
         ctx.fillStyle = hv ? `rgba(255,204,77,${i < left ? 0.95 : 0.15})` : `rgba(217,242,255,${i < left ? 0.95 : 0.15})`;
         ctx.beginPath(); ctx.arc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, hv ? 3.4 : 2.8, 0, TAU); ctx.fill(); } }
   }
+  if (w.charge && R.drawT > 0) {  // the charge ring (gold when full), and where it will land or how far the strip reaches
+    const full = 0.9 / WS.rate, c = Math.max(0, Math.min(1, (R.drawT - 0.15) / (full - 0.15))), gold = c >= 1, ca = Math.cos(R.aim), sa = Math.sin(R.aim);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 28, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = gold ? "rgba(255,209,77,0.95)" : "rgba(190,215,255,0.85)"; ctx.beginPath(); ctx.arc(p.x, p.y, 28, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, c)); ctx.stroke();
+    if (w.id === "Golem Staff") {
+      const d = 140 + 320 * c, lx = p.x + ca * d, ly = p.y + sa * d;
+      ctx.setLineDash([3, 7]); ctx.strokeStyle = "rgba(220,200,170,0.5)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.quadraticCurveTo((p.x + lx) / 2, (p.y + ly) / 2 - 70, lx, ly); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = "rgba(220,200,170,0.7)"; ctx.beginPath(); ctx.arc(lx, ly, 75, 0, TAU); ctx.stroke();
+    } else {
+      const len = 160 + 640 * c; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(R.aim);
+      ctx.fillStyle = "rgba(190,215,255,0.07)"; ctx.fillRect(0, -45, len, 90); ctx.strokeStyle = "rgba(190,215,255,0.4)"; ctx.lineWidth = 1.5; ctx.strokeRect(0, -45, len, 90);
+      ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.beginPath(); ctx.moveTo(len, -45); for (let y = -30; y <= 45; y += 15) ctx.lineTo(len + rnd(-5, 5), y); ctx.stroke();
+      ctx.restore();
+    }
+  }
   for (const f of R.floats) floater(ctx, f);
   if (!WS.playing) { ctx.fillStyle = "rgba(255,204,89,0.9)"; ctx.font = "700 20px Oxanium, sans-serif"; ctx.textAlign = "left"; ctx.fillText("PAUSED", 16, 30); }
 }
@@ -1422,7 +1966,7 @@ function buildWeaponList() {
     g.innerHTML = `<h3><span style="color:${css(r.col)}">${k.id} ${r.id}</span></h3><div class="list"></div>`;
     for (const w of list) {
       const b = document.createElement("button"); b.className = "item"; b.type = "button"; b.dataset.id = w.id;
-      b.innerHTML = `<span class="swatch" style="background:${css(SHOT[w.shot].col)}"></span><span class="t"><b>${w.id}</b><small>${fmt(wDps(w), 1)} dmg/s · every ${w.every} s</small></span>`;
+      b.innerHTML = `<span class="swatch" style="background:${css(SHOT[w.shot].col)}"></span><span class="t"><b>${w.id}</b><small>${fmt(wDps(w), 1)} dmg/s · ${w.charge ? "hold to charge" : `every ${w.every} s`}</small></span>`;
       b.addEventListener("click", () => selectWeapon(w.id));
       g.querySelector(".list").appendChild(b);
     }
@@ -1438,6 +1982,7 @@ function selectWeapon(id) {
   $("wLead").textContent = w.desc;
   $("wTrigWrap").hidden = !w.revolver;
   $("wDrawWrap").hidden = !w.bow;
+  $("wChargeWrap").hidden = !w.charge;
   renderWeaponSheet();
   newRange();
 }
@@ -1445,16 +1990,16 @@ function renderWeaponSheet() {
   const w = WBY[WS.sel];
   const sustained = w.bow ? `${fmt(8 / 0.4, 1)} tapping · ${fmt(40 / 1.15, 1)} full draws · ${fmt(50 / 1.2, 1)} perfect releases <small>(one target)</small>` : w.revolver ? `${fmt((5 * 24 + 48) / (6 * 0.45 + 1.2), 1)} tapping · ${fmt((5 * 24 + 48) / (0.2 + 5 * 0.07 + 1.2), 1)} fanning <small>(a full cylinder and its reload)</small>` : null;
   $("wStats").innerHTML = [
-    ["Fires every", w.bow ? "when you let go (full draw 0.9 s, then 0.25 s recovery)" : w.revolver ? `0.45 s tapping · 0.07 s fanning` : `${w.every} s <small>(${fmt(1 / w.every, 1)} per second)</small>`],
-    ["Damage per volley", w.bow ? "8 tap · 40 full · 50 perfect" : w.revolver ? "24 (heavy rounds 48)" : `${fmt(w.dmgPerVolley, 1)}`],
-    ["Damage per second", sustained || `${fmt(wDps(w), 1)} <small>(direct hits, no upgrades)</small>`],
+    ["Fires every", w.bow ? "when you let go (full draw 0.9 s, then 0.25 s recovery)" : w.charge ? "when you let go (full charge 0.9 s, then 0.25 s before the next)" : w.revolver ? `0.45 s tapping · 0.07 s fanning` : `${w.every} s <small>(${fmt(1 / w.every, 1)} per second)</small>`],
+    ["Damage per volley", w.bow ? "8 tap · 40 full · 50 perfect" : w.revolver ? "24 (heavy rounds 48)" : w.volley || `${fmt(w.dmgPerVolley, 1)}`],
+    ["Damage per second", sustained || `${fmt(wDps(w), 1)} <small>(${w.charge ? "full charges on one target" : "direct hits on one target"}, no upgrades)</small>`],
     ["Each extra projectile", w.xtra],
     w.melee ? ["Reach", `${weaponRange(w)} px <small>(Piercing Rounds add 10% a stack)</small>`] : w.implode ? ["Reach", "480 px to the enemy you click <small>(Velocity Rounds stretch it)</small>"] : w.grasp ? ["Reach", "160 px from your edge, in a 70° arc <small>(Velocity Rounds stretch it)</small>"] : ["Bullet", `<span class="swatch" style="display:inline-block;vertical-align:-1px;background:${css(SHOT[w.shot].col)}"></span> radius ${SHOT[w.shot].r} px`],
   ].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   $("wTable").innerHTML = `<tbody>${w.rows.map(([k, v]) => `<tr><td style="white-space:nowrap;color:var(--muted)">${k}</td><td>${v}</td></tr>`).join("")}</tbody>`;
   const notes = [
     `Extra projectiles (Multishot, +2 during Bullet Storm) upgrade each weapon its own way. For the ${w.id}: ${w.xtra.charAt(0).toLowerCase() + w.xtra.slice(1)}.`,
-    w.melee ? "Barrage (Rare, up to 3) makes every swing also throw a sword wave (9 damage) per stack, fanned 8° to alternating sides." : "Want a wall of bullets instead? Barrage (Rare, up to 3) also fires a copy of every shot fanned 8° to the side, alternating sides. It stacks with extra projectiles.",
+    w.fanNote || (w.melee ? "Barrage (Rare, up to 3) makes every swing also throw a sword wave (9 damage) per stack, fanned 8° to alternating sides." : "Want a wall of bullets instead? Barrage (Rare, up to 3) also fires a copy of every shot fanned 8° to the side, alternating sides. It stacks with extra projectiles."),
   ];
   if (w.melee) notes.push("Every swing cuts small enemy bullets out of the air in its arc (a mastered Whirlwind stops big orbs and mines too; bosses' red aimed shots always get through). Elemental weapon mods apply to every hit; Homing, Ricochet and Velocity Rounds only change sword waves.");
   if (w.companion && w.companion[0] !== "Light Orb") { const [k] = w.companion, d = MINIONS[k]; notes.push(`${k}: ${d.move.toLowerCase()}; ${d.attack.toLowerCase()}${d.dmg ? `, ${d.dmg} damage` : ""}${d.every ? ` every ${d.every} s` : ""}${d.block ? `; blocks bullets within ${d.block} px (soaks ${d.cap} boss damage, then staggers for 4 s)` : ""}.`); }
@@ -1465,7 +2010,7 @@ function rangeReadout() {
   const R = range;
   const w = WBY[WS.sel];
   const ammo = w.revolver ? `<span>Cylinder <b>${R.reloadT > 0 ? "reloading" : (6 + 2 * WS.extra - R.ammoUsed) + " / " + (6 + 2 * WS.extra)}</b></span>` : "";
-  $("wReadout").innerHTML = ammo + `<span>Time <b>${R.t.toFixed(1)} s</b></span><span>Damage dealt <b>${fmt(R.dealt, 0)}</b></span><span>Measured damage / s <b>${R.t > 0 ? fmt(R.dealt / R.t, 1) : 0}</b></span><span>Bullets in flight <b>${R.bullets.length}</b></span>`;
+  $("wReadout").innerHTML = ammo + `<span>Time <b>${R.t.toFixed(1)} s</b></span><span>Damage dealt <b>${fmt(R.dealt, 0)}</b></span><span>Measured damage / s <b>${R.t > 0 ? fmt(R.dealt / R.t, 1) : 0}</b></span><span>Bullets in flight <b>${R.bullets.length}</b></span>` + (w.id === "Sanguine Orb" ? `<span>Heal reserve <b>${R.reserve} / 100</b>${R.reserve >= 25 ? " (ready)" : ""}</span>` : "");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1789,12 +2334,12 @@ function renderUpgrades() {
   const g = $("ugrid"); g.innerHTML = "";
   for (const u of U) {
     if (!rarOn.has(u.rar)) continue;
-    const r = RAR[u.rar], n = build[u.name] || 0;
+    const r = RAR[u.rar], n = build[u.name] || 0, max = u.max >= 99 ? 20 : u.max;
     const req = [u.req ? `Needs ${u.req}` : "", u.boss ? `From ${u.boss}` : "", u.grants ? `Takes a Q / E / Shift slot (3 max)` : "", u.max < 99 ? `Stacks up to ${u.max}` : "Stacks without limit"].filter(Boolean).join(" · ");
     const el = document.createElement("div"); el.className = "ucard" + (n ? " have" : "");
     el.style.borderLeft = `3px solid ${css(r.col)}`;
     el.innerHTML = `<canvas width="48" height="48"></canvas><span class="nm">${u.name}</span><span class="rar" style="color:${css(r.col)}">${r.label}</span><span class="ds">${u.desc}</span><span class="rq">${req}</span>
-      <span class="stk"><button type="button" data-u="${u.name}" data-d="-1" aria-label="Remove one ${u.name}">−</button><b style="color:var(--fg)">${n}</b><button type="button" data-u="${u.name}" data-d="1" aria-label="Add one ${u.name}">+</button><span>in build</span></span>`;
+      <span class="stk"><span class="step"><button type="button" data-u="${u.name}" data-d="-1" aria-label="Remove one ${u.name}"${n ? "" : " disabled"}>−</button><b style="color:var(--fg)">${n}</b><button type="button" data-u="${u.name}" data-d="1" aria-label="Add one ${u.name}"${max && n >= max ? " disabled" : ""}>+</button></span><span>in build</span></span>`;
     drawIcon(el.querySelector("canvas"), ICONS.names[u.name]);
     g.appendChild(el);
   }
@@ -1833,7 +2378,7 @@ function renderOdds() {
 // Summons & zones
 // ---------------------------------------------------------------------------------------------
 function buildSummons() {
-  const from = { Turret: "Turret (bonus ability)", "Light Orb": "Radiant Orb (one per extra projectile)", Golem: "Golem Staff (+1 per extra projectile, up to 3)", "Skeleton Guard": "Bone Guard (+1 per extra projectile)", Bear: "Bear Totem", Sprite: "Sprite Staff (+1 per extra projectile), Spirit Swarm, World Tree", Treant: "Treant Rod (grows 30% per extra projectile)", Wolf: "Wolf Whistle (+1 per extra projectile), Legion",
+  const from = { Turret: "Turret (bonus ability)", "Light Orb": "Radiant Orb (one per extra projectile)", Golem: "Golem Staff (+1 per extra projectile, up to 3)", "Skeleton Guard": "Bone Guard (+1 per extra projectile)", Bear: "Bear Totem", Sprite: "Sprite Staff (+1 per extra projectile; a seeded kill frees one more for 6 s), Spirit Swarm, World Tree", Treant: "Treant Rod (grows 30% per extra projectile)", Wolf: "Wolf Whistle (+1 per extra projectile), Legion",
     Wisp: "Wisp Lantern (+1 per extra projectile)", Imp: "Imp Caller (+1 and 50% faster per extra projectile)", Bat: "Bat Swarm, Legion", Phoenix: "Phoenix", "Shadow Clone": "Shadow Clone (Tank · Ninja); Thousand Clones", "Guardian Spirit": "Guardian Spirit", "Stone Wall": "Golem Wall", Titan: "Titan (ultimate)" };
   $("minionTable").innerHTML = `<thead><tr><th>Minion</th><th>From</th><th>Moves</th><th>Attack</th><th>Damage</th><th>Every</th><th>Blocks</th></tr></thead><tbody>` +
     Object.entries(MINIONS).map(([k, m]) => `<tr><td><canvas width="40" height="40" data-m="${k}" style="width:20px;height:20px;vertical-align:-5px;margin-right:6px"></canvas><b>${k}</b></td><td>${from[k]}</td><td>${m.move}</td><td>${m.attack}${m.range && m.attack !== "Shoots" && m.attack !== "Shoots fire" ? ` (${m.range} px)` : m.range ? ` (${m.range} px range)` : ""}</td>
@@ -1854,13 +2399,14 @@ seg("wDmg", v => { WS.dmg = Number(v); renderWeaponSheet(); newRange(); });
 seg("wFan", v => { WS.fan = Number(v); renderWeaponSheet(); newRange(); });
 seg("wTrig", v => { WS.trigger = v; newRange(); });
 seg("wDraw", v => { WS.draw = v; newRange(); });
+seg("wCharge", v => { WS.charge = v; newRange(); });
 seg("wRate", v => { WS.rate = Number(v); renderWeaponSheet(); newRange(); });
 $("wSweep").addEventListener("change", e => WS.sweep = e.target.checked);
 $("wRange").addEventListener("change", e => WS.range = e.target.checked);
-$("wPlay").addEventListener("click", () => { WS.playing = !WS.playing; $("wPlay").textContent = WS.playing ? "Pause" : "Play"; });
+$("wPlay").addEventListener("click", () => { WS.playing = !WS.playing; $("wPlay").textContent = WS.playing ? "Pause" : "Play"; $("wPlay").classList.toggle("paused", !WS.playing); });
 $("wReset").addEventListener("click", newRange);
 seg("aSpeed", v => AS.speed = Number(v));
-$("aPlay").addEventListener("click", () => { AS.playing = !AS.playing; $("aPlay").textContent = AS.playing ? "Pause" : "Play"; });
+$("aPlay").addEventListener("click", () => { AS.playing = !AS.playing; $("aPlay").textContent = AS.playing ? "Pause" : "Play"; $("aPlay").classList.toggle("paused", !AS.playing); });
 $("aCast").addEventListener("click", newDemo);
 $("aBullets").addEventListener("change", e => { AS.bullets = e.target.checked; if (!AS.bullets) demo.bullets = demo.bullets.filter(b => b.mine); });
 $("aRadii").addEventListener("change", e => AS.radii = e.target.checked);

@@ -264,7 +264,7 @@ static partial class Program
             float hungryHp = -1f;
             byte eclipsePhase = 0;
             int ghosts = 0, frame = 0;
-            Run(s, dt, 150, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
+            Run(s, dt, 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
                 var cb = Find(s[1], boss);
                 switch (boss)

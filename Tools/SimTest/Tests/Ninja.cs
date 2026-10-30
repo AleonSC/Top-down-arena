@@ -50,14 +50,78 @@ static partial class Program
         Action<int, float> place = (id, x) => { var q = (id == 1 ? host : client).Game.Me; q.Pos = q.Disp = new V2(x, 450f); };
         clear(); run(0.3f);
 
-        // Kusarigama: yanks what it hits toward you (but not into you).
-        place(1, 650f); run(0.2f);
+        // Kusarigama: the throw hooks the first enemy in its path; holding fire reels you in to it for a heavy, stunning slash.
+        place(1, 400f); run(0.2f);
+        var front = dummy(new V2(600f, 450f));
+        var behind = dummy(new V2(650f, 450f));
+        V2 frontAt = front.Pos, behindAt = behind.Pos;
+        Action pinBoth = () => { front.Pos = frontAt; behind.Pos = behindAt; front.FireT = behind.FireT = 99f; };
+        float hookedAt = -1f, hitOnHook = 0f, behindOnHook = -1f, maxStun = 0f;
+        bool clientSawHook = false;
+        for (int f = 0; f < 70; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = frontAt }); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            clear(); pinBoth();
+            if (hookedAt < 0f && hp.HookId == front.Id) { hookedAt = f / 60f; hitOnHook = front.MaxHp - front.Hp; behindOnHook = behind.MaxHp - behind.Hp; }
+            clientSawHook |= client.Game.Players[1].HookId == front.Id;
+            maxStun = Math.Max(maxStun, front.FrozenT);
+        }
+        float reeled = hp.Pos.DistanceTo(frontAt), total = front.MaxHp - front.Hp;
+        Console.WriteLine("  kusarigama: hooked after {0:0.00} s ({1:0.0}), behind it {2:0.0}; reeled in to {3:0} px of it; slash brought it to {4:0.0}; stunned {5:0.00} s; client saw the hook {6}",
+            hookedAt, hitOnHook, behindOnHook, reeled, total, maxStun, clientSawHook);
+        Check(hookedAt >= 0f && hitOnHook > 0f && behindOnHook == 0f && clientSawHook, "the Kusarigama's throw hooks the first enemy in its path (not the one behind it), and everyone sees the chain");
+        Check(reeled < front.Radius + hp.Def.BodyR + 20f && total >= hitOnHook * 2.5f && maxStun > 0.3f, "firing while hooked reels you in to it and lands a heavy, stunning slash");
+        front.Hp = behind.Hp = 0f; keep.Remove(front); keep.Remove(behind);
         var d1 = dummy(new V2(770f, 450f));
-        float before = d1.Pos.DistanceTo(hp.Pos);
-        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = d1.Pos }); g.Update(dt); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt); clear(); d1.FrozenT = 5f; }
-        float after = d1.Pos.DistanceTo(hp.Pos);
-        Console.WriteLine("  kusarigama: dummy {0:0} px away, pulled to {1:0} px", before, after);
-        Check(after < before - 30f && after >= d1.Radius + hp.Def.BodyR, "the Kusarigama yanks enemies toward you");
+
+        // Bo Staff: click while moving to vault, striking what you pass; holding or standing still doesn't.
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
+        place(1, 300f); run(0.3f);
+        d1.Pos = new V2(380f, 450f);
+        var aside = dummy(new V2(380f, 600f));
+        float d1hp = d1.Hp;
+        Func<int, bool, V2, float> stepFor = (frames, fire, mv) =>
+        {
+            float x0 = hp.Pos.X;
+            for (int f = 0; f < frames; f++)
+            {
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+                clear(); d1.Pos = new V2(380f, 450f); aside.Pos = new V2(380f, 600f); d1.FireT = aside.FireT = 99f;
+            }
+            return hp.Pos.X - x0;
+        };
+        float vaulted = stepFor(11, true, new V2(1f, 0f));
+        float vaultHit = d1hp - d1.Hp;
+        float held = stepFor(90, true, new V2(1f, 0f)) / 90f * 11f;  // holding: walking pace only
+        stepFor(10, false, V2.Zero);
+        float still = stepFor(11, true, V2.Zero);
+        Console.WriteLine("  bo staff: vaulted {0:0} px in 11 ticks (walking pace {1:0}), struck the one in its path for {2:0.0}, the one aside {3:0.0}; standing still moved {4:0}",
+            vaulted, held, vaultHit, aside.MaxHp - aside.Hp, still);
+        Check(vaulted > Game.VaultDist * 0.9f && vaultHit >= hp.Weapon.Damage * Game.VaultMult && aside.Hp == aside.MaxHp,
+            "clicking fire while moving vaults the Bo Staff 150 px, striking everything it passes");
+        Check(held < vaulted * 0.6f && Math.Abs(still) < 2f, "holding fire or standing still doesn't vault");
+        // The same vault by a joined player: their game moves them and tells the host, which lands the strike.
+        var cme = client.Game.Me;
+        cp.Weapon = cme.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
+        place(2, 900f); run(0.3f);
+        aside.Pos = new V2(980f, 450f);
+        float asideHp = aside.Hp, cx0 = cme.Pos.X;
+        for (int f = 0; f < 15; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { Fire = true, Move = new V2(1f, 0f), AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
+            Thread.Sleep(1);
+            clear(); aside.Pos = new V2(980f, 450f); aside.FireT = 99f;
+        }
+        for (int f = 0; f < 10; f++) { Thread.Sleep(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); }
+        Console.WriteLine("  bo staff (joined player): vaulted {0:0} px; struck the one in its path for {1:0.0}", cme.Pos.X - cx0, asideHp - aside.Hp);
+        Check(cme.Pos.X - cx0 > Game.VaultDist * 0.9f && asideHp - aside.Hp >= cp.Weapon.Damage * Game.VaultMult, "a joined player's vault moves them and the host lands its strike");
+        cp.Weapon = cme.Weapon = Defs.Weapon(Role.Healer, Kit.Ninja, 0);
+        aside.Hp = 0f; keep.Remove(aside);
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
+        d1.Pos = new V2(770f, 450f);
 
         // Kunai: +50% on enemies that aren't after you; Vanish's ambush doubles the next hit, once.
         d1.TargetId = 2;
@@ -66,12 +130,32 @@ static partial class Program
         float on = (float)hitMult.Invoke(g, new object[] { 1, Defs.KunaiShot, d1 });
         Check(Math.Abs(off - 1.5f) < 0.01f && Math.Abs(on - 1f) < 0.01f, "Kunai deal 50% more to enemies that aren't targeting you");
 
-        // Chain Shuriken: turns back halfway, on the host and the client alike.
-        var star = (Bullet)shoot.Invoke(g, new object[] { Defs.ChainStar, new V2(300f, 300f), new V2(Defs.WeaponOf(WeaponId.ChainShuriken).Speed, 0f), 0f, Game.ChainStarOut * 2f, 20f, 1, false, 0f });
-        run(0.6f);
-        Bullet cstar;
-        bool back = g.Bullets.ContainsKey(star.Id) && star.Vel.X < 0f && client.Game.Bullets.TryGetValue(star.Id, out cstar) && cstar.Vel.X < 0f;
-        Check(back, "a Chain Shuriken comes back halfway through its flight (host and client)");
+        // Fuma Shuriken: a giant star thrown in an oval loop out in front and back, the same on the host and the client.
+        clear();
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 2);
+        place(1, 300f); run(0.1f);
+        V2 throwAt = hp.Pos;
+        typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
+        var star = g.Bullets.Values.First(b => b.Owner == 1 && b.Kind == Defs.FumaStar);
+        float lap = star.Life0, ahead = 0f, wide = 0f, drift = 0f, lastGap = 0f;
+        for (int f = 0; f < lap * 60f - 2f && g.Bullets.ContainsKey(star.Id); f++)
+        {
+            hp.Pos = throwAt;
+            host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            clear();
+            ahead = Math.Max(ahead, star.Pos.X - throwAt.X);
+            wide = Math.Max(wide, Math.Abs(star.Pos.Y - throwAt.Y));
+            Bullet cs;
+            if (client.Game.Bullets.TryGetValue(star.Id, out cs)) drift = Math.Max(drift, cs.Pos.DistanceTo(star.Pos));
+            lastGap = star.Pos.DistanceTo(throwAt);
+        }
+        Console.WriteLine("  fuma shuriken: radius {0}, {1:0} px ahead, {2:0} px to the side, ends {3:0} px from where it was thrown; client drift {4:0.0} px",
+            star.Radius, ahead, wide, lastGap, drift);
+        Check(hp.Weapon.Name == "Fuma Shuriken" && star.Radius >= 20f && Math.Abs(ahead - Game.FumaReach) < 15f && Math.Abs(wide - Game.FumaWidth) < 10f && lastGap < 40f,
+            "the Fuma Shuriken is a giant star that loops an oval out in front of you and comes back");
+        Check(drift < 25f, "the Fuma Shuriken follows the same loop on the client");
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
 
         // Iron Body: 80% less damage for 2 s, then a shockwave.
         place(1, 650f); run(0.2f);

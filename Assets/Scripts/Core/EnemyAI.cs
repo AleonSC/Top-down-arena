@@ -194,6 +194,8 @@ namespace Arena
             var d = Defs.Get(type);
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
             e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * PartyHpScale(d.IsBoss);
+            if (d.IsBoss)
+                e.MaxHp *= BossHpMult(type);
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
             if (d.IsBoss && Wave > LateBossWave)
                 e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);
@@ -291,6 +293,10 @@ namespace Arena
                     e.SlowMult = 1f;
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // Minions.cs
+                TickBoneCage(e, dt);  // Minions.cs
+                TickHemorrhage(e, dt);  // BloodMage.cs
+                TickPoison(e, dt);  // Ninja.cs
+                e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;
@@ -309,6 +315,8 @@ namespace Arena
                     e.GraspT -= dt;
                     continue;
                 }
+                if (e.CageT > 0f)  // caged by Bone Guard darts (Minions.cs): no moving or shooting
+                    continue;
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);
@@ -329,7 +337,7 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    e.FireT -= dt * mult;
+                    e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     if (e.FireT <= 0f)
                     {
                         if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())

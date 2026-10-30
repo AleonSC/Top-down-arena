@@ -52,6 +52,7 @@ namespace Arena
                 w.Write(b.Vel);
                 w.Write(b.AngVel);
                 w.Write(b.Life);
+                w.Write(b.Life0);
                 w.Write(b.FromBoss);
                 w.Write(b.Homing);
             }
@@ -71,6 +72,7 @@ namespace Arena
                 var b = new Bullet { Id = r.ReadInt32(), Kind = r.ReadByte(), Owner = r.ReadInt32(), Pos = r.ReadV2(), Vel = r.ReadV2() };
                 b.AngVel = r.ReadSingle();
                 b.Life = r.ReadSingle();
+                b.Life0 = r.ReadSingle();  // the Fuma Shuriken's loop and the Golem Staff's arc go by it
                 b.FromBoss = r.ReadBoolean();
                 b.Homing = r.ReadSingle();
                 b.Radius = Defs.BulletRadius(b.Kind);

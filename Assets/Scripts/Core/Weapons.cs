@@ -32,6 +32,85 @@ namespace Arena
             firingWeapon = false;
         }
 
+        /// Riot Repeater: each round that hits slows how fast the enemy shoots by SuppressPerHit, up to SuppressMax (half
+        /// that on bosses); it fades by SuppressFade a second. Shown from SuppressShown.
+        public const float SuppressPerHit = 0.08f, SuppressMax = 0.5f, SuppressFade = 0.25f, SuppressShown = 0.15f;
+
+        void SuppressHit(Bullet b, Enemy e)
+        {
+            if (b.Suppressive)
+                e.Suppress = Math.Min(e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax, e.Suppress + SuppressPerHit);
+        }
+
+        /// Twin Rifle: the streams cross at your cursor's distance (from TwinCrossMin to their full range); a hit within
+        /// TwinCrossZone of the crossing is crossfire, for TwinCrossMult.
+        public const float TwinBarrelGap = 28f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
+        public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
+
+        float CrossfireMult(Bullet b, Enemy e) => b.Crossfire && e.Pos.DistanceTo(b.Cross) <= TwinCrossZone + e.Radius ? TwinCrossMult : 1f;
+
+        /// Burst SMG: holding fire spins it up to full over SmgSpinTime (the spray tightening from SmgSpray to SmgSprayTight
+        /// either side, damage rising to +SmgSpinDamage); letting go spins it down over SmgSpinDown.
+        public const float SmgSpinTime = 2f, SmgSpinDown = 0.6f, SmgSpray = 0.16f, SmgSprayTight = 0.04f, SmgSpinDamage = 0.6f;
+
+        void TickSpinUp(Player p, float dt)
+        {
+            bool spinning = p.Weapon.Id == WeaponId.BurstSmg && p.Firing && !p.ParryActive && !p.Downed;
+            p.SpinUp = spinning ? Math.Min(1f, p.SpinUp + dt / SmgSpinTime) : Math.Max(0f, p.SpinUp - dt / SmgSpinDown);
+        }
+
+        /// Scattergun: pellets that hit within ScatterClose of you (to the enemy's edge) do double and shove it back.
+        public const float ScatterClose = 120f, ScatterPointBlank = 2f, ScatterShove = 16f;
+
+        /// Flak Cannon: the shell bursts at your cursor (never nearer than FlakMin), hurting enemies and destroying
+        /// enemy bullets within FlakBurst (red aimed shots get through).
+        public const float FlakMin = 60f, FlakBurst = 80f;
+
+        float PointBlankMult(Bullet b, Enemy e)
+        {
+            Player p;
+            if (!b.PointBlank || !Players.TryGetValue(b.Owner, out p) || p.Pos.DistanceTo(e.Pos) - e.Radius > ScatterClose)
+                return 1f;
+            if (!Heavy(e))
+            {
+                V2 away = (e.Pos - p.Pos).Normalized();
+                e.Pos = ClampToArena(e.Pos + (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove, e.Radius);
+            }
+            return ScatterPointBlank;
+        }
+
+        /// A Flak Cannon shell reached the end of its flight: the airburst.
+        void FlakAirburst(Bullet b)
+        {
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                {
+                    HurtEnemy(e, b.Dmg, b.Owner);
+                    OnBulletHit(b, e);
+                }
+            var shot = new List<int>();
+            foreach (var o in Bullets.Values)
+                if (Defs.IsEnemyShot(o.Kind) && !Defs.Unblockable(o.Kind) && o.Pos.DistanceTo(b.Pos) < b.Splash + o.Radius)
+                    shot.Add(o.Id);
+            foreach (int id in shot)
+            {
+                AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Bullets[id].Kind), 8f, 0.25f);
+                Bullets.Remove(id);
+                pendingRemoved.Add(id);
+            }
+            float offset = Rand(0f, MathX.Tau);
+            for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land
+            {
+                V2 d = V2.FromAngle(offset + MathX.Tau * i / b.Frags);
+                var nb = SpawnBullet(b.FragKind, b.Pos + d * 6f, d * b.FragSpeed, 0f, b.FragLife, b.FragDmg, b.Owner);
+                nb.Splash = b.FragSplash;
+                nb.Bomblet = true;
+                nb.Burst = 1;
+            }
+            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.3f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, b.Pos, Rgba.White, b.Splash * 1.15f, 0.2f, Sfx.None);
+        }
+
         /// Barrage: the volley, plus a copy per stack fanned out to alternating sides (8 degrees apart).
         void FireFanned(Player p, float aim, int extra)
         {
@@ -44,9 +123,9 @@ namespace Arena
                 firingWeapon = false;
                 return;
             }
-            if (p.Weapon.Id == WeaponId.LeechBeam)
+            if (p.Weapon.Id == WeaponId.LeechBeam || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning)
             {
-                FireVolley(p, aim, extra);  // Barrage adds a tendril instead (BloodMage.cs)
+                FireVolley(p, aim, extra);  // Barrage adds a tendril, cones side by side or parallel strips instead (BloodMage.cs, Minions.cs)
                 return;
             }
             if (p.Weapon.Id == WeaponId.Implosion)
@@ -87,8 +166,8 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p);
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow and the Warhammer.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer;
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning and the Imp Caller.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -228,19 +307,23 @@ namespace Arena
                     int n = 5 + 2 * extra;
                     float cone = 0.52f * (float)Math.Pow(0.85, extra);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).PointBlank = true;
                     break;
                 }
                 case WeaponId.FlakCannon:
                 {
-                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 70f * AreaMult(p);
-                    if (extra > 0)  // bomblets scatter around the impact and pop where they land
+                    // An airburst: the shell flies over enemies to your cursor (as far as its range) and bursts there,
+                    // shredding enemies and enemy bullets in the burst.
+                    float far = Math.Min(w.Speed * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                    b.Splash = FlakBurst * AreaMult(p);
+                    b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
+                    if (extra > 0)  // bomblets scatter round the burst and pop where they land
                         SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
                     break;
                 }
                 case WeaponId.RiotRepeater:
-                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Suppressive = true;
                     break;
                 case WeaponId.BearTotem:
                     FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)
@@ -282,27 +365,38 @@ namespace Arena
                 }
                 case WeaponId.TwinRifle:
                 {
-                    // Parallel barrels, 10 px apart: two, plus one per extra projectile. Each volley strays up to 2°.
+                    // Barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses at
+                    // your cursor's distance; hits near the crossing are crossfire, for double. Each volley strays up to 2°.
                     int n = 2 + extra;
-                    V2 v = V2.FromAngle(aim + Rand(-TwinRifleSpread, TwinRifleSpread)), side = v.Orthogonal();
+                    float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
+                    V2 v = V2.FromAngle(a), side = v.Orthogonal();
+                    V2 cross = p.Pos + v * TwinCrossDistance(p);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), v * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    {
+                        V2 from = muzzle + side * ((i - (n - 1) / 2f) * TwinBarrelGap);
+                        var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        b.Cross = cross;
+                        b.Crossfire = true;
+                    }
                     break;
                 }
                 case WeaponId.Railgun:
                 {
                     var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 3;
+                    IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (Minions.cs)
                     if (extra > 0)
                         SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
                     break;
                 }
                 case WeaponId.BurstSmg:
                 {
-                    // +1 bullet per shot per extra projectile (at half damage), sprayed a little wider.
-                    float spray = 0.16f * (1f + 0.35f * extra);
+                    // Spun up (SpinUp), the spray tightens and every bullet hits harder. +1 bullet per shot per extra
+                    // projectile (at half damage), sprayed a little wider.
+                    float spray = (SmgSpray - (SmgSpray - SmgSprayTight) * p.SpinUp) * (1f + 0.35f * extra);
+                    float spun = 1f + SmgSpinDamage * p.SpinUp;
                     for (int i = 0; i <= extra; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * spun * dmg, p.Id);
                     break;
                 }
                 default:
@@ -332,18 +426,36 @@ namespace Arena
             {
                 case WeaponId.MendersBow:  // as far as the current draw sends it
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.ChainShuriken:  // as far as it goes before it turns back
-                    return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
+                case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
+                    return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                case WeaponId.Ofuda:  // where a charm lands as a ward, at most (Ninja.cs)
+                    return p.Def.BodyR + WardRange * p.Stats.ShotSpeedMult;
+                case WeaponId.WispLantern:  // how far a wisp is sent (Minions.cs)
+                    return WispReach;
+                case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
+                    return ImpReach;
+                case WeaponId.ArcLightning:  // the strip's length with the current charge (Minions.cs)
+                    return ArcLength(p, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f);
+                case WeaponId.ChainLight:  // the cone's reach (Minions.cs)
+                    return LightConeLength(p, x);
+                case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
+                    return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
                 case WeaponId.LightBolt:  // the Repulsion Cannon's cone
                     return p.Def.BodyR + w.Reach * AreaMult(p);
                 case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
                     return p.Def.BodyR + GraspReach(p);
+                case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)
+                    return RadiantReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing
                     return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);
+                case WeaponId.FrostLance:  // the icicle, out from you
+                    return MeleeReach(p, w.Reach + w.Grow * x);
+                case WeaponId.Katana:  // sheathed, the quick-draw cut reaches much further (Ninja.cs)
+                    return MeleeReach(p, p.SheathT >= KatanaSheath ? KatanaDrawReach : w.Reach);
                 case WeaponId.Greatsword:  // extra projectiles add sword beams
                     return x > 0 ? p.Def.BodyR + 700f * 0.6f * p.Stats.ShotSpeedMult : MeleeReach(p, w.Reach);
             }

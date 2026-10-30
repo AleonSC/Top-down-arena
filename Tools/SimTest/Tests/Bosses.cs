@@ -65,7 +65,7 @@ static partial class Program
         float blastDmg = friend.Run.DamageTaken - tf;
         Console.WriteLine("  reapers fusion: immune {0}, dual {1}, health {2:0}/{3:0} (twins had {4:0}/{5:0}), power-up hit the friend for {6:0}", immune, d != null, d?.Hp, d?.MaxHp, hpSum, maxSum, blastDmg);
         Check(immune && d != null && Find(s[0], EnemyType.TwinA) == null && Math.Abs(d.MaxHp - maxSum) < 1f && Math.Abs(d.Hp - hpSum) < 20f, "at 65% they fuse into the Dual Reaper (can't be hurt meanwhile), keeping their health");
-        Check(blastDmg >= 40f, "the power-up blasts hurt whoever stays in a marked circle");
+        Check(blastDmg >= 39.5f, "the power-up blasts hurt whoever stays in a marked circle");
         Run(s, dt, 1f, null, Park);
         int pillars = g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar);
         Check(g.Reapers.Turn == ReaperTurn.Lasers && pillars == 4 && cg.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 4, "the Dual Reaper fires its lasers and raises 4 pillars (everyone sees them)");

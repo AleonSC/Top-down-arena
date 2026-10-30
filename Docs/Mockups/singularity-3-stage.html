@@ -1,0 +1,475 @@
+<title>Singularity Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design proposal in the game's own field-manual look (sibling of the Armory and Bestiary): the live
+   arena first, then the health track that splits the fight, then one section per stage with its turn timeline.
+   Single dark look by choice: it mirrors the arena. */
+:root {
+  --bg: #0a0c12; --panel: #121521; --panel-2: #181c2b; --line: #262b3f; --edge: #3a4260;
+  --fg: #e8ecf8; --muted: #8e97b3; --void: #b07cff; --laser: #ff4f5e; --gold: #ffcc59; --rim: #7fd6ff; --good: #6be38a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--void); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: #c9cfe3; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--void); }
+header { display: grid; gap: 10px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* The arena */
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0d1019; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.field { display: grid; gap: 5px; justify-items: start; }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1f2436; }
+.seg button.on { color: #fff; background: #2a1f4d; box-shadow: inset 0 0 0 1px var(--void); }
+button:focus-visible { outline: 2px solid var(--void); outline-offset: 1px; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 9px 14px; border-top: 1px solid var(--line); font: 12px var(--font-data); color: var(--muted); }
+.readout b { color: var(--fg); font-weight: 500; }
+
+/* The health track */
+.track { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bar div { padding: 8px 10px; font: 600 12px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.bar div small { display: block; font: 400 11px var(--font-data); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.bar .s1 { background: #1d1736; } .bar .s2 { background: #24173a; } .bar .s3 { background: #2e1530; } .bar .s4 { background: #3a1420; }
+.bar div.on { box-shadow: inset 0 -3px 0 var(--void); }
+.ticks { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; font: 11px var(--font-data); color: var(--muted); }
+.ticks span:last-child { display: flex; justify-content: space-between; }
+
+/* Stage sections */
+.stages { display: grid; gap: 18px; }
+.st { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.st .hd { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.st .hp { font: 500 12px var(--font-data); color: var(--muted); }
+.tl { display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.tl div { display: flex; align-items: center; justify-content: center; font: 600 11px var(--font-body); color: var(--fg); white-space: nowrap; overflow: hidden; min-width: 0; }
+.tl .rest { background: transparent; color: var(--muted); font-weight: 400; background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,0.04) 5px 10px); }
+.tl-scale { font: 11px var(--font-data); color: var(--muted); }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.m { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; min-width: 0; }
+.m b { font: 600 15px var(--font-body); }
+.m b i { font-style: normal; font: 500 12px var(--font-data); color: var(--muted); margin-left: 6px; }
+.m p { font-size: 14px; color: #c9cfe3; }
+.m .new { font: 600 10px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-left: 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.notes .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: #c9cfe3; }
+.notes code { font: 12.5px var(--font-data); color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Boss proposal · wave 20</div>
+    <h1>The Singularity, <span>in three stages</span></h1>
+    <p class="lead">Today it loops four attacks for the whole fight. This mockup splits it like the Warden, the Hive Queen and the Twin Reapers: three stages by health, one mechanic at a time with breathers between, a 2 s stage change that clears the screen, and a last stand below 10%. The arena below plays each stage with a test dummy; pick one to watch it, or let it cycle.</p>
+  </header>
+
+  <section class="stage" aria-label="Live mockup">
+    <canvas id="arena" width="1600" height="900"></canvas>
+    <div class="controls">
+      <div class="field"><span class="lbl">Stage</span>
+        <div class="seg" id="stagePick" role="group" aria-label="Stage"><button type="button" data-v="-1" class="on">Cycle</button><button type="button" data-v="0">Event Horizon</button><button type="button" data-v="1">Accretion</button><button type="button" data-v="2">Spaghettify</button><button type="button" data-v="3">Last stand</button></div></div>
+      <div class="field"><span class="lbl">Speed</span>
+        <div class="seg" id="speedPick" role="group" aria-label="Speed"><button type="button" data-v="0">Pause</button><button type="button" data-v="1" class="on">1×</button><button type="button" data-v="2">2×</button></div></div>
+    </div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="track" aria-label="Health track">
+    <h3>Its health bar, split into stages</h3>
+    <div class="bar" id="bar">
+      <div class="s1" data-v="0">Event Horizon<small>100–65%</small></div>
+      <div class="s2" data-v="1">Accretion<small>65–30%</small></div>
+      <div class="s3" data-v="2">Spaghettify<small>30–10%</small></div>
+      <div class="s4" data-v="3">Last<small>&lt;10%</small></div>
+    </div>
+    <div class="ticks mono"><span>100%</span><span>65%</span><span>30%</span><span><span>10%</span><span>0</span></span></div>
+  </section>
+
+  <div class="stages" id="stages"></div>
+
+  <section class="notes">
+    <div class="box">
+      <h3>What it keeps</h3>
+      <ul>
+        <li>Every attack it has today: the Pull and its spiral, the Collapse rings, the sweeping lasers, the Cages and the corner Gravity Wells. They're just spread over the stages so each one gets the screen to itself.</li>
+        <li>Its bullet kinds and damage (small shots and big orbs, with the new +15%).</li>
+        <li>Gravity Wells' shot bending and drift. Four fresh ones spawn in the corners at the start of each stage (not the last stand), so clearing them is a job every stage; within a stage they come back 15 s after the last one dies.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>What's new</h3>
+      <ul>
+        <li><b>Accretion disk:</b> two rings of orbiting debris that turn opposite ways, each with gaps. A new bullet motion (orbit a moving centre) that needs replicating.</li>
+        <li><b>Slingshot:</b> debris leaves the outer ring at a tangent, aimed so it crosses where you are.</li>
+        <li><b>Event horizon:</b> a black disc round the core that grows through stage 3; touching it hurts (20 a second) and its pull never stops.</li>
+        <li><b>White hole:</b> the pull flips to a push and every enemy bullet on screen turns round.</li>
+        <li><b>Split:</b> three shards orbit and fire; the core can't be hurt, the shards pass their damage to it.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>To build it</h3>
+      <ul>
+        <li>Stage, turn and timers in a <code>SingularityState</code> on the boss, synced like <code>WardenState</code>; thresholds 65 / 30 / 10%.</li>
+        <li>Disk bullets: an orbit centre, radius and angular speed on the bullet; clients move them from those three numbers between snapshots.</li>
+        <li>Health: with three stages and breathers the fight runs longer at the same health, so <code>BossHpMult</code> for the Singularity (3× now) should come down and be retuned in the Boss Lab for 60–120 s.</li>
+        <li>Bestiary and Armory entries, a Boss Lab stage lock, and sim tests per stage, as the other staged bosses have.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+const W = 1600, H = 900, TAU = Math.PI * 2, MID = { x: 800, y: 450 };
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// --- The proposal (one source for the arena and the write-up) -------------------------------------------------
+const STAGES = [
+  { name: "Event Horizon", hp: "100–65%", col: "#8a6bff",
+    lead: "It sits in the middle with four Gravity Wells in the corners, and runs today's attacks one at a time, with a breather after each.",
+    turns: [["Pull", 4], ["", 1], ["Collapse", 3], ["", 1], ["Lasers", 8], ["", 1.5]],
+    mech: [
+      ["Pull", "4 s", "Drags everyone toward it (as now) while a three-armed spiral winds out: 3 small shots every 0.13 s, turning 0.21 rad a volley, 110 px/s."],
+      ["Collapse", "3 s", "Rings of 26 small shots at 170 px/s, one every 0.9 s, each turned half a gap so the lanes move."],
+      ["Lasers", "8 s", "A slow four-armed orb spiral, then three red lasers flicker for 0.8 s and sweep counter-clockwise at 0.32 rad/s. Touching one hurts."],
+      ["Gravity Wells", "each stage", "Four spawn in the corners at the start of every stage. They bend your shots into themselves within 420 px (shots that get close are lost to the well, and hit it) and drift you toward them at up to 45 px/s. Kill them to shoot freely; they come back 15 s after the last one dies. In the mockup the dummy's shots turn violet once a well has them."],
+    ] },
+  { name: "Accretion", hp: "65–30%", col: "#b07cff",
+    lead: "Four fresh Gravity Wells spawn in the corners, and it starts to orbit the middle, wrapped in a disk of debris. The disk stays up all stage: your shots go through it, but to dodge in close you time the gaps.",
+    turns: [["Cage", 9], ["", 1], ["Slingshot", 6], ["", 1], ["Twin lasers", 7], ["", 1.5]],
+    mech: [
+      ["Accretion disk", "all stage", "Two rings of big orbs: 20 at 150 px turning +0.6 rad/s with two gaps, and 30 at 250 px turning −0.4 rad/s with three gaps. The core orbits 200 px round the middle at 0.15 rad/s, carrying them.", true],
+      ["Cage", "9 s", "Moved here from the loop: three small wells orbit every player in a ring that shrinks from 180 px at 22 px/s. Touching it hurts; shoot the wells to break it."],
+      ["Slingshot", "6 s", "Every 0.8 s three orbs leave the outer ring at a tangent, at 300 px/s, aimed to cross where you are. The ring closes up behind them.", true],
+      ["Twin lasers", "7 s", "Two lasers instead of three, opposite each other, sweeping faster at 0.45 rad/s. With the disk in the way, the safe side keeps moving."],
+    ] },
+  { name: "Spaghettify", hp: "30–10%", col: "#d465c9",
+    lead: "Four fresh Gravity Wells spawn in the corners. Back in the middle, it opens an event horizon: a black disc that grows from 70 to 170 px across the stage and pulls all the time, gently enough to walk out of.",
+    turns: [["Hawking", 5], ["", 1], ["White hole", 4], ["", 1], ["Split", 8], ["", 1.5]],
+    mech: [
+      ["Event horizon", "all stage", "A disc that hurts 20 a second to stand in, growing 70 → 170 px. A constant pull of 60 px/s within 700 px: slower than every class walks. Near a corner, the wells' drift pulls the other way.", true],
+      ["Hawking burst", "5 s", "Radiation from the horizon's edge: 18 small shots every 0.6 s, each ring turned 10°, at 160 px/s.", true],
+      ["White hole", "4 s", "The rim flashes white for 1 s, then for 1.5 s it pushes at 260 px/s and every enemy bullet on screen turns round. Then the pull snaps back.", true],
+      ["Split", "8 s", "Three shards break off and orbit 220 px out at 0.7 rad/s, each firing a two-armed spiral. The core can't be hurt meanwhile; damage to the shards goes to it.", true],
+    ] },
+  { name: "Last stand", hp: "below 10%", col: "#ff5a6e",
+    lead: "The horizon swells to 190 px and the pull doubles. A four-armed spiral and a ring of big orbs every 1.2 s, until it's dead.",
+    turns: [["Spiral + rings", 10]],
+    mech: [
+      ["Collapse", "until it dies", "Pull 110 px/s (still slower than you). Spiral: 4 small shots every 0.09 s. Big-orb ring of 22 every 1.2 s. Run along the outside and shoot in."],
+    ] },
+];
+const TURN_COL = { Pull: "#4a3a8f", Collapse: "#5b3fa8", Lasers: "#8a2e44", Cage: "#4b3b7a", Slingshot: "#6d3c99", "Twin lasers": "#8a2e44", Hawking: "#7a3a88", "White hole": "#9b8bb8", Split: "#6b3a7a", "Spiral + rings": "#8a2e44" };
+
+// --- The write-up ------------------------------------------------------------------------------------------------
+$("stages").innerHTML = STAGES.map((st, i) => {
+  const total = st.turns.reduce((a, t) => a + t[1], 0);
+  return `<section class="st" id="stage-${i}">
+    <div class="hd"><h2 style="color:${st.col}">${st.name}</h2><span class="hp">${st.hp} health</span></div>
+    <p class="lead">${st.lead}</p>
+    <div><div class="tl" aria-label="Turn order, ${total} s a loop">${st.turns.map(([n, s]) => n ? `<div style="flex:${s};background:${TURN_COL[n]}">${n} ${s} s</div>` : `<div class="rest" style="flex:${s}">${s} s</div>`).join("")}</div>
+    <div class="tl-scale">${i === 3 ? "until it dies" : `one loop: ${total} s, then it repeats until the next stage`}</div></div>
+    <div class="mech">${st.mech.map(([n, t, d, isNew]) => `<div class="m"><b>${n}<i>${t}</i>${isNew ? `<span class="new">new</span>` : ""}</b><p>${d}</p></div>`).join("")}</div>
+  </section>`;
+}).join("");
+
+// --- The arena -----------------------------------------------------------------------------------------------------
+const S = { lock: -1, speed: 1 };
+let w;
+function reset(stage) {
+  w = { t: 0, stage, tt: 0, turn: 0, trans: 0, loops: 0, boss: { x: MID.x, y: MID.y, ang: 0, orbit: 0, fire: 0.3, ring: 0 },
+    bullets: [], shots: [], bent: 0, wellCd: 0, fireCd: 0, fx: [], wells: [], cage: null, shards: [], disk: [], laser: null, push: 0, horizon: 70, flash: 0,
+    p: { x: 800, y: 760, tx: 800, ty: 760, hits: 0, inv: 0 } };
+  if (stage <= 2) spawnWells();  // four fresh corner wells at the start of every stage (not the last stand)
+  if (stage === 1) makeDisk();
+  if (stage === 3) w.horizon = 190;
+  startTurn();
+}
+const st = () => STAGES[w.stage];
+function spawnWells() { w.wells = [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]].map(([x, y]) => ({ x, y, hp: 25, flash: 0 })); }
+const turnName = () => st().turns[w.turn][0];
+function makeDisk() {
+  w.disk = [];
+  const ring = (n, r, om, gaps) => { for (let i = 0; i < n; i++) { if (i % Math.round(n / gaps) < 2) continue; w.disk.push({ a: TAU * i / n, r, om }); } };  // two orbs missing per gap
+  ring(20, 150, 0.6, 2); ring(30, 250, -0.4, 3);
+}
+function startTurn() {
+  w.tt = 0;
+  const n = turnName(), b = w.boss;
+  b.fire = 0.3; w.laser = null; w.cage = null; w.shards = [];
+  if (n === "Lasers") w.laser = { n: 3, spin: 0.32, a: rnd(0, TAU), warn: 0.8 + 1.5 };
+  if (n === "Twin lasers") w.laser = { n: 2, spin: 0.45, a: rnd(0, TAU), warn: 0.8 };
+  if (n === "Cage") w.cage = { x: w.p.x, y: w.p.y, r: 180, spin: 0, wells: 3 };
+  if (n === "Split") for (let k = 0; k < 3; k++) w.shards.push({ a: TAU * k / 3, ang: 0 });
+}
+function nextTurn() {
+  w.turn++;
+  if (w.turn >= st().turns.length) {
+    w.turn = 0; w.loops++;
+    if (S.lock < 0 && (w.stage === 3 || w.loops >= 1)) { w.trans = 2; return; }
+  }
+  startTurn();
+}
+function shot(x, y, a, sp, big, o = {}) {
+  const b = w.boss;
+  if (w.stage >= 2 && Math.hypot(x - b.x, y - b.y) < w.horizon) { x = b.x + Math.cos(a) * w.horizon; y = b.y + Math.sin(a) * w.horizon; }  // out of the horizon's edge
+  w.bullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: big ? 10 : 6, big, life: 9, ...o }); }
+
+function step(dt) {
+  w.t += dt;
+  const b = w.boss, p = w.p;
+  // Stage change: can't be hurt, the screen clears, then the next stage
+  if (w.trans > 0) {
+    w.trans -= dt; w.bullets = [];
+    b.x += (MID.x - b.x) * Math.min(1, dt * 3); b.y += (MID.y - b.y) * Math.min(1, dt * 3);
+    if (w.trans <= 0) { const next = (w.stage + 1) % 4; reset(next); w.fx.push({ x: MID.x, y: MID.y, r: 1100, t: 0, dur: 0.9, col: STAGES[next].col }); }
+    moveDummy(dt); return;
+  }
+  w.tt += dt;
+  const n = turnName();
+  // Where the core is
+  if (w.stage === 1) { b.orbit += 0.15 * dt; b.x = MID.x + Math.cos(b.orbit) * 200; b.y = MID.y + Math.sin(b.orbit) * 200 * 0.7; }
+  else { b.x += (MID.x - b.x) * Math.min(1, dt * 2); b.y += (MID.y - b.y) * Math.min(1, dt * 2); }
+  if (w.stage === 2) w.horizon = 70 + 100 * Math.min(1, w.loops + loopTime() / 20.5);  // grows 70 -> 170 px over the stage
+  // Pulls and pushes
+  let pull = 0;
+  if (w.stage === 0 && n === "Pull") pull = 130;
+  if (w.stage === 2) pull = 60;
+  if (w.stage === 3) pull = 110;
+  w.push = 0;
+  if (n === "White hole") { if (w.tt < 1) w.flash = 1; else if (w.tt < 2.5) { pull = -260; if (!w.reversed) { w.reversed = true; for (const q of w.bullets) { q.vx = -q.vx; q.vy = -q.vy; } } } else w.reversed = false; }
+  else w.reversed = false;
+  const dx = b.x - p.x, dy = b.y - p.y, dl = Math.hypot(dx, dy) || 1;
+  if (pull && dl < 700) { p.x += dx / dl * pull * dt; p.y += dy / dl * pull * dt; }
+  // Guns
+  b.fire -= dt; b.ring -= dt;
+  const aimP = Math.atan2(p.y - b.y, p.x - b.x);
+  if (b.fire <= 0) {
+    switch (n) {
+      case "Pull": b.fire = 0.13; b.ang += 0.21; for (let k = 0; k < 3; k++) shot(b.x, b.y, b.ang + TAU * k / 3, 110); break;
+      case "Collapse": b.fire = 0.9; b.ang += Math.PI / 26; for (let i = 0; i < 26; i++) shot(b.x, b.y, b.ang + TAU * i / 26, 170); break;
+      case "Lasers": b.fire = 0.65; b.ang += 0.3; for (let k = 0; k < 4; k++) shot(b.x, b.y, b.ang + TAU * k / 4, 150, true); break;
+      case "Slingshot": {
+        b.fire = 0.8;
+        const outer = w.disk.filter(d => d.r === 250);
+        const gap = d => Math.hypot(b.x + Math.cos(d.a) * 250 - p.x, b.y + Math.sin(d.a) * 250 - p.y);
+        outer.sort((u, v) => gap(u) - gap(v));
+        for (const d of outer.slice(0, 3)) {
+          const x = b.x + Math.cos(d.a) * 250, y = b.y + Math.sin(d.a) * 250;
+          shot(x, y, Math.atan2(p.y - y, p.x - x), 300, true);
+          w.disk.splice(w.disk.indexOf(d), 1);
+          w.fx.push({ x, y, r: 26, t: 0, dur: 0.3, col: "#b07cff" });
+        }
+        break;
+      }
+      case "Hawking": b.fire = 0.6; b.ang += 0.17; for (let i = 0; i < 18; i++) { const a = b.ang + TAU * i / 18; shot(b.x + Math.cos(a) * w.horizon, b.y + Math.sin(a) * w.horizon, a, 160); } break;
+      case "Split": b.fire = 0.16; for (const s of w.shards) { s.ang += 0.35; const x = b.x + Math.cos(s.a) * 220, y = b.y + Math.sin(s.a) * 220; for (let k = 0; k < 2; k++) shot(x, y, s.ang + Math.PI * k, 130); } break;
+      case "Spiral + rings": b.fire = 0.09; b.ang += 0.19; for (let k = 0; k < 4; k++) shot(b.x, b.y, b.ang + TAU * k / 4, 150);
+        if (b.ring <= 0) { b.ring = 1.2; for (let i = 0; i < 22; i++) shot(b.x, b.y, b.ang * 0.5 + TAU * i / 22, 110, true); } break;
+      default: b.fire = 0.1;
+    }
+  }
+  if (w.stage === 1 && n !== "Slingshot" && w.disk.length < 40 && Math.random() < dt * 2) makeDisk();  // the ring fills back in
+  // Lasers, cage, shards
+  if (w.laser) { if (w.laser.warn > 0) w.laser.warn -= dt; else w.laser.a += w.laser.spin * dt; }
+  if (w.cage) { w.cage.r = Math.max(0, w.cage.r - 22 * dt); w.cage.spin += 1.4 * dt; if (w.tt > 6.5) w.cage.wells = Math.max(0, 3 - Math.floor((w.tt - 6.5) / 0.6)); if (!w.cage.wells) w.cage = null; }
+  for (const s of w.shards) s.a += 0.7 * dt;
+  for (const d of w.disk) d.a += d.om * dt;
+  // Bullets
+  for (const q of w.bullets) { q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt; }
+  w.bullets = w.bullets.filter(q => q.life > 0 && q.x > -40 && q.y > -40 && q.x < W + 40 && q.y < H + 40 && Math.hypot(q.x - b.x, q.y - b.y) > (w.stage >= 2 ? w.horizon - 4 : 0));
+  // The dummy: hits are counted, not healed
+  p.inv = Math.max(0, p.inv - dt);
+  const hit = () => { if (p.inv <= 0) { p.hits++; p.inv = 0.35; } };
+  for (const q of w.bullets) if (Math.hypot(q.x - p.x, q.y - p.y) < q.r + 7) hit();
+  for (const d of w.disk) if (Math.hypot(b.x + Math.cos(d.a) * d.r - p.x, b.y + Math.sin(d.a) * d.r - p.y) < 17) hit();
+  if (w.stage >= 2 && Math.hypot(b.x - p.x, b.y - p.y) < w.horizon) hit();
+  if (w.cage && Math.abs(Math.hypot(p.x - w.cage.x, p.y - w.cage.y) - w.cage.r) < 12) hit();
+  playerShots(dt);
+  moveDummy(dt);
+  for (const f of w.fx) f.t += dt; w.fx = w.fx.filter(f => f.t < f.dur);
+  w.flash = Math.max(0, w.flash - dt * 2);
+  if (w.tt >= st().turns[w.turn][1]) nextTurn();
+}
+// Seconds into the current loop of turns.
+function loopTime() { return st().turns.slice(0, w.turn).reduce((a, t) => a + t[1], 0) + w.tt; }
+
+// The dummy shoots at the core. Within 420 px of a corner well its shots bend into the well, harder the closer
+// they pass (as Combat.cs PullIntoWells does), and hit it instead. Each stage starts with four; kill them all and
+// they're back 15 s later.
+function playerShots(dt) {
+  const p = w.p, b = w.boss;
+  if ((w.fireCd -= dt) <= 0) {
+    w.fireCd = 0.15;
+    const tg = w.shards.length ? (() => { const s0 = w.shards[0]; return { x: b.x + Math.cos(s0.a) * 220, y: b.y + Math.sin(s0.a) * 220 }; })() : b;
+    const a = Math.atan2(tg.y - p.y, tg.x - p.x);
+    w.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, life: 1.6, bent: false });
+  }
+  for (const q of w.shots) {
+    for (const g of w.wells) {
+      const d = Math.hypot(g.x - q.x, g.y - q.y);
+      if (d > 420) continue;
+      const want = Math.atan2(g.y - q.y, g.x - q.x), have = Math.atan2(q.vy, q.vx), sp = Math.hypot(q.vx, q.vy);
+      const diff = ((want - have + Math.PI) % TAU + TAU) % TAU - Math.PI, rate = (2.5 + 12 * (1 - d / 420)) * dt, turn = clamp(diff, -rate, rate);
+      q.vx = Math.cos(have + turn) * sp; q.vy = Math.sin(have + turn) * sp; q.bent = true;
+      if (d < 30) { q.life = 0; g.hp--; g.flash = 0.1; w.bent++; }
+      break;  // one well at a time
+    }
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.life > 0 && Math.hypot(q.x - b.x, q.y - b.y) < 44) q.life = 0;  // reached the core
+  }
+  w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
+  for (const g of w.wells) { g.flash = Math.max(0, g.flash - dt); if (g.hp <= 0) w.fx.push({ x: g.x, y: g.y, r: 60, t: 0, dur: 0.4, col: "#b07cff" }); }
+  w.wells = w.wells.filter(g => g.hp > 0);
+  if (w.stage <= 2 && w.trans <= 0) {
+    if (w.wells.length) w.wellCd = 15;
+    else if ((w.wellCd -= dt) <= 0) spawnWells();
+  }
+  // ...and they drift you toward them: 45 px/s at the well, nothing from 480 px out
+  for (const g of w.wells) { const dx = g.x - p.x, dy = g.y - p.y, d = Math.hypot(dx, dy); if (d < 480 && d > 1) { const s = 45 * (1 - d / 480) * dt; p.x += dx / d * s; p.y += dy / d * s; } }
+}
+function moveDummy(dt) {
+  // The dummy wanders between points away from the core, at a class's walking speed.
+  const p = w.p, b = w.boss, keep = (w.stage >= 2 ? w.horizon : 60) + 220;
+  if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * 0.25) {
+    for (let k = 0; k < 10; k++) { const a = rnd(0, TAU), r = rnd(keep, w.wells.length ? 520 : 400), tx = MID.x + Math.cos(a) * r * 1.5, ty = MID.y + Math.sin(a) * r * 0.85;
+      if (tx > 60 && tx < W - 60 && ty > 60 && ty < H - 60) { p.tx = tx; p.ty = ty; break; } }
+  }
+  if (w.cage) { p.tx = w.cage.x; p.ty = w.cage.y; }  // caged: it stays put and shoots the wells
+  const dx = p.tx - p.x, dy = p.ty - p.y, l = Math.hypot(dx, dy) || 1, sp = Math.min(l, 215 * dt);
+  p.x = clamp(p.x + dx / l * sp, 14, W - 14); p.y = clamp(p.y + dy / l * sp, 14, H - 14);
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------------
+const cv = $("arena"), cx = cv.getContext("2d");
+function draw() {
+  const b = w.boss, p = w.p, t = w.t, n = w.trans > 0 ? "" : turnName();
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.fillStyle = "#0d1019"; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = "rgba(120,140,200,0.07)"; cx.lineWidth = 1; cx.beginPath();
+  for (let x = 0; x <= W; x += 80) { cx.moveTo(x, 0); cx.lineTo(x, H); } for (let y = 0; y <= H; y += 80) { cx.moveTo(0, y); cx.lineTo(W, y); } cx.stroke();
+  // Lensing: the grid bends toward the core (a few rings of warped light)
+  for (let k = 1; k <= 4; k++) { cx.strokeStyle = `rgba(176,124,255,${0.05 + 0.02 * k})`; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(b.x, b.y, 60 + k * 70 + Math.sin(t * 1.5 + k) * 6, 0, TAU); cx.stroke(); }
+  // Corner wells and their reach
+  for (const g of w.wells) {
+    cx.fillStyle = "rgba(140,90,255,0.05)"; cx.beginPath(); cx.arc(g.x, g.y, 420, 0, TAU); cx.fill();
+    cx.fillStyle = g.flash > 0 ? "#fff" : "#1a0f33"; cx.beginPath(); cx.arc(g.x, g.y, 26, 0, TAU); cx.fill();
+    cx.strokeStyle = "rgba(176,124,255,0.8)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(g.x, g.y, 26, t * 2, t * 2 + 4.5); cx.stroke();
+    cx.strokeStyle = "rgba(107,227,138,0.9)"; cx.lineWidth = 4; cx.beginPath(); cx.arc(g.x, g.y, 34, -Math.PI / 2, -Math.PI / 2 + TAU * g.hp / 25); cx.stroke();
+  }
+  // Event horizon
+  if (w.stage >= 2 && w.trans <= 0) {
+    const r = w.horizon;
+    cx.fillStyle = "rgba(255,120,220,0.06)"; cx.beginPath(); cx.arc(b.x, b.y, r + 40, 0, TAU); cx.fill();
+    cx.fillStyle = "#000"; cx.beginPath(); cx.arc(b.x, b.y, r, 0, TAU); cx.fill();
+    cx.strokeStyle = w.flash > 0 ? `rgba(255,255,255,${0.6 + 0.4 * Math.sin(t * 30)})` : "rgba(127,214,255,0.85)"; cx.lineWidth = w.flash > 0 ? 6 : 3; cx.beginPath(); cx.arc(b.x, b.y, r, 0, TAU); cx.stroke();
+    for (let k = 0; k < 6; k++) { const a = t * 0.8 + k; cx.strokeStyle = "rgba(255,150,230,0.35)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(b.x, b.y, r + 8 + k * 5, a, a + 1.2); cx.stroke(); }
+  }
+  // Pull / push
+  if (n === "Pull" || (w.stage >= 2 && n !== "White hole")) {
+    cx.strokeStyle = "rgba(170,120,255,0.18)"; cx.lineWidth = 2;
+    for (let k = 0; k < 3; k++) { const rr = 520 - ((t * 120 + k * 170) % 520); cx.beginPath(); cx.arc(b.x, b.y, rr + 60, 0, TAU); cx.stroke(); }
+  }
+  if (n === "White hole" && w.tt >= 1 && w.tt < 2.5) {
+    cx.strokeStyle = "rgba(255,255,255,0.35)"; cx.lineWidth = 3;
+    for (let k = 0; k < 3; k++) { const rr = (t * 300 + k * 170) % 520; cx.beginPath(); cx.arc(b.x, b.y, rr + 60, 0, TAU); cx.stroke(); }
+  }
+  // Lasers
+  if (w.laser) for (let k = 0; k < w.laser.n; k++) {
+    const a = w.laser.a + TAU * k / w.laser.n, ex = b.x + Math.cos(a) * 2000, ey = b.y + Math.sin(a) * 2000;
+    cx.beginPath(); cx.moveTo(b.x, b.y); cx.lineTo(ex, ey);
+    if (w.laser.warn > 0) { cx.strokeStyle = `rgba(255,70,70,${0.3 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; cx.stroke(); }
+    else { cx.strokeStyle = "rgba(255,40,55,0.18)"; cx.lineWidth = 22; cx.stroke(); cx.strokeStyle = "rgba(255,60,75,0.9)"; cx.lineWidth = 10; cx.stroke(); cx.strokeStyle = "rgba(255,215,215,0.95)"; cx.lineWidth = 2.5; cx.stroke(); }
+  }
+  // Cage
+  if (w.cage) {
+    const c = w.cage;
+    cx.strokeStyle = "rgba(176,124,255,0.85)"; cx.lineWidth = 10; cx.beginPath(); cx.arc(c.x, c.y, c.r, 0, TAU); cx.stroke();
+    for (let k = 0; k < c.wells; k++) { const a = c.spin + TAU * k / 3; cx.fillStyle = "#1a0f33"; cx.beginPath(); cx.arc(c.x + Math.cos(a) * c.r, c.y + Math.sin(a) * c.r, 13, 0, TAU); cx.fill(); cx.strokeStyle = "#d9c2ff"; cx.lineWidth = 2; cx.stroke(); }
+  }
+  // Accretion disk
+  for (const d of w.disk) {
+    const x = b.x + Math.cos(d.a) * d.r, y = b.y + Math.sin(d.a) * d.r;
+    cx.fillStyle = "rgba(217,89,255,0.22)"; cx.beginPath(); cx.arc(x, y, 17, 0, TAU); cx.fill();
+    cx.fillStyle = "#d959ff"; cx.beginPath(); cx.arc(x, y, 10, 0, TAU); cx.fill();
+    cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(x, y, 4.5, 0, TAU); cx.fill();
+  }
+  // Shards
+  for (const s of w.shards) { const x = b.x + Math.cos(s.a) * 220, y = b.y + Math.sin(s.a) * 220; core(x, y, 20, t * 3 + s.a); }
+  // The core
+  if (w.stage < 2 || w.trans > 0) core(b.x, b.y, 42, t);
+  else { cx.strokeStyle = "rgba(176,124,255,0.9)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(b.x, b.y, 30, -t * 3, -t * 3 + 4); cx.stroke(); }
+  if (n === "Split") { cx.strokeStyle = "rgba(255,255,255,0.5)"; cx.setLineDash([6, 6]); cx.lineWidth = 2; cx.beginPath(); cx.arc(b.x, b.y, (w.stage >= 2 ? w.horizon : 42) + 14, 0, TAU); cx.stroke(); cx.setLineDash([]); }
+  if (w.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(b.x, b.y, 58, 0, TAU); cx.stroke(); }
+  // Bullets
+  for (const q of w.bullets) {
+    const col = q.big ? "217,89,255" : "255,77,115";
+    cx.fillStyle = `rgba(${col},0.25)`; cx.beginPath(); cx.arc(q.x, q.y, q.r * 1.7, 0, TAU); cx.fill();
+    cx.fillStyle = `rgb(${col})`; cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, TAU); cx.fill();
+    cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(q.x, q.y, q.r * 0.45, 0, TAU); cx.fill();
+  }
+  for (const f of w.fx) { const k = f.t / f.dur; cx.strokeStyle = f.col; cx.globalAlpha = 1 - k; cx.lineWidth = 4; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU); cx.stroke(); cx.globalAlpha = 1; }
+  // The dummy's shots: green, turning violet once a well has hold of them
+  for (const q of w.shots) { cx.fillStyle = q.bent ? "#c9a6ff" : "#7dffa8"; cx.beginPath(); cx.arc(q.x, q.y, 4, 0, TAU); cx.fill(); }
+  if (w.stage <= 2 && !w.wells.length && w.trans <= 0) { cx.fillStyle = "rgba(176,124,255,0.8)"; cx.font = "500 18px 'IBM Plex Mono', monospace"; cx.textAlign = "center";
+    for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) cx.fillText(`back in ${w.wellCd.toFixed(0)} s`, x, y + 6); cx.textAlign = "left"; }
+  // Dummy
+  cx.fillStyle = p.inv > 0.2 ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)"; cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
+  cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
+  cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(p.x, p.y, 4, 0, TAU); cx.fill();
+  // Stage banner
+  cx.textAlign = "left"; cx.font = "700 30px Oxanium, sans-serif"; cx.fillStyle = w.trans > 0 ? "#fff" : st().col;
+  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 200, H - 58);
+  cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(232,236,248,0.65)";
+  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s`, 200, H - 28);
+  if (S.speed === 0) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "right"; cx.fillText("PAUSED", W - 200, H - 28); cx.textAlign = "left"; }
+  function core(x, y, r, tt) {
+    cx.fillStyle = "rgba(176,124,255,0.12)"; cx.beginPath(); cx.arc(x, y, r + 22, 0, TAU); cx.fill();
+    cx.fillStyle = "#05030b"; cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.fill();
+    cx.strokeStyle = "rgba(176,124,255,0.95)"; cx.lineWidth = 3;
+    for (let k = 0; k < 3; k++) { cx.beginPath(); cx.arc(x, y, r - 4, tt * 2 + k * TAU / 3, tt * 2 + k * TAU / 3 + 1.3); cx.stroke(); }
+    cx.strokeStyle = "rgba(255,230,255,0.7)"; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(x, y, r + 6, -tt, -tt + 2); cx.stroke();
+  }
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span>${w.stage <= 2 ? `<span>Shots bent into wells <b>${w.bent}</b></span><span>Wells <b>${w.wells.length} / 4</b></span>` : ""}<span>Bullets <b>${w.bullets.length + w.disk.length}</b></span>`;
+  for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
+}
+
+// --- Controls and loop ---------------------------------------------------------------------------------------------
+function pickStage(v) {
+  S.lock = v;
+  for (const x of $("stagePick").children) x.classList.toggle("on", +x.dataset.v === v);
+  reset(Math.max(0, v));
+}
+$("stagePick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (btn) pickStage(+btn.dataset.v); });
+$("bar").addEventListener("click", ev => { const d = ev.target.closest("[data-v]"); if (d) pickStage(+d.dataset.v); });
+$("speedPick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (!btn) return; S.speed = +btn.dataset.v; for (const x of $("speedPick").children) x.classList.toggle("on", x === btn); });
+reset(0);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  for (let k = 0; k < S.speed; k++) step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

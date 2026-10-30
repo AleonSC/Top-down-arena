@@ -43,7 +43,7 @@ namespace Arena
         // Knight (melee)
         Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee
-        Kusarigama, BoStaff, ChainShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
+        Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
     }
@@ -62,7 +62,7 @@ namespace Arena
         public bool Melee;  // swings instead of shots (Knight.cs; the Ninja's Kusarigama, Bo Staff and Katana and the Blood Lash too)
 
         // The main attack's numbers, in one place: the code that fires it, WeaponRange (the aim line) and the bots
-        // all read these. Secondary parts (fragments, sword waves, a Katana's lunge, heals) stay with the weapon's code.
+        // all read these. Secondary parts (fragments, sword waves, a Katana's quick-draw, heals) stay with the weapon's code.
         public float Speed, Life;      // a shot's speed (px/s) and lifetime (s): it reaches Speed × Life
         public float Damage;           // the main shot's or swing's damage (before upgrades)
         public float Reach;            // a swing's reach (px), or a beam's length
@@ -193,16 +193,22 @@ namespace Arena
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Scattergun, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
-            new WeaponDef { Id = WeaponId.FlakCannon, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets on impact", Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
-            new WeaponDef { Id = WeaponId.RiotRepeater, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
+            new WeaponDef { Id = WeaponId.Scattergun, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
+                Desc = "A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back." },
+            new WeaponDef { Id = WeaponId.FlakCannon, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
+                Desc = "Shells fly over enemies to your cursor and burst in the air there (30 within 80 px), destroying enemy bullets caught in the burst." },
+            new WeaponDef { Id = WeaponId.RiotRepeater, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f,
+                Desc = "Steady single shots with a little spread. Each round that hits suppresses the enemy: it shoots 8% slower, up to 50% (25% for bosses), fading quickly." },
             new WeaponDef { Id = WeaponId.Flamethrower, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
                 Desc = "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s)." },
-            new WeaponDef { Id = WeaponId.FrostLance, Speed = 700f, Life = 0.9f, Damage = 14f, BotRange = 390f, ExtraDesc = "Spears shatter into 2 more icicles on hit", Name = "Frost Lance", FireInterval = 0.35f, Desc = "Piercing ice spears with a wide head that slow enemies." },
-            new WeaponDef { Id = WeaponId.StormHammer, Speed = 420f, Life = 1.2f, Damage = 24f, BotRange = 220f, ExtraDesc = "Lightning chains to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
-            new WeaponDef { Id = WeaponId.GolemStaff, Speed = 480f, Life = 0.6f, Damage = 8f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.FrostLance, Damage = 18f, Reach = 230f, Grow = 30f, BotRange = 190f, ExtraDesc = "+30 px longer icicle, and its splinters fly 15 px further", Name = "Frost Lance", FireInterval = 0.4f,
+                Desc = "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow." },
+            new WeaponDef { Id = WeaponId.StormHammer, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
+                Desc = "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage." },
+            new WeaponDef { Id = WeaponId.GolemStaff, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.BoneGuard, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
+            new WeaponDef { Id = WeaponId.BoneGuard, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
+                Desc = "Bone darts that stick in enemies: the third in one enemy cages it for 1.5 s (not bosses). Two skeleton guards circle you, block bullets, and shoot at caged enemies.",
                 Companion = MinionKind.Guard, CompanionCount = 2 },
             new WeaponDef { Id = WeaponId.BearTotem, Damage = 11f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.45f,
                 Desc = "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.",
@@ -213,17 +219,17 @@ namespace Arena
                 Desc = "A heavy jab in front of you that shoves enemies far back and stuns them for 1 s." },
             new WeaponDef { Id = WeaponId.Halberd, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Sweeps a long, thin blade across in front of you (200 px, 80°), hitting each enemy once a sweep." },
-            new WeaponDef { Id = WeaponId.Kusarigama, Damage = 26f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and the chain yanks 15 px harder", Name = "Kusarigama", FireInterval = 0.55f,
-                Desc = "A chain-sickle whipped in a wide arc (130 px, 120°) that yanks enemies 40 px toward you." },
-            new WeaponDef { Id = WeaponId.BoStaff, Damage = 16f, Reach = 90f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach", Name = "Bo Staff", FireInterval = 0.4f,
-                Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air." },
-            new WeaponDef { Id = WeaponId.ChainShuriken, Speed = 620f, Life = 0.84f, Damage = 22f, ExtraDesc = "+1 shuriken, fanned out", Name = "Chain Shuriken", FireInterval = 0.7f,
-                Desc = "A heavy spinning star that flies out and comes back, cutting through everything both ways." },
+            new WeaponDef { Id = WeaponId.Kusarigama, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
+                Desc = "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun)." },
+            new WeaponDef { Id = WeaponId.BoStaff, Damage = 16f, Reach = 90f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and a 30 px longer vault", Name = "Bo Staff", FireInterval = 0.4f,
+                Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air. Click while moving to vault 150 px, striking everything you pass (24); once every 1.2 s." },
+            new WeaponDef { Id = WeaponId.FumaShuriken, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
+                Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },
             new WeaponDef { Id = WeaponId.BloodLash, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
                 Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
             new WeaponDef { Id = WeaponId.ClotBolt, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
-                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s." },
+                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool." },
             new WeaponDef { Id = WeaponId.LeechBeam, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on." },
             // Healer
@@ -231,63 +237,79 @@ namespace Arena
                 Desc = "Blasts enemies away in a cone. Light damage; enemies it hits shed tiny health orbs." },
             new WeaponDef { Id = WeaponId.Pistol, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy." },
             new WeaponDef { Id = WeaponId.MendersBow, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%)." },
-            new WeaponDef { Id = WeaponId.RadiantOrb, Speed = 300f, Life = 1.8f, Damage = 14f, BotRange = 260f, ExtraDesc = "+1 light orb circling you that hurts enemies and heals allies it touches", Name = "Radiant Orb", FireInterval = 0.5f, Desc = "Slow piercing orbs that heal allies they pass through." },
-            new WeaponDef { Id = WeaponId.ChainLight, Speed = 800f, Life = 0.8f, Damage = 10f, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
-            new WeaponDef { Id = WeaponId.PrismBeam, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f, Desc = "A rapid short-range beam. Grazing your ally heals them." },
-            new WeaponDef { Id = WeaponId.SpriteStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.35f, Desc = "Seed shots. Two sprites fly to whoever is hurt and heal them.",
+            new WeaponDef { Id = WeaponId.RadiantOrb, Damage = 8f, Reach = 520f, BotRange = 300f, ExtraDesc = "+1 light orb circling you that hurts enemies and heals allies it touches", Name = "Radiant Orb", FireInterval = 0.2f,
+                Desc = "Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them (8, 5 times a second) and over allies to heal them." },
+            new WeaponDef { Id = WeaponId.ChainLight, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
+                Desc = "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each." },
+            new WeaponDef { Id = WeaponId.PrismBeam, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f,
+                Desc = "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them." },
+            new WeaponDef { Id = WeaponId.SpriteStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.35f,
+                Desc = "Seed shots that stick in enemies. Two sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another for 6 s (up to 4 more).",
                 Companion = MinionKind.Sprite, CompanionCount = 2 },
-            new WeaponDef { Id = WeaponId.TreantRod, Speed = 600f, Life = 1f, Damage = 8f, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.3f, Desc = "Bolts heal allies they pass. A Treant guards you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.TreantRod, Speed = 600f, Life = 1f, Damage = 8f, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.3f,
+                Desc = "Bolts heal allies they pass. Your Treant roots where it stands and blocks bullets; a vine runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.TotemStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f, Desc = "Seed shots. Plants a healing totem where you stand every 10 s." },
+            new WeaponDef { Id = WeaponId.TotemStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f,
+                Desc = "Seed shots. Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Seed hits on enemies near your totems charge them: at 6, a totem pulses 25 healing to allies near it." },
             new WeaponDef { Id = WeaponId.HolyMace, Damage = 18f, Reach = 105f, Melee = true, ExtraDesc = "+1 strike with the other end of the staff (60% damage)", Name = "Quarterstaff", FireInterval = 0.5f,
                 Desc = "Wide staff sweeps that knock enemies back and bat enemy bullets in the arc back at them (all but red aimed shots). Every enemy hit heals you and allies near you for 2 (up to 8 a swing)." },
             new WeaponDef { Id = WeaponId.Lightbringer, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light, fanned out", Name = "Lightbringer", FireInterval = 0.5f,
-                Desc = "Sword swings that also send a short crescent of light, which heals allies it passes." },
+                Desc = "Sword swings that also send a short crescent of light, which heals allies it passes. Every enemy you hit fills a light gauge; at 12, your next swing's crescents heal three times as much." },
             new WeaponDef { Id = WeaponId.Censer, Damage = 14f, Reach = 80f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 HP healed per spin", Name = "Censer", FireInterval = 0.4f,
-                Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3." },
+                Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3. As you move it leaves a trail of incense (3 s) that heals allies in it, and enemy shots fired from inside it stray." },
             new WeaponDef { Id = WeaponId.MedicineDarts, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
-                Desc = "Fast needles. Each one that passes an ally heals them for 4." },
+                Desc = "Fast needles that dose what they hit. Enemies: a stack of poison (2 a second for 3 s). Hurt allies: a stack of healing (2 a second for 3 s). Up to 5 stacks each." },
             new WeaponDef { Id = WeaponId.SpiritFan, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
-                Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back." },
+                Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back. Shots alternate: one blows enemies in front away, the next draws them in." },
             new WeaponDef { Id = WeaponId.Ofuda, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
-                Desc = "Slow paper charms that home in and burst (25), healing allies near the burst for 8." },
+                Desc = "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it." },
             new WeaponDef { Id = WeaponId.TransfusionDarts, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
-                Desc = "Darts that heal an ally they reach for 8, at a cost of 3 of your own health." },
-            new WeaponDef { Id = WeaponId.SanguineOrb, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f,
-                Desc = "Homing orbs of blood (16). Enemies they kill have a 40% chance to drop a small health orb." },
+                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5)." },
+            new WeaponDef { Id = WeaponId.SanguineOrb, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
+                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. "
+                    + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s)." },
             new WeaponDef { Id = WeaponId.VeinTether, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream (5 per barrel), straying up to 2°." },
-            new WeaponDef { Id = WeaponId.Railgun, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
-            new WeaponDef { Id = WeaponId.BurstSmg, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
-            new WeaponDef { Id = WeaponId.Fireball, Speed = 520f, Life = 1.2f, Damage = 22f, BotRange = 390f, ExtraDesc = "Splits into 2 small fireballs on impact", Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
-            new WeaponDef { Id = WeaponId.ArcLightning, Speed = 900f, Life = 0.6f, Damage = 12f, BotRange = 280f, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Arc Lightning", FireInterval = 0.25f, Desc = "Bolts that chain to 4 nearby enemies." },
-            new WeaponDef { Id = WeaponId.ArcaneMissiles, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 missile, and missiles home in on enemies", Name = "Arcane Missiles", FireInterval = 0.3f, Desc = "Three curving missiles per cast." },
-            new WeaponDef { Id = WeaponId.WolfWhistle, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f, Desc = "Darts. Two wolves hunt down enemies.",
+            new WeaponDef { Id = WeaponId.TwinRifle, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
+                Desc = "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double." },
+            new WeaponDef { Id = WeaponId.Railgun, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f,
+                Desc = "Slow, devastating shots that pierce 3 enemies. The round's path stays charged for 1 s behind it, hurting anything in it (25 a second)." },
+            new WeaponDef { Id = WeaponId.BurstSmg, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
+                Desc = "Sprays very fast shots. Keep firing to spin it up (2 s): the spray tightens and damage climbs to +60%. It winds down fast when you stop." },
+            new WeaponDef { Id = WeaponId.Fireball, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
+                Desc = "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s)." },
+            new WeaponDef { Id = WeaponId.ArcLightning, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
+                Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun)." },
+            new WeaponDef { Id = WeaponId.ArcaneMissiles, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 missile a cast, +2 in orbit, and faster launches", Name = "Arcane Missiles", FireInterval = 0.3f,
+                Desc = "Each cast conjures 3 missiles into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim." },
+            new WeaponDef { Id = WeaponId.WolfWhistle, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
+                Desc = "Darts mark the enemy they hit as prey, and your two wolves hunt it. When every wolf bites it within a second: a takedown (20 per wolf and a 0.6 s stun).",
                 Companion = MinionKind.Wolf, CompanionCount = 2 },
-            new WeaponDef { Id = WeaponId.WispLantern, Speed = 600f, Life = 1f, Damage = 8f, ExtraDesc = "+1 Wisp", Name = "Wisp Lantern", FireInterval = 0.45f, Desc = "Weak bolts. Three wisps orbit you and shoot.",
+            new WeaponDef { Id = WeaponId.WispLantern, Damage = 22f, BotRange = 340f, ExtraDesc = "+1 Wisp, and each shot sends one more", Name = "Wisp Lantern", FireInterval = 0.25f,
+                Desc = "Three wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor (22), strikes it and comes back.",
                 Companion = MinionKind.Wisp, CompanionCount = 3 },
-            new WeaponDef { Id = WeaponId.ImpCaller, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f, Desc = "Darts. Calls an imp every 3 s that charges an enemy and explodes.",
+            new WeaponDef { Id = WeaponId.ImpCaller, BotRange = 380f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f,
+                Desc = "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.",
                 Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f },
             new WeaponDef { Id = WeaponId.TwinBlades, Damage = 15f, Reach = 75f, Melee = true, ExtraDesc = "+1 cut: each swing strikes once more (60% damage)", Name = "Twin Blades", FireInterval = 0.16f,
-                Desc = "Very fast alternating slashes." },
+                Desc = "Very fast alternating slashes. Land 10 in a row and your next one is a dash-strike: you lunge 140 px through enemies for triple damage." },
             new WeaponDef { Id = WeaponId.Greatsword, Damage = 60f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
-                Desc = "Huge sweeping cuts with long reach." },
+                Desc = "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets." },
             new WeaponDef { Id = WeaponId.Rapier, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,
-                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%)." },
+                Desc = "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%). Each thrust skewers up to 3 enemy bullets along its line (not red aimed shots), and each adds to the streak." },
             new WeaponDef { Id = WeaponId.Shuriken, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Fans of 3 spinning stars that ricochet to one more enemy." },
+                Desc = "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes." },
             new WeaponDef { Id = WeaponId.Katana, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
-                Desc = "Fast 110° quick-draw slashes; every 4th is a long lunging cut for double damage." },
+                Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
             new WeaponDef { Id = WeaponId.Kunai, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
-                Desc = "Rapid throwing knives. +50% damage to enemies that aren't targeting you." },
+                Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double." },
             new WeaponDef { Id = WeaponId.BloodBolts, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Fast bolts of blood (9)." },
+                Desc = "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px." },
             new WeaponDef { Id = WeaponId.Implosion, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in." },
             new WeaponDef { Id = WeaponId.BoneSpear, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
-                Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health." },
+                Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back." },
         };
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
@@ -330,12 +352,15 @@ namespace Arena
             KnightWave = 30,   // a crescent of steel or light thrown by a swing
             ArrowShot = 31,    // a Mender's Bow arrow
             // Ninja
-            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
-            FrostLance = 38,  // the Frost Lance's spear (its shatter icicles are FrostShot)
+            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, FumaStar = 37,
+            FrostLance = 38,  // retired: the Frost Lance no longer flies (it is an icicle swing, Minions.cs)
             // Blood Mage
             BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
             StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
-            FlameShot = 48;  // a Flamethrower flame
+            FlameShot = 48,  // a Flamethrower flame
+            HammerShot = 49, // the Storm Hammer, spinning as it flies
+            BoulderShot = 50, // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
+            FireballShot = 51; // the Fireball: big, rolling on through enemies and setting them burning
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -373,7 +398,7 @@ namespace Arena
                 case KunaiShot: return 4f;
                 case OfudaShot: return 6f;
                 case GustShot: return 9f;
-                case ChainStar: return 11f;
+                case FumaStar: return 20f;  // giant
                 case BloodShot: return 4f;
                 case ClotShot: return 7f;
                 case LeechShot: return 3.5f;
@@ -388,12 +413,20 @@ namespace Arena
                 case StunShot: return 7f;
                 case StunBolt: return 5f;
                 case FlameShot: return 7f;
+                case HammerShot: return 11f;
+                case BoulderShot: return 16f;
+                case FireballShot: return 15f;
                 case HoneyShot: return 9f;
                 default: return 6f;
             }
         }
 
-        public static float BulletDamage(byte kind)
+        /// Every enemy bullet hits this much harder than its listed damage below.
+        public const float EnemyBulletMult = 1.15f;
+
+        public static float BulletDamage(byte kind) => BaseBulletDamage(kind) * EnemyBulletMult;
+
+        static float BaseBulletDamage(byte kind)
         {
             switch (kind)
             {
@@ -435,7 +468,7 @@ namespace Arena
                 case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
                 case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
                 case StarShot:
-                case ChainStar:
+                case FumaStar:
                 case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
                 case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
@@ -455,6 +488,9 @@ namespace Arena
                 case StunShot:
                 case StunBolt: return new Rgba(0.43f, 0.88f, 1f);
                 case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
+                case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
+                case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
+                case FireballShot: return new Rgba(1f, 0.5f, 0.15f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }

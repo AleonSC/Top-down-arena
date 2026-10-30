@@ -51,6 +51,13 @@ class Shot {
         k++;
       }
     }
+    if (Environment.GetEnvironmentVariable("RADIANT") != null) {
+      // The Radiant Orb held out on an enemy up and to the right.
+      me.Weapon = Defs.WeaponOf(WeaponId.RadiantOrb); host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 450f);
+      V2 at = me.Pos + V2.FromAngle(-0.5f) * 250f;
+      foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = at + new V2(10f, 0f); break; }
+      for (int f = 0; f < 60; f++) { me.Pos = new V2(700f, 450f); host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { Fire = true, AimAt = at }); host.Game.Update(1f / 60f); }
+    }
     if (Environment.GetEnvironmentVariable("SOULGHOST") != null) {
       // Soul Link cast alone: the Soul Ghost beside you, tethered, a little hurt, SOULGHOST=<seconds> in.
       host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(-0.4f) * 300f;
@@ -121,9 +128,76 @@ class Shot {
       host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
     }
     if (Environment.GetEnvironmentVariable("FROST") != null) {
-      var sb2 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
-      for (int k = 0; k < 3; k++) { float a = -0.5f + k * 0.5f; sb2.Invoke(host.Game, new object[] { Defs.FrostLance, me.Pos + V2.FromAngle(a) * (90f + k * 60f), V2.FromAngle(a) * 700f, 0f, 1f, 14f, 1, false, 0f }); }
-      sb2.Invoke(host.Game, new object[] { Defs.FrostShot, me.Pos + new V2(-120f, 60f), new V2(-500f, 100f), 0f, 1f, 5f, 1, false, 0f });
+      // The Frost Lance's icicle FROST=<0..1> of the way through, with its splinters once they've gone off.
+      float x = float.Parse(Environment.GetEnvironmentVariable("FROST")), it = x * Game.IcicleFxTime, st = it - Game.SplinterDelay;
+      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.3f; host.Game.Bot = false;
+      V2 tipAt = me.Pos + V2.FromAngle(me.Aim) * 230f;
+      var frost = Defs.BulletColor(Defs.FrostShot);
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Icicle, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.IcicleHalfWidth, Dur = Game.IcicleFxTime, T = it });
+      if (st > 0f && st < 0.3f)
+        host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = 0.3f, T = st });
+    }
+    if (Environment.GetEnvironmentVariable("HAMMER") != null) {
+      // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
+      var sbh = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      me.Pos = me.Disp = new V2(500f, 450f); host.Game.Bot = false;
+      for (int k = 0; k < 3; k++) sbh.Invoke(host.Game, new object[] { Defs.HammerShot, me.Pos + new V2(70f + 70f * k, -20f * k), new V2(460f, 0f), 0f, 1f, 40f, 1, false, 0f });
+      var zap = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      for (int k = 0; k < zap.Count && k < 4; k++) zap[k].Pos = zap[k].Disp = new V2(900f, 450f) + (k == 0 ? new V2(0f, 0f) : V2.FromAngle(k * 2.1f) * 110f);
+      for (int k = 1; k < zap.Count && k < 4; k++) host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = zap[0].Pos, Pos2 = zap[k].Pos, Color = Defs.BulletColor(Defs.BoltShot), Dur = 0.15f, T = 0.03f });
+      if (zap.Count > 0) host.Game.Effects.Add(new Effect { Kind = FxKind.Spark, Pos = zap[0].Pos, Color = Defs.BulletColor(Defs.HammerShot), Radius = zap[0].Radius + 14f, Dur = 0.3f, T = 0.12f });
+    }
+    if (Environment.GetEnvironmentVariable("BOULDER") != null) {
+      // The Golem Staff: charging a throw (BOULDER=<draw seconds>, with the landing marker), and boulders in flight.
+      var sbb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.GolemStaff); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(500f, 500f); me.Aim = -0.25f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOULDER"));
+      for (int k = 0; k < 3; k++)
+      {
+        var b = (Bullet)sbb.Invoke(host.Game, new object[] { Defs.BoulderShot, new V2(560f + 110f * k, 300f), new V2(500f, 0f), 0f, 0.7f, 40f, 1, false, 0f });
+        b.Life = 0.7f * (0.8f - 0.3f * k);
+      }
+    }
+    if (Environment.GetEnvironmentVariable("CAGE") != null) {
+      // The Bone Guard: an enemy caged by its darts, the Skeleton Guards shooting at it.
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.BoneGuard); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(500f, 450f);
+      foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = new V2(680f, 430f); e.Caged = true; break; }
+      var sbc = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int k = 0; k < 2; k++) sbc.Invoke(host.Game, new object[] { Defs.MinionShot, me.Pos + new V2(60f + 40f * k, -10f - 20f * k), new V2(650f, -40f), 0f, 0.5f, 8f, 1, false, 0f });
+    }
+    if (Environment.GetEnvironmentVariable("WEAPONS5") != null) {
+      // Five reworked weapons at once: a Fuma Shuriken mid-loop, Chain Light's cone, a Sanguine Orb coating an enemy
+      // (and an ally coated in healing blood), Fireballs, and Arc Lightning going off.
+      var sb5 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      me.Pos = me.Disp = new V2(260f, 300f);
+      var fuma = (Bullet)sb5.Invoke(gm, new object[] { Defs.FumaStar, new V2(470f, 230f), new V2(300f, 300f), 1f, 1.1f, 30f, 1, false, 0f });
+      var en = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] at = { new V2(820f, 260f), new V2(880f, 330f), new V2(760f, 640f), new V2(1150f, 600f), new V2(1260f, 640f) };
+      for (int k = 0; k < en.Count && k < at.Length; k++) en[k].Pos = en[k].Disp = at[k];
+      var light = Defs.BulletColor(Defs.HolyShot);
+      V2 caster = new V2(620f, 300f);
+      gm.Effects.Add(new Effect { Kind = FxKind.LightCone, Pos = caster, Pos2 = caster + new V2(320f, 0f), Color = light, Radius = Game.LightConeHalf, Dur = 0.3f, T = 0.06f });
+      for (int k = 0; k < 2 && k < en.Count; k++) gm.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = caster + new V2(15f, 0f), Pos2 = at[k], Color = light, Dur = 0.2f, T = 0.03f });
+      if (en.Count > 2) gm.Effects.Add(new Effect { Kind = FxKind.BloodCoat, Pos = at[2], Pos2 = new V2(en[2].Id, 0f), Color = Defs.BulletColor(Defs.SanguineShot), Radius = en[2].Radius, Dur = Game.CoatTime, T = Game.CoatTime * 0.45f });
+      me.CoatT = 3f;
+      for (int k = 0; k < 2; k++) sb5.Invoke(gm, new object[] { Defs.FireballShot, new V2(300f + 120f * k, 560f + 30f * k), new V2(430f, 0f), 0f, 1.4f, 22f, 1, false, 0f });
+      V2 arcFrom = new V2(960f, 760f);
+      gm.Effects.Add(new Effect { Kind = FxKind.ArcField, Pos = arcFrom, Pos2 = arcFrom + new V2(500f, -160f), Color = Defs.BulletColor(Defs.BoltShot), Radius = Game.ArcHalfWidth, Dur = 0.35f, T = 0.05f });
+    }
+    if (Environment.GetEnvironmentVariable("HEMO") != null) {
+      // Blood Bolts: enemies with 1 to 4 bolts stuck in them (4 is one short of the burst).
+      var hm = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].Hemorrhage = k + 1; }
+    }
+    if (Environment.GetEnvironmentVariable("HOOK") != null) {
+      // The Kusarigama: hooked in an enemy (the chain taut to it), and a throw flying out.
+      me.Kit = Kit.Ninja; me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(500f, 450f); me.Aim = 0f;
+      var hk = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 420f); me.HookId = hk[0].Id; me.HookT = 2f; me.Aim = (hk[0].Pos - me.Pos).Angle; }
+      host.Game.Effects.Add(new Effect { Kind = FxKind.ChainThrow, Pos = new V2(500f, 600f), Pos2 = new V2(780f, 600f), Color = new Rgba(0.75f, 0.78f, 0.85f), Radius = 0f, Dur = 0.25f, T = 0.06f });
     }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

@@ -8,13 +8,14 @@ namespace Arena
     /// health into protection, healers give their own health away, and DPS are strongest near death.
     public partial class Game
     {
-        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
+        const float ClotPoolRadius = 70f, ClotPoolTime = 3f;
+        public const float PoolCongeal = 1f, PoolStuck = 1f, PoolGuard = 0.15f;  // a Clot Bolt's pool congeals after this long, sticking enemies in it; its owner takes less inside  // (each weapon's main reach, speed and damage are in Defs)
+        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
-        public const float BoneSpearCost = 2f, TransfuseCost = 3f;
+        public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
@@ -98,7 +99,7 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         var b = SpawnBullet(Defs.TransfuseShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.08f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.HealAlly = 8f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
+                        b.HealAlly = TransfuseHeal * 9f / w.Damage;  // HealAllyHit scales it by Dmg / 9; the dart costs you TransfuseCost when it heals
                     }
                     break;
                 }
@@ -106,7 +107,7 @@ namespace Arena
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
+                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, SanguineTurn);  // it homes only at the last moment (Steer)
                     break;
                 }
                 case WeaponId.BloodBolts:
@@ -129,7 +130,11 @@ namespace Arena
                     PayHealth(p, BoneSpearCost);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 3;
+                    {
+                        var b = SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        b.Pierce += 3;
+                        b.DropsSpear = i == 0;  // stays stuck where it stops: walk over it for its health back
+                    }
                     break;
                 }
             }
@@ -402,6 +407,9 @@ namespace Arena
                 case Defs.LeechShot:
                     Heal(p, dmg * LeechSteal, p);
                     break;
+                case Defs.TransfuseShot:
+                    Heal(p, TransfuseSteal, p);  // a sliver of the enemy's blood (it's for giving, not for soloing)
+                    break;
                 case Defs.VeinShot:
                 {
                     // Split between you and the nearest ally (all yours if no one is near).
@@ -419,18 +427,155 @@ namespace Arena
                     }
                     break;
                 }
-                case Defs.SanguineShot:
-                    if (e.Hp <= 0f && !e.BloodDropped)
-                    {
-                        e.BloodDropped = true;
-                        if (rng.NextDouble() < SanguineDrop)
-                            SpawnOrb(e.Pos, false);
-                    }
-                    break;
                 case Defs.ClotShot:
                     AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
                     break;
+                case Defs.BloodShot:
+                    if (b.HealOwner <= 0f && p.Weapon.Id == WeaponId.BloodBolts)  // Blood Bolts (not Hemo Nova's)
+                        Hemorrhage(p, e, b.Dmg);
+                    break;
             }
+        }
+
+        // --- Sanguine Orb: coat enemies in blood, then coat allies in healing blood -------------------------
+
+        public const float SanguineTurn = 9f, SanguineHomeRange = 110f;  // it flies straight, then homes hard on an enemy this close
+        public const float CoatTime = 0.45f, SanguineBleed = 0.3f;       // circling in to coat an enemy; then it bleeds this share of the hit a second (a stack)
+        public const float ReserveMax = 100f, ReserveGain = 10f, AllyCoatCost = 25f, AllyCoatTime = 4f, AllyCoatHeal = 30f;  // the heal reserve, and coating an ally from it
+
+        /// An orb circling in on the enemy it caught.
+        class Coating
+        {
+            public int Enemy, Owner;
+            public float T, Dmg;
+        }
+
+        readonly List<Coating> coatings = new List<Coating>();
+
+        /// A Sanguine Orb caught an enemy: it circles in and covers it with blood (BloodCoat; Pos2.X carries the
+        /// enemy's id so everyone draws it on the enemy as it moves). The hit lands when it closes in (TickCoatings).
+        void StartBloodCoat(Bullet b, Enemy e)
+        {
+            coatings.Add(new Coating { Enemy = e.Id, Owner = b.Owner, T = CoatTime, Dmg = b.Dmg });
+            BroadcastFx(FxKind.BloodCoat, e.Pos, new V2(e.Id, 0f), Defs.BulletColor(Defs.SanguineShot), e.Radius, CoatTime, Sfx.None);
+        }
+
+        /// A Sanguine Orb touching a hurt ally: with enough heal reserve, it coats them in healing blood instead.
+        bool CoatAlly(Bullet b)
+        {
+            Player owner;
+            if (!Players.TryGetValue(b.Owner, out owner) || owner.BloodReserve < AllyCoatCost)
+                return false;
+            foreach (var q in Players.Values)
+            {
+                float r = q.Def.BodyR + b.Radius;
+                if (q == owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
+                    continue;
+                owner.BloodReserve -= AllyCoatCost;
+                q.CoatT = AllyCoatTime;
+                q.CoatBy = owner.Id;
+                BroadcastFx(FxKind.Ring, q.Pos, Defs.BulletColor(Defs.SanguineShot), q.Def.BodyR + 14f, 0.3f, Sfx.SpellHoly);
+                return true;
+            }
+            return false;
+        }
+
+        /// Host, every tick: coatings close in and land (damage, a bleed stack, heal reserve), and coated allies heal.
+        void TickCoatings(float dt)
+        {
+            for (int i = coatings.Count - 1; i >= 0; i--)
+            {
+                var c = coatings[i];
+                if ((c.T -= dt) > 0f)
+                    continue;
+                coatings.RemoveAt(i);
+                Enemy e;
+                Player p;
+                if (!Enemies.TryGetValue(c.Enemy, out e) || e.Hp <= 0f)
+                    continue;
+                HurtEnemy(e, c.Dmg, c.Owner);
+                ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // Minions.cs: each coat is another stack
+                OnBulletHit(new Bullet { Pos = e.Pos, Owner = c.Owner, Dmg = c.Dmg, Kind = Defs.SanguineShot }, e);
+                if (Players.TryGetValue(c.Owner, out p))
+                    p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain);
+            }
+            foreach (var q in Players.Values)
+            {
+                if (q.CoatT <= 0f)
+                    continue;
+                q.CoatT = q.Downed ? 0f : Math.Max(0f, q.CoatT - dt);
+                if (q.CoatT > 0f)
+                    Heal(q, AllyCoatHeal / AllyCoatTime * dt, PlayerOrNull(q.CoatBy));
+            }
+        }
+
+        // --- Blood Bolts: hemorrhage --------------------------------------------------------------------
+
+        public const int HemorrhageHits = 5;
+        public const float HemorrhageHold = 2f, HemorrhageMult = 4f, HemorrhageRadius = 80f;  // bolts fade after this; the burst is this many bolts' damage
+
+        /// A Blood Bolt stuck in `e`; the fifth in a row (each within HemorrhageHold of the last) bursts it, hurting it
+        /// and every enemy round it.
+        void Hemorrhage(Player p, Enemy e, float boltDmg)
+        {
+            e.HemorrhageT = HemorrhageHold;
+            if (++e.Hemorrhage < HemorrhageHits)
+                return;
+            e.Hemorrhage = 0;
+            float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p);
+            foreach (var o in Enemies.Values)
+                if (o.SpawnT <= 0f && o.Hp > 0f && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
+                    HurtEnemy(o, dmg, p.Id);
+            BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
+        }
+
+        void TickHemorrhage(Enemy e, float dt)
+        {
+            if (e.Hemorrhage > 0 && (e.HemorrhageT -= dt) <= 0f)
+                e.Hemorrhage = 0;
+        }
+
+        // --- Bone Spear: pick your spears back up -----------------------------------------------------
+
+        public const float SpearPickupTime = 8f, SpearPickupRadius = 16f;
+
+        /// A Bone Spear stopped: it stays stuck in the ground there.
+        void DropSpear(Bullet b)
+        {
+            Player p;
+            if (b.DropsSpear && Players.TryGetValue(b.Owner, out p))
+                AddZone(ZoneKind.BoneSpear, p, ClampToArena(b.Pos, 10f), SpearPickupRadius, SpearPickupTime);
+        }
+
+        /// Host, every tick: a Bone Spear its thrower walks over gives them its health back.
+        void TickSpearPickups()
+        {
+            List<int> taken = null;
+            foreach (var z in Zones.Values)
+            {
+                Player p;
+                if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.DistanceTo(z.Pos) > z.Radius + p.Def.BodyR)
+                    continue;
+                Heal(p, BoneSpearCost, p);
+                AddFx(FxKind.Spark, z.Pos, z.Def.Color, 16f, 0.25f);
+                (taken = taken ?? new List<int>()).Add(z.Id);
+            }
+            if (taken != null)
+                foreach (int id in taken)
+                    Zones.Remove(id);
+        }
+
+        /// A Clot Bolt's pool sets: enemies still in it are stuck for a moment (not bosses).
+        void CongealPool(Zone z)
+        {
+            z.Congealed = true;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && !e.Def.IsBoss && e.Pos.DistanceTo(z.Pos) <= z.Radius + e.Radius)
+                {
+                    e.FrozenT = Math.Max(e.FrozenT, PoolStuck);
+                    e.SlowT = Math.Max(e.SlowT, PoolStuck);
+                }
+            BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.3f, Sfx.None);
         }
 
         /// Transfusion Darts cost the healer some of their own health for each ally they heal.
@@ -841,6 +986,7 @@ namespace Arena
         void TickBloodMages(float dt)
         {
             rainSteal = 0f;
+            TickCoatings(dt);
             foreach (var p in Players.Values)
             {
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.SanguineRain)

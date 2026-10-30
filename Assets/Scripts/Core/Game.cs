@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow, IonTrail, SteelWall }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something); IonTrail: a Railgun shot's charged path (Pos2 = its far end, Radius = the round's speed); SteelWall: a Greatsword's lingering crescent (Pos = the swing's centre, Pos2 = the middle of its edge, Radius = half its arc)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -59,11 +59,32 @@ namespace Arena
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
+        public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
+        public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
+        public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
+        public float LaunchCd;                        // host: until the next one launches
+        public float DoseT;                           // dosed by Medicine Darts: healing over time while it lasts (replicated)
+        public float DoseHps;                         // host: how much a second
+        public int DoseBy;
+        public V2 KunaiMark;                          // Kunai: where the last shadow kunai landed, to blink to (replicated)
+        public float KunaiMarkT;                      //   for this much longer (replicated)
+        public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
+        public int Light;                             // Lightbringer: its light gauge, hits landed toward a radiant swing (replicated)
+        public V2 LastIncense;                        // host: where the Censer last left incense
+        public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
+        public float ComboT;
+        public float SheathT;                         // Katana: how long since it last cut (replicated: at KatanaSheath it's sheathed, glinting)
+        public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
+        public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
+        public float HookT;                           //   for this much longer (replicated)
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
         public V2 VanishFrom;                         // host: where enemies last saw you before you vanished
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public float BloodReserve;                    // Sanguine Orb: heal reserve charged by coating enemies (replicated, whole points)
+        public float CoatT;                           // coated in a Sanguine Orb's healing blood: heals while it lasts (replicated)
+        public int CoatBy;                            // host: who coated them
         public int Clot, ClotMax = 5;                 // Blood Lash: Clot stacks and the most it can hold (replicated)
         public float ClotT;                           // host: until the next Clot stack fades
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
@@ -124,6 +145,8 @@ namespace Arena
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
         public V2 LightPos, LightDisp;  // Searchlight: its pool (replicated), and where this screen draws it (Stun.cs)
+        public bool RadiantOn;              // Radiant Orb: held out (replicated; RadiantOrb.cs)
+        public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
         public RunStats Run = new RunStats();
         public int ReviveBy;         // host: who is reviving this downed player (credited when it completes)
         public float LifestealPool;  // host: Royal Jelly heals at most 10 HP per second
@@ -163,8 +186,10 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
+        public int BoneDarts;               // host: Bone Guard darts stuck in it (the third cages it; Minions.cs)
+        public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
+        public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
-        public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
@@ -174,6 +199,16 @@ namespace Arena
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
+        public int Hemorrhage;               // Blood Bolts stuck in it (the fifth bursts; BloodMage.cs); replicated, for drawing
+        public float HemorrhageT;            // host: until they fade
+        public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)
+        public bool Suppressed;              // replicated, for drawing
+        public float PoisonT, PoisonDps;     // host: Medicine Darts' poison (stacking)
+        public int PoisonBy;
+        public bool Poisoned;                // replicated, for drawing
+        public int StarsStuck;               // Shuriken stars stuck in it (replicated, for drawing)
+        public int SeededBy;                 // host: a Sprite Staff seed is stuck in it (killing it frees a sprite)
+        public float SeededT;
     }
 
     public class Bullet
@@ -186,12 +221,23 @@ namespace Arena
         public int Owner, Pierce, LastHit;
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
+        public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
+        public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
+        public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
+        public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
+        public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
+        public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
+        public bool DropsSpear;   // host only: a Bone Spear, which stays stuck where it stops (a pickup)
+        public bool Ward;         // host only: an Ofuda charm flying to where it will lie as a ward
+        public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
+        public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
         public float HealOwner;   // host only: heals whoever fired it this much when it hits (Hemo Nova)
         public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it hits (Clot Bolt)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
+        public int Shock;         // host only: electrifies the enemy it hits, which arcs to this many others round it (the Storm Hammer)
         public float SlowAmt;     // host only: frost slows enemies hit
         public float Ignite;      // host only: sets enemies hit burning for this much a second (Flamethrower)
         public bool Pierced;      // host only: a Flamethrower flame that has hit its first enemy (it does less after)
@@ -234,7 +280,9 @@ namespace Arena
         public bool Embers;         // host: a mastered Meteor leaves burning ground
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
-        public float GuardFrac;     // replicated BlockHp fraction, for drawing
+        public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Totem's charge)
+        public float Charge;        // host: a thrown Totem's charge from seed hits near it
+        public bool Congealed;      // host: a Blood Pool that has set (BloodMage.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
 
@@ -256,6 +304,11 @@ namespace Arena
         public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
+        public bool Sent;                // host: a Wisp Lantern wisp or Imp Caller imp sent out at something
+        public bool Returning;           // host: a wisp flying back to you
+        public int GoalEnemy;            // host: what it was sent at (0: just the point Goal)
+        public V2 Goal;
+        public float SentT;              // host: how long it has been out
     }
 
     public class Effect
@@ -930,6 +983,7 @@ namespace Arena
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
+            StepRadiantDisplay(dt);    // Radiant Orbs (RadiantOrb.cs)
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             float k = 1f - (float)Math.Exp(-18.0 * dt);
@@ -1171,6 +1225,7 @@ namespace Arena
                 }
             }
 
+            LocalWeaponDash(me, move, firing, dt);  // the Bo Staff's vault and the Kusarigama's reel (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
             me.AimAt = aimAt;
@@ -1217,6 +1272,16 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickNinjas(dt);   // Ninja.cs
             TickBloodMages(dt);  // BloodMage.cs
+            TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies
+            TickIonTrails(dt);  // Minions.cs: the Railgun's charged paths
+            TickPack(dt);     // Minions.cs: the Wolf Whistle's prey
+            TickOrbiters(dt);  // Minions.cs: Arcane Missiles launching
+            TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
+            TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
+            TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
+            TickVines(dt);    // Minions.cs: the Treant Rod's vine
+            TickSpearPickups();  // BloodMage.cs: Bone Spears walked over
+            TickHealerKit(dt);   // Minions.cs: the Censer's incense, Ofuda wards, seeded enemies
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);
@@ -1299,6 +1364,9 @@ namespace Arena
                         HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
                 }
                 p.FireCd -= dt;
+                TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
+                if (p.Weapon.Id == WeaponId.RadiantOrb)
+                    TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
                 if (p.Downed)
                     continue;
                 if (p.StunShots > 0)
@@ -1310,7 +1378,7 @@ namespace Arena
                 }
                 else if (ChargeWeapon(p.Weapon.Id))
                     TickBow(p);  // the bow and the Warhammer fire when you let go
-                else if (p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Firing && !p.ParryActive && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

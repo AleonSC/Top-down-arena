@@ -30,6 +30,13 @@ namespace Arena
             p.Parrying = parry;
         }
 
+        public void OnWeaponDash(int peer, BinaryReader r)
+        {
+            int kind = r.ReadByte();
+            V2 target = r.ReadV2();
+            HostWeaponDash(peer, kind, target);  // Ninja.cs
+        }
+
         public void OnAbility(int peer, BinaryReader r)
         {
             int slot = r.ReadByte();
@@ -394,13 +401,31 @@ namespace Arena
             s.Float(ref p.WhirlT);
             s.Float(ref p.VanishT);
             s.Float(ref p.IronT);
+            s.Int(ref p.HookId);
+            s.Float(ref p.HookT);
+            s.Float(ref p.SpinUp);
+            s.Int(ref p.PreyId);
+            s.Byte(ref p.Orbiters);
+            s.Byte(ref p.Combo);
+            s.Float(ref p.SheathT);
+            s.Byte(ref p.Light);
+            s.Float(ref p.DoseT);
+            s.Vec(ref p.KunaiMark);
+            s.Float(ref p.KunaiMarkT);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
+            int reserve = (int)p.BloodReserve;
+            s.Byte(ref reserve);
+            if (s.Reading)
+                p.BloodReserve = reserve;
+            s.Float(ref p.CoatT);
             s.Byte(ref p.AmmoUsed);
             s.Byte(ref p.StunShots);
             s.Vec(ref p.LightPos);
+            s.Bool(ref p.RadiantOn);
+            s.Vec(ref p.RadiantPos);
             s.Float(ref p.ReloadT);
             float drawT = p.DrawT;
             s.Float(ref drawT);
@@ -460,6 +485,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
+            int hemorrhage = 0, stars = 0;
             if (!s.Reading)
             {
                 id = e.Id;
@@ -476,7 +502,11 @@ namespace Arena
                 e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
-                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0));
+                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
+                hemorrhage = e.Hemorrhage;
+                stars = e.StarsStuck;
+                e.Suppressed = e.Suppress >= SuppressShown;
+                e.Poisoned = e.PoisonT > 0f;
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -488,6 +518,8 @@ namespace Arena
             s.Byte(ref phase);
             s.Bool(ref elite);
             s.Byte(ref status);
+            s.Byte(ref hemorrhage);  // Blood Bolts stuck in it, drawn as drops gathering on it
+            s.Byte(ref stars);       // Shuriken stars stuck in it
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -511,6 +543,11 @@ namespace Arena
                 e.Chilled = (status & 4) != 0;
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
+                e.Caged = (status & 32) != 0;
+                e.Suppressed = (status & 64) != 0;
+                e.Poisoned = (status & 128) != 0;
+                e.Hemorrhage = hemorrhage;
+                e.StarsStuck = stars;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs
@@ -573,7 +610,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
+                z.GuardFrac = z.Kind == ZoneKind.Totem ? z.Charge / TotemCharge : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
             int kind = (int)z.Kind;
             s.Int(ref z.Id);
             s.Byte(ref kind);

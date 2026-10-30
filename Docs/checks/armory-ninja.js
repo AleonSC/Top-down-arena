@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   await p.click('text=Weapons');
   for (const w of ['Kusarigama', 'Bo Staff', 'Medicine Darts', 'Spirit Fan', 'Ofuda', 'Katana', 'Kunai', 'Shuriken']) { await p.locator('#weaponList .item').filter({ hasText: w }).first().click(); await p.waitForTimeout(900); }
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-shuriken.png' });
-  await p.locator('#weaponList .item').filter({ hasText: 'Chain Shuriken' }).first().click(); await p.waitForTimeout(1300);
+  await p.locator('#weaponList .item').filter({ hasText: 'Fuma Shuriken' }).first().click(); await p.waitForTimeout(1300);
   await (await p.$('#wCanvas')).screenshot({ path: process.argv[3] + '/arm-chainstar.png' });
   const dpsText = await p.textContent('#wStats');
   await p.click('text=Abilities');

@@ -8,8 +8,9 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        const float KusariPull = 40f, KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
-        public const float ChainStarOut = 0.42f;  // a Chain Shuriken flies out this long, then comes back as long
+        public const float KatanaSheath = 0.6f, KatanaDrawReach = 220f, KatanaDrawMult = 2.5f, KatanaDrawWidth = 22f;  // hold off this long and the next cut is a quick-draw (each weapon's main reach, speed and damage are in Defs)
+        public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
+        public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
@@ -28,23 +29,22 @@ namespace Arena
             switch (w.Id)
             {
                 case WeaponId.Kusarigama:
-                {
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 120f, w.Damage * dmg);
-                    s.Knock = -(KusariPull + 15f * extra);  // the chain yanks them in
-                    s.NoCut = true;
-                    pendingSwings.Add(s);
+                    if (!Hooked(p))
+                        ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: firing reels you in instead (LocalWeaponDash)
                     break;
-                }
                 case WeaponId.BoStaff:
                     pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
                     break;
-                case WeaponId.ChainShuriken:
+                case WeaponId.FumaShuriken:
                 {
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
+                    // A giant star thrown in an oval loop out in front of you and back, cutting through everything.
+                    // Each extra one loops the other way, and every second pair loops a little wider.
+                    V2 front = V2.FromAngle(aim);
+                    for (int i = 0; i <= extra; i++)
                     {
-                        float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.3f * (n - 1));
-                        SpawnBullet(Defs.ChainStar, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
+                        float s = i % 2 == 0 ? 1f : -1f, size = FumaSize(i);
+                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * MathX.Tau / w.Life);  // it sets off sideways (FumaTurn)
+                        SpawnBullet(Defs.FumaStar, p.Pos, vel, s, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
                     }
                     break;
                 }
@@ -55,20 +55,25 @@ namespace Arena
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.08f * (n - 1));
                         var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.HealAlly = 4f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
+                        b.Medicine = true;  // poisons enemies, doses allies (Ninja.cs)
                     }
                     break;
                 }
                 case WeaponId.SpiritFan:
                 {
                     // A gust: five short-lived puffs that heal allies they pass, and small enemy bullets in front blown back.
+                    // Shots alternate: a gust out that blows enemies away, then a draw in that pulls them to you.
                     float reach = 1f + w.Grow * extra;
+                    bool draw = p.SwingCount % 2 == 0;
+                    float len = w.Speed * w.Life * reach * p.Stats.ShotSpeedMult;
                     for (int i = 0; i < 5; i++)
                     {
-                        var b = SpawnBullet(Defs.GustShot, muzzle, V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);
+                        V2 d = V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f);
+                        var b = SpawnBullet(Defs.GustShot, draw ? p.Pos + d * (p.Def.BodyR + len) : muzzle, (draw ? -d : d) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);  // a draw's puffs fly in
                         b.Pierce += 99;
                         b.HealAlly = (3f + extra) * 9f / 6f;
                     }
+                    FanEnemies(p, aim, p.Def.BodyR + len + FanReachSlack, draw ? -FanShove : FanShove);
                     float push = 130f * reach;
                     foreach (var b in Bullets.Values)
                     {
@@ -84,12 +89,14 @@ namespace Arena
                 case WeaponId.Ofuda:
                 {
                     int n = 1 + extra;
+                    // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
+                    float far = Math.Min(WardRange, Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
-                        b.Splash = 60f * AreaMult(p);
-                        b.HealBurst = 8f;
+                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                        b.Ward = true;
+                        b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
                     break;
                 }
@@ -97,16 +104,24 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Bounces += 1;
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (double-tap fire to recall them)
                     break;
                 }
                 case WeaponId.Katana:
                 {
-                    // Every 4th draw is a long lunging cut.
-                    bool lunge = p.SwingCount % 4 == 0;
-                    var s = lunge ? NewSwing(p, aim, KatanaLungeReach, 30f, w.Damage * 2f * dmg) : NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
-                    s.Thrust = lunge;
-                    s.Heavy = lunge;
+                    // Held off long enough, the blade was sheathed: this one is a quick-draw cut through everything in its line.
+                    bool draw = p.SheathT >= KatanaSheath;
+                    p.SheathT = 0f;
+                    Swing s;
+                    if (draw)
+                    {
+                        s = NewSwing(p, aim, KatanaDrawReach, 20f, w.Damage * KatanaDrawMult * dmg);
+                        s.HalfWidth = KatanaDrawWidth;
+                        s.DrawCut = true;
+                        s.Heavy = true;
+                    }
+                    else
+                        s = NewSwing(p, aim, w.Reach, 110f, w.Damage * dmg);
                     pendingSwings.Add(s);
                     for (int k = 1; k <= extra; k++)
                     {
@@ -123,7 +138,8 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (i == 0 ? 0f : (i % 2 == 1 ? 1f : -1f) * 0.07f * ((i + 1) / 2));
-                        SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        var b = SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        b.ShadowKunai = i == 0 && ++p.KunaiCount % KunaiShadowEvery == 0;  // every few throws, one leaves a mark to blink to
                     }
                     break;
                 }
@@ -464,6 +480,413 @@ namespace Arena
             return 1f;
         }
 
+        // --- Kusarigama and Bo Staff: weapons that move you ---------------------------------------------
+        //
+        // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
+        // which does the damage (HostWeaponDash).
+
+        public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
+        public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
+        public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
+        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4;
+
+        // --- Spirit Fan: push and pull -----------------------------------------------------------
+
+        public const float FanShove = 60f, FanReachSlack = 30f, FanCone = 0.45f;
+
+        /// The Spirit Fan's gust shoves enemies in front of you away (shove > 0) or draws them in (shove < 0, never
+        /// into you). Bosses and heavies don't budge.
+        void FanEnemies(Player p, float aim, float reach, float shove)
+        {
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f || Heavy(e))
+                    continue;
+                float d = e.Pos.DistanceTo(p.Pos);
+                if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi))
+                    continue;
+                V2 away = d > 1f ? (e.Pos - p.Pos) / d : V2.FromAngle(aim);
+                float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
+                e.Pos = ClampToArena(p.Pos + away * to, e.Radius);
+            }
+        }
+
+        // --- Ofuda: wards ---------------------------------------------------------------------
+
+        public const float WardRange = 460f, WardTrigger = 26f, WardBurst = 70f, WardHeal = 12f, WardHealReach = 110f, WardLast = 10f;
+        public const int WardCap = 5;
+
+        /// An Ofuda charm landed: it lies there as a ward (your oldest goes if you have WardCap).
+        void PlaceWard(Bullet b)
+        {
+            Player p;
+            if (!Players.TryGetValue(b.Owner, out p))
+                return;
+            Zone oldest = null;
+            int mine = 0;
+            foreach (var z in Zones.Values)
+                if (z.Kind == ZoneKind.OfudaWard && z.Owner == p.Id)
+                {
+                    mine++;
+                    if (oldest == null || z.T < oldest.T)
+                        oldest = z;
+                }
+            if (mine >= WardCap && oldest != null)
+                Zones.Remove(oldest.Id);
+            var w = AddZone(ZoneKind.OfudaWard, p, ClampToArena(b.Pos, 10f), WardTrigger, WardLast);
+            w.DmgMult = b.Dmg / Defs.WeaponOf(WeaponId.Ofuda).Damage;  // the charm's damage, upgrades and all
+        }
+
+        /// A ward an enemy stepped on bursts: damage round it, and healing for allies near it.
+        void BurstWard(Zone z)
+        {
+            float r = WardBurst * (Players.ContainsKey(z.Owner) ? AreaMult(Players[z.Owner]) : 1f);
+            float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                    HurtEnemy(e, dmg, z.Owner);
+            foreach (var q in Players.Values)
+                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
+                    Heal(q, WardHeal, PlayerOrNull(z.Owner));
+            BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, r, 0.35f, Sfx.SpellHoly);
+        }
+
+        // --- Shuriken: stars that stick, recalled -------------------------------------------------
+
+        public const float StarStick = 5f, RecallSpeed = 700f, RecallBack = 0.5f;  // stuck this long; recalled stars fly back this fast, hitting what they pass for this share
+        public const int StarCap = 15;
+
+        class StuckStar
+        {
+            public int Enemy, Owner;
+            public float Dmg, T;
+        }
+
+        readonly List<StuckStar> stuckStars = new List<StuckStar>();
+
+        void StarStuck(Bullet b, Enemy e)
+        {
+            if (!b.Sticks)
+                return;
+            int mine = 0;
+            foreach (var st in stuckStars)
+                if (st.Owner == b.Owner)
+                    mine++;
+            if (mine >= StarCap)
+                return;
+            stuckStars.Add(new StuckStar { Enemy = e.Id, Owner = b.Owner, Dmg = b.Dmg, T = StarStick });
+        }
+
+        void TickStuckStars(float dt)
+        {
+            foreach (var e in Enemies.Values)
+                e.StarsStuck = 0;
+            for (int i = stuckStars.Count - 1; i >= 0; i--)
+            {
+                var st = stuckStars[i];
+                Enemy e;
+                if ((st.T -= dt) <= 0f || !Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                {
+                    stuckStars.RemoveAt(i);
+                    continue;
+                }
+                e.StarsStuck++;
+            }
+        }
+
+        /// Recalled: every star you have stuck in enemies rips out (hitting again) and flies back to you, cutting
+        /// through whatever it passes.
+        void RecallStars(Player p)
+        {
+            int n = 0;
+            for (int i = stuckStars.Count - 1; i >= 0; i--)
+            {
+                var st = stuckStars[i];
+                if (st.Owner != p.Id)
+                    continue;
+                stuckStars.RemoveAt(i);
+                Enemy e;
+                if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                    continue;
+                HurtEnemy(e, st.Dmg, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Owner = p.Id, Dmg = st.Dmg, Kind = Defs.StarShot }, e);
+                V2 to = p.Pos - e.Pos;
+                float dist = Math.Max(1f, to.Length);
+                var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);
+                b.Pierce += 99;
+                b.LastHit = e.Id;
+                n++;
+            }
+            if (n > 0)
+                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.StarShot), 30f, 0.25f, Sfx.SwingLight);
+        }
+
+        // --- Medicine Darts: stacking doses --------------------------------------------------------
+
+        public const float DoseHeal = 2f, DoseTime = 3f, PoisonDps = 2f, PoisonTime = 3f, DoseStacks = 5f;  // a second, per dart; each dart renews it, stacking to DoseStacks
+
+        /// A Medicine Dart through a hurt ally: another dose of healing over time (it doesn't go on).
+        bool DoseAlly(Bullet b)
+        {
+            foreach (var q in Players.Values)
+            {
+                float r = q.Def.BodyR + b.Radius;
+                if (q.Id == b.Owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
+                    continue;
+                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;  // damage upgrades dose harder too
+                q.DoseHps = Math.Min(q.DoseHps + each, each * DoseStacks);
+                q.DoseT = DoseTime;
+                q.DoseBy = b.Owner;
+                return true;
+            }
+            return false;
+        }
+
+        /// A Medicine Dart in an enemy: another dose of poison.
+        void PoisonHit(Bullet b, Enemy e)
+        {
+            if (!b.Medicine)
+                return;
+            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;
+            e.PoisonDps = Math.Min(e.PoisonDps + each, each * DoseStacks);
+            e.PoisonT = PoisonTime;
+            e.PoisonBy = b.Owner;
+        }
+
+        void TickPoison(Enemy e, float dt)
+        {
+            if (e.PoisonT <= 0f)
+                return;
+            if ((e.PoisonT -= dt) <= 0f)
+                e.PoisonDps = 0f;
+            else if (e.SpawnT <= 0f)
+                DotDamage(e, e.PoisonDps * dt, e.PoisonBy);
+        }
+
+        // --- Kunai: the shadow kunai ---------------------------------------------------------------
+
+        public const int KunaiShadowEvery = 4;
+        public const float KunaiAmbush = 1.5f;  // after a blink, your next hit within this long lands double
+        public const float KunaiMarkTime = 3f, BlinkTapGap = 0.3f;  // the mark lasts this long; two fire presses this close blink you
+
+        /// A shadow kunai hit something or ran out: its mark is where you can blink to.
+        void ShadowKunaiLanded(Bullet b, V2 at)
+        {
+            Player p;
+            if (!b.ShadowKunai || !Players.TryGetValue(b.Owner, out p))
+                return;
+            p.KunaiMark = ClampToArena(at, p.Def.BodyR);
+            p.KunaiMarkT = KunaiMarkTime;
+        }
+
+        float sinceTap = 99f;
+
+        bool Hooked(Player p)
+        {
+            Enemy e;
+            return p.HookT > 0f && Enemies.TryGetValue(p.HookId, out e) && e.Hp > 0f;
+        }
+
+        /// The Kusarigama's throw: the chain-sickle flies straight out and hooks the first enemy in its path.
+        void ThrowKusarigama(Player p, float aim, float reach, float dmg)
+        {
+            reach = MeleeReach(p, reach);
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            Enemy first = null;
+            float firstAlong = float.MaxValue;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                V2 rel = e.Pos - p.Pos;
+                float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
+                if (along < 0f || along > reach + e.Radius || across > KusariHalfWidth + e.Radius || along >= firstAlong)
+                    continue;
+                first = e;
+                firstAlong = along;
+            }
+            p.Run.ShotsFired++;
+            V2 end = first != null ? first.Pos : p.Pos + dir * reach;
+            BroadcastFx(FxKind.ChainThrow, p.Pos, end, Steel, first != null ? 1f : 0f, 0.25f, Sfx.SwingLight);
+            if (first == null)
+                return;
+            if (BlocksShot(first, p.Pos))
+            {
+                WearShield(first, dmg);
+                return;
+            }
+            p.Run.ShotsHit++;
+            HurtEnemy(first, dmg, p.Id);
+            OnBulletHit(new Bullet { Pos = first.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, first);
+            p.HookId = first.Id;
+            p.HookT = HookTime;
+        }
+
+        static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
+
+        // Local: this machine's player's weapon dashes.
+        float vaultCd, reelCd;
+        bool wasFiring;
+
+        /// Your own game, every tick: the Bo Staff vaults when you click fire while moving; the Kusarigama reels you
+        /// in to the enemy it's hooked in when you fire. Returns the dash it started, if any.
+        void LocalWeaponDash(Player me, V2 move, bool firing, float dt)
+        {
+            vaultCd -= dt;
+            reelCd -= dt;
+            sinceTap += dt;
+            bool pressed = firing && !wasFiring;
+            wasFiring = firing;
+            bool doubleTap = pressed && sinceTap < BlinkTapGap;
+            if (pressed)
+                sinceTap = 0f;
+            if (me.Downed || DashT > 0f || me.StunT > 0f)
+                return;
+            if (me.Weapon.Id == WeaponId.Shuriken && doubleTap)
+            {
+                sinceTap = 99f;
+                if (IsHost)
+                    HostWeaponDash(MyId, DashRecall, me.Pos);  // no move: the stars come back to you
+                else
+                {
+                    var rw = Proto.Begin(Msg.WeaponDash);
+                    rw.Write(DashRecall);
+                    rw.Write(me.Pos);
+                    session.SendToHost(Proto.End(rw));
+                }
+                return;
+            }
+            if (me.Weapon.Id == WeaponId.Kunai && doubleTap && me.KunaiMarkT > 0f)
+            {
+                // Blink to the shadow kunai's mark (like Blink, at once); the host readies a double-damage hit.
+                V2 mark = me.KunaiMark;
+                AddFx(FxKind.Ring, me.Pos, new Rgba(0.45f, 0.4f, 0.65f), 26f, 0.3f);
+                me.Pos = mark;
+                sinceTap = 99f;
+                if (IsHost)
+                    HostWeaponDash(MyId, DashBlink, mark);  // (it uses up the mark; on the host your player is the host's own)
+                else
+                {
+                    var bw = Proto.Begin(Msg.WeaponDash);
+                    bw.Write(DashBlink);
+                    bw.Write(mark);
+                    session.SendToHost(Proto.End(bw));
+                }
+                me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
+                return;
+            }
+            V2 target;
+            byte kind;
+            if (me.Weapon.Id == WeaponId.BoStaff && pressed && !move.IsZero && vaultCd <= 0f)
+            {
+                DashDir = move.Normalized();
+                target = ClampToArena(me.Pos + DashDir * (VaultDist + VaultGrow * ExtraShots(me)), me.Def.BodyR);
+                dashSpeed = VaultSpeed;
+                vaultCd = VaultCd;
+                kind = DashVault;
+            }
+            else if (me.Weapon.Id == WeaponId.TwinBlades && firing && me.Combo >= ComboMax && reelCd <= 0f)
+            {
+                DashDir = V2.FromAngle(me.Aim);
+                target = ClampToArena(me.Pos + DashDir * DashStrikeDist, me.Def.BodyR);
+                dashSpeed = DashStrikeSpeed;
+                reelCd = 0.4f;  // (the host resets the combo; don't fire twice before that arrives)
+                kind = DashStrike;
+            }
+            else if (me.Weapon.Id == WeaponId.Kusarigama && firing && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
+            {
+                Enemy e;
+                if (!Enemies.TryGetValue(me.HookId, out e))
+                    return;
+                V2 to = e.Pos - me.Pos;
+                float stop = e.Radius + me.Def.BodyR + 6f;
+                if (to.Length <= stop)
+                    target = me.Pos;
+                else
+                    target = ClampToArena(e.Pos - to.Normalized() * stop, me.Def.BodyR);
+                DashDir = (target - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (target - me.Pos).Normalized();
+                dashSpeed = ReelSpeed;
+                reelCd = 0.6f;
+                kind = DashReel;
+            }
+            else
+                return;
+            DashT = target.DistanceTo(me.Pos) / dashSpeed;
+            if (IsHost)
+                HostWeaponDash(MyId, kind, target);
+            else
+            {
+                var w = Proto.Begin(Msg.WeaponDash);
+                w.Write(kind);
+                w.Write(target);
+                session.SendToHost(Proto.End(w));
+            }
+        }
+
+        /// Host: a player's weapon moved them to `target`. A vault strikes everything along the way; a reel lands a
+        /// heavy slash on the hooked enemy when you arrive (and lets go of it).
+        void HostWeaponDash(int id, int kind, V2 target)
+        {
+            Player p;
+            if (!Players.TryGetValue(id, out p) || p.Downed)
+                return;
+            var w = p.Weapon;
+            if (kind == DashRecall)
+            {
+                if (w.Id == WeaponId.Shuriken)
+                    RecallStars(p);
+                return;
+            }
+            if (kind == DashBlink)
+            {
+                if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.DistanceTo(target) > 40f)
+                    return;
+                p.KunaiMarkT = 0f;
+                p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
+                p.InvulnT = Math.Max(p.InvulnT, 0.2f);
+                BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.Blink);
+                return;
+            }
+            float dmg = w.Damage * p.Stats.DmgMult;
+            V2 from = p.Pos, path = target - from;
+            float len = Math.Max(1f, path.Length);
+            V2 dir = path / len;
+            if (kind == DashVault && w.Id == WeaponId.BoStaff || kind == DashStrike && w.Id == WeaponId.TwinBlades && p.Combo >= ComboMax)
+            {
+                bool strike = kind == DashStrike;
+                float time = len / (strike ? DashStrikeSpeed : VaultSpeed), mult = strike ? DashStrikeMult : VaultMult, width = strike ? DashStrikeWidth : VaultWidth;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // springing over them, or cutting through
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                        continue;
+                    float along = Math.Max(0f, Math.Min(len, Dot(e.Pos - from, dir)));
+                    if (e.Pos.DistanceTo(from + dir * along) > e.Radius + width)
+                        continue;
+                    HurtEnemy(e, dmg * mult, p.Id);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * mult, Kind = Defs.KnightSlash }, e);
+                }
+                if (strike)
+                    p.Combo = 0;
+                BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingHeavy);
+            }
+            else if (kind == DashReel && w.Id == WeaponId.Kusarigama && Hooked(p))
+            {
+                Enemy e = Enemies[p.HookId];
+                float time = len / ReelSpeed;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.15f);
+                var s = NewSwing(p, (e.Pos - from).Angle, ReelSlashReach, 160f, dmg * ReelSlashMult * (1f + ReelSlashGrow * ExtraShots(p)));
+                s.Delay = time + 0.03f;  // lands once you've arrived (the swing hits from where you are then)
+                s.Stun = ReelStun;
+                s.Heavy = true;
+                s.NoCut = true;
+                pendingSwings.Add(s);
+                p.HookT = 0f;
+                p.HookId = 0;
+                BroadcastFx(FxKind.ChainThrow, from, e.Pos, Steel, 1f, 0.15f, Sfx.None);
+            }
+        }
+
         /// Called by MoveBullets before it moves anything: gather the smoke, and turn chain shuriken around.
         void PrepareNinjaBullets(float dt)
         {
@@ -472,11 +895,25 @@ namespace Arena
                 if (z.Kind == ZoneKind.Smoke)
                     smokes.Add(z);
             foreach (var b in Bullets.Values)
-                if (b.Kind == Defs.ChainStar && b.Life > ChainStarOut && b.Life - dt <= ChainStarOut)
-                {
-                    b.Vel = -b.Vel;  // halfway: back the way it came
-                    b.LastHit = 0;   // and it can cut the same enemy again
-                }
+                if (b.Kind == Defs.FumaStar)
+                    FumaTurn(b, dt);
+        }
+
+        /// A Fuma Shuriken's loop is an oval through where it was thrown: at a time t into the lap (angle a = Tau t / lap)
+        /// its velocity is M(a) V0, where V0 is the sideways velocity it set off with and M(a) = cos a + k sin a R turns it
+        /// toward the front (R: a quarter turn, the way its AngVel's sign says; k: how much longer the oval is than wide).
+        /// M is a scaled rotation, so V0 comes back from the velocity it has now: host and clients follow the same oval
+        /// from what they already know. (Its AngVel is only that sign: MoveBullets doesn't turn it.)
+        void FumaTurn(Bullet b, float dt)
+        {
+            float lap = Math.Max(0.01f, b.Life0), k = FumaReach * 0.5f / FumaWidth, s = b.AngVel >= 0f ? 1f : -1f;
+            float a0 = MathX.Tau * (lap - b.Life) / lap, a1 = MathX.Tau * (lap - b.Life + dt) / lap;
+            float c = (float)Math.Cos(a0), sn = k * (float)Math.Sin(a0);
+            V2 v0 = (b.Vel * c - b.Vel.Orthogonal() * (s * sn)) / (c * c + sn * sn);
+            float c1 = (float)Math.Cos(a1), sn1 = k * (float)Math.Sin(a1);
+            b.Vel = v0 * c1 + v0.Orthogonal() * (s * sn1);
+            if (a0 < MathX.Pi && a1 >= MathX.Pi)
+                b.LastHit = 0;  // at the far end: it can cut the same enemy again on the way back
         }
 
         /// Ofuda charms heal allies near where they burst.
@@ -495,6 +932,26 @@ namespace Arena
         /// and clears bullets, and Shadow Clones about to end burst.
         void TickNinjas(float dt)
         {
+            foreach (var p in Players.Values)  // Medicine Darts' doses heal; a Kunai mark fades
+            {
+                if (p.DoseT > 0f)
+                {
+                    p.DoseT = p.Downed ? 0f : Math.Max(0f, p.DoseT - dt);
+                    if (p.DoseT > 0f)
+                        Heal(p, p.DoseHps * dt, PlayerOrNull(p.DoseBy));
+                    else
+                        p.DoseHps = 0f;
+                }
+                p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
+                if (p.Weapon.Id == WeaponId.Katana && !p.Firing && !p.Downed)
+                    p.SheathT = Math.Min(5f, p.SheathT + dt);  // holding off: the blade goes back in its sheath
+            }
+            foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
+                if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))
+                {
+                    p.HookT = 0f;
+                    p.HookId = 0;
+                }
             clones.Clear();
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.Clone)

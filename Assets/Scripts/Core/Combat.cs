@@ -23,8 +23,12 @@ namespace Arena
                 amount *= Modifiers.GlassCannonTaken;
             float cut = 0f;
             foreach (var z in Zones.Values)
+            {
                 if (z.DamageCut > 0f && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     cut = Math.Max(cut, z.DamageCut);
+                if (z.Kind == ZoneKind.BloodPool && z.Owner == p.Id && p.Pos.DistanceTo(z.Pos) <= z.Radius)
+                    cut = Math.Max(cut, PoolGuard);  // standing in your own Clot Bolt pool
+            }
             amount *= 1f - cut;  // a mastered Haven
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, 0.5f + p.Stats.UnbreakBonus);
@@ -98,7 +102,11 @@ namespace Arena
                 dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
             }
             if (owner == 0 && Defs.IsEnemyShot(kind))
+            {
                 enemyShots++;
+                if (!Defs.Unblockable(kind) && InIncense(pos))
+                    vel = vel.Rotated(Rand(-IncenseStray, IncenseStray));  // fired from inside the Censer's incense: it strays
+            }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
             b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
@@ -205,18 +213,18 @@ namespace Arena
                 if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
                     wells.Add(e);
             bool wellsUp = wells.Count > 0;
-            PrepareNinjaBullets(dt);  // Smoke Bombs and returning chain shuriken (Ninja.cs)
+            PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
             hi += margin;
             foreach (var b in Bullets.Values)
             {
-                if (b.AngVel != 0f)
+                if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot)
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 b.Life -= dt;
@@ -227,6 +235,10 @@ namespace Arena
                         AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
                     if (b.Burst > 0 && b.Life <= 0f)
                         landed.Add(b);
+                    if (b.ShadowKunai)
+                        ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
+                    if (b.DropsSpear)
+                        DropSpear(b);  // a Bone Spear stays stuck where it stopped (BloodMage.cs)
                 }
             }
             foreach (int id in scratchIds)
@@ -234,6 +246,21 @@ namespace Arena
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
+                if (b.Kind == Defs.BoulderShot)
+                {
+                    LandBoulder(b);  // Minions.cs
+                    continue;
+                }
+                if (b.Kind == Defs.FlakShell)
+                {
+                    FlakAirburst(b);  // Weapons.cs
+                    continue;
+                }
+                if (b.Ward)
+                {
+                    PlaceWard(b);  // Ninja.cs
+                    continue;
+                }
                 if (b.Bomblet)
                 {
                     foreach (var e in Enemies.Values)
@@ -265,8 +292,8 @@ namespace Arena
         /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
         /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
         /// the same damage cost.
-        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
-            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam;
+        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Ofuda
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff || w == WeaponId.ChainLight || w == WeaponId.ArcLightning;
         public const float HomingAreaPerStack = 0.25f;
         public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
@@ -278,7 +305,8 @@ namespace Arena
         void Steer(Bullet b, float dt)
         {
             Enemy best = null;
-            float bestD = HomingRange * HomingRange;
+            bool late = b.Kind == Defs.SanguineShot;  // a Sanguine Orb only homes at the last moment, but hard
+            float bestD = late ? SanguineHomeRange * SanguineHomeRange : HomingRange * HomingRange, cone = late ? 0.3f : HomingCone;
             V2 dir = b.Vel.Normalized();
             foreach (var e in Enemies.Values)
             {
@@ -286,7 +314,7 @@ namespace Arena
                     continue;
                 V2 to = e.Pos - b.Pos;
                 float d = to.LengthSq;
-                if (d < bestD && to.X * dir.X + to.Y * dir.Y > HomingCone * (float)Math.Sqrt(d))
+                if (d < bestD && to.X * dir.X + to.Y * dir.Y > cone * (float)Math.Sqrt(d))
                 {
                     best = e;
                     bestD = d;
@@ -348,11 +376,11 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot)
-                    continue;  // grenades fly over enemies and explode where they land
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
+                    continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
-                    if (b.HealAlly > 0f && HealAllyHit(b))
+                    if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -376,7 +404,13 @@ namespace Arena
                                 if (Players.TryGetValue(b.Owner, out shooter))
                                     shooter.Run.ShotsHit++;
                             }
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e);  // Kunai and ambush bonuses (Ninja.cs)
+                            if (b.Kind == Defs.SanguineShot)
+                            {
+                                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (BloodMage.cs)
+                                scratchIds.Add(b.Id);
+                                break;
+                            }
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
                             BloodShotHit(b, e, hit);  // Blood Mage shots drain, pool and drop orbs (BloodMage.cs)
                             OnBulletHit(b, e);
@@ -391,6 +425,8 @@ namespace Arena
                             else
                             {
                                 scratchIds.Add(b.Id);
+                                if (b.DropsSpear)
+                                    DropSpear(b);  // a Bone Spear drops where it's spent (BloodMage.cs)
                                 if (b.Bounces > 0)
                                     ricochets.Add(b);
                             }
@@ -519,9 +555,11 @@ namespace Arena
                 nb.Bounces = rb.Bounces - 1;
                 nb.Splash = rb.Splash;
                 nb.Chain = rb.Chain;
+                nb.Shock = rb.Shock;
                 nb.SlowAmt = rb.SlowAmt;
             }
 
+            SplitRefracted();  // Prism Beams that went through an ally (Minions.cs)
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
             foreach (var f in frags)
             {
@@ -574,6 +612,7 @@ namespace Arena
             foreach (var e in dead)
             {
                 Recorder?.EnemyKilled(e);
+                SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
                 bool bossReward = OnEnemyKilled(e);
                 KillEffects(e);
                 var killer = PlayerOrNull(e.LastHitBy);
@@ -687,9 +726,18 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
-            if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts
+            BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
+            WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (Minions.cs)
+            SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
+            PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
+            ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
+            StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
+            SeedHit(b, e);      // Sprite Staff seeds stick; Totem Staff seeds charge totems (Minions.cs)
+            if (b.Shock > 0)
+                Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
+            if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
             {
-                if (!b.Pierced)  // full damage to the first enemy, half to the ones behind
+                if (!b.Pierced && b.Kind == Defs.FlameShot)  // a flame does full damage to the first enemy, a third to the ones behind
                 {
                     b.Pierced = true;
                     b.Dmg *= FlamePierced;

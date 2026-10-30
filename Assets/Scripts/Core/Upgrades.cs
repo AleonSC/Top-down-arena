@@ -384,6 +384,10 @@ namespace Arena
             string area;
             if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
                 return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
+            if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
+                return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
+            if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)
+                return "Arc Lightning: +1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice";
             string knight;
             if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
                 return knight;
@@ -395,12 +399,15 @@ namespace Arena
         {
             { WeaponId.Implosion, "the collapse hurts and pulls in enemies 25% farther out" },
             { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
-            { WeaponId.Fireball, "blasts (and split fireballs) 25% wider" },
             { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
-            { WeaponId.StormHammer, "lightning jumps 25% farther between enemies" },
+            { WeaponId.StormHammer, "the electrified enemy's lightning reaches 25% farther" },
             { WeaponId.ClotBolt, "blood pools 25% wider" },
             { WeaponId.VeinTether, "the beam 25% wider" },
             { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
+            { WeaponId.FrostLance, "the icicle's splinters fly 25% further out" },
+            { WeaponId.GolemStaff, "the boulder crushes 25% wider" },
+            { WeaponId.ChainLight, "the cone of light 25% wider" },
+            { WeaponId.ArcLightning, "the lightning strip 25% wider" },
         };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.

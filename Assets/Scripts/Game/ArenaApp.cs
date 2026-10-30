@@ -50,6 +50,11 @@ namespace Arena
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
         int pickKey;            // for a card that grants an ability: the key to put it on (1 = Q, 2 = E, 3 = Shift)
         string shownOffer = "";
+        float offerShownAt = -99f;     // when the current cards appeared (unscaled time)
+        const float RerollLock = 0.6f;  // the reroll stays locked this long after new cards appear, so a spam-click can't burn rerolls
+
+        /// The reroll can't be used for a moment after the window opens or new cards come in.
+        bool RerollLocked => Time.unscaledTime - offerShownAt < RerollLock;
         readonly bool[] wantAbility = new bool[Upgrades.SlotCount];
         SoundBank sounds;
 
@@ -263,7 +268,7 @@ namespace Arena
                         pickKey = 0;
                     }
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
-                else if (Input.GetKeyDown(KeyCode.R)) game.RerollOffer();
+                else if (Input.GetKeyDown(KeyCode.R) && !RerollLocked) game.RerollOffer();
             }
 
             if (session.Screen == AppScreen.Game)
@@ -350,6 +355,7 @@ namespace Arena
             {
                 shownOffer = key;
                 selectedCard = -1;
+                offerShownAt = Time.unscaledTime;
             }
         }
 

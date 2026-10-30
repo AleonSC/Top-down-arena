@@ -26,6 +26,10 @@ namespace Arena
         public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
         public float Taunt;           // taunts what it hits for this long (a Clot Burst)
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
+        public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
+        public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
+        public float Slow;            // slows what it hits by this much (as frost shots do)
+        public bool DrawCut;          // the Katana's quick-draw cut: a box (HalfWidth) drawn as a long thin slash, not a jab
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -38,7 +42,9 @@ namespace Arena
         const float LungeRange = 260f, LungeSpeed = 1000f, LungeDamage = 35f;
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
-        public const float LanceHalfWidth = 44f, LanceStun = 1f;  // the Lance hits an 88 px wide box straight ahead
+        public const float LanceHalfWidth = 44f, LanceStun = 1f;
+        public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
+        public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a charged slam on a 100 px wide box in front of you.
         public const float HammerHalfWidth = 50f;
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
@@ -139,13 +145,19 @@ namespace Arena
                 case WeaponId.Lightbringer:
                 {
                     pendingSwings.Add(NewSwing(p, aim, w.Reach, 100f, w.Damage * dmg));
+                    bool radiant = p.Light >= LightMax;  // a full gauge: these crescents heal three times as much
+                    if (radiant)
+                    {
+                        p.Light = 0;
+                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.65f), 50f, 0.35f, Sfx.SpellHoly);
+                    }
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
                         float f = n == 1 ? 0f : i * 2f / (n - 1) - 1f;
                         var b = SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(aim) * p.Def.BodyR, V2.FromAngle(aim + f * 0.2f * (n - 1)) * 600f, 0f, 0.45f, 12f * dmg, p.Id);
                         b.Pierce += 2;
-                        b.HealAlly = 6f;
+                        b.HealAlly = 6f * (radiant ? LightRadiant : 1f);
                     }
                     break;
                 }
@@ -175,6 +187,7 @@ namespace Arena
                     var s = NewSwing(p, aim, w.Reach, 170f, w.Damage * dmg);
                     s.Heavy = true;
                     pendingSwings.Add(s);
+                    SteelWall(p, aim, s.Reach, s.HalfArc);  // the sweep's edge lingers, stopping bullets
                     for (int i = 0; i < extra; i++)
                     {
                         float f = extra == 1 ? 0f : i * 2f / (extra - 1) - 1f;
@@ -217,6 +230,72 @@ namespace Arena
             }
         }
 
+        /// Greatsword: each sweep leaves its edge hanging in the air for SteelWallTime, a crescent that stops enemy
+        /// bullets crossing it (all but red aimed shots).
+        public const float SteelWallTime = 0.5f, SteelWallBand = 16f;
+
+        class Crescent
+        {
+            public V2 Center;
+            public float Aim, Reach, HalfArc, T;
+        }
+
+        readonly List<Crescent> steelWalls = new List<Crescent>();
+
+        void SteelWall(Player p, float aim, float reach, float halfArc)
+        {
+            steelWalls.Add(new Crescent { Center = p.Pos, Aim = aim, Reach = reach, HalfArc = halfArc, T = SteelWallTime });
+            BroadcastFx(FxKind.SteelWall, p.Pos, p.Pos + V2.FromAngle(aim) * reach, Defs.BulletColor(Defs.KnightSlash), halfArc, SteelWallTime, Sfx.None);
+        }
+
+        void TickSteelWalls(float dt)
+        {
+            if (steelWalls.Count == 0)
+                return;
+            var stopped = new List<int>();
+            for (int i = steelWalls.Count - 1; i >= 0; i--)
+            {
+                var c = steelWalls[i];
+                if ((c.T -= dt) <= 0f)
+                {
+                    steelWalls.RemoveAt(i);
+                    continue;
+                }
+                foreach (var b in Bullets.Values)
+                {
+                    if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
+                        continue;
+                    float d = b.Pos.DistanceTo(c.Center);
+                    if (Math.Abs(d - c.Reach) > SteelWallBand + b.Radius || AngleTo(c.Center, b.Pos, c.Aim) > c.HalfArc)
+                        continue;
+                    stopped.Add(b.Id);
+                }
+            }
+            foreach (int id in stopped)
+                if (Bullets.ContainsKey(id))
+                {
+                    AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
+                    Bullets.Remove(id);
+                    pendingRemoved.Add(id);
+                }
+        }
+
+        /// Lightbringer: each enemy its swings hit fills the light gauge; full, the next swing's crescents heal LightRadiant times as much.
+        public const int LightMax = 12;
+        public const float LightRadiant = 3f;
+
+        /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike:
+        /// your next slash lunges you DashStrikeDist toward your aim, hitting everything you pass for DashStrikeMult.
+        public const int ComboMax = 10;
+        public const float ComboWindow = 1.2f, DashStrikeDist = 140f, DashStrikeSpeed = 1000f, DashStrikeMult = 3f, DashStrikeWidth = 30f;
+
+        void TickCombo(float dt)
+        {
+            foreach (var p in Players.Values)
+                if (p.Combo > 0 && ((p.ComboT -= dt) <= 0f || p.Downed || p.Weapon.Id != WeaponId.TwinBlades))
+                    p.Combo = 0;
+        }
+
         /// Called from Collide (after it clears its queues): land every swing that's due.
         void ResolveSwings()
         {
@@ -244,6 +323,11 @@ namespace Arena
             if (s.ClawSide != 0f)
                 BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, new Rgba(1f, 0.86f, 0.78f), s.ClawSide * s.HalfArc, 0.2f,
                     s.Silent ? Sfx.None : Sfx.SwingLight);
+            else if (s.Ice != 0)
+                BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
+                    s.Ice == 1 ? IcicleFxTime : 0.3f, Sfx.None);
+            else if (s.DrawCut)
+                BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
@@ -263,7 +347,7 @@ namespace Arena
                     // The Lance's box: from your body out to its reach, HalfWidth either side of the aim line.
                     V2 rel = e.Pos - origin;
                     float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
-                    if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius)
+                    if (along < -e.Radius - p.Def.BodyR || along > s.Reach + e.Radius || across > s.HalfWidth + e.Radius || across < s.Hollow)
                         continue;
                     if (!BlocksShot(e, origin))
                         hits.Add(e);
@@ -298,6 +382,13 @@ namespace Arena
             p.Run.ShotsFired++;
             if (hits.Count > 0)
                 p.Run.ShotsHit++;
+            if (hits.Count > 0 && p.Weapon.Id == WeaponId.Lightbringer)  // every enemy a Lightbringer swing hits fills its light gauge
+                p.Light = Math.Min(LightMax, p.Light + hits.Count);
+            if (hits.Count > 0 && p.Weapon.Id == WeaponId.TwinBlades && !s.Silent)  // a Twin Blades slash landed: the combo builds (its extra cuts don't count)
+            {
+                p.Combo = Math.Min(ComboMax, p.Combo + 1);
+                p.ComboT = ComboWindow;
+            }
             int healed = 0;
             foreach (var e in hits)
             {
@@ -314,7 +405,7 @@ namespace Arena
                 }
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, e);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
                 if (s.Bleed > 0f)
                     ApplyBleed(e, dmg * s.Bleed, p.Id);  // Minions.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
@@ -354,6 +445,16 @@ namespace Arena
 
             if (s.Deflect)
                 DeflectBullets(p, origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc);
+            else if (s.Rapier)
+            {
+                // The Rapier skewers enemy bullets along its line (big ones too, never red aimed shots); each one adds to the streak.
+                int skewered = CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc, true, RapierSkewerWidth, RapierSkewerMax);
+                if (skewered > 0)
+                {
+                    p.RapierStreak = Math.Min(6, p.RapierStreak + skewered);
+                    BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
+                }
+            }
             else if (!s.NoCut)
                 CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
         }
@@ -389,11 +490,16 @@ namespace Arena
 
         /// Swings slice small enemy bullets out of the air; a mastered Whirlwind (CutAll) stops big orbs too.
         /// Bosses' red aimed shots always get through.
-        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f)
+        public const float RapierSkewerWidth = 14f;
+        public const int RapierSkewerMax = 3;
+
+        int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f, int max = int.MaxValue)
         {
             var cut = new List<int>();
             foreach (var b in Bullets.Values)
             {
+                if (cut.Count >= max)
+                    break;
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
                     continue;
                 if (!all && b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)
