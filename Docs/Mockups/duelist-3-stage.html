@@ -1,0 +1,577 @@
+<title>Duelist Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design proposal in the game's own field-manual look (sibling of the Singularity and Colossus mockups):
+   the live arena first, then the health track that splits the fight, then one section per stage with its turn
+   timeline. Single dark look by choice: it mirrors the arena. Steel, crimson and gold: a fencing piste. */
+:root {
+  --bg: #0b0c11; --panel: #13151d; --panel-2: #191c27; --line: #282c3b; --edge: #3c4258;
+  --fg: #eceef6; --muted: #9097ab; --steel: #cfd6ff; --crimson: #ff4d6a; --gold: #ffcc59; --good: #6be38a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--crimson); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: #cdd1e2; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--steel); }
+header { display: grid; gap: 10px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+code { font: 13px var(--font-data); color: var(--steel); }
+
+/* The arena */
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0e1017; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.field { display: grid; gap: 5px; justify-items: start; }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #20242f; }
+.seg button.on { color: #fff; background: #2b2230; box-shadow: inset 0 0 0 1px var(--crimson); }
+button:focus-visible { outline: 2px solid var(--steel); outline-offset: 1px; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 9px 14px; border-top: 1px solid var(--line); font: 12px var(--font-data); color: var(--muted); }
+.readout b { color: var(--fg); font-weight: 500; }
+
+/* The health track */
+.track { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bar div { padding: 8px 10px; font: 600 12px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.bar div small { display: block; font: 400 11px var(--font-data); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.bar .s1 { background: #1a1d2b; } .bar .s2 { background: #211c33; } .bar .s3 { background: #2d1722; } .bar .s4 { background: #3a121c; }
+.bar div.on { box-shadow: inset 0 -3px 0 var(--crimson); }
+.ticks { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; font: 11px var(--font-data); color: var(--muted); }
+.ticks span:last-child { display: flex; justify-content: space-between; }
+
+/* Stage sections */
+.stages { display: grid; gap: 18px; }
+.st { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.st .hd { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.st .hp { font: 500 12px var(--font-data); color: var(--muted); }
+.tl { display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.tl div { display: flex; align-items: center; justify-content: center; font: 600 11px var(--font-body); color: var(--fg); white-space: nowrap; overflow: hidden; min-width: 0; }
+.tl .rest { color: var(--muted); font-weight: 400; background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,0.04) 5px 10px); }
+.tl-scale { font: 11px var(--font-data); color: var(--muted); }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.m { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.m b { font: 600 15px var(--font-body); }
+.m b i { font-style: normal; font: 500 12px var(--font-data); color: var(--muted); margin-left: 6px; }
+.m p { font-size: 14px; color: #cdd1e2; }
+.m .new { font: 600 10px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-left: 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.notes .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 7px; font-size: 14.5px; color: #cdd1e2; }
+.notes li b { color: var(--fg); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .seg button { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Boss proposal · wave 30</div>
+    <h1>The Duelist, <span>in three stages</span></h1>
+    <p class="lead">Today it strafes, alternates two volleys and blinks away every 3.5 s, leaving decoys that pop into rings. This mockup turns it into a duel in three stages by health: it fights you straight, then hides among lookalikes, then draws a dueling circle and dares you to parry. One technique at a time with breathers between, a 2 s stage change that clears the screen, and a last stand below 10%. The arena below plays each stage with a test dummy; pick one to watch it, or let it cycle.</p>
+  </header>
+
+  <section class="stage" aria-label="Live mockup">
+    <canvas id="arena" width="1600" height="900"></canvas>
+    <div class="controls">
+      <div class="field"><span class="lbl">Stage</span>
+        <div class="seg" id="stagePick" role="group" aria-label="Stage"><button type="button" data-v="-1" class="on">Cycle</button><button type="button" data-v="0">En Garde</button><button type="button" data-v="1">Masquerade</button><button type="button" data-v="2">To the Death</button><button type="button" data-v="3">Last stand</button></div></div>
+      <div class="field"><span class="lbl">Speed</span>
+        <div class="seg" id="speedPick" role="group" aria-label="Speed"><button type="button" data-v="0">Pause</button><button type="button" data-v="1" class="on">1×</button><button type="button" data-v="2">2×</button></div></div>
+    </div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="track" aria-label="Health track">
+    <h3>Its health bar, split into stages</h3>
+    <div class="bar" id="bar">
+      <div class="s1" data-v="0">En Garde<small>100–65%</small></div>
+      <div class="s2" data-v="1">Masquerade<small>65–30%</small></div>
+      <div class="s3" data-v="2">To the Death<small>30–10%</small></div>
+      <div class="s4" data-v="3">Last<small>&lt;10%</small></div>
+    </div>
+    <div class="ticks mono"><span>100%</span><span>65%</span><span>30%</span><span><span>10%</span><span>0</span></span></div>
+  </section>
+
+  <div class="stages" id="stages"></div>
+
+  <section class="notes">
+    <div class="box">
+      <h3>What it keeps</h3>
+      <ul>
+        <li>Its strafing at 280 px and both volleys: the fan of 11 small shots and the three red aimed shots, every 0.9 s.</li>
+        <li>The blink and its decoys that pop into rings. The blink closes each stage 1 loop; the decoys become the heart of stage 2.</li>
+        <li>Its look (a silver diamond) and its health (6000, ×2.8 for a boss), wave 30.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>What's new</h3>
+      <ul>
+        <li><b>Lunge:</b> a telegraphed dash along a line, leaving blade marks that fire sideways.</li>
+        <li><b>Guard:</b> its blade turns your shots back at you from the front. It turns slowly, so you can get behind it.</li>
+        <li><b>Masquerade:</b> three decoys circle you with it. Only its shots are solid; the decoys' are hollow.</li>
+        <li><b>Crossing:</b> an X of blade lines across the arena.</li>
+        <li><b>Dueling circle:</b> a round wall of blades for stage 3, shrinking in the last stand.</li>
+        <li><b>Salute:</b> the first boss move that rewards the parry. Parry the lunge and it's open for 2.5 s at +50% damage. Dodging is fine too; you just don't get the opening.</li>
+        <li><b>Flurry:</b> five quick slashes of shot arcs, left and right of you.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>To build it</h3>
+      <ul>
+        <li>Stage, turn and timers in a <code>DuelistState</code> on the boss, synced like <code>WardenState</code>; thresholds 65 / 30 / 10%.</li>
+        <li>Lunge and Salute reuse the Warden's charge (warning line, contact damage). The Salute's hit is melee, so the parry already blocks it; a parry during it sets a 2.5 s stagger and a +50% damage-taken multiplier (like the searchlight's <code>LitMult</code>).</li>
+        <li>Guard: in <code>Collide</code>, player bullets that hit within 70° of its facing become enemy small shots. Its facing rides the snapshot.</li>
+        <li>Hollow shots: a bullet flag (harmless, drawn as a ring) for the decoys.</li>
+        <li>Dueling circle: a round version of the Narrow Pass and Tiny Arena walls in <code>KeepInArena</code>; touching it hurts 15 and pushes you in.</li>
+        <li>Bots don't parry, so the fight must stay beatable by dodging; the stagger is a bonus. Retune <code>BossHpMult</code> in the Boss Lab for 60–120 s, then Bestiary entry, Boss Lab stage lock and sim tests per stage.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+const W = 1600, H = 900, TAU = Math.PI * 2, MID = { x: 800, y: 450 };
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const angDiff = (a, b) => ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
+
+// --- The proposal (one source for the arena and the write-up) -------------------------------------------------
+const STAGES = [
+  { name: "En Garde", hp: "100–65%", col: "#cfd6ff",
+    lead: "It fights you straight, strafing at 280 px as it does today, but one technique at a time with a breather after each. Each loop ends with today's blink.",
+    turns: [["Volleys", 5], ["", 1], ["Lunge", 4], ["", 1], ["Guard", 3], ["", 0.5], ["Blink", 1]],
+    mech: [
+      ["Volleys", "5 s", "Today's attack: every 0.9 s, three red aimed shots (260, 300 and 340 px/s), and every third volley a fan of 11 small shots instead."],
+      ["Lunge", "4 s", "Three lunges, 1.3 s apart. It plants, draws a line at you for 0.6 s, then dashes 520 px along it at 1400 px/s (30 damage on contact). It drops six blade marks on the way that fire small shots out sideways 0.3 s later.", true],
+      ["Guard", "3 s", "It stops and raises its blade toward you. Your shots that hit its front 140° bounce back at you as small shots. It turns 90° a second, so circling round gets you behind it, where it takes damage as usual.", true],
+      ["Blink", "1 s", "Today's blink: it leaves a decoy that pops into a ring of 16 small shots after 3 s, and reappears far from you."],
+    ] },
+  { name: "Masquerade", hp: "65–30%", col: "#b59cff",
+    lead: "It stops fighting fair. Decoys stop being a side effect and become the stage: you have to find the real one by what it fires.",
+    turns: [["Masquerade", 8], ["", 1], ["Crossing", 5], ["", 1], ["Lunge chain", 4], ["", 1.5]],
+    mech: [
+      ["Masquerade", "8 s", "It and three decoys, identical, circle you 320 px out at 0.5 rad/s and take turns firing a red aimed shot every 0.5 s. Only the real one's shots are solid; the decoys' are hollow rings and do nothing. Hit a decoy and it shatters into 12 small shots; any left pop at the end.", true],
+      ["Crossing", "5 s", "It blinks to a corner, flashes the line for 0.5 s, and dashes corner to corner, then does the other diagonal: an X. Every 70 px it leaves a hanging blade that fires two small shots out sideways 0.8 s after it passes.", true],
+      ["Lunge chain", "4 s", "Three lunges back to back, 1 s apart, with a shorter 0.4 s warning, each re-aimed at you.", true],
+    ] },
+  { name: "To the Death", hp: "30–10%", col: "#ff6a7f",
+    lead: "It draws a dueling circle round the middle, 360 px out, and stays inside it with you. Now it salutes before it strikes, and that's your chance.",
+    turns: [["Salute", 5.5], ["", 1], ["Flurry", 4], ["", 1], ["Guard", 2.5], ["", 1.5]],
+    mech: [
+      ["Dueling circle", "all stage", "A ring of blades 360 px from the middle. Touching it hurts 15 and pushes you back in. Bullets fly through it.", true],
+      ["Salute", "5.5 s", "Twice: it raises its sword (0.8 s, a gold flash and a chime), then lunges at you. Parry it as it arrives and it's knocked off balance: 2.5 s stunned, taking 50% more damage. Dodge it instead and it rakes the spot with a fan of 9 shots. In the mockup the dummy dodges the first and parries the second.", true],
+      ["Flurry", "4 s", "Two sets of five slashes, 0.2 s apart: each a 70° arc of 9 small shots at 240 px/s, alternating left and right of you as it steps in.", true],
+      ["Guard", "2.5 s", "As in stage 1, but shorter and it turns faster (140° a second)."],
+    ] },
+  { name: "Last stand", hp: "below 10%", col: "#ff3355",
+    lead: "The circle closes in to 280 px from the middle. It spins in the middle throwing a three-armed spiral of blades, and salutes and lunges every 2.5 s with a shorter 0.5 s tell. Parrying still opens it up.",
+    turns: [["Final flourish", 12]],
+    mech: [
+      ["Final flourish", "until it dies", "Spiral: 3 small shots every 0.12 s, turning 0.25 rad a volley, 150 px/s. A salute and lunge every 2.5 s; a parried one stops the spiral for the 2.5 s stagger."],
+    ] },
+];
+const TURN_COL = { Volleys: "#3a4262", Lunge: "#59456e", Guard: "#5b6378", Blink: "#45405f", Masquerade: "#4e3d80", Crossing: "#6a3d73", "Lunge chain": "#7a3b5e", Salute: "#8a6a2a", Flurry: "#8a2e44", "Final flourish": "#8a2236" };
+
+// --- The write-up ------------------------------------------------------------------------------------------------
+$("stages").innerHTML = STAGES.map((st, i) => {
+  const total = st.turns.reduce((a, t) => a + t[1], 0);
+  return `<section class="st" id="stage-${i}">
+    <div class="hd"><h2 style="color:${st.col}">${st.name}</h2><span class="hp">${st.hp} health</span></div>
+    <p class="lead">${st.lead}</p>
+    <div><div class="tl" aria-label="Turn order, ${total} s a loop">${st.turns.map(([n, s]) => n ? `<div style="flex:${s};background:${TURN_COL[n]}">${n} ${s} s</div>` : `<div class="rest" style="flex:${s}">${s} s</div>`).join("")}</div>
+    <div class="tl-scale">${i === 3 ? "until it dies" : `one loop: ${total} s, then it repeats until the next stage`}</div></div>
+    <div class="mech">${st.mech.map(([n, t, d, isNew]) => `<div class="m"><b>${n}<i>${t}</i>${isNew ? `<span class="new">new</span>` : ""}</b><p>${d}</p></div>`).join("")}</div>
+  </section>`;
+}).join("");
+
+// --- The arena -----------------------------------------------------------------------------------------------------
+const S = { lock: -1, speed: 1 };
+let w;
+function reset(stage) {
+  w = { t: 0, stage, tt: 0, turn: 0, trans: 0, loops: 0,
+    boss: { x: MID.x, y: MID.y - 120, face: Math.PI / 2, orb: -Math.PI / 2, fire: 0.4, vol: 0, guard: false, stagger: 0, salute: 0, spin: 0, dir: 1 },
+    bullets: [], shots: [], fx: [], decoys: [], blades: [], dash: null, plan: [], ring: stage === 2 ? 360 : stage === 3 ? 280 : 0,
+    stats: { hits: 0, back: 0, broke: 0, parried: 0 }, guess: -1, label: null,
+    p: { x: 800, y: 700, tx: 800, ty: 700, hits: 0, inv: 0, parry: 0, dodge: null } };
+  startTurn();
+}
+const st = () => STAGES[w.stage];
+const turnName = () => st().turns[w.turn][0];
+const toP = (x, y) => Math.atan2(w.p.y - y, w.p.x - x);
+
+function startTurn() {
+  w.tt = 0;
+  const n = turnName(), b = w.boss;
+  b.fire = 0.4; b.guard = false; w.plan = []; w.dash = null;
+  // Each turn is a list of timed steps: [at seconds, what].
+  if (n === "Lunge") w.plan = [[0, () => lunge(0.6)], [1.3, () => lunge(0.6)], [2.6, () => lunge(0.6)]];
+  if (n === "Lunge chain") w.plan = [[0, () => lunge(0.4)], [1.0, () => lunge(0.4)], [2.0, () => lunge(0.4)]];
+  if (n === "Guard") b.guard = true;
+  if (n === "Blink") blink();
+  if (n === "Masquerade") masquerade();
+  if (n === "Crossing") w.plan = [[0, () => cross(120, 120, W - 120, H - 120)], [2.4, () => cross(W - 120, 120, 120, H - 120)]];
+  if (n === "Salute") w.plan = [[0, () => salute(0.8, false)], [2.2, () => salute(0.8, true)]];
+  if (n === "Flurry") w.plan = [0, 0.2, 0.4, 0.6, 0.8, 2.0, 2.2, 2.4, 2.6, 2.8].map((at, k) => [at, () => slash(k)]);
+  if (n === "Final flourish") { w.plan = []; for (let k = 0; k < 4; k++) w.plan.push([1.5 + k * 2.5, () => salute(0.5, k % 2 === 1)]); }
+}
+function nextTurn() {
+  if (w.mask) popDecoys();
+  w.turn++;
+  if (w.turn >= st().turns.length) {
+    w.turn = 0; w.loops++;
+    if (S.lock < 0 && (w.stage === 3 || w.loops >= 1)) { w.trans = 2; return; }
+  }
+  startTurn();
+}
+function shot(x, y, a, sp, kind = "small", o = {}) { w.bullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, kind, life: 7, ...o }); }
+function ringShots(x, y, n, sp) { for (let i = 0; i < n; i++) shot(x, y, TAU * i / n, sp); }
+
+// Lunge: plant, a warning line at the dummy, then a fast dash that drops blade marks.
+function lunge(warn) {
+  const b = w.boss, a = toP(b.x, b.y);
+  let len = 520; const ex = b.x + Math.cos(a) * len, ey = b.y + Math.sin(a) * len;
+  if (ex < 40 || ex > W - 40 || ey < 40 || ey > H - 40) len = Math.max(150, Math.min((a > -Math.PI / 2 && a < Math.PI / 2 ? (W - 40 - b.x) : (b.x - 40)) / Math.abs(Math.cos(a) || 1e-3), (Math.sin(a) > 0 ? (H - 40 - b.y) : (b.y - 40)) / Math.abs(Math.sin(a) || 1e-3)));
+  w.dash = { a, warn, len, done: 0, sp: 1400, mark: 0, x0: b.x, y0: b.y, marks: true, kind: "lunge" };
+  b.face = a;
+}
+function cross(x0, y0, x1, y1) {
+  const b = w.boss;
+  w.fx.push({ x: b.x, y: b.y, r: 50, t: 0, dur: 0.3, col: "#cfd6ff" });
+  b.x = x0; b.y = y0;
+  const a = Math.atan2(y1 - y0, x1 - x0);
+  w.dash = { a, warn: 0.5, len: Math.hypot(x1 - x0, y1 - y0), done: 0, sp: 1300, mark: 0, x0, y0, marks: true, kind: "cross", every: 70, hang: 0.8 };
+  b.face = a;
+  w.fx.push({ x: x0, y: y0, r: 60, t: 0, dur: 0.3, col: "#cfd6ff" });
+}
+function salute(tell, parry) {
+  const b = w.boss;
+  b.salute = tell; b.parryNext = parry;
+}
+function strike() {
+  // After the salute: lunge straight at where the dummy is.
+  const b = w.boss, p = w.p, a = toP(b.x, b.y), d = Math.hypot(p.x - b.x, p.y - b.y);
+  w.dash = { a, warn: 0, len: Math.max(60, d + 30), done: 0, sp: 1500, mark: 0, x0: b.x, y0: b.y, marks: false, kind: "salute", parry: b.parryNext };
+  b.face = a;
+  if (!b.parryNext) { const side = Math.random() < 0.5 ? 1 : -1; p.dodge = { a: a + side * Math.PI / 2, t: 0.25 }; }  // the dummy sidesteps
+}
+function slash(k) {
+  const b = w.boss, aim = toP(b.x, b.y) + (k % 2 ? 0.45 : -0.45);
+  for (let i = 0; i < 9; i++) shot(b.x, b.y, aim + (i - 4) * (1.22 / 8), 240);
+  b.face = aim;
+  b.x += Math.cos(toP(b.x, b.y)) * 30; b.y += Math.sin(toP(b.x, b.y)) * 30;
+  w.fx.push({ x: b.x + Math.cos(aim) * 40, y: b.y + Math.sin(aim) * 40, r: 70, t: 0, dur: 0.18, col: "#ffd9df", arc: aim });
+}
+function blink() {
+  const b = w.boss, p = w.p;
+  w.decoys.push({ x: b.x, y: b.y, face: b.face, pop: 3, real: false });
+  w.fx.push({ x: b.x, y: b.y, r: 50, t: 0, dur: 0.3, col: "#cfd6ff" });
+  let best = null, bd = -1;
+  for (let k = 0; k < 12; k++) { const x = rnd(120, W - 120), y = rnd(120, H - 120), d = Math.hypot(x - p.x, y - p.y); if (d > bd) { bd = d; best = { x, y }; } }
+  b.x = best.x; b.y = best.y;
+  w.fx.push({ x: b.x, y: b.y, r: 60, t: 0, dur: 0.3, col: "#cfd6ff" });
+}
+function masquerade() {
+  const b = w.boss, real = Math.floor(rnd(0, 4)), base = rnd(0, TAU);
+  w.fx.push({ x: b.x, y: b.y, r: 70, t: 0, dur: 0.35, col: "#b59cff" });
+  w.mask = { base, real, next: 0.6, turn: 0 };
+  w.decoys = w.decoys.filter(d => d.slot === undefined);
+  for (let k = 0; k < 4; k++) if (k !== real) w.decoys.push({ slot: k, face: 0, real: false, x: 0, y: 0 });
+  b.slot = real;
+  w.guess = Math.floor(rnd(0, 4));  // the dummy starts with a guess; it learns from the solid shots
+  placeMask(0);
+}
+function placeMask(dt) {
+  const m = w.mask, p = w.p, b = w.boss;
+  m.base += 0.5 * dt;
+  const at = k => ({ x: p.x + Math.cos(m.base + k * TAU / 4) * 320, y: p.y + Math.sin(m.base + k * TAU / 4) * 320 * 0.8 });
+  const q = at(b.slot); b.x += (q.x - b.x) * Math.min(1, dt * 6 || 1); b.y += (q.y - b.y) * Math.min(1, dt * 6 || 1); b.face = toP(b.x, b.y);
+  for (const d of w.decoys) { const q2 = at(d.slot); d.x += (q2.x - d.x) * Math.min(1, dt * 6 || 1); d.y += (q2.y - d.y) * Math.min(1, dt * 6 || 1); d.face = toP(d.x, d.y); }
+}
+function popDecoys() {
+  for (const d of w.decoys) if (d.slot !== undefined) { ringShots(d.x, d.y, 12, 140); w.fx.push({ x: d.x, y: d.y, r: 50, t: 0, dur: 0.3, col: "#b59cff" }); }
+  w.decoys = w.decoys.filter(d => d.slot === undefined); w.mask = null;
+}
+
+function step(dt) {
+  w.t += dt;
+  const b = w.boss, p = w.p;
+  // Stage change: can't be hurt, the screen clears, then the next stage
+  if (w.trans > 0) {
+    w.trans -= dt; w.bullets = []; w.blades = []; w.decoys = []; w.dash = null;
+    b.x += (MID.x - b.x) * Math.min(1, dt * 3); b.y += (MID.y - b.y) * Math.min(1, dt * 3);
+    if (w.trans <= 0) { const next = (w.stage + 1) % 4; reset(next); w.fx.push({ x: MID.x, y: MID.y, r: 1100, t: 0, dur: 0.9, col: STAGES[next].col }); }
+    moveDummy(dt); return;
+  }
+  w.tt += dt;
+  const n = turnName();
+  // Timed steps of this turn
+  while (w.plan.length && w.tt >= w.plan[0][0]) w.plan.shift()[1]();
+  // Stagger: stunned and open
+  if (b.stagger > 0) { b.stagger -= dt; b.salute = 0; }
+  // Salute tell, then the strike
+  else if (b.salute > 0) { b.salute -= dt; b.face = toP(b.x, b.y); if (b.salute <= 0) strike(); }
+  // Dashes: warning, then movement along the line, dropping blades
+  else if (w.dash) {
+    const d = w.dash;
+    if (d.warn > 0) d.warn -= dt;
+    else {
+      const stepLen = Math.min(d.sp * dt, d.len - d.done);
+      d.done += stepLen;
+      b.x = d.x0 + Math.cos(d.a) * d.done; b.y = d.y0 + Math.sin(d.a) * d.done;
+      const every = d.every || 85;
+      while (d.marks && d.mark * every <= d.done) { const mx = d.x0 + Math.cos(d.a) * d.mark * every, my = d.y0 + Math.sin(d.a) * d.mark * every; if (d.mark > 0) w.blades.push({ x: mx, y: my, a: d.a, t: d.hang || 0.3 }); d.mark++; }
+      if (Math.hypot(p.x - b.x, p.y - b.y) < 44 && !(d.kind === "salute" && d.parry)) hurt();
+      if (d.kind === "salute" && d.parry && Math.hypot(p.x - b.x, p.y - b.y) < 60) {
+        // Perfect parry: the strike stops dead, it's knocked off balance.
+        p.parry = 0.45; b.stagger = 2.5; w.dash = null; w.stats.parried++;
+        w.fx.push({ x: p.x, y: p.y, r: 90, t: 0, dur: 0.4, col: "#ffcc59" }); w.label = { text: "PERFECT PARRY", x: p.x, y: p.y - 40, t: 1 };
+      } else if (d.done >= d.len) {
+        if (d.kind === "salute") for (let i = 0; i < 9; i++) shot(b.x, b.y, toP(b.x, b.y) + (i - 4) * 0.16, 230);  // raked: the dodge got away
+        w.dash = null;
+      }
+    }
+  }
+  // Where it stands otherwise
+  else if (n === "Masquerade" && w.mask) placeMask(dt);
+  else if (w.stage === 3) { b.x += (MID.x - b.x) * Math.min(1, dt * 2); b.y += (MID.y - b.y) * Math.min(1, dt * 2); }
+  else if (!b.guard) {
+    // Strafe: keep 280 px from you, sliding round
+    b.orb += 0.45 * dt * b.dir; if (Math.random() < dt * 0.15) b.dir *= -1;
+    const gx = p.x + Math.cos(b.orb) * 280, gy = p.y + Math.sin(b.orb) * 280 * 0.85, dx = gx - b.x, dy = gy - b.y, l = Math.hypot(dx, dy) || 1, sp = Math.min(l, 150 * dt);
+    b.x += dx / l * sp; b.y += dy / l * sp; b.face = toP(b.x, b.y);
+  }
+  if (b.guard && b.stagger <= 0) { const want = toP(b.x, b.y), lim = (w.stage === 2 ? 140 : 90) * Math.PI / 180 * dt; b.face += clamp(angDiff(want, b.face), -lim, lim); }
+  b.orb = Math.atan2((b.y - p.y) / 0.85, b.x - p.x);
+  // Keep everyone in the circle (stage 3 and the last stand)
+  if (w.ring) for (const o of [b, p]) { const dx = o.x - MID.x, dy = o.y - MID.y, d = Math.hypot(dx, dy), lim = w.ring - 20; if (d > lim) { o.x = MID.x + dx / d * lim; o.y = MID.y + dy / d * lim; } }
+  b.x = clamp(b.x, 40, W - 40); b.y = clamp(b.y, 40, H - 40);
+
+  // Firing
+  if (b.stagger <= 0 && !w.dash && b.salute <= 0) {
+    if (n === "Volleys" && (b.fire -= dt) <= 0) {
+      b.fire = 0.9; b.vol++;
+      const aim = toP(b.x, b.y);
+      if (b.vol % 3 === 0) for (let i = 0; i < 11; i++) shot(b.x, b.y, aim + (i - 5) * 0.1, 230);
+      else for (let k = 0; k < 3; k++) shot(b.x, b.y, aim, 260 + k * 40, "red");
+    }
+    if (n === "Masquerade" && w.mask && (w.mask.next -= dt) <= 0) {
+      w.mask.next = 0.5;
+      const k = w.mask.turn++ % 4;
+      if (k === b.slot) { shot(b.x, b.y, toP(b.x, b.y), 300, "red"); w.mask.learn = 0.4; }  // the dummy reads the solid shot
+      else { const d = w.decoys.find(q => q.slot === k); if (d) shot(d.x, d.y, toP(d.x, d.y), 300, "hollow"); }
+    }
+    if (n === "Final flourish" && (b.fire -= dt) <= 0) {
+      b.fire = 0.12; b.spin += 0.25;
+      for (let k = 0; k < 3; k++) shot(b.x, b.y, b.spin + k * TAU / 3, 150);
+    }
+  }
+  if (w.mask && w.mask.learn > 0 && (w.mask.learn -= dt) <= 0) w.guess = b.slot;
+  // Decoys from the blink pop on their own
+  for (const d of w.decoys) if (d.pop !== undefined && (d.pop -= dt) <= 0) { ringShots(d.x, d.y, 16, 140); w.fx.push({ x: d.x, y: d.y, r: 50, t: 0, dur: 0.3, col: "#cfd6ff" }); d.dead = true; }
+  w.decoys = w.decoys.filter(d => !d.dead);
+  // Hanging blades fire out sideways
+  for (const bl of w.blades) if ((bl.t -= dt) <= 0) { shot(bl.x, bl.y, bl.a + Math.PI / 2, 200); shot(bl.x, bl.y, bl.a - Math.PI / 2, 200); bl.dead = true; }
+  w.blades = w.blades.filter(bl => !bl.dead);
+  // Enemy bullets
+  for (const q of w.bullets) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.kind !== "hollow" && Math.hypot(q.x - p.x, q.y - p.y) < 18) { q.life = 0; hurt(); }
+  }
+  w.bullets = w.bullets.filter(q => q.life > 0 && q.x > -30 && q.y > -30 && q.x < W + 30 && q.y < H + 30);
+  playerShots(dt);
+  moveDummy(dt);
+  p.inv = Math.max(0, p.inv - dt); p.parry = Math.max(0, p.parry - dt);
+  for (const f of w.fx) f.t += dt; w.fx = w.fx.filter(f => f.t < f.dur);
+  if (w.label && (w.label.t -= dt) <= 0) w.label = null;
+  if (w.tt >= st().turns[w.turn][1]) nextTurn();
+}
+function hurt() { const p = w.p; if (p.inv > 0) return; p.hits++; p.inv = 0.5; }
+
+// The dummy shoots at the Duelist (or its guess, in the Masquerade). Shots on its guarded front bounce back.
+function playerShots(dt) {
+  const p = w.p, b = w.boss;
+  if ((w.fireCd = (w.fireCd || 0) - dt) <= 0 && p.parry <= 0) {
+    w.fireCd = 0.15;
+    let tg = b;
+    if (turnName() === "Masquerade" && w.mask && w.guess !== b.slot) tg = w.decoys.find(d => d.slot === w.guess) || b;
+    const a = Math.atan2(tg.y - p.y, tg.x - p.x);
+    w.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, life: 1.6 });
+  }
+  for (const q of w.shots) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.life <= 0) continue;
+    for (const d of w.decoys) if (d.slot !== undefined && Math.hypot(q.x - d.x, q.y - d.y) < 30) {
+      // A decoy: it shatters into a ring
+      q.life = 0; d.dead = true; w.stats.broke++; ringShots(d.x, d.y, 12, 150); w.fx.push({ x: d.x, y: d.y, r: 55, t: 0, dur: 0.3, col: "#b59cff" });
+      w.guess = b.slot;
+    }
+    if (q.life > 0 && Math.hypot(q.x - b.x, q.y - b.y) < 32 && w.trans <= 0) {
+      q.life = 0;
+      const from = Math.atan2(q.y - b.y, q.x - b.x);
+      if (b.guard && b.stagger <= 0 && Math.abs(angDiff(from, b.face)) < 70 * Math.PI / 180) { w.stats.back++; shot(b.x + Math.cos(from) * 34, b.y + Math.sin(from) * 34, toP(b.x, b.y) + rnd(-0.08, 0.08), 320, "back"); }
+      else { w.stats.hits++; b.flash = 0.06; }
+    }
+  }
+  w.decoys = w.decoys.filter(d => !d.dead);
+  w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
+  b.flash = Math.max(0, (b.flash || 0) - dt);
+}
+function moveDummy(dt) {
+  const p = w.p, b = w.boss, n = w.trans > 0 ? "" : turnName();
+  if (p.dodge) { p.x += Math.cos(p.dodge.a) * 520 * dt; p.y += Math.sin(p.dodge.a) * 520 * dt; if ((p.dodge.t -= dt) <= 0) { p.dodge = null; p.tx = p.x; p.ty = p.y; } }
+  else {
+    if (n === "Guard" && b.stagger <= 0) { p.tx = b.x - Math.cos(b.face) * 230; p.ty = b.y - Math.sin(b.face) * 230; }  // get behind it
+    else if (n === "Masquerade" || b.salute > 0 || (w.dash && w.dash.kind === "salute")) { /* hold still: watch the tells */ }
+    else if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * 0.4) {
+      for (let k = 0; k < 12; k++) {
+        const a = rnd(0, TAU), r = rnd(200, 380), tx = b.x + Math.cos(a) * r, ty = b.y + Math.sin(a) * r;
+        const inRing = !w.ring || Math.hypot(tx - MID.x, ty - MID.y) < w.ring - 50;
+        if (tx > 60 && tx < W - 60 && ty > 60 && ty < H - 60 && inRing) { p.tx = tx; p.ty = ty; break; }
+      }
+    }
+    const dx = p.tx - p.x, dy = p.ty - p.y, l = Math.hypot(dx, dy) || 1, sp = Math.min(l, 215 * dt);
+    p.x += dx / l * sp; p.y += dy / l * sp;
+  }
+  p.x = clamp(p.x, 20, W - 20); p.y = clamp(p.y, 20, H - 20);
+  if (w.ring) { const dx = p.x - MID.x, dy = p.y - MID.y, d = Math.hypot(dx, dy), lim = w.ring - 20; if (d > lim) { p.x = MID.x + dx / d * lim; p.y = MID.y + dy / d * lim; } }
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------------
+const cv = $("arena"), cx = cv.getContext("2d");
+function draw() {
+  const b = w.boss, p = w.p, t = w.t, n = w.trans > 0 ? "" : turnName();
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.fillStyle = "#0e1017"; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = "rgba(140,150,200,0.06)"; cx.lineWidth = 1; cx.beginPath();
+  for (let x = 0; x <= W; x += 80) { cx.moveTo(x, 0); cx.lineTo(x, H); } for (let y = 0; y <= H; y += 80) { cx.moveTo(0, y); cx.lineTo(W, y); } cx.stroke();
+  // The piste: a faint strip through the middle, for the fencing look
+  cx.strokeStyle = "rgba(207,214,255,0.06)"; cx.lineWidth = 2; cx.strokeRect(160, MID.y - 70, W - 320, 140);
+  cx.beginPath(); cx.moveTo(MID.x, MID.y - 70); cx.lineTo(MID.x, MID.y + 70); cx.stroke();
+  // Dueling circle
+  if (w.ring && w.trans <= 0) {
+    cx.fillStyle = "rgba(255,77,106,0.03)"; cx.beginPath(); cx.arc(MID.x, MID.y, w.ring, 0, TAU); cx.fill();
+    cx.strokeStyle = "rgba(255,77,106,0.18)"; cx.lineWidth = 18; cx.beginPath(); cx.arc(MID.x, MID.y, w.ring, 0, TAU); cx.stroke();
+    const nb = Math.round(w.ring / 9);
+    for (let k = 0; k < nb; k++) {
+      const a = TAU * k / nb + t * 0.08, x0 = MID.x + Math.cos(a) * (w.ring - 10), y0 = MID.y + Math.sin(a) * (w.ring - 10);
+      cx.strokeStyle = k % 2 ? "rgba(255,120,140,0.9)" : "rgba(230,232,255,0.85)"; cx.lineWidth = 2.5;
+      cx.beginPath(); cx.moveTo(x0, y0); cx.lineTo(x0 + Math.cos(a) * 20, y0 + Math.sin(a) * 20); cx.stroke();
+    }
+  }
+  // Dash warnings and trails
+  if (w.dash) {
+    const d = w.dash, ex = d.x0 + Math.cos(d.a) * d.len, ey = d.y0 + Math.sin(d.a) * d.len;
+    if (d.warn > 0) { cx.strokeStyle = `rgba(255,77,106,${0.35 + 0.35 * Math.sin(t * 28)})`; cx.lineWidth = 3; cx.setLineDash([16, 10]); cx.beginPath(); cx.moveTo(d.x0, d.y0); cx.lineTo(ex, ey); cx.stroke(); cx.setLineDash([]);
+      cx.fillStyle = "rgba(255,77,106,0.08)"; cx.save(); cx.translate(d.x0, d.y0); cx.rotate(d.a); cx.fillRect(0, -32, d.len, 64); cx.restore(); }
+    else { cx.strokeStyle = "rgba(207,214,255,0.35)"; cx.lineWidth = 26; cx.beginPath(); cx.moveTo(d.x0, d.y0); cx.lineTo(b.x, b.y); cx.stroke();
+      for (let k = 1; k <= 4; k++) figure(b.x - Math.cos(d.a) * k * 34, b.y - Math.sin(d.a) * k * 34, d.a, 0.18 - k * 0.035, false); }
+  }
+  // Hanging blades
+  for (const bl of w.blades) {
+    const pulse = 0.6 + 0.4 * Math.sin(t * 24);
+    cx.save(); cx.translate(bl.x, bl.y); cx.rotate(bl.a + Math.PI / 2);
+    cx.strokeStyle = `rgba(230,232,255,${pulse})`; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(0, -14); cx.lineTo(0, 14); cx.stroke();
+    cx.strokeStyle = "rgba(255,204,89,0.9)"; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(-6, 9); cx.lineTo(6, 9); cx.stroke();
+    cx.restore();
+  }
+  // Decoys and the Duelist
+  for (const d of w.decoys) figure(d.x, d.y, d.face, 1, false, d.pop !== undefined ? d.pop : -1);
+  figure(b.x, b.y, b.face, 1, true);
+  // Bullets
+  for (const q of w.bullets) {
+    if (q.kind === "hollow") { cx.strokeStyle = "rgba(230,232,255,0.7)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(q.x, q.y, 7, 0, TAU); cx.stroke(); continue; }
+    if (q.kind === "red" || q.kind === "back") {
+      const a = Math.atan2(q.vy, q.vx), col = q.kind === "back" ? "255,204,89" : "255,60,80";
+      cx.save(); cx.translate(q.x, q.y); cx.rotate(a);
+      cx.fillStyle = `rgba(${col},0.25)`; cx.beginPath(); cx.ellipse(0, 0, 16, 9, 0, 0, TAU); cx.fill();
+      cx.fillStyle = `rgb(${col})`; cx.beginPath(); cx.ellipse(0, 0, 11, 5, 0, 0, TAU); cx.fill(); cx.restore(); continue;
+    }
+    cx.fillStyle = "rgba(255,77,115,0.25)"; cx.beginPath(); cx.arc(q.x, q.y, 10, 0, TAU); cx.fill();
+    cx.fillStyle = "rgb(255,77,115)"; cx.beginPath(); cx.arc(q.x, q.y, 6, 0, TAU); cx.fill();
+    cx.fillStyle = "rgba(20,0,10,0.7)"; cx.beginPath(); cx.arc(q.x, q.y, 2.6, 0, TAU); cx.fill();
+  }
+  for (const f of w.fx) {
+    const k = f.t / f.dur; cx.globalAlpha = 1 - k; cx.strokeStyle = f.col; cx.lineWidth = 4;
+    cx.beginPath(); if (f.arc !== undefined) cx.arc(f.x - Math.cos(f.arc) * 40, f.y - Math.sin(f.arc) * 40, 60 + 30 * k, f.arc - 0.6, f.arc + 0.6); else cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU);
+    cx.stroke(); cx.globalAlpha = 1;
+  }
+  // The dummy's shots
+  for (const q of w.shots) { cx.fillStyle = "#7dffa8"; cx.beginPath(); cx.arc(q.x, q.y, 4, 0, TAU); cx.fill(); }
+  // Dummy (with its parry shield when it's up)
+  if (p.parry > 0) { const a = toP(p.x, p.y) + Math.PI, fa = Math.atan2(b.y - p.y, b.x - p.x);
+    cx.strokeStyle = `rgba(255,204,89,${0.5 + p.parry})`; cx.lineWidth = 6; cx.beginPath(); cx.arc(p.x, p.y, 30, fa - 0.95, fa + 0.95); cx.stroke(); }
+  cx.fillStyle = p.inv > 0.2 ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)"; cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
+  cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
+  cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(p.x, p.y, 4, 0, TAU); cx.fill();
+  if (w.label) { cx.globalAlpha = Math.min(1, w.label.t * 2); cx.fillStyle = "#ffcc59"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "center"; cx.fillText(w.label.text, w.label.x, w.label.y - (1 - w.label.t) * 30); cx.textAlign = "left"; cx.globalAlpha = 1; }
+  // Stage banner
+  cx.textAlign = "left"; cx.font = "700 30px Oxanium, sans-serif"; cx.fillStyle = w.trans > 0 ? "#fff" : st().col;
+  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 40, H - 58);
+  cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(236,238,246,0.65)";
+  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s`, 40, H - 28);
+  if (S.speed === 0) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "right"; cx.fillText("PAUSED", W - 40, H - 28); cx.textAlign = "left"; }
+
+  // The Duelist (or a lookalike): a silver diamond with a sword. Guard: a steel arc in front. Salute: sword up,
+  // gold glint. Staggered: reeling, crimson, "OPEN".
+  function figure(x, y, face, alpha, real, pop = -1) {
+    cx.save(); cx.globalAlpha = Math.max(0, alpha);
+    const stag = real && b.stagger > 0, sal = real && b.salute > 0;
+    const wob = stag ? Math.sin(t * 14) * 0.35 : 0, fa = face + wob;
+    cx.fillStyle = "rgba(207,214,255,0.10)"; cx.beginPath(); cx.arc(x, y, 50, 0, TAU); cx.fill();
+    cx.save(); cx.translate(x, y); cx.rotate(fa);
+    cx.fillStyle = stag ? "#ffb3c0" : real && b.flash > 0 ? "#ffffff" : "#d9ddff";
+    cx.beginPath(); cx.moveTo(32, 0); cx.lineTo(0, 22); cx.lineTo(-30, 0); cx.lineTo(0, -22); cx.closePath(); cx.fill();
+    cx.strokeStyle = "rgba(20,22,40,0.85)"; cx.lineWidth = 2; cx.stroke();
+    cx.fillStyle = "#1a1d2c"; cx.beginPath(); cx.arc(4, 0, 7, 0, TAU); cx.fill();
+    // Sword
+    const sa = sal ? -Math.PI / 2 : 0.25;
+    cx.rotate(sa); cx.strokeStyle = "#f2f4ff"; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(18, 14); cx.lineTo(74, 14); cx.stroke();
+    cx.strokeStyle = "#ffcc59"; cx.lineWidth = 4; cx.beginPath(); cx.moveTo(18, 6); cx.lineTo(18, 22); cx.stroke();
+    cx.restore();
+    if (real && b.guard && b.stagger <= 0) { cx.strokeStyle = "rgba(207,214,255,0.9)"; cx.lineWidth = 6; cx.beginPath(); cx.arc(x, y, 46, face - 1.22, face + 1.22); cx.stroke();
+      cx.strokeStyle = "rgba(207,214,255,0.25)"; cx.lineWidth = 16; cx.beginPath(); cx.arc(x, y, 46, face - 1.22, face + 1.22); cx.stroke(); }
+    if (sal) { const k = 1 - b.salute / 0.8; cx.strokeStyle = `rgba(255,204,89,${0.4 + 0.5 * Math.sin(t * 30)})`; cx.lineWidth = 3; cx.beginPath(); cx.arc(x, y, 60 - 20 * k, 0, TAU); cx.stroke();
+      cx.fillStyle = "#fff4cc"; cx.beginPath(); cx.arc(x + Math.cos(face) * 4, y - 78, 6 + 4 * Math.sin(t * 40), 0, TAU); cx.fill(); }
+    if (stag) { cx.fillStyle = "#ff6a7f"; cx.font = "700 22px Oxanium, sans-serif"; cx.textAlign = "center"; cx.fillText(`OPEN +50%  ${b.stagger.toFixed(1)} s`, x, y - 62);
+      for (let k = 0; k < 3; k++) { const a = t * 5 + k * TAU / 3; cx.fillStyle = "#ffcc59"; cx.beginPath(); cx.arc(x + Math.cos(a) * 26, y - 40 + Math.sin(a) * 8, 4, 0, TAU); cx.fill(); } cx.textAlign = "left"; }
+    if (pop >= 0) { cx.strokeStyle = "rgba(207,214,255,0.6)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(x, y, 40, -Math.PI / 2, -Math.PI / 2 + TAU * pop / 3); cx.stroke(); }
+    cx.restore();
+  }
+  const s = w.stats;
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hit <b>${p.hits}</b></span><span>Hits on the Duelist <b>${s.hits}</b></span>${w.stage === 0 || w.stage === 2 ? `<span>Shots turned back by its guard <b>${s.back}</b></span>` : ""}${w.stage === 1 ? `<span>Decoys broken <b>${s.broke}</b></span>` : ""}${w.stage >= 2 ? `<span>Salutes parried <b>${s.parried}</b></span>` : ""}<span>Bullets <b>${w.bullets.length}</b></span>`;
+  for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
+}
+
+// --- Controls and loop ---------------------------------------------------------------------------------------------
+function pickStage(v) {
+  S.lock = v;
+  for (const x of $("stagePick").children) x.classList.toggle("on", +x.dataset.v === v);
+  reset(Math.max(0, v));
+}
+$("stagePick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (btn) pickStage(+btn.dataset.v); });
+$("bar").addEventListener("click", ev => { const d = ev.target.closest("[data-v]"); if (d) pickStage(+d.dataset.v); });
+$("speedPick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (!btn) return; S.speed = +btn.dataset.v; for (const x of $("speedPick").children) x.classList.toggle("on", x === btn); });
+reset(0);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  for (let k = 0; k < S.speed; k++) step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
