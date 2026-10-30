@@ -203,6 +203,50 @@ namespace Arena
             }
         }
 
+        /// Bone Guard: darts stick in enemies; the third within BoneDartHold cages it (not bosses). Caged enemies
+        /// can't move or shoot, and the Skeleton Guards shoot at them instead of biting.
+        public const int BoneCageHits = 3;
+        public const float BoneDartHold = 3f, BoneCageTime = 1.5f, BoneCageImmune = 1f, GuardShotRange = 320f;
+
+        void BoneDartHit(Bullet b, Enemy e)
+        {
+            Player p;
+            if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.BoneGuard
+                || e.Def.IsBoss || e.CageT > 0f || e.CageImmuneT > 0f)
+                return;
+            e.BoneDartT = BoneDartHold;
+            if (++e.BoneDarts < BoneCageHits)
+                return;
+            e.BoneDarts = 0;
+            e.CageT = BoneCageTime;
+            e.Caged = true;
+            BroadcastFx(FxKind.Ring, e.Pos, Defs.BulletColor(Defs.BoneShot), e.Radius + 16f, 0.3f, Sfx.Hit);
+        }
+
+        /// Host, every tick for each enemy: the darts fall out in time, and a cage breaks.
+        void TickBoneCage(Enemy e, float dt)
+        {
+            if (e.BoneDarts > 0 && (e.BoneDartT -= dt) <= 0f)
+                e.BoneDarts = 0;
+            e.CageImmuneT -= dt;
+            if (e.CageT > 0f && (e.CageT -= dt) <= 0f)
+            {
+                e.CageImmuneT = BoneCageImmune;
+                BroadcastFx(FxKind.Spark, e.Pos, Defs.BulletColor(Defs.BoneShot), e.Radius + 10f, 0.25f, Sfx.None);
+            }
+            e.Caged = e.CageT > 0f;
+        }
+
+        /// The nearest caged enemy a Skeleton Guard can shoot at, if any.
+        Enemy NearestCaged(V2 from)
+        {
+            Enemy best = null;
+            foreach (var e in Enemies.Values)
+                if (e.CageT > 0f && e.Hp > 0f && e.Pos.DistanceTo(from) < GuardShotRange && (best == null || e.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
+                    best = e;
+            return best;
+        }
+
         /// The Golem Staff's boulder: how far it lands (from your centre, before Velocity Rounds) and how long it
         /// flies for a charge `c` (0 = a tap, 1 = held to full).
         public const float BoulderMin = 140f, BoulderMax = 460f, BoulderSplash = 75f, BoulderTap = 0.5f;
@@ -789,6 +833,18 @@ namespace Arena
                     }
                     case MinionAttack.Bite:
                     {
+                        Enemy caged = m.Kind == MinionKind.Guard ? NearestCaged(m.Pos) : null;
+                        if (caged != null)  // Skeleton Guards shoot at enemies the Bone Guard has caged
+                        {
+                            m.Aim = (caged.Pos - m.Pos).Angle;
+                            if (m.Cd <= 0f && State == MatchState.Fighting)
+                            {
+                                m.Cd = d.Interval;
+                                V2 dir = V2.FromAngle(m.Aim);
+                                SpawnBullet(Defs.MinionShot, m.Pos + dir * d.Radius, dir * 650f, 0f, GuardShotRange / 650f, dmg, m.Owner);
+                            }
+                            break;
+                        }
                         var e = target ?? NearestEnemy(m.Pos, d.Radius + 40f);
                         if (e != null && m.Cd <= 0f && e.Pos.DistanceTo(m.Pos) < e.Radius + d.Radius + 6f)
                         {

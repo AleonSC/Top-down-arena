@@ -685,6 +685,7 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
+            BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts

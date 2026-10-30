@@ -291,6 +291,7 @@ namespace Arena
                     e.SlowMult = 1f;
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // Minions.cs
+                TickBoneCage(e, dt);  // Minions.cs
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;
@@ -309,6 +310,8 @@ namespace Arena
                     e.GraspT -= dt;
                     continue;
                 }
+                if (e.CageT > 0f)  // caged by Bone Guard darts (Minions.cs): no moving or shooting
+                    continue;
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);

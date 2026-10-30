@@ -1149,6 +1149,8 @@ namespace Arena
                 float w = Mathf.Max(30f, r * 2f);
                 Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
             }
+            if (e.Caged)
+                DrawBoneCage(pos, r, t);
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
         }
 
@@ -1494,6 +1496,22 @@ namespace Arena
         static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
         static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
         static readonly Rgba BleedColor = new Rgba(0.8f, 0.05f, 0.12f);
+
+        /// A Bone Guard cage round a caged enemy: a ring of bone bars closing in on it.
+        void DrawBoneCage(V2 pos, float r, float t)
+        {
+            var bone = Defs.BulletColor(Defs.BoneShot);
+            float cr = r + 6f;
+            Circle(pos, cr, bone.WithAlpha(0.08f), 20);
+            for (int k = 0; k < 7; k++)  // the bars, seen from above: short ribs pointing in
+            {
+                V2 d = V2.FromAngle(MathX.Tau * k / 7f + 0.2f);
+                Line(pos + d * (cr - 4f), pos + d * (cr + 3f), 3f, bone);
+                Circle(pos + d * (cr + 3f), 2.2f, bone, 6);
+            }
+            Arc(pos, cr, 2f, bone.WithAlpha(0.9f), 28);
+            Arc(pos, cr + 5f, 1.2f, bone.WithAlpha(0.5f + 0.2f * Mathf.Sin(t * 6f)), 28);
+        }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
         /// slowed, flame = burning, blood drop = bleeding, red crosshair = marked (takes extra damage).

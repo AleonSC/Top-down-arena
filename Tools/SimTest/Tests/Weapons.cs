@@ -650,6 +650,71 @@ static partial class Program
         host.Leave("");
     }
 
+    static void BoneGuardTest(float dt)
+    {
+        // The Bone Guard: darts stick in enemies and the third cages one (not bosses); caged enemies can't move, and the
+        // Skeleton Guards shoot at them. A broken cage can't be rebuilt for a moment.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var dart = typeof(Game).GetMethod("BoneDartHit", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Tank", Role.Tank, 1, 0, Kit.Summoner);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Healer", Role.Healer, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Check(me.Weapon.Id == WeaponId.BoneGuard, "the Summoner Tank's second weapon is the Bone Guard");
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(500f, 450f), at = new V2(650f, 450f);
+        Enemy target = null;
+        var seen = new HashSet<int>();
+        int guardShots = 0;
+        Action<float, bool> play = (secs, fire) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (e != target) e.Hp = 0f;
+                me.Pos = from;
+                if (target != null) { target.Pos = at; target.FireT = 99f; }
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at }); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+                foreach (var b in g.Bullets.Values)
+                    if (b.Owner == 1 && b.Kind == Defs.MinionShot && seen.Add(b.Id)) guardShots++;
+            }
+        };
+        play(0.3f, false);
+        target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false });
+        target.Hp = target.MaxHp = 1e6f; target.SpawnT = 0f;
+        play(0.3f, false);
+        int shotsBefore = guardShots;
+        float caged = -1f;
+        for (int f = 0; f < 120 && caged < 0f; f++) { play(1f / 60f, true); if (target.CageT > 0f) caged = f / 60f; }
+        Console.WriteLine("  bone guard: caged after {0:0.00} s of firing (guard shots before {1})", caged, shotsBefore);
+        Check(caged > 0f && caged < 1.2f && Math.Abs(target.CageT - Game.BoneCageTime) < 0.1f, "three Bone Guard darts in one enemy cage it for 1.5 s");
+        play(0.6f, false);
+        bool clientSaw = client.Game.Enemies.ContainsKey(target.Id) && client.Game.Enemies[target.Id].Caged;
+        int shotsWhileCaged = guardShots - shotsBefore;
+        Console.WriteLine("  bone guard: guard shots while caged {0}, client sees the cage {1}", shotsWhileCaged, clientSaw);
+        Check(shotsBefore == 0 && shotsWhileCaged >= 2 && clientSaw, "the Skeleton Guards shoot at a caged enemy (not before), and everyone sees the cage");
+        play(1f, false);
+        Check(target.CageT <= 0f && !target.Caged && target.CageImmuneT > 0f, "the cage breaks after 1.5 s");
+        var bone = new Bullet { Kind = Defs.BoneShot, Owner = 1 };
+        for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, target });
+        bool rebuiltAtOnce = target.CageT > 0f;
+        play(Game.BoneCageImmune + 0.1f, false);
+        for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, target });
+        Check(!rebuiltAtOnce && target.CageT > 0f, "a broken cage can't be rebuilt for a second, then it can");
+        var boss = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Boss, at, 0f, 0, false });
+        for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, boss });
+        Check(boss.CageT <= 0f, "bosses can't be caged");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

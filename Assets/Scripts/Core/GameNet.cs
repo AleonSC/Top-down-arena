@@ -477,7 +477,7 @@ namespace Arena
                 e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
-                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0));
+                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0));
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -512,6 +512,7 @@ namespace Arena
                 e.Chilled = (status & 4) != 0;
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
+                e.Caged = (status & 32) != 0;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

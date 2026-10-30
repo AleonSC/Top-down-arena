@@ -164,6 +164,9 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
+        public int BoneDarts;               // host: Bone Guard darts stuck in it (the third cages it; Minions.cs)
+        public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
+        public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
         public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;
