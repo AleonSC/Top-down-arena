@@ -29,6 +29,8 @@ namespace Arena
             if (casting)
                 amount *= castPower;
             float applied = Math.Min(amount, target.MaxHp - target.Hp);
+            if (amount > applied && source != null && source.Role == Role.Healer && what != AuraSource)
+                OverhealShield(target, amount - applied);
             if (applied <= 0f)
                 return 0f;
             target.Hp += applied;
@@ -39,6 +41,17 @@ namespace Arena
             Recorder?.Healed(source, applied);
             Recorder?.HealReceived(target, applied, what ?? (source == null ? "other" : source == target ? "own abilities" : "allies"));
             return applied;
+        }
+
+        /// A Healer's heal past full health: a short shield, up to 20% of max health (a bigger shield already
+        /// up, like Arcane Ward's, is kept).
+        void OverhealShield(Player target, float excess)
+        {
+            float cap = target.MaxHp * OverhealCap;
+            if (target.ShieldHp >= cap)
+                return;
+            target.ShieldHp = Math.Min(cap, target.ShieldHp + excess);
+            target.ShieldT = Math.Max(target.ShieldT, OverhealTime);
         }
 
         Player PlayerOrNull(int id)

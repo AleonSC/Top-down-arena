@@ -1715,10 +1715,10 @@ static partial class Program
         play(0.8f, new PlayerInput());
         bool setStuck = stuck.FrozenT > 0f;
         g.DevSetGod(1, false);
-        me.Hp = me.MaxHp; damage.Invoke(g, new object[] { me, 20f, "Test" }); float outside = me.MaxHp - me.Hp;
+        me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float outside = me.MaxHp - me.Hp;
         if (pool != null) from = pool.Pos;
         play(0.02f, new PlayerInput());
-        me.Hp = me.MaxHp; damage.Invoke(g, new object[] { me, 20f, "Test" }); float inside = me.MaxHp - me.Hp;
+        me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float inside = me.MaxHp - me.Hp;
         g.DevSetGod(1, true);
         Console.WriteLine("  clot bolt: pool {0}; enemy free while wet {1}, stuck once it congealed {2}; 20 damage taken outside {3:0.0}, in your pool {4:0.0}",
             pool != null, wetFree, setStuck, outside, inside);

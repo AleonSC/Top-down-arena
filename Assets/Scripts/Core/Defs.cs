@@ -20,6 +20,7 @@ namespace Arena
         Guard,       // the Warden's riot guards: they beat the rioters left after 10 s, then come for you (Warden.cs)
         DualReaper,  // the Twin Reapers fused into one (Reapers.cs)
         ReaperPillar,  // the Dual Reaper's corner pillars: each one killed leaves a hole that can trap it (Reapers.cs)
+        SingShard,     // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
     }
 
     public class RoleDef
@@ -104,7 +105,7 @@ namespace Arena
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
                 Hp = 120f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,
-                Desc = "Your aura slowly heals an ally standing near you.",
+                Desc = "Your aura slowly heals an ally standing near you, and you a little.",
             },
             new RoleDef
             {
@@ -183,6 +184,7 @@ namespace Arena
             new EnemyDef { Name = "Guard", Hp = 90f, Radius = 13f, Speed = 125f, Score = 6, Xp = 4, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Melee = true, Contact = 14f },
             new EnemyDef { Name = "The Dual Reaper", IsBoss = true, Hp = 5200f, Radius = 58f, Speed = 150f, Score = 500, Xp = 200, Sides = 10, Color = new Rgba(1f, 0.8f, 0.45f) },
             new EnemyDef { Name = "Reaper Pillar", Hp = 120f, Radius = 24f, Speed = 0f, Score = 5, Xp = 4, Sides = 4, Color = new Rgba(0.55f, 0.5f, 0.75f), Melee = true },
+            new EnemyDef { Name = "Singularity Shard", Hp = 1e6f, Radius = 20f, Speed = 0f, Score = 0, Xp = 0, Sides = 5, Color = new Rgba(0.8f, 0.5f, 1f), Melee = true },
         };
 
         public const int WeaponsPerRole = 3;

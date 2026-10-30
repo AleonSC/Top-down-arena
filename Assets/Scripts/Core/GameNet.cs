@@ -172,6 +172,9 @@ namespace Arena
                 case Msg.ClearEnemyBullets:
                     ClearEnemyBullets();
                     break;
+                case Msg.ReverseEnemyBullets:  // the Singularity's white hole (Singularity.cs)
+                    ReverseEnemyBullets();
+                    break;
                 case Msg.Sound:
                     Sounds.Add((Sfx)r.ReadByte());
                     break;
@@ -382,6 +385,7 @@ namespace Arena
             s.Float(ref p.ParryHp);
             s.Float(ref p.ParryBroken);
             s.Float(ref p.ShieldHp);
+            s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);
@@ -552,8 +556,10 @@ namespace Arena
                 SyncWarden(s, e);  // Warden.cs
             else if (kind == EnemyType.HiveQueen)
                 SyncQueen(s, e);   // Queen.cs
+            else if (kind == EnemyType.Singularity)
+                SyncSing(s, e);    // Singularity.cs
             if (s.Reading)
-                e.Radius = Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
+                e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
             return id;
         }
 

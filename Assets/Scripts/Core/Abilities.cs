@@ -96,7 +96,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Haven, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
-                Name = "Haven", Cooldown = 16f, Desc = "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker.",
+                Name = "Haven", Cooldown = 16f, Desc = "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker (alone: you heal 50% faster).",
                 Capstone = "Allies inside also take 30% less damage.",
                 Bot = b => b.AllyHurt,
             },

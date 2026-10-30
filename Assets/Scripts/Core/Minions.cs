@@ -1001,7 +1001,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
-                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If your ally goes down, it revives them instantly.",
+                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If anyone goes down (you too), it revives them instantly.",
                 Capstone = "Revives at full health, and the phoenix keeps fighting.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
@@ -1091,13 +1091,13 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
                         {
-                            if (q.WardOn)
+                            if (q.ArcaneOn)
                                 ArcanePayback(q);  // a fresh ward pays out the old one first
                             q.ShieldHp = (cap ? 120f : 60f) * pw;
                             q.ShieldT = 8f;
-                            q.WardOn = true;
-                            q.WardStore = 0f;
-                            q.WardBy = p.Id;
+                            q.ArcaneOn = true;
+                            q.ArcaneStore = 0f;
+                            q.ArcaneBy = p.Id;
                             castHits++;
                         }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
@@ -1558,12 +1558,12 @@ namespace Arena
 
         void ArcanePayback(Player p)
         {
-            p.WardOn = false;
-            float heal = p.WardStore * ArcaneRepay;
-            p.WardStore = 0f;
+            p.ArcaneOn = false;
+            float heal = p.ArcaneStore * ArcaneRepay;
+            p.ArcaneStore = 0f;
             if (heal <= 0f || p.Downed)
                 return;
-            Heal(p, heal, PlayerOrNull(p.WardBy));
+            Heal(p, heal, PlayerOrNull(p.ArcaneBy));
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 40f, 0.4f, Sfx.SpellHoly);
         }
 
@@ -1592,7 +1592,7 @@ namespace Arena
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)
-                        Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
+                        Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
                 }
                 if (z.Kind == ZoneKind.BloodPool && !z.Congealed && z.Duration - z.T >= PoolCongeal)
                     CongealPool(z);  // BloodMage.cs

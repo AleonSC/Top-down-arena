@@ -19,6 +19,7 @@ namespace Arena
         Teleport,  // host -> all: a player is moved (the Ninja's Substitution); only that player's own game applies it
         Shop, ShopGift,  // the Bazaar: a player's shop action (client -> host); gold given to a teammate (host -> all) (Shop.cs)
         WeaponDash,  // client -> host: a weapon moved its player (the Bo Staff's vault, the Kusarigama's reel; Ninja.cs)
+        ReverseEnemyBullets,  // host -> all: the Singularity's white hole turns every enemy bullet round (Singularity.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -66,7 +67,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 92;
+        public const int ProtocolVersion = 94;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

@@ -257,6 +257,8 @@ namespace Arena
                 for (int k = 0; k < 6; k++)
                     Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
                          p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
+            if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
+                Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
             if (p.ShieldHp > 0f)  // Arcane Ward
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
             if (p.SurgeT > 0f)  // Arcane Surge
@@ -1166,17 +1168,20 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (e.Type == EnemyType.Singularity && !game.IsSpawning(e))
                     sing = e;
+            if (sing != null)
+                DrawSingularityDisk(sing);  // SingularityLook.cs
             if (sing != null && (sing.Phase == Game.SingLaserWarn || sing.Phase == Game.SingLasers))
             {
                 // Sweep smoothly at the known speed and ease toward the host's angle.
+                int lasers = Game.SingLaserCount(sing);
                 if (sing.Phase == Game.SingLasers)
-                    laserAngle += Game.LaserSpin * Time.deltaTime;
+                    laserAngle += Game.SingLaserSpin(sing) * Time.deltaTime;
                 float diff = MathX.Fmod(sing.Facing - laserAngle + MathX.Pi, MathX.Tau) - MathX.Pi;
                 laserAngle += Mathf.Abs(diff) > 0.5f ? diff : diff * Mathf.Min(1f, Time.deltaTime * 8f);
-                for (int k = 0; k < Game.LaserCount; k++)
+                for (int k = 0; k < lasers; k++)
                 {
-                    V2 dir = V2.FromAngle(laserAngle + MathX.Tau * k / Game.LaserCount);
-                    V2 from = sing.Disp + dir * sing.Radius, to = sing.Disp + dir * 2000f;
+                    V2 dir = V2.FromAngle(laserAngle + MathX.Tau * k / lasers);
+                    V2 from = sing.Disp + dir * sing.Def.Radius, to = sing.Disp + dir * 2000f;
                     if (sing.Phase == Game.SingLaserWarn)
                         Line(from, to, 2f, new Rgba(1f, 0.25f, 0.25f, 0.35f + 0.3f * Mathf.Sin(t * 30f)));
                     else
@@ -1433,7 +1438,7 @@ namespace Arena
         {
             Rgba col = e.Def.Color;
             V2 pos = e.Disp;
-            float r = e.Radius;
+            float r = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;  // its Radius grows with the event horizon (SingularityLook.cs)
             bool spawning = game.IsSpawning(e);
             if (spawning)
             {
@@ -1526,13 +1531,10 @@ namespace Arena
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
                     break;
                 case EnemyType.Singularity:
-                    if (e.Phase == 1)  // gravity well: rings shrinking inward
-                        for (int k = 0; k < 4; k++)
-                        {
-                            float f = 1f - MathX.Fmod(t * 0.8f + k * 0.25f, 1f);
-                            Arc(pos, r + 40f + f * 360f, 2f, col.WithAlpha(0.35f * (1f - f)), 64);
-                        }
-                    Circle(pos, r * 1.6f, new Rgba(0.05f, 0f, 0.1f, 0.9f), 40);  // dark core halo
+                    DrawSingularityUnderlay(e, pos, r, col, t);  // SingularityLook.cs
+                    break;
+                case EnemyType.SingShard:
+                    DrawSingShardUnderlay(e, pos, r, col, t);
                     break;
                 case EnemyType.Phantom:
                     col = col.WithAlpha((menuPreview ? 0.75f : 0.45f) + (menuPreview ? 0.2f : 0.35f) * Mathf.Sin(t * 9f + e.Id));  // flickers in and out
@@ -1797,6 +1799,7 @@ namespace Arena
                     break;
                 case EnemyType.GravityWell:  // a spinning black hole
                 case EnemyType.CageWell:
+                case EnemyType.SingShard:
                     Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
                     Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;

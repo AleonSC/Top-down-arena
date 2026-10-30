@@ -43,9 +43,9 @@ namespace Arena
                 float soak = Math.Min(p.ShieldHp, amount);
                 p.ShieldHp -= soak;
                 amount -= soak;
-                if (p.WardOn)
+                if (p.ArcaneOn)
                 {
-                    p.WardStore += soak;  // an Arcane Ward keeps it, to pay back
+                    p.ArcaneStore += soak;  // an Arcane Ward keeps it, to pay back
                     if (p.ShieldHp <= 0f)
                         ArcanePayback(p);
                 }
@@ -63,6 +63,14 @@ namespace Arena
                 p.Hp = 1f;  // Crimson Apotheosis
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
+            if (p.Hp <= 0f && p.WardT > 0f)
+            {
+                // Martyr's ward: straight back up instead of going down.
+                p.WardT = 0f;
+                p.Hp = Math.Max(1f, p.MaxHp * p.WardFrac);
+                p.InvulnT = Math.Max(p.InvulnT, p.WardInvuln);
+                BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.9f, 0.15f, 0.25f), 90f, 0.6f, Sfx.Revive);
+            }
             if (p.Hp <= 0f)
             {
                 p.Hp = 0f;
@@ -658,8 +666,10 @@ namespace Arena
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e))
-                return;  // a boss changing stage, or the Queen up in a dive
+            if (ShardPassesHit(e, dmg, attacker))
+                return;  // a Singularity shard: the core takes it (Singularity.cs)
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass))
+                return;  // a boss changing stage, the Queen up in a dive, the Singularity split
             if (!DualReaperHit(e, ref dmg))
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
             if (attacker > 0 && Has(RunMod.GlassCannon))

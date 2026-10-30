@@ -19,7 +19,7 @@ namespace Arena
         const float ShellTime = 5f, ShellMult = 3f;
         const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
-        const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f;
+        const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f, MartyrWardTime = 12f;
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
         const float RushTime = 6f, RushRate = 0.5f, RushSteal = 0.1f, RushDrain = 3f;
         const float NovaDamage = 20f, NovaHeal = 3f;
@@ -751,9 +751,9 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Martyr, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 2,
-                Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally heals twice what you paid.",
+                Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally (you, if you're alone) is warded for 12 s: if they go down, they get straight back up at 50%.",
                 Capstone = "You're invulnerable for 2 s after the sacrifice.",
-                Bot = b => b.AllyDown,
+                Bot = b => b.AllyDown || b.Players == 1 && b.Danger && b.Me.WardT <= 0f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
@@ -904,10 +904,15 @@ namespace Arena
                         BroadcastFx(FxKind.Slash, p.Pos, down.Pos, blood, 0.14f, 0.4f, Sfx.None);
                         BroadcastFx(FxKind.Ring, down.Pos, blood, 70f, 0.5f, Sfx.Revive);
                     }
-                    else if (hurt != null)
+                    else
                     {
-                        Heal(hurt, castPaid * GiftMult, p);
-                        BroadcastFx(FxKind.Ring, hurt.Pos, blood, 50f, 0.4f, Sfx.SpellHoly);
+                        // Nobody down: ward the most hurt ally (or yourself, alone) against going down.
+                        var ward = hurt ?? p;
+                        ward.WardT = MartyrWardTime;
+                        ward.WardFrac = Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw);
+                        ward.WardInvuln = 1.5f + s.MartyrInvuln;
+                        castHits += 2;
+                        BroadcastFx(FxKind.Ring, ward.Pos, blood, 60f, 0.5f, Sfx.SpellHoly);
                     }
                     if (cap)
                         p.InvulnT = Math.Max(p.InvulnT, 2f);

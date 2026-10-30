@@ -13,6 +13,9 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed || p.ReviveToken)
                     return;  // someone's standing, or will get up on their own
+            foreach (var m in Minions.Values)
+                if (m.Kind == MinionKind.Phoenix)
+                    return;  // a phoenix brings someone back on its next beat (Minions.cs)
             State = MatchState.GameOver;
             spawnQueue.Clear();
             foreach (var p in Players.Values)

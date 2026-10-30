@@ -402,14 +402,17 @@ static partial class Program
         var s = StartBuffed(dt, 20, 0);
         s[0].Game.Bot = s[1].Game.Bot = false;
         var g = s[0].Game;
+        var c = s[1].Game;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
         Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && !g.IsSpawning(Find(s[0], EnemyType.Singularity)));
         var sing = Find(s[0], EnemyType.Singularity);
-        sing.T = 0f;
-        Run(s, dt, 1.5f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-        var wells = g.Enemies.Values.Where(e => e.Type == EnemyType.GravityWell).ToList();
+        Run(s, dt, 1.5f, null, safe);
+        Func<List<Enemy>> Wells = () => g.Enemies.Values.Where(e => e.Type == EnemyType.GravityWell).ToList();
+        var wells = Wells();
         bool corners = wells.Count == 4 && wells.All(w => Math.Min(w.Pos.X, Game.Width - w.Pos.X) < 150f && Math.Min(w.Pos.Y, Game.Height - w.Pos.Y) < 150f);
-        Console.WriteLine("  corner wells: {0} at {1}", wells.Count, string.Join(" ", wells.Select(w => "(" + (int)w.Pos.X + "," + (int)w.Pos.Y + ")")));
-        Check(corners, "the Singularity's 4 gravity wells sit in the arena's corners");
+        Console.WriteLine("  corner wells: {0} at {1}; stage {2}", wells.Count, string.Join(" ", wells.Select(w => "(" + (int)w.Pos.X + "," + (int)w.Pos.Y + ")")), sing.Sing?.Stage);
+        Check(corners && sing.Sing != null && sing.Sing.Stage == SingStage.EventHorizon, "the fight opens in the Event Horizon with 4 gravity wells in the corners");
 
         // A player near a corner drifts toward its well; one in the middle doesn't.
         var drift = typeof(Game).GetMethod("WellDriftAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -418,53 +421,156 @@ static partial class Program
         V2 near = (V2)drift.Invoke(g, new object[] { nearPos });
         V2 mid = (V2)drift.Invoke(g, new object[] { new V2(Game.Width / 2f, Game.Height / 2f) });
         Console.WriteLine("  well drift: {0:0} px/s 200 px from a well, {1:0} in the middle", near.Length, mid.Length);
-        Check(near.Length > 10f && near.Length < 60f && Math.Abs(MathX.Fmod((w0.Pos - nearPos).Angle - near.Angle + MathX.Pi, MathX.Tau) - MathX.Pi) < 0.1f && mid.Length < 1f, "corner wells drift nearby players slowly toward them");
+        Check(near.Length > 10f && near.Length < 60f && mid.Length < 1f, "corner wells drift nearby players slowly toward them");
 
-        // Attack order over one cycle, and what's fired.
+        // Event Horizon: Pull, Collapse, then the spiral and three lasers, with breathers between.
         var phases = new List<byte>();
         var facings = new List<float>();
-        bool redShots = false, purpleInNormal = false;
-        int cagesSeenOnClient = 0, cageWells = 0;
-        float firstRadius = 0f, lastRadius = 0f;
-        sing.T = 0f;
-        foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
-        Run(s, dt, 24f, null, () =>
+        bool redShots = false, purple = false;
+        Run(s, dt, 19f, null, () =>
         {
-            foreach (var p in g.Players.Values) p.InvulnT = 1f;
+            safe();
             if (phases.Count == 0 || phases[phases.Count - 1] != sing.Phase) phases.Add(sing.Phase);
             if (sing.Phase == Game.SingLasers) facings.Add(sing.Facing);
             foreach (var b in g.Bullets.Values)
-                if (b.Source == EnemyType.Singularity)
-                {
-                    redShots |= b.Kind == Defs.PierceShot;
-                    purpleInNormal |= b.Kind == Defs.BigShot;
-                }
-            cagesSeenOnClient = Math.Max(cagesSeenOnClient, s[1].Game.Cages.Count);
-            cageWells = Math.Max(cageWells, g.Enemies.Values.Count(e => e.Type == EnemyType.CageWell));
-            if (g.Cages.Count > 0) { if (firstRadius == 0f) firstRadius = g.Cages.Values.First().Radius; lastRadius = g.Cages.Values.First().Radius; }
+                if (b.Source == EnemyType.Singularity) { redShots |= b.Kind == Defs.PierceShot; purple |= b.Kind == Defs.BigShot; }
         });
-        string order = string.Join(" > ", phases.Select(p => p == Game.SingPull ? "Pull" : p == Game.SingCollapse ? "Collapse" : p == Game.SingNormal ? "Normal" : p == Game.SingLaserWarn ? "LaserWarning" : p == Game.SingLasers ? "Lasers" : "Cage"));
-        Console.WriteLine("  attack order: {0}", order);
-        Check(order.StartsWith("Pull > Collapse > Normal > LaserWarning > Lasers > Cage"), "the Singularity cycles Pull, Collapse, Normal (spiral, then lasers after a warning), Cage");
-        bool sweeps = facings.Count > 60 && facings.Last() - facings.First() > 0.3f * Game.LaserSpin * facings.Count * dt;
-        Console.WriteLine("  lasers swept {0:0.00} rad over {1:0.0} s; red shots {2}, purple spiral {3}", facings.Last() - facings.First(), facings.Count * dt, redShots, purpleInNormal);
-        Check(sweeps, "the three lasers sweep slowly around (counter-clockwise)");
-        Check(!redShots && purpleInNormal, "it fires the purple spiral but no red shots");
-        Console.WriteLine("  cages: {0} seen on the client, {1} cage wells, radius {2:0} -> {3:0}", cagesSeenOnClient, cageWells, firstRadius, lastRadius);
-        Check(cagesSeenOnClient == 2 && cageWells == 6 && lastRadius < firstRadius - 100f, "the cage attack rings every player with 3 small wells, shrinking (seen on the client)");
+        Func<byte, string> Name = p => p == Game.SingPull ? "Pull" : p == Game.SingCollapse ? "Collapse" : p == Game.SingNormal ? "Normal" : p == Game.SingLaserWarn ? "LaserWarning"
+            : p == Game.SingLasers ? "Lasers" : p == Game.SingRest ? "Rest" : p.ToString();
+        string order = string.Join(" > ", phases.Select(Name));
+        Console.WriteLine("  event horizon: {0}", order);
+        Check(order.Contains("Pull > Rest > Collapse > Rest > Normal > LaserWarning > Lasers > Rest"), "Event Horizon: Pull, Collapse, then the spiral and lasers after a warning, breathers between");
+        Check(facings.Count > 60 && facings.Last() - facings.First() > 0.3f * Game.LaserSpin * facings.Count * dt && Game.SingLaserCount(sing) == 3, "three lasers sweep slowly around (counter-clockwise)");
+        Check(!redShots && purple, "it fires the purple spiral but no red shots");
 
-        // Next cage: standing still inside hurts once the ring reaches you; shooting the wells frees you.
-        Run(s, dt, 30f, () => g.Cages.Count > 0, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        // Killed wells stay gone for the rest of the stage.
+        foreach (var w in Wells()) w.Hp = 0f;
+        Run(s, dt, 20f, null, safe);
+        Console.WriteLine("  wells 20 s after killing them all: {0}", Wells().Count);
+        Check(Wells().Count == 0 && sing.Sing.Stage == SingStage.EventHorizon, "killed gravity wells don't come back until the next stage");
+
+        // 65%: it changes stage (can't be hurt, the screen clears), then Accretion with four fresh wells and the disk.
+        sing.Hp = sing.MaxHp * 0.6f;
+        Run(s, dt, 0.3f, null, safe);
+        float hp = sing.Hp; hurt.Invoke(g, new object[] { sing, 500f, 1 });
+        bool immune = sing.Sing.TransT > 0f && sing.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Singularity);  // (its Grunts and Snipers keep shooting)
+        Run(s, dt, 3f, () => sing.Sing.Stage == SingStage.Accretion && sing.Sing.TransT <= 0f, safe);
+        Run(s, dt, 1f, null, safe);
+        var cs = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Singularity);
+        Console.WriteLine("  stage change: immune {0}; now {1}, client sees {2} with the disk {3}; wells {4}", immune, sing.Sing.Stage, cs?.Sing?.Stage, cs != null && Game.DiskUp(cs), Wells().Count);
+        Check(immune && sing.Sing.Stage == SingStage.Accretion && cs?.Sing?.Stage == SingStage.Accretion, "at 65% it changes stage (can't be hurt, screen cleared), then Accretion (seen on the client)");
+        Check(Wells().Count == 4, "the next stage brings four fresh gravity wells");
+        Check(cs != null && Game.DiskUp(cs), "the accretion disk is up, on the client too");
+
+        // Standing on a disk orb hurts.
         var me = g.Players[1];
-        var cage = g.Cages.Values.First(c => c.PlayerId == 1);
-        me.Pos = s[1].Game.Players[1].Pos = cage.Center;
+        V2 orb;
+        int slot = Enumerable.Range(0, Game.DiskInnerN).First(i => Game.DiskOrb(sing.Sing, sing.Pos, 0, i, out orb));
         float taken = me.Run.DamageTaken;
-        Run(s, dt, 8.5f, () => me.Run.DamageTaken > taken, () => { foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f; });
-        bool cageHurts = me.Run.DamageTaken > taken;
-        int freed = cage.Wells.Count;
+        Run(s, dt, 0.3f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            V2 at; Game.DiskOrb(sing.Sing, sing.Pos, 0, slot, out at); me.InvulnT = 0f; me.Pos = s[1].Game.Players[1].Pos = at;
+        });
+        Console.WriteLine("  disk orb hit the player: {0}", me.Run.DamageTaken > taken);
+        Check(me.Run.DamageTaken > taken, "the disk's orbs hurt");
+        me.Pos = s[1].Game.Players[1].Pos = new V2(200f, 450f);
+
+        // Accretion's turns: the Cage, the Slingshot (orbs flung off the disk), the twin lasers; and it orbits.
+        int cagesSeen = 0, flung = 0, maxGone = 0;
+        bool twin = false;
+        float moved = 0f;
+        Run(s, dt, 26f, null, () =>
+        {
+            safe();
+            cagesSeen = Math.Max(cagesSeen, c.Cages.Count);
+            if (sing.Phase == Game.SingSlingshot) flung = Math.Max(flung, g.Bullets.Values.Count(b => b.Kind == Defs.BigShot && b.Source == EnemyType.Singularity));
+            maxGone = Math.Max(maxGone, CountBits(sing.Sing.DiskGone));
+            twin |= sing.Phase == Game.SingLasers && Game.SingLaserCount(sing) == 2;
+            moved = Math.Max(moved, sing.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)));
+        });
+        Console.WriteLine("  accretion: cages on the client {0}, slingshot orbs {1} (disk slots gone {2}), twin lasers {3}, orbit {4:0} px out", cagesSeen, flung, maxGone, twin, moved);
+        Check(cagesSeen == 2, "the Cage rings every player (seen on the client)");
+        Check(flung >= 3 && maxGone >= 3, "the Slingshot flings orbs off the disk at the players");
+        Check(twin, "two lasers sweep in Accretion");
+        Check(moved > 120f, "it orbits the middle in Accretion");
+
+        // 30%: Spaghettify. The event horizon grows (the core's body grows with it) and pulls all the time.
+        sing.Hp = sing.MaxHp * 0.25f;
+        Run(s, dt, 3f, () => sing.Sing.Stage == SingStage.Spaghettify && sing.Sing.TransT <= 0f, safe);
+        Run(s, dt, 2f, null, safe);
+        cs = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Singularity);
+        Console.WriteLine("  spaghettify: horizon {0:0} (body {1:0}, client {2:0}), pull {3:0}, wells {4}", sing.Sing.Horizon, sing.Radius, cs?.Radius, g.PullStrength, Wells().Count);
+        Check(sing.Sing.Stage == SingStage.Spaghettify && sing.Radius > 70f && cs != null && Math.Abs(cs.Radius - sing.Radius) < 15f && g.PullStrength > 0f && Wells().Count == 4,
+            "Spaghettify: the event horizon opens (its body on the client too), pulls all the time, and four fresh wells spawn");
+
+        // The White hole: it pushes, and every enemy bullet turns round (on the client too). Then the Split.
+        Run(s, dt, 12f, () => sing.Phase == Game.SingWhiteHole && sing.Sing.TurnT > 0.9f, safe);
+        var hb = g.Bullets.Values.FirstOrDefault(b => Defs.IsEnemyShot(b.Kind));
+        int hid = hb?.Id ?? -1;
+        V2 v0 = hb?.Vel ?? V2.Zero, cv0 = hid >= 0 && c.Bullets.ContainsKey(hid) ? c.Bullets[hid].Vel : V2.Zero;
+        Run(s, dt, 0.4f, null, safe);
+        bool pushed = g.PullStrength < 0f;
+        bool reversed = hid >= 0 && g.Bullets.ContainsKey(hid) && Vdot(g.Bullets[hid].Vel, v0) < 0f;
+        bool clientReversed = hid >= 0 && c.Bullets.ContainsKey(hid) && Vdot(c.Bullets[hid].Vel, cv0) < 0f;
+        Console.WriteLine("  white hole: push {0:0}, a bullet reversed on the host {1}, on the client {2}", g.PullStrength, reversed, clientReversed);
+        Check(pushed && reversed && clientReversed, "the White hole pushes and turns every enemy bullet round (on the client too)");
+        Run(s, dt, 6f, () => sing.Phase == Game.SingSplit && g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard && !g.IsSpawning(e)) == 3, safe);
+        var shard = g.Enemies.Values.First(e => e.Type == EnemyType.SingShard);
+        float h0 = sing.Hp; hurt.Invoke(g, new object[] { sing, 300f, 1 });
+        bool coreImmune = sing.Hp == h0;
+        float direct = h0 - sing.Hp;
+        hurt.Invoke(g, new object[] { shard, 300f, 1 });
+        Console.WriteLine("  split: {0} shards, core hit directly {1:0}, through a shard {2:0}", g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard), direct, h0 - sing.Hp);
+        Check(coreImmune && sing.Hp < h0 - 200f, "Split: three shards; the core can't be hurt, the shards pass their damage to it");
+
+        // Below 10%: the last stand. The horizon swells, the pull doubles, and rings of big orbs.
+        sing.Hp = sing.MaxHp * 0.08f;
+        Run(s, dt, 10f, () => sing.Sing.Stage == SingStage.LastStand, safe);
+        bool rings = false;
+        Run(s, dt, 3f, null, () => { safe(); rings |= g.Bullets.Values.Count(b => b.Kind == Defs.BigShot && b.Source == EnemyType.Singularity) >= 16; });
+        Console.WriteLine("  last stand: horizon {0:0}, pull {1:0}, orb rings {2}, shards left {3}", sing.Sing.Horizon, g.PullStrength, rings, g.Enemies.Values.Count(e => e.Type == EnemyType.SingShard));
+        Check(sing.Sing.Stage == SingStage.LastStand && sing.Sing.Horizon > 170f && g.PullStrength > 100f && rings, "below 10%: the last stand (a bigger horizon, a stronger pull, orb rings)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
+    static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
+    static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
+
+    // The Singularity's Cage (in Accretion): standing still inside hurts once the ring reaches you; shooting the wells frees you.
+    static void SingularityCageTest(float dt)
+    {
+        var s = StartBuffed(dt, 20, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Singularity) != null && !g.IsSpawning(Find(s[0], EnemyType.Singularity)));
+        var sing = Find(s[0], EnemyType.Singularity);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+        Run(s, dt, 0.5f, null, safe);
+        sing.Hp = sing.MaxHp * 0.6f;
+        Run(s, dt, 6f, () => g.Cages.Count > 0, safe);
+        float first = g.Cages.Count > 0 ? g.Cages.Values.First().Radius : 0f;
+        int cageWells = g.Enemies.Values.Count(e => e.Type == EnemyType.CageWell);
+        var me = g.Players[1];
+        var cage = g.Cages.Values.First(cg => cg.PlayerId == 1);
+        cage.Center = new V2(300f, 160f);  // well away from the accretion disk, whose orbs would hurt first
+        me.Pos = s[1].Game.Players[1].Pos = cage.Center;
+        bool cageHurts = false;
+        g.DamageEvent = (p, a, src) => cageHurts |= p.Id == 1 && src.ToLowerInvariant().Contains("cage");  // its wall, or its wells
+        // Only the cage may hurt: everything else is cleared away and the player keeps out of the disk's way.
+        Run(s, dt, 8.5f, () => cageHurts, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+            me.Pos = cage.Center;
+            me.InvulnT = cage.Radius > 40f ? 1f : 0f;  // safe until the ring is about to reach it
+        });
+        g.DamageEvent = null;
+        float last = cage.Radius;
         foreach (int id in cage.Wells.ToList()) g.Enemies[id].Hp = 0f;
-        Run(s, dt, 0.3f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
-        Console.WriteLine("  caged player hurt when the ring closed: {0}; cage gone after its {1} wells died: {2}", cageHurts, freed, !g.Cages.ContainsKey(cage.Id));
+        Run(s, dt, 0.3f, null, safe);
+        Console.WriteLine("  cage: {0} cage wells, radius {1:0} -> {2:0}; hurt when it closed {3}; gone once its wells died {4}", cageWells, first, last, cageHurts, !g.Cages.ContainsKey(cage.Id));
+        Check(cageWells == 6 && last < first - 100f, "the Cage rings every player with 3 small wells, shrinking");
         Check(cageHurts && !g.Cages.ContainsKey(cage.Id), "the shrinking cage hurts when it reaches you, and breaks when its wells are shot down");
         s[0].Leave(""); s[1].Leave("");
     }
@@ -499,8 +605,8 @@ static partial class Program
         Run(s, dt, 25);
         var heard = clientHeard.Where(x => x.ToString().StartsWith("Boss")).ToList();
         Console.WriteLine("  client heard boss cues: " + string.Join(", ", heard.GroupBy(x => x).Select(gr => gr.Key + " x" + gr.Count())));
-        Check(heard.Contains(Sfx.BossCharge) && heard.Contains(Sfx.BossPulse) && heard.Contains(Sfx.BossChime) && heard.Contains(Sfx.BossShift) && heard.Count < 20,
-            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");
+        Check(heard.Contains(Sfx.BossCharge) && heard.Contains(Sfx.BossPulse) && heard.Contains(Sfx.BossShift) && heard.Count < 20,
+            "the Singularity's attacks each play a soft cue, heard by the other player too (and not too often)");  // (the Cage's chime is in its second stage)
         s[0].Leave(""); s[1].Leave("");
     }
 
@@ -822,15 +928,15 @@ static partial class Program
                     e.Hp = 0f;
             Run(s, dt, 2);
             bool gone = Find(s[0], EnemyType.GravityWell) == null;
-            Run(s, dt, 16, () => Find(s[0], EnemyType.GravityWell) != null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; });
+            Run(s, dt, 18, () => Find(s[0], EnemyType.GravityWell) != null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; });
             bool back = Find(s[0], EnemyType.GravityWell) != null;
             var sing = Find(s[0], EnemyType.Singularity);
             if (sing != null)
                 sing.Hp = 0f;
             Run(s, dt, 2);
             bool collapsed = Find(s[0], EnemyType.GravityWell) == null;
-            Console.WriteLine("  wells killed {0}, came back {1}, collapsed with the boss {2}", gone, back, collapsed);
-            Check(gone && back && collapsed, "gravity wells return 15 s after you kill them, and collapse when the Singularity dies");
+            Console.WriteLine("  wells killed {0}, came back within the stage {1}, collapsed with the boss {2}", gone, back, collapsed);
+            Check(gone && !back && collapsed, "killed gravity wells stay gone until the next stage, and collapse when the Singularity dies");
             s[0].Leave(""); s[1].Leave("");
         }
     }

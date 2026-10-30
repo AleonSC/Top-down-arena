@@ -119,9 +119,10 @@ namespace Arena
         public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
-        public bool WardOn;                    // host: the shield is an Arcane Ward's, storing what it soaks to pay back as healing
-        public float WardStore;                // host: what it has soaked
-        public int WardBy;                     // host: who cast it
+        public bool ArcaneOn;                    // host: the shield is an Arcane Ward's, storing what it soaks to pay back as healing
+        public float ArcaneStore;                // host: what it has soaked
+        public int ArcaneBy;                     // host: who cast it
+        public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
         public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
@@ -198,6 +199,7 @@ namespace Arena
         public bool Spawning;  // replicated SpawnT > 0 on clients
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
+        public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
@@ -985,6 +987,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
+            UpdateSingView(dt);    // Singularity.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
@@ -1351,9 +1354,10 @@ namespace Arena
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
+                p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
-                if (p.WardOn && p.ShieldHp <= 0f)
+                if (p.ArcaneOn && p.ShieldHp <= 0f)
                     ArcanePayback(p);  // the Arcane Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 p.LinkT = Math.Max(0f, p.LinkT - dt);
@@ -1407,14 +1411,12 @@ namespace Arena
                 }
                 if (p.Role == Role.Healer)
                 {
+                    // The aura heals you too: 1 HP/s, +1 per Sanctuary (its heal multiplier is 1 + stacks).
                     if (!Has(RunMod.Bloodlust))
-                    {
-                        Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
-                        p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
-                    }
+                        Heal(p, AuraSelfHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
-                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p);
+                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                 }
             }
 
