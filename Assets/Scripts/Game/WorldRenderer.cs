@@ -115,6 +115,7 @@ namespace Arena
             DrawPlayerSearchlights(t);
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
+            DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -134,6 +135,7 @@ namespace Arena
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
+            DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             foreach (var p in game.Players.Values)
             {
                 DrawPlayerWrapped(p, t);
@@ -1533,6 +1535,11 @@ namespace Arena
                 case EnemyType.Singularity:
                     DrawSingularityUnderlay(e, pos, r, col, t);  // SingularityLook.cs
                     break;
+                case EnemyType.Colossus:
+                    DrawColossusUnderlay(e, pos, r, t);  // ColossusLook.cs
+                    if (e.Colossus != null && e.Colossus.Stage >= ColStage.MoltenCore)
+                        col = new Rgba(0.36f, 0.25f, 0.2f);  // its shell burnt dark over the molten core
+                    break;
                 case EnemyType.SingShard:
                     DrawSingShardUnderlay(e, pos, r, col, t);
                     break;
@@ -1752,6 +1759,9 @@ namespace Arena
         {
             switch (e.Type)
             {
+                case EnemyType.Colossus:
+                    DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
+                    break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
                     break;

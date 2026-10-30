@@ -490,6 +490,35 @@ namespace Arena
         static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
             : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
 
+        static string ColStageName(ColStage s) => s == ColStage.Awakening ? "AWAKENING" : s == ColStage.Crumbling ? "CRUMBLING"
+            : s == ColStage.MoltenCore ? "MOLTEN CORE" : "LAST STAND";
+
+        /// The Colossus's stage under its health bar, and what to watch for.
+        static string ColossusNote(ColossusState c, ref Color col)
+        {
+            if (c.TransT > 0f)
+            {
+                col = new Color(0.95f, 0.9f, 0.85f);
+                return "CAN'T BE HURT — " + ColStageName(c.TransTo) + " is coming";
+            }
+            if (c.DazeT > 0f)
+            {
+                col = new Color(1f, 0.85f, 0.35f);
+                return "DAZED — it takes 50% more damage!";
+            }
+            if (c.ChargeWarn > 0f)
+            {
+                col = new Color(1f, 0.45f, 0.4f);
+                return "CHARGE — get off the red line (or put a plate in its way)";
+            }
+            if (c.Rings.Count > 0)
+            {
+                col = new Color(0.6f, 1f, 0.7f);
+                return "STOMP — the rings shove you: slip through a green gap";
+            }
+            return ColStageName(c.Stage);
+        }
+
         /// The Warden's stage under its health bar, and what to watch for.
         string WardenNote(WardenState w, ref Color c)
         {
@@ -622,6 +651,8 @@ namespace Arena
                     note = "The corner wells swallow your shots — kill them!";
                 else if (e.Type == EnemyType.Singularity && e.Sing != null)
                     note = SingStageName(e.Sing.Stage);
+                else if (e.Type == EnemyType.Colossus && e.Colossus != null)
+                    note = ColossusNote(e.Colossus, ref noteColor);
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
                     note = "IMMUNE — destroy the phylactery!";
                 else if (Game.Hungry(e))
