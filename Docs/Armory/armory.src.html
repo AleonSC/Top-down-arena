@@ -362,8 +362,8 @@ const ZONES = [
   { name: "World Tree", col: [0.4, 0.9, 0.4], from: "World Tree (Healer · Summoner ultimate)", r: "170 px", dur: "10 s", effect: "Allies heal 18 HP/s; enemies take 20 damage/s and are slowed 40%" },
   { name: "Consecrated Ground", col: [1, 0.85, 0.45], from: "Consecrate (Healer · Knight); Hallowed Blade", r: "130 px (200 from Hallowed Blade)", dur: "6 s (8 s)", effect: "Allies inside heal 12 HP/s (15 from Hallowed Blade); enemies take 20 damage/s" },
   { name: "Smoke Bomb", col: [0.62, 0.62, 0.7], from: "Smoke Bomb (Tank · Ninja)", r: "140 px", dur: "5 s", effect: "Enemy bullets inside move at half speed; allies inside take 30% less damage" },
-  { name: "Healing Mist", col: [0.55, 1, 0.8], from: "Healing Mist (Healer · Ninja)", r: "130 px, follows you", dur: "6 s", effect: "Allies inside heal 10 HP/s" },
-  { name: "Spirit Ward", col: [1, 0.85, 0.6], from: "Spirit Ward (Healer · Ninja)", r: "140 px", dur: "8 s", effect: "Allies inside heal 6 HP/s; downed allies revive 3× faster" },
+  { name: "Healing Mist", col: [0.55, 1, 0.8], from: "Healing Mist (Healer · Ninja)", r: "130 px, follows you", dur: "6 s", effect: "Sheds a drop of dew inside it every 0.5 s (heals 10 when picked up, lasts 6 s)" },
+  { name: "Spirit Ward", col: [1, 0.85, 0.6], from: "Spirit Ward (Healer · Ninja)", r: "140 px", dur: "8 s, or until spent", effect: "Takes the damage allies inside would take, up to 150; when it breaks or ends, heals allies inside for 25% of what it took" },
   { name: "Siphon Field", col: [0.85, 0.15, 0.3], from: "Siphon Field (Healer · Hemomancer)", r: "140 px", dur: "6 s", effect: "Enemies inside lose 10 HP/s; allies inside heal 10 HP/s" },
   { name: "Blood Pool", col: [0.6, 0.05, 0.12], from: "Clot Bolt (Tank · Hemomancer), where it hits", r: "70 px", dur: "3 s", effect: "Enemies inside are slowed by 40%" },
   { name: "Hallowed Blade", col: [1, 0.95, 0.65], from: "Hallowed Blade (Healer · Knight ultimate)", r: "200 px", dur: "0.6 s warning", effect: "200 damage when the sword lands, then Consecrated Ground there" },
@@ -785,8 +785,8 @@ const A = [
   // Healer Elementalist
   { id: "Time Rewind", slot: "Space", role: "Healer", kit: "Elementalist", cd: 22, desc: "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
     stats: [["Looks back", "4 s (health recorded every 0.25 s)"], ["Affects", "Every player; never lowers health"], ["Undone downs", "Back up with 1.5 s invulnerability"]], demo: { type: "rewind", col: [0.75, 0.45, 1] } },
-  { id: "Arcane Ward", slot: "Space", role: "Healer", kit: "Elementalist", cd: 14, desc: "Shield you and your ally for 60 damage for 8 s.",
-    stats: [["Reach", "Players within 300 px"], ["Shield", "60 damage"], ["Lasts", "8 s"]], demo: { type: "burst", r: 300, col: [0.5, 0.7, 1], shield: true } },
+  { id: "Arcane Ward", slot: "Space", role: "Healer", kit: "Elementalist", cd: 14, desc: "Shield you and allies within 300 px for 60 damage for 8 s. When a shield breaks or runs out, half of what it soaked comes back as healing.",
+    stats: [["Reach", "Players within 300 px"], ["Shield", "60 damage"], ["Lasts", "8 s"], ["Payback", "When it breaks or runs out, it heals you for half of what it soaked (up to 30)"]], demo: { type: "burst", r: 300, col: [0.5, 0.7, 1], shield: true, repay: 60 } },
   { id: "Sanctify", slot: "Space", role: "Healer", kit: "Elementalist", cd: 12, desc: "Erase enemy bullets around you and heal everyone nearby for 25.",
     stats: [["Radius", "280 px"], ["Erases", "Every enemy bullet inside"], ["Heal", "25"]], demo: { type: "burst", r: 280, col: [1, 0.95, 0.6], erase: true } },
   // Healer Summoner
@@ -878,12 +878,12 @@ const A = [
     stats: [["Radius", "140 px"], ["Lasts", "5 s"], ["Enemy bullets inside", "Half speed"], ["Allies inside", "Take 30% less damage"]], demo: { type: "zone", r: 140, dur: 5, col: [0.62, 0.62, 0.7], at: "self" }, ups: ["Thick Smoke"] },
   { id: "Iron Body", slot: "Space", role: "Tank", kit: "Ninja", cd: 12, desc: "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50.",
     stats: [["Lasts", "2 s"], ["Damage taken", "−80%"], ["Then", "50 damage within 140 px"]], demo: { type: "buff", dur: 2, col: [0.75, 0.78, 0.85] }, ups: ["Tempered Steel"] },
-  { id: "Healing Mist", slot: "Space", role: "Healer", kit: "Ninja", cd: 15, desc: "A mist follows you for 6 s: allies inside heal 10 HP/s.",
-    stats: [["Radius", "130 px, around you"], ["Lasts", "6 s"], ["Heal", "10 HP/s"]], demo: { type: "zone", r: 130, dur: 6, col: [0.55, 1, 0.8], at: "self", heal: true }, ups: ["Morning Dew"] },
+  { id: "Healing Mist", slot: "Space", role: "Healer", kit: "Ninja", cd: 15, desc: "A mist follows you for 6 s, shedding drops of dew around you (two a second, 10 healing each, lasting 6 s) for you and your allies to pick up.",
+    stats: [["Radius", "130 px, around you"], ["Lasts", "6 s"], ["Dew", "A drop every 0.5 s somewhere in the mist: 10 healing to whoever picks it up (it drifts to hurt players within 110 px), lasting 6 s"]], demo: { type: "zone", r: 130, dur: 6, col: [0.55, 1, 0.8], at: "self", dew: true }, ups: ["Morning Dew"] },
   { id: "Substitution", slot: "Space", role: "Healer", kit: "Ninja", cd: 12, desc: "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself.",
     stats: [["Swap", "With the ally nearest your cursor (anywhere)"], ["Ally shield", "60 HP for 6 s"], ["Alone", "Up to 300 px toward your cursor; the shield is yours"]], demo: { type: "blink", dist: 220, col: [0.55, 1, 0.8] }, ups: ["Body Double"] },
-  { id: "Spirit Ward", slot: "Space", role: "Healer", kit: "Ninja", cd: 18, desc: "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3× faster.",
-    stats: [["Radius", "140 px at your cursor"], ["Lasts", "8 s"], ["Heal", "6 HP/s"], ["Revive", "3× faster inside"]], demo: { type: "zone", r: 140, dur: 8, col: [1, 0.85, 0.6], at: "cursor", heal: true }, ups: ["Sacred Seal"] },
+  { id: "Spirit Ward", slot: "Space", role: "Healer", kit: "Ninja", cd: 18, desc: "Plant a talisman at your cursor for 8 s: it takes the damage allies near it would take (up to 150). When it breaks or ends, a quarter of what it took heals allies near it.",
+    stats: [["Radius", "140 px at your cursor (on the demo, at your feet)"], ["Lasts", "8 s, or until it has taken 150"], ["Takes", "All damage to allies inside, before their shields (the bright rim is what's left)"], ["Then", "Heals allies inside for 25% of what it took"]], demo: { type: "zone", r: 140, dur: 8, col: [1, 0.85, 0.6], at: "self", ward: 150 }, ups: ["Sacred Seal"] },
   { id: "Shadow Step", slot: "Space", role: "DPS", kit: "Ninja", cd: 7, desc: "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.",
     stats: [["Reach", "An enemy up to 450 px away"], ["Strike", "80 damage"], ["No enemy in reach", "A 300 px step toward your cursor"]], demo: { type: "dash", dist: 240, dur: 0.08, col: [0.45, 0.4, 0.65], hit: 40 }, ups: ["Assassinate"] },
   { id: "Vanish", slot: "Space", role: "DPS", kit: "Ninja", cd: 16, desc: "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage.",
@@ -993,7 +993,7 @@ const U = [
   ["Rare", "Mirror Image", "Shadow Clone lasts 2 s longer and bursts 50% harder", 2, null, "Shadow Clone"],
   ["Rare", "Thick Smoke", "Smoke Bomb is 40% bigger and lasts 2 s longer", 2, null, "Smoke Bomb"],
   ["Rare", "Tempered Steel", "Iron Body lasts 1 s longer and its shockwave hits 50% harder", 2, null, "Iron Body"],
-  ["Rare", "Morning Dew", "Healing Mist heals 50% more and is 25% bigger", 2, null, "Healing Mist"],
+  ["Rare", "Morning Dew", "Healing Mist's dew heals 50% more, and the mist is 25% bigger", 2, null, "Healing Mist"],
   ["Rare", "Body Double", "Substitution's shield is 60% stronger and lasts 2 s longer", 2, null, "Substitution"],
   ["Rare", "Sacred Seal", "Spirit Ward is 40% bigger and lasts 3 s longer", 2, null, "Spirit Ward"],
   ["Rare", "Assassinate", "Shadow Step strikes 60% harder and reaches enemies 30% farther", 2, null, "Shadow Step"],
@@ -2053,12 +2053,13 @@ function castAbility() {
       hurtIn(p.x, p.y, d.r, d.freeze ? 40 : d.heal || d.shield ? 0 : (a.id === "Fortress" ? 0 : 60), e => { if (d.freeze) { e.frozen = d.freeze; } });
       if (d.heal) { D.ally.hp = d.heal > 100 ? 1 : Math.min(1, D.ally.hp + 0.5); D.floats.push({ x: D.ally.x, y: D.ally.y - 26, text: d.heal > 100 ? "FULL" : "+" + d.heal, col: [0.4, 1, 0.55], t: 0, dur: 1 }); }
       if (d.shield) { D.ally.shield = 8; D.pShield = 8; }
+      if (d.repay) D.arcane = { hp: d.repay, soaked: 0, t: 8 };
       if (d.after) D.buff = { kind: "buff", dur: d.after.dur, t: 0, col: d.col, taunt: d.after.taunt };
       if (a.id === "Fortress") for (const e of D.enemies) { const dx = e.x - p.x, dy = e.y - p.y, l = Math.hypot(dx, dy); if (l < 200 + e.r) { e.x += dx / l * 120; e.y += dy / l * 120; } }
       break;
     case "zone": {
       const at = d.at === "cursor" ? D.cursor : { x: p.x, y: p.y };
-      D.zone = { x: at.x, y: at.y, r: d.r, dur: d.dur, t: 0, col: d.col, block: d.block, burn: d.burn, heal: d.heal, snow: d.snow };
+      D.zone = { x: at.x, y: at.y, r: d.r, dur: d.dur, t: 0, col: d.col, block: d.block, burn: d.burn, heal: d.heal, snow: d.snow, ward: d.ward || 0, soaked: 0, dew: d.dew, dewT: 0 };
       ring(at.x, at.y, d.r, d.col, 0.4);
       if (d.sprites) for (let i = 0; i < d.sprites; i++) D.minions.push({ kind: "Sprite", d: MINIONS.Sprite, x: p.x, y: p.y, ang: TAU * i / d.sprites, life: d.dur, heal: true });
       break;
@@ -2122,7 +2123,14 @@ function stepDemo(dt) {
   // meteors
   if (D.meteors) { for (const m of D.meteors) { m.t -= dt; if (m.t <= 0 && !m.done) { m.done = true; D.fx.push({ kind: "boom", x: m.x, y: m.y, r: m.r, col: [1, 0.35, 0.15], t: 0, dur: 0.5 }); for (const e of D.enemies) if (Math.hypot(e.x - m.x, e.y - m.y) < m.r + e.r) { e.flash = 0.1; D.floats.push({ x: e.x, y: e.y - 24, text: "150", col: [1, 0.95, 0.6], t: 0, dur: 0.9 }); } } } D.meteors = D.meteors.filter(m => m.t > -0.1); }
   // zone
-  if (D.zone) { const z = D.zone; z.t += dt; if (z.t > z.dur) D.zone = null; else if (z.burn) for (const e of D.enemies) if (Math.hypot(e.x - z.x, e.y - z.y) < z.r + e.r) { e.burn = 0.3; if (z.snow) e.slow = 0.3; } }
+  const wardEnds = z => { if (z.soaked > 0) D.floats.push({ x: p.x, y: p.y - 30, text: "+" + Math.round(z.soaked * 0.25), col: [0.4, 1, 0.55], t: 0, dur: 1 }); D.fx.push({ kind: "ring", x: z.x, y: z.y, r: z.r, col: z.col, t: 0, dur: 0.45 }); };
+  if (D.zone && D.zone.dew && (D.zone.dewT -= dt) <= 0) { const z = D.zone, a2 = rnd(0, TAU), rr = Math.sqrt(rnd(0.05, 1)) * z.r * 0.8; z.dewT = 0.5; (D.dew = D.dew || []).push({ x: z.x + Math.cos(a2) * rr, y: z.y + Math.sin(a2) * rr, life: 6 }); }
+  if (D.dew) { for (const o of D.dew) { o.life -= dt; const dx = D.ally.x - o.x, dy = D.ally.y - o.y, l = Math.hypot(dx, dy);  // dew drifts to the hurt ally and heals it
+      if (l < 110 && D.ally.hp < 1) { o.x += dx / l * Math.min(l, 220 * dt); o.y += dy / l * Math.min(l, 220 * dt); }
+      if (l < 18 && D.ally.hp < 1) { o.life = 0; D.ally.hp = Math.min(1, D.ally.hp + 0.08); D.floats.push({ x: D.ally.x, y: D.ally.y - 26, text: "+10", col: [0.4, 1, 0.55], t: 0, dur: 0.8 }); } }
+    D.dew = D.dew.filter(o => o.life > 0); }
+  if (D.arcane) { const w = D.arcane; w.t -= dt; if (!w.paid && (w.t <= 0 || w.hp <= 0)) { w.paid = true; if (w.soaked) D.floats.push({ x: p.x, y: p.y - 30, text: "+" + Math.round(w.soaked * 0.5), col: [0.4, 1, 0.55], t: 0, dur: 1 }); D.fx.push({ kind: "ring", x: p.x, y: p.y, r: 40, col: [0.5, 0.7, 1], t: 0, dur: 0.4 }); } }
+  if (D.zone) { const z = D.zone; z.t += dt; if (z.t > z.dur) { if (z.ward) wardEnds(z); D.zone = null; } else if (z.burn) for (const e of D.enemies) if (Math.hypot(e.x - z.x, e.y - z.y) < z.r + e.r) { e.burn = 0.3; if (z.snow) e.slow = 0.3; } }
   // buff
   if (D.buff) { D.buff.t += dt; if (D.buff.t > D.buff.dur) D.buff = null; }
   if (D.buff && D.buff.shots) { D.shotCd = (D.shotCd || 0) - dt; if (D.shotCd <= 0) { D.shotCd = D.buff.storm ? 0.05 : 0.07; const tgt = D.enemies[Math.floor(D.t * 3) % D.enemies.length], a2 = Math.atan2(tgt.y - p.y, tgt.x - p.x);
@@ -2169,6 +2177,10 @@ function stepDemo(dt) {
     if (D.parry) { const rel = Math.atan2(b.y - p.y, b.x - p.x) - p.aim, wr = ((rel + Math.PI) % TAU + TAU) % TAU - Math.PI;
       if (Math.abs(wr) < 0.95 && Math.hypot(b.x - p.x, b.y - p.y) < 18 + 20 + 6) { const perfect = D.parry.t < 0.22; D.fx.push({ kind: "spark", x: b.x, y: b.y, r: 10, col: perfect ? [1, 0.9, 0.4] : [0.55, 0.85, 1], t: 0, dur: 0.25 });
         if (perfect) { b.vx = -b.vx * 1.4; b.vy = -b.vy * 1.4; b.mine = true; b.col = [1, 0.9, 0.4]; keep.push(b); } else D.parry.hp = Math.max(0, D.parry.hp - 12); continue; } }
+    if (Math.hypot(b.x - p.x, b.y - p.y) < 8 && D.zone && D.zone.ward && D.zone.soaked < D.zone.ward && Math.hypot(p.x - D.zone.x, p.y - D.zone.y) <= D.zone.r) {  // the Spirit Ward takes it
+      const z = D.zone; z.soaked = Math.min(z.ward, z.soaked + 10); D.fx.push({ kind: "spark", x: b.x, y: b.y, r: 10, col: z.col, t: 0, dur: 0.25 }); if (z.soaked >= z.ward) { wardEnds(z); D.zone = null; } continue; }
+    if (Math.hypot(b.x - p.x, b.y - p.y) < 8 && D.arcane && D.arcane.hp > 0) {  // the Arcane Ward soaks it, remembering
+      D.arcane.hp -= 10; D.arcane.soaked += 10; D.fx.push({ kind: "spark", x: b.x, y: b.y, r: 10, col: [0.5, 0.7, 1], t: 0, dur: 0.25 }); continue; }
     if (Math.hypot(b.x - p.x, b.y - p.y) < 8) { if (!(D.dashT > 0)) D.fx.push({ kind: "spark", x: p.x, y: p.y, r: 14, col: [1, 0.3, 0.4], t: 0, dur: 0.2 }); continue; }
     keep.push(b);
   }
@@ -2187,7 +2199,11 @@ function drawDemo() {
     ctx.strokeStyle = css(z.col, z.block ? 0.9 : 0.5); ctx.lineWidth = z.block ? 3 : 2; ctx.stroke();
     if (z.snow) for (let i = 0; i < 18; i++) { const aa = i * 2.4 + t, rr = (i * 37 + t * 40) % z.r; ctx.fillStyle = "rgba(220,240,255,0.7)"; ctx.fillRect(z.x + Math.cos(aa) * rr, z.y + Math.sin(aa) * rr, 3, 3); }
     if (z.heal) for (let i = 0; i < 6; i++) { const yy = z.y + z.r * 0.6 - ((t * 40 + i * 25) % (z.r * 1.2)); ctx.fillStyle = css(z.col, 0.6); ctx.fillText("+", z.x + Math.cos(i * 1.7) * z.r * 0.5, yy); }
+    if (z.ward) { ctx.strokeStyle = css(z.col, 0.9); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(z.x, z.y, z.r - 3, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - z.soaked / z.ward)); ctx.stroke(); }
     ctx.fillStyle = css(z.col, 0.9); ctx.fillRect(z.x - 40, z.y + z.r + 10, 80 * (1 - k), 4); }
+  for (const o of D.dew || []) { ctx.fillStyle = "rgba(153,255,230,0.2)"; ctx.beginPath(); ctx.arc(o.x, o.y, 9, 0, TAU); ctx.fill(); ctx.fillStyle = "rgba(153,255,230,1)"; ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(o.x, o.y - 9); ctx.lineTo(o.x - 3.6, o.y - 1.2); ctx.lineTo(o.x + 3.6, o.y - 1.2); ctx.fill(); }
+  if (D.arcane && D.arcane.hp > 0 && D.arcane.t > 0) { ctx.strokeStyle = "rgba(128,179,255,0.85)"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p.x, p.y, 26, -Math.PI / 2, -Math.PI / 2 + TAU * D.arcane.hp / 60); ctx.stroke(); }
   // meteor warnings
   if (D.meteors) for (const m of D.meteors) if (!m.done) { const k = 1 - m.t / m.dur; ctx.fillStyle = `rgba(255,90,40,${0.08 + 0.2 * k})`; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill(); ctx.strokeStyle = "rgba(255,120,60,0.8)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * k, 0, TAU); ctx.stroke(); }
   // link

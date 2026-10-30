@@ -37,11 +37,18 @@ namespace Arena
             amount *= 1f - ClotCut(p);      // Blood Lash's Clot
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.Fortress)
                 amount *= 0.25f;
-            if (p.ShieldHp > 0f)  // Arcane Ward soaks damage first
+            amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
+            if (p.ShieldHp > 0f)  // shields soak damage next (Arcane Ward, Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
                 p.ShieldHp -= soak;
                 amount -= soak;
+                if (p.WardOn)
+                {
+                    p.WardStore += soak;  // an Arcane Ward keeps it, to pay back
+                    if (p.ShieldHp <= 0f)
+                        ArcanePayback(p);
+                }
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);

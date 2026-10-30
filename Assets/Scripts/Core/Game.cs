@@ -119,6 +119,9 @@ namespace Arena
         public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
+        public bool WardOn;                    // host: the shield is an Arcane Ward's, storing what it soaks to pay back as healing
+        public float WardStore;                // host: what it has soaked
+        public int WardBy;                     // host: who cast it
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
         public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
@@ -257,11 +260,13 @@ namespace Arena
     {
         public int Id;
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
+        public bool Dew;        // a drop of Healing Mist's dew (Ninja.cs)
+        public float DewHeal;   // host: what that drop heals
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : Tiny ? 4f : 6f;
-        public float Heal => Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
+        public float Radius => Big ? 11f : Tiny || Dew ? 4f : 6f;
+        public float Heal => Dew ? DewHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
     /// An area on the ground: Haven, Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
@@ -282,6 +287,7 @@ namespace Arena
         public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Totem's charge)
         public float Charge;        // host: a thrown Totem's charge from seed hits near it
         public bool Congealed;      // host: a Blood Pool that has set (BloodMage.cs)
+        public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
 
@@ -1347,6 +1353,8 @@ namespace Arena
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
+                if (p.WardOn && p.ShieldHp <= 0f)
+                    ArcanePayback(p);  // the Arcane Ward ran out: what it soaked comes back as healing (Minions.cs)
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
                 p.LinkT = Math.Max(0f, p.LinkT - dt);
                 if (p.Downed)

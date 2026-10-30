@@ -400,6 +400,16 @@ namespace Arena
                 return;
             float pulse = 1f + 0.12f * Mathf.Sin(t * (o.Big ? 6f : o.Tiny ? 11f : 8f) + o.Id);
             float r = o.Radius * pulse;
+            if (o.Dew)  // Healing Mist's dew: a pale drop with a glint
+            {
+                var dew = new Rgba(0.6f, 1f, 0.9f);
+                Circle(o.Disp, r * 2.4f, dew.WithAlpha(0.14f), 16);
+                Circle(o.Disp, r, dew, 12);
+                SetColor(dew);
+                Tri(o.Disp + new V2(0f, -r * 2.2f), o.Disp + new V2(-r * 0.9f, -r * 0.3f), o.Disp + new V2(r * 0.9f, -r * 0.3f));
+                Circle(o.Disp + new V2(-r * 0.35f, -r * 0.35f), r * 0.3f, Rgba.White.WithAlpha(0.9f), 6);
+                return;
+            }
             var green = o.Tiny ? new Rgba(0.55f, 1f, 0.75f) : new Rgba(0.35f, 1f, 0.5f);  // tiny orbs are paler
             Circle(o.Disp, r * 2.2f, green.WithAlpha(o.Big ? 0.18f : 0.12f), 20);
             Circle(o.Disp, r, green, 16);
@@ -1293,8 +1303,10 @@ namespace Arena
                     for (int k = 0; k < 8; k++)
                         Circle(z.Pos + V2.FromAngle(t * 0.6f + MathX.Tau * k / 8f) * (z.Radius * 0.7f), 3f, c.WithAlpha(0.6f), 6);
                     break;
-                case ZoneKind.Ward:  // a paper talisman with a slowly turning seal ring
+                case ZoneKind.Ward:  // a paper talisman with a slowly turning seal ring; a bright rim for the damage it can still take
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 48);
+                    Arc(z.Pos, z.Radius - 2f, 3f, c.WithAlpha(0.15f), 48);
+                    Arc(z.Pos, z.Radius - 2f, 3f, c.WithAlpha(0.85f), 48, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.GuardFrac));
                     Arc(z.Pos, z.Radius * 0.55f, 2f, new Rgba(0.9f, 0.25f, 0.25f, 0.5f), 32, t * 0.5f, MathX.Tau * 0.8f);
                     SetColor(new Rgba(1f, 0.93f, 0.78f));
                     Quad(z.Pos + new V2(-7f, -12f), z.Pos + new V2(7f, -12f), z.Pos + new V2(7f, 12f), z.Pos + new V2(-7f, 12f));

@@ -936,7 +936,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ArcaneWard, Kit = Kit.Mage, Role = Role.Healer, Choice = 1, Instant = true,
-                Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and your ally for 60 damage for 8 s.",
+                Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and allies within 300 px for 60 damage for 8 s. When a shield breaks or runs out, half of what it soaked comes back as healing.",
                 Capstone = "The shield soaks 120 damage.",
                 Bot = b => b.Danger,
             },
@@ -1091,8 +1091,13 @@ namespace Arena
                     foreach (var q in Players.Values)
                         if (!q.Downed && q.Pos.DistanceTo(p.Pos) < 300f)
                         {
+                            if (q.WardOn)
+                                ArcanePayback(q);  // a fresh ward pays out the old one first
                             q.ShieldHp = (cap ? 120f : 60f) * pw;
                             q.ShieldT = 8f;
+                            q.WardOn = true;
+                            q.WardStore = 0f;
+                            q.WardBy = p.Id;
                             castHits++;
                         }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
@@ -1549,6 +1554,19 @@ namespace Arena
             return z;
         }
 
+        public const float ArcaneRepay = 0.5f;  // an Arcane Ward pays back this share of what it soaked, as healing, when it ends or breaks
+
+        void ArcanePayback(Player p)
+        {
+            p.WardOn = false;
+            float heal = p.WardStore * ArcaneRepay;
+            p.WardStore = 0f;
+            if (heal <= 0f || p.Downed)
+                return;
+            Heal(p, heal, PlayerOrNull(p.WardBy));
+            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 40f, 0.4f, Sfx.SpellHoly);
+        }
+
         void TickZones(float dt)
         {
             var expired = new List<Zone>();
@@ -1595,6 +1613,8 @@ namespace Arena
             }
             foreach (var z in expired)
             {
+                if (z.Kind == ZoneKind.Ward)
+                    WardEnds(z);  // Ninja.cs
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
                 {
                     foreach (var e in Enemies.Values)

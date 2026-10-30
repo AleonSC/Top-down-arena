@@ -1794,6 +1794,102 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    static void HealerWardsTest(float dt)
+    {
+        // Spirit Ward takes allies' damage and pays some back; Healing Mist sheds dew to pick up; Arcane Ward pays back what it soaked.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var cast = typeof(Game).GetMethod("HostAbility", flags);
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Ninja);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(400f, 450f), allyAt = new V2(500f, 450f);
+        Action<float> play = secs =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) e.Hp = 0f;
+                me.Pos = from;
+                ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action<AbilityId, V2> use = (ability, at) => { g.ShowcaseSetAbility(ability); me.Slots[0].Charges = 1; cast.Invoke(g, new object[] { 1, 0, at, true }); };
+        Action<Player, float> hurt = (q, amount) => damage.Invoke(g, new object[] { q, amount, "Test" });
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        play(0.3f);
+        g.Zones.Clear(); g.Orbs.Clear();
+
+        // Spirit Ward: it takes an ally's damage until it breaks, then a quarter of what it took heals them.
+        use(AbilityId.SpiritWard, allyAt);
+        var ward = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.Ward);
+        g.DevSetGod(2, false);
+        ally.Hp = ally.MaxHp * 0.5f;
+        float h0 = ally.Hp;
+        hurt(ally, 100f);
+        float firstTaken = h0 - ally.Hp;
+        play(0.05f);
+        float frac = client.Game.Zones.Values.Where(z => z.Kind == ZoneKind.Ward).Select(z => z.GuardFrac).FirstOrDefault();
+        float h1 = ally.Hp;
+        hurt(ally, 80f);
+        float secondTaken = h1 - ally.Hp;
+        float h2 = ally.Hp;
+        play(0.1f);
+        bool broke = !g.Zones.Values.Any(z => z.Kind == ZoneKind.Ward);
+        float repaid = ally.Hp - h2;
+        g.DevSetGod(2, true);
+        Console.WriteLine("  spirit ward: an ally took {0:0} of 100 (client saw {1:0.00} left), then {2:0} of 80; it broke {3} and healed them {4:0.0}",
+            firstTaken, frac, secondTaken, broke, repaid);
+        Check(ward != null && firstTaken == 0f && Math.Abs(frac - 1f / 3f) < 0.05f && Math.Abs(secondTaken - 30f) < 0.5f, "a Spirit Ward takes the damage its allies would take, up to 150");
+        Check(broke && Math.Abs(repaid - Game.WardSoakMax * Game.WardRepay) < 3f, "a broken Spirit Ward heals the allies near it for a quarter of what it took");
+        g.Zones.Clear();
+
+        // Healing Mist: it follows you shedding dew; a hurt ally picks the drops up.
+        ally.Hp = ally.MaxHp * 0.3f;
+        allyAt = from + new V2(30f, 0f);
+        float a0 = ally.Hp;
+        use(AbilityId.HealingMist, from);
+        play(1.6f);
+        int drops = g.Orbs.Values.Count(o => o.Dew) ;
+        bool clientDew = client.Game.Orbs.Values.Any(o => o.Dew);
+        float mistHealed = ally.Hp - a0;
+        Console.WriteLine("  healing mist: dew on the ground {0} (client saw some {1}); a hurt ally beside you healed {2:0.0} in 1.6 s", drops, clientDew, mistHealed);
+        Check(mistHealed >= Game.DewHeal * 2f - 0.5f, "Healing Mist sheds dew that heals the allies who pick it up");
+        Check(drops + (int)(mistHealed / Game.DewHeal) >= 3 && (clientDew || drops == 0), "Healing Mist's dew drops are synced");
+        g.Zones.Clear(); g.Orbs.Clear();
+        allyAt = new V2(500f, 450f);
+        play(0.2f);
+
+        // Arcane Ward: a shield that soaks damage, paying back half of it as healing when it breaks or runs out.
+        use(AbilityId.ArcaneWard, from);
+        float shieldMe = me.ShieldHp, shieldAlly = ally.ShieldHp;
+        g.DevSetGod(1, false); g.DevSetGod(2, false);
+        me.Hp = me.MaxHp * 0.5f; ally.Hp = ally.MaxHp * 0.5f;
+        float m0 = me.Hp, b0 = ally.Hp;
+        hurt(me, 40f);       // soaked; then it runs out
+        me.ShieldT = 0.01f;
+        hurt(ally, 70f);     // breaks it: 10 gets through, 30 comes back
+        float allyNet = ally.Hp - b0;
+        play(0.05f);
+        float meNet = me.Hp - m0;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Console.WriteLine("  arcane ward: shields {0:0} / {1:0}; you soaked 40 and got back {2:0.0} when it ran out; the ally took 70, net {3:+0.0;-0.0}",
+            shieldMe, shieldAlly, meNet, allyNet);
+        Check(shieldMe >= 59f && shieldAlly >= 59f, "Arcane Ward shields you and your ally");
+        Check(Math.Abs(meNet - 40f * Game.ArcaneRepay) < 2f && Math.Abs(allyNet - (-10f + 60f * Game.ArcaneRepay)) < 1f, "an Arcane Ward pays back half of what it soaked when it runs out or breaks");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

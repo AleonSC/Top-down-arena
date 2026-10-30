@@ -194,7 +194,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.HealingMist, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
-                Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s: allies inside heal 10 HP/s.",
+                Name = "Healing Mist", Cooldown = 15f, Desc = "A mist follows you for 6 s, shedding drops of dew around you (two a second, 10 healing each, lasting 6 s) for you and your allies to pick up.",
                 Capstone = "Lasts 9 s.",
                 Bot = b => b.AllyHurt,
             },
@@ -208,7 +208,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SpiritWard, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2,
-                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster.",
+                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: it takes the damage allies near it would take (up to 150). When it breaks or ends, a quarter of what it took heals allies near it.",
                 Capstone = "The ward follows you.",
                 Bot = b => b.AllyHurt,
             },
@@ -292,6 +292,7 @@ namespace Arena
                     var z = AddZone(ZoneKind.Mist, p, p.Pos, MistRadius * s.MistRadiusMult, cap ? 9f : MistTime);
                     z.Follow = true;
                     z.HealMult *= s.MistHealMult;
+                    z.Charge = 0f;  // the first drop falls at once
                     BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.45f, Sfx.SpellHoly);
                     return true;
                 }
@@ -304,6 +305,7 @@ namespace Arena
                     z.Follow = cap;
                     if (cap)
                         z.Pos = p.Pos;
+                    z.Soak = z.SoakMax = WardSoakMax * pw;
                     BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.45f, Sfx.SpellHoly);
                     return true;
                 }
@@ -930,8 +932,55 @@ namespace Arena
 
         /// Host, every tick: Vanish and Iron Body run down (Iron Body ends in a shockwave), Blossom Storm heals
         /// and clears bullets, and Shadow Clones about to end burst.
+        public const float DewEvery = 0.5f, DewHeal = 10f, DewLife = 6f;  // Healing Mist: a drop of dew this often, healing this much, lasting this long
+        public const float WardSoakMax = 150f, WardRepay = 0.25f;           // Spirit Ward: the damage it takes for allies; the share it heals back when it ends
+
+        /// Healing Mist sheds dew within it as it follows its caster.
+        void TickMists(float dt)
+        {
+            foreach (var z in Zones.Values)
+            {
+                if (z.Kind != ZoneKind.Mist || (z.Charge -= dt) > 0f)
+                    continue;
+                z.Charge = DewEvery;
+                V2 at = z.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * (z.Radius * (float)Math.Sqrt(Rand(0.05f, 1f)) * 0.8f);
+                var o = new Orb { Id = nextOrbId++, Dew = true, DewHeal = DewHeal * z.HealMult, Pos = ClampToArena(at, 12f), Life = DewLife };
+                o.Disp = o.Pos;
+                Orbs[o.Id] = o;
+            }
+        }
+
+        /// A Spirit Ward near this player takes the damage first, while it lasts; returns what's left.
+        float WardSoak(Player p, float amount)
+        {
+            foreach (var z in Zones.Values)
+            {
+                if (z.Kind != ZoneKind.Ward || z.Soak <= 0f || amount <= 0f || p.Pos.DistanceTo(z.Pos) > z.Radius)
+                    continue;
+                float take = Math.Min(z.Soak, amount);
+                z.Soak -= take;
+                z.Soaked += take;
+                amount -= take;
+                if (z.Soak <= 0f)
+                    z.T = Math.Min(z.T, 0.001f);  // spent: it breaks
+            }
+            return amount;
+        }
+
+        /// A Spirit Ward ends (broken or run out): a share of what it took heals the allies near it.
+        void WardEnds(Zone z)
+        {
+            float heal = z.Soaked * WardRepay * z.HealMult;
+            if (heal > 0f)
+                foreach (var q in Players.Values)
+                    if (!q.Downed && q.Pos.DistanceTo(z.Pos) <= z.Radius)
+                        Heal(q, heal, PlayerOrNull(z.Owner));
+            BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.45f, z.Soak <= 0f ? Sfx.Clang : Sfx.None);
+        }
+
         void TickNinjas(float dt)
         {
+            TickMists(dt);
             foreach (var p in Players.Values)  // Medicine Darts' doses heal; a Kunai mark fades
             {
                 if (p.DoseT > 0f)

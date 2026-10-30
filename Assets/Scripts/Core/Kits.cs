@@ -101,8 +101,8 @@ namespace Arena
             new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
             new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },
             new ZoneDef { Name = "Smoke Bomb", Color = new Rgba(0.62f, 0.62f, 0.7f) },  // slows enemy bullets inside (Ninja.cs)
-            new ZoneDef { Name = "Healing Mist", Color = new Rgba(0.55f, 1f, 0.8f), HealRate = 10f },
-            new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f), HealRate = 6f, ReviveBoost = 2f },
+            new ZoneDef { Name = "Healing Mist", Color = new Rgba(0.55f, 1f, 0.8f) },  // follows its caster, dropping dew that heals whoever picks it up (Ninja.cs)
+            new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f) },  // takes the damage allies near it would take, then pays some back as healing (Ninja.cs)
             new ZoneDef { Name = "Siphon Field", Color = new Rgba(0.85f, 0.15f, 0.3f), HealRate = 10f, Dps = 10f },
             new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Clot Bolt's
             new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },

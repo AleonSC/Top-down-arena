@@ -609,7 +609,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.Totem ? z.Charge / TotemCharge : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
+                z.GuardFrac = z.Kind == ZoneKind.Totem ? z.Charge / TotemCharge : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
             int kind = (int)z.Kind;
             s.Int(ref z.Id);
             s.Byte(ref kind);
@@ -628,19 +628,20 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0;
-            bool big = o != null && o.Big, tiny = o != null && o.Tiny;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny, dew = o != null && o.Dew;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
             s.Bool(ref big);
             s.Bool(ref tiny);
+            s.Bool(ref dew);
             s.Vec(ref pos);
             s.Float(ref life);
             if (s.Reading)
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Dew = dew, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;
