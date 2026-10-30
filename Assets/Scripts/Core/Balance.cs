@@ -23,6 +23,7 @@ namespace Arena
         public const int MaxWave = 50;
         const int LateBossWave = 20;
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
+        const float BossHpMult = 2.5f;       // every boss: fights last about 60-120 s (Boss Lab, Good bots, solo to trio)
         public const float EliteSize = 1.25f;
 
         // --- Level-up picks ------------------------------------------------------------------------------------------

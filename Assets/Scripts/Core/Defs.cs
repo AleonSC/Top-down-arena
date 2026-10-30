@@ -421,7 +421,12 @@ namespace Arena
             }
         }
 
-        public static float BulletDamage(byte kind)
+        /// Every enemy bullet hits this much harder than its listed damage below.
+        public const float EnemyBulletMult = 1.15f;
+
+        public static float BulletDamage(byte kind) => BaseBulletDamage(kind) * EnemyBulletMult;
+
+        static float BaseBulletDamage(byte kind)
         {
             switch (kind)
             {
