@@ -349,7 +349,7 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15, HoneyShot = 16,
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15, HoneyShot = 16, HollowShot = 17,
             // more player kinds (enemy kinds are 10-19)
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
             KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
@@ -421,6 +421,7 @@ namespace Arena
                 case BoulderShot: return 16f;
                 case FireballShot: return 15f;
                 case HoneyShot: return 9f;
+                case HollowShot: return 7f;
                 default: return 6f;
             }
         }
@@ -440,6 +441,7 @@ namespace Arena
                 case FastShot: return 15f;
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
+                case HollowShot: return 0f;  // the Duelist's decoys fire these: they pass through you
                 default: return 12f;
             }
         }
@@ -496,6 +498,7 @@ namespace Arena
                 case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
                 case FireballShot: return new Rgba(1f, 0.5f, 0.15f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
+                case HollowShot: return new Rgba(0.9f, 0.91f, 1f);  // a Duelist decoy's shot: a harmless ring
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
         }

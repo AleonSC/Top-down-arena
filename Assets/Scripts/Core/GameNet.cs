@@ -560,6 +560,8 @@ namespace Arena
                 SyncSing(s, e);    // Singularity.cs
             else if (kind == EnemyType.StormHerald)
                 SyncHerald(s, e);  // Herald.cs
+            else if (kind == EnemyType.Duelist)
+                SyncDuel(s, e);    // Duelist.cs
             else if (kind == EnemyType.Lich)
                 SyncLich(s, e);    // Lich.cs
             else if (kind == EnemyType.Colossus)

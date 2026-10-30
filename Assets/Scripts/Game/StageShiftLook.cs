@@ -14,7 +14,7 @@ namespace Arena
             public int Number;         // the stage it's changing to (2, 3)
             public string Name, Line;
             public Rgba Color, Second;
-            public bool Warden, Reapers;
+            public bool Warden, Reapers, Duelist;
         }
 
         static bool CurrentShift(Game g, out StageShift s)
@@ -79,6 +79,19 @@ namespace Arena
                         Line = gale ? "The wind gets up" : "The sky goes dark",
                         Color = gale ? new Rgba(0.5f, 0.7f, 1f) : new Rgba(0.66f, 0.55f, 1f),
                         Second = gale ? new Rgba(0.85f, 0.93f, 1f) : new Rgba(0.83f, 0.6f, 1f),
+                    };
+                    return true;
+                }
+                if (e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.TransT > 0f)
+                {
+                    bool mask = e.Duel.TransTo == DuelStage.Masquerade;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Duel.TransT / 2f), Number = (int)e.Duel.TransTo + 1, Duelist = true,
+                        Name = mask ? "MASQUERADE" : "TO THE DEATH",
+                        Line = mask ? "Which one is real?" : "It draws the dueling circle",
+                        Color = mask ? new Rgba(0.71f, 0.61f, 1f) : new Rgba(1f, 0.42f, 0.5f),
+                        Second = mask ? new Rgba(0.85f, 0.87f, 1f) : new Rgba(1f, 0.8f, 0.35f),
                     };
                     return true;
                 }
@@ -161,6 +174,18 @@ namespace Arena
                     float f = MathX.Fmod(t * 0.9f + k / 24f, 1f), a = k * 2.399f;
                     V2 at = c + V2.FromAngle(a) * (900f * (1f - Ease(f)) + 60f);
                     Line(at, at + V2.FromAngle(a) * 40f, 3f, (k % 2 == 0 ? new Rgba(1f, 0.35f, 0.6f) : new Rgba(0.45f, 0.55f, 1f)).WithAlpha(0.6f * Mathf.Sin(f * MathX.Pi)));
+                }
+            }
+            else if (s.Duelist)
+            {
+                // Rapiers flying in from the edges, point first, crossing as they come.
+                for (int k = 0; k < 16; k++)
+                {
+                    float f = MathX.Fmod(t * 0.8f + k / 16f, 1f), a = k * 2.399f + (k % 2 == 0 ? 0.3f : -0.3f) * f;
+                    V2 dir = V2.FromAngle(a), at = c + dir * (900f * (1f - Ease(f)) + 70f);
+                    float alpha = 0.6f * Mathf.Sin(f * MathX.Pi);
+                    Line(at, at + dir * 46f, 2.5f, s.Second.WithAlpha(alpha));
+                    Line(at + dir * 40f - dir.Orthogonal() * 7f, at + dir * 40f + dir.Orthogonal() * 7f, 3f, new Rgba(1f, 0.8f, 0.35f, alpha));
                 }
             }
             else

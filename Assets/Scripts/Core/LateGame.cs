@@ -68,7 +68,7 @@ namespace Arena
                 case EnemyType.Colossus:
                     return ColossusMove(e, dir, dist, ref speed);  // Colossus.cs
                 case EnemyType.Duelist:
-                    return KeepDistance(dir, dist, 280f) + dir.Orthogonal() * e.Strafe * 0.8f;
+                    return DuelistMove(e, tpos, dir, dist, ref speed);  // Duelist.cs
                 case EnemyType.Devourer:
                     return KeepDistance(dir, dist, 260f);
                 case EnemyType.Lich:
@@ -127,18 +127,7 @@ namespace Arena
                     ColossusSpecial(e, tpos, dt);  // Colossus.cs: its stages, turns, stomp rings, plates and lava
                     break;
                 case EnemyType.Duelist:
-                    if (e.PhaseT <= 0f)
-                    {
-                        // Leave decoys behind and reappear somewhere away from the players.
-                        e.PhaseT = 3.5f;
-                        SpawnDecoy(e.Pos);
-                        SpawnDecoy(new V2(Rand(100f, Width - 100f), Rand(100f, Height - 100f)));
-                        V2 from = e.Pos;
-                        e.Pos = FarFromPlayers(e.Radius);
-                        e.Disp = e.Pos;
-                        BroadcastFx(FxKind.Ring, from, e.Def.Color, 50f, 0.3f, Sfx.None);
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 60f, 0.3f, Sfx.BossShift);
-                    }
+                    DuelistSpecial(e, tpos, dt);  // Duelist.cs: its stages, turns, dashes and salutes
                     break;
                 case EnemyType.Decoy:
                     if (e.PhaseT <= 0f)
@@ -225,14 +214,7 @@ namespace Arena
                     ColossusFire(e, aim);  // Colossus.cs: its rock volley, between turns
                     break;
                 case EnemyType.Duelist:
-                    e.FireT = 0.9f;
-                    e.Ang += 1f;  // volley counter
-                    if ((int)e.Ang % 3 == 0)
-                        for (int i = 0; i < 11; i++)
-                            EnemyShot(e, aim + (i - 5) * 0.1f, 230f, Defs.SmallShot);
-                    else
-                        for (int k = 0; k < 3; k++)
-                            EnemyShot(e, aim, 260f + k * 40f, Defs.PierceShot);
+                    DuelistFire(e, aim);  // Duelist.cs
                     break;
                 case EnemyType.Lich:
                     LichFire(e, aim);  // Lich.cs

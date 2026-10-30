@@ -116,6 +116,7 @@ namespace Arena
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
             DrawHeraldFloor(t);  // the Storm Herald's rain, wind and dark sky (HeraldLook.cs)
+            DrawDuelFloor(t);    // the Duelist's circle, warning lines and hanging blades (DuelistLook.cs)
             DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
@@ -563,6 +564,11 @@ namespace Arena
             if (b.Kind == Defs.HoneyShot)
             {
                 DrawHoneyShot(b);  // QueenLook.cs
+                return;
+            }
+            if (b.Kind == Defs.HollowShot)
+            {
+                DrawHollowShot(b);  // DuelistLook.cs
                 return;
             }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
@@ -1540,6 +1546,9 @@ namespace Arena
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
                     break;
+                case EnemyType.Duelist:
+                    DrawStageShiftBoss(e, pos, r, t);  // changing stage (StageShiftLook.cs)
+                    break;
                 case EnemyType.Singularity:
                     DrawSingularityUnderlay(e, pos, r, col, t);  // SingularityLook.cs
                     break;
@@ -1714,6 +1723,9 @@ namespace Arena
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:
                     return t * (e.Phase == 1 ? -3f : 1f);
+                case EnemyType.Duelist:
+                case EnemyType.Decoy:
+                    return e.Facing;  // its point is its blade (DuelistLook.cs); the decoys copy it
                 case EnemyType.Medic:
                     return MathX.Pi / 4f;
                 default:
@@ -1752,6 +1764,10 @@ namespace Arena
         {
             switch (e.Type)
             {
+                case EnemyType.Duelist:
+                case EnemyType.Decoy:
+                    DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs
+                    break;
                 case EnemyType.Colossus:
                     DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
                     break;

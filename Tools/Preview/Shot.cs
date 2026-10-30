@@ -41,6 +41,14 @@ class Shot {
           else e.Herald.TurnT = 999f;
         }
       }
+      // DUEL=<health fraction>: hold the Duelist there; DUELTURN=<turn> skips its turns until that one
+      // (Volleys, Lunge, Guard, Blink, Masquerade, Crossing, LungeChain, Salute, Flurry, Flourish).
+      if (Environment.GetEnvironmentVariable("DUEL") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Duelist)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("DUEL"));
+        var want = Environment.GetEnvironmentVariable("DUELTURN");
+        if (want != null && e.Duel != null && e.Duel.TransT <= 0f && e.Duel.Turn.ToString() != want && e.Duel.Dash == DuelDash.None && e.Duel.SaluteT <= 0f && f < (int)(seconds * 60) - 90) e.Duel.TurnT = 999f;
+      }
       // COL=<health fraction>: hold the Colossus there (so the shot lands in that stage); COLTURN=<turn> skips its turns
       // until that one (Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last).
       if (Environment.GetEnvironmentVariable("COL") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Colossus)
