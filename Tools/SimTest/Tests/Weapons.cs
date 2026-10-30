@@ -407,6 +407,7 @@ static partial class Program
                 me.Weapon = w;
                 me.Stats.ExtraShots = extra;
                 me.BowShotDraw = 0f;
+                me.Orbiters = w.Id == WeaponId.ArcaneMissiles ? Game.OrbitCap(extra) : 0;  // a full orbit: the cast flies at your aim
                 me.SwingCount = 0;  // the Katana's every-4th lunge shouldn't depend on what was tested before it
                 me.Pos = new V2(120f, 450f);
                 me.Aim = 0f;
@@ -1179,6 +1180,87 @@ static partial class Program
         Console.WriteLine("  railgun: on the line {0:0.0}; stepped into the path just after {1:0.0}; long after {2:0.0}", onLine.MaxHp - onLine.Hp, lateHit, after.MaxHp - after.Hp);
         Check(lateHit > 5f && after.Hp == after.MaxHp && onLine.MaxHp - onLine.Hp > me.Weapon.Damage, "a Railgun shot leaves its path charged for a second, hurting what steps into it");
         host.Leave(""); client.Leave("");
+    }
+
+    static void MissilesRiotBladesTest(float dt)
+    {
+        // Arcane Missiles bank in orbit and launch at enemies that come near. Riot Repeater rounds suppress (slow the
+        // enemy's shooting). Twin Blades: 10 slashes in a row prime a dash-strike.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Mage);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        V2 from = new V2(300f, 450f);
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; };
+        Action<int, PlayerInput> step = (frames, input) => { for (int f = 0; f < frames; f++) { me.Pos = from; host.Poll(); g.FixedStep(dt, input); } };
+
+        // Arcane Missiles.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcaneMissiles);
+        g.Enemies.Clear(); g.Bullets.Clear(); me.Orbiters = 0;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        int banked = me.Orbiters, flying = g.Bullets.Values.Count(b => b.Owner == 1);
+        step(30, new PlayerInput());
+        bool held = me.Orbiters == banked;
+        var target = dummy(from + new V2(200f, 120f));
+        float t0 = target.Hp;
+        step(90, new PlayerInput());
+        Console.WriteLine("  arcane missiles: banked {0} (cap {1}) with {2} flying from the full cast; held with no enemy near {3}; once one came near: {4} left, it took {5:0.0}",
+            banked, Game.OrbitCap(0), flying, held, me.Orbiters, t0 - target.Hp);
+        Check(banked == Game.OrbitCap(0) && flying == 3 && held, "Arcane Missiles bank in orbit (a full orbit's cast flies at your aim instead) and wait while no enemy is near");
+        Check(me.Orbiters == 0 && target.Hp < t0, "orbiting missiles launch at an enemy that comes near");
+
+        // Riot Repeater.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.RiotRepeater);
+        g.Enemies.Clear(); g.Bullets.Clear();
+        var gunner = dummy(from + new V2(200f, 0f));
+        for (int k = 0; k < 10; k++)
+        {
+            var b = (Bullet)shoot.Invoke(g, new object[] { Defs.TankShot, from + new V2(150f, 0f), new V2(600f, 0f), 0f, 0.5f, 11f, 1, false, 0f });
+            b.Suppressive = true;
+            step(8, new PlayerInput());
+            gunner.Pos = from + new V2(200f, 0f);
+        }
+        float suppressed = gunner.Suppress;
+        bool shown = gunner.Suppressed;
+        step(150, new PlayerInput());
+        Console.WriteLine("  riot repeater: 10 rounds suppressed it to {0:0.00} (shown {1}); 2.5 s later {2:0.00}", suppressed, shown, gunner.Suppress);
+        Check(Math.Abs(suppressed - Game.SuppressMax) < 0.05f && shown && gunner.Suppress == 0f, "Riot Repeater rounds suppress an enemy up to 50% slower shooting, and it fades");
+
+        // Twin Blades.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TwinBlades);
+        me.Kit = Kit.Knight;
+        g.Enemies.Clear(); g.Bullets.Clear();
+        var close = dummy(from + new V2(50f, 0f));
+        var beyond = dummy(from + new V2(180f, 0f));
+        int combo = 0;
+        float x0 = 0f, beyondBefore = 0f, dashed = 0f;
+        for (int f = 0; f < 240; f++)
+        {
+            if (me.Combo < Game.ComboMax) { me.Pos = from; x0 = from.X; beyondBefore = beyond.Hp; }
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = me.Pos + new V2(400f, 0f) });
+            close.Pos = from + new V2(50f, 0f); beyond.Pos = from + new V2(180f, 0f);
+            combo = Math.Max(combo, me.Combo);
+            dashed = Math.Max(dashed, me.Pos.X - x0);
+            if (combo >= Game.ComboMax && me.Combo == 0)
+            {
+                for (int k = 0; k < 15; k++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = me.Pos + new V2(400f, 0f) }); dashed = Math.Max(dashed, me.Pos.X - x0); }  // the lunge carries you
+                break;
+            }
+        }
+        Console.WriteLine("  twin blades: combo reached {0}; the dash-strike lunged {1:0} px and hit the one beyond for {2:0.0}; combo now {3}",
+            combo, dashed, beyondBefore - beyond.Hp, me.Combo);
+        Check(combo == Game.ComboMax && dashed > Game.DashStrikeDist * 0.8f && beyondBefore - beyond.Hp >= me.Weapon.Damage * Game.DashStrikeMult * 0.99f && me.Combo == 0,
+            "10 Twin Blades hits in a row prime a dash-strike that lunges you through enemies for triple damage");
+        host.Leave("");
     }
 
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and

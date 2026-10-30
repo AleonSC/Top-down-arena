@@ -129,13 +129,16 @@ namespace Arena
                     break;
                 case WeaponId.ArcaneMissiles:
                 {
-                    // Fanned out and curving back in; with extra projectiles, more of them, and they home instead.
+                    // Conjured into orbit round you (TickOrbiters launches them at enemies that come near). With the
+                    // orbit full, the cast flies at your aim instead: fanned out, homing.
                     int n = 3 + extra;
-                    for (int i = 0; i < n; i++)
+                    if (p.Orbiters < OrbitCap(extra))
                     {
-                        float f = i * 2f / (n - 1) - 1f;
-                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + f * 0.4f) * w.Speed, extra > 0 ? 0f : -f * 1.2f, w.Life, w.Damage * dmg, p.Id, false, extra > 0 ? 4f : 0f);
+                        p.Orbiters = Math.Min(OrbitCap(extra), p.Orbiters + n);
+                        break;
                     }
+                    for (int i = 0; i < n; i++)
+                        SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + (i * 2f / (n - 1) - 1f) * 0.3f) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, MissileTurn);
                     break;
                 }
                 // Summoner (extra projectiles mostly add companions: see CompanionCount)
@@ -205,6 +208,40 @@ namespace Arena
                 BroadcastFx(FxKind.Bolt, cur.Pos, next.Pos, Defs.BulletColor(Defs.BoltShot), 0f, 0.15f, Sfx.None);
                 hit.Add(next.Id);
                 cur = next;
+            }
+        }
+
+        // --- Arcane Missiles: the stockpile -------------------------------------------------------
+
+        public const float OrbitRadius = 34f, LaunchRange = 300f, LaunchEvery = 0.08f, MissileTurn = 6f;  // launching outpaces casting, so more missiles a cast is more damage
+        public static int OrbitCap(int extra) => 6 + 2 * extra;
+
+        /// Where the i-th of n orbiting missiles is now (the same formula draws them).
+        public static V2 OrbiterPos(V2 center, int i, int n, float t) => center + V2.FromAngle(t * 3f + MathX.Tau * i / Math.Max(1, n)) * OrbitRadius;
+
+        /// Host, every tick: while an enemy is within LaunchRange, orbiting missiles launch at the nearest, one every LaunchEvery.
+        void TickOrbiters(float dt)
+        {
+            foreach (var p in Players.Values)
+            {
+                p.LaunchCd -= dt;
+                if (p.Orbiters <= 0)
+                    continue;
+                if (p.Downed || p.Weapon.Id != WeaponId.ArcaneMissiles)
+                {
+                    p.Orbiters = 0;
+                    continue;
+                }
+                if (p.LaunchCd > 0f || State == MatchState.GameOver)
+                    continue;
+                var e = NearestEnemy(p.Pos, LaunchRange);
+                if (e == null)
+                    continue;
+                V2 from = OrbiterPos(p.Pos, p.Orbiters - 1, p.Orbiters, AnimT);
+                var w = p.Weapon;
+                SpawnBullet(Defs.ArcaneShot, from, (e.Pos - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * p.Stats.DmgMult, p.Id, false, MissileTurn);
+                p.Orbiters--;
+                p.LaunchCd = LaunchEvery / (1f + 0.35f * ExtraShots(p));  // more missiles a cast: they launch faster too
             }
         }
 

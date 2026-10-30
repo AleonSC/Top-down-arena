@@ -293,6 +293,7 @@ namespace Arena
                 TickBleed(e, dt);  // Minions.cs
                 TickBoneCage(e, dt);  // Minions.cs
                 TickHemorrhage(e, dt);  // BloodMage.cs
+                e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;
@@ -333,7 +334,7 @@ namespace Arena
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
-                    e.FireT -= dt * mult;
+                    e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     if (e.FireT <= 0f)
                     {
                         if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())

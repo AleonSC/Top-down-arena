@@ -32,6 +32,16 @@ namespace Arena
             firingWeapon = false;
         }
 
+        /// Riot Repeater: each round that hits slows how fast the enemy shoots by SuppressPerHit, up to SuppressMax (half
+        /// that on bosses); it fades by SuppressFade a second. Shown from SuppressShown.
+        public const float SuppressPerHit = 0.08f, SuppressMax = 0.5f, SuppressFade = 0.25f, SuppressShown = 0.15f;
+
+        void SuppressHit(Bullet b, Enemy e)
+        {
+            if (b.Suppressive)
+                e.Suppress = Math.Min(e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax, e.Suppress + SuppressPerHit);
+        }
+
         /// Twin Rifle: the streams cross at your cursor's distance (from TwinCrossMin to their full range); a hit within
         /// TwinCrossZone of the crossing is crossfire, for TwinCrossMult.
         public const float TwinBarrelGap = 28f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
@@ -313,7 +323,7 @@ namespace Arena
                     break;
                 }
                 case WeaponId.RiotRepeater:
-                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Suppressive = true;
                     break;
                 case WeaponId.BearTotem:
                     FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)

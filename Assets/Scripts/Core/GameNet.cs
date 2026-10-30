@@ -404,6 +404,8 @@ namespace Arena
             s.Float(ref p.HookT);
             s.Float(ref p.SpinUp);
             s.Int(ref p.PreyId);
+            s.Byte(ref p.Orbiters);
+            s.Byte(ref p.Combo);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);
@@ -494,8 +496,9 @@ namespace Arena
                 e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
-                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0));
+                status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0));
                 hemorrhage = e.Hemorrhage;
+                e.Suppressed = e.Suppress >= SuppressShown;
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -532,6 +535,7 @@ namespace Arena
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
                 e.Caged = (status & 32) != 0;
+                e.Suppressed = (status & 64) != 0;
                 e.Hemorrhage = hemorrhage;
             }
             if (kind == EnemyType.Boss)

@@ -222,6 +222,18 @@ namespace Arena
             }
         }
 
+        /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike:
+        /// your next slash lunges you DashStrikeDist toward your aim, hitting everything you pass for DashStrikeMult.
+        public const int ComboMax = 10;
+        public const float ComboWindow = 1.2f, DashStrikeDist = 140f, DashStrikeSpeed = 1000f, DashStrikeMult = 3f, DashStrikeWidth = 30f;
+
+        void TickCombo(float dt)
+        {
+            foreach (var p in Players.Values)
+                if (p.Combo > 0 && ((p.ComboT -= dt) <= 0f || p.Downed || p.Weapon.Id != WeaponId.TwinBlades))
+                    p.Combo = 0;
+        }
+
         /// Called from Collide (after it clears its queues): land every swing that's due.
         void ResolveSwings()
         {
@@ -306,6 +318,11 @@ namespace Arena
             p.Run.ShotsFired++;
             if (hits.Count > 0)
                 p.Run.ShotsHit++;
+            if (hits.Count > 0 && p.Weapon.Id == WeaponId.TwinBlades && !s.Silent)  // a Twin Blades slash landed: the combo builds (its extra cuts don't count)
+            {
+                p.Combo = Math.Min(ComboMax, p.Combo + 1);
+                p.ComboT = ComboWindow;
+            }
             int healed = 0;
             foreach (var e in hits)
             {

@@ -61,6 +61,10 @@ namespace Arena
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
         public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
+        public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
+        public float LaunchCd;                        // host: until the next one launches
+        public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
+        public float ComboT;
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
         public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
         public float HookT;                           //   for this much longer (replicated)
@@ -187,6 +191,8 @@ namespace Arena
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
         public int Hemorrhage;               // Blood Bolts stuck in it (the fifth bursts; BloodMage.cs); replicated, for drawing
         public float HemorrhageT;            // host: until they fade
+        public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)
+        public bool Suppressed;              // replicated, for drawing
     }
 
     public class Bullet
@@ -201,6 +207,7 @@ namespace Arena
         public float Splash;      // host only: explosion radius on impact
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
+        public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -1240,6 +1247,8 @@ namespace Arena
             TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // Minions.cs: the Railgun's charged paths
             TickPack(dt);     // Minions.cs: the Wolf Whistle's prey
+            TickOrbiters(dt);  // Minions.cs: Arcane Missiles launching
+            TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

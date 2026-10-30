@@ -700,6 +700,7 @@ namespace Arena
             StunBoltHit(b, e);  // Stun.cs
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (Minions.cs)
+            SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts

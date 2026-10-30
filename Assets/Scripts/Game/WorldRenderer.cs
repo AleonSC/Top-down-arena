@@ -157,6 +157,28 @@ namespace Arena
                 DrawBloodAuras(p, t);  // BloodMageLook.cs
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
+            if (p.Weapon.Id == WeaponId.ArcaneMissiles && p.Orbiters > 0)  // Arcane Missiles waiting in orbit
+            {
+                var arc = Defs.BulletColor(Defs.ArcaneShot);
+                for (int i = 0; i < p.Orbiters; i++)
+                {
+                    V2 at = Game.OrbiterPos(p.Disp, i, p.Orbiters, game.AnimT), d = (at - p.Disp).Normalized();
+                    Line(at - d.Orthogonal() * 6f, at, 2f, arc.WithAlpha(0.35f));  // a short tail, trailing round
+                    Circle(at, 4f, arc.WithAlpha(0.3f), 8);
+                    Circle(at, 2.4f, arc, 8);
+                }
+            }
+            if (p.Weapon.Id == WeaponId.TwinBlades && p.Combo > 0)  // the Twin Blades' combo: pips round you, glowing once the dash-strike is ready
+            {
+                bool primed = p.Combo >= Game.ComboMax;
+                float r = p.Def.BodyR + 9f;
+                var c = primed ? new Rgba(1f, 0.85f, 0.35f, 0.7f + 0.3f * Mathf.Sin(t * 20f)) : new Rgba(0.95f, 0.95f, 1f, 0.8f);
+                for (int i = 0; i < p.Combo; i++)
+                {
+                    float a = -MathX.Pi / 2f + MathX.Tau * i / Game.ComboMax;
+                    Circle(p.Disp + V2.FromAngle(a) * r, primed ? 2.6f : 2f, c, 6);
+                }
+            }
             if (p.Weapon.Id == WeaponId.BurstSmg && p.SpinUp > 0.02f)  // the Burst SMG spinning up: a ring filling round you, white-hot when full
             {
                 float r = p.Def.BodyR + 9f;
@@ -1716,10 +1738,10 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, flame = burning, blood drop = bleeding, red crosshair = marked (takes extra damage).
+        /// slowed, flame = burning, blood drop = bleeding, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
-            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0);
+            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1766,6 +1788,15 @@ namespace Arena
                 Circle(c + new V2(0f, 2f), size * 0.55f, BleedColor, 10);  // a blood drop: round base...
                 Polygon(c + new V2(0f, -2f), size * 0.55f, 3, -MathX.Pi / 2f, BleedColor);  // ...pointed top
                 Circle(c + new V2(-1.5f, 2f), size * 0.15f, new Rgba(1f, 0.6f, 0.6f), 6);
+                x += step;
+            }
+            if (e.Suppressed)  // the Riot Repeater's suppression: a pause sign, its shooting slowed
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                var amber = new Rgba(1f, 0.75f, 0.25f);
+                Line(c + new V2(-2.5f, -size * 0.6f), c + new V2(-2.5f, size * 0.6f), 2.5f, amber);
+                Line(c + new V2(2.5f, -size * 0.6f), c + new V2(2.5f, size * 0.6f), 2.5f, amber);
                 x += step;
             }
             if (e.Marked)

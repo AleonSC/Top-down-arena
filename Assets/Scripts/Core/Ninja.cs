@@ -472,7 +472,7 @@ namespace Arena
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
         public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
-        const byte DashVault = 0, DashReel = 1;
+        const byte DashVault = 0, DashReel = 1, DashStrike = 2;
 
         bool Hooked(Player p)
         {
@@ -541,6 +541,14 @@ namespace Arena
                 vaultCd = VaultCd;
                 kind = DashVault;
             }
+            else if (me.Weapon.Id == WeaponId.TwinBlades && firing && me.Combo >= ComboMax && reelCd <= 0f)
+            {
+                DashDir = V2.FromAngle(me.Aim);
+                target = ClampToArena(me.Pos + DashDir * DashStrikeDist, me.Def.BodyR);
+                dashSpeed = DashStrikeSpeed;
+                reelCd = 0.4f;  // (the host resets the combo; don't fire twice before that arrives)
+                kind = DashStrike;
+            }
             else if (me.Weapon.Id == WeaponId.Kusarigama && firing && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
             {
                 Enemy e;
@@ -583,20 +591,23 @@ namespace Arena
             V2 from = p.Pos, path = target - from;
             float len = Math.Max(1f, path.Length);
             V2 dir = path / len;
-            if (kind == DashVault && w.Id == WeaponId.BoStaff)
+            if (kind == DashVault && w.Id == WeaponId.BoStaff || kind == DashStrike && w.Id == WeaponId.TwinBlades && p.Combo >= ComboMax)
             {
-                float time = len / VaultSpeed;
-                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // springing over them
+                bool strike = kind == DashStrike;
+                float time = len / (strike ? DashStrikeSpeed : VaultSpeed), mult = strike ? DashStrikeMult : VaultMult, width = strike ? DashStrikeWidth : VaultWidth;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // springing over them, or cutting through
                 foreach (var e in Enemies.Values)
                 {
                     if (e.SpawnT > 0f || e.Hp <= 0f)
                         continue;
                     float along = Math.Max(0f, Math.Min(len, Dot(e.Pos - from, dir)));
-                    if (e.Pos.DistanceTo(from + dir * along) > e.Radius + VaultWidth)
+                    if (e.Pos.DistanceTo(from + dir * along) > e.Radius + width)
                         continue;
-                    HurtEnemy(e, dmg * VaultMult, p.Id);
-                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * VaultMult, Kind = Defs.KnightSlash }, e);
+                    HurtEnemy(e, dmg * mult, p.Id);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * mult, Kind = Defs.KnightSlash }, e);
                 }
+                if (strike)
+                    p.Combo = 0;
                 BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingHeavy);
             }
             else if (kind == DashReel && w.Id == WeaponId.Kusarigama && Hooked(p))
