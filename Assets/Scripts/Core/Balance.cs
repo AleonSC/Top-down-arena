@@ -38,7 +38,7 @@ namespace Arena
                 case EnemyType.Colossus: return 3f;
                 case EnemyType.Duelist: return 2.8f;
                 case EnemyType.Lich: return 3.2f;
-                case EnemyType.StormHerald: return 4f;
+                case EnemyType.StormHerald: return 3.5f;
                 case EnemyType.Devourer: return 2f;
                 case EnemyType.Eclipse: return 2.7f;
                 default: return 2.5f;

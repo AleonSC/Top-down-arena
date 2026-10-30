@@ -69,6 +69,19 @@ namespace Arena
                     };
                     return true;
                 }
+                if (e.Type == EnemyType.StormHerald && e.Herald != null && e.Herald.TransT > 0f)
+                {
+                    bool gale = e.Herald.TransTo == HeraldStage.Gale;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Herald.TransT / 2f), Number = (int)e.Herald.TransTo + 1,
+                        Name = gale ? "GALE" : "SUPERCELL",
+                        Line = gale ? "The wind gets up" : "The sky goes dark",
+                        Color = gale ? new Rgba(0.5f, 0.7f, 1f) : new Rgba(0.66f, 0.55f, 1f),
+                        Second = gale ? new Rgba(0.85f, 0.93f, 1f) : new Rgba(0.83f, 0.6f, 1f),
+                    };
+                    return true;
+                }
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null && e.Queen.TransT > 0f)
                 {
                     var to = e.Queen.TransTo;

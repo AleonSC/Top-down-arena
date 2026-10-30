@@ -19,11 +19,12 @@ namespace Arena
                     return Reapers == null ? e.Phase * 10 : (int)Reapers.Stage * 100 + (Reapers.Trans != 0 ? 50 : (int)Reapers.Turn) + e.Phase * 1000;
                 case EnemyType.TwinB: return e.Phase * 1000;
                 case EnemyType.Singularity: return (e.Sing == null ? 0 : (int)e.Sing.Stage * 100) + e.Phase;
+                case EnemyType.StormHerald: return e.Herald == null ? 0 : (int)e.Herald.Stage * 100 + (e.Herald.TransT > 0f ? 50 : (int)e.Herald.Turn);
                 case EnemyType.Lich: return e.Phase * 10 + (int)(e.T / 5f) % 2;
                 case EnemyType.Devourer: return e.Phase;
                 case EnemyType.Eclipse:
                     return e.Phase * 10 + (e.Phase == 0 ? (int)(e.T / 4f) % 2 : MathX.Fmod(e.T2, 10f) < 3.5f ? 5 : 0);
-                default: return 0;  // Colossus, Duelist and Storm Herald cue from their events
+                default: return 0;  // Colossus and Duelist cue from their events
             }
         }
 
@@ -62,6 +63,13 @@ namespace Arena
                         case SingCage: return Sfx.BossChime;
                         case SingNormal: case SingSplit: return Sfx.BossShift;
                         default: return Sfx.None;  // the lasers firing after their warning, breathers, the stage change
+                    }
+                case EnemyType.StormHerald:  // a stage change chimes (StartHeraldTransition); a breather is quiet (Herald.cs)
+                    switch ((HeraldTurn)(sig % 100))
+                    {
+                        case HeraldTurn.Rods: case HeraldTurn.RodCage: case HeraldTurn.Downburst: case HeraldTurn.StormFront: case HeraldTurn.Eye: return Sfx.BossCharge;
+                        case HeraldTurn.Thunderclap: case HeraldTurn.Crosswind: case HeraldTurn.BallLightning: case HeraldTurn.StrikeRain: return Sfx.BossPulse;
+                        default: return Sfx.None;  // breathers, strikes (they cue themselves), the stage change
                     }
                 case EnemyType.Lich: return sig >= 10 && sig % 10 == 0 ? Sfx.BossChime : Sfx.BossShift;
                 case EnemyType.Devourer: return sig == 1 ? Sfx.BossCharge : Sfx.None;

@@ -358,10 +358,23 @@ const E = [
       { name: "Raise dead", pattern: "3 Grunts (up to 6 alive)", dmg: "—", every: 9, unscaled: true }],
     notes: ["Phylactery: 600 HP, spawns at least 250 px from players. A new one appears 15 s after you break it."] },
   { id: "StormHerald", label: "Storm Herald", cat: "Bosses", boss: true, hp: 6000, r: 40, speed: 55, sides: 9, col: rgb(0.55, 0.75, 1), xp: 320, score: 800, wave: 40,
-    appears: "Wave 40 (with wave ÷ 8 Snipers)", lead: "Calls lightning on where each of you stands (plus two random spots) every 2.2 s, and fires fast aimed volleys.",
+    appears: "Wave 40 (with wave ÷ 8 Snipers)", lead: "A storm in three stages, one attack at a time with breathers between. Gathering Storm (100–65%): it drifts along the top — Strikes, Lightning rods, Thunderclap. Gale (65–30%): the wind blows across the arena all stage, turning round each attack; it pushes you and bends every bullet — Crosswind volleys, Ball lightning, Downbursts. Supercell (30–10%): the sky goes dark and one player at a time carries the Conductor's charge — Storm front, Strike rain, Rod cage. Below 10% its last stand in the middle: four turning lightning spokes. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
+    locks: ["Cycle", "Gathering Storm", "Gale", "Supercell", "Last stand"],
     attacks: [
-      { name: "Volley", pattern: "3 aimed shots, 8.6° apart", kind: "pierce", n: 3, speed: 330, every: 1 },
-      { name: "Lightning", pattern: "70 px circle on each player + 2 random; strikes 1.1 s later", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2.2, unscaled: true }] },
+      { name: "Strikes (6 s)", pattern: "70 px circle on each player + 2 random every 1.8 s; strikes 1.1 s later", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 1.8, unscaled: true },
+      { name: "Lightning rods (7 s)", pattern: "4 rods fall around you (1 s); every 1.4 s an arc flickers 0.6 s between a pair, then fires for 0.25 s along the line (16 px)", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 1.4, unscaled: true },
+      { name: "Thunderclap (5 s)", pattern: "Rings of 36 with two gaps, each turned 25°", kind: "small", n: 32, speed: 160, every: 1.5 },
+      { name: "Volley (breathers)", pattern: "3 aimed shots, 8.6° apart", kind: "pierce", n: 3, speed: 330, every: 1 },
+      { name: "Wind (all Gale)", pattern: "Pushes players 70 px/s and drifts every bullet 60 px/s, one way, then the other each attack", dmg: "—", every: null },
+      { name: "Crosswind (6 s, Gale)", pattern: "5 piercing shots, 6.9° apart, aimed upwind of you so the wind carries them on", kind: "pierce", n: 5, speed: 260, every: 0.8 },
+      { name: "Ball lightning (7 s, Gale)", pattern: "Twice, 3 orbs (70 HP) drift at you at 80 px/s plus the wind; two within 200 px arc to each other; each pops into 8 shots after 6 s", dmg: "20 (arc, touch)", every: 3.5 },
+      { name: "Downburst (6 s, Gale)", pattern: "Every 2 s a row of six 110 px strikes at your height, 0.25 s apart in the wind's direction (0.8 s first)", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2, unscaled: true },
+      { name: "Conductor (all Supercell)", pattern: "Every 8 s one player is marked for 3 s (a 180 px ring). Then the charge jumps to every ally in the ring, hurting both ends, and 10 shots burst out from them", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 8, unscaled: true },
+      { name: "Storm front (7 s, Supercell)", pattern: "Every 0.5 s a column of 7 strikes (65 px) 110 px further across, with a two-strike gap that drifts", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.5, unscaled: true },
+      { name: "Strike rain (6 s, Supercell)", pattern: "Every 0.6 s, 3 random strikes and 1 on a player: 50 px, 0.9 s warning", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.6, unscaled: true },
+      { name: "Rod cage (7 s, Supercell)", pattern: "Twice, 6 rods ring you 240 px out; arcs join them every 1.2 s (0.5 s flicker), all but one open side", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 1.2, unscaled: true },
+      { name: "Eye of the storm (last stand)", pattern: "In the middle: four 700 px spokes turning 20°/s, a strike on each player every 2 s, its volley every 1 s", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave (spokes)", every: null }],
+    notes: ["Alone, the Conductor's charge has no one to jump to: it only grounds into its ring of shots.", "Built from the design mockup (Docs/Mockups/storm-herald-3-stage.html)."] },
   { id: "Devourer", label: "The Devourer", cat: "Bosses", boss: true, hp: 6500, r: 50, speed: 40, sides: 12, col: rgb(0.85, 0.28, 0.38), xp: 340, score: 900, wave: 45,
     appears: "Wave 45 (alone)", lead: "Sprays a twin stream for 7 s, then turns hungry for 3 s: your shots heal it instead of hurting it, and it fires orb rings.",
     locks: ["Cycle", "Stream", "Hungry"],
@@ -402,7 +415,7 @@ const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
-const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 3, Duelist: 2.8, Lich: 3.2, StormHerald: 4, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
+const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
@@ -448,7 +461,7 @@ function newWorld() {
 }
 
 function spawn(type, x, y, parent = 0, spawnT = 0.4) {
-  const d = BY[type] || RIOT[type] || (type === "SingShard" ? SHARD : null) || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
+  const d = BY[type] || RIOT[type] || (type === "SingShard" ? SHARD : null) || (type === "BallLightning" ? BALL : null) || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
   const elite = S.elite && d && !d.boss && !d.summon;
   const r = (d ? d.r : 10) * (elite ? 1.25 : 1);
   const e = { id: nextId++, type, d, x: clamp(x, r, W - r), y: clamp(y, r, H - r), r, t: 0, spawnT, fireT: rnd(0.3, 1.2), phaseT: rnd(1, 3),
@@ -587,6 +600,170 @@ function singTick(e, dt) {
   if (g.gone && g.turn !== "Slingshot" && (g.refill -= dt) <= 0) { g.refill = 0.5; g.gone &= g.gone - 1; }
   if (g.turn === "Split") for (const o of world.enemies) if (o.type === "SingShard" && !o.dead) { const a = g.tt * 0.7 + TAU * o.k / 3; o.x = e.x + Math.cos(a) * 220; o.y = e.y + Math.sin(a) * 220; }
   if (g.tt >= g.len) singNext(e);  // (in the game the last stand runs until it dies; here it loops back after 10 s)
+}
+
+// The Storm Herald (Herald.cs): three stages by its health, then a last stand. "Cycle" plays each stage once.
+// One test dummy here, so the Conductor always marks you and its charge grounds (no ally to jump to).
+const HD = {
+  turns: [["Strikes", "Rest", "Rods", "Rest", "Thunderclap", "Rest"], ["Crosswind", "Rest", "BallLightning", "Rest", "Downburst", "Rest"], ["StormFront", "Rest", "StrikeRain", "Rest", "RodCage", "Rest"], ["Eye"]],
+  times: [[6, 1, 7, 1, 5, 1.5], [6, 1, 7, 1, 6, 1.5], [7, 1, 6, 1, 7, 1.5], [10]],
+  stages: ["Gathering Storm", "Gale", "Supercell", "Last stand"],
+  cols: [rgb(0.56, 0.82, 1), rgb(0.5, 0.7, 1), rgb(0.66, 0.55, 1), rgb(0.83, 0.55, 1)],
+};
+const BALL = { id: "BallLightning", r: 15, speed: 0, sides: 8, col: rgb(0.75, 0.9, 1), melee: true, summon: true, contact: 20 };
+const strikeDmg = () => 25 + 0.3 * S.wave, arcDmg = () => 18 + 0.3 * S.wave;
+function segDist(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1, k = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / l2, 0, 1); return Math.hypot(p.x - a.x - dx * k, p.y - a.y - dy * k); }
+function heraldInit(e) {
+  e.h = { stage: S.sel === "StormHerald" && S.lock ? S.lock - 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0, wind: 0, spin: 0, act: 0, fired: 0,
+    rods: [], arcs: [], cond: 0, condWait: 3, front: { side: -1, step: 0, gap: 2 }, open: 0 };
+  heraldEnter(e, e.h.stage);
+}
+function heraldEnter(e, stage) {
+  const h = e.h;
+  h.stage = stage; h.step = -1; h.loop = 0; h.wind = stage === 1 ? -1 : 0; h.cond = 0; h.condWait = 3; h.rods = []; h.arcs = [];
+  if (stage === 3) for (const o of world.enemies) if (o.type === "BallLightning") o.dead = true;
+  heraldNext(e);
+}
+function heraldNext(e) {
+  const h = e.h, turns = HD.turns[h.stage];
+  if (++h.step >= turns.length) {
+    h.step = 0;
+    if (++h.loop >= 1 && !(S.sel === "StormHerald" && S.lock)) { heraldTransition(e, (h.stage + 1) % 4); return; }
+  }
+  h.turn = turns[h.step]; h.len = HD.times[h.stage][h.step]; h.tt = 0; h.act = 0.3; h.fired = 0; h.rods = []; h.arcs = []; e.fireT = 0.3;
+  if (h.stage === 1 && h.turn !== "Rest") h.wind = h.wind > 0 ? -1 : 1;  // the wind turns round with each attack
+  if (h.turn === "StormFront") { h.front.side = -h.front.side; h.front.step = 0; h.front.gap = 1 + Math.floor(rnd(0, 4)); }
+}
+function heraldTransition(e, to) {
+  const h = e.h;
+  h.trans = 2; h.to = to; h.turn = "Rest"; h.wind = 0; h.cond = 0; h.rods = []; h.arcs = [];
+  world.bullets = []; world.hazards = [];
+  for (const o of world.enemies) if (o.type === "BallLightning") o.dead = true;
+  addFx("ring", e.x, e.y, HD.cols[to], 900, 0.8);
+}
+function heraldTick(e, dt) {
+  const h = e.h, p = world.player;
+  if (h.trans > 0) {
+    h.trans -= dt;
+    if (h.trans <= 0) { h.trans = 0; heraldEnter(e, h.to); addFx("boom", e.x, e.y, rgb(1, 1, 1), e.r + 70, 0.4); addFx("ring", e.x, e.y, HD.cols[h.stage], 1100, 0.9); }
+    return;
+  }
+  h.tt += dt;
+  if (h.stage === 3) h.spin += 20 * Math.PI / 180 * dt;
+  // Rods land; arcs flicker, then fire along their line
+  for (const r of h.rods) if (r.fall > 0 && (r.fall -= dt) <= 0) addFx("ring", r.x, r.y, HD.cols[0], 40, 0.3);
+  for (const a of h.arcs) { const was = a.t >= a.warn; a.t += dt; if (!was && a.t >= a.warn && segDist(p, h.rods[a.a], h.rods[a.b]) < 8 + p.hitR) hurt(arcDmg()); }
+  h.arcs = h.arcs.filter(a => a.t < a.warn + 0.25);
+  // The Gale's wind pushes you and every bullet
+  if (h.wind) { p.x = clamp(p.x + h.wind * 70 * dt, 14, W - 14); for (const b of world.bullets) b.x += h.wind * 60 * dt; }
+  // The Conductor (the dummy is alone, so the charge grounds into its ring of shots)
+  if (h.stage === 2) {
+    if (h.cond > 0) {
+      if ((h.cond -= dt) <= 0) {
+        h.cond = 0; h.condWait = 5;
+        addFx("ring", p.x, p.y, HD.cols[2], 180, 0.4);
+        for (let i = 0; i < 10; i++) { const a = TAU * i / 10; world.bullets.push({ x: p.x + Math.cos(a) * 24, y: p.y + Math.sin(a) * 24, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, av: 0, r: B.small.r, col: B.small.col, dmg: B.small.dmg, life: 8, boss: true, kind: "small" }); }
+      }
+    } else if ((h.condWait -= dt) <= 0) { h.cond = 3; addFx("ring", p.x, p.y, HD.cols[2], 180, 0.5); }
+  }
+  // Ball lightning drifts at you on the wind, arcs to its neighbours, pops after 6 s
+  const balls = world.enemies.filter(o => o.type === "BallLightning" && !o.dead && o.spawnT <= 0);
+  for (const b of balls) {
+    const d = dist(b, p) || 1;
+    b.x = clamp(b.x + (p.x - b.x) / d * 80 * dt + h.wind * 40 * dt, 20, W - 20); b.y = clamp(b.y + (p.y - b.y) / d * 80 * dt, 20, H - 20);
+    if (b.t >= 6.3) { b.dead = true; for (let i = 0; i < 8; i++) shot(b, TAU * i / 8 + b.id, 140, "small", 0, true); addFx("ring", b.x, b.y, BALL.col, 50, 0.3); }
+  }
+  for (let i = 0; i < balls.length; i++) for (let j = i + 1; j < balls.length; j++)
+    if (!balls[i].dead && !balls[j].dead && dist(balls[i], balls[j]) < 200 && segDist(p, balls[i], balls[j]) < 6 + p.hitR) hurt(20);
+  // The last stand's spokes
+  if (h.stage === 3) for (let k = 0; k < 4; k++) { const a = h.spin + k * Math.PI / 2; if (segDist(p, e, { x: e.x + Math.cos(a) * 700, y: e.y + Math.sin(a) * 700 }) < 9 + p.hitR) { hurt(arcDmg()); break; } }
+  // Its turns
+  if ((h.act -= dt) <= 0) switch (h.turn) {
+    case "Strikes": h.act = 1.8; hazard(p.x, p.y, 70, 1.1, strikeDmg()); for (let i = 0; i < 2; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 70, 1.1, strikeDmg()); break;
+    case "Rods":
+      h.act = 1.4;
+      if (h.fired === 0) h.rods = [[-300, rnd(-60, 60)], [300, rnd(-60, 60)], [rnd(-60, 60), -230], [rnd(-60, 60), 230]].map(([dx, dy]) => ({ x: clamp(p.x + dx, 40, W - 40), y: clamp(p.y + dy, 40, H - 40), fall: 1 }));
+      else { const pair = h.fired % 3; if (pair !== 1) h.arcs.push({ a: 0, b: 1, t: 0, warn: 0.6 }); if (pair !== 0) h.arcs.push({ a: 2, b: 3, t: 0, warn: 0.6 }); }
+      h.fired++;
+      break;
+    case "BallLightning": h.act = 3.5; for (let k = 0; k < 3; k++) { const b = spawn("BallLightning", e.x + (k - 1) * 260, e.y + 70, e.id, 0.3); b.fireT = 99; addFx("ring", b.x, b.y, BALL.col, 40, 0.3); } break;
+    case "Downburst": { h.act = 2; const from = h.wind > 0 ? 0 : 5, y = clamp(p.y, 60, H - 60); for (let i = 0; i < 6; i++) hazard(150 + i * 260, y, 110, 0.8 + 0.25 * Math.abs(i - from), strikeDmg()); break; }
+    case "StormFront": {
+      h.act = 0.5; const f = h.front, x = f.side > 0 ? 70 + f.step * 110 : W - 70 - f.step * 110;
+      if (x > 30 && x < W - 30) { for (let i = 0; i < 7; i++) if (i !== f.gap && i !== f.gap + 1) hazard(x, 70 + i * 127, 65, 0.7, strikeDmg()); f.gap = clamp(f.gap + (Math.random() < 0.5 ? -1 : 1), 0, 5); }
+      f.step++; break;
+    }
+    case "StrikeRain": h.act = 0.6; for (let i = 0; i < 3; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 50, 0.9, strikeDmg()); hazard(p.x, p.y, 50, 0.9, strikeDmg()); break;
+    case "RodCage":
+      if (h.fired === 0 || (h.fired === 1 && h.tt >= 3.5)) {
+        h.fired++; h.act = 1; h.open = Math.floor(rnd(0, 6)); h.arcs = []; h.rods = [];
+        for (let k = 0; k < 6; k++) { const a = TAU * k / 6 + rnd(-0.1, 0.1); h.rods.push({ x: clamp(p.x + Math.cos(a) * 240, 40, W - 40), y: clamp(p.y + Math.sin(a) * 240, 40, H - 40), fall: 1 }); }
+      } else { h.act = 1.2; for (let k = 0; k < 6; k++) if (k !== h.open) h.arcs.push({ a: k, b: (k + 1) % 6, t: 0, warn: 0.5 }); }
+      break;
+    case "Eye": h.act = 2; hazard(p.x, p.y, 70, 1.1, strikeDmg()); break;
+    default: h.act = 0.1;
+  }
+  if (h.tt >= h.len) heraldNext(e);  // (in the game the last stand runs until it dies; here it loops back after 10 s)
+}
+function heraldFire(e, aim) {
+  const h = e.h;
+  if (!h || h.trans > 0) { e.fireT = 0.2; return; }
+  switch (h.turn) {
+    case "Rest": case "Eye": e.fireT = 1; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.15, 330, "pierce"); break;
+    case "Thunderclap": {
+      e.fireT = 1.5; e.ang += 25 * Math.PI / 180;
+      const n = 36, st = TAU / n;
+      for (let i = 0; i < n; i++) { const a = e.ang + st * (i + 0.5), off = ((a - e.ang) % Math.PI + Math.PI) % Math.PI; if (Math.min(off, Math.PI - off) < 2 * st) continue; shot(e, a, 160, "small"); }
+      addFx("ring", e.x, e.y, HD.cols[0], 160, 0.4);
+      break;
+    }
+    case "Crosswind": { e.fireT = 0.8; const p = world.player, fl = dist(e, p) / 260, a = Math.atan2(p.y - e.y, p.x - h.wind * 60 * fl - e.x); for (let i = -2; i <= 2; i++) shot(e, a + i * 0.12, 260, "pierce"); break; }
+    default: e.fireT = 0.2;  // its strikes, rods and the rest come from heraldTick
+  }
+}
+// Jagged lightning from a to b, a soft glow and a bright core; `seed` keeps its shape for a few frames.
+function bolt(a, b, width, col, seed, n0) {
+  const n = n0 || Math.max(4, Math.floor(dist(a, b) / 40)), sx = -(b.y - a.y), sy = b.x - a.x, l = Math.hypot(sx, sy) || 1;
+  cx.beginPath(); cx.moveTo(a.x, a.y);
+  for (let k = 1; k < n; k++) { const j = ((Math.abs(Math.sin(seed * 12.9898 + k * 78.233)) * 43758.5453) % 1 - 0.5) * 36; cx.lineTo(a.x + (b.x - a.x) * k / n + sx / l * j, a.y + (b.y - a.y) * k / n + sy / l * j); }
+  cx.lineTo(b.x, b.y);
+  cx.strokeStyle = css(col, 0.22); cx.lineWidth = width * 3.5; cx.stroke();
+  cx.strokeStyle = css(col, 1); cx.lineWidth = width; cx.stroke();
+}
+function drawHerald(e, t) {
+  const h = e.h, seed = Math.floor(t * 14), white = rgb(0.85, 0.93, 1);
+  if (h.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(e.x, e.y, 58, 0, TAU); cx.stroke(); return; }
+  if (h.stage === 2) { cx.fillStyle = "rgba(5,3,15,0.35)"; cx.fillRect(0, 0, W, H); }
+  if (h.stage >= 1) {  // rain, slanting with the wind
+    cx.strokeStyle = "rgba(150,180,240,0.16)"; cx.lineWidth = 1.5; cx.beginPath();
+    const slant = h.stage === 1 ? h.wind * 24 : 6;
+    for (let k = 0; k < 90; k++) { const x = (((k * 197 + t * (h.stage === 1 ? h.wind * 260 : 40)) % (W + 200)) + W + 200) % (W + 200) - 100, y = (k * 131 + t * 700) % (H + 100) - 50; cx.moveTo(x, y); cx.lineTo(x + slant, y + 26); }
+    cx.stroke();
+  }
+  if (h.wind) {  // wind streaks
+    cx.strokeStyle = "rgba(190,215,255,0.22)"; cx.lineWidth = 2; cx.beginPath();
+    for (let k = 0; k < 24; k++) { const y = 60 + (k * 37) % (H - 120), sp = 300 + (k % 5) * 60, x = (((k * 271 + t * sp * h.wind) % (W + 300)) + W + 300) % (W + 300) - 150; cx.moveTo(x, y); cx.lineTo(x + h.wind * (60 + (k % 3) * 30), y); }
+    cx.stroke();
+  }
+  for (const r of h.rods) {
+    if (r.fall > 0) { const k = 1 - r.fall; cx.fillStyle = `rgba(0,0,0,${0.3 + 0.3 * k})`; cx.beginPath(); cx.arc(r.x, r.y, 26 * (0.4 + 0.6 * k), 0, TAU); cx.fill(); cx.strokeStyle = css(HD.cols[0], 0.8); cx.lineWidth = 2; cx.beginPath(); cx.arc(r.x, r.y, 26, 0, TAU); cx.stroke(); continue; }
+    cx.fillStyle = "#4a5876"; cx.fillRect(r.x - 5, r.y - 30, 10, 34);
+    cx.fillStyle = css(HD.cols[0], 0.25); cx.beginPath(); cx.arc(r.x, r.y - 32, 14, 0, TAU); cx.fill();
+    cx.fillStyle = css(white); cx.beginPath(); cx.arc(r.x, r.y - 32, 7 + 1.5 * Math.sin(t * 12 + r.x), 0, TAU); cx.fill();
+  }
+  for (const a of h.arcs) {
+    const A = { x: h.rods[a.a].x, y: h.rods[a.a].y - 32 }, Bp = { x: h.rods[a.b].x, y: h.rods[a.b].y - 32 };
+    if (a.t < a.warn) { if (S.tele && Math.sin(t * 50) > -0.2) { cx.setLineDash([10, 12]); cx.strokeStyle = `rgba(160,210,255,${0.25 + 0.35 * a.t / a.warn})`; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(A.x, A.y); cx.lineTo(Bp.x, Bp.y); cx.stroke(); cx.setLineDash([]); } }
+    else bolt(A, Bp, 4, white, seed + a.a * 11 + a.b);
+  }
+  const balls = world.enemies.filter(o => o.type === "BallLightning" && !o.dead && o.spawnT <= 0);
+  for (let i = 0; i < balls.length; i++) for (let j = i + 1; j < balls.length; j++) if (dist(balls[i], balls[j]) < 200) bolt(balls[i], balls[j], 2.5, rgb(0.7, 0.86, 1), seed + i * 7 + j);
+  if (h.cond > 0) {
+    const p = world.player, k = 1 - h.cond / 3;
+    cx.fillStyle = css(HD.cols[2], 0.05 + 0.08 * k); cx.beginPath(); cx.arc(p.x, p.y, 180, 0, TAU); cx.fill();
+    cx.strokeStyle = css(HD.cols[2], 0.6 + 0.4 * Math.sin(t * (10 + 20 * k))); cx.lineWidth = 3; cx.setLineDash([12, 8]); cx.beginPath(); cx.arc(p.x, p.y, 180, t, t + TAU); cx.stroke(); cx.setLineDash([]);
+  }
+  if (h.stage === 3) for (let k = 0; k < 4; k++) { const a = h.spin + k * Math.PI / 2; bolt(e, { x: e.x + Math.cos(a) * 700, y: e.y + Math.sin(a) * 700 }, 4, HD.cols[3], seed + k * 13, 18); }
 }
 
 const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
@@ -852,7 +1029,11 @@ function move(e, dt) {
     case "Colossus": v = kd(200, 0); break;
     case "Duelist": v = kd(280, 0.8); break;
     case "Devourer": v = kd(260, 0); break;
-    case "Lich": case "StormHerald": {
+    case "StormHerald":
+      if (e.h && e.h.trans > 0) { v = [0, 0]; break; }  // holds still while it changes stage
+      if (e.h && e.h.stage === 3) { v = [(800 - e.x) / 60, (450 - e.y) / 60]; break; }  // the last stand, in the middle
+      // falls through: along the top, like the Lich
+    case "Lich": {
       const gx = 800 + Math.sin(e.t * 0.45) * 1600 * 0.3, gy = 150 + Math.sin(e.t * 0.7) * 50;
       v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
     }
@@ -1022,13 +1203,7 @@ function special(e, dt) {
       if (e.t2 <= 0) { e.t2 = 9; if (children(e, "Grunt").length < 6) for (let i = 0; i < 3; i++) spawn("Grunt", e.x + Math.cos(TAU * i / 3) * 80, e.y + Math.sin(TAU * i / 3) * 80, e.id, 0.6); }
       break;
     }
-    case "StormHerald":
-      if (e.phaseT <= 0) {
-        e.phaseT = 2.2; const dmg = 25 + 0.3 * S.wave;
-        hazard(p.x, p.y, 70, 1.1, dmg);
-        for (let i = 0; i < 2; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 70, 1.1, dmg);
-      }
-      break;
+    case "StormHerald": if (!e.h) heraldInit(e); heraldTick(e, dt); break;
     case "Devourer": {
       const was = e.phase;
       e.phase = S.sel === "Devourer" && S.lock > 0 ? S.lock - 1 : (e.t % 10 >= 7 ? 1 : 0);
@@ -1151,7 +1326,7 @@ function fire(e) {
       else { e.fireT = 2.2; e.ang += 0.2; for (let i = 0; i < 16; i++) shot(e, e.ang + TAU * i / 16, 90, "big"); }
       break;
     }
-    case "StormHerald": e.fireT = 1; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.15, 330, "pierce"); break;
+    case "StormHerald": heraldFire(e, aim); break;
     case "Devourer":
       if (e.phase === 1) { e.fireT = 1.2; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 90, "big"); }
       else { e.fireT = 0.08; e.ang += 0.17; shot(e, e.ang, 140, "small"); shot(e, e.ang + Math.PI, 140, "small"); }
@@ -1411,6 +1586,8 @@ function drawArena() {
   for (const w of world.enemies) if (w.type === "GravityWell" && w.spawnT <= 0) { cx.fillStyle = css(BY.GravityWell.col, 0.04); cx.beginPath(); cx.arc(w.x, w.y, 420, 0, TAU); cx.fill(); }
   const sg = world.enemies.find(o => o.type === "Singularity" && o.spawnT <= 0);
   if (sg && sg.g) drawSingularity(sg, t);
+  const hd = world.enemies.find(o => o.type === "StormHerald" && o.spawnT <= 0 && !o.dead);
+  if (hd && hd.h) drawHerald(hd, t);
   if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0, n = singLasers(sg); k < n; k++) {
     const a = sg.facing + TAU * k / n;
     if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, 40, 2000); } }
@@ -1624,6 +1801,15 @@ function statusLine() {
         Slingshot: "Slingshot", TwinLasers: e.phase === 4 ? "Twin lasers: warning" : "Twin lasers", Hawking: "Hawking burst", WhiteHole: g.tt < 1 ? "White hole: warning" : g.tt < 2.5 ? "White hole: PUSH" : "White hole", Split: "Split (core can't be hurt)", Last: "Spiral + rings" }[g.turn];
       return `${SG.stages[g.stage]}: ${what}   ${g.tt.toFixed(1)} / ${g.len.toFixed(0)} s` + (S.lock || e.cageDemo ? "   (locked)" : "");
     }
+    case "StormHerald": {
+      const h = e.h;
+      if (!h) return "";
+      if (h.trans > 0) return `Changing to ${HD.stages[h.to]} (can't be hurt)`;
+      const what = { Rest: "Breather (volley)", Strikes: "Strikes", Rods: "Lightning rods", Thunderclap: "Thunderclap", Crosswind: "Crosswind", BallLightning: "Ball lightning",
+        Downburst: "Downburst", StormFront: "Storm front", StrikeRain: "Strike rain", RodCage: "Rod cage", Eye: "Eye of the storm" }[h.turn];
+      const extra = h.wind ? `   wind ${h.wind > 0 ? "→" : "←"}` : h.cond > 0 ? `   CONDUCTOR ${h.cond.toFixed(1)}` : "";
+      return `${HD.stages[h.stage]}: ${what}   ${h.tt.toFixed(1)} / ${h.len.toFixed(0)} s${extra}` + (S.lock ? "   (locked)" : "");
+    }
     case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
     case "Charger": return ["Circling", "Winding up", "Dashing"][e.phase];
     case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
@@ -1738,7 +1924,7 @@ function renderBulletTable() {
     [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"], ["stun", "The Warden's searchlight (stuns you for 1 s)"]]
       .map(([k, who]) => `<tr><td><span class="dot" style="background:${css(B[k].col)}"></span>${B[k].name}</td><td class="n">${B[k].dmg}</td><td class="n">${B[k].r} px</td><td>${who}</td></tr>`).join("") +
     `<tr><td><span class="dot" style="background:${css(BY.HiveBomber.col)}"></span>Hive Bomber blast</td><td class="n">22</td><td class="n">60 px</td><td>Hive Queen</td></tr>` +
-    `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">70–75 px</td><td>Storm Herald, the Eclipse</td></tr></tbody>`;
+    `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">50–110 px</td><td>Storm Herald (strikes, downbursts, the storm front), the Eclipse</td></tr></tbody>`;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1797,7 +1983,7 @@ $("lock").addEventListener("click", ev => {
   const b = ev.target.closest("button"); if (!b) return;
   S.lock = Number(b.dataset.v);
   for (const x of $("lock").children) x.classList.toggle("on", x === b);
-  if (S.sel === "Eclipse" || S.sel === "Singularity" || S.sel === "Warden") restart();
+  if (S.sel === "Eclipse" || S.sel === "Singularity" || S.sel === "Warden" || S.sel === "StormHerald") restart();
 });
 
 function restart() { newWorld(); }

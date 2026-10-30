@@ -70,8 +70,11 @@ namespace Arena
                     return KeepDistance(dir, dist, 280f) + dir.Orthogonal() * e.Strafe * 0.8f;
                 case EnemyType.Devourer:
                     return KeepDistance(dir, dist, 260f);
-                case EnemyType.Lich:
                 case EnemyType.StormHerald:
+                    if (HeraldImmune(e))
+                        return V2.Zero;  // holds still while it changes stage
+                    return (HeraldGoal(e) - e.Pos) / 60f;  // along the top, or the middle for the last stand (Herald.cs)
+                case EnemyType.Lich:
                 {
                     var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
                     return (goal - e.Pos) / 60f;
@@ -182,17 +185,7 @@ namespace Arena
                     break;
                 }
                 case EnemyType.StormHerald:
-                    if (e.PhaseT <= 0f)
-                    {
-                        // Strike where each player stands, plus a couple of random spots.
-                        e.PhaseT = 2.2f;
-                        BroadcastSound(Sfx.BossCharge);
-                        foreach (var p in Players.Values)
-                            if (!p.Downed)
-                                AddHazard(p.Pos, 70f, 1.1f);
-                        for (int i = 0; i < 2; i++)
-                            AddHazard(new V2(Rand(80f, Width - 80f), Rand(80f, Height - 80f)), 70f, 1.1f);
-                    }
+                    HeraldSpecial(e, tpos, dt);  // its stages and turns (Herald.cs)
                     break;
                 case EnemyType.Devourer:
                 {
@@ -292,9 +285,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.StormHerald:
-                    e.FireT = 1f;
-                    for (int i = -1; i <= 1; i++)
-                        EnemyShot(e, aim + i * 0.15f, 330f, Defs.PierceShot);
+                    HeraldFire(e, tpos, aim);  // Herald.cs
                     break;
                 case EnemyType.Devourer:
                     if (e.Phase == 1)

@@ -534,6 +534,149 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // The Storm Herald's three stages and last stand (Herald.cs), built from Docs/Mockups/storm-herald-3-stage.html.
+    static void HeraldTest(float dt)
+    {
+        var s = StartBuffed(dt, 40, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        var c = s[1].Game;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+        // Both players held in place on both games (each game moves its own player).
+        Action<V2, V2> Place = (a, b) => { g.Players[1].Pos = c.Players[1].Pos = a; g.Players[2].Pos = c.Players[2].Pos = b; };
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.StormHerald) != null && !g.IsSpawning(Find(s[0], EnemyType.StormHerald)));
+        var h = Find(s[0], EnemyType.StormHerald);
+        foreach (var e in g.Enemies.Values) if (e != h) e.Hp = 0f;  // just the boss
+        var me = g.Players[1];
+
+        // Gathering Storm: Strikes, Lightning rods, Thunderclap, breathers between; the volley only in breathers.
+        var turns = new List<HeraldTurn>();
+        int strikes = 0, rods = 0, clientRods = 0, clientArcs = 0, clap = 0;
+        bool volleyOutside = false;
+        Run(s, dt, 22f, null, () =>
+        {
+            safe(); Place(new V2(700f, 600f), new V2(1000f, 650f));
+            var hs = h.Herald;
+            if (hs == null) return;
+            if (turns.Count == 0 || turns[turns.Count - 1] != hs.Turn) turns.Add(hs.Turn);
+            if (hs.Turn == HeraldTurn.Strikes) strikes = Math.Max(strikes, g.Hazards.Count);
+            if (hs.Turn == HeraldTurn.Rods) rods = Math.Max(rods, hs.Rods.Count);
+            var ch = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.StormHerald)?.Herald;
+            if (ch != null) { clientRods = Math.Max(clientRods, ch.Rods.Count); clientArcs = Math.Max(clientArcs, ch.Arcs.Count); }
+            if (hs.Turn == HeraldTurn.Thunderclap) clap = Math.Max(clap, g.Bullets.Values.Count(b => b.Source == EnemyType.StormHerald && b.Kind == Defs.SmallShot));
+            if (hs.Turn != HeraldTurn.Rest && hs.Turn != HeraldTurn.Crosswind && g.Bullets.Values.Any(b => b.Source == EnemyType.StormHerald && b.Kind == Defs.PierceShot && b.Life > 7.9f)) volleyOutside = true;
+        });
+        string order = string.Join(" > ", turns);
+        Console.WriteLine("  gathering storm: {0}; strikes up {1}, rods {2} (client {3}, arcs {4}), thunderclap shots {5}", order, strikes, rods, clientRods, clientArcs, clap);
+        Check(h.Herald.Stage == HeraldStage.Gathering && order.Contains("Strikes > Rest > Rods > Rest > Thunderclap > Rest"), "Gathering Storm: Strikes, Lightning rods, Thunderclap, with breathers between");
+        Check(strikes >= 4 && rods == 4 && clientRods == 4 && clientArcs >= 1, "strikes on both players and two random spots; four rods with arcs between them (seen on the client)");
+        Check(clap >= 28 && !volleyOutside, "thunderclap rings with gaps; the piercing volley only in breathers");
+
+        // A rod arc hurts whoever stands on its line as it fires.
+        Run(s, dt, 25f, () => h.Herald.Turn == HeraldTurn.Rods && h.Herald.Rods.Count == 4 && h.Herald.Rods.All(r => r.Fall <= 0f), () => { safe(); Place(new V2(700f, 600f), new V2(1000f, 650f)); });
+        V2 mid = (h.Herald.Rods[0].Pos + h.Herald.Rods[1].Pos) / 2f;
+        float taken = me.Run.DamageTaken;
+        Run(s, dt, 5f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            Place(mid, new V2(1500f, 100f));
+            g.Hazards.Clear(); foreach (var b in g.Bullets.Values) b.Life = 0f;
+        });
+        Console.WriteLine("  standing between two rods: hurt {0}", me.Run.DamageTaken > taken);
+        Check(me.Run.DamageTaken > taken, "a rod arc hurts a player on its line");
+
+        // 65%: it changes stage (can't be hurt, the screen clears), then the Gale with the wind.
+        h.Hp = h.MaxHp * 0.6f;
+        Run(s, dt, 0.3f, null, safe);
+        float hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
+        bool immune = h.Herald.TransT > 0f && h.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.StormHerald) && g.Hazards.Count == 0;
+        Run(s, dt, 3f, () => h.Herald.Stage == HeraldStage.Gale && h.Herald.TransT <= 0f, safe);
+        Run(s, dt, 0.5f, null, safe);
+        var chs = c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.StormHerald)?.Herald;
+        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), wind {3} (client {4})", immune, h.Herald.Stage, chs?.Stage, h.Herald.Wind, chs?.Wind);
+        Check(immune && h.Herald.Stage == HeraldStage.Gale && chs?.Stage == HeraldStage.Gale, "at 65% it changes stage (can't be hurt, screen cleared), then the Gale (seen on the client)");
+        Check(h.Herald.Wind != 0 && chs?.Wind == h.Herald.Wind, "the wind blows, and the client knows which way");
+
+        // The wind pushes each player on their own game, and bends bullets.
+        V2 before = c.Players[2].Pos;
+        float windDir = h.Herald.Wind;
+        for (int f = 0; f < 30; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(700f, 600f); Step(s[0], dt); Step(s[1], dt); Thread.Sleep(1); }
+        float pushed = (c.Players[2].Pos.X - before.X) * windDir;
+        var bl = g.Bullets.Values.FirstOrDefault(b => b.Source == EnemyType.StormHerald);
+        Console.WriteLine("  wind: the client's player drifted {0:0} px downwind in 0.5 s", pushed);
+        Check(pushed > 20f && pushed < 50f, "the wind pushes players about 70 px/s");
+
+        // The Gale's turns: Crosswind, Ball lightning (orbs the client sees, which pop after 6 s), Downburst rows.
+        int volley5 = 0, balls = 0, clientBalls = 0, row = 0;
+        bool popped = false;
+        var turns2 = new List<HeraldTurn>();
+        Run(s, dt, 23f, null, () =>
+        {
+            safe(); Place(new V2(700f, 600f), new V2(1000f, 650f));
+            var hs = h.Herald;
+            if (turns2.Count == 0 || turns2[turns2.Count - 1] != hs.Turn) turns2.Add(hs.Turn);
+            if (hs.Turn == HeraldTurn.Crosswind) volley5 = Math.Max(volley5, g.Bullets.Values.Count(b => b.Source == EnemyType.StormHerald && b.Kind == Defs.PierceShot && b.Life > 7.95f));
+            int nb = g.Enemies.Values.Count(e => e.Type == EnemyType.BallLightning);
+            if (balls > 0 && nb < balls) popped = true;
+            balls = Math.Max(balls, nb);
+            clientBalls = Math.Max(clientBalls, c.Enemies.Values.Count(e => e.Type == EnemyType.BallLightning));
+            if (hs.Turn == HeraldTurn.Downburst) row = Math.Max(row, g.Hazards.Values.GroupBy(z => (int)z.Pos.Y).Select(z => z.Count()).DefaultIfEmpty(0).Max());
+        });
+        Console.WriteLine("  gale: {0}; volley {1}, ball lightning {2} (client {3}, popped {4}), downburst row {5}", string.Join(" > ", turns2), volley5, balls, clientBalls, popped, row);
+        Check(volley5 == 5, "Crosswind: 5-shot piercing volleys");
+        Check(balls >= 3 && clientBalls >= 3 && popped, "Ball lightning: orbs drift at you (seen on the client) and pop");
+        Check(row >= 5, "Downburst: a row of big strikes across the arena");
+
+        // 30%: the Supercell. The Conductor marks a player; when it runs out, an ally inside the ring is hit too.
+        h.Hp = h.MaxHp * 0.25f;
+        Run(s, dt, 3f, () => h.Herald.Stage == HeraldStage.Supercell && h.Herald.TransT <= 0f, safe);
+        Run(s, dt, 6f, () => h.Herald.CondId != 0, () => { safe(); Place(new V2(700f, 600f), new V2(780f, 600f)); });
+        int cond = h.Herald.CondId, clientCond = c.Enemies.Values.First(e => e.Type == EnemyType.StormHerald).Herald.CondId;
+        var other = g.Players.Values.First(p => p.Id != cond);
+        float otherTaken = other.Run.DamageTaken;
+        Run(s, dt, 3.5f, () => h.Herald.CondId == 0, () =>
+        {
+            Place(new V2(700f, 600f), new V2(780f, 600f));
+            g.Hazards.Clear(); foreach (var b in g.Bullets.Values) b.Life = 0f;
+            foreach (var p in g.Players.Values) p.InvulnT = p.Id == cond ? 1f : 0f;
+        });
+        Run(s, dt, 0.1f, null, safe);
+        Console.WriteLine("  conductor: player {0} marked (client sees {1}); the ally 80 px away took {2:0}", cond, clientCond, other.Run.DamageTaken - otherTaken);
+        Check(cond != 0 && clientCond == cond, "the Conductor marks one player (seen on the client)");
+        Check(other.Run.DamageTaken > otherTaken, "the charge jumps to an ally inside the ring");
+
+        // Storm front columns and the rod cage.
+        int column = 0, cage = 0;
+        bool openSide = false;
+        Run(s, dt, 24f, null, () =>
+        {
+            safe(); Place(new V2(700f, 500f), new V2(1100f, 500f));
+            var hs = h.Herald;
+            if (hs.Turn == HeraldTurn.StormFront) column = Math.Max(column, g.Hazards.Values.GroupBy(z => (int)z.Pos.X).Select(z => z.Count()).DefaultIfEmpty(0).Max());
+            if (hs.Turn == HeraldTurn.RodCage) { cage = Math.Max(cage, hs.Rods.Count); if (hs.Arcs.Count >= 5) openSide |= hs.Arcs.Count == 5; }
+        });
+        Console.WriteLine("  supercell: storm front column {0}, rod cage rods {1}, one open side {2}", column, cage, openSide);
+        Check(column == 5, "Storm front: columns of five strikes with a two-strike gap");
+        Check(cage == 6 && openSide, "Rod cage: six rods around you, arcs on all sides but one");
+
+        // Below 10%: the last stand in the middle; the spokes hurt.
+        h.Hp = h.MaxHp * 0.08f;
+        Run(s, dt, 6f, () => h.Herald.Stage == HeraldStage.LastStand && h.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f, safe);
+        bool middle = h.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f;
+        taken = me.Run.DamageTaken;
+        Run(s, dt, 3f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            V2 on = h.Pos + V2.FromAngle(h.Herald.Spin) * 250f;
+            Place(on, new V2(100f, 100f));
+            g.Hazards.Clear(); foreach (var b in g.Bullets.Values) b.Life = 0f;
+        });
+        Console.WriteLine("  last stand: {0}, in the middle {1}, a spoke hurt the player {2}", h.Herald.Stage, middle, me.Run.DamageTaken > taken);
+        Check(h.Herald.Stage == HeraldStage.LastStand && middle && me.Run.DamageTaken > taken, "below 10%: the last stand in the middle, its turning spokes hurt");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
     static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
 

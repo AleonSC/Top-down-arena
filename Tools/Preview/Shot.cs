@@ -1,6 +1,7 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
 class Shot {
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
+  static bool heraldOn;
   static void Main(string[] args) {
     int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
@@ -26,6 +27,19 @@ class Shot {
         e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("SING"));
         var want = Environment.GetEnvironmentVariable("SINGTURN");
         if (want != null && e.Sing != null && e.Sing.TransT <= 0f && e.Sing.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Sing.TurnT = 999f;
+      }
+      // HERALD=<health fraction>: hold the Storm Herald there; HERALDTURN=<turn> starts that turn HERALDT seconds (default
+      // 2.5) before the shot (Strikes, Rods, Thunderclap, Crosswind, BallLightning, Downburst, StormFront, StrikeRain, RodCage, Eye).
+      if (Environment.GetEnvironmentVariable("HERALD") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.StormHerald)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("HERALD"));
+        var want = Environment.GetEnvironmentVariable("HERALDTURN");
+        int from = (int)(seconds * 60) - (int)(60 * float.Parse(Environment.GetEnvironmentVariable("HERALDT") ?? "2.5"));
+        if (want != null && e.Herald != null && e.Herald.TransT <= 0f && !heraldOn && f >= from - 10)
+        {
+          if (e.Herald.Turn.ToString() == want && f >= from) heraldOn = true;
+          else e.Herald.TurnT = 999f;
+        }
       }
       // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
       if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));

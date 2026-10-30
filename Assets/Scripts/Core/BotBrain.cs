@@ -117,7 +117,7 @@ namespace Arena
                 bool cageWell = e.Type == EnemyType.CageWell;
                 if (caged && !cageWell)
                     continue;
-                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard)
+                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard || e.Type == EnemyType.BallLightning)
                     && (key == null || e.Pos.DistanceSq(me.Pos) < key.Pos.DistanceSq(me.Pos)))
                     key = e;
             }
@@ -304,6 +304,21 @@ namespace Arena
                     else twinB = e;
                 }
 
+            // The Storm Herald: its rods' arcs, ball lightning, the spokes, the Conductor and the wind (Herald.cs).
+            Enemy herald = null;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.StormHerald && e.Herald != null && !IsSpawning(e) && e.Herald.TransT <= 0f)
+                    herald = e;
+            var hs = herald?.Herald;
+            botBalls.Clear();
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.BallLightning && !IsSpawning(e))
+                    botBalls.Add(e);
+            V2 windDrift = HeraldWind(WindPush);
+            Player conductor = null;
+            if (hs != null && hs.CondId != 0)
+                Players.TryGetValue(hs.CondId, out conductor);
+
             V2 best = V2.Zero;
             float bestCost = float.MaxValue, bestDanger = 0f;
             for (int c = 0; c < 9; c++)
@@ -317,6 +332,7 @@ namespace Arena
                     p = me.Pos + dir * speed * t;
                     if (PullStrength != 0f)
                         p += (PullCenter - me.Pos).Normalized() * PullStrength * t;
+                    p += windDrift * t;
                     float w = 1.6f - t / T;  // sooner hits matter more
                     foreach (var b in botThreats)
                     {
@@ -367,6 +383,36 @@ namespace Arena
                             disk.Sing.DiskT -= t;
                         }
                     }
+                    if (hs != null)
+                    {
+                        float arcReach = RodArcWidth / 2f + hitR + sk.Margin + 6f;
+                        foreach (var a in hs.Arcs)
+                            if (a.A < hs.Rods.Count && a.B < hs.Rods.Count && a.T + t + 0.25f >= a.Warn && a.T + t <= a.Warn + ArcLive
+                                && SegmentDistance(p, hs.Rods[a.A].Pos, hs.Rods[a.B].Pos) < arcReach)
+                                d += w * 3f;
+                        if (hs.Stage == HeraldStage.LastStand)
+                            for (int sp = 0; sp < 4; sp++)
+                                if (SegmentDistance(p, herald.Pos, herald.Pos + V2.FromAngle(hs.Spin + SpokeSpin * t + sp * MathX.Pi / 2f) * SpokeLength) < SpokeWidth / 2f + hitR + sk.Margin + 6f)
+                                {
+                                    d += w * 2f;
+                                    break;
+                                }
+                        if (conductor != null && hs.CondT < t + 1.5f)  // the charge is about to jump: keep apart
+                        {
+                            if (conductor == me)
+                            {
+                                foreach (var q in Players.Values)
+                                    if (q != me && !q.Downed && q.Pos.DistanceTo(p) < ConductorRadius + 30f)
+                                        d += w * 2f;
+                            }
+                            else if (conductor.Pos.DistanceTo(p) < ConductorRadius + 30f)
+                                d += w * 2f;
+                        }
+                    }
+                    for (int i = 0; i < botBalls.Count; i++)
+                        for (int j = i + 1; j < botBalls.Count; j++)
+                            if (botBalls[i].Pos.DistanceTo(botBalls[j].Pos) < BallArcRange && SegmentDistance(p, botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
+                                d += w * 2f;
                     foreach (var cg in Cages.Values)
                         if (Math.Abs(p.DistanceTo(cg.Center) - Math.Max(0f, cg.Radius - CageShrink * t)) < CageWallWidth / 2f + hitR + sk.Margin + 4f)
                             d += w * 2f;
@@ -402,6 +448,8 @@ namespace Arena
             danger = bestDanger;
             return best;
         }
+
+        readonly List<Enemy> botBalls = new List<Enemy>();
 
         static float SegmentDistance(V2 p, V2 a, V2 b)
         {

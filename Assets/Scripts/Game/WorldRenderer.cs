@@ -115,6 +115,7 @@ namespace Arena
             DrawPlayerSearchlights(t);
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
+            DrawHeraldFloor(t);  // the Storm Herald's rain, wind and dark sky (HeraldLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -128,6 +129,7 @@ namespace Arena
                 DrawOrb(o, t);
             DrawReaperTether(t);
             DrawSingularityHazards(t);
+            DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
@@ -1557,11 +1559,7 @@ namespace Arena
                         DrawWellPull(e, pos, r, col, t);
                     break;
                 case EnemyType.StormHerald:
-                    for (int k = 0; k < 3; k++)  // crackling sparks
-                    {
-                        V2 a = pos + V2.FromAngle(t * 4f + k * 2.1f) * (r + 6f);
-                        Line(a, a + V2.FromAngle(t * 17f + k) * 10f, 2f, new Rgba(0.8f, 0.9f, 1f, 0.8f));
-                    }
+                    DrawHeraldUnderlay(e, pos, r, t);  // HeraldLook.cs
                     break;
                 case EnemyType.Devourer:
                     if (e.Phase == 1)  // hungry: a pulsing warning glow
@@ -1796,6 +1794,9 @@ namespace Arena
                     break;
                 case EnemyType.Phylactery:
                     Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
+                    break;
+                case EnemyType.BallLightning:
+                    DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
                     break;
                 case EnemyType.GravityWell:  // a spinning black hole
                 case EnemyType.CageWell:

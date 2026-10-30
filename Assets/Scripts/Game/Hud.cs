@@ -487,8 +487,45 @@ namespace Arena
 
         /// Name and health bar for each boss on the field, plus warnings for their mechanics: wide across the
         /// top middle, which the rest of the HUD leaves free.
+        static string HeraldStageName(HeraldStage s) => s == HeraldStage.Gathering ? "GATHERING STORM" : s == HeraldStage.Gale ? "GALE"
+            : s == HeraldStage.Supercell ? "SUPERCELL" : "LAST STAND";
+
         static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
             : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
+
+        /// The Storm Herald's stage under its health bar, and what to watch for.
+        string HeraldNote(HeraldState s, ref Color c)
+        {
+            if (s.TransT > 0f)
+            {
+                c = new Color(0.9f, 0.92f, 1f);
+                return "CAN'T BE HURT — " + HeraldStageName(s.TransTo) + " is coming";
+            }
+            if (s.CondId == game.MyId && s.CondId != 0)
+            {
+                c = new Color(0.83f, 0.6f, 1f);
+                return "YOU'RE THE CONDUCTOR — get away from your allies!";
+            }
+            if (s.CondId != 0)
+            {
+                c = new Color(0.83f, 0.6f, 1f);
+                return "CONDUCTOR — keep away from " + (game.Players.ContainsKey(s.CondId) ? game.Players[s.CondId].Name : "them") + "!";
+            }
+            switch (s.Turn)
+            {
+                case HeraldTurn.Rods: return "LIGHTNING RODS — stay off the lines between them";
+                case HeraldTurn.RodCage:
+                    c = new Color(0.83f, 0.6f, 1f);
+                    return "ROD CAGE — get out through the open side!";
+                case HeraldTurn.Crosswind: return "GALE — step into the wind to dodge";
+                case HeraldTurn.BallLightning: return "BALL LIGHTNING — shoot them, keep out from between them";
+                case HeraldTurn.Downburst: return "DOWNBURST — get out of the row";
+                case HeraldTurn.Thunderclap: return "THUNDERCLAP — slip through the gaps";
+                case HeraldTurn.StormFront: return "STORM FRONT — find the gap";
+                case HeraldTurn.Eye: return "EYE OF THE STORM — walk round with the spokes";
+            }
+            return HeraldStageName(s.Stage);
+        }
 
         /// The Warden's stage under its health bar, and what to watch for.
         string WardenNote(WardenState w, ref Color c)
@@ -622,6 +659,8 @@ namespace Arena
                     note = "The corner wells swallow your shots — kill them!";
                 else if (e.Type == EnemyType.Singularity && e.Sing != null)
                     note = SingStageName(e.Sing.Stage);
+                else if (e.Type == EnemyType.StormHerald && e.Herald != null)
+                    note = HeraldNote(e.Herald, ref noteColor);
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
                     note = "IMMUNE — destroy the phylactery!";
                 else if (Game.Hungry(e))

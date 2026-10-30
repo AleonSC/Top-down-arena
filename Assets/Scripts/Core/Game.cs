@@ -200,6 +200,7 @@ namespace Arena
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
+        public HeraldState Herald;  // the Storm Herald's fight (Herald.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
@@ -988,6 +989,7 @@ namespace Arena
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
+            UpdateHeraldView(dt);  // Herald.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
@@ -1132,6 +1134,8 @@ namespace Arena
                 me.Pos += (PullCenter - me.Pos).Normalized() * PullStrength * dt;
             if (!me.Downed && DashT <= 0f)
                 me.Pos += WellDriftAt(me.Pos) * dt;  // the Singularity's corner wells (Singularity.cs)
+            if (!me.Downed && DashT <= 0f)
+                me.Pos += HeraldWind(WindPush) * dt;  // the Storm Herald's Gale (Herald.cs)
             if (me.StunT > 0f && !me.Downed)
             {
                 me.Pos = before;  // stunned by the Warden: stuck where you are

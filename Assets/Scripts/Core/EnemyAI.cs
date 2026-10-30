@@ -376,6 +376,7 @@ namespace Arena
             TickHazards(dt);
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
+            TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
             if (twinPending && ReapersJoined)
@@ -463,6 +464,8 @@ namespace Arena
                 return true;  // the Twin Reapers changing stage (Reapers.cs)
             if (SingImmune(e))
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
+            if (HeraldImmune(e))
+                return true;  // the Storm Herald changing stage (Herald.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
@@ -860,6 +863,10 @@ namespace Arena
                 foreach (var o in Enemies.Values)
                     if (o.Type == EnemyType.GravityWell || o.Type == EnemyType.CageWell || o.Type == EnemyType.SingShard)
                         o.Hp = 0f;  // its wells and shards collapse with it
+            if (e.Type == EnemyType.StormHerald)
+                foreach (var o in Enemies.Values)
+                    if (o.Type == EnemyType.BallLightning)
+                        o.Hp = 0f;  // the storm breaks
             if (e.Type == EnemyType.Splitter)
             {
                 int n = e.Elite ? 5 : 3;
