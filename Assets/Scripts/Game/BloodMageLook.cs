@@ -66,9 +66,18 @@ namespace Arena
                     Line(grip + dir * 7f, grip + dir * 11f, 1f, Steel.WithAlpha(a));
                     break;
                 case WeaponId.SanguineOrb:
+                {
                     Circle(grip + dir * 5f, 6f, BloodRed.WithAlpha(0.3f * a), 10);
                     Circle(grip + dir * 5f, 3.5f, BloodRed.WithAlpha(a), 10);
+                    // The heal reserve: an arc under you filling as you coat enemies, glowing once there's enough to coat an ally.
+                    float full = MathX.Clamp01(p.BloodReserve / Game.ReserveMax);
+                    bool ready = p.BloodReserve >= Game.AllyCoatCost;
+                    Arc(p.Disp, r + 5f, 2.5f, BloodDark.WithAlpha(0.6f * a), 20, MathX.Pi * 0.2f, MathX.Pi * 0.6f);
+                    if (full > 0f)
+                        Arc(p.Disp, r + 5f, 2.5f, (ready ? new Rgba(1f, 0.35f, 0.45f) : BloodRed).WithAlpha((ready ? 0.8f + 0.2f * Mathf.Sin(t * 8f) : 0.8f) * a), 20,
+                            MathX.Pi * 0.8f - MathX.Pi * 0.6f * full, MathX.Pi * 0.6f * full);
                     break;
+                }
                 case WeaponId.Implosion:  // a clenched knot of blood, drops circling into it
                     Circle(grip + dir * 5f, 3.5f, BloodDark.WithAlpha(a), 8);
                     for (int k = 0; k < 3; k++)
@@ -109,6 +118,35 @@ namespace Arena
             if (ult == AbilityId.CrimsonApotheosis)  // a crimson halo of flame
                 for (int k = 0; k < 9; k++)
                     Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 9f - t) * (r + 11f), 3.5f + 1.5f * Mathf.Sin(t * 14f + k), BloodRed.WithAlpha(0.75f), 6);
+        }
+
+        /// A Sanguine Orb circling in on the enemy it caught (FxKind.BloodCoat): drops spiral in and close over it,
+        /// following the enemy (its id rides in Pos2.X), until it's covered in blood.
+        void DrawBloodCoatFx(Effect fx, float f, float t)
+        {
+            Enemy e;
+            V2 at = game.Enemies.TryGetValue((int)fx.Pos2.X, out e) ? e.Disp : fx.Pos;
+            float r = fx.Radius, ring = (r + 24f) * (1f - f) + r * 0.6f * f;
+            for (int k = 0; k < 4; k++)
+            {
+                V2 d = V2.FromAngle(f * MathX.Tau * 1.6f + k * MathX.Tau / 4f);
+                DrawDrop(at + d * ring, 3f + 1.5f * f, d.Orthogonal(), BloodRed.WithAlpha(0.9f));
+            }
+            Arc(at, ring, 2f, BloodRed.WithAlpha(0.5f * f), 24);  // the blood joining up round it
+            Circle(at, r * (0.4f + 0.6f * f), BloodRed.WithAlpha(0.3f * f), 16);
+        }
+
+        /// A player coated in a Sanguine Orb's healing blood: a red sheen with drops running off.
+        void DrawHealingCoat(Player p, float t)
+        {
+            float r = p.Def.BodyR;
+            Circle(p.Disp, r + 5f, new Rgba(1f, 0.3f, 0.4f, 0.18f + 0.06f * Mathf.Sin(t * 6f)), 20);
+            Arc(p.Disp, r + 5f, 2f, new Rgba(1f, 0.4f, 0.5f, 0.6f), 20);
+            for (int k = 0; k < 3; k++)
+            {
+                float f = MathX.Fmod(t * 1.2f + k * 0.33f + p.Id * 0.2f, 1f);
+                DrawDrop(p.Disp + new V2((k - 1f) * r * 0.6f, r * 0.3f + f * r), 2.2f, new V2(0f, 1f), BloodRed.WithAlpha(0.8f * (1f - f)));
+            }
         }
 
         /// Under a blood mage: Blood Rite's great red moon and Sanguine Rain's falling drops (DrawPlayerAuras).

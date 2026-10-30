@@ -74,6 +74,8 @@ namespace Arena
                     DrawHammerCharge(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.GolemStaff && p.DrawT > 0f && !p.Downed)
                     DrawBoulderCharge(p, p.Id == game.MyId, t);
+                else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
+                    DrawArcCharge(p, p.Id == game.MyId, t);
 
             if (aimDebug && game.Me != null)
             {
@@ -153,6 +155,8 @@ namespace Arena
                 return;
             if (p.Kit == Kit.BloodMage)
                 DrawBloodAuras(p, t);  // BloodMageLook.cs
+            if (p.CoatT > 0f)
+                DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.Role == Role.Healer)
             {
                 Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
@@ -345,6 +349,24 @@ namespace Arena
             p.Disp = real;
         }
 
+        /// The Fireball: a big ball of flame, white-hot at its heart, with fire streaming off behind it.
+        void DrawFireball(Bullet b, Rgba c, float t)
+        {
+            V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
+            float r = b.Radius;
+            var ember = new Rgba(0.85f, 0.2f, 0.05f);
+            for (int k = 0; k < 6; k++)  // the trail: puffs of flame falling behind and cooling
+            {
+                float f = MathX.Fmod(t * 3.5f + k / 6f + b.Id * 0.13f, 1f);
+                V2 at = b.Pos - dir * (r * 0.4f + f * r * 2.6f) + side * (Mathf.Sin(t * 13f + k * 2.1f) * r * 0.35f * f);
+                Circle(at, r * (0.75f - 0.45f * f), c.Mix(ember, f).WithAlpha(0.75f * (1f - f)), 10);
+            }
+            Circle(b.Pos, r * (1.6f + 0.1f * Mathf.Sin(t * 25f + b.Id)), c.WithAlpha(0.22f), 16);  // heat haze
+            Circle(b.Pos, r, c, 16);
+            Circle(b.Pos + dir * (r * 0.15f), r * 0.65f, new Rgba(1f, 0.78f, 0.3f), 14);
+            Circle(b.Pos + dir * (r * 0.25f), r * 0.32f, new Rgba(1f, 0.97f, 0.8f), 10);
+        }
+
         /// The Golem Staff's boulder in flight: its shadow on the ground where it is, and the rock itself lifted
         /// above it along its arc (higher on longer throws), tumbling as it goes.
         void DrawBoulder(Bullet b, Rgba c, float t)
@@ -395,7 +417,7 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
-            if (b.Kind >= Defs.StarShot && b.Kind <= Defs.ChainStar)
+            if (b.Kind >= Defs.StarShot && b.Kind <= Defs.FumaStar)
             {
                 DrawNinjaShot(b, c, t);
                 return;
@@ -413,6 +435,11 @@ namespace Arena
             if (b.Kind == Defs.BoulderShot)
             {
                 DrawBoulder(b, c, t);
+                return;
+            }
+            if (b.Kind == Defs.FireballShot)
+            {
+                DrawFireball(b, c, t);
                 return;
             }
             if (b.Kind == Defs.FlameShot)
@@ -490,7 +517,7 @@ namespace Arena
                 case Defs.StarShot:
                     DrawStar(b.Pos, b.Radius + 2f, t * 20f + b.Id, c);
                     break;
-                case Defs.ChainStar:  // big, with a blur ring as it spins
+                case Defs.FumaStar:  // big, with a blur ring as it spins
                     Arc(b.Pos, b.Radius + 3f, 2f, c.WithAlpha(0.35f), 16);
                     DrawStar(b.Pos, b.Radius + 2f, t * 16f + b.Id, c);
                     break;
@@ -566,6 +593,15 @@ namespace Arena
                     break;
                 case FxKind.Splinter:
                     DrawSplinterFx(fx, f);
+                    break;
+                case FxKind.LightCone:
+                    DrawLightConeFx(fx, f, t);
+                    break;
+                case FxKind.BloodCoat:
+                    DrawBloodCoatFx(fx, f, t);  // BloodMageLook.cs
+                    break;
+                case FxKind.ArcField:
+                    DrawArcFieldFx(fx, f);
                     break;
             }
         }
@@ -743,6 +779,87 @@ namespace Arena
         }
 
         /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
+        /// Arc Lightning going off: the strip flashes and jagged lightning crackles along and across it. The bolts
+        /// come from a generator seeded by where it went off, so everyone sees the same crackle.
+        void DrawArcFieldFx(Effect fx, float f)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float len = to.Length, w = fx.Radius;
+            if (len < 1f)
+                return;
+            V2 dir = to / len, side = dir.Orthogonal();
+            float fade = 1f - f;
+            V2 a0 = fx.Pos + side * w, a1 = fx.Pos - side * w;
+            SetColor(fx.Color.WithAlpha(0.2f * fade));
+            Quad(a0, a0 + dir * len, a1 + dir * len, a1);
+            Line(a0, a0 + dir * len, 2f, fx.Color.WithAlpha(0.7f * fade));
+            Line(a1, a1 + dir * len, 2f, fx.Color.WithAlpha(0.7f * fade));
+            uint seed = (uint)((int)fx.Pos.X * 73856093 ^ (int)fx.Pos.Y * 19349663 ^ (int)(f * 8f) * 83492791) | 1u;  // re-rolls a few times as it fades
+            Func<float> rnd = () => { seed ^= seed << 13; seed ^= seed >> 17; seed ^= seed << 5; return (seed & 0xFFFFFF) / 16777216f; };
+            for (int k = 0; k < 3; k++)  // bolts running its length
+            {
+                V2 prev = fx.Pos + side * ((rnd() - 0.5f) * w);
+                int n = Math.Max(4, (int)(len / 40f));
+                for (int i = 1; i <= n; i++)
+                {
+                    V2 next = fx.Pos + dir * (len * i / n) + side * ((rnd() - 0.5f) * w * 1.6f);
+                    Line(prev, next, k == 0 ? 3f : 1.5f, (k == 0 ? Rgba.White : fx.Color).WithAlpha(fade));
+                    prev = next;
+                }
+            }
+        }
+
+        /// Arc Lightning's charge: a ring filling round you (gold when full) and, for your own, the strip it will
+        /// shock, reaching out as you hold.
+        void DrawArcCharge(Player p, bool mine, float t)
+        {
+            float c = game.BowCharge(p, p.DrawT);
+            bool full = c >= 1f;
+            var gold = new Rgba(1f, 0.82f, 0.3f);
+            var bolt = Defs.BulletColor(Defs.BoltShot);
+            float r = p.Def.BodyR + 11f;
+            Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
+            Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : bolt).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            if (!mine)
+                return;
+            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
+            float len = Game.ArcLength(p, c), w = Game.ArcWidth(p);
+            var col = (full ? gold : bolt).WithAlpha(0.35f + 0.35f * c);
+            V2 a = p.Disp + side * w, b = p.Disp - side * w;
+            SetColor(col.WithAlpha(0.05f + 0.1f * c));
+            Quad(a, a + dir * len, b + dir * len, b);
+            Line(a, a + dir * len, 2f, col);
+            Line(b, b + dir * len, 2f, col);
+            Line(a + dir * len, b + dir * len, 3f, col.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 30f)));  // the crackling far edge
+        }
+
+        /// Chain Light's cone: a flash of light fanning out from the caster, brightest at its edges, with rays
+        /// running out through it.
+        void DrawLightConeFx(Effect fx, float f, float t)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float reach = to.Length, half = fx.Radius, aim = to.Angle;
+            if (reach < 1f)
+                return;
+            float fade = 1f - f, grow = Mathf.Min(1f, f / 0.15f);
+            float r = reach * (0.6f + 0.4f * grow);
+            const int segs = 14;
+            for (int k = 0; k < segs; k++)  // the cone, filled
+            {
+                float a0 = aim - half + 2f * half * k / segs, a1 = aim - half + 2f * half * (k + 1) / segs;
+                SetColor(fx.Color.WithAlpha(0.22f * fade));
+                Tri(fx.Pos, fx.Pos + V2.FromAngle(a0) * r, fx.Pos + V2.FromAngle(a1) * r);
+            }
+            Line(fx.Pos, fx.Pos + V2.FromAngle(aim - half) * r, 2.5f, Rgba.White.WithAlpha(0.7f * fade));
+            Line(fx.Pos, fx.Pos + V2.FromAngle(aim + half) * r, 2.5f, Rgba.White.WithAlpha(0.7f * fade));
+            Arc(fx.Pos, r, 3f, fx.Color.WithAlpha(0.8f * fade), segs, aim - half, 2f * half);
+            for (int k = 0; k < 5; k++)  // rays
+            {
+                float a = aim - half * 0.8f + half * 1.6f * k / 4f;
+                Line(fx.Pos + V2.FromAngle(a) * (r * 0.15f), fx.Pos + V2.FromAngle(a) * (r * (0.5f + 0.45f * f)), 1.5f, Rgba.White.WithAlpha(0.45f * fade));
+            }
+        }
+
         /// The Frost Lance's icicle: it shoots out from you to full length, holds a moment, cracks as its
         /// splinters fly (Splinter), then melts away.
         void DrawIcicleFx(Effect fx, float f)
@@ -1755,7 +1872,7 @@ namespace Arena
                     Line(p.Disp - s * (r + 14f), p.Disp + s * (r + 14f), 3.5f, Wood.WithAlpha(a));
                     break;
                 }
-                case WeaponId.ChainShuriken:
+                case WeaponId.FumaShuriken:
                     DrawStar(grip + dir * 6f, 8f, t * 2f, Steel.WithAlpha(a));
                     break;
                 case WeaponId.MedicineDarts:  // three needles between the fingers

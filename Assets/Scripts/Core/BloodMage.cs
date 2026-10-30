@@ -9,7 +9,7 @@ namespace Arena
     public partial class Game
     {
         const float ClotPoolRadius = 70f, ClotPoolTime = 3f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f, SanguineDrop = 0.4f;
+        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, LeechSteal = 0.25f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
@@ -106,7 +106,7 @@ namespace Arena
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
+                        SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, SanguineTurn);  // it homes only at the last moment (Steer)
                     break;
                 }
                 case WeaponId.BloodBolts:
@@ -419,17 +419,81 @@ namespace Arena
                     }
                     break;
                 }
-                case Defs.SanguineShot:
-                    if (e.Hp <= 0f && !e.BloodDropped)
-                    {
-                        e.BloodDropped = true;
-                        if (rng.NextDouble() < SanguineDrop)
-                            SpawnOrb(e.Pos, false);
-                    }
-                    break;
                 case Defs.ClotShot:
                     AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
                     break;
+            }
+        }
+
+        // --- Sanguine Orb: coat enemies in blood, then coat allies in healing blood -------------------------
+
+        public const float SanguineTurn = 9f, SanguineHomeRange = 110f;  // it flies straight, then homes hard on an enemy this close
+        public const float CoatTime = 0.45f, SanguineBleed = 0.3f;       // circling in to coat an enemy; then it bleeds this share of the hit a second (a stack)
+        public const float ReserveMax = 100f, ReserveGain = 10f, AllyCoatCost = 25f, AllyCoatTime = 4f, AllyCoatHeal = 30f;  // the heal reserve, and coating an ally from it
+
+        /// An orb circling in on the enemy it caught.
+        class Coating
+        {
+            public int Enemy, Owner;
+            public float T, Dmg;
+        }
+
+        readonly List<Coating> coatings = new List<Coating>();
+
+        /// A Sanguine Orb caught an enemy: it circles in and covers it with blood (BloodCoat; Pos2.X carries the
+        /// enemy's id so everyone draws it on the enemy as it moves). The hit lands when it closes in (TickCoatings).
+        void StartBloodCoat(Bullet b, Enemy e)
+        {
+            coatings.Add(new Coating { Enemy = e.Id, Owner = b.Owner, T = CoatTime, Dmg = b.Dmg });
+            BroadcastFx(FxKind.BloodCoat, e.Pos, new V2(e.Id, 0f), Defs.BulletColor(Defs.SanguineShot), e.Radius, CoatTime, Sfx.None);
+        }
+
+        /// A Sanguine Orb touching a hurt ally: with enough heal reserve, it coats them in healing blood instead.
+        bool CoatAlly(Bullet b)
+        {
+            Player owner;
+            if (!Players.TryGetValue(b.Owner, out owner) || owner.BloodReserve < AllyCoatCost)
+                return false;
+            foreach (var q in Players.Values)
+            {
+                float r = q.Def.BodyR + b.Radius;
+                if (q == owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
+                    continue;
+                owner.BloodReserve -= AllyCoatCost;
+                q.CoatT = AllyCoatTime;
+                q.CoatBy = owner.Id;
+                BroadcastFx(FxKind.Ring, q.Pos, Defs.BulletColor(Defs.SanguineShot), q.Def.BodyR + 14f, 0.3f, Sfx.SpellHoly);
+                return true;
+            }
+            return false;
+        }
+
+        /// Host, every tick: coatings close in and land (damage, a bleed stack, heal reserve), and coated allies heal.
+        void TickCoatings(float dt)
+        {
+            for (int i = coatings.Count - 1; i >= 0; i--)
+            {
+                var c = coatings[i];
+                if ((c.T -= dt) > 0f)
+                    continue;
+                coatings.RemoveAt(i);
+                Enemy e;
+                Player p;
+                if (!Enemies.TryGetValue(c.Enemy, out e) || e.Hp <= 0f)
+                    continue;
+                HurtEnemy(e, c.Dmg, c.Owner);
+                ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // Minions.cs: each coat is another stack
+                OnBulletHit(new Bullet { Pos = e.Pos, Owner = c.Owner, Dmg = c.Dmg, Kind = Defs.SanguineShot }, e);
+                if (Players.TryGetValue(c.Owner, out p))
+                    p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain);
+            }
+            foreach (var q in Players.Values)
+            {
+                if (q.CoatT <= 0f)
+                    continue;
+                q.CoatT = q.Downed ? 0f : Math.Max(0f, q.CoatT - dt);
+                if (q.CoatT > 0f)
+                    Heal(q, AllyCoatHeal / AllyCoatTime * dt, PlayerOrNull(q.CoatBy));
             }
         }
 
@@ -836,6 +900,7 @@ namespace Arena
         void TickBloodMages(float dt)
         {
             rainSteal = 0f;
+            TickCoatings(dt);
             foreach (var p in Players.Values)
             {
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.SanguineRain)

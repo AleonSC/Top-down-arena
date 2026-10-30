@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -64,6 +64,9 @@ namespace Arena
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public float BloodReserve;                    // Sanguine Orb: heal reserve charged by coating enemies (replicated, whole points)
+        public float CoatT;                           // coated in a Sanguine Orb's healing blood: heals while it lasts (replicated)
+        public int CoatBy;                            // host: who coated them
         public int Clot, ClotMax = 5;                 // Blood Lash: Clot stacks and the most it can hold (replicated)
         public float ClotT;                           // host: until the next Clot stack fades
         public float PactStore, PactPower = 1f, PactRadius, ApoDealt;  // host: damage stored by the Pact; dealt during Crimson Apotheosis
@@ -168,7 +171,6 @@ namespace Arena
         public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
-        public bool BloodDropped;  // host: a Sanguine Orb's kill has rolled for its health orb
         public bool Marked;
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound

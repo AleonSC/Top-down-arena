@@ -397,6 +397,11 @@ namespace Arena
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
+            int reserve = (int)p.BloodReserve;
+            s.Byte(ref reserve);
+            if (s.Reading)
+                p.BloodReserve = reserve;
+            s.Float(ref p.CoatT);
             s.Byte(ref p.AmmoUsed);
             s.Byte(ref p.StunShots);
             s.Vec(ref p.LightPos);

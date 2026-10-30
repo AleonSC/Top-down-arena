@@ -431,9 +431,9 @@ static partial class Program
                     if (touch && !past) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (orb: touching hit " + touch + ", past hit " + past + ")");
                     continue;
                 }
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.LeechBeam || w.Id == WeaponId.LightBolt || w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning)
                 {
-                    // A beam, an implosion, a tendril or a repulsion blast has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
+                    // A beam, an implosion, a tendril, a repulsion blast, a cone of light or a strip of lightning has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>
                     {
                         g.Enemies.Clear();
@@ -713,6 +713,178 @@ static partial class Program
         for (int k = 0; k < 3; k++) dart.Invoke(g, new object[] { bone, boss });
         Check(boss.CageT <= 0f, "bosses can't be caged");
         host.Leave(""); client.Leave("");
+    }
+
+    static void LightConeTest(float dt)
+    {
+        // Chain Light: a cone of light whose damage is shared between every enemy in it; light arcs to each.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Healer, 0, 0, Kit.Mage);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
+        V2 from = new V2(300f, 450f);
+        Func<V2[], float[]> Cast = spots =>
+        {
+            g.Enemies.Clear(); g.Effects.Clear();
+            var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+            me.Pos = from;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            return dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        };
+        var one = Cast(new[] { from + new V2(200f, 0f) });
+        int arcs1 = g.Effects.Count(fx => fx.Kind == FxKind.Bolt);
+        var four = Cast(new[] { from + new V2(150f, 0f), from + new V2(200f, 60f), from + new V2(250f, -80f), from + new V2(120f, 30f), from + new V2(-150f, 0f), from + new V2(150f, 260f) });
+        int arcs4 = g.Effects.Count(fx => fx.Kind == FxKind.Bolt);
+        bool cone = g.Effects.Any(fx => fx.Kind == FxKind.LightCone);
+        Console.WriteLine("  chain light: one enemy takes {0:0.0}; four share it: {1:0.0} / {2:0.0} / {3:0.0} / {4:0.0}; behind {5:0.0}, off to the side {6:0.0}; arcs {7} then {8}",
+            one[0], four[0], four[1], four[2], four[3], four[4], four[5], arcs1, arcs4);
+        Check(cone && one[0] > 0f && arcs1 == 1, "Chain Light flashes a cone of light, and one enemy in it takes all of its damage");
+        Check(four.Take(4).All(d => Math.Abs(d - one[0] / 4f) < 0.2f) && four[4] == 0f && four[5] == 0f && arcs4 == 4,
+            "with four enemies in the cone each takes a quarter, light arcs to each, and nothing outside it is hit");
+        host.Leave("");
+    }
+
+    static void SanguineOrbTest(float dt)
+    {
+        // The Sanguine Orb: flies straight, homes at the last moment, circles in and coats the enemy (its hit and a bleed
+        // stack land as it closes), charging the heal reserve; with enough reserve it coats a hurt ally in healing blood.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.BloodMage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SanguineOrb);
+        V2 from = new V2(300f, 450f), allyAt = new V2(300f, 200f);
+        var keep = new List<Enemy>();
+        Action<float> play = secs =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) e.FrozenT = 1f;
+                me.Pos = from; ally.Pos = client.Game.Me.Pos = allyAt;  // the client sends its own position
+                host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; keep.Add(e); return e; };
+        play(0.3f);
+        me.BloodReserve = 0f;
+        // An enemy 40 px off the line of fire: the orb homes onto it at the last moment. One 150 px off is left alone.
+        var near = dummy(from + new V2(260f, 40f));
+        var wide = dummy(from + new V2(200f, 150f));
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float caught = -1f;
+        for (int f = 0; f < 90 && caught < 0f; f++) { play(1f / 60f); if (g.Effects.Any(fx => fx.Kind == FxKind.BloodCoat)) caught = f / 60f; }
+        float during = near.MaxHp - near.Hp;
+        play(Game.CoatTime + 0.05f);
+        float hit = near.MaxHp - near.Hp, bleed1 = near.BleedDps;
+        Console.WriteLine("  sanguine orb: caught after {0:0.00} s; {1:0.0} while circling, {2:0.0} once covered; bleed {3:0.0}/s; reserve {4:0}; the wide one {5:0.0}",
+            caught, during, hit, bleed1, me.BloodReserve, wide.MaxHp - wide.Hp);
+        Check(caught > 0f && during == 0f && hit > 0f && wide.Hp == wide.MaxHp, "a Sanguine Orb homes onto an enemy near its path at the last moment, circles it, and hits once it's covered");
+        Check(near.BleedT > 0f && Math.Abs(me.BloodReserve - Game.ReserveGain) < 0.5f && client.Game.Players[1].BloodReserve == me.BloodReserve,
+            "covering an enemy makes it bleed and charges the heal reserve (and the client sees it)");
+        volley.Invoke(g, new object[] { me, (near.Pos - from).Angle, 0 });
+        play(1f);
+        Check(near.BleedDps > bleed1 * 1.5f, "each orb that covers an enemy adds a bleed stack");
+        keep.Clear(); near.Hp = wide.Hp = 0f;
+        // Shooting a hurt ally: nothing without enough reserve, a coat of healing blood with it.
+        ally.Hp = ally.MaxHp * 0.3f;
+        me.BloodReserve = Game.AllyCoatCost - 1f;
+        volley.Invoke(g, new object[] { me, (allyAt - from).Angle, 0 });
+        play(0.8f);
+        bool noCoat = ally.CoatT <= 0f;
+        me.BloodReserve = Game.AllyCoatCost + 5f;
+        float h0 = ally.Hp;
+        volley.Invoke(g, new object[] { me, (allyAt - from).Angle, 0 });
+        play(0.8f);
+        bool coated = ally.CoatT > 0f && client.Game.Players[2].CoatT > 0f;
+        float reserveLeft = me.BloodReserve;
+        play(Game.AllyCoatTime);
+        Console.WriteLine("  sanguine orb: ally coated {0} (without reserve {1}); reserve left {2:0}; healed {3:0.0}", coated, !noCoat, reserveLeft, ally.Hp - h0);
+        Check(noCoat && coated && Math.Abs(reserveLeft - 5f) < 0.5f && ally.Hp - h0 >= Game.AllyCoatHeal - 1f && ally.Hp - h0 < Game.AllyCoatHeal + 6f,  // (plus a little from the healer's aura)
+            "with 25 reserve an orb coats a hurt ally in healing blood (30 health over 4 s); without it, nothing");
+        host.Leave(""); client.Leave("");
+    }
+
+    static void FireballArcTest(float dt)
+    {
+        // The Fireball rolls on through a line of enemies, hitting and burning each. Arc Lightning charges a strip in
+        // front of you (longer the longer you hold) and shocks everything in it when you let go.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Mage);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        V2 from = new V2(200f, 450f);
+        Func<V2[], Enemy[]> dummies = spots =>
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
+            return spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+        };
+        Action<Enemy[], V2[], float> play = (ds, spots, secs) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                for (int k = 0; k < ds.Length; k++) { ds[k].Pos = spots[k]; ds[k].FrozenT = Math.Max(ds[k].FrozenT, 0.01f); }
+                me.Pos = from;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
+            }
+        };
+
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Fireball);
+        var line = new[] { from + new V2(150f, 0f), from + new V2(230f, 10f), from + new V2(310f, -10f) };
+        var row = dummies(line);
+        me.Pos = from;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        var ball = g.Bullets.Values.FirstOrDefault(b => b.Owner == 1);
+        play(row, line, 1.2f);
+        Console.WriteLine("  fireball: radius {0}; hits {1:0.0} / {2:0.0} / {3:0.0}; all burning {4}", ball == null ? 0f : ball.Radius,
+            row[0].MaxHp - row[0].Hp, row[1].MaxHp - row[1].Hp, row[2].MaxHp - row[2].Hp, row.All(e => e.BurnT > 0f || e.BurnDps > 0f));
+        Check(ball != null && ball.Kind == Defs.FireballShot && ball.Radius >= 15f && row.All(e => e.Hp < e.MaxHp) && row.All(e => e.BurnDps > 0f),
+            "the Fireball is big, rolls on through every enemy in its path and sets each burning");
+
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcLightning);
+        Check(Game.ChargeWeapon(WeaponId.ArcLightning), "Arc Lightning charges like a bow");
+        float far = Game.ArcLength(me, 1f), near = Game.ArcLength(me, 0f);
+        var strip = new[] { from + new V2(near - 30f, 0f), from + new V2(far - 30f, 20f), from + new V2(far + 60f, 0f), from + new V2(300f, Game.ArcHalfWidth + 60f) };
+        var ds2 = dummies(strip);
+        me.BowShotDraw = Game.BowMinDraw;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float[] tap = ds2.Select(e => e.MaxHp - e.Hp).ToArray();
+        play(ds2, strip, 0.6f);
+        me.BowShotDraw = g.BowFull(me);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float[] full = ds2.Select((e, k) => e.MaxHp - e.Hp - tap[k]).ToArray();
+        Console.WriteLine("  arc lightning: tap reaches {0:0} px, full {1:0} px (half the arena); tap hits {2:0.0} / {3:0.0}; full hits {4:0.0} / {5:0.0} / past it {6:0.0} / beside it {7:0.0}; stunned {8:0.00} s",
+            near, far, tap[0], tap[1], full[0], full[1], full[2], full[3], ds2[1].FrozenT);
+        Check(tap[0] > 0f && tap[1] == 0f && full[0] > 0f && full[1] > 0f && full[2] == 0f && full[3] == 0f && Math.Abs(far - Game.Width * 0.5f) < 1f,
+            "Arc Lightning shocks everything in its strip: a tap reaches a little way, a full charge half the arena, nothing past or beside it");
+        Check(ds2[1].FrozenT > 0.3f, "its shock stuns briefly");
+        host.Leave("");
     }
 
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
@@ -1026,16 +1198,16 @@ static partial class Program
         Check(nearHit && wideTurn < 0.05f, "Homing Rounds fix near misses but don't hunt enemies off to the side");
         Check(Math.Abs(near.Dmg - 7f) < 0.01f, "Homing Rounds cost 10% damage per stack");
 
-        // On area weapons Homing Rounds grow the area instead: a Fireball's blast is 75% wider at 3 stacks and
+        // On area weapons Homing Rounds grow the area instead: a Flak Cannon's blast is 75% wider at 3 stacks and
         // doesn't bend; an Implosion reaches an enemy past its usual 55 px; the card says so.
         var hp = g.Players[2];
         var volley = typeof(Game).GetMethod("FireVolley", flags);
-        hp.Weapon = Defs.Weapon(Role.Dps, Kit.Mage, 0);
+        hp.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FlakCannon);
         g.Bullets.Clear();
         volley.Invoke(g, new object[] { hp, 0f, 0 });
         var ball = g.Bullets.Values.First(b => b.Owner == 2);
-        Console.WriteLine("  homing x3 on a Fireball: blast {0:0} px (60 normally), turn {1:0}, damage {2:0.0}", ball.Splash, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
-        Check(Math.Abs(ball.Splash - 105f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
+        Console.WriteLine("  homing x3 on a Flak Cannon: blast {0:0} px (70 normally), turn {1:0}, damage {2:0.0}", ball.Splash, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
+        Check(Math.Abs(ball.Splash - 122.5f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
         // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 2);

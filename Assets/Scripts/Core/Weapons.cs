@@ -87,8 +87,8 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p);
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer and the Golem Staff's boulder.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff;
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder and Arc Lightning.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -334,8 +334,12 @@ namespace Arena
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.ChainShuriken:  // as far as it goes before it turns back
-                    return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
+                case WeaponId.ArcLightning:  // the strip's length with the current charge (Minions.cs)
+                    return ArcLength(p, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f);
+                case WeaponId.ChainLight:  // the cone's reach (Minions.cs)
+                    return LightConeLength(p, x);
+                case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
+                    return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
                 case WeaponId.LightBolt:  // the Repulsion Cannon's cone

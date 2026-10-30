@@ -9,7 +9,8 @@ namespace Arena
     public partial class Game
     {
         const float KusariPull = 40f, KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
-        public const float ChainStarOut = 0.42f;  // a Chain Shuriken flies out this long, then comes back as long
+        public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
+        public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
         const float CloneTime = 5f, CloneBurst = 60f, CloneBurstRadius = 110f;
         const float SmokeRadius = 140f, SmokeTime = 5f, SmokeCut = 0.3f, SmokeBulletSpeed = 0.5f;
@@ -38,13 +39,16 @@ namespace Arena
                 case WeaponId.BoStaff:
                     pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
                     break;
-                case WeaponId.ChainShuriken:
+                case WeaponId.FumaShuriken:
                 {
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
+                    // A giant star thrown in an oval loop out in front of you and back, cutting through everything.
+                    // Each extra one loops the other way, and every second pair loops a little wider.
+                    V2 front = V2.FromAngle(aim);
+                    for (int i = 0; i <= extra; i++)
                     {
-                        float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.3f * (n - 1));
-                        SpawnBullet(Defs.ChainStar, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
+                        float s = i % 2 == 0 ? 1f : -1f, size = FumaSize(i);
+                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * MathX.Tau / w.Life);  // it sets off sideways (FumaTurn)
+                        SpawnBullet(Defs.FumaStar, p.Pos, vel, s, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
                     }
                     break;
                 }
@@ -472,11 +476,25 @@ namespace Arena
                 if (z.Kind == ZoneKind.Smoke)
                     smokes.Add(z);
             foreach (var b in Bullets.Values)
-                if (b.Kind == Defs.ChainStar && b.Life > ChainStarOut && b.Life - dt <= ChainStarOut)
-                {
-                    b.Vel = -b.Vel;  // halfway: back the way it came
-                    b.LastHit = 0;   // and it can cut the same enemy again
-                }
+                if (b.Kind == Defs.FumaStar)
+                    FumaTurn(b, dt);
+        }
+
+        /// A Fuma Shuriken's loop is an oval through where it was thrown: at a time t into the lap (angle a = Tau t / lap)
+        /// its velocity is M(a) V0, where V0 is the sideways velocity it set off with and M(a) = cos a + k sin a R turns it
+        /// toward the front (R: a quarter turn, the way its AngVel's sign says; k: how much longer the oval is than wide).
+        /// M is a scaled rotation, so V0 comes back from the velocity it has now: host and clients follow the same oval
+        /// from what they already know. (Its AngVel is only that sign: MoveBullets doesn't turn it.)
+        void FumaTurn(Bullet b, float dt)
+        {
+            float lap = Math.Max(0.01f, b.Life0), k = FumaReach * 0.5f / FumaWidth, s = b.AngVel >= 0f ? 1f : -1f;
+            float a0 = MathX.Tau * (lap - b.Life) / lap, a1 = MathX.Tau * (lap - b.Life + dt) / lap;
+            float c = (float)Math.Cos(a0), sn = k * (float)Math.Sin(a0);
+            V2 v0 = (b.Vel * c - b.Vel.Orthogonal() * (s * sn)) / (c * c + sn * sn);
+            float c1 = (float)Math.Cos(a1), sn1 = k * (float)Math.Sin(a1);
+            b.Vel = v0 * c1 + v0.Orthogonal() * (s * sn1);
+            if (a0 < MathX.Pi && a1 >= MathX.Pi)
+                b.LastHit = 0;  // at the far end: it can cut the same enemy again on the way back
         }
 
         /// Ofuda charms heal allies near where they burst.

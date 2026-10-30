@@ -7,6 +7,7 @@ namespace Arena
     public partial class Game
     {
         const float MinionChaseRange = 600f;
+        public const float FireballBurn = 8f;  // the Fireball sets what it passes through burning: 8 a second (for FlameBurnTime)
         public const float FlameBurn = 5f, FlameBurnTime = 3f, FlamePierced = 1f / 3f;  // the Flamethrower sets what it hits burning: 5 a second for 3 s; after the first enemy a flame does a third
 
         // --- Weapons -----------------------------------------------------------
@@ -101,7 +102,7 @@ namespace Arena
                 case WeaponId.RadiantOrb:
                     break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)
                 case WeaponId.ChainLight:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 2 + extra;
+                    LightCone(p, aim, w.Damage * (1f + LightConeGrow * extra) * HomingCost(p) * dmg, extra);
                     break;
                 case WeaponId.PrismBeam:
                 {
@@ -113,14 +114,17 @@ namespace Arena
                 }
                 case WeaponId.Fireball:
                 {
-                    var b = SpawnBullet(Defs.FireShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 60f * AreaMult(p);
-                    if (extra > 0)  // splits into small fireballs on impact
-                        SetFrags(b, 2 * extra, Defs.FireShot, 8f * dmg, 380f, 0.35f, 30f * AreaMult(p), false);
+                    // A big fireball that rolls on through everything, setting it all burning; extras fan out beside it.
+                    for (int i = 0; i <= extra; i++)
+                    {
+                        var b = SpawnBullet(Defs.FireballShot, muzzle, V2.FromAngle(Fanned(aim, i, extra + 1, 0.22f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        b.Pierce += 99;
+                        b.Ignite = FireballBurn * dmg;
+                    }
                     break;
                 }
                 case WeaponId.ArcLightning:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 4 + extra;
+                    ArcField(p, aim, w.Damage * (1f + ArcGrow * extra) * HomingCost(p) * dmg, BowCharge(p, p.BowShotDraw));
                     break;
                 case WeaponId.ArcaneMissiles:
                 {
@@ -200,6 +204,85 @@ namespace Arena
                 BroadcastFx(FxKind.Bolt, cur.Pos, next.Pos, Defs.BulletColor(Defs.BoltShot), 0f, 0.15f, Sfx.None);
                 hit.Add(next.Id);
                 cur = next;
+            }
+        }
+
+        /// Arc Lightning: hold to charge a strip of ground in front of you, longer the longer you hold (out to half
+        /// the arena); let go and lightning shocks everything in it.
+        public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 45f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width; stun (not bosses); +damage per extra projectile
+        public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch it
+        public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it
+
+        void ArcField(Player p, float aim, float dmg, float c)
+        {
+            float len = ArcLength(p, c), half = ArcWidth(p);
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            var bolt = Defs.BulletColor(Defs.BoltShot);
+            BroadcastFx(FxKind.ArcField, p.Pos, p.Pos + dir * len, bolt, half, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Shockwave);
+            p.Run.ShotsFired++;
+            bool any = false;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                V2 rel = e.Pos - p.Pos;
+                float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
+                if (along < -e.Radius - p.Def.BodyR || along > len + e.Radius || across > half + e.Radius)
+                    continue;
+                if (BlocksShot(e, p.Pos))
+                {
+                    WearShield(e, dmg);
+                    continue;
+                }
+                any = true;
+                HurtEnemy(e, dmg, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.BoltShot }, e);
+                if (!e.Def.IsBoss)
+                    e.FrozenT = Math.Max(e.FrozenT, ArcStun);
+                BroadcastFx(FxKind.Bolt, p.Pos + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from the strip's middle line
+            }
+            if (any)
+                p.Run.ShotsHit++;
+        }
+
+        /// Chain Light: a great cone of light in front of you. Its damage is shared out between every enemy in it,
+        /// so one enemy alone takes all of it; light arcs from you to each.
+        public const float LightConeReach = 320f, LightConeHalf = 0.6f, LightConeGrow = 0.25f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
+        public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra);
+
+        void LightCone(Player p, float aim, float total, int extra)
+        {
+            float reach = LightConeLength(p, extra), half = LightConeHalf * AreaMult(p);  // Homing Rounds widen it
+            V2 dir = V2.FromAngle(aim);
+            var light = Defs.BulletColor(Defs.HolyShot);
+            BroadcastFx(FxKind.LightCone, p.Pos, p.Pos + dir * reach, light, half, 0.3f, Sfx.None);
+            var hits = new List<Enemy>();
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                float d = e.Pos.DistanceTo(p.Pos);
+                if (d - e.Radius > reach)
+                    continue;
+                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi;
+                if (AngleTo(p.Pos, e.Pos, aim) > half + slack && d > e.Radius + p.Def.BodyR)
+                    continue;
+                if (BlocksShot(e, p.Pos))
+                    WearShield(e, total);
+                else
+                    hits.Add(e);
+            }
+            p.Run.ShotsFired++;
+            if (hits.Count == 0)
+                return;
+            p.Run.ShotsHit++;
+            float share = total / hits.Count;
+            V2 from = p.Pos + dir * p.Def.BodyR;
+            foreach (var e in hits)
+            {
+                HurtEnemy(e, share, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
+                BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, Sfx.None);
             }
         }
 

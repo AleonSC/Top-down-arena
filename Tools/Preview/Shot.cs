@@ -166,6 +166,26 @@ class Shot {
       var sbc = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 2; k++) sbc.Invoke(host.Game, new object[] { Defs.MinionShot, me.Pos + new V2(60f + 40f * k, -10f - 20f * k), new V2(650f, -40f), 0f, 0.5f, 8f, 1, false, 0f });
     }
+    if (Environment.GetEnvironmentVariable("WEAPONS5") != null) {
+      // Five reworked weapons at once: a Fuma Shuriken mid-loop, Chain Light's cone, a Sanguine Orb coating an enemy
+      // (and an ally coated in healing blood), Fireballs, and Arc Lightning going off.
+      var sb5 = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var gm = host.Game; gm.Bot = false;
+      me.Pos = me.Disp = new V2(260f, 300f);
+      var fuma = (Bullet)sb5.Invoke(gm, new object[] { Defs.FumaStar, new V2(470f, 230f), new V2(300f, 300f), 1f, 1.1f, 30f, 1, false, 0f });
+      var en = new System.Collections.Generic.List<Enemy>(gm.Enemies.Values);
+      V2[] at = { new V2(820f, 260f), new V2(880f, 330f), new V2(760f, 640f), new V2(1150f, 600f), new V2(1260f, 640f) };
+      for (int k = 0; k < en.Count && k < at.Length; k++) en[k].Pos = en[k].Disp = at[k];
+      var light = Defs.BulletColor(Defs.HolyShot);
+      V2 caster = new V2(620f, 300f);
+      gm.Effects.Add(new Effect { Kind = FxKind.LightCone, Pos = caster, Pos2 = caster + new V2(320f, 0f), Color = light, Radius = Game.LightConeHalf, Dur = 0.3f, T = 0.06f });
+      for (int k = 0; k < 2 && k < en.Count; k++) gm.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = caster + new V2(15f, 0f), Pos2 = at[k], Color = light, Dur = 0.2f, T = 0.03f });
+      if (en.Count > 2) gm.Effects.Add(new Effect { Kind = FxKind.BloodCoat, Pos = at[2], Pos2 = new V2(en[2].Id, 0f), Color = Defs.BulletColor(Defs.SanguineShot), Radius = en[2].Radius, Dur = Game.CoatTime, T = Game.CoatTime * 0.45f });
+      me.CoatT = 3f;
+      for (int k = 0; k < 2; k++) sb5.Invoke(gm, new object[] { Defs.FireballShot, new V2(300f + 120f * k, 560f + 30f * k), new V2(430f, 0f), 0f, 1.4f, 22f, 1, false, 0f });
+      V2 arcFrom = new V2(960f, 760f);
+      gm.Effects.Add(new Effect { Kind = FxKind.ArcField, Pos = arcFrom, Pos2 = arcFrom + new V2(500f, -160f), Color = Defs.BulletColor(Defs.BoltShot), Radius = Game.ArcHalfWidth, Dur = 0.35f, T = 0.05f });
+    }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 4; k++) { float a = -0.6f + k * 0.45f; sb.Invoke(host.Game, new object[] { Defs.ArrowShot, me.Pos + V2.FromAngle(a) * (60f + k * 30f), V2.FromAngle(a) * 900f, 0f, 1f, 40f, 1, false, 0f }); }

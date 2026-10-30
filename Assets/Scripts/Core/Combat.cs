@@ -197,14 +197,14 @@ namespace Arena
                 if (e.Type == EnemyType.GravityWell && !IsSpawning(e))
                     wells.Add(e);
             bool wellsUp = wells.Count > 0;
-            PrepareNinjaBullets(dt);  // Smoke Bombs and returning chain shuriken (Ninja.cs)
+            PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
             hi += margin;
             foreach (var b in Bullets.Values)
             {
-                if (b.AngVel != 0f)
+                if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
@@ -262,8 +262,8 @@ namespace Arena
         /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
         /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
         /// the same damage cost.
-        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
-            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff;
+        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Ofuda
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff || w == WeaponId.ChainLight || w == WeaponId.ArcLightning;
         public const float HomingAreaPerStack = 0.25f;
         public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
@@ -275,7 +275,8 @@ namespace Arena
         void Steer(Bullet b, float dt)
         {
             Enemy best = null;
-            float bestD = HomingRange * HomingRange;
+            bool late = b.Kind == Defs.SanguineShot;  // a Sanguine Orb only homes at the last moment, but hard
+            float bestD = late ? SanguineHomeRange * SanguineHomeRange : HomingRange * HomingRange, cone = late ? 0.3f : HomingCone;
             V2 dir = b.Vel.Normalized();
             foreach (var e in Enemies.Values)
             {
@@ -283,7 +284,7 @@ namespace Arena
                     continue;
                 V2 to = e.Pos - b.Pos;
                 float d = to.LengthSq;
-                if (d < bestD && to.X * dir.X + to.Y * dir.Y > HomingCone * (float)Math.Sqrt(d))
+                if (d < bestD && to.X * dir.X + to.Y * dir.Y > cone * (float)Math.Sqrt(d))
                 {
                     best = e;
                     bestD = d;
@@ -349,7 +350,7 @@ namespace Arena
                     continue;  // grenades and boulders fly over enemies and land where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
-                    if (b.HealAlly > 0f && HealAllyHit(b))
+                    if (b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -372,6 +373,12 @@ namespace Arena
                                 Player shooter;
                                 if (Players.TryGetValue(b.Owner, out shooter))
                                     shooter.Run.ShotsHit++;
+                            }
+                            if (b.Kind == Defs.SanguineShot)
+                            {
+                                StartBloodCoat(b, e);  // it circles in and its hit lands when it has covered the enemy (BloodMage.cs)
+                                scratchIds.Add(b.Id);
+                                break;
                             }
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e);  // Kunai and ambush bonuses (Ninja.cs)
                             HurtEnemy(e, hit, b.Owner);
@@ -688,9 +695,9 @@ namespace Arena
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
-            if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts
+            if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
             {
-                if (!b.Pierced)  // full damage to the first enemy, half to the ones behind
+                if (!b.Pierced && b.Kind == Defs.FlameShot)  // a flame does full damage to the first enemy, a third to the ones behind
                 {
                     b.Pierced = true;
                     b.Dmg *= FlamePierced;

@@ -66,12 +66,32 @@ static partial class Program
         float on = (float)hitMult.Invoke(g, new object[] { 1, Defs.KunaiShot, d1 });
         Check(Math.Abs(off - 1.5f) < 0.01f && Math.Abs(on - 1f) < 0.01f, "Kunai deal 50% more to enemies that aren't targeting you");
 
-        // Chain Shuriken: turns back halfway, on the host and the client alike.
-        var star = (Bullet)shoot.Invoke(g, new object[] { Defs.ChainStar, new V2(300f, 300f), new V2(Defs.WeaponOf(WeaponId.ChainShuriken).Speed, 0f), 0f, Game.ChainStarOut * 2f, 20f, 1, false, 0f });
-        run(0.6f);
-        Bullet cstar;
-        bool back = g.Bullets.ContainsKey(star.Id) && star.Vel.X < 0f && client.Game.Bullets.TryGetValue(star.Id, out cstar) && cstar.Vel.X < 0f;
-        Check(back, "a Chain Shuriken comes back halfway through its flight (host and client)");
+        // Fuma Shuriken: a giant star thrown in an oval loop out in front and back, the same on the host and the client.
+        clear();
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 2);
+        place(1, 300f); run(0.1f);
+        V2 throwAt = hp.Pos;
+        typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
+        var star = g.Bullets.Values.First(b => b.Owner == 1 && b.Kind == Defs.FumaStar);
+        float lap = star.Life0, ahead = 0f, wide = 0f, drift = 0f, lastGap = 0f;
+        for (int f = 0; f < lap * 60f - 2f && g.Bullets.ContainsKey(star.Id); f++)
+        {
+            hp.Pos = throwAt;
+            host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            clear();
+            ahead = Math.Max(ahead, star.Pos.X - throwAt.X);
+            wide = Math.Max(wide, Math.Abs(star.Pos.Y - throwAt.Y));
+            Bullet cs;
+            if (client.Game.Bullets.TryGetValue(star.Id, out cs)) drift = Math.Max(drift, cs.Pos.DistanceTo(star.Pos));
+            lastGap = star.Pos.DistanceTo(throwAt);
+        }
+        Console.WriteLine("  fuma shuriken: radius {0}, {1:0} px ahead, {2:0} px to the side, ends {3:0} px from where it was thrown; client drift {4:0.0} px",
+            star.Radius, ahead, wide, lastGap, drift);
+        Check(hp.Weapon.Name == "Fuma Shuriken" && star.Radius >= 20f && Math.Abs(ahead - Game.FumaReach) < 15f && Math.Abs(wide - Game.FumaWidth) < 10f && lastGap < 40f,
+            "the Fuma Shuriken is a giant star that loops an oval out in front of you and comes back");
+        Check(drift < 25f, "the Fuma Shuriken follows the same loop on the client");
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
 
         // Iron Body: 80% less damage for 2 s, then a shockwave.
         place(1, 650f); run(0.2f);

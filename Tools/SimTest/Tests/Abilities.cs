@@ -118,7 +118,7 @@ static partial class Program
             // A chain needs two enemies close together when a lightning shot lands; keep going until one does.
             bool lightning = false;
             foreach (var p in client.Game.Players.Values)
-                lightning |= p.Weapon.Id == WeaponId.StormHammer || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning;
+                lightning |= p.Weapon.Id == WeaponId.StormHammer || p.Weapon.Id == WeaponId.ChainLight || p.Weapon.Id == WeaponId.ArcLightning;  // Chain Light's arcs are bolts too
             if (lightning && !bolt)
                 Run(s, dt, 15, () => bolt, watch);
             foreach (int id in new[] { 1, 2 })
@@ -128,7 +128,8 @@ static partial class Program
                 bool weaponOk = w.Companion == MinionKind.None || minions.Contains(w.Companion);
                 if (w.Id == WeaponId.TotemStaff) weaponOk = zones.Contains(ZoneKind.Totem);
                 // Chains need a second enemy nearby, so per run just require the shots; a chain is checked below.
-                if (w.Id == WeaponId.StormHammer || w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning) weaponOk = boltShot;
+                if (w.Id == WeaponId.StormHammer) weaponOk = boltShot;
+                if (w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning) weaponOk = bolt;  // a cone of light or a strip of lightning, no shots: bolts arc to whatever is in it
                 bool abilityOk = true;
                 switch (p.Slots[0].Id)
                 {

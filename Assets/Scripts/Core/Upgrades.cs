@@ -395,7 +395,6 @@ namespace Arena
         {
             { WeaponId.Implosion, "the collapse hurts and pulls in enemies 25% farther out" },
             { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
-            { WeaponId.Fireball, "blasts (and split fireballs) 25% wider" },
             { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
             { WeaponId.StormHammer, "the electrified enemy's lightning reaches 25% farther" },
             { WeaponId.ClotBolt, "blood pools 25% wider" },
@@ -403,6 +402,8 @@ namespace Arena
             { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
             { WeaponId.FrostLance, "the icicle's splinters fly 25% further out" },
             { WeaponId.GolemStaff, "the boulder crushes 25% wider" },
+            { WeaponId.ChainLight, "the cone of light 25% wider" },
+            { WeaponId.ArcLightning, "the lightning strip 25% wider" },
         };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.

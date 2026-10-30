@@ -43,7 +43,7 @@ namespace Arena
         // Knight (melee)
         Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee
-        Kusarigama, BoStaff, ChainShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
+        Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Blood Mage (BloodMage.cs): blood spells that drain and heal
         BloodLash, ClotBolt, LeechBeam, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BoneSpear,
     }
@@ -220,8 +220,8 @@ namespace Arena
                 Desc = "A chain-sickle whipped in a wide arc (130 px, 120°) that yanks enemies 40 px toward you." },
             new WeaponDef { Id = WeaponId.BoStaff, Damage = 16f, Reach = 90f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach", Name = "Bo Staff", FireInterval = 0.4f,
                 Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air." },
-            new WeaponDef { Id = WeaponId.ChainShuriken, Speed = 620f, Life = 0.84f, Damage = 22f, ExtraDesc = "+1 shuriken, fanned out", Name = "Chain Shuriken", FireInterval = 0.7f,
-                Desc = "A heavy spinning star that flies out and comes back, cutting through everything both ways." },
+            new WeaponDef { Id = WeaponId.FumaShuriken, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
+                Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },
             new WeaponDef { Id = WeaponId.BloodLash, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
                 Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
                     + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
@@ -236,7 +236,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.MendersBow, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%)." },
             new WeaponDef { Id = WeaponId.RadiantOrb, Damage = 8f, Reach = 520f, BotRange = 300f, ExtraDesc = "+1 light orb circling you that hurts enemies and heals allies it touches", Name = "Radiant Orb", FireInterval = 0.2f,
                 Desc = "Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them (8, 5 times a second) and over allies to heal them." },
-            new WeaponDef { Id = WeaponId.ChainLight, Speed = 800f, Life = 0.8f, Damage = 10f, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Chain Light", FireInterval = 0.3f, Desc = "Bolts of light that chain to 2 more enemies." },
+            new WeaponDef { Id = WeaponId.ChainLight, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
+                Desc = "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each." },
             new WeaponDef { Id = WeaponId.PrismBeam, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f, Desc = "A rapid short-range beam. Grazing your ally heals them." },
             new WeaponDef { Id = WeaponId.SpriteStaff, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.35f, Desc = "Seed shots. Two sprites fly to whoever is hurt and heal them.",
                 Companion = MinionKind.Sprite, CompanionCount = 2 },
@@ -257,16 +258,19 @@ namespace Arena
                 Desc = "Slow paper charms that home in and burst (25), healing allies near the burst for 8." },
             new WeaponDef { Id = WeaponId.TransfusionDarts, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
                 Desc = "Darts that heal an ally they reach for 8, at a cost of 3 of your own health." },
-            new WeaponDef { Id = WeaponId.SanguineOrb, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f,
-                Desc = "Homing orbs of blood (16). Enemies they kill have a 40% chance to drop a small health orb." },
+            new WeaponDef { Id = WeaponId.SanguineOrb, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
+                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. "
+                    + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s)." },
             new WeaponDef { Id = WeaponId.VeinTether, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinRifle, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream (5 per barrel), straying up to 2°." },
             new WeaponDef { Id = WeaponId.Railgun, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
             new WeaponDef { Id = WeaponId.BurstSmg, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
-            new WeaponDef { Id = WeaponId.Fireball, Speed = 520f, Life = 1.2f, Damage = 22f, BotRange = 390f, ExtraDesc = "Splits into 2 small fireballs on impact", Name = "Fireball", FireInterval = 0.45f, Desc = "Fireballs that explode on impact." },
-            new WeaponDef { Id = WeaponId.ArcLightning, Speed = 900f, Life = 0.6f, Damage = 12f, BotRange = 280f, ExtraDesc = "Bolts chain to 1 more enemy", Name = "Arc Lightning", FireInterval = 0.25f, Desc = "Bolts that chain to 4 nearby enemies." },
+            new WeaponDef { Id = WeaponId.Fireball, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
+                Desc = "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s)." },
+            new WeaponDef { Id = WeaponId.ArcLightning, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
+                Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun)." },
             new WeaponDef { Id = WeaponId.ArcaneMissiles, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 missile, and missiles home in on enemies", Name = "Arcane Missiles", FireInterval = 0.3f, Desc = "Three curving missiles per cast." },
             new WeaponDef { Id = WeaponId.WolfWhistle, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f, Desc = "Darts. Two wolves hunt down enemies.",
                 Companion = MinionKind.Wolf, CompanionCount = 2 },
@@ -334,14 +338,15 @@ namespace Arena
             KnightWave = 30,   // a crescent of steel or light thrown by a swing
             ArrowShot = 31,    // a Mender's Bow arrow
             // Ninja
-            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, ChainStar = 37,
+            StarShot = 32, NeedleShot = 33, KunaiShot = 34, OfudaShot = 35, GustShot = 36, FumaStar = 37,
             FrostLance = 38,  // retired: the Frost Lance no longer flies (it is an icicle swing, Minions.cs)
             // Blood Mage
             BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
             StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
             FlameShot = 48,  // a Flamethrower flame
             HammerShot = 49, // the Storm Hammer, spinning as it flies
-            BoulderShot = 50; // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
+            BoulderShot = 50, // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
+            FireballShot = 51; // the Fireball: big, rolling on through enemies and setting them burning
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -379,7 +384,7 @@ namespace Arena
                 case KunaiShot: return 4f;
                 case OfudaShot: return 6f;
                 case GustShot: return 9f;
-                case ChainStar: return 11f;
+                case FumaStar: return 20f;  // giant
                 case BloodShot: return 4f;
                 case ClotShot: return 7f;
                 case LeechShot: return 3.5f;
@@ -396,6 +401,7 @@ namespace Arena
                 case FlameShot: return 7f;
                 case HammerShot: return 11f;
                 case BoulderShot: return 16f;
+                case FireballShot: return 15f;
                 case HoneyShot: return 9f;
                 default: return 6f;
             }
@@ -443,7 +449,7 @@ namespace Arena
                 case KnightWave: return new Rgba(0.85f, 0.92f, 1f);
                 case ArrowShot: return new Rgba(0.5f, 1f, 0.65f);
                 case StarShot:
-                case ChainStar:
+                case FumaStar:
                 case KunaiShot: return new Rgba(0.8f, 0.85f, 0.95f);
                 case NeedleShot: return new Rgba(0.55f, 1f, 0.75f);
                 case OfudaShot: return new Rgba(1f, 0.92f, 0.75f);
@@ -465,6 +471,7 @@ namespace Arena
                 case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
                 case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
                 case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
+                case FireballShot: return new Rgba(1f, 0.5f, 0.15f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
