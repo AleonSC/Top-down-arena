@@ -110,7 +110,7 @@ button:focus-visible { outline: 2px solid var(--void); outline-offset: 1px; }
       <ul>
         <li>Every attack it has today: the Pull and its spiral, the Collapse rings, the sweeping lasers, the Cages and the corner Gravity Wells. They're just spread over the stages so each one gets the screen to itself.</li>
         <li>Its bullet kinds and damage (small shots and big orbs, with the new +15%).</li>
-        <li>Gravity Wells' shot bending and drift, but only in the Event Horizon now: they collapse into the core when Accretion starts.</li>
+        <li>Gravity Wells' shot bending and drift. Four fresh ones spawn in the corners at the start of each stage (not the last stand), so clearing them is a job every stage; within a stage they come back 15 s after the last one dies.</li>
       </ul>
     </div>
     <div class="box">
@@ -151,10 +151,10 @@ const STAGES = [
       ["Pull", "4 s", "Drags everyone toward it (as now) while a three-armed spiral winds out: 3 small shots every 0.13 s, turning 0.21 rad a volley, 110 px/s."],
       ["Collapse", "3 s", "Rings of 26 small shots at 170 px/s, one every 0.9 s, each turned half a gap so the lanes move."],
       ["Lasers", "8 s", "A slow four-armed orb spiral, then three red lasers flicker for 0.8 s and sweep counter-clockwise at 0.32 rad/s. Touching one hurts."],
-      ["Gravity Wells", "all stage", "Four in the corners bend your shots into themselves within 420 px (shots that get close are lost to the well, and hit it) and drift you toward them at up to 45 px/s. Kill them to shoot freely; they come back 15 s after the last one dies. In the mockup the dummy's shots turn violet once a well has them."],
+      ["Gravity Wells", "each stage", "Four spawn in the corners at the start of every stage. They bend your shots into themselves within 420 px (shots that get close are lost to the well, and hit it) and drift you toward them at up to 45 px/s. Kill them to shoot freely; they come back 15 s after the last one dies. In the mockup the dummy's shots turn violet once a well has them."],
     ] },
   { name: "Accretion", hp: "65–30%", col: "#b07cff",
-    lead: "The corner wells fall into it and it starts to orbit the middle, wrapped in a disk of debris. The disk stays up all stage: your shots go through it, but to dodge in close you time the gaps.",
+    lead: "Four fresh Gravity Wells spawn in the corners, and it starts to orbit the middle, wrapped in a disk of debris. The disk stays up all stage: your shots go through it, but to dodge in close you time the gaps.",
     turns: [["Cage", 9], ["", 1], ["Slingshot", 6], ["", 1], ["Twin lasers", 7], ["", 1.5]],
     mech: [
       ["Accretion disk", "all stage", "Two rings of big orbs: 20 at 150 px turning +0.6 rad/s with two gaps, and 30 at 250 px turning −0.4 rad/s with three gaps. The core orbits 200 px round the middle at 0.15 rad/s, carrying them.", true],
@@ -163,10 +163,10 @@ const STAGES = [
       ["Twin lasers", "7 s", "Two lasers instead of three, opposite each other, sweeping faster at 0.45 rad/s. With the disk in the way, the safe side keeps moving."],
     ] },
   { name: "Spaghettify", hp: "30–10%", col: "#d465c9",
-    lead: "Back in the middle, it opens an event horizon: a black disc that grows from 70 to 170 px across the stage and pulls all the time, gently enough to walk out of.",
+    lead: "Four fresh Gravity Wells spawn in the corners. Back in the middle, it opens an event horizon: a black disc that grows from 70 to 170 px across the stage and pulls all the time, gently enough to walk out of.",
     turns: [["Hawking", 5], ["", 1], ["White hole", 4], ["", 1], ["Split", 8], ["", 1.5]],
     mech: [
-      ["Event horizon", "all stage", "A disc that hurts 20 a second to stand in, growing 70 → 170 px. A constant pull of 60 px/s within 700 px: slower than every class walks.", true],
+      ["Event horizon", "all stage", "A disc that hurts 20 a second to stand in, growing 70 → 170 px. A constant pull of 60 px/s within 700 px: slower than every class walks. Near a corner, the wells' drift pulls the other way.", true],
       ["Hawking burst", "5 s", "Radiation from the horizon's edge: 18 small shots every 0.6 s, each ring turned 10°, at 160 px/s.", true],
       ["White hole", "4 s", "The rim flashes white for 1 s, then for 1.5 s it pushes at 260 px/s and every enemy bullet on screen turns round. Then the pull snaps back.", true],
       ["Split", "8 s", "Three shards break off and orbit 220 px out at 0.7 rad/s, each firing a two-armed spiral. The core can't be hurt meanwhile; damage to the shards goes to it.", true],
@@ -199,7 +199,7 @@ function reset(stage) {
   w = { t: 0, stage, tt: 0, turn: 0, trans: 0, loops: 0, boss: { x: MID.x, y: MID.y, ang: 0, orbit: 0, fire: 0.3, ring: 0 },
     bullets: [], shots: [], bent: 0, wellCd: 0, fireCd: 0, fx: [], wells: [], cage: null, shards: [], disk: [], laser: null, push: 0, horizon: 70, flash: 0,
     p: { x: 800, y: 760, tx: 800, ty: 760, hits: 0, inv: 0 } };
-  if (stage === 0) spawnWells();
+  if (stage <= 2) spawnWells();  // four fresh corner wells at the start of every stage (not the last stand)
   if (stage === 1) makeDisk();
   if (stage === 3) w.horizon = 190;
   startTurn();
@@ -314,7 +314,8 @@ function step(dt) {
 function loopTime() { return st().turns.slice(0, w.turn).reduce((a, t) => a + t[1], 0) + w.tt; }
 
 // The dummy shoots at the core. Within 420 px of a corner well its shots bend into the well, harder the closer
-// they pass (as Combat.cs PullIntoWells does), and hit it instead. Kill all four and they're back 15 s later.
+// they pass (as Combat.cs PullIntoWells does), and hit it instead. Each stage starts with four; kill them all and
+// they're back 15 s later.
 function playerShots(dt) {
   const p = w.p, b = w.boss;
   if ((w.fireCd -= dt) <= 0) {
@@ -338,9 +339,8 @@ function playerShots(dt) {
   }
   w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
   for (const g of w.wells) { g.flash = Math.max(0, g.flash - dt); if (g.hp <= 0) w.fx.push({ x: g.x, y: g.y, r: 60, t: 0, dur: 0.4, col: "#b07cff" }); }
-  const before = w.wells.length;
   w.wells = w.wells.filter(g => g.hp > 0);
-  if (w.stage === 0 && w.trans <= 0) {
+  if (w.stage <= 2 && w.trans <= 0) {
     if (w.wells.length) w.wellCd = 15;
     else if ((w.wellCd -= dt) <= 0) spawnWells();
   }
@@ -351,7 +351,7 @@ function moveDummy(dt) {
   // The dummy wanders between points away from the core, at a class's walking speed.
   const p = w.p, b = w.boss, keep = (w.stage >= 2 ? w.horizon : 60) + 220;
   if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * 0.25) {
-    for (let k = 0; k < 10; k++) { const a = rnd(0, TAU), r = rnd(keep, w.stage === 0 ? 520 : 400), tx = MID.x + Math.cos(a) * r * 1.5, ty = MID.y + Math.sin(a) * r * 0.85;
+    for (let k = 0; k < 10; k++) { const a = rnd(0, TAU), r = rnd(keep, w.wells.length ? 520 : 400), tx = MID.x + Math.cos(a) * r * 1.5, ty = MID.y + Math.sin(a) * r * 0.85;
       if (tx > 60 && tx < W - 60 && ty > 60 && ty < H - 60) { p.tx = tx; p.ty = ty; break; } }
   }
   if (w.cage) { p.tx = w.cage.x; p.ty = w.cage.y; }  // caged: it stays put and shoots the wells
@@ -430,7 +430,7 @@ function draw() {
   for (const f of w.fx) { const k = f.t / f.dur; cx.strokeStyle = f.col; cx.globalAlpha = 1 - k; cx.lineWidth = 4; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU); cx.stroke(); cx.globalAlpha = 1; }
   // The dummy's shots: green, turning violet once a well has hold of them
   for (const q of w.shots) { cx.fillStyle = q.bent ? "#c9a6ff" : "#7dffa8"; cx.beginPath(); cx.arc(q.x, q.y, 4, 0, TAU); cx.fill(); }
-  if (w.stage === 0 && !w.wells.length && w.trans <= 0) { cx.fillStyle = "rgba(176,124,255,0.8)"; cx.font = "500 18px 'IBM Plex Mono', monospace"; cx.textAlign = "center";
+  if (w.stage <= 2 && !w.wells.length && w.trans <= 0) { cx.fillStyle = "rgba(176,124,255,0.8)"; cx.font = "500 18px 'IBM Plex Mono', monospace"; cx.textAlign = "center";
     for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) cx.fillText(`back in ${w.wellCd.toFixed(0)} s`, x, y + 6); cx.textAlign = "left"; }
   // Dummy
   cx.fillStyle = p.inv > 0.2 ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)"; cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
@@ -449,7 +449,7 @@ function draw() {
     for (let k = 0; k < 3; k++) { cx.beginPath(); cx.arc(x, y, r - 4, tt * 2 + k * TAU / 3, tt * 2 + k * TAU / 3 + 1.3); cx.stroke(); }
     cx.strokeStyle = "rgba(255,230,255,0.7)"; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(x, y, r + 6, -tt, -tt + 2); cx.stroke();
   }
-  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span>${w.stage === 0 ? `<span>Shots bent into wells <b>${w.bent}</b></span><span>Wells <b>${w.wells.length} / 4</b></span>` : ""}<span>Bullets <b>${w.bullets.length + w.disk.length}</b></span>`;
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span>${w.stage <= 2 ? `<span>Shots bent into wells <b>${w.bent}</b></span><span>Wells <b>${w.wells.length} / 4</b></span>` : ""}<span>Bullets <b>${w.bullets.length + w.disk.length}</b></span>`;
   for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
 }
 
