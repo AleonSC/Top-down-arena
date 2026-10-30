@@ -50,14 +50,78 @@ static partial class Program
         Action<int, float> place = (id, x) => { var q = (id == 1 ? host : client).Game.Me; q.Pos = q.Disp = new V2(x, 450f); };
         clear(); run(0.3f);
 
-        // Kusarigama: yanks what it hits toward you (but not into you).
-        place(1, 650f); run(0.2f);
+        // Kusarigama: the throw hooks the first enemy in its path; holding fire reels you in to it for a heavy, stunning slash.
+        place(1, 400f); run(0.2f);
+        var front = dummy(new V2(600f, 450f));
+        var behind = dummy(new V2(650f, 450f));
+        V2 frontAt = front.Pos, behindAt = behind.Pos;
+        Action pinBoth = () => { front.Pos = frontAt; behind.Pos = behindAt; front.FireT = behind.FireT = 99f; };
+        float hookedAt = -1f, hitOnHook = 0f, behindOnHook = -1f, maxStun = 0f;
+        bool clientSawHook = false;
+        for (int f = 0; f < 70; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = frontAt }); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            clear(); pinBoth();
+            if (hookedAt < 0f && hp.HookId == front.Id) { hookedAt = f / 60f; hitOnHook = front.MaxHp - front.Hp; behindOnHook = behind.MaxHp - behind.Hp; }
+            clientSawHook |= client.Game.Players[1].HookId == front.Id;
+            maxStun = Math.Max(maxStun, front.FrozenT);
+        }
+        float reeled = hp.Pos.DistanceTo(frontAt), total = front.MaxHp - front.Hp;
+        Console.WriteLine("  kusarigama: hooked after {0:0.00} s ({1:0.0}), behind it {2:0.0}; reeled in to {3:0} px of it; slash brought it to {4:0.0}; stunned {5:0.00} s; client saw the hook {6}",
+            hookedAt, hitOnHook, behindOnHook, reeled, total, maxStun, clientSawHook);
+        Check(hookedAt >= 0f && hitOnHook > 0f && behindOnHook == 0f && clientSawHook, "the Kusarigama's throw hooks the first enemy in its path (not the one behind it), and everyone sees the chain");
+        Check(reeled < front.Radius + hp.Def.BodyR + 20f && total >= hitOnHook * 2.5f && maxStun > 0.3f, "firing while hooked reels you in to it and lands a heavy, stunning slash");
+        front.Hp = behind.Hp = 0f; keep.Remove(front); keep.Remove(behind);
         var d1 = dummy(new V2(770f, 450f));
-        float before = d1.Pos.DistanceTo(hp.Pos);
-        for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = d1.Pos }); g.Update(dt); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt); clear(); d1.FrozenT = 5f; }
-        float after = d1.Pos.DistanceTo(hp.Pos);
-        Console.WriteLine("  kusarigama: dummy {0:0} px away, pulled to {1:0} px", before, after);
-        Check(after < before - 30f && after >= d1.Radius + hp.Def.BodyR, "the Kusarigama yanks enemies toward you");
+
+        // Bo Staff: click while moving to vault, striking what you pass; holding or standing still doesn't.
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
+        place(1, 300f); run(0.3f);
+        d1.Pos = new V2(380f, 450f);
+        var aside = dummy(new V2(380f, 600f));
+        float d1hp = d1.Hp;
+        Func<int, bool, V2, float> stepFor = (frames, fire, mv) =>
+        {
+            float x0 = hp.Pos.X;
+            for (int f = 0; f < frames; f++)
+            {
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+                clear(); d1.Pos = new V2(380f, 450f); aside.Pos = new V2(380f, 600f); d1.FireT = aside.FireT = 99f;
+            }
+            return hp.Pos.X - x0;
+        };
+        float vaulted = stepFor(11, true, new V2(1f, 0f));
+        float vaultHit = d1hp - d1.Hp;
+        float held = stepFor(90, true, new V2(1f, 0f)) / 90f * 11f;  // holding: walking pace only
+        stepFor(10, false, V2.Zero);
+        float still = stepFor(11, true, V2.Zero);
+        Console.WriteLine("  bo staff: vaulted {0:0} px in 11 ticks (walking pace {1:0}), struck the one in its path for {2:0.0}, the one aside {3:0.0}; standing still moved {4:0}",
+            vaulted, held, vaultHit, aside.MaxHp - aside.Hp, still);
+        Check(vaulted > Game.VaultDist * 0.9f && vaultHit >= hp.Weapon.Damage * Game.VaultMult && aside.Hp == aside.MaxHp,
+            "clicking fire while moving vaults the Bo Staff 150 px, striking everything it passes");
+        Check(held < vaulted * 0.6f && Math.Abs(still) < 2f, "holding fire or standing still doesn't vault");
+        // The same vault by a joined player: their game moves them and tells the host, which lands the strike.
+        var cme = client.Game.Me;
+        cp.Weapon = cme.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
+        place(2, 900f); run(0.3f);
+        aside.Pos = new V2(980f, 450f);
+        float asideHp = aside.Hp, cx0 = cme.Pos.X;
+        for (int f = 0; f < 15; f++)
+        {
+            host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { Fire = true, Move = new V2(1f, 0f), AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
+            Thread.Sleep(1);
+            clear(); aside.Pos = new V2(980f, 450f); aside.FireT = 99f;
+        }
+        for (int f = 0; f < 10; f++) { Thread.Sleep(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); }
+        Console.WriteLine("  bo staff (joined player): vaulted {0:0} px; struck the one in its path for {1:0.0}", cme.Pos.X - cx0, asideHp - aside.Hp);
+        Check(cme.Pos.X - cx0 > Game.VaultDist * 0.9f && asideHp - aside.Hp >= cp.Weapon.Damage * Game.VaultMult, "a joined player's vault moves them and the host lands its strike");
+        cp.Weapon = cme.Weapon = Defs.Weapon(Role.Healer, Kit.Ninja, 0);
+        aside.Hp = 0f; keep.Remove(aside);
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0);
+        d1.Pos = new V2(770f, 450f);
 
         // Kunai: +50% on enemies that aren't after you; Vanish's ambush doubles the next hit, once.
         d1.TargetId = 2;

@@ -191,6 +191,14 @@ class Shot {
       var hm = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
       for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].Hemorrhage = k + 1; }
     }
+    if (Environment.GetEnvironmentVariable("HOOK") != null) {
+      // The Kusarigama: hooked in an enemy (the chain taut to it), and a throw flying out.
+      me.Kit = Kit.Ninja; me.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 0); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(500f, 450f); me.Aim = 0f;
+      var hk = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      if (hk.Count > 0) { hk[0].Pos = hk[0].Disp = new V2(720f, 420f); me.HookId = hk[0].Id; me.HookT = 2f; me.Aim = (hk[0].Pos - me.Pos).Angle; }
+      host.Game.Effects.Add(new Effect { Kind = FxKind.ChainThrow, Pos = new V2(500f, 600f), Pos2 = new V2(780f, 600f), Color = new Rgba(0.75f, 0.78f, 0.85f), Radius = 0f, Dur = 0.25f, T = 0.06f });
+    }
     if (Environment.GetEnvironmentVariable("ARROWS") != null) {
       var sb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       for (int k = 0; k < 4; k++) { float a = -0.6f + k * 0.45f; sb.Invoke(host.Game, new object[] { Defs.ArrowShot, me.Pos + V2.FromAngle(a) * (60f + k * 30f), V2.FromAngle(a) * 900f, 0f, 1f, 40f, 1, false, 0f }); }

@@ -603,6 +603,9 @@ namespace Arena
                 case FxKind.ArcField:
                     DrawArcFieldFx(fx, f);
                     break;
+                case FxKind.ChainThrow:
+                    DrawChainThrowFx(fx, f);
+                    break;
             }
         }
 
@@ -779,6 +782,31 @@ namespace Arena
         }
 
         /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
+        /// A chain of links from `a` to `b`, with the sickle's blade at `b`.
+        void DrawChain(V2 a, V2 b, float alpha)
+        {
+            V2 to = b - a;
+            float len = to.Length;
+            if (len < 1f)
+                return;
+            V2 dir = to / len, side = dir.Orthogonal();
+            int n = Math.Max(2, (int)(len / 9f));
+            for (int i = 0; i <= n; i++)
+            {
+                V2 at = a + to * ((float)i / n);
+                Circle(at, i % 2 == 0 ? 2.2f : 1.6f, Steel.WithAlpha((i % 2 == 0 ? 0.95f : 0.7f) * alpha), 6);
+            }
+            Arc(b - dir * 4f, 7f, 2.5f, Rgba.White.WithAlpha(0.9f * alpha), 8, dir.Angle - MathX.Pi / 2f, MathX.Pi);  // the blade, curving round
+            Line(b - dir * 6f, b - dir * 1f + side * 6f, 2f, Steel.WithAlpha(alpha));
+        }
+
+        /// The Kusarigama's throw: the chain runs out to where it ended (and, if it hooked something, stays taut a moment).
+        void DrawChainThrowFx(Effect fx, float f)
+        {
+            float run = Mathf.Min(1f, f / 0.35f), fade = fx.Radius > 0f ? 1f : 1f - Mathf.Max(0f, (f - 0.35f) / 0.65f);
+            DrawChain(fx.Pos, V2.Lerp(fx.Pos, fx.Pos2, run), fade);
+        }
+
         /// Arc Lightning going off: the strip flashes and jagged lightning crackles along and across it. The bolts
         /// come from a generator seeded by where it went off, so everyone sees the same crackle.
         void DrawArcFieldFx(Effect fx, float f)
@@ -1862,12 +1890,20 @@ namespace Arena
             V2 grip = p.Disp + side * (r * 0.75f);
             switch (p.Weapon.Id)
             {
-                case WeaponId.Kusarigama:  // a sickle, its chain looping round
+                case WeaponId.Kusarigama:  // a sickle, its chain looping round, or run out taut to the enemy it's hooked in
+                {
                     Line(grip, grip + dir * (r + 6f), 3f, Wood.WithAlpha(a));
-                    Arc(grip + dir * (r + 6f) - side * 5f, 6f, 2.5f, Steel.WithAlpha(a), 8, p.Aim - MathX.Pi / 2f, MathX.Pi);
-                    for (int k = 0; k < 5; k++)
-                        Circle(p.Disp + V2.FromAngle(t * 6f + k * 0.5f) * (r + 9f), 1.6f, Steel.WithAlpha(0.7f * a), 6);
+                    Enemy hooked;
+                    if (p.HookT > 0f && game.Enemies.TryGetValue(p.HookId, out hooked))
+                        DrawChain(grip, hooked.Disp, a);
+                    else
+                    {
+                        Arc(grip + dir * (r + 6f) - side * 5f, 6f, 2.5f, Steel.WithAlpha(a), 8, p.Aim - MathX.Pi / 2f, MathX.Pi);
+                        for (int k = 0; k < 5; k++)
+                            Circle(p.Disp + V2.FromAngle(t * 6f + k * 0.5f) * (r + 9f), 1.6f, Steel.WithAlpha(0.7f * a), 6);
+                    }
                     break;
+                }
                 case WeaponId.BoStaff:  // a long staff turning in the hands
                 {
                     V2 s = V2.FromAngle(p.Aim + 0.6f * Mathf.Sin(t * 3f) + MathX.Pi / 2f);

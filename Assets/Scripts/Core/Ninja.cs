@@ -8,7 +8,7 @@ namespace Arena
     /// swapping places, wards), and DPS strike from the shadows (Shadow Step, Vanish's ambush, Blade Fan).
     public partial class Game
     {
-        const float KusariPull = 40f, KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
+        const float KatanaLungeReach = 170f;  // (each weapon's main reach, speed and damage are in Defs)
         public const float FumaReach = 380f, FumaWidth = 110f;  // a Fuma Shuriken's loop: this far out in front of you, this far either side (its Life is one lap)
         public static float FumaSize(int i) => 1f + 0.15f * (i / 2);  // the i-th one thrown loops this much wider (every second pair, a little more)
         const float StepRange = 450f, StepDamage = 80f;
@@ -29,13 +29,9 @@ namespace Arena
             switch (w.Id)
             {
                 case WeaponId.Kusarigama:
-                {
-                    var s = NewSwing(p, aim, w.Reach + w.Grow * extra, 120f, w.Damage * dmg);
-                    s.Knock = -(KusariPull + 15f * extra);  // the chain yanks them in
-                    s.NoCut = true;
-                    pendingSwings.Add(s);
+                    if (!Hooked(p))
+                        ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: firing reels you in instead (LocalWeaponDash)
                     break;
-                }
                 case WeaponId.BoStaff:
                     pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
                     break;
@@ -468,6 +464,158 @@ namespace Arena
             return 1f;
         }
 
+        // --- Kusarigama and Bo Staff: weapons that move you ---------------------------------------------
+        //
+        // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
+        // which does the damage (HostWeaponDash).
+
+        public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
+        public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
+        public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
+        const byte DashVault = 0, DashReel = 1;
+
+        bool Hooked(Player p)
+        {
+            Enemy e;
+            return p.HookT > 0f && Enemies.TryGetValue(p.HookId, out e) && e.Hp > 0f;
+        }
+
+        /// The Kusarigama's throw: the chain-sickle flies straight out and hooks the first enemy in its path.
+        void ThrowKusarigama(Player p, float aim, float reach, float dmg)
+        {
+            reach = MeleeReach(p, reach);
+            V2 dir = V2.FromAngle(aim), side = dir.Orthogonal();
+            Enemy first = null;
+            float firstAlong = float.MaxValue;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f)
+                    continue;
+                V2 rel = e.Pos - p.Pos;
+                float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
+                if (along < 0f || along > reach + e.Radius || across > KusariHalfWidth + e.Radius || along >= firstAlong)
+                    continue;
+                first = e;
+                firstAlong = along;
+            }
+            p.Run.ShotsFired++;
+            V2 end = first != null ? first.Pos : p.Pos + dir * reach;
+            BroadcastFx(FxKind.ChainThrow, p.Pos, end, Steel, first != null ? 1f : 0f, 0.25f, Sfx.SwingLight);
+            if (first == null)
+                return;
+            if (BlocksShot(first, p.Pos))
+            {
+                WearShield(first, dmg);
+                return;
+            }
+            p.Run.ShotsHit++;
+            HurtEnemy(first, dmg, p.Id);
+            OnBulletHit(new Bullet { Pos = first.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash }, first);
+            p.HookId = first.Id;
+            p.HookT = HookTime;
+        }
+
+        static readonly Rgba Steel = new Rgba(0.75f, 0.78f, 0.85f);
+
+        // Local: this machine's player's weapon dashes.
+        float vaultCd, reelCd;
+        bool wasFiring;
+
+        /// Your own game, every tick: the Bo Staff vaults when you click fire while moving; the Kusarigama reels you
+        /// in to the enemy it's hooked in when you fire. Returns the dash it started, if any.
+        void LocalWeaponDash(Player me, V2 move, bool firing, float dt)
+        {
+            vaultCd -= dt;
+            reelCd -= dt;
+            bool pressed = firing && !wasFiring;
+            wasFiring = firing;
+            if (me.Downed || DashT > 0f || me.StunT > 0f)
+                return;
+            V2 target;
+            byte kind;
+            if (me.Weapon.Id == WeaponId.BoStaff && pressed && !move.IsZero && vaultCd <= 0f)
+            {
+                DashDir = move.Normalized();
+                target = ClampToArena(me.Pos + DashDir * (VaultDist + VaultGrow * ExtraShots(me)), me.Def.BodyR);
+                dashSpeed = VaultSpeed;
+                vaultCd = VaultCd;
+                kind = DashVault;
+            }
+            else if (me.Weapon.Id == WeaponId.Kusarigama && firing && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
+            {
+                Enemy e;
+                if (!Enemies.TryGetValue(me.HookId, out e))
+                    return;
+                V2 to = e.Pos - me.Pos;
+                float stop = e.Radius + me.Def.BodyR + 6f;
+                if (to.Length <= stop)
+                    target = me.Pos;
+                else
+                    target = ClampToArena(e.Pos - to.Normalized() * stop, me.Def.BodyR);
+                DashDir = (target - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (target - me.Pos).Normalized();
+                dashSpeed = ReelSpeed;
+                reelCd = 0.6f;
+                kind = DashReel;
+            }
+            else
+                return;
+            DashT = target.DistanceTo(me.Pos) / dashSpeed;
+            if (IsHost)
+                HostWeaponDash(MyId, kind, target);
+            else
+            {
+                var w = Proto.Begin(Msg.WeaponDash);
+                w.Write(kind);
+                w.Write(target);
+                session.SendToHost(Proto.End(w));
+            }
+        }
+
+        /// Host: a player's weapon moved them to `target`. A vault strikes everything along the way; a reel lands a
+        /// heavy slash on the hooked enemy when you arrive (and lets go of it).
+        void HostWeaponDash(int id, int kind, V2 target)
+        {
+            Player p;
+            if (!Players.TryGetValue(id, out p) || p.Downed)
+                return;
+            var w = p.Weapon;
+            float dmg = w.Damage * p.Stats.DmgMult;
+            V2 from = p.Pos, path = target - from;
+            float len = Math.Max(1f, path.Length);
+            V2 dir = path / len;
+            if (kind == DashVault && w.Id == WeaponId.BoStaff)
+            {
+                float time = len / VaultSpeed;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.1f);  // springing over them
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                        continue;
+                    float along = Math.Max(0f, Math.Min(len, Dot(e.Pos - from, dir)));
+                    if (e.Pos.DistanceTo(from + dir * along) > e.Radius + VaultWidth)
+                        continue;
+                    HurtEnemy(e, dmg * VaultMult, p.Id);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg * VaultMult, Kind = Defs.KnightSlash }, e);
+                }
+                BroadcastFx(FxKind.Slash, from, target, Defs.BulletColor(Defs.KnightSlash), 0.12f, 0.2f, Sfx.SwingHeavy);
+            }
+            else if (kind == DashReel && w.Id == WeaponId.Kusarigama && Hooked(p))
+            {
+                Enemy e = Enemies[p.HookId];
+                float time = len / ReelSpeed;
+                p.InvulnT = Math.Max(p.InvulnT, time + 0.15f);
+                var s = NewSwing(p, (e.Pos - from).Angle, ReelSlashReach, 160f, dmg * ReelSlashMult * (1f + ReelSlashGrow * ExtraShots(p)));
+                s.Delay = time + 0.03f;  // lands once you've arrived (the swing hits from where you are then)
+                s.Stun = ReelStun;
+                s.Heavy = true;
+                s.NoCut = true;
+                pendingSwings.Add(s);
+                p.HookT = 0f;
+                p.HookId = 0;
+                BroadcastFx(FxKind.ChainThrow, from, e.Pos, Steel, 1f, 0.15f, Sfx.None);
+            }
+        }
+
         /// Called by MoveBullets before it moves anything: gather the smoke, and turn chain shuriken around.
         void PrepareNinjaBullets(float dt)
         {
@@ -513,6 +661,12 @@ namespace Arena
         /// and clears bullets, and Shadow Clones about to end burst.
         void TickNinjas(float dt)
         {
+            foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
+                if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))
+                {
+                    p.HookT = 0f;
+                    p.HookId = 0;
+                }
             clones.Clear();
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.Clone)

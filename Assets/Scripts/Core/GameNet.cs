@@ -30,6 +30,13 @@ namespace Arena
             p.Parrying = parry;
         }
 
+        public void OnWeaponDash(int peer, BinaryReader r)
+        {
+            int kind = r.ReadByte();
+            V2 target = r.ReadV2();
+            HostWeaponDash(peer, kind, target);  // Ninja.cs
+        }
+
         public void OnAbility(int peer, BinaryReader r)
         {
             int slot = r.ReadByte();
@@ -393,6 +400,8 @@ namespace Arena
             s.Float(ref p.WhirlT);
             s.Float(ref p.VanishT);
             s.Float(ref p.IronT);
+            s.Int(ref p.HookId);
+            s.Float(ref p.HookT);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);
