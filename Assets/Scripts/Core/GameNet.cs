@@ -385,6 +385,7 @@ namespace Arena
             s.Float(ref p.ParryHp);
             s.Float(ref p.ParryBroken);
             s.Float(ref p.ShieldHp);
+            s.Float(ref p.WardT);
             s.Float(ref p.StunT);
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);

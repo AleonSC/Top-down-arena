@@ -257,6 +257,8 @@ namespace Arena
                 for (int k = 0; k < 6; k++)
                     Line(p.Disp + V2.FromAngle(t * 3f + MathX.Tau * k / 6f) * (p.Def.BodyR + 22f),
                          p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
+            if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
+                Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
             if (p.ShieldHp > 0f)  // Arcane Ward
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
             if (p.SurgeT > 0f)  // Arcane Surge

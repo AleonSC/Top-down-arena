@@ -45,6 +45,13 @@ their role and class.
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
 use your damage and attack-speed bonuses too.
 
+**Healers** (every class): the healing aura heals allies within 170 px for 9 HP/s and you for 1 HP/s; each
+**Sanctuary** card adds another 9 HP/s for allies (and 40% reach) and +1 HP/s for you. A Healer's healing past someone's full
+health becomes a shield (up to 20% of their max health, for 4 s; the aura's own ticks don't count). Healer
+abilities work alone too: **Haven** and **Spirit Ward** heal 50% faster with nobody to revive, **Martyr** with no
+one down wards the most hurt ally (you, alone) for 12 s so going down puts them straight back up at 50%, and a
+**Phoenix** brings anyone back, you included (the run doesn't end while one is out).
+
 ### The Knight
 
 Knights fight up close. Holding fire **swings** instead of shooting: each swing hits every enemy in its arc
@@ -461,7 +468,7 @@ as chips above the wave panel during the match, and session recordings list them
 | Lucky | Everyone starts with 3 extra upgrade rerolls | Easier |
 | Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool (not in the Practice Range) | Easier |
 | Practiced | Abilities gain mastery twice as fast | Easier |
-| Bloodlust | Every kill heals its killer (2 HP + 0.1 per wave, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (Healers' own regeneration included; their aura still heals) | Risky |
+| Bloodlust | Every kill heals its killer (2 HP + 0.1 per wave, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (the Healer's aura stops healing themselves; it still heals allies) | Risky |
 | Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |

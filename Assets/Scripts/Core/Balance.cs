@@ -74,6 +74,11 @@ namespace Arena
 
         public const float AuraRange = 170f;
         const float AuraHeal = 9f;
+        public const float AuraSelfHeal = 1f;
+        const float SoloZoneHeal = 1.5f;  // Haven and Spirit Ward heal this much faster when there's nobody to revive  // HP/s the aura heals the Healer themselves (x the aura's heal multiplier)
+        const string AuraSource = "aura";
+        // A Healer's heals past full health become a shield: up to this share of the target's max health, for this long.
+        public const float OverhealCap = 0.2f, OverhealTime = 4f;
 
         // --- Soldier abilities, and the ones only very rare cards give -----------------------------------------------
 

@@ -208,7 +208,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SpiritWard, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2,
-                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster.",
+                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman at your cursor for 8 s: allies near it regenerate 6 HP/s and revive 3x faster (alone: you heal 50% faster).",
                 Capstone = "The ward follows you.",
                 Bot = b => b.AllyHurt,
             },

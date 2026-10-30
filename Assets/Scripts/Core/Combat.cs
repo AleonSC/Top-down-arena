@@ -56,6 +56,14 @@ namespace Arena
                 p.Hp = 1f;  // Crimson Apotheosis
             if (p.Hp <= 0f && InLantern(p))
                 p.Hp = 1f;  // a Soul Lantern keeps you standing
+            if (p.Hp <= 0f && p.WardT > 0f)
+            {
+                // Martyr's ward: straight back up instead of going down.
+                p.WardT = 0f;
+                p.Hp = Math.Max(1f, p.MaxHp * p.WardFrac);
+                p.InvulnT = Math.Max(p.InvulnT, p.WardInvuln);
+                BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.9f, 0.15f, 0.25f), 90f, 0.6f, Sfx.Revive);
+            }
             if (p.Hp <= 0f)
             {
                 p.Hp = 0f;
