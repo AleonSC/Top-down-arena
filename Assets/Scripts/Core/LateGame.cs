@@ -10,6 +10,7 @@ namespace Arena
         public int Id;
         public V2 Pos;
         public float Radius, T, Duration;
+        public byte Kind;  // HazardLightning (the Storm Herald) or HazardHand (the Lich's dead hands)
     }
 
     /// Waves 16-50: the late-game enemies, the bosses from wave 25 on, and winning at wave 50 (host only).
@@ -71,6 +72,7 @@ namespace Arena
                 case EnemyType.Devourer:
                     return KeepDistance(dir, dist, 260f);
                 case EnemyType.Lich:
+                    return V2.Zero;  // it moves itself: drifting, blinking between graves (Lich.cs)
                 case EnemyType.StormHerald:
                 {
                     var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
@@ -137,29 +139,8 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Lich:
-                {
-                    // Immune while its phylactery stands; a new one appears 15 s after it breaks.
-                    int phylacteries = CountChildren(e, EnemyType.Phylactery);
-                    e.Phase = (byte)(phylacteries > 0 ? 1 : 0);
-                    if (phylacteries == 0 && e.PhaseT <= 0f)
-                    {
-                        e.PhaseT = 15f;
-                        V2 pos = FarFromPlayers(20f);
-                        SpawnEnemyAt(EnemyType.Phylactery, pos, 0.8f, e.Id);
-                        BroadcastFx(FxKind.Ring, pos, Defs.Get(EnemyType.Phylactery).Color, 60f, 0.6f, Sfx.Summon);
-                    }
-                    else if (phylacteries > 0)
-                        e.PhaseT = Math.Max(e.PhaseT, 15f);
-                    e.T2 -= dt;
-                    if (e.T2 <= 0f)
-                    {
-                        e.T2 = 9f;
-                        if (CountChildren(e, EnemyType.Grunt) < 6)
-                            for (int i = 0; i < 3; i++)
-                                SpawnEnemyAt(EnemyType.Grunt, e.Pos + V2.FromAngle(MathX.Tau * i / 3f) * 80f, 0.6f, e.Id);
-                    }
+                    LichSpecial(e, dt);  // Lich.cs
                     break;
-                }
                 case EnemyType.StormHerald:
                     if (e.PhaseT <= 0f)
                     {
@@ -247,19 +228,7 @@ namespace Arena
                     DuelistFire(e, aim);  // Duelist.cs
                     break;
                 case EnemyType.Lich:
-                    if ((int)(e.T / 5f) % 2 == 0)
-                    {
-                        e.FireT = 0.8f;
-                        for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.15f, 190f, Defs.PierceShot);
-                    }
-                    else
-                    {
-                        e.FireT = 2.2f;
-                        e.Ang += 0.2f;
-                        for (int i = 0; i < 16; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 16f, 90f, Defs.BigShot);
-                    }
+                    LichFire(e, aim);  // Lich.cs
                     break;
                 case EnemyType.StormHerald:
                     e.FireT = 1f;
@@ -369,10 +338,11 @@ namespace Arena
 
         // --- Lightning strikes --------------------------------------------------
 
-        void AddHazard(V2 pos, float radius, float delay)
+        Hazard AddHazard(V2 pos, float radius, float delay)
         {
             var h = new Hazard { Id = nextHazardId++, Pos = ClampToArena(pos, 10f), Radius = radius, T = delay, Duration = delay };
             Hazards[h.Id] = h;
+            return h;
         }
 
         void TickHazards(float dt)
@@ -386,6 +356,12 @@ namespace Arena
             }
             foreach (var h in done)
             {
+                if (h.Kind == HazardHand)
+                {
+                    HandBursts(h);  // Lich.cs
+                    Hazards.Remove(h.Id);
+                    continue;
+                }
                 float dmg = 25f + Wave * 0.3f;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
@@ -423,6 +399,7 @@ namespace Arena
             s.Float(ref h.Radius);
             s.Float(ref h.T);
             s.Float(ref h.Duration);
+            s.Byte(ref h.Kind);
         }
     }
 }

@@ -678,8 +678,8 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || DuelImmune(e))
-                return;  // a boss changing stage, the Queen up in a dive, the Singularity split
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e))
+                return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
             if (!DualReaperHit(e, ref dmg))

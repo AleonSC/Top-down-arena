@@ -520,6 +520,7 @@ namespace Arena
             return DuelStageName(s.Stage);
         }
 
+        static string LichStageName(LichStage s) => s == LichStage.Crypt ? "THE CRYPT" : s == LichStage.Harvest ? "SOUL HARVEST" : s == LichStage.Undeath ? "UNDEATH" : "THE FINAL RITE";
         static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
             : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
 
@@ -688,8 +689,20 @@ namespace Arena
                     note = DuelNote(e.Duel, ref noteColor);
                 else if (e.Type == EnemyType.Colossus && e.Colossus != null)
                     note = ColossusNote(e.Colossus, ref noteColor);
-                else if (e.Type == EnemyType.Lich && e.Phase == 1)
-                    note = "IMMUNE — destroy the phylactery!";
+                else if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.TransT > 0f)
+                {
+                    note = "CAN'T BE HURT — " + LichStageName(e.Lich.TransTo) + " is coming";
+                    noteColor = new Color(0.9f, 0.92f, 1f);
+                }
+                else if (e.Type == EnemyType.Lich && e.Phase == Game.LichGuarded)
+                    note = e.Lich != null && e.Lich.Stage == LichStage.Harvest ? "GUARDED — break all three phylacteries!" : "GUARDED — break the phylactery!";
+                else if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.Window > 0f)
+                {
+                    note = "OPEN — " + Mathf.CeilToInt(e.Lich.Window) + " s before its phylacteries rise again";
+                    noteColor = new Color(1f, 0.8f, 0.35f);
+                }
+                else if (e.Type == EnemyType.Lich && e.Lich != null)
+                    note = LichStageName(e.Lich.Stage);
                 else if (Game.Hungry(e))
                 {
                     note = "HUNGRY — stop shooting, your hits heal it!";

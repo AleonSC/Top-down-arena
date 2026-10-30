@@ -201,6 +201,7 @@ namespace Arena
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
         public DuelState Duel;      // the Duelist's fight (Duelist.cs; replicated)
+        public LichState Lich;      // the Lich's fight (Lich.cs; replicated)
         public ColossusState Colossus;  // the Colossus's fight (Colossus.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
@@ -991,6 +992,7 @@ namespace Arena
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
             UpdateDuelView(dt);    // Duelist.cs
+            UpdateLichView(dt);    // Lich.cs
             UpdateColossusView(dt);  // Colossus.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs

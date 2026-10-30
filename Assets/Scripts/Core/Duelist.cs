@@ -387,15 +387,6 @@ namespace Arena
             }
         }
 
-        Player NearestPlayer(V2 pos)
-        {
-            Player best = null;
-            foreach (var p in Players.Values)
-                if (!p.Downed && (best == null || p.Pos.DistanceSq(pos) < best.Pos.DistanceSq(pos)))
-                    best = p;
-            return best;
-        }
-
         /// Blades count down; on the host they fire two small shots out sideways and go (clients just draw them).
         void TickDuelBlades(DuelState s, float dt, bool host)
         {

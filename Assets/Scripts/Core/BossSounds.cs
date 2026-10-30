@@ -19,7 +19,7 @@ namespace Arena
                     return Reapers == null ? e.Phase * 10 : (int)Reapers.Stage * 100 + (Reapers.Trans != 0 ? 50 : (int)Reapers.Turn) + e.Phase * 1000;
                 case EnemyType.TwinB: return e.Phase * 1000;
                 case EnemyType.Singularity: return (e.Sing == null ? 0 : (int)e.Sing.Stage * 100) + e.Phase;
-                case EnemyType.Lich: return e.Phase * 10 + (int)(e.T / 5f) % 2;
+                case EnemyType.Lich: return e.Lich == null ? 0 : (int)e.Lich.Stage * 100 + (e.Lich.TransT > 0f ? 50 : (int)e.Lich.Turn);
                 case EnemyType.Devourer: return e.Phase;
                 case EnemyType.Eclipse:
                     return e.Phase * 10 + (e.Phase == 0 ? (int)(e.T / 4f) % 2 : MathX.Fmod(e.T2, 10f) < 3.5f ? 5 : 0);
@@ -63,7 +63,15 @@ namespace Arena
                         case SingNormal: case SingSplit: return Sfx.BossShift;
                         default: return Sfx.None;  // the lasers firing after their warning, breathers, the stage change
                     }
-                case EnemyType.Lich: return sig >= 10 && sig % 10 == 0 ? Sfx.BossChime : Sfx.BossShift;
+                case EnemyType.Lich:  // raising the dead chimes, the sweep and the hands rise, a breather is quiet (Lich.cs)
+                {
+                    var turn = (LichTurn)(sig % 100);
+                    if (sig % 100 == 50 || turn == LichTurn.Rest)
+                        return Sfx.None;
+                    if (turn == LichTurn.Raise || turn == LichTurn.Rite)
+                        return Sfx.BossChime;
+                    return turn == LichTurn.Sweep || turn == LichTurn.Hands || turn == LichTurn.Spirits ? Sfx.BossCharge : Sfx.BossShift;
+                }
                 case EnemyType.Devourer: return sig == 1 ? Sfx.BossCharge : Sfx.None;
                 case EnemyType.Eclipse: return sig % 10 == 5 ? Sfx.BossCharge : Sfx.BossShift;
                 default: return Sfx.None;
