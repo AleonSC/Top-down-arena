@@ -511,6 +511,7 @@ namespace Arena
                 nb.Bounces = rb.Bounces - 1;
                 nb.Splash = rb.Splash;
                 nb.Chain = rb.Chain;
+                nb.Shock = rb.Shock;
                 nb.SlowAmt = rb.SlowAmt;
             }
 
@@ -679,6 +680,8 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
+            if (b.Shock > 0)
+                Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower: burning, the strongest fire on it counts
             {
                 if (!b.Pierced)  // full damage to the first enemy, half to the ones behind
