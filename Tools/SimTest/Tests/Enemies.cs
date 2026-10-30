@@ -269,7 +269,7 @@ static partial class Program
                 var cb = Find(s[1], boss);
                 switch (boss)
                 {
-                    case EnemyType.Colossus: mechanic = true; break;
+                    case EnemyType.Colossus: mechanic |= cb?.Colossus != null && cb.Colossus.Rings.Count > 0; break;  // its stomp rings (Colossus.cs)
                     case EnemyType.Duelist: mechanic |= Find(s[1], EnemyType.Decoy) != null; break;
                     case EnemyType.Lich:
                     {

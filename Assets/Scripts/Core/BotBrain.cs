@@ -295,6 +295,10 @@ namespace Arena
             int lasers = sing != null ? SingLaserCount(sing) : 0;
             float laserSpin = sing != null ? SingLaserSpin(sing) : 0f;
 
+            // The Colossus's stomp rings, landings, fissures and charge (Colossus.cs).
+            var col = TheColossus()?.Colossus;
+            Enemy colossus = col != null ? TheColossus() : null;
+
             // The Reapers' tether.
             Enemy twinA = null, twinB = null;
             foreach (var e in Enemies.Values)
@@ -339,9 +343,27 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
-                    foreach (var pt in Patches.Values)  // a path's fire: burning now or about to (Paths.cs)
-                        if (pt.Kind == PatchKind.Fire && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                    foreach (var pt in Patches.Values)  // a path's fire or the Colossus's lava: burning now or about to (Paths.cs)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
+                    if (col != null)
+                    {
+                        foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap
+                        {
+                            float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
+                            float dc = p.DistanceTo(r.Center), pad = GateBulletR + hitR + sk.Margin + 6f;
+                            if (dc > back - pad && dc < front + pad && !InRingGap(r, p, pad))
+                                d += w * 2.5f;
+                        }
+                        foreach (var dr in col.Drops)
+                            if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.DistanceTo(p) < dr.Radius + hitR + 8f)
+                                d += w * 3f;
+                        foreach (var ck in col.Cracks)
+                            if (SegmentDistance(p, ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
+                                d += w * 1.5f;
+                        if (col.ChargeWarn > 0f && colossus != null && SegmentDistance(p, colossus.Pos, colossus.Pos + V2.FromAngle(col.ChargeDir) * ColChargeLength) < colossus.Radius + hitR + 10f)
+                            d += w * 3f;
+                    }
                     if (twinB != null && SegmentDistance(p, twinA.Pos, twinB.Pos) < TetherWidth / 2f + hitR + 10f)
                         d += w * 2f;
                     if (sing != null)

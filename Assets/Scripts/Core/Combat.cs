@@ -381,10 +381,16 @@ namespace Arena
             ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
             ResolveGrasps();  // Leech Tendrils' holds
             ResolveImplosions();  // and Implosions
+            FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
                     continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
+                if (colCover != null && ColossusCoverStops(b))
+                {
+                    scratchIds.Add(b.Id);  // cover stops shots both ways
+                    continue;
+                }
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
                     if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
@@ -668,8 +674,10 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || LichImmune(e))
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
+            if (ColossusDazed(e))
+                dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
             if (!DualReaperHit(e, ref dmg))
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
             if (attacker > 0 && Has(RunMod.GlassCannon))

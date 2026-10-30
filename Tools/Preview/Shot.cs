@@ -27,6 +27,14 @@ class Shot {
         var want = Environment.GetEnvironmentVariable("SINGTURN");
         if (want != null && e.Sing != null && e.Sing.TransT <= 0f && e.Sing.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Sing.TurnT = 999f;
       }
+      // COL=<health fraction>: hold the Colossus there (so the shot lands in that stage); COLTURN=<turn> skips its turns
+      // until that one (Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last).
+      if (Environment.GetEnvironmentVariable("COL") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Colossus)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("COL"));
+        var want = Environment.GetEnvironmentVariable("COLTURN");
+        if (want != null && e.Colossus != null && e.Colossus.TransT <= 0f && e.Colossus.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Colossus.TurnT = 999f;
+      }
       // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
       if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
       // REAPERS=<health fraction>: the same for the Twin Reapers (or the Dual Reaper).
