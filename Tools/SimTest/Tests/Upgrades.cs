@@ -101,8 +101,10 @@ static partial class Program
             host.Game.GrantUpgrade(2, hollow);
         }
         bool bossSeen = false, bossDead = false, bigOrb = false;
-        for (int i = 0; i < 60 * 60 && !bossDead; i++)
+        for (int i = 0; i < 60 * 240 && !bossDead; i++)  // bosses are tough (BossHpMult): allow a few minutes
         {
+            foreach (var p in host.Game.Players.Values)
+                p.InvulnT = 1f;  // this is about the rewards, so the bots mustn't lose first
             Step(host, dt);
             Step(client, dt);
             if (i % 2 == 0)
@@ -125,8 +127,8 @@ static partial class Program
             foreach (var o in client.Game.Orbs.Values)
                 bigOrb |= o.Big;
         }
-        Console.WriteLine("  boss dead: {0}, rerolls host {1}/{2}, client sees {3}/{4}", bossDead, host.Game.Players[1].Rerolls, host.Game.Players[2].Rerolls,
-            client.Game.Players[1].Rerolls, client.Game.Players[2].Rerolls);
+        Console.WriteLine("  boss dead: {0} ({5}), rerolls host {1}/{2}, client sees {3}/{4}", bossDead, host.Game.Players[1].Rerolls, host.Game.Players[2].Rerolls,
+            client.Game.Players[1].Rerolls, client.Game.Players[2].Rerolls, host.Game.State);
         Check(bossDead && host.Game.Players[1].Rerolls == 4 && client.Game.Players[2].Rerolls == 4, "boss kill gives everyone +2 rerolls");
         Check(bigOrb, "boss drops a large health orb (seen on the client)");
         // After the wave, each player picks one of The Warden's legendary weapon upgrades.
