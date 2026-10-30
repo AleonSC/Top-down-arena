@@ -925,6 +925,101 @@ static partial class Program
         host.Leave("");
     }
 
+    static void ScatterFlakBloodTest(float dt)
+    {
+        // Scattergun: point-blank pellets do double and shove. Flak Cannon: shells fly over enemies to the cursor and
+        // burst there, also destroying enemy bullets. Blood Bolts: the fifth in a row makes an enemy hemorrhage.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Soldier);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        V2 from = new V2(200f, 450f);
+        V2[] pinned = new V2[0];
+        Enemy[] ds = new Enemy[0];
+        Func<V2[], Enemy[]> place = spots =>
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear();
+            pinned = spots;
+            ds = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; return e; }).ToArray();
+            me.Pos = from;
+            return ds;
+        };
+        Action<float, bool> step = (secs, pin) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                for (int k = 0; k < ds.Length; k++) { if (pin) ds[k].Pos = pinned[k]; ds[k].FrozenT = 1f; }
+                me.Pos = from;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = me.AimAt });
+            }
+        };
+
+        // Scattergun.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Scattergun);
+        var sg = place(new[] { from + new V2(80f, 0f) });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        bool flagged = g.Bullets.Values.Where(b => b.Owner == 1).All(b => b.PointBlank);
+        Func<V2, float[]> Pellet = at =>
+        {
+            var e = place(new[] { at })[0];
+            V2 start = e.Pos;
+            var b = (Bullet)shoot.Invoke(g, new object[] { Defs.TankShot, from + new V2(me.Def.BodyR, 0f), new V2(520f, 0f), 0f, 1f, 7f, 1, false, 0f });
+            b.PointBlank = true;
+            step(0.6f, false);
+            return new[] { e.MaxHp - e.Hp, e.Pos.X - start.X };
+        };
+        var close = Pellet(from + new V2(80f, 0f));
+        var away = Pellet(from + new V2(260f, 0f));
+        Console.WriteLine("  scattergun: pellets flagged {0}; a pellet point-blank {1:0.0} (shoved {2:0} px), at range {3:0.0} (shoved {4:0} px)", flagged, close[0], close[1], away[0], away[1]);
+        Check(flagged && close[0] > away[0] * 1.9f && close[1] >= Game.ScatterShove - 1f && away[1] < 1f,
+            "Scattergun pellets do double point-blank and shove the enemy back, not at range");
+
+        // Flak Cannon.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FlakCannon);
+        V2 cursor = from + new V2(260f, 0f);
+        var fl = place(new[] { cursor, cursor + new V2(0f, 50f), from + new V2(130f, 0f) });
+        me.AimAt = cursor;
+        var foes = new List<Bullet>();
+        for (int k = 0; k < 4; k++)
+            foes.Add((Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, cursor + V2.FromAngle(k * 1.6f) * 40f, new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f }));
+        var far = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, cursor + new V2(0f, 200f), new V2(0f, 0f), 0f, 5f, 5f, 0, false, 0f });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        step(1f, true);
+        float[] took = fl.Select(e => e.MaxHp - e.Hp).ToArray();
+        int popped = foes.Count(b => !g.Bullets.ContainsKey(b.Id));
+        Console.WriteLine("  flak cannon: at the cursor {0:0.0}, 50 px off {1:0.0}, under its path {2:0.0}; enemy bullets in the burst destroyed {3}/4, one far off kept {4}",
+            took[0], took[1], took[2], popped, g.Bullets.ContainsKey(far.Id));
+        Check(took[0] > 0f && took[1] > 0f && took[2] == 0f, "a Flak Cannon shell flies over enemies and bursts at the cursor");
+        Check(popped == 4 && g.Bullets.ContainsKey(far.Id), "its burst destroys enemy bullets caught in it, not ones outside");
+        g.Bullets.Clear();
+
+        // Blood Bolts.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BloodBolts);
+        me.Kit = Kit.BloodMage;
+        var bb = place(new[] { from + new V2(200f, 0f), from + new V2(200f, 60f) });
+        Func<int, float> Bolts = n =>
+        {
+            float before = bb[1].Hp;
+            for (int k = 0; k < n; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); step(0.15f, true); }
+            step(0.4f, true);
+            return before - bb[1].Hp;
+        };
+        float four = Bolts(4);
+        float fifth = Bolts(1);
+        step(Game.HemorrhageHold + 0.2f, true);
+        float faded = Bolts(1);
+        Console.WriteLine("  blood bolts: neighbour took {0:0.0} after 4 bolts, {1:0.0} on the 5th; after they fade, one more bolt {2:0.0}", four, fifth, faded);
+        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt in a row makes an enemy hemorrhage and burst onto enemies round it; the stacks fade");
+        host.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)
@@ -1244,8 +1339,8 @@ static partial class Program
         g.Bullets.Clear();
         volley.Invoke(g, new object[] { hp, 0f, 0 });
         var ball = g.Bullets.Values.First(b => b.Owner == 2);
-        Console.WriteLine("  homing x3 on a Flak Cannon: blast {0:0} px (70 normally), turn {1:0}, damage {2:0.0}", ball.Splash, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
-        Check(Math.Abs(ball.Splash - 122.5f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
+        Console.WriteLine("  homing x3 on a Flak Cannon: blast {0:0} px ({1:0} normally), turn {2:0}, damage {3:0.0}", ball.Splash, Game.FlakBurst, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
+        Check(Math.Abs(ball.Splash - Game.FlakBurst * 1.75f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
         // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 2);

@@ -180,6 +180,8 @@ namespace Arena
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
+        public int Hemorrhage;               // host: Blood Bolts stuck in it (the fifth bursts; BloodMage.cs)
+        public float HemorrhageT;            // host: until they fade
     }
 
     public class Bullet
@@ -192,6 +194,7 @@ namespace Arena
         public int Owner, Pierce, LastHit;
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
+        public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public float HealAlly;    // host only: heals an ally it passes through
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
         public float HealOwner;   // host only: heals whoever fired it this much when it hits (Hemo Nova)

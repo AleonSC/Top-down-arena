@@ -193,8 +193,10 @@ namespace Arena
         public static readonly WeaponDef[] Weapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Scattergun, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f, Desc = "Short-range spread of 5 pellets." },
-            new WeaponDef { Id = WeaponId.FlakCannon, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets on impact", Name = "Flak Cannon", FireInterval = 0.8f, Desc = "Slow, heavy shells that explode on impact." },
+            new WeaponDef { Id = WeaponId.Scattergun, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
+                Desc = "A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back." },
+            new WeaponDef { Id = WeaponId.FlakCannon, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
+                Desc = "Shells fly over enemies to your cursor and burst in the air there (30 within 80 px), destroying enemy bullets caught in the burst." },
             new WeaponDef { Id = WeaponId.RiotRepeater, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f, Desc = "Steady single shots with a little spread." },
             new WeaponDef { Id = WeaponId.Flamethrower, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
                 Desc = "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s)." },
@@ -291,7 +293,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Kunai, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
                 Desc = "Rapid throwing knives. +50% damage to enemies that aren't targeting you." },
             new WeaponDef { Id = WeaponId.BloodBolts, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Fast bolts of blood (9)." },
+                Desc = "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px." },
             new WeaponDef { Id = WeaponId.Implosion, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in." },
             new WeaponDef { Id = WeaponId.BoneSpear, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,

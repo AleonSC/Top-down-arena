@@ -292,6 +292,7 @@ namespace Arena
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // Minions.cs
                 TickBoneCage(e, dt);  // Minions.cs
+                TickHemorrhage(e, dt);  // BloodMage.cs
                 if (e.SpawnT > 0f)
                 {
                     e.SpawnT -= dt;

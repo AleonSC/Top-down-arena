@@ -231,6 +231,11 @@ namespace Arena
                     LandBoulder(b);  // Minions.cs
                     continue;
                 }
+                if (b.Kind == Defs.FlakShell)
+                {
+                    FlakAirburst(b);  // Weapons.cs
+                    continue;
+                }
                 if (b.Bomblet)
                 {
                     foreach (var e in Enemies.Values)
@@ -346,8 +351,8 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot)
-                    continue;  // grenades and boulders fly over enemies and land where you aimed
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell)
+                    continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
                     if (b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // CoatAlly: BloodMage.cs
@@ -380,7 +385,7 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 break;
                             }
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e);  // Kunai and ambush bonuses (Ninja.cs)
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
                             BloodShotHit(b, e, hit);  // Blood Mage shots drain, pool and drop orbs (BloodMage.cs)
                             OnBulletHit(b, e);

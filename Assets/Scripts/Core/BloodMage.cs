@@ -422,6 +422,10 @@ namespace Arena
                 case Defs.ClotShot:
                     AddZone(ZoneKind.BloodPool, p, b.Pos, b.Pool, b.PoolTime);
                     break;
+                case Defs.BloodShot:
+                    if (b.HealOwner <= 0f && p.Weapon.Id == WeaponId.BloodBolts)  // Blood Bolts (not Hemo Nova's)
+                        Hemorrhage(p, e, b.Dmg);
+                    break;
             }
         }
 
@@ -495,6 +499,32 @@ namespace Arena
                 if (q.CoatT > 0f)
                     Heal(q, AllyCoatHeal / AllyCoatTime * dt, PlayerOrNull(q.CoatBy));
             }
+        }
+
+        // --- Blood Bolts: hemorrhage --------------------------------------------------------------------
+
+        public const int HemorrhageHits = 5;
+        public const float HemorrhageHold = 2f, HemorrhageMult = 4f, HemorrhageRadius = 80f;  // bolts fade after this; the burst is this many bolts' damage
+
+        /// A Blood Bolt stuck in `e`; the fifth in a row (each within HemorrhageHold of the last) bursts it, hurting it
+        /// and every enemy round it.
+        void Hemorrhage(Player p, Enemy e, float boltDmg)
+        {
+            e.HemorrhageT = HemorrhageHold;
+            if (++e.Hemorrhage < HemorrhageHits)
+                return;
+            e.Hemorrhage = 0;
+            float dmg = boltDmg * HemorrhageMult, r = HemorrhageRadius * AreaMult(p);
+            foreach (var o in Enemies.Values)
+                if (o.SpawnT <= 0f && o.Hp > 0f && o.Pos.DistanceTo(e.Pos) < r + o.Radius)
+                    HurtEnemy(o, dmg, p.Id);
+            BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
+        }
+
+        void TickHemorrhage(Enemy e, float dt)
+        {
+            if (e.Hemorrhage > 0 && (e.HemorrhageT -= dt) <= 0f)
+                e.Hemorrhage = 0;
         }
 
         /// Transfusion Darts cost the healer some of their own health for each ally they heal.

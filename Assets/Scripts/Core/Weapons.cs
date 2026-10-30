@@ -32,6 +32,58 @@ namespace Arena
             firingWeapon = false;
         }
 
+        /// Scattergun: pellets that hit within ScatterClose of you (to the enemy's edge) do double and shove it back.
+        public const float ScatterClose = 120f, ScatterPointBlank = 2f, ScatterShove = 16f;
+
+        /// Flak Cannon: the shell bursts at your cursor (never nearer than FlakMin), hurting enemies and destroying
+        /// enemy bullets within FlakBurst (red aimed shots get through).
+        public const float FlakMin = 60f, FlakBurst = 80f;
+
+        float PointBlankMult(Bullet b, Enemy e)
+        {
+            Player p;
+            if (!b.PointBlank || !Players.TryGetValue(b.Owner, out p) || p.Pos.DistanceTo(e.Pos) - e.Radius > ScatterClose)
+                return 1f;
+            if (!Heavy(e))
+            {
+                V2 away = (e.Pos - p.Pos).Normalized();
+                e.Pos = ClampToArena(e.Pos + (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove, e.Radius);
+            }
+            return ScatterPointBlank;
+        }
+
+        /// A Flak Cannon shell reached the end of its flight: the airburst.
+        void FlakAirburst(Bullet b)
+        {
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                {
+                    HurtEnemy(e, b.Dmg, b.Owner);
+                    OnBulletHit(b, e);
+                }
+            var shot = new List<int>();
+            foreach (var o in Bullets.Values)
+                if (Defs.IsEnemyShot(o.Kind) && !Defs.Unblockable(o.Kind) && o.Pos.DistanceTo(b.Pos) < b.Splash + o.Radius)
+                    shot.Add(o.Id);
+            foreach (int id in shot)
+            {
+                AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Bullets[id].Kind), 8f, 0.25f);
+                Bullets.Remove(id);
+                pendingRemoved.Add(id);
+            }
+            float offset = Rand(0f, MathX.Tau);
+            for (int i = 0; i < b.Frags; i++)  // extra projectiles: bomblets scattering round the burst, popping where they land
+            {
+                V2 d = V2.FromAngle(offset + MathX.Tau * i / b.Frags);
+                var nb = SpawnBullet(b.FragKind, b.Pos + d * 6f, d * b.FragSpeed, 0f, b.FragLife, b.FragDmg, b.Owner);
+                nb.Splash = b.FragSplash;
+                nb.Bomblet = true;
+                nb.Burst = 1;
+            }
+            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.3f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, b.Pos, Rgba.White, b.Splash * 1.15f, 0.2f, Sfx.None);
+        }
+
         /// Barrage: the volley, plus a copy per stack fanned out to alternating sides (8 degrees apart).
         void FireFanned(Player p, float aim, int extra)
         {
@@ -228,14 +280,18 @@ namespace Arena
                     int n = 5 + 2 * extra;
                     float cone = 0.52f * (float)Math.Pow(0.85, extra);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).PointBlank = true;
                     break;
                 }
                 case WeaponId.FlakCannon:
                 {
-                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    b.Splash = 70f * AreaMult(p);
-                    if (extra > 0)  // bomblets scatter around the impact and pop where they land
+                    // An airburst: the shell flies over enemies to your cursor (as far as its range) and bursts there,
+                    // shredding enemies and enemy bullets in the burst.
+                    float far = Math.Min(w.Speed * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                    b.Splash = FlakBurst * AreaMult(p);
+                    b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
+                    if (extra > 0)  // bomblets scatter round the burst and pop where they land
                         SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
                     break;
                 }
