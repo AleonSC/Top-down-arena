@@ -293,6 +293,7 @@ namespace Arena
                 TickBleed(e, dt);  // Minions.cs
                 TickBoneCage(e, dt);  // Minions.cs
                 TickHemorrhage(e, dt);  // BloodMage.cs
+                TickPoison(e, dt);  // Ninja.cs
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 if (e.SpawnT > 0f)
                 {

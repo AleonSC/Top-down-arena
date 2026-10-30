@@ -55,7 +55,7 @@ namespace Arena
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.08f * (n - 1));
                         var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.HealAlly = 4f * 9f / 7f;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
+                        b.Medicine = true;  // poisons enemies, doses allies (Ninja.cs)
                     }
                     break;
                 }
@@ -123,7 +123,8 @@ namespace Arena
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (i == 0 ? 0f : (i % 2 == 1 ? 1f : -1f) * 0.07f * ((i + 1) / 2));
-                        SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        var b = SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        b.ShadowKunai = i == 0 && ++p.KunaiCount % KunaiShadowEvery == 0;  // every few throws, one leaves a mark to blink to
                     }
                     break;
                 }
@@ -472,7 +473,67 @@ namespace Arena
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
         public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
-        const byte DashVault = 0, DashReel = 1, DashStrike = 2;
+        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3;
+
+        // --- Medicine Darts: stacking doses --------------------------------------------------------
+
+        public const float DoseHeal = 2f, DoseTime = 3f, PoisonDps = 2f, PoisonTime = 3f, DoseStacks = 5f;  // a second, per dart; each dart renews it, stacking to DoseStacks
+
+        /// A Medicine Dart through a hurt ally: another dose of healing over time (it doesn't go on).
+        bool DoseAlly(Bullet b)
+        {
+            foreach (var q in Players.Values)
+            {
+                float r = q.Def.BodyR + b.Radius;
+                if (q.Id == b.Owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
+                    continue;
+                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;  // damage upgrades dose harder too
+                q.DoseHps = Math.Min(q.DoseHps + each, each * DoseStacks);
+                q.DoseT = DoseTime;
+                q.DoseBy = b.Owner;
+                return true;
+            }
+            return false;
+        }
+
+        /// A Medicine Dart in an enemy: another dose of poison.
+        void PoisonHit(Bullet b, Enemy e)
+        {
+            if (!b.Medicine)
+                return;
+            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage;
+            e.PoisonDps = Math.Min(e.PoisonDps + each, each * DoseStacks);
+            e.PoisonT = PoisonTime;
+            e.PoisonBy = b.Owner;
+        }
+
+        void TickPoison(Enemy e, float dt)
+        {
+            if (e.PoisonT <= 0f)
+                return;
+            if ((e.PoisonT -= dt) <= 0f)
+                e.PoisonDps = 0f;
+            else if (e.SpawnT <= 0f)
+                DotDamage(e, e.PoisonDps * dt, e.PoisonBy);
+        }
+
+        // --- Kunai: the shadow kunai ---------------------------------------------------------------
+
+        public const int KunaiShadowEvery = 4;
+        public const float KunaiAmbush = 1.5f;  // after a blink, your next hit within this long lands double
+        public const float KunaiMarkTime = 3f, BlinkTapGap = 0.3f;  // the mark lasts this long; two fire presses this close blink you
+
+        /// A shadow kunai hit something or ran out: its mark is where you can blink to.
+        void ShadowKunaiLanded(Bullet b, V2 at)
+        {
+            Player p;
+            if (!b.ShadowKunai || !Players.TryGetValue(b.Owner, out p))
+                return;
+            p.KunaiMark = ClampToArena(at, p.Def.BodyR);
+            p.KunaiMarkT = KunaiMarkTime;
+        }
+
+        float sinceTap = 99f;
 
         bool Hooked(Player p)
         {
@@ -527,10 +588,33 @@ namespace Arena
         {
             vaultCd -= dt;
             reelCd -= dt;
+            sinceTap += dt;
             bool pressed = firing && !wasFiring;
             wasFiring = firing;
+            bool doubleTap = pressed && sinceTap < BlinkTapGap;
+            if (pressed)
+                sinceTap = 0f;
             if (me.Downed || DashT > 0f || me.StunT > 0f)
                 return;
+            if (me.Weapon.Id == WeaponId.Kunai && doubleTap && me.KunaiMarkT > 0f)
+            {
+                // Blink to the shadow kunai's mark (like Blink, at once); the host readies a double-damage hit.
+                V2 mark = me.KunaiMark;
+                AddFx(FxKind.Ring, me.Pos, new Rgba(0.45f, 0.4f, 0.65f), 26f, 0.3f);
+                me.Pos = mark;
+                sinceTap = 99f;
+                if (IsHost)
+                    HostWeaponDash(MyId, DashBlink, mark);  // (it uses up the mark; on the host your player is the host's own)
+                else
+                {
+                    var bw = Proto.Begin(Msg.WeaponDash);
+                    bw.Write(DashBlink);
+                    bw.Write(mark);
+                    session.SendToHost(Proto.End(bw));
+                }
+                me.KunaiMarkT = 0f;  // used (the host's next snapshot agrees)
+                return;
+            }
             V2 target;
             byte kind;
             if (me.Weapon.Id == WeaponId.BoStaff && pressed && !move.IsZero && vaultCd <= 0f)
@@ -587,6 +671,16 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (kind == DashBlink)
+            {
+                if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.DistanceTo(target) > 40f)
+                    return;
+                p.KunaiMarkT = 0f;
+                p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
+                p.InvulnT = Math.Max(p.InvulnT, 0.2f);
+                BroadcastFx(FxKind.Ring, target, new Rgba(0.45f, 0.4f, 0.65f), 30f, 0.3f, Sfx.Blink);
+                return;
+            }
             float dmg = w.Damage * p.Stats.DmgMult;
             V2 from = p.Pos, path = target - from;
             float len = Math.Max(1f, path.Length);
@@ -672,6 +766,18 @@ namespace Arena
         /// and clears bullets, and Shadow Clones about to end burst.
         void TickNinjas(float dt)
         {
+            foreach (var p in Players.Values)  // Medicine Darts' doses heal; a Kunai mark fades
+            {
+                if (p.DoseT > 0f)
+                {
+                    p.DoseT = p.Downed ? 0f : Math.Max(0f, p.DoseT - dt);
+                    if (p.DoseT > 0f)
+                        Heal(p, p.DoseHps * dt, PlayerOrNull(p.DoseBy));
+                    else
+                        p.DoseHps = 0f;
+                }
+                p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
+            }
             foreach (var p in Players.Values)  // a Kusarigama hook lets go in time, or when you go down
                 if (p.HookT > 0f && ((p.HookT -= dt) <= 0f || p.Downed || !Hooked(p)))
                 {

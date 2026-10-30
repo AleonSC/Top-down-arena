@@ -452,6 +452,12 @@ static partial class Program
                     if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.WispLantern || w.Id == WeaponId.ImpCaller)
+                {
+                    // No shots: your companions are sent (WispLantern/ImpCaller tests); the aim line shows how far.
+                    if (Math.Abs(range - (w.Id == WeaponId.WispLantern ? Game.WispReach : Game.ImpReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 volley.Invoke(g, new object[] { me, 0f, extra });
                 var first = new HashSet<int>(g.Bullets.Values.Where(b => b.Owner == 1).Select(b => b.Id));
                 float far = 0f;
@@ -1261,6 +1267,134 @@ static partial class Program
         Check(combo == Game.ComboMax && dashed > Game.DashStrikeDist * 0.8f && beyondBefore - beyond.Hp >= me.Weapon.Damage * Game.DashStrikeMult * 0.99f && me.Combo == 0,
             "10 Twin Blades hits in a row prime a dash-strike that lunges you through enemies for triple damage");
         host.Leave("");
+    }
+
+    static void FiveMoreTest(float dt)
+    {
+        // Medicine Darts dose (poison enemies, heal allies over time), the Greatsword's crescent stops bullets, a shadow
+        // Kunai's mark is a blink, the Wisp Lantern sends its wisps, and the Imp Caller sends (or merges) its imps.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Ninja);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(300f, 450f), allyAt = new V2(450f, 450f);
+        var keep = new List<Enemy>();
+        var pins = new Dictionary<Enemy, V2>();
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
+        Action<float, PlayerInput> play = (secs, input) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
+                if (input.Move.IsZero) me.Pos = from;
+                ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, input); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Minions.Clear(); };
+        play(0.3f, new PlayerInput());
+
+        // Medicine Darts.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.MedicineDarts);
+        ally.Hp = ally.MaxHp * 0.3f;
+        for (int k = 0; k < 3; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.2f, new PlayerInput()); }
+        float dose = ally.DoseHps;
+        bool clientDose = client.Game.Players[2].DoseT > 0f;
+        float h0 = ally.Hp;
+        play(1f, new PlayerInput());
+        float healed1s = ally.Hp - h0;
+        allyAt = new V2(450f, 150f);
+        var sick = dummy(from + new V2(200f, 0f));
+        for (int k = 0; k < 3; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.2f, new PlayerInput()); }
+        float hitNow = sick.MaxHp - sick.Hp, poison = sick.PoisonDps;
+        play(1f, new PlayerInput());
+        float poisoned1s = sick.MaxHp - sick.Hp - hitNow;
+        bool clientPoison = client.Game.Enemies.ContainsKey(sick.Id) && client.Game.Enemies[sick.Id].Poisoned;
+        Console.WriteLine("  medicine darts: 3 darts dose the ally {0:0.0}/s (healed {1:0.0} in 1 s; client saw {2}); poison {3:0.0}/s on the enemy ({4:0.0} in 1 s; client saw {5})",
+            dose, healed1s, clientDose, poison, poisoned1s, clientPoison);
+        Check(Math.Abs(dose - 3f * Game.DoseHeal * me.Stats.DmgMult) < 0.3f && healed1s >= dose * 0.9f && clientDose, "Medicine Darts dose a hurt ally with stacking healing over time");
+        Check(poison > 0f && poisoned1s >= poison * 0.9f && clientPoison, "and poison enemies with stacking damage over time");
+        reset();
+
+        // Greatsword.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Greatsword);
+        float reach = Game.MeleeReach(me, me.Weapon.Reach);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        var into = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, from + new V2(reach + 60f, 0f), new V2(-300f, 0f), 0f, 2f, 5f, 0, false, 0f });   // flies into the crescent
+        var behind = (Bullet)shoot.Invoke(g, new object[] { Defs.BigShot, from + new V2(-reach - 60f, 0f), new V2(300f, 0f), 0f, 2f, 5f, 0, false, 0f });  // comes from behind
+        play(0.3f, new PlayerInput());
+        Console.WriteLine("  greatsword: a big shot flying into the crescent stopped {0}; one from behind still flying {1}", !g.Bullets.ContainsKey(into.Id), g.Bullets.ContainsKey(behind.Id));
+        Check(!g.Bullets.ContainsKey(into.Id) && g.Bullets.ContainsKey(behind.Id), "a Greatsword sweep leaves a crescent of steel that stops bullets crossing it");
+        reset();
+
+        // Kunai.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Kunai);
+        me.KunaiCount = 0; me.AmbushT = 0f;
+        for (int k = 0; k < Game.KunaiShadowEvery; k++) volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1f, new PlayerInput());
+        V2 mark = me.KunaiMark;
+        bool marked = me.KunaiMarkT > 0f && mark.X > from.X + 300f;
+        bool clientMark = client.Game.Players[1].KunaiMarkT > 0f;
+        // Double-tap fire: blink.
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f == 0 || f == 2, AimAt = mark }); }
+        Console.WriteLine("  kunai: the shadow kunai marked {0} (at {1:0} px; client saw {2}); double-tap blinked to {3:0} px of it; next hit primed {4}",
+            marked, mark.X - from.X, clientMark, me.Pos.DistanceTo(mark), me.AmbushT > 0f);
+        Check(marked && clientMark && me.Pos.DistanceTo(mark) < 2f && me.AmbushT > 0f && me.KunaiMarkT == 0f, "every 4th kunai leaves a mark; double-tapping fire blinks you there and primes a double hit");
+        me.AmbushT = 0f;
+        reset();
+
+        // Wisp Lantern.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.WispLantern);
+        play(1.5f, new PlayerInput());  // the wisps come
+        var mark2 = dummy(from + new V2(250f, 40f));
+        me.AimAt = mark2.Pos;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        bool sentOne = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Wisp && m.Sent) == 1;
+        play(0.6f, new PlayerInput { AimAt = mark2.Pos });
+        float wispHit = mark2.MaxHp - mark2.Hp;
+        play(1f, new PlayerInput { AimAt = mark2.Pos });
+        bool back = g.Minions.Values.Where(m => m.Owner == 1 && m.Kind == MinionKind.Wisp).All(m => !m.Sent);
+        Console.WriteLine("  wisp lantern: one wisp sent {0}; it struck for {1:0.0}; all back in orbit {2}", sentOne, wispHit, back);
+        Check(sentOne && Math.Abs(wispHit - me.Weapon.Damage * me.Stats.DmgMult) < 0.5f && back, "firing the Wisp Lantern sends one wisp to strike what you aim at, and it comes back");
+        reset();
+
+        // Imp Caller.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ImpCaller);
+        Func<int> imps = () => g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && !m.Sent);
+        for (int f = 0; f < 600 && imps() < 3; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput()); }
+        var target = dummy(from + new V2(240f, 0f));
+        me.AimAt = target.Pos;
+        me.BowShotDraw = Game.BowMinDraw;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1.5f, new PlayerInput { AimAt = target.Pos });
+        float tap = target.MaxHp - target.Hp;
+        for (int f = 0; f < 600 && imps() < 3; f++) { me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); play(1f / 60f, new PlayerInput { AimAt = target.Pos }); }
+        float t1 = target.Hp;
+        me.BowShotDraw = g.BowFull(me);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        var big = g.Minions.Values.FirstOrDefault(m => m.Owner == 1 && m.Kind == MinionKind.Imp && m.Sent);
+        float bigScale = big != null ? big.Scale : 0f;
+        int sentCount = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && m.Sent);
+        play(1.5f, new PlayerInput { AimAt = target.Pos });
+        float merged = t1 - target.Hp;
+        Console.WriteLine("  imp caller: a tap sent 3 imps for {0:0.0}; a full charge merged them into one (scale {1:0.00}, {2} sent) for {3:0.0}", tap, bigScale, sentCount, merged);
+        Check(tap > 0f && sentCount == 1 && bigScale > 1.2f && merged > tap * 1.1f, "a tap sends the waiting imps at your cursor; a full charge merges them into one bigger blast");
+        host.Leave(""); client.Leave("");
     }
 
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and

@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow, IonTrail }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something); IonTrail: a Railgun shot's charged path (Pos2 = its far end, Radius = the round's speed)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow, IonTrail, SteelWall }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something); IonTrail: a Railgun shot's charged path (Pos2 = its far end, Radius = the round's speed); SteelWall: a Greatsword's lingering crescent (Pos = the swing's centre, Pos2 = the middle of its edge, Radius = half its arc)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -63,6 +63,12 @@ namespace Arena
         public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
         public int Orbiters;                          // Arcane Missiles: missiles circling you, waiting for an enemy (replicated)
         public float LaunchCd;                        // host: until the next one launches
+        public float DoseT;                           // dosed by Medicine Darts: healing over time while it lasts (replicated)
+        public float DoseHps;                         // host: how much a second
+        public int DoseBy;
+        public V2 KunaiMark;                          // Kunai: where the last shadow kunai landed, to blink to (replicated)
+        public float KunaiMarkT;                      //   for this much longer (replicated)
+        public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
         public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
         public float ComboT;
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
@@ -193,6 +199,9 @@ namespace Arena
         public float HemorrhageT;            // host: until they fade
         public float Suppress;               // host: the Riot Repeater's suppression, 0 to SuppressMax (slows its shooting)
         public bool Suppressed;              // replicated, for drawing
+        public float PoisonT, PoisonDps;     // host: Medicine Darts' poison (stacking)
+        public int PoisonBy;
+        public bool Poisoned;                // replicated, for drawing
     }
 
     public class Bullet
@@ -208,6 +217,8 @@ namespace Arena
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
+        public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
+        public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -281,6 +292,11 @@ namespace Arena
         public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
         public MinionDef Def => Kits.Get(Kind);
+        public bool Sent;                // host: a Wisp Lantern wisp or Imp Caller imp sent out at something
+        public bool Returning;           // host: a wisp flying back to you
+        public int GoalEnemy;            // host: what it was sent at (0: just the point Goal)
+        public V2 Goal;
+        public float SentT;              // host: how long it has been out
     }
 
     public class Effect
@@ -1249,6 +1265,7 @@ namespace Arena
             TickPack(dt);     // Minions.cs: the Wolf Whistle's prey
             TickOrbiters(dt);  // Minions.cs: Arcane Missiles launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
+            TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

@@ -157,6 +157,22 @@ namespace Arena
                 DrawBloodAuras(p, t);  // BloodMageLook.cs
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
+            if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
+                for (int k = 0; k < 4; k++)
+                {
+                    float f = MathX.Fmod(t * 1.1f + k * 0.25f + p.Id * 0.3f, 1f);
+                    V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
+                    Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
+                }
+            if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
+            {
+                var shade = new Rgba(0.55f, 0.45f, 0.85f);
+                V2 m = p.KunaiMark;
+                float pulse = 0.5f + 0.5f * Mathf.Sin(t * 8f);
+                Arc(m, 12f + 3f * pulse, 1.5f, shade.WithAlpha(0.7f), 16);
+                Line(m + new V2(-6f, -6f), m + new V2(5f, 5f), 3f, shade);  // the knife, stuck in the ground
+                Line(m + new V2(-8f, -3f), m + new V2(-3f, -8f), 2f, shade.WithAlpha(0.8f));
+            }
             if (p.Weapon.Id == WeaponId.ArcaneMissiles && p.Orbiters > 0)  // Arcane Missiles waiting in orbit
             {
                 var arc = Defs.BulletColor(Defs.ArcaneShot);
@@ -639,6 +655,9 @@ namespace Arena
                 case FxKind.IonTrail:
                     DrawIonTrailFx(fx);
                     break;
+                case FxKind.SteelWall:
+                    DrawSteelWallFx(fx, f);
+                    break;
             }
         }
 
@@ -815,6 +834,18 @@ namespace Arena
         }
 
         /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
+        /// A Greatsword's crescent of steel hanging where its sweep's edge passed, fading as it goes.
+        void DrawSteelWallFx(Effect fx, float f)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float reach = to.Length, aim = to.Angle, half = fx.Radius, fade = 1f - f * f;
+            if (reach < 1f)
+                return;
+            Arc(fx.Pos, reach, Game.SteelWallBand * 1.6f, fx.Color.WithAlpha(0.12f * fade), 24, aim - half, half * 2f);
+            Arc(fx.Pos, reach, 4f, Rgba.White.WithAlpha(0.75f * fade), 24, aim - half, half * 2f);
+            Arc(fx.Pos, reach - 6f, 1.5f, fx.Color.WithAlpha(0.6f * fade), 24, aim - half, half * 2f);
+        }
+
         /// A Railgun's ion trail: the stretch the round has passed through in the last second glows and crackles
         /// (the same stretch the host hurts enemies in: Minions.cs TickIonTrails).
         void DrawIonTrailFx(Effect fx)
@@ -1738,10 +1769,10 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, flame = burning, blood drop = bleeding, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// slowed, flame = burning, blood drop = bleeding, green bubbles = poisoned, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
-            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0);
+            int n = (e.Frozen ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1788,6 +1819,16 @@ namespace Arena
                 Circle(c + new V2(0f, 2f), size * 0.55f, BleedColor, 10);  // a blood drop: round base...
                 Polygon(c + new V2(0f, -2f), size * 0.55f, 3, -MathX.Pi / 2f, BleedColor);  // ...pointed top
                 Circle(c + new V2(-1.5f, 2f), size * 0.15f, new Rgba(1f, 0.6f, 0.6f), 6);
+                x += step;
+            }
+            if (e.Poisoned)  // Medicine Darts' poison: green bubbles
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                var green = new Rgba(0.45f, 0.95f, 0.35f);
+                Circle(c + new V2(-2.5f, 2f), 3f, green, 8);
+                Circle(c + new V2(3f, -1f), 2.2f, green, 8);
+                Circle(c + new V2(0f, -4.5f), 1.6f, green, 6);
                 x += step;
             }
             if (e.Suppressed)  // the Riot Repeater's suppression: a pause sign, its shooting slowed

@@ -154,8 +154,10 @@ namespace Arena
                 }
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
-                case WeaponId.ImpCaller:
                     SpawnBullet(Defs.BoneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    break;
+                case WeaponId.ImpCaller:
+                    SendImps(p, BowCharge(p, p.BowShotDraw));  // a tap sends them; held to full, they merge into one big imp
                     break;
                 case WeaponId.SpriteStaff:
                 case WeaponId.TotemStaff:
@@ -165,7 +167,8 @@ namespace Arena
                     SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).HealAlly = 7f;
                     break;
                 case WeaponId.WispLantern:
-                    SpawnBullet(Defs.ArcaneShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    for (int i = 0; i <= extra; i++)
+                        SendWisp(p);  // your wisps are your shots: one a shot, plus one per extra projectile
                     break;
             }
         }
@@ -209,6 +212,128 @@ namespace Arena
                 hit.Add(next.Id);
                 cur = next;
             }
+        }
+
+        // --- Wisp Lantern and Imp Caller: companions you send ---------------------------------------
+
+        public const float WispReach = 420f, WispSpeed = 650f, SendPick = 120f, ImpReach = 600f, ImpSpeed = 300f, ImpMergeBonus = 1.25f, SentMax = 2.5f;
+
+        /// What a sent companion goes for: the enemy nearest your cursor (within SendPick of it), or just the cursor.
+        void PickGoal(Player p, Minion m, float reach)
+        {
+            V2 at = p.Pos + (p.AimAt - p.Pos).LimitLength(reach);
+            var e = NearestEnemy(at, SendPick);
+            m.GoalEnemy = e != null ? e.Id : 0;
+            m.Goal = at;
+            m.Sent = true;
+            m.Returning = false;
+            m.SentT = 0f;
+        }
+
+        /// The Wisp Lantern: a waiting wisp flies out at what you're aiming at, strikes it and comes back.
+        void SendWisp(Player p)
+        {
+            Minion pick = null;
+            foreach (var m in Minions.Values)
+                if (m.Owner == p.Id && m.Kind == MinionKind.Wisp && !m.Sent && (pick == null || AngleTo(p.Pos, m.Pos, p.Aim) < AngleTo(p.Pos, pick.Pos, p.Aim)))
+                    pick = m;  // the one most in front of you
+            if (pick == null)
+                return;
+            PickGoal(p, pick, WispReach);
+            p.Run.ShotsFired++;
+        }
+
+        /// The Imp Caller: every imp waiting by you charges at what you're aiming at. Held to full charge (with two
+        /// or more waiting), they merge first into one big imp whose blast is all of theirs and then some.
+        void SendImps(Player p, float charge)
+        {
+            var idle = new List<Minion>();
+            foreach (var m in Minions.Values)
+                if (m.Owner == p.Id && m.Kind == MinionKind.Imp && !m.Sent)
+                    idle.Add(m);
+            if (idle.Count == 0)
+                return;
+            if (charge >= 1f && idle.Count >= 2)
+            {
+                var big = idle[0];
+                big.Power = idle.Count * ImpMergeBonus;
+                big.Scale = 1f + 0.25f * (idle.Count - 1);
+                for (int i = 1; i < idle.Count; i++)
+                    Minions.Remove(idle[i].Id);
+                BroadcastFx(FxKind.Ring, big.Pos, big.Def.Color, 30f * big.Scale, 0.3f, Sfx.Ability);
+                idle.RemoveRange(1, idle.Count - 1);
+            }
+            foreach (var m in idle)
+                PickGoal(p, m, ImpReach);
+        }
+
+        /// Host, each tick for a Wisp Lantern wisp or Imp Caller imp (instead of its usual moves). Returns true if it
+        /// explodes this tick (imps).
+        bool MoveSent(Minion m, Player owner, float dt)
+        {
+            var d = m.Def;
+            bool imp = m.Kind == MinionKind.Imp;
+            if (!m.Sent)
+            {
+                if (imp)  // waiting by you, a little behind
+                {
+                    V2 home = owner.Pos + V2.FromAngle(owner.Aim + MathX.Pi + (m.Id % 5 - 2) * 0.5f) * 36f;
+                    m.Pos += (home - m.Pos).LimitLength(d.Speed * dt);
+                    m.Aim = owner.Aim;
+                }
+                else  // orbiting you
+                {
+                    m.Ang += d.Speed * dt;
+                    m.Pos = owner.Pos + V2.FromAngle(m.Ang) * d.OrbitRadius;
+                }
+                return false;
+            }
+            m.SentT += dt;
+            Enemy e = null;
+            if (m.GoalEnemy == 0 || !Enemies.TryGetValue(m.GoalEnemy, out e) || e.Hp <= 0f)
+                e = null;  // sent at a point, or its target is gone
+            bool alive = e != null;
+            if (!imp && m.Returning)
+            {
+                V2 slot = owner.Pos + V2.FromAngle(m.Ang) * d.OrbitRadius;
+                V2 back = slot - m.Pos;
+                if (back.Length < WispSpeed * dt + 4f)
+                {
+                    m.Pos = slot;
+                    m.Sent = m.Returning = false;
+                }
+                else
+                    m.Pos += back.Normalized() * WispSpeed * dt;
+                return false;
+            }
+            V2 goal = alive ? e.Pos : m.Goal;
+            V2 to = goal - m.Pos;
+            float speed = imp ? ImpSpeed : WispSpeed;
+            m.Aim = to.Angle;
+            m.Pos += to.LimitLength(speed * dt);
+            // What it reached: its target, or (on the way, for an imp) any enemy it runs into.
+            Enemy hit = null;
+            foreach (var o in Enemies.Values)
+                if (o.SpawnT <= 0f && o.Hp > 0f && o.Pos.DistanceTo(m.Pos) < o.Radius + d.Radius * m.Scale + 4f && (imp || o == e))
+                {
+                    hit = o;
+                    break;
+                }
+            bool arrived = to.Length <= speed * dt + 2f || m.SentT > SentMax;
+            if (imp)
+                return hit != null || arrived;  // it blows up on whatever it reached
+            if (hit != null)
+            {
+                float dmg = owner.Weapon.Damage * owner.Stats.DmgMult * m.Power;
+                HurtEnemy(hit, dmg, owner.Id);
+                OnBulletHit(new Bullet { Pos = hit.Pos, Vel = to.Normalized(), Owner = owner.Id, Dmg = dmg, Kind = Defs.ArcaneShot }, hit);
+                BroadcastFx(FxKind.Spark, hit.Pos, d.Color, hit.Radius + 10f, 0.25f, Sfx.None);
+                owner.Run.ShotsHit++;
+                m.Returning = true;
+            }
+            else if (arrived)
+                m.Returning = true;  // nothing there: back it comes
+            return false;
         }
 
         // --- Arcane Missiles: the stockpile -------------------------------------------------------
@@ -1082,6 +1207,14 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if ((m.Kind == MinionKind.Wisp && owner.Weapon.Id == WeaponId.WispLantern || m.Kind == MinionKind.Imp && owner.Weapon.Id == WeaponId.ImpCaller) && m.Companion)
+                {
+                    if (MoveSent(m, owner, dt))  // sent at something by the Wisp Lantern or Imp Caller (they don't act on their own)
+                        exploding.Add(m);
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
+
                 // Movement
                 Enemy target = null;
                 switch (d.Move)
@@ -1221,7 +1354,7 @@ namespace Arena
             }
             foreach (var m in exploding)
                 if (Minions.ContainsKey(m.Id))
-                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power, m.Def.Range);
+                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power, m.Def.Range * m.Scale);  // a merged imp blasts wider
             foreach (var m in expired)
                 Minions.Remove(m.Id);
         }

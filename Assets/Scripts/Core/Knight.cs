@@ -180,6 +180,7 @@ namespace Arena
                     var s = NewSwing(p, aim, w.Reach, 170f, w.Damage * dmg);
                     s.Heavy = true;
                     pendingSwings.Add(s);
+                    SteelWall(p, aim, s.Reach, s.HalfArc);  // the sweep's edge lingers, stopping bullets
                     for (int i = 0; i < extra; i++)
                     {
                         float f = extra == 1 ? 0f : i * 2f / (extra - 1) - 1f;
@@ -220,6 +221,56 @@ namespace Arena
                 float a = aim + (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2);
                 SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(a) * p.Def.BodyR, V2.FromAngle(a) * 650f, 0f, 0.5f, 9f * p.Stats.DmgMult, p.Id);
             }
+        }
+
+        /// Greatsword: each sweep leaves its edge hanging in the air for SteelWallTime, a crescent that stops enemy
+        /// bullets crossing it (all but red aimed shots).
+        public const float SteelWallTime = 0.5f, SteelWallBand = 16f;
+
+        class Crescent
+        {
+            public V2 Center;
+            public float Aim, Reach, HalfArc, T;
+        }
+
+        readonly List<Crescent> steelWalls = new List<Crescent>();
+
+        void SteelWall(Player p, float aim, float reach, float halfArc)
+        {
+            steelWalls.Add(new Crescent { Center = p.Pos, Aim = aim, Reach = reach, HalfArc = halfArc, T = SteelWallTime });
+            BroadcastFx(FxKind.SteelWall, p.Pos, p.Pos + V2.FromAngle(aim) * reach, Defs.BulletColor(Defs.KnightSlash), halfArc, SteelWallTime, Sfx.None);
+        }
+
+        void TickSteelWalls(float dt)
+        {
+            if (steelWalls.Count == 0)
+                return;
+            var stopped = new List<int>();
+            for (int i = steelWalls.Count - 1; i >= 0; i--)
+            {
+                var c = steelWalls[i];
+                if ((c.T -= dt) <= 0f)
+                {
+                    steelWalls.RemoveAt(i);
+                    continue;
+                }
+                foreach (var b in Bullets.Values)
+                {
+                    if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
+                        continue;
+                    float d = b.Pos.DistanceTo(c.Center);
+                    if (Math.Abs(d - c.Reach) > SteelWallBand + b.Radius || AngleTo(c.Center, b.Pos, c.Aim) > c.HalfArc)
+                        continue;
+                    stopped.Add(b.Id);
+                }
+            }
+            foreach (int id in stopped)
+                if (Bullets.ContainsKey(id))
+                {
+                    AddFx(FxKind.Spark, Bullets[id].Pos, Defs.BulletColor(Defs.KnightSlash), 8f, 0.2f);
+                    Bullets.Remove(id);
+                    pendingRemoved.Add(id);
+                }
         }
 
         /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike:

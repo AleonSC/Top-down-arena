@@ -166,8 +166,8 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p);
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder and Arc Lightning.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning;
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer, the Golem Staff's boulder, Arc Lightning and the Imp Caller.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -428,6 +428,10 @@ namespace Arena
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                case WeaponId.WispLantern:  // how far a wisp is sent (Minions.cs)
+                    return WispReach;
+                case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
+                    return ImpReach;
                 case WeaponId.ArcLightning:  // the strip's length with the current charge (Minions.cs)
                     return ArcLength(p, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f);
                 case WeaponId.ChainLight:  // the cone's reach (Minions.cs)

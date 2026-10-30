@@ -219,6 +219,8 @@ namespace Arena
                         AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
                     if (b.Burst > 0 && b.Life <= 0f)
                         landed.Add(b);
+                    if (b.ShadowKunai)
+                        ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
                 }
             }
             foreach (int id in scratchIds)
@@ -355,7 +357,7 @@ namespace Arena
                     continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
-                    if (b.Refract ? RefractThroughAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; CoatAlly: BloodMage.cs
+                    if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -701,6 +703,8 @@ namespace Arena
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (Minions.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
+            PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
+            ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
