@@ -321,15 +321,22 @@ const E = [
       { name: "Crossfire (5 s)", pattern: "From the side walls: 7-shot fans, 14° apart, taking turns", kind: "small", n: 7, speed: 200, every: 1.2 }],
     notes: ["Soul Bond (Twilight): the more-hurt Reaper is immune once it's 10% behind, until the other is brought within 3%.", "Sundered: kill one and the other enrages (fires 1.7× faster). The fallen one revives with 60% health after 6 s unless you finish the pair."] },
   { id: "Singularity", label: "The Singularity", cat: "Bosses", boss: true, hp: 3600, r: 40, speed: 0, sides: 10, col: rgb(0.6, 0.35, 1), xp: 220, score: 500, wave: 20,
-    appears: "Wave 20 (with Grunts and Snipers)", lead: "Sits in the middle and loops four attacks over 24 s: Pull, Collapse, Normal (a purple spiral, then three sweeping red lasers) and Cage. Four gravity wells hold the corners, bending your shots and drifting you toward them.",
-    locks: ["Cycle", "Pull", "Collapse", "Normal", "Cage"],
+    appears: "Wave 20 (with Grunts and Snipers)", lead: "A black hole in three stages, one mechanic at a time with breathers between. Event Horizon (100–65%): in the middle — Pull, Collapse rings, then a spiral and three sweeping lasers. Accretion (65–30%): it orbits the middle inside a disk of orbs — Cage, Slingshot, twin lasers. Spaghettify (30–10%): an event horizon opens and pulls all the time — Hawking bursts, a White hole, the Split. Below 10% a last stand. Four Gravity Wells spawn in the corners at the start of each stage; killed, they stay gone until the next. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
+    locks: ["Cycle", "Event Horizon", "Accretion", "Spaghettify", "Last stand"],
     attacks: [
       { name: "Pull (4 s)", pattern: "Drags players in at 150 px/s; 3-arm spiral, +12° per volley", kind: "small", n: 3, speed: 110, every: 0.13 },
-      { name: "Collapse (3 s)", pattern: "Rings, +6.3° per volley", kind: "small", n: 26, speed: 170, every: 0.9 },
-      { name: "Normal (8 s): spiral", pattern: "4 purple orbs in a cross, rotating 17° per volley", kind: "big", n: 4, speed: 150, every: 0.65 },
-      { name: "Normal: lasers", pattern: "From 1.5 s in: 3 red lines flicker for 0.8 s as a warning, then fire from its centre to the edges, 120° apart, sweeping counter-clockwise at 18°/s. 10 px wide", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
-      { name: "Cage (9 s)", pattern: "Rings every player with 3 Cage Wells in a 180 px circle that spins and shrinks 22 px/s (gone in ~8 s). Touching the ring hurts; shoot the 3 wells to break it. The boss holds fire meanwhile", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null }],
-    notes: ["Corner gravity wells: 4, one 110 px in from each corner (260 HP each). Your shots within 420 px bend hard into them, and players within 480 px drift toward them (up to 45 px/s). Kill all four and they return 15 s later.", "Hits from lasers and cage walls give the usual 0.35 s of invulnerability, so standing in one hurts about 3 times a second."] },
+      { name: "Collapse (3 s)", pattern: "Rings, each turned half a gap", kind: "small", n: 26, speed: 170, every: 0.9 },
+      { name: "Lasers (8 s)", pattern: "A 4-orb spiral (+17° a volley); from 1.5 s three red lines flicker for 0.8 s, then fire to the edges, 120° apart, sweeping counter-clockwise at 18°/s. 10 px wide", kind: "big", n: 4, speed: 150, every: 0.65, notes: "Lasers hurt 14 + 0.4 × wave" },
+      { name: "Accretion disk (all stage, Accretion)", pattern: "Two rings of big orbs round it: 20 at 150 px turning +34°/s and 30 at 250 px turning −23°/s, two orbs missing every tenth (2 and 3 gaps). It orbits the middle 200 px out at 9°/s, carrying them", dmg: "23 per touch", every: null },
+      { name: "Cage (9 s, Accretion)", pattern: "Rings every player with 3 Cage Wells in a 180 px circle that spins and shrinks 22 px/s. Touching it hurts; shoot the 3 wells to break it. It holds fire", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
+      { name: "Slingshot (6 s, Accretion)", pattern: "Every 0.8 s, the 3 outer-ring orbs nearest you leave the disk at 300 px/s, aimed at you; they come back one every 0.5 s afterwards", kind: "big", n: 3, speed: 300, every: 0.8 },
+      { name: "Twin lasers (7 s, Accretion)", pattern: "Two lasers, opposite each other, flicker for 0.8 s, then sweep at 26°/s", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
+      { name: "Event horizon (Spaghettify)", pattern: "A black disc that grows 70 → 170 px over 20 s and is its body: touching it hurts and shoves you out. It pulls at 60 px/s all stage (slower than anyone walks)", dmg: "contact", every: null },
+      { name: "Hawking (5 s, Spaghettify)", pattern: "Rings of 18 off the horizon's edge, +10° each", kind: "small", n: 18, speed: 160, every: 0.6 },
+      { name: "White hole (4 s, Spaghettify)", pattern: "The rim flashes white for 1 s; then for 1.5 s it pushes at 260 px/s and every enemy bullet on screen turns round", dmg: "—", every: null },
+      { name: "Split (8 s, Spaghettify)", pattern: "Three shards orbit 220 px out at 40°/s, each firing a 2-arm spiral. The core can't be hurt; hits on the shards go to it", kind: "small", n: 6, speed: 130, every: 0.22 },
+      { name: "Last stand (below 10%)", pattern: "The horizon swells to 190 px, the pull doubles to 110 px/s; a 3-arm spiral, and a ring of 18 big orbs every 1.6 s", kind: "small", n: 3, speed: 150, every: 0.1 }],
+    notes: ["Corner gravity wells: 4 at the start of each stage, one 110 px in from each corner (260 HP each). Your shots within 420 px bend hard into them, and players within 480 px drift toward them (up to 45 px/s). Killed, they stay gone until the next stage.", "Hits give the usual 0.35 s of invulnerability, so standing in a laser or the disk hurts about 3 times a second."] },
   { id: "Colossus", label: "The Colossus", cat: "Bosses", boss: true, hp: 6800, r: 54, speed: 35, sides: 6, col: rgb(0.78, 0.62, 0.45), xp: 260, score: 600, wave: 25,
     appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "Lumbers toward you (200 px) and stomps every 4 s: a huge ring with one gap to slip through.",
     attacks: [
@@ -384,11 +391,11 @@ const E = [
     appears: "The Lich's soul jar", lead: "Doesn't attack. The Lich is immune while it stands. A new one appears 15 s after it breaks.",
     attacks: [{ name: "—", pattern: "No attacks", dmg: "—", every: null }] },
   { id: "GravityWell", label: "Gravity Well", cat: "Summons", summon: true, hp: 260, r: 15, speed: 160, sides: 6, col: rgb(0.7, 0.45, 1), xp: 15, score: 40, wave: 20,
-    appears: "The Singularity's corners (4 at a time)", lead: "Sits 110 px in from a corner. Bends your shots within 420 px hard into itself and drifts nearby players slowly toward it. Doesn't attack.",
+    appears: "The Singularity's corners (4 at the start of each stage)", lead: "Sits 110 px in from a corner. Bends your shots within 420 px hard into itself and drifts nearby players slowly toward it. Doesn't attack. Killed, it stays gone until the Singularity's next stage.",
     attacks: [{ name: "Shot sink", pattern: "Bends your shots within 420 px into itself (2.5–14.5 rad/s, harder up close)", dmg: "—", every: null },
       { name: "Drift", pattern: "Pulls players within 480 px toward it, up to 45 px/s", dmg: "—", every: null }] },
   { id: "CageWell", label: "Cage Well", cat: "Summons", summon: true, hp: 40, r: 11, speed: 0, sides: 6, col: rgb(0.85, 0.4, 1), xp: 2, score: 5, wave: 20, melee: true,
-    appears: "The Singularity's Cage attack (3 per player)", lead: "Three of these orbit each player on a shrinking ring. The ring hurts to touch; shooting all three breaks it.",
+    appears: "The Singularity's Cage attack, in Accretion (3 per player)", lead: "Three of these orbit each player on a shrinking ring. The ring hurts to touch; shooting all three breaks it.",
     attacks: [{ name: "Cage wall", pattern: "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null }] },
 ];
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
@@ -441,7 +448,7 @@ function newWorld() {
 }
 
 function spawn(type, x, y, parent = 0, spawnT = 0.4) {
-  const d = BY[type] || RIOT[type] || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
+  const d = BY[type] || RIOT[type] || (type === "SingShard" ? SHARD : null) || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
   const elite = S.elite && d && !d.boss && !d.summon;
   const r = (d ? d.r : 10) * (elite ? 1.25 : 1);
   const e = { id: nextId++, type, d, x: clamp(x, r, W - r), y: clamp(y, r, H - r), r, t: 0, spawnT, fireT: rnd(0.3, 1.2), phaseT: rnd(1, 3),
@@ -449,6 +456,7 @@ function spawn(type, x, y, parent = 0, spawnT = 0.4) {
   if (type === "GravityWell") e.ang = 0;
   world.enemies.push(e);
   if (type === "Warden") wardenInit(e);
+
   return e;
 }
 const children = (p, type) => world.enemies.filter(o => o.parent === p.id && o.type === type && !o.dead);
@@ -481,6 +489,106 @@ const RIOT = {
   RiotGuard: { id: "RiotGuard", r: 13, speed: 125, sides: 8, col: rgb(0.35, 0.55, 1), melee: true, summon: true, contact: 14 },
 };
 const theWarden = () => world.enemies.find(o => o.type === "Warden" && !o.dead);
+
+// The Singularity (Singularity.cs): three stages by its health, then a last stand. "Cycle" plays each stage once.
+const SG = {
+  turns: [["Pull", "Rest", "Collapse", "Rest", "Lasers", "Rest"], ["Cage", "Rest", "Slingshot", "Rest", "TwinLasers", "Rest"], ["Hawking", "Rest", "WhiteHole", "Rest", "Split", "Rest"], ["Last"]],
+  times: [[4, 1, 3, 1, 8, 1.5], [9, 1, 6, 1, 7, 1.5], [5, 1, 4, 1, 8, 1.5], [10]],
+  stages: ["Event Horizon", "Accretion", "Spaghettify", "Last stand"],
+  rings: [{ n: 20, r: 150, spin: 0.6 }, { n: 30, r: 250, spin: -0.4 }],
+};
+const SHARD = { id: "SingShard", r: 20, speed: 0, sides: 5, col: rgb(0.8, 0.5, 1), melee: true, summon: true, contact: 15 };
+function diskOrb(g, e, ring, i) {  // where one of the disk's orbs is, or null for a gap or a flung-off slot
+  const R = SG.rings[ring];
+  if (i % 10 < 2 || (ring === 1 && (g.gone & (1 << i)))) return null;
+  const a = TAU * i / R.n + R.spin * g.diskT;
+  return { x: e.x + Math.cos(a) * R.r, y: e.y + Math.sin(a) * R.r };
+}
+function singInit(e) {
+  e.g = { stage: S.sel === "Singularity" && S.lock ? S.lock - 1 : e.cageDemo ? 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0,
+    horizon: 0, diskT: 0, gone: 0, orbit: 0, ringT: 0, refill: 0, reversed: false };
+  singEnter(e, e.g.stage);
+}
+function singEnter(e, stage) {
+  const g = e.g;
+  g.stage = stage; g.step = -1; g.loop = 0; g.turn = ""; g.stageT = 0; g.gone = 0; g.orbit = 0;
+  for (const o of world.enemies) if (o.type === "SingShard" || o.type === "GravityWell") o.dead = true;
+  if (stage < 3 && !e.cageDemo)
+    for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) { spawn("GravityWell", x, y, e.id, 0.8); addFx("ring", x, y, BY.GravityWell.col, 120, 0.6); }
+  singNext(e);
+}
+function singNext(e) {
+  const g = e.g, turns = SG.turns[g.stage];
+  if (g.turn === "Cage") world.cages = [];
+  if (g.turn === "Split") for (const o of world.enemies) if (o.type === "SingShard") o.dead = true;
+  if (++g.step >= turns.length) {
+    g.step = 0;
+    const locked = (S.sel === "Singularity" && S.lock) || e.cageDemo || e.dummyOnly;
+    if (++g.loop >= 1 && !locked) { singTransition(e, (g.stage + 1) % 4); return; }
+  }
+  g.turn = e.dummyOnly ? "Rest" : e.cageDemo ? "Cage" : turns[g.step];
+  g.len = SG.times[g.stage][e.cageDemo ? 0 : g.step]; g.tt = 0; g.ringT = 0; g.reversed = false; e.fireT = 0.3;
+  if (g.turn === "Cage") spawnCage(e);
+  if (g.turn === "Split") for (let k = 0; k < 3; k++) { const sh = spawn("SingShard", e.x + Math.cos(TAU * k / 3) * 220, e.y + Math.sin(TAU * k / 3) * 220, e.id, 0.3); sh.k = k; sh.fireT = 99; addFx("ring", sh.x, sh.y, SHARD.col, 50, 0.4); }
+}
+function singTransition(e, to) {
+  const g = e.g;
+  g.trans = 2; g.to = to; g.turn = "Rest";
+  world.cages = []; world.bullets = [];
+  for (const o of world.enemies) if (o.type === "SingShard" || o.type === "GravityWell" || o.type === "CageWell") o.dead = true;
+  addFx("ring", e.x, e.y, to === 1 ? rgb(0.75, 0.45, 1) : rgb(1, 0.45, 0.85), 900, 0.8);
+}
+function singPhase(g) {
+  if (g.trans > 0) return 12;
+  switch (g.turn) {
+    case "Pull": return 1; case "Collapse": return 2; case "Cage": return 3;
+    case "Lasers": return g.tt < 1.5 ? 0 : g.tt < 2.3 ? 4 : 5;
+    case "TwinLasers": return g.tt < 0.8 ? 4 : 5;
+    case "Slingshot": return 7; case "Hawking": return 8; case "WhiteHole": return 9; case "Split": return 10; case "Last": return 11;
+    default: return 6;
+  }
+}
+const singLasers = e => e.g && e.g.stage === 1 ? 2 : 3;
+function singTick(e, dt) {
+  const g = e.g, p = world.player, was = e.phase;
+  if (g.trans > 0) {
+    g.trans -= dt;
+    const l = Math.hypot(800 - e.x, 450 - e.y), st = Math.min(l, 420 * dt); if (l > 0) { e.x += (800 - e.x) / l * st; e.y += (450 - e.y) / l * st; }
+    if (g.trans <= 0) { g.trans = 0; e.x = 800; e.y = 450; singEnter(e, g.to); addFx("boom", e.x, e.y, rgb(1, 1, 1), e.r + 70, 0.4); addFx("ring", e.x, e.y, g.stage === 1 ? rgb(0.75, 0.45, 1) : rgb(1, 0.45, 0.85), 1100, 0.9); }
+    e.phase = singPhase(g); e.r = 40; return;
+  }
+  g.tt += dt; g.stageT += dt; g.diskT += dt;
+  e.phase = singPhase(g);
+  // Where it is: the middle, or orbiting it in Accretion
+  let gx = 800, gy = 450;
+  if (g.stage === 1) { g.orbit += 0.15 * dt; gx = 800 + Math.cos(g.orbit) * 200; gy = 450 + Math.sin(g.orbit) * 140; }
+  { const l = Math.hypot(gx - e.x, gy - e.y), st = Math.min(l, 220 * dt); if (l > 0) { e.x += (gx - e.x) / l * st; e.y += (gy - e.y) / l * st; } }
+  // The event horizon is its body; the pull
+  g.horizon = g.stage === 2 ? 70 + 100 * Math.min(1, g.stageT / 20.5) : g.stage === 3 ? g.horizon + (190 - g.horizon) * Math.min(1, dt * 2) : 0;
+  e.r = Math.max(40, g.horizon);
+  let pull = g.turn === "Pull" ? 150 : g.stage === 2 ? 60 : g.stage === 3 ? 110 : 0;
+  if (g.turn === "WhiteHole" && g.tt >= 1 && g.tt < 2.5) {
+    pull = -260;
+    if (!g.reversed) { g.reversed = true; for (const b of world.bullets) { b.vx = -b.vx; b.vy = -b.vy; b.av = -(b.av || 0); } addFx("ring", e.x, e.y, rgb(1, 1, 1), 700, 0.6); }
+  }
+  if (pull) world.pull = { x: e.x, y: e.y, s: pull };
+  if ((g.turn === "Lasers" || g.turn === "TwinLasers")) { if (e.phase === 4 && was !== 4) e.facing = rnd(0, TAU); if (e.phase === 5) e.facing += (g.stage === 1 ? 0.45 : 0.32) * dt; }
+  if (g.turn === "Slingshot" && (g.ringT -= dt) <= 0) {
+    g.ringT = 0.8;
+    for (let k = 0; k < 3; k++) {
+      let best = -1, bd = Infinity, bp = null;
+      for (let i = 0; i < 30; i++) { const o = diskOrb(g, e, 1, i); if (o && dist(o, p) < bd) { bd = dist(o, p); best = i; bp = o; } }
+      if (best < 0) break;
+      g.gone |= 1 << best;
+      const a = Math.atan2(p.y - bp.y, p.x - bp.x);
+      world.bullets.push({ x: bp.x, y: bp.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, av: 0, r: B.big.r, col: B.big.col, dmg: B.big.dmg, life: 6, boss: true, kind: "big" });
+    }
+  }
+  if (g.gone && g.turn !== "Slingshot" && (g.refill -= dt) <= 0) { g.refill = 0.5; g.gone &= g.gone - 1; }
+  if (g.turn === "Split") for (const o of world.enemies) if (o.type === "SingShard" && !o.dead) { const a = g.tt * 0.7 + TAU * o.k / 3; o.x = e.x + Math.cos(a) * 220; o.y = e.y + Math.sin(a) * 220; }
+  if (g.tt >= g.len) singNext(e);  // (in the game the last stand runs until it dies; here it loops back after 10 s)
+}
+
 const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
 const clearRiot = (guards) => { for (const o of world.enemies) if (o.type === "Rioter" || (guards && o.type === "RiotGuard")) o.dead = true; };
 
@@ -867,30 +975,7 @@ function special(e, dt) {
       if (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 12 || dist(p, e) < e.r + p.hitR) bomberExplode(e);
       break;
     }
-    case "Singularity": {
-      // 24 s loop: Pull 4, Collapse 3, Normal 8 (lasers warn at 1.5 s, fire at 2.3 s), Cage 9. Locks hold one attack.
-      let c = e.t % 24;
-      const lk = S.sel === "Singularity" ? S.lock : (e.cageDemo ? 4 : 0);
-      if (lk > 0) c = [0, 0, 4, 7, 15][lk] + e.t % [0, 4, 3, 8, 9][lk];
-      const was = e.phase;
-      e.phase = c < 4 ? 1 : c < 7 ? 2 : c < 15 ? (c - 7 < 1.5 ? 0 : c - 7 < 2.3 ? 4 : 5) : 3;
-      if (e.dummyOnly) e.phase = 0;
-      if (e.phase === 1) world.pull = { x: e.x, y: e.y, s: 150 };
-      if (e.phase === 4 && was !== 4) e.facing = rnd(0, TAU);
-      if (e.phase === 5) e.facing += 0.32 * dt;
-      const cyc = Math.floor(e.t / (lk > 0 ? [0, 4, 3, 8, 9][lk] : 24));  // a locked attack restarts each time it loops
-      if (e.phase === 3 && (was !== 3 || cyc !== e.cyc)) spawnCage(e);
-      e.cyc = cyc;
-      if (e.phase !== 3 && was === 3) world.cages = [];
-      if (e.cageDemo) break;
-      const wells = children(e, "GravityWell").length;
-      e.t2 -= dt;
-      if (wells > 0) e.t2 = Math.max(e.t2, 15);
-      else if (e.t2 <= 0) {
-        for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) { spawn("GravityWell", x, y, e.id, 0.8); addFx("ring", x, y, BY.GravityWell.col, 120, 0.6); }
-      }
-      break;
-    }
+    case "Singularity": if (!e.g) singInit(e); singTick(e, dt); break;
     case "Phantom":
       if (e.phaseT <= 0) {
         e.phaseT = rnd(3, 4.5);
@@ -1031,15 +1116,24 @@ function fire(e) {
       else { e.fireT = 0.9; e.ang += 0.35; for (let dd = 0; dd < 4; dd++) for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * dd / 4, 120 + k * 50, "small"); }
       break;
     }
-    case "Singularity":
-      if (e.dummyOnly || e.cageDemo) { e.fireT = 99; break; }
-      switch (e.phase) {
-        case 1: e.fireT = 0.13; e.ang += 0.21; for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 110, "small"); break;
-        case 2: e.fireT = 0.9; e.ang += 0.11; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 170, "small"); break;
-        case 3: e.fireT = 0.3; break;  // holds fire while the cages close
-        default: e.fireT = 0.65; e.ang += 0.3; for (let dd = 0; dd < 4; dd++) shot(e, e.ang + TAU * dd / 4, 150, "big");
+    case "Singularity": {
+      const g = e.g;
+      if (!g || g.trans > 0 || e.dummyOnly || e.cageDemo) { e.fireT = 0.2; break; }
+      switch (g.turn) {
+        case "Pull": e.fireT = 0.13; e.ang += 0.21; for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 110, "small"); break;
+        case "Collapse": e.fireT = 0.9; e.ang += Math.PI / 26; for (let i = 0; i < 26; i++) shot(e, e.ang + TAU * i / 26, 170, "small"); break;
+        case "Lasers": e.fireT = 0.65; e.ang += 0.3; for (let dd = 0; dd < 4; dd++) shot(e, e.ang + TAU * dd / 4, 150, "big"); break;
+        case "Hawking": e.fireT = 0.6; e.ang += 0.17; for (let i = 0; i < 18; i++) shot(e, e.ang + TAU * i / 18, 160, "small"); break;
+        case "Split": e.fireT = 0.22; e.ang += 0.35;
+          for (const o of world.enemies) if (o.type === "SingShard" && !o.dead && o.spawnT <= 0) for (let k = 0; k < 2; k++) shot(o, e.ang + o.k * 2.1 + Math.PI * k, 130, "small", 0, true);
+          break;
+        case "Last": e.fireT = 0.1; e.ang += 0.19; for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 150, "small");
+          if ((g.ringT -= 0.1) <= 0) { g.ringT = 1.6; for (let i = 0; i < 18; i++) shot(e, e.ang * 0.5 + TAU * i / 18, 110, "big"); }
+          break;
+        default: e.fireT = 0.2;  // the cage, the slingshot, the white hole, breathers
       }
       break;
+    }
     case "Phantom": e.fireT = 1.5; shot(e, aim - 0.05, 200, "small"); shot(e, aim + 0.05, 200, "small"); break;
     case "Hexer": e.fireT = 2; for (let s = -1; s <= 1; s += 2) { shot(e, aim + s * 0.7, 170, "small", -s * 1.1); shot(e, aim + s * 1.2, 150, "small", -s * 1.6); } break;
     case "Juggernaut": e.fireT = 2.5; e.ang += 0.2; for (let k = 0; k < 8; k++) shot(e, e.ang + TAU * k / 8, 110, "big"); break;
@@ -1162,7 +1256,9 @@ function step(dt) {
   }
   // The Singularity's lasers and cages
   const sing = world.enemies.find(o => o.type === "Singularity" && !o.dead && o.spawnT <= 0);
-  if (sing && sing.phase === 5) for (let k = 0; k < 3; k++) if (onLaser(sing, sing.facing + TAU * k / 3, p, 5 + p.hitR)) { hurt(14 + 0.4 * S.wave); break; }
+  if (sing && sing.phase === 5) { const n = singLasers(sing); for (let k = 0; k < n; k++) if (onLaser(sing, sing.facing + TAU * k / n, p, 5 + p.hitR)) { hurt(14 + 0.4 * S.wave); break; } }
+  if (sing && sing.g && sing.g.stage === 1 && sing.g.trans <= 0)  // the accretion disk's orbs
+    for (let ring = 0; ring < 2; ring++) for (let i = 0; i < SG.rings[ring].n; i++) { const o = diskOrb(sing.g, sing, ring, i); if (o && dist(o, p) < 10 + p.hitR) hurt(B.big.dmg); }
   for (const c of world.cages) {
     c.wells = c.wells.filter(w => !w.dead);
     if (!c.wells.length) { addFx("ring", c.x, c.y, BY.CageWell.col, c.r + 20, 0.4); c.broken = true; continue; }
@@ -1314,13 +1410,14 @@ function drawArena() {
   // Singularity: corner wells' reach, lasers (warning, then beams) and cage rings
   for (const w of world.enemies) if (w.type === "GravityWell" && w.spawnT <= 0) { cx.fillStyle = css(BY.GravityWell.col, 0.04); cx.beginPath(); cx.arc(w.x, w.y, 420, 0, TAU); cx.fill(); }
   const sg = world.enemies.find(o => o.type === "Singularity" && o.spawnT <= 0);
-  if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0; k < 3; k++) {
-    const a = sg.facing + TAU * k / 3;
-    if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, sg.r, 2000); } }
+  if (sg && sg.g) drawSingularity(sg, t);
+  if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0, n = singLasers(sg); k < n; k++) {
+    const a = sg.facing + TAU * k / n;
+    if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, 40, 2000); } }
     else {
-      cx.strokeStyle = "rgba(255,40,55,0.18)"; cx.lineWidth = 22; seg(sg, a, sg.r, 2000);
-      cx.strokeStyle = "rgba(255,50,65,0.9)"; cx.lineWidth = 10; seg(sg, a, sg.r, 2000);
-      cx.strokeStyle = "rgba(255,215,215,0.95)"; cx.lineWidth = 2.5; seg(sg, a, sg.r, 2000);
+      cx.strokeStyle = "rgba(255,40,55,0.18)"; cx.lineWidth = 22; seg(sg, a, 40, 2000);
+      cx.strokeStyle = "rgba(255,50,65,0.9)"; cx.lineWidth = 10; seg(sg, a, 40, 2000);
+      cx.strokeStyle = "rgba(255,215,215,0.95)"; cx.lineWidth = 2.5; seg(sg, a, 40, 2000);
     }
   }
   for (const c of world.cages) {
@@ -1355,7 +1452,7 @@ function drawArena() {
   for (const e of world.enemies) {
     cx.save();
     if (e.spawnT > 0) cx.globalAlpha = 0.35;
-    drawBody(cx, e, e.x, e.y, e.r, t, anim);
+    drawBody(cx, e, e.x, e.y, e.type === "Singularity" ? 40 : e.r, t, anim);  // its r grows with the event horizon (drawSingularity)
     cx.restore();
     if (S.hitbox) { cx.strokeStyle = "rgba(255,255,255,0.6)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(e.x, e.y, e.r, 0, TAU); cx.stroke(); }
   }
@@ -1480,6 +1577,31 @@ function drawWardenYard(t) {
   if (w.turn === "Last") { cx.strokeStyle = "rgba(255,102,51,0.8)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(e.x, e.y, e.r + 10 + 3 * Math.sin(t * 14), 0, TAU); cx.stroke(); }
 }
 
+/** The Singularity's disk, event horizon, white hole and split shell (under its body). */
+function drawSingularity(e, t) {
+  const g = e.g;
+  if (g.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(e.x, e.y, 58, 0, TAU); cx.stroke(); return; }
+  if (g.stage === 1) for (let ring = 0; ring < 2; ring++) {
+    cx.strokeStyle = "rgba(217,89,255,0.15)"; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(e.x, e.y, SG.rings[ring].r, 0, TAU); cx.stroke();
+    for (let i = 0; i < SG.rings[ring].n; i++) { const o = diskOrb(g, e, ring, i); if (!o) continue;
+      cx.fillStyle = "rgba(217,89,255,0.22)"; cx.beginPath(); cx.arc(o.x, o.y, 17, 0, TAU); cx.fill();
+      cx.fillStyle = css(B.big.col); cx.beginPath(); cx.arc(o.x, o.y, 10, 0, TAU); cx.fill();
+      cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(o.x, o.y, 4.5, 0, TAU); cx.fill(); }
+  }
+  if (g.horizon > 1) {
+    const r = g.horizon, flash = g.turn === "WhiteHole" && g.tt < 1;
+    cx.fillStyle = "rgba(255,120,220,0.06)"; cx.beginPath(); cx.arc(e.x, e.y, r + 40, 0, TAU); cx.fill();
+    cx.fillStyle = "#000"; cx.beginPath(); cx.arc(e.x, e.y, r, 0, TAU); cx.fill();
+    cx.strokeStyle = flash ? `rgba(255,255,255,${0.6 + 0.4 * Math.sin(t * 30)})` : "rgba(127,214,255,0.85)"; cx.lineWidth = flash ? 6 : 3; cx.beginPath(); cx.arc(e.x, e.y, r, 0, TAU); cx.stroke();
+    for (let k = 0; k < 6; k++) { const a = t * 0.8 + k; cx.strokeStyle = "rgba(255,150,230,0.35)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(e.x, e.y, r + 8 + k * 5, a, a + 1.2); cx.stroke(); }
+  }
+  if (g.turn === "WhiteHole" && g.tt >= 1 && g.tt < 2.5) { cx.strokeStyle = "rgba(255,255,255,0.35)"; cx.lineWidth = 3; for (let k = 0; k < 3; k++) { const rr = (t * 300 + k * 170) % 520; cx.beginPath(); cx.arc(e.x, e.y, Math.max(e.r, 40) + rr, 0, TAU); cx.stroke(); } }
+  if (g.turn === "Split") {
+    cx.strokeStyle = "rgba(255,255,255,0.5)"; cx.setLineDash([6, 6]); cx.lineWidth = 2; cx.beginPath(); cx.arc(e.x, e.y, e.r + 14, 0, TAU); cx.stroke(); cx.setLineDash([]);
+    for (const o of world.enemies) if (o.type === "SingShard") { cx.strokeStyle = css(SHARD.col, 0.25); cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(e.x, e.y); cx.lineTo(o.x, o.y); cx.stroke(); }
+  }
+}
+
 function statusLine() {
   const e = world.enemies.find(o => o.type === S.sel || (S.sel === "Twins" && (o.type === "TwinA" || o.type === "TwinB")) || ((S.sel === "GravityWell" || S.sel === "CageWell") && o.type === "Singularity") || (S.sel === "HiveBomber" && o.type === "HiveQueen"));
   if (!e) return "";
@@ -1494,7 +1616,14 @@ function statusLine() {
       return `${WD.stages[w.stage]}: ${what}   ${w.tt.toFixed(1)} / ${w.len.toFixed(0)} s` + (S.lock ? "   (locked)" : "");
     }
     case "HiveQueen": return ["Summoning", "Drones (shielded)", "Bombers", "Bullets"][e.t2] + `   ${e.phaseT.toFixed(1)} s in stage`;
-    case "Singularity": return ["Normal: spiral", "Pull", "Collapse", world.cages.length ? `Cage   ring ${Math.round(world.cages[0].r)} px` : "Cage (broken)", "Normal: lasers warning", "Normal: lasers"][e.phase] + (S.lock || e.cageDemo ? "   (locked)" : `   loop ${(e.t % 24).toFixed(1)} / 24 s`);
+    case "Singularity": {
+      const g = e.g;
+      if (!g) return "";
+      if (g.trans > 0) return `Changing to ${SG.stages[g.to]} (can't be hurt)`;
+      const what = { Rest: "Breather", Pull: "Pull", Collapse: "Collapse", Lasers: ["Spiral", "", "", "", "Lasers: warning", "Lasers"][e.phase] || "Spiral", Cage: world.cages.length ? `Cage   ring ${Math.round(world.cages[0].r)} px` : "Cage (broken)",
+        Slingshot: "Slingshot", TwinLasers: e.phase === 4 ? "Twin lasers: warning" : "Twin lasers", Hawking: "Hawking burst", WhiteHole: g.tt < 1 ? "White hole: warning" : g.tt < 2.5 ? "White hole: PUSH" : "White hole", Split: "Split (core can't be hurt)", Last: "Spiral + rings" }[g.turn];
+      return `${SG.stages[g.stage]}: ${what}   ${g.tt.toFixed(1)} / ${g.len.toFixed(0)} s` + (S.lock || e.cageDemo ? "   (locked)" : "");
+    }
     case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
     case "Charger": return ["Circling", "Winding up", "Dashing"][e.phase];
     case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
