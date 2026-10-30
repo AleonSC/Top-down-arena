@@ -95,8 +95,8 @@ namespace Arena
                     pendingSwings.Add(shards);
                     break;
                 }
-                case WeaponId.StormHammer:
-                    SpawnBullet(Defs.BoltShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Chain = 3 + extra;
+                case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra
+                    SpawnBullet(Defs.HammerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (1f + HammerGrow * extra) * dmg, p.Id).Shock = 3 + extra;
                     break;
                 case WeaponId.RadiantOrb:
                     break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)
@@ -194,6 +194,66 @@ namespace Arena
                 BroadcastFx(FxKind.Bolt, cur.Pos, next.Pos, Defs.BulletColor(Defs.BoltShot), 0f, 0.15f, Sfx.None);
                 hit.Add(next.Id);
                 cur = next;
+            }
+        }
+
+        /// An enemy the Storm Hammer electrified: it arcs lightning to the enemies round it a few times.
+        class Shock
+        {
+            public int Enemy, Owner, Jumps, Pulses;
+            public float T, Dmg, Reach;
+        }
+
+        readonly List<Shock> shocks = new List<Shock>();
+        public const float HammerArcMult = 0.125f, ShockEvery = 0.5f;  // each arc's share of the hammer's damage; time between arcs
+        public const float HammerGrow = 0.15f;                         // more hammer damage per extra projectile
+        public const int ShockPulses = 3;                              // arcs per electrified enemy (the first as the hammer lands)
+
+        /// The Storm Hammer landed: `e` is electrified (hit again, it starts over).
+        void Electrify(Enemy e, float hammerDmg, int jumps, int owner)
+        {
+            shocks.RemoveAll(s => s.Enemy == e.Id);
+            Player p;
+            float reach = ChainReach * (Players.TryGetValue(owner, out p) ? AreaMult(p) : 1f);  // Homing Rounds: the arcs reach further
+            var sh = new Shock { Enemy = e.Id, Owner = owner, Jumps = jumps, Pulses = ShockPulses, Dmg = hammerDmg * HammerArcMult, Reach = reach };
+            shocks.Add(sh);
+            ShockPulse(sh, e);
+            sh.T = ShockEvery;
+        }
+
+        /// One arc: lightning from the electrified enemy to the nearest few round it.
+        void ShockPulse(Shock sh, Enemy from)
+        {
+            sh.Pulses--;
+            BroadcastFx(FxKind.Spark, from.Pos, Defs.BulletColor(Defs.HammerShot), from.Radius + 14f, 0.3f, Sfx.None);
+            var near = new List<Enemy>();
+            foreach (var e in Enemies.Values)
+                if (e != from && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(from.Pos) < sh.Reach + e.Radius)
+                    near.Add(e);
+            near.Sort((a, b) => a.Pos.DistanceSq(from.Pos).CompareTo(b.Pos.DistanceSq(from.Pos)));
+            for (int i = 0; i < near.Count && i < sh.Jumps; i++)
+            {
+                HurtEnemy(near[i], sh.Dmg, sh.Owner);
+                BroadcastFx(FxKind.Bolt, from.Pos, near[i].Pos, Defs.BulletColor(Defs.BoltShot), 0f, 0.15f, Sfx.None);
+            }
+        }
+
+        /// Host, every tick: electrified enemies arc again every ShockEvery until they've arced ShockPulses times.
+        void TickShocks(float dt)
+        {
+            for (int i = shocks.Count - 1; i >= 0; i--)
+            {
+                var sh = shocks[i];
+                Enemy e;
+                if (!Enemies.TryGetValue(sh.Enemy, out e) || e.Hp <= 0f || sh.Pulses <= 0)
+                {
+                    shocks.RemoveAt(i);
+                    continue;
+                }
+                if ((sh.T -= dt) > 0f)
+                    continue;
+                ShockPulse(sh, e);
+                sh.T = ShockEvery;
             }
         }
 

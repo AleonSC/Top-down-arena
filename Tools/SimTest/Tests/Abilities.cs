@@ -107,7 +107,7 @@ static partial class Program
                 foreach (var fx in client.Game.Effects)
                     bolt |= fx.Kind == FxKind.Bolt;
                 foreach (var b in client.Game.Bullets.Values)
-                    boltShot |= b.Kind == Defs.BoltShot;
+                    boltShot |= b.Kind == Defs.BoltShot || b.Kind == Defs.HammerShot;
                 if (++frame % 60 == 0)
                 {
                     for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }

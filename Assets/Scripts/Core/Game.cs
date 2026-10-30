@@ -193,6 +193,7 @@ namespace Arena
         public float Pool, PoolTime;  // host only: leaves a Blood Pool this big, for this long, where it hits (Clot Bolt)
         public int Burst;         // host only: mortar bombs burst into this many bullets when they land
         public int Chain;         // host only: lightning jumps to this many more enemies
+        public int Shock;         // host only: electrifies the enemy it hits, which arcs to this many others round it (the Storm Hammer)
         public float SlowAmt;     // host only: frost slows enemies hit
         public float Ignite;      // host only: sets enemies hit burning for this much a second (Flamethrower)
         public bool Pierced;      // host only: a Flamethrower flame that has hit its first enemy (it does less after)
@@ -1219,6 +1220,7 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickNinjas(dt);   // Ninja.cs
             TickBloodMages(dt);  // BloodMage.cs
+            TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

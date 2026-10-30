@@ -397,7 +397,7 @@ namespace Arena
             { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
             { WeaponId.Fireball, "blasts (and split fireballs) 25% wider" },
             { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
-            { WeaponId.StormHammer, "lightning jumps 25% farther between enemies" },
+            { WeaponId.StormHammer, "the electrified enemy's lightning reaches 25% farther" },
             { WeaponId.ClotBolt, "blood pools 25% wider" },
             { WeaponId.VeinTether, "the beam 25% wider" },
             { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },

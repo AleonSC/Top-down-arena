@@ -343,6 +343,33 @@ namespace Arena
             p.Disp = real;
         }
 
+        /// The Storm Hammer: a war hammer tumbling end over end, its head crackling with sparks.
+        void DrawStormHammer(Bullet b, Rgba c, float t)
+        {
+            float spin = -(t * 16f + b.Id * 1.3f);
+            V2 dir = V2.FromAngle(spin), side = dir.Orthogonal();
+            V2 head = b.Pos + dir * 4f, grip = b.Pos - dir * 12f;
+            var steel = new Rgba(0.72f, 0.76f, 0.85f);
+            Circle(b.Pos, b.Radius * 1.7f, c.WithAlpha(0.18f + 0.08f * Mathf.Sin(t * 40f + b.Id)), 14);  // a charged glow
+            for (int k = 1; k <= 3; k++)  // the blur of its spin
+            {
+                V2 d = V2.FromAngle(spin + 0.45f * k);
+                Line(b.Pos - d * 12f, b.Pos + d * 6f, 3f, c.WithAlpha(0.25f / k));
+            }
+            Line(grip, head, 3f, new Rgba(0.55f, 0.38f, 0.22f));  // the haft
+            SetColor(steel);                                       // the head, across the haft
+            Quad(head + side * 9f - dir * 4f, head + side * 9f + dir * 4f, head - side * 9f + dir * 4f, head - side * 9f - dir * 4f);
+            Line(head + side * 9f + dir * 4f, head - side * 9f + dir * 4f, 1.5f, Rgba.White.WithAlpha(0.8f));
+            for (int k = 0; k < 2; k++)  // sparks jumping off the head
+            {
+                float a = t * 23f + k * 2.7f + b.Id;
+                V2 s0 = head + side * ((k == 0 ? 1f : -1f) * 9f);
+                V2 s1 = s0 + V2.FromAngle(a) * 6f, s2 = s1 + V2.FromAngle(a + 1.2f) * 5f;
+                Line(s0, s1, 1.2f, Rgba.White.WithAlpha(0.9f));
+                Line(s1, s2, 1.2f, c.WithAlpha(0.9f));
+            }
+        }
+
         /// Small shots (enemies', arrows, sword waves...), drawn over everything else.
         void DrawSmallShot(Bullet b, float t)
         {
@@ -357,6 +384,11 @@ namespace Arena
             if (b.Kind >= Defs.BloodShot && b.Kind <= Defs.BoneSpearShot)
             {
                 DrawBloodShot(b, c, t);  // BloodMageLook.cs
+                return;
+            }
+            if (b.Kind == Defs.HammerShot)
+            {
+                DrawStormHammer(b, c, t);
                 return;
             }
             if (b.Kind == Defs.FlameShot)

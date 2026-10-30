@@ -565,6 +565,42 @@ static partial class Program
         host.Leave("");
     }
 
+    static void StormHammerTest(float dt)
+    {
+        // The Storm Hammer: a spinning hammer smashes one enemy (most of the damage) and electrifies it; it arcs a
+        // little lightning to the enemies round it, three times over a second.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Tank, 2, 0, Kit.Mage);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Check(me.Weapon.Id == WeaponId.StormHammer, "the Mage Tank's third weapon is the Storm Hammer");
+        g.Enemies.Clear(); g.Bullets.Clear();
+        var spots = new[] { new V2(400f, 450f), new V2(400f, 540f), new V2(400f, 360f), new V2(470f, 530f), new V2(400f, 700f) };  // the target, three round it, one too far
+        var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+        Action<float> step = secs => { for (int f = 0; f < secs * 60; f++) { for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; } me.Pos = new V2(200f, 450f); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) }); } };
+        me.Pos = new V2(200f, 450f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        bool hammer = g.Bullets.Values.Any(b => b.Owner == 1 && b.Kind == Defs.HammerShot);
+        float landed = 0f;
+        for (int f = 0; f < 60 && landed == 0f; f++) { step(1f / 60f); landed = dummies[0].MaxHp - dummies[0].Hp; }
+        float first = dummies[1].MaxHp - dummies[1].Hp;
+        step(1.2f);
+        float[] took = dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        Console.WriteLine("  storm hammer: target {0:0.0}; round it {1:0.0} / {2:0.0} / {3:0.0} (first arc {4:0.0}); too far {5:0.0}",
+            took[0], took[1], took[2], took[3], first, took[4]);
+        Check(hammer && landed > 0f && took[0] == landed, "the Storm Hammer flies as a spinning hammer and smashes the enemy it hits (the arcs never hit it)");
+        Check(Math.Abs(first - landed * Game.HammerArcMult) < 0.2f && took.Skip(1).Take(3).All(d => Math.Abs(d - landed * Game.HammerArcMult * Game.ShockPulses) < 0.3f) && took[4] == 0f,
+            "the electrified enemy arcs a little lightning to 3 enemies round it, three times, and not to one too far away");
+        Check(took[1] < took[0] * 0.5f, "most of the damage is the hammer's");
+        host.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

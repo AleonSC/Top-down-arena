@@ -200,7 +200,8 @@ namespace Arena
                 Desc = "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s)." },
             new WeaponDef { Id = WeaponId.FrostLance, Damage = 18f, Reach = 230f, Grow = 30f, BotRange = 190f, ExtraDesc = "+30 px longer icicle, and its splinters fly 15 px further", Name = "Frost Lance", FireInterval = 0.4f,
                 Desc = "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow." },
-            new WeaponDef { Id = WeaponId.StormHammer, Speed = 420f, Life = 1.2f, Damage = 24f, BotRange = 220f, ExtraDesc = "Lightning chains to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f, Desc = "A heavy orb whose lightning chains to 3 nearby enemies." },
+            new WeaponDef { Id = WeaponId.StormHammer, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
+                Desc = "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage." },
             new WeaponDef { Id = WeaponId.GolemStaff, Speed = 480f, Life = 0.6f, Damage = 8f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.BoneGuard, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
@@ -337,7 +338,8 @@ namespace Arena
             // Blood Mage
             BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
             StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
-            FlameShot = 48;  // a Flamethrower flame
+            FlameShot = 48,  // a Flamethrower flame
+            HammerShot = 49; // the Storm Hammer, spinning as it flies
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -390,6 +392,7 @@ namespace Arena
                 case StunShot: return 7f;
                 case StunBolt: return 5f;
                 case FlameShot: return 7f;
+                case HammerShot: return 11f;
                 case HoneyShot: return 9f;
                 default: return 6f;
             }
@@ -457,6 +460,7 @@ namespace Arena
                 case StunShot:
                 case StunBolt: return new Rgba(0.43f, 0.88f, 1f);
                 case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
+                case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
