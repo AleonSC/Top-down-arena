@@ -1015,7 +1015,8 @@ namespace Arena
             string confirmText = selectedCard >= 0 ? "Confirm  [Enter]" : "Pick a card first";  // the selected card shows its name
             if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, selectedCard >= 0 ? Ui.Primary : Ui.Neutral))
                 ConfirmPick();
-            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod;
+            SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod && !RerollLocked;
             if (Ui.Button(new Rect(mid + 10f, by, btnW, 46f), "Reroll (" + me.Rerolls + " left)  [R]"))
                 game.RerollOffer();
             GUI.enabled = wasEnabled;
