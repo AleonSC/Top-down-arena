@@ -151,7 +151,7 @@ const STAGES = [
       ["Pull", "4 s", "Drags everyone toward it (as now) while a three-armed spiral winds out: 3 small shots every 0.13 s, turning 0.21 rad a volley, 110 px/s."],
       ["Collapse", "3 s", "Rings of 26 small shots at 170 px/s, one every 0.9 s, each turned half a gap so the lanes move."],
       ["Lasers", "8 s", "A slow four-armed orb spiral, then three red lasers flicker for 0.8 s and sweep counter-clockwise at 0.32 rad/s. Touching one hurts."],
-      ["Gravity Wells", "all stage", "Four in the corners bend your shots into themselves within 420 px and drift you toward them. Kill them to shoot freely; they come back 15 s after the last one dies."],
+      ["Gravity Wells", "all stage", "Four in the corners bend your shots into themselves within 420 px (shots that get close are lost to the well, and hit it) and drift you toward them at up to 45 px/s. Kill them to shoot freely; they come back 15 s after the last one dies. In the mockup the dummy's shots turn violet once a well has them."],
     ] },
   { name: "Accretion", hp: "65–30%", col: "#b07cff",
     lead: "The corner wells fall into it and it starts to orbit the middle, wrapped in a disk of debris. The disk stays up all stage: your shots go through it, but to dodge in close you time the gaps.",
@@ -197,14 +197,15 @@ const S = { lock: -1, speed: 1 };
 let w;
 function reset(stage) {
   w = { t: 0, stage, tt: 0, turn: 0, trans: 0, loops: 0, boss: { x: MID.x, y: MID.y, ang: 0, orbit: 0, fire: 0.3, ring: 0 },
-    bullets: [], fx: [], wells: [], cage: null, shards: [], disk: [], laser: null, push: 0, horizon: 70, flash: 0,
+    bullets: [], shots: [], bent: 0, wellCd: 0, fireCd: 0, fx: [], wells: [], cage: null, shards: [], disk: [], laser: null, push: 0, horizon: 70, flash: 0,
     p: { x: 800, y: 760, tx: 800, ty: 760, hits: 0, inv: 0 } };
-  if (stage === 0) w.wells = [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]].map(([x, y]) => ({ x, y }));
+  if (stage === 0) spawnWells();
   if (stage === 1) makeDisk();
   if (stage === 3) w.horizon = 190;
   startTurn();
 }
 const st = () => STAGES[w.stage];
+function spawnWells() { w.wells = [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]].map(([x, y]) => ({ x, y, hp: 25, flash: 0 })); }
 const turnName = () => st().turns[w.turn][0];
 function makeDisk() {
   w.disk = [];
@@ -303,6 +304,7 @@ function step(dt) {
   for (const d of w.disk) if (Math.hypot(b.x + Math.cos(d.a) * d.r - p.x, b.y + Math.sin(d.a) * d.r - p.y) < 17) hit();
   if (w.stage >= 2 && Math.hypot(b.x - p.x, b.y - p.y) < w.horizon) hit();
   if (w.cage && Math.abs(Math.hypot(p.x - w.cage.x, p.y - w.cage.y) - w.cage.r) < 12) hit();
+  playerShots(dt);
   moveDummy(dt);
   for (const f of w.fx) f.t += dt; w.fx = w.fx.filter(f => f.t < f.dur);
   w.flash = Math.max(0, w.flash - dt * 2);
@@ -311,11 +313,45 @@ function step(dt) {
 // Seconds into the current loop of turns.
 function loopTime() { return st().turns.slice(0, w.turn).reduce((a, t) => a + t[1], 0) + w.tt; }
 
+// The dummy shoots at the core. Within 420 px of a corner well its shots bend into the well, harder the closer
+// they pass (as Combat.cs PullIntoWells does), and hit it instead. Kill all four and they're back 15 s later.
+function playerShots(dt) {
+  const p = w.p, b = w.boss;
+  if ((w.fireCd -= dt) <= 0) {
+    w.fireCd = 0.15;
+    const tg = w.shards.length ? (() => { const s0 = w.shards[0]; return { x: b.x + Math.cos(s0.a) * 220, y: b.y + Math.sin(s0.a) * 220 }; })() : b;
+    const a = Math.atan2(tg.y - p.y, tg.x - p.x);
+    w.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, life: 1.6, bent: false });
+  }
+  for (const q of w.shots) {
+    for (const g of w.wells) {
+      const d = Math.hypot(g.x - q.x, g.y - q.y);
+      if (d > 420) continue;
+      const want = Math.atan2(g.y - q.y, g.x - q.x), have = Math.atan2(q.vy, q.vx), sp = Math.hypot(q.vx, q.vy);
+      const diff = ((want - have + Math.PI) % TAU + TAU) % TAU - Math.PI, rate = (2.5 + 12 * (1 - d / 420)) * dt, turn = clamp(diff, -rate, rate);
+      q.vx = Math.cos(have + turn) * sp; q.vy = Math.sin(have + turn) * sp; q.bent = true;
+      if (d < 30) { q.life = 0; g.hp--; g.flash = 0.1; w.bent++; }
+      break;  // one well at a time
+    }
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.life > 0 && Math.hypot(q.x - b.x, q.y - b.y) < 44) q.life = 0;  // reached the core
+  }
+  w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
+  for (const g of w.wells) { g.flash = Math.max(0, g.flash - dt); if (g.hp <= 0) w.fx.push({ x: g.x, y: g.y, r: 60, t: 0, dur: 0.4, col: "#b07cff" }); }
+  const before = w.wells.length;
+  w.wells = w.wells.filter(g => g.hp > 0);
+  if (w.stage === 0 && w.trans <= 0) {
+    if (w.wells.length) w.wellCd = 15;
+    else if ((w.wellCd -= dt) <= 0) spawnWells();
+  }
+  // ...and they drift you toward them: 45 px/s at the well, nothing from 480 px out
+  for (const g of w.wells) { const dx = g.x - p.x, dy = g.y - p.y, d = Math.hypot(dx, dy); if (d < 480 && d > 1) { const s = 45 * (1 - d / 480) * dt; p.x += dx / d * s; p.y += dy / d * s; } }
+}
 function moveDummy(dt) {
   // The dummy wanders between points away from the core, at a class's walking speed.
   const p = w.p, b = w.boss, keep = (w.stage >= 2 ? w.horizon : 60) + 220;
   if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * 0.25) {
-    for (let k = 0; k < 10; k++) { const a = rnd(0, TAU), r = rnd(keep, 400), tx = MID.x + Math.cos(a) * r * 1.5, ty = MID.y + Math.sin(a) * r * 0.85;
+    for (let k = 0; k < 10; k++) { const a = rnd(0, TAU), r = rnd(keep, w.stage === 0 ? 520 : 400), tx = MID.x + Math.cos(a) * r * 1.5, ty = MID.y + Math.sin(a) * r * 0.85;
       if (tx > 60 && tx < W - 60 && ty > 60 && ty < H - 60) { p.tx = tx; p.ty = ty; break; } }
   }
   if (w.cage) { p.tx = w.cage.x; p.ty = w.cage.y; }  // caged: it stays put and shoots the wells
@@ -336,8 +372,9 @@ function draw() {
   // Corner wells and their reach
   for (const g of w.wells) {
     cx.fillStyle = "rgba(140,90,255,0.05)"; cx.beginPath(); cx.arc(g.x, g.y, 420, 0, TAU); cx.fill();
-    cx.fillStyle = "#1a0f33"; cx.beginPath(); cx.arc(g.x, g.y, 26, 0, TAU); cx.fill();
+    cx.fillStyle = g.flash > 0 ? "#fff" : "#1a0f33"; cx.beginPath(); cx.arc(g.x, g.y, 26, 0, TAU); cx.fill();
     cx.strokeStyle = "rgba(176,124,255,0.8)"; cx.lineWidth = 3; cx.beginPath(); cx.arc(g.x, g.y, 26, t * 2, t * 2 + 4.5); cx.stroke();
+    cx.strokeStyle = "rgba(107,227,138,0.9)"; cx.lineWidth = 4; cx.beginPath(); cx.arc(g.x, g.y, 34, -Math.PI / 2, -Math.PI / 2 + TAU * g.hp / 25); cx.stroke();
   }
   // Event horizon
   if (w.stage >= 2 && w.trans <= 0) {
@@ -391,16 +428,20 @@ function draw() {
     cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(q.x, q.y, q.r * 0.45, 0, TAU); cx.fill();
   }
   for (const f of w.fx) { const k = f.t / f.dur; cx.strokeStyle = f.col; cx.globalAlpha = 1 - k; cx.lineWidth = 4; cx.beginPath(); cx.arc(f.x, f.y, f.r * (0.2 + 0.8 * k), 0, TAU); cx.stroke(); cx.globalAlpha = 1; }
+  // The dummy's shots: green, turning violet once a well has hold of them
+  for (const q of w.shots) { cx.fillStyle = q.bent ? "#c9a6ff" : "#7dffa8"; cx.beginPath(); cx.arc(q.x, q.y, 4, 0, TAU); cx.fill(); }
+  if (w.stage === 0 && !w.wells.length && w.trans <= 0) { cx.fillStyle = "rgba(176,124,255,0.8)"; cx.font = "500 18px 'IBM Plex Mono', monospace"; cx.textAlign = "center";
+    for (const [x, y] of [[110, 110], [W - 110, 110], [110, H - 110], [W - 110, H - 110]]) cx.fillText(`back in ${w.wellCd.toFixed(0)} s`, x, y + 6); cx.textAlign = "left"; }
   // Dummy
   cx.fillStyle = p.inv > 0.2 ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)"; cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
   cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
   cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(p.x, p.y, 4, 0, TAU); cx.fill();
   // Stage banner
   cx.textAlign = "left"; cx.font = "700 30px Oxanium, sans-serif"; cx.fillStyle = w.trans > 0 ? "#fff" : st().col;
-  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 28, 50);
+  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 200, H - 58);
   cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(232,236,248,0.65)";
-  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s`, 28, 82);
-  if (S.speed === 0) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.fillText("PAUSED", 28, H - 28); }
+  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s`, 200, H - 28);
+  if (S.speed === 0) { cx.fillStyle = "rgba(255,204,89,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "right"; cx.fillText("PAUSED", W - 200, H - 28); cx.textAlign = "left"; }
   function core(x, y, r, tt) {
     cx.fillStyle = "rgba(176,124,255,0.12)"; cx.beginPath(); cx.arc(x, y, r + 22, 0, TAU); cx.fill();
     cx.fillStyle = "#05030b"; cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.fill();
@@ -408,7 +449,7 @@ function draw() {
     for (let k = 0; k < 3; k++) { cx.beginPath(); cx.arc(x, y, r - 4, tt * 2 + k * TAU / 3, tt * 2 + k * TAU / 3 + 1.3); cx.stroke(); }
     cx.strokeStyle = "rgba(255,230,255,0.7)"; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(x, y, r + 6, -tt, -tt + 2); cx.stroke();
   }
-  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span><span>Bullets <b>${w.bullets.length + w.disk.length}</b></span>`;
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Dummy hits <b>${p.hits}</b></span>${w.stage === 0 ? `<span>Shots bent into wells <b>${w.bent}</b></span><span>Wells <b>${w.wells.length} / 4</b></span>` : ""}<span>Bullets <b>${w.bullets.length + w.disk.length}</b></span>`;
   for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
 }
 
