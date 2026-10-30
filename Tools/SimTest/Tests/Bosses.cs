@@ -397,6 +397,135 @@ static partial class Program
     }
 
     // The Singularity's reworked fight: corner wells, Pull -> Collapse -> Normal (spiral + sweeping lasers) -> Cage.
+    // The Lich in three stages and a last stand (Lich.cs): its phylacteries' guard and window, the turns of each stage,
+    // the soul beams, sweep, prisons, spirits, grave hops and dead hands, all seen on the client too.
+    static void LichTest(float dt)
+    {
+        var s = StartBuffed(dt, 35, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        var c = s[1].Game;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Lich) != null && !g.IsSpawning(Find(s[0], EnemyType.Lich)));
+        var lich = Find(s[0], EnemyType.Lich);
+        Check(lich != null, "wave 35 brings the Lich");
+        if (lich == null) { s[0].Leave(""); s[1].Leave(""); return; }
+        Run(s, dt, 1.5f, null, safe);
+        Func<List<Enemy>> Jars = () => g.Enemies.Values.Where(e => e.Type == EnemyType.Phylactery && e.ParentId == lich.Id && e.Hp > 0f).ToList();
+        Func<Enemy> CL = () => c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Lich);
+
+        // The Crypt: one phylactery guards it; break it for a 12 s window.
+        float hp = lich.Hp; hurt.Invoke(g, new object[] { lich, 300f, 1 });
+        bool guarded = lich.Hp == hp && lich.Phase == Game.LichGuarded;
+        int jars = Jars().Count;
+        foreach (var j in Jars()) j.Hp = 0f;
+        Run(s, dt, 0.3f, null, safe);
+        hp = lich.Hp; hurt.Invoke(g, new object[] { lich, 300f, 1 });
+        bool open = lich.Hp < hp && lich.Lich.Window > 10f;
+        Run(s, dt, 0.3f, null, safe);
+        float clientWindow = CL()?.Lich?.Window ?? 0f;
+        Console.WriteLine("  crypt: {0} phylactery, guarded {1}; broken: open {2} (client window {3:0.0} s)", jars, guarded, open, clientWindow);
+        Check(lich.Lich.Stage == LichStage.Crypt && jars == 1 && guarded, "the Crypt: one phylactery keeps the Lich from being hurt");
+        Check(open && clientWindow > 9f, "breaking it opens a 12 s window to hurt the Lich (seen on the client)");
+        Run(s, dt, 12.5f, null, safe);
+        Check(Jars().Count == 1 && lich.Phase == Game.LichGuarded, "after the window another phylactery rises");
+
+        // Its turns: fans, rings and the dead rising, with breathers.
+        var turns = new List<LichTurn>();
+        bool fans = false, rings = false;
+        Run(s, dt, 24f, null, () =>
+        {
+            safe();
+            if (turns.Count == 0 || turns[turns.Count - 1] != lich.Lich.Turn) turns.Add(lich.Lich.Turn);
+            foreach (var b in g.Bullets.Values)
+                if (b.Source == EnemyType.Lich) { fans |= b.Kind == Defs.PierceShot; rings |= b.Kind == Defs.BigShot; }
+        });
+        int dead = g.Enemies.Values.Count(e => e.Type == EnemyType.Grunt && e.ParentId == lich.Id);
+        string order = string.Join(" > ", turns);
+        Console.WriteLine("  crypt turns: {0}; raised {1}", order, dead);
+        Check(order.Contains("Fans > Rest > Rings > Rest > Raise > Rest"), "the Crypt takes turns: soul fans, grave rings, raising the dead, breathers between");
+        Check(fans && rings && dead > 0, "it fires fans of piercing shots and rings of orbs, and the dead climb out of graves");
+
+        // 65%: it changes stage (can't be hurt, screen cleared), then Soul Harvest with three phylacteries.
+        foreach (var j in Jars()) j.Hp = 0f;
+        Run(s, dt, 0.3f, null, safe);
+        lich.Hp = lich.MaxHp * 0.6f;
+        Run(s, dt, 0.2f, null, safe);
+        hp = lich.Hp; hurt.Invoke(g, new object[] { lich, 300f, 1 });
+        bool shift = lich.Lich.TransT > 0f && lich.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Lich);
+        Run(s, dt, 3f, () => lich.Lich.Stage == LichStage.Harvest && lich.Lich.TransT <= 0f, safe);
+        Run(s, dt, 1.2f, null, safe);
+        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}); phylacteries {3}", shift, lich.Lich.Stage, CL()?.Lich?.Stage, Jars().Count);
+        Check(shift && lich.Lich.Stage == LichStage.Harvest && CL()?.Lich?.Stage == LichStage.Harvest, "at 65% it changes stage (can't be hurt, screen cleared), then Soul Harvest (seen on the client)");
+        Check(Jars().Count == 3 && lich.Phase == Game.LichGuarded, "Soul Harvest raises three phylacteries that guard it");
+
+        // A soul beam between two phylacteries hurts.
+        var me = g.Players[1];
+        var two = Jars().OrderBy(e => e.Id).Take(2).ToList();
+        float taken = me.Run.DamageTaken;
+        me.InvulnT = 0f; me.DevGod = false;
+        Run(s, dt, 0.6f, () => me.Run.DamageTaken > taken, () => { me.Pos = (two[0].Pos + two[1].Pos) * 0.5f; foreach (var p in g.Players.Values) if (p != me) p.InvulnT = 1f; });
+        Console.WriteLine("  soul beam: damage taken standing on it {0:0.0}", me.Run.DamageTaken - taken);
+        Check(me.Run.DamageTaken > taken, "the soul beams between the phylacteries hurt");
+
+        // Its turns: the sweep, bone prisons, wailing spirits.
+        bool sweepLive = false, prisons = false, prisonShots = false, spirits = false, clientSpirits = false, clientSweep = false;
+        turns.Clear();
+        Run(s, dt, 22f, null, () =>
+        {
+            safe();
+            var q = lich.Lich;
+            if (turns.Count == 0 || turns[turns.Count - 1] != q.Turn) turns.Add(q.Turn);
+            sweepLive |= q.SweepOn == 2;
+            clientSweep |= CL()?.Lich?.SweepOn == 2;
+            prisons |= q.Prisons.Count > 0;
+            prisonShots |= q.Prisons.Any(pr => pr.Fired);
+            spirits |= q.Spirits.Count >= 6;
+            clientSpirits |= (CL()?.Lich?.Spirits.Count ?? 0) > 0;
+        });
+        order = string.Join(" > ", turns);
+        Console.WriteLine("  harvest turns: {0}; sweep {1} (client {2}), prisons {3} fired {4}, spirits {5} (client {6})", order, sweepLive, clientSweep, prisons, prisonShots, spirits, clientSpirits);
+        Check(order.Contains("Sweep > Rest > Prison > Rest > Spirits > Rest"), "Soul Harvest takes turns: soul sweep, bone prison, wailing spirits");
+        Check(sweepLive && clientSweep, "the soul sweep swings across (on the client too)");
+        Check(prisons && prisonShots, "bone prisons rise round the players and fire inward");
+        Check(spirits && clientSpirits, "six wailing spirits circle and dive (on the client too)");
+
+        // 30%: Undeath, no phylacteries; it blinks between graves and hands burst up.
+        lich.Hp = lich.MaxHp * 0.25f;
+        foreach (var j in Jars()) j.Hp = 0f;
+        Run(s, dt, 4f, () => lich.Lich.Stage == LichStage.Undeath && lich.Lich.TransT <= 0f, safe);
+        Run(s, dt, 0.2f, null, safe);
+        bool atGrave = Enumerable.Range(0, Game.GraveCount).Any(i => lich.Pos.DistanceTo(g.GravePos(i)) < 120f);
+        var spots = new HashSet<int>();
+        bool faded = false, hands = false, clientHands = false, storm = false;
+        turns.Clear();
+        Run(s, dt, 22f, null, () =>
+        {
+            safe();
+            var q = lich.Lich;
+            if (turns.Count == 0 || turns[turns.Count - 1] != q.Turn) turns.Add(q.Turn);
+            faded |= lich.Phase == Game.LichFaded;
+            for (int i = 0; i < Game.GraveCount; i++) if (lich.Pos.DistanceTo(g.GravePos(i)) < 120f) spots.Add(i);
+            hands |= g.Hazards.Values.Any(h => h.Kind == Game.HazardHand);
+            clientHands |= c.Hazards.Values.Any(h => h.Kind == Game.HazardHand);
+            storm |= q.Turn == LichTurn.Storm && g.Bullets.Values.Any(b => b.Source == EnemyType.Lich && b.Kind == Defs.SmallShot);
+        });
+        order = string.Join(" > ", turns);
+        Console.WriteLine("  undeath: at a grave {0}; turns {1}; graves visited {2}; faded {3}; hands {4} (client {5}); storm {6}; phylacteries {7}", atGrave, order, spots.Count, faded, hands, clientHands, storm, Jars().Count);
+        Check(atGrave && Jars().Count == 0 && order.Contains("Hop > Rest > Hands > Rest > Storm > Rest"), "Undeath: no phylacteries; grave hops, dead hands, soul storm");
+        Check(spots.Count >= 3 && faded, "it blinks from grave to grave (can't be hurt while it fades)");
+        Check(hands && clientHands && storm, "dead hands burst up under the players (seen on the client), and the soul storm spirals");
+
+        // 10%: the final rite.
+        lich.Hp = lich.MaxHp * 0.08f;
+        Run(s, dt, 7f, null, safe);
+        int risen = g.Enemies.Values.Count(e => e.Type == EnemyType.Grunt && e.ParentId == lich.Id);
+        Console.WriteLine("  last stand: {0}, turn {1}; dead risen {2}", lich.Lich.Stage, lich.Lich.Turn, risen);
+        Check(lich.Lich.Stage == LichStage.LastStand && lich.Lich.Turn == LichTurn.Rite && risen > 0, "below 10%: the final rite (the dead rise from every grave)");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static void SingularityTest(float dt)
     {
         var s = StartBuffed(dt, 20, 0);

@@ -469,8 +469,8 @@ namespace Arena
                 return true;  // changing stage, or behind its riot shield (Warden.cs)
             if (SoulBound(e))
                 return true;  // the more-hurt Twin Reaper, until the other catches up
-            if (e.Type == EnemyType.Lich && e.Phase == 1)
-                return true;  // protected while its phylactery stands
+            if (LichImmune(e))
+                return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);

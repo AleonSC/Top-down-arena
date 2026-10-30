@@ -69,6 +69,19 @@ namespace Arena
                     };
                     return true;
                 }
+                if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.TransT > 0f)
+                {
+                    bool harvest = e.Lich.TransTo == LichStage.Harvest;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Lich.TransT / 2f), Number = (int)e.Lich.TransTo + 1,
+                        Name = harvest ? "SOUL HARVEST" : "UNDEATH",
+                        Line = harvest ? "Three jars hold its soul" : "Its body falls away",
+                        Color = harvest ? new Rgba(0.37f, 0.85f, 1f) : new Rgba(0.7f, 0.55f, 1f),
+                        Second = harvest ? new Rgba(0.43f, 1f, 0.69f) : new Rgba(0.91f, 0.89f, 0.8f),
+                    };
+                    return true;
+                }
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null && e.Queen.TransT > 0f)
                 {
                     var to = e.Queen.TransTo;

@@ -128,6 +128,7 @@ namespace Arena
                 DrawOrb(o, t);
             DrawReaperTether(t);
             DrawSingularityHazards(t);
+            DrawLichScene(t);  // LichLook.cs
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
@@ -331,9 +332,14 @@ namespace Arena
             Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
         }
 
-        /// An incoming lightning strike: a filling warning circle.
+        /// An incoming lightning strike: a filling warning circle (or a Lich's dead hand, LichLook.cs).
         void DrawHazard(Hazard h, float t)
         {
+            if (h.Kind == Game.HazardHand)
+            {
+                DrawDeadHand(h, t);
+                return;
+            }
             var hc = new Rgba(0.7f, 0.85f, 1f);
             float f = 1f - MathX.Clamp01(h.T / Mathf.Max(0.01f, h.Duration));
             Circle(h.Pos, h.Radius * f, hc.WithAlpha(0.25f), 32);
@@ -1546,8 +1552,7 @@ namespace Arena
                     Circle(pos, r + 6f + 3f * Mathf.Sin(t * 3f), col.WithAlpha(0.2f), 24);
                     break;
                 case EnemyType.Lich:
-                    if (e.Phase == 1)
-                        DrawLichTether(pos, r, t);
+                    col = DrawLichUnderlay(e, pos, r, col, t);  // LichLook.cs
                     break;
                 case EnemyType.Phylactery:
                     Circle(pos, r * 2.2f, col.WithAlpha(0.15f + 0.1f * Mathf.Sin(t * 6f)), 24);
@@ -1625,16 +1630,6 @@ namespace Arena
                 for (int k = 0; k < 5; k++)
                     Polygon(pos + V2.FromAngle(t * 1.5f + MathX.Tau * k / 5f) * (r + 14f), 4f, 4, t * 3f, new Rgba(1f, 1f, 1f, 0.9f));
             }
-        }
-
-        /// The Lich, protected: a tether to its phylactery and a green shell.
-        void DrawLichTether(V2 pos, float r, float t)
-        {
-            foreach (var o in game.Enemies.Values)
-                if (o.Type == EnemyType.Phylactery)
-                    Line(pos, o.Disp, 2f, new Rgba(0.4f, 1f, 0.6f, 0.5f + 0.3f * Mathf.Sin(t * 8f)));
-            Circle(pos, r + 14f, new Rgba(0.4f, 1f, 0.6f, 0.15f), 32);
-            Arc(pos, r + 14f, 3f, new Rgba(0.4f, 1f, 0.6f, 0.8f), 32);
         }
 
         /// A gravity well's pull range, with rings falling inward.
