@@ -285,7 +285,7 @@ const E = [
       { name: "Fan (4 s)", pattern: "9 aimed shots, 6.9° apart", kind: "pierce", n: 9, speed: 210, every: 0.45 },
       { name: "Searchlight (18 s)", pattern: "A light follows you at 150 px/s (outrunnable) while single stun shots fly every 0.75 s (280 px/s, 1 s stun). 0.25 s in its bright middle locks it on: a shackle ring of 28 big orbs closes from 420 px at 110 px/s, its 4-orb gap facing away from the Warden", dmg: "8 per stun shot", every: 0.75 },
       { name: "Cross (12 s, Lockdown)", pattern: "4 plants: dash 1 s to a spot 160–330 px away, then 2 s of streams up/down/left/right", kind: "small", n: 4, speed: 240, every: 0.075, notes: "Guide lines only while planted" },
-      { name: "Gates (Lockdown)", pattern: "3 walls, 4 s apart, top then bottom: 5 rows of push bullets moving 180 px/s, two 90 px doors near the side walls lit 0.8 s before. A gate shoves you back the way you came", dmg: "12 per gate (+12 if pinned at the wall)", every: 4 },
+      { name: "Gates (Lockdown)", pattern: "3 walls, 4 s apart, top then bottom: 2 rows of push bullets moving 180 px/s, two 90 px doors near the side walls lit 0.8 s before. A gate shoves you back the way you came", dmg: "12 per gate (+12 if pinned at the wall)", every: 4 },
       { name: "Tear gas (Lockdown)", pattern: "Lobbed with the 1st and 3rd gate: 1 s flight, 90 px cloud for 5 s", dmg: "8 per second", every: null },
       { name: "Rioters (≤10 s, Riot)", pattern: "2 doors burst open, 2 more at 3 s, 9 rioters each (40 HP, 110 px/s melee). They attack whoever is nearest — the Warden too. Any left at 10 s bring 3–8 blue guards (90 HP, 125 px/s, batons: 25 a swing to rioters, 14 contact to you) who beat them down, then come for the players. It turns a 120° riot shield toward you (60°/s) and fires a 7-shot shotgun every 1.4 s", dmg: "10 contact", every: 1.4 },
       { name: "Baton charge (Riot)", pattern: "0.9 s line telegraph, then 620 px at 700 px/s, leaving shots to both sides", dmg: "contact", every: null },
@@ -471,7 +471,7 @@ const WD = {
   loops: [1, 2, 1, 1],
   stages: ["Count", "Lockdown", "Riot", "Last stand"],
   doors: [[0, 260], [0, 640], [W, 260], [W, 640], [500, H], [1100, H]],
-  tower: { x: 40, y: 40 }, lightR: 105, gateRows: 5, gateGap: 16, gateR: 7, door: 90,
+  tower: { x: 40, y: 40 }, lightR: 105, gateRows: 2, gateGap: 16, gateR: 7, door: 90,
 };
 // The riot's extras (not on the roster): rioters run at whoever's nearest, the Warden included; guards beat them.
 const RIOT = {
@@ -599,7 +599,7 @@ function wardenShackle(e, w, at) {
   addFx("ring", at.x, at.y, rgb(0.85, 0.35, 1), 420, 0.5);
 }
 
-// The gates: five rows of push bullets sweeping the arena at 180 px/s, two 90 px doors near the side walls.
+// The gates: two rows of push bullets sweeping the arena at 180 px/s, two 90 px doors near the side walls.
 const gateBack = g => g.front - g.dir * (WD.gateRows - 1) * WD.gateGap;
 const inGateGap = (g, x) => (x > g.gap1 + 4 && x < g.gap1 + WD.door - 4) || (x > g.gap2 + 4 && x < g.gap2 + WD.door - 4);
 function wardenGate(w, dir) {

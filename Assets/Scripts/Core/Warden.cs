@@ -14,7 +14,7 @@ namespace Arena
     /// The searchlight: off, hunting a player, locked on, or dark while its shackle ring closes.
     public enum WardenLight : byte { Off, Follow, Lock, Ring }
 
-    /// A gate in the Lockdown: five rows of push bullets sweeping across the arena with two door gaps.
+    /// A gate in the Lockdown: two rows of push bullets sweeping across the arena with two door gaps.
     /// You can't get through it: it shoves you back out the side you came from (each player's own game moves
     /// them; see WardenGatePush), and carries you along if it keeps coming.
     public class WardenGate
@@ -61,7 +61,7 @@ namespace Arena
         const int ShackleOrbs = 28, ShackleGap = 4;
         const float ShackleRadius = 420f, ShackleSpeed = 110f;
         // The gates (Lockdown): three per cross turn, 4 s apart, alternating top and bottom.
-        public const int GateRows = 5;
+        public const int GateRows = 2;
         public const float GateRowGap = 16f, GateBulletR = 7f, GateSpeed = 180f, GateDoor = 90f, GateWarn = 0.8f;
         const float GateDamage = 12f, GateEvery = 4f;
         // Gas canisters: with the 1st and 3rd gate, near the target; a cloud 90 px wide for 5 s, 8 damage a second.
