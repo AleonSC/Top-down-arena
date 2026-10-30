@@ -466,6 +466,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
+            int hemorrhage = 0;
             if (!s.Reading)
             {
                 id = e.Id;
@@ -483,6 +484,7 @@ namespace Arena
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0));
+                hemorrhage = e.Hemorrhage;
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -494,6 +496,7 @@ namespace Arena
             s.Byte(ref phase);
             s.Bool(ref elite);
             s.Byte(ref status);
+            s.Byte(ref hemorrhage);  // Blood Bolts stuck in it, drawn as drops gathering on it
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -518,6 +521,7 @@ namespace Arena
                 e.Frozen = (status & 8) != 0;
                 e.Bleeding = (status & 16) != 0;
                 e.Caged = (status & 32) != 0;
+                e.Hemorrhage = hemorrhage;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

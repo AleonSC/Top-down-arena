@@ -1012,7 +1012,9 @@ static partial class Program
             return before - bb[1].Hp;
         };
         float four = Bolts(4);
+        int stacked = bb[0].Hemorrhage;
         float fifth = Bolts(1);
+        Check(stacked == 4 && bb[0].Hemorrhage == 0, "Blood Bolts stack on an enemy (drawn as drops) and the burst clears them");
         step(Game.HemorrhageHold + 0.2f, true);
         float faded = Bolts(1);
         Console.WriteLine("  blood bolts: neighbour took {0:0.0} after 4 bolts, {1:0.0} on the 5th; after they fade, one more bolt {2:0.0}", four, fifth, faded);

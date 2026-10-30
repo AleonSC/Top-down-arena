@@ -1268,6 +1268,8 @@ namespace Arena
             }
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
+            if (e.Hemorrhage > 0)
+                DrawHemorrhage(e, pos, r, t);  // BloodMageLook.cs
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
         }
 

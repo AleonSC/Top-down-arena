@@ -120,6 +120,24 @@ namespace Arena
                     Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 9f - t) * (r + 11f), 3.5f + 1.5f * Mathf.Sin(t * 14f + k), BloodRed.WithAlpha(0.75f), 6);
         }
 
+        /// Blood Bolts stuck in an enemy: a drop for each, circling it and drawing in closer as they build toward the
+        /// burst; one short of it, they swell and throb.
+        void DrawHemorrhage(Enemy e, V2 pos, float r, float t)
+        {
+            int n = e.Hemorrhage, burstAt = Game.HemorrhageHits;
+            float k = (float)n / burstAt, ring = r + 10f - 6f * k;
+            bool primed = n >= burstAt - 1;
+            float swell = primed ? 1f + 0.35f * Mathf.Abs(Mathf.Sin(t * 12f)) : 1f;
+            if (primed)
+                Circle(pos, r + 4f, BloodRed.WithAlpha(0.15f + 0.1f * Mathf.Sin(t * 12f)), 20);
+            for (int i = 0; i < n; i++)
+            {
+                V2 d = V2.FromAngle(t * (2f + 3f * k) + MathX.Tau * i / burstAt + e.Id);
+                DrawDrop(pos + d * ring, 4.8f * swell, d, BloodDark);  // a dark edge, so it reads on red enemies
+                DrawDrop(pos + d * ring, 3.6f * swell, d, BloodRed);
+            }
+        }
+
         /// A Sanguine Orb circling in on the enemy it caught (FxKind.BloodCoat): drops spiral in and close over it,
         /// following the enemy (its id rides in Pos2.X), until it's covered in blood.
         void DrawBloodCoatFx(Effect fx, float f, float t)

@@ -180,7 +180,7 @@ namespace Arena
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
-        public int Hemorrhage;               // host: Blood Bolts stuck in it (the fifth bursts; BloodMage.cs)
+        public int Hemorrhage;               // Blood Bolts stuck in it (the fifth bursts; BloodMage.cs); replicated, for drawing
         public float HemorrhageT;            // host: until they fade
     }
 
