@@ -264,6 +264,22 @@ namespace Arena
                 DrawGasPatch(pt, r, fade, t);
                 return;
             }
+            if (pt.Kind == PatchKind.Lava)
+            {
+                // The Colossus's lava (Colossus.cs): a dull glow while it settles, then bubbling molten rock.
+                float a = Mathf.Clamp01((pt.Life - pt.Age) / 0.8f), warm = pt.Active ? 1f : pt.Age / Mathf.Max(0.01f, pt.Warn);
+                Circle(pt.Pos, r, new Rgba(0.75f, 0.18f, 0.06f, (pt.Active ? 0.5f : 0.15f * warm) * a), 32);
+                Circle(pt.Pos, r * 0.7f, new Rgba(1f, 0.45f, 0.12f, (pt.Active ? 0.45f : 0.1f * warm) * a), 28);
+                Arc(pt.Pos, r, 2.5f, new Rgba(1f, 0.55f, 0.2f, (pt.Active ? 0.7f : 0.4f + 0.3f * Mathf.Sin(t * 20f)) * a), 32);
+                if (pt.Active)
+                    for (int k = 0; k < 4; k++)  // bubbles
+                    {
+                        float f = MathX.Fmod(t * 0.9f + k * 0.25f + pt.Id * 0.17f, 1f);
+                        V2 at = pt.Pos + new V2((Hash(pt.Id * 7 + k) - 0.5f) * r * 1.1f, (Hash(pt.Id * 5 + k) - 0.5f) * r * 1.1f);
+                        Circle(at, 2f + 4f * f, new Rgba(1f, 0.85f, 0.45f, 0.7f * (1f - f) * a), 10);
+                    }
+                return;
+            }
             if (pt.Kind == PatchKind.Honey)
             {
                 if (pt.Active)  // a sticky amber puddle (the glob is still in the air until then)

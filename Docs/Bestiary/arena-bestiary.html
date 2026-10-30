@@ -338,10 +338,22 @@ const E = [
       { name: "Last stand (below 10%)", pattern: "The horizon swells to 190 px, the pull doubles to 110 px/s; a 3-arm spiral, and a ring of 18 big orbs every 1.6 s", kind: "small", n: 3, speed: 150, every: 0.1 }],
     notes: ["Corner gravity wells: 4 at the start of each stage, one 110 px in from each corner (260 HP each). Your shots within 420 px bend hard into them, and players within 480 px drift toward them (up to 45 px/s). Killed, they stay gone until the next stage.", "Hits give the usual 0.35 s of invulnerability, so standing in a laser or the disk hurts about 3 times a second."] },
   { id: "Colossus", label: "The Colossus", cat: "Bosses", boss: true, hp: 6800, r: 54, speed: 35, sides: 6, col: rgb(0.78, 0.62, 0.45), xp: 260, score: 600, wave: 25,
-    appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "Lumbers toward you (200 px) and stomps every 4 s: a huge ring with one gap to slip through.",
+    appears: "Wave 25 (with wave ÷ 5 Grunts)", lead: "A stone giant in three stages that breaks down as it goes, one attack at a time with breathers between. Awakening (100–65%): it walks at you (200 px off) with its rock volley between turns — Stomps, Boulders, Fissures. Crumbling (65–30%): its armour falls as four plates of cover and it walks faster (55 px/s) — Charge, Rockslide, Aftershocks. Molten Core (30–10%): everything leaves lava — Lava stomps, Meteors, Cave-in. Last stand below 10%: it kneels in the middle. Each stage change takes 2 s: it can't be hurt and the screen clears.",
     attacks: [
-      { name: "Volley", pattern: "3 aimed shots, 10.3° apart", kind: "pierce", n: 3, speed: 170, every: 1.2 },
-      { name: "Stomp", pattern: "Ring of 48 with a 5-shot gap (37.5°) in a random spot", kind: "small", n: 43, speed: 150, every: 4, unscaled: true }] },
+      { name: "Volley (between turns)", pattern: "3 aimed shots, 10.3° apart (Awakening breathers and Boulders, Crumbling breathers, the last stand)", kind: "pierce", n: 3, speed: 170, every: 1.2 },
+      { name: "Stomp rings", pattern: "A ring of push blocks (two rows, like the Warden's gates) spreads from its feet at 150 px/s after a 0.45 s pulse, with one green gap of about 38° (two in Lava stomps and the last stand). You can't cross it: walk into it and it shoves you back, get caught and it carries you out, get pinned against the edge and it rolls over you (hurts again). Slip through a gap", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave once per ring (again if it rolls over you)", every: null },
+      { name: "Stomps (6 s, Awakening)", pattern: "Three stomp rings 2 s apart, each gap 60° round from the last", dmg: "ring", every: null },
+      { name: "Boulders (5 s, Awakening)", pattern: "Every 1.2 s a boulder at where you're heading: a shadow grows for 1.1 s, then 30 damage within 60 px and a burst of 10 small shots", kind: "small", n: 10, speed: 140, every: 1.2 },
+      { name: "Fissures (5 s, Awakening)", pattern: "Twice, a crack races toward you at 600 px/s (up to 900 px); 0.6 s after it stops, small shots fly out of both sides every 45 px", kind: "small", n: 40, speed: 120, every: 2.5 },
+      { name: "Fallen plates (Crumbling)", pattern: "Four slabs (110 × 34 px) that stop bullets from both sides; enemy shots wear one away after 40 hits. You can't walk through them", dmg: "—", every: null },
+      { name: "Charge (6 s, Crumbling)", pattern: "Twice: a red lane toward you for 1 s, then it charges at 700 px/s (up to 1100 px) and stomps a ring where it stops. A plate in its way breaks, and it's dazed for 1.5 s: it takes 50% more damage", dmg: "contact", every: null },
+      { name: "Rockslide (7 s, Crumbling)", pattern: "Rows of 13 big orbs roll in from the top or the left at 180 px/s, a row every 1.4 s, each with a 3-orb gap that moves along. Plates shelter you", kind: "big", n: 10, speed: 180, every: 1.4 },
+      { name: "Aftershocks (6 s, Crumbling)", pattern: "Rings of 30 with two gaps that turn 20° a ring", kind: "small", n: 26, speed: 170, every: 0.7 },
+      { name: "Lava (Molten Core)", pattern: "Pools glow for 0.5 s, then burn 20 a second for 6 s (overlapping pools don't stack). They don't hurt enemies", dmg: "20/s", every: null },
+      { name: "Lava stomps (6 s, Molten Core)", pattern: "A stomp ring every 1.5 s with gaps to your sides, and a 90 px pool where it stood", dmg: "ring", every: null },
+      { name: "Meteors (6 s, Molten Core)", pattern: "Two volleys of three meteors at you, 0.5 s apart: a 1.2 s shadow, 40 damage within 70 px, a ring of 14 big orbs and a 70 px pool", kind: "big", n: 14, speed: 130, every: 0.5 },
+      { name: "Cave-in (6 s, Molten Core)", pattern: "12 shadows (ten anywhere, two by each player); after 1.2 s pillars fall (30 damage), stand for 3 s as cover, then shatter into 6 small shots", kind: "small", n: 6, speed: 150, every: null },
+      { name: "Last stand (below 10%)", pattern: "Kneels in the middle: a stomp ring with two gaps every 1.6 s, its volley, and a meteor at you every 3 s (no pool)", dmg: "ring", every: null }] },
   { id: "Duelist", label: "The Duelist", cat: "Bosses", boss: true, hp: 6000, r: 30, speed: 80, sides: 4, col: rgb(0.85, 0.85, 1), xp: 280, score: 650, wave: 30,
     appears: "Wave 30 (alone)", lead: "Fast and slippery. Every 3.5 s it vanishes, leaving two decoys that pop into rings, and reappears far from you.",
     locks: ["Cycle", "Fan", "Triple"],
@@ -350,13 +362,21 @@ const E = [
       { name: "Fan", pattern: "11 shots, 5.7° apart", kind: "small", n: 11, speed: 230, every: 0.9, notes: "Every 3rd volley" },
       { name: "Decoys", pattern: "2 decoys (70 HP, give nothing); each pops after 5 s into a ring", kind: "small", n: 16, speed: 140, every: 3.5, unscaled: true }] },
   { id: "Lich", label: "The Lich", cat: "Bosses", boss: true, hp: 5000, r: 36, speed: 45, sides: 7, col: rgb(0.5, 1, 0.75), xp: 300, score: 700, wave: 35,
-    appears: "Wave 35", lead: "Immune while its phylactery stands somewhere far from you. Alternates aimed fans and slow orb rings, and raises Grunts.",
+    appears: "Wave 35", lead: "A fight in three stages, one mechanic at a time with breathers between, among six graves. The Crypt (100–65%): one phylactery at the grave farthest from you keeps it from being hurt; break it for a 12 s window — soul fans, grave rings, the dead rising. Soul Harvest (65–30%): three phylacteries in a triangle joined by soul beams; break all three for the window — soul sweep, bone prisons, wailing spirits. Undeath (30–10%): no phylacteries; a spectre blinking between graves — grave hops, dead hands, a soul storm. Below 10%: the final rite. The demo plays the Crypt's fans and rings.",
     locks: ["Cycle", "Fan", "Rings"],
     attacks: [
-      { name: "Fan (5 s)", pattern: "5 aimed shots, 8.6° apart", kind: "pierce", n: 5, speed: 190, every: 0.8 },
-      { name: "Rings (5 s)", pattern: "16 orbs, +11.5° per volley", kind: "big", n: 16, speed: 90, every: 2.2 },
-      { name: "Raise dead", pattern: "3 Grunts (up to 6 alive)", dmg: "—", every: 9, unscaled: true }],
-    notes: ["Phylactery: 600 HP, spawns at least 250 px from players. A new one appears 15 s after you break it."] },
+      { name: "Soul fans (5 s, Crypt)", pattern: "5 aimed piercing shots, 8.6° apart", kind: "pierce", n: 5, speed: 190, every: 0.8 },
+      { name: "Grave rings (6 s, Crypt)", pattern: "16 orbs, +12° per ring", kind: "big", n: 16, speed: 90, every: 1.5 },
+      { name: "Raise dead (4 s, Crypt)", pattern: "Three graves each raise 2 Grunts (up to 6 alive); they climb out for 1 s", dmg: "—", every: null, unscaled: true },
+      { name: "Soul beams (all stage, Harvest)", pattern: "Beams join the three phylacteries (450 HP each); a broken one cuts its beams", dmg: w => (12 + 0.3 * w).toFixed(1), dmgLabel: "12 + 0.3 × wave per touch", every: null },
+      { name: "Soul sweep (6 s, Harvest)", pattern: "Twice: a line flickers for 0.8 s, then a 900 px beam swings 120° at 70°/s across toward the nearest player", dmg: w => (16 + 0.3 * w).toFixed(1), dmgLabel: "16 + 0.3 × wave per touch", every: null },
+      { name: "Bone prison (5 s, Harvest)", pattern: "Twice: 14 spikes rise in a 110 px ring round each player over 1.2 s, the gap facing away from the Lich; then each fires inward at 200 px/s", kind: "small", n: 14, speed: 200, every: 2.5 },
+      { name: "Wailing spirits (6 s, Harvest)", pattern: "6 spirits circle it 220 px out, then dive one by one (0.4 s apart) at a player at 520 px/s, bursting into 4 shots", dmg: w => (12 + 0.3 * w).toFixed(1), dmgLabel: "12 + 0.3 × wave per touch", every: null },
+      { name: "Grave hop (6 s, Undeath)", pattern: "Every 2 s it fades for 0.5 s (can't be hurt) and appears at another grave, bursting 20 orbs", kind: "big", n: 20, speed: 110, every: 2 },
+      { name: "Dead hands (5 s, Undeath)", pattern: "A hand marks the ground under each player every 0.9 s and bursts up 0.8 s later (50 px), throwing 8 shots", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.9 },
+      { name: "Soul storm (6 s, Undeath)", pattern: "A two-armed spiral, +14° a step, reversing halfway", kind: "small", n: 2, speed: 150, every: 0.09 },
+      { name: "Final rite (below 10%)", pattern: "Fans every 1 s, rings every 2 s, and 2 Grunts from every grave every 6 s (up to 10)", kind: "pierce", n: 5, speed: 190, every: 1 }],
+    notes: ["Stage changes at 65% and 30% take 2 s: it can't be hurt and every enemy bullet is cleared.", "Phylactery: 600 HP in the Crypt (450 in Soul Harvest). Once every one is broken it can be hurt for 12 s, then they rise again."] },
   { id: "StormHerald", label: "Storm Herald", cat: "Bosses", boss: true, hp: 6000, r: 40, speed: 55, sides: 9, col: rgb(0.55, 0.75, 1), xp: 320, score: 800, wave: 40,
     appears: "Wave 40 (with wave ÷ 8 Snipers)", lead: "A storm in three stages, one attack at a time with breathers between. Gathering Storm (100–65%): it drifts along the top — Strikes, Lightning rods, Thunderclap. Gale (65–30%): the wind blows across the arena all stage, turning round each attack; it pushes you and bends every bullet — Crosswind volleys, Ball lightning, Downbursts. Supercell (30–10%): the sky goes dark and one player at a time carries the Conductor's charge — Storm front, Strike rain, Rod cage. Below 10% its last stand in the middle: four turning lightning spokes. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
     locks: ["Cycle", "Gathering Storm", "Gale", "Supercell", "Last stand"],
@@ -401,7 +421,7 @@ const E = [
     appears: "Left behind by the Duelist", lead: "Looks like the Duelist. Pops into a ring after 5 s unless you destroy it first. Gives no score, XP or drops.",
     attacks: [{ name: "Pop", pattern: "Ring after 5 s", kind: "small", n: 16, speed: 140, every: 5, unscaled: true }] },
   { id: "Phylactery", cat: "Summons", summon: true, hp: 600, r: 18, speed: 0, sides: 4, col: rgb(0.4, 1, 0.6), xp: 0, score: 50, wave: 35,
-    appears: "The Lich's soul jar", lead: "Doesn't attack. The Lich is immune while it stands. A new one appears 15 s after it breaks.",
+    appears: "The Lich's soul jar", lead: "Doesn't attack. The Lich can't be hurt while one stands: one in the Crypt, three joined by soul beams in Soul Harvest. Once all are broken it can be hurt for 12 s, then they rise again.",
     attacks: [{ name: "—", pattern: "No attacks", dmg: "—", every: null }] },
   { id: "GravityWell", label: "Gravity Well", cat: "Summons", summon: true, hp: 260, r: 15, speed: 160, sides: 6, col: rgb(0.7, 0.45, 1), xp: 15, score: 40, wave: 20,
     appears: "The Singularity's corners (4 at the start of each stage)", lead: "Sits 110 px in from a corner. Bends your shots within 420 px hard into itself and drifts nearby players slowly toward it. Doesn't attack. Killed, it stays gone until the Singularity's next stage.",
@@ -415,7 +435,7 @@ const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
-const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
+const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);

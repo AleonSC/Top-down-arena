@@ -201,6 +201,8 @@ namespace Arena
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
         public HeraldState Herald;  // the Storm Herald's fight (Herald.cs; replicated)
+        public LichState Lich;      // the Lich's fight (Lich.cs; replicated)
+        public ColossusState Colossus;  // the Colossus's fight (Colossus.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
@@ -990,6 +992,8 @@ namespace Arena
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
+            UpdateLichView(dt);    // Lich.cs
+            UpdateColossusView(dt);  // Colossus.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)
@@ -1142,6 +1146,7 @@ namespace Arena
                 DashT = 0f;
             }
             WardenGatePush(me, before);  // the Warden's gates shove you back (Warden.cs)
+            ColossusPush(me, before);    // the Colossus's stomp rings, plates and pillars (Colossus.cs)
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)

@@ -560,6 +560,10 @@ namespace Arena
                 SyncSing(s, e);    // Singularity.cs
             else if (kind == EnemyType.StormHerald)
                 SyncHerald(s, e);  // Herald.cs
+            else if (kind == EnemyType.Lich)
+                SyncLich(s, e);    // Lich.cs
+            else if (kind == EnemyType.Colossus)
+                SyncColossus(s, e);  // Colossus.cs
             if (s.Reading)
                 e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
             return id;

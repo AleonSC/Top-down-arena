@@ -82,6 +82,33 @@ namespace Arena
                     };
                     return true;
                 }
+                if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.TransT > 0f)
+                {
+                    bool harvest = e.Lich.TransTo == LichStage.Harvest;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Lich.TransT / 2f), Number = (int)e.Lich.TransTo + 1,
+                        Name = harvest ? "SOUL HARVEST" : "UNDEATH",
+                        Line = harvest ? "Three jars hold its soul" : "Its body falls away",
+                        Color = harvest ? new Rgba(0.37f, 0.85f, 1f) : new Rgba(0.7f, 0.55f, 1f),
+                        Second = harvest ? new Rgba(0.43f, 1f, 0.69f) : new Rgba(0.91f, 0.89f, 0.8f),
+                    };
+                    return true;
+                }
+                if (e.Type == EnemyType.Colossus && e.Colossus != null && e.Colossus.TransT > 0f)
+                {
+                    var to = e.Colossus.TransTo;
+                    bool crumble = to == ColStage.Crumbling;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Colossus.TransT / 2f), Number = (int)to + 1,
+                        Name = crumble ? "CRUMBLING" : "MOLTEN CORE",
+                        Line = crumble ? "Its armour falls away" : "The shell splits open",
+                        Color = crumble ? new Rgba(0.88f, 0.64f, 0.35f) : new Rgba(1f, 0.48f, 0.23f),
+                        Second = crumble ? new Rgba(1f, 0.9f, 0.7f) : new Rgba(1f, 0.82f, 0.4f),
+                    };
+                    return true;
+                }
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null && e.Queen.TransT > 0f)
                 {
                     var to = e.Queen.TransTo;

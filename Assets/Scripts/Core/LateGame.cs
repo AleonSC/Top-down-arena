@@ -10,6 +10,7 @@ namespace Arena
         public int Id;
         public V2 Pos;
         public float Radius, T, Duration;
+        public byte Kind;  // HazardLightning (the Storm Herald) or HazardHand (the Lich's dead hands)
     }
 
     /// Waves 16-50: the late-game enemies, the bosses from wave 25 on, and winning at wave 50 (host only).
@@ -65,20 +66,17 @@ namespace Arena
                 case EnemyType.Juggernaut:
                     return KeepDistance(dir, dist, 140f);
                 case EnemyType.Colossus:
-                    return KeepDistance(dir, dist, 200f);
+                    return ColossusMove(e, dir, dist, ref speed);  // Colossus.cs
                 case EnemyType.Duelist:
                     return KeepDistance(dir, dist, 280f) + dir.Orthogonal() * e.Strafe * 0.8f;
                 case EnemyType.Devourer:
                     return KeepDistance(dir, dist, 260f);
+                case EnemyType.Lich:
+                    return V2.Zero;  // it moves itself: drifting, blinking between graves (Lich.cs)
                 case EnemyType.StormHerald:
                     if (HeraldImmune(e))
                         return V2.Zero;  // holds still while it changes stage
                     return (HeraldGoal(e) - e.Pos) / 60f;  // along the top, or the middle for the last stand (Herald.cs)
-                case EnemyType.Lich:
-                {
-                    var goal = new V2(Width / 2f + (float)Math.Sin(e.T * 0.45f) * Width * 0.3f, 150f + (float)Math.Sin(e.T * 0.7f) * 50f);
-                    return (goal - e.Pos) / 60f;
-                }
                 case EnemyType.Eclipse:
                 {
                     var goal = new V2(Width / 2f, Height / 2f) + V2.FromAngle(e.T * 0.3f) * 140f;
@@ -126,17 +124,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Colossus:
-                    if (e.PhaseT <= 0f)
-                    {
-                        // Stomp: a huge ring with one gap to slip through.
-                        e.PhaseT = 4f;
-                        const int n = 48;
-                        int gap = rng.Next(n);
-                        for (int i = 0; i < n; i++)
-                            if ((i - gap + n) % n >= 5)
-                                EnemyShot(e, MathX.Tau * i / n, 150f, Defs.SmallShot);
-                        BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, e.Radius * 2f, 0.4f, Sfx.BossPulse);
-                    }
+                    ColossusSpecial(e, tpos, dt);  // Colossus.cs: its stages, turns, stomp rings, plates and lava
                     break;
                 case EnemyType.Duelist:
                     if (e.PhaseT <= 0f)
@@ -161,29 +149,8 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Lich:
-                {
-                    // Immune while its phylactery stands; a new one appears 15 s after it breaks.
-                    int phylacteries = CountChildren(e, EnemyType.Phylactery);
-                    e.Phase = (byte)(phylacteries > 0 ? 1 : 0);
-                    if (phylacteries == 0 && e.PhaseT <= 0f)
-                    {
-                        e.PhaseT = 15f;
-                        V2 pos = FarFromPlayers(20f);
-                        SpawnEnemyAt(EnemyType.Phylactery, pos, 0.8f, e.Id);
-                        BroadcastFx(FxKind.Ring, pos, Defs.Get(EnemyType.Phylactery).Color, 60f, 0.6f, Sfx.Summon);
-                    }
-                    else if (phylacteries > 0)
-                        e.PhaseT = Math.Max(e.PhaseT, 15f);
-                    e.T2 -= dt;
-                    if (e.T2 <= 0f)
-                    {
-                        e.T2 = 9f;
-                        if (CountChildren(e, EnemyType.Grunt) < 6)
-                            for (int i = 0; i < 3; i++)
-                                SpawnEnemyAt(EnemyType.Grunt, e.Pos + V2.FromAngle(MathX.Tau * i / 3f) * 80f, 0.6f, e.Id);
-                    }
+                    LichSpecial(e, dt);  // Lich.cs
                     break;
-                }
                 case EnemyType.StormHerald:
                     HeraldSpecial(e, tpos, dt);  // its stages and turns (Herald.cs)
                     break;
@@ -255,9 +222,7 @@ namespace Arena
                         EnemyShot(e, e.Ang + MathX.Tau * k / 8f, 110f, Defs.BigShot);
                     break;
                 case EnemyType.Colossus:
-                    e.FireT = 1.2f;
-                    for (int i = -1; i <= 1; i++)
-                        EnemyShot(e, aim + i * 0.18f, 170f, Defs.PierceShot);
+                    ColossusFire(e, aim);  // Colossus.cs: its rock volley, between turns
                     break;
                 case EnemyType.Duelist:
                     e.FireT = 0.9f;
@@ -270,19 +235,7 @@ namespace Arena
                             EnemyShot(e, aim, 260f + k * 40f, Defs.PierceShot);
                     break;
                 case EnemyType.Lich:
-                    if ((int)(e.T / 5f) % 2 == 0)
-                    {
-                        e.FireT = 0.8f;
-                        for (int i = 0; i < 5; i++)
-                            EnemyShot(e, aim + (i - 2) * 0.15f, 190f, Defs.PierceShot);
-                    }
-                    else
-                    {
-                        e.FireT = 2.2f;
-                        e.Ang += 0.2f;
-                        for (int i = 0; i < 16; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 16f, 90f, Defs.BigShot);
-                    }
+                    LichFire(e, aim);  // Lich.cs
                     break;
                 case EnemyType.StormHerald:
                     HeraldFire(e, tpos, aim);  // Herald.cs
@@ -390,10 +343,11 @@ namespace Arena
 
         // --- Lightning strikes --------------------------------------------------
 
-        void AddHazard(V2 pos, float radius, float delay)
+        Hazard AddHazard(V2 pos, float radius, float delay)
         {
             var h = new Hazard { Id = nextHazardId++, Pos = ClampToArena(pos, 10f), Radius = radius, T = delay, Duration = delay };
             Hazards[h.Id] = h;
+            return h;
         }
 
         void TickHazards(float dt)
@@ -407,6 +361,12 @@ namespace Arena
             }
             foreach (var h in done)
             {
+                if (h.Kind == HazardHand)
+                {
+                    HandBursts(h);  // Lich.cs
+                    Hazards.Remove(h.Id);
+                    continue;
+                }
                 float dmg = 25f + Wave * 0.3f;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
@@ -444,6 +404,7 @@ namespace Arena
             s.Float(ref h.Radius);
             s.Float(ref h.T);
             s.Float(ref h.Duration);
+            s.Byte(ref h.Kind);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Arena
                 case EnemyType.TwinB:
                 case EnemyType.DualReaper: return 1.2f;   // their stages already stretch the fight
                 case EnemyType.Singularity: return 3f;
-                case EnemyType.Colossus: return 3f;
+                case EnemyType.Colossus: return 2.3f;     // its breathers and stage changes stretch the fight (Colossus.cs)
                 case EnemyType.Duelist: return 2.8f;
                 case EnemyType.Lich: return 3.2f;
                 case EnemyType.StormHerald: return 3.5f;

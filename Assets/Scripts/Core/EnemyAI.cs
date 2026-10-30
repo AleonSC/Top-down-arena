@@ -466,14 +466,16 @@ namespace Arena
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
             if (HeraldImmune(e))
                 return true;  // the Storm Herald changing stage (Herald.cs)
+            if (ColossusImmune(e))
+                return true;  // the Colossus changing stage (Colossus.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))
                 return true;  // changing stage, or behind its riot shield (Warden.cs)
             if (SoulBound(e))
                 return true;  // the more-hurt Twin Reaper, until the other catches up
-            if (e.Type == EnemyType.Lich && e.Phase == 1)
-                return true;  // protected while its phylactery stands
+            if (LichImmune(e))
+                return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);

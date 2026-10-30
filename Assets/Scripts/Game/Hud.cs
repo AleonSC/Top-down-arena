@@ -490,9 +490,6 @@ namespace Arena
         static string HeraldStageName(HeraldStage s) => s == HeraldStage.Gathering ? "GATHERING STORM" : s == HeraldStage.Gale ? "GALE"
             : s == HeraldStage.Supercell ? "SUPERCELL" : "LAST STAND";
 
-        static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
-            : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
-
         /// The Storm Herald's stage under its health bar, and what to watch for.
         string HeraldNote(HeraldState s, ref Color c)
         {
@@ -525,6 +522,39 @@ namespace Arena
                 case HeraldTurn.Eye: return "EYE OF THE STORM — walk round with the spokes";
             }
             return HeraldStageName(s.Stage);
+        }
+
+        static string LichStageName(LichStage s) => s == LichStage.Crypt ? "THE CRYPT" : s == LichStage.Harvest ? "SOUL HARVEST" : s == LichStage.Undeath ? "UNDEATH" : "THE FINAL RITE";
+        static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
+            : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
+
+        static string ColStageName(ColStage s) => s == ColStage.Awakening ? "AWAKENING" : s == ColStage.Crumbling ? "CRUMBLING"
+            : s == ColStage.MoltenCore ? "MOLTEN CORE" : "LAST STAND";
+
+        /// The Colossus's stage under its health bar, and what to watch for.
+        static string ColossusNote(ColossusState c, ref Color col)
+        {
+            if (c.TransT > 0f)
+            {
+                col = new Color(0.95f, 0.9f, 0.85f);
+                return "CAN'T BE HURT — " + ColStageName(c.TransTo) + " is coming";
+            }
+            if (c.DazeT > 0f)
+            {
+                col = new Color(1f, 0.85f, 0.35f);
+                return "DAZED — it takes 50% more damage!";
+            }
+            if (c.ChargeWarn > 0f)
+            {
+                col = new Color(1f, 0.45f, 0.4f);
+                return "CHARGE — get off the red line (or put a plate in its way)";
+            }
+            if (c.Rings.Count > 0)
+            {
+                col = new Color(0.6f, 1f, 0.7f);
+                return "STOMP — the rings shove you: slip through a green gap";
+            }
+            return ColStageName(c.Stage);
         }
 
         /// The Warden's stage under its health bar, and what to watch for.
@@ -661,8 +691,22 @@ namespace Arena
                     note = SingStageName(e.Sing.Stage);
                 else if (e.Type == EnemyType.StormHerald && e.Herald != null)
                     note = HeraldNote(e.Herald, ref noteColor);
-                else if (e.Type == EnemyType.Lich && e.Phase == 1)
-                    note = "IMMUNE — destroy the phylactery!";
+                else if (e.Type == EnemyType.Colossus && e.Colossus != null)
+                    note = ColossusNote(e.Colossus, ref noteColor);
+                else if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.TransT > 0f)
+                {
+                    note = "CAN'T BE HURT — " + LichStageName(e.Lich.TransTo) + " is coming";
+                    noteColor = new Color(0.9f, 0.92f, 1f);
+                }
+                else if (e.Type == EnemyType.Lich && e.Phase == Game.LichGuarded)
+                    note = e.Lich != null && e.Lich.Stage == LichStage.Harvest ? "GUARDED — break all three phylacteries!" : "GUARDED — break the phylactery!";
+                else if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.Window > 0f)
+                {
+                    note = "OPEN — " + Mathf.CeilToInt(e.Lich.Window) + " s before its phylacteries rise again";
+                    noteColor = new Color(1f, 0.8f, 0.35f);
+                }
+                else if (e.Type == EnemyType.Lich && e.Lich != null)
+                    note = LichStageName(e.Lich.Stage);
                 else if (Game.Hungry(e))
                 {
                     note = "HUNGRY — stop shooting, your hits heal it!";
