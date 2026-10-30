@@ -97,7 +97,7 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Bounces += 1;
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (double-tap fire to recall them)
                     break;
                 }
                 case WeaponId.Katana:
@@ -473,7 +473,77 @@ namespace Arena
         public const float KusariHalfWidth = 16f, HookTime = 2.5f, ReelMinHook = 0.25f, ReelSpeed = 1100f;  // the thrown chain; how long a hook holds; how soon you can reel
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
         public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
-        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3;
+        const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4;
+
+        // --- Shuriken: stars that stick, recalled -------------------------------------------------
+
+        public const float StarStick = 5f, RecallSpeed = 700f, RecallBack = 0.5f;  // stuck this long; recalled stars fly back this fast, hitting what they pass for this share
+        public const int StarCap = 15;
+
+        class StuckStar
+        {
+            public int Enemy, Owner;
+            public float Dmg, T;
+        }
+
+        readonly List<StuckStar> stuckStars = new List<StuckStar>();
+
+        void StarStuck(Bullet b, Enemy e)
+        {
+            if (!b.Sticks)
+                return;
+            int mine = 0;
+            foreach (var st in stuckStars)
+                if (st.Owner == b.Owner)
+                    mine++;
+            if (mine >= StarCap)
+                return;
+            stuckStars.Add(new StuckStar { Enemy = e.Id, Owner = b.Owner, Dmg = b.Dmg, T = StarStick });
+        }
+
+        void TickStuckStars(float dt)
+        {
+            foreach (var e in Enemies.Values)
+                e.StarsStuck = 0;
+            for (int i = stuckStars.Count - 1; i >= 0; i--)
+            {
+                var st = stuckStars[i];
+                Enemy e;
+                if ((st.T -= dt) <= 0f || !Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                {
+                    stuckStars.RemoveAt(i);
+                    continue;
+                }
+                e.StarsStuck++;
+            }
+        }
+
+        /// Recalled: every star you have stuck in enemies rips out (hitting again) and flies back to you, cutting
+        /// through whatever it passes.
+        void RecallStars(Player p)
+        {
+            int n = 0;
+            for (int i = stuckStars.Count - 1; i >= 0; i--)
+            {
+                var st = stuckStars[i];
+                if (st.Owner != p.Id)
+                    continue;
+                stuckStars.RemoveAt(i);
+                Enemy e;
+                if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                    continue;
+                HurtEnemy(e, st.Dmg, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Owner = p.Id, Dmg = st.Dmg, Kind = Defs.StarShot }, e);
+                V2 to = p.Pos - e.Pos;
+                float dist = Math.Max(1f, to.Length);
+                var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);
+                b.Pierce += 99;
+                b.LastHit = e.Id;
+                n++;
+            }
+            if (n > 0)
+                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.StarShot), 30f, 0.25f, Sfx.SwingLight);
+        }
 
         // --- Medicine Darts: stacking doses --------------------------------------------------------
 
@@ -596,6 +666,20 @@ namespace Arena
                 sinceTap = 0f;
             if (me.Downed || DashT > 0f || me.StunT > 0f)
                 return;
+            if (me.Weapon.Id == WeaponId.Shuriken && doubleTap)
+            {
+                sinceTap = 99f;
+                if (IsHost)
+                    HostWeaponDash(MyId, DashRecall, me.Pos);  // no move: the stars come back to you
+                else
+                {
+                    var rw = Proto.Begin(Msg.WeaponDash);
+                    rw.Write(DashRecall);
+                    rw.Write(me.Pos);
+                    session.SendToHost(Proto.End(rw));
+                }
+                return;
+            }
             if (me.Weapon.Id == WeaponId.Kunai && doubleTap && me.KunaiMarkT > 0f)
             {
                 // Blink to the shadow kunai's mark (like Blink, at once); the host readies a double-damage hit.
@@ -671,6 +755,12 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Downed)
                 return;
             var w = p.Weapon;
+            if (kind == DashRecall)
+            {
+                if (w.Id == WeaponId.Shuriken)
+                    RecallStars(p);
+                return;
+            }
             if (kind == DashBlink)
             {
                 if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.DistanceTo(target) > 40f)

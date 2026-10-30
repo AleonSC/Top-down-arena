@@ -69,6 +69,7 @@ namespace Arena
         public V2 KunaiMark;                          // Kunai: where the last shadow kunai landed, to blink to (replicated)
         public float KunaiMarkT;                      //   for this much longer (replicated)
         public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
+        public int Light;                             // Lightbringer: its light gauge, hits landed toward a radiant swing (replicated)
         public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
         public float ComboT;
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
@@ -202,6 +203,7 @@ namespace Arena
         public float PoisonT, PoisonDps;     // host: Medicine Darts' poison (stacking)
         public int PoisonBy;
         public bool Poisoned;                // replicated, for drawing
+        public int StarsStuck;               // Shuriken stars stuck in it (replicated, for drawing)
     }
 
     public class Bullet
@@ -219,6 +221,8 @@ namespace Arena
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
+        public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
+        public bool DropsSpear;   // host only: a Bone Spear, which stays stuck where it stops (a pickup)
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -1266,6 +1270,9 @@ namespace Arena
             TickOrbiters(dt);  // Minions.cs: Arcane Missiles launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
+            TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
+            TickVines(dt);    // Minions.cs: the Treant Rod's vine
+            TickSpearPickups();  // BloodMage.cs: Bone Spears walked over
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

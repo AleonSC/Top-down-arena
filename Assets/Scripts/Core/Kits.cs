@@ -32,7 +32,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear }
 
     public class ZoneDef
     {
@@ -105,6 +105,7 @@ namespace Arena
             new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f), HealRate = 6f, ReviveBoost = 2f },
             new ZoneDef { Name = "Siphon Field", Color = new Rgba(0.85f, 0.15f, 0.3f), HealRate = 10f, Dps = 10f },
             new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Clot Bolt's
+            new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },  // a thrown Bone Spear stuck in the ground: walk over it for its health back (BloodMage.cs)
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

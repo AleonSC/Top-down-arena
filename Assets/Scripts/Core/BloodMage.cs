@@ -129,7 +129,11 @@ namespace Arena
                     PayHealth(p, BoneSpearCost);
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Pierce += 3;
+                    {
+                        var b = SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        b.Pierce += 3;
+                        b.DropsSpear = i == 0;  // stays stuck where it stops: walk over it for its health back
+                    }
                     break;
                 }
             }
@@ -525,6 +529,36 @@ namespace Arena
         {
             if (e.Hemorrhage > 0 && (e.HemorrhageT -= dt) <= 0f)
                 e.Hemorrhage = 0;
+        }
+
+        // --- Bone Spear: pick your spears back up -----------------------------------------------------
+
+        public const float SpearPickupTime = 8f, SpearPickupRadius = 16f;
+
+        /// A Bone Spear stopped: it stays stuck in the ground there.
+        void DropSpear(Bullet b)
+        {
+            Player p;
+            if (b.DropsSpear && Players.TryGetValue(b.Owner, out p))
+                AddZone(ZoneKind.BoneSpear, p, ClampToArena(b.Pos, 10f), SpearPickupRadius, SpearPickupTime);
+        }
+
+        /// Host, every tick: a Bone Spear its thrower walks over gives them its health back.
+        void TickSpearPickups()
+        {
+            List<int> taken = null;
+            foreach (var z in Zones.Values)
+            {
+                Player p;
+                if (z.Kind != ZoneKind.BoneSpear || !Players.TryGetValue(z.Owner, out p) || p.Downed || p.Pos.DistanceTo(z.Pos) > z.Radius + p.Def.BodyR)
+                    continue;
+                Heal(p, BoneSpearCost, p);
+                AddFx(FxKind.Spark, z.Pos, z.Def.Color, 16f, 0.25f);
+                (taken = taken ?? new List<int>()).Add(z.Id);
+            }
+            if (taken != null)
+                foreach (int id in taken)
+                    Zones.Remove(id);
         }
 
         /// Transfusion Darts cost the healer some of their own health for each ally they heal.

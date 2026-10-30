@@ -184,6 +184,40 @@ namespace Arena
                     Circle(at, 2.4f, arc, 8);
                 }
             }
+            if (p.Weapon.Id == WeaponId.Lightbringer && p.Light > 0)  // the light gauge: pips filling round you, a halo once it's full
+            {
+                bool full = p.Light >= Game.LightMax;
+                float r = p.Def.BodyR + 9f;
+                var c = new Rgba(1f, 0.95f, 0.65f, full ? 0.7f + 0.3f * Mathf.Sin(t * 10f) : 0.75f);
+                for (int i = 0; i < p.Light; i++)
+                    Circle(p.Disp + V2.FromAngle(-MathX.Pi / 2f + MathX.Tau * i / Game.LightMax) * r, full ? 2.6f : 2f, c, 6);
+                if (full)
+                    Arc(p.Disp, r + 5f, 2f, c.WithAlpha(0.5f), 24);
+            }
+            if (p.Weapon.Id == WeaponId.TreantRod)  // the vine from you to your Treant
+                foreach (var m in game.Minions.Values)
+                    if (m.Owner == p.Id && m.Kind == MinionKind.Treant && m.Companion)
+                    {
+                        V2 to = m.Disp - p.Disp;
+                        float len = to.Length;
+                        if (len < 4f)
+                            break;
+                        V2 dir = to / len, side = dir.Orthogonal();
+                        int n = Math.Max(3, (int)(len / 16f));
+                        V2 prev = p.Disp;
+                        var vine = new Rgba(0.35f, 0.75f, 0.3f);
+                        for (int i = 1; i <= n; i++)
+                        {
+                            float f = (float)i / n;
+                            V2 at = p.Disp + to * f + side * (Mathf.Sin(f * 12f + t * 2f) * 4f);
+                            Line(prev, at, 3f, vine.WithAlpha(0.85f));
+                            if (i % 3 == 0)  // leaves
+                                Circle(at + side * 4f, 2.5f, new Rgba(0.5f, 0.9f, 0.4f, 0.85f), 6);
+                            prev = at;
+                        }
+                        Line(p.Disp, m.Disp, Game.VineWidth * 2f, vine.WithAlpha(0.06f));
+                        break;
+                    }
             if (p.Weapon.Id == WeaponId.TwinBlades && p.Combo > 0)  // the Twin Blades' combo: pips round you, glowing once the dash-strike is ready
             {
                 bool primed = p.Combo >= Game.ComboMax;
@@ -1244,6 +1278,15 @@ namespace Arena
                     Quad(z.Pos + new V2(-7f, -12f), z.Pos + new V2(7f, -12f), z.Pos + new V2(7f, 12f), z.Pos + new V2(-7f, 12f));
                     Line(z.Pos + new V2(0f, -8f), z.Pos + new V2(0f, 8f), 2.5f, new Rgba(0.9f, 0.2f, 0.2f));
                     break;
+                case ZoneKind.BoneSpear:  // a Bone Spear stuck in the ground, glowing to be picked up
+                {
+                    V2 sd = V2.FromAngle(z.Id * 1.7f);
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.06f * Mathf.Sin(t * 5f + z.Id)), 16);
+                    Line(z.Pos - sd * 14f, z.Pos + sd * 10f, 3f, c);
+                    SetColor(c);
+                    Tri(z.Pos + sd * 16f, z.Pos + sd * 9f + sd.Orthogonal() * 3.5f, z.Pos + sd * 9f - sd.Orthogonal() * 3.5f);
+                    break;
+                }
                 case ZoneKind.Siphon:
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // BloodMageLook.cs
@@ -1387,6 +1430,8 @@ namespace Arena
                 DrawBoneCage(pos, r, t);
             if (e.Hemorrhage > 0)
                 DrawHemorrhage(e, pos, r, t);  // BloodMageLook.cs
+            for (int k = 0; k < e.StarsStuck && k < 8; k++)  // Shuriken stars stuck in it, waiting to be recalled
+                DrawStar(pos + V2.FromAngle(k * 2.4f + e.Id) * (r * 0.75f), 4f, k * 0.7f, Defs.BulletColor(Defs.StarShot));
             foreach (var hunter in game.Players.Values)
                 if (hunter.PreyId == e.Id && hunter.Weapon.Id == WeaponId.WolfWhistle)
                 {

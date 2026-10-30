@@ -221,6 +221,8 @@ namespace Arena
                         landed.Add(b);
                     if (b.ShadowKunai)
                         ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
+                    if (b.DropsSpear)
+                        DropSpear(b);  // a Bone Spear stays stuck where it stopped (BloodMage.cs)
                 }
             }
             foreach (int id in scratchIds)
@@ -402,6 +404,8 @@ namespace Arena
                             else
                             {
                                 scratchIds.Add(b.Id);
+                                if (b.DropsSpear)
+                                    DropSpear(b);  // a Bone Spear drops where it's spent (BloodMage.cs)
                                 if (b.Bounces > 0)
                                     ricochets.Add(b);
                             }
@@ -705,6 +709,7 @@ namespace Arena
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
+            StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts

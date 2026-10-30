@@ -1397,6 +1397,130 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    static void FourMoreTest(float dt)
+    {
+        // Shuriken stars stick and are recalled; Bone Spears stay stuck as health pickups; the Lightbringer's full light
+        // gauge triples its crescents' healing; the Treant Rod's Treant roots with a vine to you that heals and slows.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Knight);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(300f, 450f), allyAt = new V2(300f, 150f);
+        var keep = new List<Enemy>();
+        var pins = new Dictionary<Enemy, V2>();
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
+        bool pinMe = true;
+        Action<float, PlayerInput> play = (secs, input) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
+                if (pinMe) me.Pos = from;
+                ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, input); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Minions.Clear(); g.Zones.Clear(); };
+        play(0.3f, new PlayerInput());
+
+        // Shuriken.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Shuriken);
+        var star = dummy(from + new V2(120f, 0f));
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.4f, new PlayerInput());
+        int stuck = star.StarsStuck;
+        bool clientStars = client.Game.Enemies.ContainsKey(star.Id) && client.Game.Enemies[star.Id].StarsStuck == stuck;
+        float before = star.Hp;
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f != 1, AimAt = star.Pos }); star.Pos = from + new V2(120f, 0f); }  // double-tap
+        float recalled = before - star.Hp;
+        play(0.4f, new PlayerInput());
+        Console.WriteLine("  shuriken: {0} stars stuck (client saw them {1}); the recall ripped them out for {2:0.0}; stuck now {3}", stuck, clientStars, recalled, star.StarsStuck);
+        Check(stuck >= 2 && clientStars && recalled >= stuck * me.Weapon.Damage * me.Stats.DmgMult * 0.99f && star.StarsStuck < stuck,  // (the double-tap's own throws stick again)
+            "Shuriken stars stick in what they hit; double-tapping fire recalls them, ripping them out for another hit");
+        reset();
+
+        // Bone Spear.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoneSpear);
+        me.Kit = Kit.BloodMage;
+        me.Hp = me.MaxHp * 0.5f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float paid = me.MaxHp * 0.5f - me.Hp;
+        play(1.2f, new PlayerInput());
+        var spear = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.BoneSpear && z.Owner == 1);
+        bool clientSpear = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear);
+        float h0 = me.Hp;
+        if (spear != null) { pinMe = false; me.Pos = spear.Pos; play(0.1f, new PlayerInput()); pinMe = true; }
+        Console.WriteLine("  bone spear: paid {0:0.0}; stuck at {1:0} px (client saw it {2}); walking over it gave {3:0.0} back; gone {4}",
+            paid, spear != null ? spear.Pos.X - from.X : -1f, clientSpear, me.Hp - h0, !g.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear));
+        Check(spear != null && clientSpear && me.Hp - h0 >= Game.BoneSpearCost - 0.01f && me.Hp - h0 < Game.BoneSpearCost + 1f && !g.Zones.Values.Any(z => z.Kind == ZoneKind.BoneSpear),  // (plus a little regeneration)
+            "a Bone Spear stays stuck where it stops, and walking over it gives its health back");
+        me.Kit = Kit.Knight;
+        reset();
+
+        // Lightbringer.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Lightbringer);
+        me.Light = 0;
+        var foe = dummy(from + new V2(60f, 0f));
+        for (int k = 0; k < 5; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.1f, new PlayerInput()); }
+        int filled = me.Light;
+        reset();
+        Func<int, float> crescent = light =>
+        {
+            ally.Hp = ally.MaxHp * 0.3f;
+            me.Light = light;
+            float a0 = ally.Hp;
+            if (light >= 0) volley.Invoke(g, new object[] { me, (allyAt - from).Angle, 0 });
+            play(0.5f, new PlayerInput());
+            return ally.Hp - a0;
+        };
+        allyAt = from + new V2(0f, -120f);
+        float aura = crescent(-1);  // the healer's aura alone, over the same time
+        float plain = crescent(0) - aura, radiant = crescent(Game.LightMax) - aura;
+        Console.WriteLine("  lightbringer: 5 swings filled the gauge to {0}; a crescent healed {1:0.0}, a radiant one {2:0.0} (gauge now {3})", filled, plain, radiant, me.Light);
+        Check(filled == 5 && plain > 0f && Math.Abs(radiant - plain * Game.LightRadiant) < 1f && me.Light == 0, "Lightbringer hits fill its light gauge; full, the next crescents heal three times as much");
+        allyAt = new V2(300f, 150f);
+        reset();
+
+        // Treant Rod.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TreantRod);
+        play(1f, new PlayerInput());
+        var treant = g.Minions.Values.FirstOrDefault(m => m.Owner == 1 && m.Kind == MinionKind.Treant);
+        V2 rooted = treant != null ? treant.Pos : V2.Zero;
+        from = new V2(560f, 450f);  // you walk off: it stays
+        play(0.6f, new PlayerInput());
+        float stayed = treant != null ? treant.Pos.DistanceTo(rooted) : -1f;
+        V2 mid = (from + (treant != null ? treant.Pos : from)) * 0.5f;
+        allyAt = mid;
+        var crossing = dummy(mid + new V2(0f, 30f));
+        ally.Hp = ally.MaxHp * 0.3f;
+        float ah = ally.Hp, eh = crossing.Hp;
+        play(1f, new PlayerInput());
+        float vineHeal = ally.Hp - ah, vineHurt = eh - crossing.Hp, slow = crossing.SlowMult;
+        from = new V2(1200f, 450f);  // too far: it follows
+        play(1.5f, new PlayerInput());
+        float followed = treant != null ? rooted.DistanceTo(treant.Pos) : 0f;
+        Console.WriteLine("  treant rod: it stayed rooted ({0:0} px moved); the vine healed the ally {1:0.0} in 1 s, hurt the enemy {2:0.0} and slowed it to {3:0.00}; far off, it followed {4:0} px",
+            stayed, vineHeal, vineHurt, slow, followed);
+        Check(treant != null && stayed < 2f && vineHeal >= Game.VineHeal * 0.9f && vineHurt > 0f && slow <= 1f - Game.VineSlow + 0.01f && followed > 200f,
+            "the Treant roots where it is; a vine to you heals allies and slows enemies crossing it, and the Treant follows if you go too far");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

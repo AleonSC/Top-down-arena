@@ -406,6 +406,7 @@ namespace Arena
             s.Int(ref p.PreyId);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
+            s.Byte(ref p.Light);
             s.Float(ref p.DoseT);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
@@ -482,7 +483,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int hemorrhage = 0;
+            int hemorrhage = 0, stars = 0;
             if (!s.Reading)
             {
                 id = e.Id;
@@ -501,6 +502,7 @@ namespace Arena
                 e.Bleeding = e.BleedT > 0f;
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 hemorrhage = e.Hemorrhage;
+                stars = e.StarsStuck;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
             }
@@ -515,6 +517,7 @@ namespace Arena
             s.Bool(ref elite);
             s.Byte(ref status);
             s.Byte(ref hemorrhage);  // Blood Bolts stuck in it, drawn as drops gathering on it
+            s.Byte(ref stars);       // Shuriken stars stuck in it
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -542,6 +545,7 @@ namespace Arena
                 e.Suppressed = (status & 64) != 0;
                 e.Poisoned = (status & 128) != 0;
                 e.Hemorrhage = hemorrhage;
+                e.StarsStuck = stars;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

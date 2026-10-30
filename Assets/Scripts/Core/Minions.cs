@@ -214,6 +214,58 @@ namespace Arena
             }
         }
 
+        // --- Treant Rod: the vine ------------------------------------------------------------------
+
+        public const float VineMax = 360f, VineRegroup = 160f, VineWidth = 14f, VineHeal = 8f, VineDps = 6f, VineSlow = 0.5f;
+
+        /// The Treant roots where it is; once you're VineMax away it walks back toward you (to VineRegroup).
+        V2 TreantGoal(Minion m, Player owner)
+        {
+            if (owner.Weapon.Id != WeaponId.TreantRod)
+                return owner.Pos + V2.FromAngle(owner.Aim) * 45f;
+            float d = m.Pos.DistanceTo(owner.Pos);
+            if (d > VineMax)
+                m.Returning = true;
+            if (m.Returning && d <= VineRegroup)
+                m.Returning = false;
+            return m.Returning ? owner.Pos : m.Pos;
+        }
+
+        /// Host, every tick: the vine from each Treant Rod user to their Treant heals allies crossing it and slows
+        /// (and stings) enemies crossing it.
+        void TickVines(float dt)
+        {
+            foreach (var m in Minions.Values)
+            {
+                Player p;
+                if (m.Kind != MinionKind.Treant || !m.Companion || !Players.TryGetValue(m.Owner, out p) || p.Downed || p.Weapon.Id != WeaponId.TreantRod)
+                    continue;
+                V2 a = p.Pos, b = m.Pos;
+                foreach (var q in Players.Values)
+                    if (q != p && !q.Downed && DistToSegment(q.Pos, a, b) <= VineWidth + q.Def.BodyR)
+                        Heal(q, VineHeal * dt, p);
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.SpawnT > 0f || e.Hp <= 0f || DistToSegment(e.Pos, a, b) > VineWidth + e.Radius)
+                        continue;
+                    if (!e.Def.IsBoss)
+                    {
+                        e.SlowT = Math.Max(e.SlowT, 0.3f);
+                        e.SlowMult = Math.Min(e.SlowMult, 1f - VineSlow);
+                    }
+                    DotDamage(e, VineDps * p.Stats.DmgMult * dt, p.Id);
+                }
+            }
+        }
+
+        static float DistToSegment(V2 pt, V2 a, V2 b)
+        {
+            V2 ab = b - a;
+            float len2 = ab.X * ab.X + ab.Y * ab.Y;
+            float k = len2 < 1f ? 0f : Math.Max(0f, Math.Min(1f, ((pt.X - a.X) * ab.X + (pt.Y - a.Y) * ab.Y) / len2));
+            return pt.DistanceTo(a + ab * k);
+        }
+
         // --- Wisp Lantern and Imp Caller: companions you send ---------------------------------------
 
         public const float WispReach = 420f, WispSpeed = 650f, SendPick = 120f, ImpReach = 600f, ImpSpeed = 300f, ImpMergeBonus = 1.25f, SentMax = 2.5f;
@@ -1250,7 +1302,7 @@ namespace Arena
                     case MinionMove.FollowOwner:
                     {
                         // The treant stands in front of you; the guardian spirit hovers on you.
-                        V2 goal = m.Kind == MinionKind.Treant ? owner.Pos + V2.FromAngle(owner.Aim) * 45f
+                        V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
                             : m.Kind == MinionKind.SoulGhost ? owner.Pos + V2.FromAngle(owner.Aim + 2f) * 60f  // a Soul Ghost keeps beside you, a little back
                             : owner.Pos;
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);

@@ -144,13 +144,19 @@ namespace Arena
                 case WeaponId.Lightbringer:
                 {
                     pendingSwings.Add(NewSwing(p, aim, w.Reach, 100f, w.Damage * dmg));
+                    bool radiant = p.Light >= LightMax;  // a full gauge: these crescents heal three times as much
+                    if (radiant)
+                    {
+                        p.Light = 0;
+                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.65f), 50f, 0.35f, Sfx.SpellHoly);
+                    }
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
                         float f = n == 1 ? 0f : i * 2f / (n - 1) - 1f;
                         var b = SpawnBullet(Defs.KnightWave, p.Pos + V2.FromAngle(aim) * p.Def.BodyR, V2.FromAngle(aim + f * 0.2f * (n - 1)) * 600f, 0f, 0.45f, 12f * dmg, p.Id);
                         b.Pierce += 2;
-                        b.HealAlly = 6f;
+                        b.HealAlly = 6f * (radiant ? LightRadiant : 1f);
                     }
                     break;
                 }
@@ -273,6 +279,10 @@ namespace Arena
                 }
         }
 
+        /// Lightbringer: each enemy its swings hit fills the light gauge; full, the next swing's crescents heal LightRadiant times as much.
+        public const int LightMax = 12;
+        public const float LightRadiant = 3f;
+
         /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike:
         /// your next slash lunges you DashStrikeDist toward your aim, hitting everything you pass for DashStrikeMult.
         public const int ComboMax = 10;
@@ -369,6 +379,8 @@ namespace Arena
             p.Run.ShotsFired++;
             if (hits.Count > 0)
                 p.Run.ShotsHit++;
+            if (hits.Count > 0 && p.Weapon.Id == WeaponId.Lightbringer)  // every enemy a Lightbringer swing hits fills its light gauge
+                p.Light = Math.Min(LightMax, p.Light + hits.Count);
             if (hits.Count > 0 && p.Weapon.Id == WeaponId.TwinBlades && !s.Silent)  // a Twin Blades slash landed: the combo builds (its extra cuts don't count)
             {
                 p.Combo = Math.Min(ComboMax, p.Combo + 1);
