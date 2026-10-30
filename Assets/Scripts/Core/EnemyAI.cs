@@ -463,6 +463,8 @@ namespace Arena
                 return true;  // the Twin Reapers changing stage (Reapers.cs)
             if (SingImmune(e))
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
+            if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
+                return true;  // the Duelist changing stage, or its guard from the front (Duelist.cs)
             if (e.Type == EnemyType.HiveQueen && (e.Phase == 1 || QueenImmune(e)))
                 return true;  // shielded by her drones, changing stage, or up in a dive (Queen.cs)
             if (e.Type == EnemyType.Boss && (WardenImmune(e) || WardenShieldBlocks(e, from)))

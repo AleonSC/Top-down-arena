@@ -27,6 +27,14 @@ class Shot {
         var want = Environment.GetEnvironmentVariable("SINGTURN");
         if (want != null && e.Sing != null && e.Sing.TransT <= 0f && e.Sing.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Sing.TurnT = 999f;
       }
+      // DUEL=<health fraction>: hold the Duelist there; DUELTURN=<turn> skips its turns until that one
+      // (Volleys, Lunge, Guard, Blink, Masquerade, Crossing, LungeChain, Salute, Flurry, Flourish).
+      if (Environment.GetEnvironmentVariable("DUEL") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Duelist)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("DUEL"));
+        var want = Environment.GetEnvironmentVariable("DUELTURN");
+        if (want != null && e.Duel != null && e.Duel.TransT <= 0f && e.Duel.Turn.ToString() != want && e.Duel.Dash == DuelDash.None && e.Duel.SaluteT <= 0f && f < (int)(seconds * 60) - 90) e.Duel.TurnT = 999f;
+      }
       // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
       if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
       // REAPERS=<health fraction>: the same for the Twin Reapers (or the Dual Reaper).

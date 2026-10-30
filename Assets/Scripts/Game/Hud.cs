@@ -487,6 +487,39 @@ namespace Arena
 
         /// Name and health bar for each boss on the field, plus warnings for their mechanics: wide across the
         /// top middle, which the rest of the HUD leaves free.
+        static string DuelStageName(DuelStage s) => s == DuelStage.EnGarde ? "EN GARDE" : s == DuelStage.Masquerade ? "MASQUERADE" : s == DuelStage.ToTheDeath ? "TO THE DEATH" : "LAST STAND";
+
+        /// The Duelist's line under its boss bar: what it's doing and what to do about it (Duelist.cs).
+        static string DuelNote(DuelState s, ref Color col)
+        {
+            if (s.TransT > 0f)
+            {
+                col = new Color(0.9f, 0.92f, 1f);
+                return "CAN'T BE HURT — " + DuelStageName(s.TransTo) + " is coming";
+            }
+            if (s.StaggerT > 0f)
+            {
+                col = new Color(1f, 0.8f, 0.35f);
+                return "OPEN — it takes 50% more damage!";
+            }
+            if (s.SaluteT > 0f || s.Dash == DuelDash.Salute)
+            {
+                col = new Color(1f, 0.8f, 0.35f);
+                return "SALUTE — perfect-parry the lunge to open it up";
+            }
+            if (s.Turn == DuelTurn.Guard)
+            {
+                col = new Color(0.81f, 0.84f, 1f);
+                return "GUARD — its blade turns your shots back; get behind it";
+            }
+            if (s.Turn == DuelTurn.Masquerade)
+            {
+                col = new Color(0.71f, 0.61f, 1f);
+                return "MASQUERADE — only the real one's shots are solid";
+            }
+            return DuelStageName(s.Stage);
+        }
+
         static string SingStageName(SingStage s) => s == SingStage.EventHorizon ? "EVENT HORIZON" : s == SingStage.Accretion ? "ACCRETION"
             : s == SingStage.Spaghettify ? "SPAGHETTIFY" : "LAST STAND";
 
@@ -622,6 +655,8 @@ namespace Arena
                     note = "The corner wells swallow your shots — kill them!";
                 else if (e.Type == EnemyType.Singularity && e.Sing != null)
                     note = SingStageName(e.Sing.Stage);
+                else if (e.Type == EnemyType.Duelist && e.Duel != null)
+                    note = DuelNote(e.Duel, ref noteColor);
                 else if (e.Type == EnemyType.Lich && e.Phase == 1)
                     note = "IMMUNE — destroy the phylactery!";
                 else if (Game.Hungry(e))

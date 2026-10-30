@@ -200,6 +200,7 @@ namespace Arena
         public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
+        public DuelState Duel;      // the Duelist's fight (Duelist.cs; replicated)
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float ShieldHp, ShieldMax;  // host: a Shielder's shield, worn down by blocked hits and time (its Phase shows the cracks)
@@ -988,6 +989,7 @@ namespace Arena
             TickShopNotices(dt);
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
+            UpdateDuelView(dt);    // Duelist.cs
             UpdateQueenView(dt);   // Queen.cs
             UpdateReaperView(dt);  // Reapers.cs
             StepLightDisplay(dt);  // Searchlights (Stun.cs)

@@ -401,6 +401,7 @@ namespace Arena
                         {
                             if (BlocksShot(e, b.Pos))
                             {
+                                DuelGuardBounce(e, b);  // the Duelist's guard sends it back (Duelist.cs)
                                 WearShield(e, b.Dmg);  // the shield takes it, and wears
                                 scratchIds.Add(b.Id);
                                 break;
@@ -443,6 +444,8 @@ namespace Arena
                 }
                 else
                 {
+                    if (b.Kind == Defs.HollowShot)
+                        continue;  // a Duelist decoy's shot: harmless, it passes through everything (Duelist.cs)
                     if (!Defs.Unblockable(b.Kind) && BlockedBySummons(b) || GuardStopsBullet(b))  // GuardStopsBullet: Stun.cs
                     {
                         scratchIds.Add(b.Id);
@@ -618,6 +621,7 @@ namespace Arena
                     dead.Add(e);
             foreach (var e in dead)
             {
+                DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
                 bool bossReward = OnEnemyKilled(e);
@@ -668,10 +672,12 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass))
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || DuelImmune(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split
             if (!DualReaperHit(e, ref dmg))
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
+            if (DuelOpen(e))
+                dmg *= DuelOpenMult;  // a parried salute left the Duelist open (Duelist.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

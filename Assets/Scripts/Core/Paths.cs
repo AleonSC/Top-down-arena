@@ -402,7 +402,7 @@ namespace Arena
         V2 RandomInArena(float margin) => RandomInArena(margin, margin);
 
         /// A player's position after moving: wrapped round the edges, or held inside Narrow Pass's walls.
-        V2 KeepInArena(V2 pos, float r) => Walled ? ClampToArena(pos, r) : WrapArena(pos);
+        V2 KeepInArena(V2 pos, float r) => KeepInDuelRing(Walled ? ClampToArena(pos, r) : WrapArena(pos), r);  // and inside the Duelist's circle (Duelist.cs)
 
         // --- Hazard floors (Burning Grounds, Sanctuary) -------------------------------------------
 
