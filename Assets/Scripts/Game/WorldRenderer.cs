@@ -1226,7 +1226,29 @@ namespace Arena
                 case ZoneKind.Totem:
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 40);
                     Polygon(z.Pos, 8f, 6, t, c);
+                    if (z.GuardFrac > 0f)  // a thrown Totem charging from seed hits near it
+                        Arc(z.Pos, 14f, 3f, new Rgba(1f, 1f, 0.7f, 0.85f), 20, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.GuardFrac));
                     break;
+                case ZoneKind.Incense:  // the Censer's trail: soft puffs of smoke drifting up and thinning
+                {
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float f = MathX.Fmod(t * 0.4f + k * 0.33f + z.Id * 0.21f, 1f);
+                        V2 at = z.Pos + new V2(Mathf.Sin(z.Id * 2.1f + k * 2.3f) * z.Radius * 0.4f, -f * 18f);
+                        Circle(at, z.Radius * (0.45f + 0.3f * f), c.WithAlpha(0.13f * timeLeft * (1f - 0.5f * f)), 14);
+                    }
+                    return;  // no timer ring: it's a trail
+                }
+                case ZoneKind.OfudaWard:  // an Ofuda charm lying on the ground: a paper strip with a red seal, glowing
+                {
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + z.Id);
+                    Circle(z.Pos, z.Radius, c.WithAlpha(0.08f + 0.06f * pulse), 20);
+                    V2 u = V2.FromAngle(0.3f + z.Id), s2 = u.Orthogonal();
+                    SetColor(new Rgba(0.98f, 0.95f, 0.85f));
+                    Quad(z.Pos - u * 9f - s2 * 4f, z.Pos + u * 9f - s2 * 4f, z.Pos + u * 9f + s2 * 4f, z.Pos - u * 9f + s2 * 4f);
+                    Circle(z.Pos, 2.5f, new Rgba(0.85f, 0.15f, 0.15f), 8);
+                    break;
+                }
                 case ZoneKind.Sanctum:  // a shining dome
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f + 0.04f * Mathf.Sin(t * 3f)), 56);
                     Arc(z.Pos, z.Radius - 6f, 2f, c.WithAlpha(0.5f), 56);

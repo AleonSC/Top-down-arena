@@ -214,6 +214,90 @@ namespace Arena
             }
         }
 
+        // --- Healer kit: the Censer's incense, Sprite Staff seeds, Totem Staff charge, Ofuda wards ---------
+
+        public const float IncenseStep = 45f, IncenseRadius = 45f, IncenseTime = 3f, IncenseStray = 0.35f;  // dropped every IncenseStep you move; enemy shots fired inside stray this far either side
+        public const float SeedTime = 4f, SpriteFreed = 6f, TotemThrow = 400f, TotemCharge = 6f, TotemPulse = 25f, TotemReach = 150f;
+        public const int FreedCap = 4;
+
+        bool InIncense(V2 pos)
+        {
+            foreach (var z in Zones.Values)
+                if (z.Kind == ZoneKind.Incense && pos.DistanceTo(z.Pos) <= z.Radius)
+                    return true;
+            return false;
+        }
+
+        /// A seed hit something: a Sprite Staff seed sticks in it; a Totem Staff seed charges your totems near it.
+        void SeedHit(Bullet b, Enemy e)
+        {
+            Player p;
+            if (b.Kind != Defs.SeedShot || !Players.TryGetValue(b.Owner, out p))
+                return;
+            if (p.Weapon.Id == WeaponId.SpriteStaff)
+            {
+                e.SeededBy = p.Id;
+                e.SeededT = SeedTime;
+            }
+            else if (p.Weapon.Id == WeaponId.TotemStaff)
+                foreach (var z in Zones.Values)
+                    if (z.Kind == ZoneKind.Totem && z.Owner == p.Id && z.Pos.DistanceTo(e.Pos) <= TotemReach)
+                    {
+                        z.Charge += 1f;
+                        if (z.Charge >= TotemCharge)
+                        {
+                            z.Charge = 0f;
+                            foreach (var q in Players.Values)
+                                if (!q.Downed && q.Pos.DistanceTo(z.Pos) <= TotemReach)
+                                    Heal(q, TotemPulse, p);
+                            BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, TotemReach, 0.5f, Sfx.SpellHoly);
+                        }
+                    }
+        }
+
+        /// A seeded enemy died: a sprite springs from it, healing whoever is hurt for a while.
+        void SeededKill(Enemy e)
+        {
+            Player p;
+            if (e.SeededT <= 0f || !Players.TryGetValue(e.SeededBy, out p) || p.Downed)
+                return;
+            int freed = 0;
+            foreach (var m in Minions.Values)
+                if (m.Owner == p.Id && m.Kind == MinionKind.Sprite && !m.Companion)
+                    freed++;
+            if (freed < FreedCap)
+                SpawnMinion(MinionKind.Sprite, p, e.Pos, SpriteFreed);
+        }
+
+        /// Host, every tick: the Censer leaves incense as you move; wards burst under enemies; seeds wear off.
+        void TickHealerKit(float dt)
+        {
+            foreach (var p in Players.Values)
+                if (p.Weapon.Id == WeaponId.Censer && !p.Downed && p.Pos.DistanceTo(p.LastIncense) >= IncenseStep)
+                {
+                    p.LastIncense = p.Pos;
+                    AddZone(ZoneKind.Incense, p, p.Pos, IncenseRadius, IncenseTime);
+                }
+            List<Zone> burst = null;
+            foreach (var z in Zones.Values)
+                if (z.Kind == ZoneKind.OfudaWard)
+                    foreach (var e in Enemies.Values)
+                        if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < z.Radius + e.Radius)
+                        {
+                            (burst = burst ?? new List<Zone>()).Add(z);
+                            break;
+                        }
+            if (burst != null)
+                foreach (var z in burst)
+                {
+                    BurstWard(z);  // Ninja.cs
+                    Zones.Remove(z.Id);
+                }
+            foreach (var e in Enemies.Values)
+                if (e.SeededT > 0f)
+                    e.SeededT -= dt;
+        }
+
         // --- Treant Rod: the vine ------------------------------------------------------------------
 
         public const float VineMax = 360f, VineRegroup = 160f, VineWidth = 14f, VineHeal = 8f, VineDps = 6f, VineSlow = 0.5f;
@@ -1216,10 +1300,10 @@ namespace Arena
                 if (w.Id == WeaponId.TotemStaff && !p.Downed && State == MatchState.Fighting)
                 {
                     p.TotemCd -= dt;
-                    if (p.TotemCd <= 0f)
+                    if (p.TotemCd <= 0f && p.Firing)  // ready: the next shot throws it to your cursor
                     {
                         p.TotemCd = 10f / (1f + 0.6f * extra);
-                        AddZone(ZoneKind.Totem, p, p.Pos, 90f, 8f);
+                        AddZone(ZoneKind.Totem, p, ClampToArena(p.Pos + (p.AimAt - p.Pos).LimitLength(TotemThrow), 20f), 90f, 8f);
                     }
                 }
             }

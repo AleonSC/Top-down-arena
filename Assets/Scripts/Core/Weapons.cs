@@ -428,6 +428,8 @@ namespace Arena
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                case WeaponId.Ofuda:  // where a charm lands as a ward, at most (Ninja.cs)
+                    return p.Def.BodyR + WardRange * p.Stats.ShotSpeedMult;
                 case WeaponId.WispLantern:  // how far a wisp is sent (Minions.cs)
                     return WispReach;
                 case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)

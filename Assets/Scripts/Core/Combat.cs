@@ -90,7 +90,11 @@ namespace Arena
                 dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
             }
             if (owner == 0 && Defs.IsEnemyShot(kind))
+            {
                 enemyShots++;
+                if (!Defs.Unblockable(kind) && InIncense(pos))
+                    vel = vel.Rotated(Rand(-IncenseStray, IncenseStray));  // fired from inside the Censer's incense: it strays
+            }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
             b.Dmg = casting && !firingWeapon ? dmg * castPower : dmg;
             if (owner != 0 && Players.TryGetValue(owner, out p))
@@ -240,6 +244,11 @@ namespace Arena
                     FlakAirburst(b);  // Weapons.cs
                     continue;
                 }
+                if (b.Ward)
+                {
+                    PlaceWard(b);  // Ninja.cs
+                    continue;
+                }
                 if (b.Bomblet)
                 {
                     foreach (var e in Enemies.Values)
@@ -355,7 +364,7 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell)
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
                     continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
@@ -591,6 +600,7 @@ namespace Arena
             foreach (var e in dead)
             {
                 Recorder?.EnemyKilled(e);
+                SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
                 bool bossReward = OnEnemyKilled(e);
                 KillEffects(e);
                 var killer = PlayerOrNull(e.LastHitBy);
@@ -710,6 +720,7 @@ namespace Arena
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
+            SeedHit(b, e);      // Sprite Staff seeds stick; Totem Staff seeds charge totems (Minions.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts

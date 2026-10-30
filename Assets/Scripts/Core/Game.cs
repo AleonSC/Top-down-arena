@@ -70,6 +70,7 @@ namespace Arena
         public float KunaiMarkT;                      //   for this much longer (replicated)
         public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
         public int Light;                             // Lightbringer: its light gauge, hits landed toward a radiant swing (replicated)
+        public V2 LastIncense;                        // host: where the Censer last left incense
         public int Combo;                             // Twin Blades: slashes landed in a row (replicated); ComboT: until it lapses (host)
         public float ComboT;
         public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
@@ -204,6 +205,8 @@ namespace Arena
         public int PoisonBy;
         public bool Poisoned;                // replicated, for drawing
         public int StarsStuck;               // Shuriken stars stuck in it (replicated, for drawing)
+        public int SeededBy;                 // host: a Sprite Staff seed is stuck in it (killing it frees a sprite)
+        public float SeededT;
     }
 
     public class Bullet
@@ -223,6 +226,7 @@ namespace Arena
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
         public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
         public bool DropsSpear;   // host only: a Bone Spear, which stays stuck where it stops (a pickup)
+        public bool Ward;         // host only: an Ofuda charm flying to where it will lie as a ward
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -274,7 +278,8 @@ namespace Arena
         public bool Embers;         // host: a mastered Meteor leaves burning ground
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
-        public float GuardFrac;     // replicated BlockHp fraction, for drawing
+        public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Totem's charge)
+        public float Charge;        // host: a thrown Totem's charge from seed hits near it
         public ZoneDef Def => Kits.Get(Kind);
     }
 
@@ -1273,6 +1278,7 @@ namespace Arena
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // Minions.cs: the Treant Rod's vine
             TickSpearPickups();  // BloodMage.cs: Bone Spears walked over
+            TickHealerKit(dt);   // Minions.cs: the Censer's incense, Ofuda wards, seeded enemies
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

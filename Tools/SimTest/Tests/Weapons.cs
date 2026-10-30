@@ -1521,6 +1521,149 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
+    static void HealerFiveTest(float dt)
+    {
+        // The Censer's incense trail heals and spoils enemy aim; the Spirit Fan alternates pushing and pulling; Ofuda
+        // charms lie as wards that burst under enemies; Sprite Staff seeds free sprites from kills; Totem Staff totems
+        // are thrown and charged by seed hits.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Knight);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(300f, 450f), allyAt = new V2(300f, 150f);
+        var keep = new List<Enemy>();
+        var pins = new Dictionary<Enemy, V2>();
+        Func<V2, float, Enemy> dummy = (at, hp) => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = hp; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
+        bool pinMe = true;
+        Action<float, PlayerInput> play = (secs, input) =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
+                if (pinMe) me.Pos = from;
+                ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, input); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Minions.Clear(); g.Zones.Clear(); };
+        play(0.3f, new PlayerInput());
+
+        // Censer: walk, leaving incense; an ally in it heals; enemy shots fired from inside it stray.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Censer);
+        pinMe = false;
+        me.Pos = from;
+        play(1f, new PlayerInput { Move = new V2(1f, 0f), AimAt = from + new V2(400f, 0f) });
+        pinMe = true;
+        int trail = g.Zones.Values.Count(z => z.Kind == ZoneKind.Incense);
+        bool clientTrail = client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.Incense);
+        var puff = g.Zones.Values.Where(z => z.Kind == ZoneKind.Incense).OrderBy(z => z.T).Last();
+        allyAt = puff.Pos;
+        ally.Hp = ally.MaxHp * 0.3f;
+        float a0 = ally.Hp;
+        from = new V2(300f, 800f);  // step away so the spin's healing doesn't count
+        play(0.5f, new PlayerInput());
+        float trailHeal = ally.Hp - a0;
+        int strayed = 0, straight = 0;
+        for (int k = 0; k < 20; k++)
+        {
+            var inside = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, puff.Pos, new V2(300f, 0f), 0f, 1f, 5f, 0, false, 0f });
+            var outside = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, new V2(1200f, 800f), new V2(300f, 0f), 0f, 1f, 5f, 0, false, 0f });
+            if (Math.Abs(inside.Vel.Angle) > 0.01f) strayed++;
+            if (Math.Abs(outside.Vel.Angle) < 0.001f) straight++;
+        }
+        Console.WriteLine("  censer: walking left {0} puffs of incense (client saw {1}); an ally in it healed {2:0.0} in 0.5 s; enemy shots from inside strayed {3}/20, outside straight {4}/20",
+            trail, clientTrail, trailHeal, strayed, straight);
+        Check(trail >= 3 && clientTrail && trailHeal > 0f, "the Censer leaves a trail of incense as you move, healing allies in it");
+        Check(strayed >= 17 && straight == 20, "enemy shots fired from inside the incense stray");
+        from = new V2(300f, 450f); allyAt = new V2(300f, 150f);
+        reset();
+
+        // Spirit Fan: one shot blows enemies away, the next draws them in.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpiritFan);
+        var blown = dummy(from + new V2(110f, 0f), 1e5f);
+        pins.Remove(blown);
+        me.Pos = from;
+        float d0 = blown.Pos.DistanceTo(from);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float d1 = blown.Pos.DistanceTo(from);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float d2 = blown.Pos.DistanceTo(from);
+        Console.WriteLine("  spirit fan: an enemy {0:0} px away, then {1:0}, then {2:0}", d0, d1, d2);
+        Check(Math.Abs(Math.Abs(d1 - d0) - Game.FanShove) < 1f && Math.Abs(d2 - d1 + (d1 - d0)) < 1f, "Spirit Fan shots alternate blowing enemies away and drawing them in");
+        reset();
+
+        // Ofuda: a charm lies at the cursor as a ward; an enemy stepping on it sets it off, hurting it and healing allies near.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Ofuda);
+        me.Pos = from;
+        me.AimAt = from + new V2(300f, 0f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1.2f, new PlayerInput { AimAt = me.AimAt });
+        var ward = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.OfudaWard);
+        float wardAt = ward != null ? ward.Pos.DistanceTo(from) : -1f;
+        allyAt = ward != null ? ward.Pos + new V2(0f, 60f) : allyAt;
+        play(0.2f, new PlayerInput());  // the ally gets there (its own game sends where it is)
+        ally.Hp = ally.MaxHp * 0.3f;
+        float ah = ally.Hp;
+        var walker = dummy(ward != null ? ward.Pos : from, 1e5f);
+        play(0.1f, new PlayerInput());
+        float hurt = walker.MaxHp - walker.Hp, healed = ally.Hp - ah;
+        bool gone = !g.Zones.Values.Any(z => z.Kind == ZoneKind.OfudaWard);
+        walker.Hp = 0f; keep.Remove(walker);
+        for (int k = 0; k < 7; k++) { me.AimAt = from + new V2(200f + 30f * k, -100f); volley.Invoke(g, new object[] { me, 0f, 0 }); }
+        play(1.5f, new PlayerInput());
+        int wards = g.Zones.Values.Count(z => z.Kind == ZoneKind.OfudaWard);
+        Console.WriteLine("  ofuda: a ward lay {0:0} px out; an enemy stepping on it took {1:0.0}, an ally near healed {2:0.0}, ward gone {3}; 7 more thrown, {4} lie (cap {5})",
+            wardAt, hurt, healed, gone, wards, Game.WardCap);
+        Check(Math.Abs(wardAt - 300f) < 30f && hurt > 0f && healed >= Game.WardHeal - 0.5f && gone && wards == Game.WardCap,
+            "Ofuda charms lie at your cursor as wards that burst when an enemy steps on one, healing allies near");
+        allyAt = new V2(300f, 150f);
+        reset();
+
+        // Sprite Staff: a seeded enemy that dies frees a sprite.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpriteStaff);
+        var seedling = dummy(from + new V2(200f, 0f), 15f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.8f, new PlayerInput());
+        int freed = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Sprite && !m.Companion);
+        Console.WriteLine("  sprite staff: the seeded enemy died {0}; freed sprites {1}", seedling.Hp <= 0f || !g.Enemies.ContainsKey(seedling.Id), freed);
+        Check(freed == 1, "killing a seeded enemy frees a sprite");
+        reset();
+
+        // Totem Staff: thrown to the cursor; seed hits near it charge a heal pulse.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TotemStaff);
+        me.TotemCd = 0f;
+        V2 throwTo = from + new V2(250f, 0f);
+        play(0.1f, new PlayerInput { Fire = true, AimAt = throwTo });
+        var totem = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.Totem && z.Owner == 1);
+        float totemAt = totem != null ? totem.Pos.DistanceTo(throwTo) : -1f;
+        allyAt = totem != null ? totem.Pos + new V2(0f, 100f) : allyAt;  // in the pulse, outside its steady heal
+        var near = dummy(throwTo + new V2(60f, 0f), 1e5f);
+        ally.Hp = ally.MaxHp * 0.3f;
+        play(0.5f, new PlayerInput());
+        float before = ally.Hp;
+        for (int k = 0; k < (int)Game.TotemCharge; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.3f, new PlayerInput()); }
+        float pulsed = ally.Hp - before;
+        Console.WriteLine("  totem staff: thrown {0:0} px from the cursor; {1} seed hits near it healed an ally just outside it {2:0.0}", totemAt, (int)Game.TotemCharge, pulsed);
+        Check(totem != null && totemAt < 5f && pulsed >= Game.TotemPulse - 1f, "the Totem Staff throws its totem to your cursor, and seed hits near it charge a heal pulse");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

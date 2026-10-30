@@ -62,13 +62,18 @@ namespace Arena
                 case WeaponId.SpiritFan:
                 {
                     // A gust: five short-lived puffs that heal allies they pass, and small enemy bullets in front blown back.
+                    // Shots alternate: a gust out that blows enemies away, then a draw in that pulls them to you.
                     float reach = 1f + w.Grow * extra;
+                    bool draw = p.SwingCount % 2 == 0;
+                    float len = w.Speed * w.Life * reach * p.Stats.ShotSpeedMult;
                     for (int i = 0; i < 5; i++)
                     {
-                        var b = SpawnBullet(Defs.GustShot, muzzle, V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);
+                        V2 d = V2.FromAngle(aim + (i / 4f - 0.5f) * 0.7f);
+                        var b = SpawnBullet(Defs.GustShot, draw ? p.Pos + d * (p.Def.BodyR + len) : muzzle, (draw ? -d : d) * w.Speed, 0f, w.Life * reach, w.Damage * dmg, p.Id);  // a draw's puffs fly in
                         b.Pierce += 99;
                         b.HealAlly = (3f + extra) * 9f / 6f;
                     }
+                    FanEnemies(p, aim, p.Def.BodyR + len + FanReachSlack, draw ? -FanShove : FanShove);
                     float push = 130f * reach;
                     foreach (var b in Bullets.Values)
                     {
@@ -84,12 +89,14 @@ namespace Arena
                 case WeaponId.Ofuda:
                 {
                     int n = 1 + extra;
+                    // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
+                    float far = Math.Min(WardRange, Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, 3f);
-                        b.Splash = 60f * AreaMult(p);
-                        b.HealBurst = 8f;
+                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                        b.Ward = true;
+                        b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
                     break;
                 }
@@ -474,6 +481,67 @@ namespace Arena
         public const float ReelSlashMult = 2f, ReelSlashGrow = 0.3f, ReelSlashReach = 100f, ReelStun = 0.5f;  // the slash you land with
         public const float VaultDist = 150f, VaultGrow = 30f, VaultSpeed = 900f, VaultCd = 1.2f, VaultMult = 1.5f, VaultWidth = 34f;  // the Bo Staff's vault
         const byte DashVault = 0, DashReel = 1, DashStrike = 2, DashBlink = 3, DashRecall = 4;
+
+        // --- Spirit Fan: push and pull -----------------------------------------------------------
+
+        public const float FanShove = 60f, FanReachSlack = 30f, FanCone = 0.45f;
+
+        /// The Spirit Fan's gust shoves enemies in front of you away (shove > 0) or draws them in (shove < 0, never
+        /// into you). Bosses and heavies don't budge.
+        void FanEnemies(Player p, float aim, float reach, float shove)
+        {
+            foreach (var e in Enemies.Values)
+            {
+                if (e.SpawnT > 0f || e.Hp <= 0f || Heavy(e))
+                    continue;
+                float d = e.Pos.DistanceTo(p.Pos);
+                if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (d > 1f ? (float)Math.Asin(Math.Min(1f, e.Radius / d)) : MathX.Pi))
+                    continue;
+                V2 away = d > 1f ? (e.Pos - p.Pos) / d : V2.FromAngle(aim);
+                float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
+                e.Pos = ClampToArena(p.Pos + away * to, e.Radius);
+            }
+        }
+
+        // --- Ofuda: wards ---------------------------------------------------------------------
+
+        public const float WardRange = 460f, WardTrigger = 26f, WardBurst = 70f, WardHeal = 12f, WardHealReach = 110f, WardLast = 10f;
+        public const int WardCap = 5;
+
+        /// An Ofuda charm landed: it lies there as a ward (your oldest goes if you have WardCap).
+        void PlaceWard(Bullet b)
+        {
+            Player p;
+            if (!Players.TryGetValue(b.Owner, out p))
+                return;
+            Zone oldest = null;
+            int mine = 0;
+            foreach (var z in Zones.Values)
+                if (z.Kind == ZoneKind.OfudaWard && z.Owner == p.Id)
+                {
+                    mine++;
+                    if (oldest == null || z.T < oldest.T)
+                        oldest = z;
+                }
+            if (mine >= WardCap && oldest != null)
+                Zones.Remove(oldest.Id);
+            var w = AddZone(ZoneKind.OfudaWard, p, ClampToArena(b.Pos, 10f), WardTrigger, WardLast);
+            w.DmgMult = b.Dmg / Defs.WeaponOf(WeaponId.Ofuda).Damage;  // the charm's damage, upgrades and all
+        }
+
+        /// A ward an enemy stepped on bursts: damage round it, and healing for allies near it.
+        void BurstWard(Zone z)
+        {
+            float r = WardBurst * (Players.ContainsKey(z.Owner) ? AreaMult(Players[z.Owner]) : 1f);
+            float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                    HurtEnemy(e, dmg, z.Owner);
+            foreach (var q in Players.Values)
+                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
+                    Heal(q, WardHeal, PlayerOrNull(z.Owner));
+            BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, r, 0.35f, Sfx.SpellHoly);
+        }
 
         // --- Shuriken: stars that stick, recalled -------------------------------------------------
 

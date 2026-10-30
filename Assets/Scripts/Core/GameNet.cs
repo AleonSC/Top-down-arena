@@ -608,7 +608,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
+                z.GuardFrac = z.Kind == ZoneKind.Totem ? z.Charge / TotemCharge : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
             int kind = (int)z.Kind;
             s.Int(ref z.Id);
             s.Byte(ref kind);
