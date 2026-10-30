@@ -59,6 +59,7 @@ namespace Arena
         public float AegisT, SurgeT, FrenzyT;  // Arcane Aegis, Arcane Surge, Alpha Call
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
+        public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
         public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
         public float HookT;                           //   for this much longer (replicated)
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
@@ -197,6 +198,8 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
+        public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
+        public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
         public float HealBurst;   // host only: heals allies near where it bursts (the Ninja's Ofuda)
         public float HealOwner;   // host only: heals whoever fired it this much when it hits (Hemo Nova)
@@ -1313,6 +1316,7 @@ namespace Arena
                         HealSoulGhost(p, heal);  // alone: the link heals your ghost (SoulGhost.cs)
                 }
                 p.FireCd -= dt;
+                TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
                 if (p.Downed)

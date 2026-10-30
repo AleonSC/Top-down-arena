@@ -402,6 +402,7 @@ namespace Arena
             s.Float(ref p.IronT);
             s.Int(ref p.HookId);
             s.Float(ref p.HookT);
+            s.Float(ref p.SpinUp);
             s.Float(ref p.PactT);
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);

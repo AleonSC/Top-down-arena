@@ -266,9 +266,11 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f, Desc = "Fast parallel twin stream (5 per barrel), straying up to 2°." },
+            new WeaponDef { Id = WeaponId.TwinRifle, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
+                Desc = "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double." },
             new WeaponDef { Id = WeaponId.Railgun, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f, Desc = "Slow, devastating shots that pierce 3 enemies." },
-            new WeaponDef { Id = WeaponId.BurstSmg, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f, Desc = "Sprays very fast, inaccurate shots." },
+            new WeaponDef { Id = WeaponId.BurstSmg, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
+                Desc = "Sprays very fast shots. Keep firing to spin it up (2 s): the spray tightens and damage climbs to +60%. It winds down fast when you stop." },
             new WeaponDef { Id = WeaponId.Fireball, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s)." },
             new WeaponDef { Id = WeaponId.ArcLightning, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,

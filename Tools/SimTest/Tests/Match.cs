@@ -544,6 +544,10 @@ static partial class Program
             for (int k = 0; k < 15; k++) host.Game.GrantUpgrade(id, U("Hollow Points"));
         }
         Run(s, dt, 120, () => host.Game.Wave >= 6 && host.Game.State == MatchState.Fighting || host.Game.State == MatchState.GameOver);
+        // Make sure someone has been hurt and regenerates, however cleanly the bots played (healing by source is checked below).
+        typeof(Game).GetMethod("Damage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            .Invoke(host.Game, new object[] { host.Game.Players[1], 20f, "test" });
+        Run(s, dt, 3);
         string path = host.Game.Recorder != null ? host.Game.Recorder.Path : null;
         // Saved as it goes: before anyone leaves, the file already holds the run so far (a closed window or crash keeps it).
         string mid = path != null && File.Exists(path) ? File.ReadAllText(path) : "";

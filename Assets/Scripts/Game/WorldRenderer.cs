@@ -157,6 +157,14 @@ namespace Arena
                 DrawBloodAuras(p, t);  // BloodMageLook.cs
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
+            if (p.Weapon.Id == WeaponId.BurstSmg && p.SpinUp > 0.02f)  // the Burst SMG spinning up: a ring filling round you, white-hot when full
+            {
+                float r = p.Def.BodyR + 9f;
+                bool full = p.SpinUp >= 0.99f;
+                var hot = new Rgba(1f, 0.6f, 0.2f).Mix(new Rgba(1f, 0.95f, 0.8f), p.SpinUp);
+                Arc(p.Disp, r, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
+                Arc(p.Disp, r, full ? 3.5f : 2.5f, hot.WithAlpha(full ? 0.7f + 0.3f * Mathf.Sin(t * 30f) : 0.8f), 28, t * 9f, MathX.Tau * p.SpinUp);
+            }
             if (p.Role == Role.Healer)
             {
                 Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
@@ -2281,6 +2289,13 @@ namespace Arena
                 V2 p0 = from + dir * (reach * a), p1 = from + dir * (reach * b);
                 Line(p0, p1, 8f, c.WithAlpha(0.07f * fade));   // soft glow
                 Line(p0, p1, 1.5f, c.WithAlpha(0.32f * fade));  // thin core
+            }
+            if (me.Weapon.Id == WeaponId.TwinRifle)  // an X where the Twin Rifle's streams cross: crossfire there
+            {
+                V2 x = me.Disp + dir * game.TwinCrossDistance(me), s0 = V2.FromAngle(me.Aim + MathX.Pi / 4f) * 7f, s1 = V2.FromAngle(me.Aim - MathX.Pi / 4f) * 7f;
+                Line(x - s0, x + s0, 2f, c.WithAlpha(0.7f));
+                Line(x - s1, x + s1, 2f, c.WithAlpha(0.7f));
+                Arc(x, Game.TwinCrossZone, 1.2f, c.WithAlpha(0.18f), 28);
             }
             // A small cap where the weapon's reach ends (when the crosshair is beyond it).
             if (toCursor >= range)

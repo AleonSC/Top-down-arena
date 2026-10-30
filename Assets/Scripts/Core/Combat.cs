@@ -385,7 +385,7 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 break;
                             }
-                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close (Weapons.cs)
+                            float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
                             BloodShotHit(b, e, hit);  // Blood Mage shots drain, pool and drop orbs (BloodMage.cs)
                             OnBulletHit(b, e);

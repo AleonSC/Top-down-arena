@@ -1023,6 +1023,62 @@ static partial class Program
         host.Leave("");
     }
 
+    static void TwinSmgTest(float dt)
+    {
+        // Twin Rifle: the streams cross at your cursor's distance, and hits there are crossfire (double).
+        // Burst SMG: holding fire spins it up: tighter spray, harder hits; it winds down when you stop.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Soldier);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        V2 from = new V2(200f, 450f);
+        Func<V2, V2, float> Volley = (dummyAt, cursor) =>
+        {
+            g.Enemies.Clear(); g.Bullets.Clear();
+            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, dummyAt, 0f, 0, false });
+            e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f;
+            me.Pos = from; me.AimAt = cursor;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            for (int f = 0; f < 50; f++) { e.Pos = dummyAt; e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = cursor }); }
+            return e.MaxHp - e.Hp;
+        };
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TwinRifle);
+        float crossed = Volley(from + new V2(300f, 0f), from + new V2(300f, 0f));
+        float before = Volley(from + new V2(200f, 0f), from + new V2(600f, 0f));
+        Console.WriteLine("  twin rifle: a volley where the streams cross {0:0.0}; short of the crossing {1:0.0}", crossed, before);
+        Check(before > 0f && Math.Abs(crossed - before * Game.TwinCrossMult) < 0.5f, "the Twin Rifle's streams cross at your cursor's distance, and hits there do double");
+
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BurstSmg);
+        g.Enemies.Clear(); g.Bullets.Clear();
+        me.Pos = from;
+        var seen = new HashSet<int>();
+        var early = new List<Bullet>();
+        var late = new List<Bullet>();
+        for (int f = 0; f < 150; f++)
+        {
+            me.Pos = from;
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = from + new V2(500f, 0f) });
+            foreach (var b in g.Bullets.Values)
+                if (b.Owner == 1 && seen.Add(b.Id)) (f < 12 ? early : f > 130 ? late : null)?.Add(b);
+        }
+        float spun = me.SpinUp;
+        Func<List<Bullet>, float> spread = bs => bs.Count == 0 ? 0f : bs.Max(b => Math.Abs(b.Vel.Angle));
+        Func<List<Bullet>, float> dmgOf = bs => bs.Count == 0 ? 0f : bs.Average(b => b.Dmg);
+        for (int f = 0; f < 45; f++) { me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = from + new V2(500f, 0f) }); }
+        Console.WriteLine("  burst smg: spin-up {0:0.00} after 2.5 s; first shots {1:0.00} dmg, spray {2:0.000} rad; spun-up shots {3:0.00} dmg, spray {4:0.000} rad; 0.75 s after letting go {5:0.00}",
+            spun, dmgOf(early), spread(early), dmgOf(late), spread(late), me.SpinUp);
+        Check(spun > 0.99f && dmgOf(late) > dmgOf(early) * 1.5f && spread(late) <= Game.SmgSprayTight + 0.001f && spread(early) > Game.SmgSprayTight * 1.5f,
+            "holding fire spins the Burst SMG up: its spray tightens and its hits climb to +60%");
+        Check(me.SpinUp == 0f, "letting go spins it back down");
+        host.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

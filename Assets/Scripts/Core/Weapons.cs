@@ -32,6 +32,23 @@ namespace Arena
             firingWeapon = false;
         }
 
+        /// Twin Rifle: the streams cross at your cursor's distance (from TwinCrossMin to their full range); a hit within
+        /// TwinCrossZone of the crossing is crossfire, for TwinCrossMult.
+        public const float TwinBarrelGap = 28f, TwinCrossMin = 120f, TwinCrossZone = 45f, TwinCrossMult = 2f;
+        public float TwinCrossDistance(Player p) => Math.Max(TwinCrossMin, Math.Min(p.Weapon.Speed * p.Weapon.Life * p.Stats.ShotSpeedMult, p.AimAt.DistanceTo(p.Pos)));
+
+        float CrossfireMult(Bullet b, Enemy e) => b.Crossfire && e.Pos.DistanceTo(b.Cross) <= TwinCrossZone + e.Radius ? TwinCrossMult : 1f;
+
+        /// Burst SMG: holding fire spins it up to full over SmgSpinTime (the spray tightening from SmgSpray to SmgSprayTight
+        /// either side, damage rising to +SmgSpinDamage); letting go spins it down over SmgSpinDown.
+        public const float SmgSpinTime = 2f, SmgSpinDown = 0.6f, SmgSpray = 0.16f, SmgSprayTight = 0.04f, SmgSpinDamage = 0.6f;
+
+        void TickSpinUp(Player p, float dt)
+        {
+            bool spinning = p.Weapon.Id == WeaponId.BurstSmg && p.Firing && !p.ParryActive && !p.Downed;
+            p.SpinUp = spinning ? Math.Min(1f, p.SpinUp + dt / SmgSpinTime) : Math.Max(0f, p.SpinUp - dt / SmgSpinDown);
+        }
+
         /// Scattergun: pellets that hit within ScatterClose of you (to the enemy's edge) do double and shove it back.
         public const float ScatterClose = 120f, ScatterPointBlank = 2f, ScatterShove = 16f;
 
@@ -338,11 +355,19 @@ namespace Arena
                 }
                 case WeaponId.TwinRifle:
                 {
-                    // Parallel barrels, 10 px apart: two, plus one per extra projectile. Each volley strays up to 2°.
+                    // Barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses at
+                    // your cursor's distance; hits near the crossing are crossfire, for double. Each volley strays up to 2°.
                     int n = 2 + extra;
-                    V2 v = V2.FromAngle(aim + Rand(-TwinRifleSpread, TwinRifleSpread)), side = v.Orthogonal();
+                    float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
+                    V2 v = V2.FromAngle(a), side = v.Orthogonal();
+                    V2 cross = p.Pos + v * TwinCrossDistance(p);
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle + side * ((i - (n - 1) / 2f) * 10f), v * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    {
+                        V2 from = muzzle + side * ((i - (n - 1) / 2f) * TwinBarrelGap);
+                        var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        b.Cross = cross;
+                        b.Crossfire = true;
+                    }
                     break;
                 }
                 case WeaponId.Railgun:
@@ -355,10 +380,12 @@ namespace Arena
                 }
                 case WeaponId.BurstSmg:
                 {
-                    // +1 bullet per shot per extra projectile (at half damage), sprayed a little wider.
-                    float spray = 0.16f * (1f + 0.35f * extra);
+                    // Spun up (SpinUp), the spray tightens and every bullet hits harder. +1 bullet per shot per extra
+                    // projectile (at half damage), sprayed a little wider.
+                    float spray = (SmgSpray - (SmgSpray - SmgSprayTight) * p.SpinUp) * (1f + 0.35f * extra);
+                    float spun = 1f + SmgSpinDamage * p.SpinUp;
                     for (int i = 0; i <= extra; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
+                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * spun * dmg, p.Id);
                     break;
                 }
                 default:
