@@ -113,6 +113,7 @@ namespace Arena
         {
             new[] { "W", "A", "S", "D" }, new[] { "LMB" }, new[] { "RMB" }, new[] { "Space" }, new[] { "F" }, new[] { "Q", "E", "Shift" },
             new[] { "1", "2", "3" }, new[] { "R" }, new[] { "Tab" }, new[] { "V", "H" }, new[] { "Esc" }, new[] { "M" },
+            new[] { "R", "L", "C" }, new[] { "F1" },
         };
         static readonly string[,] HowToActions =
         {
@@ -120,70 +121,90 @@ namespace Arena
             { "Aim and shoot", "aim with the mouse, hold left click to fire" },
             { "Parry", "hold right click: a shield toward your cursor (no shooting)" },
             { "Role ability", "" },
-            { "Ultimate", "one per role and class" },
-            { "Bonus abilities", "from very rare upgrades" },
+            { "Ultimate", "one per role and class; starts each match half charged" },
+            { "Bonus abilities", "from upgrade cards; move them between keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm (Enter)" },
             { "Reroll upgrades", "" },
             { "Stats & upgrades", "hold: just for you, doesn't pause" },
             { "Aim line, HUD", "V: aim line on / off · H: hide or show the HUD" },
-            { "Pause menu", "" },
+            { "Pause menu", "with the Field guide: every enemy, weapon and upgrade" },
             { "Mute", "" },
+            { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
+            { "Developer tools", "and the Boss Lab" },
         };
         static readonly string[,] HowToTips =
         {
             { "Hitbox", "Your hitbox is just the small white dot in the middle of your character." },
             { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow." },
-            { "Status icons", "Snowflake = frozen, blue arrows = slowed, flame = burning, red crosshair = marked." },
-            { "Downed", "At 0 HP you're downed: stand next to a downed ally to revive them." },
+            { "Status icons", "Snowflake = frozen, arrows = slowed, flame = burning, drop = bleeding, crosshair = marked." },
+            { "Downed", "At 0 HP you're downed: stand by a downed ally for 3 s to revive them. Clearing a wave brings everyone back." },
             { "Upgrades", "Levels give upgrade picks at the end of each wave; bosses give legendary ones." },
             { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked." },
             { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy)." },
+            { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing." },
+            { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest." },
+            { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close." },
+            { "Ability mastery", "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone." },
+            { "Paths", "After each boss the host picks a path. More skulls: harder waves, better prize. The Bazaar has a shop." },
+            { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire." },
+            { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself." },
         };
 
         void DrawHowToPlay()
         {
             float t = Time.unscaledTime;
-            var panel = new Rect(W / 2f - 450f, 26f, 900f, 668f);
+            var panel = new Rect(W / 2f - 600f, 26f, 1200f, 668f);
             Ui.Panel(panel, true);
             Ui.Fancy(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "HOW TO PLAY", 36, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
-            float lx = panel.x + 40f, lw = 396f, rx = panel.x + 484f, rw = panel.width - 484f - 40f, top = panel.y + 92f;
+            float lx = panel.x + 36f, lw = 400f, rx = panel.x + 476f, rw = panel.width - 476f - 36f, top = panel.y + 84f;
 
             // Controls: key caps, then what they do.
             Ui.Heading(lx, top, lw, "Controls");
-            float y = top + 32f;
+            float y = top + 30f, rowH = 34f;
             for (int i = 0; i < HowToKeys.Length; i++)
             {
                 float kx = lx;
                 foreach (var key in HowToKeys[i])
-                    kx += KeyCap(kx, y + 4f, key) + 4f;
+                    kx += KeyCap(kx, y + 3f, key) + 4f;
                 string note = HowToActions[i, 1];
-                Ui.Label(new Rect(lx + 132f, y, lw - 132f, note.Length > 0 ? 18f : 32f), HowToActions[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(lx + 132f, y, lw - 132f, note.Length > 0 ? 17f : 30f), HowToActions[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
                 if (note.Length > 0)
-                    Ui.Label(new Rect(lx + 132f, y + 17f, lw - 132f, 16f), note, 11, Ui.Muted);
-                y += 38f;
+                    Ui.Label(new Rect(lx + 132f, y + 15f, lw - 132f, 15f), note, 11, Ui.Muted);
+                y += rowH;
             }
 
-            // Tips, each with a little drawing.
+            // Tips, in two columns, each with a little drawing.
             Ui.Heading(rx, top, rw, "Tips");
-            Ui.Fill(new Rect(panel.x + 460f, top + 4f, 1f, 12 * 38f + 24f), new Color(1f, 1f, 1f, 0.06f));
-            float ty = top + 34f, tipH = 64f;
+            Ui.Fill(new Rect(panel.x + 456f, top + 4f, 1f, HowToKeys.Length * rowH + 24f), new Color(1f, 1f, 1f, 0.06f));
+            float ty = top + 32f, tipH = 66f, colW = (rw - 12f) / 2f;
+            int rows = (HowToTips.GetLength(0) + 1) / 2;
             for (int i = 0; i < HowToTips.GetLength(0); i++)
             {
-                var row = new Rect(rx, ty + i * tipH, rw, tipH - 8f);
+                var row = TipRect(i, rows, rx, ty, colW, tipH);
                 Ui.Pill(row, new Color(1f, 1f, 1f, 0.03f));
-                Ui.Label(new Rect(row.x + 48f, row.y + 5f, row.width - 56f, 18f), HowToTips[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(row.x + 48f, row.y + 23f, row.width - 56f, 34f), HowToTips[i, 1], 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                Ui.Label(new Rect(row.x + 48f, row.y + 4f, row.width - 54f, 18f), HowToTips[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(row.x + 48f, row.y + 21f, row.width - 54f, 38f), HowToTips[i, 1], 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
             }
             if (BeginUiGl())
             {
                 DrawAxis(new V2(W / 2f, panel.y + 70f), 150f, t);
                 UiModelAt(V2.Zero, 1f);
                 for (int i = 0; i < HowToTips.GetLength(0); i++)
-                    DrawTipGlyph(i, new V2(rx + 24f, ty + i * tipH + (tipH - 8f) / 2f), t);
+                {
+                    var r = TipRect(i, rows, rx, ty, colW, tipH);
+                    DrawTipGlyph(i, new V2(r.x + 24f, r.y + r.height / 2f), t);
+                }
                 EndUiGl();
             }
-            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 64f, 200f, 44f), "Back", Ui.Primary))
+            if (Ui.Button(new Rect(rx + rw / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary))
                 howToOpen = false;
+        }
+
+        /// Where How to play tip i sits: down the first column, then the second.
+        static Rect TipRect(int i, int rows, float x, float y, float colW, float tipH)
+        {
+            int col = i / rows, row = i % rows;
+            return new Rect(x + col * (colW + 12f), y + row * tipH, colW, tipH - 8f);
         }
 
         /// A keyboard key: a raised cap with its label. Returns its width.
@@ -218,10 +239,11 @@ namespace Arena
                     break;
                 }
                 case 2:  // status icons
-                    Circle(c + new V2(-6f, -6f), 4f, new Rgba(0.6f, 0.9f, 1f), 12);
-                    Circle(c + new V2(6f, -6f), 4f, new Rgba(0.35f, 0.55f, 1f), 12);
-                    Circle(c + new V2(-6f, 6f), 4f, new Rgba(1f, 0.55f, 0.2f), 12);
-                    Arc(c + new V2(6f, 6f), 4f, 1.5f, new Rgba(1f, 0.3f, 0.3f), 12);
+                    Circle(c + new V2(-7f, -6f), 4f, new Rgba(0.6f, 0.9f, 1f), 12);
+                    Circle(c + new V2(7f, -6f), 4f, new Rgba(0.35f, 0.55f, 1f), 12);
+                    Circle(c + new V2(-7f, 6f), 4f, new Rgba(1f, 0.55f, 0.2f), 12);
+                    Circle(c + new V2(0f, 0f), 3f, new Rgba(0.85f, 0.1f, 0.2f), 10);
+                    Arc(c + new V2(7f, 6f), 4f, 1.5f, new Rgba(1f, 0.3f, 0.3f), 12);
                     break;
                 case 3:  // downed: a revive cross
                 {
@@ -240,9 +262,63 @@ namespace Arena
                     Circle(c + new V2(7f, 5f), 6f, new Rgba(1f, 0.3f, 0.3f), 16);
                     Circle(c + new V2(7f, 5f), 2.5f, new Rgba(0.15f, 0.03f, 0.03f), 10);
                     break;
-                default:  // co-op: three players in their role colours
+                case 6:  // co-op: three players in their role colours
                     for (int k = 0; k < 3; k++)
                         Circle(c + V2.FromAngle(-MathX.Pi / 2f + k * MathX.Tau / 3f + t * 0.5f) * 8f, 4.5f, Defs.Roles[k].Color, 14);
+                    break;
+                case 7:  // perfect parry: a shield arc and a shot bouncing back off it
+                {
+                    var blue = new Rgba(0.55f, 0.8f, 1f);
+                    float k = MathX.Fmod(t * 0.8f, 1f), x = k < 0.5f ? 12f - k * 2f * 16f : -4f + (k - 0.5f) * 2f * 16f;
+                    Circle(c + new V2(-9f, 0f), 5f, new Rgba(0.36f, 0.6f, 1f), 14);
+                    Arc(c + new V2(-9f, 0f), 11f, 2.5f, blue, 12, -0.9f, 1.8f);
+                    Circle(c + new V2(x, 0f), 3f, k < 0.5f ? new Rgba(1f, 0.3f, 0.45f) : blue, 10);
+                    break;
+                }
+                case 8:  // roles: the tank drawing enemies' eyes, a healer's aura, a DPS spark
+                    Circle(c + new V2(0f, -7f), 5f, Defs.Roles[0].Color, 14);
+                    Arc(c + new V2(0f, -7f), 8f + 1.5f * Mathf.Sin(t * 4f), 1.5f, Defs.Roles[0].Color.WithAlpha(0.6f), 16);
+                    Circle(c + new V2(-8f, 7f), 4f, Defs.Roles[1].Color, 12);
+                    Circle(c + new V2(8f, 7f), 4f, Defs.Roles[2].Color, 12);
+                    break;
+                case 9:  // health orbs: a green orb drifting in, pulsing
+                {
+                    var g = new Rgba(0.4f, 1f, 0.5f);
+                    float s = 5f + Mathf.Sin(t * 5f);
+                    Circle(c, s + 4f, g.WithAlpha(0.25f), 16);
+                    Circle(c, s, g, 16);
+                    Line(c - new V2(2.5f, 0f), c + new V2(2.5f, 0f), 1.5f, Rgba.White);
+                    Line(c - new V2(0f, 2.5f), c + new V2(0f, 2.5f), 1.5f, Rgba.White);
+                    break;
+                }
+                case 10:  // ability mastery: five pips filling up
+                {
+                    int lit = 1 + (int)MathX.Fmod(t * 1.2f, 5f);
+                    for (int k = 0; k < 5; k++)
+                        Circle(c + new V2(-12f + k * 6f, 0f), 2.4f, k < lit ? new Rgba(0.5f, 1f, 0.6f) : new Rgba(1f, 1f, 1f, 0.15f), 8);
+                    break;
+                }
+                case 11:  // paths: a fork in the road
+                {
+                    var col = new Rgba(1f, 0.85f, 0.5f, 0.9f);
+                    Line(c + new V2(0f, 11f), c + new V2(0f, 1f), 2f, col);
+                    Line(c + new V2(0f, 1f), c + new V2(-9f, -9f), 2f, col);
+                    Line(c + new V2(0f, 1f), c + new V2(9f, -9f), 2f, col);
+                    Circle(c + new V2(-9f, -9f), 2.5f, col, 8);
+                    Circle(c + new V2(9f, -9f), 2.5f, new Rgba(1f, 0.4f, 0.35f), 8);
+                    break;
+                }
+                case 12:  // boss bodies: a big body and you bounced off it
+                {
+                    float k = Mathf.Abs(Mathf.Sin(t * 2f));
+                    Polygon(c + new V2(-5f, 0f), 10f, 8, t * 0.4f, new Rgba(1f, 0.25f, 0.5f));
+                    Circle(c + new V2(8f + k * 5f, 0f), 3.5f, new Rgba(0.36f, 0.6f, 1f), 12);
+                    break;
+                }
+                default:  // practice range: a target
+                    Arc(c, 11f, 2f, new Rgba(1f, 0.45f, 0.4f), 20);
+                    Arc(c, 6f, 2f, new Rgba(1f, 0.45f, 0.4f), 16);
+                    Circle(c, 2f, Rgba.White, 8);
                     break;
             }
         }
