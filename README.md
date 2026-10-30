@@ -4,7 +4,7 @@ A co-op top-down bullet hell for **1 to 3 players** over the network, made in **
 
 **Party size scaling:** solo, enemies have 70% health; with two players, 100%; with three, regular enemies
 have 120% health and waves have 25% more of them, and bosses have 150% health.
-Bosses also have 2.5x the health of their base (fights last about 60-120 s), and every enemy bullet hits 15% harder than its listed damage.
+Bosses also have 1.2x to 4x their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult` in Balance.cs), and every enemy bullet hits 15% harder than its listed damage.
 Pick a role, then survive endless waves of enemies with a boss every 5th wave.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you

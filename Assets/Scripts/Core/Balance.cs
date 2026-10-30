@@ -23,7 +23,27 @@ namespace Arena
         public const int MaxWave = 50;
         const int LateBossWave = 20;
         const float LateBossScaling = 0.1f;  // bosses after wave 20 get +10% health per wave on top (x2 at 30, x4 at 50)
-        const float BossHpMult = 2.5f;       // every boss: fights last about 60-120 s (Boss Lab, Good bots, solo to trio)
+        /// Each boss's health on top of the normal scaling, so its fight lasts about 60-120 s (measured in the Boss Lab with
+        /// Good bots, solo to trio). They differ because fixed-length stages and adds stretch some fights more than others.
+        static float BossHpMult(EnemyType t)
+        {
+            switch (t)
+            {
+                case EnemyType.Boss: return 4f;           // the Warden
+                case EnemyType.HiveQueen: return 3.5f;
+                case EnemyType.TwinA:
+                case EnemyType.TwinB:
+                case EnemyType.DualReaper: return 1.2f;   // their stages already stretch the fight
+                case EnemyType.Singularity: return 3f;
+                case EnemyType.Colossus: return 3f;
+                case EnemyType.Duelist: return 2.8f;
+                case EnemyType.Lich: return 3.2f;
+                case EnemyType.StormHerald: return 4f;
+                case EnemyType.Devourer: return 2f;
+                case EnemyType.Eclipse: return 2.7f;
+                default: return 2.5f;
+            }
+        }
         public const float EliteSize = 1.25f;
 
         // --- Level-up picks ------------------------------------------------------------------------------------------

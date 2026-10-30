@@ -195,7 +195,7 @@ namespace Arena
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
             e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * PartyHpScale(d.IsBoss);
             if (d.IsBoss)
-                e.MaxHp *= BossHpMult;
+                e.MaxHp *= BossHpMult(type);
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
             if (d.IsBoss && Wave > LateBossWave)
                 e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);

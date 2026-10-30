@@ -395,10 +395,11 @@ const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
+const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 3, Duelist: 2.8, Lich: 3.2, StormHerald: 4, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
-  if (d.boss) hp *= 2.5;  // BossHpMult (Balance.cs)
+  if (d.boss) hp *= BOSS_HP[d.id] || 2.5;  // BossHpMult (Balance.cs)
   if (d.boss && wave > 20) hp *= 1 + 0.1 * (wave - 20);
   if (elite && !d.boss && !d.summon) hp *= 2.5;
   return hp;
