@@ -614,6 +614,9 @@ namespace Arena
                 case FxKind.ChainThrow:
                     DrawChainThrowFx(fx, f);
                     break;
+                case FxKind.IonTrail:
+                    DrawIonTrailFx(fx);
+                    break;
             }
         }
 
@@ -790,6 +793,31 @@ namespace Arena
         }
 
         /// The Lance: its rectangular hitbox slides out from the Knight, lance tip leading.
+        /// A Railgun's ion trail: the stretch the round has passed through in the last second glows and crackles
+        /// (the same stretch the host hurts enemies in: Minions.cs TickIonTrails).
+        void DrawIonTrailFx(Effect fx)
+        {
+            V2 to = fx.Pos2 - fx.Pos;
+            float len = to.Length, speed = fx.Radius;
+            if (len < 1f || speed <= 0f)
+                return;
+            V2 dir = to / len, side = dir.Orthogonal();
+            float head = Mathf.Min(len, speed * fx.T), tail = Mathf.Max(0f, speed * (fx.T - Game.IonTrailTime));
+            if (tail >= head)
+                return;
+            V2 a = fx.Pos + dir * tail, b = fx.Pos + dir * head;
+            Line(a, b, Game.IonTrailWidth * 2f, fx.Color.WithAlpha(0.14f));
+            Line(a, b, 2f, fx.Color.WithAlpha(0.7f));
+            int n = Math.Max(2, (int)((head - tail) / 30f));
+            for (int i = 0; i < n; i++)  // sparks jittering along it
+            {
+                float along = tail + (head - tail) * ((i + 0.5f) / n);
+                float j = Mathf.Sin(fx.T * 47f + i * 2.3f) * Game.IonTrailWidth;
+                V2 at = fx.Pos + dir * along;
+                Line(at, at + side * j + dir * 6f, 1.2f, Rgba.White.WithAlpha(0.6f));
+            }
+        }
+
         /// A chain of links from `a` to `b`, with the sickle's blade at `b`.
         void DrawChain(V2 a, V2 b, float alpha)
         {
@@ -1306,6 +1334,12 @@ namespace Arena
                 DrawBoneCage(pos, r, t);
             if (e.Hemorrhage > 0)
                 DrawHemorrhage(e, pos, r, t);  // BloodMageLook.cs
+            foreach (var hunter in game.Players.Values)
+                if (hunter.PreyId == e.Id && hunter.Weapon.Id == WeaponId.WolfWhistle)
+                {
+                    DrawPreyMark(pos, r, t);  // the Wolf Whistle's pack is hunting it
+                    break;
+                }
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f)), t);
         }
 
@@ -1651,6 +1685,19 @@ namespace Arena
         static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
         static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
         static readonly Rgba BleedColor = new Rgba(0.8f, 0.05f, 0.12f);
+
+        /// The Wolf Whistle's prey: three claw marks circling it, pointing in.
+        void DrawPreyMark(V2 pos, float r, float t)
+        {
+            var c = new Rgba(0.85f, 0.85f, 0.95f);
+            for (int k = 0; k < 3; k++)
+            {
+                V2 d = V2.FromAngle(t * 1.5f + MathX.Tau * k / 3f), s = d.Orthogonal();
+                V2 at = pos + d * (r + 12f);
+                for (int j = -1; j <= 1; j++)
+                    Line(at + s * (j * 3f) + d * 4f, at + s * (j * 3f) - d * 3f, 1.6f, c.WithAlpha(0.85f));
+            }
+        }
 
         /// A Bone Guard cage round a caged enemy: a ring of bone bars closing in on it.
         void DrawBoneCage(V2 pos, float r, float t)

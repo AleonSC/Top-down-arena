@@ -122,7 +122,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 85) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 86) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.

@@ -355,7 +355,7 @@ namespace Arena
                     continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
-                    if (b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // CoatAlly: BloodMage.cs
+                    if (b.Refract ? RefractThroughAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -532,6 +532,7 @@ namespace Arena
                 nb.SlowAmt = rb.SlowAmt;
             }
 
+            SplitRefracted();  // Prism Beams that went through an ally (Minions.cs)
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
             foreach (var f in frags)
             {
@@ -698,6 +699,7 @@ namespace Arena
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
+            WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (Minions.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts

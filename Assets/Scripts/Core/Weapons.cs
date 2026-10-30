@@ -374,6 +374,7 @@ namespace Arena
                 {
                     var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 3;
+                    IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (Minions.cs)
                     if (extra > 0)
                         SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
                     break;

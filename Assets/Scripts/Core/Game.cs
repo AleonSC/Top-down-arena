@@ -6,7 +6,7 @@ namespace Arena
 {
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something)
+    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow, IonTrail }  // Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something); IonTrail: a Railgun shot's charged path (Pos2 = its far end, Radius = the round's speed)
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : byte
@@ -60,6 +60,8 @@ namespace Arena
         public float WallT, UnbreakT, FuryT, WhirlT;  // Knight: Shield Wall, Unbreakable, Battle Fury, Whirlwind (replicated)
         public float VanishT, IronT;                  // Ninja: Vanish and Iron Body (replicated)
         public float SpinUp;                          // Burst SMG: how spun up it is, 0 to 1 (replicated)
+        public int PreyId;                            // Wolf Whistle: the enemy the pack is hunting (replicated)
+        public float PreyT, PackT;                    // host: until the mark fades; the window for every wolf to bite
         public int HookId;                            // Kusarigama: the enemy its chain is hooked in (replicated)
         public float HookT;                           //   for this much longer (replicated)
         public float AmbushT;                         // host: Vanish's double-damage hit is ready for this long
@@ -198,6 +200,7 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
+        public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -1235,6 +1238,8 @@ namespace Arena
             TickNinjas(dt);   // Ninja.cs
             TickBloodMages(dt);  // BloodMage.cs
             TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies
+            TickIonTrails(dt);  // Minions.cs: the Railgun's charged paths
+            TickPack(dt);     // Minions.cs: the Wolf Whistle's prey
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

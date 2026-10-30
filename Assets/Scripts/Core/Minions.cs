@@ -110,6 +110,7 @@ namespace Arena
                     var b = SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * w.Speed, 0f, w.Life * (1f + w.Grow * extra),
                         w.Damage * (1f + 0.25f * extra) * dmg, p.Id);
                     b.HealAlly = 2f * (1f + 0.5f * extra);
+                    b.Refract = true;  // through an ally it splits in three (RefractThroughAlly)
                     break;
                 }
                 case WeaponId.Fireball:
@@ -204,6 +205,158 @@ namespace Arena
                 BroadcastFx(FxKind.Bolt, cur.Pos, next.Pos, Defs.BulletColor(Defs.BoltShot), 0f, 0.15f, Sfx.None);
                 hit.Add(next.Id);
                 cur = next;
+            }
+        }
+
+        // --- Prism Beam: refraction --------------------------------------------------------------
+
+        public const float RefractFan = 0.28f, RefractLife = 0.3f;  // the split beams fan this far either side; they fly at least this long
+
+        readonly List<Bullet> refracts = new List<Bullet>();
+
+        /// After Collide's pass: each refracted Prism Beam becomes three, fanned out.
+        void SplitRefracted()
+        {
+            foreach (var b in refracts)
+            {
+                Player owner = PlayerOrNull(b.Owner);
+                float a = b.Vel.Angle, speed = b.Vel.Length / (owner != null ? owner.Stats.ShotSpeedMult : 1f);  // SpawnBullet adds Velocity Rounds back
+                for (int k = -1; k <= 1; k++)
+                {
+                    var s = SpawnBullet(b.Kind, b.Pos, V2.FromAngle(a + k * RefractFan) * speed, 0f, b.Life, b.Dmg, b.Owner);
+                    s.Dmg = b.Dmg;  // the same beam, split: no upgrade applies twice
+                    s.LastHit = b.LastHit;
+                }
+                AddFx(FxKind.Spark, b.Pos, new Rgba(0.9f, 0.85f, 1f), 14f, 0.2f);
+            }
+            refracts.Clear();
+        }
+
+        /// A Prism Beam passing through an ally: it heals them (if hurt) and splits into three beams carrying on
+        /// beyond them. The split beams don't split again.
+        bool RefractThroughAlly(Bullet b)
+        {
+            foreach (var q in Players.Values)
+            {
+                float r = q.Def.BodyR + b.Radius;
+                if (q.Id == b.Owner || q.Downed || b.Pos.DistanceSq(q.Pos) >= r * r)
+                    continue;
+                if (q.Hp < q.MaxHp)
+                    Heal(q, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
+                refracts.Add(new Bullet { Kind = b.Kind, Pos = q.Pos + b.Vel.Normalized() * r, Vel = b.Vel, Life = Math.Max(b.Life, RefractLife), Dmg = b.Dmg, Owner = b.Owner, LastHit = b.LastHit });
+                return true;
+            }
+            return false;
+        }
+
+        // --- Railgun: the ion trail --------------------------------------------------------------
+
+        public const float IonTrailTime = 1f, IonTrailDps = 25f, IonTrailWidth = 10f;
+
+        class Trail
+        {
+            public int Owner;
+            public V2 From, Dir;
+            public float Speed, Len, Age, Dps;
+        }
+
+        readonly List<Trail> ionTrails = new List<Trail>();
+
+        /// A Railgun shot charges the line it flies along: for a second after the round passes, anything touching
+        /// that stretch takes IonTrailDps.
+        void IonTrail(Player p, V2 from, V2 dir, float speed, float life, float dmg)
+        {
+            float len = speed * life;
+            ionTrails.Add(new Trail { Owner = p.Id, From = from, Dir = dir, Speed = speed, Len = len, Dps = IonTrailDps * dmg });
+            BroadcastFx(FxKind.IonTrail, from, from + dir * len, Defs.BulletColor(Defs.RailShot), speed, IonTrailTime + life, Sfx.None);
+        }
+
+        void TickIonTrails(float dt)
+        {
+            for (int i = ionTrails.Count - 1; i >= 0; i--)
+            {
+                var tr = ionTrails[i];
+                tr.Age += dt;
+                float head = Math.Min(tr.Len, tr.Speed * tr.Age), tail = Math.Max(0f, tr.Speed * (tr.Age - IonTrailTime));  // charged behind the round, for IonTrailTime
+                if (tail >= tr.Len)
+                {
+                    ionTrails.RemoveAt(i);
+                    continue;
+                }
+                foreach (var e in Enemies.Values)
+                {
+                    if (e.SpawnT > 0f || e.Hp <= 0f)
+                        continue;
+                    V2 rel = e.Pos - tr.From;
+                    float along = Dot(rel, tr.Dir), across = Math.Abs(Dot(rel, tr.Dir.Orthogonal()));
+                    if (along >= tail - e.Radius && along <= head + e.Radius && across <= IonTrailWidth + e.Radius)
+                        HurtEnemy(e, tr.Dps * dt, tr.Owner);
+                }
+            }
+        }
+
+        // --- Wolf Whistle: the pack hunt ----------------------------------------------------------
+
+        public const float PreyTime = 4f, PackWindow = 1f, PackTakedown = 20f, PackStun = 0.6f;  // marked for this long; every wolf biting within this; the takedown's damage per wolf
+
+        readonly Dictionary<int, HashSet<int>> packBiters = new Dictionary<int, HashSet<int>>();
+
+        /// A Wolf Whistle dart marks what it hit as the pack's prey.
+        void WolfDartHit(Bullet b, Enemy e)
+        {
+            Player p;
+            if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.WolfWhistle)
+                return;
+            if (p.PreyId != e.Id)
+                p.PackT = 0f;
+            p.PreyId = e.Id;
+            p.PreyT = PreyTime;
+        }
+
+        Enemy Prey(Player p)
+        {
+            Enemy e;
+            return p.PreyT > 0f && Enemies.TryGetValue(p.PreyId, out e) && e.Hp > 0f && e.SpawnT <= 0f ? e : null;
+        }
+
+        /// A wolf bit something: if it's the prey and every wolf has now bitten it within PackWindow, a takedown.
+        void PackBite(Player owner, Minion wolf, Enemy e)
+        {
+            if (e.Id != owner.PreyId || owner.PreyT <= 0f)
+                return;
+            HashSet<int> bit;
+            if (!packBiters.TryGetValue(owner.Id, out bit))
+                packBiters[owner.Id] = bit = new HashSet<int>();
+            if (owner.PackT <= 0f)
+            {
+                bit.Clear();
+                owner.PackT = PackWindow;
+            }
+            bit.Add(wolf.Id);
+            int wolves = 0;
+            foreach (var m in Minions.Values)
+                if (m.Owner == owner.Id && m.Kind == MinionKind.Wolf)
+                    wolves++;
+            if (bit.Count < Math.Max(2, wolves))
+                return;
+            HurtEnemy(e, PackTakedown * wolves * owner.Stats.DmgMult, owner.Id);
+            if (!e.Def.IsBoss)
+                e.FrozenT = Math.Max(e.FrozenT, PackStun);
+            BroadcastFx(FxKind.Claw, e.Pos - new V2(30f, 0f), e.Pos + new V2(30f, 0f), new Rgba(0.85f, 0.85f, 0.95f), 0.9f, 0.3f, Sfx.SwingHeavy);
+            bit.Clear();
+            owner.PackT = 0f;
+        }
+
+        void TickPack(float dt)
+        {
+            foreach (var p in Players.Values)
+            {
+                p.PackT = Math.Max(0f, p.PackT - dt);
+                if (p.PreyT > 0f && ((p.PreyT -= dt) <= 0f || Prey(p) == null))
+                {
+                    p.PreyT = 0f;
+                    p.PreyId = 0;
+                }
             }
         }
 
@@ -902,7 +1055,7 @@ namespace Arena
                         break;
                     case MinionMove.Chase:
                     {
-                        target = NearestEnemy(m.Pos, MinionChaseRange);
+                        target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
                         float stop = target != null ? target.Radius + d.Radius : 10f;
@@ -975,6 +1128,8 @@ namespace Arena
                             m.Cd = d.Interval;
                             m.Aim = (e.Pos - m.Pos).Angle;
                             HurtEnemy(e, dmg, m.Owner);
+                            if (m.Kind == MinionKind.Wolf)
+                                PackBite(owner, m, e);
                             // Bear Totem's extra projectiles: the bear's bites also hit enemies around its target.
                             int extraBear = m.Kind == MinionKind.Bear && owner.Weapon.Id == WeaponId.BearTotem ? ExtraShots(owner) : 0;
                             if (extraBear > 0)

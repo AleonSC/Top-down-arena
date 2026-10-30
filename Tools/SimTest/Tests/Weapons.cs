@@ -1079,6 +1079,108 @@ static partial class Program
         host.Leave("");
     }
 
+    static void PrismWolfRailTest(float dt)
+    {
+        // Prism Beam: through an ally it heals them and splits in three. Wolf Whistle: darts mark the prey, the wolves
+        // hunt it, and every wolf biting within a second is a takedown. Railgun: its path stays charged for a second.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2 };
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Mage);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        Run(s, dt, 6, () => g.State == MatchState.Fighting);
+        var me = g.Players[1];
+        var ally = g.Players[2];
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        g.Bot = client.Game.Bot = false;
+        V2 from = new V2(300f, 450f), allyAt = new V2(420f, 450f);
+        var keep = new List<Enemy>();
+        var pins = new Dictionary<Enemy, V2>();
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; keep.Add(e); pins[e] = at; return e; };
+        Action<float> play = secs =>
+        {
+            for (int f = 0; f < secs * 60; f++)
+            {
+                foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f;
+                foreach (var e in keep) { if (pins.ContainsKey(e)) e.Pos = pins[e]; e.FireT = 99f; }
+                me.Pos = from; ally.Pos = client.Game.Me.Pos = allyAt;
+                host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
+                client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
+            }
+        };
+        Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); };
+        play(0.3f);
+
+        // Prism Beam.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.PrismBeam);
+        var aside = dummy(allyAt + V2.FromAngle(Game.RefractFan) * 120f);  // where a split beam goes
+        ally.Hp = ally.MaxHp * 0.5f;
+        float a0 = ally.Hp;
+        g.Bullets.Clear();
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        int split = 0;
+        for (int f = 0; f < 20; f++) { play(1f / 60f); split = Math.Max(split, g.Bullets.Values.Count(b => b.Owner == 1)); }
+        float healed = ally.Hp - a0, asideHit = aside.MaxHp - aside.Hp;
+        ally.Pos = client.Game.Me.Pos = new V2(300f, 800f);
+        allyAt = new V2(300f, 800f);
+        float asideBefore = aside.Hp;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.5f);
+        Console.WriteLine("  prism beam: through the ally it healed {0:0.0} and split into {1} beams; the one off to the side took {2:0.0}; without the ally {3:0.0}",
+            healed, split, asideHit, asideBefore - aside.Hp);
+        Check(healed > 0f && split == 3 && asideHit > 0f && aside.Hp == asideBefore, "a Prism Beam through an ally heals them and splits into three beams beyond them");
+        reset();
+        allyAt = new V2(420f, 200f);
+
+        // Wolf Whistle.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.WolfWhistle);
+        play(1f);  // the wolves come
+        var near = dummy(from + new V2(-80f, 60f));
+        var prey = dummy(from + new V2(260f, 0f));
+        pins.Remove(prey);  // the prey stays where it is (frozen only by the takedown)
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        bool marked = false, clientSaw = false;
+        float stun = 0f, preyBefore = prey.Hp, nearAtMark = -1f;
+        for (int f = 0; f < 240 && stun <= 0f; f++)
+        {
+            play(1f / 60f);
+            prey.Pos = from + new V2(260f, 0f);
+            marked |= me.PreyId == prey.Id;
+            if (marked && nearAtMark < 0f) nearAtMark = near.Hp;
+            clientSaw |= client.Game.Players[1].PreyId == prey.Id;
+            if (f % 20 == 0) volley.Invoke(g, new object[] { me, 0f, 0 });
+            stun = Math.Max(stun, prey.FrozenT);
+        }
+        int wolves = g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Wolf);
+        Console.WriteLine("  wolf whistle: prey marked {0} (client saw {1}); {2} wolves; takedown stun {3:0.00} s; prey took {4:0.0}, the near one {5:0.0} after the mark",
+            marked, clientSaw, wolves, stun, preyBefore - prey.Hp, nearAtMark - near.Hp);
+        Check(marked && clientSaw && wolves >= 2, "Wolf Whistle darts mark the prey, and everyone sees the mark");
+        Check(stun > 0.5f && near.Hp == nearAtMark, "once it's marked, the wolves hunt the prey (not the nearer enemy) and a pack takedown stuns it");
+        reset();
+
+        // Railgun.
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Railgun);
+        g.Minions.Clear();
+        var onLine = dummy(from + new V2(300f, 0f));
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.3f);
+        var late = dummy(from + new V2(250f, 0f));  // steps into the path just after the round passed
+        play(0.5f);
+        float lateHit = late.MaxHp - late.Hp;
+        play(1f);
+        var after = dummy(from + new V2(200f, 0f));  // long after
+        play(0.5f);
+        Console.WriteLine("  railgun: on the line {0:0.0}; stepped into the path just after {1:0.0}; long after {2:0.0}", onLine.MaxHp - onLine.Hp, lateHit, after.MaxHp - after.Hp);
+        Check(lateHit > 5f && after.Hp == after.MaxHp && onLine.MaxHp - onLine.Hp > me.Weapon.Damage, "a Railgun shot leaves its path charged for a second, hurting what steps into it");
+        host.Leave(""); client.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)
