@@ -290,7 +290,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
-                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If your ally goes down, it revives them instantly.",
+                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix fights for 10 s. If anyone goes down (you too), it revives them instantly.",
                 Capstone = "Revives at full health, and the phoenix keeps fighting.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
@@ -841,7 +841,7 @@ namespace Arena
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)
-                        Heal(q, d.HealRate * z.HealMult * dt, PlayerOrNull(z.Owner));
+                        Heal(q, d.HealRate * z.HealMult * (d.ReviveBoost > 0f && Players.Count == 1 ? SoloZoneHeal : 1f) * dt, PlayerOrNull(z.Owner));  // alone, nobody to revive: heals faster
                 }
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)

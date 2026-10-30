@@ -104,7 +104,7 @@ namespace Arena
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
                 Hp = 120f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,
-                Desc = "Your aura slowly heals an ally standing near you.",
+                Desc = "Your aura slowly heals an ally standing near you, and you a little.",
             },
             new RoleDef
             {

@@ -98,6 +98,7 @@ namespace Arena
         public Dictionary<AbilityId, float> MasteryXp = new Dictionary<AbilityId, float>();  // ability mastery (Mastery.cs)
         public float BarrierFrac;                     // replicated BarrierHp / BarrierMax, for drawing
         public float ShieldHp, ShieldT;        // Arcane Ward
+        public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
         public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
@@ -1280,6 +1281,7 @@ namespace Arena
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
+                p.WardT = Math.Max(0f, p.WardT - dt);
                 if (p.ShieldT <= 0f)
                     p.ShieldHp = 0f;
                 p.LifestealPool = Math.Min(10f, p.LifestealPool + 10f * dt);
@@ -1331,14 +1333,12 @@ namespace Arena
                 }
                 if (p.Role == Role.Healer)
                 {
+                    // The aura heals you too: 1 HP/s, +1 per Sanctuary (its heal multiplier is 1 + stacks).
                     if (!Has(RunMod.Bloodlust))
-                    {
-                        Recorder?.HealReceived(p, Math.Min(3f * dt, p.MaxHp - p.Hp), "regeneration");
-                        p.Hp = Math.Min(p.MaxHp, p.Hp + 3f * dt);
-                    }
+                        Heal(p, AuraSelfHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.DistanceTo(p.Pos) < p.AuraRange)
-                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p);
+                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                 }
             }
 
