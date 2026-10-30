@@ -72,6 +72,8 @@ namespace Arena
                     DrawBowDraw(p, p.Id == game.MyId, t);
                 else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
                     DrawHammerCharge(p, p.Id == game.MyId, t);
+                else if (p.Weapon.Id == WeaponId.GolemStaff && p.DrawT > 0f && !p.Downed)
+                    DrawBoulderCharge(p, p.Id == game.MyId, t);
 
             if (aimDebug && game.Me != null)
             {
@@ -343,6 +345,23 @@ namespace Arena
             p.Disp = real;
         }
 
+        /// The Golem Staff's boulder in flight: its shadow on the ground where it is, and the rock itself lifted
+        /// above it along its arc (higher on longer throws), tumbling as it goes.
+        void DrawBoulder(Bullet b, Rgba c, float t)
+        {
+            float flight = Mathf.Max(0.01f, b.Life0), k = 1f - MathX.Clamp01(b.Life / flight);
+            float lift = Mathf.Sin(k * MathX.Pi) * (40f + 90f * (flight - 0.4f) / 0.3f);
+            V2 at = b.Pos + new V2(0f, -lift);  // the arena's y points down the screen
+            float r = b.Radius;
+            Circle(b.Pos, r * (0.9f - 0.3f * lift / 130f), new Rgba(0f, 0f, 0f, 0.35f), 16);  // its shadow, smaller the higher it is
+            float spin = t * 6f + b.Id;
+            Polygon(at, r, 7, spin, c);
+            Polygon(at, r * 0.72f, 7, spin + 0.3f, c.Mix(new Rgba(0.85f, 0.78f, 0.68f), 0.35f));
+            V2 crack = V2.FromAngle(spin + 1f);
+            Line(at - crack * r * 0.6f, at + crack * r * 0.2f, 1.5f, new Rgba(0.3f, 0.25f, 0.2f, 0.8f));
+            Circle(at + V2.FromAngle(spin + 2.4f) * r * 0.35f, r * 0.18f, new Rgba(0.4f, 0.34f, 0.28f), 6);
+        }
+
         /// The Storm Hammer: a war hammer tumbling end over end, its head crackling with sparks.
         void DrawStormHammer(Bullet b, Rgba c, float t)
         {
@@ -389,6 +408,11 @@ namespace Arena
             if (b.Kind == Defs.HammerShot)
             {
                 DrawStormHammer(b, c, t);
+                return;
+            }
+            if (b.Kind == Defs.BoulderShot)
+            {
+                DrawBoulder(b, c, t);
                 return;
             }
             if (b.Kind == Defs.FlameShot)
@@ -2010,6 +2034,32 @@ namespace Arena
             Line(a, d, 2f, col);
             Line(b, cc, 2f, col);
             Line(d, cc, 2f, col);
+        }
+
+        /// The Golem Staff's charge: a ring filling round you (gold when full) and, for your own, where the boulder
+        /// will land and how much it will crush, with a dotted arc out to it.
+        void DrawBoulderCharge(Player p, bool mine, float t)
+        {
+            float c = game.BowCharge(p, p.DrawT);
+            bool full = c >= 1f;
+            var gold = new Rgba(1f, 0.82f, 0.3f);
+            var stone = new Rgba(0.85f, 0.78f, 0.65f);
+            float r = p.Def.BodyR + 11f;
+            Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
+            Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : stone).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            if (!mine)
+                return;
+            V2 land = p.Disp + V2.FromAngle(p.Aim) * (Game.BoulderDistance(c) * p.Stats.ShotSpeedMult);
+            float splash = Game.BoulderSplash * Game.AreaMult(p);
+            var col = (full ? gold : stone);
+            for (int k = 1; k < 10; k++)  // the throw's arc, as dots
+            {
+                float f = k / 10f;
+                V2 dot = V2.Lerp(p.Disp, land, f) + new V2(0f, -Mathf.Sin(f * MathX.Pi) * 30f);
+                Circle(dot, 2f, col.WithAlpha(0.5f), 6);
+            }
+            Circle(land, splash, col.WithAlpha(0.06f + 0.08f * c), 32);
+            Arc(land, splash, 2f, col.WithAlpha(0.45f + 0.35f * c), 40);
         }
 
         /// Revolver: the cylinder as pips in an arc under you (gold = heavy rounds), and a ring while reloading.

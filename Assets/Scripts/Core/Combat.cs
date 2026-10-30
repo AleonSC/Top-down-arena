@@ -208,7 +208,7 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot)
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
                     PullIntoWells(b, dt);
                 b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 b.Life -= dt;
@@ -226,6 +226,11 @@ namespace Arena
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
+                if (b.Kind == Defs.BoulderShot)
+                {
+                    LandBoulder(b);  // Minions.cs
+                    continue;
+                }
                 if (b.Bomblet)
                 {
                     foreach (var e in Enemies.Values)
@@ -258,7 +263,7 @@ namespace Arena
         /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
         /// the same damage cost.
         public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Fireball || w == WeaponId.Ofuda
-            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance;
+            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff;
         public const float HomingAreaPerStack = 0.25f;
         public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
@@ -340,8 +345,8 @@ namespace Arena
             ResolveImplosions();  // and Implosions
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot)
-                    continue;  // grenades fly over enemies and explode where they land
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot)
+                    continue;  // grenades and boulders fly over enemies and land where you aimed
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
                     if (b.HealAlly > 0f && HealAllyHit(b))

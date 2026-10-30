@@ -87,8 +87,8 @@ namespace Arena
 
         public float BowFull(Player p) => BowFullDraw / FireRate(p);
 
-        /// Weapons you hold to charge and let go to fire: the Mender's Bow and the Warhammer.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer;
+        /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Warhammer and the Golem Staff's boulder.
+        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Warhammer || w == WeaponId.GolemStaff;
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -332,6 +332,8 @@ namespace Arena
             {
                 case WeaponId.MendersBow:  // as far as the current draw sends it
                     return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
+                    return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.ChainShuriken:  // as far as it goes before it turns back
                     return p.Def.BodyR + w.Speed * ChainStarOut * p.Stats.ShotSpeedMult;
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)

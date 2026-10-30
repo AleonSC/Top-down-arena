@@ -601,6 +601,55 @@ static partial class Program
         host.Leave("");
     }
 
+    static void GolemStaffTest(float dt)
+    {
+        // The Golem Staff: hold to charge, let go to lob a boulder over enemies; the charge sets how far (and how hard)
+        // it lands, and it crushes everything under it. The Golem still fights beside you.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var volley = typeof(Game).GetMethod("FireVolley", flags);
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        int port = nextPort++;
+        var host = new Session { AutoStart = 1 };
+        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Summoner);
+        var g = host.Game;
+        host.StartMatch();
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        Check(me.Weapon.Id == WeaponId.GolemStaff && Game.ChargeWeapon(WeaponId.GolemStaff) && g.Minions.Values.Any(m => m.Owner == 1 && m.Companion),
+            "the Summoner Tank's Golem Staff charges like a bow, and its Golem is still there");
+        V2 from = new V2(200f, 450f);
+        Func<V2[], float, float[]> Throw = (spots, draw) =>
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); g.Minions.Clear();
+            var dummies = spots.Select(at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; return e; }).ToArray();
+            me.Pos = from;
+            me.BowShotDraw = draw;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            for (int f = 0; f < 60; f++)
+            {
+                for (int k = 0; k < dummies.Length; k++) { dummies[k].Pos = spots[k]; dummies[k].FrozenT = 1f; }
+                me.Pos = from;
+                g.Minions.Clear();  // only the boulder's damage counts here
+                host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(900f, 450f) });
+            }
+            return dummies.Select(e => e.MaxHp - e.Hp).ToArray();
+        };
+        float far = Game.BoulderDistance(1f), near = Game.BoulderDistance(0f);
+        // Full charge: lands at its farthest. Under the throw and well beside the landing are untouched.
+        var full = Throw(new[] { from + new V2(far, 0f), from + new V2(far, 60f), from + new V2(far * 0.5f, 0f), from + new V2(far, 120f) }, g.BowFull(me));
+        Console.WriteLine("  golem staff, full: landing {0:0.0}, 60 px off {1:0.0}, under the throw {2:0.0}, 120 px off {3:0.0}", full[0], full[1], full[2], full[3]);
+        Check(full[0] > 0f && full[1] == full[0] && full[2] == 0f && full[3] == 0f,
+            "a fully charged boulder flies over enemies and crushes everything where it lands, at its farthest");
+        // A tap: lands close, for half damage, and doesn't reach the far spot.
+        var tap = Throw(new[] { from + new V2(near, 0f), from + new V2(far, 0f) }, Game.BowMinDraw);
+        Console.WriteLine("  golem staff, tap: near {0:0.0}, far {1:0.0}", tap[0], tap[1]);
+        Check(Math.Abs(tap[0] - full[0] * Game.BoulderTap) < 0.5f && tap[1] == 0f, "a tap lobs it close, for half the damage");
+        me.Pos = from;
+        Check(Math.Abs(g.WeaponRange(me) - near * me.Stats.ShotSpeedMult) < 0.5f, "the aim line shows where an uncharged boulder lands");
+        host.Leave("");
+    }
+
     // The Flamethrower: a short stream whose flames hit the first enemy hardest, pass on through the rest for a third, and
     // set them burning, which goes on after you stop.
     static void FlamethrowerTest(float dt)

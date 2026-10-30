@@ -202,7 +202,7 @@ namespace Arena
                 Desc = "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow." },
             new WeaponDef { Id = WeaponId.StormHammer, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
                 Desc = "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage." },
-            new WeaponDef { Id = WeaponId.GolemStaff, Speed = 480f, Life = 0.6f, Damage = 8f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hurls rocks. A stone Golem fights beside you and blocks bullets.",
+            new WeaponDef { Id = WeaponId.GolemStaff, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.",
                 Companion = MinionKind.Golem, CompanionCount = 1 },
             new WeaponDef { Id = WeaponId.BoneGuard, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f, Desc = "Bone darts. Two skeleton guards circle you and block bullets.",
                 Companion = MinionKind.Guard, CompanionCount = 2 },
@@ -339,7 +339,8 @@ namespace Arena
             BloodShot = 39, ClotShot = 40, LeechShot = 41, TransfuseShot = 42, SanguineShot = 43, VeinShot = 44, ImplodeShot = 45, BoneSpearShot = 46,
             StunBolt = 47,   // the Stun Gun's bolt (Stun.cs)
             FlameShot = 48,  // a Flamethrower flame
-            HammerShot = 49; // the Storm Hammer, spinning as it flies
+            HammerShot = 49, // the Storm Hammer, spinning as it flies
+            BoulderShot = 50; // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
 
@@ -393,6 +394,7 @@ namespace Arena
                 case StunBolt: return 5f;
                 case FlameShot: return 7f;
                 case HammerShot: return 11f;
+                case BoulderShot: return 16f;
                 case HoneyShot: return 9f;
                 default: return 6f;
             }
@@ -461,6 +463,7 @@ namespace Arena
                 case StunBolt: return new Rgba(0.43f, 0.88f, 1f);
                 case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
                 case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
+                case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }

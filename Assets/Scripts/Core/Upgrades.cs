@@ -402,6 +402,7 @@ namespace Arena
             { WeaponId.VeinTether, "the beam 25% wider" },
             { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
             { WeaponId.FrostLance, "the icicle's splinters fly 25% further out" },
+            { WeaponId.GolemStaff, "the boulder crushes 25% wider" },
         };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.

@@ -135,9 +135,15 @@ namespace Arena
                 }
                 // Summoner (extra projectiles mostly add companions: see CompanionCount)
                 case WeaponId.GolemStaff:
-                    for (int i = -1; i <= 1; i++)
-                        SpawnBullet(Defs.RockShot, muzzle, V2.FromAngle(aim + i * 0.12f) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                {
+                    // Hold and let go: a boulder lobbed over enemies, landing farther (and harder) the longer you held.
+                    float c = BowCharge(p, p.BowShotDraw), flight = BoulderFlight(c);
+                    V2 vel = V2.FromAngle(aim) * (BoulderDistance(c) / flight);  // SpawnBullet adds Velocity Rounds, which throw it farther
+                    var b = SpawnBullet(Defs.BoulderShot, p.Pos, vel, 0f, flight, w.Damage * (BoulderTap + (1f - BoulderTap) * c) * dmg, p.Id);
+                    b.Splash = BoulderSplash * AreaMult(p);
+                    b.Burst = 1;  // marks it as landing (MoveBullets)
                     break;
+                }
                 case WeaponId.BoneGuard:
                 case WeaponId.WolfWhistle:
                 case WeaponId.ImpCaller:
@@ -195,6 +201,25 @@ namespace Arena
                 hit.Add(next.Id);
                 cur = next;
             }
+        }
+
+        /// The Golem Staff's boulder: how far it lands (from your centre, before Velocity Rounds) and how long it
+        /// flies for a charge `c` (0 = a tap, 1 = held to full).
+        public const float BoulderMin = 140f, BoulderMax = 460f, BoulderSplash = 75f, BoulderTap = 0.5f;
+        public static float BoulderDistance(float c) => BoulderMin + (BoulderMax - BoulderMin) * c;
+        public static float BoulderFlight(float c) => 0.4f + 0.3f * c;
+
+        /// A boulder landed: it crushes every enemy under it (weapon mods apply to each, as on a melee hit).
+        void LandBoulder(Bullet b)
+        {
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
+                {
+                    HurtEnemy(e, b.Dmg, b.Owner);
+                    OnBulletHit(b, e);
+                }
+            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.BoulderShot), b.Splash, 0.35f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, b.Pos, new Rgba(0.85f, 0.78f, 0.65f), b.Splash * 1.2f, 0.3f, Sfx.None);
         }
 
         /// An enemy the Storm Hammer electrified: it arcs lightning to the enemies round it a few times.
