@@ -391,6 +391,10 @@ picked sensibly from the same offers). A party far above typical meets a boss wi
 to the 0.75 power, up to x3. Typical and weaker builds meet the usual boss, and a strong build still kills faster.
 Off in the Practice Range and the Boss Lab. (`run.sh 1 1 bosspower` prints the numbers.)
 
+**Health at each stage change.** When a boss changes stage (every boss's stage shifts and last stand, and the
+Twin Reapers fusing and splitting) it knocks a few **small health orbs** loose in a ring just outside it: two
+plus one per player (15 health each).
+
 **Mitigation, not immunity.** Barriers, Flame Walls, the Guardian Spirit, Golems, Treants, Stone Walls and
 Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
 inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold

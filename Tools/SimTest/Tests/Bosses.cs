@@ -59,6 +59,8 @@ static partial class Program
         // The fusion at 65%: they can't be hurt, then one Dual Reaper with their health; the power-up blasts.
         a.Hp = a.MaxHp * 0.6f; b.Hp = b.MaxHp * 0.6f;
         float maxSum = a.MaxHp + b.MaxHp, hpSum = a.Hp + b.Hp;
+        var orbIds = typeof(Game).GetField("nextOrbId", flags);
+        int orbs0 = (int)orbIds.GetValue(g);
         Run(s, dt, 0.2f, null, Park);
         float ha = a.Hp; hurt.Invoke(g, new object[] { a, 300f, 1 });
         bool immune = g.Reapers.Trans == 1 && a.Hp == ha;
@@ -68,6 +70,9 @@ static partial class Program
         float blastDmg = friend.Run.DamageTaken - tf;
         Console.WriteLine("  reapers fusion: immune {0}, dual {1}, health {2:0}/{3:0} (twins had {4:0}/{5:0}), power-up hit the friend for {6:0}", immune, d != null, d?.Hp, d?.MaxHp, hpSum, maxSum, blastDmg);
         Check(immune && d != null && Find(s[0], EnemyType.TwinA) == null && Math.Abs(d.MaxHp - maxSum) < 1f && Math.Abs(d.Hp - hpSum) < 20f, "at 65% they fuse into the Dual Reaper (can't be hurt meanwhile), keeping their health");
+        int fuseOrbs = (int)orbIds.GetValue(g) - orbs0;
+        Console.WriteLine("  reapers fusion: {0} small health orbs dropped ({1} players)", fuseOrbs, g.Players.Count);
+        Check(fuseOrbs == Game.StageOrbBase + g.Players.Count, "the fusion (a stage change) drops a few small health orbs: two plus one per player");
         Check(blastDmg >= 39.5f, "the power-up blasts hurt whoever stays in a marked circle");
         Run(s, dt, 1f, null, Park);
         int pillars = g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar);
@@ -326,6 +331,19 @@ static partial class Program
         Check(clientStunned, "the stun reaches the stunned player's own game");
         Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
         Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
+
+        // Every boss's stage change (StageStartBurst) knocks a few small health orbs loose round it.
+        {
+            var burst = typeof(Game).GetMethod("StageStartBurst", flags);
+            var hadOrbs = new HashSet<int>(g.Orbs.Keys);
+            burst.Invoke(g, new object[] { w, Rgba.White });
+            var dropped = g.Orbs.Values.Where(o => !hadOrbs.Contains(o.Id)).ToList();
+            float near = dropped.Count > 0 ? dropped.Min(o => o.Pos.DistanceTo(w.Pos)) : 0f, far = dropped.Count > 0 ? dropped.Max(o => o.Pos.DistanceTo(w.Pos)) : 0f;
+            Console.WriteLine("  stage change: {0} small health orbs, {1:0}-{2:0} px from the boss (radius {3:0})", dropped.Count, near, far, w.Radius);
+            Check(dropped.Count == Game.StageOrbBase + g.Players.Count && dropped.All(o => !o.Big && !o.Tiny) && near >= w.Radius + 60f,
+                "a boss changing stage drops small health orbs (two plus one per player) in a ring just outside it");
+            foreach (var o in dropped) g.Orbs.Remove(o.Id);
+        }
 
         // Lockdown at 65%: 2 s where it can't be hurt, the screen cleared.
         w.Hp = w.MaxHp * 0.64f;
