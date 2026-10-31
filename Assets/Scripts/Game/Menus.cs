@@ -33,14 +33,14 @@ namespace Arena
             if (session.Connecting)
             {
                 Ui.Label(new Rect(x, y, w, 44f), session.Status, 15, Ui.Muted, TextAnchor.MiddleCenter);
-                if (Ui.Button(new Rect(x + w / 2f - 90f, y + 52f, 180f, 44f), "Cancel", Ui.Danger))
+                if (Ui.FancyButton(new Rect(x + w / 2f - 90f, y + 52f, 180f, 44f), "Cancel", Ui.Danger, PixelArt.Get("ui_back"), t))
                     session.Leave("");
             }
             else
             {
-                if (Ui.Button(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary))
+                if (Ui.FancyButton(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary, PixelArt.Get("ui_play"), t))
                     HostGame();
-                if (Ui.Button(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral))
+                if (Ui.FancyButton(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t))
                     session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
                 if (session.Status.Length > 0)
                     Ui.Label(new Rect(x - 10f, y + 58f, w + 20f, 50f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);

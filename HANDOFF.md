@@ -222,7 +222,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 **From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
 
 **Fancy menu buttons + Field guide button (Oct 2026), no protocol change:** `Ui.FancyButton(r, text, tint, icon, t)`
-(icon chip, `Ui.Fancy` lettering, a lighter face and a shine on hover; no outline: the owner doesn't want outlines around buttons) on the main menu's lower buttons, every Back, the saved
+(icon chip, `Ui.Fancy` lettering, a lighter face and a shine on hover; no outline: the owner doesn't want outlines around buttons) on the main menu's buttons (Host / Join / Cancel too), every Back, the saved
 runs' Continue / Delete, Resume / Leave game, the Field guide, and the lobby's Leave / Ready / Start (Ready no longer has a pulse ring). New icons `ui_back`, `ui_trophy`, `ui_gear`, `ui_book`,
 `ui_help`, `ui_power`, `ui_trash`. The pause menu's two Field guide cards became one button (also in Settings; the
 guide works from the main menu too, solo at wave 1). Preview: `shot.sh <name> settings`.
