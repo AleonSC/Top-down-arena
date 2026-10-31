@@ -199,6 +199,8 @@ const B = {
   stun:   { name: "Stun shot",    dmg: 9.2,  r: 7,   col: rgb(0.43, 0.88, 1) },
   bile:   { name: "Bile",         dmg: 13.8, r: 6,   col: rgb(0.75, 0.9, 0.31) },
   tooth:  { name: "Tooth",        dmg: 23,   r: 10,  col: rgb(0.96, 0.9, 0.82) },
+  pause:  { name: "Pause shot",   dmg: 13.8, r: 6.5, col: rgb(0.45, 0.95, 0.85) },
+  stitch: { name: "Stitch orb",   dmg: 13.8, r: 8,   col: rgb(1, 0.82, 0.45) },
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -300,6 +302,23 @@ const E = [
       { name: "Ward", pattern: "Up to 3 allies within 320 px get a bubble worth 50% of their health", dmg: "—", every: 6, unscaled: true },
       { name: "Orbs", pattern: "2 slow orbs, 23° apart", kind: "big", n: 2, speed: 120, every: 3 }],
     notes: ["Follow the tethers back to it."] },
+  { id: "Pauser", cat: "Late game", hp: 100, r: 15, speed: 60, sides: 6, col: rgb(0.45, 0.95, 0.85), xp: 12, score: 25, wave: 14,
+    appears: "Wave 14+ (and in Hold the line squads)", lead: "Fans 8 shots out at you that slow to a stop about 100 px out, hang there glowing for 0.7 s, then each one rushes at you from where it hung. Two timings in one attack.",
+    attacks: [
+      { name: "Pause fan", pattern: "8 shots across 92°, stopping after 0.6 s, hanging 0.7 s", kind: "pause", n: 8, speed: 340, every: 3.4 },
+      { name: "Rush", pattern: "Each hanging shot then flies at you", kind: "small", n: 8, speed: 330, every: null }],
+    notes: ["Keep moving while they hang, then sidestep the rush: the shots come from all over the fan, so they cross where you were."] },
+  { id: "Leader", cat: "Late game", hp: 90, r: 13, speed: 80, sides: 3, col: rgb(1, 0.55, 0.85), xp: 12, score: 25, wave: 19,
+    appears: "Wave 19+ (and in Hunting party squads)", lead: "Aims where you'll be, not where you are: it works out how you're moving and leads its shots. A thin pink aim line shows where for 0.45 s first.",
+    attacks: [
+      { name: "Led pair", pattern: "0.45 s aim line, then 2 shots 7° apart at where you're heading (up to 1.6 s ahead)", kind: "fast", n: 2, speed: 260, every: 1.9 }],
+    notes: ["Change direction or stop when the line shows: running straight is what it punishes."] },
+  { id: "Stitcher", cat: "Late game", hp: 120, r: 15, speed: 65, sides: 5, col: rgb(1, 0.82, 0.45), xp: 14, score: 30, wave: 22,
+    appears: "Wave 22+ (and in Seamstresses squads)", lead: "Fires slow orbs. Every orb is tied to the nearest other orb within 280 px by a thread that hurts. Alone it fires two orbs that spread apart (the thread between them widens until it snaps at 280 px). A pair stands side by side, 240 px apart, and fires together the same way, so a 240 px fence sweeps at you.",
+    attacks: [
+      { name: "Orbs", pattern: "Alone: 2 orbs 37° apart; in a pair: one each, side by side and parallel", kind: "stitch", n: 2, speed: 105, every: 3.2 },
+      { name: "Thread", pattern: "Between each orb and its nearest other one within 280 px (6 px wide)", dmg: "13.8", every: null }],
+    notes: ["Step round an end of the fence. Blockers that eat orbs (a barrier, flak) cut the thread too."] },
 
   // Bosses
   { id: "Warden", label: "The Warden", cat: "Bosses", boss: true, hp: 2400, r: 46, speed: 45, sides: 8, col: rgb(1, 0.25, 0.5), xp: 150, score: 300, wave: 5,
@@ -540,6 +559,7 @@ function newWorld() {
     case "Colossus": case "Lich": case "StormHerald": case "Devourer": spawn(d.id, 800, 150); break;
     case "Nest": spawn("Nest", 800, 300); break;
     case "Warder": spawn("Warder", 800, 200); spawn("Grunt", 700, 260); spawn("Grunt", 900, 260); break;  // it needs allies to ward
+    case "Stitcher": spawn("Stitcher", 560, 260).pair = true; spawn("Stitcher", 1040, 260).pair = true; break;  // a pair, as in its squad
     case "Decoy": { const e = spawn("Decoy", 800, 300); e.phaseT = 5; e.fireT = 99; break; }
     case "Phylactery": spawn("Phylactery", 800, 260); break;
     case "GravityWell": { const s = spawn("Singularity", 800, 450); s.dummyOnly = true; break; }
@@ -1091,6 +1111,9 @@ function varietyTick(e, dt) {
         e.phase = 3; e.phaseT = 0.7;
       } else if (e.phase === 3 && e.phaseT <= 0) e.phase = 0;
       break;
+    case "Leader":
+      if (e.phase === 1) e.facing = leadAngle(e);  // the aim line follows where you'll be
+      break;
     case "Warder":
       e.t2 -= dt;
       if (e.t2 <= 0) {
@@ -1102,9 +1125,37 @@ function varietyTick(e, dt) {
       break;
   }
 }
+// The Leader aims where you'll be: the angle that meets you moving as you are (up to 1.6 s ahead).
+function leadAngle(e) {
+  const p = world.player, rx = p.x - e.x, ry = p.y - e.y, vx = p.vx || 0, vy = p.vy || 0, s = 260;
+  const a = vx * vx + vy * vy - s * s, b = 2 * (rx * vx + ry * vy), c = rx * rx + ry * ry;
+  let t = 0;
+  if (Math.abs(a) < 1e-3) t = b < 0 ? -c / b : 0;
+  else { const disc = b * b - 4 * a * c; if (disc >= 0) { const q = Math.sqrt(disc), t1 = (-b - q) / (2 * a), t2 = (-b + q) / (2 * a); t = t1 > 0 && (t1 < t2 || t2 <= 0) ? t1 : t2; } }
+  t = t > 0 ? Math.min(1.6, t) : 0;
+  return Math.atan2(ry + vy * t, rx + vx * t);
+}
+// The Stitcher's threads: each orb tied to its nearest other orb within 280 px, each pair once.
+function stitchThreads() {
+  const orbs = world.bullets.filter(b => b.kind === "stitch"), out = [];
+  const nearest = i => { let best = -1, bd = 280 * 280; orbs.forEach((o, j) => { if (j === i) return; const d = (o.x - orbs[i].x) ** 2 + (o.y - orbs[i].y) ** 2; if (d < bd) { bd = d; best = j; } }); return best; };
+  for (let i = 0; i < orbs.length; i++) { const j = nearest(i); if (j < 0 || (j < i && nearest(j) === i)) continue; out.push([orbs[i], orbs[j]]); }
+  return out;
+}
+function stitchOrb(e, a) { shot(e, a, 105, "stitch"); world.bullets[world.bullets.length - 1].life = 7; }
 // The Warder's demo needs allies to ward: two Grunts come with it.
 function drawVariety(t) {
   const p = world.player;
+  for (const [a, b] of stitchThreads()) {  // Stitcher threads
+    cx.strokeStyle = "rgba(255,209,115,0.2)"; cx.lineWidth = 10; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
+    cx.strokeStyle = "#fff2cc"; cx.lineWidth = 3; cx.stroke();
+    if (segDist(p, a, b) < 3 + p.hitR) hurt(B.small.dmg);
+  }
+  for (const e of world.enemies)  // the Leader's aim line
+    if (e.type === "Leader" && e.phase === 1 && !e.dead && S.tele) {
+      cx.setLineDash([10, 8]); cx.strokeStyle = `rgba(255,140,217,${0.5 + 0.35 * Math.sin(t * 22)})`; cx.lineWidth = 2;
+      cx.beginPath(); cx.moveTo(e.x, e.y); cx.lineTo(e.x + Math.cos(e.facing) * 520, e.y + Math.sin(e.facing) * 520); cx.stroke(); cx.setLineDash([]);
+    }
   world.embers = (world.embers || []).filter(m => (m.t += 1 / 60) < 3);
   for (const m of world.embers) {
     const k = 1 - m.t / 3;
@@ -1648,6 +1699,14 @@ function move(e, dt) {
     }
     case "Phantom": v = kd(250, 0.7); break;
     case "Hexer": v = kd(300, 0.5); break;
+    case "Pauser": v = kd(300, 0.4); break;
+    case "Leader": v = e.phase === 1 ? [0, 0] : kd(360, 0.7); break;
+    case "Stitcher": {
+      const o = e.pair && world.enemies.find(x => x !== e && x.type === "Stitcher" && !x.dead);
+      if (!o) { v = kd(330, 0.3); break; }
+      const mx = (e.x + o.x) / 2 - p.x, my = (e.y + o.y) / 2 - p.y, ml = Math.hypot(mx, my) || 1, ux = mx / ml, uy = my / ml, s = e.id < o.id ? 120 : -120;
+      v = [(p.x + ux * 330 - uy * s - e.x) / 60, (p.y + uy * 330 + ux * s - e.y) / 60]; break;  // side by side, 240 px apart, facing you
+    }
     case "BeamSentry": v = e.phase === 0 ? kd(380, 0.3) : [0, 0]; break;
     case "Scorcher": { const k = kd(260, 0); const a = ang(e, world.player) + Math.PI / 2 * e.strafe; v = [Math.cos(a) + k[0] * 0.8, Math.sin(a) + k[1] * 0.8]; break; }
     case "Reaver": { const a = ang(e, world.player); v = e.phase === 0 ? [Math.cos(a), Math.sin(a)] : [0, 0]; break; }
@@ -1733,7 +1792,7 @@ function special(e, dt) {
   const p = world.player;
   const late = ["Phantom", "Nest", "Colossus", "Duelist", "Decoy", "Lich", "StormHerald", "Devourer", "Eclipse"].includes(e.type);
   if (late) e.phaseT -= dt;
-  if (["BeamSentry", "Scorcher", "Reaver", "Warder"].includes(e.type)) { varietyTick(e, dt); return; }
+  if (["BeamSentry", "Scorcher", "Reaver", "Warder", "Leader"].includes(e.type)) { varietyTick(e, dt); return; }
   switch (e.type) {
     case "Warden": wardenTick(e, dt); break;
     case "Rioter": {  // one that reaches the Warden lands a blow on it and is gone
@@ -1941,6 +2000,19 @@ function fire(e) {
     case "BeamSentry": case "Reaver": e.fireT = 99; break;  // their beam and rake come from varietyTick
     case "Scorcher": e.fireT = 2.5; shot(e, aim - 0.1, 170, "small"); shot(e, aim + 0.1, 170, "small"); break;
     case "Warder": e.fireT = 3; shot(e, aim - 0.2, 120, "big"); shot(e, aim + 0.2, 120, "big"); break;
+    case "Pauser":
+      e.fireT = 3.4;
+      for (let i = 0; i < 8; i++) { shot(e, aim + 1.6 * (i / 7 - 0.5), 340, "pause"); const b = world.bullets[world.bullets.length - 1]; b.life = b.life0 = 1.3; b.pause = true; }
+      break;
+    case "Leader":
+      if (e.phase === 0) { e.phase = 1; e.fireT = 0.45; e.facing = aim; break; }
+      e.phase = 0; e.fireT = 1.9; shot(e, e.facing - 0.06, 260, "fast"); shot(e, e.facing + 0.06, 260, "fast"); break;
+    case "Stitcher": {
+      e.fireT = 3.2;
+      const o = e.pair && world.enemies.find(x => x !== e && x.type === "Stitcher" && !x.dead && x.spawnT <= 0);
+      if (o) { if (e.id > o.id) break; const c = ang({ x: (e.x + o.x) / 2, y: (e.y + o.y) / 2 }, world.player); stitchOrb(e, c); stitchOrb(o, c); o.fireT = 3.2; break; }  // parallel: a fence as wide as the pair
+      stitchOrb(e, aim - 0.32); stitchOrb(e, aim + 0.32); break;
+    }
     case "Hexer": e.fireT = 2; for (let s = -1; s <= 1; s += 2) { shot(e, aim + s * 0.7, 170, "small", -s * 1.1); shot(e, aim + s * 1.2, 150, "small", -s * 1.6); } break;
     case "Juggernaut": e.fireT = 2.5; e.ang += 0.2; for (let k = 0; k < 8; k++) shot(e, e.ang + TAU * k / 8, 110, "big"); break;
     case "Colossus": e.fireT = 1.2; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.18, 170, "pierce"); break;
@@ -2015,6 +2087,7 @@ function movePlayer(dt) {
     p.x += dx / l * world.pull.s * dt; p.y += dy / l * world.pull.s * dt;
   }
   p.x = clamp(p.x, 14, W - 14); p.y = clamp(p.y, 14, H - 14);
+  if (dt > 0) { p.vx = (p.x - (p.ox ?? p.x)) / dt; p.vy = (p.y - (p.oy ?? p.y)) / dt; p.ox = p.x; p.oy = p.y; }  // how you're moving (the Leader leads with it)
 }
 
 function step(dt) {
@@ -2061,7 +2134,13 @@ function step(dt) {
   const keep = [];
   for (const b of world.bullets) {
     if (b.av) { const c = Math.cos(b.av * dt), s = Math.sin(b.av * dt), vx = b.vx * c - b.vy * s; b.vy = b.vx * s + b.vy * c; b.vx = vx; }
-    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    const go = b.pause ? Math.max(0, 1 - (b.life0 - b.life) / 0.6) : 1;  // a Pauser's shot slows to a stop, then hangs
+    b.x += b.vx * dt * go; b.y += b.vy * dt * go; b.life -= dt;
+    if (b.pause && b.life <= 0) {  // ...then rushes at you from where it hung
+      const a = Math.atan2(p.y - b.y, p.x - b.x);
+      world.bullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 330, vy: Math.sin(a) * 330, av: 0, r: B.small.r, col: B.small.col, dmg: B.pause.dmg, life: 4, kind: "small" });
+      continue;
+    }
     if (b.burst && b.life <= 0) {
       const off = Math.random() * TAU;
       for (let i = 0; i < b.burst; i++) { const a = off + TAU * i / b.burst; world.bullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, av: 0, r: B.small.r, col: B.small.col, dmg: B.small.dmg, life: 8, kind: "small" }); }
@@ -2258,6 +2337,18 @@ function drawArena() {
   // Bullets
   for (const b of world.bullets) {
     if (b.kind === "tooth") { tooth(cx, b.x, b.y, Math.atan2(b.vy, b.vx), 16); continue; }  // the Devourer's Jaws
+    if (b.pause && b.life0 - b.life >= 0.6) {  // a Pauser's shot hanging: brighter, a ring closing in as the rush nears
+      const k = Math.min(1, (b.life0 - b.life - 0.6) / 0.7);
+      cx.fillStyle = css(b.col, 0.3 + 0.3 * k); cx.beginPath(); cx.arc(b.x, b.y, b.r + 6, 0, TAU); cx.fill();
+      cx.strokeStyle = `rgba(255,255,255,${0.4 + 0.5 * k})`; cx.lineWidth = 1.6; cx.beginPath(); cx.arc(b.x, b.y, b.r + 4 + 12 * (1 - k), 0, TAU); cx.stroke();
+      cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.55, 0, TAU); cx.fill(); continue;
+    }
+    if (b.kind === "stitch") {  // a gold bead with a turning cross
+      cx.fillStyle = css(b.col, 0.25); cx.beginPath(); cx.arc(b.x, b.y, b.r + 4, 0, TAU); cx.fill();
+      cx.fillStyle = css(b.col); cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, TAU); cx.fill();
+      cx.strokeStyle = "#664010"; cx.lineWidth = 1.6; for (let k = 0; k < 2; k++) { const a = t * 3 + k * Math.PI / 2; cx.beginPath(); cx.moveTo(b.x - Math.cos(a) * 6, b.y - Math.sin(a) * 6); cx.lineTo(b.x + Math.cos(a) * 6, b.y + Math.sin(a) * 6); cx.stroke(); }
+      continue;
+    }
     cx.fillStyle = css(b.col, 0.25); cx.beginPath(); cx.arc(b.x, b.y, b.r * 1.7, 0, TAU); cx.fill();
     cx.fillStyle = css(b.col); cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, TAU); cx.fill();
     if (b.boss) { cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.45, 0, TAU); cx.fill(); }

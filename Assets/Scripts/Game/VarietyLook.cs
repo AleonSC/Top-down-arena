@@ -10,10 +10,32 @@ namespace Arena
         static readonly Rgba SentryCyan = new Rgba(0.44f, 0.89f, 1f);
         static readonly Rgba BubbleBlue = new Rgba(0.56f, 0.82f, 1f);
         static readonly Rgba WardViolet = new Rgba(0.71f, 0.61f, 1f);
+        static readonly Rgba PauseTeal = new Rgba(0.45f, 0.95f, 0.85f);
+        static readonly Rgba LeaderPink = new Rgba(1f, 0.55f, 0.85f);
+        static readonly Rgba StitchGold = new Rgba(1f, 0.82f, 0.45f);
+        readonly System.Collections.Generic.List<Game.StitchThread> drawThreads = new System.Collections.Generic.List<Game.StitchThread>();
 
         /// On the floor, under the enemies: beams, cones and tethers.
         void DrawVarietyFloor(float t)
         {
+            // Stitcher threads between the orbs: a glow, a bright core, and stitches running along it.
+            Game.StitchLinks(game.Bullets.Values, drawThreads);
+            foreach (var th in drawThreads)
+            {
+                Line(th.A, th.B, 10f, StitchGold.WithAlpha(0.18f));
+                Line(th.A, th.B, Game.StitchWidth * 0.5f, new Rgba(1f, 0.95f, 0.8f, 0.95f));
+                V2 d = th.B - th.A;
+                float len = d.Length;
+                if (len < 1f)
+                    continue;
+                V2 u = d / len, side = u.Orthogonal();
+                float off = (t * 40f) % 18f;
+                for (float s = off; s < len; s += 18f)
+                {
+                    V2 at = th.A + u * s;
+                    Line(at - side * 4f - u * 3f, at + side * 4f + u * 3f, 1.5f, StitchGold.WithAlpha(0.8f));
+                }
+            }
             foreach (var e in game.Enemies.Values)
             {
                 if (game.IsSpawning(e))
@@ -29,6 +51,12 @@ namespace Arena
                         Line(pos, tip, 32f, SentryCyan.WithAlpha(0.28f));
                         Line(pos, tip, Game.SentryBeamWidth * 0.6f, new Rgba(0.87f, 0.97f, 1f));
                     }
+                }
+                if (e.Type == EnemyType.Leader && e.Phase == 1)  // its aim line, pointing where it thinks you'll be
+                {
+                    V2 tip = pos + V2.FromAngle(e.Facing) * 520f;
+                    Line(pos, tip, 6f, LeaderPink.WithAlpha(0.2f));
+                    DashedLine(pos, tip, 2f, LeaderPink.WithAlpha(0.5f + 0.35f * Mathf.Sin(t * 22f)));
                 }
                 if (e.Type == EnemyType.Reaver && e.Phase == 1)  // the rake's cone, filling as it winds up
                 {
@@ -60,6 +88,31 @@ namespace Arena
             }
             if (Game.ReaverIsOpen(e))
                 Arc(pos, r + 8f, 3f, BubbleBlue.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 20f)), 24);
+            if (e.Type == EnemyType.Pauser)  // an hourglass
+            {
+                float h = r * 0.5f, w = r * 0.38f;
+                var c = new Rgba(0.08f, 0.2f, 0.2f, 0.9f);
+                SetColor(c);
+                Tri(pos + new V2(-w, -h), pos + new V2(w, -h), pos);
+                Tri(pos + new V2(-w, h), pos + new V2(w, h), pos);
+                SetColor(PauseTeal.Mix(Rgba.White, 0.6f));
+                float sand = 0.5f + 0.5f * Mathf.Sin(t * 2f + e.Id);
+                Tri(pos + new V2(-w * sand, h), pos + new V2(w * sand, h), pos + new V2(0f, h * (1f - sand)));
+            }
+            if (e.Type == EnemyType.Leader)  // a crosshair, red while it's aiming
+            {
+                var c = e.Phase == 1 ? new Rgba(1f, 0.25f, 0.4f) : new Rgba(0.25f, 0.05f, 0.18f, 0.9f);
+                Arc(pos, r * 0.42f, 1.6f, c, 14);
+                Line(pos + new V2(-r * 0.62f, 0f), pos + new V2(r * 0.62f, 0f), 1.4f, c);
+                Line(pos + new V2(0f, -r * 0.62f), pos + new V2(0f, r * 0.62f), 1.4f, c);
+            }
+            if (e.Type == EnemyType.Stitcher)  // a needle through it, its thread trailing
+            {
+                V2 d = V2.FromAngle(e.Facing + 0.8f);
+                Line(pos - d * r * 0.7f, pos + d * r * 0.7f, 2f, new Rgba(0.95f, 0.95f, 1f));
+                Arc(pos - d * r * 0.55f, 3f, 1.2f, new Rgba(0.2f, 0.12f, 0.02f), 8);
+                Arc(pos + d.Orthogonal() * 3f, r * 0.45f, 1.4f, new Rgba(0.35f, 0.2f, 0.02f, 0.9f), 12, e.Facing + t * 2f, 3.5f);
+            }
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 1)
                 for (int k = 0; k < 3; k++)
                 {
@@ -140,6 +193,38 @@ namespace Arena
                 float f = MathX.Fmod(t * 1.1f + k * 0.5f + pt.Id * 0.21f, 1f);
                 Circle(pt.Pos + new V2((k - 0.5f) * r * 0.7f, -f * r * 1.2f), 1.8f * (1f - f) + 0.5f, new Rgba(1f, 0.8f, 0.35f, 0.8f * (1f - f) * fade), 6);
             }
+        }
+
+        /// The new shooting patterns' bullets: a Pauser's shot (brightening and ringed while it hangs, the ring
+        /// closing as the rush nears) and a Stitcher's orb (a gold bead with a turning cross).
+        void DrawPatternShot(Bullet b, Rgba c, float t)
+        {
+            if (b.Kind == Defs.PauseShot)
+            {
+                float age = b.Life0 - b.Life;
+                if (age >= Game.PauseFly)
+                {
+                    float k = Mathf.Clamp01((age - Game.PauseFly) / Game.PauseHold);
+                    Circle(b.Pos, b.Radius + 6f, c.WithAlpha(0.25f + 0.25f * k), 12);
+                    Arc(b.Pos, b.Radius + 4f + 12f * (1f - k), 1.6f, Rgba.White.WithAlpha(0.4f + 0.5f * k), 16);
+                    Circle(b.Pos, b.Radius, c.Mix(Rgba.White, 0.3f + 0.5f * k), 12);
+                    Circle(b.Pos, b.Radius * 0.5f, Rgba.White, 8);
+                    return;
+                }
+                Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);
+                Circle(b.Pos, b.Radius, c, 12);
+                Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
+                return;
+            }
+            Circle(b.Pos, b.Radius + 4f, c.WithAlpha(0.25f), 14);
+            Circle(b.Pos, b.Radius, c, 14);
+            float a = t * 3f + b.Id;
+            for (int k = 0; k < 2; k++)
+            {
+                V2 d = V2.FromAngle(a + k * MathX.Pi / 2f) * (b.Radius * 0.8f);
+                Line(b.Pos - d, b.Pos + d, 1.6f, new Rgba(0.4f, 0.25f, 0.05f));
+            }
+            Circle(b.Pos, b.Radius * 0.3f, Rgba.White, 6);
         }
     }
 }

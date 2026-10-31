@@ -23,6 +23,10 @@ namespace Arena
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
     ///     circles you leaving embers), the Reaver (28: armoured melee that rakes a cone, then is open for a moment)
     ///     and the Warder (36: puts bubbles on up to three allies, which pop when it dies).
+    ///   Three new shooting patterns: the Pauser (wave 14: a fan of shots that stop dead, hang, then each rushes at
+    ///     the nearest player), the Leader (19: aims where you'll be, from how you're moving, after a short aim line)
+    ///     and the Stitcher (22: slow orbs, each tied to the nearest other orb by a harmful thread; a pair stands side
+    ///     by side and fires together, so the thread between their orbs sweeps at you like a moving fence).
     ///   Elite traits: Hasted, Shielded, Volatile, Splitting, Mirrored, Commander (EliteTrait).
     ///   Squads: about 70% of a regular wave is small teams (Squads) that arrive together and keep each other going:
     ///     a Shielder guards its Snipers, a Medic follows its Brutes, a Lunger waits for a Brute to reach you.
@@ -39,6 +43,15 @@ namespace Arena
         // The Warder: wards up to three allies near it every 6 s.
         public const float WarderEvery = 6f, WarderRange = 320f, WarderShare = 0.5f;
         public const int WarderMax = 3;
+        // The Pauser: a fan of shots that fly out slowing to a stop (PauseFly), hang (PauseHold), then rush at a player.
+        public const int PauseShots = 8;
+        public const float PauseFan = 1.6f, PauseSpeed = 340f, PauseFly = 0.6f, PauseHold = 0.7f, PauseRushSpeed = 330f, PauseEvery = 3.4f, PauserRange = 300f;
+        // The Leader: Phase 1 aims (a thin line along Facing, which tracks where you'll be), then fires a pair.
+        public const float LeaderAim = 0.45f, LeaderSpeed = 260f, LeaderEvery = 1.9f, LeaderMaxLead = 1.6f, LeaderRange = 360f, LeaderSpread = 0.06f;
+        // The Stitcher: slow orbs; each is tied to its nearest other orb within StitchLink by a thread this wide.
+        // StitchEvery x StitchSpeed is more than StitchLink, so one Stitcher's volleys never tie to each other along their path.
+        public const float StitchSpeed = 105f, StitchEvery = 3.2f, StitchLink = 280f, StitchWidth = 6f, StitchSpread = 0.32f, StitchLife = 7f, StitcherRange = 330f;
+        public const float StitchPairGap = 240f;  // a pair stands this far apart, side by side, so its fence is this wide
         // Elite traits.
         public const float HasteMult = 1.4f, ShieldedShare = 0.4f, BubbleRegrow = 4f, VolatileFuse = 0.6f, CommandRange = 220f, CommandMult = 1.3f;
         public const int VolatileShots = 16, MirrorEvery = 4;
@@ -60,6 +73,9 @@ namespace Arena
             new SquadDef { Name = "Siege", From = 26, Members = new[] { EnemyType.Juggernaut, EnemyType.Medic, EnemyType.Medic } },
             new SquadDef { Name = "Reaver pack", From = 28, Members = new[] { EnemyType.Reaver, EnemyType.Reaver, EnemyType.Lunger, EnemyType.Lunger } },
             new SquadDef { Name = "Hive", From = 31, Members = new[] { EnemyType.Nest, EnemyType.Splitter, EnemyType.Splitter } },
+            new SquadDef { Name = "Hold the line", From = 14, Members = new[] { EnemyType.Pauser, EnemyType.Grunt, EnemyType.Grunt } },
+            new SquadDef { Name = "Hunting party", From = 19, Members = new[] { EnemyType.Leader, EnemyType.Leader, EnemyType.Sniper } },
+            new SquadDef { Name = "Seamstresses", From = 22, Members = new[] { EnemyType.Stitcher, EnemyType.Stitcher, EnemyType.Grunt } },
             new SquadDef { Name = "Bastion", From = 36, Members = new[] { EnemyType.Warder, EnemyType.Juggernaut, EnemyType.Grunt, EnemyType.Grunt } },
         };
 
@@ -257,6 +273,12 @@ namespace Arena
         /// Shielded bubbles grow back.
         void TickVariety(float dt)
         {
+            // Stitcher threads: anyone touching one is hurt (hit grace keeps it to one hit at a time).
+            StitchLinks(Bullets.Values, stitchLinks);
+            foreach (var link in stitchLinks)
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && SegmentDistance(p.Pos, link.A, link.B) < StitchWidth / 2f + p.Def.HitR)
+                        Damage(p, Defs.BulletDamage(Defs.SmallShot), "Stitcher (thread)");
             emberTickT -= dt;
             if (emberTickT <= 0f)
             {
@@ -326,6 +348,12 @@ namespace Arena
                     return dir.Orthogonal() * e.Strafe + KeepDistance(dir, dist, ScorchRange) * 0.8f;
                 case EnemyType.Reaver:
                     return e.Phase == 0 ? dir : V2.Zero;
+                case EnemyType.Pauser:
+                    return KeepDistance(dir, dist, PauserRange) + dir.Orthogonal() * e.Strafe * 0.4f;
+                case EnemyType.Leader:  // quick on its feet, circling at range
+                    return e.Phase == 1 ? V2.Zero : KeepDistance(dir, dist, LeaderRange) + dir.Orthogonal() * e.Strafe * 0.7f;
+                case EnemyType.Stitcher:
+                    return KeepDistance(dir, dist, StitcherRange) + dir.Orthogonal() * e.Strafe * 0.3f;
                 case EnemyType.Warder:
                 {
                     // Behind its allies, between them and you.
@@ -368,6 +396,17 @@ namespace Arena
                 }
                 case EnemyType.BeamSentry:
                     break;
+                case EnemyType.Stitcher:
+                {
+                    // A pair stands side by side facing you, so the orbs they fire together make a fence as wide as the gap.
+                    var other = mates.Find(o => o != e && o.Type == EnemyType.Stitcher);
+                    if (other == null)
+                        break;
+                    V2 mid = (e.Pos + other.Pos) / 2f;
+                    V2 from = (mid - tpos).IsZero ? new V2(1f, 0f) : (mid - tpos).Normalized();
+                    float side = e.SquadSlot < other.SquadSlot ? 0.5f : -0.5f;
+                    return GoalVel(e, tpos + from * StitcherRange + from.Orthogonal() * (side * StitchPairGap));
+                }
                 case EnemyType.Shielder:
                 {
                     // It leads a Shield wall (its Snipers keep behind it); with planted Beam Sentries it stands
@@ -487,6 +526,10 @@ namespace Arena
                     }
                     break;
                 }
+                case EnemyType.Leader:
+                    if (e.Phase == 1)
+                        e.Facing = LeadAngle(e, tpos);  // the aim line follows where you'll be
+                    break;
                 case EnemyType.Scorcher:
                     e.PhaseT -= dt;
                     if (e.PhaseT <= 0f)
@@ -569,8 +612,210 @@ namespace Arena
                     EnemyShot(e, aim - 0.2f, 120f, Defs.BigShot);
                     EnemyShot(e, aim + 0.2f, 120f, Defs.BigShot);
                     return true;
+                case EnemyType.Pauser:
+                    e.FireT = PauseEvery;
+                    for (int i = 0; i < PauseShots; i++)
+                    {
+                        V2 dir = V2.FromAngle(aim + PauseFan * (i / (PauseShots - 1f) - 0.5f));
+                        var b = SpawnBullet(Defs.PauseShot, e.Pos + dir * e.Radius, dir * PauseSpeed, 0f, PauseFly + PauseHold, Defs.BulletDamage(Defs.PauseShot), 0);
+                        b.Source = e.Type;
+                        b.Rush = true;
+                    }
+                    return true;
+                case EnemyType.Leader:
+                    if (e.Phase == 0)
+                    {
+                        // Aim first: a thin line that follows where you'll be.
+                        e.Phase = 1;
+                        e.FireT = LeaderAim;
+                        e.Facing = aim;
+                        return true;
+                    }
+                    e.Phase = 0;
+                    e.FireT = LeaderEvery;
+                    EnemyShot(e, e.Facing - LeaderSpread, LeaderSpeed, Defs.FastShot);
+                    EnemyShot(e, e.Facing + LeaderSpread, LeaderSpeed, Defs.FastShot);
+                    return true;
+                case EnemyType.Stitcher:
+                {
+                    e.FireT = StitchEvery;
+                    // In a pair, the first fires for both (one orb each, at the same moment); its partner waits.
+                    List<Enemy> mates;
+                    Enemy lead = null;
+                    if (e.SquadId != 0 && squadMembers.TryGetValue(e.SquadId, out mates))
+                        foreach (var o in mates)
+                            if (o.Type == EnemyType.Stitcher && o.Hp > 0f && (lead == null || o.SquadSlot < lead.SquadSlot))
+                                lead = o;
+                    Enemy partner = null;
+                    if (lead != null && squadMembers.TryGetValue(e.SquadId, out mates))
+                        partner = mates.Find(o => o != lead && o.Type == EnemyType.Stitcher && o.Hp > 0f && o.SpawnT <= 0f);
+                    if (partner != null)
+                    {
+                        if (lead != e)
+                            return true;  // the lead fires ours
+                        // Both orbs fly the same way (at you from between them), so the thread between them stays as wide as the pair.
+                        Player tp;
+                        V2 mid = (e.Pos + partner.Pos) / 2f;
+                        V2 target = Players.TryGetValue(e.TargetId, out tp) ? tp.Pos : e.Pos + V2.FromAngle(aim) * 300f;
+                        float course = (target - mid).Angle;
+                        StitchOrb(e, course);
+                        StitchOrb(partner, course);
+                        partner.FireT = StitchEvery;
+                        return true;
+                    }
+                    // Alone: two orbs a little apart, tied to each other.
+                    StitchOrb(e, aim - StitchSpread);
+                    StitchOrb(e, aim + StitchSpread);
+                    return true;
+                }
             }
             return false;
+        }
+
+        void StitchOrb(Enemy e, float ang)
+        {
+            V2 dir = V2.FromAngle(ang);
+            SpawnBullet(Defs.StitchShot, e.Pos + dir * e.Radius, dir * StitchSpeed, 0f, StitchLife, Defs.BulletDamage(Defs.StitchShot), 0).Source = e.Type;
+        }
+
+        // --- The new shooting patterns ---------------------------------------------------------------------------
+
+        /// Host: how each player is moving, smoothed from their positions (clients move themselves). A jump (wrapping
+        /// round the edge, a blink) starts it over.
+        void TrackMotion(Player p, float dt)
+        {
+            if (dt <= 0f)
+                return;
+            V2 step = p.Pos - p.MotionFrom;
+            p.MotionFrom = p.Pos;
+            if (step.Length > 60f)
+            {
+                p.Motion = V2.Zero;
+                return;
+            }
+            float k = Math.Min(1f, dt * 8f);
+            p.Motion = p.Motion * (1f - k) + step / dt * k;
+        }
+
+        /// Where the Leader aims: the angle that meets a player moving as they are now (up to LeaderMaxLead seconds
+        /// ahead). A decoy (a Shadow Clone, Vanish) gets aimed at as it stands.
+        float LeadAngle(Enemy e, V2 tpos)
+        {
+            Player p;
+            V2 rel = tpos - e.Pos;
+            if (!Players.TryGetValue(e.TargetId, out p) || p.Pos.DistanceTo(tpos) > 1f)
+                return rel.Angle;
+            V2 v = p.Motion;
+            if (v.Length > 450f)
+                v = v.Normalized() * 450f;
+            return (rel + v * LeadTime(rel, v, LeaderSpeed)).Angle;
+        }
+
+        /// How long a shot at this speed takes to meet something at rel moving at v (0 if it can't).
+        public static float LeadTime(V2 rel, V2 v, float speed)
+        {
+            float a = v.Dot(v) - speed * speed, b = 2f * rel.Dot(v), c = rel.Dot(rel);
+            float t;
+            if (Math.Abs(a) < 1e-3f)
+                t = b < 0f ? -c / b : 0f;
+            else
+            {
+                float disc = b * b - 4f * a * c;
+                if (disc < 0f)
+                    return 0f;
+                float sq = (float)Math.Sqrt(disc);
+                float t1 = (-b - sq) / (2f * a), t2 = (-b + sq) / (2f * a);
+                t = t1 > 0f && (t1 < t2 || t2 <= 0f) ? t1 : t2;
+            }
+            return t > 0f ? Math.Min(LeaderMaxLead, t) : 0f;
+        }
+
+        /// A Pauser's shot: full speed out of the barrel, slowing to a stop by PauseFly, then hanging still.
+        /// Worked out from its age, so every machine moves it the same.
+        public static float PauseSpeedNow(Bullet b)
+        {
+            float age = b.Life0 - b.Life;
+            return age >= PauseFly ? 0f : 1f - age / PauseFly;
+        }
+
+        /// How far (in seconds of its full speed) a Pauser's shot will have gone in the next t seconds.
+        public static float PauseTravel(Bullet b, float t)
+        {
+            float age = b.Life0 - b.Life, m = Math.Min(t, Math.Max(0f, PauseFly - age));
+            return m - ((age + m) * (age + m) - age * age) / (2f * PauseFly);
+        }
+
+        /// The bots' list of Stitcher threads, rebuilt each time they decide (BotBrain.cs).
+        readonly List<StitchThread> botThreads = new List<StitchThread>();
+
+        /// Host: a Pauser's shot has hung its time: a shot rushes from there at the nearest player.
+        void PauseRush(Bullet b)
+        {
+            Player near = null;
+            foreach (var p in Players.Values)
+                if (!p.Downed && p.VanishT <= 0f && (near == null || p.Pos.DistanceSq(b.Pos) < near.Pos.DistanceSq(b.Pos)))
+                    near = p;
+            if (near == null)
+                return;
+            V2 dir = (near.Pos - b.Pos).Normalized();
+            SpawnBullet(Defs.SmallShot, b.Pos, dir * PauseRushSpeed, 0f, 4f, Defs.BulletDamage(Defs.PauseShot), 0).Source = b.Source;
+        }
+
+        public struct StitchThread { public V2 A, B; }
+
+        readonly List<StitchThread> stitchLinks = new List<StitchThread>();
+        static readonly List<Bullet> stitchScratch = new List<Bullet>();
+
+        /// The Stitcher's threads: each orb is tied to its nearest other orb within StitchLink (each pair once).
+        /// Worked out from the orbs where they are, so the host (which hurts with them) and every screen agree.
+        public static void StitchLinks(IEnumerable<Bullet> bullets, List<StitchThread> links)
+        {
+            links.Clear();
+            stitchScratch.Clear();
+            foreach (var b in bullets)
+                if (b.Kind == Defs.StitchShot)
+                    stitchScratch.Add(b);
+            if (stitchScratch.Count < 2)
+                return;
+            stitchScratch.Sort((x, y) => x.Id.CompareTo(y.Id));
+            for (int i = 0; i < stitchScratch.Count; i++)
+            {
+                int best = -1;
+                float bestD = StitchLink * StitchLink;
+                for (int j = 0; j < stitchScratch.Count; j++)
+                {
+                    float d = j == i ? float.MaxValue : stitchScratch[i].Pos.DistanceSq(stitchScratch[j].Pos);
+                    if (d < bestD)
+                    {
+                        bestD = d;
+                        best = j;
+                    }
+                }
+                if (best < 0)
+                    continue;
+                // Each pair once: skip it if the other one already chose this one.
+                if (best < i && NearestOther(best) == i)
+                    continue;
+                links.Add(new StitchThread { A = stitchScratch[i].Pos, B = stitchScratch[best].Pos });
+            }
+        }
+
+        static int NearestOther(int i)
+        {
+            int best = -1;
+            float bestD = StitchLink * StitchLink;
+            for (int j = 0; j < stitchScratch.Count; j++)
+            {
+                if (j == i)
+                    continue;
+                float d = stitchScratch[i].Pos.DistanceSq(stitchScratch[j].Pos);
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = j;
+                }
+            }
+            return best;
         }
 
         /// The Reaver takes half again as much while it's open after a swipe.

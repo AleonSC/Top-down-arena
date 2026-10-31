@@ -346,8 +346,9 @@ comes back in squads, and with the Reaver from wave 28).
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave:
 Rush (1: four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to
 reach you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder leading two Snipers that keep behind
-it), Field hospital (11: three Brutes and a Medic behind them), Ambush (16: three Phantoms blink in around you),
-Beam battery (18: two Beam Sentries guarded by a Shielder), Pincer (21: Hexers from opposite edges), Scorched earth
+it), Field hospital (11: three Brutes and a Medic behind them), Hold the line (14: a Pauser and two Grunts), Ambush (16: three Phantoms blink in around you),
+Beam battery (18: two Beam Sentries guarded by a Shielder), Hunting party (19: two Leaders and a Sniper), Pincer (21: Hexers from opposite edges),
+Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth
 (24: two Scorchers and Swarmers), Siege (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two
 Lungers), Hive (31: a Nest guarded by Splitters), Bastion (36: a Warder, a Juggernaut and two Grunts). Early waves keep
 their share of rushers (a melee squad as often as a melee enemy used to come). Paths with their own mix keep it.
@@ -369,9 +370,12 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 | 8 | **Mortar** | Lobs bombs at where you're standing; they burst into a ring when they land. Keep moving |
 | 9 | **Shielder** | A shield on its front blocks your shots. It turns slowly, so flank it. The shield (60% of its health) wears down as it blocks and crumbles on its own (about 33 s), cracking as it goes, then shatters |
 | 11 | **Medic** | Heals nearby enemies every few seconds. Kill it first |
+| 14 | **Pauser** | Fans 8 shots at you that slow to a stop about 100 px out, hang there glowing for 0.7 s (a ring closes in on each), then each rushes at the nearest player from where it hung. Keep moving while they hang, then sidestep the rush |
 | 16 | **Phantom** | Flickers, blinks next to you and bursts into a ring |
 | 18 | **Beam Sentry** | Walks to about 380 px from you and plants itself, aims a thin line at you for 1 s (turning slowly after you), then sweeps a 900 px beam a quarter turn across your side (20 + 0.3 × wave). Step behind the sweep |
+| 19 | **Leader** | Aims where you'll be, not where you are: it works out how you're moving and leads its shots (up to 1.6 s ahead). A thin pink aim line shows where for 0.45 s, then a pair of shots. Change direction or stop when the line shows |
 | 21 | **Hexer** | Fires curving pincer shots that close in from both sides |
+| 22 | **Stitcher** | Fires slow orbs; each orb is tied to the nearest other orb within 280 px by a thread that hurts. Alone it fires two orbs that spread apart until the thread snaps; a pair stands side by side, 240 px apart, and fires together, so a fence sweeps at you. Step round an end. Blockers that eat the orbs (a barrier, flak) cut the thread |
 | 24 | **Scorcher** | Circles you about 260 px out leaving a trail of embers (15/s, 3 s; they only burn players) and fires pairs of shots. Cut across its circle |
 | 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
 | 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
@@ -835,6 +839,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
+  - `Variety.cs` / `VarietyLook.cs`: the second half's enemies (Beam Sentry, Scorcher, Reaver, Warder), the shooting-pattern enemies (Pauser, Leader, Stitcher), elite traits and squads, and how they look
   - `Difficulty.cs` / `DifficultyUi.cs`: the difficulty presets and every Custom number (with their ranges), and the lobby's Difficulty tab
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker

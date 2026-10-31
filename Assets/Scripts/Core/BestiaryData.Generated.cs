@@ -323,6 +323,59 @@ namespace Arena
             },
             new BestiaryEntry
             {
+                Type = EnemyType.Pauser,
+                Name = "Pauser",
+                Group = "Late game",
+                Wave = 14,
+                Appears = "Wave 14+ (and in Hold the line squads)",
+                Lead = "Fans 8 shots out at you that slow to a stop about 100 px out, hang there glowing for 0.7 s, then each one rushes at you from where it hung. Two timings in one attack.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Pause fan", Pattern = "8 shots across 92°, stopping after 0.6 s, hanging 0.7 s", Shot = "Pause shot", ShotColor = new Rgba(0.45f, 0.95f, 0.85f), Count = "8", Speed = "340 px/s", Damage = "13.8 each", Every = 3.4f },
+                    new BestiaryAttack { Name = "Rush", Pattern = "Each hanging shot then flies at you", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "8", Speed = "330 px/s", Damage = "13.8 each" },
+                },
+                Notes = new[]
+                {
+                    "Keep moving while they hang, then sidestep the rush: the shots come from all over the fan, so they cross where you were.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Leader,
+                Name = "Leader",
+                Group = "Late game",
+                Wave = 19,
+                Appears = "Wave 19+ (and in Hunting party squads)",
+                Lead = "Aims where you'll be, not where you are: it works out how you're moving and leads its shots. A thin pink aim line shows where for 0.45 s first.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Led pair", Pattern = "0.45 s aim line, then 2 shots 7° apart at where you're heading (up to 1.6 s ahead)", Shot = "Fast shot", ShotColor = new Rgba(1f, 0.95f, 0.4f), Count = "2", Speed = "260 px/s", Damage = "17.2 each", Every = 1.9f },
+                },
+                Notes = new[]
+                {
+                    "Change direction or stop when the line shows: running straight is what it punishes.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Stitcher,
+                Name = "Stitcher",
+                Group = "Late game",
+                Wave = 22,
+                Appears = "Wave 22+ (and in Seamstresses squads)",
+                Lead = "Fires slow orbs. Every orb is tied to the nearest other orb within 280 px by a thread that hurts. Alone it fires two orbs that spread apart (the thread between them widens until it snaps at 280 px). A pair stands side by side, 240 px apart, and fires together the same way, so a 240 px fence sweeps at you.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Orbs", Pattern = "Alone: 2 orbs 37° apart; in a pair: one each, side by side and parallel", Shot = "Stitch orb", ShotColor = new Rgba(1f, 0.82f, 0.45f), Count = "2", Speed = "105 px/s", Damage = "13.8 each", Every = 3.2f },
+                    new BestiaryAttack { Name = "Thread", Pattern = "Between each orb and its nearest other one within 280 px (6 px wide)", Damage = "13.8" },
+                },
+                Notes = new[]
+                {
+                    "Step round an end of the fence. Blockers that eat orbs (a barrier, flak) cut the thread too.",
+                },
+            },
+            new BestiaryEntry
+            {
                 Type = EnemyType.Boss,
                 Name = "The Warden",
                 Group = "Bosses",

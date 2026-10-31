@@ -25,6 +25,8 @@ namespace Arena
         Morsel,        // the Devourer's Hungry turn: food it spits out and crawls over to eat; shoot it or step on it (Devourer.cs)
         // the second half of the run (Variety.cs)
         BeamSentry, Scorcher, Reaver, Warder,
+        // new shooting patterns (Variety.cs)
+        Pauser, Leader, Stitcher,
     }
 
     public class RoleDef
@@ -199,6 +201,12 @@ namespace Arena
                 Picker = PickerGroup.Late, Blurb = "Armoured melee: a red cone, then a rake. Open for a moment after: +50% damage." },
             new EnemyDef { Name = "Warder", Hp = 180f, Radius = 16f, Speed = 65f, Score = 40, Xp = 16, Sides = 8, Color = new Rgba(0.71f, 0.61f, 1f),
                 Picker = PickerGroup.Late, Blurb = "Puts bubbles on up to three allies. Kill it and they all pop." },
+            new EnemyDef { Name = "Pauser", Hp = 100f, Radius = 15f, Speed = 60f, Score = 25, Xp = 12, Sides = 6, Color = new Rgba(0.45f, 0.95f, 0.85f),
+                Picker = PickerGroup.Late, Blurb = "Fans out shots that stop dead, glow, then all rush at where you are. Keep moving." },
+            new EnemyDef { Name = "Leader", Hp = 90f, Radius = 13f, Speed = 80f, Score = 25, Xp = 12, Sides = 3, Color = new Rgba(1f, 0.55f, 0.85f),
+                Picker = PickerGroup.Late, Blurb = "Aims where you're going, not where you are. Change direction when it fires." },
+            new EnemyDef { Name = "Stitcher", Hp = 120f, Radius = 15f, Speed = 65f, Score = 30, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.82f, 0.45f),
+                Picker = PickerGroup.Late, Blurb = "Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps." },
         };
 
         public const int WeaponsPerRole = 3;
@@ -377,9 +385,11 @@ namespace Arena
             HammerShot = 49, // the Storm Hammer, spinning as it flies
             BoulderShot = 50, // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
             FireballShot = 51, // the Fireball: big, rolling on through enemies and setting them burning
-            CrescentShot = 52; // the Eclipse's crescent blade (an enemy kind: 10-19 were all taken)
+            CrescentShot = 52, // the Eclipse's crescent blade (an enemy kind: 10-19 were all taken)
+            PauseShot = 53,    // the Pauser's shots: fly out, stop dead and hang, then the host fires a rush shot from each (Variety.cs)
+            StitchShot = 54;   // the Stitcher's orbs: each is tied to the nearest other one by a harmful thread (Variety.cs)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -436,6 +446,8 @@ namespace Arena
                 case HoneyShot: return 9f;
                 case HollowShot: return 7f;
                 case CrescentShot: return 14f;
+                case PauseShot: return 6.5f;
+                case StitchShot: return 8f;
                 case BileShot: return 6f;
                 case ToothShot: return 10f;
                 default: return 6f;
@@ -518,6 +530,8 @@ namespace Arena
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 case HollowShot: return new Rgba(0.9f, 0.91f, 1f);  // a Duelist decoy's shot: a harmless ring
                 case CrescentShot: return new Rgba(0.89f, 0.83f, 1f);  // the Eclipse's crescent blade
+                case PauseShot: return new Rgba(0.45f, 0.95f, 0.85f);  // the Pauser's teal
+                case StitchShot: return new Rgba(1f, 0.82f, 0.45f);    // the Stitcher's gold
                 case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
                 case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws
                 default: return new Rgba(1f, 0.3f, 0.45f);

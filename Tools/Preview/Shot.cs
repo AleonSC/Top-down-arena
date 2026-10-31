@@ -282,6 +282,33 @@ class Shot {
       for (int k = 1; k < zap.Count && k < 4; k++) host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = zap[0].Pos, Pos2 = zap[k].Pos, Color = Defs.BulletColor(Defs.BoltShot), Dur = 0.15f, T = 0.03f });
       if (zap.Count > 0) host.Game.Effects.Add(new Effect { Kind = FxKind.Spark, Pos = zap[0].Pos, Color = Defs.BulletColor(Defs.HammerShot), Radius = zap[0].Radius + 14f, Dur = 0.3f, T = 0.12f });
     }
+    if (Environment.GetEnvironmentVariable("PATTERNS") != null) {
+      // The new shooting patterns: a Pauser with its shots hanging, a Leader aiming ahead, a Stitcher's orbs and threads.
+      var sbp = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      var sep = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(800f, 470f);
+      Func<EnemyType, V2, Enemy> put = (ty, at) => { var en = (Enemy)sep.Invoke(host.Game, new object[] { ty, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; return en; };
+      var pa = put(EnemyType.Pauser, new V2(420f, 250f));
+      float aimP = (me.Pos - pa.Pos).Angle;
+      for (int k = 0; k < Game.PauseShots; k++) {
+        V2 d = V2.FromAngle(aimP + Game.PauseFan * (k / (Game.PauseShots - 1f) - 0.5f));
+        var b = (Bullet)sbp.Invoke(host.Game, new object[] { Defs.PauseShot, pa.Pos + d * (pa.Radius + 102f), d * Game.PauseSpeed, 0f, Game.PauseFly + Game.PauseHold, 12f, 0, false, 0f });
+        b.Life = Game.PauseHold * 0.4f;
+      }
+      var le = put(EnemyType.Leader, new V2(1250f, 260f)); le.Phase = 1; le.Facing = (me.Pos + new V2(160f, 40f) - le.Pos).Angle;
+      var s1 = put(EnemyType.Stitcher, new V2(1150f, 760f)); var s2 = put(EnemyType.Stitcher, new V2(1380f, 560f));
+      // The pair's volley closing in, and an older one further along; a lone Stitcher's two orbs.
+      foreach (float f in new[] { 0.35f, 0.75f }) {
+        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s1.Pos + (me.Pos - s1.Pos) * f, (me.Pos - s1.Pos).Normalized() * 105f, 0f, 7f, 12f, 0, false, 0f });
+        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s2.Pos + (me.Pos - s2.Pos) * f, (me.Pos - s2.Pos).Normalized() * 105f, 0f, 7f, 12f, 0, false, 0f });
+      }
+      var s3 = put(EnemyType.Stitcher, new V2(300f, 780f));
+      for (int k = -1; k <= 1; k += 2) {
+        V2 d = V2.FromAngle((me.Pos - s3.Pos).Angle + k * Game.StitchSpread);
+        sbp.Invoke(host.Game, new object[] { Defs.StitchShot, s3.Pos + d * 260f, d * 105f, 0f, 7f, 12f, 0, false, 0f });
+      }
+    }
     if (Environment.GetEnvironmentVariable("BOULDER") != null) {
       // The Golem Staff: charging a throw (BOULDER=<draw seconds>, with the landing marker), and boulders in flight.
       var sbb = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

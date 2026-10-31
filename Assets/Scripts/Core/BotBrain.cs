@@ -271,6 +271,7 @@ namespace Arena
                 botThreats.Sort((x, y) => x.Pos.DistanceSq(at).CompareTo(y.Pos.DistanceSq(at)));
                 botThreats.RemoveRange(sk.Attention, botThreats.Count - sk.Attention);
             }
+            StitchLinks(Bullets.Values, botThreads);  // Stitcher threads (Variety.cs): treated as standing still
             // Misjudging where things are by a few pixels.
             float misjudge = (float)Math.Sin(botClock * 7.1f + me.Id * 3f) * sk.Noise;
             if (botSeen.Count > Bullets.Count + 400)
@@ -368,7 +369,8 @@ namespace Arena
                     float w = 1.6f - t / T;  // sooner hits matter more
                     foreach (var b in botThreats)
                     {
-                        V2 bp = b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
+                        V2 bp = b.Kind == Defs.PauseShot ? b.Pos + b.Vel * PauseTravel(b, t)  // slowing to a stop, then hanging (Variety.cs)
+                            : b.AngVel == 0f ? b.Pos + b.Vel * t : b.Pos + b.Vel.Rotated(b.AngVel * t * 0.5f) * t;
                         float r = hitR + b.Radius + sk.Margin + misjudge;
                         float dd = bp.DistanceSq(p);
                         if (dd < r * r)
@@ -390,6 +392,9 @@ namespace Arena
                     foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or a Scorcher's embers: burning now or about to (Paths.cs)
                         if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
+                    foreach (var th in botThreads)
+                        if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
+                            d += w * 2.5f;
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
                         if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))

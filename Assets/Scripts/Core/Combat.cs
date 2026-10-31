@@ -242,7 +242,10 @@ namespace Arena
                     Steer(b, dt);
                 if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
                     PullIntoWells(b, dt);
-                b.Pos += b.Vel * (dt * SmokeSpeed(b));
+                if (b.Kind == Defs.PauseShot)
+                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b));  // slows to a stop, then hangs (Variety.cs)
+                else
+                    b.Pos += b.Vel * (dt * SmokeSpeed(b));
                 if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
                     b.Pos += wind * dt;
                 b.Life -= dt;
@@ -251,7 +254,7 @@ namespace Arena
                     scratchIds.Add(b.Id);
                     if (Walled && b.Life > 0f)
                         AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
-                    if (b.Burst > 0 && b.Life <= 0f)
+                    if ((b.Burst > 0 || b.Rush) && b.Life <= 0f)
                         landed.Add(b);
                     if (b.ShadowKunai)
                         ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
@@ -264,6 +267,11 @@ namespace Arena
             // Host only (Burst is never set on clients): landed mortar bombs and grenades explode.
             foreach (var b in landed)
             {
+                if (b.Rush)
+                {
+                    PauseRush(b);  // Variety.cs
+                    continue;
+                }
                 if (b.Kind == Defs.BoulderShot)
                 {
                     LandBoulder(b);  // Minions.cs

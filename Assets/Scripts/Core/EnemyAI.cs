@@ -130,9 +130,12 @@ namespace Arena
             if (n >= 8) pool.Add(EnemyType.Mortar);
             if (n >= 9) pool.Add(EnemyType.Shielder);
             if (n >= 11) pool.Add(EnemyType.Medic);
+            if (n >= 14) pool.Add(EnemyType.Pauser);   // new shooting patterns (Variety.cs)
             if (n >= 16) pool.Add(EnemyType.Phantom);
             if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
+            if (n >= 19) pool.Add(EnemyType.Leader);
             if (n >= 21) pool.Add(EnemyType.Hexer);
+            if (n >= 22) pool.Add(EnemyType.Stitcher);
             if (n >= 24) pool.Add(EnemyType.Scorcher);
             if (n >= 26) pool.Add(EnemyType.Juggernaut);
             if (n >= 28) pool.Add(EnemyType.Reaver);
@@ -469,8 +472,8 @@ namespace Arena
                 return;  // locked in while winding up and dashing
             if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber)
                 return;  // committed to the leap / flight line
-            if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0)
-                return;  // the beam's aim and sweep, the rake's cone (Variety.cs)
+            if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
+                return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -787,6 +790,7 @@ namespace Arena
                 case EnemyType.Scorcher:
                 case EnemyType.Reaver:
                 case EnemyType.Warder:
+                case EnemyType.Leader:
                     VarietySpecial(e, tpos, dt);  // Variety.cs
                     break;
             }

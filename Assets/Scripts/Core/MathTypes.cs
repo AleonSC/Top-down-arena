@@ -48,6 +48,7 @@ namespace Arena
 
         public float DistanceTo(V2 o) => (this - o).Length;
         public float DistanceSq(V2 o) => (this - o).LengthSq;
+        public float Dot(V2 o) => X * o.X + Y * o.Y;
 
         public V2 Clamp(V2 min, V2 max) =>
             new V2(Math.Max(min.X, Math.Min(max.X, X)), Math.Max(min.Y, Math.Min(max.Y, Y)));

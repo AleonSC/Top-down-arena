@@ -48,6 +48,7 @@ namespace Arena
         public float BaseHp;
         public string Name;
         public V2 Pos, Disp;
+        public V2 Motion, MotionFrom;  // host only: how fast and which way they're moving, smoothed (the Leader aims ahead with it; Variety.cs)
         public float Aim;
         public V2 AimAt;         // the point they're aiming at (Implosion picks the enemy under it; sent with inputs)
         public bool Firing;
@@ -246,6 +247,7 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
+        public bool Rush;         // host only: a Pauser's shot; when it runs out (after hanging still) one rushes at a player from where it hung
         public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
@@ -1415,6 +1417,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
+                TrackMotion(p, dt);  // Variety.cs
                 TickSlots(p, dt);
                 p.BarrierT = Math.Max(0f, p.BarrierT - dt);
                 p.InvulnT = Math.Max(0f, p.InvulnT - dt);
