@@ -63,6 +63,8 @@ namespace Arena
         // The gates (Lockdown): three per cross turn, 4 s apart, alternating top and bottom.
         public const int GateRows = 2;
         public const float GateRowGap = 16f, GateBulletR = 7f, GateSpeed = 180f, GateDoor = 90f, GateWarn = 0.8f;
+        // Each gate slides GateHoldIn px in, stops for GateHold s (a moment to line up a door), then carries on.
+        public const float GateHoldIn = 30f, GateHold = 0.3f;
         const float GateDamage = 12f, GateEvery = 4f;
         // Gas canisters: with the 1st and 3rd gate, near the target; a cloud 90 px wide for 5 s, 8 damage a second.
         const float GasRadius = 90f, GasFlight = 1f, GasLife = 5f, GasDps = 8f;
@@ -526,12 +528,28 @@ namespace Arena
 
         void AddWardenGate(WardenState w, float dir)
         {
-            var g = new WardenGate { Dir = dir, Front = dir > 0f ? 6f : Height - 6f, Warn = GateWarn };
+            var g = new WardenGate { Dir = dir, Front = GateStart(dir), Warn = GateWarn };
             // The door gaps sit near the side walls, outside where the cross ever plants (28-72% of the width),
             // so its vertical stream can never block one: every quadrant the cross makes has a way through.
             g.Gap1 = Rand(70f, Width * 0.28f - GateDoor - 40f);
             g.Gap2 = Rand(Width * 0.72f + 40f, Width - GateDoor - 70f);
             w.Gates.Add(g);
+        }
+
+        static float GateStart(float dir) => dir > 0f ? 6f : Height - 6f;
+
+        /// How long a gate has moved for, this long after its warning ended: it stops once it's GateHoldIn px in.
+        static float GateMoved(float since)
+        {
+            float stopAt = GateHoldIn / GateSpeed;
+            return since < stopAt ? since : since < stopAt + GateHold ? stopAt : since - GateHold;
+        }
+
+        /// The gate has stopped just inside the arena, about to carry on.
+        public static bool GateHolding(WardenGate g)
+        {
+            float since = -g.Warn, stopAt = GateHoldIn / GateSpeed;
+            return since >= stopAt && since < stopAt + GateHold;
         }
 
         public static float GateBack(WardenGate g) => g.Front - g.Dir * (GateRows - 1) * GateRowGap;
@@ -541,12 +559,13 @@ namespace Arena
         /// Moves the gates along (every game: the host, and clients between snapshots).
         static void AdvanceGates(WardenState w, float dt)
         {
+            // Warn keeps counting down past 0 (it's replicated), so -Warn is how long the gate has been live and
+            // every game puts it in the same place, stop included.
             foreach (var g in w.Gates)
             {
-                if (g.Warn > 0f)
-                    g.Warn -= dt;
-                else
-                    g.Front += g.Dir * GateSpeed * dt;
+                g.Warn -= dt;
+                if (g.Warn <= 0f)
+                    g.Front = GateStart(g.Dir) + g.Dir * GateSpeed * GateMoved(-g.Warn);
             }
             w.Gates.RemoveAll(g => g.Dir > 0f ? GateBack(g) > Height + 20f : GateBack(g) < -20f);
         }
