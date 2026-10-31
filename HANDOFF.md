@@ -358,9 +358,10 @@ before and after. Ask before deleting code, changing behaviour, or growing a ste
    ✅ Abilities: a fingerprint of all 77 abilities' data, the lobby tables, every upgrade card, max charges and
    ~15,000 bot decisions per ability was identical before and after. To add an ability: an `AbilityId`, an entry
    in its class's list, its cast `case`, an icon.
-   *Known red test (not from the registry):* "enemy bullets stay near the bullet budget" (wave 21 peaks at 214 enemy
-   bullets, the test allows 210) has failed since `e6b6e37` (shields wear down, the riot brings guards); it passed
-   on the commit before. Pushed with the owner's OK; the fix belongs with that change.
+   *Formerly red test, fixed Oct 2026:* "enemy bullets stay near the bullet budget" sat on the edge (wave 21 peaks
+   at 183-214 over random seeds, the test allowed 210). Only volleys check the budget; a Phantom's blink ring (12),
+   a Charger's dash ring (10) and a Mortar bomb's burst (10-14) always fire. The owner chose to keep that and allow
+   1.5x the budget in the test rather than change the game.
    ✅ Enemies: blurb, picker group, late and heavy flags in each `EnemyDef`; a fingerprint of every enemy's data,
    name, blurb, late/heavy checks and the picker's list was identical before and after.
 7. **Divergent paths**: all 4 steps ✅ (framework, no-path option, all 9 paths). Arena rules: `ArenaRule()`, eased `NarrowF`/`FogF` in `Paths.cs`, which every game derives from the path, so nothing extra is sent; the playable rect is `ArenaMin`/`ArenaMax` (`ClampToArena`, `KeepInArena`, `RandomInArena`). Next: tune numbers in play. Designed with the owner, see [`Docs/Paths.md`](Docs/Paths.md) (decisions, the first pool
@@ -374,7 +375,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-13 (networking and allocation notes), and the known red test "enemy bullets stay near the bullet budget" (see step 6). Paths are feature-complete
+**Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-13 (networking and allocation notes). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the
