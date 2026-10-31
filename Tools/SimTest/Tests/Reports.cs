@@ -164,4 +164,104 @@ static partial class Program
                 kit, Upgrades.Ability(Upgrades.Ultimate(Role.Dps, kit)).Name, dealt[0], dealt[1], dealt[1] - dealt[0]);
         }
     }
+
+    // Which weapons ignore which upgrades: every weapon fires at a pinned cluster of enemies (one at the cursor, one
+    // behind it, two to the sides, all at 30% health for Executioner) for 6 s with no upgrades, then with 3 stacks of
+    // each weapon upgrade. An upgrade that changes neither the damage, the slow on enemies nor your healing is listed.
+    // Homing Rounds are also tried with the cursor 45 px beside the enemy, where they should fix the miss.
+    static void UpgradeCoverageReport(float dt)
+    {
+        string[] ups = { "Sharpened Rounds", "Quick Trigger", "Multishot", "Barrage", "Piercing Rounds", "Swarm Rounds", "Royal Jelly",
+            "Executioner", "Twin Fang", "Collapse Rounds", "Graviton Rounds", "Dark Matter", "Homing Rounds", "Ricochet",
+            "Incendiary Rounds", "Cryo Rounds", "Shock Rounds", "Explosive Rounds", "Velocity Rounds" };
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var missing = new Dictionary<string, List<string>>();
+        var gains = new Dictionary<string, List<float>>(); var gainNames = new Dictionary<string, List<string>>();
+        foreach (var u in ups) { missing[u] = new List<string>(); gains[u] = new List<float>(); gainNames[u] = new List<string>(); }
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                var kit = (Kit)k;
+                var host = new Session { AutoStart = 1, StartWave = 3 };
+                host.Host(nextPort++, "A", role, 0, 0, kit);
+                host.StartMatch();
+                var g = host.Game;
+                for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                var me = g.Players[1];
+                g.DevSetGod(1, true);
+                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                {
+                    var weapon = Defs.Weapon(role, kit, w);
+                    // Returns damage dealt, the strongest slow seen (1 = none) and the health you gained.
+                    Func<string, bool, float[]> trial = (up, offset) =>
+                    {
+                        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+                        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                        g.Minions.Clear(); g.Bullets.Clear(); g.Zones.Clear();
+                        me.Taken.Clear();
+                        int idx = up == null ? -1 : Array.FindIndex(Upgrades.All, x => x.Name == up);
+                        for (int n = 0; up != null && n < Math.Min(3, Upgrades.All[idx].MaxStacks <= 0 ? 3 : Upgrades.All[idx].MaxStacks); n++) me.Taken.Add(idx);
+                        g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, x => x.Name == "Vitality"));  // recalc (and a harmless card)
+                        me.Weapon = weapon;
+                        me.BowShotDraw = 0f;
+                        float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + 14f : Math.Min(220f, g.WeaponRange(me) * 0.7f);
+                        V2 at = new V2(800f, 450f), from = new V2(800f - range, 450f);
+                        var spots = new[] { at, at + new V2(60f, 0f), at + new V2(15f, 70f), at + new V2(15f, -70f) };
+                        var foes = spots.Select(pt => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, pt, 0f, 0, false }); e.MaxHp = 1e6f; e.Hp = 3e5f; e.SpawnT = 0f; return e; }).ToList();
+                        float start = foes.Sum(e => e.Hp), slow = 1f, healed = 0f;
+                        V2 aim = offset ? at + new V2(0f, 45f) : at;
+                        for (int f = 0; f < 60 * 6; f++)
+                        {
+                            for (int j = 0; j < foes.Count; j++) { foes[j].Pos = spots[j]; foes[j].FireT = 99f; if (foes[j].Hp < 1e5f) foes[j].Hp = 3e5f - 1e4f; }
+                            if (offset) foes.Skip(1).ToList().ForEach(e => e.Pos = new V2(100f, 100f + 60f * foes.IndexOf(e)));
+                            me.Pos = from;
+                            me.Hp = Math.Min(me.Hp, me.MaxHp * 0.5f);
+                            float hp0 = me.Hp;
+                            foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+                            host.Poll();
+                            bool fire = !Game.ChargeWeapon(weapon.Id) || (f % 72) < 60;
+                            g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = aim });
+                            healed += Math.Max(0f, me.Hp - hp0);
+                            foreach (var e in foes) slow = Math.Min(slow, e.SlowT > 0f ? e.SlowMult : 1f);
+                        }
+                        return new[] { start - foes.Sum(e => e.Hp), slow, healed };
+                    };
+                    var b0 = trial(null, false);
+                    var bo = trial(null, true);
+                    var effects = new List<string>();
+                    foreach (var up in ups)
+                    {
+                        var r = trial(up, false);
+                        gains[up].Add(r[0] / Math.Max(1f, b0[0]) - 1f); gainNames[up].Add(weapon.Name);
+                        bool hit = Math.Abs(r[0] - b0[0]) > 0.03f * Math.Max(1f, b0[0]) || r[1] < b0[1] - 0.01f || r[2] > b0[2] + 2f;
+                        if (!hit && up == "Homing Rounds")
+                        {
+                            var ro = trial(up, true);
+                            hit = Math.Abs(ro[0] - bo[0]) > 0.03f * Math.Max(1f, bo[0]);
+                        }
+                        if (!hit)
+                            missing[up].Add(weapon.Name);
+                        else
+                            effects.Add(up);
+                    }
+                    Console.WriteLine("  {0,-6} {1,-10} {2,-18} base {3,7:0}  ignores: {4}", role, kit, weapon.Name, b0[0],
+                        string.Join(", ", ups.Where(u => !effects.Contains(u))));
+                }
+                host.Leave("");
+            }
+        Console.WriteLine();
+        foreach (var kv in missing)
+            Console.WriteLine("  {0,-18} no effect on {1,2}: {2}", kv.Key, kv.Value.Count, string.Join(", ", kv.Value));
+        Console.WriteLine();
+        Console.WriteLine("  Damage change at 3 stacks (or max), across all weapons: median, lowest, highest");
+        foreach (var kv in gains.OrderByDescending(x => x.Value.OrderBy(v => v).ElementAt(x.Value.Count / 2)))
+        {
+            var v = kv.Value.OrderBy(x => x).ToList();
+            var names = gainNames[kv.Key];
+            string lo = names[kv.Value.IndexOf(v[0])], hi = names[kv.Value.IndexOf(v[v.Count - 1])];
+            var worse = kv.Value.Select((x, j) => new { x, n = names[j] }).Where(o => o.x < -0.05f).Select(o => o.n + string.Format(" {0:0}%", o.x * 100f));
+            Console.WriteLine("  {0,-18} {1,5:+0;-0}%  {2,5:+0;-0}% ({4})  {3,6:+0;-0}% ({5})", kv.Key, v[v.Count / 2] * 100f, v[0] * 100f, v[v.Count - 1] * 100f, lo, hi);
+            if (worse.Any()) Console.WriteLine("      makes worse: " + string.Join(", ", worse));
+        }
+    }
 }

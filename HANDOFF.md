@@ -166,7 +166,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
     `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, ... Reports (numbers, no pass/fail):
-    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `ultdps`, `laserdebug`. A new test: add it to its system's file, then to the
+    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `ultdps`, `upgradecov` (which weapon upgrades each weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to the
     `Suites` table (and to `FeatureTests` if it belongs in the feature suite).
   - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
     it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
