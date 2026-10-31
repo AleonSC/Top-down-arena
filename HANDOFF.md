@@ -314,8 +314,11 @@ copies of the same numbers:
     (endless mode, more players).
 12. Rendering is GL immediate mode with many small circles (8-48 segments). Fine on desktop; if frame time
     ever matters, lower segment counts for small bullets and batch the menu backgrounds.
-13. Hot paths are mostly allocation-free already (shared scratch lists in `Collide`); the remaining
-    per-event allocations are in Knight swings (`LandSwing` makes a hit list per swing) and `ReadSnapshot`.
+13. ✅ **Done (Oct 2026):** the per-tick and per-swing lists are reused scratch fields: `Collide`'s dead enemies,
+    `TickOrbs`, `TickMinions`, `TickZones`, `TickEnemies` (its copy and the separation pass), the Knight's
+    `LandSwing` / `DeflectBullets` / `CutBullets` and `NetPeer.Broadcast`. Only methods that never call back into
+    themselves were changed; the full seeded suite's output was identical before and after. Still allocating, on
+    purpose (rarer, or could re-enter): `ShockPulse`, Chain Light's per-cone lists, `SendImps`, `RemoveTemporaryMinions`.
 
 ### 6.6 Balance tooling
 
@@ -375,7 +378,7 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-13 (networking and allocation notes). Paths are feature-complete
+**Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-12 (networking and rendering notes). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
 whether waves 1-4 should also get a path choice. Planned in the design but not built yet: a route strip in the

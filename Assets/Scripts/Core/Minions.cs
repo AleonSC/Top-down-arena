@@ -1313,8 +1313,10 @@ namespace Arena
                 }
             }
 
-            var expired = new List<Minion>();
-            var exploding = new List<Minion>();
+            var expired = scratchMinionsExpired;
+            var exploding = scratchMinionsExploding;
+            expired.Clear();
+            exploding.Clear();
             foreach (var m in Minions.Values)
             {
                 Player owner;
@@ -1567,9 +1569,15 @@ namespace Arena
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 40f, 0.4f, Sfx.SpellHoly);
         }
 
+        // Reused every tick by TickMinions and TickZones.
+        readonly List<Minion> scratchMinionsExpired = new List<Minion>();
+        readonly List<Minion> scratchMinionsExploding = new List<Minion>();
+        readonly List<Zone> scratchZonesExpired = new List<Zone>();
+
         void TickZones(float dt)
         {
-            var expired = new List<Zone>();
+            var expired = scratchZonesExpired;
+            expired.Clear();
             foreach (var z in Zones.Values)
             {
                 var d = z.Def;

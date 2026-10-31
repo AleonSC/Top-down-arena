@@ -316,6 +316,11 @@ namespace Arena
 
         static float AngleTo(V2 from, V2 to, float aim) => Math.Abs(MathX.Fmod((to - from).Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi);
 
+        // Reused by every swing (swings land one at a time, from ResolveSwings).
+        readonly List<Enemy> swingHits = new List<Enemy>();
+        readonly List<Bullet> swingDeflected = new List<Bullet>();
+        readonly List<int> swingCut = new List<int>();
+
         void LandSwing(Player p, Swing s)
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
@@ -336,7 +341,8 @@ namespace Arena
                     s.Silent ? Sfx.None : s.Heavy ? Sfx.SwingHeavy : Sfx.SwingLight);
 
             // Who's in the arc (the Rapier only takes the nearest few).
-            var hits = new List<Enemy>();
+            var hits = swingHits;
+            hits.Clear();
             foreach (var e in Enemies.Values)
             {
                 if (e.SpawnT > 0f || e.Hp <= 0f)
@@ -465,7 +471,8 @@ namespace Arena
         /// batted back out the way the staff was swinging, as the swinger's own holy shots.
         int DeflectBullets(Player p, V2 origin, float aim, float reach, float halfArc)
         {
-            var hit = new List<Bullet>();
+            var hit = swingDeflected;
+            hit.Clear();
             foreach (var b in Bullets.Values)
             {
                 if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind))
@@ -495,7 +502,8 @@ namespace Arena
 
         int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f, int max = int.MaxValue)
         {
-            var cut = new List<int>();
+            var cut = swingCut;
+            cut.Clear();
             foreach (var b in Bullets.Values)
             {
                 if (cut.Count >= max)
