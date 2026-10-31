@@ -1363,6 +1363,9 @@ namespace Arena
                 case ZoneKind.BloodPool:
                     DrawBloodZone(z, c, t);  // BloodMageLook.cs
                     break;
+                case ZoneKind.HoneyPool:
+                    DrawHoneyPool(z, c, t);  // QueenLootLook.cs
+                    break;
                 default:  // Haven
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.04f * Mathf.Sin(t * 4f)), 48);
                     break;
@@ -1384,7 +1387,7 @@ namespace Arena
                 for (int k = 0; k < 3; k++)
                     Circle(m.Disp + V2.FromAngle(t * 5f + MathX.Tau * k / 3f) * (rad + 6f), 2.5f, new Rgba(1f, 0.9f, 0.4f, 0.9f), 6);
             }
-            if (block > rad)  // the guardian spirit's bullet-eating field, fading as it soaks
+            if (block > rad && m.Kind != MinionKind.HiveDrone)  // the guardian spirit's bullet-eating field, fading as it soaks (a drone just guards its own little patch)
             {
                 float g = MathX.Clamp01(m.GuardFrac);
                 Circle(m.Disp, block, c.WithAlpha(0.04f + 0.1f * g), 40);
@@ -1403,6 +1406,16 @@ namespace Arena
             if (m.Kind == MinionKind.SoulGhost)
             {
                 DrawSoulGhost(m, t);
+                return;
+            }
+            if (m.Kind == MinionKind.HiveDrone)
+            {
+                DrawHiveDrone(m, t);  // QueenLootLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.HiveBomber)
+            {
+                DrawHiveBomber(m, t);  // QueenLootLook.cs
                 return;
             }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;

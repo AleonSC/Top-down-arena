@@ -25,6 +25,7 @@ namespace Arena
         BloodShell, CrimsonPact, Exsanguinate, BloodGift, SiphonField, Martyr, BloodBoil, FrenzyPact, HemoNova,
         BloodRite, SanguineRain, CrimsonApotheosis,
         StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
+        RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
         None = 255,
     }
 
@@ -82,6 +83,7 @@ namespace Arena
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
+        public int HiveDrones, Bombers;  // the Hive Queen's Hive Drones (how many) and Bomber Escort (bombers a launch) (QueenLoot.cs)
         public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit, SlowedBonus;
 
         // Weapon mods, one picked after each boss (and its legendary).
@@ -111,6 +113,7 @@ namespace Arena
         public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
+        public bool Unoffered;                      // kept (old saves, dev tools) but never offered: Swarm Rounds, Royal Jelly, Brood Mother since the Queen's new cards
         public Action<Stats> Apply;
     }
 
@@ -124,7 +127,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.MageAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities);
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities, Game.QueenAbilities);
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -303,11 +306,19 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
                 Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
                 Apply = s => s.Searchlight += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit. With nothing else near, the swarm bites the enemy hit instead",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Hive Drones",
+                Desc = "Two of the Queen's drones switch sides: they circle you and block bullets. After each of your kills one flies out to sting the nearest enemy (3 x 20), then comes home and heals you 4; while you hit a boss, one goes every 3 s. Each stack adds a drone, and another flies out each time",
+                Apply = s => s.HiveDrones += s.HiveDrones == 0 ? 2 : 1 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, Grants = AbilityId.RoyalDive, Name = "Royal Dive",
+                Desc = "New ability: the Queen's dive. Leap (untouchable) and crash down at your cursor, hurting and knocking back everything there, and leave a honey pool that slows enemies and heals allies" },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Bomber Escort",
+                Desc = "Every 5 s one of the Queen's bombers flies from you to the toughest enemy within 400 px and bursts on it (55 damage within 70 px). +1 bomber per stack",
+                Apply = s => s.Bombers += 1 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit. With nothing else near, the swarm bites the enemy hit instead",
                 Apply = s => s.SplitShots += 3 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Royal Jelly", Desc = "Every hit heals you 1 HP (up to 10 HP per second)",
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Royal Jelly", Desc = "Every hit heals you 1 HP (up to 10 HP per second)",
                 Apply = s => s.Lifesteal += 1f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
                 Apply = s => s.BroodChance += 0.4f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },
@@ -490,6 +501,8 @@ namespace Arena
         public static bool Available(int id, Role role, AbilityId roleAbility, List<int> taken)
         {
             var u = All[id];
+            if (u.Unoffered)
+                return false;
             if (u.Role.HasValue && u.Role.Value != role)
                 return false;
             if (u.RequiresAbility != AbilityId.None && !HasAbility(u.RequiresAbility, roleAbility, taken))

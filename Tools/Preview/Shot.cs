@@ -183,6 +183,31 @@ class Shot {
       // The Searchlight on an enemy up and to the right.
       foreach (var e in host.Game.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.4f) * 260f; me.AimAt = me.LightPos = me.LightDisp = e.Pos + new V2(20f, 10f); break; }
     }
+    if (Environment.GetEnvironmentVariable("QUEENLOOT") != null) {
+      // The Hive Queen's legendaries: three Hive Drones (one out stinging an enemy), a Bomber Escort bomber on its way
+      // to another, and a Royal Dive honey pool where you just landed.
+      System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);
+      var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+      host.Game.GrantUpgrade(1, UL("Hive Drones")); host.Game.GrantUpgrade(1, UL("Hive Drones")); host.Game.GrantUpgrade(1, UL("Royal Dive")); host.Game.GrantUpgrade(1, UL("Bomber Escort"));
+      for (int f = 0; f < 90; f++) { Step(host); Thread.Sleep(1); }
+      host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.3f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
+      var foes = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      if (foes.Count > 0) { foes[0].Pos = foes[0].Disp = me.Pos + new V2(230f, -120f); }
+      if (foes.Count > 1) { foes[1].Pos = foes[1].Disp = me.Pos + new V2(-260f, -150f); }
+      int k = 0;
+      foreach (var m in host.Game.Minions.Values) if (m.Kind == MinionKind.HiveDrone)
+      {
+        if (k == 0 && foes.Count > 0) { m.Pos = m.Disp = foes[0].Pos + V2.FromAngle(2.4f) * (foes[0].Radius + 11f); m.Aim = (foes[0].Pos - m.Pos).Angle; }
+        else { m.Ang = 1.2f + 2.1f * k; m.Pos = m.Disp = me.Pos + V2.FromAngle(m.Ang) * m.Def.OrbitRadius; m.Aim = m.Ang + MathX.Pi / 2f; }
+        k++;
+      }
+      var sm = typeof(Game).GetMethod("SpawnMinion", bf);
+      var bomber = (Minion)sm.Invoke(host.Game, new object[] { MinionKind.HiveBomber, me, me.Pos + new V2(-120f, -70f), 2.5f, false });
+      bomber.T = 1.4f; bomber.Disp = bomber.Pos; if (foes.Count > 1) bomber.Aim = (foes[1].Pos - bomber.Pos).Angle;
+      var az = typeof(Game).GetMethod("AddZone", bf);
+      var pool = (Zone)az.Invoke(host.Game, new object[] { ZoneKind.HoneyPool, me, me.Pos + new V2(10f, 30f), Game.DivePool, Game.DivePoolTime });
+      pool.T = Game.DivePoolTime * 0.7f;
+    }
     if (Environment.GetEnvironmentVariable("IMPLODE") != null) {
       // Implosion: the cursor on an enemy (its target marker), and implosions going off at IMPLODE=<0..1> of the way through.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.Implosion); me.Kit = Kit.BloodMage; host.Game.Bot = false;

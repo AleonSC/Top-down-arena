@@ -1,6 +1,6 @@
 # The Hive Queen's legendary cards
 
-Status: **plan**. Two cards agreed (Hive Drones, Royal Dive); the third is open (see the end).
+Status: **built** (Oct 2026, protocol 103): Hive Drones, Royal Dive, Bomber Escort. The old three (Swarm Rounds, Royal Jelly, Brood Mother) stay in the game but are never offered (`UpgradeDef.Unoffered`), by the owner's choice, until they get another source.
 
 ## Why
 
@@ -52,14 +52,21 @@ Her royal dive, yours: a bonus ability on Q/E/Shift, like the Stun Gun. Cooldown
 - Old saves that took Brood Mother or Royal Jelly load them as Hive Drones / Royal Dive.
 - Protocol bump (new minion kind, ability, upgrades).
 
-## Open: the third card
+## Bomber Escort (the third card, the owner's pick)
 
-Options, all from her fight and none following the cursor:
+Every 5 s, while an enemy is within 400 px, one of her bombers (per stack) sets off from you at the toughest one
+(most health), steering in, and bursts on it: 55 damage within 70 px (your damage upgrades count). If the target
+dies first it turns to the next one near; its fuse is 2.5 s.
 
-1. **Keep Swarm Rounds** (recommended): it's already bee-themed ("the swarm bites") and was just balanced.
-2. **Egg Clutch:** enemies you kill can leave one of her eggs; it hatches after 2 s into two little bees that hunt
-   for 6 s.
-3. **Bomber Escort:** every 6 s one of her bombers flies from you to the toughest enemy within 400 px and
-   bursts on it.
-4. **Honeycomb Shell:** every 12 s a honeycomb shell closes round you and soaks 40 damage; when it breaks, it
-   bursts into a honey pool that slows the enemies around you.
+## As built (numbers after measuring)
+
+| Card | Boss | Pack | Spread | 3 stacks (boss / pack) |
+|---|---|---|---|---|
+| Hive Drones | +30% | +29% | +7% | +85% / +79% |
+| Bomber Escort | +19% | +46% | +39% | +63% / +140% |
+
+(One pick, median over the 54 weapons, `run.sh 1 1 balance`.) Changes from the plan while measuring: drone stings
+15 -> 20 and the boss sting every 3 s (not 4); each stack also sends one more drone per kill (more drones used to
+sit idle); the bomber's burst 70 -> 55 (pack +67% was over the legendary target). Hive Drones also block bullets
+and heal, which the report doesn't count. Royal Dive is an ability (12 s): 120 damage around the landing, knockback,
+a 4 s honey pool.

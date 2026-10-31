@@ -1293,6 +1293,8 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 TickGuards(p, dt);  // Warden's Guard (Stun.cs)
+                TickHiveDrones(p, dt);  // the Hive Queen's Hive Drones and Bomber Escort (QueenLoot.cs)
+                TickBombers(p, dt);
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
@@ -1301,7 +1303,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard)
+                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.HiveDrone)
                         {
                             have++;
                             surplus = m;
@@ -1372,6 +1374,19 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (m.Kind == MinionKind.HiveDrone)
+                {
+                    MoveDrone(m, owner, dt);  // QueenLoot.cs
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
+                if (m.Kind == MinionKind.HiveBomber)
+                {
+                    if (MoveBomber(m, dt))  // QueenLoot.cs
+                        exploding.Add(m);
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
                 if ((m.Kind == MinionKind.Wisp && owner.Weapon.Id == WeaponId.WispLantern || m.Kind == MinionKind.Imp && owner.Weapon.Id == WeaponId.ImpCaller) && m.Companion)
                 {
                     if (MoveSent(m, owner, dt))  // sent at something by the Wisp Lantern or Imp Caller (they don't act on their own)

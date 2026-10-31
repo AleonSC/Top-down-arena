@@ -151,6 +151,7 @@ namespace Arena
         public bool OfferMod;        // the current offer is the weapon mod list
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
+        public float DroneCd, DroneBossCd, BomberCd;  // host: Hive Drones (next one back; next sting while hitting a boss) and Bomber Escort (QueenLoot.cs)
         public V2 LightPos, LightDisp;  // Searchlight: its pool (replicated), and where this screen draws it (Stun.cs)
         public bool RadiantOn;              // Radiant Orb: held out (replicated; RadiantOrb.cs)
         public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
@@ -336,6 +337,7 @@ namespace Arena
         public int GoalEnemy;            // host: what it was sent at (0: just the point Goal)
         public V2 Goal;
         public float SentT;              // host: how long it has been out
+        public int Stings;               // host: a Hive Drone's stings left on this sortie (QueenLoot.cs)
     }
 
     public class Effect
@@ -1238,6 +1240,16 @@ namespace Arena
                         dashSpeed = dist / LeapTime;
                         break;
                     }
+                    case AbilityId.RoyalDive:
+                    {
+                        // The Hive Queen's dive: carried to the cursor (up to 380 px); the host lands the crash there.
+                        target = ClampToArena(me.Pos + (aimAt - me.Pos).LimitLength(RoyalDiveRange), me.Def.BodyR);
+                        float dist = target.DistanceTo(me.Pos);
+                        DashDir = dist > 1f ? (target - me.Pos) / dist : V2.Zero;
+                        DashT = RoyalDiveTime;
+                        dashSpeed = dist / RoyalDiveTime;
+                        break;
+                    }
                     case AbilityId.Lunge:
                     {
                         V2 dir = (aimAt - me.Pos).IsZero ? V2.FromAngle(me.Aim) : (aimAt - me.Pos).Normalized();
@@ -1334,6 +1346,7 @@ namespace Arena
             Recorder?.Tick(this, dt);
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
+            TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
             TickNinjas(dt);   // Ninja.cs
             TickBloodMages(dt);  // BloodMage.cs
             TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies

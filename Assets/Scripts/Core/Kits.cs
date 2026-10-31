@@ -9,6 +9,8 @@ namespace Arena
         Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
         SoulGhost,    // Soul Link cast with no ally: a ghost of you, linked, that fights beside you; it has health (SoulGhost.cs)
+        HiveDrone,    // Hive Drones (the Hive Queen's legendary): circles you blocking bullets, flies out to sting, heals you coming home (QueenLoot.cs)
+        HiveBomber,   // Bomber Escort (the Hive Queen's legendary): flies at the toughest enemy near you and bursts on it (QueenLoot.cs)
         None = 255,
     }
 
@@ -32,7 +34,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Totem, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool }
 
     public class ZoneDef
     {
@@ -85,6 +87,10 @@ namespace Arena
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
             new MinionDef { Name = "Soul Ghost", Radius = 14f, Sides = 12, Color = new Rgba(0.6f, 1f, 0.9f), Move = MinionMove.FollowOwner, Speed = 320f,
                 Attack = MinionAttack.Shoot, Interval = 0.3f, Damage = 11f, Range = 460f },
+            new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = new Rgba(1f, 0.82f, 0.3f), Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
+                BlockRadius = 16f, BlockCapacity = 60f },  // moved and stings by QueenLoot.cs
+            new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,
+                Damage = 55f, Range = 70f },  // flown by QueenLoot.cs; bursts for Damage within Range
         };
 
         // Indexed by ZoneKind.
@@ -107,7 +113,8 @@ namespace Arena
             new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Clot Bolt's
             new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },
             new ZoneDef { Name = "Incense", Color = new Rgba(0.85f, 0.8f, 0.6f), HealRate = 4f },  // the Censer's trail (Knight.cs); enemy shots fired inside it stray
-            new ZoneDef { Name = "Ofuda Ward", Color = new Rgba(1f, 0.85f, 0.6f) },  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (BloodMage.cs)
+            new ZoneDef { Name = "Ofuda Ward", Color = new Rgba(1f, 0.85f, 0.6f) },
+            new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (BloodMage.cs)
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

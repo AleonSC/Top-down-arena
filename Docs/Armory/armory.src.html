@@ -348,6 +348,8 @@ const MINIONS = {
   Titan: { r: 32, sides: 6, col: [0.8, 0.7, 0.45], move: "Chases (110 px/s)", attack: "Slam", every: 1.1, dmg: 70, range: 100, block: 46, cap: 1000 },
   "Light Orb": { r: 8, sides: 6, col: [1, 0.95, 0.6], move: "Orbits you (85 px)", attack: "Hurts enemies it touches; heals allies 6 HP/s", every: 0.35, dmg: 12, touch: true },
   "Shadow Clone": { r: 14, sides: 8, col: [0.45, 0.42, 0.6], move: "Stays put", attack: "Draws every enemy's fire; bursts for 60 within 110 px when it ends" },
+  "Hive Drone": { r: 7, sides: 3, col: [1, 0.82, 0.3], move: "Circles you (45 px); flies out (520 px/s) after your kills, and every 3 s while you hit a boss", attack: "Stings 3 times, then flies home and heals you 4", every: 0.3, dmg: 20, block: 16, cap: 60 },
+  "Hive Bomber": { r: 9, sides: 3, col: [1, 0.5, 0.18], move: "Flies from you at the toughest enemy within 400 px (430 px/s)", attack: "Bursts on it", dmg: 55, range: 70 },
 };
 const ZONES = [
   { name: "Haven", col: [0.4, 1, 0.6], from: "Haven (Healer · Soldier)", r: "130 px", dur: "6 s", effect: "Allies inside heal 15 HP/s; downed allies revive 3× faster" },
@@ -366,6 +368,7 @@ const ZONES = [
   { name: "Spirit Ward", col: [1, 0.85, 0.6], from: "Spirit Ward (Healer · Ninja)", r: "140 px", dur: "8 s, or until spent", effect: "Takes the damage allies inside would take, up to 150; when it breaks or ends, heals allies inside for 25% of what it took" },
   { name: "Siphon Field", col: [0.85, 0.15, 0.3], from: "Siphon Field (Healer · Hemomancer)", r: "140 px", dur: "6 s", effect: "Enemies inside lose 10 HP/s; allies inside heal 10 HP/s" },
   { name: "Blood Pool", col: [0.6, 0.05, 0.12], from: "Clot Bolt (Tank · Hemomancer), where it hits", r: "70 px", dur: "3 s", effect: "Enemies inside are slowed by 40%" },
+  { name: "Honey Pool", col: [1, 0.75, 0.2], from: "Royal Dive (the Hive Queen's legendary), where you land", r: "100 px (150 mastered)", dur: "4 s (6 s mastered)", effect: "Enemies inside are slowed 40%; allies inside heal 6 HP/s" },
   { name: "Hallowed Blade", col: [1, 0.95, 0.65], from: "Hallowed Blade (Healer · Knight ultimate)", r: "200 px", dur: "0.6 s warning", effect: "200 damage when the sword lands, then Consecrated Ground there" },
 ];
 
@@ -826,6 +829,9 @@ const A = [
   { id: "Stun Gun", slot: "Bonus", cd: 14, desc: "Draw a stun gun: your next 6 shots are stun bolts that stun enemies (bosses are only slowed). The cooldown starts once all 6 are fired. From the Warden's Stun Gun legendary.",
     stats: [["Shots", "6, one every 0.3 s (fire-rate upgrades speed it up); your weapon is put away meanwhile"], ["Damage", "15 each"], ["Stun", "1.5 s (bosses: 50% slower for 1.5 s)"], ["Speed / range", "900 px/s · 630 px"], ["Cooldown", "14 s, starting after the last shot"]],
     demo: { type: "stungun", col: [0.43, 0.88, 1], dur: 2.5 } },
+  { id: "Royal Dive", slot: "Bonus", cd: 12, desc: "The Hive Queen's dive: leap (nothing can hit you) and crash down at your cursor, hurting and knocking back everything there, and leave a honey pool that slows enemies and heals allies. From the Hive Queen's Royal Dive legendary.",
+    stats: [["Leap", "Up to 380 px in 0.6 s, invulnerable"], ["Crash", "120 damage within 110 px; enemies knocked back 100 px (not bosses); enemy bullets there wiped out"], ["Honey pool", "100 px for 4 s: enemies slowed 40%, allies heal 6 HP/s"]],
+    demo: { type: "dash", dist: 340, dur: 0.6, col: [1, 0.75, 0.2], hit: 110 } },
   { id: "Turret", slot: "Bonus", cd: 20, desc: "Deploy a turret that shoots for 10 seconds.", stats: [["Lasts", "10 s"], ["Attack", "9 damage every 0.25 s, 520 px range"]], demo: { type: "summon", minion: "Turret", n: 1, dur: 10 } },
   // Ultimates
   { id: "Fortress", slot: "Ultimate", role: "Tank", kit: "Soldier", cd: 70, desc: "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
@@ -1024,9 +1030,12 @@ const U = [
   ["Legendary", "Warden's Guard", "One of the Warden's guards follows you and fights for you with its baton (14 damage every 0.7 s, going for enemies within 240 px of you); +1 guard per stack. It has 150 health + 15 per wave; enemy shots and bodies hurt it, and if it falls another arrives 15 s later", 3, null, null, null, "The Warden"],
   ["Legendary", "Stun Gun", "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired", 1, s => s.bonus += 1, null, "Stun Gun", "The Warden"],
   ["Legendary", "Searchlight", "A searchlight (110 px) chases your cursor: enemies in it take 25% more damage from every player, and one held in it for 2 s is stunned for 1 s (bosses slowed 40%), then can't be locked again for 3 s. 2nd stack: 140 px wide; 3rd: +40%", 3, null, null, null, "The Warden"],
-  ["Legendary", "Swarm Rounds", "Your shots split into 3 smaller shots (40% damage) when they hit. With nothing else within 180 px, the swarm bites the enemy hit instead (20% of the hit)", 3, null, null, null, "Hive Queen"],
-  ["Legendary", "Royal Jelly", "Every hit heals you 1 HP (up to 10 HP per second)", 3, null, null, null, "Hive Queen"],
-  ["Legendary", "Brood Mother", "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills", 3, null, null, null, "Hive Queen"],
+  ["Legendary", "Hive Drones", "Two of the Queen's drones circle you (45 px) and block enemy bullets (each soaks 60 boss damage, then is dazed for 4 s). After each of your kills one flies out to the nearest enemy within 300 px and stings it 3 times (20 each), then comes home and heals you 4; while you hit a boss, one goes every 3 s. Each stack adds a drone, and another flies out each time", 3, null, null, null, "Hive Queen"],
+  ["Legendary", "Royal Dive", "New ability: the Queen's dive. Leap (untouchable) and crash down at your cursor, hurting and knocking back everything there, and leave a honey pool that slows enemies and heals allies", 1, s => s.bonus += 1, null, "Royal Dive", "Hive Queen"],
+  ["Legendary", "Bomber Escort", "Every 5 s one of the Queen's bombers flies from you to the toughest enemy within 400 px and bursts on it (55 damage within 70 px). +1 bomber per stack", 3, null, null, null, "Hive Queen"],
+  ["Legendary", "Swarm Rounds", "Your shots split into 3 smaller shots (40% damage) when they hit. With nothing else within 180 px, the swarm bites the enemy hit instead (20% of the hit)", 3, null, null, null, "No longer offered"],
+  ["Legendary", "Royal Jelly", "Every hit heals you 1 HP (up to 10 HP per second)", 3, null, null, null, "No longer offered"],
+  ["Legendary", "Brood Mother", "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills", 3, null, null, null, "No longer offered"],
   ["Legendary", "Executioner", "Double damage to enemies below 50% health", 3, null, null, null, "Twin Reapers"],
   ["Legendary", "Twin Fang", "40% chance for each hit to deal double damage", 3, s => s.crit += 0.4, null, null, "Twin Reapers"],
   ["Legendary", "Soul Harvest", "Every kill heals you 5 HP", 3, null, null, null, "Twin Reapers"],
@@ -2396,7 +2405,7 @@ function renderOdds() {
 // ---------------------------------------------------------------------------------------------
 function buildSummons() {
   const from = { Turret: "Turret (bonus ability)", "Light Orb": "Radiant Orb (one per extra projectile)", Golem: "Golem Staff (+1 per extra projectile, up to 3)", "Skeleton Guard": "Bone Guard (+1 per extra projectile)", Bear: "Bear Totem", Sprite: "Sprite Staff (+1 per extra projectile; a seeded kill frees one more for 6 s), Spirit Swarm, World Tree", Treant: "Treant Rod (grows 30% per extra projectile)", Wolf: "Wolf Whistle (+1 per extra projectile), Legion",
-    Wisp: "Wisp Lantern (+1 per extra projectile)", Imp: "Imp Caller (+1 and 50% faster per extra projectile)", Bat: "Bat Swarm, Legion", Phoenix: "Phoenix", "Shadow Clone": "Shadow Clone (Tank · Ninja); Thousand Clones", "Guardian Spirit": "Guardian Spirit", "Stone Wall": "Golem Wall", Titan: "Titan (ultimate)" };
+    "Hive Drone": "Hive Drones (the Hive Queen's legendary; 2, +1 a stack)", "Hive Bomber": "Bomber Escort (the Hive Queen's legendary)", Wisp: "Wisp Lantern (+1 per extra projectile)", Imp: "Imp Caller (+1 and 50% faster per extra projectile)", Bat: "Bat Swarm, Legion", Phoenix: "Phoenix", "Shadow Clone": "Shadow Clone (Tank · Ninja); Thousand Clones", "Guardian Spirit": "Guardian Spirit", "Stone Wall": "Golem Wall", Titan: "Titan (ultimate)" };
   $("minionTable").innerHTML = `<thead><tr><th>Minion</th><th>From</th><th>Moves</th><th>Attack</th><th>Damage</th><th>Every</th><th>Blocks</th></tr></thead><tbody>` +
     Object.entries(MINIONS).map(([k, m]) => `<tr><td><canvas width="40" height="40" data-m="${k}" style="width:20px;height:20px;vertical-align:-5px;margin-right:6px"></canvas><b>${k}</b></td><td>${from[k]}</td><td>${m.move}</td><td>${m.attack}${m.range && m.attack !== "Shoots" && m.attack !== "Shoots fire" ? ` (${m.range} px)` : m.range ? ` (${m.range} px range)` : ""}</td>
       <td class="n">${m.dmg ?? "—"}</td><td class="n">${m.every ? m.every + " s" : "—"}</td><td class="n">${m.block ? `${m.block} px · ${m.cap}` : "—"}</td></tr>`).join("") + `</tbody>`;

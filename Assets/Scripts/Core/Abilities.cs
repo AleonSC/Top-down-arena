@@ -290,6 +290,9 @@ namespace Arena
                 case AbilityId.StunGun:
                     DrawStunGun(p, cap);  // Stun.cs
                     break;
+                case AbilityId.RoyalDive:
+                    StartRoyalDive(p, target, pw, cap);  // QueenLoot.cs
+                    break;
                 case AbilityId.Nova:
                     int novaShots = cap ? 48 : 24;
                     for (int i = 0; i < novaShots; i++)
