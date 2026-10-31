@@ -219,6 +219,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
+**10 new menu backgrounds (Oct 2026), no protocol change:** `MenuBackgrounds.cs` now has 20: added Ember Storm, Constellations, Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood and Plotter (`BgEmbers` ... `BgPlotter`, cases 10-19), each with an accent in `BackgroundAccents`. They were mocked up in a web page first and ported shape for shape; the mockup's text labels (Blueprint's "432 px", Plotter's formulas) were left out because backgrounds are GL only. Saved picks 0-9 are unchanged. The picker's swatches tighten their gap past 12 backgrounds.
+
 **Fancy background picker (Oct 2026), no protocol change:** `MenuBackgrounds.cs`. Each background has an accent colour (`BackgroundAccents`) used for the card's pulsing rim, the thumbnail rim and the name's glow. The full card has drawn chevron buttons, a swatch bar (one swatch per background in its colour; hover names it), a LIVE / STILL switch in place of the Animated checkbox and a fold-down button; the name slides in from the side it came from (`bgChangedAt`, `bgChangeDir`). The minimized tab is a slim card with a tiny live thumbnail (it shrinks away as the tab fades), the name, quick prev/next arrows and an expand button.
 
 **Lobby header (Oct 2026), no protocol change:** the RUN / PRACTICE RANGE switch (and the saved-run banner) moved from the top centre into the left column under the title, above the party; the tabs and loadout box moved up level with the title (`LobbyBodyTop` 68, new `PartyTop` 184). "The host picks the mode" line removed.
