@@ -49,19 +49,19 @@ namespace Arena
                 Event.current.Use();
             }
 
-            // --- Top bar: title, mode switch.
+            // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
             Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
             if (session.Resume != null)
-                DrawResumeBanner(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);  // continuing a saved run (SavesUi.cs)
+                DrawResumeBanner(new Rect(40f, 76f, 376f, 58f), t);  // continuing a saved run (SavesUi.cs)
             else
-                DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
+                DrawModeSwitch(new Rect(40f, 76f, 376f, 58f), t);
 
-            // --- Left: the party. Its heading sits level with the tabs, and the first card's top with the loadout's.
-            float lx = 40f, lw = 376f, y = 106f;
+            // --- Left: the party, under the mode switch.
+            float lx = 40f, lw = 376f, y = 150f;
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
-            y = LobbyBodyTop;
+            y = PartyTop;
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
@@ -78,8 +78,8 @@ namespace Arena
                 Ui.Label(new Rect(lx, y + 4f, lw, picker.y - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
             DrawBackgroundPicker(picker);  // MenuBackgrounds.cs
 
-            // --- Right: tabs, then your loadout or the practice waves.
-            var area = new Rect(440f, 100f, W - 480f, H - 196f);
+            // --- Right: tabs level with the title, then your loadout or the practice waves.
+            var area = new Rect(440f, 24f, W - 480f, H - 120f);
             DrawLobbyTabs(new Rect(area.x, area.y, area.width, 34f), practice);
             var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
             if (lobbyTab == 1 && practice)
@@ -96,7 +96,8 @@ namespace Arena
                 DrawConnInfo(infoPanel);
         }
 
-        const float LobbyBodyTop = 140f;  // the top of the loadout box (under the tabs) and of the first party card
+        const float LobbyBodyTop = 68f;   // the top of the loadout box (under the tabs)
+        const float PartyTop = 184f;      // the top of the first party card (under the mode switch)
 
         string HostName()
         {
@@ -104,7 +105,7 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        /// Two big halves: a normal run, or the Practice Range. Only the host can switch.
+        /// Two halves: a normal run, or the Practice Range. Only the host can switch.
         void DrawModeSwitch(Rect r, float t)
         {
             bool practice = session.PracticeMode;
@@ -130,8 +131,6 @@ namespace Arena
                 if (session.IsHost && !on && GUI.Button(h, GUIContent.none, GUIStyle.none))
                     session.SetPracticeMode(i == 1);
             }
-            if (!session.IsHost)
-                Ui.Label(new Rect(r.x, r.yMax + 2f, r.width, 14f), "The host picks the mode", 10, Ui.Muted, TextAnchor.MiddleCenter);
         }
 
         void DrawLobbyTabs(Rect r, bool practice)
