@@ -257,6 +257,7 @@ static partial class Program
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
         Report("upgradecov", "which weapon upgrades each weapon ignores", args => UpgradeCoverageReport(Dt)),
+        Report("balance", "what one pick and a full stack of each damage upgrade is worth: boss, pack, spread wave", args => UpgradeBalanceReport(Dt)),
         Report("ultdps", "the damage each DPS ultimate adds against one big target", args => UltimateDpsReport(Dt)),
         Report("laserdebug", "the Singularity's lasers, step by step", args => LaserDebug()),
     };

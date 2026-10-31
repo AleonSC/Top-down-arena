@@ -264,4 +264,127 @@ static partial class Program
             if (worse.Any()) Console.WriteLine("      makes worse: " + string.Join(", ", worse));
         }
     }
+
+    // Upgrade balance: what one pick (and a full stack) of each damage upgrade is worth, for every weapon, in three
+    // fights: a boss (one big target, with as much health as the weapon deals in 10 s, so the run is a whole kill), a pack (4 enemies close together) and a spread wave (8 enemies over a wide
+    // area). Enemies have real health and come back when killed, so Executioner and on-kill upgrades count fairly;
+    // the measure is health taken off in 10 s. Prints the median gain over all weapons and the 10th-90th percentile.
+    static void UpgradeBalanceReport(float dt)
+    {
+        string[] ups = { "Sharpened Rounds", "Quick Trigger", "Hollow Points", "Hair Trigger", "Multishot", "Barrage", "Piercing Rounds",
+            "Swarm Rounds", "Brood Mother", "Executioner", "Twin Fang", "Collapse Rounds", "Graviton Rounds", "Dark Matter",
+            "Homing Rounds", "Ricochet", "Incendiary Rounds", "Cryo Rounds", "Shock Rounds", "Explosive Rounds", "Velocity Rounds" };
+        string[] fights = { "boss", "pack", "spread" };
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        // gains[fight][upgrade][0 = one pick, 1 = full stack] -> one gain per weapon
+        var gains = fights.ToDictionary(f => f, f => ups.ToDictionary(u => u, u => new[] { new List<float>(), new List<float>() }));
+        var weaponNames = new List<string>();
+        var perWeapon = new Dictionary<string, Dictionary<string, float>>();  // weapon -> "fight/upgrade" -> one-pick gain
+        foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
+            for (int k = 0; k < Defs.KitCount; k++)
+            {
+                var kit = (Kit)k;
+                var host = new Session { AutoStart = 1, StartWave = 10 };
+                host.Host(nextPort++, "A", role, 0, 0, kit);
+                host.StartMatch();
+                var g = host.Game;
+                for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                var me = g.Players[1];
+                g.DevSetGod(1, true);
+                for (int w = 0; w < Defs.WeaponsPerRole; w++)
+                {
+                    var weapon = Defs.Weapon(role, kit, w);
+                    weaponNames.Add(weapon.Name);
+                    perWeapon[weapon.Name] = new Dictionary<string, float>();
+                    float bossHp = 30000f;  // set per weapon below: what the weapon deals in 10 s, so a run is one whole boss kill
+                    Func<string, int, string, float> trial = (up, stacks, fight) =>
+                    {
+                        foreach (var e in g.Enemies.Values) e.Hp = 0f;
+                        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                        g.Minions.Clear(); g.Bullets.Clear(); g.Zones.Clear();
+                        me.Taken.Clear();
+                        if (up != null) { int idx = Array.FindIndex(Upgrades.All, x => x.Name == up); for (int n = 0; n < stacks; n++) me.Taken.Add(idx); }
+                        g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, x => x.Name == "Vitality"));
+                        me.Weapon = weapon;
+                        me.BowShotDraw = 0f;
+                        me.BoltStore = 0f;
+                        float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + 14f : Math.Min(240f, g.WeaponRange(me) * 0.7f);
+                        V2 at = new V2(800f, 450f), from = new V2(800f - range, 450f);
+                        V2[] spots; float hp; EnemyType type = EnemyType.Brute;
+                        if (fight == "boss") { spots = new[] { at }; hp = bossHp; type = EnemyType.Juggernaut; }
+                        else if (fight == "pack") { spots = new[] { at, at + new V2(40f, 25f), at + new V2(40f, -25f), at + new V2(75f, 0f) }; hp = 400f; }
+                        else  // 8 enemies 100-130 px apart in a wide arc in front of you; you switch target every half second
+                        {
+                            spots = Enumerable.Range(0, 8).Select(j => from + V2.FromAngle(-0.9f + 1.8f * j / 7f) * (range + (j % 2) * 60f)).ToArray();
+                            hp = 400f;
+                        }
+                        var foes = new Enemy[spots.Length];
+                        float removed = 0f;
+                        Func<int, Enemy> make = j => { var e = (Enemy)spawn.Invoke(g, new object[] { type, spots[j], 0f, 0, false }); e.MaxHp = e.Hp = hp; e.SpawnT = 0f; e.FireT = 99f; return e; };
+                        for (int j = 0; j < spots.Length; j++) foes[j] = make(j);
+                        float[] last = foes.Select(e => e.Hp).ToArray();
+                        for (int f = 0; f < 60 * 10; f++)
+                        {
+                            for (int j = 0; j < foes.Length; j++)
+                            {
+                                var e = foes[j];
+                                removed += Math.Max(0f, last[j] - Math.Max(0f, e.Hp));
+                                if (e.Hp <= 0f || !g.Enemies.ContainsKey(e.Id)) { foes[j] = e = make(j); }
+                                e.Pos = spots[j]; e.FireT = 99f;
+                                last[j] = e.Hp;
+                            }
+                            foreach (var e in g.Enemies.Values.ToList()) if (!foes.Contains(e)) e.Hp = 0f;  // nothing else in the arena
+                            me.Pos = from;
+                            foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+                            host.Poll();
+                            bool fire = !Game.ChargeWeapon(weapon.Id) || (f % 72) < 60;
+                            V2 aim = fight == "spread" ? foes[(f / 30) % foes.Length].Pos : at;
+                            g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = aim });
+                        }
+                        return removed;
+                    };
+                    bossHp = 1e7f;
+                    bossHp = Math.Max(200f, trial(null, 0, "boss"));
+                    foreach (var fight in fights)
+                    {
+                        float b0 = Math.Max(1f, trial(null, 0, fight));
+                        foreach (var up in ups)
+                        {
+                            var def = Upgrades.All[Array.FindIndex(Upgrades.All, x => x.Name == up)];
+                            int max = def.MaxStacks <= 0 || def.MaxStacks > 3 ? 3 : def.MaxStacks;  // uncapped cards: compared at 3
+                            float one = trial(up, 1, fight) / b0 - 1f, full = trial(up, max, fight) / b0 - 1f;
+                            gains[fight][up][0].Add(one);
+                            gains[fight][up][1].Add(full);
+                            perWeapon[weapon.Name][fight + "/" + up] = one;
+                        }
+                    }
+                    Console.Error.Write(".");
+                }
+                host.Leave("");
+            }
+        Console.Error.WriteLine();
+        Func<List<float>, float, float> pct = (v, q) => { var o = v.OrderBy(x => x).ToList(); return o[Math.Min(o.Count - 1, (int)(q * o.Count))] * 100f; };
+        foreach (var fight in fights)
+        {
+            Console.WriteLine();
+            Console.WriteLine("  {0}: damage gain over {1} weapons (median, then 10th-90th percentile)", fight.ToUpper(), weaponNames.Count);
+            Console.WriteLine("  {0,-18} {1,-10} {2,22}   {3,22}", "upgrade", "rarity", "one pick", "full stack");
+            foreach (var up in ups)
+            {
+                var def = Upgrades.All[Array.FindIndex(Upgrades.All, x => x.Name == up)];
+                int max = def.MaxStacks <= 0 || def.MaxStacks > 3 ? 3 : def.MaxStacks;  // uncapped cards: compared at 3
+                var a = gains[fight][up][0]; var b = gains[fight][up][1];
+                Console.WriteLine("  {0,-18} {1,-10} {2,6:+0;-0}% ({3,5:+0;-0} to {4,5:+0;-0})   x{8} {5,6:+0;-0}% ({6,5:+0;-0} to {7,5:+0;-0})",
+                    up, def.Rarity, pct(a, 0.5f), pct(a, 0.1f), pct(a, 0.9f), pct(b, 0.5f), pct(b, 0.1f), pct(b, 0.9f), max);
+            }
+        }
+        Console.WriteLine();
+        Console.WriteLine("  Weapons where one pick does least / most (boss and spread, median of the upgrades):");
+        foreach (var fight in new[] { "boss", "spread" })
+        {
+            var med = weaponNames.Distinct().ToDictionary(n => n, n => perWeapon[n].Where(kv => kv.Key.StartsWith(fight + "/")).Select(kv => kv.Value).OrderBy(x => x).ElementAt(ups.Length / 2) * 100f);
+            Console.WriteLine("  {0,-7} least: {1}", fight, string.Join(", ", med.OrderBy(kv => kv.Value).Take(5).Select(kv => string.Format("{0} {1:+0;-0}%", kv.Key, kv.Value))));
+            Console.WriteLine("  {0,-7} most:  {1}", fight, string.Join(", ", med.OrderByDescending(kv => kv.Value).Take(5).Select(kv => string.Format("{0} {1:+0;-0}%", kv.Key, kv.Value))));
+        }
+    }
 }
