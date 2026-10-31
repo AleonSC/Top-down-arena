@@ -27,6 +27,7 @@ namespace Arena
                 p.OfferMod = false;
             }
             BroadcastRunStats();
+            RunOver(false);  // its save goes; profiles hear about it (RunSaves.cs)
             Recorder?.End(this, "game over");
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
@@ -49,6 +50,7 @@ namespace Arena
                         StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {
+                        SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
                         spawnTimer = 0.5f;
                         string bossName;

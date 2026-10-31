@@ -20,6 +20,8 @@ namespace Arena
         Shop, ShopGift,  // the Bazaar: a player's shop action (client -> host); gold given to a teammate (host -> all) (Shop.cs)
         WeaponDash,  // client -> host: a weapon moved its player (the Bo Staff's vault, the Kusarigama's reel; Ninja.cs)
         ReverseEnemyBullets,  // host -> all: the Singularity's white hole turns every enemy bullet round (Singularity.cs)
+        Record,      // host -> all: a boss beaten, the run ended, or a resumed run's state, for each player's profile (RunSaves.cs)
+        SeatRequest, // client -> host: the saved seat this player wants when continuing a run (Session.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -56,6 +58,7 @@ namespace Arena
         public byte Weapon;   // index into Defs.Weapon(Role, Kit, i)
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
         public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
+        public int Seat = -1; // continuing a saved run: which of its seats this player takes (Session.Resume)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -67,7 +70,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 99;
+        public const int ProtocolVersion = 100;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -92,6 +95,7 @@ namespace Arena
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
         public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
+        public RunSave Resume;          // continuing a saved run: the host's save (clients get its seats in the lobby message)
 
         // Testing helpers (see the README's command-line flags).
         public int AutoStart;
@@ -179,6 +183,7 @@ namespace Arena
             PracticeMode = false;
             OthersCanEdit = false;
             Modifiers = RunMod.None;
+            Resume = null;
             if (Net != null)
                 Net.Close();
             Net = null;
@@ -279,7 +284,39 @@ namespace Arena
                             : "That game is full (" + MaxPlayers + " players max).");
                         return;
                     }
-                    Lobby[peer] = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability };
+                    var joined = new LobbyEntry { Id = peer, Name = CleanName(name), Role = PickRole(wanted), Kit = kit, Weapon = (byte)weapon, Ability = (byte)ability };
+                    if (Resume != null)
+                    {
+                        // Continuing a saved run: you take back the seat with your name (whoever sat in it moves to
+                        // another free seat, or out if there's none), or else the first one free.
+                        int seat = Game.SeatFor(Resume, joined.Name);
+                        LobbyEntry sitter = null;
+                        foreach (var e in Lobby.Values)
+                            if (seat >= 0 && e.Seat == seat)
+                                sitter = e;
+                        if (sitter != null && string.Equals(sitter.Name, joined.Name, StringComparison.OrdinalIgnoreCase))
+                            seat = -1;  // someone of the same name already has it
+                        if (seat < 0)
+                            seat = FirstFreeSeat();
+                        else if (sitter != null)
+                        {
+                            int other = FirstFreeSeat();
+                            if (other >= 0)
+                                TakeSeat(sitter, other);
+                            else
+                            {
+                                Lobby.Remove(sitter.Id);
+                                Reject(sitter.Id, "That seat in the saved run belongs to " + joined.Name + ", who just joined, and there's no other seat free.");
+                            }
+                        }
+                        if (seat < 0)
+                        {
+                            Reject(peer, "The host is continuing a saved run, and all of its seats are taken.");
+                            return;
+                        }
+                        TakeSeat(joined, seat);
+                    }
+                    Lobby[peer] = joined;
                     var w = Proto.Begin(Msg.Welcome);
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
@@ -324,6 +361,9 @@ namespace Arena
                     break;
                 case Msg.ReadyRequest:
                     SetReady(peer, r.ReadBoolean());
+                    break;
+                case Msg.SeatRequest:
+                    SetSeat(peer, r.ReadByte());
                     break;
                 case Msg.Reroll:
                     Game.HostReroll(peer);
@@ -377,10 +417,78 @@ namespace Arena
             return Role.Dps;
         }
 
+        // --- Continuing a saved run -------------------------------------------------------------
+
+        /// Host: open the lobby to continue a saved run. Your seat is the one with your name (or the first);
+        /// friends who join take theirs. The run's modifiers come with it; loadouts are the seats'.
+        public bool HostResume(RunSave save, int port, string name)
+        {
+            var first = save.Seats[0];
+            if (!Host(port, name, first.Role, first.Weapon, first.Ability, first.Kit))
+                return false;
+            Resume = save;
+            Modifiers = save.Mods;
+            PracticeMode = false;
+            int seat = Game.SeatFor(save, Lobby[1].Name);
+            TakeSeat(Lobby[1], seat < 0 ? 0 : seat);
+            BroadcastLobby();
+            return true;
+        }
+
+        bool SeatTaken(int seat)
+        {
+            foreach (var e in Lobby.Values)
+                if (e.Seat == seat)
+                    return true;
+            return false;
+        }
+
+        int FirstFreeSeat()
+        {
+            for (int i = 0; Resume != null && i < Resume.Seats.Count; i++)
+                if (!SeatTaken(i))
+                    return i;
+            return -1;
+        }
+
+        void TakeSeat(LobbyEntry e, int seat)
+        {
+            var s = Resume.Seats[seat];
+            e.Seat = seat;
+            e.Role = s.Role;
+            e.Kit = s.Kit;
+            e.Weapon = (byte)s.Weapon;
+            e.Ability = (byte)s.Ability;
+            e.Ready = false;
+        }
+
+        /// Host: a player moves to another free seat of the saved run.
+        void SetSeat(int id, int seat)
+        {
+            LobbyEntry e;
+            if (Resume == null || Game.Running || !Lobby.TryGetValue(id, out e) || seat < 0 || seat >= Resume.Seats.Count || SeatTaken(seat))
+                return;
+            TakeSeat(e, seat);
+            BroadcastLobby();
+        }
+
+        /// Pick a seat of the run being continued (the lobby's seat buttons).
+        public void RequestSeat(int seat)
+        {
+            if (IsHost)
+            {
+                SetSeat(1, seat);
+                return;
+            }
+            var w = Proto.Begin(Msg.SeatRequest);
+            w.Write((byte)seat);
+            SendToHost(Proto.End(w));
+        }
+
         void SetRole(int id, int role)
         {
             LobbyEntry e;
-            if (role < 0 || role >= Defs.Roles.Length || !Lobby.TryGetValue(id, out e))
+            if (role < 0 || role >= Defs.Roles.Length || !Lobby.TryGetValue(id, out e) || Resume != null)
                 return;
             if (e.Role != (Role)role)
             {
@@ -399,7 +507,7 @@ namespace Arena
         void SetKit(int id, int kit)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e))
+            if (!Lobby.TryGetValue(id, out e) || Resume != null)
                 return;
             if (e.Kit != ClampKit(kit))
             {
@@ -414,7 +522,7 @@ namespace Arena
         void SetAbility(int id, int ability)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e))
+            if (!Lobby.TryGetValue(id, out e) || Resume != null)
                 return;
             e.Ability = (byte)ClampAbility(ability);
             e.Ready = false;
@@ -424,7 +532,7 @@ namespace Arena
         void SetWeapon(int id, int weapon)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e))
+            if (!Lobby.TryGetValue(id, out e) || Resume != null)
                 return;
             e.Weapon = (byte)ClampWeapon(weapon);
             e.Ready = false;
@@ -481,8 +589,26 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
                 w.Write(e.Ready);
+                w.Write((sbyte)e.Seat);
             }
             w.Write((int)Modifiers);
+            // Continuing a saved run: its seats, so everyone's lobby can show them.
+            w.Write(Resume != null);
+            if (Resume != null)
+            {
+                w.Write(Resume.Wave);
+                w.Write(Resume.Endless);
+                w.Write((byte)Resume.Seats.Count);
+                foreach (var s in Resume.Seats)
+                {
+                    w.Write(s.Name);
+                    w.Write((byte)s.Role);
+                    w.Write((byte)s.Kit);
+                    w.Write((byte)s.Weapon);
+                    w.Write((byte)s.Ability);
+                    w.Write(s.Level);
+                }
+            }
             Broadcast(Proto.End(w));
         }
 
@@ -503,8 +629,8 @@ namespace Arena
         /// Host: turn a run modifier on or off. Everyone's Ready is taken back, since the run changed.
         public void SetModifier(RunMod mod, bool on)
         {
-            if (!IsHost || Game.Running)
-                return;
+            if (!IsHost || Game.Running || Resume != null)
+                return;  // (a continued run keeps the modifiers it was saved with)
             Modifiers = on ? Modifiers | mod : Modifiers & ~mod;
             foreach (var e in Lobby.Values)
                 e.Ready = false;
@@ -580,7 +706,22 @@ namespace Arena
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.Mods = Modifiers;
+            int startWave = StartWave;
+            if (Resume != null)
+            {
+                // Continuing a saved run: from the next wave, each player in their seat (unclaimed seats stay out).
+                Game.ResumeFrom = Resume;
+                Game.ResumeSeats.Clear();
+                foreach (var e in Lobby.Values)
+                    if (e.Seat >= 0)
+                        Game.ResumeSeats[e.Id] = e.Seat;
+                StartWave = Resume.Wave + 1;
+                Resume = null;  // back in the lobby afterwards, it's a fresh run
+            }
             Game.HostStart();
+            StartWave = startWave;
+            foreach (var e in Lobby.Values)
+                e.Seat = -1;
         }
 
         public void ReturnToLobby()
@@ -714,9 +855,22 @@ namespace Arena
                     {
                         var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                         e.Ready = r.ReadBoolean();
+                        e.Seat = r.ReadSByte();
                         Lobby[e.Id] = e;
                     }
                     Modifiers = (RunMod)r.ReadInt32();
+                    Resume = null;
+                    if (r.ReadBoolean())
+                    {
+                        Resume = new RunSave { Wave = r.ReadInt32(), Endless = r.ReadBoolean(), Mods = Modifiers };
+                        int seats = r.ReadByte();
+                        for (int i = 0; i < seats; i++)
+                        {
+                            var s = new SeatSave { Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
+                            s.Level = r.ReadInt32();
+                            Resume.Seats.Add(s);
+                        }
+                    }
                     if (!Game.Running)
                         Screen = AppScreen.Lobby;
                     break;
@@ -741,6 +895,7 @@ namespace Arena
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
                     Game.Mods = Modifiers;
                     Game.OnHostMessage(type, r);
+                    Resume = null;
                     break;
                 default:
                     Game.OnHostMessage(type, r);

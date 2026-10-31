@@ -47,6 +47,13 @@ namespace Arena
             }
 
             float by = card.yMax + 24f;
+            // Saved runs and records (SavesUi.cs).
+            int saved = savedRunsCount;
+            if (Ui.Button(new Rect(W / 2f - 250f, by, 245f, 40f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral))
+                OpenContinue();
+            if (Ui.Button(new Rect(W / 2f + 5f, by, 245f, 40f), "Records"))
+                recordsOpen = true;
+            by += 50f;
             if (Ui.Button(new Rect(W / 2f - 250f, by, 160f, 40f), "How to play"))
                 howToOpen = true;
             if (Ui.Button(new Rect(W / 2f - 80f, by, 160f, 40f), "Settings"))
@@ -359,6 +366,8 @@ namespace Arena
             if (Ui.Button(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary))
                 ResumeGame();
             DrawAudioOptions(x, panel.y + 168f, w);
+            if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+                Ui.Label(new Rect(x, panel.yMax - 100f, w, 26f), "Your run is saved as each wave starts: continue it from the main menu.", 12, Ui.Muted, TextAnchor.MiddleCenter, false, true);
             if (Ui.Button(new Rect(x, panel.yMax - 68f, w, 44f), "Leave game", Ui.Danger))
             {
                 pauseMenuOpen = false;

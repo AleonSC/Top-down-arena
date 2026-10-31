@@ -636,6 +636,8 @@ namespace Arena
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
                 bool bossReward = OnEnemyKilled(e);
+                if (bossReward)
+                    BossRecord(e);  // everyone's profile (RunSaves.cs)
                 KillEffects(e);
                 var killer = PlayerOrNull(e.LastHitBy);
                 if (killer != null && e.Def.Xp > 0)

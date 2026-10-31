@@ -540,6 +540,33 @@ healing done, allies revived, damage taken, times downed, abilities used, and th
 rarity. The best number in each row is highlighted, with awards like **Most damage**, **Best healer** and
 **Sharpshooter**. The host can play again, go back to the lobby, or keep going after a victory.
 
+## Saved runs and records
+
+**Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
+upgrades, the path is chosen and the shop is closed), and again if the match is left or the game closed between
+waves. Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
+Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
+
+**Continue a run** on the main menu lists the saves (wave, when, score, time played, each seat's player and
+class, the path and modifiers), newest first, with **Continue** and **Delete** (click twice). Continuing hosts a
+lobby for that run: it shows **Continuing a saved run** instead of the mode switch, and a **Seats** tab instead of
+your loadout. Everyone plays the character they had: a friend who joins takes back the seat with their name (or
+the first free seat, and moves aside if its owner turns up); **Take this seat** moves you to a free one. Classes,
+loadouts and modifiers can't be changed. Seats nobody takes are left out. The match starts at the next wave, with
+everyone's upgrades, ability keys, levels, XP, rerolls, mastery, gold, revive token, health and run stats back,
+and the run's score, time, path and route. Saves are plain text in the game's data folder (`saves/*.run`),
+with upgrades and abilities by name, so they keep working as the game changes.
+
+**Records** on the main menu: this computer's player's runs started, won and lost, best wave, best endless wave,
+best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
+class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
+grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
+Kept in `profile.txt` in the game's data folder.
+
+**Unlocks** are ready to be added: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the
+records; it's earned the moment the condition holds (an **Unlocked** toast in the match, listed in Records).
+There are none yet.
+
 ## Loadout screen (Tab)
 
 Hold **Tab** during a match to see your stats, weapon, abilities (with charges, cooldowns and mastery level) and every

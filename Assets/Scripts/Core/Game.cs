@@ -490,11 +490,16 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
             }
+            w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
             r.ReadByte();
             ReadStart(r);
+            if (ResumeFrom != null)
+                ApplyResume(ResumeFrom);
+            ResumeFrom = null;
+            ResumeSeats.Clear();
         }
 
         void ReadStart(BinaryReader r)
@@ -504,6 +509,7 @@ namespace Arena
             ResetPaths();
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
+            var entries = new List<Player>();
             for (int i = 0; i < n; i++)
             {
                 int id = r.ReadInt32();
@@ -527,7 +533,8 @@ namespace Arena
                 Recalc(p);
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
-                if (Has(RunMod.HeadStart) && Practice == null)
+                entries.Add(p);
+                if (Has(RunMod.HeadStart) && Practice == null && !(IsHost && ResumeFrom != null))
                 {
                     // Head Start: the picks of the first levels, and a legendary from the first boss's pool.
                     p.Level = Modifiers.HeadStartLevel;
@@ -543,6 +550,10 @@ namespace Arena
                 lastDowned[id] = false;
                 lastLevel[id] = p.Level;
             }
+            bool resumed = r.ReadBoolean();
+            if (resumed && !IsHost)
+                foreach (var p in entries)
+                    p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
             Wave = Math.Max(0, startWave - 1);
             State = MatchState.Intermission;
             lastState = State;
@@ -558,12 +569,15 @@ namespace Arena
                 Recorder = new SessionRecorder(RecordFolder);
                 Recorder.Begin(this, startWave);
             }
+            BeginRunRecord(resumed);  // RunSaves.cs
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
         /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
+            if (Running)
+                SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
@@ -954,6 +968,8 @@ namespace Arena
                 return;
             }
             LocalControl(dt, input);
+            if (Bot)
+                botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
             {
                 pingT = 1f;

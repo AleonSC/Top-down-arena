@@ -39,6 +39,7 @@ namespace Arena
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             BroadcastRunStats();
+            RunOver(true);  // RunSaves.cs
             Recorder?.End(this, "victory");
             DoLog("victory at wave " + Wave + ", score " + Score);
         }

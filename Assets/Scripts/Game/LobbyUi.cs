@@ -53,7 +53,10 @@ namespace Arena
             Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
-            DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
+            if (session.Resume != null)
+                DrawResumeBanner(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);  // continuing a saved run (SavesUi.cs)
+            else
+                DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
             Ui.Label(new Rect(W - 240f, 8f, 200f, 16f), Session.VersionText, 11, Ui.Muted, TextAnchor.MiddleRight);
 
             // --- Left: the party.
@@ -84,6 +87,8 @@ namespace Arena
                 DrawPracticeEditor(body, t);
             else if (lobbyTab == 2)
                 DrawModifiers(body, t);
+            else if (session.Resume != null)
+                DrawResumeSeats(body, t);  // SavesUi.cs
             else if (me != null)
                 DrawLoadout(me, body, t);
 
@@ -131,7 +136,7 @@ namespace Arena
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
-            string[] names = { "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers" };
+            string[] names = { session.Resume != null ? "Seats" : "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers" };
             float x = r.x;
             for (int i = 0; i < names.Length; i++)
             {

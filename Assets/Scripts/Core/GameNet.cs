@@ -132,6 +132,9 @@ namespace Arena
                 case Msg.PathChosen:
                     ReadPathChosen(r);
                     break;
+                case Msg.Record:
+                    ReadRecord(r);  // RunSaves.cs
+                    break;
                 case Msg.ShopGift:
                     ReadShopGift(r);
                     break;

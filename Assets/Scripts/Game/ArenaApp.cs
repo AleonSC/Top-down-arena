@@ -109,6 +109,7 @@ namespace Arena
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
             LoadBackgroundSettings();
+            InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();
         }
@@ -416,6 +417,10 @@ namespace Arena
                         DrawSettings();
                     else if (howToOpen)
                         DrawHowToPlay();
+                    else if (continueOpen)
+                        DrawContinue();  // SavesUi.cs
+                    else if (recordsOpen)
+                        DrawRecords();
                     else
                         DrawMenu();
                     break;
