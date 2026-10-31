@@ -49,9 +49,66 @@ namespace Arena
             }
         }
 
+        /// Each background's own colour: the picker's rim, glow, name and swatch take it.
+        static readonly Color[] BackgroundAccents =
+        {
+            new Color(0.55f, 0.6f, 1f),   // Spiral
+            new Color(0.62f, 0.76f, 1f),  // Warp
+            new Color(0.3f, 1f, 0.65f),   // Aurora
+            new Color(1f, 0.42f, 0.8f),   // Synthwave
+            new Color(1f, 0.66f, 0.55f),  // Bokeh
+            new Color(0.4f, 0.82f, 1f),   // Hex Pulse
+            new Color(1f, 0.8f, 0.4f),    // Orbits
+            new Color(0.3f, 1f, 0.55f),   // Digital Rain
+            new Color(0.86f, 0.42f, 0.95f), // Nebula
+            new Color(0.35f, 0.72f, 1f),  // Tides
+        };
+
+        float bgChangedAt = -100f;   // when the background last changed (the name slides in)
+        int bgChangeDir = 1;         // which way it slides: +1 from the right (next), -1 from the left (previous)
+
+        static Rgba ToRgba(Color c, float a) => new Rgba(c.r, c.g, c.b, a);
+
+        /// A chevron (two strokes meeting at a point) centred on c, pointing along dir.
+        void Chevron(V2 c, V2 dir, float size, float width, Rgba col)
+        {
+            var side = new V2(-dir.Y, dir.X);
+            var tip = c + dir * (size * 0.3f);
+            Line(c - dir * (size * 0.3f) + side * (size * 0.5f), tip, width, col);
+            Line(c - dir * (size * 0.3f) - side * (size * 0.5f), tip, width, col);
+        }
+
+        /// A live thumbnail of the current background, rimmed in its colour.
+        void BackgroundThumb(Rect thumb, Color accent, float rimAlpha)
+        {
+            UiModelAt(new V2(thumb.x, thumb.y), thumb.width / W);
+            UiClip(thumb);
+            DrawMenuBackground(Time.time);
+            UiNoClip();
+            UiModelAt(V2.Zero, 1f);
+            var edge = ToRgba(accent, rimAlpha);
+            Line(new V2(thumb.x, thumb.y), new V2(thumb.xMax, thumb.y), 1.5f, edge);
+            Line(new V2(thumb.x, thumb.yMax), new V2(thumb.xMax, thumb.yMax), 1.5f, edge);
+            Line(new V2(thumb.x, thumb.y), new V2(thumb.x, thumb.yMax), 1.5f, edge);
+            Line(new V2(thumb.xMax, thumb.y), new V2(thumb.xMax, thumb.yMax), 1.5f, edge);
+        }
+
+        /// The background's name, sliding in from the side it came from and glowing in its colour.
+        void BackgroundName(Rect r, int size, float alpha)
+        {
+            var accent = BackgroundAccents[menuBg];
+            float f = Mathf.Clamp01((Time.unscaledTime - bgChangedAt) / 0.25f);
+            f = 1f - (1f - f) * (1f - f);
+            var old = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, alpha * f);
+            Ui.Fancy(new Rect(r.x + (1f - f) * 18f * bgChangeDir, r.y, r.width, r.height), BackgroundNames[menuBg], size, Color.white,
+                Color.Lerp(accent, Color.white, 0.45f), r.width > 120f ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft, accent);
+            GUI.color = old;
+        }
+
         /// The lobby's background picker (bottom left): a live thumbnail of the current background (click it for
-        /// the next one), its name between arrows, a dot per background (click one to jump to it) and the
-        /// animation switch.
+        /// the next one), its name between arrows, a swatch per background in its colour (click one to jump to
+        /// it), a LIVE / STILL switch for the animation, and a button that folds it into a small tab.
         void DrawBackgroundPicker(Rect r)
         {
             if (bgPickerMin)
@@ -59,94 +116,169 @@ namespace Arena
                 DrawBackgroundTab(r);
                 return;
             }
-            Ui.Card(r, Ui.Accent, 0.25f);
+            float now = Time.unscaledTime;
+            var mouse = Event.current.mousePosition;
+            var accent = BackgroundAccents[menuBg];
+            Ui.Card(r, accent, 0.4f + 0.15f * Mathf.Sin(now * 2f));
             var thumb = new Rect(r.x + 10f, r.y + 10f, (r.height - 20f) * W / H, r.height - 20f);
+            bool thumbHover = thumb.Contains(mouse);
             float x = thumb.xMax + 14f, w = r.xMax - 12f - x;
-            float dotsX = x, dotsY = r.y + r.height - 18f;
+            var live = new Rect(r.xMax - 12f - 24f - 6f - 58f, r.y + 7f, 58f, 20f);
+            var minimize = new Rect(r.xMax - 12f - 24f, r.y + 7f, 24f, 20f);
+            var prev = new Rect(x, r.y + 32f, 26f, 26f);
+            var next = new Rect(x + w - 26f, r.y + 32f, 26f, 26f);
+            const float gap = 4f;
+            float sw = (w - gap * (BackgroundNames.Length - 1)) / BackgroundNames.Length, sy = r.yMax - 15f;
+
             if (BeginUiGl())
             {
-                UiModelAt(new V2(thumb.x, thumb.y), thumb.width / W);
-                UiClip(thumb);
-                DrawMenuBackground(Time.time);
-                UiNoClip();
-                UiModelAt(V2.Zero, 1f);
-                var edge = new Rgba(1f, 1f, 1f, thumb.Contains(Event.current.mousePosition) ? 0.5f : 0.18f);
-                Line(new V2(thumb.x, thumb.y), new V2(thumb.xMax, thumb.y), 1f, edge);
-                Line(new V2(thumb.x, thumb.yMax), new V2(thumb.xMax, thumb.yMax), 1f, edge);
-                Line(new V2(thumb.x, thumb.y), new V2(thumb.x, thumb.yMax), 1f, edge);
-                Line(new V2(thumb.xMax, thumb.y), new V2(thumb.xMax, thumb.yMax), 1f, edge);
-                // A dot per background; the current one is lit.
-                for (int i = 0; i < BackgroundNames.Length; i++)
+                BackgroundThumb(thumb, accent, thumbHover ? 0.95f : 0.55f);
+                EndUiGl();
+            }
+            if (thumbHover)
+                Ui.Fill(thumb, new Color(0f, 0f, 0f, 0.35f));
+
+            Ui.Label(new Rect(x, r.y + 8f, 100f, 18f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            bool liveHover = live.Contains(mouse);
+            Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, liveHover ? 1f : 0.85f) : new Color(1f, 1f, 1f, liveHover ? 0.14f : 0.07f));
+            Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Button(minimize, "", Ui.Neutral);
+            Ui.Button(prev, "", Ui.Neutral);
+            Ui.Button(next, "", Ui.Neutral);
+            BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 16, 1f);
+
+            // A swatch per background, in its colour: the current one lit and taller.
+            int swatchHover = -1;
+            for (int i = 0; i < BackgroundNames.Length; i++)
+            {
+                var hit = new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f);
+                if (hit.Contains(mouse))
+                    swatchHover = i;
+                var c = BackgroundAccents[i];
+                if (i == menuBg)
                 {
-                    V2 c = new V2(dotsX + i * 11f + 4f, dotsY);
-                    bool hover = Event.current.mousePosition.x >= c.X - 6f && Event.current.mousePosition.x < c.X + 6f && Mathf.Abs(Event.current.mousePosition.y - c.Y) < 8f;
-                    if (i == menuBg)
-                    {
-                        Circle(c, 6f, new Rgba(0.36f, 0.6f, 1f, 0.25f), 16);
-                        Circle(c, 3.5f, new Rgba(0.55f, 0.75f, 1f), 12);
-                    }
-                    else
-                        Circle(c, 2.5f, new Rgba(1f, 1f, 1f, hover ? 0.6f : 0.25f), 10);
+                    Ui.Pill(new Rect(x + i * (sw + gap) - 3f, sy - 5f, sw + 6f, 14f), new Color(c.r, c.g, c.b, 0.22f + 0.1f * Mathf.Sin(now * 3f)));
+                    Ui.Pill(new Rect(x + i * (sw + gap), sy - 2f, sw, 8f), c);
+                }
+                else
+                    Ui.Pill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
+            }
+            if (swatchHover >= 0 && swatchHover != menuBg)  // the swatch under the mouse names itself where the label was
+                Ui.Label(new Rect(x + 90f, r.y + 8f, live.x - x - 96f, 18f), BackgroundNames[swatchHover], 10, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
+
+            if (BeginUiGl())
+            {
+                var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f);
+                Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 10f, 2.5f, ink);
+                Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 10f, 2.5f, ink);
+                Chevron(new V2(minimize.center.x, minimize.center.y), new V2(0f, 1f), 9f, 2f, ink);
+                var dot = new V2(live.x + 11f, live.center.y);
+                if (menuBgAnimate)
+                {
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(now * 4f);
+                    Circle(dot, 5.5f, ToRgba(accent, 0.25f * pulse), 14);
+                    Circle(dot, 3f, ToRgba(Color.Lerp(accent, Color.white, 0.3f), 1f), 12);
+                }
+                else
+                {
+                    FillRect(dot.X - 3.5f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
+                    FillRect(dot.X + 1f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
+                }
+                if (thumbHover)
+                {
+                    var tc = new V2(thumb.center.x, thumb.center.y);
+                    Circle(tc, 16f, new Rgba(0f, 0f, 0f, 0.45f), 24);
+                    Chevron(tc + new V2(1.5f, 0f), new V2(1f, 0f), 12f, 3f, Rgba.White);
                 }
                 EndUiGl();
             }
-            if (GUI.Button(thumb, GUIContent.none, GUIStyle.none))
-                SetBackground(menuBg + 1);
 
-            Ui.Label(new Rect(x, r.y + 8f, w, 16f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x, r.y + 8f, w - 26f, 16f), (menuBg + 1) + " / " + BackgroundNames.Length, 10, Ui.Muted, TextAnchor.MiddleRight);
-            if (Ui.SmallButton(new Rect(r.xMax - 30f, r.y + 6f, 22f, 18f), "-", 14))  // minimize
+            if (GUI.Button(minimize, GUIContent.none, GUIStyle.none))
             {
                 bgPickerMin = true;
-                bgTabSeen = Time.unscaledTime;
+                bgTabSeen = now;
                 SaveBackgroundSettings();
             }
-            if (Ui.Button(new Rect(x, r.y + 27f, 24f, 24f), "<"))
-                SetBackground(menuBg - 1);
-            if (Ui.Button(new Rect(x + w - 24f, r.y + 27f, 24f, 24f), ">"))
-                SetBackground(menuBg + 1);
-            Ui.Fancy(new Rect(x + 28f, r.y + 27f, w - 56f, 24f), BackgroundNames[menuBg], 15, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter);
-
-            for (int i = 0; i < BackgroundNames.Length; i++)  // the dots (drawn above) are buttons too
-                if (i != menuBg && GUI.Button(new Rect(dotsX + i * 11f - 1.5f, dotsY - 8f, 11f, 16f), GUIContent.none, GUIStyle.none))
-                    SetBackground(i);
-            bool anim = Ui.Toggle(new Rect(x + w - 104f, dotsY - 11f, 104f, 22f), menuBgAnimate, "Animated");
-            if (anim != menuBgAnimate)
+            if (GUI.Button(live, GUIContent.none, GUIStyle.none))
             {
-                menuBgAnimate = anim;
+                menuBgAnimate = !menuBgAnimate;
                 SaveBackgroundSettings();
             }
+            if (GUI.Button(prev, GUIContent.none, GUIStyle.none))
+                SetBackground(menuBg - 1, -1);
+            if (GUI.Button(next, GUIContent.none, GUIStyle.none) || GUI.Button(thumb, GUIContent.none, GUIStyle.none))
+                SetBackground(menuBg + 1, 1);
+            for (int i = 0; i < BackgroundNames.Length; i++)
+                if (i != menuBg && GUI.Button(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f), GUIContent.none, GUIStyle.none))
+                    SetBackground(i, i > menuBg ? 1 : -1);
         }
 
-        /// The minimized picker: a slim tab at the bottom of where the card was. It stays a few seconds, then
-        /// fades away; hovering over it brings it back, and clicking it opens the full picker again.
+        /// The minimized picker: a slim card at the bottom of where the full one was, with a tiny live
+        /// thumbnail, the name, quick arrows and an expand button. It stays a few seconds, then fades away
+        /// (the thumbnail shrinks into its centre); hovering brings it back, and clicking it opens the full picker.
         void DrawBackgroundTab(Rect card)
         {
-            var tab = new Rect(card.x, card.yMax - 30f, 214f, 30f);
+            var tab = new Rect(card.x, card.yMax - 38f, 240f, 38f);
             float now = Time.unscaledTime;
+            var mouse = Event.current.mousePosition;
             var hot = new Rect(tab.x - 16f, tab.y - 24f, tab.width + 32f, tab.height + 40f);
-            if (hot.Contains(Event.current.mousePosition))
+            if (hot.Contains(mouse))
                 bgTabSeen = now;
             float a = 1f - Mathf.Clamp01((now - bgTabSeen - BgTabStay) / BgTabFade);
             if (a <= 0.01f)
                 return;
+            var accent = BackgroundAccents[menuBg];
+            var thumbFull = new Rect(tab.x + 5f, tab.y + 5f, (tab.height - 10f) * W / H, tab.height - 10f);
+            var thumb = new Rect(thumbFull.center.x - thumbFull.width * a / 2f, thumbFull.center.y - thumbFull.height * a / 2f, thumbFull.width * a, thumbFull.height * a);
+            var prev = new Rect(tab.xMax - 72f, tab.y + 9f, 20f, 20f);
+            var next = new Rect(tab.xMax - 50f, tab.y + 9f, 20f, 20f);
+            var open = new Rect(tab.xMax - 27f, tab.y + 9f, 20f, 20f);
+            float tx = thumbFull.xMax + 9f;
+
             var old = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
-            Ui.Pill(tab, new Color(0.09f, 0.11f, 0.17f, 0.92f));
-            Ui.Label(new Rect(tab.x + 12f, tab.y, 90f, tab.height), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tab.x + 92f, tab.y, tab.width - 124f, tab.height), BackgroundNames[menuBg], 13, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tab.xMax - 28f, tab.y, 20f, tab.height), "+", 16, Ui.Accent, TextAnchor.MiddleCenter, true);
+            Ui.Card(tab, accent, (0.35f + 0.15f * Mathf.Sin(now * 2f)) * a);
             GUI.color = old;
-            if (GUI.Button(tab, GUIContent.none, GUIStyle.none))
+            if (BeginUiGl())
+            {
+                if (a > 0.05f)
+                    BackgroundThumb(thumb, accent, 0.7f * a);
+                EndUiGl();
+            }
+            GUI.color = new Color(1f, 1f, 1f, a);
+            Ui.Label(new Rect(tx, tab.y + 3f, prev.x - tx, 13f), "BACKGROUND", 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+            GUI.color = old;
+            BackgroundName(new Rect(tx, tab.y + 15f, prev.x - tx - 4f, 20f), 14, a);
+            GUI.color = new Color(1f, 1f, 1f, a);
+            Ui.Button(prev, "", Ui.Neutral);
+            Ui.Button(next, "", Ui.Neutral);
+            Ui.Button(open, "", Ui.Neutral);
+            GUI.color = old;
+            if (BeginUiGl())
+            {
+                var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f * a);
+                Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 8f, 2f, ink);
+                Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 8f, 2f, ink);
+                Chevron(new V2(open.center.x, open.center.y + 1f), new V2(0f, -1f), 8f, 2f, ToRgba(Color.Lerp(accent, Color.white, 0.4f), a));
+                EndUiGl();
+            }
+            // The small buttons first, so a click on one doesn't also open the picker.
+            if (GUI.Button(prev, GUIContent.none, GUIStyle.none))
+                SetBackground(menuBg - 1, -1);
+            else if (GUI.Button(next, GUIContent.none, GUIStyle.none))
+                SetBackground(menuBg + 1, 1);
+            else if (GUI.Button(tab, GUIContent.none, GUIStyle.none))
             {
                 bgPickerMin = false;
                 SaveBackgroundSettings();
             }
         }
 
-        void SetBackground(int i)
+        void SetBackground(int i, int dir = 1)
         {
             menuBg = (i % BackgroundNames.Length + BackgroundNames.Length) % BackgroundNames.Length;
+            bgChangedAt = Time.unscaledTime;
+            bgChangeDir = dir;
             SaveBackgroundSettings();
         }
 
