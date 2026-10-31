@@ -342,6 +342,7 @@ static partial class Program
         int gates = 0, gas = 0; float taken0 = friend.Run.DamageTaken; bool clientGate = false;
         var seenGas = new HashSet<int>();
         float friendStart = 0f; bool startSet = false, pushed = false;
+        float heldHost = 0f; int holdFrames = 0; bool heldClient = false;
         Run(s, dt, 11.5f, null, () =>
         {
             Clear();
@@ -351,11 +352,18 @@ static partial class Program
             foreach (var pt in g.Patches.Values) if (pt.Kind == PatchKind.Gas) seenGas.Add(pt.Id);
             if (!startSet && w.Warden.Gates.Count > 0) { cg.Players[2].Pos = new V2(800f, 700f); friendStart = 700f; startSet = true; }
             if (startSet && cg.Players[2].Pos.Y > friendStart + 30f) pushed = true;
+            foreach (var gt in w.Warden.Gates)
+                if (Game.GateHolding(gt)) { heldHost = Math.Max(heldHost, Math.Abs(gt.Front - (gt.Dir > 0f ? 6f : Game.Height - 6f))); holdFrames++; }
+            foreach (var gt in cg.Enemies[w.Id].Warden.Gates)
+                if (Game.GateHolding(gt)) heldClient = true;
         });
         float gateDmg = friend.Run.DamageTaken - taken0;
         Console.WriteLine("  warden lockdown: {0} gates at once, {1} gas clouds, friend pushed {2}, friend took {3:0} (gates and gas)", gates, seenGas.Count, pushed, gateDmg);
         Check(gates >= 1 && clientGate && seenGas.Count == 2, "Lockdown: gates sweep across (everyone sees them) with gas from the 1st and 3rd");
         Check(pushed && gateDmg > 0f, "a gate shoves you along on your own game, and hurts");
+        Console.WriteLine("  warden gate stop: {0:0.0} px in, {1:0.00} s per gate, client saw it {2}", heldHost, holdFrames * dt / 3f, heldClient);
+        Check(Math.Abs(heldHost - Game.GateHoldIn) < 1f && holdFrames * dt >= Game.GateHold * 2f && heldClient,
+            "each gate stops just inside the arena for a moment before it carries on (seen on client)");
 
         // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.
         w.Hp = w.MaxHp * 0.29f;

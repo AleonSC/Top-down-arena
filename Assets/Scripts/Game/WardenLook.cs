@@ -127,6 +127,13 @@ namespace Arena
                 FillRect(g.Gap2, g.Dir > 0f ? 0f : Game.Height - 18f, Game.GateDoor, 18f, new Rgba(0.5f, 1f, 0.65f, 0.8f));
                 return;
             }
+            if (Game.GateHolding(g))  // stopped just inside: the doors light up for a moment
+            {
+                float top = Mathf.Min(g.Front, Game.GateBack(g)) - Game.GateBulletR - 4f, h = Game.GateRowGap + Game.GateBulletR * 2f + 8f;
+                float glow = 0.35f + 0.25f * Mathf.Sin(t * 30f);
+                FillRect(g.Gap1, top, Game.GateDoor, h, new Rgba(0.5f, 1f, 0.65f, glow));
+                FillRect(g.Gap2, top, Game.GateDoor, h, new Rgba(0.5f, 1f, 0.65f, glow));
+            }
             for (int row = 0; row < Game.GateRows; row++)
             {
                 float y = g.Front - g.Dir * row * Game.GateRowGap;
