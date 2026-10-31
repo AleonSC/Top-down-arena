@@ -498,7 +498,7 @@ class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records")
+    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records" || mode == "settings")
     {
       // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "continue" || mode == "records" || mode == "menu") PreviewSaves();
@@ -511,7 +511,8 @@ class Shot {
       Event.current.type = EventType.Repaint;
       set("glMaterial", new Material(null));
       GL.ToUi = true;
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : "DrawHowToPlay", f2).Invoke(app, null);
+      if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")

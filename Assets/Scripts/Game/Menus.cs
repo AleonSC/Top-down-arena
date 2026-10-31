@@ -49,16 +49,16 @@ namespace Arena
             float by = card.yMax + 24f;
             // Saved runs and records (SavesUi.cs).
             int saved = savedRunsCount;
-            if (Ui.Button(new Rect(W / 2f - 250f, by, 245f, 40f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral))
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t))
                 OpenContinue();
-            if (Ui.Button(new Rect(W / 2f + 5f, by, 245f, 40f), "Records"))
+            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t))
                 recordsOpen = true;
-            by += 50f;
-            if (Ui.Button(new Rect(W / 2f - 250f, by, 160f, 40f), "How to play"))
+            by += 54f;
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 160f, 42f), "How to play", Ui.Neutral, PixelArt.Get("ui_help"), t))
                 howToOpen = true;
-            if (Ui.Button(new Rect(W / 2f - 80f, by, 160f, 40f), "Settings"))
+            if (Ui.FancyButton(new Rect(W / 2f - 80f, by, 160f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t))
                 settingsOpen = true;
-            if (Ui.Button(new Rect(W / 2f + 90f, by, 160f, 40f), "Quit", Ui.Danger))
+            if (Ui.FancyButton(new Rect(W / 2f + 90f, by, 160f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t))
                 Application.Quit();
             Ui.Label(new Rect(0, H - 30f, W, 20f), Session.VersionText + "  ·  you and your friend need the same version", 12, Ui.Muted, TextAnchor.MiddleCenter);
         }
@@ -203,7 +203,7 @@ namespace Arena
                 }
                 EndUiGl();
             }
-            if (Ui.Button(new Rect(rx + rw / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary))
+            if (Ui.FancyButton(new Rect(rx + rw / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
                 howToOpen = false;
         }
 
@@ -349,9 +349,8 @@ namespace Arena
         void DrawPauseMenu()
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
-            // The pause menu on the left, the Field guide (Bestiary and Armory, ReferencePages.cs) on the right.
-            var panel = new Rect(W / 2f - 450f, 45f, 480f, 630f);
-            DrawFieldGuide(new Rect(panel.xMax + 24f, panel.y, 396f, panel.height), Time.unscaledTime);
+            float t = Time.unscaledTime;
+            var panel = new Rect(W / 2f - 240f, 45f, 480f, 630f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
             Player by;
@@ -363,12 +362,15 @@ namespace Arena
             Ui.Label(new Rect(panel.x, panel.y + 62f, panel.width, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter);
 
             float x = panel.x + 40f, w = panel.width - 80f;
-            if (Ui.Button(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary))
+            if (Ui.FancyButton(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary, PixelArt.Get("ui_play"), t))
                 ResumeGame();
             DrawAudioOptions(x, panel.y + 168f, w);
             if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
                 Ui.Label(new Rect(x, panel.yMax - 100f, w, 26f), "Your run is saved as each wave starts: continue it from the main menu.", 12, Ui.Muted, TextAnchor.MiddleCenter, false, true);
-            if (Ui.Button(new Rect(x, panel.yMax - 68f, w, 44f), "Leave game", Ui.Danger))
+            // The Field guide (the in-game Bestiary and Armory, FieldGuide.cs) beside Leave game.
+            if (Ui.FancyButton(new Rect(x, panel.yMax - 68f, w / 2f - 6f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+                OpenFieldGuide();
+            if (Ui.FancyButton(new Rect(x + w / 2f + 6f, panel.yMax - 68f, w / 2f - 6f, 44f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
             {
                 pauseMenuOpen = false;
                 session.Leave("");
@@ -382,12 +384,18 @@ namespace Arena
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
             float x = panel.x + 40f, w = panel.width - 80f;
             DrawAudioOptions(x, panel.y + 82f, w);
+            float t = Time.unscaledTime;
+
+            // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
+            if (Ui.FancyButton(new Rect(x, panel.y + 462f, w, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+                OpenFieldGuide();
+            Ui.Label(new Rect(x, panel.y + 508f, w, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
 
             // The developer tools (session recording etc.) live in the F1 menu.
-            float y = panel.y + 476f;
+            float y = panel.y + 534f;
             Ui.Heading(x, y, w, "Developer");
-            Ui.Label(new Rect(x, y + 30f, w, 26f), "Press F1 for developer tools (session recording, aim debug, waves, stats).", 13, Ui.Muted, TextAnchor.MiddleLeft, false, true);
-            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 66f, 200f, 44f), "Back", Ui.Primary))
+            Ui.Label(new Rect(x, y + 26f, w, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted);
+            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
                 settingsOpen = false;
         }
 

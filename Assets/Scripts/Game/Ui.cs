@@ -170,6 +170,48 @@ namespace Arena
             return clicked;
         }
 
+        /// The menus' showpiece button: a soft glow in its colour, an icon chip, game-style lettering (two-tone with an
+        /// outline, like titles), and on hover a brighter rim and a shine sweeping across. t = time in seconds.
+        public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
+        {
+            bool hover = r.Contains(Event.current.mousePosition);
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(tint.r, tint.g, tint.b, hover ? 0.38f : 0.17f + 0.05f * Mathf.Sin(t * 2.2f + r.x * 0.01f));
+            GUI.Box(new Rect(r.x - 4f, r.y - 3f, r.width + 8f, r.height + 8f), GUIContent.none, pill);  // glow
+            GUI.backgroundColor = old;
+            bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
+            Fill(new Rect(r.x + 12f, r.y + 2f, r.width - 24f, 1f), new Color(1f, 1f, 1f, hover ? 0.4f : 0.22f));  // top highlight
+            if (hover)
+            {
+                // A shine that sweeps across, clipped inside the button's rounded edge.
+                float f = t * 0.85f % 1f, sx = -30f + (r.width + 40f) * f;
+                GUI.BeginGroup(new Rect(r.x + 4f, r.y + 3f, r.width - 8f, r.height - 6f));
+                Fill(new Rect(sx, 0f, 12f, r.height), new Color(1f, 1f, 1f, 0.1f));
+                Fill(new Rect(sx + 16f, 0f, 4f, r.height), new Color(1f, 1f, 1f, 0.08f));
+                GUI.EndGroup();
+                GUI.backgroundColor = new Color(1f, 1f, 1f, 0.6f);
+                GUI.Box(r, GUIContent.none, cardRim);
+                GUI.backgroundColor = old;
+            }
+            int fs = size > 0 ? size : r.height >= 44f ? 19 : r.height >= 34f ? 16 : 13;
+            float tw = TextWidth(text, fs, true) - 6f;
+            float cs = icon != null ? Mathf.Min(26f, r.height - 12f) : 0f, gap = icon != null ? 9f : 0f;
+            float x = r.center.x - (cs + gap + tw) / 2f;
+            if (icon != null)
+            {
+                var c = new Rect(x, r.center.y - cs / 2f, cs, cs);
+                var oc = GUI.color;
+                GUI.color = Faded(new Color(1f, 1f, 1f, hover ? 0.36f : 0.24f));
+                GUI.DrawTexture(c, chip);
+                GUI.color = oc;
+                float isz = Mathf.Round(cs * 0.62f);
+                Icon(new Rect(c.center.x - isz / 2f, c.center.y - isz / 2f, isz, isz), icon);
+            }
+            Fancy(new Rect(x + cs + gap, r.y, tw + 12f, r.height), text, fs, Color.white, Color.Lerp(tint, Color.white, 0.7f), TextAnchor.MiddleLeft,
+                hover ? (Color?)new Color(tint.r, tint.g, tint.b, 0.9f) : null);
+            return clicked;
+        }
+
         /// A ring that pulses outward around a button (e.g. Ready once you're ready). t = time in seconds.
         public static void PulseRing(Rect r, Color c, float t)
         {

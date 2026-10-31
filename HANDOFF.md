@@ -34,8 +34,8 @@ and tool is described there). This document is the developer-facing overview; re
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
 - **Dev tools (F1):** a tabbed menu (Match / Players / Tools): stat editor, god mode, wave skip, session
   recording toggle, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
-- **Field guide (pause menu):** in-game **Bestiary** and **Armory** databases (`FieldGuide.cs`): searchable lists,
-  live models, stats, links between entries. Each also links to its published web page.
+- **Field guide (a button in the pause menu and in Settings):** in-game **Bestiary** and **Armory** databases
+  (`FieldGuide.cs`): searchable lists, live models, stats, links between entries, and a link to the published web page.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.
@@ -114,9 +114,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
 | `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
-| `ReferencePages.cs` | 0.07k | the pause menu's Field guide cards (open the in-game databases, or the web pages) |
+| `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
-| `Ui.cs` | 0.45k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `PulseRing`, tinted `Icon` |
+| `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
 | `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
@@ -218,6 +218,12 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Fancy menu buttons + Field guide button (Oct 2026), no protocol change:** `Ui.FancyButton(r, text, tint, icon, t)`
+(glow, icon chip, `Ui.Fancy` lettering, hover rim and shine) on the main menu's lower buttons, every Back, the saved
+runs' Continue / Delete, Resume / Leave game and the Field guide. New icons `ui_back`, `ui_trophy`, `ui_gear`, `ui_book`,
+`ui_help`, `ui_power`, `ui_trash`. The pause menu's two Field guide cards became one button (also in Settings; the
+guide works from the main menu too, solo at wave 1). Preview: `shot.sh <name> settings`.
 
 **In-game Field guide (Oct 2026), no protocol change:** the pause menu's Bestiary and Armory are now in-game
 databases (`FieldGuide.cs`) instead of links to the web pages (still a button away). Bestiary text is generated

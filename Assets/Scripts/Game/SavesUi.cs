@@ -67,7 +67,7 @@ namespace Arena
                 Ui.Label(new Rect(x, y - 4f, w, 16f), "and " + (savedRuns.Count - 5) + " older (delete some to see them)", 11, Ui.Muted, TextAnchor.MiddleCenter);
             if (session.Status.Length > 0)
                 Ui.Label(new Rect(x, panel.yMax - 100f, w, 30f), session.Status, 13, Ui.Warn, TextAnchor.MiddleCenter, false, true);
-            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary))
+            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), Time.unscaledTime))
                 continueOpen = false;
         }
 
@@ -104,7 +104,7 @@ namespace Arena
                 Ui.Badge(new Rect(bx, by, 150f, 20f), "DEV TOOLS USED", Ui.Neutral);
             // Continue, or delete (click twice).
             bool armed = deleteArmed == s.Id;
-            if (Ui.Button(new Rect(r.xMax - 150f, r.y + 10f, 136f, 40f), "Continue", Ui.Primary))
+            if (Ui.FancyButton(new Rect(r.xMax - 150f, r.y + 10f, 136f, 40f), "Continue", Ui.Primary, PixelArt.Get("ui_play"), Time.unscaledTime))
             {
                 if (session.HostResume(s, Port(), nameText))
                 {
@@ -112,7 +112,7 @@ namespace Arena
                     continueOpen = false;
                 }
             }
-            if (Ui.Button(new Rect(r.xMax - 150f, r.y + 56f, 136f, 26f), armed ? "Really delete?" : "Delete", armed ? Ui.Danger : Ui.Neutral))
+            if (Ui.FancyButton(new Rect(r.xMax - 150f, r.y + 56f, 136f, 28f), armed ? "Really delete?" : "Delete", armed ? Ui.Danger : Ui.Neutral, PixelArt.Get("ui_trash"), Time.unscaledTime))
             {
                 if (armed)
                 {
@@ -205,7 +205,7 @@ namespace Arena
                 Ui.Label(new Rect(x + 10f, y + 20f, colW - 20f, 16f), u.Desc, 11, Ui.Muted);
                 y += 46f;
             }
-            if (Ui.Button(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary))
+            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), Time.unscaledTime))
                 recordsOpen = false;
         }
 

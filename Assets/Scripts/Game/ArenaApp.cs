@@ -206,8 +206,9 @@ namespace Arena
             wasPaused = game.Paused;
             if (session.Screen != AppScreen.Game)
                 pauseMenuOpen = false;
-            if (!pauseMenuOpen && !game.Paused)
-                fieldGuideOpen = false;  // the Field guide lives in the pause menu
+            // The Field guide opens from the pause menu in a match and from Settings on the main menu.
+            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : session.Screen != AppScreen.Menu || !settingsOpen)
+                fieldGuideOpen = false;
             else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
                 FieldGuideKeys();
             if (Input.GetKeyDown(KeyCode.F1))
@@ -276,6 +277,8 @@ namespace Arena
                 else if (Input.GetKeyDown(KeyCode.R) && !RerollLocked) game.RerollOffer();
             }
 
+            if (session.Screen == AppScreen.Menu && fieldGuideOpen && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
+                CloseFieldGuide();  // back to Settings
             if (session.Screen == AppScreen.Game)
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
@@ -419,7 +422,9 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (settingsOpen)
+                    if (settingsOpen && fieldGuideOpen)
+                        DrawFieldGuideScreen();  // FieldGuide.cs
+                    else if (settingsOpen)
                         DrawSettings();
                     else if (howToOpen)
                         DrawHowToPlay();

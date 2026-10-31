@@ -41,10 +41,10 @@ namespace Arena
             public int Upgrade = -1;            // index in Upgrades.All
         }
 
-        void OpenFieldGuide(bool armory)
+        /// Opens the guide where you left it (the Bestiary the first time).
+        void OpenFieldGuide()
         {
             fieldGuideOpen = true;
-            guidePage = armory ? guideArmoryPage : GuideBestiary;
             guideDetailScroll = 0f;
             guideScrollToSel = true;
             GUIUtility.keyboardControl = 0;
@@ -282,8 +282,8 @@ namespace Arena
                 SetGuidePage(GuideBestiary);
             if (Ui.Choice(new Rect(hx + 368f, hy + 2f, 140f, 34f), "Armory", armory, ArmoryColor))
                 SetGuidePage(guideArmoryPage);
-            var back = new Rect(panel.xMax - 152f, hy + 2f, 130f, 34f);
-            if (Ui.Button(back, "Back  [Esc]"))
+            var back = new Rect(panel.xMax - 152f, hy + 2f, 130f, 36f);
+            if (Ui.FancyButton(back, "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
                 CloseFieldGuide();
             var search = new Rect(back.x - 262f, hy + 2f, 250f, 34f);
             Ui.Label(new Rect(search.x - 64f, search.y, 60f, 34f), "SEARCH", 10, Ui.Muted, TextAnchor.MiddleRight, true);
@@ -317,7 +317,10 @@ namespace Arena
                 Ui.Label(new Rect(hx, y, 700f, 28f), "Every enemy and boss: how it fights, its attacks, and its health at your wave.", 13, Ui.Muted);
                 y += 36f;
             }
-            Ui.Label(new Rect(panel.xMax - 420f, y - 36f, 398f, 28f), "↑ ↓ to browse · click a name in an entry to open it", 11, Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(panel.xMax - 560f, y - 36f, 420f, 28f), "↑ ↓ to browse · click a name in an entry to open it · Esc to go back", 11, Ui.Muted, TextAnchor.MiddleRight);
+            // The published page of this book (the Armory's has live weapon demos); ReferencePages.cs.
+            if (Ui.SmallButton(new Rect(panel.xMax - 132f, y - 34f, 110f, 26f), "Web page", 11))
+                OpenReferencePage(armory);
 
             var list = new Rect(panel.x + 16f, y, 330f, panel.yMax - 16f - y);
             var detail = new Rect(list.xMax + 14f, y, panel.xMax - 16f - list.xMax - 14f, list.height);
@@ -605,13 +608,14 @@ namespace Arena
             float sy = GuideTitle(r, stage, e.Name, it.Accent, chips.ToArray());
 
             // Health at your wave (bosses: at the wave they come), for your party.
-            int players = Mathf.Max(1, game.Players.Count);
-            int wave = Mathf.Max(1, game.Wave);
+            bool inMatch = session.Screen == AppScreen.Game;
+            int players = inMatch ? Mathf.Max(1, game.Players.Count) : 1;
+            int wave = inMatch ? Mathf.Max(1, game.Wave) : 1;
             int atWave = d.IsBoss ? Mathf.Max(e.Wave, wave) : wave;
             string party = players == 1 ? "solo" : players + " players";
             GuideStats(r, stage, sy,
                 "Health", Num(d.Hp), "base",
-                "At wave " + atWave, Mathf.RoundToInt(game.SpawnHp(e.Type, atWave)).ToString("N0"), party + (game.Has(RunMod.ToughCrowd) ? ", Tough Crowd" : ""),
+                "At wave " + atWave, Mathf.RoundToInt(game.SpawnHp(e.Type, atWave)).ToString("N0"), party + (inMatch && game.Has(RunMod.ToughCrowd) ? ", Tough Crowd" : ""),
                 "Speed", d.Speed > 0f ? Num(d.Speed) + " px/s" : "Doesn't walk", null,
                 "Size", Num(d.Radius * 2f) + " px", "across",
                 "XP · Score", d.Xp + " · " + d.Score, d.Xp == 0 ? "gives no XP" : null,
@@ -638,7 +642,7 @@ namespace Arena
             if (e.Attacks.Length > 0)
             {
                 GHeading("Attacks");
-                float rate = Game.WaveFireRate(wave) * (game.Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
+                float rate = Game.WaveFireRate(wave) * (inMatch && game.Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
                 foreach (var a in e.Attacks)
                     DrawBeastAttack(a, rate, wave);
             }
