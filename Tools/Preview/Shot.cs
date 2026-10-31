@@ -208,6 +208,27 @@ class Shot {
       var pool = (Zone)az.Invoke(host.Game, new object[] { ZoneKind.HoneyPool, me, me.Pos + new V2(10f, 30f), Game.DivePool, Game.DivePoolTime });
       pool.T = Game.DivePoolTime * 0.7f;
     }
+    if (Environment.GetEnvironmentVariable("REAPERLOOT") != null) {
+      // The Twin Reapers' legendaries: three Twin Scythes (one reaping out at an enemy), and a thrown scythe on its way.
+      System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);
+      var bf = BindingFlags.NonPublic | BindingFlags.Instance;
+      host.Game.GrantUpgrade(1, UL("Twin Scythes")); host.Game.GrantUpgrade(1, UL("Twin Scythes")); host.Game.GrantUpgrade(1, UL("Twin Scythes")); host.Game.GrantUpgrade(1, UL("Scythe Throw"));
+      for (int f = 0; f < 60; f++) { Step(host); Thread.Sleep(1); }
+      host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.3f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
+      var foes = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
+      if (foes.Count > 0) { foes[0].Pos = foes[0].Disp = me.Pos + new V2(-200f, -90f); }
+      int k = 0;
+      foreach (var m in host.Game.Minions.Values) if (m.Kind == MinionKind.Scythe)
+      {
+        float ring = k == 0 ? Game.ScytheInner : k == 1 ? Game.ScytheOuter : Game.ScytheMiddle;
+        if (k == 1 && foes.Count > 0) { m.Pos = m.Disp = foes[0].Pos + new V2(foes[0].Radius + 14f, 10f); m.Aim = MathX.Pi; }
+        else { float a = 0.9f + 2.2f * k; m.Pos = m.Disp = me.Pos + V2.FromAngle(a) * ring; m.Aim = a + (k == 0 ? 1f : -1f) * MathX.Pi / 2f; }
+        k++;
+      }
+      var sm = typeof(Game).GetMethod("SpawnMinion", bf);
+      var thrown = (Minion)sm.Invoke(host.Game, new object[] { MinionKind.ThrownScythe, me, me.Pos + new V2(220f, -110f), 2f, false });
+      thrown.Disp = thrown.Pos;
+    }
     if (Environment.GetEnvironmentVariable("IMPLODE") != null) {
       // Implosion: the cursor on an enemy (its target marker), and implosions going off at IMPLODE=<0..1> of the way through.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.Implosion); me.Kit = Kit.BloodMage; host.Game.Bot = false;

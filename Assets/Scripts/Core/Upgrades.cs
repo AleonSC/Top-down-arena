@@ -26,6 +26,7 @@ namespace Arena
         BloodRite, SanguineRain, CrimsonApotheosis,
         StunGun,  // the Warden's legendary: a Q / E / Shift ability (Stun.cs)
         RoyalDive,  // the Hive Queen's legendary: a Q / E / Shift ability (QueenLoot.cs)
+        ScytheThrow,  // the Twin Reapers' legendary: a Q / E / Shift ability (ReaperLoot.cs)
         None = 255,
     }
 
@@ -83,7 +84,9 @@ namespace Arena
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
-        public int HiveDrones, Bombers;  // the Hive Queen's Hive Drones (how many) and Bomber Escort (bombers a launch) (QueenLoot.cs)
+        public int HiveDrones, Bombers;
+        public int TwinScythes;                 // the Twin Reapers' Twin Scythes stacks (ReaperLoot.cs)
+        public float ReapBelow, ReapBossBonus;  // Final Reap: reaps regular enemies below this health; more damage to bosses below 30% (ReaperLoot.cs)  // the Hive Queen's Hive Drones (how many) and Bomber Escort (bombers a launch) (QueenLoot.cs)
         public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit, SlowedBonus;
 
         // Weapon mods, one picked after each boss (and its legendary).
@@ -113,7 +116,7 @@ namespace Arena
         public bool ClassAbility;                   // very rare: one of your class's other Space abilities, for Q/E/Shift
         public int Weight = 1;                      // how many times it counts among the cards of its rarity
         public EnemyType? Boss;                     // legendary: the boss that awards it (TwinA = the Twin Reapers)
-        public bool Unoffered;                      // kept (old saves, dev tools) but never offered: Swarm Rounds, Royal Jelly, Brood Mother since the Queen's new cards
+        public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
         public Action<Stats> Apply;
     }
 
@@ -127,7 +130,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.MageAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities, Game.QueenAbilities);
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities);
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -320,11 +323,19 @@ namespace Arena
                 Apply = s => s.Lifesteal += 1f },
             new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
                 Apply = s => s.BroodChance += 0.4f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Scythes",
+                Desc = "Two of the Reapers' scythes circle you in opposite directions, cutting enemies they pass (16) and slicing small enemy bullets out of the air. Every 1.6 s each reaps out at the nearest enemy within 240 px and flies back. 2nd stack: faster (every 1.1 s); 3rd: a third scythe",
+                Apply = s => s.TwinScythes += 1 },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Final Reap",
+                Desc = "When your hit leaves an enemy below 25% health, a phantom scythe reaps it and heals you 3 (not bosses). Your hits on a boss below 40% health deal double damage. More stacks: reap below 30%, then 35%; bosses x2.5, then x3",
+                Apply = s => { s.ReapBelow += s.ReapBelow == 0f ? 0.25f : 0.05f; s.ReapBossBonus += s.ReapBossBonus == 0f ? 1f : 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, Grants = AbilityId.ScytheThrow, Name = "Scythe Throw",
+                Desc = "New ability: throw a giant scythe at your cursor. It cuts everything on the way out and on the way back; catch it to take 40% off its cooldown" },
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Fang", Desc = "40% chance for each hit to deal double damage",
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Twin Fang", Desc = "40% chance for each hit to deal double damage",
                 Apply = s => s.CritChance += 0.4f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Soul Harvest", Desc = "Every kill heals you 5 HP",
+            new UpgradeDef { Rarity = Rarity.Legendary, Unoffered = true, MaxStacks = 3, Name = "Soul Harvest", Desc = "Every kill heals you 5 HP",
                 Apply = s => s.KillHeal += 5f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Collapse Rounds", Desc = "Shots implode on impact, hurting enemies nearby (and the enemy hit, at half)",
                 Apply = s => s.ImpactSplash += 45f },

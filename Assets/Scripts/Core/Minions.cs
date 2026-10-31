@@ -1295,6 +1295,7 @@ namespace Arena
                 TickGuards(p, dt);  // Warden's Guard (Stun.cs)
                 TickHiveDrones(p, dt);  // the Hive Queen's Hive Drones and Bomber Escort (QueenLoot.cs)
                 TickBombers(p, dt);
+                TickTwinScythes(p, dt);  // the Twin Reapers' Twin Scythes (ReaperLoot.cs)
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
@@ -1303,7 +1304,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.HiveDrone)
+                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.HiveDrone && m.Kind != MinionKind.Scythe)
                         {
                             have++;
                             surplus = m;
@@ -1377,6 +1378,18 @@ namespace Arena
                 if (m.Kind == MinionKind.HiveDrone)
                 {
                     MoveDrone(m, owner, dt);  // QueenLoot.cs
+                    m.Pos = ClampToArena(m.Pos, d.Radius);
+                    continue;
+                }
+                if (m.Kind == MinionKind.Scythe)
+                {
+                    MoveScythe(m, owner, dt);  // ReaperLoot.cs
+                    continue;
+                }
+                if (m.Kind == MinionKind.ThrownScythe)
+                {
+                    if (MoveThrownScythe(m, owner, dt))  // caught (ReaperLoot.cs)
+                        expired.Add(m);
                     m.Pos = ClampToArena(m.Pos, d.Radius);
                     continue;
                 }
