@@ -170,15 +170,12 @@ namespace Arena
             return clicked;
         }
 
-        /// The menus' showpiece button: a soft glow in its colour, an icon chip, game-style lettering (two-tone with an
+        /// The menus' showpiece button: an icon chip, game-style lettering (two-tone with an
         /// outline, like titles), and on hover a brighter rim and a shine sweeping across. t = time in seconds.
         public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(tint.r, tint.g, tint.b, hover ? 0.38f : 0.17f + 0.05f * Mathf.Sin(t * 2.2f + r.x * 0.01f));
-            GUI.Box(new Rect(r.x - 4f, r.y - 3f, r.width + 8f, r.height + 8f), GUIContent.none, pill);  // glow
-            GUI.backgroundColor = old;
             bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
             Fill(new Rect(r.x + 12f, r.y + 2f, r.width - 24f, 1f), new Color(1f, 1f, 1f, hover ? 0.4f : 0.22f));  // top highlight
             if (hover)
