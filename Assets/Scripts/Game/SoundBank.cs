@@ -332,6 +332,29 @@ namespace Arena
             var tick = Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f);
             uiHover = AudioClip.Create("ui_hover", tick.Length, 1, Rate, false);
             uiHover.SetData(tick, 0);
+            // ...and a soft, rounder click when one is pressed.
+            var click = Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
+            uiClick = AudioClip.Create("ui_click", click.Length, 1, Rate, false);
+            uiClick.SetData(click, 0);
+        }
+
+        AudioClip uiClick;
+        float uiClickLast = -10f;
+
+        /// The menus' click, at the Effects volume.
+        public void PlayUiClick(float now)
+        {
+            if (Muted || uiClick == null || now - uiClickLast < 0.05f)
+                return;
+            float volume = Master * Effects;
+            if (volume <= 0.001f)
+                return;
+            uiClickLast = now;
+            uiHoverLast = now;  // no hover tick right on top of the click
+            var voice = voices[nextVoice];
+            nextVoice = (nextVoice + 1) % voices.Length;
+            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.05f;
+            voice.PlayOneShot(uiClick, volume);
         }
 
         AudioClip uiHover;

@@ -460,8 +460,11 @@ namespace Arena
                     DrawDevMenu();
             }
             TextEditEndGui();
-            if (Ui.EndHoverFrame() && sounds != null)
+            bool clicked = Ui.TakeClick();
+            if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button
+            if (clicked && sounds != null)
+                sounds.PlayUiClick(Time.unscaledTime);  // and a soft click when one is pressed
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

@@ -146,13 +146,14 @@ namespace Arena
             GUI.backgroundColor = tint;
             NoteHover(r);
             bool clicked = GUI.Button(r, Shown(r, text), button);
+            clickedThisEvent |= clicked;
             GUI.backgroundColor = old;
             return clicked;
         }
 
         public static bool Button(Rect r, string text) => Button(r, text, Neutral);
 
-        // --- Hover sound -------------------------------------------------------
+        // --- Hover and click sounds ---------------------------------------------
         // Every button, card and click area reports itself while the mouse is over it (on Repaint). The last
         // one drawn is the one on top; ArenaApp plays a soft tick when that changes from one frame to the next.
 
@@ -163,7 +164,19 @@ namespace Arena
         public static bool HitArea(Rect r)
         {
             NoteHover(r);
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+            bool clicked = GUI.Button(r, GUIContent.none, GUIStyle.none);
+            clickedThisEvent |= clicked;
+            return clicked;
+        }
+
+        static bool clickedThisEvent;
+
+        /// True once after a button, toggle or click area was clicked (ArenaApp plays the click sound).
+        public static bool TakeClick()
+        {
+            bool c = clickedThisEvent;
+            clickedThisEvent = false;
+            return c;
         }
 
         public static void NoteHover(Rect r)
@@ -427,7 +440,9 @@ namespace Arena
                 Fill(new Rect(box.x + 6f, box.y + 6f, 10f, 10f), Color.white);
             Label(new Rect(r.x + 32f, r.y, r.width - 32f, r.height), text, 14, Text);
             NoteHover(r);
-            return GUI.Toggle(r, value, GUIContent.none, check);
+            bool now = GUI.Toggle(r, value, GUIContent.none, check);
+            clickedThisEvent |= now != value;
+            return now;
         }
 
         public static void Badge(Rect r, string text, Color color)
