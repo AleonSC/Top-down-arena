@@ -378,6 +378,12 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 
 ## Bosses
 
+**Bosses keep up with strong builds.** When a boss arrives, each player's upgrades are scored (damage x fire rate
+x projectiles x crits, plus boss legendaries and companions) and compared with a typical build at that wave (one
+picked sensibly from the same offers). A party far above typical meets a boss with more health: (how far above)
+to the 0.75 power, up to x3. Typical and weaker builds meet the usual boss, and a strong build still kills faster.
+Off in the Practice Range and the Boss Lab. (`run.sh 1 1 bosspower` prints the numbers.)
+
 **Mitigation, not immunity.** Barriers, Flame Walls, the Guardian Spirit, Golems, Treants, Stone Walls and
 Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
 inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold

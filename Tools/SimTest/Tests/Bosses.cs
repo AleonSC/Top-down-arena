@@ -1480,6 +1480,7 @@ static partial class Program
         // Hive Queen (wave 10): summons a swarm and is immune while it's big.
         {
             var s = StartBuffed(dt, 10, 25);
+            s[0].Game.ScaleBosses = false;  // 25 damage stacks: a quick kill, not the tougher Queen such a party would meet
             bool shielded = false, swarm = false, dead = false, seenQueen = false;
             Run(s, dt, 70, () => dead, () =>
             {
