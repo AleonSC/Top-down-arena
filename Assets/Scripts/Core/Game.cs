@@ -95,6 +95,7 @@ namespace Arena
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
         public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
+        public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
         public float UltT;                     // Fortress / Bullet Storm time left
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
@@ -201,6 +202,7 @@ namespace Arena
         public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
         public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
         public HeraldState Herald;  // the Storm Herald's fight (Herald.cs; replicated)
+        public DevourState Devour;  // the Devourer's fight (Devourer.cs; replicated)
         public DuelState Duel;      // the Duelist's fight (Duelist.cs; replicated)
         public LichState Lich;      // the Lich's fight (Lich.cs; replicated)
         public ColossusState Colossus;  // the Colossus's fight (Colossus.cs; replicated)
@@ -488,11 +490,16 @@ namespace Arena
                 w.Write(e.Weapon);
                 w.Write(e.Ability);
             }
+            w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
             r.ReadByte();
             ReadStart(r);
+            if (ResumeFrom != null)
+                ApplyResume(ResumeFrom);
+            ResumeFrom = null;
+            ResumeSeats.Clear();
         }
 
         void ReadStart(BinaryReader r)
@@ -502,6 +509,7 @@ namespace Arena
             ResetPaths();
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
+            var entries = new List<Player>();
             for (int i = 0; i < n; i++)
             {
                 int id = r.ReadInt32();
@@ -525,7 +533,8 @@ namespace Arena
                 Recalc(p);
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
-                if (Has(RunMod.HeadStart) && Practice == null)
+                entries.Add(p);
+                if (Has(RunMod.HeadStart) && Practice == null && !(IsHost && ResumeFrom != null))
                 {
                     // Head Start: the picks of the first levels, and a legendary from the first boss's pool.
                     p.Level = Modifiers.HeadStartLevel;
@@ -541,6 +550,10 @@ namespace Arena
                 lastDowned[id] = false;
                 lastLevel[id] = p.Level;
             }
+            bool resumed = r.ReadBoolean();
+            if (resumed && !IsHost)
+                foreach (var p in entries)
+                    p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
             Wave = Math.Max(0, startWave - 1);
             State = MatchState.Intermission;
             lastState = State;
@@ -556,12 +569,15 @@ namespace Arena
                 Recorder = new SessionRecorder(RecordFolder);
                 Recorder.Begin(this, startWave);
             }
+            BeginRunRecord(resumed);  // RunSaves.cs
             DoLog("game started with " + Players.Count + " player(s)");
         }
 
         /// Ends the match; `how` is what its recording says happened ("left", or "quit" when the game is closed).
         public void Stop(string how = "left")
         {
+            if (Running)
+                SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             if (Recorder != null && Running)
                 Recorder.End(this, how);
             Running = false;
@@ -952,6 +968,8 @@ namespace Arena
                 return;
             }
             LocalControl(dt, input);
+            if (Bot)
+                botTouched = true;  // the bot played: this run doesn't count for your profile (RunSaves.cs)
             if (!IsHost && (pingT -= dt) <= 0f)
             {
                 pingT = 1f;
@@ -993,6 +1011,9 @@ namespace Arena
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
+            UpdateDevourView(dt);  // Devourer.cs
+            if (IsHost)
+                LetGoOfSwallowed();  // Devourer.cs
             UpdateDuelView(dt);    // Duelist.cs
             UpdateLichView(dt);    // Lich.cs
             UpdateColossusView(dt);  // Colossus.cs
@@ -1142,6 +1163,8 @@ namespace Arena
                 me.Pos += WellDriftAt(me.Pos) * dt;  // the Singularity's corner wells (Singularity.cs)
             if (!me.Downed && DashT <= 0f)
                 me.Pos += HeraldWind(WindPush) * dt;  // the Storm Herald's Gale (Herald.cs)
+            if (!me.Downed && DashT <= 0f)
+                me.Pos += DevourPull(me.Pos) * dt;  // the Devourer breathing in (Devourer.cs)
             if (me.StunT > 0f && !me.Downed)
             {
                 me.Pos = before;  // stunned by the Warden: stuck where you are
@@ -1152,7 +1175,7 @@ namespace Arena
             // Touching a boss shoves you back out (it only hurts once a second; see TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
-                    if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
+                    if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && !DevourUnder(e) && !DevourSwallowing(e) && me.Pos.DistanceTo(e.Pos) < e.Radius + me.Def.HitR + 2f)
                     {
                         V2 away = me.Pos - e.Pos;
                         shoveDir = away.IsZero ? V2.FromAngle(me.Aim + MathX.Pi) : away.Normalized();
@@ -1163,6 +1186,11 @@ namespace Arena
             {
                 shoveT -= dt;
                 me.Pos += shoveDir * BossShoveSpeed * dt;
+            }
+            if (PinSwallowed(me))  // inside the Devourer you go where it goes (Devourer.cs)
+            {
+                DashT = 0f;
+                shoveT = 0f;
             }
 
             for (int slot = 0; slot < held.Length; slot++)
@@ -1388,8 +1416,8 @@ namespace Arena
                 TickSpinUp(p, dt);  // the Burst SMG (Weapons.cs)
                 if (p.Weapon.Id == WeaponId.RadiantOrb)
                     TickRadiantOrb(p, dt);  // held, not fired (RadiantOrb.cs); it lets go when you're down
-                if (p.Downed)
-                    continue;
+                if (p.Downed || p.SwallowT > 0f)
+                    continue;  // (nothing to shoot from inside the Devourer)
                 if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Pistol)

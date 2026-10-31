@@ -132,6 +132,9 @@ namespace Arena
                 case Msg.PathChosen:
                     ReadPathChosen(r);
                     break;
+                case Msg.Record:
+                    ReadRecord(r);  // RunSaves.cs
+                    break;
                 case Msg.ShopGift:
                     ReadShopGift(r);
                     break;
@@ -183,7 +186,10 @@ namespace Arena
                     int id = r.ReadInt32();
                     V2 pos = r.ReadV2();
                     if (id == MyId && Me != null)
+                    {
                         Me.Pos = Me.Disp = pos;
+                        Me.SwallowT = 0f;  // spat out by the Devourer: don't snap back into it before the next snapshot
+                    }
                     break;
                 }
                 case Msg.Fx:
@@ -387,6 +393,7 @@ namespace Arena
             s.Float(ref p.ShieldHp);
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
+            s.Float(ref p.SwallowT);
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (BloodMage.cs)
             s.Byte(ref grasped);
             if (s.Reading)
@@ -560,6 +567,8 @@ namespace Arena
                 SyncSing(s, e);    // Singularity.cs
             else if (kind == EnemyType.StormHerald)
                 SyncHerald(s, e);  // Herald.cs
+            else if (kind == EnemyType.Devourer)
+                SyncDevour(s, e);  // Devourer.cs
             else if (kind == EnemyType.Duelist)
                 SyncDuel(s, e);    // Duelist.cs
             else if (kind == EnemyType.Lich)
@@ -567,7 +576,7 @@ namespace Arena
             else if (kind == EnemyType.Colossus)
                 SyncColossus(s, e);  // Colossus.cs
             if (s.Reading)
-                e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
+                e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : kind == EnemyType.Devourer ? DevourRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
             return id;
         }
 

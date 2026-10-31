@@ -50,7 +50,7 @@ namespace Arena
             if (!IsHost || !Players.TryGetValue(id, out p) || field < 0 || field >= StatFields.Length)
                 return;
             p.StatOverrides[field] = value;
-            Recorder?.Dev(this, p.Name + ": " + StatFields[field].Name + " set to " + value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+            DevUsed(p.Name + ": " + StatFields[field].Name + " set to " + value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
             Recalc(p);
             BroadcastDevStats(p);
         }
@@ -62,7 +62,7 @@ namespace Arena
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
             p.StatOverrides.Clear();
-            Recorder?.Dev(this, p.Name + ": stats reset");
+            DevUsed(p.Name + ": stats reset");
             Recalc(p);
             BroadcastDevStats(p);
         }
@@ -73,7 +73,7 @@ namespace Arena
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
             if (p.DevGod != on)
-                Recorder?.Dev(this, p.Name + ": god mode " + (on ? "on" : "off"));
+                DevUsed(p.Name + ": god mode " + (on ? "on" : "off"));
             p.DevGod = on;
             BroadcastDevStats(p);
         }
@@ -83,7 +83,7 @@ namespace Arena
             Player p;
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
-            Recorder?.Dev(this, p.Name + ": healed");
+            DevUsed(p.Name + ": healed");
             if (p.Downed)
                 RevivePlayer(p, 1f);
             p.Hp = p.MaxHp;
@@ -96,7 +96,7 @@ namespace Arena
             Player p;
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
-            Recorder?.Dev(this, p.Name + ": level up");
+            DevUsed(p.Name + ": level up");
             p.Level++;
             p.PendingPicks++;
             if (State == MatchState.Intermission && p.Offer == null)
@@ -109,7 +109,7 @@ namespace Arena
             if (!IsHost || State == MatchState.Idle)
                 return;
             wave = Math.Max(1, Math.Min(Endless ? 999 : MaxWave, wave));
-            Recorder?.Dev(this, "jumped to wave " + wave);
+            DevUsed("jumped to wave " + wave);
             if (State == MatchState.Fighting)
                 Recorder?.WaveEnd(this);
             spawnQueue.Clear();

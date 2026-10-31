@@ -1,0 +1,549 @@
+<title>Devourer Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design proposal in the game's own field-manual look (sibling of the Storm Herald, Lich and Colossus
+   mockups, the Armory and the Bestiary): the live arena first, then the health track that splits the fight, then one
+   section per stage with its turn timeline. Single dark look by choice: it mirrors the arena. Flesh, teeth and bile. */
+:root {
+  --bg: #0f0a0d; --panel: #181014; --panel-2: #1f151a; --line: #33232b; --edge: #4d3340;
+  --fg: #f6e8ee; --muted: #b097a3; --maw: #ff5a7a; --bile: #b6e05a; --gold: #ffd75a; --good: #6be38a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--maw); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: #ead6df; }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--bile); }
+header { display: grid; gap: 10px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* The arena */
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #140c10; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; padding: 12px 14px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.field { display: grid; gap: 5px; justify-items: start; }
+.field > .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { min-width: 38px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #2a1c23; }
+.seg button.on { color: #fff; background: #48202e; box-shadow: inset 0 0 0 1px var(--maw); }
+button:focus-visible { outline: 2px solid var(--maw); outline-offset: 1px; }
+.readout { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 9px 14px; border-top: 1px solid var(--line); font: 12px var(--font-data); color: var(--muted); }
+.readout b { color: var(--fg); font-weight: 500; }
+
+/* The health track */
+.track { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bar div { padding: 8px 10px; font: 600 12px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.bar div small { display: block; font: 400 11px var(--font-data); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.bar .s1 { background: #3a1724; } .bar .s2 { background: #2f2a14; } .bar .s3 { background: #4a1420; } .bar .s4 { background: #5a1022; }
+.bar div.on { box-shadow: inset 0 -3px 0 var(--maw); }
+.ticks { display: grid; grid-template-columns: 35fr 35fr 20fr 10fr; font: 11px var(--font-data); color: var(--muted); }
+.ticks span:last-child { display: flex; justify-content: space-between; }
+
+/* Stage sections */
+.stages { display: grid; gap: 18px; }
+.st { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.st .hd { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.st .hp { font: 500 12px var(--font-data); color: var(--muted); }
+.tl { display: flex; height: 30px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.tl div { display: flex; align-items: center; justify-content: center; font: 600 11px var(--font-body); color: var(--fg); white-space: nowrap; overflow: hidden; min-width: 0; }
+.tl .rest { background: transparent; color: var(--muted); font-weight: 400; background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgba(255,255,255,0.04) 5px 10px); }
+.tl-scale { font: 11px var(--font-data); color: var(--muted); }
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.m { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; min-width: 0; align-content: start; }
+.m b { font: 600 15px var(--font-body); }
+.m b i { font-style: normal; font: 500 12px var(--font-data); color: var(--muted); margin-left: 6px; }
+.m p { font-size: 14px; color: #ead6df; }
+.m .new { font: 600 10px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-left: 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.notes .box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: #ead6df; }
+.notes code { font: 12.5px var(--font-data); color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Boss proposal · wave 45</div>
+    <h1>The Devourer, <span>in three stages</span></h1>
+    <p class="lead">Today it keeps 260 px from you and turns a double spiral of small shots for the whole fight. For 3 s out of every 10 it gets hungry: it fires rings of big shots, and your shots heal it for half their damage. This mockup splits it like the Warden, the Lich and the Storm Herald: three stages by health, one attack at a time with breathers between, a 2 s stage change that clears the screen, and a last stand below 10%. Each stage turns the hunger into something new: first it eats food you can deny it, then it swallows players, then its mouth heals it only from the front. The arena below plays each stage against two test dummies (you in green, an ally in blue); pick a stage to watch it, or let it cycle.</p>
+  </header>
+
+  <section class="stage" aria-label="Live mockup">
+    <canvas id="arena" width="1600" height="900"></canvas>
+    <div class="controls">
+      <div class="field"><span class="lbl">Stage</span>
+        <div class="seg" id="stagePick" role="group" aria-label="Stage"><button type="button" data-v="-1" class="on">Cycle</button><button type="button" data-v="0">Appetite</button><button type="button" data-v="1">Gorging</button><button type="button" data-v="2">Ravenous</button><button type="button" data-v="3">Last stand</button></div></div>
+      <div class="field"><span class="lbl">Speed</span>
+        <div class="seg" id="speedPick" role="group" aria-label="Speed"><button type="button" data-v="0">Pause</button><button type="button" data-v="1" class="on">1×</button><button type="button" data-v="2">2×</button></div></div>
+    </div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="track" aria-label="Health track">
+    <h3>Its health bar, split into stages</h3>
+    <div class="bar" id="bar">
+      <div class="s1" data-v="0">Appetite<small>100–65%</small></div>
+      <div class="s2" data-v="1">Gorging<small>65–30%</small></div>
+      <div class="s3" data-v="2">Ravenous<small>30–10%</small></div>
+      <div class="s4" data-v="3">Last<small>&lt;10%</small></div>
+    </div>
+    <div class="ticks mono"><span>100%</span><span>65%</span><span>30%</span><span><span>10%</span><span>0</span></span></div>
+  </section>
+
+  <div class="stages" id="stages"></div>
+
+  <section class="notes">
+    <div class="box">
+      <h3>What it keeps</h3>
+      <ul>
+        <li>Hunger: shots that land while it's hungry heal it for half their damage. It's now a turn of its own in stage 1, then becomes the mouth in stage 3.</li>
+        <li>The hungry rings: 20 big shots at 90 px/s every 1.2 s, during the Hungry turn.</li>
+        <li>The double spiral: 2 small shots every 0.08 s at 140 px/s, turning 0.17 rad a shot. It's stage 1's opening turn and comes back slower in the last stand.</li>
+        <li>Keeping 260 px from you, except when it lunges, burrows or eats.</li>
+        <li>Its look: a 12-sided crimson body, 50 px, whose mouth opens when it's hungry. It grows each stage (50 → 58 → 64 px).</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>What's new</h3>
+      <ul>
+        <li><b>Morsels:</b> food it spits out and crawls over to eat. Shoot them or step on them first. It's something to shoot while you hold fire on the boss.</li>
+        <li><b>Snap and Frenzy:</b> lunging bites along a warning line, like the Lunger at boss size.</li>
+        <li><b>Swallow:</b> a co-op mechanic. A cone pulls you towards its mouth, and if you reach it you're inside. Allies' shots do double damage while you're in there, and enough of them spit you out early.</li>
+        <li><b>Burrow and Bile:</b> a ripple chases you underground and erupts. Lobbed globs leave acid pools.</li>
+        <li><b>The Maw:</b> in stage 3 the hunger has a direction. Shots into its mouth heal it and shots on its back hurt more, so one player draws the mouth while the other flanks.</li>
+        <li><b>Jaws:</b> two curved rows of teeth that close on you, with a gap at each side.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>To build it</h3>
+      <ul>
+        <li>Stage, turn, timers, lunge line, burrow ripple and the swallowed player in a <code>DevourState</code> on the boss, synced like <code>HeraldState</code>; thresholds 65 / 30 / 10%. The old 10 s hunger timer in <code>LateSpecial</code> goes.</li>
+        <li>Hunger stays in <code>HurtEnemy</code>: <code>Hungry(e)</code> covers the Hungry turn, and a facing check covers the Maw (heal inside its 90° cone, ×1.25 outside). Burrowing and changing stage go in <code>BlocksShot</code>.</li>
+        <li>New: morsels as an <code>EnemyType.Morsel</code> with <code>ParentId</code> = the Devourer (60 HP, popped by walking over them). Swallowed: <code>Player.SwallowT</code> (synced) pins the player to the boss and hides them. The inhale pull works like the Gale's wind in <code>LocalControl</code>. Bile pools reuse the Queen's honey puddles.</li>
+        <li>Health: <code>BossHpMult</code> for the Devourer (2× now) retuned in the Boss Lab for 60–120 s, plus Bestiary entries, stage banners in <code>StageShiftLook.cs</code>, bot rules (morsels, lines, ripple, cone, flanking) and a <code>devourer</code> sim test per stage.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+const W = 1600, H = 900, TAU = Math.PI * 2, MID = { x: 800, y: 450 };
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const angDiff = (a, b) => Math.abs(((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI);
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1, k = clamp(((px - ax) * dx + (py - ay) * dy) / l2, 0, 1);
+  return Math.hypot(px - ax - dx * k, py - ay - dy * k);
+}
+
+// --- The proposal (one source for the arena and the write-up) -------------------------------------------------
+const STAGES = [
+  { name: "Appetite", hp: "100–65%", col: "#ff5a7a", r: 50,
+    lead: "It keeps its distance as it does now. Its spiral and its hunger become separate turns, and a lunging bite goes between them. When it's hungry it spits out food and goes to eat it, so you hold fire on the boss and shoot the food instead.",
+    turns: [["Spiral", 6], ["", 1], ["Snap", 5], ["", 1], ["Hungry", 5], ["", 1.5]],
+    mech: [
+      ["Spiral", "6 s", "Today's double spiral: 2 small shots every 0.08 s at 140 px/s, turning 0.17 rad a shot."],
+      ["Snap", "5 s", "Three lunges at a player, 1.6 s apart. A red line shows the way for 0.7 s, then it dashes at 1000 px/s and bites a 110 px half-circle in front of it: 40 damage at wave 45. Step off the line.", true],
+      ["Hungry", "5 s", "Its mouth opens and your shots heal it for half their damage, as now. It fires today's rings of 20 big shots every 1.2 s, and it spits 4 morsels around the arena and crawls over to eat them (90 px/s). Each morsel it eats heals it 3%. Shoot them (60 HP) or walk over them first.", true],
+      ["Breathers", "between turns", "It keeps 260 px from you and fires nothing for a second, so you can shoot it."],
+    ] },
+  { name: "Gorging", hp: "65–30%", col: "#c8e05a", r: 58,
+    lead: "It has eaten and it's bigger. It stops being hungry and starts swallowing: whatever its mouth pulls in, it takes inside. Between swallows it digs under the arena and spits bile.",
+    turns: [["Inhale", 5], ["", 1], ["Bile", 6], ["", 1], ["Burrow", 7], ["", 1.5]],
+    mech: [
+      ["Inhale", "5 s", "Twice, it faces a player and breathes in for 2 s: a 70° cone, 600 px long, pulls players in it 200 px/s towards its mouth (80 px/s at the far end). You walk at about 215, so turn sideways and leave the cone.", true],
+      ["Swallowed", "if it gets you", "Whoever reaches its mouth is swallowed: you're hidden inside it for 3 s, taking 10 damage a second. Allies' shots do double damage while you're inside, and 300 damage spits you out early. It spits you 170 px out with a ring of 12 shots. Alone, you just wait the 3 s out.", true],
+      ["Bile", "6 s", "Every 1.5 s it lobs a glob at each player and one at a random spot. They fly for 1 s with a shadow marking where they'll land, then leave a 90 px pool of acid for 6 s (12 damage a second).", true],
+      ["Burrow", "7 s", "Twice, it dives under the floor and can't be hurt. A ripple chases one player at 260 px/s for 1.9 s, stops, flashes a 100 px circle for 0.6 s, then it erupts: 40 damage in the circle and a ring of 16 shots.", true],
+    ] },
+  { name: "Ravenous", hp: "30–10%", col: "#ff3d5e", r: 64,
+    lead: "It's starving now and its mouth is always open, but only on one side. Shots into the Maw heal it and shots on its back hurt more. It turns to face the nearest player, so the party plays bait and flank.",
+    turns: [["Frenzy", 6], ["", 1], ["Jaws", 6], ["", 1], ["Vomit", 5], ["", 1.5]],
+    mech: [
+      ["The Maw", "all stage", "A 90° cone in front of it. Shots that land inside it heal it for half their damage; shots outside it do ×1.25. It turns towards the nearest player at 60° a second, so it's hard to circle alone and easy if one player draws it while another hits its back.", true],
+      ["Frenzy", "6 s", "Four lunges in a row at alternating players, 1.4 s apart, with a shorter 0.55 s warning line. Each bite ends in a ring of 12 small shots."],
+      ["Jaws", "6 s", "Twice, two curved rows of 7 big shots appear 320 px above and below a player, hold for 0.6 s, then close on where the player was at 140 px/s. The left and right sides stay open: dodge sideways.", true],
+      ["Vomit", "5 s", "It sprays bile from its mouth, sweeping 70° either side of you and back: 2 green shots every 0.07 s at 260 px/s. Stay behind it.", true],
+    ] },
+  { name: "Last stand", hp: "below 10%", col: "#ff2a4a", r: 64,
+    lead: "It crawls to the middle for its last meal and breathes in the whole arena. Its mouth closes, so shots hurt it from any side. Keep walking out and keep shooting.",
+    turns: [["Last meal", 10]],
+    mech: [
+      ["Last meal", "until it dies", "It pulls every player 55 px/s towards it. A ring of 10 teeth (two gaps) turns around it 170 px out, hurting on touch. Its double spiral comes back at half the rate (every 0.16 s). Being swallowed here does 20 a second, until an ally does 300 damage or it dies."],
+    ] },
+];
+const TURN_COL = { Spiral: "#5a2236", Snap: "#6e2238", Hungry: "#8a2040", Inhale: "#4a4a1e", Bile: "#3f5a1e", Burrow: "#5a4426", Frenzy: "#7a1c30", Jaws: "#682035", Vomit: "#3f5a1e", "Last meal": "#8a1830" };
+
+// --- The write-up ------------------------------------------------------------------------------------------------
+$("stages").innerHTML = STAGES.map((st, i) => {
+  const total = st.turns.reduce((a, t) => a + t[1], 0);
+  return `<section class="st" id="stage-${i}">
+    <div class="hd"><h2 style="color:${st.col}">${st.name}</h2><span class="hp">${st.hp} health</span></div>
+    <p class="lead">${st.lead}</p>
+    <div><div class="tl" aria-label="Turn order, ${total} s a loop">${st.turns.map(([n, s]) => n ? `<div style="flex:${s};background:${TURN_COL[n]}">${n} ${s} s</div>` : `<div class="rest" style="flex:${s}">${s} s</div>`).join("")}</div>
+    <div class="tl-scale">${i === 3 ? "until it dies" : `one loop: ${total} s, then it repeats until the next stage`}</div></div>
+    <div class="mech">${st.mech.map(([n, t, d, isNew]) => `<div class="m"><b>${n}<i>${t}</i>${isNew ? `<span class="new">new</span>` : ""}</b><p>${d}</p></div>`).join("")}</div>
+  </section>`;
+}).join("");
+
+// --- The arena -----------------------------------------------------------------------------------------------------
+const S = { lock: -1, speed: 1 };
+let w;
+const dummy = (x, y, col, late) => ({ x, y, tx: x, ty: y, hits: 0, inv: 0, col, late, inside: false });
+function reset(stage) {
+  w = { t: 0, stage, tt: 0, turn: 0, trans: 0,
+    boss: { x: MID.x, y: 240, r: STAGES[stage].r, face: Math.PI / 2, ang: 0, fire: 0.3, fired: 0, spin: 0, lunge: null, under: null, inhale: null, eat: 0, grow: 0 },
+    bullets: [], shots: [], fx: [], globs: [], pools: [], morsels: [], sw: null,
+    dealt: 0, healed: 0, eaten: 0, denied: 0, swallows: 0, fireCd: 0, who: 0,
+    ps: [dummy(640, 660, "107,227,138", false), dummy(1000, 640, "110,170,255", true)] };
+  if (stage === 3) { w.boss.x = MID.x; w.boss.y = MID.y; w.ps[0].x = 400; w.ps[1].x = 1200; }
+  startTurn();
+}
+const st = () => STAGES[w.stage];
+const turnName = () => st().turns[w.turn][0];
+function startTurn() {
+  const b = w.boss;
+  w.tt = 0; b.fire = 0.3; b.fired = 0; b.lunge = null; b.under = null; b.inhale = null;
+  if (turnName() === "Hungry") for (let k = 0; k < 4; k++) { const a = rnd(0, TAU), d = rnd(220, 440); w.morsels.push({ x: clamp(b.x + Math.cos(a) * d, 60, W - 60), y: clamp(b.y + Math.sin(a) * d, 60, H - 60), hp: 60, t: 0 }); }
+}
+function nextTurn() {
+  if (turnName() === "Hungry") w.morsels = [];
+  w.turn++;
+  if (w.turn >= st().turns.length) { w.turn = 0; if (S.lock < 0) { w.trans = 2; return; } }
+  startTurn();
+}
+const me = () => w.ps[0];
+const free = () => w.ps.filter(p => !p.inside);
+const nearest = () => free().reduce((a, p) => !a || Math.hypot(p.x - w.boss.x, p.y - w.boss.y) < Math.hypot(a.x - w.boss.x, a.y - w.boss.y) ? p : a, null) || me();
+const alt = () => { const l = free(); return l.length ? l[w.who++ % l.length] : me(); };
+function shot(x, y, a, sp, kind, hold = 0) {
+  const r = kind === "big" ? 11 : kind === "tooth" ? 10 : 6;
+  w.bullets.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r, kind, life: 10, hold });
+}
+function ring(x, y, n, sp, kind, off = 0) { for (let i = 0; i < n; i++) shot(x, y, off + TAU * i / n, sp, kind); }
+function hit(p) { if (p.inv > 0) return; p.inv = 0.6; p.hits++; }
+// A lunge: a warning line, then a dash and a bite at the end of it.
+function lunge(p, warn, ringAfter) {
+  const b = w.boss, a = Math.atan2(p.y - b.y, p.x - b.x), d = Math.hypot(p.x - b.x, p.y - b.y) + 60;
+  b.lunge = { t: 0, warn, a, fx: b.x, fy: b.y, tx: clamp(b.x + Math.cos(a) * d, 70, W - 70), ty: clamp(b.y + Math.sin(a) * d, 70, H - 70), ring: ringAfter, done: false };
+  b.face = a;
+}
+function bite(r) {
+  const b = w.boss;
+  for (const p of free()) { const d = Math.hypot(p.x - b.x, p.y - b.y); if (d < r + b.r && angDiff(Math.atan2(p.y - b.y, p.x - b.x), b.face) < Math.PI / 2 + 0.2) hit(p); }
+  w.fx.push({ x: b.x + Math.cos(b.face) * b.r, y: b.y + Math.sin(b.face) * b.r, r: r, t: 0, dur: 0.3, col: "#ff8aa0", jaw: b.face });
+}
+function swallow(p) {
+  if (w.sw || p.inside) return;
+  w.sw = { who: p, t: 3, taken: 0, tick: 0 }; p.inside = true; w.swallows++;
+  w.fx.push({ x: w.boss.x, y: w.boss.y, r: 90, t: 0, dur: 0.4, col: "#c8e05a" });
+}
+function spit() {
+  const b = w.boss, p = w.sw.who;
+  p.inside = false; p.x = clamp(b.x + Math.cos(b.face) * (b.r + 170), 30, W - 30); p.y = clamp(b.y + Math.sin(b.face) * (b.r + 170), 30, H - 30); p.tx = p.x; p.ty = p.y; p.inv = 1;
+  ring(b.x, b.y, 12, 170, "small", b.face);
+  w.fx.push({ x: p.x, y: p.y, r: 60, t: 0, dur: 0.4, col: "#c8e05a" });
+  w.sw = null;
+}
+
+function step(dt) {
+  w.t += dt;
+  const b = w.boss;
+  b.r += (st().r + b.grow - b.r) * Math.min(1, dt * 3);
+  if (w.trans > 0) {
+    w.trans -= dt; w.bullets = []; w.globs = []; w.pools = []; w.morsels = []; b.lunge = null; b.under = null; b.inhale = null; if (w.sw) spit(); w.bullets = [];
+    if (w.trans <= 0) { const next = (w.stage + 1) % 4; reset(next); w.fx.push({ x: w.boss.x, y: w.boss.y, r: 1100, t: 0, dur: 0.9, col: STAGES[next].col }); }
+    for (const p of w.ps) moveDummy(p, dt); fxStep(dt); return;
+  }
+  w.tt += dt;
+  const n = turnName(), p0 = me();
+  // Moving: keeps 260 px from you, crawls to food when hungry, the last stand sits in the middle
+  if (b.lunge) {
+    const L = b.lunge; L.t += dt;
+    if (L.t >= L.warn && !L.done) {
+      const dx = L.tx - b.x, dy = L.ty - b.y, d = Math.hypot(dx, dy), s = 1000 * dt;
+      if (d <= s) { b.x = L.tx; b.y = L.ty; L.done = true; bite(110); if (L.ring) ring(b.x, b.y, 12, 170, "small", L.a); }
+      else { b.x += dx / d * s; b.y += dy / d * s; for (const p of free()) if (Math.hypot(p.x - b.x, p.y - b.y) < b.r + 12) hit(p); }
+    }
+    if (L.done && L.t > L.warn + 0.3) b.lunge = null;
+  } else if (b.under) {
+    const U = b.under; U.t += dt;
+    if (U.t < 1.9) { const q = U.who.inside ? me() : U.who, dx = q.x - U.x, dy = q.y - U.y, d = Math.hypot(dx, dy) || 1, s = Math.min(d, 260 * dt); U.x += dx / d * s; U.y += dy / d * s; }
+    else if (U.t >= 2.5) {
+      b.x = U.x; b.y = U.y; b.under = null;
+      for (const p of free()) if (Math.hypot(p.x - b.x, p.y - b.y) < 100) hit(p);
+      ring(b.x, b.y, 16, 170, "small", rnd(0, TAU));
+      w.fx.push({ x: b.x, y: b.y, r: 120, t: 0, dur: 0.45, col: "#d9a35a", dirt: true });
+    }
+  } else if (w.stage === 3) {
+    b.x += (MID.x - b.x) * Math.min(1, dt * 1.5); b.y += (MID.y - b.y) * Math.min(1, dt * 1.5);
+  } else if (n === "Hungry" && w.morsels.length) {
+    const m = w.morsels.reduce((a, m) => !a || Math.hypot(m.x - b.x, m.y - b.y) < Math.hypot(a.x - b.x, a.y - b.y) ? m : a, null);
+    const dx = m.x - b.x, dy = m.y - b.y, d = Math.hypot(dx, dy) || 1;
+    b.face = Math.atan2(dy, dx);
+    b.x += dx / d * Math.min(d, 90 * dt); b.y += dy / d * Math.min(d, 90 * dt);
+    if (d < b.r + 10) { m.hp = -1; w.eaten++; b.grow = Math.min(b.grow + 3, 9); b.eat = 0.5; w.fx.push({ x: m.x, y: m.y, r: 50, t: 0, dur: 0.4, col: "#ffb070" }); }
+  } else if (!b.inhale) {
+    const q = w.stage === 2 ? nearest() : p0.inside ? w.ps[1] : p0;
+    const dx = q.x - b.x, dy = q.y - b.y, d = Math.hypot(dx, dy) || 1, want = d - 260;
+    b.x = clamp(b.x + dx / d * clamp(want, -70, 70) * dt * 1.4, 90, W - 90); b.y = clamp(b.y + dy / d * clamp(want, -70, 70) * dt * 1.4, 90, H - 90);
+  }
+  // Facing: the Maw turns slowly towards the nearest player; otherwise it looks at whoever it's after
+  if (w.stage === 2 && !b.lunge) { const q = nearest(), want = Math.atan2(q.y - b.y, q.x - b.x), d = ((want - b.face + Math.PI) % TAU + TAU) % TAU - Math.PI; b.face += clamp(d, -1.05 * dt, 1.05 * dt); }
+  else if (!b.lunge && !b.inhale && n !== "Hungry") { const q = nearest(); b.face = Math.atan2(q.y - b.y, q.x - b.x); }
+  b.eat = Math.max(0, b.eat - dt);
+  // Turns
+  b.fire -= dt;
+  if (b.fire <= 0) {
+    switch (n) {
+      case "Spiral": b.fire = 0.08; b.ang += 0.17; shot(b.x, b.y, b.ang, 140, "small"); shot(b.x, b.y, b.ang + Math.PI, 140, "small"); break;
+      case "Snap": b.fire = 1.6; if (b.fired++ < 3) lunge(alt(), 0.7, false); break;
+      case "Hungry": b.fire = 1.2; ring(b.x, b.y, 20, 90, "big", (b.fired++ % 2) * TAU / 40); break;
+      case "Inhale": {
+        b.fire = 0.1;
+        if (!b.inhale && (b.fired === 0 || (b.fired === 1 && w.tt >= 2.5))) { const q = b.fired === 0 && !w.ps[1].inside ? w.ps[1] : alt(); b.inhale = { t: 0, a: Math.atan2(q.y - b.y, q.x - b.x), first: b.fired === 0 }; b.fired++; b.face = b.inhale.a; }
+        break;
+      }
+      case "Bile": b.fire = 1.5; for (const q of free()) glob(q.x, q.y); glob(rnd(120, W - 120), rnd(120, H - 120)); break;
+      case "Burrow": {
+        b.fire = 0.1;
+        if (!b.under && (b.fired === 0 || (b.fired === 1 && w.tt >= 3.5))) { b.fired++; b.under = { t: 0, x: b.x, y: b.y, who: alt() }; w.fx.push({ x: b.x, y: b.y, r: 90, t: 0, dur: 0.4, col: "#d9a35a", dirt: true }); }
+        break;
+      }
+      case "Frenzy": b.fire = 1.4; if (b.fired++ < 4) lunge(alt(), 0.55, true); break;
+      case "Jaws": {
+        b.fire = 3;
+        const q = alt(), R = 320;
+        for (const side of [-1, 1]) for (let i = 0; i < 7; i++) {
+          const a = side * (Math.PI / 2) + (i - 3) * 0.24, x = q.x + Math.cos(a) * R, y = q.y + Math.sin(a) * R;
+          shot(x, y, Math.atan2(q.y - y, q.x - x), 140, "tooth", 0.6);
+        }
+        break;
+      }
+      case "Vomit": { b.fire = 0.07; const base = Math.atan2(p0.y - b.y, p0.x - b.x); b.face = base + Math.sin(w.tt * 1.6) * 1.22; shot(b.x + Math.cos(b.face) * b.r, b.y + Math.sin(b.face) * b.r, b.face + rnd(-0.12, 0.12), 260, "bile"); shot(b.x + Math.cos(b.face) * b.r, b.y + Math.sin(b.face) * b.r, b.face + rnd(-0.12, 0.12), 260, "bile"); break; }
+      case "Last meal": b.fire = 0.16; b.ang += 0.17; shot(b.x, b.y, b.ang, 140, "small"); shot(b.x, b.y, b.ang + Math.PI, 140, "small"); break;
+      default: b.fire = 0.1;
+    }
+  }
+  // The inhale: a cone that pulls players to its mouth
+  if (b.inhale) {
+    const I = b.inhale; I.t += dt;
+    for (const p of free()) {
+      const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < 600 && angDiff(Math.atan2(-dy, -dx), I.a) < 0.61) { const pull = 200 - 120 * d / 600; p.x += dx / d * pull * dt; p.y += dy / d * pull * dt; if (d < b.r + 18) swallow(p); }
+    }
+    if (I.t >= 2) b.inhale = null;
+  }
+  // The last meal pulls everyone in
+  if (w.stage === 3) {
+    b.spin += dt;
+    for (const p of free()) { const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy) || 1; p.x += dx / d * 55 * dt; p.y += dy / d * 55 * dt; if (d < b.r + 18) swallow(p);
+      for (let k = 0; k < 12; k++) { if (k === 0 || k === 6) continue; const a = b.spin + TAU * k / 12; if (Math.hypot(p.x - b.x - Math.cos(a) * 170, p.y - b.y - Math.sin(a) * 170) < 26) hit(p); } }
+  }
+  // Swallowed: hidden in it, hurt each second, spat out after 3 s or 300 damage from allies
+  if (w.sw) {
+    const s = w.sw, p = s.who; p.x = b.under ? b.under.x : b.x; p.y = b.under ? b.under.y : b.y;
+    s.t -= dt; s.tick -= dt; if (s.tick <= 0) { s.tick = 1; p.hits++; }
+    if ((w.stage < 3 && s.t <= 0) || s.taken >= 300) spit();
+  }
+  // Bile globs fly for 1 s, then leave a pool
+  for (const g of w.globs) { g.t += dt; if (g.t >= 1 && !g.done) { g.done = true; w.pools.push({ x: g.x, y: g.y, t: 0 }); w.fx.push({ x: g.x, y: g.y, r: 90, t: 0, dur: 0.3, col: "#c8e05a" }); } }
+  w.globs = w.globs.filter(g => !g.done);
+  for (const pl of w.pools) { pl.t += dt; for (const p of free()) if (Math.hypot(p.x - pl.x, p.y - pl.y) < 90) hit(p); }
+  w.pools = w.pools.filter(pl => pl.t < 6);
+  // Morsels: stepping on one pops it
+  for (const m of w.morsels) { m.t += dt; for (const p of free()) if (m.hp > 0 && Math.hypot(p.x - m.x, p.y - m.y) < 26) { m.hp = 0; } if (m.hp === 0) { m.hp = -2; w.denied++; w.fx.push({ x: m.x, y: m.y, r: 36, t: 0, dur: 0.3, col: "#6be38a" }); } }
+  w.morsels = w.morsels.filter(m => m.hp > 0);
+  // Bullets (the Jaws hold before they close)
+  for (const q of w.bullets) { if (q.hold > 0) { q.hold -= dt; continue; } q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt; if (q.kind === "tooth" && q.life < 7.6) q.life = 0; }
+  w.bullets = w.bullets.filter(q => q.life > 0 && q.x > -60 && q.y > -60 && q.x < W + 60 && q.y < H + 60);
+  for (const p of free()) { for (const q of w.bullets) if (q.hold <= 0 && Math.hypot(q.x - p.x, q.y - p.y) < q.r + 7) hit(p); }
+  for (const p of w.ps) p.inv = Math.max(0, p.inv - dt);
+  playerShots(dt);
+  for (const p of w.ps) moveDummy(p, dt);
+  fxStep(dt);
+  if (w.tt >= st().turns[w.turn][1] && !b.lunge && !b.under) nextTurn();
+}
+function glob(x, y) { w.globs.push({ x: clamp(x, 60, W - 60), y: clamp(y, 60, H - 60), sx: w.boss.x, sy: w.boss.y, t: 0 }); }
+function fxStep(dt) { for (const f of w.fx) f.t += dt; w.fx = w.fx.filter(f => f.t < f.dur); }
+
+// Both dummies shoot it, except while it's hungry, when they shoot the morsels instead.
+function playerShots(dt) {
+  const b = w.boss, hungry = turnName() === "Hungry" && w.trans <= 0;
+  if ((w.fireCd -= dt) <= 0) {
+    w.fireCd = 0.15;
+    for (const p of free()) {
+      let tx = b.x, ty = b.y;
+      if (hungry) { const m = w.morsels.reduce((a, m) => !a || Math.hypot(m.x - p.x, m.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? m : a, null); if (!m) continue; tx = m.x; ty = m.y; }
+      const a = Math.atan2(ty - p.y, tx - p.x);
+      w.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, life: 1.6 });
+    }
+  }
+  for (const q of w.shots) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    if (q.life <= 0) continue;
+    const m = w.morsels.find(m => Math.hypot(q.x - m.x, q.y - m.y) < 18);
+    if (m) { q.life = 0; m.hp -= 10; if (m.hp <= 0) m.hp = 0; continue; }
+    if (!b.under && Math.hypot(q.x - b.x, q.y - b.y) < b.r) {
+      q.life = 0;
+      if (w.trans > 0) continue;
+      if (hungry) { w.healed += 5; continue; }
+      let dmg = 10;
+      if (w.stage === 2) { if (angDiff(Math.atan2(q.y - b.y, q.x - b.x), b.face) < Math.PI / 4) { w.healed += 5; w.fx.push({ x: q.x, y: q.y, r: 10, t: 0, dur: 0.25, col: "#6be38a" }); continue; } dmg = 12.5; }
+      if (w.sw) { dmg *= 2; w.sw.taken += dmg; }
+      w.dealt += dmg;
+    }
+  }
+  w.shots = w.shots.filter(q => q.life > 0 && q.x > -20 && q.y > -20 && q.x < W + 20 && q.y < H + 20);
+}
+function moveDummy(p, dt) {
+  if (p.inside || (p.late && w.boss.inhale && w.boss.inhale.first)) return;  // the ally freezes on the first inhale
+  // Each dummy wanders at a class's walking speed, staying off lunge lines, pools, landing globs, the ripple, the
+  // inhale cone and its teeth. The ally is caught standing by the first inhale of each turn, to show a swallow. In the Ravenous stage the ally flanks.
+  const b = w.boss;
+  const bad = (x, y) => {
+    if (Math.hypot(b.x - x, b.y - y) < (w.stage === 3 ? 260 : b.r + 170)) return true;
+    if (b.lunge && !b.lunge.done && segDist(x, y, b.lunge.fx, b.lunge.fy, b.lunge.tx, b.lunge.ty) < b.r + 40) return true;
+    if (b.inhale && !(p.late && b.inhale.first) && Math.hypot(b.x - x, b.y - y) < 640 && angDiff(Math.atan2(y - b.y, x - b.x), b.inhale.a) < 0.75) return true;
+    if (b.under && Math.hypot(b.under.x - x, b.under.y - y) < 150) return true;
+    if (w.pools.some(pl => Math.hypot(pl.x - x, pl.y - y) < 115) || w.globs.some(g => Math.hypot(g.x - x, g.y - y) < 115)) return true;
+    return false;
+  };
+  let pick = null;
+  if (w.stage === 2 && p.late && w.trans <= 0) { const a = b.face + Math.PI + rnd(-0.5, 0.5); pick = () => [clamp(b.x + Math.cos(a) * 320, 60, W - 60), clamp(b.y + Math.sin(a) * 320, 60, H - 60)]; }
+  if (w.stage === 0 && turnName() === "Hungry" && w.morsels.length && Math.random() < 0.5) { const m = w.morsels[Math.floor(rnd(0, w.morsels.length))]; pick = () => [m.x + rnd(-20, 20), m.y + rnd(-20, 20)]; }
+  if (Math.hypot(p.tx - p.x, p.ty - p.y) < 20 || Math.random() < dt * (pick ? 1.5 : 0.4) || bad(p.tx, p.ty) || bad(p.x, p.y) && Math.random() < dt * 6) {
+    for (let k = 0; k < 20; k++) {
+      const [tx, ty] = pick && k < 8 ? pick() : [clamp(p.x + rnd(-400, 400), 60, W - 60), clamp(p.y + rnd(-300, 300), 60, H - 60)];
+      if (!bad(tx, ty)) { p.tx = tx; p.ty = ty; break; }
+    }
+  }
+  const dx = p.tx - p.x, dy = p.ty - p.y, l = Math.hypot(dx, dy) || 1, sp = Math.min(l, 215 * dt);
+  p.x = clamp(p.x + dx / l * sp, 14, W - 14); p.y = clamp(p.y + dy / l * sp, 14, H - 14);
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------------
+const cv = $("arena"), cx = cv.getContext("2d");
+function circle(x, y, r, fill) { cx.fillStyle = fill; cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.fill(); }
+function ringLine(x, y, r, stroke, width, dash) { cx.strokeStyle = stroke; cx.lineWidth = width; if (dash) cx.setLineDash(dash); cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.stroke(); cx.setLineDash([]); }
+function wedge(x, y, r, a, half, fill) { cx.fillStyle = fill; cx.beginPath(); cx.moveTo(x, y); cx.arc(x, y, r, a - half, a + half); cx.closePath(); cx.fill(); }
+function draw() {
+  const b = w.boss, t = w.t, n = w.trans > 0 ? "" : turnName();
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  // Floor: a dark gullet, redder as it starves
+  cx.fillStyle = w.stage >= 2 ? "#180a0e" : "#140c10"; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = "rgba(230,140,170,0.05)"; cx.lineWidth = 1; cx.beginPath();
+  for (let x = 0; x <= W; x += 80) { cx.moveTo(x, 0); cx.lineTo(x, H); } for (let y = 0; y <= H; y += 80) { cx.moveTo(0, y); cx.lineTo(W, y); } cx.stroke();
+  if (w.stage >= 2) { const g = cx.createRadialGradient(MID.x, MID.y, 300, MID.x, MID.y, 950); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, `rgba(120,10,30,${0.25 + 0.06 * Math.sin(t * 2)})`); cx.fillStyle = g; cx.fillRect(0, 0, W, H); }
+  // Bile pools
+  for (const pl of w.pools) { const k = Math.min(1, pl.t * 4) * (pl.t > 5.5 ? (6 - pl.t) * 2 : 1); circle(pl.x, pl.y, 90, `rgba(150,200,60,${0.22 * k})`); ringLine(pl.x, pl.y, 90, `rgba(200,230,90,${0.6 * k})`, 2); for (let j = 0; j < 4; j++) circle(pl.x + Math.cos(t * 0.7 + j * 1.7) * 50, pl.y + Math.sin(t * 0.9 + j * 2.3) * 40, 6 + 3 * Math.sin(t * 3 + j), `rgba(220,250,120,${0.35 * k})`); }
+  // Globs on the way: a shadow where they'll land, the glob on an arc
+  for (const g of w.globs) { const k = g.t; circle(g.x, g.y, 90 * (0.4 + 0.6 * k), `rgba(0,0,0,${0.25 + 0.25 * k})`); ringLine(g.x, g.y, 90, "rgba(200,230,90,0.7)", 2, [8, 8]);
+    const gx = g.sx + (g.x - g.sx) * k, gy = g.sy + (g.y - g.sy) * k - Math.sin(k * Math.PI) * 220; circle(gx, gy, 13, "#c8e05a"); circle(gx - 3, gy - 3, 5, "#efffb0"); }
+  // Morsels
+  for (const m of w.morsels) { const bob = Math.sin(t * 5 + m.x) * 2; circle(m.x, m.y + 8, 14, "rgba(0,0,0,0.35)"); circle(m.x, m.y + bob, 15, "#e0805a"); circle(m.x - 4, m.y - 4 + bob, 6, "#ffc39a"); cx.fillStyle = "rgba(255,255,255,0.8)"; cx.fillRect(m.x - 16, m.y - 26, 32 * m.hp / 60, 3); }
+  // The inhale cone, with streaks rushing in
+  if (b.inhale) { const I = b.inhale; wedge(b.x, b.y, 600, I.a, 0.61, `rgba(200,224,90,${0.06 + 0.05 * Math.sin(t * 12)})`);
+    cx.strokeStyle = "rgba(220,240,140,0.35)"; cx.lineWidth = 2; cx.beginPath();
+    for (let k = 0; k < 16; k++) { const a = I.a + (k / 15 - 0.5) * 1.1, d = 600 - ((t * 420 + k * 97) % 560); cx.moveTo(b.x + Math.cos(a) * d, b.y + Math.sin(a) * d); cx.lineTo(b.x + Math.cos(a) * (d - 40), b.y + Math.sin(a) * (d - 40)); }
+    cx.stroke(); }
+  // The Maw's cone
+  if (w.stage === 2 && w.trans <= 0 && !b.under) { wedge(b.x, b.y, 260, b.face, Math.PI / 4, "rgba(255,60,94,0.10)"); cx.strokeStyle = "rgba(255,90,122,0.5)"; cx.lineWidth = 2; cx.setLineDash([10, 8]); cx.beginPath(); cx.moveTo(b.x + Math.cos(b.face - Math.PI / 4) * 260, b.y + Math.sin(b.face - Math.PI / 4) * 260); cx.lineTo(b.x, b.y); cx.lineTo(b.x + Math.cos(b.face + Math.PI / 4) * 260, b.y + Math.sin(b.face + Math.PI / 4) * 260); cx.stroke(); cx.setLineDash([]);
+    cx.fillStyle = "rgba(107,227,138,0.55)"; cx.font = "600 15px Barlow, sans-serif"; cx.textAlign = "center"; cx.fillText("×1.25 from behind", b.x - Math.cos(b.face) * (b.r + 40), b.y - Math.sin(b.face) * (b.r + 40)); cx.fillStyle = "rgba(255,120,150,0.7)"; cx.fillText("heals it", b.x + Math.cos(b.face) * 200, b.y + Math.sin(b.face) * 200); cx.textAlign = "left"; }
+  // Lunge warning line
+  if (b.lunge && !b.lunge.done) { const L = b.lunge, k = Math.min(1, L.t / L.warn); cx.strokeStyle = `rgba(255,70,100,${0.25 + 0.5 * k})`; cx.lineWidth = b.r * 2; cx.lineCap = "round"; cx.globalAlpha = L.t < L.warn ? 0.35 : 0.15; cx.beginPath(); cx.moveTo(L.fx, L.fy); cx.lineTo(L.tx, L.ty); cx.stroke(); cx.globalAlpha = 1; cx.lineCap = "butt";
+    cx.lineWidth = 3; cx.strokeStyle = "rgba(255,110,140,0.9)"; cx.beginPath(); cx.moveTo(L.fx, L.fy); cx.lineTo(L.tx, L.ty); cx.stroke(); }
+  // Burrow ripple
+  if (b.under) { const U = b.under;
+    for (let j = 0; j < 3; j++) ringLine(U.x, U.y, 30 + ((t * 60 + j * 25) % 75), `rgba(217,163,90,${0.6 - ((t * 60 + j * 25) % 75) / 140})`, 3);
+    for (let j = 0; j < 6; j++) circle(U.x + Math.cos(j * 1.1 + t * 4) * 30, U.y + Math.sin(j * 1.7 + t * 5) * 22, 4, "#8a6a40");
+    if (U.t >= 1.9) { const k = (U.t - 1.9) / 0.6; circle(U.x, U.y, 100, `rgba(255,70,100,${0.08 + 0.15 * k})`); ringLine(U.x, U.y, 100, "rgba(255,110,140,0.9)", 2.5); ringLine(U.x, U.y, 100 * k, "rgba(255,110,140,0.9)", 3); } }
+  // Teeth ring (last stand)
+  if (w.stage === 3 && w.trans <= 0) for (let k = 0; k < 12; k++) { if (k === 0 || k === 6) continue; const a = b.spin + TAU * k / 12, x = b.x + Math.cos(a) * 170, y = b.y + Math.sin(a) * 170; tooth(x, y, a + Math.PI, 22); }
+  // The Devourer
+  if (!b.under) devourer(b.x, b.y, t);
+  // Bullets
+  for (const q of w.bullets) {
+    if (q.kind === "tooth") { const a = Math.atan2(q.vy, q.vx); if (q.hold > 0) cx.globalAlpha = 0.4 + 0.4 * Math.sin(t * 20); tooth(q.x, q.y, a, 16); cx.globalAlpha = 1; continue; }
+    const col = q.kind === "big" ? "255,90,140" : q.kind === "bile" ? "190,230,80" : "255,77,115";
+    circle(q.x, q.y, q.r * 1.7, `rgba(${col},0.25)`); circle(q.x, q.y, q.r, `rgb(${col})`); circle(q.x, q.y, q.r * 0.45, "rgba(20,0,10,0.75)");
+  }
+  for (const f of w.fx) { const k = f.t / f.dur; cx.globalAlpha = 1 - k;
+    if (f.jaw !== undefined) { wedge(f.x, f.y, f.r * (0.6 + 0.4 * k), f.jaw, Math.PI / 2, "rgba(255,120,150,0.35)"); }
+    ringLine(f.x, f.y, f.r * (0.2 + 0.8 * k), f.col, 4); cx.globalAlpha = 1; }
+  for (const q of w.shots) circle(q.x, q.y, 4, "#7dffa8");
+  // Dummies
+  for (const p of w.ps) {
+    if (p.inside) continue;
+    circle(p.x, p.y, 14, p.inv > 0.2 ? "rgba(255,90,110,0.9)" : `rgba(${p.col},0.85)`);
+    ringLine(p.x, p.y, 14, "rgba(255,255,255,0.8)", 2); circle(p.x, p.y, 4, "#fff");
+  }
+  cx.font = "600 15px Barlow, sans-serif"; cx.fillStyle = "rgba(246,232,238,0.7)"; cx.textAlign = "center";
+  for (const [p, name] of [[w.ps[0], "You"], [w.ps[1], "Ally"]]) if (!p.inside) cx.fillText(name, p.x, p.y + 32);
+  if (w.sw) { const s = w.sw; cx.fillStyle = "#e6f5a0"; cx.font = "700 18px Oxanium, sans-serif"; cx.fillText(`${s.who === w.ps[0] ? "YOU'RE" : "ALLY"} SWALLOWED ${w.stage < 3 ? s.t.toFixed(1) + " s · " : ""}${Math.round(s.taken)} / 300`, b.x, b.y - b.r - 26); }
+  cx.textAlign = "left";
+  // Stage banner
+  cx.font = "700 30px Oxanium, sans-serif"; cx.fillStyle = w.trans > 0 ? "#fff" : st().col;
+  cx.fillText(w.trans > 0 ? `→ ${STAGES[(w.stage + 1) % 4].name}` : st().name.toUpperCase(), 40, H - 58);
+  cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(246,232,238,0.65)";
+  cx.fillText(w.trans > 0 ? "changing stage: can't be hurt, screen clears" : `${n || "breather"}   ${w.tt.toFixed(1)} / ${st().turns[w.turn][1]} s${n === "Hungry" ? "   hold fire: shots heal it" : ""}`, 40, H - 28);
+  if (S.speed === 0) { cx.fillStyle = "rgba(255,215,90,0.9)"; cx.font = "700 24px Oxanium, sans-serif"; cx.textAlign = "right"; cx.fillText("PAUSED", W - 40, H - 28); cx.textAlign = "left"; }
+  $("readout").innerHTML = `<span>Stage <b>${w.trans > 0 ? "changing" : st().name}</b></span><span>Turn <b>${n || "breather"}</b></span><span>Hits on you <b>${w.ps[0].hits}</b></span><span>Hits on the ally <b>${w.ps[1].hits}</b></span><span>Damage dealt <b>${Math.round(w.dealt)}</b></span><span>Healed by shots <b>${Math.round(w.healed)}</b></span>${w.stage === 0 ? `<span>Morsels eaten / denied <b>${w.eaten} / ${w.denied}</b></span>` : ""}${w.stage >= 1 ? `<span>Swallowed <b>${w.swallows}</b></span>` : ""}<span>Bullets <b>${w.bullets.length}</b></span>`;
+  for (const d of $("bar").children) d.classList.toggle("on", +d.dataset.v === w.stage);
+}
+function tooth(x, y, a, s) {
+  cx.fillStyle = "#f4e6d0"; cx.strokeStyle = "rgba(120,20,40,0.9)"; cx.lineWidth = 2; cx.beginPath();
+  cx.moveTo(x + Math.cos(a) * s, y + Math.sin(a) * s); cx.lineTo(x + Math.cos(a + 2.5) * s * 0.6, y + Math.sin(a + 2.5) * s * 0.6); cx.lineTo(x + Math.cos(a - 2.5) * s * 0.6, y + Math.sin(a - 2.5) * s * 0.6); cx.closePath(); cx.fill(); cx.stroke();
+}
+// The Devourer: the game's 12-sided crimson body, with a toothed mouth on its front that opens to feed.
+function devourer(x, y, t) {
+  const b = w.boss, s = w.stage, r = b.r, n = w.trans > 0 ? "" : turnName();
+  const g = cx.createRadialGradient(x, y, 6, x, y, r + 40); g.addColorStop(0, `rgba(255,70,110,${0.25 + 0.12 * Math.sin(t * 5)})`); g.addColorStop(1, "rgba(255,70,110,0)"); cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, r + 40, 0, TAU); cx.fill();
+  if (n === "Hungry") ringLine(x, y, r + 18 + 6 * Math.sin(t * 10), "rgba(255,50,150,0.45)", 6);
+  cx.beginPath(); for (let k = 0; k < 12; k++) { const a = TAU * k / 12 + t * 0.2, rr = r * (1 + 0.04 * Math.sin(t * 4 + k * 2)), px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr; k ? cx.lineTo(px, py) : cx.moveTo(px, py); } cx.closePath();
+  cx.fillStyle = s === 1 ? "#6e2a30" : s >= 2 ? "#7a1424" : "#6a1c2e"; cx.fill(); cx.strokeStyle = STAGES[s].col; cx.lineWidth = 4; cx.stroke();
+  // Veins
+  cx.strokeStyle = "rgba(255,140,160,0.25)"; cx.lineWidth = 2; cx.beginPath(); for (let k = 0; k < 5; k++) { const a = k * 1.3 + 0.4; cx.moveTo(x - Math.cos(b.face) * r * 0.2, y - Math.sin(b.face) * r * 0.2); cx.quadraticCurveTo(x + Math.cos(a) * r * 0.5, y + Math.sin(a + 0.5) * r * 0.5, x + Math.cos(a) * r * 0.9, y + Math.sin(a) * r * 0.9); } cx.stroke();
+  // The mouth: on its front, wider when hungry, inhaling, lunging, or always open on the Maw
+  const open = w.sw ? 0.35 : b.inhale || n === "Hungry" || w.stage === 2 || n === "Vomit" ? 0.62 : b.lunge && !b.lunge.done && b.lunge.t >= b.lunge.warn ? 0.6 : b.eat > 0 ? 0.3 + 0.3 * Math.abs(Math.sin(t * 20)) : 0.38;
+  const mx = x + Math.cos(b.face) * r * 0.32, my = y + Math.sin(b.face) * r * 0.32, mr = r * open;
+  circle(mx, my, mr, "#1a0008");
+  for (let k = 0; k < 10; k++) { const a = b.face + TAU * k / 10 + t * 0.3; tooth(mx + Math.cos(a) * mr, my + Math.sin(a) * mr, a + Math.PI, Math.max(6, mr * 0.32)); }
+  if (w.sw) { const p = w.sw.who; circle(mx, my, mr * 0.5, `rgba(${p.col},${0.4 + 0.3 * Math.sin(t * 8)})`); }
+  if (w.trans > 0) ringLine(x, y, r + 16, `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`, 4);
+}
+
+// --- Controls and loop ---------------------------------------------------------------------------------------------
+function pickStage(v) {
+  S.lock = v;
+  for (const x of $("stagePick").children) x.classList.toggle("on", +x.dataset.v === v);
+  reset(Math.max(0, v));
+}
+$("stagePick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (btn) pickStage(+btn.dataset.v); });
+$("bar").addEventListener("click", ev => { const d = ev.target.closest("[data-v]"); if (d) pickStage(+d.dataset.v); });
+$("speedPick").addEventListener("click", ev => { const btn = ev.target.closest("button"); if (!btn) return; S.speed = +btn.dataset.v; for (const x of $("speedPick").children) x.classList.toggle("on", x === btn); });
+reset(0);
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  for (let k = 0; k < S.speed; k++) step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

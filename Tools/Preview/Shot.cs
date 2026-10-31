@@ -2,6 +2,23 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 class Shot {
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
   static bool heraldOn;
+  static bool devourOn;
+  // Two made-up saved runs and a profile in a temp folder, for the menu's Continue list, Records and the lobby.
+  static void PreviewSaves() {
+    string dir = Path.Combine(Path.GetTempPath(), "arena-preview-saves");
+    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+    SaveStore.Folder = dir; Profile.Folder = dir; Profile.Reload();
+    var a = new RunSave { Id = "a", SavedAt = DateTime.UtcNow.AddMinutes(-40), Wave = 23, Score = 18450, RunTime = 2710f, Mods = RunMod.Lucky | RunMod.Frenzy, CurrentPath = PathId.Bazaar, PathFrom = 21, PathTo = 24 };
+    a.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Level = 17 });
+    a.Seats.Add(new SeatSave { Name = "Aleon", Role = Role.Dps, Kit = Kit.Mage, Weapon = 0, Ability = 1, Level = 16 });
+    var b = new RunSave { Id = "b", SavedAt = DateTime.UtcNow.AddDays(-2), Wave = 7, Score = 3120, RunTime = 690f };
+    b.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Healer, Kit = Kit.Ninja, Weapon = 2, Ability = 0, Level = 6 });
+    SaveStore.Write(a); SaveStore.Write(b);
+    var pr = new Profile { RunsStarted = 14, RunsWon = 1, RunsLost = 9, BestWave = 50, BestScore = 41200, BestEndlessWave = 0, PlayTime = 41000f, Kills = 6812, BossKills = 52, Downs = 37, Revives = 21, DamageDealt = 2.3e6f, HealingDone = 81000f };
+    foreach (var t in new[] { EnemyType.Boss, EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse }) pr.BossBeaten(t, 10);
+    pr.RunsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 6; pr.RunsAs[Profile.ClassKey(Role.Dps, Kit.Mage)] = 3; pr.RunsAs[Profile.ClassKey(Role.Healer, Kit.Ninja)] = 1; pr.WinsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 1;
+    File.WriteAllText(Path.Combine(dir, "profile.txt"), pr.ToText()); Profile.Reload();
+  }
   static void Main(string[] args) {
     int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
@@ -56,6 +73,19 @@ class Shot {
         e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("COL"));
         var want = Environment.GetEnvironmentVariable("COLTURN");
         if (want != null && e.Colossus != null && e.Colossus.TransT <= 0f && e.Colossus.Turn.ToString() != want && f < (int)(seconds * 60) - 60) e.Colossus.TurnT = 999f;
+      }
+      // DEVOUR=<health fraction>: hold the Devourer there; DEVOURTURN=<turn> starts that turn DEVOURT seconds (default
+      // 2.5) before the shot (Spiral, Snap, Hungry, Inhale, Bile, Burrow, Frenzy, Jaws, Vomit, LastMeal).
+      if (Environment.GetEnvironmentVariable("DEVOUR") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Devourer)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("DEVOUR"));
+        var want = Environment.GetEnvironmentVariable("DEVOURTURN");
+        int from = (int)(seconds * 60) - (int)(60 * float.Parse(Environment.GetEnvironmentVariable("DEVOURT") ?? "2.5"));
+        if (want != null && e.Devour != null && e.Devour.TransT <= 0f && !devourOn && f >= from - 10)
+        {
+          if (e.Devour.Turn.ToString() == want) devourOn = true;
+          else { e.Devour.Lunging = false; e.Devour.BurrowT = 0f; e.Devour.InhaleT = 0f; e.Devour.TurnT = 999f; }  // skip it, busy or not
+        }
       }
       // WARDEN=<health fraction>: hold the Warden at that health, so the shot lands in that stage.
       if (Environment.GetEnvironmentVariable("WARDEN") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss) e.Hp = (e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("WARDEN")));
@@ -334,6 +364,11 @@ class Shot {
       host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true };
       host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Mage, Weapon = 0, Ability = 1 };
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
+      // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
+      if (Environment.GetEnvironmentVariable("RESUME") != null) {
+        PreviewSaves(); host.Resume = SaveStore.List()[0];
+        host.Lobby.Remove(2); host.Lobby[1].Seat = 0; host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Knight; host.Lobby[1].Weapon = 1; host.Lobby[1].Ability = 2; host.Lobby[1].Ready = false;
+      }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky; }
       if (Environment.GetEnvironmentVariable("BGMIN") != null) { set("bgPickerMin", true); set("bgTabSeen", 0f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
@@ -384,8 +419,11 @@ class Shot {
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
-    else if (mode == "menu" || mode == "howto")
+    else if (mode == "menu" || mode == "howto" || mode == "continue" || mode == "records")
     {
+      // continue / records: the saved-runs list and the Records page, with made-up saves and a profile (SavesUi.cs).
+      if (mode == "continue" || mode == "records" || mode == "menu") PreviewSaves();
+      if (mode == "continue") { typeof(ArenaApp).GetMethod("OpenContinue", f2).Invoke(app, null); if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>()); }
       GL.Tris.Clear();
       set("drawScale", 1f);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
@@ -394,7 +432,7 @@ class Shot {
       Event.current.type = EventType.Repaint;
       set("glMaterial", new Material(null));
       GL.ToUi = true;
-      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : "DrawHowToPlay", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "kitgrid")

@@ -13,6 +13,8 @@ namespace Arena
         {
             if (p.DevGod)
                 return;
+            if (p.SwallowT > 0f && !stomach)
+                return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             foreach (var q in Players.Values)
@@ -405,8 +407,8 @@ namespace Arena
                     }
                     foreach (var e in Enemies.Values)
                     {
-                        if (e.SpawnT > 0f || e.Hp <= 0f || e.Id == b.LastHit)
-                            continue;
+                        if (e.SpawnT > 0f || e.Hp <= 0f || e.Id == b.LastHit || DevourUnder(e))
+                            continue;  // (the Devourer underground: shots pass over it)
                         float r = e.Radius + b.Radius;
                         if (b.Pos.DistanceSq(e.Pos) < r * r)
                         {
@@ -464,8 +466,8 @@ namespace Arena
                     }
                     foreach (var p in Players.Values)
                     {
-                        if (p.Downed)
-                            continue;
+                        if (p.Downed || p.SwallowT > 0f)
+                            continue;  // (inside the Devourer, out of reach)
                         bool blockable = !Defs.Unblockable(b.Kind);
                         if (p.ParryActive && InParryArc(p, b.Pos, b.Radius))
                         {
@@ -637,6 +639,8 @@ namespace Arena
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
                 bool bossReward = OnEnemyKilled(e);
+                if (bossReward)
+                    BossRecord(e);  // everyone's profile (RunSaves.cs)
                 KillEffects(e);
                 var killer = PlayerOrNull(e.LastHitBy);
                 if (killer != null && e.Def.Xp > 0)
@@ -684,7 +688,7 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e))
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || DevourImmune(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
@@ -708,6 +712,8 @@ namespace Arena
                 e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);  // the Devourer feeds on your shots
                 return;
             }
+            if (!DevourHit(e, ref dmg, attacker))
+                return;  // into the Devourer's Maw: it fed on that (Devourer.cs)
             Player p;
             if (Players.TryGetValue(attacker, out p))
             {
