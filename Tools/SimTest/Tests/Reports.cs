@@ -273,7 +273,7 @@ static partial class Program
     // the measure is health taken off in 10 s. Prints the median gain over all weapons and the 10th-90th percentile.
     static void UpgradeBalanceReport(float dt)
     {
-        string[] ups = { "Sharpened Rounds", "Quick Trigger", "Hollow Points", "Hair Trigger", "Multishot", "Barrage", "Piercing Rounds",
+        string[] ups = { "Sharpened Rounds", "Quick Trigger", "Magnum Rounds", "Hollow Points", "Hair Trigger", "Multishot", "Barrage", "Piercing Rounds",
             "Swarm Rounds", "Brood Mother", "Executioner", "Twin Fang", "Collapse Rounds", "Graviton Rounds", "Dark Matter",
             "Homing Rounds", "Ricochet", "Incendiary Rounds", "Cryo Rounds", "Shock Rounds", "Explosive Rounds", "Velocity Rounds" };
         string[] fights = { "boss", "pack", "spread" };

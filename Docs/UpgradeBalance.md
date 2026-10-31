@@ -1,6 +1,6 @@
 # Upgrade balance pass (step 3)
 
-Status: **A-H and I done** (Oct 2026). Steps 1 and 2 (bugs and dead cards) are done:
+Status: **A-H, I and the under-target follow-up done** (Oct 2026). Steps 1 and 2 (bugs and dead cards) are done:
 every weapon upgrade now does something on every weapon.
 
 ## How it's measured
@@ -134,3 +134,22 @@ show 0 here because the report only counts damage.
 
 After I, Multishot is worth +37% / +43% / +41% (boss / pack / spread) and Barrage +27% / +60% / +14%, with no
 weapon at 0 apart from those three healers.
+
+## Follow-up: the cards still under target
+
+| Card | Change | One pick after (boss / pack / spread) | Before |
+|---|---|---|---|
+| Piercing Rounds (Rare) | +2 pierce a stack (was +1); +15% reach on weapons without piercing shots (was +10%) | 0 / +30% / 0 | 0 / +15% / 0 |
+| Swarm Rounds (Legendary) | with no other enemy within 180 px, the splinters bite the enemy hit (20% of the hit a stack) | +20% / +45% / +29% | +2% / +43% / +30% |
+| Twin Fang (Legendary) | 40% chance (was 25%) | +36% / +37% / +37% | +24% / +23% / +26% |
+| Dark Matter (Legendary) | +35% damage (was +20%), still +1 pierce | +35% / +44% / +35% | +20% / +33% / +20% |
+| Incendiary Rounds (Mod) | 40% of each hit burns (was 25%) | +22% / +11% / +27% | +14% / +6% / +20% |
+| Shock Rounds (Mod) | 25% chance (was 15%) | 0 / +29% / +29% | 0 / +15% / +16% |
+| Velocity Rounds (Mod) | +25% damage (was +15%) | +25% / +25% / +27% | +14% / +15% / +15% |
+
+Piercing Rounds is still 0 against a lone boss and in the spread wave: nothing stands behind the target. That's the
+card's nature; in a pack (and in real waves, which bunch up) it now pays.
+
+**New card, Magnum Rounds (Common, up to 4):** shots 15% bigger a stack (`Stats.ShotSizeMult`, applied in
+`MakeBullet` so every game draws the same size), and area weapons' areas 15% wider (through `AreaMult`). It reads
+0 in this report (perfect aim at still targets); like Homing Rounds its worth is forgiveness on near misses.

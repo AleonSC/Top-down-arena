@@ -28,6 +28,8 @@ namespace Arena
             lines.Add(new StatLine { Label = "Extra projectiles", Value = "+" + s.ExtraShots });
             lines.Add(new StatLine { Label = "Barrage (fanned copies)", Value = "+" + s.Fan });
             lines.Add(new StatLine { Label = "Pierce", Value = "+" + s.Pierce });
+            if (s.ShotSizeMult != 1f)
+                lines.Add(new StatLine { Label = "Shot size", Value = Pct(s.ShotSizeMult) });  // Magnum Rounds
             lines.Add(new StatLine { Label = "Parry durability", Value = ((int)(Game.ParryCapacity * s.ParryCapacityMult)).ToString() });
             lines.Add(new StatLine { Label = Upgrades.Ability(p.RoleAbility).Name + " charges", Value = (1 + s.RoleCharges).ToString() });
 

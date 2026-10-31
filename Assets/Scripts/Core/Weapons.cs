@@ -338,7 +338,7 @@ namespace Arena
                     // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
                     int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
                     bool heavy = left <= RevolverHeavy(p);
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = heavy ? 6f : 4.5f;
+                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f : 1f) * dmg, p.Id).Radius = (heavy ? 6f : 4.5f) * p.Stats.ShotSizeMult;  // Magnum Rounds
                     break;
                 }
                 case WeaponId.MendersBow:
@@ -360,7 +360,7 @@ namespace Arena
                         b.Pierce += c >= 1f ? 2 : c >= 0.5f ? 1 : 0;
                         b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
                         if (perfect)
-                            b.Radius = 6f;
+                            b.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
                     }
                     if (perfect)
                         BroadcastFx(FxKind.Spark, muzzle, new Rgba(1f, 0.85f, 0.35f), 26f, 0.3f, Sfx.Pick);

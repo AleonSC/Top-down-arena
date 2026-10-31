@@ -38,6 +38,7 @@ namespace Arena
         {
             { "Sharpened Rounds", "bullet" },
             { "Quick Trigger", "firerate" },
+            { "Magnum Rounds", "magnum" },
             { "Light Boots", "boot" },
             { "Vitality", "heart" },
             { "Mending", "regen" },
@@ -723,6 +724,21 @@ namespace Arena
                 "...kggggk...",
                 "...kGGGGk...",
                 "...kkkkkk...",
+            },
+            ["magnum"] = new[]
+            {
+                "..g......g..",
+                ".gg.kkkk.gg.",
+                "...kyyyyk...",
+                "..kyywyyyk..",
+                "..kywyyyyk..",
+                "..kyyyyyYk..",
+                "..kyyyyyYk..",
+                "..kYyyyyYk..",
+                "...kYYYYk...",
+                ".gg.kkkk.gg.",
+                "..g......g..",
+                "............",
             },
             ["hollow"] = new[]
             {

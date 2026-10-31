@@ -145,6 +145,9 @@ namespace Arena
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
             var b = new Bullet { Id = id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, Life0 = life, FromBoss = fromBoss, Homing = homing, Radius = Defs.BulletRadius(kind) };
+            Player shooter;
+            if (owner != 0 && Moddable(kind) && Players.TryGetValue(owner, out shooter))
+                b.Radius *= shooter.Stats.ShotSizeMult;  // Magnum Rounds (every game knows everyone's upgrades, so it's the same size everywhere)
             Bullets[id] = b;
             if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot)
                 NoteShot(b);
@@ -309,7 +312,7 @@ namespace Arena
         public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Ofuda
             || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff || w == WeaponId.ChainLight || w == WeaponId.ArcLightning;
         public const float HomingAreaPerStack = 0.25f;
-        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? 1f + HomingAreaPerStack * p.Stats.Homing / 2f : 1f;  // Homing Rounds give 2 turn a stack
+        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? (1f + HomingAreaPerStack * p.Stats.Homing / 2f) * p.Stats.ShotSizeMult : 1f;  // Magnum Rounds widen areas too  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
         const float HomingRange = 260f, HomingCone = 0.7f;  // only enemies within 260 px and ~45 degrees of the shot's path
 
@@ -619,6 +622,12 @@ namespace Arena
 
             foreach (var sp in splits)
             {
+                Enemy hit;
+                if (Enemies.TryGetValue(sp.LastHit, out hit) && hit.Hp > 0f && BounceTarget(sp.Pos, sp.LastHit, SwarmAloneReach) == null)
+                {
+                    HurtEnemy(hit, sp.Dmg * sp.Pierce * SwarmAloneShare, sp.Owner);  // alone (a boss): the splinters bite the enemy hit
+                    continue;
+                }
                 float offset = Rand(0f, MathX.Tau);
                 for (int i = 0; i < sp.Pierce; i++)
                 {
@@ -873,6 +882,7 @@ namespace Arena
             }
         }
 
+        public const float SwarmAloneReach = 180f, SwarmAloneShare = 0.17f;  // Swarm Rounds: with no other enemy this near, the splinters bite the enemy hit for this share of their damage
         public const float CollapseCore = 0.5f;                        // Collapse Rounds: the enemy shot takes this share of the implosion (others take it all)
         public const float ExecuteBelow = 0.5f;                       // Executioner: double damage below this health (was 35%)
         public const float BroodTurretTime = 6f, BroodBossEvery = 8f;  // Brood Mother: a turret's life (was 4 s); one turret this often while you hit a boss
@@ -890,10 +900,10 @@ namespace Arena
         }
 
         /// The nearest enemy a bounce can go to from `pos`, other than the one it just hit.
-        Enemy BounceTarget(V2 pos, int lastHit)
+        Enemy BounceTarget(V2 pos, int lastHit, float reach = RicochetReach)
         {
             Enemy next = null;
-            float bestD = RicochetReach * RicochetReach;
+            float bestD = reach * reach;
             foreach (var e in Enemies.Values)
             {
                 if (e.Id == lastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0)

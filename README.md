@@ -284,7 +284,7 @@ have chosen.
 
 | Rarity | Color | What you get |
 |---|---|---|
-| **Common** | white | Small stat boosts: +10% damage, +10% fire rate, +6% speed, +15 HP, regen, -6% cooldowns |
+| **Common** | white | Small stat boosts: +10% damage, +10% fire rate, 15% bigger shots (Magnum Rounds), +6% speed, +15 HP, regen, -6% cooldowns |
 | **Uncommon** | green | Bigger boosts (+20% damage, +40 HP, -15% cooldowns...) and damage reduction |
 | **Rare** | blue | **Second Charge** for your Space ability, an upgrade for a specific ability you have, on any key (e.g. bigger Barrier, longer Roar, double-damage Bulldoze, bigger Haven, faster Soul Link, bigger grenades, harsher marks; for Knights: Tower Shield, Earthshaker, Iron Will, Sacred Ground, Bulwark, Miracle, Cyclone, Flurry, Bloodlust; for Ninjas: Mirror Image, Thick Smoke, Tempered Steel, Morning Dew, Body Double, Sacred Seal, Assassinate, Unseen Blade, Storm of Steel; for Hemomancers: Hardened Blood, Blood Oath, Deep Veins, Lifeblood, Hungry Earth, Saint's Blood, Boiling Point, Bloodrush, Crimson Tide), wider aura; plus Multishot, Barrage, Piercing Rounds and Overcharge (second charge on Q/E/Shift) |
 | **Very rare** | purple | A brand-new ability on **Q**, **E** or **Shift** (you choose the key; each one only once): a universal one (Shockwave, Overdrive, Blink, Nova or Turret), or one of your **class's two other Space abilities**, the ones you didn't pick in the lobby (these count triple, so about 6 in 11 very rare cards are class abilities) |
@@ -294,9 +294,9 @@ have chosen.
 | Boss | Legendary weapon upgrades |
 |---|---|
 | The Warden | **Warden's Guard** (one of the Warden's guards walks at your side and fights enemies within 240 px of you with its baton, 14 damage every 0.7 s; it has 150 health + 15 per wave, enemy shots and bodies hurt it, and a fallen guard is replaced 15 s later; +1 guard per stack) · **Stun Gun** (a new Q / E / Shift ability, 14 s: draw a stun gun with 6 shots, 15 damage each, that stun enemies for 1.5 s (bosses are slowed 50% instead); your weapon is away until they're spent, and only then does the cooldown start; capstone: 9 shots) · **Searchlight** (a pool of light, 110 px, chases your cursor at 1100 px/s; enemies in it take 25% more damage from every player, and one held in it for 2 s is stunned for 1 s, bosses slowed 40% instead, then can't be locked again for 3 s; the 2nd stack widens it to 140 px, the 3rd makes it +40%) |
-| Hive Queen | **Swarm Rounds** (shots split into 3 on hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (40% of kills spawn a 6 s mini-turret; hitting a boss brings one every 8 s) |
-| Twin Reapers | **Executioner** (double damage below 50% HP) · **Twin Fang** (25% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
-| The Singularity | **Collapse Rounds** (shots implode on impact; the enemy hit takes half) · **Graviton Rounds** (hits slow enemies 40%; slowed enemies take 15% more damage from you) · **Dark Matter** (+1 pierce, +20% damage) |
+| Hive Queen | **Swarm Rounds** (shots split into 3 on hit; with nothing else near, the swarm bites the enemy hit) · **Royal Jelly** (hits heal 1 HP, up to 10/s) · **Brood Mother** (40% of kills spawn a 6 s mini-turret; hitting a boss brings one every 8 s) |
+| Twin Reapers | **Executioner** (double damage below 50% HP) · **Twin Fang** (40% chance of double damage) · **Soul Harvest** (kills heal 5 HP) |
+| The Singularity | **Collapse Rounds** (shots implode on impact; the enemy hit takes half) · **Graviton Rounds** (hits slow enemies 40%; slowed enemies take 15% more damage from you) · **Dark Matter** (+1 pierce, +35% damage) |
 
 **Weapon mods** change how your shots behave, and you can see them on your bullets:
 
@@ -304,19 +304,19 @@ have chosen.
 |---|---|
 | **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 5% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils, Frost Lance, Golem Staff, Chain Light, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc, lightning's reach, splinters, boulder, cone or strip, for the same damage cost. **Wisp Lantern and Imp Caller:** the wisps and imps you send pick an enemy 50% farther from your cursor per stack, and one sent at empty ground (or whose target dies) turns onto an enemy within 260 px of it, for the same damage cost |
 | **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 40% damage; +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, sent wisps and imps, and shots that pierce: Railgun, drawn arrows, Bone Spear, Fireball, flames, Fuma Shuriken) store their damage instead, and up to 4 times a second a **bounce bolt** carries 40% of it from the enemy hit to the nearest other one (+1 bounce per extra stack) |
-| **Incendiary Rounds** | Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s (per stack), and burns from every hit add up, so fast and slow weapons gain about the same |
+| **Incendiary Rounds** | Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s (per stack), and burns from every hit add up, so fast and slow weapons gain about the same |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
-| **Shock Rounds** | 15% chance per hit for lightning to arc to 2 more enemies at 60% damage |
+| **Shock Rounds** | 25% chance per hit for lightning to arc to 2 more enemies at 60% damage |
 | **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack) |
-| **Velocity Rounds** | Shots fly 30% faster and farther, +15% damage |
+| **Velocity Rounds** | Shots fly 30% faster and farther, +25% damage |
 
 Mods apply to your weapon's shots and your minions' shots, but not to grenades. They also ride every hit of
 weapons that don't fire bullets (melee swings, beams, cones, the Repulsion Cannon's blast, Ofuda ward bursts,
 sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (see The Knight above).
 
-**Piercing Rounds** let shots pass through one more enemy per stack. Weapons without bullets that run out of
+**Piercing Rounds** let shots pass through two more enemies per stack. Weapons without bullets that run out of
 pierce (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit
-Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller) reach 10% farther per stack instead.
+Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller) reach 15% farther per stack instead.
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.

@@ -56,11 +56,11 @@ namespace Arena
         // --- Weapons ------------------------------------------------------------------
 
         /// Piercing Rounds on weapons that don't fire bullets that run out of pierce (melee, beams, cones, sprays, loops,
-        /// sent companions, wards): each stack makes the weapon reach 10% farther.
-        public const float PierceReachPerStack = 0.1f;
+        /// sent companions, wards): each stack makes the weapon reach 15% farther.
+        public const float PierceReachPerStack = 0.075f;  // per point of pierce: Piercing Rounds give 2 a stack (15%), Dark Matter 1
         public static float PierceReach(Player p) => 1f + PierceReachPerStack * p.Stats.Pierce;
 
-        /// How far a melee weapon reaches (Piercing Rounds lengthen it 10% a stack).
+        /// How far a melee weapon reaches (Piercing Rounds lengthen it 15% a stack).
         public static float MeleeReach(Player p, float baseReach) => baseReach * PierceReach(p);
 
         /// A melee weapon's base swing reach (Defs; bots and tests use it).

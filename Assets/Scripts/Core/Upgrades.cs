@@ -92,6 +92,7 @@ namespace Arena
         public float ShockChance;
         public float ExplosiveRadius;
         public float ShotSpeedMult = 1f;
+        public float ShotSizeMult = 1f;   // Magnum Rounds: your shots are bigger (and area weapons' areas wider)
 
         // Parry upgrades.
         public float ParryCapacityMult = 1f, ParryArcMult = 1f, PerfectBonus, ReflectMult = 1f, CounterFireRate, MirrorChance;
@@ -185,6 +186,7 @@ namespace Arena
             // Common: small stat boosts
             new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+10% damage", Apply = s => s.DmgMult += 0.1f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Quick Trigger", Desc = "+10% fire rate", Apply = s => s.FireRateMult += 0.1f },
+            new UpgradeDef { Rarity = Rarity.Common, MaxStacks = 4, Name = "Magnum Rounds", Desc = "Your shots are 15% bigger (area weapons: 15% wider areas)", Apply = s => s.ShotSizeMult += 0.15f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Light Boots", Desc = "+6% move speed", Apply = s => s.SpeedMult += 0.06f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Vitality", Desc = "+15 max HP", Apply = s => s.BonusHp += 15f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Mending", Desc = "Regenerate 1 HP per second", Apply = s => s.Regen += 1f },
@@ -276,7 +278,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy. Weapons without such shots reach 10% farther instead", Apply = s => s.Pierce += 1 },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through two more enemies. Weapons without such shots reach 15% farther instead", Apply = s => s.Pierce += 2 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
                 Apply = s => { s.PerfectBonus += 0.12f; s.ReflectMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Counterstance", Desc = "A perfect parry gives +50% fire rate for 2.5 s",
@@ -301,7 +303,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Boss, MaxStacks = 3, Name = "Searchlight",
                 Desc = "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
                 Apply = s => s.Searchlight += 1 },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Swarm Rounds", Desc = "Your shots split into 3 smaller shots when they hit. With nothing else near, the swarm bites the enemy hit instead",
                 Apply = s => s.SplitShots += 3 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Royal Jelly", Desc = "Every hit heals you 1 HP (up to 10 HP per second)",
                 Apply = s => s.Lifesteal += 1f },
@@ -309,34 +311,34 @@ namespace Arena
                 Apply = s => s.BroodChance += 0.4f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Fang", Desc = "25% chance for each hit to deal double damage",
-                Apply = s => s.CritChance += 0.25f },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Fang", Desc = "40% chance for each hit to deal double damage",
+                Apply = s => s.CritChance += 0.4f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Soul Harvest", Desc = "Every kill heals you 5 HP",
                 Apply = s => s.KillHeal += 5f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Collapse Rounds", Desc = "Shots implode on impact, hurting enemies nearby (and the enemy hit, at half)",
                 Apply = s => s.ImpactSplash += 45f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Graviton Rounds", Desc = "Enemies you hit are slowed by 40% for 2 seconds, and slowed enemies take 15% more damage from you",
                 Apply = s => { s.SlowOnHit = Math.Min(0.7f, s.SlowOnHit + 0.4f); s.SlowedBonus += 0.15f; } },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 1 more enemy and deal 20% more damage",
-                Apply = s => { s.Pierce += 1; s.DmgMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 1 more enemy and deal 35% more damage",
+                Apply = s => { s.Pierce += 1; s.DmgMult += 0.35f; } },
 
             // Weapon mods: one is picked after every boss, from the full list.
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 5% less damage per stack. More stacks bend harder",
                 Apply = s => s.Homing += 2f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (40% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
                 Apply = s => s.Ricochet += 1 },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up",
-                Apply = s => s.BurnFrac += 0.25f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s, and burns from every hit add up",
+                Apply = s => s.BurnFrac += 0.4f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Cryo Rounds", Desc = "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
                 Apply = s => { s.CryoSlow = Math.Min(0.6f, s.CryoSlow + 0.2f); s.FreezeChance += 0.06f; } },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Shock Rounds", Desc = "15% chance per hit for lightning to arc to 2 more enemies (60% damage)",
-                Apply = s => s.ShockChance += 0.15f },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Shock Rounds", Desc = "25% chance per hit for lightning to arc to 2 more enemies (60% damage)",
+                Apply = s => s.ShockChance += 0.25f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Explosive Rounds", Desc = "Shots explode on impact, dealing 30% damage to enemies nearby",
                 Apply = s => s.ExplosiveRadius += s.ExplosiveRadius == 0f ? 40f : 15f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Mirror Guard", Desc = "Each bullet your parry blocks has a 25% chance to fly back at enemies",
                 Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 15% more damage",
-                Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
+                Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
         });
 
         /// After a boss: every weapon mod you can still take, to choose from.

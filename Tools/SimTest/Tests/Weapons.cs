@@ -2367,7 +2367,7 @@ static partial class Program
             gain.Add(dealt[1] / dealt[0] - 1f);
         }
         Console.WriteLine("  incendiary (1 stack): Riot Repeater {0:+0}%, Revolver {1:+0}%", gain[0] * 100f, gain[1] * 100f);
-        Check(gain.All(x => x > 0.2f && x < 0.3f), "Incendiary Rounds add 25% of every hit as burn, on fast and slow weapons alike");
+        Check(gain.All(x => x > 0.35f && x < 0.45f), "Incendiary Rounds add 40% of every hit as burn, on fast and slow weapons alike");
 
         // Hits that aren't bullets (a cone, a blast, a ward burst) carry weapon mods too: Explosive Rounds used to be
         // dropped for them (their splashes were cleared before they were spent), and some never applied mods at all.
@@ -2429,26 +2429,27 @@ static partial class Program
         {
             me.Weapon = Defs.Weapons.First(w => w.Id == id);
             build("Piercing Rounds", 0);
-            float r0 = g.WeaponRange(me) - me.Def.BodyR;
+            float r0 = g.WeaponRange(me);
             build("Piercing Rounds", 2);
-            float r2 = g.WeaponRange(me) - me.Def.BodyR;
-            float ratio = r2 / r0;
-            if (Math.Abs(ratio - 1.2f) > 0.03f) { allLonger = false; longer.Add(me.Weapon.Name + string.Format(" x{0:0.00}", ratio)); }
+            float r2 = g.WeaponRange(me);
+            // Some ranges count from your edge (body radius added), some from your centre: the reach itself is 1.3x either way.
+            float ratio = Math.Abs((r2 - me.Def.BodyR) / (r0 - me.Def.BodyR) - 1.3f) < Math.Abs(r2 / r0 - 1.3f) ? (r2 - me.Def.BodyR) / (r0 - me.Def.BodyR) : r2 / r0;
+            if (Math.Abs(ratio - 1.3f) > 0.01f) { allLonger = false; longer.Add(me.Weapon.Name + string.Format(" x{0:0.00}", ratio)); }
         }
-        Console.WriteLine("  piercing (2 stacks): every reach x1.2 {0}{1}", allLonger, longer.Count > 0 ? " (off: " + string.Join(", ", longer) + ")" : "");
-        Check(allLonger, "Piercing Rounds make weapons without piercing bullets reach 10% farther a stack");
+        Console.WriteLine("  piercing (2 stacks): every reach x1.3 {0}{1}", allLonger, longer.Count > 0 ? " (off: " + string.Join(", ", longer) + ")" : "");
+        Check(allLonger, "Piercing Rounds make weapons without piercing bullets reach 15% farther a stack");
         var reached = new float[2];
         for (int pass = 0; pass < 2; pass++)
         {
             clear();
             build("Piercing Rounds", pass * 2);
             me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
-            V2 at = from + new V2(Game.LightConeReach * 1.15f + Defs.Get(EnemyType.Brute).Radius, 0f);  // its edge 15% past the plain cone (the cone counts from your centre)
+            V2 at = from + new V2(Game.LightConeReach * 1.2f + Defs.Get(EnemyType.Brute).Radius, 0f);  // its edge 20% past the plain cone (the cone counts from your centre)
             var a1 = dummy(at);
             for (int f = 0; f < 60 * 2; f++) { a1.Pos = at; a1.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at }); }
             reached[pass] = a1.MaxHp - a1.Hp;
         }
-        Console.WriteLine("  piercing on Chain Light: an enemy 15% past the plain cone took {0:0.0} without, {1:0.0} with 2 stacks", reached[0], reached[1]);
+        Console.WriteLine("  piercing on Chain Light: an enemy 20% past the plain cone took {0:0.0} without, {1:0.0} with 2 stacks", reached[0], reached[1]);
         Check(reached[0] == 0f && reached[1] > 0f, "with Piercing Rounds the Chain Light's cone reaches enemies past its plain length");
 
         // Multishot / Barrage per weapon (balance item I).
@@ -2494,6 +2495,19 @@ static partial class Program
         bool moved = me.PreyId == preyB.Id;
         Console.WriteLine("  wolf whistle: a stray dart kept the prey {0}; aiming at the other and hitting it moved it {1}", kept, moved);
         Check(kept && moved, "Wolf Whistle: stray (fanned or piercing) darts don't pull the pack off the enemy you aim at");
+
+        // Magnum Rounds: shots 15% bigger a stack, the same size on the client; area weapons' areas 15% wider.
+        clear();
+        build("Magnum Rounds", 2);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Pistol);
+        me.Pos = from; me.AimAt = from + new V2(300f, 0f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        var round = g.Bullets.Values.First(x => x.Owner == 1);
+        float plain = Defs.BulletRadius(round.Kind);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FlakCannon);
+        float area = Game.AreaMult(me);
+        Console.WriteLine("  magnum rounds x2: a Revolver round {0:0.00} px (plain {1:0.00}); a Flak Cannon's area x{2:0.00}", round.Radius, plain, area);
+        Check(Math.Abs(round.Radius / plain - 1.3f) < 0.01f && Math.Abs(area - 1.3f) < 0.01f, "Magnum Rounds make shots 15% bigger a stack, and area weapons' areas 15% wider");
         host.Leave("");
     }
 }
