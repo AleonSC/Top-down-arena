@@ -225,6 +225,7 @@ static partial class Program
         Test("colossus", "the Colossus's three stages, stomp rings, plates and last stand", () => ColossusTest(Dt)),
         Test("bosssound", "boss sound cues", () => BossSoundTest(Dt)),
         Test("bosses", "every late boss's mechanics, victory and endless", () => BossMechanics(Dt)),
+        Test("latewaves", "waves 25-50: late enemies, each late boss beaten, victory and endless", () => LateWaves(Dt)),
         Test("exploit", "parking a blocker on a boss", () => ExploitTest(Dt)),
         Test("practice", "the Practice Range (with the lobby, modifiers, paths and the Bazaar)", () => PracticeTest(Dt)),
         Test("healersolo", "Healers alone: aura self-heal, overheal shields, Martyr's ward, Phoenix, Haven", () => HealerSoloTest(Dt)),

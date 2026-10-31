@@ -264,6 +264,16 @@ static partial class Program
             float hungryHp = -1f;
             byte eclipsePhase = 0;
             int ghosts = 0, frame = 0;
+            // The Eclipse's five stages are checked one by one in its own test (eclipse); here the simple bots (they walk
+            // in circles, so they can't hide from its flashes or keep to the light) can't be killed, and it starts at 45%
+            // so the fight fits the time limit, still changing stage through the Umbra, Last Light and Totality.
+            var eclipse = Find(s[0], EnemyType.Eclipse);
+            if (eclipse != null)
+            {
+                eclipse.Hp = eclipse.MaxHp * 0.45f;
+                foreach (var p in s[0].Game.Players.Values)
+                    s[0].Game.DevSetGod(p.Id, true);
+            }
             Run(s, dt, 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
                 var cb = Find(s[1], boss);
@@ -300,7 +310,7 @@ static partial class Program
                     case EnemyType.Eclipse:
                         if (cb != null)
                             eclipsePhase = Math.Max(eclipsePhase, cb.Phase);
-                        mechanic = eclipsePhase == 2;
+                        mechanic = eclipsePhase >= 2;  // reached the Umbra (Eclipse.cs: Phase is its stage)
                         break;
                 }
                 if (++frame % 60 == 0)
