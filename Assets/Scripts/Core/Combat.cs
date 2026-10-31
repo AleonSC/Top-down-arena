@@ -379,8 +379,8 @@ namespace Arena
         void Collide()
         {
             scratchIds.Clear();
-            splashes.Clear();
-            splits.Clear();
+            // splashes and splits are NOT cleared here: hits outside the bullet loop (beams, orbs, sent wisps, chains,
+            // melee) queue Explosive / Collapse / Swarm Rounds into them too, and they're spent below with the rest.
             frags.Clear();
             reflects.Clear();
             ricochets.Clear();
@@ -638,6 +638,8 @@ namespace Arena
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)
             }
+            splits.Clear();
+            splashes.Clear();
 
             var dead = scratchDead;
             dead.Clear();

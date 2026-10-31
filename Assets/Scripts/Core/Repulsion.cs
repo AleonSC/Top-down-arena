@@ -38,6 +38,7 @@ namespace Arena
                 }
                 any = true;
                 HurtEnemy(e, hit, p.Id);
+                OnBulletHit(new Bullet { Pos = e.Pos, Vel = V2.FromAngle(aim), Owner = p.Id, Dmg = hit, Kind = Defs.HolyShot }, e);  // weapon mods ride the blast
                 if (!Heavy(e))
                 {
                     V2 away = d > 1f ? rel / d : V2.FromAngle(aim);

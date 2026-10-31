@@ -1260,9 +1260,14 @@ namespace Arena
 
         void ExplodeMinion(Minion m, float dmg, float radius)
         {
+            bool shot = m.Sent && m.Kind == MinionKind.Imp;  // an Imp Caller imp is the weapon's shot: weapon mods ride its blast
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Pos.DistanceTo(m.Pos) < radius + e.Radius)
+                {
                     HurtEnemy(e, dmg, m.Owner);
+                    if (shot)
+                        OnBulletHit(new Bullet { Pos = e.Pos, Owner = m.Owner, Dmg = dmg, Kind = Defs.FireShot }, e);
+                }
             BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, radius, 0.35f, Sfx.Explode);
             Minions.Remove(m.Id);
         }

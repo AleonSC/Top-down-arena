@@ -548,7 +548,10 @@ namespace Arena
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                {
                     HurtEnemy(e, dmg, z.Owner);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Owner = z.Owner, Dmg = dmg, Kind = Defs.OfudaShot }, e);  // weapon mods ride the burst
+                }
             foreach (var q in Players.Values)
                 if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
                     Heal(q, WardHeal, PlayerOrNull(z.Owner));

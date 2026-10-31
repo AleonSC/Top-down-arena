@@ -2367,6 +2367,37 @@ static partial class Program
         }
         Console.WriteLine("  incendiary (1 stack): Riot Repeater {0:+0}%, Revolver {1:+0}%", gain[0] * 100f, gain[1] * 100f);
         Check(gain.All(x => x > 0.2f && x < 0.3f), "Incendiary Rounds add 25% of every hit as burn, on fast and slow weapons alike");
+
+        // Hits that aren't bullets (a cone, a blast, a ward burst) carry weapon mods too: Explosive Rounds used to be
+        // dropped for them (their splashes were cleared before they were spent), and some never applied mods at all.
+        var res = new List<string>();
+        bool modsRide = true;
+        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.LightBolt, WeaponId.Ofuda })
+        {
+            var dealt = new float[2];
+            bool burned = false;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                clear();
+                me.Taken.Clear();
+                if (pass == 1) { me.Taken.Add(U("Explosive Rounds")); me.Taken.Add(U("Incendiary Rounds")); }
+                g.GrantUpgrade(1, U("Vitality"));
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                V2 at = from + new V2(150f, 0f), side = at + new V2(10f, 28f);
+                var a1 = dummy(at); var a2 = dummy(side);
+                for (int f = 0; f < 60 * 6; f++)
+                {
+                    a1.Pos = at; a2.Pos = side; a1.FrozenT = a2.FrozenT = 1f; me.Pos = from;
+                    host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at });
+                    burned |= pass == 1 && (a1.PoolT > 0f || a2.PoolT > 0f);
+                }
+                dealt[pass] = (a1.MaxHp - a1.Hp) + (a2.MaxHp - a2.Hp);
+            }
+            res.Add(string.Format("{0} {1:+0}%{2}", Defs.WeaponOf(id).Name, (dealt[1] / Math.Max(1f, dealt[0]) - 1f) * 100f, burned ? " burning" : " NOT burning"));
+            modsRide &= burned && dealt[1] > dealt[0] * 1.03f;  // the Repulsion Cannon shoves enemies out of its own explosions, so it gains least
+        }
+        Console.WriteLine("  Explosive + Incendiary Rounds on non-bullet weapons: " + string.Join(", ", res));
+        Check(modsRide, "weapon mods (Explosive, Incendiary) apply to Chain Light, Repulsion Cannon and Ofuda hits");
         host.Leave("");
     }
 }
