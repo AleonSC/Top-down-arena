@@ -134,8 +134,17 @@ namespace Arena
                 return;
             }
             for (int v = 0; v <= p.Stats.Fan; v++)
+            {
+                volleyShare = v == 0 ? 1f : BarrageCopyDamage;  // Barrage's fanned copies hit softer than the shot itself
                 FireVolley(p, aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2)), extra);
+            }
+            volleyShare = 1f;
         }
+
+        /// Barrage: each fanned copy deals this share of the shot's damage (was full damage before the Oct 2026 pass;
+        /// copies multiplied every other upgrade).
+        public const float BarrageCopyDamage = 0.6f;
+        float volleyShare = 1f;  // set while a Barrage copy fires
 
         /// Extra projectiles from upgrades, plus two during Bullet Storm.
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
@@ -295,7 +304,7 @@ namespace Arena
         void FireVolley(Player p, float aim, int extra)
         {
             firingWeapon = true;
-            float dmg = p.Stats.DmgMult;
+            float dmg = p.Stats.DmgMult * volleyShare;
             V2 dir = V2.FromAngle(aim);
             V2 muzzle = p.Pos + dir * p.Def.BodyR;
             var w = p.Weapon;  // its Speed, Life and Damage (Defs)

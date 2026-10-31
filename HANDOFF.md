@@ -219,6 +219,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
+**From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
+
 **Fancy menu buttons + Field guide button (Oct 2026), no protocol change:** `Ui.FancyButton(r, text, tint, icon, t)`
 (icon chip, `Ui.Fancy` lettering, hover rim and shine) on the main menu's lower buttons, every Back, the saved
 runs' Continue / Delete, Resume / Leave game and the Field guide. New icons `ui_back`, `ui_trophy`, `ui_gear`, `ui_book`,

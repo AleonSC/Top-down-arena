@@ -282,7 +282,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HemoNova, MaxStacks = 2, Name = "Crimson Tide", Desc = "Hemo Nova fires 8 more bolts",
                 Apply = s => s.NovaExtraBolts += 8 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through two more enemies. Weapons without such shots reach 15% farther instead", Apply = s => s.Pierce += 2 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
