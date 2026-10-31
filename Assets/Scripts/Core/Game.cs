@@ -338,6 +338,7 @@ namespace Arena
         public V2 Goal;
         public float SentT;              // host: how long it has been out
         public int Stings;               // host: a Hive Drone's stings left on this sortie (QueenLoot.cs)
+        public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 
     public class Effect
@@ -1347,6 +1348,7 @@ namespace Arena
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
             TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
+            TickScytheClock(dt);  // Twin Scythes' cut timers (ReaperLoot.cs)
             TickNinjas(dt);   // Ninja.cs
             TickBloodMages(dt);  // BloodMage.cs
             TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies

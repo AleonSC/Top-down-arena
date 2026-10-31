@@ -22,6 +22,7 @@ namespace Arena
         ReverseEnemyBullets,  // host -> all: the Singularity's white hole turns every enemy bullet round (Singularity.cs)
         Record,      // host -> all: a boss beaten, the run ended, or a resumed run's state, for each player's profile (RunSaves.cs)
         SeatRequest, // client -> host: the saved seat this player wants when continuing a run (Session.cs)
+        CooldownCut, // host -> all: take a share off one player's ability cooldown (a caught Scythe Throw); only that player's own game applies it (ReaperLoot.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -70,7 +71,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 103;
+        public const int ProtocolVersion = 104;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

@@ -770,6 +770,8 @@ namespace Arena
                     p.BroodCd = BroodBossEvery;
                     p.BroodDue = 1;  // spawned in TickPlayers (this can run inside the minion loop); one whatever the stacks: turrets don't scale with your weapon
                 }
+                if (s.ReapBossBonus > 0f && e.Def.IsBoss && e.Hp < e.MaxHp * FinalReapBossBelow)
+                    dmg *= 1f + s.ReapBossBonus;  // Final Reap: a boss near its end (ReaperLoot.cs)
                 if (s.CritChance > 0f && rng.NextDouble() < s.CritChance)
                     dmg *= 2f;
                 if (s.Lifesteal > 0f && !p.Downed)
@@ -795,6 +797,8 @@ namespace Arena
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             e.Hp -= dmg;
             e.Flash = 0.06f;
+            if (p != null && p.Stats.ReapBelow > 0f)
+                FinalReap(p, e);  // a phantom scythe finishes it off (ReaperLoot.cs)
         }
 
         // Swarm Rounds splits and Aegis reflections, queued while the bullet loop runs.

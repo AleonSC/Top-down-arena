@@ -181,6 +181,15 @@ namespace Arena
                 case Msg.Sound:
                     Sounds.Add((Sfx)r.ReadByte());
                     break;
+                case Msg.CooldownCut:  // a caught Scythe Throw: that player's own game takes the share off (ReaperLoot.cs)
+                {
+                    int id = r.ReadInt32();
+                    var ab = (AbilityId)r.ReadByte();
+                    float share = r.ReadSingle();
+                    if (id == MyId && Me != null && !IsHost)
+                        ApplyCooldownCut(Me, ab, share);
+                    break;
+                }
                 case Msg.Teleport:  // Substitution moved someone; each player's own game moves them
                 {
                     int id = r.ReadInt32();

@@ -274,7 +274,7 @@ static partial class Program
     static void UpgradeBalanceReport(float dt)
     {
         string[] ups = { "Sharpened Rounds", "Quick Trigger", "Magnum Rounds", "Hollow Points", "Hair Trigger", "Multishot", "Barrage", "Piercing Rounds",
-            "Swarm Rounds", "Brood Mother", "Hive Drones", "Bomber Escort", "Executioner", "Twin Fang", "Collapse Rounds", "Graviton Rounds", "Dark Matter",
+            "Swarm Rounds", "Brood Mother", "Hive Drones", "Bomber Escort", "Twin Scythes", "Final Reap", "Executioner", "Twin Fang", "Collapse Rounds", "Graviton Rounds", "Dark Matter",
             "Homing Rounds", "Ricochet", "Incendiary Rounds", "Cryo Rounds", "Shock Rounds", "Explosive Rounds", "Velocity Rounds" };
         string[] fights = { "boss", "pack", "spread" };
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

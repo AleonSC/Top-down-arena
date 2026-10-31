@@ -293,6 +293,9 @@ namespace Arena
                 case AbilityId.RoyalDive:
                     StartRoyalDive(p, target, pw, cap);  // QueenLoot.cs
                     break;
+                case AbilityId.ScytheThrow:
+                    ThrowScythe(p, target, pw, cap);  // ReaperLoot.cs
+                    break;
                 case AbilityId.Nova:
                     int novaShots = cap ? 48 : 24;
                     for (int i = 0; i < novaShots; i++)

@@ -11,6 +11,8 @@ namespace Arena
         SoulGhost,    // Soul Link cast with no ally: a ghost of you, linked, that fights beside you; it has health (SoulGhost.cs)
         HiveDrone,    // Hive Drones (the Hive Queen's legendary): circles you blocking bullets, flies out to sting, heals you coming home (QueenLoot.cs)
         HiveBomber,   // Bomber Escort (the Hive Queen's legendary): flies at the toughest enemy near you and bursts on it (QueenLoot.cs)
+        Scythe,       // Twin Scythes (the Twin Reapers' legendary): circles you, cutting enemies and small bullets (ReaperLoot.cs)
+        ThrownScythe, // Scythe Throw (the Twin Reapers' legendary ability): flies to your cursor and back, cutting (ReaperLoot.cs)
         None = 255,
     }
 
@@ -91,6 +93,10 @@ namespace Arena
                 BlockRadius = 16f, BlockCapacity = 60f },  // moved and stings by QueenLoot.cs
             new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,
                 Damage = 55f, Range = 70f },  // flown by QueenLoot.cs; bursts for Damage within Range
+            new MinionDef { Name = "Twin Scythe", Radius = 14f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.6f), Move = MinionMove.Orbit, Speed = 2.4f, OrbitRadius = 60f,
+                Damage = 16f },  // moved and cuts by ReaperLoot.cs (Dusk's colour; the outer one is drawn in Dawn's)
+            new MinionDef { Name = "Thrown Scythe", Radius = 22f, Sides = 3, Color = new Rgba(0.85f, 0.75f, 1f), Move = MinionMove.Static,
+                Damage = 45f },  // thrown by ReaperLoot.cs
         };
 
         // Indexed by ZoneKind.

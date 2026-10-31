@@ -349,6 +349,8 @@ const MINIONS = {
   "Light Orb": { r: 8, sides: 6, col: [1, 0.95, 0.6], move: "Orbits you (85 px)", attack: "Hurts enemies it touches; heals allies 6 HP/s", every: 0.35, dmg: 12, touch: true },
   "Shadow Clone": { r: 14, sides: 8, col: [0.45, 0.42, 0.6], move: "Stays put", attack: "Draws every enemy's fire; bursts for 60 within 110 px when it ends" },
   "Hive Drone": { r: 7, sides: 3, col: [1, 0.82, 0.3], move: "Circles you (45 px); flies out (520 px/s) after your kills, and every 3 s while you hit a boss", attack: "Stings 3 times, then flies home and heals you 4", every: 0.3, dmg: 20, block: 16, cap: 60 },
+  "Twin Scythe": { r: 14, sides: 3, col: [1, 0.35, 0.6], move: "Circles you (60 / 100 px, opposite ways); every 1.6 s reaps out at the nearest enemy within 240 px", attack: "Cuts what it passes; slices small enemy bullets", every: 0.5, dmg: 16 },
+  "Thrown Scythe": { r: 22, sides: 3, col: [0.85, 0.75, 1], move: "Out to your cursor (380 px), then back to you", attack: "Cuts everything it passes, each way", dmg: 45 },
   "Hive Bomber": { r: 9, sides: 3, col: [1, 0.5, 0.18], move: "Flies from you at the toughest enemy within 400 px (430 px/s)", attack: "Bursts on it", dmg: 55, range: 70 },
 };
 const ZONES = [
@@ -832,6 +834,9 @@ const A = [
   { id: "Royal Dive", slot: "Bonus", cd: 12, desc: "The Hive Queen's dive: leap (nothing can hit you) and crash down at your cursor, hurting and knocking back everything there, and leave a honey pool that slows enemies and heals allies. From the Hive Queen's Royal Dive legendary.",
     stats: [["Leap", "Up to 380 px in 0.6 s, invulnerable"], ["Crash", "120 damage within 110 px; enemies knocked back 100 px (not bosses); enemy bullets there wiped out"], ["Honey pool", "100 px for 4 s: enemies slowed 40%, allies heal 6 HP/s"]],
     demo: { type: "dash", dist: 340, dur: 0.6, col: [1, 0.75, 0.2], hit: 110 } },
+  { id: "Scythe Throw", slot: "Bonus", cd: 9, desc: "Throw a giant scythe at your cursor. It cuts everything it passes on the way out and on the way back, and slices small enemy bullets; catch it as it comes back to take 40% off the cooldown. From the Twin Reapers' Scythe Throw legendary.",
+    stats: [["Throw", "Up to 380 px out in 0.45 s, back at 760 px/s"], ["Damage", "45 each way to everything it passes"], ["Catch", "40% off the cooldown"]],
+    demo: { type: "dash", dist: 300, dur: 0.45, col: [0.85, 0.75, 1], hit: 40 } },
   { id: "Turret", slot: "Bonus", cd: 20, desc: "Deploy a turret that shoots for 10 seconds.", stats: [["Lasts", "10 s"], ["Attack", "9 damage every 0.25 s, 520 px range"]], demo: { type: "summon", minion: "Turret", n: 1, dur: 10 } },
   // Ultimates
   { id: "Fortress", slot: "Ultimate", role: "Tank", kit: "Soldier", cd: 70, desc: "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
@@ -1036,9 +1041,12 @@ const U = [
   ["Legendary", "Swarm Rounds", "Your shots split into 3 smaller shots (40% damage) when they hit. With nothing else within 180 px, the swarm bites the enemy hit instead (20% of the hit)", 3, null, null, null, "No longer offered"],
   ["Legendary", "Royal Jelly", "Every hit heals you 1 HP (up to 10 HP per second)", 3, null, null, null, "No longer offered"],
   ["Legendary", "Brood Mother", "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills", 3, null, null, null, "No longer offered"],
-  ["Legendary", "Executioner", "Double damage to enemies below 50% health", 3, null, null, null, "Twin Reapers"],
-  ["Legendary", "Twin Fang", "40% chance for each hit to deal double damage", 3, s => s.crit += 0.4, null, null, "Twin Reapers"],
-  ["Legendary", "Soul Harvest", "Every kill heals you 5 HP", 3, null, null, null, "Twin Reapers"],
+  ["Legendary", "Twin Scythes", "Two of the Reapers' scythes circle you in opposite directions (Dusk at 60 px, Dawn at 100 px), cutting enemies they pass for 16 (once each per 0.5 s) and slicing small enemy bullets. Every 1.6 s each reaps out at the nearest enemy within 240 px and flies back. 2nd stack: every 1.1 s, spinning faster; 3rd: a third scythe (80 px)", 3, null, null, null, "Twin Reapers"],
+  ["Legendary", "Final Reap", "When your hit leaves a regular enemy below 25% health, a phantom scythe reaps it and heals you 3. Your hits on a boss below 40% health deal double damage. More stacks: reap below 30%, then 35%; bosses x2.5, then x3", 3, null, null, null, "Twin Reapers"],
+  ["Legendary", "Scythe Throw", "New ability: throw a giant scythe at your cursor. It cuts everything on the way out and on the way back; catch it to take 40% off its cooldown", 1, s => s.bonus += 1, null, "Scythe Throw", "Twin Reapers"],
+  ["Legendary", "Executioner", "Double damage to enemies below 50% health", 3, null, null, null, "No longer offered"],
+  ["Legendary", "Twin Fang", "40% chance for each hit to deal double damage", 3, s => s.crit += 0.4, null, null, "No longer offered"],
+  ["Legendary", "Soul Harvest", "Every kill heals you 5 HP", 3, null, null, null, "No longer offered"],
   ["Legendary", "Collapse Rounds", "Shots implode on impact, hurting enemies nearby (40% damage, 45 px; the enemy hit takes half)", 3, null, null, null, "The Singularity"],
   ["Legendary", "Graviton Rounds", "Enemies you hit are slowed by 40% for 2 seconds, and slowed enemies take 15% more damage from you", 3, null, null, null, "The Singularity"],
   ["Legendary", "Dark Matter", "Shots pierce 1 more enemy and deal 35% more damage", 3, s => { s.pierce += 1; s.dmg += 0.35; }, null, null, "The Singularity"],
@@ -2361,7 +2369,7 @@ function renderUpgrades() {
   for (const u of U) {
     if (!rarOn.has(u.rar)) continue;
     const r = RAR[u.rar], n = build[u.name] || 0, max = u.max >= 99 ? 20 : u.max;
-    const req = [u.req ? `Needs ${u.req}` : "", u.boss ? `From ${u.boss}` : "", u.grants ? `Takes a Q / E / Shift slot (3 max)` : "", u.max < 99 ? `Stacks up to ${u.max}` : "Stacks without limit"].filter(Boolean).join(" · ");
+    const req = [u.req ? `Needs ${u.req}` : "", u.boss ? (u.boss.startsWith("No longer") ? u.boss + " (kept for old saves)" : `From ${u.boss}`) : "", u.grants ? `Takes a Q / E / Shift slot (3 max)` : "", u.max < 99 ? `Stacks up to ${u.max}` : "Stacks without limit"].filter(Boolean).join(" · ");
     const el = document.createElement("div"); el.className = "ucard" + (n ? " have" : "");
     el.style.borderLeft = `3px solid ${css(r.col)}`;
     el.innerHTML = `<canvas width="48" height="48"></canvas><span class="nm">${u.name}</span><span class="rar" style="color:${css(r.col)}">${r.label}</span><span class="ds">${u.desc}</span><span class="rq">${req}</span>
@@ -2405,7 +2413,7 @@ function renderOdds() {
 // ---------------------------------------------------------------------------------------------
 function buildSummons() {
   const from = { Turret: "Turret (bonus ability)", "Light Orb": "Radiant Orb (one per extra projectile)", Golem: "Golem Staff (+1 per extra projectile, up to 3)", "Skeleton Guard": "Bone Guard (+1 per extra projectile)", Bear: "Bear Totem", Sprite: "Sprite Staff (+1 per extra projectile; a seeded kill frees one more for 6 s), Spirit Swarm, World Tree", Treant: "Treant Rod (grows 30% per extra projectile)", Wolf: "Wolf Whistle (+1 per extra projectile), Legion",
-    "Hive Drone": "Hive Drones (the Hive Queen's legendary; 2, +1 a stack)", "Hive Bomber": "Bomber Escort (the Hive Queen's legendary)", Wisp: "Wisp Lantern (+1 per extra projectile)", Imp: "Imp Caller (+1 and 50% faster per extra projectile)", Bat: "Bat Swarm, Legion", Phoenix: "Phoenix", "Shadow Clone": "Shadow Clone (Tank · Ninja); Thousand Clones", "Guardian Spirit": "Guardian Spirit", "Stone Wall": "Golem Wall", Titan: "Titan (ultimate)" };
+    "Twin Scythe": "Twin Scythes (the Twin Reapers' legendary; 2, a 3rd at 3 stacks)", "Thrown Scythe": "Scythe Throw (the Twin Reapers' legendary ability)", "Hive Drone": "Hive Drones (the Hive Queen's legendary; 2, +1 a stack)", "Hive Bomber": "Bomber Escort (the Hive Queen's legendary)", Wisp: "Wisp Lantern (+1 per extra projectile)", Imp: "Imp Caller (+1 and 50% faster per extra projectile)", Bat: "Bat Swarm, Legion", Phoenix: "Phoenix", "Shadow Clone": "Shadow Clone (Tank · Ninja); Thousand Clones", "Guardian Spirit": "Guardian Spirit", "Stone Wall": "Golem Wall", Titan: "Titan (ultimate)" };
   $("minionTable").innerHTML = `<thead><tr><th>Minion</th><th>From</th><th>Moves</th><th>Attack</th><th>Damage</th><th>Every</th><th>Blocks</th></tr></thead><tbody>` +
     Object.entries(MINIONS).map(([k, m]) => `<tr><td><canvas width="40" height="40" data-m="${k}" style="width:20px;height:20px;vertical-align:-5px;margin-right:6px"></canvas><b>${k}</b></td><td>${from[k]}</td><td>${m.move}</td><td>${m.attack}${m.range && m.attack !== "Shoots" && m.attack !== "Shoots fire" ? ` (${m.range} px)` : m.range ? ` (${m.range} px range)` : ""}</td>
       <td class="n">${m.dmg ?? "—"}</td><td class="n">${m.every ? m.every + " s" : "—"}</td><td class="n">${m.block ? `${m.block} px · ${m.cap}` : "—"}</td></tr>`).join("") + `</tbody>`;
