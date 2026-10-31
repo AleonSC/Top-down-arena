@@ -483,6 +483,7 @@ class Shot {
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       if (Environment.GetEnvironmentVariable("BGMIN") != null) { set("bgPickerMin", true); set("bgTabSeen", 0f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
+      if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
       if (mode == "lobbypr") {
         System.Collections.Generic.List<string> pr;
         host.PracticeMode = true;
@@ -527,6 +528,7 @@ class Shot {
       }
       else GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }

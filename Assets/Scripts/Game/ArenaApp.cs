@@ -206,8 +206,11 @@ namespace Arena
             wasPaused = game.Paused;
             if (session.Screen != AppScreen.Game)
                 pauseMenuOpen = false;
-            // The Field guide opens from the pause menu in a match and from Settings on the main menu.
-            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : session.Screen != AppScreen.Menu || !settingsOpen)
+            // Settings opens from the main menu and the lobby (its cog by Leave); the Field guide from the pause menu in a
+            // match, or from Settings.
+            if (session.Screen == AppScreen.Game)
+                settingsOpen = false;
+            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : !settingsOpen)
                 fieldGuideOpen = false;
             else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
                 FieldGuideKeys();
@@ -277,8 +280,13 @@ namespace Arena
                 else if (Input.GetKeyDown(KeyCode.R) && !RerollLocked) game.RerollOffer();
             }
 
-            if (session.Screen == AppScreen.Menu && fieldGuideOpen && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
-                CloseFieldGuide();  // back to Settings
+            if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
+            {
+                if (fieldGuideOpen)
+                    CloseFieldGuide();  // back to Settings
+                else if (session.Screen == AppScreen.Lobby && settingsOpen)
+                    settingsOpen = false;  // back to the lobby
+            }
             if (session.Screen == AppScreen.Game)
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
@@ -437,7 +445,17 @@ namespace Arena
                         DrawMenu();
                     break;
                 case AppScreen.Lobby:
-                    DrawLobby();
+                    // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
+                    if (!settingsOpen || Event.current.type == EventType.Repaint)
+                        DrawLobby();
+                    if (settingsOpen)
+                    {
+                        Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f));
+                        if (fieldGuideOpen)
+                            DrawFieldGuideScreen();  // FieldGuide.cs
+                        else
+                            DrawSettings();
+                    }
                     break;
                 case AppScreen.Game:
                     DrawHud();

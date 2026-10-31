@@ -601,6 +601,11 @@ namespace Arena
             float t = Time.unscaledTime;
             if (Ui.FancyButton(new Rect(40f, H - 70f, 150f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), t))
                 session.Leave("");
+            // Settings (audio, button style, the Field guide), over the lobby.
+            var cog = new Rect(200f, H - 70f, 48f, 48f);
+            if (Ui.FancyButton(cog, "", Ui.Neutral, null, t))
+                settingsOpen = true;
+            Ui.Icon(new Rect(cog.center.x - 11f, cog.center.y - 11f - (Ui.ButtonStyle == 1 ? 3f : 0f), 22f, 22f), PixelArt.Get("ui_gear"));
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W - 560f : W - 300f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
@@ -614,7 +619,7 @@ namespace Arena
             string note = session.Lobby.Count < 2 ? ""
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
-            Ui.Label(new Rect(210f, H - 56f, readyX - 230f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(262f, H - 56f, readyX - 282f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
             if (session.IsHost)
             {
                 bool wasEnabled = GUI.enabled;
