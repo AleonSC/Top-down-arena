@@ -2307,4 +2307,66 @@ static partial class Program
         Check(!me.RadiantOn && !seen.RadiantOn && dummy.Hp == hp2, "let go and it's gone");
         host.Leave(""); client.Leave("");
     }
+
+    // Upgrade fixes: Velocity Rounds no longer carry a Flak Cannon shell or Ofuda charm past the cursor, and Incendiary
+    // Rounds add up over every hit (about +25% a stack on a fast weapon and a slow one alike).
+    static void UpgradeFixesTest(float dt)
+    {
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var volley = typeof(Game).GetMethod("FireVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var host = new Session { AutoStart = 1, StartWave = 3 };
+        host.Host(nextPort++, "A", Role.Tank, 0);
+        host.StartMatch();
+        var g = host.Game;
+        for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+        Action<string, int> build = (up, n) => { me.Taken.Clear(); for (int k = 0; k < n; k++) me.Taken.Add(U(up)); g.GrantUpgrade(1, U("Vitality")); };
+        V2 from = new V2(400f, 450f);
+        Action clear = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); } g.Bullets.Clear(); g.Zones.Clear(); };
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; return e; };
+
+        // Velocity Rounds: where a Flak shell bursts and an Ofuda charm lands, aimed 250 px away.
+        var landed = new List<string>();
+        bool allAtCursor = true;
+        foreach (var id in new[] { WeaponId.FlakCannon, WeaponId.Ofuda })
+            foreach (int stacks in new[] { 0, 3 })
+            {
+                clear();
+                build("Velocity Rounds", stacks);
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                me.Pos = from;
+                me.AimAt = from + new V2(250f, 0f);
+                volley.Invoke(g, new object[] { me, 0f, 0 });
+                var b = g.Bullets.Values.First(x => x.Owner == 1);
+                V2 last = b.Pos + b.Vel * b.Life;  // where its flight ends (it bursts or lands there)
+                float dist = last.DistanceTo(me.AimAt);
+                landed.Add(string.Format("{0} x{1}: {2:0} px from the cursor", me.Weapon.Name, stacks, dist));
+                allAtCursor &= dist < 30f;
+            }
+        Console.WriteLine("  " + string.Join("; ", landed));
+        Check(allAtCursor, "Velocity Rounds don't carry Flak Cannon shells or Ofuda charms past the cursor");
+
+        // Incendiary Rounds on a fast weapon (Riot Repeater) and a slow one (Revolver, as a Healer would): 6 s on one enemy.
+        var gain = new List<float>();
+        foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Pistol })
+        {
+            var dealt = new float[2];
+            for (int pass = 0; pass < 2; pass++)
+            {
+                clear();
+                build("Incendiary Rounds", pass);
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                var e = dummy(from + new V2(200f, 0f));
+                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = e.Pos }); }
+                for (int f = 0; f < 60 * 4; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput()); }  // let it burn out
+                dealt[pass] = e.MaxHp - e.Hp;
+            }
+            gain.Add(dealt[1] / dealt[0] - 1f);
+        }
+        Console.WriteLine("  incendiary (1 stack): Riot Repeater {0:+0}%, Revolver {1:+0}%", gain[0] * 100f, gain[1] * 100f);
+        Check(gain.All(x => x > 0.2f && x < 0.3f), "Incendiary Rounds add 25% of every hit as burn, on fast and slow weapons alike");
+        host.Leave("");
+    }
 }

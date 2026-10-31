@@ -314,8 +314,10 @@ namespace Arena
                 {
                     // An airburst: the shell flies over enemies to your cursor (as far as its range) and bursts there,
                     // shredding enemies and enemy bullets in the burst.
-                    float far = Math.Min(w.Speed * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
-                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                    // Velocity Rounds speed the shell up (SpawnBullet) and reach farther, but it still bursts at the cursor.
+                    float fast = w.Speed * p.Stats.ShotSpeedMult;
+                    float far = Math.Min(fast * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
                     b.Splash = FlakBurst * AreaMult(p);
                     b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
                     if (extra > 0)  // bomblets scatter round the burst and pop where they land

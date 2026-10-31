@@ -215,6 +215,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
+**Upgrade fixes, step 1 (Oct 2026):** Velocity Rounds no longer carry Flak Cannon shells or Ofuda charms past the cursor (flight time now divides by the faster speed; max range still grows). Incendiary Rounds are a pool (`Enemy.BurnPool`/`PoolT`, burned off evenly over `IncendiaryTime` = 3 s after the last hit): each hit adds 25% of its damage per stack, so fast and slow weapons gain alike (+26% a stack on Riot Repeater and Revolver; it used to keep only the biggest hit's burn, so rapid-fire weapons got ~0). The Flamethrower's own burn still uses `BurnT`/`BurnDps`. `upgradefix` test (last in the feature suite, so earlier tests keep their seeds). Next: step 2, weapon-specific effects for Ricochet, Explosive, Swarm, Collapse and Piercing on weapons they skip (see `upgradecov`), or filtering dead cards out of offers.
+
 **Homing Rounds on Wisp Lantern / Imp Caller (Oct 2026):** sent wisps and imps used to ignore the mod (no homing, no damage cost). Now each stack widens the cursor pick 50% (`SendPickRange`), a companion with no live target locks onto the nearest enemy within 260 px (`MoveSent`), and wisp hits / sent-imp blasts pay `HomingCost`; card text per weapon in `Upgrades.DescFor`; `fivemore` test.
 
 **Legion nerf (Oct 2026):** Legion's own wolves and bats no longer frenzy (`Minion.NoFrenzy`); your other minions still do. It added ~11,200 damage to one big target in 12 s (Bullet Storm ~6,200), now ~5,400. Measured by the new `ultdps` report (`run.sh 1 1 ultdps`). No protocol change (host-only flag).

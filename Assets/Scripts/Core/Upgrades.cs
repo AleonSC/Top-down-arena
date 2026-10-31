@@ -87,7 +87,7 @@ namespace Arena
         // Weapon mods, one picked after each boss (and its legendary).
         public float Homing;              // turn rate (radians per second) toward the nearest enemy
         public int Ricochet;              // bounces to another enemy on hit
-        public float BurnFrac;            // a hit burns for this much of its damage per second, for 3 s
+        public float BurnFrac;            // a hit adds this much of its damage to the enemy's burn, burned off over 3 s
         public float CryoSlow, FreezeChance;
         public float ShockChance;
         public float ExplosiveRadius;
@@ -325,7 +325,7 @@ namespace Arena
                 Apply = s => s.Homing += 2f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
                 Apply = s => s.Ricochet += 1 },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up",
                 Apply = s => s.BurnFrac += 0.25f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Cryo Rounds", Desc = "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
                 Apply = s => { s.CryoSlow = Math.Min(0.6f, s.CryoSlow + 0.2f); s.FreezeChance += 0.06f; } },

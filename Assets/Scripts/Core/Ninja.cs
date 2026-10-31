@@ -90,11 +90,13 @@ namespace Arena
                 {
                     int n = 1 + extra;
                     // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
-                    float far = Math.Min(WardRange, Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+                    // Velocity Rounds speed charms up (SpawnBullet) and reach farther, but they still land at the cursor.
+                    float fast = w.Speed * p.Stats.ShotSpeedMult;
+                    float far = Math.Min(WardRange * p.Stats.ShotSpeedMult, Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
                         b.Ward = true;
                         b.Burst = 1;  // marks it as landing (MoveBullets)
                     }

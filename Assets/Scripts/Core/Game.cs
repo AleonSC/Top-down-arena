@@ -190,7 +190,8 @@ namespace Arena
         public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
-        public float BurnT, BurnDps;        // Incendiary Rounds (host)
+        public float BurnT, BurnDps;        // the Flamethrower's fire (host)
+        public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
         public int BurnBy;
         public float BleedT, BleedDps;      // Bear Totem's claws (host)
         public int BleedBy;

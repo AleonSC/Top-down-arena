@@ -823,8 +823,8 @@ namespace Arena
                 splashes.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Kind = Defs.FireShot, Splash = s.ExplosiveRadius, Dmg = b.Dmg * 0.5f, LastHit = e.Id });
             if (s.BurnFrac > 0f)
             {
-                e.BurnT = 3f;
-                e.BurnDps = Math.Max(e.BurnDps, b.Dmg * s.BurnFrac);
+                e.BurnPool += b.Dmg * s.BurnFrac;  // every hit adds to the fire, so fast and slow weapons gain alike
+                e.PoolT = IncendiaryTime;
                 e.BurnBy = b.Owner;
             }
             if (s.CryoSlow > 0f && !Heavy(e))
@@ -842,17 +842,29 @@ namespace Arena
                 ChainLightning(e, b.Dmg * 0.6f, 2, b.Owner);
         }
 
-        /// Incendiary Rounds: damage over time, credited to whoever lit the fire.
+        public const float IncendiaryTime = 3f;  // Incendiary Rounds' pool burns off evenly over this long after the last hit
+
+        /// Fire, credited to whoever lit it: the Flamethrower's burn, and Incendiary Rounds' pool.
         void TickBurn(Enemy e, float dt)
         {
+            bool safe = Hungry(e) || e.SpawnT > 0f || SoulBound(e);
+            if (e.PoolT > 0f)
+            {
+                float burn = e.BurnPool * Math.Min(1f, dt / e.PoolT);
+                e.PoolT -= dt;
+                e.BurnPool -= burn;
+                if (e.PoolT <= 0f)
+                    e.BurnPool = 0f;
+                if (!safe)
+                    DotDamage(e, burn, e.BurnBy);
+            }
             if (e.BurnT <= 0f)
                 return;
             e.BurnT -= dt;
             if (e.BurnT <= 0f)
                 e.BurnDps = 0f;
-            if (Hungry(e) || e.SpawnT > 0f || SoulBound(e))
-                return;
-            DotDamage(e, e.BurnDps * dt, e.BurnBy);
+            if (!safe)
+                DotDamage(e, e.BurnDps * dt, e.BurnBy);
         }
 
         /// Damage over time (burning, bleeding), credited to whoever caused it.

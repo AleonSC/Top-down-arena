@@ -1034,7 +1034,7 @@ const U = [
   ["Legendary", "Dark Matter", "Shots pierce 2 more enemies and deal 20% more damage", 3, s => { s.pierce += 2; s.dmg += 0.2; }, null, null, "The Singularity"],
   ["Mod", "Homing Rounds", "Shots bend toward an enemy within 260 px and about 45° of their path (fixes near misses), but deal 10% less damage per stack. More stacks bend harder. On area weapons (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) the area grows 25% a stack instead. Sent wisps and imps (Wisp Lantern, Imp Caller) pick an enemy 50% farther from your cursor a stack, and turn onto one within 260 px when sent at empty ground", 3, s => s.dmg *= 0.9],
   ["Mod", "Ricochet", "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack", 3, null],
-  ["Mod", "Incendiary Rounds", "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s", 3, null],
+  ["Mod", "Incendiary Rounds", "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up", 3, null],
   ["Mod", "Cryo Rounds", "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s", 3, null],
   ["Mod", "Shock Rounds", "15% chance per hit for lightning to arc to 2 more enemies (60% damage)", 3, null],
   ["Mod", "Explosive Rounds", "Shots explode on impact, dealing 30% damage to enemies nearby", 3, null],
