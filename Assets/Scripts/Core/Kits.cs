@@ -5,7 +5,7 @@ namespace Arena
     public enum MinionKind : byte
     {
         Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
-        LightOrb,  // Radiant Orb's extra projectiles: circles you, hurting enemies and healing allies it touches
+        LightOrb,  // Radiant Orb's extra projectiles: circles the orb while it's out (you otherwise), hurting enemies and healing allies it touches
         Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
         SoulGhost,    // Soul Link cast with no ally: a ghost of you, linked, that fights beside you; it has health (SoulGhost.cs)

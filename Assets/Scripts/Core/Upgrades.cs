@@ -387,6 +387,8 @@ namespace Arena
             if (u.Name == "Homing Rounds" && (weapon.Id == WeaponId.WispLantern || weapon.Id == WeaponId.ImpCaller))
                 return weapon.Name + ": " + (weapon.Id == WeaponId.WispLantern ? "wisps" : "imps")
                     + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack";
+            if (u.Name == "Barrage" && weapon.Id == WeaponId.RadiantOrb)
+                return "Radiant Orb: +1 light orb per stack that circles your orb, hurting enemies and healing allies it touches";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
                 return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)

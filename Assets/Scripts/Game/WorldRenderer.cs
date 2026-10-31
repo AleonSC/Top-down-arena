@@ -368,7 +368,7 @@ namespace Arena
                 if (!p.RadiantOn || p.Downed || p.Weapon.Id != WeaponId.RadiantOrb)
                     continue;
                 V2 o = p.RadiantDisp;
-                float r = Game.RadiantRadius * Game.AreaMult(p), pulse = 0.5f + 0.5f * Mathf.Sin(t * 8f + p.Id);
+                float r = Game.RadiantSize(p), pulse = 0.5f + 0.5f * Mathf.Sin(t * 8f + p.Id);
                 Line(p.Disp, o, 6f, c.WithAlpha(0.08f));
                 Line(p.Disp, o, 1.5f, c.WithAlpha(0.35f));
                 Circle(o, r * 1.6f, c.WithAlpha(0.1f + 0.05f * pulse), 28);

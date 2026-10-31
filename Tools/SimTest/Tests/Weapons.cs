@@ -424,6 +424,7 @@ static partial class Program
                         for (int f = 0; f < 90; f++)
                         {
                             dummy.Pos = at; dummy.FrozenT = 1f; me.Pos = new V2(120f, 450f);
+                            foreach (var lo in g.Minions.Values.Where(m => m.Kind == MinionKind.LightOrb).ToList()) g.Minions.Remove(lo.Id);  // the orb alone: its light orbs circle it and reach past its edge
                             host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1500f, 450f) });
                         }
                         for (int f = 0; f < 10; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }  // let go
@@ -2449,6 +2450,50 @@ static partial class Program
         }
         Console.WriteLine("  piercing on Chain Light: an enemy 15% past the plain cone took {0:0.0} without, {1:0.0} with 2 stacks", reached[0], reached[1]);
         Check(reached[0] == 0f && reached[1] > 0f, "with Piercing Rounds the Chain Light's cone reaches enemies past its plain length");
+
+        // Multishot / Barrage per weapon (balance item I).
+        // Frost Lance: each extra projectile is 25% more damage, as well as a longer icicle.
+        var icicle = new float[2];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            clear();
+            build("Multishot", pass);
+            me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FrostLance);
+            V2 at = from + new V2(80f, 0f);
+            var a1 = dummy(at);
+            me.Pos = from; me.AimAt = at;
+            volley.Invoke(g, new object[] { me, 0f, g.ExtraShots(me) });  // FireVolley takes the extra projectiles
+            for (int f = 0; f < 20; f++) { a1.Pos = at; a1.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = at }); }
+            icicle[pass] = a1.MaxHp - a1.Hp;
+        }
+        Console.WriteLine("  frost lance: one icicle {0:0.0}, with Multishot {1:0.0}", icicle[0], icicle[1]);
+        Check(icicle[0] > 0f && Math.Abs(icicle[1] / icicle[0] - 1.25f) < 0.02f, "Multishot makes the Frost Lance's icicle hit 25% harder");
+
+        // Radiant Orb: Multishot and Barrage each add a light orb, and they circle the orb while it's out.
+        clear();
+        me.Taken.Clear(); me.Taken.Add(U("Multishot")); me.Taken.Add(U("Barrage")); g.GrantUpgrade(1, U("Vitality"));
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.RadiantOrb);
+        V2 orbAt = from + new V2(220f, 60f);
+        for (int f = 0; f < 120; f++) { me.Pos = from; me.CompanionCd = Math.Min(me.CompanionCd, 0.05f); host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = orbAt }); }
+        var lights = g.Minions.Values.Where(m => m.Owner == 1 && m.Kind == MinionKind.LightOrb).ToList();
+        float farthest = lights.Count > 0 ? lights.Max(m => m.Pos.DistanceTo(me.RadiantPos)) : 999f;
+        Console.WriteLine("  radiant orb + Multishot + Barrage: {0} light orbs, farthest {1:0} px from the orb (ring {2})", lights.Count, farthest, Game.LightOrbRing);
+        Check(lights.Count == 2 && farthest < Game.LightOrbRing + 5f, "Radiant Orb: Multishot and Barrage each add a light orb, circling the orb while it's out");
+
+        // Wolf Whistle: a dart that clips an enemy farther from your cursor than the prey doesn't move the pack off it.
+        clear();
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.WolfWhistle);
+        var dartHit = typeof(Game).GetMethod("WolfDartHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var preyA = dummy(from + new V2(200f, 0f)); var preyB = dummy(from + new V2(260f, 80f));
+        me.AimAt = preyA.Pos;
+        dartHit.Invoke(g, new object[] { new Bullet { Kind = Defs.BoneShot, Owner = 1 }, preyA });
+        dartHit.Invoke(g, new object[] { new Bullet { Kind = Defs.BoneShot, Owner = 1 }, preyB });
+        bool kept = me.PreyId == preyA.Id;
+        me.AimAt = preyB.Pos;
+        dartHit.Invoke(g, new object[] { new Bullet { Kind = Defs.BoneShot, Owner = 1 }, preyB });
+        bool moved = me.PreyId == preyB.Id;
+        Console.WriteLine("  wolf whistle: a stray dart kept the prey {0}; aiming at the other and hitting it moved it {1}", kept, moved);
+        Check(kept && moved, "Wolf Whistle: stray (fanned or piercing) darts don't pull the pack off the enemy you aim at");
         host.Leave("");
     }
 }

@@ -1,6 +1,6 @@
 # Upgrade balance pass (step 3)
 
-Status: **A-H done** (Oct 2026); **I** (Multishot / Barrage per weapon) in progress. Steps 1 and 2 (bugs and dead cards) are done:
+Status: **A-H and I done** (Oct 2026). Steps 1 and 2 (bugs and dead cards) are done:
 every weapon upgrade now does something on every weapon.
 
 ## How it's measured
@@ -114,3 +114,23 @@ pick and +276% at three: turrets don't scale with your weapon, so they swamp a w
 Still off target, for a later pass: Piercing Rounds (0-6%; a Rare should be +30-40%), Swarm Rounds against a boss
 (+2%), Twin Fang and Dark Matter at +20-33% (under the legendary target, but fine everywhere), and the mods
 Incendiary / Shock / Velocity at +6-19% (under +25%).
+
+## I: Multishot and Barrage per weapon
+
+The report's per-weapon list ("worth under 5% in every fight") after A-H, with enemies placed by each weapon's
+**base** range (they used to be placed by the upgraded range, which made reach upgrades look like losses: the
+Spirit Fan's -42% and the Golem Staff's were that), named five weapons. Changes:
+
+| Weapon | Card | Was | Now |
+|---|---|---|---|
+| Frost Lance | Multishot | a longer icicle only (0 damage) | +25% damage per extra too (`FrostLanceGrow`) |
+| Radiant Orb | Multishot | light orbs circled you, far from what the orb was burning | they circle the orb while it's out (`LightOrbRing` 45 px) |
+| Radiant Orb | Barrage | nothing | +1 light orb a stack as well |
+| Wolf Whistle | Barrage, Piercing | -30% in a pack: fanned / piercing darts kept moving the prey | a dart only moves the prey to an enemy nearer your cursor |
+
+Left as they are: the Sprite Staff (+1 healing Sprite), Totem Staff (totems more often) and Treant Rod (a bigger
+Treant that blocks more) put Multishot into healing and protection, which is their job as Healer weapons; they
+show 0 here because the report only counts damage.
+
+After I, Multishot is worth +37% / +43% / +41% (boss / pack / spread) and Barrage +27% / +60% / +14%, with no
+weapon at 0 apart from those three healers.

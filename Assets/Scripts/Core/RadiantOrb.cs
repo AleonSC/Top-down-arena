@@ -13,6 +13,9 @@ namespace Arena
         /// How far from you the orb can go: the weapon's Reach (Velocity Rounds stretch it).
         public float RadiantReach(Player p) => p.Weapon.Reach * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds
 
+        /// How big the orb is: Homing Rounds grow it (area).
+        public static float RadiantSize(Player p) => RadiantRadius * AreaMult(p);
+
         /// Where the orb is headed: your cursor, held within its reach of you.
         V2 RadiantGoal(Player p, V2 aimAt) => p.Pos + (aimAt - p.Pos).LimitLength(RadiantReach(p));
 
@@ -39,7 +42,7 @@ namespace Arena
             if (p.FireCd > 0f)
                 return;
             p.FireCd = RadiantTick / FireRate(p);
-            float r = RadiantRadius * AreaMult(p), dmg = p.Weapon.Damage * p.Stats.DmgMult;
+            float r = RadiantSize(p), dmg = p.Weapon.Damage * p.Stats.DmgMult;
             bool hit = false;
             foreach (var e in Enemies.Values)
             {

@@ -80,6 +80,7 @@ namespace Arena
                     // A great icicle juts out from you along your aim, then splinters off its sides into
                     // whatever stands beside it. Both slow.
                     dmg *= HomingCost(p);  // Homing Rounds widen the splinters instead (AreaMult)
+                    dmg *= 1f + FrostLanceGrow * extra;  // extra projectiles: a bigger, harder icicle
                     var ice = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * dmg);  // Piercing Rounds lengthen it
                     ice.HalfWidth = IcicleHalfWidth;
                     ice.Ice = 1;
@@ -175,6 +176,8 @@ namespace Arena
 
         /// Companions a player's weapon keeps around: the weapon's own, plus one per extra projectile
         /// (Golems top out at 3). The Radiant Orb gets Light Orbs; the Treant grows instead of multiplying.
+        public const float FrostLanceGrow = 0.25f;  // Frost Lance: more damage per extra projectile (icicle and splinters)
+        public const float LightOrbRing = 45f, LightOrbSpeed = 900f;  // Radiant Orb's light orbs: their ring round the orb; how fast they follow it
         public MinionKind CompanionKind(Player p) => p.Weapon.Id == WeaponId.RadiantOrb ? MinionKind.LightOrb : p.Weapon.Companion;
 
         public int CompanionCount(Player p)
@@ -183,7 +186,7 @@ namespace Arena
             int extra = ExtraShots(p);
             switch (w.Id)
             {
-                case WeaponId.RadiantOrb: return extra;
+                case WeaponId.RadiantOrb: return extra + p.Stats.Fan;  // Multishot and Barrage each bring a light orb
                 case WeaponId.TreantRod: return w.CompanionCount;
                 case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
                 case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
@@ -616,6 +619,9 @@ namespace Arena
             Player p;
             if (b.Kind != Defs.BoneShot || !Players.TryGetValue(b.Owner, out p) || p.Weapon.Id != WeaponId.WolfWhistle)
                 return;
+            var cur = Prey(p);
+            if (cur != null && cur != e && e.Pos.DistanceTo(p.AimAt) >= cur.Pos.DistanceTo(p.AimAt))
+                return;  // a fanned or piercing dart that clipped something else doesn't pull the pack off what you're aiming at
             if (p.PreyId != e.Id)
                 p.PackT = 0f;
             p.PreyId = e.Id;
@@ -1380,7 +1386,12 @@ namespace Arena
                 {
                     case MinionMove.Orbit:
                         m.Ang += speed * dt;
-                        m.Pos = owner.Pos + V2.FromAngle(m.Ang) * d.OrbitRadius;
+                        if (m.Kind == MinionKind.LightOrb && owner.RadiantOn)  // Radiant Orb's light orbs circle the orb while it's out
+                            m.Pos += (owner.RadiantPos + V2.FromAngle(m.Ang) * LightOrbRing - m.Pos).LimitLength(LightOrbSpeed * dt);
+                        else if (m.Kind == MinionKind.LightOrb)
+                            m.Pos += (owner.Pos + V2.FromAngle(m.Ang) * d.OrbitRadius - m.Pos).LimitLength(LightOrbSpeed * dt);
+                        else
+                            m.Pos = owner.Pos + V2.FromAngle(m.Ang) * d.OrbitRadius;
                         break;
                     case MinionMove.Chase:
                     {

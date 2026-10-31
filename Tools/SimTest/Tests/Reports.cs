@@ -300,6 +300,10 @@ static partial class Program
                     var weapon = Defs.Weapon(role, kit, w);
                     weaponNames.Add(weapon.Name);
                     perWeapon[weapon.Name] = new Dictionary<string, float>();
+                    me.Taken.Clear();
+                    g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, x => x.Name == "Vitality"));
+                    me.Weapon = weapon;
+                    float baseRange = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + 14f : Math.Min(240f, g.WeaponRange(me) * 0.7f);
                     float bossHp = 30000f;  // set per weapon below: what the weapon deals in 10 s, so a run is one whole boss kill
                     Func<string, int, string, float> trial = (up, stacks, fight) =>
                     {
@@ -312,7 +316,7 @@ static partial class Program
                         me.Weapon = weapon;
                         me.BowShotDraw = 0f;
                         me.BoltStore = 0f; me.BoltCd = 0f; me.BroodCd = 0f;
-                        float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + 14f : Math.Min(240f, g.WeaponRange(me) * 0.7f);
+                        float range = baseRange;  // where enemies stand doesn't move with reach upgrades
                         V2 at = new V2(800f, 450f), from = new V2(800f - range, 450f);
                         V2[] spots; float hp; EnemyType type = EnemyType.Brute;
                         if (fight == "boss") { spots = new[] { at }; hp = bossHp; type = EnemyType.Juggernaut; }
@@ -388,6 +392,15 @@ static partial class Program
                 Console.WriteLine("  {0,-18} {1,-10} {2,6:+0;-0}% ({3,5:+0;-0} to {4,5:+0;-0})   x{8} {5,6:+0;-0}% ({6,5:+0;-0} to {7,5:+0;-0})",
                     up, def.Rarity, pct(a, 0.5f), pct(a, 0.1f), pct(a, 0.9f), pct(b, 0.5f), pct(b, 0.1f), pct(b, 0.9f), max);
             }
+        }
+        Console.WriteLine();
+        Console.WriteLine("  Weapons where one pick is worth under 5% in every fight:");
+        foreach (var up in ups)
+        {
+            var weak = weaponNames.Distinct().Where(n => fights.Max(f => perWeapon[n][f + "/" + up]) < 0.05f)
+                .Select(n => string.Format("{0} ({1})", n, string.Join("/", fights.Select(f => (perWeapon[n][f + "/" + up] * 100f).ToString("+0;-0")))));
+            if (weak.Any())
+                Console.WriteLine("  {0,-18} {1}", up, string.Join(", ", weak));
         }
         Console.WriteLine();
         Console.WriteLine("  Weapons where one pick does least / most (boss and spread, median of the upgrades):");
