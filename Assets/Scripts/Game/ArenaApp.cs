@@ -206,6 +206,10 @@ namespace Arena
             wasPaused = game.Paused;
             if (session.Screen != AppScreen.Game)
                 pauseMenuOpen = false;
+            if (!pauseMenuOpen && !game.Paused)
+                fieldGuideOpen = false;  // the Field guide lives in the pause menu
+            else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
+                FieldGuideKeys();
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 devMenuOpen = !devMenuOpen;
@@ -276,6 +280,8 @@ namespace Arena
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape) && fieldGuideOpen && !devMenuOpen)
+                    CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
                 else if (Input.GetKeyDown(KeyCode.Escape))
@@ -432,7 +438,12 @@ namespace Arena
                     if (LabRunning)
                         DrawLabPanel();
                     if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen)
-                        DrawPauseMenu();
+                    {
+                        if (fieldGuideOpen)
+                            DrawFieldGuideScreen();  // FieldGuide.cs
+                        else
+                            DrawPauseMenu();
+                    }
                     break;
             }
             if (!textEditOpen || Event.current.type == EventType.Repaint)

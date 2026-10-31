@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Bestiary and Armory reference pages (published claude.ai artifacts; their sources are in the repo's
-    /// Docs folder), offered from the pause menu as a "Field guide" with live previews of what's inside.
+    /// The pause menu's "Field guide": cards for the in-game Bestiary and Armory databases (FieldGuide.cs), with live
+    /// previews of what's inside. Each also links to its published web page (sources in the repo's Docs folder).
     public partial class ArenaApp
     {
         const string BestiaryUrl = "https://claude.ai/artifact/SxsKDQBSXHmNN2QTM3f664";
@@ -14,11 +14,11 @@ namespace Arena
         void DrawFieldGuide(Rect col, float t)
         {
             Ui.Fancy(new Rect(col.x, col.y, col.width, 30f), "FIELD GUIDE", 20, Color.white, new Color(0.75f, 0.85f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
-            Ui.Label(new Rect(col.x, col.y + 28f, col.width, 16f), "Opens in your browser", 11, Ui.Muted);
+            Ui.Label(new Rect(col.x, col.y + 28f, col.width, 16f), "Look anything up without leaving the match", 11, Ui.Muted);
             float y = col.y + 52f, h = (col.yMax - y - 12f) / 2f;
-            DrawRefCard(new Rect(col.x, y, col.width, h), "Bestiary", "Every enemy and boss: what they do, their attacks, and when they show up.",
+            DrawRefCard(new Rect(col.x, y, col.width, h), "Bestiary", "All " + BestiaryData.All.Length + " enemies and bosses: how they fight, their attacks, and their health at your wave.",
                 BestiaryUrl, "Docs/Bestiary/arena-bestiary.html", new Color(1f, 0.45f, 0.5f), t, true);
-            DrawRefCard(new Rect(col.x, y + h + 12f, col.width, h), "Armory", "Every class, weapon (with live demos), ability, ultimate, mastery and upgrade.",
+            DrawRefCard(new Rect(col.x, y + h + 12f, col.width, h), "Armory", "Every class, weapon, ability, ultimate and upgrade card, with what's yours this match.",
                 ArmoryUrl, "Docs/Armory/out/arena-armory.html", new Color(0.45f, 0.75f, 1f), t, false);
         }
 
@@ -49,19 +49,21 @@ namespace Arena
                 }
                 EndUiGl();
             }
+            if (GUI.Button(stage, GUIContent.none, GUIStyle.none))
+                OpenFieldGuide(!enemies);  // the parade opens it too
             float y = stage.yMax + 8f;
             Ui.Fancy(new Rect(r.x + 16f, y, r.width - 32f, 28f), title.ToUpperInvariant(), 20, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft, accent);
             y += 28f;
             Ui.Label(new Rect(r.x + 16f, y, r.width - 32f, 32f), blurb, 11, Ui.Text, TextAnchor.UpperLeft, false, true);
-            // Open it: the published page, or in the Unity editor also the local copy (works offline).
-            float by = r.yMax - 40f;
+            // Open the database here; the published page (with live weapon demos) is a click away too. In the Unity
+            // editor the web button opens the local copy, which works offline.
+            float by = r.yMax - 40f, bw = (r.width - 40f) * 0.66f;
+            if (Ui.Button(new Rect(r.x + 16f, by, bw, 30f), "Open " + title, new Color(accent.r * 0.8f, accent.g * 0.8f, accent.b * 0.8f)))
+                OpenFieldGuide(!enemies);
             string local = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", localPath));
             bool hasLocal = Application.isEditor && System.IO.File.Exists(local);
-            float bw = hasLocal ? (r.width - 40f) * 0.62f : r.width - 32f;
-            if (Ui.Button(new Rect(r.x + 16f, by, bw, 30f), "Open " + title, new Color(accent.r * 0.8f, accent.g * 0.8f, accent.b * 0.8f)))
-                Application.OpenURL(url);
-            if (hasLocal && Ui.Button(new Rect(r.x + 24f + bw, by, r.width - 40f - bw, 30f), "Local copy"))
-                Application.OpenURL("file:///" + local.Replace('\\', '/'));
+            if (Ui.SmallButton(new Rect(r.x + 24f + bw, by, r.width - 40f - bw, 30f), hasLocal ? "Local page" : "Web page"))
+                Application.OpenURL(hasLocal ? "file:///" + local.Replace('\\', '/') : url);
         }
     }
 }

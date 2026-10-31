@@ -34,7 +34,8 @@ and tool is described there). This document is the developer-facing overview; re
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
 - **Dev tools (F1):** a tabbed menu (Match / Players / Tools): stat editor, god mode, wave skip, session
   recording toggle, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
-- **Field guide (pause menu):** opens the published **Bestiary** and **Armory** pages, with live previews.
+- **Field guide (pause menu):** in-game **Bestiary** and **Armory** databases (`FieldGuide.cs`): searchable lists,
+  live models, stats, links between entries. Each also links to its published web page.
 - **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs,
   samples). The owner uploads these into sessions for balance analysis; `Tools/SessionReport/report.py`
   summarises them.
@@ -90,6 +91,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
 | `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
+| `BestiaryData.cs` | 0.1k | the in-game Bestiary's words (`BestiaryEntry`, `BestiaryAttack`); most come from `BestiaryData.Generated.cs`, built from the Bestiary page by `Docs/Bestiary/build_data.js` |
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
@@ -112,7 +114,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
 | `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
-| `ReferencePages.cs` | 0.07k | the pause menu's Field guide (opens the Bestiary / Armory pages) |
+| `ReferencePages.cs` | 0.07k | the pause menu's Field guide cards (open the in-game databases, or the web pages) |
+| `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.45k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `PulseRing`, tinted `Icon` |
 | `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
@@ -191,7 +194,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   background picker), `DEVTAB=n` (F1 tab), `FROST=<0..1>` (a Frost Lance icicle that far through, with its splinters), `HAMMER=1` (Storm Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WEAPONS5=1` (Fuma Shuriken, Chain Light, Sanguine Orb coating, Fireballs and Arc Lightning in one scene), `HEMO=1` (enemies with 1-4 Blood Bolts stuck in them), `HOOK=1` (a Kusarigama hooked in an enemy, and a throw). Env flags: `KNIGHT=<weapon>`, `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`,
   `KIT=n` with mode `kitgrid` (every role and weapon of a class, drawn big), `NINJA=<weapon>` / `BLOOD=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the arena background), `PICKCARDS=a,b,c` (picker: these three cards), `LOADOUT=role,kit,weapon,ability` / `ABILITY=n` (hover) / `SHOWT=secs` (the lobby's live preview). The renderer is approximate (no text fields, faint seams in big circles, thin translucent lines look a few times brighter than in Unity; translucent UI and rimmed cards were fixed to match Unity in Oct 2026, so older preview PNGs look fainter); use it to
   check layout, then ask the owner to look in Unity.
-- **Reference pages:** `Docs/` holds the Bestiary and Armory sources. `Docs/Armory/build.sh` rebuilds the Armory
+- **Reference pages:** `Docs/` holds the Bestiary and Armory sources. After editing a Bestiary entry run
+  `node Docs/Bestiary/build_data.js` so the in-game Field guide says the same. `Docs/Armory/build.sh` rebuilds the Armory
   (its icons come straight from `PixelArt.cs`) and `Docs/checks/*.js` are Playwright scripts that screenshot the
   pages and report page errors. See `Docs/README.md` for where they're published and how to update them; their
   numbers and descriptions are hand-copied from the code, so update them with balance changes.
@@ -214,6 +218,14 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**In-game Field guide (Oct 2026), no protocol change:** the pause menu's Bestiary and Armory are now in-game
+databases (`FieldGuide.cs`) instead of links to the web pages (still a button away). Bestiary text is generated
+from the page (`node Docs/Bestiary/build_data.js` → `BestiaryData.Generated.cs`); stats come from `Defs`, health
+from the new `Game.SpawnHp(type, wave)` (what `SpawnEnemyAt` uses) and fire timing from `Game.WaveFireRate`.
+The Armory reads `Defs.Weapons`, `Upgrades.Abilities` and `Upgrades.All`. Preview: `Tools/Preview/shot.sh <name> guide`
+with `GUIDE=0..4` (Bestiary, Classes, Weapons, Abilities, Upgrades), `GUIDESEL=<key>`, `GUIDESEARCH=`, `GUIDESCROLL=`.
+Test: `run.sh 1 30 fieldguide` (also in the feature suite).
 
 **The Hive Queen's new legendaries (Oct 2026, protocol 103):** plan and numbers in `Docs/QueenLoot.md`; code in `QueenLoot.cs` (look: `Game/QueenLootLook.cs`). **Hive Drones** (`MinionKind.HiveDrone`, companions so they stay between waves and are dazed, not broken; `Stats.HiveDrones` 2 then +1 a stack): `TickHiveDrones` keeps them up, `MoveDrone` circles / flies out / stings 3 x `DroneSting` / flies home and heals `HiveDroneHeal`; sent by `DroneOnKill` (KillEffects) and `DroneOnBossHit` (HurtEnemy, every `DroneBossEvery`), `DronesPerSend` = stacks. **Royal Dive** (`AbilityId.RoyalDive`, a bonus ability like the Stun Gun; `QueenAbilities`): moved like Leap Slam on your own game (LocalControl), `StartRoyalDive`/`TickDives` land it (`RoyalDive*` consts; her own dive uses `Dive*`), leaving `ZoneKind.HoneyPool` (heal 6/s, slow 40%). **Bomber Escort** (`MinionKind.HiveBomber`, `Stats.Bombers`): `TickBombers` launches every `BomberEvery` at the toughest enemy within `BomberReach`, `MoveBomber` steers, `ExplodeMinion` bursts (MinionDef Damage 55, Range 70). Swarm Rounds, Royal Jelly and Brood Mother stay but have `Unoffered` (never rolled; `Available` checks it). Preview `QUEENLOOT=1`; test `queenloot`; `balance` report includes Hive Drones and Bomber Escort.
 
@@ -290,7 +302,7 @@ copies of the same numbers:
 |---|---|
 | **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
 | **Ability** | `AbilityId` · its `AbilityDef` entry in its class's file (lobby place, name, cooldown, texts, capstone, instant, charges, bot rule; since Oct 2026) · its cast `case` next to the entry (`CastAbility` / `KitAbility` / `KnightAbility` / `NinjaAbility` / `BloodAbility` / `Ultimate`), including what its capstone does · `PixelArt` icon by name · README · Armory |
-| **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldRenderer.DrawEnemy` · README · Bestiary |
+| **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldRenderer.DrawEnemy` · README · Bestiary (then `node Docs/Bestiary/build_data.js` for the in-game one) |
 
 **Recommendations**
 1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra growth). Then

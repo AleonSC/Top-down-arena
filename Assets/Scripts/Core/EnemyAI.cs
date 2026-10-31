@@ -194,18 +194,30 @@ namespace Arena
             SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
         }
 
+        /// An enemy's health when it spawns on a wave, for this party and the run's modifiers (before paths and elites).
+        /// The Field guide's Bestiary shows it too.
+        public float SpawnHp(EnemyType type, int wave)
+        {
+            var d = Defs.Get(type);
+            float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
+            if (d.IsBoss)
+                hp *= BossHpMult(type);
+            // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
+            if (d.IsBoss && wave > LateBossWave)
+                hp *= 1f + LateBossScaling * (wave - LateBossWave);
+            if (Has(RunMod.ToughCrowd))
+                hp *= Modifiers.ToughCrowdHp;
+            return hp;
+        }
+
+        /// How much faster enemies fire on a wave: 5% a wave, up to twice as fast (wave 21 on).
+        public static float WaveFireRate(int wave) => Math.Min(2f, 1f + 0.05f * (wave - 1));
+
         Enemy SpawnEnemyAt(EnemyType type, V2 pos, float spawnT, int parent, bool elite = false)
         {
             var d = Defs.Get(type);
             var e = new Enemy { Id = nextEnemyId++, Type = type, Def = d, Radius = d.Radius, Speed = d.Speed, Score = d.Score, ParentId = parent, Elite = elite };
-            e.MaxHp = d.Hp * (1f + 0.15f * (Wave - 1)) * PartyHpScale(d.IsBoss);
-            if (d.IsBoss)
-                e.MaxHp *= BossHpMult(type);
-            // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
-            if (d.IsBoss && Wave > LateBossWave)
-                e.MaxHp *= 1f + LateBossScaling * (Wave - LateBossWave);
-            if (Has(RunMod.ToughCrowd))
-                e.MaxHp *= Modifiers.ToughCrowdHp;
+            e.MaxHp = SpawnHp(type, Wave);
             if (Has(RunMod.SwiftFoes))
                 e.Speed *= Modifiers.SwiftFoesSpeed;
             ApplyPathToEnemy(e, ref elite);  // Paths.cs
@@ -292,7 +304,7 @@ namespace Arena
 
         void TickEnemies(float dt)
         {
-            float rate = Math.Min(2f, 1f + 0.05f * (Wave - 1));
+            float rate = WaveFireRate(Wave);
             PullStrength = 0f;
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)

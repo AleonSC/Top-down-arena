@@ -599,9 +599,21 @@ friend isn't affected, so you can check it mid-fight (you can still move and sho
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your
 and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
-a mute toggle, and **Leave game**. Beside it, the **Field guide** opens the **Bestiary** (every enemy and boss)
-and the **Armory** (every class, weapon, ability and upgrade) in your browser, with a live preview of each
-(in the Unity editor you can also open the local copy from `Docs/`). The same audio options are under **Settings** on the main menu, and
+a mute toggle, and **Leave game**. Beside it, the **Field guide** opens two in-game databases:
+
+- **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
+  at your wave for your party (with the run's modifiers), what it does, when it appears, a staged boss's stages, and
+  every attack (shot kind, count, speed, damage, and how often it fires now that enemies fire faster).
+- **Armory:** tabs for **Classes** (each role × class: health, speed, its three weapons, Space abilities and
+  ultimate), **Weapons** (live character, damage, attack rate, range as the aim line shows it, companions,
+  what extra projectiles do), **Abilities** (cooldown, charges, health cost, mastery capstone, your mastery
+  level, the cards that improve it) and **Upgrades** (every card by rarity: stacks, who it's offered to, which
+  boss gives it, how many you have). The Armory reads the game's own definitions, so it's never out of date.
+
+Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to
+their own entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked
+**YOU**. **Esc** goes back to the pause menu. Each card also has a **Web page** button for the published pages
+(the Armory's has live weapon demos; in the Unity editor it opens the local copy from `Docs/`). The same audio options are under **Settings** on the main menu, and
 they're saved between sessions.
 
 **Music:** everything is generated in code, like the sound effects. The menus and lobby play a synthwave

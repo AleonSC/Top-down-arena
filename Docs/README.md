@@ -7,6 +7,21 @@ Reference pages published as claude.ai artifacts. Their sources live here so fut
 | **Bestiary**: every enemy and boss, animated, with what they do | `Bestiary/arena-bestiary.html` (one self-contained page; edit it directly) | https://claude.ai/artifact/SxsKDQBSXHmNN2QTM3f664 |
 | **Armory**: every class, weapon (with live demos), ability, ultimate, mastery capstone and upgrade | `Armory/armory.src.html` + icons built from the game | https://claude.ai/artifact/Vx6Rkk2y7TyRd47ADoSnKz |
 
+## The in-game Field guide
+
+The pause menu's Field guide (`Assets/Scripts/Game/FieldGuide.cs`) is the in-game version of both pages. Its
+Armory reads the game's definitions directly. Its Bestiary's words (appears, description, stages, attacks,
+tips) come from this page's `E` table, turned into C# by
+
+```
+node Docs/Bestiary/build_data.js
+```
+
+which writes `Assets/Scripts/Core/BestiaryData.Generated.cs` (don't edit that by hand). Run it after editing a
+Bestiary entry. It drops the page's remarks about its own preview and lists any text that still seems to
+talk about the page. Boss adds the page doesn't cover are in `Assets/Scripts/Core/BestiaryData.cs`; the
+`fieldguide` sim test checks every `EnemyType` has an entry.
+
 ## Updating the Armory
 
 ```

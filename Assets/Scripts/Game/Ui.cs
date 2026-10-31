@@ -102,6 +102,15 @@ namespace Arena
             return label.CalcSize(new GUIContent(text)).x;
         }
 
+        /// How tall a word-wrapped label of this text would be at this width.
+        public static float TextHeight(string text, int size, float width, bool bold = false)
+        {
+            label.fontSize = size;
+            label.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            label.wordWrap = true;
+            return label.CalcHeight(new GUIContent(text), width);
+        }
+
         /// Big text with a soft drop shadow.
         public static void Title(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleCenter)
         {
