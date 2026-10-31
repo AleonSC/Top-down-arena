@@ -78,10 +78,9 @@ namespace Arena
                         return V2.Zero;  // holds still while it changes stage
                     return (HeraldGoal(e) - e.Pos) / 60f;  // along the top, or the middle for the last stand (Herald.cs)
                 case EnemyType.Eclipse:
-                {
-                    var goal = new V2(Width / 2f, Height / 2f) + V2.FromAngle(e.T * 0.3f) * 140f;
-                    return (goal - e.Pos) / 60f;
-                }
+                    if (EclipseImmune(e))
+                        return V2.Zero;  // holds still while it changes stage
+                    return (EclipseGoal(e) - e.Pos) / 60f;  // orbiting the middle, or in it for Totality (Eclipse.cs)
                 case EnemyType.GravityWell:
                 {
                     // Holds its corner, bobbing a little.
@@ -152,37 +151,8 @@ namespace Arena
                     break;
                 }
                 case EnemyType.Eclipse:
-                {
-                    float frac = e.Hp / e.MaxHp;
-                    byte phase = (byte)(frac > 0.66f ? 0 : frac > 0.33f ? 1 : 2);
-                    if (phase > e.Phase)
-                    {
-                        e.Phase = phase;
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 300f, 0.8f, Sfx.Roar);
-                        var add = phase == 1 ? EnemyType.Phantom : EnemyType.Hexer;
-                        for (int i = 0; i < 2; i++)
-                            SpawnEnemyAt(add, e.Pos + V2.FromAngle(MathX.Pi * i) * 200f, 0.8f, e.Id);
-                        DoLog("The Eclipse enters phase " + (phase + 1));
-                    }
-                    if (e.Phase >= 1)
-                    {
-                        // A gravity well for 3.5 s of every 10.
-                        e.T2 += dt;
-                        if (MathX.Fmod(e.T2, 10f) < 3.5f)
-                        {
-                            PullCenter = e.Pos;
-                            PullStrength = 120f;
-                        }
-                    }
-                    if (e.Phase == 2 && e.PhaseT <= 0f)
-                    {
-                        e.PhaseT = 2.5f;
-                        foreach (var p in Players.Values)
-                            if (!p.Downed)
-                                AddHazard(p.Pos, 75f, 1.2f);
-                    }
+                    EclipseSpecial(e, tpos, dt);  // its five stages and turns (Eclipse.cs)
                     break;
-                }
             }
         }
 
@@ -238,43 +208,7 @@ namespace Arena
                     }
                     break;
                 case EnemyType.Eclipse:
-                    switch (e.Phase)
-                    {
-                        case 0:
-                            if ((int)(e.T / 4f) % 2 == 0)
-                            {
-                                e.FireT = 0.07f;
-                                e.Ang += 0.21f;
-                                for (int k = 0; k < 4; k++)
-                                    EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
-                            }
-                            else
-                            {
-                                e.FireT = 1f;
-                                e.Ang += 0.13f;
-                                for (int i = 0; i < 24; i++)
-                                    EnemyShot(e, e.Ang + MathX.Tau * i / 24f, 110f, Defs.BigShot);
-                            }
-                            break;
-                        case 1:
-                            e.FireT = 0.5f;
-                            e.Ang += 0.3f;
-                            for (int d = 0; d < 4; d++)
-                                for (int k = 0; k < 3; k++)
-                                    EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 120f + k * 50f, Defs.SmallShot);
-                            for (int i = 0; i < 5; i++)
-                                EnemyShot(e, aim + (i - 2) * 0.14f, 210f, Defs.PierceShot);
-                            break;
-                        default:
-                        {
-                            // Final phase: a dense five-armed spiral that switches direction.
-                            e.FireT = 0.06f;
-                            e.Ang += (int)(e.T / 3f) % 2 == 0 ? 0.19f : -0.19f;
-                            for (int k = 0; k < 5; k++)
-                                EnemyShot(e, e.Ang + MathX.Tau * k / 5f, 170f, Defs.SmallShot);
-                            break;
-                        }
-                    }
+                    EclipseFire(e, aim);  // its breathers (Eclipse.cs)
                     break;
                 default:  // Nest, Decoy, Phylactery and gravity wells don't shoot
                     e.FireT = 99f;

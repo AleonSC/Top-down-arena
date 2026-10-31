@@ -12,6 +12,7 @@ namespace Arena
             public Enemy Boss;
             public float Progress;     // 0 -> 1 over the change
             public int Number;         // the stage it's changing to (2, 3)
+            public int Of;             // how many stages it has (3, or 5 for the Eclipse)
             public string Name, Line;
             public Rgba Color, Second;
             public bool Warden, Reapers, Duelist;
@@ -79,6 +80,21 @@ namespace Arena
                         Line = gale ? "The wind gets up" : "The sky goes dark",
                         Color = gale ? new Rgba(0.5f, 0.7f, 1f) : new Rgba(0.66f, 0.55f, 1f),
                         Second = gale ? new Rgba(0.85f, 0.93f, 1f) : new Rgba(0.83f, 0.6f, 1f),
+                    };
+                    return true;
+                }
+                if (e.Type == EnemyType.Eclipse && e.Eclipse != null && e.Eclipse.TransT > 0f)
+                {
+                    var to = e.Eclipse.TransTo;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Eclipse.TransT / Game.EclipseTransTime), Number = (int)to + 1, Of = 5,
+                        Name = EclipseStageName(to),
+                        Line = to == EclipseStage.Penumbra ? "The moon rises" : to == EclipseStage.Umbra ? "The light goes out"
+                            : to == EclipseStage.Echoes ? "The fallen return" : "The sun is dying",
+                        Color = to == EclipseStage.Penumbra ? new Rgba(1f, 0.7f, 0.36f) : to == EclipseStage.Umbra ? new Rgba(0.61f, 0.48f, 1f)
+                            : to == EclipseStage.Echoes ? new Rgba(1f, 0.44f, 0.64f) : new Rgba(1f, 0.54f, 0.24f),
+                        Second = to == EclipseStage.Umbra ? new Rgba(1f, 0.82f, 0.4f) : new Rgba(0.79f, 0.82f, 0.89f),
                     };
                     return true;
                 }
@@ -251,7 +267,7 @@ namespace Arena
             Ui.Fill(new Rect(W * (1f - Ease(tIn)), y + 55f + h / 2f - 3f, W * Ease(tIn), 3f), new Color(band.r, band.g, band.b, 0.9f * a));
             // The name slides in from the right and settles, the small lines slide in from the left.
             float slide = (1f - Ease(tIn)) * 260f;
-            Ui.Label(new Rect(-slide, y + 8f, W, 20f), "STAGE " + s.Number + " / 3", 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(-slide, y + 8f, W, 20f), "STAGE " + s.Number + " / " + (s.Of > 0 ? s.Of : 3), 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
             var top = ToColor(s.Second.Mix(Rgba.White, 0.5f));
             Ui.Fancy(new Rect(slide, y + 26f, W, 56f), s.Name, 46, new Color(top.r, top.g, top.b, a), new Color(band.r, band.g, band.b, a), TextAnchor.MiddleCenter,
                 new Color(band.r, band.g, band.b, a));

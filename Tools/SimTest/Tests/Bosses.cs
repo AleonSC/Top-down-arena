@@ -806,6 +806,208 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // The Eclipse (Eclipse.cs): the final boss in five stages and a last stand.
+    static void EclipseTest(float dt)
+    {
+        var s = StartBuffed(dt, 50, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        var c = s[1].Game;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+        Action<V2, V2> Place = (a, b) => { g.Players[1].Pos = c.Players[1].Pos = a; g.Players[2].Pos = c.Players[2].Pos = b; };
+        Action quiet = () => { g.Hazards.Clear(); foreach (var b in g.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) b.Life = 0f; foreach (var e in g.Enemies.Values) if (e.Type != EnemyType.Eclipse) e.Hp = 0f; };
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Eclipse) != null && !g.IsSpawning(Find(s[0], EnemyType.Eclipse)));
+        var h = Find(s[0], EnemyType.Eclipse);
+        foreach (var e in g.Enemies.Values) if (e != h) e.Hp = 0f;  // just the boss
+        var me = g.Players[1];
+        Func<EclipseState> cs = () => c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Eclipse)?.Eclipse;
+
+        // Corona: Spiral, Corona rings, Solar flares, breathers between.
+        var turns = new List<EclipseTurn>();
+        int flares = 0, clientFlares = 0, ring = 0;
+        Run(s, dt, 21f, null, () =>
+        {
+            safe(); Place(new V2(500f, 750f), new V2(1100f, 750f));
+            var es = h.Eclipse;
+            if (es == null) return;
+            if (turns.Count == 0 || turns[turns.Count - 1] != es.Turn) turns.Add(es.Turn);
+            flares = Math.Max(flares, es.Flares.Count);
+            clientFlares = Math.Max(clientFlares, cs()?.Flares.Count ?? 0);
+            if (es.Turn == EclipseTurn.CoronaRings) ring = Math.Max(ring, g.Bullets.Values.Count(b => b.Source == EnemyType.Eclipse && b.Kind == Defs.BigShot));
+        });
+        string order = string.Join(" > ", turns);
+        Console.WriteLine("  corona: {0}; flares {1} (client {2}), ring shots {3}", order, flares, clientFlares, ring);
+        Check(h.Eclipse.Stage == EclipseStage.Corona && order.Contains("Spiral > Rest > CoronaRings > Rest > Flares > Rest"), "Corona: Spiral, Corona rings, Solar flares, with breathers between");
+        Check(flares >= 3 && clientFlares >= 3 && ring >= 24, "flares at each player and one more (seen on the client); 24-shot rings");
+
+        // A flare burns whoever stands in its lane.
+        Run(s, dt, 25f, () => h.Eclipse.Turn == EclipseTurn.Flares && h.Eclipse.Flares.Count > 0 && h.Eclipse.Flares[0].T < 0.3f, () => { safe(); Place(new V2(500f, 750f), new V2(1100f, 750f)); });
+        var fl = h.Eclipse.Flares[0];
+        V2 inLane = fl.From + V2.FromAngle(fl.Ang) * 400f;
+        float taken = me.Run.DamageTaken;
+        Run(s, dt, 1.5f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) p.InvulnT = p.Id == 1 ? 0f : 1f;
+            Place(inLane, new V2(1500f, 100f)); quiet();
+        });
+        Console.WriteLine("  standing in a flare's lane: hurt {0}", me.Run.DamageTaken > taken);
+        Check(me.Run.DamageTaken > taken, "a solar flare burns a player in its lane");
+
+        // 80%: it changes stage (can't be hurt, the screen clears), then the Penumbra: the moon and two Phantoms.
+        h.Hp = h.MaxHp * 0.78f;
+        Run(s, dt, 0.3f, null, safe);
+        float hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
+        bool immune = h.Eclipse.TransT > 0f && h.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Eclipse) && g.Hazards.Count == 0;
+        Run(s, dt, 3.5f, () => h.Eclipse.Stage == EclipseStage.Penumbra && h.Eclipse.TransT <= 0f, safe);
+        Run(s, dt, 0.5f, null, safe);
+        int phantoms = g.Enemies.Values.Count(e => e.Type == EnemyType.Phantom);
+        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), moon {3:0} px out (client {4:0}), phantoms {5}", immune, h.Eclipse.Stage, cs()?.Stage, h.Eclipse.MoonD, cs()?.MoonD, phantoms);
+        Check(immune && h.Eclipse.Stage == EclipseStage.Penumbra && cs()?.Stage == EclipseStage.Penumbra, "at 80% it changes stage (can't be hurt, screen cleared), then the Penumbra (seen on the client)");
+        Check(h.Eclipse.MoonD > 0f && cs()?.MoonD > 0f && phantoms == 2, "the moon orbits it (the client knows where), and two Phantoms come");
+
+        // The moon soaks players' shots.
+        typeof(Game).GetMethod("FindEclipseMoon", flags).Invoke(g, null);
+        var shot = new Bullet { Kind = Defs.DpsShot, Pos = Game.MoonPos(h, h.Pos), Radius = 4f, Owner = 1 };
+        var enemyShot = new Bullet { Kind = Defs.SmallShot, Pos = Game.MoonPos(h, h.Pos), Radius = 6f };
+        var stops = typeof(Game).GetMethod("MoonStops", flags);
+        bool soaks = (bool)stops.Invoke(g, new object[] { shot }) && !(bool)stops.Invoke(g, new object[] { enemyShot });
+        Check(soaks, "the moon soaks players' shots (not its own side's)");
+
+        // The flash: hide in the moon's shadow. You in the shadow, your ally out in the light.
+        Run(s, dt, 25f, () => h.Eclipse.Turn == EclipseTurn.Flash && h.Eclipse.FlashT > 2f, () => { safe(); quiet(); });
+        float meTaken = me.Run.DamageTaken, allyTaken = g.Players[2].Run.DamageTaken;
+        bool shadowed = true;
+        Run(s, dt, 3.5f, () => h.Eclipse.FlashT <= 0f, () =>
+        {
+            V2 u = V2.FromAngle(h.Eclipse.MoonA);
+            V2 inShadow = h.Pos + u * (h.Eclipse.MoonD + 120f), outside = h.Pos + u.Orthogonal() * 350f;
+            Place(inShadow, outside);
+            shadowed &= Game.InMoonShadow(h.Eclipse, h.Pos, inShadow);
+            foreach (var p in g.Players.Values) p.InvulnT = 0f;
+            quiet();
+        });
+        Run(s, dt, 0.1f);
+        Console.WriteLine("  eclipse flash: in the shadow took {0:0}, in the light took {1:0}", me.Run.DamageTaken - meTaken, g.Players[2].Run.DamageTaken - allyTaken);
+        Check(shadowed && me.Run.DamageTaken == meTaken && g.Players[2].Run.DamageTaken > allyTaken, "the Eclipse flash hits everyone outside the moon's shadow");
+
+        // 60%: the Umbra. Sunspots (seen on the client), Hexers; the dark drains you; crescents; closing rings.
+        h.Hp = h.MaxHp * 0.58f;
+        Run(s, dt, 4f, () => h.Eclipse.Stage == EclipseStage.Umbra && h.Eclipse.TransT <= 0f, safe);
+        Run(s, dt, 0.5f, null, safe);
+        int hexers = g.Enemies.Values.Count(e => e.Type == EnemyType.Hexer);
+        int spots = h.Eclipse.Spots.Count, clientSpots = cs()?.Spots.Count ?? 0;
+        quiet();
+        taken = me.Run.DamageTaken;
+        Run(s, dt, 2f, null, () =>
+        {
+            V2 dark = new V2(60f, 60f);
+            foreach (var sp in h.Eclipse.Spots) if (sp.Pos.DistanceTo(dark) < 200f) dark = new V2(Game.Width - 60f, 60f);
+            g.Players[1].Pos = c.Players[1].Pos = dark;
+            g.Players[2].Pos = c.Players[2].Pos = h.Eclipse.Spots[0].Pos;
+            g.Players[2].InvulnT = 1f;
+            g.Hazards.Clear(); foreach (var b in g.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) b.Life = 0f;
+        });
+        float drained = me.Run.DamageTaken - taken;
+        Console.WriteLine("  umbra: sunspots {0} (client {1}), hexers {2}; 2 s in the dark drained {3:0}", spots, clientSpots, hexers, drained);
+        Check(spots == 3 && clientSpots == 3 && hexers == 2, "the Umbra: three sunspots (seen on the client) and two Hexers");
+        Check(drained >= 9f && drained <= 15f, "the dark drains about 6 health a second outside the light");
+        bool looped = false;
+        int rings = 0, clientRings = 0;
+        var turns3 = new List<EclipseTurn>();
+        Run(s, dt, 22f, null, () =>
+        {
+            safe(); Place(new V2(400f, 700f), new V2(1200f, 700f));
+            var es = h.Eclipse;
+            if (turns3.Count == 0 || turns3[turns3.Count - 1] != es.Turn) turns3.Add(es.Turn);
+            looped |= g.Bullets.Values.Any(b => b.Kind == Defs.CrescentShot && b.AngVel != 0f) && c.Bullets.Values.Any(b => b.Kind == Defs.CrescentShot);
+            rings = Math.Max(rings, es.Rings.Count);
+            clientRings = Math.Max(clientRings, cs()?.Rings.Count ?? 0);
+        });
+        Console.WriteLine("  umbra turns: {0}; crescents loop {1}, closing rings {2} (client {3})", string.Join(" > ", turns3), looped, rings, clientRings);
+        Check(looped && rings >= 1 && clientRings >= 1, "crescents loop out and back; rings of shadow close in (seen on the client)");
+
+        // A closing ring hurts away from its gaps.
+        Run(s, dt, 25f, () => h.Eclipse.Rings.Count > 0 && h.Eclipse.Rings[0].R < 700f, () => { safe(); quiet(); });
+        var rg = h.Eclipse.Rings[0];
+        float wall = rg.Gap1 + MathX.Pi / 2f;
+        if (Game.InUmbraGap(rg, rg.Center + V2.FromAngle(wall) * 100f)) wall += 0.9f;
+        taken = me.Run.DamageTaken;
+        Run(s, dt, 3f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) p.InvulnT = p.Id == 1 ? 0f : 1f;
+            V2 on = rg.Center + V2.FromAngle(wall) * Math.Max(80f, rg.R);
+            g.Players[1].Pos = c.Players[1].Pos = on;
+            foreach (var sp in h.Eclipse.Spots) sp.Pos = on;  // in the light, so only the ring can hurt
+            g.Hazards.Clear(); foreach (var b in g.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) b.Life = 0f;
+        });
+        Check(me.Run.DamageTaken > taken, "a closing ring of shadow hurts where it has no gap");
+
+        // 40%: the Echoes, turns borrowed from the bosses before it.
+        h.Hp = h.MaxHp * 0.38f;
+        Run(s, dt, 4f, () => h.Eclipse.Stage == EclipseStage.Echoes && h.Eclipse.TransT <= 0f, safe);
+        var turns4 = new List<EclipseTurn>();
+        bool sweep = false, disk = false, pull = false, strikes = false, moonShots = false;
+        Run(s, dt, 29f, null, () =>
+        {
+            safe(); Place(new V2(300f, 750f), new V2(1300f, 750f));
+            var es = h.Eclipse;
+            if (turns4.Count == 0 || turns4[turns4.Count - 1] != es.Turn) turns4.Add(es.Turn);
+            sweep |= es.SweepOn == 2 && cs()?.SweepOn == 2;
+            disk |= es.DiskT > 1f && cs()?.DiskT > 1f;
+            pull |= g.PullStrength > 0f && es.Turn == EclipseTurn.EchoSingularity;
+            strikes |= es.Turn == EclipseTurn.EchoHerald && c.Hazards.Count >= 4;
+            moonShots |= g.Bullets.Values.Any(b => b.Source == EnemyType.Eclipse && b.Pos.DistanceTo(Game.MoonPos(h, h.Pos)) < 70f && b.Vel.Length > 200f);
+        });
+        string order4 = string.Join(" > ", turns4);
+        Console.WriteLine("  echoes: {0}; sweep {1}, disk {2}, pull {3}, strike rain {4}, moon shots {5}", order4, sweep, disk, pull, strikes, moonShots);
+        Check(order4.Contains("EchoColossus > Rest > EchoLich > Rest > EchoHerald > Rest > EchoSingularity"), "the Echoes: the Colossus, the Lich, the Storm Herald and the Singularity in turn");
+        Check(sweep && disk && pull && strikes && moonShots, "the Lich's beams and the Singularity's disk (seen on the client), its pull, strike rain, and the moon shooting back");
+
+        // 20%: Last Light. The edge burns in, and each game keeps its own player inside it.
+        h.Hp = h.MaxHp * 0.18f;
+        Run(s, dt, 4f, () => h.Eclipse.Stage == EclipseStage.LastLight && h.Eclipse.TransT <= 0f, safe);
+        Run(s, dt, 6f, null, () => { safe(); quiet(); });
+        float inset = h.Eclipse.Inset, clientInset = cs()?.Inset ?? 0f;
+        c.Players[2].Pos = new V2(5f, 5f);
+        Run(s, dt, 0.3f, null, () => { safe(); quiet(); });
+        V2 kept = c.Players[2].Pos;
+        Console.WriteLine("  last light: edge {0:0} px (client {1:0}); the client's player pushed to the corner stays at ({2:0}, {3:0})", inset, clientInset, kept.X, kept.Y);
+        Check(inset > 30f && Math.Abs(clientInset - inset) < 10f && kept.X >= clientInset && kept.Y >= clientInset, "Last Light: the edge burns in (seen on the client) and you can't pass it");
+        Run(s, dt, 30f, () => h.Eclipse.Turn == EclipseTurn.ShadowNova, () => { safe(); quiet(); });
+        int novaFlashes = 0, left0 = h.Eclipse.FlashLeft;
+        float moonBefore = h.Eclipse.MoonA, jump = 0f;
+        Run(s, dt, 7f, () => h.Eclipse.FlashLeft == 0, () =>
+        {
+            safe(); quiet();
+            if (h.Eclipse.FlashLeft < left0)
+            {
+                novaFlashes++;
+                left0 = h.Eclipse.FlashLeft;
+                if (novaFlashes == 1)
+                    jump = h.Eclipse.MoonA - moonBefore;
+            }
+        });
+        Console.WriteLine("  shadow nova: {0} flashes, the moon jumped {1:0} degrees between them", novaFlashes, jump * 180f / MathX.Pi);
+        Check(novaFlashes == 2 && jump > 1.1f && jump < 1.4f, "Shadow nova: two flashes, the moon jumping round between them");
+
+        // Below 5%: Totality. No moon, a nova timer, +50% damage; the nova hits and heals it.
+        h.Hp = h.MaxHp * 0.04f;
+        Run(s, dt, 6f, () => h.Eclipse.Stage == EclipseStage.Totality && h.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 40f, () => { safe(); quiet(); });
+        bool totality = h.Eclipse.Stage == EclipseStage.Totality && h.Eclipse.MoonD == 0f && cs()?.Stage == EclipseStage.Totality && h.Eclipse.Inset == 0f;
+        hp = h.Hp; hurt.Invoke(g, new object[] { h, 100f, 1 });
+        float dealt = hp - h.Hp;
+        h.Eclipse.NovaT = 0.5f;
+        float before = h.Hp, novaTaken = me.Run.DamageTaken;
+        Run(s, dt, 1f, null, () => { foreach (var p in g.Players.Values) p.InvulnT = 0f; quiet(); });
+        Console.WriteLine("  totality: {0}; 100 damage dealt {1:0}; the nova took {2:0} from you and healed it {3:0}", totality, dealt, me.Run.DamageTaken - novaTaken, h.Hp - before);
+        Check(totality, "below 5%: Totality in the middle, the moon gone, the edge gone");
+        Check(dealt > 140f && dealt < 160f, "it takes +50% damage in Totality");
+        Check(me.Run.DamageTaken - novaTaken > me.MaxHp * 0.5f && h.Hp > before, "the nova hits everyone hard and heals it");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
     static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
 

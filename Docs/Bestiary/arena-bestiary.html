@@ -194,6 +194,7 @@ const B = {
   fast:   { name: "Fast shot",    dmg: 17.2, r: 4.5, col: rgb(1, 0.95, 0.4) },
   big:    { name: "Big orb",      dmg: 23, r: 10,  col: rgb(0.85, 0.35, 1) },
   pierce: { name: "Aimed shot",   dmg: 18.4, r: 6.5, col: rgb(1, 0.12, 0.12) },
+  crescent: { name: "Crescent",   dmg: 20.7, r: 14,  col: rgb(0.89, 0.83, 1) },
   mine:   { name: "Mortar bomb",  dmg: 20.7, r: 9,   col: rgb(1, 0.55, 0.2) },
   stun:   { name: "Stun shot",    dmg: 9.2,  r: 7,   col: rgb(0.43, 0.88, 1) },
 };
@@ -412,12 +413,33 @@ const E = [
       { name: "Hungry (3 s)", pattern: "Ring of big orbs. Your hits heal it for 50% of their damage", kind: "big", n: 20, speed: 90, every: 1.2 }],
     notes: ["Stop shooting while it glows."] },
   { id: "Eclipse", label: "The Eclipse", cat: "Bosses", boss: true, hp: 9000, r: 52, speed: 30, sides: 16, col: rgb(1, 0.85, 0.4), xp: 500, score: 2000, wave: 50,
-    appears: "Wave 50, the final boss", lead: "Orbits the middle through three phases as its health drops, adding Phantoms, then Hexers, a gravity pull and lightning.",
-    locks: ["Phase 1", "Phase 2", "Phase 3"],
+    appears: "Wave 50, the final boss", lead: "Five stages by its health, then Totality, one attack at a time with breathers between (2.5 s between stages, when the screen clears and it can't be hurt). A sun and its moon line up as the fight goes on: hide in the moon's shadow from the flash, stay in the light, and kill it before the nova.",
+    locks: ["Cycle", "Corona", "Penumbra", "Umbra", "Echoes", "Last Light", "Totality"],
     attacks: [
-      { name: "Phase 1 (>66%)", pattern: "Alternates every 4 s: 4-arm spiral (every 0.07 s, 150 px/s) / 24-orb rings (every 1 s, 110 px/s)", kind: "small", n: "4 / 24", speed: "150 / 110", every: "0.07 / 1" },
-      { name: "Phase 2 (66–33%)", pattern: "2 Phantoms join. Rotating cross 4 × 3 + 5 aimed shots 8° apart; pull 120 px/s for 3.5 of every 10 s", kind: "small", n: "12 + 5", speed: "120–220 / 210", every: 0.5 },
-      { name: "Phase 3 (<33%)", pattern: "2 Hexers join. 5-arm spiral reversing every 3 s; lightning on each player every 2.5 s (75 px, 1.2 s)", kind: "small", n: 5, speed: 170, every: 0.06 }] },
+      { name: "Spiral (6 s, Corona)", pattern: "4 arms, +12° per volley", kind: "small", n: 4, speed: 150, every: 0.07 },
+      { name: "Corona rings (5 s, Corona)", pattern: "Rings of 24, each turned 7°", kind: "big", n: 24, speed: 110, every: 1 },
+      { name: "Solar flares (6 s, Corona)", pattern: "A line at each player and one more: 1 s warning, then a 40 px lane of fire 1300 px long for 0.45 s", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2, unscaled: true },
+      { name: "Sun shots (Corona breathers)", pattern: "3 aimed big shots, 6.9° apart", kind: "big", n: 3, speed: 280, every: 1 },
+      { name: "The moon (Penumbra to Last Light)", pattern: "Orbits 300 px out at 20°/s. Can't be hurt and soaks your shots; its shadow is a cone pointing away from the sun", dmg: "—", every: null },
+      { name: "Lunar wake (7 s, Penumbra)", pattern: "The moon speeds up to 70°/s and drops a slow shot behind it", kind: "small", n: 1, speed: 60, every: 0.12 },
+      { name: "Eclipse flash (5 s, Penumbra)", pattern: "The moon stops and the sun swells for 3 s, then hits everyone outside the moon's shadow", dmg: w => (40 + 0.3 * w).toFixed(1), dmgLabel: "40 + 0.3 × wave", every: null, unscaled: true },
+      { name: "Gravity (6 s, Penumbra)", pattern: "Pull 120 px/s for 3.5 s; 4 directions × 3 speeds", kind: "small", n: 12, speed: "120–220", every: 0.5 },
+      { name: "Piercing fan (Penumbra, Last Light breathers)", pattern: "5 aimed shots, 8° apart", kind: "pierce", n: 5, speed: 210, every: 1 },
+      { name: "Sunspots and the dark (all Umbra)", pattern: "You see 140 px round you and in three 120 px pools of light drifting at 35 px/s; outside them the dark drains you (no brief immunity)", dmg: "6/s", every: null },
+      { name: "Crescents (6 s, Umbra)", pattern: "A crescent at each player that loops out through them and back to where it was thrown", dmg: (1.15 * 18).toFixed(1), every: 1.2 },
+      { name: "Closing umbra (7 s, Umbra)", pattern: "Twice, a 30 px ring of shadow closes in from 950 px at 130 px/s with two 40° gaps (once each)", dmg: w => (20 + 0.3 * w).toFixed(1), dmgLabel: "20 + 0.3 × wave", every: 3.4, unscaled: true },
+      { name: "Dark spiral (5 s, Umbra)", pattern: "3 arms, seen only in the light", kind: "small", n: 3, speed: 130, every: 0.09 },
+      { name: "Echo: Colossus (6 s, Echoes)", pattern: "Stomps: rings of 30 big shots with one gap", kind: "big", n: 27, speed: 180, every: 1.6 },
+      { name: "Echo: Lich (6 s, Echoes)", pattern: "Two 750 px soul beams opposite each other: 1 s warning, then they turn 35°/s", dmg: w => (15 + 0.3 * w).toFixed(1), dmgLabel: "15 + 0.3 × wave", every: null, unscaled: true },
+      { name: "Echo: Storm Herald (6 s, Echoes)", pattern: "Strike rain: 3 random strikes and 1 on a player, 55 px, 0.9 s warning", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.6, unscaled: true },
+      { name: "Echo: Singularity (6 s, Echoes)", pattern: "A 110 px/s pull for 3.5 s; 12 orbs spin out from it at 95 px/s", dmg: w => (0.7 * (15 + 0.3 * w)).toFixed(1), dmgLabel: "70% of the echo damage", every: null, unscaled: true },
+      { name: "Moon shots (all Echoes)", pattern: "3 shots from the moon at the nearest player", kind: "small", n: 3, speed: 240, every: 2 },
+      { name: "Burning edge (all Last Light)", pattern: "The arena's edges close in 160 px over 20 s; you can't pass, and touching them burns", dmg: "20/s", every: null },
+      { name: "Frantic spiral (6 s, Last Light)", pattern: "5 arms, switching direction every 3 s", kind: "small", n: 5, speed: 170, every: 0.06 },
+      { name: "Shadow nova (6 s, Last Light)", pattern: "Two flashes (2.5 s, then 3 s); the moon is 220 px out and jumps 72° round between them", dmg: w => (40 + 0.3 * w).toFixed(1), dmgLabel: "40 + 0.3 × wave", every: null, unscaled: true },
+      { name: "Solar storm (6 s, Last Light)", pattern: "Flares at each player, then crescents, by turns", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave (flares)", every: 0.8, unscaled: true },
+      { name: "Totality (below 5%)", pattern: "In the middle, no moon. Rings of 20 big shots; it takes +50% damage; every 12 s the nova hits everyone for 70% of their health and heals it 2%", kind: "big", n: 20, speed: 100, every: 1.4 }],
+    notes: ["Each stage keeps something from the last: the moon from the Penumbra on, the flash again in Last Light.", "Only one dummy here: in co-op the whole party has to fit in the moon's shadow.", "Built from the design mockup (Docs/Mockups/eclipse-5-stage.html)."] },
 
   // Summons
   { id: "Shard", cat: "Summons", summon: true, hp: 25, r: 8, speed: 130, sides: 3, col: rgb(0.8, 1, 0.55), xp: 4, score: 5, wave: 7,
@@ -444,7 +466,7 @@ const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
-const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 2.7 };  // BossHpMult (Balance.cs)
+const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 5.5 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
@@ -795,6 +817,214 @@ function drawHerald(e, t) {
   if (h.stage === 3) for (let k = 0; k < 4; k++) { const a = h.spin + k * Math.PI / 2; bolt(e, { x: e.x + Math.cos(a) * 700, y: e.y + Math.sin(a) * 700 }, 4, HD.cols[3], seed + k * 13, 18); }
 }
 
+// The Eclipse (Eclipse.cs): five stages by its health, then Totality. "Cycle" plays each stage once.
+const ED = {
+  turns: [["Spiral", "Rest", "CoronaRings", "Rest", "Flares", "Rest"], ["LunarWake", "Rest", "Flash", "Rest", "Gravity", "Rest"], ["Crescents", "Rest", "ClosingUmbra", "Rest", "DarkSpiral", "Rest"],
+    ["EchoColossus", "Rest", "EchoLich", "Rest", "EchoHerald", "Rest", "EchoSingularity", "Rest"], ["FranticSpiral", "Rest", "ShadowNova", "Rest", "SolarStorm", "Rest"], ["Totality"]],
+  times: [[6, 1, 5, 1, 6, 1], [7, 1, 5, 1, 6, 1], [6, 1, 7, 1, 5, 1], [6, 1, 6, 1, 6, 1, 6, 1], [6, 1, 6, 1, 6, 1], [14]],
+  stages: ["Corona", "Penumbra", "Umbra", "Echoes", "Last Light", "Totality"],
+  cols: [rgb(1, 0.82, 0.4), rgb(1, 0.7, 0.36), rgb(0.61, 0.48, 1), rgb(1, 0.44, 0.64), rgb(1, 0.54, 0.24), rgb(1, 0.3, 0.3)],
+  ghosts: { EchoColossus: [8, rgb(0.85, 0.63, 0.4)], EchoLich: [7, rgb(0.43, 1, 0.69)], EchoHerald: [9, rgb(0.56, 0.82, 1)], EchoSingularity: [12, rgb(0.71, 0.55, 1)] },
+};
+const moonOf = e => ({ x: e.x + Math.cos(e.c.moonA) * e.c.moonD, y: e.y + Math.sin(e.c.moonA) * e.c.moonD });
+function inShadow(e, p) {
+  const c = e.c; if (!c.moonD) return false;
+  const ux = Math.cos(c.moonA), uy = Math.sin(c.moonA), vx = p.x - e.x, vy = p.y - e.y, along = vx * ux + vy * uy, perp = Math.abs(vx * uy - vy * ux);
+  return along > c.moonD && perp < 42 * 0.9 + (along - c.moonD) * 0.1;
+}
+const inLight = (e, p) => e.c.spots.some(s => dist(s, p) < 120);
+const eclipseOrb = (e, k) => { const a = k * TAU / 12 + e.c.disk * 1.1, r = 90 + e.c.disk * 95; return { x: e.x + Math.cos(a) * r, y: e.y + Math.sin(a) * r }; };
+const umbraGap = (r, p) => { const a = Math.atan2(p.y - r.y, p.x - r.x), g = q => Math.abs(((a - q + Math.PI) % TAU + TAU) % TAU - Math.PI) < 0.35; return g(r.g1) || g(r.g2); };
+function eclipseInit(e) {
+  e.c = { stage: S.sel === "Eclipse" && S.lock ? S.lock - 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0, act: 0, fired: 0, orbit: e.t * 0.3,
+    moonA: rnd(0, TAU), moonD: 0, flash: 0, flashLen: 0, flashLeft: 0, flares: [], rings: [], spots: [], sweep: 0, sweepA: 0, sweepT: 0, disk: -1, inset: 0, nova: 12, moonFire: 2, drain: 0, dark: 0 };
+  eclipseEnter(e, e.c.stage);
+}
+function eclipseEnter(e, stage) {
+  const c = e.c;
+  c.stage = stage; c.step = -1; c.loop = 0; c.flares = []; c.rings = []; c.spots = []; c.flash = 0; c.sweep = 0; c.disk = -1; c.dark = 0;
+  c.moonD = stage >= 1 && stage <= 4 ? (stage === 4 ? 220 : 300) : 0;
+  c.inset = 0; c.nova = 12;
+  for (const o of world.enemies) if (o.parent === e.id) o.dead = true;
+  if (stage === 1) for (let i = 0; i < 2; i++) spawn("Phantom", e.x + Math.cos(Math.PI * i) * 200, e.y, e.id, 0.8);
+  if (stage === 2) {
+    for (let i = 0; i < 2; i++) spawn("Hexer", e.x, e.y + (i ? 200 : -200), e.id, 0.8);
+    for (let i = 0; i < 3; i++) c.spots.push({ x: 300 + i * 500, y: i === 1 ? 250 : H - 220, dir: rnd(0, TAU) });
+  }
+  eclipseNext(e);
+}
+function eclipseNext(e) {
+  const c = e.c, turns = ED.turns[c.stage];
+  if (++c.step >= turns.length) {
+    c.step = 0;
+    if (++c.loop >= 1 && !(S.sel === "Eclipse" && S.lock)) { eclipseTransition(e, (c.stage + 1) % 6); return; }
+  }
+  c.turn = turns[c.step]; c.len = ED.times[c.stage][c.step]; c.tt = 0; c.act = 0.3; c.fired = 0; c.sweep = 0; c.disk = -1; e.fireT = 0.3;
+  if (c.turn === "Flash") { c.flash = c.flashLen = 3; c.flashLeft = 1; }
+  if (c.turn === "ShadowNova") { c.flash = c.flashLen = 2.5; c.flashLeft = 2; }
+}
+function eclipseTransition(e, to) {
+  const c = e.c;
+  c.trans = 2.5; c.to = to; c.turn = "Rest"; c.flares = []; c.rings = []; c.flash = 0; c.sweep = 0; c.disk = -1;
+  world.bullets = []; world.hazards = [];
+  addFx("ring", e.x, e.y, ED.cols[to], 900, 0.8);
+}
+function crescent(e, p, side) {
+  const d = Math.max(40, dist(e, p)), r = Math.max(250, d / 2 + 30), th = Math.asin(Math.min(1, d / (2 * r)));
+  shot(e, Math.atan2(p.y - e.y, p.x - e.x) - side * th, 420, "crescent", side * 420 / r);
+  world.bullets[world.bullets.length - 1].life = TAU * r / 420;
+}
+function eclipseTick(e, dt) {
+  const c = e.c, p = world.player;
+  if (c.trans > 0) {
+    c.trans -= dt;
+    if (c.trans <= 0) { c.trans = 0; eclipseEnter(e, c.to); addFx("boom", e.x, e.y, rgb(1, 1, 1), e.r + 70, 0.4); addFx("ring", e.x, e.y, ED.cols[c.stage], 1100, 0.9); }
+    return;
+  }
+  c.tt += dt;
+  if (c.flash <= 0 && c.stage < 5) c.orbit += dt * 0.3;
+  if (c.moonD) c.moonA += dt * (c.flash > 0 ? 0 : c.turn === "LunarWake" ? 1.2 : 0.35);
+  if (c.stage === 4) c.inset = Math.min(160, c.inset + 8 * dt);
+  // Flares burn their lane while live
+  for (const f of c.flares) { f.t += dt; if (f.t >= 1 && f.t < 1.45 && !f.hit && segDist(p, f, { x: f.x + Math.cos(f.a) * 1300, y: f.y + Math.sin(f.a) * 1300 }) < 20 + p.hitR) { f.hit = true; hurt(25 + 0.3 * S.wave); } }
+  c.flares = c.flares.filter(f => f.t < 1.45);
+  // The flash: everyone outside the moon's shadow
+  if (c.flash > 0 && (c.flash -= dt) <= 0) {
+    c.flash = 0;
+    if (!inShadow(e, p)) hurt(40 + 0.3 * S.wave);
+    addFx("boom", e.x, e.y, rgb(1, 0.95, 0.8), 1600, 0.6);
+    if (--c.flashLeft > 0) { c.moonA += TAU / 5; c.flash = c.flashLen = 3; }
+  }
+  // Closing umbra
+  for (const r of c.rings) { r.r -= 130 * dt; if (!r.hit && Math.abs(dist(r, p) - r.r) < 15 + p.hitR && !umbraGap(r, p)) { r.hit = true; hurt(20 + 0.3 * S.wave); } }
+  c.rings = c.rings.filter(r => r.r > 70);
+  // Sunspots drift; the dark drains
+  for (const s of c.spots) {
+    s.dir += rnd(-0.6, 0.6) * dt; s.x += Math.cos(s.dir) * 35 * dt; s.y += Math.sin(s.dir) * 35 * dt;
+    if (s.x < 160 || s.x > W - 160) s.dir = Math.PI - s.dir; if (s.y < 160 || s.y > H - 160) s.dir = -s.dir;
+    s.x = clamp(s.x, 160, W - 160); s.y = clamp(s.y, 160, H - 160);
+  }
+  if (c.stage === 2 && !inLight(e, p)) { c.dark += dt; if ((c.drain -= dt) <= 0) { c.drain = 0.5; p.dmg += 3; p.hits++; p.flash = 0.1; } }
+  // Echoes: the Lich's beams, the Singularity's disk and pull, the moon shooting back
+  if (c.sweep) {
+    c.sweepT += dt; if (c.sweep === 1 && c.sweepT >= 1) c.sweep = 2;
+    if (c.sweep === 2) { c.sweepA += 35 * Math.PI / 180 * dt; for (let k = 0; k < 2; k++) { const a = c.sweepA + k * Math.PI; if (segDist(p, e, { x: e.x + Math.cos(a) * 750, y: e.y + Math.sin(a) * 750 }) < 8 + p.hitR) { hurt(15 + 0.3 * S.wave); break; } } }
+  }
+  if (c.disk >= 0) {
+    c.disk += dt; if (c.disk < 3.5) world.pull = { x: e.x, y: e.y, s: 110 };
+    for (let k = 0; k < 12; k++) if (dist(eclipseOrb(e, k), p) < 15 + p.hitR) { hurt(0.7 * (15 + 0.3 * S.wave)); break; }
+    if (c.disk > 6) c.disk = -1;
+  }
+  if (c.turn === "Gravity" && c.tt < 3.5) world.pull = { x: e.x, y: e.y, s: 120 };
+  if (c.stage === 3 && (c.moonFire -= dt) <= 0) { c.moonFire = 2; const m = moonOf(e), a = Math.atan2(p.y - m.y, p.x - m.x); for (let i = -1; i <= 1; i++) shot({ x: m.x, y: m.y, r: 42 }, a + i * 0.1, 240, "small", 0, true); }
+  // Last Light's edge keeps you in
+  if (c.inset > 0) { p.x = clamp(p.x, c.inset + 14, W - c.inset - 14); p.y = clamp(p.y, c.inset + 14, H - c.inset - 14); }
+  // Totality's nova
+  if (c.stage === 5 && (c.nova -= dt) <= 0) { c.nova = 12; p.inv = 0; hurt(150); addFx("boom", e.x, e.y, rgb(1, 0.9, 0.8), 1700, 1); }
+  // Its turns
+  if ((c.act -= dt) <= 0) switch (c.turn) {
+    case "Spiral": c.act = 0.07; e.ang += 0.21; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); break;
+    case "CoronaRings": c.act = 1; e.ang += 0.13; for (let i = 0; i < 24; i++) shot(e, e.ang + TAU * i / 24, 110, "big"); break;
+    case "Flares": c.act = 2; c.flares.push({ x: e.x, y: e.y, a: Math.atan2(p.y - e.y, p.x - e.x), t: 0 }, { x: e.x, y: e.y, a: rnd(0, TAU), t: 0 }); break;
+    case "LunarWake": { c.act = 0.12; const m = moonOf(e); shot({ x: m.x, y: m.y, r: 42 }, c.moonA, 60, "small", 0, true); break; }
+    case "Gravity": c.act = 0.5; e.ang += 0.3; for (let d = 0; d < 4; d++) for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * d / 4, 120 + k * 50, "small"); break;
+    case "Crescents": c.act = 1.2; crescent(e, p, 1); break;
+    case "ClosingUmbra": if (c.fired < 2) { c.fired++; c.act = 3.4; const g = rnd(0, TAU); c.rings.push({ x: e.x, y: e.y, r: 950, g1: g, g2: g + rnd(2, 4) }); } else c.act = 99; break;
+    case "DarkSpiral": c.act = 0.09; e.ang += 0.17; for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * k / 3, 130, "small"); break;
+    case "EchoColossus": {
+      c.act = 1.6; const gap = Math.atan2(p.y - e.y, p.x - e.x) + rnd(-1.2, 1.2), off = rnd(0, 1);
+      for (let i = 0; i < 30; i++) { const a = off + TAU * i / 30; if (Math.abs(((a - gap + Math.PI) % TAU + TAU) % TAU - Math.PI) < 1.5 * TAU / 30) continue; shot(e, a, 180, "big"); }
+      addFx("ring", e.x, e.y, rgb(0.85, 0.63, 0.4), 120, 0.4); break;
+    }
+    case "EchoLich": if (!c.fired) { c.fired = 1; c.sweep = 1; c.sweepT = 0; c.sweepA = Math.atan2(p.y - e.y, p.x - e.x) + Math.PI / 2; } c.act = 99; break;
+    case "EchoHerald": c.act = 0.6; for (let i = 0; i < 3; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 55, 0.9, 25 + 0.3 * S.wave); hazard(p.x, p.y, 55, 0.9, 25 + 0.3 * S.wave); break;
+    case "EchoSingularity": if (c.disk < 0) c.disk = 0; c.act = 99; break;
+    case "FranticSpiral": c.act = 0.06; e.ang += Math.floor(c.tt / 3) % 2 === 0 ? 0.19 : -0.19; for (let k = 0; k < 5; k++) shot(e, e.ang + TAU * k / 5, 170, "small"); break;
+    case "SolarStorm": c.act = 0.8; if (c.fired++ % 2 === 0) c.flares.push({ x: e.x, y: e.y, a: Math.atan2(p.y - e.y, p.x - e.x), t: 0 }); else crescent(e, p, 1); break;
+    case "Totality": c.act = 1.4; e.ang += 0.16; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 100, "big"); break;
+    default: c.act = 0.1;
+  }
+  if (c.tt >= c.len) eclipseNext(e);  // (in the game Totality runs until it dies; here it loops back after 14 s)
+}
+function eclipseFire(e, aim) {
+  const c = e.c;
+  if (!c || c.trans > 0 || c.turn !== "Rest") { e.fireT = 0.2; return; }
+  e.fireT = 1;
+  if (c.stage === 0) for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.12, 280, "big");
+  else if (c.stage === 1 || c.stage === 4) for (let i = -2; i <= 2; i++) shot(e, aim + i * 0.14, 210, "pierce");
+  else if (c.stage === 3) { e.ang += 0.13; for (let i = 0; i < 24; i++) shot(e, e.ang + TAU * i / 24, 110, "big"); }
+}
+function drawEclipse(e, t) {
+  const c = e.c;
+  if (c.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(e.x, e.y, 70, 0, TAU); cx.stroke(); return; }
+  // The moon's shadow
+  if (c.moonD) {
+    const ux = Math.cos(c.moonA), uy = Math.sin(c.moonA), nx = -uy, ny = ux, m = moonOf(e), far = 2200, w0 = 38, w1 = w0 + far * 0.1;
+    cx.fillStyle = c.flash > 0 ? `rgba(0,0,5,${0.5 + 0.12 * Math.sin(t * 8)})` : "rgba(0,0,5,0.26)";
+    cx.beginPath(); cx.moveTo(m.x + nx * w0, m.y + ny * w0); cx.lineTo(m.x + ux * far + nx * w1, m.y + uy * far + ny * w1); cx.lineTo(m.x + ux * far - nx * w1, m.y + uy * far - ny * w1); cx.lineTo(m.x - nx * w0, m.y - ny * w0); cx.closePath(); cx.fill();
+  }
+  // Sunspots
+  for (const s of c.spots) { cx.fillStyle = "rgba(255,210,110,0.14)"; cx.beginPath(); cx.arc(s.x, s.y, 120, 0, TAU); cx.fill(); cx.strokeStyle = "rgba(255,210,110,0.5)"; cx.lineWidth = 2; cx.stroke(); }
+  // Flares
+  for (const f of c.flares) {
+    const ex = f.x + Math.cos(f.a) * 1300, ey = f.y + Math.sin(f.a) * 1300;
+    cx.lineCap = "round"; cx.beginPath(); cx.moveTo(f.x, f.y); cx.lineTo(ex, ey);
+    if (f.t < 1) { if (S.tele) { cx.strokeStyle = `rgba(255,138,61,${0.25 + 0.5 * f.t})`; cx.lineWidth = 2 + 6 * f.t; cx.stroke(); } }
+    else { cx.strokeStyle = "rgba(255,120,40,0.35)"; cx.lineWidth = 70; cx.stroke(); cx.strokeStyle = "#ffb15c"; cx.lineWidth = 40; cx.stroke(); cx.strokeStyle = "#fff1c9"; cx.lineWidth = 14; cx.stroke(); }
+    cx.lineCap = "butt";
+  }
+  // Closing umbra
+  for (const r of c.rings) {
+    const gs = [r.g1, r.g2].map(g => ((g % TAU) + TAU) % TAU).sort((a, b) => a - b);
+    for (let i = 0; i < 2; i++) {
+      const a0 = gs[i] + 0.35, a1 = (i ? gs[0] + TAU : gs[1]) - 0.35;
+      cx.strokeStyle = "rgba(46,26,92,0.88)"; cx.lineWidth = 30; cx.beginPath(); cx.arc(r.x, r.y, r.r, a0, a1); cx.stroke();
+      cx.strokeStyle = "rgba(190,160,255,0.9)"; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(r.x, r.y, r.r - 15, a0, a1); cx.stroke(); cx.beginPath(); cx.arc(r.x, r.y, r.r + 15, a0, a1); cx.stroke();
+    }
+  }
+  // The Lich echo's beams and the Singularity echo's disk
+  if (c.sweep) for (let k = 0; k < 2; k++) {
+    const a = c.sweepA + k * Math.PI; cx.beginPath(); cx.moveTo(e.x, e.y); cx.lineTo(e.x + Math.cos(a) * 750, e.y + Math.sin(a) * 750);
+    if (c.sweep === 1) { if (S.tele) { cx.setLineDash([12, 10]); cx.strokeStyle = "rgba(109,255,176,0.5)"; cx.lineWidth = 3; cx.stroke(); cx.setLineDash([]); } }
+    else { cx.strokeStyle = "rgba(109,255,176,0.3)"; cx.lineWidth = 34; cx.stroke(); cx.strokeStyle = "#c9ffe2"; cx.lineWidth = 10; cx.stroke(); }
+  }
+  if (c.disk >= 0) for (let k = 0; k < 12; k++) { const o = eclipseOrb(e, k); cx.fillStyle = "rgba(190,120,255,0.2)"; cx.beginPath(); cx.arc(o.x, o.y, 26, 0, TAU); cx.fill(); cx.fillStyle = "#d6b0ff"; cx.beginPath(); cx.arc(o.x, o.y, 15, 0, TAU); cx.fill(); }
+  // An echo's ghost
+  const gh = ED.ghosts[c.turn];
+  if (gh) { cx.save(); cx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 4); poly(cx, e.x, e.y - 130, 46, gh[0], t * 0.4); cx.strokeStyle = css(gh[1]); cx.lineWidth = 3; cx.stroke(); cx.restore(); }
+  // The moon
+  if (c.moonD) {
+    const m = moonOf(e);
+    cx.fillStyle = "rgba(201,210,227,0.12)"; cx.beginPath(); cx.arc(m.x, m.y, 52, 0, TAU); cx.fill();
+    cx.fillStyle = "#2a2e38"; cx.beginPath(); cx.arc(m.x, m.y, 42, 0, TAU); cx.fill(); cx.strokeStyle = "#c9d2e3"; cx.lineWidth = 3; cx.stroke();
+    cx.fillStyle = "#3a3f4c"; cx.beginPath(); cx.arc(m.x - 12, m.y - 8, 8, 0, TAU); cx.fill(); cx.beginPath(); cx.arc(m.x + 14, m.y + 10, 6, 0, TAU); cx.fill();
+  }
+  // The sun's glow, swelling before a flash; Totality's shell
+  const swell = c.flash > 0 ? 1 - c.flash / c.flashLen : 0;
+  cx.fillStyle = `rgba(255,210,102,${0.08 + 0.15 * swell})`; cx.beginPath(); cx.arc(e.x, e.y, 90 + c.stage * 6 + swell * 70, 0, TAU); cx.fill();
+  if (c.stage === 5) { const k = 1 - c.nova / 12, r = 70 + k * 900; cx.fillStyle = `rgba(255,80,60,${0.05 + 0.1 * k})`; cx.beginPath(); cx.arc(e.x, e.y, r, 0, TAU); cx.fill(); cx.strokeStyle = `rgba(255,120,80,${0.5 + 0.4 * Math.sin(t * (6 + 20 * k))})`; cx.lineWidth = 5; cx.stroke(); }
+}
+let eclipseDark;
+function drawEclipseSky(e, t) {
+  const c = e.c, p = world.player;
+  if (c.trans > 0) return;
+  if (c.stage === 2) {
+    if (!eclipseDark) { eclipseDark = document.createElement("canvas"); eclipseDark.width = W; eclipseDark.height = H; }
+    const d = eclipseDark.getContext("2d");
+    d.globalCompositeOperation = "source-over"; d.clearRect(0, 0, W, H); d.fillStyle = "rgba(4,2,10,0.9)"; d.fillRect(0, 0, W, H);
+    d.globalCompositeOperation = "destination-out";
+    const hole = (x, y, r) => { const g = d.createRadialGradient(x, y, r * 0.55, x, y, r); g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)"); d.fillStyle = g; d.beginPath(); d.arc(x, y, r, 0, TAU); d.fill(); };
+    for (const s of c.spots) hole(s.x, s.y, 140); hole(p.x, p.y, 160); hole(e.x, e.y, 110);
+    cx.drawImage(eclipseDark, 0, 0, W, H);
+    for (const r of c.rings) { cx.strokeStyle = "rgba(190,160,255,0.35)"; cx.lineWidth = 2; cx.beginPath(); cx.arc(r.x, r.y, r.r, 0, TAU); cx.stroke(); }
+  }
+  if (c.inset > 0) {
+    const i = c.inset; cx.fillStyle = "rgba(120,30,5,0.55)"; cx.fillRect(0, 0, W, i); cx.fillRect(0, H - i, W, i); cx.fillRect(0, i, i, H - 2 * i); cx.fillRect(W - i, i, i, H - 2 * i);
+    cx.strokeStyle = `rgba(255,${140 + 40 * Math.sin(t * 9)},60,0.9)`; cx.lineWidth = 5; cx.strokeRect(i, i, W - 2 * i, H - 2 * i);
+  }
+  if (c.stage === 5) { cx.font = "800 40px Oxanium, sans-serif"; cx.fillStyle = "#ffe0d0"; cx.textAlign = "center"; cx.fillText(`NOVA ${c.nova.toFixed(1)}`, e.x, e.y - 110); cx.textAlign = "left"; }
+}
+
 const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
 const clearRiot = (guards) => { for (const o of world.enemies) if (o.type === "Rioter" || (guards && o.type === "RiotGuard")) o.dead = true; };
 
@@ -1067,7 +1297,9 @@ function move(e, dt) {
       v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
     }
     case "Eclipse": {
-      const gx = 800 + Math.cos(e.t * 0.3) * 140, gy = 450 + Math.sin(e.t * 0.3) * 140;
+      if (e.c && e.c.trans > 0) { v = [0, 0]; break; }  // holds still while it changes stage
+      const a = e.c ? e.c.orbit : e.t * 0.3, mid = e.c && e.c.stage === 5;
+      const gx = mid ? 800 : 800 + Math.cos(a) * 140, gy = mid ? 450 : 450 + Math.sin(a) * 140;
       v = [(gx - e.x) / 60, (gy - e.y) / 60]; break;
     }
     case "GravityWell": {  // holds its corner, bobbing a little
@@ -1239,17 +1471,7 @@ function special(e, dt) {
       if (e.phase === 1 && was === 0) addFx("ring", e.x, e.y, e.d.col, 160, 0.6);
       break;
     }
-    case "Eclipse": {
-      const phase = S.lock;
-      if (phase > e.phase) {
-        e.phase = phase; addFx("ring", e.x, e.y, e.d.col, 300, 0.8);
-        const add = phase === 1 ? "Phantom" : "Hexer";
-        for (let i = 0; i < 2; i++) spawn(add, e.x + Math.cos(Math.PI * i) * 200, e.y + Math.sin(Math.PI * i) * 200, e.id, 0.8);
-      }
-      if (e.phase >= 1) { e.t2 += dt; if (e.t2 % 10 < 3.5) world.pull = { x: e.x, y: e.y, s: 120 }; }
-      if (e.phase === 2 && e.phaseT <= 0) { e.phaseT = 2.5; hazard(p.x, p.y, 75, 1.2, 25 + 0.3 * S.wave); }
-      break;
-    }
+    case "Eclipse": if (!e.c) eclipseInit(e); eclipseTick(e, dt); break;
   }
 }
 
@@ -1360,22 +1582,7 @@ function fire(e) {
       if (e.phase === 1) { e.fireT = 1.2; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 90, "big"); }
       else { e.fireT = 0.08; e.ang += 0.17; shot(e, e.ang, 140, "small"); shot(e, e.ang + Math.PI, 140, "small"); }
       break;
-    case "Eclipse":
-      switch (e.phase) {
-        case 0:
-          if (Math.floor(e.t / 4) % 2 === 0) { e.fireT = 0.07; e.ang += 0.21; for (let k = 0; k < 4; k++) shot(e, e.ang + TAU * k / 4, 150, "small"); }
-          else { e.fireT = 1; e.ang += 0.13; for (let i = 0; i < 24; i++) shot(e, e.ang + TAU * i / 24, 110, "big"); }
-          break;
-        case 1:
-          e.fireT = 0.5; e.ang += 0.3;
-          for (let dd = 0; dd < 4; dd++) for (let k = 0; k < 3; k++) shot(e, e.ang + TAU * dd / 4, 120 + k * 50, "small");
-          for (let i = 0; i < 5; i++) shot(e, aim + (i - 2) * 0.14, 210, "pierce");
-          break;
-        default:
-          e.fireT = 0.06; e.ang += Math.floor(e.t / 3) % 2 === 0 ? 0.19 : -0.19;
-          for (let k = 0; k < 5; k++) shot(e, e.ang + TAU * k / 5, 170, "small");
-      }
-      break;
+    case "Eclipse": eclipseFire(e, aim); break;
     default: e.fireT = 99;
   }
 }
@@ -1617,6 +1824,8 @@ function drawArena() {
   if (sg && sg.g) drawSingularity(sg, t);
   const hd = world.enemies.find(o => o.type === "StormHerald" && o.spawnT <= 0 && !o.dead);
   if (hd && hd.h) drawHerald(hd, t);
+  const ec = world.enemies.find(o => o.type === "Eclipse" && o.spawnT <= 0 && !o.dead);
+  if (ec && ec.c) drawEclipse(ec, t);
   if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0, n = singLasers(sg); k < n; k++) {
     const a = sg.facing + TAU * k / n;
     if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, 40, 2000); } }
@@ -1669,6 +1878,7 @@ function drawArena() {
     if (b.boss) { cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.45, 0, TAU); cx.fill(); }
     else { cx.fillStyle = "rgba(255,255,255,0.7)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.35, 0, TAU); cx.fill(); }
   }
+  if (ec && ec.c) drawEclipseSky(ec, t);  // the Umbra's dark over the bullets, Last Light's burning edge
   // FX (over)
   for (const f of world.fx) {
     const k = f.t / f.dur;
@@ -1844,7 +2054,17 @@ function statusLine() {
     case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
     case "Devourer": return e.phase === 1 ? "HUNGRY: your shots heal it" : "Twin stream";
     case "Lich": return e.phase === 1 ? "Immune (phylactery stands)" : "Vulnerable";
-    case "Eclipse": return `Phase ${e.phase + 1}`;
+    case "Eclipse": {
+      const c = e.c;
+      if (!c) return "";
+      if (c.trans > 0) return `Changing to ${ED.stages[c.to]} (can't be hurt)`;
+      if (c.stage === 5) return `Totality: NOVA in ${c.nova.toFixed(1)} s (+50% damage taken)` + (S.lock ? "   (locked)" : "");
+      const what = { Rest: "Breather", Spiral: "Spiral", CoronaRings: "Corona rings", Flares: "Solar flares", LunarWake: "Lunar wake", Flash: "Eclipse flash", Gravity: "Gravity",
+        Crescents: "Crescents", ClosingUmbra: "Closing umbra", DarkSpiral: "Dark spiral", EchoColossus: "Echo: Colossus", EchoLich: "Echo: Lich", EchoHerald: "Echo: Storm Herald",
+        EchoSingularity: "Echo: Singularity", FranticSpiral: "Frantic spiral", ShadowNova: "Shadow nova", SolarStorm: "Solar storm" }[c.turn];
+      const extra = c.flash > 0 ? `   FLASH IN ${c.flash.toFixed(1)}: hide in the shadow` : c.stage === 2 ? `   in the dark ${c.dark.toFixed(1)} s` : "";
+      return `${ED.stages[c.stage]}: ${what}   ${c.tt.toFixed(1)} / ${c.len.toFixed(0)} s${extra}` + (S.lock ? "   (locked)" : "");
+    }
     case "TwinA": case "TwinB": return (S.lock ? (S.lock === 1 ? "Lines" : "Cross") : (Math.floor(e.t / 5) % 2 === 0 ? "Lines" : "Cross")) + (world.enemies.filter(o => o.type === "TwinA" || o.type === "TwinB").length === 1 ? "   ENRAGED" : "");
     default: return "";
   }

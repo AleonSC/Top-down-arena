@@ -22,8 +22,7 @@ namespace Arena
                 case EnemyType.StormHerald: return e.Herald == null ? 0 : (int)e.Herald.Stage * 100 + (e.Herald.TransT > 0f ? 50 : (int)e.Herald.Turn);
                 case EnemyType.Lich: return e.Lich == null ? 0 : (int)e.Lich.Stage * 100 + (e.Lich.TransT > 0f ? 50 : (int)e.Lich.Turn);
                 case EnemyType.Devourer: return e.Phase;
-                case EnemyType.Eclipse:
-                    return e.Phase * 10 + (e.Phase == 0 ? (int)(e.T / 4f) % 2 : MathX.Fmod(e.T2, 10f) < 3.5f ? 5 : 0);
+                case EnemyType.Eclipse: return e.Eclipse == null ? 0 : (int)e.Eclipse.Stage * 100 + (e.Eclipse.TransT > 0f ? 50 : (int)e.Eclipse.Turn);
                 default: return 0;  // Colossus and Duelist cue from their events
             }
         }
@@ -81,7 +80,15 @@ namespace Arena
                     return turn == LichTurn.Sweep || turn == LichTurn.Hands || turn == LichTurn.Spirits ? Sfx.BossCharge : Sfx.BossShift;
                 }
                 case EnemyType.Devourer: return sig == 1 ? Sfx.BossCharge : Sfx.None;
-                case EnemyType.Eclipse: return sig % 10 == 5 ? Sfx.BossCharge : Sfx.BossShift;
+                case EnemyType.Eclipse:  // a stage change chimes (StartEclipseTransition); a breather is quiet (Eclipse.cs)
+                    switch ((EclipseTurn)(sig % 100))
+                    {
+                        case EclipseTurn.Flash: case EclipseTurn.ShadowNova: case EclipseTurn.ClosingUmbra: case EclipseTurn.EchoLich: case EclipseTurn.EchoSingularity: case EclipseTurn.Totality: return Sfx.BossCharge;
+                        case EclipseTurn.Spiral: case EclipseTurn.CoronaRings: case EclipseTurn.LunarWake: case EclipseTurn.Gravity: case EclipseTurn.DarkSpiral:
+                        case EclipseTurn.EchoColossus: case EclipseTurn.EchoHerald: case EclipseTurn.FranticSpiral: return Sfx.BossPulse;
+                        case EclipseTurn.Flares: case EclipseTurn.Crescents: case EclipseTurn.SolarStorm: return Sfx.BossShift;
+                        default: return Sfx.None;  // breathers, the stage change
+                    }
                 default: return Sfx.None;
             }
         }

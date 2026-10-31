@@ -124,7 +124,7 @@ button:focus-visible { outline: 2px solid var(--sun); outline-offset: 1px; }
         <li><b>Solar flares:</b> long lanes of fire from its rim at each player, with a 1 s warning line.</li>
         <li><b>Darkness and sunspots:</b> the Umbra puts the arena in the dark. Standing outside a drifting pool of light drains you, and its bullets only show in the light.</li>
         <li><b>Crescents</b> that fly out and come back, and <b>closing umbra</b> rings with gaps to find.</li>
-        <li><b>Echoes:</b> four turns borrowed from the bosses you've beaten: the Colossus's push-block stomp, the Lich's soul sweep, the Storm Herald's strike rain and the Singularity's accretion disk.</li>
+        <li><b>Echoes:</b> four turns borrowed from the bosses you've beaten: the Colossus's stomp rings, the Lich's soul sweep, the Storm Herald's strike rain and the Singularity's accretion disk.</li>
         <li><b>Last Light:</b> the edges of the arena burn inward. <b>Totality:</b> a 12 s nova timer with no shadow to hide in. Kill it, or take the nova and the timer starts again.</li>
       </ul>
     </div>
@@ -132,9 +132,9 @@ button:focus-visible { outline: 2px solid var(--sun); outline-offset: 1px; }
       <h3>To build it</h3>
       <ul>
         <li><code>EclipseState</code> on the boss (stage, turn, timers, moon angle, flash, sunspots, closing rings, nova timer), synced like <code>HeraldState</code>; thresholds 80 / 60 / 40 / 20 / 5%, 2.5 s stage changes in <code>StageShiftLook.cs</code>.</li>
-        <li>Reuse: <code>Hazard</code> for strikes; the Colossus's push-block rings, the Lich's sweep (<code>SweepOn</code>/<code>SweepA</code>), the Herald's strike rain and the Singularity's <code>DiskOrb</code> for the echoes; <code>Phantom</code>/<code>Hexer</code> adds; Nightfall's darkness grid (<code>DrawNight</code>) for the Umbra; <code>TinyInset</code> for Last Light's closing walls.</li>
+        <li>Reuse: <code>Hazard</code> for strikes; gap rings, a Lich-style sweep, the Herald's strike rain and a Singularity-style pull and disk for the echoes; <code>Phantom</code>/<code>Hexer</code> adds; Nightfall's darkness grid for the Umbra; a clamp in <code>KeepInArena</code> for Last Light's burning edge.</li>
         <li>New: the moon as a body that blocks player shots (in <code>BlocksShot</code>) and a shadow test (<code>InEclipseShadow</code>) shared by the flash, the bots and the drawing; flare lanes as line hazards; crescents as returning bullets.</li>
-        <li>Health: <code>BossHpMult</code> 2.7 → about 4.5, tuned in the Boss Lab for 180–260 s solo, about twice any other boss. Bestiary entry with six stage locks, sim tests per stage, preview <code>ECLIPSE=&lt;health&gt; ECLIPSETURN=&lt;turn&gt;</code>.</li>
+        <li>Health: <code>BossHpMult</code> 2.7 → 5.5, tuned in the Boss Lab (Good bots: 181–223 s as a trio), about twice any other boss. Bestiary entry with six stage locks, sim tests per stage, preview <code>ECLIPSE=&lt;health&gt; ECLIPSETURN=&lt;turn&gt;</code>.</li>
       </ul>
     </div>
   </section>
@@ -184,7 +184,7 @@ const STAGES = [
     lead: "The Eclipse calls up the bosses you've beaten. Each turn is a ghost of one of them doing its signature attack, in gold. The moon now shoots back: three silver shots at the nearest player every 2 s, all stage.",
     turns: [["Colossus", 6], ["", 1], ["Lich", 6], ["", 1], ["Storm Herald", 6], ["", 1], ["Singularity", 6], ["", 1]],
     mech: [
-      ["Echo: Colossus", "6 s", "Three stomps, 1.6 s apart: rings of 30 push blocks at 180 px/s, each with one gap.", true],
+      ["Echo: Colossus", "6 s", "Stomps every 1.6 s: rings of 30 big shots at 180 px/s, each with one gap.", true],
       ["Echo: Lich", "6 s", "Two soul beams, 750 px long, opposite each other. 1 s warning, then they sweep round at 35°/s. 30 damage a touch.", true],
       ["Echo: Storm Herald", "6 s", "Strike rain: every 0.6 s three strikes at random and one on a player, 55 px, 0.9 s warning.", true],
       ["Echo: Singularity", "6 s", "A 3.5 s pull toward it at 110 px/s, while an accretion disk of 12 orbs spins out from it.", true],
@@ -205,7 +205,7 @@ const STAGES = [
     lead: "The moon breaks apart and the sun sits still in the middle. A shell of fire grows toward the edges, and a 12 s nova timer counts down. It takes 50% more damage. Kill it in time, or the nova goes off and the timer starts again.",
     turns: [["Totality", 12]],
     mech: [
-      ["Nova timer", "every 12 s", "There is no shadow to hide in. When the timer runs out, the nova hits everyone for 70% of their max health and the Eclipse heals 2%. Downed players can't be revived while the timer runs.", true],
+      ["Nova timer", "every 12 s", "There is no shadow to hide in. When the timer runs out, the nova hits everyone for 70% of their max health and the Eclipse heals 2%.", true],
       ["Slow rings", "all stage", "Rings of 20 big shots at 100 px/s every 1.4 s, so you can keep shooting while you dodge."],
       ["Exposed", "all stage", "It takes +50% damage, like the Duelist's stagger. A full party should kill it on the first timer, and a solo player on the first or second.", true],
     ] },

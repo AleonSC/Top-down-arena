@@ -1,7 +1,7 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
 class Shot {
   static void Step(Session s) { s.Poll(); s.Game.FixedStep(1f/60f, new PlayerInput()); s.Game.Update(1f/60f); }
-  static bool heraldOn;
+  static bool heraldOn, eclipseOn;
   static void Main(string[] args) {
     int wave = int.Parse(args[1]); float seconds = float.Parse(args[2]); int players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
@@ -39,6 +39,20 @@ class Shot {
         {
           if (e.Herald.Turn.ToString() == want && f >= from) heraldOn = true;
           else e.Herald.TurnT = 999f;
+        }
+      }
+      // ECLIPSE=<health fraction>: hold the Eclipse there; ECLIPSETURN=<turn> starts that turn ECLIPSET seconds (default 2.5)
+      // before the shot (Spiral, CoronaRings, Flares, LunarWake, Flash, Gravity, Crescents, ClosingUmbra, DarkSpiral,
+      // EchoColossus, EchoLich, EchoHerald, EchoSingularity, FranticSpiral, ShadowNova, SolarStorm, Totality).
+      if (Environment.GetEnvironmentVariable("ECLIPSE") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Eclipse)
+      {
+        e.Hp = e.MaxHp * float.Parse(Environment.GetEnvironmentVariable("ECLIPSE"));
+        var want = Environment.GetEnvironmentVariable("ECLIPSETURN");
+        int from = (int)(seconds * 60) - (int)(60 * float.Parse(Environment.GetEnvironmentVariable("ECLIPSET") ?? "2.5"));
+        if (want != null && e.Eclipse != null && e.Eclipse.TransT <= 0f && !eclipseOn && f >= from - 10)
+        {
+          if (e.Eclipse.Turn.ToString() == want && f >= from) eclipseOn = true;
+          else e.Eclipse.TurnT = 999f;
         }
       }
       // DUEL=<health fraction>: hold the Duelist there; DUELTURN=<turn> skips its turns until that one

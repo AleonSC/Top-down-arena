@@ -118,6 +118,7 @@ namespace Arena
             DrawHeraldFloor(t);  // the Storm Herald's rain, wind and dark sky (HeraldLook.cs)
             DrawDuelFloor(t);    // the Duelist's circle, warning lines and hanging blades (DuelistLook.cs)
             DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
+            DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -132,6 +133,7 @@ namespace Arena
             DrawReaperTether(t);
             DrawSingularityHazards(t);
             DrawHeraldHazards(t);  // rods, arcs, the Conductor and the spokes (HeraldLook.cs)
+            DrawEclipseMoon(t);    // EclipseLook.cs
             DrawLichScene(t);  // LichLook.cs
             foreach (var e in game.Enemies.Values)
                 DrawEnemy(e, t);
@@ -569,6 +571,11 @@ namespace Arena
             if (b.Kind == Defs.HollowShot)
             {
                 DrawHollowShot(b);  // DuelistLook.cs
+                return;
+            }
+            if (b.Kind == Defs.CrescentShot)
+            {
+                DrawCrescentShot(b, t);  // EclipseLook.cs
                 return;
             }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
@@ -1654,16 +1661,6 @@ namespace Arena
             {
                 float f = 1f - MathX.Fmod(t * 0.9f + k / 3f + e.Id * 0.13f, 1f);
                 Arc(pos, r + 6f + f * (Game.WellPullRange - r - 6f), 1.5f, col.WithAlpha(0.4f * (1f - f)), 40);
-            }
-        }
-
-        /// The Eclipse: a dark disk with a corona that grows wilder each phase.
-        void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
-        {
-            for (int k = 0; k < 12; k++)
-            {
-                float a = MathX.Tau * k / 12f + t * (0.3f + 0.3f * e.Phase);
-                Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a) * (r + 14f + 6f * e.Phase + 4f * Mathf.Sin(t * 6f + k)), 3f, col.WithAlpha(0.8f));
             }
         }
 

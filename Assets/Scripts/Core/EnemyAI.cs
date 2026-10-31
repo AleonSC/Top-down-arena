@@ -466,6 +466,8 @@ namespace Arena
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
             if (HeraldImmune(e))
                 return true;  // the Storm Herald changing stage (Herald.cs)
+            if (EclipseImmune(e))
+                return true;  // the Eclipse changing stage (Eclipse.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
                 return true;  // the Duelist changing stage, or its guard from the front (Duelist.cs)
             if (ColossusImmune(e))

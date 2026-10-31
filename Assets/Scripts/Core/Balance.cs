@@ -40,7 +40,7 @@ namespace Arena
                 case EnemyType.Lich: return 3.2f;
                 case EnemyType.StormHerald: return 3.5f;
                 case EnemyType.Devourer: return 2f;
-                case EnemyType.Eclipse: return 2.7f;
+                case EnemyType.Eclipse: return 5.5f;      // the final boss: five stages, about twice as long as the others (Eclipse.cs)
                 default: return 2.5f;
             }
         }

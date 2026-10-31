@@ -323,6 +323,27 @@ namespace Arena
             if (hs != null && hs.CondId != 0)
                 Players.TryGetValue(hs.CondId, out conductor);
 
+            // The Eclipse: flares, closing rings, the echoes' beams and disk, the flash (hide in the moon's shadow),
+            // the Umbra's sunspots and Last Light's burning edge (Eclipse.cs).
+            Enemy eclipse = TheEclipse();
+            var es = eclipse != null && eclipse.Eclipse.TransT <= 0f ? eclipse.Eclipse : null;
+            V2 shadowSpot = V2.Zero, sunspot = V2.Zero;
+            bool hide = es != null && es.FlashT > 0f && es.MoonD > 0f, seekLight = es != null && es.Stage == EclipseStage.Umbra && es.Spots.Count > 0;
+            if (hide)
+            {
+                // Deeper in the shadow than the moon, a little apart from the others; where it'll be when the flash goes.
+                V2 sp = eclipse.Pos + V2.FromAngle(es.MoonA) * (es.MoonD + 110f + (me.Id % 3) * 50f);
+                float m = Math.Max(40f, es.Inset + 30f);
+                shadowSpot = new V2(Math.Max(m, Math.Min(Width - m, sp.X)), Math.Max(m, Math.Min(Height - m, sp.Y)));
+            }
+            if (seekLight)
+            {
+                sunspot = es.Spots[0].Pos;
+                foreach (var spot in es.Spots)
+                    if (spot.Pos.DistanceSq(me.Pos) < sunspot.DistanceSq(me.Pos))
+                        sunspot = spot.Pos;
+            }
+
             V2 best = V2.Zero;
             float bestCost = float.MaxValue, bestDanger = 0f;
             for (int c = 0; c < 9; c++)
@@ -431,6 +452,32 @@ namespace Arena
                                 d += w * 2f;
                         }
                     }
+                    if (es != null)
+                    {
+                        float eReach = hitR + sk.Margin + 6f;
+                        foreach (var f in es.Flares)
+                            if (f.T + t + 0.2f >= FlareWarn && f.T + t <= FlareWarn + FlareLive
+                                && SegmentDistance(p, f.From, f.From + V2.FromAngle(f.Ang) * FlareLen) < FlareWidth / 2f + eReach)
+                                d += w * 3f;
+                        foreach (var r in es.Rings)
+                            if (Math.Abs(p.DistanceTo(r.Center) - (r.R - UmbraRingSpeed * t)) < UmbraRingWidth / 2f + eReach && !InUmbraGap(r, p))
+                                d += w * 3f;
+                        if (es.SweepOn > 0)
+                        {
+                            float a = es.SweepA + EchoSweepSpin * (es.SweepOn == 2 ? t : Math.Max(0f, t - (EchoSweepWarn - es.SweepT)));
+                            for (int k2 = 0; k2 < 2; k2++)
+                                if (SegmentDistance(p, eclipse.Pos, eclipse.Pos + V2.FromAngle(a + k2 * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + eReach)
+                                    d += w * 2f;
+                        }
+                        if (es.DiskT >= 0f)
+                            for (int k2 = 0; k2 < DiskOrbs; k2++)
+                                if (DiskOrbAt(eclipse.Pos, es.DiskT + t, k2).DistanceTo(p) < EchoDiskOrbR + eReach)
+                                    d += w * 2f;
+                        if (es.FlashT > 0f && es.FlashT < t + 0.3f && !InMoonShadow(es, eclipse.Pos, p, hitR))
+                            d += w * 4f;
+                        if (seekLight && !InSunlight(es, p, hitR))
+                            d += w * 0.3f;
+                    }
                     for (int i = 0; i < botBalls.Count; i++)
                         for (int j = i + 1; j < botBalls.Count; j++)
                             if (botBalls[i].Pos.DistanceTo(botBalls[j].Pos) < BallArcRange && SegmentDistance(p, botBalls[i].Pos, botBalls[j].Pos) < BallArcWidth / 2f + hitR + sk.Margin + 6f)
@@ -448,12 +495,23 @@ namespace Arena
                     if (room < 50f)
                         d += 0.6f * (50f - room) / 50f;
                 }
+                else if (es != null && es.Inset > 0f)
+                {
+                    // Last Light's burning edge can't be crossed either.
+                    float room = Math.Min(Math.Min(p.X, Width - p.X), Math.Min(p.Y, Height - p.Y)) - es.Inset;
+                    if (room < 60f)
+                        d += 0.8f * (60f - room) / 60f;
+                }
                 else if (p.X < 20f || p.Y < 20f || p.X > Width - 20f || p.Y > Height - 20f)
                     d += 0.2f;
                 float dist = p.DistanceTo(anchor);
                 float position = 0.35f * Math.Min(4f, Math.Abs(dist - pref) / 200f) * (pref == 0f ? 3f : 1f);
                 if (stayNear != null)
                     position += 0.25f * Math.Max(0f, p.DistanceTo(stayNear.Pos) - 220f) / 200f;
+                if (hide)
+                    position += 1.2f * Math.Min(4f, p.DistanceTo(shadowSpot) / 150f);  // get into the moon's shadow
+                else if (seekLight && !InSunlight(es, p, hitR + 15f))
+                    position += 0.6f * Math.Min(3f, p.DistanceTo(sunspot) / 150f);  // back into the light
                 float steady = (dir - botMove).Length * 0.04f;  // don't jitter between equal options
                 if (me.Hp < me.MaxHp * 0.7f)  // hurt: Sanctuary's healing pools are worth standing in (Paths.cs)
                     foreach (var pt in Patches.Values)

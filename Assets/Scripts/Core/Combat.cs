@@ -385,6 +385,7 @@ namespace Arena
             ResolveGrasps();  // Leech Tendrils' holds
             ResolveImplosions();  // and Implosions
             FindColCover();       // the Colossus's plates and pillars (Colossus.cs)
+            FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
                 if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
@@ -392,6 +393,11 @@ namespace Arena
                 if (colCover != null && ColossusCoverStops(b))
                 {
                     scratchIds.Add(b.Id);  // cover stops shots both ways
+                    continue;
+                }
+                if (moonEclipse != null && MoonStops(b))
+                {
+                    scratchIds.Add(b.Id);  // the Eclipse's moon soaks players' shots
                     continue;
                 }
                 if (!Defs.IsEnemyShot(b.Kind))
@@ -681,7 +687,7 @@ namespace Arena
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e))
+            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || EclipseImmune(e))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
@@ -689,6 +695,8 @@ namespace Arena
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
             if (DuelOpen(e))
                 dmg *= DuelOpenMult;  // a parried salute left the Duelist open (Duelist.cs)
+            if (EclipseExposed(e))
+                dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

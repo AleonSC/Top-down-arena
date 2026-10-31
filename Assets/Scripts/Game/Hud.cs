@@ -490,6 +490,46 @@ namespace Arena
         static string HeraldStageName(HeraldStage s) => s == HeraldStage.Gathering ? "GATHERING STORM" : s == HeraldStage.Gale ? "GALE"
             : s == HeraldStage.Supercell ? "SUPERCELL" : "LAST STAND";
 
+        public static string EclipseStageName(EclipseStage s) => s == EclipseStage.Corona ? "CORONA" : s == EclipseStage.Penumbra ? "PENUMBRA"
+            : s == EclipseStage.Umbra ? "UMBRA" : s == EclipseStage.Echoes ? "ECHOES" : s == EclipseStage.LastLight ? "LAST LIGHT" : "TOTALITY";
+
+        /// The Eclipse's stage under its health bar, and what to watch for.
+        string EclipseNote(EclipseState s, ref Color c)
+        {
+            if (s.TransT > 0f)
+            {
+                c = new Color(1f, 0.95f, 0.8f);
+                return "CAN'T BE HURT — " + EclipseStageName(s.TransTo) + " is coming";
+            }
+            if (s.FlashT > 0f)
+            {
+                c = new Color(1f, 0.92f, 0.7f);
+                return "HIDE IN THE MOON'S SHADOW — " + s.FlashT.ToString("0.0") + " s";
+            }
+            if (s.Stage == EclipseStage.Totality)
+            {
+                c = new Color(1f, 0.45f, 0.4f);
+                return "TOTALITY — kill it before the nova: " + s.NovaT.ToString("0.0") + " s (it takes +50%)";
+            }
+            string stage = "STAGE " + ((int)s.Stage + 1) + " / 5 · " + EclipseStageName(s.Stage);
+            switch (s.Turn)
+            {
+                case EclipseTurn.Flares: return stage + " — SOLAR FLARES: step out of the lines";
+                case EclipseTurn.LunarWake: return stage + " — the moon soaks your shots";
+                case EclipseTurn.Crescents: return stage + " — CRESCENTS: they come back";
+                case EclipseTurn.ClosingUmbra: return stage + " — CLOSING UMBRA: find a gap";
+                case EclipseTurn.DarkSpiral: return stage + " — stay in the light";
+                case EclipseTurn.EchoColossus: return stage + " — ECHO OF THE COLOSSUS";
+                case EclipseTurn.EchoLich: return stage + " — ECHO OF THE LICH: walk round with the beams";
+                case EclipseTurn.EchoHerald: return stage + " — ECHO OF THE STORM HERALD";
+                case EclipseTurn.EchoSingularity: return stage + " — ECHO OF THE SINGULARITY";
+                case EclipseTurn.SolarStorm: return stage + " — SOLAR STORM";
+            }
+            if (s.Stage == EclipseStage.Umbra)
+                return stage + " — the dark drains you: stay in the light";
+            return stage;
+        }
+
         /// The Storm Herald's stage under its health bar, and what to watch for.
         string HeraldNote(HeraldState s, ref Color c)
         {
@@ -747,8 +787,8 @@ namespace Arena
                     note = "HUNGRY — stop shooting, your hits heal it!";
                     noteColor = new Color(1f, 0.45f, 0.7f);
                 }
-                else if (e.Type == EnemyType.Eclipse)
-                    note = "Phase " + (e.Phase + 1) + " of 3";
+                else if (e.Type == EnemyType.Eclipse && e.Eclipse != null)
+                    note = EclipseNote(e.Eclipse, ref noteColor);
                 else if (e.Type == EnemyType.Boss && e.Warden != null)
                     note = WardenNote(e.Warden, ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
