@@ -164,9 +164,10 @@ namespace Arena
             bool liveHover = live.Contains(mouse);
             Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, liveHover ? 1f : 0.85f) : new Color(1f, 1f, 1f, liveHover ? 0.14f : 0.07f));
             Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Button(minimize, "", Ui.Neutral);
-            Ui.Button(prev, "", Ui.Neutral);
-            Ui.Button(next, "", Ui.Neutral);
+            // Ui.Button takes the click itself, so act on what it returns (the chevrons are drawn on it below).
+            bool clickMin = Ui.Button(minimize, "", Ui.Neutral);
+            bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
+            bool clickNext = Ui.Button(next, "", Ui.Neutral);
             BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 16, 1f);
 
             // A swatch per background, in its colour: the current one lit and taller.
@@ -218,7 +219,7 @@ namespace Arena
                 EndUiGl();
             }
 
-            if (GUI.Button(minimize, GUIContent.none, GUIStyle.none))
+            if (clickMin)
             {
                 bgPickerMin = true;
                 bgTabSeen = now;
@@ -229,9 +230,9 @@ namespace Arena
                 menuBgAnimate = !menuBgAnimate;
                 SaveBackgroundSettings();
             }
-            if (GUI.Button(prev, GUIContent.none, GUIStyle.none))
+            if (clickPrev)
                 SetBackground(menuBg - 1, -1);
-            if (GUI.Button(next, GUIContent.none, GUIStyle.none) || GUI.Button(thumb, GUIContent.none, GUIStyle.none))
+            if (clickNext || GUI.Button(thumb, GUIContent.none, GUIStyle.none))
                 SetBackground(menuBg + 1, 1);
             for (int i = 0; i < BackgroundNames.Length; i++)
                 if (i != menuBg && GUI.Button(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f), GUIContent.none, GUIStyle.none))
@@ -275,9 +276,9 @@ namespace Arena
             GUI.color = old;
             BackgroundName(new Rect(tx, tab.y + 15f, prev.x - tx - 4f, 20f), 14, a);
             GUI.color = new Color(1f, 1f, 1f, a);
-            Ui.Button(prev, "", Ui.Neutral);
-            Ui.Button(next, "", Ui.Neutral);
-            Ui.Button(open, "", Ui.Neutral);
+            bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
+            bool clickNext = Ui.Button(next, "", Ui.Neutral);
+            bool clickOpen = Ui.Button(open, "", Ui.Neutral);
             GUI.color = old;
             if (BeginUiGl())
             {
@@ -287,12 +288,12 @@ namespace Arena
                 Chevron(new V2(open.center.x, open.center.y + 1f), new V2(0f, -1f), 8f, 2f, ToRgba(Color.Lerp(accent, Color.white, 0.4f), a));
                 EndUiGl();
             }
-            // The small buttons first, so a click on one doesn't also open the picker.
-            if (GUI.Button(prev, GUIContent.none, GUIStyle.none))
+            // The small buttons took their own clicks above, so a click on one doesn't also open the picker.
+            if (clickPrev)
                 SetBackground(menuBg - 1, -1);
-            else if (GUI.Button(next, GUIContent.none, GUIStyle.none))
+            else if (clickNext)
                 SetBackground(menuBg + 1, 1);
-            else if (GUI.Button(tab, GUIContent.none, GUIStyle.none))
+            else if (clickOpen || GUI.Button(tab, GUIContent.none, GUIStyle.none))
             {
                 bgPickerMin = false;
                 SaveBackgroundSettings();
