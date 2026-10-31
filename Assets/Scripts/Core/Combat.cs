@@ -300,8 +300,8 @@ namespace Arena
 
         readonly List<Bullet> splashes = new List<Bullet>();
 
-        /// Homing Rounds (2 turn per stack) cost 5% damage per point of turn: 10% a stack.
-        public const float HomingDamageCost = 0.05f;
+        /// Homing Rounds (2 turn per stack) cost 2.5% damage per point of turn: 5% a stack (was 10%).
+        public const float HomingDamageCost = 0.025f;
 
         /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
         /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
@@ -750,8 +750,15 @@ namespace Arena
                 var s = p.Stats;
                 dmg *= KnightDamageMult(p);  // Battle Fury, Last Stand
                 dmg *= BloodDamageMult(p);   // Blood Price
-                if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * 0.35f)
+                if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * ExecuteBelow)
                     dmg *= 1f + s.ExecuteBonus;
+                if (s.SlowedBonus > 0f && e.SlowT > 0f && e.SlowMult < 1f)  // Graviton Rounds: slowed enemies take more
+                    dmg *= 1f + s.SlowedBonus;
+                if (s.BroodChance > 0f && e.Def.IsBoss && p.BroodCd <= 0f)  // Brood Mother: hitting a boss brings turrets
+                {
+                    p.BroodCd = BroodBossEvery;
+                    p.BroodDue = 1;  // spawned in TickPlayers (this can run inside the minion loop); one whatever the stacks: turrets don't scale with your weapon
+                }
                 if (s.CritChance > 0f && rng.NextDouble() < s.CritChance)
                     dmg *= 2f;
                 if (s.Lifesteal > 0f && !p.Downed)
@@ -822,7 +829,10 @@ namespace Arena
             if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot)
                 splits.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Dmg = b.Dmg * 0.4f, Pierce = p.Stats.SplitShots, LastHit = e.Id });
             if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot)
+            {
                 splashes.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Kind = Defs.NovaShot, Splash = p.Stats.ImpactSplash, Dmg = b.Dmg * 0.67f, LastHit = e.Id });
+                HurtEnemy(e, b.Dmg * 0.67f * 0.6f * CollapseCore, b.Owner);  // the enemy shot is in the implosion too, at half its damage
+            }
             if (!Moddable(b.Kind))
                 return;
 
@@ -863,7 +873,11 @@ namespace Arena
             }
         }
 
-        public const float RicochetMult = 0.75f, RicochetReach = 300f, BoltEvery = 0.25f;  // a bounce's share of the hit; how far it looks; bounce bolts at most this often
+        public const float CollapseCore = 0.5f;                        // Collapse Rounds: the enemy shot takes this share of the implosion (others take it all)
+        public const float ExecuteBelow = 0.5f;                       // Executioner: double damage below this health (was 35%)
+        public const float BroodTurretTime = 6f, BroodBossEvery = 8f;  // Brood Mother: a turret's life (was 4 s); one turret this often while you hit a boss
+
+        public const float RicochetMult = 0.4f, RicochetReach = 300f, BoltEvery = 0.25f;  // a bounce's share of the hit (was 75% before the Oct 2026 balance pass); how far it looks; bounce bolts at most this often
         readonly List<Bullet> bolts = new List<Bullet>();
 
         /// A flying bullet that bounces on its own when it's spent (Ricochet's usual way). Stand-in bullets for
@@ -952,8 +966,9 @@ namespace Arena
                 Recorder?.HealReceived(p, Math.Min(s.KillHeal, p.MaxHp - p.Hp), "heal on kill");
                 p.Hp = Math.Min(p.MaxHp, p.Hp + s.KillHeal);
             }
-            if (s.BroodChance > 0f && rng.NextDouble() < s.BroodChance)
-                SpawnMinion(MinionKind.Turret, p, e.Pos, 4f);
+            for (float c = s.BroodChance; c > 0f; c -= 1f)  // over 100% (three stacks): a sure turret, and a chance at another
+                if (rng.NextDouble() < c)
+                    SpawnMinion(MinionKind.Turret, p, e.Pos, BroodTurretTime);
         }
 
         void DropOrbs(Enemy e, bool bossReward)

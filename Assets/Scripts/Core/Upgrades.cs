@@ -82,7 +82,7 @@ namespace Arena
 
         // Legendary weapon upgrades from bosses.
         public int Guards, Searchlight, SplitShots;  // Warden's Guard companions and Searchlight stacks (Stun.cs)
-        public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit;
+        public float Lifesteal, BroodChance, ExecuteBonus, CritChance, KillHeal, ImpactSplash, SlowOnHit, SlowedBonus;
 
         // Weapon mods, one picked after each boss (and its legendary).
         public float Homing;              // turn rate (radians per second) toward the nearest enemy
@@ -183,8 +183,8 @@ namespace Arena
         public static readonly UpgradeDef[] All = WithClassAbilities(new[]
         {
             // Common: small stat boosts
-            new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+8% damage", Apply = s => s.DmgMult += 0.08f },
-            new UpgradeDef { Rarity = Rarity.Common, Name = "Quick Trigger", Desc = "+8% fire rate", Apply = s => s.FireRateMult += 0.08f },
+            new UpgradeDef { Rarity = Rarity.Common, Name = "Sharpened Rounds", Desc = "+10% damage", Apply = s => s.DmgMult += 0.1f },
+            new UpgradeDef { Rarity = Rarity.Common, Name = "Quick Trigger", Desc = "+10% fire rate", Apply = s => s.FireRateMult += 0.1f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Light Boots", Desc = "+6% move speed", Apply = s => s.SpeedMult += 0.06f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Vitality", Desc = "+15 max HP", Apply = s => s.BonusHp += 15f },
             new UpgradeDef { Rarity = Rarity.Common, Name = "Mending", Desc = "Regenerate 1 HP per second", Apply = s => s.Regen += 1f },
@@ -193,7 +193,7 @@ namespace Arena
 
             // Uncommon: larger stat boosts
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Hollow Points", Desc = "+20% damage", Apply = s => s.DmgMult += 0.2f },
-            new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Hair Trigger", Desc = "+18% fire rate", Apply = s => s.FireRateMult += 0.18f },
+            new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Hair Trigger", Desc = "+20% fire rate", Apply = s => s.FireRateMult += 0.2f },
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Sprinter", Desc = "+12% move speed", Apply = s => s.SpeedMult += 0.12f },
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Fortitude", Desc = "+40 max HP", Apply = s => s.BonusHp += 40f },
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Regeneration", Desc = "Regenerate 3 HP per second", Apply = s => s.Regen += 3f },
@@ -305,25 +305,25 @@ namespace Arena
                 Apply = s => s.SplitShots += 3 },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Royal Jelly", Desc = "Every hit heals you 1 HP (up to 10 HP per second)",
                 Apply = s => s.Lifesteal += 1f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Brood Mother", Desc = "20% of your kills spawn a mini-turret for 4 seconds",
-                Apply = s => s.BroodChance += 0.2f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 35% health",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.HiveQueen, MaxStacks = 3, Name = "Brood Mother", Desc = "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills",
+                Apply = s => s.BroodChance += 0.4f },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Executioner", Desc = "Double damage to enemies below 50% health",
                 Apply = s => s.ExecuteBonus += 1f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Twin Fang", Desc = "25% chance for each hit to deal double damage",
                 Apply = s => s.CritChance += 0.25f },
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.TwinA, MaxStacks = 3, Name = "Soul Harvest", Desc = "Every kill heals you 5 HP",
                 Apply = s => s.KillHeal += 5f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Collapse Rounds", Desc = "Shots implode on impact, hurting enemies nearby",
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Collapse Rounds", Desc = "Shots implode on impact, hurting enemies nearby (and the enemy hit, at half)",
                 Apply = s => s.ImpactSplash += 45f },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Graviton Rounds", Desc = "Enemies you hit are slowed by 40% for 2 seconds",
-                Apply = s => s.SlowOnHit = Math.Min(0.7f, s.SlowOnHit + 0.4f) },
-            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 2 more enemies and deal 20% more damage",
-                Apply = s => { s.Pierce += 2; s.DmgMult += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Graviton Rounds", Desc = "Enemies you hit are slowed by 40% for 2 seconds, and slowed enemies take 15% more damage from you",
+                Apply = s => { s.SlowOnHit = Math.Min(0.7f, s.SlowOnHit + 0.4f); s.SlowedBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 1 more enemy and deal 20% more damage",
+                Apply = s => { s.Pierce += 1; s.DmgMult += 0.2f; } },
 
             // Weapon mods: one is picked after every boss, from the full list.
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 10% less damage per stack. More stacks bend harder",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 5% less damage per stack. More stacks bend harder",
                 Apply = s => s.Homing += 2f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (40% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
                 Apply = s => s.Ricochet += 1 },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up",
                 Apply = s => s.BurnFrac += 0.25f },
@@ -383,10 +383,10 @@ namespace Arena
                 return weapon.Name + ": " + weapon.ExtraDesc;
             string area;
             if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
-                return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
+                return weapon.Name + ": " + area + " per stack, instead of bending shots. 5% less damage per stack";
             if (u.Name == "Homing Rounds" && (weapon.Id == WeaponId.WispLantern || weapon.Id == WeaponId.ImpCaller))
                 return weapon.Name + ": " + (weapon.Id == WeaponId.WispLantern ? "wisps" : "imps")
-                    + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 10% less damage per stack";
+                    + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
                 return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)
@@ -419,7 +419,7 @@ namespace Arena
             { "Piercing Rounds", "Your swings reach 10% further, and sword waves pass through one more enemy" },
             { "Barrage", "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" },
             { "Homing Rounds", "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected" },
-            { "Ricochet", "Your hits fling a bounce bolt at another nearby enemy (75% of the damage, up to 4 a second), and sword waves bounce. +1 bounce per stack" },
+            { "Ricochet", "Your hits fling a bounce bolt at another nearby enemy (40% of the damage, up to 4 a second), and sword waves bounce. +1 bounce per stack" },
             { "Explosive Rounds", "Your hits explode, dealing 30% damage to enemies nearby" },
             { "Velocity Rounds", "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage" },
         };

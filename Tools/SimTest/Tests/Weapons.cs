@@ -1390,7 +1390,7 @@ static partial class Program
         g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds"));
         float homed = wide();
         Console.WriteLine("  wisp lantern + Homing Rounds: sent beside an enemy, a plain wisp did {0:0.0}, a homing one {1:0.0}", plainMiss, homed);
-        Check(plainMiss == 0f && Math.Abs(homed - me.Weapon.Damage * me.Stats.DmgMult * 0.9f) < 0.5f, "Homing Rounds turn a sent wisp onto a nearby enemy, for 10% less damage");
+        Check(plainMiss == 0f && Math.Abs(homed - me.Weapon.Damage * me.Stats.DmgMult * 0.95f) < 0.5f, "Homing Rounds turn a sent wisp onto a nearby enemy, for 5% less damage");
 
         // Imp Caller.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ImpCaller);
@@ -2211,7 +2211,7 @@ static partial class Program
         dummy.Hp = dummy.MaxHp = 1e6f;
         for (int k = 0; k < 3; k++) g.GrantUpgrade(2, Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds"));
         Run(s, dt, 0.2f, null, () => { dummy.FrozenT = 1f; });
-        // A near miss (aimed 15 degrees off, 200 px away) bends in; a shot fired sideways doesn't hunt it down.
+        // (3 stacks: 15% less damage.) A near miss (aimed 15 degrees off, 200 px away) bends in; a shot fired sideways doesn't hunt it down.
         var near = (Bullet)shoot.Invoke(g, new object[] { Defs.DpsShot, new V2(800f, 500f), V2.FromAngle(-MathX.Pi / 2f + 0.26f) * 600f, 0f, 1.5f, 10f, 2, false, 0f });
         var wide = (Bullet)shoot.Invoke(g, new object[] { Defs.DpsShot, new V2(800f, 500f), V2.FromAngle(0f) * 600f, 0f, 1.5f, 10f, 2, false, 0f });
         float wideAngle0 = wide.Vel.Angle, hpBefore = dummy.Hp;
@@ -2220,7 +2220,7 @@ static partial class Program
         float wideTurn = Math.Abs(wide.Vel.Angle - wideAngle0);
         Console.WriteLine("  homing x3: near miss hit {0}, sideways shot turned {1:0.00} rad, shot damage {2:0.0} of 10", nearHit, wideTurn, near.Dmg);
         Check(nearHit && wideTurn < 0.05f, "Homing Rounds fix near misses but don't hunt enemies off to the side");
-        Check(Math.Abs(near.Dmg - 7f) < 0.01f, "Homing Rounds cost 10% damage per stack");
+        Check(Math.Abs(near.Dmg - 8.5f) < 0.01f, "Homing Rounds cost 5% damage per stack");
 
         // On area weapons Homing Rounds grow the area instead: a Flak Cannon's blast is 75% wider at 3 stacks and
         // doesn't bend; an Implosion reaches an enemy past its usual 55 px; the card says so.
@@ -2231,7 +2231,7 @@ static partial class Program
         volley.Invoke(g, new object[] { hp, 0f, 0 });
         var ball = g.Bullets.Values.First(b => b.Owner == 2);
         Console.WriteLine("  homing x3 on a Flak Cannon: blast {0:0} px ({1:0} normally), turn {2:0}, damage {3:0.0}", ball.Splash, Game.FlakBurst, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
-        Check(Math.Abs(ball.Splash - Game.FlakBurst * 1.75f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.7f) < 0.05f,
+        Check(Math.Abs(ball.Splash - Game.FlakBurst * 1.75f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.85f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
         // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 2);

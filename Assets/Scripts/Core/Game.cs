@@ -82,6 +82,8 @@ namespace Arena
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public float BroodCd;                         // host: Brood Mother's next turret while hitting a boss (Combat.cs)
+        public int BroodDue;                          // host: Brood Mother turrets to place behind you this tick
         public float BoltStore, BoltCd;               // host: Ricochet on hits that can't bounce, stored toward the next bounce bolt (Combat.cs)
         public float BloodReserve;                    // Sanguine Orb: heal reserve charged by coating enemies (replicated, whole points)
         public float CoatT;                           // coated in a Sanguine Orb's healing blood: heals while it lasts (replicated)
@@ -1406,6 +1408,10 @@ namespace Arena
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
                 p.BoltCd -= dt;  // Ricochet's bounce bolts (Combat.cs)
+                p.BroodCd -= dt;  // Brood Mother's boss turrets
+                for (int i = 0; i < p.BroodDue; i++)
+                    SpawnMinion(MinionKind.Turret, p, ClampToArena(p.Pos + V2.FromAngle(p.Aim + MathX.Pi + (i - (p.BroodDue - 1) / 2f) * 0.8f) * 40f, 13f), BroodTurretTime);
+                p.BroodDue = 0;
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);

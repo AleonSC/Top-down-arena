@@ -1,6 +1,6 @@
 # Upgrade balance pass (step 3)
 
-Status: **plan, waiting on decisions** (the questions at the end). Steps 1 and 2 (bugs and dead cards) are done:
+Status: **A-H done** (Oct 2026); **I** (Multishot / Barrage per weapon) in progress. Steps 1 and 2 (bugs and dead cards) are done:
 every weapon upgrade now does something on every weapon.
 
 ## How it's measured
@@ -86,8 +86,31 @@ test's geometry. Treat it as a guide, not the truth; the session recordings are 
 
 A-H are number changes plus small code (D, E, G). I is per weapon and would come last, after A-H are measured.
 
-## Decisions for the owner
+## Decisions
 
-1. Are the targets above right (especially commons at +10% and legendaries at +40-60%)?
-2. Which of A-H to do?
-3. Do I (Multishot/Barrage per weapon) now or later?
+The owner chose: the targets above; do A-H, then I.
+
+## After A-H (one pick, median over weapons)
+
+Measured with the same report after the changes (pack and spread enemies now have about 2.5 s of the weapon's
+damage in health, and the stand-in boss counts as a boss, so Brood Mother's boss turrets show).
+
+| Card | Rarity | Boss | Pack | Spread | Before (boss / pack / spread) |
+|---|---|---|---|---|---|
+| Sharpened Rounds | Common | +9% | +7% | +10% | +7 / +8 / +8 |
+| Quick Trigger | Common | +8% | +7% | +7% | +6 / +7 / +6 |
+| Hair Trigger | Uncommon | +19% | +18% | +19% | +14 / +14 / +14 |
+| Brood Mother | Legendary | +58% (10 s; ~+40% over a whole fight) | +26% | 0 | 0 / 0 / 0 |
+| Executioner | Legendary | +24% | +23% | +9% | +15 / +12 / 0 |
+| Collapse Rounds | Legendary | +18% | +99% | +20% | 0 / +80 / 0 |
+| Graviton Rounds | Legendary | +13% | +11% | +10% | 0 / 0 / 0 |
+| Dark Matter | Legendary | +20% | +33% | +20% | +20 / +105 / +20 |
+| Homing Rounds | Mod | -5% | -1% | -3% | -10 / -7 / -9 |
+| Ricochet | Mod | 0 | +36% | +39% | 0 / +72 / +71 |
+
+Brood Mother's boss turret: one every 8 s whatever the stacks (one every 3 s and one a stack read +115% for one
+pick and +276% at three: turrets don't scale with your weapon, so they swamp a weak one).
+
+Still off target, for a later pass: Piercing Rounds (0-6%; a Rare should be +30-40%), Swarm Rounds against a boss
+(+2%), Twin Fang and Dark Matter at +20-33% (under the legendary target, but fine everywhere), and the mods
+Incendiary / Shock / Velocity at +6-19% (under +25%).

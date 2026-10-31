@@ -955,15 +955,15 @@ const RAR = {
   VeryRare: { col: [0.8, 0.4, 1], label: "Very rare" }, Legendary: { col: [1, 0.6, 0.15], label: "Legendary" }, Mod: { col: [0.25, 0.95, 0.85], label: "Weapon mod" },
 };
 const U = [
-  ["Common", "Sharpened Rounds", "+8% damage", 99, s => s.dmg += 0.08],
-  ["Common", "Quick Trigger", "+8% fire rate", 99, s => s.rate += 0.08],
+  ["Common", "Sharpened Rounds", "+10% damage", 99, s => s.dmg += 0.1],
+  ["Common", "Quick Trigger", "+10% fire rate", 99, s => s.rate += 0.1],
   ["Common", "Light Boots", "+6% move speed", 99, s => s.speed += 0.06],
   ["Common", "Vitality", "+15 max HP", 99, s => s.hp += 15],
   ["Common", "Mending", "Regenerate 1 HP per second", 99, s => s.regen += 1],
   ["Common", "Focus", "−6% ability cooldowns", 99, s => s.cd *= 0.94],
   ["Common", "Reinforced Guard", "Your parry shield takes 25% more before it breaks", 4, s => s.parryCap += 0.25],
   ["Uncommon", "Hollow Points", "+20% damage", 99, s => s.dmg += 0.2],
-  ["Uncommon", "Hair Trigger", "+18% fire rate", 99, s => s.rate += 0.18],
+  ["Uncommon", "Hair Trigger", "+20% fire rate", 99, s => s.rate += 0.2],
   ["Uncommon", "Sprinter", "+12% move speed", 99, s => s.speed += 0.12],
   ["Uncommon", "Fortitude", "+40 max HP", 99, s => s.hp += 40],
   ["Uncommon", "Regeneration", "Regenerate 3 HP per second", 99, s => s.regen += 3],
@@ -1025,15 +1025,15 @@ const U = [
   ["Legendary", "Searchlight", "A searchlight (110 px) chases your cursor: enemies in it take 25% more damage from every player, and one held in it for 2 s is stunned for 1 s (bosses slowed 40%), then can't be locked again for 3 s. 2nd stack: 140 px wide; 3rd: +40%", 3, null, null, null, "The Warden"],
   ["Legendary", "Swarm Rounds", "Your shots split into 3 smaller shots (40% damage) when they hit", 3, null, null, null, "Hive Queen"],
   ["Legendary", "Royal Jelly", "Every hit heals you 1 HP (up to 10 HP per second)", 3, null, null, null, "Hive Queen"],
-  ["Legendary", "Brood Mother", "20% of your kills spawn a mini-turret for 4 seconds", 3, null, null, null, "Hive Queen"],
-  ["Legendary", "Executioner", "Double damage to enemies below 35% health", 3, null, null, null, "Twin Reapers"],
+  ["Legendary", "Brood Mother", "40% of your kills spawn a mini-turret for 6 seconds, and hitting a boss spawns one every 8 seconds. More stacks, more turrets from kills", 3, null, null, null, "Hive Queen"],
+  ["Legendary", "Executioner", "Double damage to enemies below 50% health", 3, null, null, null, "Twin Reapers"],
   ["Legendary", "Twin Fang", "25% chance for each hit to deal double damage", 3, s => s.crit += 0.25, null, null, "Twin Reapers"],
   ["Legendary", "Soul Harvest", "Every kill heals you 5 HP", 3, null, null, null, "Twin Reapers"],
-  ["Legendary", "Collapse Rounds", "Shots implode on impact, hurting enemies nearby (67% damage, 45 px)", 3, null, null, null, "The Singularity"],
-  ["Legendary", "Graviton Rounds", "Enemies you hit are slowed by 40% for 2 seconds", 3, null, null, null, "The Singularity"],
-  ["Legendary", "Dark Matter", "Shots pierce 2 more enemies and deal 20% more damage", 3, s => { s.pierce += 2; s.dmg += 0.2; }, null, null, "The Singularity"],
-  ["Mod", "Homing Rounds", "Shots bend toward an enemy within 260 px and about 45° of their path (fixes near misses), but deal 10% less damage per stack. More stacks bend harder. On area weapons (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) the area grows 25% a stack instead. Sent wisps and imps (Wisp Lantern, Imp Caller) pick an enemy 50% farther from your cursor a stack, and turn onto one within 260 px when sent at empty ground", 3, s => s.dmg *= 0.9],
-  ["Mod", "Ricochet", "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, piercing shots) fling a bounce bolt instead, up to 4 a second", 3, null],
+  ["Legendary", "Collapse Rounds", "Shots implode on impact, hurting enemies nearby (40% damage, 45 px; the enemy hit takes half)", 3, null, null, null, "The Singularity"],
+  ["Legendary", "Graviton Rounds", "Enemies you hit are slowed by 40% for 2 seconds, and slowed enemies take 15% more damage from you", 3, null, null, null, "The Singularity"],
+  ["Legendary", "Dark Matter", "Shots pierce 1 more enemy and deal 20% more damage", 3, s => { s.pierce += 1; s.dmg += 0.2; }, null, null, "The Singularity"],
+  ["Mod", "Homing Rounds", "Shots bend toward an enemy within 260 px and about 45° of their path (fixes near misses), but deal 5% less damage per stack. More stacks bend harder. On area weapons (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) the area grows 25% a stack instead. Sent wisps and imps (Wisp Lantern, Imp Caller) pick an enemy 50% farther from your cursor a stack, and turn onto one within 260 px when sent at empty ground", 3, s => s.dmg *= 0.95],
+  ["Mod", "Ricochet", "Shots bounce to another nearby enemy after a hit (40% damage). +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, piercing shots) fling a bounce bolt instead, up to 4 a second", 3, null],
   ["Mod", "Incendiary Rounds", "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up", 3, null],
   ["Mod", "Cryo Rounds", "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s", 3, null],
   ["Mod", "Shock Rounds", "15% chance per hit for lightning to arc to 2 more enemies (60% damage)", 3, null],
@@ -1579,9 +1579,9 @@ function stepRange(dt) {
         }
       }
       if (b.pool) R.fx.push({ x: b.x, y: b.y, r: b.pool, col: b.col, t: 0, dur: 3, pool: true });  // a Clot Bolt's blood pool
-      if (b.bounce > 0) {  // ricochet: on to the nearest other dummy within 300 px, at 75% damage
+      if (b.bounce > 0) {  // ricochet: on to the nearest other dummy within 300 px, at 40% damage
         const nx = R.dummies.filter(o => !b.hit.has(o) && Math.hypot(o.x - b.x, o.y - b.y) < 300).sort((u, v) => Math.hypot(u.x - b.x, u.y - b.y) - Math.hypot(v.x - b.x, v.y - b.y))[0];
-        if (nx) { const sp = Math.max(400, Math.hypot(b.vx, b.vy)), a2 = Math.atan2(nx.y - b.y, nx.x - b.x); b.vx = Math.cos(a2) * sp; b.vy = Math.sin(a2) * sp; b.life = 0.8; b.dmg *= 0.75; b.bounce--; break; }
+        if (nx) { const sp = Math.max(400, Math.hypot(b.vx, b.vy)), a2 = Math.atan2(nx.y - b.y, nx.x - b.x); b.vx = Math.cos(a2) * sp; b.vy = Math.sin(a2) * sp; b.life = 0.8; b.dmg *= 0.4; b.bounce--; break; }
       }
       if (b.pierce > 0) b.pierce--; else { dead = true; break; }
     }

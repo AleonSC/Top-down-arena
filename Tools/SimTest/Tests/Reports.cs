@@ -266,8 +266,10 @@ static partial class Program
     }
 
     // Upgrade balance: what one pick (and a full stack) of each damage upgrade is worth, for every weapon, in three
-    // fights: a boss (one big target, with as much health as the weapon deals in 10 s, so the run is a whole kill), a pack (4 enemies close together) and a spread wave (8 enemies over a wide
-    // area). Enemies have real health and come back when killed, so Executioner and on-kill upgrades count fairly;
+    // fights: a boss (one big target counted as a boss, with as much health as the weapon deals in 10 s, so the run is
+    // a whole kill), a pack (4 enemies close together) and a spread wave (8 enemies over a wide area), whose enemies
+    // have about 2.5 s of the weapon's damage in health. Enemies come back when killed, so Executioner and on-kill
+    // upgrades count fairly;
     // the measure is health taken off in 10 s. Prints the median gain over all weapons and the 10th-90th percentile.
     static void UpgradeBalanceReport(float dt)
     {
@@ -279,6 +281,8 @@ static partial class Program
         // gains[fight][upgrade][0 = one pick, 1 = full stack] -> one gain per weapon
         var gains = fights.ToDictionary(f => f, f => ups.ToDictionary(u => u, u => new[] { new List<float>(), new List<float>() }));
         var weaponNames = new List<string>();
+        var bossDef = (EnemyDef)typeof(object).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(Defs.Get(EnemyType.Juggernaut), null);
+        bossDef.IsBoss = true;
         var perWeapon = new Dictionary<string, Dictionary<string, float>>();  // weapon -> "fight/upgrade" -> one-pick gain
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
@@ -307,20 +311,26 @@ static partial class Program
                         g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, x => x.Name == "Vitality"));
                         me.Weapon = weapon;
                         me.BowShotDraw = 0f;
-                        me.BoltStore = 0f;
+                        me.BoltStore = 0f; me.BoltCd = 0f; me.BroodCd = 0f;
                         float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + 14f : Math.Min(240f, g.WeaponRange(me) * 0.7f);
                         V2 at = new V2(800f, 450f), from = new V2(800f - range, 450f);
                         V2[] spots; float hp; EnemyType type = EnemyType.Brute;
                         if (fight == "boss") { spots = new[] { at }; hp = bossHp; type = EnemyType.Juggernaut; }
-                        else if (fight == "pack") { spots = new[] { at, at + new V2(40f, 25f), at + new V2(40f, -25f), at + new V2(75f, 0f) }; hp = 400f; }
+                        else if (fight == "pack") { spots = new[] { at, at + new V2(40f, 25f), at + new V2(40f, -25f), at + new V2(75f, 0f) }; hp = Math.Max(100f, bossHp / 4f); }
                         else  // 8 enemies 100-130 px apart in a wide arc in front of you; you switch target every half second
                         {
                             spots = Enumerable.Range(0, 8).Select(j => from + V2.FromAngle(-0.9f + 1.8f * j / 7f) * (range + (j % 2) * 60f)).ToArray();
-                            hp = 400f;
+                            hp = Math.Max(100f, bossHp / 4f);  // a regular enemy takes about 2.5 s of your damage
                         }
                         var foes = new Enemy[spots.Length];
                         float removed = 0f;
-                        Func<int, Enemy> make = j => { var e = (Enemy)spawn.Invoke(g, new object[] { type, spots[j], 0f, 0, false }); e.MaxHp = e.Hp = hp; e.SpawnT = 0f; e.FireT = 99f; return e; };
+                        Func<int, Enemy> make = j =>
+                        {
+                            var e = (Enemy)spawn.Invoke(g, new object[] { type, spots[j], 0f, 0, false });
+                            e.MaxHp = e.Hp = hp; e.SpawnT = 0f; e.FireT = 99f;
+                            if (fight == "boss") e.Def = bossDef;  // a stand-in boss: counts as one (Brood Mother, boss damage) without a boss's fight
+                            return e;
+                        };
                         for (int j = 0; j < spots.Length; j++) foes[j] = make(j);
                         float[] last = foes.Select(e => e.Hp).ToArray();
                         for (int f = 0; f < 60 * 10; f++)
@@ -339,6 +349,7 @@ static partial class Program
                             host.Poll();
                             bool fire = !Game.ChargeWeapon(weapon.Id) || (f % 72) < 60;
                             V2 aim = fight == "spread" ? foes[(f / 30) % foes.Length].Pos : at;
+                            g.State = MatchState.Fighting;  // a fight in progress (turrets and minions only shoot then), whatever the wave is doing
                             g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = aim });
                         }
                         return removed;
