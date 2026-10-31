@@ -240,15 +240,23 @@ namespace Arena
             try
             {
                 Directory.CreateDirectory(Folder);
-                string path = PathOf(save.Id), tmp = path + ".tmp";
-                File.WriteAllText(tmp, save.ToText());
-                if (File.Exists(path))
-                    File.Delete(path);
-                File.Move(tmp, path);
+                SafeWrite(PathOf(save.Id), save.ToText());
                 return true;
             }
             catch (IOException) { return false; }
             catch (UnauthorizedAccessException) { return false; }
+        }
+
+        /// Writes a file through a temp file that is then swapped in (File.Replace when one is already there), so
+        /// there's never a moment with only the half-written temp: a crash leaves the old file or the new one.
+        public static void SafeWrite(string path, string text)
+        {
+            string tmp = path + ".tmp";
+            File.WriteAllText(tmp, text);
+            if (File.Exists(path))
+                File.Replace(tmp, path, null);
+            else
+                File.Move(tmp, path);
         }
 
         public static void Delete(string id)

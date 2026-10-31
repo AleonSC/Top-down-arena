@@ -120,6 +120,35 @@ static partial class Program
             for (int i = 0; i < 30; i++) { Step(host, dt); Step(c1, dt); Thread.Sleep(1); }
             Check(host.Lobby.Values.First(e => e.Name == "Anthony").Role == Role.Healer, "a seat's class can't be changed in the lobby");
             host.Leave(""); c1.Leave(""); c2.Leave("");
+
+            // The host is never put out of their own lobby: sitting in someone else's seat with none free, the
+            // seat's owner is turned away instead.
+            port = nextPort++;
+            host = new Session();
+            two.Id = "seats2";
+            host.HostResume(two, port, "Nobody");  // no seat has this name: the host sits in seat 0 (Anthony's)
+            var friend = new Session();
+            friend.Join("127.0.0.1", port, "Friend", Role.Dps);  // takes back seat 1, so none is free
+            for (int i = 0; i < 100; i++) { Step(host, dt); Step(friend, dt); Thread.Sleep(1); }
+            var owner = new Session();
+            owner.Join("127.0.0.1", port, "Anthony", Role.Dps);
+            for (int i = 0; i < 200; i++) { Step(host, dt); Step(friend, dt); Step(owner, dt); Thread.Sleep(1); }
+            Console.WriteLine("  host in someone's seat: host still in the lobby {0} (seat {1}); 'Anthony' was {2} ({3})", host.Lobby.ContainsKey(1), host.Lobby.ContainsKey(1) ? host.Lobby[1].Seat : -1, owner.Screen, owner.Status);
+            Check(host.Lobby.ContainsKey(1) && host.Lobby[1].Seat == 0 && host.Lobby.Count == 2 && owner.Screen == AppScreen.Menu && owner.Status.Contains("seats are taken"),
+                "the host keeps their seat in a full saved run; its owner is turned away instead");
+            host.Leave(""); friend.Leave(""); owner.Leave("");
+
+            // Saving over a save swaps the new file in (no leftover temp file, the old one replaced).
+            var over = RunSave.Parse(made.ToText());
+            over.Id = "over";
+            over.Wave = 6;
+            bool w1 = SaveStore.Write(over);
+            over.Wave = 9;
+            bool w2 = SaveStore.Write(over);
+            var listed = SaveStore.List().Where(x => x.Id == "over").ToList();
+            Check(w1 && w2 && listed.Count == 1 && listed[0].Wave == 9 && Directory.GetFiles(folder, "*.tmp").Length == 0,
+                "saving over a saved run replaces it, leaving no temp file");
+            SaveStore.Delete("over");
         }
         finally
         {

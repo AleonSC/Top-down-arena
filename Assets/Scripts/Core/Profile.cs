@@ -185,7 +185,7 @@ namespace Arena
             catch (UnauthorizedAccessException) { return new Profile(); }
         }
 
-        /// Writes it (temp file first, then swapped in, so a crash can't leave half a profile).
+        /// Writes it (temp file first, then swapped in, so a crash can't leave half a profile or none).
         public void Save()
         {
             if (Folder == null)
@@ -193,11 +193,7 @@ namespace Arena
             try
             {
                 Directory.CreateDirectory(Folder);
-                string tmp = FilePath + ".tmp";
-                File.WriteAllText(tmp, ToText());
-                if (File.Exists(FilePath))
-                    File.Delete(FilePath);
-                File.Move(tmp, FilePath);
+                SaveStore.SafeWrite(FilePath, ToText());
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }

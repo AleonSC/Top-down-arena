@@ -303,6 +303,8 @@ namespace Arena
                             int other = FirstFreeSeat();
                             if (other >= 0)
                                 TakeSeat(sitter, other);
+                            else if (sitter.Id == MyId)
+                                seat = -1;  // never put the host out of their own lobby: the newcomer is turned away instead
                             else
                             {
                                 Lobby.Remove(sitter.Id);
