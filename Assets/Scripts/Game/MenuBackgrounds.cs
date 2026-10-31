@@ -225,17 +225,17 @@ namespace Arena
                 bgTabSeen = now;
                 SaveBackgroundSettings();
             }
-            if (GUI.Button(live, GUIContent.none, GUIStyle.none))
+            if (Ui.HitArea(live))
             {
                 menuBgAnimate = !menuBgAnimate;
                 SaveBackgroundSettings();
             }
             if (clickPrev)
                 SetBackground(menuBg - 1, -1);
-            if (clickNext || GUI.Button(thumb, GUIContent.none, GUIStyle.none))
+            if (clickNext || Ui.HitArea(thumb))
                 SetBackground(menuBg + 1, 1);
             for (int i = 0; i < BackgroundNames.Length; i++)
-                if (i != menuBg && GUI.Button(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f), GUIContent.none, GUIStyle.none))
+                if (i != menuBg && Ui.HitArea(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f)))
                     SetBackground(i, i > menuBg ? 1 : -1);
         }
 
@@ -293,7 +293,7 @@ namespace Arena
                 SetBackground(menuBg - 1, -1);
             else if (clickNext)
                 SetBackground(menuBg + 1, 1);
-            else if (clickOpen || GUI.Button(tab, GUIContent.none, GUIStyle.none))
+            else if (clickOpen || Ui.HitArea(tab))
             {
                 bgPickerMin = false;
                 SaveBackgroundSettings();

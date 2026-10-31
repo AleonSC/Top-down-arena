@@ -56,7 +56,7 @@ namespace Arena
             var knob = new Rect(on ? sw.xMax - 20f : sw.x + 2f, sw.y + 2f, 18f, 18f);
             Ui.Pill(knob, on ? Color.white : new Color(1f, 1f, 1f, 0.45f));
             Ui.Label(new Rect(sw.x - 44f, sw.y, 40f, sw.height), on ? "ON" : "OFF", 11, on ? Color.white : Ui.Muted, TextAnchor.MiddleRight, true);
-            return canClick && GUI.Button(c, GUIContent.none, GUIStyle.none);
+            return canClick && Ui.HitArea(c);
         }
 
         /// During a match: the active modifiers, in a line under the wave plate.

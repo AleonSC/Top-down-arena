@@ -267,7 +267,7 @@ namespace Arena
                         if (k != i)
                             Ui.Pill(kr, over ? new Color(0.35f, 0.55f, 1f, 0.85f) : new Color(0.28f, 0.32f, 0.45f, 0.9f));
                         Ui.Label(kr, SlotKeys[k], 10, Color.white, TextAnchor.MiddleCenter, true);
-                        if (k != i && GUI.Button(kr, GUIContent.none, GUIStyle.none))
+                        if (k != i && Ui.HitArea(kr))
                             game.SetAbilityKey(slot.Id, k);
                     }
                 }
@@ -1207,7 +1207,7 @@ namespace Arena
                 // The card lifts a little when hovered and more when selected.
                 var r = new Rect(slot.x, slot.y - (selected ? 10f : hover ? 4f : 0f), slot.width, slot.height);
                 DrawUpgradeCard(me, i, u, r, grid, selected, hover, now);
-                if (GUI.Button(slot, GUIContent.none, GUIStyle.none) && selectedCard != i)
+                if (Ui.HitArea(slot) && selectedCard != i)
                 {
                     selectedCard = i;
                     pickKey = 0;

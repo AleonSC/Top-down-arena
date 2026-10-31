@@ -82,7 +82,7 @@ namespace Arena
                     boss != null ? Ui.Gold : on ? Color.white : Ui.Text, TextAnchor.MiddleLeft, boss != null || on);
                 if (other.Length > 0 && session.PlanEditorSel == i)  // where the other editor is working
                     Ui.Badge(new Rect(row.xMax - 54f, row.y + 5f, 50f, 16f), other.Length > 6 ? other.Substring(0, 6) : other, Ui.Accent);
-                if (!on && GUI.Button(row, GUIContent.none, GUIStyle.none))
+                if (!on && Ui.HitArea(row))
                 {
                     practiceSel = i;
                     practiceLoadOpen = false;

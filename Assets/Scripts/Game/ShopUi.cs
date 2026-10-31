@@ -99,7 +99,7 @@ namespace Arena
                     Ui.Icon(new Rect(r.xMax - 36f, r.y + 23f, 20f, 20f), PixelArt.Get("ui_check"), Ui.Good);
                 else
                     DrawPriceTag(new Rect(r.xMax - 68f, r.y + 20f, 58f, 26f), price, me.Gold >= price);
-                if (!popup && afford && GUI.Button(r, GUIContent.none, GUIStyle.none))
+                if (!popup && afford && Ui.HitArea(r))
                 {
                     if (k == 1)
                         shopRemoveOpen = true;
@@ -185,7 +185,7 @@ namespace Arena
                 DrawPriceTag(new Rect(r.center.x - 50f, r.yMax - 38f, 100f, 26f), price, afford, afford ? "Buy · " : "");
             else
                 DrawPriceTag(new Rect(r.center.x - 34f, r.yMax - 38f, 68f, 26f), price, afford);
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+            return Ui.HitArea(r);
         }
 
         /// Above the wave panel, with the path chip: your Bazaar gold, while you're on the Bazaar or have some.
@@ -300,7 +300,7 @@ namespace Arena
                 Ui.HudPanel(b, over ? rc : (Color?)null);
                 Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u.Name));
                 Ui.Label(new Rect(b.x + 36f, b.y, b.width - 40f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
-                if (GUI.Button(b, GUIContent.none, GUIStyle.none))
+                if (Ui.HitArea(b))
                 {
                     game.Shop(ShopAction.Remove, seen[i]);
                     shopRemoveOpen = false;

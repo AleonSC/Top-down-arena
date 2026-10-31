@@ -130,7 +130,7 @@ namespace Arena
                 string sub = i == 0 ? "50 waves, a boss every 5" : "Build your own waves";
                 Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 17, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 11, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
-                if (session.IsHost && !on && GUI.Button(h, GUIContent.none, GUIStyle.none))
+                if (session.IsHost && !on && Ui.HitArea(h))
                     session.SetPracticeMode(i == 1);
             }
         }
@@ -151,7 +151,7 @@ namespace Arena
                 var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : Ui.Accent;
                 Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
                 Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
-                if (!on && GUI.Button(tab, GUIContent.none, GUIStyle.none))
+                if (!on && Ui.HitArea(tab))
                     lobbyTab = i;
                 x += w + 8f;
             }
@@ -344,7 +344,7 @@ namespace Arena
             if (ultOn || ultHover)
                 Ui.Pill(ultArea, new Color(1f, 0.8f, 0.35f, ultOn ? 0.12f : 0.06f));
             Ui.Label(new Rect(hero.x + 14f, hy, hero.width - 28f, 16f), ultOn ? "ULTIMATE  ·  F  ·  PREVIEWING" : "ULTIMATE  ·  F  ·  CLICK TO PREVIEW", 10, ultOn || ultHover ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            if (GUI.Button(ultArea, GUIContent.none, GUIStyle.none))
+            if (Ui.HitArea(ultArea))
             {
                 ultDemoUntil = ultOn ? 0f : Time.unscaledTime + UltDemoTime;  // a second click stops it
                 abilityDemoUntil = 0f;

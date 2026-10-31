@@ -54,7 +54,7 @@ namespace Arena
                     Ui.Fill(new Rect(r.x, r.y + 8f, 4f, r.height - 16f), c);
                 Ui.Fancy(new Rect(r.x + 16f, r.y + 7f, r.width - 20f, 26f), DevTabNames[i], 17, Color.white, on ? Color.Lerp(c, Color.white, 0.4f) : new Color(0.8f, 0.84f, 0.95f), TextAnchor.MiddleLeft);
                 Ui.Label(new Rect(r.x + 16f, r.y + 32f, r.width - 20f, 18f), DevTabBlurbs[i], 11, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted);
-                if (!on && GUI.Button(r, GUIContent.none, GUIStyle.none))
+                if (!on && Ui.HitArea(r))
                 {
                     devTab = i;
                     devFocus = "";

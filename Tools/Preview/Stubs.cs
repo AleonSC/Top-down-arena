@@ -70,7 +70,7 @@ namespace UnityEngine {
   public class AudioClip : Object { public static AudioClip Create(string n, int len, int ch, int freq, bool stream){return null;} public bool SetData(float[] d, int off){return true;} }
   public class AudioSource : Behaviour { public bool playOnAwake, loop, isPlaying; public float spatialBlend, pitch, volume, time; public AudioClip clip; public void Stop(){} public void PlayOneShot(AudioClip c, float v){} public void Play(){} public void Pause(){} }
   public class PlayerPrefs { public static float GetFloat(string k, float d){return d;} public static int GetInt(string k, int d){return d;} public static void SetFloat(string k, float v){} public static void SetInt(string k, int v){} public static void Save(){} }
-  public class GUIUtility { public static int keyboardControl; }
+  public class GUIUtility { public static int keyboardControl; public static Vector2 GUIToScreenPoint(Vector2 p) => p; }
   public enum FullScreenMode { ExclusiveFullScreen, FullScreenWindow, MaximizedWindow, Windowed }
 }
 namespace UnityEngine.Rendering {

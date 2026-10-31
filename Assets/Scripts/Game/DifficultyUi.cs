@@ -95,7 +95,7 @@ namespace Arena
                 for (int s = 0; s < skulls; s++)
                     Ui.Icon(new Rect(sx + s * 18f + 1f, iy, 16f, 16f), PixelArt.Get("ui_skull"), on ? Color.white : new Color(col.r, col.g, col.b, 0.75f));
             }
-            return canClick && !on && GUI.Button(c, GUIContent.none, GUIStyle.none);
+            return canClick && !on && Ui.HitArea(c);
         }
 
         /// One number: its name and value (red when harder than Normal, green when easier), the slider with a tick

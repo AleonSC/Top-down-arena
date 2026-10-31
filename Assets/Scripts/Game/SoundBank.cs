@@ -327,6 +327,29 @@ namespace Arena
             Set(Sfx.GameOver, Notes(new[] { 392f, 330f, 262f, 196f }, 0.22f, Osc.Square, 0.3f, 0.3f));
             Set(Sfx.Downed, Tone(0.4f, Osc.Square, 400f, 100f, 0.3f, lowpass: 0.3f));
             Set(Sfx.Revive, Tone(0.3f, Osc.Sine, 300f, 800f, 0.3f, attack: 0.02f));
+
+            // Menus: a soft, short tick when the mouse moves onto a button (not an Sfx: it never goes over the network).
+            var tick = Tone(0.045f, Osc.Sine, 1500f, 2100f, 0.09f, lowpass: 0.5f, attack: 0.002f, decay: 3f);
+            uiHover = AudioClip.Create("ui_hover", tick.Length, 1, Rate, false);
+            uiHover.SetData(tick, 0);
+        }
+
+        AudioClip uiHover;
+        float uiHoverLast = -10f;
+
+        /// The menus' hover tick, at the Effects volume. Rapid sweeps across a row play at most every 40 ms.
+        public void PlayUiHover(float now)
+        {
+            if (Muted || uiHover == null || now - uiHoverLast < 0.04f)
+                return;
+            float volume = Master * Effects;
+            if (volume <= 0.001f)
+                return;
+            uiHoverLast = now;
+            var voice = voices[nextVoice];
+            nextVoice = (nextVoice + 1) % voices.Length;
+            voice.pitch = 1f + ((float)rng.NextDouble() - 0.5f) * 0.06f;
+            voice.PlayOneShot(uiHover, volume);
         }
 
         void SetGun(Sfx s, float gap, Gun g)

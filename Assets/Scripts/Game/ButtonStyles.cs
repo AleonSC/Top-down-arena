@@ -159,7 +159,7 @@ namespace Arena
                     break;
                 }
             }
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+            return Ui.HitArea(r);
         }
     }
 }

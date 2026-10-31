@@ -421,7 +421,7 @@ namespace Arena
                 Ui.Label(new Rect(r.x + 54f, r.y + 21f, r.width - 60f, 16f), it.Sub, 11, on ? new Color(1f, 1f, 1f, 0.75f) : Ui.Muted);
                 if (mine)
                     Ui.Badge(new Rect(r.xMax - 42f, r.y + 5f, 36f, 16f), "YOU", Ui.Good);
-                if (GUI.Button(r, GUIContent.none, GUIStyle.none) && !on)
+                if (Ui.HitArea(r) && !on)
                 {
                     guideSel[page] = it.Key;
                     guideDetailScroll = 0f;
@@ -584,7 +584,7 @@ namespace Arena
             Ui.Label(new Rect(x, r.y + 23f, gw - x - 30f, th), text, 12, Ui.Text, TextAnchor.UpperLeft, false, true);
             Ui.Label(new Rect(r.xMax - 28f, r.y, 20f, r.height), "›", 20, hover ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
             gy += r.height + 6f;
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+            return Ui.HitArea(r);
         }
 
         // --- Bestiary ----------------------------------------------------------------------

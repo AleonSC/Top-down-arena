@@ -417,6 +417,7 @@ namespace Arena
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
             TextEditBeginGui();
+            Ui.BeginHoverFrame();
             bool modal = labSetupOpen || devMenuOpen || textEditOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
@@ -459,6 +460,8 @@ namespace Arena
                     DrawDevMenu();
             }
             TextEditEndGui();
+            if (Ui.EndHoverFrame() && sounds != null)
+                sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button
         }
 
         void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)

@@ -144,12 +144,54 @@ namespace Arena
         {
             var old = GUI.backgroundColor;
             GUI.backgroundColor = tint;
+            NoteHover(r);
             bool clicked = GUI.Button(r, Shown(r, text), button);
             GUI.backgroundColor = old;
             return clicked;
         }
 
         public static bool Button(Rect r, string text) => Button(r, text, Neutral);
+
+        // --- Hover sound -------------------------------------------------------
+        // Every button, card and click area reports itself while the mouse is over it (on Repaint). The last
+        // one drawn is the one on top; ArenaApp plays a soft tick when that changes from one frame to the next.
+
+        static Rect hoverNow, hoverLast;
+        static bool hoverFound, hoverHadLast;
+
+        /// An invisible click area over something drawn by hand (cards, tabs, swatches). Counts for the hover sound.
+        public static bool HitArea(Rect r)
+        {
+            NoteHover(r);
+            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+        }
+
+        public static void NoteHover(Rect r)
+        {
+            if (Event.current.type != EventType.Repaint || !GUI.enabled || !r.Contains(Event.current.mousePosition))
+                return;
+            var p = GUIUtility.GUIToScreenPoint(new Vector2(r.x, r.y));  // screen space, so rects inside groups compare fairly
+            hoverNow = new Rect(p.x, p.y, r.width, r.height);
+            hoverFound = true;
+        }
+
+        public static void BeginHoverFrame()
+        {
+            if (Event.current.type == EventType.Repaint)
+                hoverFound = false;
+        }
+
+        /// At the end of a Repaint: true when the mouse has just moved onto a different button.
+        public static bool EndHoverFrame()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return false;
+            bool entered = hoverFound && (!hoverHadLast || Mathf.Abs(hoverNow.x - hoverLast.x) > 1f || Mathf.Abs(hoverNow.y - hoverLast.y) > 1f
+                || Mathf.Abs(hoverNow.width - hoverLast.width) > 1f || Mathf.Abs(hoverNow.height - hoverLast.height) > 1f);
+            hoverHadLast = hoverFound;
+            hoverLast = hoverNow;
+            return entered;
+        }
 
         /// A button with a small round icon chip before its label (e.g. a check on Ready, a play arrow on Start).
         public static bool Button(Rect r, string text, Color tint, Texture2D icon)
@@ -282,7 +324,7 @@ namespace Arena
                     size--;  // long names in narrow cards (six class buttons) shrink to fit
                 Label(new Rect(r.x + 4f, r.y, r.width - 8f, r.height - barH), text, size, name, TextAnchor.MiddleCenter, true);
             }
-            return GUI.Button(r, GUIContent.none, GUIStyle.none);
+            return Ui.HitArea(r);
         }
 
         public static string Field(Rect r, string value, int maxLength)
@@ -384,6 +426,7 @@ namespace Arena
             if (value)
                 Fill(new Rect(box.x + 6f, box.y + 6f, 10f, 10f), Color.white);
             Label(new Rect(r.x + 32f, r.y, r.width - 32f, r.height), text, 14, Text);
+            NoteHover(r);
             return GUI.Toggle(r, value, GUIContent.none, check);
         }
 
