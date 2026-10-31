@@ -81,6 +81,7 @@ namespace Arena
         void BuildWave(int n)
         {
             spawnQueue.Clear();
+            squadQueue.Clear();
             bossRewarded = false;
             if (n % 5 == 0)
             {
@@ -130,9 +131,13 @@ namespace Arena
             if (n >= 9) pool.Add(EnemyType.Shielder);
             if (n >= 11) pool.Add(EnemyType.Medic);
             if (n >= 16) pool.Add(EnemyType.Phantom);
+            if (n >= 18) pool.Add(EnemyType.BeamSentry);  // the second half's new enemies (Variety.cs)
             if (n >= 21) pool.Add(EnemyType.Hexer);
+            if (n >= 24) pool.Add(EnemyType.Scorcher);
             if (n >= 26) pool.Add(EnemyType.Juggernaut);
+            if (n >= 28) pool.Add(EnemyType.Reaver);
             if (n >= 31) pool.Add(EnemyType.Nest);
+            if (n >= 36) pool.Add(EnemyType.Warder);
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
             if (n <= 3)
                 count += 2;  // the first waves get a couple more of the same, so the opening isn't too quiet
@@ -145,6 +150,7 @@ namespace Arena
             if (n >= 5) melee.Add(EnemyType.Lunger);
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
                 return;
+            count -= BuildSquads(n, count);  // about 70% of it comes as squads (Variety.cs); the rest as before
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
             {
@@ -210,6 +216,8 @@ namespace Arena
                 e.Radius *= EliteSize;
             }
             e.Hp = e.MaxHp;
+            if (elite)
+                RollTraits(e);  // Variety.cs
             if (type == EnemyType.Shielder)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
             Recorder?.EnemySpawned(e);
@@ -283,6 +291,7 @@ namespace Arena
             float rate = Math.Min(2f, 1f + 0.05f * (Wave - 1));
             PullStrength = 0f;
             CountEnemyShots();
+            PrepareVariety();  // squads and Commanders (Variety.cs)
             foreach (var e in new List<Enemy>(Enemies.Values))  // copy: some enemies spawn others
             {
                 e.T += dt;
@@ -335,7 +344,7 @@ namespace Arena
                     Special(e, tpos, dt);
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
-                    float mult = rate * (e.Elite ? 1.35f : 1f) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
+                    float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
                     e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     if (e.FireT <= 0f)
                     {
@@ -377,6 +386,7 @@ namespace Arena
             TickReapers(dt);  // the Twin Reapers' stages, turns and tether (Reapers.cs)
             TickSingularityHazards(dt);
             TickHerald(dt);  // the Storm Herald's ball lightning and spokes (Herald.cs)
+            TickVariety(dt);  // embers, Volatile bursts, Mirrored shots, bubbles growing back (Variety.cs)
 
             // A fallen Twin Reaper comes back unless its twin dies before the timer runs out.
             if (twinPending && ReapersJoined)
@@ -430,6 +440,8 @@ namespace Arena
                 return;  // locked in while winding up and dashing
             if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber)
                 return;  // committed to the leap / flight line
+            if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0)
+                return;  // the beam's aim and sweep, the rake's cone (Variety.cs)
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -618,6 +630,11 @@ namespace Arena
             }
             if (IsLateGame(e.Type))
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
+            if (e.Type >= EnemyType.BeamSentry)
+                v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
+            v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
+            if (HasTrait(e, EliteTrait.Hasted))
+                speed *= HasteMult;
             if (rng.NextDouble() < dt * 0.3)
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
@@ -661,7 +678,7 @@ namespace Arena
                     // Phase 0: approach; 1: wind up (telegraph line); 2: leap; 3: recover.
                     float dist = tpos.DistanceTo(e.Pos);
                     e.PhaseT -= dt;
-                    if (e.Phase == 0 && dist < 220f && e.PhaseT <= 0f)
+                    if (e.Phase == 0 && dist < 220f && e.PhaseT <= 0f && !LungerWaits(e, tpos))  // in a squad, it waits for a Brute (Variety.cs)
                     {
                         e.Phase = 1;
                         e.PhaseT = 0.6f;
@@ -734,6 +751,12 @@ namespace Arena
                 case EnemyType.Singularity:
                     SingularitySpecial(e, dt);  // Singularity.cs
                     break;
+                case EnemyType.BeamSentry:
+                case EnemyType.Scorcher:
+                case EnemyType.Reaver:
+                case EnemyType.Warder:
+                    VarietySpecial(e, tpos, dt);  // Variety.cs
+                    break;
             }
         }
 
@@ -750,6 +773,8 @@ namespace Arena
                 e.FireT = 99f;  // melee enemies don't shoot
                 return;
             }
+            if (VarietyFire(e, aim))
+                return;  // Variety.cs
             switch (e.Type)
             {
                 case EnemyType.Grunt:
@@ -854,6 +879,7 @@ namespace Arena
         /// (rerolls and the big orb drop).
         bool OnEnemyKilled(Enemy e)
         {
+            VarietyKilled(e);  // Volatile, Splitting, a Warder's bubbles (Variety.cs)
             if (e.Type == EnemyType.Boss)
             {
                 ClearRioters();  // the riot's over (Warden.cs)

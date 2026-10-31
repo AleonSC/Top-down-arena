@@ -119,6 +119,7 @@ namespace Arena
             DrawDuelFloor(t);    // the Duelist's circle, warning lines and hanging blades (DuelistLook.cs)
             DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
+            DrawVarietyFloor(t);   // Beam Sentry beams, Reaver cones, Warder tethers (VarietyLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -1481,6 +1482,7 @@ namespace Arena
             if (e.Frozen)
                 DrawIceBlock(e, pos, r, t);
             DrawEnemyDetails(e, pos, r, col, t);
+            DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
             bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning;
             if (bar)

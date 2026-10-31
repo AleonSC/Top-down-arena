@@ -9,7 +9,7 @@ namespace Arena
     /// score while you're on it, and a prize when it ends (before the boss, which is always standard).
     public enum PathId : byte { None, SwarmFields, SniperRidge, EliteGauntlet, BurningGrounds, Sanctuary, FrozenLake, BloodMoon, Fogbound, NarrowPass, Bazaar }
 
-    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava }  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs)
+    public enum PatchKind : byte { Fire, Heal, Gas, Honey, Lava, Embers }  // Gas: the Warden's canisters (Warden.cs); Honey: the Hive Queen's puddles (Queen.cs); Lava: the Colossus's pools (Colossus.cs); Embers: a Scorcher's trail (Variety.cs)
 
     /// A patch of a hazard floor (Burning Grounds' fire, Sanctuary's healing pools). The host spawns it and tells
     /// everyone once; each game then ages, grows and expires it the same way.

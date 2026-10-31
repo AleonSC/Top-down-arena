@@ -330,7 +330,18 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 ## Enemies
 
 The first waves are **melee rushers** (spiky, they never shoot, they hurt on contact). Shooters take over a
-little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** there are no melee left.
+little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 13** the early rushers are gone (melee
+comes back in squads, and with the Reaver from wave 28).
+
+**Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
+other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave:
+Rush (1: four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to
+reach you), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder leading two Snipers that keep behind
+it), Field hospital (11: three Brutes and a Medic behind them), Ambush (16: three Phantoms blink in around you),
+Beam battery (18: two Beam Sentries guarded by a Shielder), Pincer (21: Hexers from opposite edges), Scorched earth
+(24: two Scorchers and Swarmers), Siege (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two
+Lungers), Hive (31: a Nest guarded by Splitters), Bastion (36: a Warder, a Juggernaut and two Grunts). Early waves keep
+their share of rushers (a melee squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
@@ -350,10 +361,14 @@ little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 1
 | 9 | **Shielder** | A shield on its front blocks your shots. It turns slowly, so flank it. The shield (60% of its health) wears down as it blocks and crumbles on its own (about 33 s), cracking as it goes, then shatters |
 | 11 | **Medic** | Heals nearby enemies every few seconds. Kill it first |
 | 16 | **Phantom** | Flickers, blinks next to you and bursts into a ring |
+| 18 | **Beam Sentry** | Walks to about 380 px from you and plants itself, aims a thin line at you for 1 s (turning slowly after you), then sweeps a 900 px beam a quarter turn across your side (20 + 0.3 × wave). Step behind the sweep |
 | 21 | **Hexer** | Fires curving pincer shots that close in from both sides |
+| 24 | **Scorcher** | Circles you about 260 px out leaving a trail of embers (15/s, 3 s; they only burn players) and fires pairs of shots. Cut across its circle |
 | 26 | **Juggernaut** | Armored and slow; can't be slowed or knocked back; fires rotating stars of big orbs |
+| 28 | **Reaver** | Armoured melee (can't be slowed or knocked back): in reach it shows a red 120° cone for 0.4 s, then rakes it (26; a perfect parry blocks it). For 0.7 s after a swipe it's **open**: +50% damage |
 | 31 | **Nest** | Stationary spawner that keeps hatching Shards until destroyed |
-| 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, shoots faster, worth 3x XP, always drops an orb. More common each wave |
+| 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it. Kill it and every bubble pops |
+| 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Juggernaut, Nest or Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
 
 ## Bosses
 

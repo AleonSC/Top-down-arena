@@ -421,6 +421,11 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 break;
                             }
+                            if (MirrorBounces(e, b))
+                            {
+                                scratchIds.Add(b.Id);  // a Mirrored elite sends it back (Variety.cs)
+                                break;
+                            }
                             if (b.FromWeapon && b.LastHit == 0)
                             {
                                 Player shooter;
@@ -697,6 +702,8 @@ namespace Arena
                 dmg *= DuelOpenMult;  // a parried salute left the Duelist open (Duelist.cs)
             if (EclipseExposed(e))
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
+            if (ReaverIsOpen(e))
+                dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)
@@ -711,6 +718,12 @@ namespace Arena
             if (Hungry(e))
             {
                 e.Hp = Math.Min(e.MaxHp, e.Hp + dmg * 0.5f);  // the Devourer feeds on your shots
+                return;
+            }
+            dmg = SoakBubble(e, dmg);  // a Shielded elite's or a Warder's bubble takes it first (Variety.cs)
+            if (dmg <= 0f)
+            {
+                e.Flash = 0.06f;
                 return;
             }
             Player p;

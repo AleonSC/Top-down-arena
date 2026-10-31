@@ -180,6 +180,13 @@ namespace Arena
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
         public bool Elite;
+        public byte Traits;           // an elite's traits (EliteTrait flags; Variety.cs; replicated)
+        public int SquadId, SquadSlot;  // host: the squad it arrived with, and its place in it (Variety.cs)
+        public float BubbleHp, BubbleMax, BubbleT;  // a bubble that soaks damage first: Shielded, or a Warder's (host; drawn from BubbleFrac)
+        public float BubbleFrac;      // replicated
+        public int WardId;            // the Warder holding up its bubble (replicated, for the tether)
+        public int MirrorCount;       // host: player shots that have hit it (Mirrored bounces every fourth)
+        public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
         public float BurnT, BurnDps;        // Incendiary Rounds (host)
@@ -579,6 +586,7 @@ namespace Arena
             Effects.Clear();
             Sounds.Clear();
             spawnQueue.Clear();
+            squadQueue.Clear();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
             lastDowned.Clear();

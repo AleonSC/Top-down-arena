@@ -381,8 +381,25 @@ namespace Arena
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var pt in Patches.Values)  // a path's fire or the Colossus's lava: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Embers) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
+                    foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
+                    {
+                        if (e.Type == EnemyType.BeamSentry && (e.Phase == 3 || e.Phase == 2 && e.PhaseT < t + 0.3f))
+                        {
+                            // It sweeps a quarter turn either way from where it points: keep clear of that fan near its line.
+                            float ang = (p - e.Pos).Angle, off = Math.Abs(MathX.Fmod(ang - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
+                                d += w * 2.5f;
+                        }
+                        else if (e.Type == EnemyType.Reaver && e.Phase == 1)
+                        {
+                            V2 rel = p - e.Pos;
+                            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            if (rel.Length < ReaverSwipeR + e.Radius + hitR + 15f && off < ReaverCone + 0.2f)
+                                d += w * 3f;
+                        }
+                    }
                     if (col != null)
                     {
                         foreach (var r in col.Rings)  // where each ring's band will be by then, unless you're in a gap

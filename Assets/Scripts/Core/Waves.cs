@@ -18,6 +18,7 @@ namespace Arena
                     return;  // a phoenix brings someone back on its next beat (Minions.cs)
             State = MatchState.GameOver;
             spawnQueue.Clear();
+            squadQueue.Clear();
             foreach (var p in Players.Values)
             {
                 p.Offer = null;
@@ -76,14 +77,20 @@ namespace Arena
                     }
                     break;
                 case MatchState.Fighting:
-                    if (spawnQueue.Count > 0)
+                    if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
                         if (spawnTimer <= 0f)
                         {
-                            SpawnEnemy(spawnQueue[0]);
-                            spawnQueue.RemoveAt(0);
                             spawnTimer = Math.Max(0.3f, 1.1f - Wave * 0.05f);
+                            if (SpawnNextSquad())  // a squad comes after every few single enemies (Variety.cs)
+                                spawnTimer *= 3f;
+                            else
+                            {
+                                SpawnEnemy(spawnQueue[0]);
+                                spawnQueue.RemoveAt(0);
+                                singlesSinceSquad++;
+                            }
                         }
                     }
                     else if (Enemies.Count == 0)
@@ -103,6 +110,8 @@ namespace Arena
                     break;
             }
             Remaining = spawnQueue.Count + Enemies.Count;
+            foreach (var sq in squadQueue)
+                Remaining += sq.Members.Length;
         }
 
         void WaveCleared()

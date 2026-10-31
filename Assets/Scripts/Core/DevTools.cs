@@ -113,6 +113,7 @@ namespace Arena
             if (State == MatchState.Fighting)
                 Recorder?.WaveEnd(this);
             spawnQueue.Clear();
+            squadQueue.Clear();
             Enemies.Clear();
             ResetBossState();
             Zones.Clear();

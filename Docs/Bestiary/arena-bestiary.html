@@ -175,7 +175,7 @@ tr:last-child td { border-bottom: 0; }
         <div class="tablewrap"><table id="bulletTable"></table></div>
         <p class="foot" style="margin:8px 0 0">After any hit you can't be hurt for 0.35 s. Contact with a shooter does 15; bosses do 25 + 0.6 per wave on contact. Dark-cored shots come from bosses. Red aimed shots can't be blocked by barriers.</p>
       </section>
-      <p class="foot">Health = base × (1 + 0.15 per wave after the first) × party size (solo 70%, duo 100%, trio 120%; bosses 70 / 100 / 150%) × 2.5 for elites. Bosses after wave 20 also get +10% per wave. Enemies fire faster each wave: × (1 + 0.05 per wave after the first), capped at × 2, and elites another × 1.35. The test dummy has a 7 px hitbox (a Healer's).</p>
+      <p class="foot">Health = base × (1 + 0.15 per wave after the first) × party size (solo 70%, duo 100%, trio 120%; bosses 70 / 100 / 150%) × 2.5 for elites. Bosses after wave 20 also get +10% per wave. Enemies fire faster each wave: × (1 + 0.05 per wave after the first), capped at × 2, and each elite rolls a trait (one from wave 12, two from wave 35): Hasted (× 1.4 speed and fire), Shielded (a bubble worth 40% that grows back), Volatile (a ring of 16 when it dies), Splitting (Shards), Mirrored (one shot in four bounces back) or Commander (allies within 220 px fire × 1.3). About 70% of a regular wave arrives as squads (a Shielder guarding Snipers, a Medic behind Brutes, …). The test dummy has a 7 px hitbox (a Healer's).</p>
     </main>
   </div>
 </div>
@@ -275,6 +275,29 @@ const E = [
   { id: "Nest", cat: "Late game", hp: 260, r: 22, speed: 0, sides: 6, col: rgb(0.7, 0.9, 0.4), xp: 35, score: 40, wave: 31,
     appears: "Wave 31+", lead: "Never moves. Hatches two Shards every 5 s while it has fewer than six.",
     attacks: [{ name: "Hatch", pattern: "2 Shards (up to 6 alive)", dmg: "—", every: 5, unscaled: true }] },
+  { id: "BeamSentry", label: "Beam Sentry", cat: "Late game", hp: 160, r: 17, speed: 70, sides: 6, col: rgb(0.44, 0.89, 1), xp: 12, score: 30, wave: 18,
+    appears: "Wave 18+ (and in Beam battery squads)", lead: "Walks to about 380 px from you and plants itself. It aims a thin line at you for 1 s, turning slowly to follow, then sweeps a 900 px beam a quarter turn across your side.",
+    attacks: [
+      { name: "Beam", pattern: "1 s aim (follows you at 34°/s), then a 90° sweep over 1.5 s toward the side you were heading; 1.5 s rest", dmg: w => (20 + 0.3 * w).toFixed(1), dmgLabel: "20 + 0.3 × wave", every: 4, unscaled: true }],
+    notes: ["Step behind the sweep, not away from it.", "From the design mockup (Docs/Mockups/enemy-variety.html)."] },
+  { id: "Scorcher", cat: "Late game", hp: 130, r: 15, speed: 95, sides: 5, col: rgb(1, 0.71, 0.28), xp: 12, score: 30, wave: 24,
+    appears: "Wave 24+ (and in Scorched earth squads)", lead: "Circles you about 260 px out, leaving a trail of embers that burn for 3 s. Two of them fence you in fast.",
+    attacks: [
+      { name: "Embers", pattern: "A 24 px patch every 0.25 s, burning for 3 s (only players)", dmg: "15/s", every: null },
+      { name: "Shots", pattern: "2 aimed shots, 11° apart", kind: "small", n: 2, speed: 170, every: 2.5 }],
+    notes: ["Cut across its circle before it closes."] },
+  { id: "Reaver", cat: "Late game", hp: 240, r: 19, speed: 150, sides: 3, col: rgb(1, 0.3, 0.43), melee: true, contact: 20, xp: 16, score: 40, wave: 28,
+    appears: "Wave 28+ (and in Reaver pack squads)", lead: "Armoured melee: can't be slowed or knocked back. In reach it shows a red 120° cone for 0.4 s, then rakes it. After a swipe it's open for 0.7 s and takes +50%.",
+    attacks: [
+      { name: "Rake", pattern: "0.4 s wind-up (a cone), then a 120° rake 110 px past its body; a perfect parry blocks it", dmg: "26", every: null },
+      { name: "Open", pattern: "0.7 s after a swipe: +50% damage taken", dmg: "—", every: null }],
+    notes: ["Melee for the late game, after the early rushers are gone."] },
+  { id: "Warder", cat: "Late game", hp: 180, r: 16, speed: 65, sides: 8, col: rgb(0.71, 0.61, 1), xp: 16, score: 40, wave: 36,
+    appears: "Wave 36+ (and in Bastion squads)", lead: "Hangs back behind its allies. Every 6 s it gives up to three allies within 320 px a bubble that soaks half their health in damage, tethered to it. Kill it and every bubble pops.",
+    attacks: [
+      { name: "Ward", pattern: "Up to 3 allies within 320 px get a bubble worth 50% of their health", dmg: "—", every: 6, unscaled: true },
+      { name: "Orbs", pattern: "2 slow orbs, 23° apart", kind: "big", n: 2, speed: 120, every: 3 }],
+    notes: ["Follow the tethers back to it."] },
 
   // Bosses
   { id: "Warden", label: "The Warden", cat: "Bosses", boss: true, hp: 2400, r: 46, speed: 45, sides: 8, col: rgb(1, 0.25, 0.5), xp: 150, score: 300, wave: 5,
@@ -475,7 +498,7 @@ const maxHp = (d, wave, party, elite) => {
   if (elite && !d.boss && !d.summon) hp *= 2.5;
   return hp;
 };
-const fireRate = (wave, elite) => Math.min(2, 1 + 0.05 * (wave - 1)) * (elite ? 1.35 : 1);
+const fireRate = (wave, elite) => Math.min(2, 1 + 0.05 * (wave - 1));  // elites' faster fire is now the Hasted trait
 
 // ---------------------------------------------------------------------------------------------
 // Simulation (a port of the host's enemy logic, simplified where it doesn't change the pattern)
@@ -502,6 +525,7 @@ function newWorld() {
     case "Singularity": case "Eclipse": case "Duelist": spawn(d.id, 800, 450); break;
     case "Colossus": case "Lich": case "StormHerald": case "Devourer": spawn(d.id, 800, 150); break;
     case "Nest": spawn("Nest", 800, 300); break;
+    case "Warder": spawn("Warder", 800, 200); spawn("Grunt", 700, 260); spawn("Grunt", 900, 260); break;  // it needs allies to ward
     case "Decoy": { const e = spawn("Decoy", 800, 300); e.phaseT = 5; e.fireT = 99; break; }
     case "Phylactery": spawn("Phylactery", 800, 260); break;
     case "GravityWell": { const s = spawn("Singularity", 800, 450); s.dummyOnly = true; break; }
@@ -1025,6 +1049,73 @@ function drawEclipseSky(e, t) {
   if (c.stage === 5) { cx.font = "800 40px Oxanium, sans-serif"; cx.fillStyle = "#ffe0d0"; cx.textAlign = "center"; cx.fillText(`NOVA ${c.nova.toFixed(1)}`, e.x, e.y - 110); cx.textAlign = "left"; }
 }
 
+// The second half's new enemies (Variety.cs): the Beam Sentry, the Scorcher, the Reaver and the Warder.
+function varietyTick(e, dt) {
+  const p = world.player, a = ang(e, p), d = dist(e, p);
+  e.phaseT -= dt;
+  switch (e.type) {
+    case "BeamSentry":
+      if (e.phase === 0 && e.t > 1.5 && d > 310 && d < 450) { e.phase = 1; e.phaseT = 0.6; }
+      else if (e.phase === 1 && e.phaseT <= 0) { e.phase = 2; e.phaseT = 1; e.facing = a; }
+      else if (e.phase === 2) {
+        const diff = ((a - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI; e.facing += clamp(diff, -0.6 * dt, 0.6 * dt);
+        if (e.phaseT <= 0) { e.sweep = diff >= 0 ? 1 : -1; e.facing -= e.sweep * 0.5; e.phase = 3; e.phaseT = 1.5; }
+      } else if (e.phase === 3) {
+        e.facing += e.sweep * (Math.PI / 2) / 1.5 * dt;
+        if (segDist(p, e, { x: e.x + Math.cos(e.facing) * 900, y: e.y + Math.sin(e.facing) * 900 }) < 8 + p.hitR) hurt(20 + 0.3 * S.wave);
+        if (e.phaseT <= 0) { e.phase = 4; e.phaseT = 1.5; }
+      } else if (e.phase === 4 && e.phaseT <= 0) { e.phase = d < 580 ? 2 : 0; e.phaseT = 1; }
+      break;
+    case "Scorcher":
+      if (e.phaseT <= 0) { e.phaseT = 0.25; (world.embers = world.embers || []).push({ x: e.x, y: e.y, t: 0 }); }
+      break;
+    case "Reaver":
+      if (e.phase === 0 && d < 110 + e.r) { e.phase = 1; e.phaseT = 0.4; e.facing = a; }
+      else if (e.phase === 1 && e.phaseT <= 0) {
+        if (d < 110 + e.r + p.hitR && Math.abs(((a - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI) < Math.PI / 3) hurt(26);
+        addFx("ring", e.x + Math.cos(e.facing) * 60, e.y + Math.sin(e.facing) * 60, e.d.col, 70, 0.25);
+        e.phase = 3; e.phaseT = 0.7;
+      } else if (e.phase === 3 && e.phaseT <= 0) e.phase = 0;
+      break;
+    case "Warder":
+      e.t2 -= dt;
+      if (e.t2 <= 0) {
+        e.t2 = 6;
+        const near = world.enemies.filter(o => o !== e && !o.dead && o.type !== "Warder" && o.spawnT <= 0 && dist(o, e) < 320).sort((x, y) => dist(x, e) - dist(y, e)).slice(0, 3);
+        for (const o of near) { o.ward = e.id; o.bubble = 1; }
+        if (near.length) addFx("ring", e.x, e.y, e.d.col, 320, 0.5);
+      }
+      break;
+  }
+}
+// The Warder's demo needs allies to ward: two Grunts come with it.
+function drawVariety(t) {
+  const p = world.player;
+  world.embers = (world.embers || []).filter(m => (m.t += 1 / 60) < 3);
+  for (const m of world.embers) {
+    const k = 1 - m.t / 3;
+    cx.fillStyle = `rgba(220,80,15,${0.3 * k})`; cx.beginPath(); cx.arc(m.x, m.y, 24, 0, TAU); cx.fill();
+    cx.fillStyle = `rgba(255,160,50,${0.3 * k})`; cx.beginPath(); cx.arc(m.x, m.y, 13, 0, TAU); cx.fill();
+    if (dist(m, p) < 24 + p.hitR && m.t > 0.15) hurt(15 * 0.25);
+  }
+  for (const e of world.enemies) {
+    if (e.dead || e.spawnT > 0) continue;
+    if (e.type === "BeamSentry" && (e.phase === 2 || e.phase === 3)) {
+      cx.beginPath(); cx.moveTo(e.x, e.y); cx.lineTo(e.x + Math.cos(e.facing) * 900, e.y + Math.sin(e.facing) * 900);
+      if (e.phase === 2) { if (S.tele) { cx.setLineDash([12, 10]); cx.strokeStyle = "rgba(111,227,255,0.6)"; cx.lineWidth = 2; cx.stroke(); cx.setLineDash([]); } }
+      else { cx.strokeStyle = "rgba(111,227,255,0.3)"; cx.lineWidth = 32; cx.stroke(); cx.strokeStyle = "#dff8ff"; cx.lineWidth = 9; cx.stroke(); }
+    }
+    if (e.type === "Reaver" && e.phase === 1 && S.tele) { cx.fillStyle = "rgba(255,77,109,0.25)"; cx.beginPath(); cx.moveTo(e.x, e.y); cx.arc(e.x, e.y, 110 + e.r, e.facing - Math.PI / 3, e.facing + Math.PI / 3); cx.closePath(); cx.fill(); }
+    if (e.type === "Reaver" && e.phase === 3) { cx.strokeStyle = `rgba(143,208,255,${0.6 + 0.4 * Math.sin(t * 20)})`; cx.lineWidth = 3; cx.beginPath(); cx.arc(e.x, e.y, e.r + 8, 0, TAU); cx.stroke(); }
+    if (e.bubble) {
+      const w = world.enemies.find(o => o.id === e.ward && !o.dead);
+      if (!w) { e.bubble = 0; continue; }
+      cx.strokeStyle = "rgba(181,155,255,0.55)"; cx.lineWidth = 2; cx.setLineDash([4, 6]); cx.beginPath(); cx.moveTo(w.x, w.y); cx.lineTo(e.x, e.y); cx.stroke(); cx.setLineDash([]);
+      cx.fillStyle = "rgba(181,155,255,0.12)"; cx.beginPath(); cx.arc(e.x, e.y, e.r + 11, 0, TAU); cx.fill(); cx.strokeStyle = "rgba(181,155,255,0.8)"; cx.stroke();
+    }
+  }
+}
+
 const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
 const clearRiot = (guards) => { for (const o of world.enemies) if (o.type === "Rioter" || (guards && o.type === "RiotGuard")) o.dead = true; };
 
@@ -1284,6 +1375,15 @@ function move(e, dt) {
     }
     case "Phantom": v = kd(250, 0.7); break;
     case "Hexer": v = kd(300, 0.5); break;
+    case "BeamSentry": v = e.phase === 0 ? kd(380, 0.3) : [0, 0]; break;
+    case "Scorcher": { const k = kd(260, 0); const a = ang(e, world.player) + Math.PI / 2 * e.strafe; v = [Math.cos(a) + k[0] * 0.8, Math.sin(a) + k[1] * 0.8]; break; }
+    case "Reaver": { const a = ang(e, world.player); v = e.phase === 0 ? [Math.cos(a), Math.sin(a)] : [0, 0]; break; }
+    case "Warder": {
+      const al = world.enemies.filter(o => o !== e && !o.dead && o.type !== "Warder" && dist(o, e) < 600);
+      if (!al.length) { v = kd(380, 0); break; }
+      const cx0 = al.reduce((a, o) => a + o.x, 0) / al.length, cy0 = al.reduce((a, o) => a + o.y, 0) / al.length, a = ang({ x: cx0, y: cy0 }, world.player);
+      v = [(cx0 - Math.cos(a) * 160 - e.x) / 80, (cy0 - Math.sin(a) * 160 - e.y) / 80]; break;
+    }
     case "Juggernaut": v = kd(140, 0); break;
     case "Colossus": v = kd(200, 0); break;
     case "Duelist": v = kd(280, 0.8); break;
@@ -1352,6 +1452,7 @@ function special(e, dt) {
   const p = world.player;
   const late = ["Phantom", "Nest", "Colossus", "Duelist", "Decoy", "Lich", "StormHerald", "Devourer", "Eclipse"].includes(e.type);
   if (late) e.phaseT -= dt;
+  if (["BeamSentry", "Scorcher", "Reaver", "Warder"].includes(e.type)) { varietyTick(e, dt); return; }
   switch (e.type) {
     case "Warden": wardenTick(e, dt); break;
     case "Rioter": {  // one that reaches the Warden lands a blow on it and is gone
@@ -1561,6 +1662,9 @@ function fire(e) {
       break;
     }
     case "Phantom": e.fireT = 1.5; shot(e, aim - 0.05, 200, "small"); shot(e, aim + 0.05, 200, "small"); break;
+    case "BeamSentry": case "Reaver": e.fireT = 99; break;  // their beam and rake come from varietyTick
+    case "Scorcher": e.fireT = 2.5; shot(e, aim - 0.1, 170, "small"); shot(e, aim + 0.1, 170, "small"); break;
+    case "Warder": e.fireT = 3; shot(e, aim - 0.2, 120, "big"); shot(e, aim + 0.2, 120, "big"); break;
     case "Hexer": e.fireT = 2; for (let s = -1; s <= 1; s += 2) { shot(e, aim + s * 0.7, 170, "small", -s * 1.1); shot(e, aim + s * 1.2, 150, "small", -s * 1.6); } break;
     case "Juggernaut": e.fireT = 2.5; e.ang += 0.2; for (let k = 0; k < 8; k++) shot(e, e.ang + TAU * k / 8, 110, "big"); break;
     case "Colossus": e.fireT = 1.2; for (let i = -1; i <= 1; i++) shot(e, aim + i * 0.18, 170, "pierce"); break;
@@ -1826,6 +1930,7 @@ function drawArena() {
   if (hd && hd.h) drawHerald(hd, t);
   const ec = world.enemies.find(o => o.type === "Eclipse" && o.spawnT <= 0 && !o.dead);
   if (ec && ec.c) drawEclipse(ec, t);
+  drawVariety(t);
   if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0, n = singLasers(sg); k < n; k++) {
     const a = sg.facing + TAU * k / n;
     if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, 40, 2000); } }

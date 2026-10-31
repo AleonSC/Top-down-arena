@@ -264,6 +264,11 @@ namespace Arena
                 DrawGasPatch(pt, r, fade, t);
                 return;
             }
+            if (pt.Kind == PatchKind.Embers)
+            {
+                DrawEmbers(pt, r, t);  // a Scorcher's trail (VarietyLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Lava)
             {
                 // The Colossus's lava (Colossus.cs): a dull glow while it settles, then bubbling molten rock.
