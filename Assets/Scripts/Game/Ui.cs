@@ -342,24 +342,26 @@ namespace Arena
             int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
             if (icon != null && iconLeft)
             {
-                float isz = Mathf.Min(28f, r.height * 0.5f);
-                float tw = Mathf.Max(TextWidth(text, 15, true), sub != null ? TextWidth(sub, 11) : 0f);
-                float gx = r.center.x - (isz + 10f + tw) / 2f;
+                int ns = sub != null ? 15 : size;  // without a second line: the row's text size (shrunk to fit by the caller)
+                float isz = sub != null ? Mathf.Min(28f, r.height * 0.5f) : Mathf.Min(16f, r.height * 0.42f);
+                float tw = Mathf.Max(TextWidth(text, ns, true), sub != null ? TextWidth(sub, 11) : 0f);
+                float igap = sub != null ? 10f : 5f;
+                float gx = r.center.x - (isz + igap + tw) / 2f;
                 Icon(new Rect(gx, r.center.y - isz / 2f - 1f, isz, isz), icon);
-                float tx = gx + isz + 10f;
+                float tx = gx + isz + igap;
                 if (sub != null)
                 {
                     Label(new Rect(tx, r.center.y - 19f, tw + 8f, 20f), text, 15, name, TextAnchor.MiddleLeft, true);
                     Label(new Rect(tx, r.center.y + 1f, tw + 8f, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleLeft);
                 }
                 else
-                    Label(new Rect(tx, r.y, tw + 8f, r.height - barH), text, 15, name, TextAnchor.MiddleLeft, true);
+                    Label(new Rect(tx, r.y, tw + 8f, r.height - barH), text, ns, name, TextAnchor.MiddleLeft, true);
             }
             else if (icon != null)
             {
                 float isz = Mathf.Min(24f, r.height * 0.36f);
                 Icon(new Rect(r.center.x - isz / 2f, r.y + 6f, isz, isz), icon);
-                Label(new Rect(r.x, r.y + 8f + isz, r.width, 18f), text, 15, name, TextAnchor.MiddleCenter, true);
+                Label(new Rect(r.x, r.y + 8f + isz, r.width, 18f), text, textSize > 0 ? textSize : 15, name, TextAnchor.MiddleCenter, true);
                 if (sub != null)
                     Label(new Rect(r.x, r.y + 25f + isz, r.width, 14f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleCenter);
             }
