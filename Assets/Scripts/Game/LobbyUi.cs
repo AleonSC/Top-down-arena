@@ -605,7 +605,7 @@ namespace Arena
             var cog = new Rect(200f, H - 70f, 48f, 48f);
             if (Ui.FancyButton(cog, "", Ui.Neutral, null, t))
                 settingsOpen = true;
-            Ui.Icon(new Rect(cog.center.x - 11f, cog.center.y - 11f - (Ui.ButtonStyle == 1 ? 3f : 0f), 22f, 22f), PixelArt.Get("ui_gear"));
+            Ui.Icon(new Rect(cog.center.x - 11f, cog.center.y - 11f, 22f, 22f), PixelArt.Get("ui_gear"));
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W - 560f : W - 300f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);

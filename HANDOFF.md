@@ -244,10 +244,9 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 **From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
 
-**Button style trial (Oct 2026), no protocol change:** Settings → **Button style** dropdown (saved as PlayerPrefs
-`button_style`) switches every `Ui.FancyButton` between six looks, mocked up at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi:
-A Sheen (the original), B Slab, C Capsule, D Chamfer, E Glow, F Split (`ButtonStyles.cs`, `Ui.StyledButton`). Temporary:
-once the owner picks one, make it the only style and remove the dropdown. Preview: `BUTTONSTYLE=n`, `STYLEMENU=1` (settings).
+**Button style trial (Oct 2026), no protocol change:** six looks (A Sheen, B Slab, C Capsule, D Chamfer, E Glow, F Split;
+mockups at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi) were tried from a Settings dropdown; the owner kept **A Sheen**
+(`Ui.FancyButton`), and the dropdown and the other styles were removed. The lobby has a cog by Leave that opens Settings.
 
 **Fancy menu buttons + Field guide button (Oct 2026), no protocol change:** `Ui.FancyButton(r, text, tint, icon, t)`
 (icon chip, `Ui.Fancy` lettering, a lighter face and a shine on hover; no outline: the owner doesn't want outlines around buttons) on the main menu's buttons (Host / Join / Cancel too), every Back, the saved

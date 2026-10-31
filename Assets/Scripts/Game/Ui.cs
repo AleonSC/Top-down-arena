@@ -6,7 +6,7 @@ namespace Arena
     /// A small IMGUI toolkit for the menus: rounded panels, tinted buttons, fields,
     /// sliders and checkboxes. Textures are generated in code, so there are no image
     /// files. Call Init() from OnGUI before using anything else.
-    public static partial class Ui
+    public static class Ui
     {
         public static readonly Color Text = new Color(0.93f, 0.95f, 1f);
         public static readonly Color Muted = new Color(0.62f, 0.67f, 0.78f);
@@ -48,7 +48,6 @@ namespace Arena
             cardTint = Style(Rounded(10, new Color(1f, 1f, 1f, 0.42f), new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), 0f), 10);
             cardRim = Style(Rounded(10, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.5f), 10);
             chip = Circle(40, Color.white, Color.white);
-            InitButtonStyles();  // ButtonStyles.cs
             button.alignment = TextAnchor.MiddleCenter;
             button.fontSize = 16;
             button.fontStyle = FontStyle.Bold;
@@ -230,8 +229,6 @@ namespace Arena
         /// outline, like titles), and on hover a lighter face and a shine sweeping across. No outline around it. t = time in seconds.
         public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
         {
-            if (ButtonStyle != 0)
-                return StyledButton(r, text, tint, icon, t, size);  // the other looks, picked in Settings (ButtonStyles.cs)
             bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
             Fill(new Rect(r.x + 12f, r.y + 2f, r.width - 24f, 1f), new Color(1f, 1f, 1f, hover ? 0.4f : 0.22f));  // top highlight

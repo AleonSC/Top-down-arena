@@ -378,59 +378,22 @@ namespace Arena
 
         void DrawSettings()
         {
-            var panel = new Rect(W / 2f - 240f, 20f, 480f, 680f);
+            var panel = new Rect(W / 2f - 240f, 30f, 480f, 660f);
             float x = panel.x + 40f, w = panel.width - 80f;
-            // The button style dropdown: its open list is drawn last (on top), so it takes clicks first.
-            var styleBox = new Rect(x + w - 210f, panel.y + 452f, 210f, 32f);
-            var styleList = new Rect(styleBox.x, styleBox.yMax + 4f, styleBox.width, Ui.ButtonStyleNames.Length * 30f + 8f);
-            var ev = Event.current;
-            if (styleMenuOpen && ev.type == EventType.MouseDown)
-            {
-                if (styleList.Contains(ev.mousePosition))
-                    SetButtonStyle(Mathf.Clamp((int)((ev.mousePosition.y - styleList.y - 4f) / 30f), 0, Ui.ButtonStyleNames.Length - 1));
-                styleMenuOpen = false;
-                ev.Use();
-            }
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
             DrawAudioOptions(x, panel.y + 82f, w);
             float t = Time.unscaledTime;
 
-            // Which look the fancy buttons use, to try them out (ButtonStyles.cs).
-            Ui.Label(new Rect(x, styleBox.y, w - styleBox.width, styleBox.height), "Button style", 14, Ui.Text);
-            if (Ui.Button(styleBox, "", styleMenuOpen ? Ui.Accent : Ui.Neutral))
-                styleMenuOpen = !styleMenuOpen;
-            Ui.Label(new Rect(styleBox.x + 14f, styleBox.y, styleBox.width - 44f, styleBox.height), Ui.ButtonStyleNames[Ui.ButtonStyle], 14, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Icon(new Rect(styleBox.xMax - 30f, styleBox.center.y - 8f, 16f, 16f), PixelArt.Get("ui_down"));
-
             // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
-            if (Ui.FancyButton(new Rect(x, panel.y + 500f, w, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+            if (Ui.FancyButton(new Rect(x, panel.y + 466f, w, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
                 OpenFieldGuide();
+            Ui.Label(new Rect(x, panel.y + 512f, w, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
 
             // The developer tools (session recording etc.) live in the F1 menu.
-            Ui.Label(new Rect(x, panel.y + 556f, w, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(x, panel.y + 548f, w, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
             if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
                 settingsOpen = false;
-            if (styleMenuOpen)
-            {
-                Ui.Panel(styleList);
-                for (int i = 0; i < Ui.ButtonStyleNames.Length; i++)
-                {
-                    var row = new Rect(styleList.x + 4f, styleList.y + 4f + i * 30f, styleList.width - 8f, 28f);
-                    if (i == Ui.ButtonStyle || row.Contains(ev.mousePosition))
-                        Ui.Pill(row, i == Ui.ButtonStyle ? new Color(Ui.Accent.r, Ui.Accent.g, Ui.Accent.b, 0.45f) : new Color(1f, 1f, 1f, 0.07f));
-                    Ui.Label(new Rect(row.x + 12f, row.y, row.width - 16f, row.height), Ui.ButtonStyleNames[i], 14, Color.white, TextAnchor.MiddleLeft, i == Ui.ButtonStyle);
-                }
-            }
-        }
-
-        bool styleMenuOpen;
-
-        void SetButtonStyle(int i)
-        {
-            Ui.ButtonStyle = i;
-            PlayerPrefs.SetInt("button_style", i);
-            PlayerPrefs.Save();
         }
 
         /// Volume sliders and mute; changes are saved right away.
@@ -478,7 +441,6 @@ namespace Arena
             sounds.Music = PlayerPrefs.GetFloat("vol_music", 0.7f);
             sounds.Muted = PlayerPrefs.GetInt("muted", 0) == 1;
             aimLine = PlayerPrefs.GetInt("aim_line", 1) == 1;
-            Ui.ButtonStyle = Mathf.Clamp(PlayerPrefs.GetInt("button_style", 0), 0, Ui.ButtonStyleNames.Length - 1);  // Settings → Button style
         }
 
         void SaveAudioSettings()
