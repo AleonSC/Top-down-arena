@@ -362,7 +362,7 @@ namespace Arena
             {
                 var rc = ToColor(Defs.Roles[i].Color);
                 var b = new Rect(x + i * (third + gap), y + 28f, third, 66f);
-                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP"))
+                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
@@ -381,7 +381,7 @@ namespace Arena
                 while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 14f)
                     kitSize--;
             for (int i = 0; i < Defs.KitCount; i++)
-                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 36f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, null, null, kitSize))
+                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 36f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, null, null, kitSize, glow: false))
                 {
                     session.RequestKit((Kit)i);
                     kitChoice = (Kit)i;
@@ -393,7 +393,7 @@ namespace Arena
 
             Ui.Heading(x, y, w, "Weapon");
             for (int i = 0; i < Defs.WeaponsPerRole; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 36f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor))
+                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 36f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
                 {
                     session.RequestWeapon(i);
                     weaponChoice = i;
@@ -408,7 +408,7 @@ namespace Arena
                 var b = new Rect(x + i * (third + gap), y + 28f, third, 36f);
                 if (b.Contains(Event.current.mousePosition))
                     hovered = i;
-                if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor))
+                if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor, glow: false))
                 {
                     session.RequestAbility(i);
                     abilityChoice = i;

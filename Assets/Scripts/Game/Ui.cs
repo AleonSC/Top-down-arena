@@ -290,11 +290,12 @@ namespace Arena
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
         /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0)
+        /// glow: false leaves out the soft halo around the selected one (the lobby loadout).
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
-            if (selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
+            if (glow && selected && r.height >= 30f)  // soft glow behind (left off small rows, where it looks blocky)
             {
                 GUI.backgroundColor = new Color(accent.r, accent.g, accent.b, 0.22f);
                 GUI.Box(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), GUIContent.none, pill);
