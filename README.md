@@ -72,8 +72,8 @@ How shot upgrades work on a melee weapon (the cards say so when you're a Knight)
 - **Piercing Rounds**: +10% reach per stack (and sword waves pierce one more).
 - **Barrage**: every swing also throws a **sword wave** per stack, fanned out to the sides.
 - **Incendiary, Cryo, Shock and Explosive Rounds**, Swarm Rounds, Collapse Rounds and Graviton Rounds apply to
-  every melee hit. **Homing, Ricochet and Velocity Rounds** only change your sword waves (Velocity's +15%
-  damage counts for everything).
+  every melee hit. **Ricochet** flings bounce bolts off your hits (see the mods table). **Homing and Velocity
+  Rounds** only change your sword waves (Velocity's +15% damage counts for everything).
 
 ### The Ninja
 
@@ -221,7 +221,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
-| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
+| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
 
@@ -302,16 +302,21 @@ have chosen.
 
 | Mod | Per stack |
 |---|---|
-| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils, Frost Lance, Golem Staff, Chain Light, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc, lightning's reach, splinters, boulder, cone or strip, for the same damage cost |
-| **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack |
-| **Incendiary Rounds** | Hits set enemies on fire for 3 s, burning 25% of the hit's damage per second |
+| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils, Frost Lance, Golem Staff, Chain Light, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc, lightning's reach, splinters, boulder, cone or strip, for the same damage cost. **Wisp Lantern and Imp Caller:** the wisps and imps you send pick an enemy 50% farther from your cursor per stack, and one sent at empty ground (or whose target dies) turns onto an enemy within 260 px of it, for the same damage cost |
+| **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, sent wisps and imps, and shots that pierce: Railgun, drawn arrows, Bone Spear, Fireball, flames, Fuma Shuriken) store their damage instead, and up to 4 times a second a **bounce bolt** carries 75% of it from the enemy hit to the nearest other one (+1 bounce per extra stack) |
+| **Incendiary Rounds** | Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s (per stack), and burns from every hit add up, so fast and slow weapons gain about the same |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
 | **Shock Rounds** | 15% chance per hit for lightning to arc to 2 more enemies at 60% damage |
 | **Explosive Rounds** | Shots explode on impact for 30% damage around them (bigger blast per stack) |
 | **Velocity Rounds** | Shots fly 30% faster and farther, +15% damage |
 
-Mods apply to your weapon's shots and your minions' shots, but not to grenades. On a Knight, the elemental mods
-apply to every melee hit (see The Knight above).
+Mods apply to your weapon's shots and your minions' shots, but not to grenades. They also ride every hit of
+weapons that don't fire bullets (melee swings, beams, cones, the Repulsion Cannon's blast, Ofuda ward bursts,
+sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (see The Knight above).
+
+**Piercing Rounds** let shots pass through one more enemy per stack. Weapons without bullets that run out of
+pierce (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit
+Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller) reach 10% farther per stack instead.
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.

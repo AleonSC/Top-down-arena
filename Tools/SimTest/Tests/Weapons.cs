@@ -1373,6 +1373,25 @@ static partial class Program
         Check(sentOne && Math.Abs(wispHit - me.Weapon.Damage * me.Stats.DmgMult) < 0.5f && back, "firing the Wisp Lantern sends one wisp to strike what you aim at, and it comes back");
         reset();
 
+        // Wisp Lantern with Homing Rounds: a wisp sent at empty ground near an enemy turns onto it (for 10% less damage).
+        Func<float> wide = () =>
+        {
+            play(1.5f, new PlayerInput());
+            var foe = dummy(from + new V2(250f, 0f));
+            V2 miss = from + new V2(250f, 200f);  // 200 px off: too far for a plain wisp to pick it
+            me.AimAt = miss;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            play(1.2f, new PlayerInput { AimAt = miss });
+            float done = foe.MaxHp - foe.Hp;
+            reset();
+            return done;
+        };
+        float plainMiss = wide();
+        g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds"));
+        float homed = wide();
+        Console.WriteLine("  wisp lantern + Homing Rounds: sent beside an enemy, a plain wisp did {0:0.0}, a homing one {1:0.0}", plainMiss, homed);
+        Check(plainMiss == 0f && Math.Abs(homed - me.Weapon.Damage * me.Stats.DmgMult * 0.9f) < 0.5f, "Homing Rounds turn a sent wisp onto a nearby enemy, for 10% less damage");
+
         // Imp Caller.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ImpCaller);
         Func<int> imps = () => g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && !m.Sent);
@@ -2287,5 +2306,149 @@ static partial class Program
         hold(1f, false, dummy.Pos);
         Check(!me.RadiantOn && !seen.RadiantOn && dummy.Hp == hp2, "let go and it's gone");
         host.Leave(""); client.Leave("");
+    }
+
+    // Upgrade fixes: Velocity Rounds no longer carry a Flak Cannon shell or Ofuda charm past the cursor, and Incendiary
+    // Rounds add up over every hit (about +25% a stack on a fast weapon and a slow one alike).
+    static void UpgradeFixesTest(float dt)
+    {
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var volley = typeof(Game).GetMethod("FireVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var host = new Session { AutoStart = 1, StartWave = 3 };
+        host.Host(nextPort++, "A", Role.Tank, 0);
+        host.StartMatch();
+        var g = host.Game;
+        for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+        var me = g.Players[1];
+        g.DevSetGod(1, true);
+        Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
+        Action<string, int> build = (up, n) => { me.Taken.Clear(); for (int k = 0; k < n; k++) me.Taken.Add(U(up)); g.GrantUpgrade(1, U("Vitality")); };
+        V2 from = new V2(400f, 450f);
+        Action clear = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); } g.Bullets.Clear(); g.Zones.Clear(); g.Minions.Clear(); };
+        Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; return e; };
+
+        // Velocity Rounds: where a Flak shell bursts and an Ofuda charm lands, aimed 250 px away.
+        var landed = new List<string>();
+        bool allAtCursor = true;
+        foreach (var id in new[] { WeaponId.FlakCannon, WeaponId.Ofuda })
+            foreach (int stacks in new[] { 0, 3 })
+            {
+                clear();
+                build("Velocity Rounds", stacks);
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                me.Pos = from;
+                me.AimAt = from + new V2(250f, 0f);
+                volley.Invoke(g, new object[] { me, 0f, 0 });
+                var b = g.Bullets.Values.First(x => x.Owner == 1);
+                V2 last = b.Pos + b.Vel * b.Life;  // where its flight ends (it bursts or lands there)
+                float dist = last.DistanceTo(me.AimAt);
+                landed.Add(string.Format("{0} x{1}: {2:0} px from the cursor", me.Weapon.Name, stacks, dist));
+                allAtCursor &= dist < 30f;
+            }
+        Console.WriteLine("  " + string.Join("; ", landed));
+        Check(allAtCursor, "Velocity Rounds don't carry Flak Cannon shells or Ofuda charms past the cursor");
+
+        // Incendiary Rounds on a fast weapon (Riot Repeater) and a slow one (Revolver, as a Healer would): 6 s on one enemy.
+        var gain = new List<float>();
+        foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Pistol })
+        {
+            var dealt = new float[2];
+            for (int pass = 0; pass < 2; pass++)
+            {
+                clear();
+                build("Incendiary Rounds", pass);
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                var e = dummy(from + new V2(200f, 0f));
+                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = e.Pos }); }
+                for (int f = 0; f < 60 * 4; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput()); }  // let it burn out
+                dealt[pass] = e.MaxHp - e.Hp;
+            }
+            gain.Add(dealt[1] / dealt[0] - 1f);
+        }
+        Console.WriteLine("  incendiary (1 stack): Riot Repeater {0:+0}%, Revolver {1:+0}%", gain[0] * 100f, gain[1] * 100f);
+        Check(gain.All(x => x > 0.2f && x < 0.3f), "Incendiary Rounds add 25% of every hit as burn, on fast and slow weapons alike");
+
+        // Hits that aren't bullets (a cone, a blast, a ward burst) carry weapon mods too: Explosive Rounds used to be
+        // dropped for them (their splashes were cleared before they were spent), and some never applied mods at all.
+        var res = new List<string>();
+        bool modsRide = true;
+        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.LightBolt, WeaponId.Ofuda })
+        {
+            var dealt = new float[2];
+            bool burned = false;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                clear();
+                me.Taken.Clear();
+                if (pass == 1) { me.Taken.Add(U("Explosive Rounds")); me.Taken.Add(U("Incendiary Rounds")); }
+                g.GrantUpgrade(1, U("Vitality"));
+                me.Weapon = Defs.Weapons.First(w => w.Id == id);
+                V2 at = from + new V2(150f, 0f), side = at + new V2(10f, 28f);
+                var a1 = dummy(at); var a2 = dummy(side);
+                for (int f = 0; f < 60 * 6; f++)
+                {
+                    a1.Pos = at; a2.Pos = side; a1.FrozenT = a2.FrozenT = 1f; me.Pos = from;
+                    host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at });
+                    burned |= pass == 1 && (a1.PoolT > 0f || a2.PoolT > 0f);
+                }
+                dealt[pass] = (a1.MaxHp - a1.Hp) + (a2.MaxHp - a2.Hp);
+            }
+            res.Add(string.Format("{0} {1:+0}%{2}", Defs.WeaponOf(id).Name, (dealt[1] / Math.Max(1f, dealt[0]) - 1f) * 100f, burned ? " burning" : " NOT burning"));
+            modsRide &= burned && dealt[1] > dealt[0] * 1.03f;  // the Repulsion Cannon shoves enemies out of its own explosions, so it gains least
+        }
+        Console.WriteLine("  Explosive + Incendiary Rounds on non-bullet weapons: " + string.Join(", ", res));
+        Check(modsRide, "weapon mods (Explosive, Incendiary) apply to Chain Light, Repulsion Cannon and Ofuda hits");
+
+        // Ricochet on a weapon whose hits can't bounce (Chain Light's cone): a bounce bolt carries on to an enemy outside it.
+        var outside = new float[2];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            clear();
+            me.Taken.Clear();
+            if (pass == 1) me.Taken.Add(U("Ricochet"));
+            g.GrantUpgrade(1, U("Vitality"));
+            me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
+            V2 at = from + new V2(150f, 0f), beside = at + new V2(0f, 200f);  // well outside the cone, within a bounce of the first
+            var a1 = dummy(at); var a2 = dummy(beside);
+            for (int f = 0; f < 60 * 3; f++)
+            {
+                a1.Pos = at; a2.Pos = beside; a1.FrozenT = a2.FrozenT = 1f; me.Pos = from;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at });
+            }
+            outside[pass] = a2.MaxHp - a2.Hp;
+        }
+        Console.WriteLine("  ricochet on Chain Light: the enemy outside the cone took {0:0.0} without, {1:0.0} with", outside[0], outside[1]);
+        Check(outside[0] == 0f && outside[1] > 0f, "Ricochet flings bounce bolts off hits that can't bounce (Chain Light's cone)");
+
+        // Piercing Rounds on weapons without bullets that run out of pierce: each stack reaches 10% farther.
+        var longer = new List<string>();
+        bool allLonger = true;
+        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FrostLance, WeaponId.FumaShuriken, WeaponId.LightBolt, WeaponId.RadiantOrb,
+            WeaponId.ChainLight, WeaponId.SpiritFan, WeaponId.Ofuda, WeaponId.ArcLightning, WeaponId.WispLantern, WeaponId.ImpCaller })
+        {
+            me.Weapon = Defs.Weapons.First(w => w.Id == id);
+            build("Piercing Rounds", 0);
+            float r0 = g.WeaponRange(me) - me.Def.BodyR;
+            build("Piercing Rounds", 2);
+            float r2 = g.WeaponRange(me) - me.Def.BodyR;
+            float ratio = r2 / r0;
+            if (Math.Abs(ratio - 1.2f) > 0.03f) { allLonger = false; longer.Add(me.Weapon.Name + string.Format(" x{0:0.00}", ratio)); }
+        }
+        Console.WriteLine("  piercing (2 stacks): every reach x1.2 {0}{1}", allLonger, longer.Count > 0 ? " (off: " + string.Join(", ", longer) + ")" : "");
+        Check(allLonger, "Piercing Rounds make weapons without piercing bullets reach 10% farther a stack");
+        var reached = new float[2];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            clear();
+            build("Piercing Rounds", pass * 2);
+            me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
+            V2 at = from + new V2(Game.LightConeReach * 1.15f + Defs.Get(EnemyType.Brute).Radius, 0f);  // its edge 15% past the plain cone (the cone counts from your centre)
+            var a1 = dummy(at);
+            for (int f = 0; f < 60 * 2; f++) { a1.Pos = at; a1.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at }); }
+            reached[pass] = a1.MaxHp - a1.Hp;
+        }
+        Console.WriteLine("  piercing on Chain Light: an enemy 15% past the plain cone took {0:0.0} without, {1:0.0} with 2 stacks", reached[0], reached[1]);
+        Check(reached[0] == 0f && reached[1] > 0f, "with Piercing Rounds the Chain Light's cone reaches enemies past its plain length");
+        host.Leave("");
     }
 }

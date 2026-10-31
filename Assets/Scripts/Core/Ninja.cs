@@ -43,7 +43,7 @@ namespace Arena
                     for (int i = 0; i <= extra; i++)
                     {
                         float s = i % 2 == 0 ? 1f : -1f, size = FumaSize(i);
-                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * MathX.Tau / w.Life);  // it sets off sideways (FumaTurn)
+                        V2 vel = front.Orthogonal() * (-s * FumaWidth * size * PierceReach(p) * MathX.Tau / w.Life);  // it sets off sideways (FumaTurn); Piercing Rounds widen the loop
                         SpawnBullet(Defs.FumaStar, p.Pos, vel, s, w.Life, w.Damage * dmg, p.Id).Pierce += 99;
                     }
                     break;
@@ -63,7 +63,7 @@ namespace Arena
                 {
                     // A gust: five short-lived puffs that heal allies they pass, and small enemy bullets in front blown back.
                     // Shots alternate: a gust out that blows enemies away, then a draw in that pulls them to you.
-                    float reach = 1f + w.Grow * extra;
+                    float reach = (1f + w.Grow * extra) * PierceReach(p);  // Piercing Rounds: the gust reaches farther
                     bool draw = p.SwingCount % 2 == 0;
                     float len = w.Speed * w.Life * reach * p.Stats.ShotSpeedMult;
                     for (int i = 0; i < 5; i++)
@@ -90,11 +90,13 @@ namespace Arena
                 {
                     int n = 1 + extra;
                     // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
-                    float far = Math.Min(WardRange, Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+                    // Velocity Rounds speed charms up (SpawnBullet) and reach farther, but they still land at the cursor.
+                    float fast = w.Speed * p.Stats.ShotSpeedMult;
+                    float far = Math.Min(WardRange * p.Stats.ShotSpeedMult * PierceReach(p), Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
                     for (int i = 0; i < n; i++)
                     {
                         float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * 0.4f * (n - 1));
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / w.Speed, w.Damage * dmg, p.Id);
+                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
                         b.Ward = true;
                         b.Burst = 1;  // marks it as landing (MoveBullets)
                     }
@@ -546,7 +548,10 @@ namespace Arena
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
             foreach (var e in Enemies.Values)
                 if (e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(z.Pos) < r + e.Radius)
+                {
                     HurtEnemy(e, dmg, z.Owner);
+                    OnBulletHit(new Bullet { Pos = e.Pos, Owner = z.Owner, Dmg = dmg, Kind = Defs.OfudaShot }, e);  // weapon mods ride the burst
+                }
             foreach (var q in Players.Values)
                 if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach)
                     Heal(q, WardHeal, PlayerOrNull(z.Owner));

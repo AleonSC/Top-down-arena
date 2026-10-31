@@ -282,7 +282,7 @@ tr:last-child td { border-bottom: 0; }
     <div class="box">
       <h4>Minions</h4>
       <div class="tablewrap"><table id="minionTable"></table></div>
-      <p class="foot" style="margin-top:8px">Minions use your damage and fire-rate upgrades. Alpha Call and Legion frenzy them: 1.6× speed, attacks twice as often, 1.3× damage. Blocking minions stop enemy bullets coming in from outside; boss bullets wear their block down (companions stagger for 4 s, walls break).</p>
+      <p class="foot" style="margin-top:8px">Minions use your damage and fire-rate upgrades. Alpha Call and Legion frenzy them (not Legion's own pack): 1.6× speed, attacks twice as often, 1.3× damage. Blocking minions stop enemy bullets coming in from outside; boss bullets wear their block down (companions stagger for 4 s, walls break).</p>
     </div>
     <div class="box">
       <h4>Ground zones</h4>
@@ -844,7 +844,7 @@ const A = [
     stats: [["Lasts", "6 s"], ["Fire rate", "× 3"], ["Extra projectiles", "+2 (each weapon upgrades its own way: see Weapons)"]], demo: { type: "buff", dur: 6, col: [1, 0.6, 0.25], shots: true, storm: true } },
   { id: "Meteor Storm", slot: "Ultimate", role: "DPS", kit: "Elementalist", cd: 70, desc: "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
     stats: [["Meteors", "12, aimed at enemies, one every 0.2 s"], ["Each", "150 damage within 90 px"]], demo: { type: "meteor", r: 90, n: 12, col: [1, 0.35, 0.15] } },
-  { id: "Legion", slot: "Ultimate", role: "DPS", kit: "Summoner", cd: 70, desc: "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
+  { id: "Legion", slot: "Ultimate", role: "DPS", kit: "Summoner", cd: 70, desc: "Summon 6 wolves and 6 bats for 10 s, and your other minions frenzy.",
     stats: [["Summons", "6 Wolves + 6 Bats"], ["Lasts", "10 s"], ["Frenzy", "All minions: 1.6× speed, 2× attack rate, 1.3× damage"]], demo: { type: "summon", minion: "Wolf", n: 6, extra: "Bat", dur: 10 } },
   // Knight
   { id: "Shield Wall", slot: "Space", role: "Tank", kit: "Knight", cd: 12, desc: "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), red aimed shots included. Bosses can break it (it soaks 400 of their damage).",
@@ -1010,7 +1010,7 @@ const U = [
   ["Rare", "Crimson Tide", "Hemo Nova fires 8 more bolts", 2, null, "Hemo Nova"],
   ["Rare", "Multishot", "+1 projectile: upgrades your weapon in its own way (the card shows how)", 3, s => s.extra += 1],
   ["Rare", "Barrage", "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets", 3, s => s.fan += 1],
-  ["Rare", "Piercing Rounds", "Shots pass through one more enemy", 2, s => s.pierce += 1],
+  ["Rare", "Piercing Rounds", "Shots pass through one more enemy. Weapons without bullets that run out of pierce (melee, beams, cones, sprays, loops, sent companions, wards) reach 10% farther instead", 2, s => s.pierce += 1],
   ["Rare", "Riposte", "Perfect-parry window is 0.12 s longer and reflected shots deal double damage", 2, s => s.perfect += 0.12],
   ["Rare", "Counterstance", "A perfect parry gives +50% fire rate for 2.5 s", 2, null],
   ["Rare", "Light Guard", "You don't slow down while parrying", 1, null],
@@ -1032,9 +1032,9 @@ const U = [
   ["Legendary", "Collapse Rounds", "Shots implode on impact, hurting enemies nearby (67% damage, 45 px)", 3, null, null, null, "The Singularity"],
   ["Legendary", "Graviton Rounds", "Enemies you hit are slowed by 40% for 2 seconds", 3, null, null, null, "The Singularity"],
   ["Legendary", "Dark Matter", "Shots pierce 2 more enemies and deal 20% more damage", 3, s => { s.pierce += 2; s.dmg += 0.2; }, null, null, "The Singularity"],
-  ["Mod", "Homing Rounds", "Shots bend toward an enemy within 260 px and about 45° of their path (fixes near misses), but deal 10% less damage per stack. More stacks bend harder. On area weapons (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) the area grows 25% a stack instead", 3, s => s.dmg *= 0.9],
-  ["Mod", "Ricochet", "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack", 3, null],
-  ["Mod", "Incendiary Rounds", "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s", 3, null],
+  ["Mod", "Homing Rounds", "Shots bend toward an enemy within 260 px and about 45° of their path (fixes near misses), but deal 10% less damage per stack. More stacks bend harder. On area weapons (Implosion, Flak Cannon, Fireball, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils) the area grows 25% a stack instead. Sent wisps and imps (Wisp Lantern, Imp Caller) pick an enemy 50% farther from your cursor a stack, and turn onto one within 260 px when sent at empty ground", 3, s => s.dmg *= 0.9],
+  ["Mod", "Ricochet", "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, piercing shots) fling a bounce bolt instead, up to 4 a second", 3, null],
+  ["Mod", "Incendiary Rounds", "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up", 3, null],
   ["Mod", "Cryo Rounds", "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s", 3, null],
   ["Mod", "Shock Rounds", "15% chance per hit for lightning to arc to 2 more enemies (60% damage)", 3, null],
   ["Mod", "Explosive Rounds", "Shots explode on impact, dealing 30% damage to enemies nearby", 3, null],

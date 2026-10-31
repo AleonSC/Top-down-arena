@@ -87,7 +87,7 @@ namespace Arena
         // Weapon mods, one picked after each boss (and its legendary).
         public float Homing;              // turn rate (radians per second) toward the nearest enemy
         public int Ricochet;              // bounces to another enemy on hit
-        public float BurnFrac;            // a hit burns for this much of its damage per second, for 3 s
+        public float BurnFrac;            // a hit adds this much of its damage to the enemy's burn, burned off over 3 s
         public float CryoSlow, FreezeChance;
         public float ShockChance;
         public float ExplosiveRadius;
@@ -276,7 +276,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy", Apply = s => s.Pierce += 1 },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy. Weapons without such shots reach 10% farther instead", Apply = s => s.Pierce += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
                 Apply = s => { s.PerfectBonus += 0.12f; s.ReflectMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Counterstance", Desc = "A perfect parry gives +50% fire rate for 2.5 s",
@@ -323,9 +323,9 @@ namespace Arena
             // Weapon mods: one is picked after every boss, from the full list.
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 10% less damage per stack. More stacks bend harder",
                 Apply = s => s.Homing += 2f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
                 Apply = s => s.Ricochet += 1 },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up",
                 Apply = s => s.BurnFrac += 0.25f },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Cryo Rounds", Desc = "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
                 Apply = s => { s.CryoSlow = Math.Min(0.6f, s.CryoSlow + 0.2f); s.FreezeChance += 0.06f; } },
@@ -384,6 +384,9 @@ namespace Arena
             string area;
             if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
                 return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
+            if (u.Name == "Homing Rounds" && (weapon.Id == WeaponId.WispLantern || weapon.Id == WeaponId.ImpCaller))
+                return weapon.Name + ": " + (weapon.Id == WeaponId.WispLantern ? "wisps" : "imps")
+                    + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 10% less damage per stack";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
                 return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)
@@ -416,7 +419,7 @@ namespace Arena
             { "Piercing Rounds", "Your swings reach 10% further, and sword waves pass through one more enemy" },
             { "Barrage", "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" },
             { "Homing Rounds", "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected" },
-            { "Ricochet", "Your sword waves bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack" },
+            { "Ricochet", "Your hits fling a bounce bolt at another nearby enemy (75% of the damage, up to 4 a second), and sword waves bounce. +1 bounce per stack" },
             { "Explosive Rounds", "Your hits explode, dealing 30% damage to enemies nearby" },
             { "Velocity Rounds", "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage" },
         };

@@ -11,7 +11,7 @@ namespace Arena
         const float RadiantTick = 0.2f, RadiantHeal = 4f;  // a hit (the weapon's Damage) and a heal on everything it touches, 5 times a second
 
         /// How far from you the orb can go: the weapon's Reach (Velocity Rounds stretch it).
-        public float RadiantReach(Player p) => p.Weapon.Reach * p.Stats.ShotSpeedMult;
+        public float RadiantReach(Player p) => p.Weapon.Reach * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds
 
         /// Where the orb is headed: your cursor, held within its reach of you.
         V2 RadiantGoal(Player p, V2 aimAt) => p.Pos + (aimAt - p.Pos).LimitLength(RadiantReach(p));

@@ -118,8 +118,8 @@ static partial class Program
         foreach (var b in g.Bullets.Values.ToList()) g.Bullets.Remove(b.Id);
         bool waved = false;
         for (int f = 0; f < 90; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = dummy.Pos }); dummy.Pos = new V2(700f, 450f); waved |= g.Bullets.Values.Any(b => b.Kind == Defs.KnightWave); }
-        Console.WriteLine("  barrage waves {0}, dummy burning {1} (fan {2}, burn {3})", waved, dummy.BurnT > 0f, me.Stats.Fan, me.Stats.BurnFrac);
-        Check(waved && dummy.BurnT > 0f, "Barrage throws sword waves and weapon mods apply to melee hits");
+        Console.WriteLine("  barrage waves {0}, dummy burning {1} (fan {2}, burn {3})", waved, dummy.PoolT > 0f, me.Stats.Fan, me.Stats.BurnFrac);
+        Check(waved && dummy.PoolT > 0f, "Barrage throws sword waves and weapon mods apply to melee hits");
         Check(Upgrades.DescFor(Upgrades.All[U("Piercing Rounds")], me.Weapon).Contains("reach") && Upgrades.DescFor(Upgrades.All[U("Multishot")], me.Weapon).Contains("knockback"),
             "upgrade cards describe what they do for a Knight weapon");
 

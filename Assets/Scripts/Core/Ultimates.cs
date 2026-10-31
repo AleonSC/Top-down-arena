@@ -84,7 +84,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Legion, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
+                Name = "Legion", Cooldown = 70f, Desc = "Summon 6 wolves and 6 bats for 10 s, and your other minions frenzy.",
                 Capstone = "Summons 10 wolves and 10 bats.",
             },
         };
@@ -206,10 +206,10 @@ namespace Arena
                     for (int i = 0; i < pack; i++)
                     {
                         V2 d = V2.FromAngle(MathX.Tau * i / pack);
-                        SpawnMinion(MinionKind.Wolf, p, p.Pos + d * 30f, 10f);
-                        SpawnMinion(MinionKind.Bat, p, p.Pos + d * 18f, 10f);
+                        SpawnMinion(MinionKind.Wolf, p, p.Pos + d * 30f, 10f).NoFrenzy = true;
+                        SpawnMinion(MinionKind.Bat, p, p.Pos + d * 18f, 10f).NoFrenzy = true;
                     }
-                    p.FrenzyT = Math.Max(p.FrenzyT, 10f);
+                    p.FrenzyT = Math.Max(p.FrenzyT, 10f);  // your other minions frenzy; the pack itself doesn't
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 140f, 0.5f, Sfx.Roar);
                     break;
             }

@@ -512,7 +512,7 @@ namespace Arena
                 phase = e.Phase;
                 elite = e.Elite;
                 e.Marked = e.MarkT > 0f;  // the host draws from these too
-                e.Burning = e.BurnT > 0f;
+                e.Burning = e.BurnT > 0f || e.PoolT > 0f;
                 e.Frozen = e.FrozenT > 0f || e.SlowT > 0f && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes
                 e.Chilled = e.SlowT > 0f && !e.Frozen;
                 e.Bleeding = e.BleedT > 0f;
