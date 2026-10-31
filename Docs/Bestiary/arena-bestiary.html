@@ -196,6 +196,8 @@ const B = {
   pierce: { name: "Aimed shot",   dmg: 18.4, r: 6.5, col: rgb(1, 0.12, 0.12) },
   mine:   { name: "Mortar bomb",  dmg: 20.7, r: 9,   col: rgb(1, 0.55, 0.2) },
   stun:   { name: "Stun shot",    dmg: 9.2,  r: 7,   col: rgb(0.43, 0.88, 1) },
+  bile:   { name: "Bile",         dmg: 13.8, r: 6,   col: rgb(0.75, 0.9, 0.31) },
+  tooth:  { name: "Tooth",        dmg: 23,   r: 10,  col: rgb(0.96, 0.9, 0.82) },
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -405,12 +407,24 @@ const E = [
       { name: "Eye of the storm (last stand)", pattern: "In the middle: four 700 px spokes turning 20°/s, a strike on each player every 2 s, its volley every 1 s", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave (spokes)", every: null }],
     notes: ["Alone, the Conductor's charge has no one to jump to: it only grounds into its ring of shots.", "Built from the design mockup (Docs/Mockups/storm-herald-3-stage.html)."] },
   { id: "Devourer", label: "The Devourer", cat: "Bosses", boss: true, hp: 6500, r: 50, speed: 40, sides: 12, col: rgb(0.85, 0.28, 0.38), xp: 340, score: 900, wave: 45,
-    appears: "Wave 45 (alone)", lead: "Sprays a twin stream for 7 s, then turns hungry for 3 s: your shots heal it instead of hurting it, and it fires orb rings.",
-    locks: ["Cycle", "Stream", "Hungry"],
+    appears: "Wave 45 (alone)", lead: "A hunger in three stages, one attack at a time with breathers between, growing as it eats (50 → 58 → 64 px). Appetite (100–65%): it keeps 260 px from you — its double Spiral, Snap (lunging bites along a warning line), Hungry (your shots heal it while it spits morsels and crawls over to eat them). Gorging (65–30%): Inhale (a cone that pulls you into its mouth and swallows you), Bile (lobbed acid pools), Burrow (a ripple chases you underground and erupts). Ravenous (30–10%): the Maw, its mouth always open on one side — shots into it heal it, shots on its back hurt more — Frenzy, Jaws, Vomit. Below 10%, straight into its last meal in the middle: it pulls you in, a ring of teeth turns round it, its spiral comes back. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
+    locks: ["Cycle", "Appetite", "Gorging", "Ravenous", "Last stand"],
     attacks: [
-      { name: "Twin stream (7 s)", pattern: "2 opposite shots, +9.7° per volley", kind: "small", n: 2, speed: 140, every: 0.08 },
-      { name: "Hungry (3 s)", pattern: "Ring of big orbs. Your hits heal it for 50% of their damage", kind: "big", n: 20, speed: 90, every: 1.2 }],
-    notes: ["Stop shooting while it glows."] },
+      { name: "Spiral (6 s)", pattern: "2 opposite shots, +9.7° per volley", kind: "small", n: 2, speed: 140, every: 0.08 },
+      { name: "Snap (5 s)", pattern: "3 lunges, 1.6 s apart: a body-wide warning line to 60 px past you for 0.7 s, a dash at 1000 px/s, then a bite in a 110 px half-circle in front", dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave", every: 1.6, unscaled: true },
+      { name: "Hungry (5 s)", pattern: "Your shots heal it for half their damage. Rings of 20 big orbs, every other one turned half a gap", kind: "big", n: 20, speed: 90, every: 1.2 },
+      { name: "Morsels (Hungry)", pattern: "It spits 4 (60 HP, 14 px) 220–440 px away and crawls to the nearest at 90 px/s; each it eats heals it 1% of its health. Shoot them or walk over them first; any left rot at the turn's end", dmg: "—", every: null },
+      { name: "Breathers", pattern: "It keeps 260 px from you and fires nothing", dmg: "—", every: null },
+      { name: "Inhale (5 s, Gorging)", pattern: "Twice, it faces a player and breathes in for 2 s: a 70° cone, 600 px long, pulls you toward its mouth at 200 px/s close up, 80 px/s at the far end", dmg: "—", every: null },
+      { name: "Swallowed (Gorging, last stand)", pattern: "Reach its mouth while it breathes in (or in its last stand) and you're inside it for 3 s; allies' hits on it do double, and 300 of them spit you out early. You come out 170 px in front of it with a ring of 12", kind: "small", n: 12, speed: 170, dmg: "10/s inside (20/s in the last stand)", every: null },
+      { name: "Bile (6 s, Gorging)", pattern: "Every 1.5 s a glob at each player and one at a random spot: 1 s flight (a shadow marks it), then a 90 px acid pool for 6 s", dmg: "12/s", every: 1.5, unscaled: true },
+      { name: "Burrow (7 s, Gorging)", pattern: "Twice: it dives (can't be hurt, shots pass over), a ripple chases a player at 260 px/s for 1.9 s, stops, flashes a 100 px circle for 0.6 s, then it erupts: a bite in the circle and a ring of 16", kind: "small", n: 16, speed: 170, dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave (eruption)", every: null },
+      { name: "The Maw (all Ravenous)", pattern: "A 90° cone in front of it: shots that land in it heal it for half, shots outside do ×1.25. It turns to the nearest player at 60°/s with allies, 35°/s when you're alone (as here)", dmg: "—", every: null },
+      { name: "Frenzy (6 s, Ravenous)", pattern: "4 lunges, 1.4 s apart, with a 0.55 s warning line; each bite ends in a ring of 12", kind: "small", n: 12, speed: 170, dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave (bite)", every: 1.4, unscaled: true },
+      { name: "Jaws (6 s, Ravenous)", pattern: "Twice, 3 s apart: two rows of 7 teeth 320 px above and below you (left and right when you're within 280 px of the top or bottom) show for 0.6 s, then fly at where you stood", kind: "tooth", n: 14, speed: 140, every: 3, unscaled: true },
+      { name: "Vomit (5 s, Ravenous)", pattern: "2 bile shots from its mouth (±6.9°), sweeping 70° either side of you and back", kind: "bile", n: 2, speed: 260, every: 0.07 },
+      { name: "Last meal (below 10%)", pattern: "In the middle: pulls everyone in at 55 px/s; ten teeth (two gaps) turn 1 rad/s 170 px out, hurting within 22 px; its spiral every 0.16 s", kind: "small", n: 2, speed: 140, dmg: w => (0.75 * (13 + 0.6 * w)).toFixed(1), dmgLabel: "0.75 × bite (teeth)", every: 0.16 }],
+    notes: ["Alone, being swallowed means waiting the 3 s out: there's no ally to shoot you free.", "Nothing shoots it here, so its healing (Hungry, the Maw) only shows: hold fire while it glows, shoot the morsels, and get behind the Maw.", "Built from the design mockup (Docs/Mockups/devourer-3-stage.html)."] },
   { id: "Eclipse", label: "The Eclipse", cat: "Bosses", boss: true, hp: 9000, r: 52, speed: 30, sides: 16, col: rgb(1, 0.85, 0.4), xp: 500, score: 2000, wave: 50,
     appears: "Wave 50, the final boss", lead: "Orbits the middle through three phases as its health drops, adding Phantoms, then Hexers, a gravity pull and lightning.",
     locks: ["Phase 1", "Phase 2", "Phase 3"],
@@ -490,7 +504,7 @@ function newWorld() {
 }
 
 function spawn(type, x, y, parent = 0, spawnT = 0.4) {
-  const d = BY[type] || RIOT[type] || (type === "SingShard" ? SHARD : null) || (type === "BallLightning" ? BALL : null) || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
+  const d = BY[type] || RIOT[type] || (type === "SingShard" ? SHARD : null) || (type === "BallLightning" ? BALL : null) || (type === "Morsel" ? MORSEL : null) || (type === "TwinA" || type === "TwinB" ? BY.Twins : null);
   const elite = S.elite && d && !d.boss && !d.summon;
   const r = (d ? d.r : 10) * (elite ? 1.25 : 1);
   const e = { id: nextId++, type, d, x: clamp(x, r, W - r), y: clamp(y, r, H - r), r, t: 0, spawnT, fireT: rnd(0.3, 1.2), phaseT: rnd(1, 3),
@@ -795,6 +809,265 @@ function drawHerald(e, t) {
   if (h.stage === 3) for (let k = 0; k < 4; k++) { const a = h.spin + k * Math.PI / 2; bolt(e, { x: e.x + Math.cos(a) * 700, y: e.y + Math.sin(a) * 700 }, 4, HD.cols[3], seed + k * 13, 18); }
 }
 
+// The Devourer (Devourer.cs): three stages by its health, then a last stand. "Cycle" plays each stage once (the
+// Ravenous goes straight into the last stand, as in the game). One test dummy here, so a swallow always lasts the full
+// 3 s (no ally to shoot you free) and the Maw turns at its alone speed, 35°/s.
+const DV = {
+  turns: [["Spiral", "Rest", "Snap", "Rest", "Hungry", "Rest"], ["Inhale", "Rest", "Bile", "Rest", "Burrow", "Rest"], ["Frenzy", "Rest", "Jaws", "Rest", "Vomit", "Rest"], ["LastMeal"]],
+  times: [[6, 1, 5, 1, 5, 1.5], [5, 1, 6, 1, 7, 1.5], [6, 1, 6, 1, 5, 1.5], [10]],
+  stages: ["Appetite", "Gorging", "Ravenous", "Last stand"],
+  cols: [rgb(1, 0.35, 0.48), rgb(0.78, 0.88, 0.35), rgb(1, 0.24, 0.37), rgb(1, 0.16, 0.29)],
+  radius: [50, 58, 64, 64],
+  bile: rgb(0.75, 0.9, 0.31), enamel: rgb(0.96, 0.9, 0.82), dirt: rgb(0.85, 0.64, 0.35), maw: rgb(1, 0.35, 0.48),
+};
+const MORSEL = { id: "Morsel", r: 14, speed: 0, sides: 7, col: rgb(0.88, 0.5, 0.35), summon: true };
+const biteDmg = () => 13 + 0.6 * S.wave;
+const angOff = (a, b) => Math.abs(((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI);
+const morsels = () => world.enemies.filter(o => o.type === "Morsel" && !o.dead);
+const nearestMorsel = e => morsels().reduce((a, m) => !a || dist(m, e) < dist(a, e) ? m : a, null);
+const devourTooth = (e, s, k) => ({ x: e.x + Math.cos(s.spin + TAU * k / 12) * 170, y: e.y + Math.sin(s.spin + TAU * k / 12) * 170 });  // slots 0 and 6 are the gaps
+const jawsTooth = (J, side, i) => { const a = (J.side ? (side < 0 ? Math.PI : 0) : side * Math.PI / 2) + (i - 3) * 0.24; return { x: J.x + Math.cos(a) * 320, y: J.y + Math.sin(a) * 320 }; };
+function devourInit(e) {
+  e.dv = { stage: S.sel === "Devourer" && S.lock ? S.lock - 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0, act: 0, fired: 0,
+    lunge: null, inhale: 0, under: 0, jaws: null, spin: 0, sw: 0, stomach: 0, bile: [], eaten: 0 };
+  devourEnter(e, e.dv.stage);
+}
+function devourEnter(e, stage) {
+  const s = e.dv;
+  s.stage = stage; s.step = -1; s.loop = 0; s.lunge = null; s.inhale = 0; s.jaws = null; e.r = DV.radius[stage];
+  devourNext(e);
+}
+function devourNext(e) {
+  const s = e.dv, turns = DV.turns[s.stage];
+  if (s.turn === "Hungry") for (const m of morsels()) m.dead = true;  // what it didn't eat rots away
+  if (++s.step >= turns.length) {
+    s.step = 0;
+    if (++s.loop >= 1 && !(S.sel === "Devourer" && S.lock)) {
+      if (s.stage === 2) { devourEnter(e, 3); devourBurst(e); return; }  // below 10%: the last stand straight away
+      devourTransition(e, (s.stage + 1) % 4); return;
+    }
+  }
+  s.turn = turns[s.step]; s.len = DV.times[s.stage][s.step]; s.tt = 0; s.act = 0.3; s.fired = 0; e.fireT = 0.3;
+  e.phase = s.turn === "Hungry" ? 1 : 0;  // hungry: your shots heal it (the glow)
+  if (s.turn === "Hungry") {  // it spits 4 morsels and goes to eat them
+    for (let k = 0; k < 4; k++) { const a = rnd(0, TAU), d = rnd(220, 440), m = spawn("Morsel", clamp(e.x + Math.cos(a) * d, 60, W - 60), clamp(e.y + Math.sin(a) * d, 60, H - 60), e.id, 0.3); m.fireT = 99; }
+    addFx("ring", e.x, e.y, rgb(1, 0.69, 0.44), e.r + 30, 0.35);
+  }
+}
+function devourTransition(e, to) {
+  const s = e.dv;
+  if (s.sw > 0) devourSpit(e);
+  s.trans = 2; s.to = to; s.turn = "Rest"; s.lunge = null; s.inhale = 0; s.under = 0; s.jaws = null; s.bile = []; e.phase = 0;
+  for (const m of morsels()) m.dead = true;
+  world.bullets = [];
+  addFx("ring", e.x, e.y, DV.cols[to], 900, 0.8);
+}
+function devourBurst(e) { addFx("boom", e.x, e.y, rgb(1, 1, 1), e.r + 70, 0.4); addFx("ring", e.x, e.y, DV.cols[e.dv.stage], 1100, 0.9); }
+function devourSpit(e) {  // out 170 px in front of it, with a ring of 12
+  const s = e.dv, p = world.player;
+  s.sw = 0; p.sw = 0; p.inv = Math.max(p.inv, 1);
+  p.x = clamp(e.x + Math.cos(e.facing) * (e.r + 170), 18, W - 18); p.y = clamp(e.y + Math.sin(e.facing) * (e.r + 170), 18, H - 18);
+  for (let i = 0; i < 12; i++) shot(e, e.facing + TAU * i / 12, 170, "small");
+  addFx("ring", p.x, p.y, DV.cols[1], 60, 0.4);
+}
+function devourMouth(e, s) {  // touching its mouth while it breathes in (or in its last stand): swallowed
+  const p = world.player;
+  if (s.sw > 0 || dist(e, p) >= e.r + p.hitR + 6) return;
+  s.sw = 3; s.stomach = 0; p.sw = 3; p.x = e.x; p.y = e.y;
+  addFx("ring", e.x, e.y, DV.cols[1], 90, 0.4);
+}
+function devourLunge(e, s, warn, ring) {
+  const p = world.player;
+  if (p.sw > 0) return;
+  const a = ang(e, p), len = dist(e, p) + 60, ex = clamp(e.x + Math.cos(a) * len, e.r, W - e.r), ey = clamp(e.y + Math.sin(a) * len, e.r, H - e.r);
+  s.lunge = { warn, a, fx: e.x, fy: e.y, len: Math.hypot(ex - e.x, ey - e.y), done: 0, ring };
+  e.facing = a;
+}
+function devourTick(e, dt) {
+  const s = e.dv, p = world.player, free = !(p.sw > 0);
+  e.r = DV.radius[s.trans > 0 ? s.to : s.stage];  // it grows as it eats
+  if (s.trans > 0) {
+    s.trans -= dt;
+    if (s.trans <= 0) { s.trans = 0; devourEnter(e, s.to); devourBurst(e); }
+    return;
+  }
+  s.tt += dt;
+  // Swallowed: inside it, 10 a second (20 in the last stand), out after 3 s
+  if (s.sw > 0) {
+    s.sw -= dt; p.sw = Math.max(0.05, s.sw); p.x = e.x; p.y = e.y;
+    if ((s.stomach -= dt) <= 0) { s.stomach = 1; p.dmg += s.stage === 3 ? 20 : 10; p.hits++; p.flash = 0.15; }
+    if (s.sw <= 0) devourSpit(e);
+  }
+  // Bile: globs fly 1 s, then a 90 px pool burns 12 a second for 6 s
+  for (const g of s.bile) g.t += dt;
+  s.bile = s.bile.filter(g => g.t < 7);
+  if (free && s.bile.some(g => g.t >= 1 && dist(g, p) < 90 + p.hitR)) p.dmg += 12 * dt;
+  // A lunge: the warning line, the dash, then a bite in a half-circle in front of it
+  const L = s.lunge;
+  if (L && (L.warn -= dt) <= 0) {
+    L.done = Math.min(L.len, L.done + 1000 * dt);
+    e.x = clamp(L.fx + Math.cos(L.a) * L.done, e.r, W - e.r); e.y = clamp(L.fy + Math.sin(L.a) * L.done, e.r, H - e.r);
+    if (L.done >= L.len) {
+      s.lunge = null;
+      if (free && dist(e, p) < e.r + 110 + p.hitR && angOff(ang(e, p), L.a) < Math.PI / 2 + 0.2) hurt(biteDmg());
+      addFx("ring", e.x + Math.cos(L.a) * e.r, e.y + Math.sin(L.a) * e.r, rgb(1, 0.55, 0.63), 110, 0.3);
+      if (L.ring) for (let i = 0; i < 12; i++) shot(e, L.a + TAU * i / 12, 170, "small");
+    }
+  }
+  // Underground: the ripple chases you for 1.9 s, stops, flashes, then it erupts
+  if (s.under > 0) {
+    s.under += dt;
+    if (s.under < 1.9) { const d = dist(e, p); if (d > 0 && free) { const st = Math.min(d, 260 * dt); e.x = clamp(e.x + (p.x - e.x) / d * st, e.r, W - e.r); e.y = clamp(e.y + (p.y - e.y) / d * st, e.r, H - e.r); } }
+    else if (s.under >= 2.5) {
+      s.under = 0;
+      if (free && dist(e, p) < 100 + p.hitR) hurt(biteDmg());
+      const off = rnd(0, TAU); for (let i = 0; i < 16; i++) shot(e, off + TAU * i / 16, 170, "small");
+      addFx("boom", e.x, e.y, DV.dirt, 120, 0.45);
+    }
+  }
+  // The inhale: a 70° cone, 600 px, pulling you 200 px/s near its mouth down to 80 at the far end
+  if (s.inhale > 0) {
+    s.inhale = Math.max(0, s.inhale - dt);
+    const d = dist(e, p);
+    if (free && d < 600 && d >= 1 && angOff(ang(e, p), e.facing) < 0.61) { const v = 200 - 120 * d / 600; p.x += (e.x - p.x) / d * v * dt; p.y += (e.y - p.y) / d * v * dt; }
+    devourMouth(e, s);
+  }
+  // The Jaws: the teeth show for 0.6 s, then fly at where you stood
+  if (s.jaws && (s.jaws.t -= dt) <= 0) {
+    const J = s.jaws; s.jaws = null;
+    for (let side = -1; side <= 1; side += 2) for (let i = 0; i < 7; i++) {
+      const o = jawsTooth(J, side, i), a = Math.atan2(J.y - o.y, J.x - o.x);
+      world.bullets.push({ x: o.x, y: o.y, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140, av: 0, r: B.tooth.r, col: B.tooth.col, dmg: B.tooth.dmg, life: 4.6, boss: true, kind: "tooth" });
+    }
+  }
+  // Morsels: walking over one squashes it; while hungry it eats any it reaches
+  for (const m of morsels()) if (m.spawnT <= 0 && free && dist(m, p) < m.r + 14) { m.dead = true; addFx("ring", m.x, m.y, rgb(0.42, 0.89, 0.54), 36, 0.3); }
+  if (s.turn === "Hungry") { const m = nearestMorsel(e); if (m && m.spawnT <= 0 && dist(m, e) < e.r + m.r + 4) { m.dead = true; s.eaten++; addFx("ring", m.x, m.y, rgb(1, 0.69, 0.44), 50, 0.4); } }
+  // Facing: the Maw turns slowly toward you (35°/s alone; 60 with allies); hungry, it looks at its food
+  if (!s.lunge && s.inhale <= 0 && s.turn !== "Vomit" && free) {
+    const want = ang(e, p);
+    if (s.stage === 2) { const lim = 35 * Math.PI / 180 * dt; e.facing += clamp(((want - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI, -lim, lim); }
+    else if (s.turn === "Hungry") { const m = nearestMorsel(e); e.facing = m ? ang(e, m) : want; }
+    else e.facing = want;
+  }
+  // The last meal: it pulls you in at 55 px/s, and ten teeth turn round it
+  if (s.stage === 3) {
+    s.spin += dt;
+    if (free) { const d = dist(e, p) || 1; p.x += (e.x - p.x) / d * 55 * dt; p.y += (e.y - p.y) / d * 55 * dt; }
+    devourMouth(e, s);
+    if (!(p.sw > 0)) for (let k = 1; k < 12; k++) if (k !== 6 && dist(devourTooth(e, s, k), p) < 22 + p.hitR) { hurt(0.75 * biteDmg()); break; }
+  }
+  // Its turns
+  if ((s.act -= dt) <= 0) switch (s.turn) {
+    case "Snap": s.act = 1.6; if (s.fired++ < 3) devourLunge(e, s, 0.7, false); break;
+    case "Frenzy": s.act = 1.4; if (s.fired++ < 4) devourLunge(e, s, 0.55, true); break;
+    case "Inhale": s.act = 0.1; if (s.inhale <= 0 && !(s.sw > 0) && (s.fired === 0 || (s.fired === 1 && s.tt >= 2.5))) { s.fired++; e.facing = ang(e, p); s.inhale = 2; addFx("ring", e.x, e.y, DV.cols[1], e.r + 40, 0.4); } break;
+    case "Bile": s.act = 1.5; for (const [x, y] of free ? [[p.x, p.y], [rnd(120, W - 120), rnd(120, H - 120)]] : [[rnd(120, W - 120), rnd(120, H - 120)]]) s.bile.push({ x: clamp(x, 60, W - 60), y: clamp(y, 60, H - 60), t: 0 }); break;
+    case "Burrow": s.act = 0.1; if (s.under <= 0 && (s.fired === 0 || (s.fired === 1 && s.tt >= 3.5))) { s.fired++; s.under = 0.001; addFx("ring", e.x, e.y, DV.dirt, 90, 0.4); } break;
+    case "Jaws": s.act = 3; if (free) s.jaws = { x: p.x, y: p.y, side: p.y < 280 || p.y > H - 280, t: 0.6 }; break;  // near the top or bottom: rows from the sides
+    default: s.act = 0.1;
+  }
+  if (s.tt >= s.len && !s.lunge && s.under <= 0 && s.inhale <= 0) devourNext(e);  // never mid-lunge, -burrow or -inhale (here the last stand loops back after 10 s)
+}
+function devourFire(e, aim) {
+  const s = e.dv;
+  if (!s || s.trans > 0 || s.under > 0 || (s.sw > 0 && s.stage !== 3)) { e.fireT = 0.2; return; }
+  switch (s.turn) {
+    case "Spiral": case "LastMeal": e.fireT = s.turn === "Spiral" ? 0.08 : 0.16; e.ang += 0.17; shot(e, e.ang, 140, "small"); shot(e, e.ang + Math.PI, 140, "small"); break;  // its old double spiral (half the rate in the last stand)
+    case "Hungry": e.fireT = 1.2; s.fired++; for (let i = 0; i < 20; i++) shot(e, TAU * (i + (s.fired % 2) * 0.5) / 20, 90, "big"); break;
+    case "Vomit": {  // a spray from its mouth, sweeping 70° either side of you and back
+      e.fireT = 0.07; e.facing = aim + Math.sin(s.tt * 1.6) * 1.22;
+      const mx = e.x + Math.cos(e.facing) * e.r, my = e.y + Math.sin(e.facing) * e.r;
+      for (let k = 0; k < 2; k++) { const a = e.facing + rnd(-0.12, 0.12); world.bullets.push({ x: mx, y: my, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, av: 0, r: B.bile.r, col: B.bile.col, dmg: B.bile.dmg, life: 4, boss: true, kind: "bile" }); }
+      break;
+    }
+    default: e.fireT = 0.2;  // breathers fire nothing; its bites, inhales, bile and the rest come from devourTick
+  }
+}
+// A tooth: an enamel triangle pointing along `a`, edged in dark red.
+function tooth(ctx, x, y, a, size, alpha = 1) {
+  ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * size, y + Math.sin(a) * size);
+  ctx.lineTo(x + Math.cos(a + 2.5) * size * 0.6, y + Math.sin(a + 2.5) * size * 0.6); ctx.lineTo(x + Math.cos(a - 2.5) * size * 0.6, y + Math.sin(a - 2.5) * size * 0.6); ctx.closePath();
+  ctx.fillStyle = css(DV.enamel, alpha); ctx.fill(); ctx.strokeStyle = `rgba(120,20,41,${0.9 * alpha})`; ctx.lineWidth = 2; ctx.stroke();
+}
+function wedge(x, y, r, a, half, fill) { cx.fillStyle = fill; cx.beginPath(); cx.moveTo(x, y); cx.arc(x, y, r, a - half, a + half); cx.closePath(); cx.fill(); }
+// Over the floor, under the enemies: the gullet's tint, bile, the cones, lines, ripple, jaws and teeth.
+function drawDevourer(e, t) {
+  const s = e.dv;
+  if (s.trans > 0) { cx.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * Math.sin(t * 16)})`; cx.lineWidth = 4; cx.beginPath(); cx.arc(e.x, e.y, e.r + 16, 0, TAU); cx.stroke(); return; }
+  if (s.stage >= 2) { cx.fillStyle = `rgba(89,5,20,${0.1 + 0.03 * Math.sin(t * 2)})`; cx.fillRect(0, 0, W, H); }
+  for (const g of s.bile) {
+    if (g.t < 1) {  // a shadow where it will land, the glob falling onto it
+      const k = g.t; cx.fillStyle = `rgba(0,0,0,${0.2 + 0.25 * k})`; cx.beginPath(); cx.arc(g.x, g.y, 90 * (0.4 + 0.6 * k), 0, TAU); cx.fill();
+      if (S.tele) { cx.setLineDash([8, 8]); cx.strokeStyle = css(DV.bile, 0.7); cx.lineWidth = 2; cx.beginPath(); cx.arc(g.x, g.y, 90, 0, TAU); cx.stroke(); cx.setLineDash([]); }
+      const gy = g.y - (1 - k) * (1 - k) * 320; cx.fillStyle = css(DV.bile); cx.beginPath(); cx.arc(g.x, gy, 13, 0, TAU); cx.fill(); cx.fillStyle = "#efffb0"; cx.beginPath(); cx.arc(g.x - 3, gy - 3, 5, 0, TAU); cx.fill();
+      continue;
+    }
+    const a = Math.min(1, (g.t - 1) * 4, (7 - g.t) * 2);
+    cx.fillStyle = `rgba(150,199,61,${0.24 * a})`; cx.beginPath(); cx.arc(g.x, g.y, 90, 0, TAU); cx.fill();
+    cx.strokeStyle = css(DV.bile, 0.6 * a); cx.lineWidth = 2; cx.stroke();
+    for (let j = 0; j < 4; j++) { cx.fillStyle = `rgba(220,250,120,${0.35 * a})`; cx.beginPath(); cx.arc(g.x + Math.cos(t * 0.7 + j * 1.7) * 50, g.y + Math.sin(t * 0.9 + j * 2.3) * 40, 5 + 3 * Math.sin(t * 3 + j), 0, TAU); cx.fill(); }
+  }
+  if (s.inhale > 0) {  // the cone, with air rushing into its mouth
+    wedge(e.x, e.y, 600, e.facing, 0.61, css(DV.cols[1], 0.06 + 0.04 * Math.sin(t * 12)));
+    cx.strokeStyle = css(DV.cols[1], 0.35); cx.lineWidth = 2; cx.beginPath(); cx.arc(e.x, e.y, 600, e.facing - 0.61, e.facing + 0.61); cx.stroke();
+    cx.strokeStyle = "rgba(220,240,140,0.35)"; cx.beginPath();
+    for (let k = 0; k < 18; k++) { const a = e.facing + (k / 17 - 0.5) * 1.1, d = 600 - ((t * 420 + k * 97) % 560); cx.moveTo(e.x + Math.cos(a) * d, e.y + Math.sin(a) * d); cx.lineTo(e.x + Math.cos(a) * (d - 40), e.y + Math.sin(a) * (d - 40)); }
+    cx.stroke();
+  }
+  if (s.stage === 2 && s.under <= 0) {  // the Maw: the side its mouth heals it from
+    wedge(e.x, e.y, 260, e.facing, Math.PI / 4, css(DV.maw, 0.09));
+    cx.strokeStyle = css(DV.maw, 0.45); cx.lineWidth = 2; cx.setLineDash([10, 8]); cx.beginPath();
+    for (const sd of [-1, 1]) { cx.moveTo(e.x, e.y); cx.lineTo(e.x + Math.cos(e.facing + sd * Math.PI / 4) * 260, e.y + Math.sin(e.facing + sd * Math.PI / 4) * 260); }
+    cx.stroke(); cx.setLineDash([]);
+    cx.font = "600 15px Barlow, sans-serif"; cx.textAlign = "center";
+    cx.fillStyle = "rgba(255,120,150,0.7)"; cx.fillText("heals it", e.x + Math.cos(e.facing) * 200, e.y + Math.sin(e.facing) * 200);
+    cx.fillStyle = "rgba(107,227,138,0.6)"; cx.fillText("×1.25 from behind", e.x - Math.cos(e.facing) * (e.r + 44), e.y - Math.sin(e.facing) * (e.r + 44)); cx.textAlign = "left";
+  }
+  const L = s.lunge;
+  if (L && L.warn > 0 && S.tele) {  // a lunge's warning line, as wide as its body
+    const ex = L.fx + Math.cos(L.a) * L.len, ey = L.fy + Math.sin(L.a) * L.len, blink = t % 0.16 < 0.08 ? 1 : 0.6;
+    cx.lineCap = "round"; cx.strokeStyle = "rgba(255,69,102,0.12)"; cx.lineWidth = e.r * 2; cx.beginPath(); cx.moveTo(L.fx, L.fy); cx.lineTo(ex, ey); cx.stroke(); cx.lineCap = "butt";
+    cx.strokeStyle = `rgba(255,110,140,${0.9 * blink})`; cx.lineWidth = 3; cx.stroke();
+    cx.strokeStyle = `rgba(255,110,140,${0.7 * blink})`; cx.lineWidth = 2.5; cx.beginPath(); cx.arc(ex, ey, 66, L.a - Math.PI / 2, L.a + Math.PI / 2); cx.stroke();
+  }
+  if (s.under > 0) {  // underground: a ripple of earth that stops, then marks where it will burst out
+    for (let j = 0; j < 3; j++) { const f = (t * 60 + j * 25) % 75; cx.strokeStyle = css(DV.dirt, 0.6 - f / 140); cx.lineWidth = 3; cx.beginPath(); cx.arc(e.x, e.y, 30 + f, 0, TAU); cx.stroke(); }
+    cx.fillStyle = "rgb(138,107,64)"; for (let j = 0; j < 6; j++) { cx.beginPath(); cx.arc(e.x + Math.cos(j * 1.1 + t * 4) * 30, e.y + Math.sin(j * 1.7 + t * 5) * 22, 4, 0, TAU); cx.fill(); }
+    if (s.under >= 1.9) {
+      const k = Math.min(1, (s.under - 1.9) / 0.6);
+      cx.fillStyle = `rgba(255,69,102,${0.08 + 0.15 * k})`; cx.beginPath(); cx.arc(e.x, e.y, 100, 0, TAU); cx.fill();
+      cx.strokeStyle = "rgba(255,110,140,0.9)"; cx.lineWidth = 2.5; cx.stroke(); cx.lineWidth = 3; cx.beginPath(); cx.arc(e.x, e.y, 100 * k, 0, TAU); cx.stroke();
+    }
+  }
+  if (s.jaws) {  // the teeth show where they'll fly from, blinking, until they close
+    const blink = 0.7 + 0.3 * Math.sin(t * 20);
+    for (let side = -1; side <= 1; side += 2) for (let i = 0; i < 7; i++) {
+      const o = jawsTooth(s.jaws, side, i);
+      cx.fillStyle = css(DV.maw, 0.3 * blink); cx.beginPath(); cx.arc(o.x, o.y, 15, 0, TAU); cx.fill();
+      tooth(cx, o.x, o.y, Math.atan2(s.jaws.y - o.y, s.jaws.x - o.x), 16, blink);
+    }
+    cx.strokeStyle = css(DV.maw, 0.6); cx.lineWidth = 2; cx.beginPath(); cx.arc(s.jaws.x, s.jaws.y, 24, 0, TAU); cx.stroke();
+  }
+  if (s.stage === 3) for (let k = 1; k < 12; k++) if (k !== 6) {  // the last meal's ten teeth
+    const o = devourTooth(e, s, k);
+    cx.fillStyle = css(DV.maw, 0.12); cx.beginPath(); cx.arc(o.x, o.y, 28, 0, TAU); cx.fill();
+    tooth(cx, o.x, o.y, Math.atan2(e.y - o.y, e.x - o.x), 22);
+  }
+}
+// Its mouth, on the side it faces: dark, ringed with teeth, wider when it feeds, inhales, lunges or starves; you show
+// faintly inside when it has swallowed you.
+function drawDevourerMouth(ctx, e, x, y, r, t) {
+  const s = e.dv, wide = e.phase === 1 || s.inhale > 0 || s.stage === 2 || s.turn === "Vomit" || (s.lunge && s.lunge.warn <= 0);
+  const open = s.sw > 0 ? 0.35 : wide ? 0.6 : 0.38, mx = x + Math.cos(e.facing) * r * 0.32, my = y + Math.sin(e.facing) * r * 0.32, mr = r * open;
+  ctx.strokeStyle = "rgba(255,140,160,0.25)"; ctx.lineWidth = 2; ctx.beginPath();
+  for (let k = 0; k < 5; k++) { const a = k * 1.3 + 0.4; ctx.moveTo(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45); ctx.lineTo(x + Math.cos(a + 0.3) * r * 0.9, y + Math.sin(a + 0.3) * r * 0.9); }
+  ctx.stroke();
+  ctx.fillStyle = "rgb(26,0,8)"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, TAU); ctx.fill();
+  for (let k = 0; k < 10; k++) { const a = e.facing + TAU * k / 10 + t * 0.3; tooth(ctx, mx + Math.cos(a) * mr, my + Math.sin(a) * mr, a + Math.PI, Math.max(6, mr * 0.32)); }
+  if (s.sw > 0) { ctx.fillStyle = `rgba(107,227,138,${0.4 + 0.3 * Math.sin(t * 8)})`; ctx.beginPath(); ctx.arc(mx, my, mr * 0.5, 0, TAU); ctx.fill(); }
+}
+
 const rioters = () => world.enemies.filter(o => o.type === "Rioter" && !o.dead);
 const clearRiot = (guards) => { for (const o of world.enemies) if (o.type === "Rioter" || (guards && o.type === "RiotGuard")) o.dead = true; };
 
@@ -1057,7 +1330,14 @@ function move(e, dt) {
     case "Juggernaut": v = kd(140, 0); break;
     case "Colossus": v = kd(200, 0); break;
     case "Duelist": v = kd(280, 0.8); break;
-    case "Devourer": v = kd(260, 0); break;
+    case "Devourer": {
+      const s = e.dv;
+      if (s && (s.trans > 0 || s.lunge || s.under > 0 || s.inhale > 0 || (s.sw > 0 && s.stage !== 3))) { v = [0, 0]; break; }  // planted (lunges and burrows move it in devourTick)
+      if (s && s.stage === 3) { const l = Math.hypot(800 - e.x, 450 - e.y); speed = 160; v = l < 6 ? [0, 0] : l < speed * dt ? [(800 - e.x) / (speed * dt), (450 - e.y) / (speed * dt)] : [(800 - e.x) / l, (450 - e.y) / l]; break; }  // the last meal, in the middle
+      const m = s && s.turn === "Hungry" ? nearestMorsel(e) : null;
+      if (m) { const l = dist(m, e) || 1; speed = 90; v = [(m.x - e.x) / l, (m.y - e.y) / l]; break; }  // crawls to its food
+      v = kd(260, 0); break;  // keeps 260 px from you
+    }
     case "StormHerald":
       if (e.h && e.h.trans > 0) { v = [0, 0]; break; }  // holds still while it changes stage
       if (e.h && e.h.stage === 3) { v = [(800 - e.x) / 60, (450 - e.y) / 60]; break; }  // the last stand, in the middle
@@ -1088,6 +1368,7 @@ function face(e, dt) {
   if (e.type === "Charger" && e.phase !== 0) return;
   if (e.type === "Lunger" && e.phase >= 2) return;
   if (e.type === "HiveBomber" || e.type === "Singularity") return;  // its facing is the laser sweep
+  if (e.type === "Devourer" && e.dv) return;  // devourTick turns it (the Maw slowly)
   if (e.type === "RiotGuard" && e.t2 > 0) return;  // mid-swing
   if (e.type === "Warden" && e.w && ["Cross", "Rioters", "Charge"].includes(e.w.turn)) { if (e.w.turn === "Cross") e.facing = 0; return; }
   if (e.type === "Shielder") {
@@ -1233,12 +1514,7 @@ function special(e, dt) {
       break;
     }
     case "StormHerald": if (!e.h) heraldInit(e); heraldTick(e, dt); break;
-    case "Devourer": {
-      const was = e.phase;
-      e.phase = S.sel === "Devourer" && S.lock > 0 ? S.lock - 1 : (e.t % 10 >= 7 ? 1 : 0);
-      if (e.phase === 1 && was === 0) addFx("ring", e.x, e.y, e.d.col, 160, 0.6);
-      break;
-    }
+    case "Devourer": if (!e.dv) devourInit(e); devourTick(e, dt); break;
     case "Eclipse": {
       const phase = S.lock;
       if (phase > e.phase) {
@@ -1356,10 +1632,7 @@ function fire(e) {
       break;
     }
     case "StormHerald": heraldFire(e, aim); break;
-    case "Devourer":
-      if (e.phase === 1) { e.fireT = 1.2; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 90, "big"); }
-      else { e.fireT = 0.08; e.ang += 0.17; shot(e, e.ang, 140, "small"); shot(e, e.ang + Math.PI, 140, "small"); }
-      break;
+    case "Devourer": devourFire(e, aim); break;
     case "Eclipse":
       switch (e.phase) {
         case 0:
@@ -1394,7 +1667,7 @@ function spawnCage(boss) {
 
 function hurt(amount) {
   const p = world.player;
-  if (p.inv > 0) return false;
+  if (p.inv > 0 || p.sw > 0) return false;  // inside the Devourer only its stomach hurts you (devourTick)
   p.dmg += amount; p.hits++; p.inv = 0.35; p.flash = 0.15;
   return true;
 }
@@ -1411,6 +1684,7 @@ function contactDamage(e) {
 function movePlayer(dt) {
   const p = world.player;
   if (p.stun > 0) return;  // the Warden's stun shot
+  if (p.sw > 0) return;  // swallowed: you go where the Devourer goes
   if (S.dummy === "circle") {
     p.path += dt * p.speed / 230;
     const tx = 800 + Math.cos(p.path) * 230, ty = 560 + Math.sin(p.path) * 230;
@@ -1449,7 +1723,7 @@ function step(dt) {
     const enraged = (e.type === "TwinA" || e.type === "TwinB") && twinsAlive === 1;
     e.fireT -= dt * fireRate(S.wave, e.elite) * (enraged ? 1.7 : 1);
     if (e.fireT <= 0) fire(e);
-    if (e.type !== "HiveBomber" && dist(p, e) < e.r + p.hitR) hurt(contactDamage(e));
+    if (e.type !== "HiveBomber" && e.type !== "Morsel" && !(e.dv && e.dv.under > 0) && dist(p, e) < e.r + p.hitR) hurt(contactDamage(e));  // morsels are food; underground, it doesn't touch
   }
   // Reaper tether
   const tw = world.enemies.filter(o => (o.type === "TwinA" || o.type === "TwinB") && !o.dead && o.spawnT <= 0);
@@ -1564,6 +1838,8 @@ function drawBody(ctx, e, x, y, r, t, anim) {
     ctx.strokeStyle = css(rgb(0.6, 0.8, 1), 0.9); ctx.lineWidth = Math.max(2, r * 0.22);
     ctx.beginPath(); ctx.arc(x, y, r + 7, e.facing - 1.13, e.facing + 1.13); ctx.stroke();
   }
+  if (e.type === "Devourer" && e.dv) drawDevourerMouth(ctx, e, x, y, r, tt);
+  if (e.type === "Morsel") { ctx.fillStyle = "rgba(255,194,153,0.9)"; ctx.beginPath(); ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.4, 0, TAU); ctx.fill(); }
   if (e.type === "CageWell") { ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(x, y, r * 0.6, 0, TAU); ctx.fill(); }
   if (e.type === "GravityWell") { ctx.strokeStyle = css(col, 0.35); ctx.lineWidth = 1.5; for (let k = 0; k < 2; k++) { ctx.beginPath(); ctx.arc(x, y, r + 6 + ((tt * 18 + k * 8) % 16), 0, TAU); ctx.stroke(); } }
   if (e.type === "Decoy") { ctx.fillStyle = css(rgb(0, 0, 0), 0.35); poly(ctx, x, y, r, sides, rot); ctx.fill(); }
@@ -1617,6 +1893,8 @@ function drawArena() {
   if (sg && sg.g) drawSingularity(sg, t);
   const hd = world.enemies.find(o => o.type === "StormHerald" && o.spawnT <= 0 && !o.dead);
   if (hd && hd.h) drawHerald(hd, t);
+  const dv = world.enemies.find(o => o.type === "Devourer" && o.spawnT <= 0 && !o.dead);
+  if (dv && dv.dv) drawDevourer(dv, t);
   if (sg && (sg.phase === 4 || sg.phase === 5)) for (let k = 0, n = singLasers(sg); k < n; k++) {
     const a = sg.facing + TAU * k / n;
     if (sg.phase === 4) { if (S.tele) { cx.strokeStyle = `rgba(255,70,70,${0.35 + 0.3 * Math.sin(t * 30)})`; cx.lineWidth = 2; seg(sg, a, 40, 2000); } }
@@ -1656,6 +1934,7 @@ function drawArena() {
   }
   // Enemies
   for (const e of world.enemies) {
+    if (e.dv && e.dv.under > 0) continue;  // the Devourer, underground: only its ripple shows
     cx.save();
     if (e.spawnT > 0) cx.globalAlpha = 0.35;
     drawBody(cx, e, e.x, e.y, e.type === "Singularity" ? 40 : e.r, t, anim);  // its r grows with the event horizon (drawSingularity)
@@ -1664,6 +1943,7 @@ function drawArena() {
   }
   // Bullets
   for (const b of world.bullets) {
+    if (b.kind === "tooth") { tooth(cx, b.x, b.y, Math.atan2(b.vy, b.vx), 16); continue; }  // the Devourer's Jaws
     cx.fillStyle = css(b.col, 0.25); cx.beginPath(); cx.arc(b.x, b.y, b.r * 1.7, 0, TAU); cx.fill();
     cx.fillStyle = css(b.col); cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, TAU); cx.fill();
     if (b.boss) { cx.fillStyle = "rgba(20,0,20,0.75)"; cx.beginPath(); cx.arc(b.x, b.y, b.r * 0.45, 0, TAU); cx.fill(); }
@@ -1687,6 +1967,7 @@ function drawArena() {
   }
   // Player dummy
   const hit = p.flash > 0;
+  if (p.sw > 0) cx.globalAlpha = 0;  // swallowed: hidden inside the Devourer (its mouth shows you)
   cx.fillStyle = hit ? "rgba(255,90,110,0.9)" : "rgba(107,227,138,0.85)";
   cx.beginPath(); cx.arc(p.x, p.y, 14, 0, TAU); cx.fill();
   cx.strokeStyle = "rgba(255,255,255,0.8)"; cx.lineWidth = 2; cx.stroke();
@@ -1696,6 +1977,7 @@ function drawArena() {
     cx.strokeStyle = css(B.stun.col, 0.9); cx.lineWidth = 3; cx.beginPath(); cx.arc(p.x, p.y, 24, -Math.PI / 2, -Math.PI / 2 + TAU * p.stun); cx.stroke();
   }
   cx.fillStyle = "rgba(232,236,248,0.75)"; cx.font = "600 18px Barlow, sans-serif"; cx.textAlign = "center"; cx.fillText("Dummy", p.x, p.y - 22);
+  cx.globalAlpha = 1;
   // Status
   cx.textAlign = "left"; cx.font = "500 20px 'IBM Plex Mono', monospace"; cx.fillStyle = "rgba(232,236,248,0.6)";
   cx.fillText(statusLine(), 20, H - 20);
@@ -1842,7 +2124,16 @@ function statusLine() {
     case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
     case "Charger": return ["Circling", "Winding up", "Dashing"][e.phase];
     case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
-    case "Devourer": return e.phase === 1 ? "HUNGRY: your shots heal it" : "Twin stream";
+    case "Devourer": {
+      const s = e.dv;
+      if (!s) return "";
+      if (s.trans > 0) return `Changing to ${DV.stages[s.to]} (can't be hurt)`;
+      const what = { Rest: "Breather", Spiral: "Spiral", Snap: s.lunge && s.lunge.warn > 0 ? "Snap: warning line" : "Snap", Hungry: `HUNGRY: your shots heal it, ${morsels().length} morsels`,
+        Inhale: s.inhale > 0 ? "Inhale: PULLING" : "Inhale", Bile: "Bile", Burrow: s.under > 0 ? "Burrow (underground, can't be hurt)" : "Burrow",
+        Frenzy: s.lunge && s.lunge.warn > 0 ? "Frenzy: warning line" : "Frenzy", Jaws: s.jaws ? "Jaws: closing" : "Jaws", Vomit: "Vomit", LastMeal: "Last meal" }[s.turn];
+      const extra = s.sw > 0 ? `   SWALLOWED ${s.sw.toFixed(1)} s` : s.stage === 2 ? "   the Maw (35°/s)" : "";
+      return `${DV.stages[s.stage]}: ${what}   ${s.tt.toFixed(1)} / ${s.len.toFixed(0)} s${extra}` + (S.lock ? "   (locked)" : "");
+    }
     case "Lich": return e.phase === 1 ? "Immune (phylactery stands)" : "Vulnerable";
     case "Eclipse": return `Phase ${e.phase + 1}`;
     case "TwinA": case "TwinB": return (S.lock ? (S.lock === 1 ? "Lines" : "Cross") : (Math.floor(e.t / 5) % 2 === 0 ? "Lines" : "Cross")) + (world.enemies.filter(o => o.type === "TwinA" || o.type === "TwinB").length === 1 ? "   ENRAGED" : "");
@@ -1950,7 +2241,7 @@ function renderSheet() {
 }
 function renderBulletTable() {
   document.getElementById("bulletTable").innerHTML = `<thead><tr><th>Bullet</th><th>Damage</th><th>Radius</th><th>Fired by</th></tr></thead><tbody>` +
-    [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"], ["stun", "The Warden's searchlight (stuns you for 1 s)"]]
+    [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"], ["stun", "The Warden's searchlight (stuns you for 1 s)"], ["bile", "The Devourer's Vomit"], ["tooth", "The Devourer's Jaws"]]
       .map(([k, who]) => `<tr><td><span class="dot" style="background:${css(B[k].col)}"></span>${B[k].name}</td><td class="n">${B[k].dmg}</td><td class="n">${B[k].r} px</td><td>${who}</td></tr>`).join("") +
     `<tr><td><span class="dot" style="background:${css(BY.HiveBomber.col)}"></span>Hive Bomber blast</td><td class="n">22</td><td class="n">60 px</td><td>Hive Queen</td></tr>` +
     `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">50–110 px</td><td>Storm Herald (strikes, downbursts, the storm front), the Eclipse</td></tr></tbody>`;
@@ -2012,7 +2303,7 @@ $("lock").addEventListener("click", ev => {
   const b = ev.target.closest("button"); if (!b) return;
   S.lock = Number(b.dataset.v);
   for (const x of $("lock").children) x.classList.toggle("on", x === b);
-  if (S.sel === "Eclipse" || S.sel === "Singularity" || S.sel === "Warden" || S.sel === "StormHerald") restart();
+  if (S.sel === "Eclipse" || S.sel === "Singularity" || S.sel === "Warden" || S.sel === "StormHerald" || S.sel === "Devourer") restart();
 });
 
 function restart() { newWorld(); }
