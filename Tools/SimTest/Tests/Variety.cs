@@ -69,9 +69,13 @@ static partial class Program
         var sentry = Spawn(EnemyType.BeamSentry, new V2(800f, 450f + 380f), false);
         float taken = me.Run.DamageTaken;
         int phases = 0, clientPhase = 0;
-        Run(s, dt, 9f, () => me.Run.DamageTaken > taken, () =>
+        bool beamHit = false;
+        Run(s, dt, 9f, () => beamHit, () =>
         {
             hold();
+            beamHit |= sentry.Phase == 3 && me.Run.DamageTaken > taken;
+            me.InvulnT = sentry.Phase == 3 ? 0f : 1f;  // only the sweep can hurt you here
+            taken = sentry.Phase == 3 ? taken : me.Run.DamageTaken;
             // Stand on its line, just ahead of where it points, so the sweep comes through.
             V2 at = sentry.Phase >= 2 ? sentry.Pos + V2.FromAngle(sentry.Facing) * 300f : new V2(800f, 450f);
             g.Players[1].Pos = c.Players[1].Pos = at;
@@ -80,8 +84,8 @@ static partial class Program
             var cs = c.Enemies.Values.FirstOrDefault(e => e.Id == sentry.Id);
             if (cs != null) clientPhase |= 1 << cs.Phase;
         });
-        Console.WriteLine("  beam sentry: phases seen {0} (client {1}), hurt {2}", Convert.ToString(phases, 2), Convert.ToString(clientPhase, 2), me.Run.DamageTaken > taken);
-        Check((phases & 0b1100) == 0b1100 && (clientPhase & 0b1000) != 0 && me.Run.DamageTaken > taken, "a Beam Sentry plants, aims and sweeps a beam that hurts (seen on the client)");
+        Console.WriteLine("  beam sentry: phases seen {0} (client {1}), the sweep hurt {2}", Convert.ToString(phases, 2), Convert.ToString(clientPhase, 2), beamHit);
+        Check((phases & 0b1100) == 0b1100 && (clientPhase & 0b1000) != 0 && beamHit, "a Beam Sentry plants, aims and sweeps a beam that hurts (seen on the client)");
         clear(); Run(s, dt, 0.2f);
 
         // The Scorcher: a trail of embers (on the client too) that burns you.
