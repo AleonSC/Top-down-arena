@@ -227,6 +227,11 @@ namespace Arena
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
             }
+            if (d.IsBoss)
+            {
+                e.PowerScale = BossPowerScale();  // a party far above a typical build meets a tougher boss (BuildPower.cs)
+                e.MaxHp *= e.PowerScale;
+            }
             e.Hp = e.MaxHp;
             if (elite)
                 RollTraits(e);  // Variety.cs

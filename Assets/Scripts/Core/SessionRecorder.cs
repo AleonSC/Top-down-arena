@@ -49,7 +49,7 @@ namespace Arena
         {
             public int Id, Wave;
             public string Name;
-            public float MaxHp, Spawned, Died = -1f, Merged = -1f, PlayerDmgTaken;  // Merged: left the fight without dying (the Twin Reapers fusing / splitting)
+            public float MaxHp, Spawned, Died = -1f, Merged = -1f, PlayerDmgTaken, PowerScale = 1f;  // Merged: left the fight without dying (the Twin Reapers fusing / splitting)
             public int Downs;
             public readonly Dictionary<int, float> DmgBy = new Dictionary<int, float>();
         }
@@ -255,7 +255,7 @@ namespace Arena
             }
             if (e.Def.IsBoss)
             {
-                var b = new BossRec { Id = e.Id, Name = e.Def.Name, Wave = w != null ? w.Wave : 0, MaxHp = e.MaxHp, Spawned = now };
+                var b = new BossRec { Id = e.Id, Name = e.Def.Name, Wave = w != null ? w.Wave : 0, MaxHp = e.MaxHp, Spawned = now, PowerScale = e.PowerScale };
                 bosses[e.Id] = b;
                 bossOrder.Add(b);
             }
@@ -528,7 +528,7 @@ namespace Arena
             foreach (var b in bossOrder)
             {
                 j.Open();
-                j.Field("name", b.Name); j.Field("wave", b.Wave); j.Field("maxHp", b.MaxHp);
+                j.Field("name", b.Name); j.Field("wave", b.Wave); j.Field("maxHp", b.MaxHp); j.Field("powerScale", b.PowerScale);
                 j.Field("spawnedAt", b.Spawned); j.Field("killed", b.Died >= 0f); j.Field("merged", b.Merged >= 0f);
                 j.Field("timeToKill", b.Died >= 0f ? b.Died - b.Spawned : -1f);
                 j.Field("playerDamageTaken", b.PlayerDmgTaken); j.Field("downs", b.Downs);

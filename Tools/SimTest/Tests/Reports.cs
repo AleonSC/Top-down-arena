@@ -411,4 +411,24 @@ static partial class Program
             Console.WriteLine("  {0,-7} most:  {1}", fight, string.Join(", ", med.OrderByDescending(kv => kv.Value).Take(5).Select(kv => string.Format("{0} {1:+0;-0}%", kv.Key, kv.Value))));
         }
     }
+
+    // Bosses that keep up with strong builds (BuildPower.cs): a typical build's power at each boss wave, and how much
+    // more health a boss would get for the uploaded Hemomancer run's build (picks in order, cut at each boss).
+    static void BossPowerReport(float dt)
+    {
+        foreach (var role in new[] { Role.Dps, Role.Tank, Role.Healer })
+            Console.WriteLine("  typical {0,-6} (Dash / Barrier / Mend Pulse): {1}", role,
+                string.Join("  ", new[] { 5, 10, 15, 20, 25, 30, 40, 50 }.Select(w => string.Format("w{0} x{1:0.0}", w,
+                    Game.TypicalPower(role, role == Role.Dps ? AbilityId.Dash : role == Role.Tank ? AbilityId.Barrier : AbilityId.MendPulse, w)))));
+        string[] picks = { "Magnum Rounds", "Hair Trigger", "Bloodrush", "Warden's Guard", "Homing Rounds", "Magnum Rounds", "Hair Trigger", "Light Boots", "Sprinter", "Reinforced Guard", "Hair Trigger", "Warden's Guard", "Sharpened Rounds", "Hive Drones", "Homing Rounds", "Sharpened Rounds", "Multishot", "Blink", "Magnum Rounds", "Barrage", "Overcharge", "Fortitude", "Executioner", "Homing Rounds", "Barrage", "Hair Trigger", "Nova", "Thick Skin", "Hemo Nova", "Sharpened Rounds", "Thick Skin", "Hair Trigger", "Magnum Rounds", "Twin Fang", "Second Charge", "Multishot", "Dark Matter", "Velocity Rounds", "Light Guard", "Light Boots", "Crimson Tide", "Quick Trigger", "Barrage", "Quick Trigger", "Collapse Rounds", "Ricochet", "Light Boots" };
+        int[] cutAt = { 3, 13, 22, 36, 44, 47 };  // the picks made before each boss (from the session file), and all of them
+        int[] waves = { 5, 10, 15, 20, 25, 26 };
+        for (int k = 0; k < cutAt.Length; k++)
+        {
+            var taken = picks.Take(cutAt[k]).Select(n => Array.FindIndex(Upgrades.All, u => u.Name == n)).Where(i => i >= 0).ToList();
+            float power = Game.BuildPower(Upgrades.Compute(taken)), typical = Game.TypicalPower(Role.Dps, AbilityId.FrenzyPact, waves[k]);
+            Console.WriteLine("  the Hemomancer run before wave {0,2}: power x{1,5:0.0}, typical x{2,4:0.0} -> boss health x{3:0.00}",
+                waves[k], power, typical, Game.BossScaleFor(power / typical));
+        }
+    }
 }
