@@ -6,7 +6,7 @@ namespace Arena
     /// A small IMGUI toolkit for the menus: rounded panels, tinted buttons, fields,
     /// sliders and checkboxes. Textures are generated in code, so there are no image
     /// files. Call Init() from OnGUI before using anything else.
-    public static class Ui
+    public static partial class Ui  // partial: tolerates a stale file from older versions (e.g. ButtonStyles.cs)
     {
         public static readonly Color Text = new Color(0.93f, 0.95f, 1f);
         public static readonly Color Muted = new Color(0.62f, 0.67f, 0.78f);
