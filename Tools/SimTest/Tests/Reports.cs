@@ -122,4 +122,46 @@ static partial class Program
             }
         host.Leave("");
     }
+
+    // How much damage each DPS ultimate adds against one boss-sized dummy: 12 s of firing with the
+    // ultimate cast at the start, minus 12 s of firing without it (no upgrades, first weapon).
+    static void UltimateDpsReport(float dt)
+    {
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        for (int k = 0; k < Defs.KitCount; k++)
+        {
+            var kit = (Kit)k;
+            float[] dealt = new float[2];
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var host = new Session { AutoStart = 1, StartWave = 3 };
+                host.Host(nextPort++, "A", Role.Dps, 0, 0, kit);
+                host.StartMatch();
+                var g = host.Game;
+                for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                var me = g.Players[1];
+                g.DevSetGod(1, true);
+                foreach (var e in g.Enemies.Values) e.Hp = 0f;
+                for (int i = 0; i < 3; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
+                var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
+                target.Hp = target.MaxHp = 1e7f;
+                me.Slots[Upgrades.UltSlot].Charges = 1;
+                me.Slots[Upgrades.UltSlot].Timer = 0f;
+                float range = me.Weapon.Melee ? Game.MeleeRange(me.Weapon.Id) * 0.7f + target.Radius : Math.Min(250f, g.WeaponRange(me) * 0.75f);
+                float start = target.Hp;
+                for (int f = 0; f < 60 * 12; f++)
+                {
+                    target.Pos = new V2(800f, 450f); target.FrozenT = 1f;
+                    me.Pos = new V2(800f - range, 450f);
+                    foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
+                    host.Poll();
+                    g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = target.Pos, Ultimate = pass == 1 && f < 10 });
+                }
+                dealt[pass] = start - target.Hp;
+                host.Leave("");
+            }
+            Console.WriteLine("  {0,-10} {1,-20} weapon {2,6:0} in 12 s, with ultimate {3,6:0}: ultimate adds {4,6:0}",
+                kit, Upgrades.Ability(Upgrades.Ultimate(Role.Dps, kit)).Name, dealt[0], dealt[1], dealt[1] - dealt[0]);
+        }
+    }
 }

@@ -324,6 +324,7 @@ namespace Arena
         public float Hp, MaxHp, HurtT;   // host: a Warden's Guard's or Soul Ghost's health, and its contact-damage cooldown
         public float InvulnT;            // host: a Soul Ghost from a mastered Soul Link can't be hurt at first
         public bool Mastered;            // host: summoned by a mastered ability (Phoenix, Guardian Spirit)
+        public bool NoFrenzy;            // host: Legion's pack, which doesn't frenzy (the frenzy is for your other minions)
         public MinionDef Def => Kits.Get(Kind);
         public bool Sent;                // host: a Wisp Lantern wisp or Imp Caller imp sent out at something
         public bool Returning;           // host: a wisp flying back to you

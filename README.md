@@ -221,7 +221,7 @@ that upgrades don't shorten, and start each match half charged. The HUD shows th
 |---|---|---|---|---|
 | **Tank** | **Fortress** (70 s): for 8 s every enemy targets you and you take 75% less damage; erases nearby bullets and shoves enemies back | **Glacial Tomb** (75 s): erases every enemy bullet and freezes every enemy solid for 4 s; bosses take 250 damage instead | **Titan** (80 s): a stone titan smashes enemies for 15 s and blocks bullets (soaks 1000 boss damage) | **Last Stand** (70 s): for 8 s you can't drop below 1 HP, every enemy targets you, +50% damage |
 | **Healer** | **Lifeline** (90 s): instantly revive and fully heal the whole party, plus 3 s of invulnerability | **Sanctum** (80 s): a 7 s holy dome; allies inside heal fast and can't go down, and bullets can't get in | **World Tree** (80 s): a tree for 10 s that heals allies, entangles nearby enemies and sends out 4 healing sprites | **Hallowed Blade** (80 s): a giant sword falls at your cursor (200 damage), then blesses the ground for 8 s |
-| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and all your minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
+| **DPS** | **Bullet Storm** (60 s): 6 s of triple fire rate and +2 extra projectiles | **Meteor Storm** (70 s): 12 meteors rain on enemies over 3 s, 150 damage each | **Legion** (70 s): 6 wolves and 6 bats for 10 s, and your other minions frenzy | **Blade Tempest** (65 s): for 6 s every swing also hurls three piercing sword beams |
 
 ### Ability mastery
 

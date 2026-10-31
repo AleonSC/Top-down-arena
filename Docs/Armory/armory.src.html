@@ -282,7 +282,7 @@ tr:last-child td { border-bottom: 0; }
     <div class="box">
       <h4>Minions</h4>
       <div class="tablewrap"><table id="minionTable"></table></div>
-      <p class="foot" style="margin-top:8px">Minions use your damage and fire-rate upgrades. Alpha Call and Legion frenzy them: 1.6× speed, attacks twice as often, 1.3× damage. Blocking minions stop enemy bullets coming in from outside; boss bullets wear their block down (companions stagger for 4 s, walls break).</p>
+      <p class="foot" style="margin-top:8px">Minions use your damage and fire-rate upgrades. Alpha Call and Legion frenzy them (not Legion's own pack): 1.6× speed, attacks twice as often, 1.3× damage. Blocking minions stop enemy bullets coming in from outside; boss bullets wear their block down (companions stagger for 4 s, walls break).</p>
     </div>
     <div class="box">
       <h4>Ground zones</h4>
@@ -844,7 +844,7 @@ const A = [
     stats: [["Lasts", "6 s"], ["Fire rate", "× 3"], ["Extra projectiles", "+2 (each weapon upgrades its own way: see Weapons)"]], demo: { type: "buff", dur: 6, col: [1, 0.6, 0.25], shots: true, storm: true } },
   { id: "Meteor Storm", slot: "Ultimate", role: "DPS", kit: "Elementalist", cd: 70, desc: "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
     stats: [["Meteors", "12, aimed at enemies, one every 0.2 s"], ["Each", "150 damage within 90 px"]], demo: { type: "meteor", r: 90, n: 12, col: [1, 0.35, 0.15] } },
-  { id: "Legion", slot: "Ultimate", role: "DPS", kit: "Summoner", cd: 70, desc: "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
+  { id: "Legion", slot: "Ultimate", role: "DPS", kit: "Summoner", cd: 70, desc: "Summon 6 wolves and 6 bats for 10 s, and your other minions frenzy.",
     stats: [["Summons", "6 Wolves + 6 Bats"], ["Lasts", "10 s"], ["Frenzy", "All minions: 1.6× speed, 2× attack rate, 1.3× damage"]], demo: { type: "summon", minion: "Wolf", n: 6, extra: "Bat", dur: 10 } },
   // Knight
   { id: "Shield Wall", slot: "Space", role: "Tank", kit: "Knight", cd: 12, desc: "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), red aimed shots included. Bosses can break it (it soaks 400 of their damage).",

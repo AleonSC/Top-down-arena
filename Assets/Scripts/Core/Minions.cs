@@ -1343,7 +1343,7 @@ namespace Arena
                     if (m.StaggerT <= 0f)
                         m.BlockHp = d.BlockCapacity * m.Scale;  // back on its feet
                 }
-                bool frenzy = owner.FrenzyT > 0f;
+                bool frenzy = owner.FrenzyT > 0f && !m.NoFrenzy;
                 float speed = d.Speed * (frenzy ? 1.6f : 1f);
                 float rate = owner.Stats.FireRateMult * (frenzy ? 2f : 1f);
                 float dmg = d.Damage * owner.Stats.DmgMult * (frenzy ? 1.3f : 1f) * m.Scale * m.Power;

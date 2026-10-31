@@ -166,7 +166,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
   - Single systems: `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `paths`, `bazaar`, `practice`, `bosses`,
     `warden`, `singularity`, `mastery`, `classcards`, `showcase`, `ults`, `mods`, ... Reports (numbers, no pass/fail):
-    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `laserdebug`. A new test: add it to its system's file, then to the
+    `ttk`, `lab`, `levels`, `bulletcount`, `dps`, `ultdps`, `laserdebug`. A new test: add it to its system's file, then to the
     `Suites` table (and to `FeatureTests` if it belongs in the feature suite).
   - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
     it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
@@ -214,6 +214,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Legion nerf (Oct 2026):** Legion's own wolves and bats no longer frenzy (`Minion.NoFrenzy`); your other minions still do. It added ~11,200 damage to one big target in 12 s (Bullet Storm ~6,200), now ~5,400. Measured by the new `ultdps` report (`run.sh 1 1 ultdps`). No protocol change (host-only flag).
 
 **Dev text editor (Oct 2026):** F4 / F1 → Tools: click any UI text to edit it; edits in `TextOverrides.txt` (numbers stay the game's), folded into the code by `Tools/TextEdits/fold.py`; `textedit` test mode.
 
