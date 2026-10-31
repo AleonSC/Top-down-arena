@@ -352,12 +352,13 @@ namespace Arena
             Ui.Fancy(new Rect(hero.x + 14f, hy + 14f, hero.width - 28f, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
             Ui.Label(new Rect(hero.x + 14f, hy + 38f, hero.width - 28f, hero.yMax - hy - 44f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
 
-            // Choices.
+            // Choices: role and class rows (their blurbs sit in the heading line), then weapon and ability side by
+            // side, then a spec sheet for the picked weapon and ability.
             float x = hero.xMax + 20f, w = r.xMax - 18f - x, y = r.y + 16f;
             const float gap = 8f;
             float third = (w - gap * 2f) / 3f;
 
-            Ui.Heading(x, y, w, "Role");
+            HeadingWithBlurb(x, y, w, "Role", Defs.Get(me.Role).Desc);
             for (int i = 0; i < Defs.Roles.Length; i++)
             {
                 var rc = ToColor(Defs.Roles[i].Color);
@@ -371,10 +372,9 @@ namespace Arena
                     abilityChoice = 0;
                 }
             }
-            Ui.Label(new Rect(x, y + 98f, w, 18f), Defs.Get(me.Role).Desc, 12, Ui.Muted);
-            y += 122f;
+            y += 106f;
 
-            Ui.Heading(x, y, w, "Class");
+            HeadingWithBlurb(x, y, w, "Class", KitBlurb(me.Kit));
             float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
             int kitSize = 14;  // one size for the whole row, small enough for the longest name
             for (int i = 0; i < Defs.KitCount; i++)
@@ -388,24 +388,22 @@ namespace Arena
                     weaponChoice = 0;
                     abilityChoice = 0;
                 }
-            Ui.Label(new Rect(x, y + 68f, w, 18f), KitBlurb(me.Kit), 12, Ui.Muted);
-            y += 94f;
+            y += 76f;
 
-            Ui.Heading(x, y, w, "Weapon");
+            // Weapon and ability: two columns of stacked buttons.
+            float col = (w - 16f) / 2f, ax = x + col + 16f;
+            Ui.Heading(x, y, col, "Weapon");
+            Ui.Heading(ax, y, col, "Ability  ·  Space");
             for (int i = 0; i < Defs.WeaponsPerRole; i++)
-                if (Ui.Choice(new Rect(x + i * (third + gap), y + 28f, third, 36f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
+                if (Ui.Choice(new Rect(x, y + 28f + i * 38f, col, 32f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
                 {
                     session.RequestWeapon(i);
                     weaponChoice = i;
                 }
-            Ui.Label(new Rect(x, y + 68f, w, 34f), wdef.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y += 106f;
-
-            Ui.Heading(x, y, w, "Ability  ·  Space");
             int hovered = -1;
             for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
             {
-                var b = new Rect(x + i * (third + gap), y + 28f, third, 36f);
+                var b = new Rect(ax, y + 28f + i * 38f, col, 32f);
                 if (b.Contains(Event.current.mousePosition))
                     hovered = i;
                 if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor, glow: false))
@@ -418,8 +416,99 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 abilityHover = hovered;
+            y += 28f + 3f * 38f + 10f;
+
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
-            Ui.Label(new Rect(x, y + 68f, w, 34f), ability.Desc + "  (" + ability.Cooldown.ToString("0.#") + " s cooldown)", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            DrawSpecSheet(new Rect(x, y, w, r.yMax - 16f - y), wdef, ability, roleColor, t);
+        }
+
+        /// A section heading with a short blurb right-aligned in the same line (shrunk to fit).
+        void HeadingWithBlurb(float x, float y, float w, string title, string blurb)
+        {
+            Ui.Heading(x, y, w, title);
+            float left = Ui.TextWidth(title.ToUpperInvariant(), 12, true) + 24f;
+            int size = 12;
+            while (size > 10 && Ui.TextWidth(blurb, size) > w - left)
+                size--;
+            Ui.Label(new Rect(x + left, y, w - left, 20f), blurb, size, new Color(0.78f, 0.82f, 0.92f), TextAnchor.MiddleRight);
+        }
+
+        /// The loadout's spec sheet: the picked weapon (left) and ability (right), each with its name, description
+        /// and a few number tiles, in a dark panel with plot-style corner brackets in the role's colour.
+        void DrawSpecSheet(Rect r, WeaponDef wdef, AbilityDef ability, Color accent, float t)
+        {
+            if (r.height < 120f)
+                return;
+            Ui.Pill(r, new Color(0.025f, 0.03f, 0.06f, 0.85f));
+            float half = r.width / 2f;
+            Ui.Fill(new Rect(r.x + half, r.y + 12f, 1f, r.height - 24f), new Color(1f, 1f, 1f, 0.07f));
+            var left = new Rect(r.x + 14f, r.y + 12f, half - 28f, r.height - 24f);
+            var right = new Rect(r.x + half + 14f, r.y + 12f, half - 28f, r.height - 24f);
+            const float tileH = 42f;
+
+            // Weapon.
+            SpecHeader(left, "WEAPON", wdef.Name, accent);
+            var wTiles = new System.Collections.Generic.List<string[]>();
+            if (wdef.Companion != MinionKind.None && wdef.CompanionCount > 0)
+                wTiles.Add(new[] { wdef.CompanionCount.ToString(), "COMPANIONS" });
+            if (wdef.Damage > 0f)
+                wTiles.Add(new[] { Mathf.RoundToInt(wdef.Damage).ToString(), wdef.Melee ? "PER SWING" : "PER HIT" });
+            if (wdef.FireInterval > 0f)
+                wTiles.Add(new[] { (1f / wdef.FireInterval).ToString(wdef.FireInterval >= 0.5f ? "0.0" : "0"), wdef.Melee ? "SWINGS / S" : "SHOTS / S" });
+            float descH = left.yMax - tileH - 8f - (left.y + 46f);
+            Ui.Label(new Rect(left.x, left.y + 46f, left.width, descH), wdef.Desc, 12, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
+            SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, 0);
+
+            // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
+            SpecHeader(right, "ABILITY  ·  SPACE", ability.Name, accent);
+            Ui.Label(new Rect(right.x, right.y + 46f, right.width, descH), ability.Desc, 12, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
+            var aTiles = new System.Collections.Generic.List<string[]>();
+            aTiles.Add(new[] { ability.Cooldown.ToString("0.#") + " s", "COOLDOWN" });
+            if (ability.ExtraCharges > 0)
+                aTiles.Add(new[] { (1 + ability.ExtraCharges).ToString(), "CHARGES" });
+            if (ability.HealthCost > 0f)
+                aTiles.Add(new[] { Mathf.RoundToInt(ability.HealthCost * 100f) + "%", ability.CostsCurrent ? "OF CURRENT HP" : "OF MAX HP" });
+            var aRow = new Rect(right.x, right.yMax - tileH, right.width, tileH);
+            SpecTiles(aRow, aTiles, 34f);  // the first tile leaves room for the ring
+
+            if (BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                DrawPlotCorners(r, 0f, 14f, new Rgba(accent.r, accent.g, accent.b, 0.85f));
+                var ring = new V2(aRow.x + 22f, aRow.center.y);
+                float f = ability.Cooldown > 0f ? (t % ability.Cooldown) / ability.Cooldown : 1f;
+                Arc(ring, 12f, 3.5f, new Rgba(1f, 1f, 1f, 0.1f), 40);
+                Arc(ring, 12f, 3.5f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.95f), 40, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, f));
+                EndUiGl();
+            }
+        }
+
+        void SpecHeader(Rect col, string eyebrow, string name, Color accent)
+        {
+            Ui.Label(new Rect(col.x, col.y, col.width, 14f), eyebrow, 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            int size = 20;
+            while (size > 13 && Ui.TextWidth(name, size, true) > col.width)
+                size--;
+            Ui.Fancy(new Rect(col.x, col.y + 15f, col.width + 10f, 28f), name, size, Color.white, Color.Lerp(accent, Color.white, 0.6f), TextAnchor.MiddleLeft);
+        }
+
+        static float SpecTileWidth(Rect row, int n) => n <= 0 ? 0f : (row.width - 6f * (n - 1)) / n;
+
+        /// A row of number tiles: a big gold value over a small caption. pad = room left free at the first tile's left.
+        void SpecTiles(Rect row, System.Collections.Generic.List<string[]> tiles, float pad)
+        {
+            float tw = SpecTileWidth(row, tiles.Count);
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                var tile = new Rect(row.x + i * (tw + 6f), row.y, tw, row.height);
+                Ui.Pill(tile, new Color(0.1f, 0.13f, 0.25f, 0.9f));
+                float tx = tile.x + 9f + (i == 0 ? pad : 0f);
+                int vs = 16;
+                while (vs > 11 && Ui.TextWidth(tiles[i][0], vs, true) > tile.xMax - 6f - tx)
+                    vs--;
+                Ui.Label(new Rect(tx, tile.y + 3f, tile.xMax - 6f - tx, 22f), tiles[i][0], vs, Ui.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx, tile.y + 23f, tile.xMax - 4f - tx, 14f), tiles[i][1], 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+            }
         }
 
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
