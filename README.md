@@ -336,7 +336,7 @@ comes back in squads, and with the Reaver from wave 28).
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
 other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave:
 Rush (1: four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to
-reach you), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder leading two Snipers that keep behind
+reach you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder leading two Snipers that keep behind
 it), Field hospital (11: three Brutes and a Medic behind them), Ambush (16: three Phantoms blink in around you),
 Beam battery (18: two Beam Sentries guarded by a Shielder), Pincer (21: Hexers from opposite edges), Scorched earth
 (24: two Scorchers and Swarmers), Siege (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two

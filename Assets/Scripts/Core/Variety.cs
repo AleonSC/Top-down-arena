@@ -49,6 +49,7 @@ namespace Arena
             new SquadDef { Name = "Rush", From = 1, Members = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Swarmer } },
             new SquadDef { Name = "Firing line", From = 3, Members = new[] { EnemyType.Grunt, EnemyType.Grunt, EnemyType.Grunt, EnemyType.Sniper } },
             new SquadDef { Name = "Brute pack", From = 5, Members = new[] { EnemyType.Brute, EnemyType.Brute, EnemyType.Lunger } },
+            new SquadDef { Name = "Splinters", From = 7, Members = new[] { EnemyType.Splitter, EnemyType.Splitter, EnemyType.Grunt } },
             new SquadDef { Name = "Bombardment", From = 8, Members = new[] { EnemyType.Charger, EnemyType.Mortar, EnemyType.Mortar } },
             new SquadDef { Name = "Shield wall", From = 9, Members = new[] { EnemyType.Shielder, EnemyType.Sniper, EnemyType.Sniper } },
             new SquadDef { Name = "Field hospital", From = 11, Members = new[] { EnemyType.Brute, EnemyType.Brute, EnemyType.Brute, EnemyType.Medic } },

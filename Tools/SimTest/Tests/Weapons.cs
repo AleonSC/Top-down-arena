@@ -2254,7 +2254,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                ((List<EnemyType>)queueField.GetValue(g)).Clear();
+                ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
                 foreach (var e in g.Enemies.Values) if (e != dummy) e.Hp = 0f;
                 dummy.Pos = new V2(700f, 300f); dummy.FrozenT = 1f; dummy.FireT = 9f;
                 me.Pos = me.Disp = new V2(400f, 450f);

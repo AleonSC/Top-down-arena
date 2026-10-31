@@ -8,7 +8,7 @@ using Arena;
 // Enemies: early melee rushers, waves 11-13, Spinners, and waves 25-50.
 static partial class Program
 {
-    // Early waves are melee rushers; shooters take over until the melee are gone by wave 13.
+    // Early waves are melee rushers; shooters take over until the lone melee are gone by wave 13 (squads still bring some).
     static void MeleeTest(float dt)
     {
         Check(Game.MeleeShare(1) == 1f && Math.Abs(Game.MeleeShare(7) - 0.5f) < 0.01f && Game.MeleeShare(13) == 0f && Game.MeleeShare(30) == 0f,
@@ -17,7 +17,7 @@ static partial class Program
         {
             var s = StartBuffed(dt, wave, 0);
             var types = new HashSet<EnemyType>();
-            int melee = 0, ranged = 0, enemyShotsFromMelee = 0;
+            int melee = 0, ranged = 0, enemyShotsFromMelee = 0, loneMelee = 0;
             bool leapSeen = false, meleeHurt = false;
             var counted = new HashSet<int>();
             Run(s, dt, 25, () => s[0].Game.Wave > wave, () =>
@@ -28,6 +28,8 @@ static partial class Program
                     if (counted.Add(e.Id))
                     {
                         if (e.Def.Melee) melee++; else ranged++;
+                        Enemy he;
+                        if (e.Def.Melee && e.Type != EnemyType.Shard && s[0].Game.Enemies.TryGetValue(e.Id, out he) && he.SquadId == 0) loneMelee++;
                     }
                     leapSeen |= e.Type == EnemyType.Lunger && e.Phase == 2;
                 }
@@ -40,7 +42,7 @@ static partial class Program
             else if (wave == 7)
                 Check(melee > 0 && ranged > 0, "wave 7 mixes melee and shooters");
             else
-                Check(melee == 0 && ranged > 0, "from wave 13 there are no melee enemies");
+                Check(loneMelee == 0 && ranged > 0, "from wave 13 melee only comes in squads (" + melee + " in squads)");
             s[0].Leave(""); s[1].Leave("");
         }
 

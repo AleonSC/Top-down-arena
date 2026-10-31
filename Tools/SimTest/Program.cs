@@ -102,6 +102,10 @@ static partial class Program
         return false;
     }
 
+    /// Tests that empty the spawn queue to get a quiet arena empty the squads waiting to come in too (Variety.cs).
+    static void ClearSquads(Game g) =>
+        ((List<SquadDef>)typeof(Game).GetField("squadQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(g)).Clear();
+
     static Enemy Find(Session s, EnemyType t)
     {
         foreach (var e in s.Game.Enemies.Values)

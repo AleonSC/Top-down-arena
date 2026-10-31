@@ -27,7 +27,7 @@ static partial class Program
         var cp = s[1].Game.Players[2];        // and as their own game does
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         var keep = new HashSet<Enemy>();
-        Action clear = () => { ((List<EnemyType>)queueField.GetValue(g)).Clear(); foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f; };
+        Action clear = () => { ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g); foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f; };
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; keep.Add(e); return e; };
         // The joining player holds fire (or not) at a point; the host stands still.
         Action<float, bool, V2> drive = (secs, fire, at) =>

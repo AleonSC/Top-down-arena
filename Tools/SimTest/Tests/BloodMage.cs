@@ -27,7 +27,7 @@ static partial class Program
         var me = g.Players[1];
         Check(me.Weapon.Id == WeaponId.VeinTether, "the Blood Mage healer's third weapon is Vein Tether");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Run(s, dt, 0.2f);
         me.Pos = me.Disp = new V2(600f, 450f);
@@ -87,7 +87,7 @@ static partial class Program
         var me = g.Players[1];
         Check(me.Weapon.Id == WeaponId.LeechBeam && me.Weapon.Name == "Leech Tendrils", "the Hemomancer tank's third weapon is Leech Tendrils");
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
         Run(s, dt, 0.2f);
         client.Game.Players[2].Pos = new V2(300f, 200f);

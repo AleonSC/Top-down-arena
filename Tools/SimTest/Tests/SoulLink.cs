@@ -30,7 +30,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                ((List<EnemyType>)queueField.GetValue(g)).Clear();
+                ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
                 foreach (var e in g.Enemies.Values) if (e != dummy) e.Hp = 0f;  // just the one enemy, and the wave goes on
                 dummy.Pos = new V2(650f, 450f); dummy.FrozenT = 1f;
                 me.Pos = new V2(300f, 450f);

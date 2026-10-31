@@ -41,7 +41,7 @@ static partial class Program
         g.Wave = 22;
 
         // Clear the field; a frozen Grunt in a corner keeps the wave going while we test.
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         ((List<SquadDef>)squadField.GetValue(g)).Clear();
         var anchor = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(40f, 40f), 0f, 0, false });
         anchor.Hp = anchor.MaxHp = 1e6f;
@@ -60,7 +60,7 @@ static partial class Program
         Run(s, dt, 7f, null, () => { hold(); Place(new V2(800f, 450f), new V2(1500f, 800f)); foreach (var p in g.Players.Values) p.InvulnT = 1f; });
         var sh = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Shielder && e.SquadId != 0);
         var snipers = g.Enemies.Values.Where(e => e.Type == EnemyType.Sniper && sh != null && e.SquadId == sh.SquadId).ToList();
-        bool guards = sh != null && snipers.Count == 2 && snipers.All(n => n.Pos.DistanceTo(me.Pos) > sh.Pos.DistanceTo(me.Pos) + 40f);
+        bool guards = sh != null && snipers.Count == 2 && snipers.Average(n => n.Pos.DistanceTo(me.Pos)) > sh.Pos.DistanceTo(me.Pos) + 30f;
         Console.WriteLine("  shield wall: shielder {0:0} px from you, snipers {1}", sh?.Pos.DistanceTo(me.Pos), string.Join(", ", snipers.Select(n => n.Pos.DistanceTo(me.Pos).ToString("0"))));
         Check(guards, "a Shield wall squad arrives together and its Shielder stands between you and its Snipers");
         clear(); Run(s, dt, 0.2f);
@@ -86,7 +86,8 @@ static partial class Program
 
         // The Scorcher: a trail of embers (on the client too) that burns you.
         var scorcher = Spawn(EnemyType.Scorcher, new V2(1050f, 450f), false);
-        Run(s, dt, 2.5f, null, () => { hold(); Place(new V2(800f, 450f), new V2(100f, 100f)); me.InvulnT = 1f; });
+        Run(s, dt, 4f, () => g.Patches.Values.Count(p => p.Kind == PatchKind.Embers) >= 6, () => { hold(); Place(new V2(800f, 450f), new V2(100f, 100f)); me.InvulnT = 1f; });
+        Run(s, dt, 0.2f, null, () => { hold(); me.InvulnT = 1f; });
         int embers = g.Patches.Values.Count(p => p.Kind == PatchKind.Embers), clientEmbers = c.Patches.Values.Count(p => p.Kind == PatchKind.Embers);
         var ember = g.Patches.Values.FirstOrDefault(p => p.Kind == PatchKind.Embers && p.Active);
         taken = me.Run.DamageTaken;

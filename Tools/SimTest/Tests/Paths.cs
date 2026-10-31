@@ -170,7 +170,8 @@ static partial class Program
         g.CurrentPath = PathId.None; g.Wave = 7;
         build.Invoke(g, new object[] { 7 });
         // Count spawn rolls, not heads: swarmers come in random pairs.
-        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Swarmer) / 2; };
+        var squadField = typeof(Game).GetField("squadQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Func<int> Rolls = () => { var q = (List<EnemyType>)queueField.GetValue(g); return q.Count - q.Count(t => t == EnemyType.Swarmer) / 2 + ((List<SquadDef>)squadField.GetValue(g)).Sum(sq => sq.Members.Length); };  // and the squads (Variety.cs)
         int plain = Rolls();
         g.CurrentPath = PathId.Sanctuary;
         build.Invoke(g, new object[] { 7 });
@@ -178,7 +179,7 @@ static partial class Program
         Check(calm == (int)(plain * 0.8f), "Sanctuary: a fifth fewer enemies (" + plain + " -> " + calm + ")");
         g.State = MatchState.Fighting;
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
         keepAlive.Hp = keepAlive.MaxHp = 1e6f;
         g.Patches.Clear();
@@ -211,7 +212,7 @@ static partial class Program
         host.StartMatch();
         for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++) Step(host, dt);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         Step(host, dt);
         var keepAlive = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 60f), 0f, 0, false });  // so the wave doesn't end
         keepAlive.Hp = keepAlive.MaxHp = 1e6f;
@@ -285,7 +286,7 @@ static partial class Program
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
-        ((List<EnemyType>)queueField.GetValue(g)).Clear();
+        ((List<EnemyType>)queueField.GetValue(g)).Clear(); ClearSquads(g);
         Run(s, dt, 0.1f);
         var keepAlive = (Enemy)spawnAt.Invoke(g, new object[] { EnemyType.Brute, new V2(800f, 450f), 0f, 0, false });  // so the wave doesn't end
         keepAlive.Hp = keepAlive.MaxHp = 1e6f;
