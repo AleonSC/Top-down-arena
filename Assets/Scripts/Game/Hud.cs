@@ -590,6 +590,53 @@ namespace Arena
             return ColStageName(c.Stage);
         }
 
+        static string DevourStageName(DevourStage s) => s == DevourStage.Appetite ? "APPETITE" : s == DevourStage.Gorging ? "GORGING"
+            : s == DevourStage.Ravenous ? "RAVENOUS" : "LAST MEAL";
+
+        /// The Devourer's stage under its health bar, and what to watch for.
+        string DevourNote(DevourState s, ref Color c)
+        {
+            var hungry = new Color(1f, 0.45f, 0.7f);
+            if (s.TransT > 0f)
+            {
+                c = new Color(1f, 0.85f, 0.88f);
+                return "CAN'T BE HURT — " + DevourStageName(s.TransTo) + " is coming";
+            }
+            if (s.SwallowId != 0 && s.SwallowId == game.MyId)
+            {
+                c = new Color(0.8f, 0.9f, 0.4f);
+                return "SWALLOWED — hold on, your allies' hits get you out";
+            }
+            if (s.SwallowId != 0)
+            {
+                c = new Color(0.8f, 0.9f, 0.4f);
+                return (game.Players.ContainsKey(s.SwallowId) ? game.Players[s.SwallowId].Name.ToUpper() : "AN ALLY") + " IS SWALLOWED — shoot it, double damage!";
+            }
+            if (s.BurrowT > 0f)
+                return "BURROWING — it's coming up under you, keep moving";
+            switch (s.Turn)
+            {
+                case DevourTurn.Hungry:
+                    c = hungry;
+                    return "HUNGRY — don't shoot it, shoot the morsels!";
+                case DevourTurn.Snap:
+                case DevourTurn.Frenzy: return "LUNGES — step off the red line";
+                case DevourTurn.Inhale:
+                    c = new Color(0.8f, 0.9f, 0.4f);
+                    return "INHALE — get out of the cone!";
+                case DevourTurn.Bile: return "BILE — keep out of the pools";
+                case DevourTurn.Jaws: return "JAWS — dodge out to the side";
+                case DevourTurn.Vomit: return "VOMIT — get behind it";
+                case DevourTurn.LastMeal: return "LAST MEAL — keep walking out, mind the teeth";
+            }
+            if (s.Stage == DevourStage.Ravenous)
+            {
+                c = hungry;
+                return "THE MAW — shots into its mouth heal it, hit its back";
+            }
+            return DevourStageName(s.Stage);
+        }
+
         /// The Warden's stage under its health bar, and what to watch for.
         string WardenNote(WardenState w, ref Color c)
         {
@@ -742,6 +789,8 @@ namespace Arena
                 }
                 else if (e.Type == EnemyType.Lich && e.Lich != null)
                     note = LichStageName(e.Lich.Stage);
+                else if (e.Type == EnemyType.Devourer && e.Devour != null)
+                    note = DevourNote(e.Devour, ref noteColor);
                 else if (Game.Hungry(e))
                 {
                     note = "HUNGRY — stop shooting, your hits heal it!";
@@ -774,6 +823,8 @@ namespace Arena
                 warning = "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!";
             else if (game.Reapers != null && game.Reapers.Suck > 0f)
                 warning = "THE PILLARS STOOD — it's pulling you in!";
+            else if (game.PullStrength > 0f && FindDevourer(game) != null)
+                warning = "ITS LAST MEAL — it's pulling you in!";  // Devourer.cs
             else if (game.PullStrength > 0f)
                 warning = "GRAVITY WELL — run!";
             if (warning != null)

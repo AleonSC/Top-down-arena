@@ -25,7 +25,7 @@ namespace Arena
         /// Too heavy to slow down, shove around or knock back.
         static bool Heavy(Enemy e) => e.Def.IsBoss || e.Def.Heavy;
 
-        /// The Devourer heals from your shots while it's hungry.
+        /// The Devourer heals from your shots while it's hungry (its Hungry turn, Devourer.cs).
         public static bool Hungry(Enemy e) => e.Type == EnemyType.Devourer && e.Phase == 1;
 
         // --- Winning ------------------------------------------------------------
@@ -70,7 +70,7 @@ namespace Arena
                 case EnemyType.Duelist:
                     return DuelistMove(e, tpos, dir, dist, ref speed);  // Duelist.cs
                 case EnemyType.Devourer:
-                    return KeepDistance(dir, dist, 260f);
+                    return DevourMove(e, dir, dist, ref speed);  // Devourer.cs
                 case EnemyType.Lich:
                     return V2.Zero;  // it moves itself: drifting, blinking between graves (Lich.cs)
                 case EnemyType.StormHerald:
@@ -144,13 +144,8 @@ namespace Arena
                     HeraldSpecial(e, tpos, dt);  // its stages and turns (Herald.cs)
                     break;
                 case EnemyType.Devourer:
-                {
-                    byte was = e.Phase;
-                    e.Phase = (byte)(MathX.Fmod(e.T, 10f) >= 7f ? 1 : 0);  // hungry for 3 s of every 10
-                    if (e.Phase == 1 && was == 0)
-                        BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 160f, 0.6f, Sfx.None);  // its cue plays from BossCues
+                    DevourSpecial(e, tpos, dt);  // its stages and turns (Devourer.cs)
                     break;
-                }
                 case EnemyType.Eclipse:
                 {
                     float frac = e.Hp / e.MaxHp;
@@ -223,19 +218,7 @@ namespace Arena
                     HeraldFire(e, tpos, aim);  // Herald.cs
                     break;
                 case EnemyType.Devourer:
-                    if (e.Phase == 1)
-                    {
-                        e.FireT = 1.2f;
-                        for (int i = 0; i < 20; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 20f, 90f, Defs.BigShot);
-                    }
-                    else
-                    {
-                        e.FireT = 0.08f;
-                        e.Ang += 0.17f;
-                        EnemyShot(e, e.Ang, 140f, Defs.SmallShot);
-                        EnemyShot(e, e.Ang + MathX.Pi, 140f, Defs.SmallShot);
-                    }
+                    DevourFire(e, tpos, aim);  // Devourer.cs
                     break;
                 case EnemyType.Eclipse:
                     switch (e.Phase)

@@ -327,7 +327,7 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
-                if (e.Type != EnemyType.Singularity)  // its Facing is the lasers' sweep, not where it looks
+                if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);
                 if (State == MatchState.Fighting)
@@ -345,8 +345,9 @@ namespace Arena
                             EnemyFire(e, tpos);
                     }
                 }
-                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e))
-                    continue;  // blew up this tick, explodes instead of bumping, an egg, or the Hive Queen up in a dive
+                if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
+                    || e.Type == EnemyType.Morsel || DevourUnder(e))
+                    continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground
                 // Bosses and heavies hurt to stand in, more so later on.
                 float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
@@ -355,7 +356,7 @@ namespace Arena
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
                         continue;
                     if (p.ParryActive && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.BodyR + ParryReach && ParryContact(p, e, contact))
                         continue;
@@ -466,6 +467,8 @@ namespace Arena
                 return true;  // the Singularity changing stage, or split into its shards (Singularity.cs)
             if (HeraldImmune(e))
                 return true;  // the Storm Herald changing stage (Herald.cs)
+            if (DevourBlocks(e, from))
+                return true;  // the Devourer changing stage or underground; otherwise it notes which side the hit came from (Devourer.cs)
             if (DuelImmune(e) || e.Type == EnemyType.Duelist && DuelGuardBlocks(e, from))
                 return true;  // the Duelist changing stage, or its guard from the front (Duelist.cs)
             if (ColossusImmune(e))
@@ -871,6 +874,13 @@ namespace Arena
                 foreach (var o in Enemies.Values)
                     if (o.Type == EnemyType.BallLightning)
                         o.Hp = 0f;  // the storm breaks
+            if (e.Type == EnemyType.Devourer)
+            {
+                ReleaseSwallowed(e);  // whoever's inside comes out (Devourer.cs)
+                foreach (var o in Enemies.Values)
+                    if (o.Type == EnemyType.Morsel)
+                        o.Hp = 0f;
+            }
             if (e.Type == EnemyType.Splitter)
             {
                 int n = e.Elite ? 5 : 3;

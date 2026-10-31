@@ -806,6 +806,183 @@ static partial class Program
         s[0].Leave(""); s[1].Leave("");
     }
 
+    // The Devourer (Devourer.cs): Appetite, Gorging, Ravenous, then the last meal.
+    static void DevourerTest(float dt)
+    {
+        var s = StartBuffed(dt, 45, 0);
+        s[0].Game.Bot = s[1].Game.Bot = false;
+        var g = s[0].Game;
+        var c = s[1].Game;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        var blocks = typeof(Game).GetMethod("BlocksShot", flags);
+        Action safe = () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; };
+        Action clear = () => { foreach (var b in g.Bullets.Values) b.Life = 0f; };
+        Action<V2, V2> Place = (a, b) => { g.Players[1].Pos = c.Players[1].Pos = a; g.Players[2].Pos = c.Players[2].Pos = b; };
+        Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Devourer) != null && !g.IsSpawning(Find(s[0], EnemyType.Devourer)));
+        var h = Find(s[0], EnemyType.Devourer);
+        foreach (var e in g.Enemies.Values) if (e != h) e.Hp = 0f;  // just the boss
+        var me = g.Players[1];
+        Func<DevourState> cs = () => c.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Devourer)?.Devour;
+
+        // Appetite: Spiral, Snap, Hungry, breathers between; lunges and morsels seen on the client.
+        var turns = new List<DevourTurn>();
+        int spiral = 0, morsels = 0, clientMorsels = 0;
+        bool clientLunge = false, clientHungry = false, restQuiet = true;
+        Run(s, dt, 21f, null, () =>
+        {
+            safe(); Place(new V2(500f, 650f), new V2(1100f, 650f));
+            var ds = h.Devour;
+            if (ds == null) return;
+            if (turns.Count == 0 || turns[turns.Count - 1] != ds.Turn) turns.Add(ds.Turn);
+            if (ds.Turn == DevourTurn.Spiral) spiral = Math.Max(spiral, g.Bullets.Values.Count(b => b.Source == EnemyType.Devourer && b.Kind == Defs.SmallShot));
+            if (ds.Turn == DevourTurn.Rest && ds.TurnT > 0.5f && g.Bullets.Values.Any(b => b.Source == EnemyType.Devourer && b.Life > 7.9f)) restQuiet = false;
+            morsels = Math.Max(morsels, g.Enemies.Values.Count(e => e.Type == EnemyType.Morsel));
+            clientMorsels = Math.Max(clientMorsels, c.Enemies.Values.Count(e => e.Type == EnemyType.Morsel));
+            var cd = cs();
+            if (cd != null) clientLunge |= cd.Lunging;
+            clientHungry |= c.Enemies.Values.Any(e => e.Type == EnemyType.Devourer && Game.Hungry(e));
+        });
+        string order = string.Join(" > ", turns);
+        Console.WriteLine("  appetite: {0}; spiral shots {1}, morsels {2} (client {3}), lunge seen on client {4}, hungry on client {5}", order, spiral, morsels, clientMorsels, clientLunge, clientHungry);
+        Check(h.Devour.Stage == DevourStage.Appetite && order.Contains("Spiral > Rest > Snap > Rest > Hungry > Rest"), "Appetite: Spiral, Snap, Hungry, with breathers between");
+        Check(spiral >= 40 && restQuiet, "the old double spiral; breathers fire nothing");
+        Check(morsels == 4 && clientMorsels == 4 && clientLunge && clientHungry, "Snap lunges and Hungry's four morsels (seen on the client)");
+
+        // A Snap bite hurts a player who stands still on its line.
+        Run(s, dt, 20f, () => h.Devour.Turn == DevourTurn.Snap, () => { safe(); Place(new V2(500f, 650f), new V2(1100f, 650f)); });
+        float taken = me.Run.DamageTaken;
+        Run(s, dt, 5.5f, () => h.Devour.Turn != DevourTurn.Snap, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            Place(new V2(500f, 650f), new V2(1100f, 650f)); clear();
+        });
+        Console.WriteLine("  snap: the player standing still took {0:0}", me.Run.DamageTaken - taken);
+        Check(me.Run.DamageTaken - taken >= 30f, "Snap: a lunging bite hurts whoever stays on the line");
+
+        // Hungry: shots heal it; a morsel stepped on pops; one it reaches heals it 3%.
+        Run(s, dt, 20f, () => h.Devour.Turn == DevourTurn.Hungry && g.Enemies.Values.Count(e => e.Type == EnemyType.Morsel && !g.IsSpawning(e)) == 4, () => { safe(); Place(new V2(500f, 650f), new V2(1100f, 650f)); });
+        h.Hp = h.MaxHp * 0.9f;
+        float hp = h.Hp;
+        hurt.Invoke(g, new object[] { h, 100f, 1 });
+        bool healed = h.Hp > hp + 40f;
+        var ms = g.Enemies.Values.Where(e => e.Type == EnemyType.Morsel).OrderBy(e => e.Pos.DistanceTo(h.Pos)).ToList();
+        var stepOn = ms[ms.Count - 1];
+        Run(s, dt, 0.3f, null, () => { safe(); Place(stepOn.Pos, new V2(1100f, 650f)); });
+        bool popped = !g.Enemies.ContainsKey(stepOn.Id);
+        var eat = ms[0];
+        hp = h.Hp;
+        Run(s, dt, 0.3f, () => !g.Enemies.ContainsKey(eat.Id), () => { safe(); Place(new V2(500f, 650f), new V2(1100f, 650f)); if (g.Enemies.ContainsKey(eat.Id)) eat.Pos = h.Pos + new V2(20f, 0f); });
+        float ate = (h.Hp - hp) / h.MaxHp;
+        Console.WriteLine("  hungry: a shot healed it {0}; stepped-on morsel popped {1}; eating one healed {2:0.0}%", healed, popped, ate * 100f);
+        Check(healed && popped && ate > Game.MorselEat * 0.9f, "Hungry: shots heal it; morsels pop underfoot, and each it eats heals it a little");
+
+        // 65%: it changes stage (can't be hurt, the screen clears), then the Gorging, bigger.
+        h.Hp = h.MaxHp * 0.6f;
+        Run(s, dt, 0.3f, null, safe);
+        hp = h.Hp; hurt.Invoke(g, new object[] { h, 500f, 1 });
+        bool immune = h.Devour.TransT > 0f && h.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Devourer) && !g.Enemies.Values.Any(e => e.Type == EnemyType.Morsel);
+        Run(s, dt, 3f, () => h.Devour.Stage == DevourStage.Gorging && h.Devour.TransT <= 0f, safe);
+        Run(s, dt, 0.5f, null, safe);
+        var ch = c.Enemies.Values.First(e => e.Type == EnemyType.Devourer);
+        Console.WriteLine("  stage change: immune {0}; now {1} (client {2}), radius {3} (client {4})", immune, h.Devour.Stage, ch.Devour?.Stage, h.Radius, ch.Radius);
+        Check(immune && h.Devour.Stage == DevourStage.Gorging && ch.Devour?.Stage == DevourStage.Gorging, "at 65% it changes stage (can't be hurt, screen cleared), then the Gorging (seen on the client)");
+        Check(h.Radius > 57f && ch.Radius > 57f, "it's bigger in the Gorging, on both games");
+
+        // Inhale: the cone pulls your own player in; reaching the mouth means being swallowed.
+        Run(s, dt, 22f, () => h.Devour.Turn == DevourTurn.Inhale && h.Devour.InhaleT > 1.7f, () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 150f)); });
+        V2 dir = V2.FromAngle(h.Facing), start = h.Pos + dir * 230f;
+        Place(new V2(100f, 100f), start);
+        for (int f = 0; f < 20; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); Step(s[0], dt); Step(s[1], dt); Thread.Sleep(1); }
+        float pulled = start.DistanceTo(h.Pos) - c.Players[2].Pos.DistanceTo(h.Pos);
+        Run(s, dt, 3f, () => h.Devour.SwallowId != 0, () => { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); clear(); });
+        var friend = g.Players[2];
+        Run(s, dt, 0.4f, null, () => { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); });
+        bool swallowed = h.Devour.SwallowId == 2 && friend.SwallowT > 0f && c.Players[2].SwallowT > 0f && cs()?.SwallowId == 2;
+        bool pinned = c.Players[2].Pos.DistanceTo(ch.Pos) < 30f;
+        float friendTaken = friend.Run.DamageTaken;
+        Run(s, dt, 1.1f, null, () => { g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); g.Players[1].InvulnT = 1f; });
+        bool stomach = friend.Run.DamageTaken > friendTaken;
+        hp = h.Hp; hurt.Invoke(g, new object[] { h, 100f, 1 });
+        float doubled = hp - h.Hp;
+        hurt.Invoke(g, new object[] { h, 100f, 1 });
+        Run(s, dt, 0.5f, () => h.Devour.SwallowId == 0, safe);
+        Run(s, dt, 0.4f, null, safe);
+        Console.WriteLine("  inhale: pulled {0:0} px in 1/3 s on the client's own game; swallowed {1} (pinned {2}), hurt inside {3}; an ally's hit did {4:0} for 100; spat out {5} ({6:0} px away on the client)",
+            pulled, swallowed, pinned, stomach, doubled, h.Devour.SwallowId == 0, c.Players[2].Pos.DistanceTo(ch.Pos));
+        Check(pulled > 25f, "Inhale: the cone pulls your own player towards its mouth");
+        Check(swallowed && pinned && stomach, "reaching the mouth swallows you (seen on the client, held inside it, hurt each second)");
+        Check(doubled > 190f && h.Devour.SwallowId == 0 && c.Players[2].SwallowT <= 0f && c.Players[2].Pos.DistanceTo(ch.Pos) > 150f, "allies' hits do double, and 300 damage spits the player out");
+
+        // Bile: pools seen on the client hurt whoever stands in them.
+        Run(s, dt, 20f, () => h.Devour.Turn == DevourTurn.Bile && g.Patches.Values.Any(p => p.Kind == PatchKind.Bile && p.Active), () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 750f)); });
+        var pool = g.Patches.Values.First(p => p.Kind == PatchKind.Bile && p.Active);
+        int clientPools = c.Patches.Values.Count(p => p.Kind == PatchKind.Bile);
+        taken = me.Run.DamageTaken;
+        me.InvulnT = 0f;
+        Run(s, dt, 0.8f, null, () => { foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f; Place(pool.Pos, new V2(1300f, 750f)); clear(); });
+        Console.WriteLine("  bile: client pools {0}; standing in one hurt {1:0}", clientPools, me.Run.DamageTaken - taken);
+        Check(clientPools > 0 && me.Run.DamageTaken > taken, "Bile: pools of acid (seen on the client) hurt whoever stands in them");
+
+        // Burrow: it can't be hurt underground; it surfaces under you.
+        Run(s, dt, 20f, () => h.Devour.BurrowT > 0.2f, () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 750f)); });
+        hp = h.Hp; hurt.Invoke(g, new object[] { h, 300f, 1 });
+        bool under = h.Hp == hp && cs()?.BurrowT > 0f;
+        Run(s, dt, 3f, () => h.Devour.BurrowT >= Game.BurrowChase, () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 750f)); });
+        taken = me.Run.DamageTaken;
+        me.InvulnT = 0f;
+        V2 spot = h.Pos;
+        Run(s, dt, 1f, () => h.Devour.BurrowT <= 0f && me.Run.DamageTaken > taken, () => { foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f; Place(spot, new V2(1300f, 750f)); });
+        Console.WriteLine("  burrow: immune underground {0} (client sees it {1}); erupting under a player hurt {2:0}", h.Hp == hp, under, me.Run.DamageTaken - taken);
+        Check(under && me.Run.DamageTaken - taken >= 30f, "Burrow: underground it can't be hurt; it erupts under you");
+
+        // 30%: the Ravenous. The Maw heals it from the front, hurts it more from behind.
+        h.Hp = h.MaxHp * 0.25f;
+        Run(s, dt, 4f, () => h.Devour.Stage == DevourStage.Ravenous && h.Devour.TransT <= 0f, safe);
+        Run(s, dt, 0.3f, null, () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 750f)); });
+        V2 face = V2.FromAngle(h.Facing);
+        hp = h.Hp;
+        if (!(bool)blocks.Invoke(g, new object[] { h, h.Pos + face * 200f })) hurt.Invoke(g, new object[] { h, 100f, 1 });
+        float front = h.Hp - hp;
+        hp = h.Hp;
+        if (!(bool)blocks.Invoke(g, new object[] { h, h.Pos - face * 200f })) hurt.Invoke(g, new object[] { h, 100f, 1 });
+        float back = hp - h.Hp;
+        Console.WriteLine("  maw: a 100 hit from the front healed {0:0}; from behind it did {1:0}", front, back);
+        Check(front > 40f && back > 120f, "the Maw: shots into its mouth heal it, shots on its back do x1.25");
+
+        // Frenzy lunges, Jaws (14 teeth), Vomit (a spray of bile).
+        int teeth = 0, vomit = 0, frenzy = 0;
+        var turns3 = new List<DevourTurn>();
+        Run(s, dt, 21f, null, () =>
+        {
+            safe(); Place(new V2(500f, 450f), new V2(1100f, 450f));
+            var ds = h.Devour;
+            if (turns3.Count == 0 || turns3[turns3.Count - 1] != ds.Turn) turns3.Add(ds.Turn);
+            if (ds.Turn == DevourTurn.Frenzy && ds.Lunging && ds.LungeWarn > Game.FrenzyWarn - 0.05f) frenzy++;
+            teeth = Math.Max(teeth, g.Bullets.Values.Count(b => b.Kind == Defs.ToothShot));
+            if (ds.Turn == DevourTurn.Vomit) vomit = Math.Max(vomit, g.Bullets.Values.Count(b => b.Kind == Defs.BileShot));
+        });
+        Console.WriteLine("  ravenous: {0}; frenzy lunges {1}, jaws teeth {2}, vomit shots {3}", string.Join(" > ", turns3), frenzy, teeth, vomit);
+        Check(string.Join(" > ", turns3).Contains("Frenzy > Rest > Jaws > Rest > Vomit"), "Ravenous: Frenzy, Jaws, Vomit, with breathers between");
+        Check(frenzy >= 3 && teeth >= 14 && vomit >= 20, "Frenzy lunges, two rows of seven teeth, a spray of bile");
+
+        // Below 10%: the last meal in the middle; it pulls everyone in, its teeth hurt.
+        h.Hp = h.MaxHp * 0.08f;
+        Run(s, dt, 15f, () => h.Devour.Stage == DevourStage.LastStand && h.Devour.SwallowId == 0 && h.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 30f, () => { safe(); Place(new V2(200f, 150f), new V2(1400f, 750f)); });
+        bool middle = h.Pos.DistanceTo(new V2(Game.Width / 2f, Game.Height / 2f)) < 30f;
+        Run(s, dt, 0.3f, null, () => { safe(); Place(new V2(200f, 150f), new V2(1400f, 750f)); });
+        float pull = c.PullStrength;
+        taken = me.Run.DamageTaken;
+        Run(s, dt, 2f, () => me.Run.DamageTaken > taken, () =>
+        {
+            foreach (var p in g.Players.Values) if (p.Id != 1) p.InvulnT = 1f;
+            Place(Game.ToothPos(h.Pos, h.Devour.Spin, 3), new V2(1400f, 750f)); clear();
+        });
+        Console.WriteLine("  last meal: {0}, in the middle {1}, pull on the client {2}, a tooth hurt {3}", h.Devour.Stage, middle, pull, me.Run.DamageTaken > taken);
+        Check(h.Devour.Stage == DevourStage.LastStand && middle && pull > 50f && me.Run.DamageTaken > taken, "below 10%: the last meal in the middle; it pulls you in and its teeth hurt");
+        s[0].Leave(""); s[1].Leave("");
+    }
+
     static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
     static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
 
