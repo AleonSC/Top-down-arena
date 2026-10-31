@@ -18,6 +18,9 @@ static partial class Program
         var g = s[0].Game; var cg = s[1].Game;
         g.Bot = false; cg.Bot = false;
         g.DevSetGod(1, true);
+        // A session recording, to check the fusion and split close the old bosses' records (SessionRecorder.BossMerged).
+        var rec = g.Recorder = new SessionRecorder(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "arena-reapers-" + Guid.NewGuid().ToString("N").Substring(0, 6)));
+        rec.Begin(g, 15);
         Run(s, dt, 15, () => { var a0 = Find(s[0], EnemyType.TwinA); var b0 = Find(s[0], EnemyType.TwinB); return a0 != null && b0 != null && a0.SpawnT <= 0f && b0.SpawnT <= 0f; });
         var me = g.Players[1]; var friend = g.Players[2];
         Action<V2> PutFriend = pos => { friend.Pos = pos; cg.Players[2].Pos = pos; };
@@ -106,6 +109,13 @@ static partial class Program
         a = Find(s[0], EnemyType.TwinA); b = Find(s[0], EnemyType.TwinB);
         Check(a != null && b != null && Find(s[0], EnemyType.DualReaper) == null && Math.Abs(a.Hp + b.Hp - dualHp) < 20f && g.Enemies.Values.Count(e => e.Type == EnemyType.ReaperPillar) == 0,
             "at 30% it splits back into Dusk and Dawn, sharing its health");
+        {
+            var order = (System.Collections.IList)typeof(SessionRecorder).GetField("bossOrder", flags).GetValue(rec);
+            var recs = order.Cast<object>().Select(o => new { Name = (string)o.GetType().GetField("Name").GetValue(o), Merged = (float)o.GetType().GetField("Merged").GetValue(o), Died = (float)o.GetType().GetField("Died").GetValue(o) }).ToList();
+            int merged = recs.Count(r => r.Merged >= 0f), open = recs.Count(r => r.Merged < 0f && r.Died < 0f);
+            Console.WriteLine("  recording: {0}", string.Join(", ", recs.Select(r => r.Name + (r.Merged >= 0f ? " (merged)" : r.Died >= 0f ? " (killed)" : " (open)"))));
+            Check(recs.Count == 5 && merged == 3 && open == 2, "the session recording closes the twins' records when they fuse and the Dual Reaper's when it splits (only the new pair stays open)");
+        }
 
         // Sundered: reap, spiral, crossfire.
         seen.Clear(); bool marked = false; tf = friend.Run.DamageTaken;

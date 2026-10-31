@@ -91,6 +91,8 @@ def main():
     bosses = defaultdict(list)
     for r in runs:
         for b in r["bosses"]:
+            if b.get("merged"):
+                continue  # the twins fusing / the Dual Reaper splitting: not a fight of its own
             bosses[b["name"]].append((r, b))
     rows = []
     for name, fights in sorted(bosses.items(), key=lambda kv: min(b["wave"] for _, b in kv[1])):

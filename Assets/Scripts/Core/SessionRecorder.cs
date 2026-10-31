@@ -49,7 +49,7 @@ namespace Arena
         {
             public int Id, Wave;
             public string Name;
-            public float MaxHp, Spawned, Died = -1f, PlayerDmgTaken;
+            public float MaxHp, Spawned, Died = -1f, Merged = -1f, PlayerDmgTaken;  // Merged: left the fight without dying (the Twin Reapers fusing / splitting)
             public int Downs;
             public readonly Dictionary<int, float> DmgBy = new Dictionary<int, float>();
         }
@@ -261,6 +261,15 @@ namespace Arena
             }
         }
 
+        /// A boss that leaves the fight without dying (the twins fusing into the Dual Reaper, which splits back): its
+        /// record closes, so later damage and downs aren't put on it.
+        public void BossMerged(Enemy e)
+        {
+            BossRec b;
+            if (bosses.TryGetValue(e.Id, out b) && b.Died < 0f)
+                b.Merged = now;
+        }
+
         public void EnemyKilled(Enemy e)
         {
             var a = Agg(e.Def.Name);
@@ -323,7 +332,7 @@ namespace Arena
             if (enemyTypes.ContainsKey(type))
                 enemyTypes[type].DmgToPlayers += amount;
             foreach (var b in bossOrder)
-                if (b.Died < 0f && b.Spawned <= now)
+                if (b.Died < 0f && b.Merged < 0f && b.Spawned <= now)
                     b.PlayerDmgTaken += amount;
         }
 
@@ -334,7 +343,7 @@ namespace Arena
             if (pw != null)
                 pw.Downs++;
             foreach (var b in bossOrder)
-                if (b.Died < 0f)
+                if (b.Died < 0f && b.Merged < 0f)
                     b.Downs++;
         }
 
@@ -520,7 +529,7 @@ namespace Arena
             {
                 j.Open();
                 j.Field("name", b.Name); j.Field("wave", b.Wave); j.Field("maxHp", b.MaxHp);
-                j.Field("spawnedAt", b.Spawned); j.Field("killed", b.Died >= 0f);
+                j.Field("spawnedAt", b.Spawned); j.Field("killed", b.Died >= 0f); j.Field("merged", b.Merged >= 0f);
                 j.Field("timeToKill", b.Died >= 0f ? b.Died - b.Spawned : -1f);
                 j.Field("playerDamageTaken", b.PlayerDmgTaken); j.Field("downs", b.Downs);
                 j.Key("damageBy"); j.Open();

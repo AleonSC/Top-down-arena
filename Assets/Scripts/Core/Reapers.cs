@@ -269,8 +269,8 @@ namespace Arena
                 {
                     R.Fused = true;
                     float hp = (a != null ? a.Hp : 0f) + (b != null ? b.Hp : 0f);
-                    if (a != null) Enemies.Remove(a.Id);
-                    if (b != null) Enemies.Remove(b.Id);
+                    if (a != null) { Recorder?.BossMerged(a); Enemies.Remove(a.Id); }  // fused, not killed (SessionRecorder)
+                    if (b != null) { Recorder?.BossMerged(b); Enemies.Remove(b.Id); }
                     var dual = SpawnEnemyAt(EnemyType.DualReaper, mid, 0f, 0);
                     dual.MaxHp = R.MaxA + R.MaxB;
                     dual.Hp = Math.Max(1f, hp);
@@ -324,6 +324,7 @@ namespace Arena
                 R.Fused = false;
                 float hp = d.Hp, share = R.MaxA / Math.Max(1f, R.MaxA + R.MaxB);
                 V2 at = d.Pos;
+                Recorder?.BossMerged(d);  // split, not killed (SessionRecorder)
                 Enemies.Remove(d.Id);
                 ClearPillars();
                 R.Holes.Clear();

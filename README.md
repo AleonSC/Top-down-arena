@@ -185,7 +185,7 @@ With your own Revolver, its cylinder shows as pips under your character (gold = 
 fills while it reloads.
 
 Want a **wall of bullets** instead? The **Barrage** card (Rare, stacks to 3) makes every shot also fire a copy
-fanned out to the side (8° steps, alternating sides). It stacks with the weapon upgrades above, so a Twin
+fanned out to the side (8° steps, alternating sides), at 60% damage. It stacks with the weapon upgrades above, so a Twin
 Rifle with Multishot and Barrage fires several side-by-side barrels in a fan. A Revolver round fans out for a
 single round of ammo.
 
