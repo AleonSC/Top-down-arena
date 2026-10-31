@@ -139,8 +139,8 @@ namespace Arena
             if (n >= 31) pool.Add(EnemyType.Nest);
             if (n >= 36) pool.Add(EnemyType.Warder);
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
-            if (n <= 3)
-                count += 2;  // the first waves get a couple more of the same, so the opening isn't too quiet
+            if (n <= 5)
+                count += 7 - n;  // the first waves get extra (12, 13, 14, 15, 16), so the opening isn't too quiet
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             // The first waves are melee rushers; shooters take over a little more each wave until
