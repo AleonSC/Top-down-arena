@@ -20,7 +20,7 @@ static partial class Program
                 map[l.Label] = l.Value;
         Console.WriteLine("  stat sheet: " + string.Join(" | ", Array.ConvertAll(lines.ToArray(), l => l.Header ? "[" + l.Label + "]" : l.Label + "=" + l.Value)));
         Check(map["Damage"] == "130%" && map["Max HP"] == "135" && map["Extra projectiles"] == "+1" && map["Q"] == "Blink"
-            && map.ContainsKey("Executioner") && map["Regeneration"] == "0.5 HP/s", "stat sheet shows the right numbers");
+            && map.ContainsKey("Executioner") && map["Regeneration"] == "0.25 HP/s", "stat sheet shows the right numbers");
         var withCard = new List<int>(taken) { U("Quick Trigger") };
         Check(StatSheet.Describe(p, withCard).Find(l => l.Label == "Fire rate").Value == "110%", "stat preview reflects the selected card");
     }

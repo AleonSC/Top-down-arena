@@ -240,7 +240,7 @@ static partial class Program
         use(AbilityId.CrimsonPact, hp.Pos);
         bool taunted = g.Enemies.Values.Where(e => !keep.Contains(e)).All(e => e.TargetId == 1);
         hp.DevGod = false;
-        damage.Invoke(g, new object[] { hp, 50f, "test" });
+        damage.Invoke(g, new object[] { hp, 50f / g.EnemyDamageScale(g.Wave), "test" });  // 50 after the difficulty's wave growth
         hp.DevGod = true;
         run(0.3f);
         bool seen = client.Game.Players[1].PactT > 0f;
@@ -353,7 +353,7 @@ static partial class Program
             "Blood Lash: the tip cracks for double damage and taunts; an enemy hit closer in is flung out to the tip");
         Check(hp.Clot == 3 && clotSeen, "each Blood Lash hit adds a Clot stack, two from the tip (and clients see it)");
         hp.DevGod = false;
-        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
         hp.DevGod = true;
         float clotTaken = hp.MaxHp - hp.Hp;
         Check(Math.Abs(clotTaken - 100f * (1f - 3f * Game.ClotCutEach)) < 0.5f, "each Clot stack takes 4% off the damage you take");
@@ -377,7 +377,7 @@ static partial class Program
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, hp.Pos, true });
         float c1 = cp.Hp;
         hp.DevGod = false;
-        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
         hp.DevGod = true;
         float moonTaken = hp.MaxHp - hp.Hp;
         Console.WriteLine("  blood rite: took {0:0} of 100; ally healed {1:0}", moonTaken, cp.Hp - c1);

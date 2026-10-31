@@ -65,12 +65,12 @@ namespace Arena
 
         // --- Waves -------------------------------------------------------------
 
-        /// Enemy health for the party size: solo 70%, two players 100%, three players 120%
-        /// (bosses 150%, since there are no extra bosses to share the load).
+        /// Enemy health for the party size: solo 85% (the difficulty's Solo enemy health), two players 100%, three
+        /// players 120% (bosses 150%, since there are no extra bosses to share the load).
         float PartyHpScale(bool boss)
         {
             int n = Players.Count;
-            if (n <= 1) return 0.7f;
+            if (n <= 1) return D(DiffKnob.SoloHp);
             if (n == 2) return 1f;
             return boss ? 1.5f : 1.2f;
         }
@@ -143,6 +143,7 @@ namespace Arena
                 count += 2;  // the first waves get a couple more of the same, so the opening isn't too quiet
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
+            count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count
             // The first waves are melee rushers; shooters take over a little more each wave until
             // the melee are gone by wave 13.
             var melee = new List<EnemyType> { EnemyType.Swarmer };
@@ -190,7 +191,7 @@ namespace Arena
                 pos = RandomInArena(Walled ? 80f : 160f, Walled ? 80f : 120f);
 
             // From wave 12, regular enemies can show up as tougher elites.
-            bool elite = !d.IsBoss && Wave >= 12 && rng.NextDouble() < Math.Min(0.35, 0.04 * (Wave - 11));
+            bool elite = RollElite(d);
             SpawnEnemyAt(type, pos, d.IsBoss ? 1.5f : 0.9f, 0, elite);  // bosses take longer to appear, so you can step out of the middle
         }
 
@@ -207,6 +208,7 @@ namespace Arena
                 hp *= 1f + LateBossScaling * (wave - LateBossWave);
             if (Has(RunMod.ToughCrowd))
                 hp *= Modifiers.ToughCrowdHp;
+            hp *= D(DiffKnob.EnemyHp) * (d.IsBoss ? D(DiffKnob.BossHp) : 1f);  // the run's difficulty (Difficulty.cs)
             return hp;
         }
 
@@ -220,6 +222,7 @@ namespace Arena
             e.MaxHp = SpawnHp(type, Wave);
             if (Has(RunMod.SwiftFoes))
                 e.Speed *= Modifiers.SwiftFoesSpeed;
+            e.Speed *= D(DiffKnob.EnemySpeed);
             ApplyPathToEnemy(e, ref elite);  // Paths.cs
             e.Elite = elite;
             if (elite)
@@ -276,17 +279,17 @@ namespace Arena
         // --- Bullet budget ---------------------------------------------------------------
         // A cap on enemy bullets on screen, so later waves get harder through tougher enemies rather than
         // a wall of bullets. Regular enemies hold their fire while the screen is over budget; bosses always
-        // fire, and while one is up the others only get a small share, so the boss's patterns stay readable.
+        // fire, and while one is up the others only get a share (the difficulty's Adds' fire in boss fights), so the boss's patterns stay readable.
 
         int enemyShots;  // enemy bullets in flight, counted each tick (and as they're fired)
 
-        public int ShotBudget => (int)(Math.Min(120f, 50f + 4f * Wave) * (1f + 0.3f * (Players.Count - 1)));
+        public int ShotBudget => (int)(Math.Min(120f, 50f + 4f * Wave) * (1f + 0.3f * (Players.Count - 1)) * D(DiffKnob.BulletBudget));
 
         int RegularShotBudget()
         {
             foreach (var e in Enemies.Values)
                 if (e.Def.IsBoss)
-                    return (int)(ShotBudget * 0.4f);
+                    return (int)(ShotBudget * D(DiffKnob.BossBullets));  // Normal: 60%
             return ShotBudget;
         }
 
@@ -304,7 +307,7 @@ namespace Arena
 
         void TickEnemies(float dt)
         {
-            float rate = WaveFireRate(Wave);
+            float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
             PullStrength = 0f;
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)

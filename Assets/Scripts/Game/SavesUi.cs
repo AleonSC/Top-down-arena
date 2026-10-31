@@ -94,6 +94,11 @@ namespace Arena
                 Ui.Badge(new Rect(bx, by, 150f, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
                 by += 26f;
             }
+            if (s.Diff.Level != DifficultyLevel.Normal)
+            {
+                Ui.Badge(new Rect(bx, by, 150f, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
+                by += 26f;
+            }
             int mods = Modifiers.Count(s.Mods);
             if (mods > 0)
             {

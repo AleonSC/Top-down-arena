@@ -60,7 +60,7 @@ namespace Arena
         }
 
         /// During a match: the active modifiers, in a line under the wave plate.
-        void DrawActiveModifiers(float x, float y)
+        void DrawActiveModifiers(float x, float y)  // x: after the difficulty's chip
         {
             if (game.Mods == RunMod.None)
                 return;

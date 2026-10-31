@@ -76,8 +76,8 @@ def main():
         end = r["end"]
         dev = len(r.get("devTools", []))
         rows.append([r["_file"], r.get("mode", "run") + (" +endless" if r.get("endless") else ""), r["playerCount"], team,
-                     r.get("modifiers") or "", end["outcome"], end["wave"], f"{end['time'] / 60:.1f} min", f"{dev} uses" if dev else ""])
-    table(["session", "mode", "players", "team", "modifiers", "outcome", "wave", "length", "dev tools"], rows, f"Runs ({len(all_runs)})")
+                     r.get("modifiers") or "", r.get("difficulty") or "Normal", end["outcome"], end["wave"], f"{end['time'] / 60:.1f} min", f"{dev} uses" if dev else ""])
+    table(["session", "mode", "players", "team", "modifiers", "difficulty", "outcome", "wave", "length", "dev tools"], rows, f"Runs ({len(all_runs)})")
     for r in all_runs:
         for d in r.get("devTools", []):
             print(f"  {r['_file']}: wave {d['wave']}, {d['time']:.0f} s: {d['what']}")

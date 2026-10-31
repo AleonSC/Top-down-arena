@@ -1658,7 +1658,7 @@ namespace Arena
                         continue;
                     if (q.Downed && d.ReviveBoost > 0f)
                     {
-                        q.Revive += dt / ReviveTime * d.ReviveBoost;  // on top of the normal revive
+                        q.Revive += dt / D(DiffKnob.ReviveTime) * d.ReviveBoost;  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)

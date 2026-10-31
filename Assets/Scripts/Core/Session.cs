@@ -71,7 +71,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 104;
+        public const int ProtocolVersion = 105;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -96,6 +96,7 @@ namespace Arena
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
         public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
+        public Difficulty Diff = new Difficulty();  // the run's difficulty (the lobby's Difficulty tab; the host picks)
         public RunSave Resume;          // continuing a saved run: the host's save (clients get its seats in the lobby message)
 
         // Testing helpers (see the README's command-line flags).
@@ -184,6 +185,7 @@ namespace Arena
             PracticeMode = false;
             OthersCanEdit = false;
             Modifiers = RunMod.None;
+            Diff = new Difficulty();
             Resume = null;
             if (Net != null)
                 Net.Close();
@@ -431,6 +433,7 @@ namespace Arena
                 return false;
             Resume = save;
             Modifiers = save.Mods;
+            Diff = save.Diff.Copy();
             PracticeMode = false;
             int seat = Game.SeatFor(save, Lobby[1].Name);
             TakeSeat(Lobby[1], seat < 0 ? 0 : seat);
@@ -595,6 +598,7 @@ namespace Arena
                 w.Write((sbyte)e.Seat);
             }
             w.Write((int)Modifiers);
+            Diff.Write(w);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -635,6 +639,33 @@ namespace Arena
             if (!IsHost || Game.Running || Resume != null)
                 return;  // (a continued run keeps the modifiers it was saved with)
             Modifiers = on ? Modifiers | mod : Modifiers & ~mod;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// Host: pick a difficulty preset, or Custom (which starts from the numbers you have). Ready is taken back.
+        public void SetDifficulty(DifficultyLevel level)
+        {
+            if (!IsHost || Game.Running || Resume != null || Diff.Level == level)
+                return;  // (a continued run keeps the difficulty it was saved with)
+            Diff.SetLevel(level);
+            DifficultyChanged();
+        }
+
+        /// Host: set one difficulty number (the run becomes Custom).
+        public void SetDifficultyKnob(DiffKnob k, float v)
+        {
+            if (!IsHost || Game.Running || Resume != null)
+                return;
+            var before = Diff.Copy();
+            Diff.Set(k, v);
+            if (!Diff.SameAs(before))
+                DifficultyChanged();
+        }
+
+        void DifficultyChanged()
+        {
             foreach (var e in Lobby.Values)
                 e.Ready = false;
             BroadcastLobby();
@@ -709,6 +740,7 @@ namespace Arena
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.Mods = Modifiers;
+            Game.Diff = Diff.Copy();
             int startWave = StartWave;
             if (Resume != null)
             {
@@ -862,10 +894,11 @@ namespace Arena
                         Lobby[e.Id] = e;
                     }
                     Modifiers = (RunMod)r.ReadInt32();
+                    Diff = Difficulty.Read(r);
                     Resume = null;
                     if (r.ReadBoolean())
                     {
-                        Resume = new RunSave { Wave = r.ReadInt32(), Endless = r.ReadBoolean(), Mods = Modifiers };
+                        Resume = new RunSave { Wave = r.ReadInt32(), Endless = r.ReadBoolean(), Mods = Modifiers, Diff = Diff.Copy() };
                         int seats = r.ReadByte();
                         for (int i = 0; i < seats; i++)
                         {
@@ -897,6 +930,7 @@ namespace Arena
                 case Msg.Start:
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
                     Game.Mods = Modifiers;
+                    Game.Diff = Diff.Copy();
                     Game.OnHostMessage(type, r);
                     Resume = null;
                     break;

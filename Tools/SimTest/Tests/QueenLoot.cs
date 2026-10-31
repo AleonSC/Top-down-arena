@@ -79,7 +79,7 @@ static partial class Program
             went |= drones(g).Any(m => m.Sent && !m.Returning);
         }
         float stung = next.MaxHp - next.Hp, healed = hp.Hp - hp0;
-        float regen = (Game.PassiveRegen + hp.Stats.Regen) * 3f;
+        float regen = (g.PassiveRegen + hp.Stats.Regen) * 3f;
         g.DevSetGod(2, true);
         bool allHome = drones(g).All(m => !m.Sent);
         Console.WriteLine("  hive drones: a kill sent one out {0}; it stung the next enemy for {1:0.0} (3 x {2}); all home {3}; the friend healed {4:0.0} ({5:0.0} of it regen)",

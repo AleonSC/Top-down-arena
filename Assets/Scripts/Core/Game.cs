@@ -1511,7 +1511,7 @@ namespace Arena
                         helper = q;
                 if (helper != null)
                 {
-                    p.Revive += dt / ReviveTime;
+                    p.Revive += dt / D(DiffKnob.ReviveTime);
                     p.ReviveBy = helper.Id;
                 }
                 else if (p.ReviveBy == 0)

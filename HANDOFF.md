@@ -69,7 +69,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BloodMage.cs` | 0.55k | the Hemomancer (`Kit.BloodMage`): `FireBloodWeapon`, Implosion (`ImplodeTarget` picks the enemy under `Player.AimAt`, `ImplodeReady` holds fire without one, `pendingImplosions`/`ResolveImplosions` from `Collide`, `FxKind.Implode`), `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
 | `TextOverrides.cs` | 0.15k | the dev text editor's edits: `Apply` (what to show; digit runs are "#" in keys, so numbers stay the game's), `Problem` (an edit must keep its numbers), `TextOverrides.txt` load/save |
 | `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
-| `Balance.cs` | 0.07k | **the general balance numbers** (waves, rerolls, regen and health orbs, reviving, contact damage, the Healer's aura, Soldier and card-only abilities, Mage spell range), and an index of where every other system's numbers live |
+| `Difficulty.cs` | 0.25k | the run's difficulty: presets (Easy / Normal / Hard / Nightmare) and Custom, every knob's range and unit, `Game.Diff` / `D(DiffKnob)`, `EnemyDamageScale`; the lobby tab is `DifficultyUi.cs` |
+| `Balance.cs` | 0.07k | **the general balance numbers** (waves, rerolls, big health orbs, revive range, contact damage, the Healer's aura, Soldier and card-only abilities, Mage spell range), and an index of where every other system's numbers live |
 | `EnemyAI.cs` | 1.0k | enemy roster per wave, movement, firing patterns, contact damage, boss specials, bullet budget |
 | `LateGame.cs` | 0.45k | bosses 25-50 (Colossus → Eclipse; most of each now lives in its own file) |
 | `Eclipse.cs` | 0.6k | wave-50 final boss in five stages (Corona / Penumbra / Umbra / Echoes / Last Light + Totality): `EclipseState` (synced by `SyncEclipse`), the moon and its shadow, flares, closing rings, sunspots and the dark, crescents, the echoes, the burning edge, the nova. Look: `EclipseLook.cs` |
@@ -127,7 +128,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 100) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 105) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -218,6 +219,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Difficulty (Oct 2026), protocol 105:** `Difficulty.cs` holds `DifficultyLevel` (Easy / Normal / Hard / Nightmare / Custom), one `KnobDef` per `DiffKnob` (name, description, unit, range, step, the four presets) and `Difficulty` (values; `Set` makes it Custom; `Write`/`Read` for the lobby message, `ToText`/`Parse` for run saves). `Session.Diff` (host: `SetDifficulty`, `SetDifficultyKnob`) is copied to `Game.Diff` at the start; the game reads it with `D(DiffKnob.X)`. New Normal balance: enemy damage grows 3% a wave (`EnemyDamageScale`, applied once at the top of `Damage`, so every enemy, boss and hazard hit scales), regen 0.25 HP/s (was 0.5), small orbs 12% (was 18%), revives 4 s (was 3), hit grace 0.25 s (was 0.35), adds get 60% of the bullet budget in boss fights (was 40%), solo enemies 85% health (was 70%). Removed from `Balance.cs`: `PassiveRegen` (now `game.PassiveRegen`), `OrbChance`, `ReviveTime`, `HitIframes`. UI: the lobby's 4th tab (`DifficultyUi.cs`: cards, sliders with a Normal tick, text boxes), a HUD chip, a saved-run badge. Tests: `difficulty` (in the feature suite); tests that measure an ability's damage cut pass `100f / g.EnemyDamageScale(g.Wave)` so the hit lands as 100. Preview: `DIFF=Custom LOBBYTAB=3 Tools/Preview/shot.sh <name> lobby`. Session JSON has a `difficulty` field and `report.py` shows it.
 
 **From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
 

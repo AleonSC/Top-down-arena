@@ -13,6 +13,8 @@ namespace Arena
     ///               Stun.cs (Stun Gun, guard companion)
     ///   Enemies     EnemyAI.cs (Shielder, Spinner, Twin Reapers, the Warden's cross, gravity wells) · Warden.cs ·
     ///               Queen.cs · Singularity.cs · LateGame.cs (written in the code)
+    ///   Difficulty  Difficulty.cs (the presets and every Custom knob: enemy health and damage, damage growth per wave,
+    ///               counts, fire rate, elites, bullet budget, regeneration, orbs, revive time, hit grace)
     ///   Runs        Upgrades.cs (cards) · Mastery.cs (XP per level) · Shop.cs (the Bazaar) · Paths.cs · Modifiers.cs
     public partial class Game
     {
@@ -53,8 +55,8 @@ namespace Arena
 
         // --- Health: regeneration, health orbs, reviving -------------------------------------------------------------
 
-        public const float PassiveRegen = 0.5f;  // HP per second for everyone
-        const float OrbChance = 0.18f;      // small health orb drop chance per kill
+        // Passive regeneration, the small orb drop chance, the revive time and the hit grace (iframes) are set by the
+        // run's difficulty (Difficulty.cs; Normal: 0.25 HP/s, 12%, 4 s, 0.25 s).
         const float BigOrbChance = 0.03f;   // rare large health orb
         public const float OrbHeal = 15f;
         public const float TinyOrbHeal = 6f;   // the Repulsion Cannon knocks these loose (Repulsion.cs)
@@ -62,12 +64,10 @@ namespace Arena
         public const float OrbLifetime = 12f;
         const float OrbMagnetRange = 110f;
         const float ReviveRange = 70f;
-        const float ReviveTime = 3f;
 
         // --- Taking hits ---------------------------------------------------------------------------------------------
 
         const float ContactDamage = 15f;
-        const float HitIframes = 0.35f;
         const float BossContactEvery = 1f, BossShoveTime = 0.15f, BossShoveSpeed = 700f;  // about 105 px out
 
         // --- The Healer's aura (every Healer heals allies near them) -------------------------------------------------

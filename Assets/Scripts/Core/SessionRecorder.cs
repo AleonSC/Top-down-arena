@@ -78,7 +78,7 @@ namespace Arena
         bool endless, fighting, lastBot;
         readonly DateTime started = DateTime.Now;
         int playerCount, startWave;
-        string modifiers = "";
+        string modifiers = "", difficulty = "Normal";
         float sampleT, saveT = AutosaveEvery, now;
         const float AutosaveEvery = 10f;  // a run in progress is written this often, so a crash or a closed window keeps nearly all of it
         string outcome = "in progress";
@@ -125,6 +125,7 @@ namespace Arena
             if (g.Bot)
                 Dev(g, "bot plays for the host: on");
             modifiers = string.Join(", ", Modifiers.Names(g.Mods).ToArray());
+            difficulty = g.Diff.Level == DifficultyLevel.Custom ? "Custom (" + string.Join(", ", g.Diff.Changes().ToArray()) + ")" : g.Diff.Name;
             playerCount = g.Players.Count;
             foreach (var p in g.Players.Values)
                 players.Add(new PlayerInfo
@@ -474,6 +475,7 @@ namespace Arena
             j.Field("mode", mode);
             j.Field("endless", endless);
             j.Field("modifiers", modifiers);
+            j.Field("difficulty", difficulty);
             j.Key("end"); j.Open();
             j.Field("outcome", outcome); j.Field("wave", endWave); j.Field("time", endTime); j.Field("score", endScore);
             j.Close();

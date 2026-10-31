@@ -178,7 +178,10 @@ namespace Arena
             DoLog("squad: " + s.Name);
         }
 
-        bool RollElite(EnemyDef d) => !d.IsBoss && Wave >= 12 && rng.NextDouble() < Math.Min(0.35, 0.04 * (Wave - 11));
+        /// From wave 12, regular enemies can show up as tougher elites: 4% more a wave, up to 35% (times the difficulty's Elites).
+        bool RollElite(EnemyDef d) => !d.IsBoss && Wave >= 12 && rng.NextDouble() < EliteChance(Wave);
+
+        public double EliteChance(int wave) => wave < 12 ? 0.0 : Math.Min(0.9, Math.Min(0.35, 0.04 * (wave - 11)) * D(DiffKnob.EliteChance));
 
         /// An elite rolls one trait (two from wave 35).
         void RollTraits(Enemy e)

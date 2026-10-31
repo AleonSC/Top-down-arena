@@ -1099,7 +1099,8 @@ static partial class Program
         float drained = me.Run.DamageTaken - taken;
         Console.WriteLine("  umbra: sunspots {0} (client {1}), hexers {2}; 2 s in the dark drained {3:0}", spots, clientSpots, hexers, drained);
         Check(spots == 3 && clientSpots == 3 && hexers == 2, "the Umbra: three sunspots (seen on the client) and two Hexers");
-        Check(drained >= 9f && drained <= 15f, "the dark drains about 6 health a second outside the light");
+        float flat = drained / g.EnemyDamageScale(g.Wave);  // before the difficulty's damage growth
+        Check(flat >= 9f && flat <= 15f, "the dark drains about 6 health a second outside the light (times the difficulty's enemy damage)");
         bool looped = false;
         int rings = 0, clientRings = 0;
         var turns3 = new List<EclipseTurn>();

@@ -161,7 +161,7 @@ static partial class Program
         place(1, 650f); run(0.2f);
         use(1, AbilityId.IronBody, hp.Pos);
         hp.DevGod = false; float hp0 = hp.Hp = hp.MaxHp;
-        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
         float taken = hp0 - hp.Hp;
         hp.Hp = hp.MaxHp; hp.DevGod = true;
         float dhp = d1.Hp;
@@ -179,7 +179,7 @@ static partial class Program
         Bullet cslow;
         float moved = slow.Pos.X - start.X, cmoved = client.Game.Bullets.TryGetValue(slow.Id, out cslow) ? cslow.Pos.X - start.X : -1f;
         hp.DevGod = false; hp.Hp = hp.MaxHp;
-        damage.Invoke(g, new object[] { hp, 100f, "test" });
+        damage.Invoke(g, new object[] { hp, 100f / g.EnemyDamageScale(g.Wave), "test" });
         float smokeTaken = hp.MaxHp - hp.Hp;
         hp.Hp = hp.MaxHp; hp.DevGod = true;
         Console.WriteLine("  smoke: a 200 px/s bullet moved {0:0} px in 0.5 s (client {1:0}); took {2:0} of 100 inside", moved, cmoved, smokeTaken);

@@ -17,8 +17,8 @@ namespace UnityEngine {
   public struct Rect { public Rect(float x,float y,float w,float h){this.x=x;this.y=y;width=w;height=h;} public float x,y,width,height; public float xMax{get{return x+width;}} public float yMax{get{return y+height;}} public Vector2 center{get{return new Vector2(x+width/2f,y+height/2f);}} public bool Contains(Vector2 p){return p.x>=x&&p.x<x+width&&p.y>=y&&p.y<y+height;} }
   public struct Vector2 { public float x,y; public Vector2(float a,float b){x=a;y=b;} }
   public static class Random { public static int Range(int a,int b){return a;} }
-  public enum EventType { MouseDown, MouseUp, ScrollWheel, Repaint, Layout, Used }
-  public class Event { public static Event current; public Vector2 mousePosition; public EventType type; public Vector2 delta; public int button; public void Use(){} }
+  public enum EventType { MouseDown, MouseUp, ScrollWheel, Repaint, Layout, Used, KeyDown }
+  public class Event { public static Event current; public Vector2 mousePosition; public EventType type; public Vector2 delta; public int button; public KeyCode keyCode; public void Use(){} }
   public class GUIContent { public string text; public GUIContent(){} public GUIContent(string t){ text = t; } public static GUIContent none; }
   public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
   public enum FontStyle { Normal, Bold }

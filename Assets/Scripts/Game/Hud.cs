@@ -180,7 +180,7 @@ namespace Arena
         void DrawTabStats(Player me, Rect box)
         {
             var lines = new Dictionary<string, string>();
-            foreach (var line in StatSheet.Describe(me, me.Taken))
+            foreach (var line in StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen))
                 if (!line.Header && !lines.ContainsKey(line.Label))
                     lines[line.Label] = line.Value;
             Func<string, string> get = k => lines.ContainsKey(k) ? lines[k] : "";
@@ -894,7 +894,7 @@ namespace Arena
             }
             if (DrawGoldChip(SideL, y))  // ShopUi.cs
                 y -= 24f;
-            DrawActiveModifiers(SideL, y + 2f);  // ModifiersUi.cs
+            DrawActiveModifiers(DrawActiveDifficulty(SideL, y + 2f), y + 2f);  // DifficultyUi.cs, ModifiersUi.cs
         }
 
         void DrawPlayerCorner()
@@ -1334,14 +1334,14 @@ namespace Arena
         /// shopPreview: an upgrade from the Bazaar's shelf to preview instead of the picker's selection.
         void DrawStatPanel(Player me, Rect r, int shopPreview = -1)
         {
-            var now = StatSheet.Describe(me, me.Taken);
+            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
             List<StatLine> after = null;
             if (shopPreview >= 0)
-                after = StatSheet.Describe(me, new List<int>(me.Taken) { shopPreview });
+                after = StatSheet.Describe(me, new List<int>(me.Taken) { shopPreview }, 0, game.PassiveRegen);
             else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length)
             {
                 var preview = new List<int>(me.Taken) { me.Offer[selectedCard] };
-                after = StatSheet.Describe(me, preview, pickKey);
+                after = StatSheet.Describe(me, preview, pickKey, game.PassiveRegen);
             }
             var lines = after ?? now;
             var green = new Color(0.45f, 1f, 0.5f);

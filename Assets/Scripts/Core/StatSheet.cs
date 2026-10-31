@@ -14,7 +14,8 @@ namespace Arena
     public static class StatSheet
     {
         /// newKey: for a preview that adds a new ability, the key it would go on (1-3; 0 = first free).
-        public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0)
+        /// baseRegen: the run's passive regeneration (its difficulty's; Game.PassiveRegen).
+        public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0, float baseRegen = 0.25f)
         {
             var s = Upgrades.Compute(taken);
             var lines = new List<StatLine>();
@@ -24,7 +25,7 @@ namespace Arena
             lines.Add(new StatLine { Label = "Move speed", Value = Pct(s.SpeedMult) });
             lines.Add(new StatLine { Label = "Ability cooldowns", Value = Pct(s.CdMult) });
             lines.Add(new StatLine { Label = "Damage taken", Value = Pct(s.DamageTaken) });
-            lines.Add(new StatLine { Label = "Regeneration", Value = (Game.PassiveRegen + s.Regen).ToString("0.0") + " HP/s" });
+            lines.Add(new StatLine { Label = "Regeneration", Value = (baseRegen + s.Regen).ToString("0.0#") + " HP/s" });
             lines.Add(new StatLine { Label = "Extra projectiles", Value = "+" + s.ExtraShots });
             lines.Add(new StatLine { Label = "Barrage (fanned copies)", Value = "+" + s.Fan });
             lines.Add(new StatLine { Label = "Pierce", Value = "+" + s.Pierce });

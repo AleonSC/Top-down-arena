@@ -615,7 +615,7 @@ namespace Arena
             string party = players == 1 ? "solo" : players + " players";
             GuideStats(r, stage, sy,
                 "Health", Num(d.Hp), "base",
-                "At wave " + atWave, Mathf.RoundToInt(game.SpawnHp(e.Type, atWave)).ToString("N0"), party + (inMatch && game.Has(RunMod.ToughCrowd) ? ", Tough Crowd" : ""),
+                "At wave " + atWave, Mathf.RoundToInt(game.SpawnHp(e.Type, atWave)).ToString("N0"), party + (inMatch && game.Has(RunMod.ToughCrowd) ? ", Tough Crowd" : "") + (inMatch && game.Diff.Level != DifficultyLevel.Normal ? ", " + game.Diff.Name : ""),
                 "Speed", d.Speed > 0f ? Num(d.Speed) + " px/s" : "Doesn't walk", null,
                 "Size", Num(d.Radius * 2f) + " px", "across",
                 "XP · Score", d.Xp + " · " + d.Score, d.Xp == 0 ? "gives no XP" : null,
@@ -642,7 +642,7 @@ namespace Arena
             if (e.Attacks.Length > 0)
             {
                 GHeading("Attacks");
-                float rate = Game.WaveFireRate(wave) * (inMatch && game.Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
+                float rate = Game.WaveFireRate(wave) * (inMatch ? game.D(DiffKnob.FireRate) : 1f) * (inMatch && game.Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
                 foreach (var a in e.Attacks)
                     DrawBeastAttack(a, rate, wave);
             }

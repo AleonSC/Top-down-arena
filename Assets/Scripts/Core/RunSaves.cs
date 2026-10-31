@@ -47,7 +47,7 @@ namespace Arena
                 return false;
             var save = new RunSave
             {
-                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, Score = Score, Mods = Mods, Endless = Endless, DevUsed = devTouched,
+                Id = RunId, SavedAt = DateTime.UtcNow, Wave = Wave, Score = Score, Mods = Mods, Diff = Diff.Copy(), Endless = Endless, DevUsed = devTouched,
                 RunTime = RunTime, CurrentPath = CurrentPath, PathFrom = PathFrom, PathTo = PathTo, LastPath = lastPath,
             };
             save.Route.AddRange(Route);

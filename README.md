@@ -2,9 +2,11 @@
 
 A co-op top-down bullet hell for **1 to 3 players** over the network, made in **Unity 6**.
 
-**Party size scaling:** solo, enemies have 70% health; with two players, 100%; with three, regular enemies
+**Party size scaling:** solo, enemies have 85% health (Normal difficulty); with two players, 100%; with three, regular enemies
 have 120% health and waves have 25% more of them, and bosses have 150% health.
 Bosses also have 1.2x to 4x their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult` in Balance.cs), and every enemy bullet hits 15% harder than its listed damage.
+**Enemy damage grows 3% a wave** (Normal: 1.3x at wave 11, 2.5x at wave 50), on everything that hurts you. The host
+picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom.
 Pick a role, then survive endless waves of enemies with a boss every 5th wave.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
@@ -108,7 +110,7 @@ them for half · Siphon Field follows you · Martyr: you're invulnerable for 2 s
 hit enemies within 80 px · Frenzy Pact: no health drain · Hemo Nova's bolts pierce 2 · Blood Rite lasts 12 s ·
 Sanguine Rain lasts 9 s and heals 30% · Crimson Apotheosis lasts 9 s.
 
-Players can pick the same role if you want. Everyone also slowly regenerates health (0.5 HP/s).
+Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see [Difficulty](#difficulty)).
 
 Enemies sometimes drop **health orbs**: small green ones heal 15 HP (18% chance), and rare large ones
 with a gold ring heal 60 HP (3% chance). Bosses always drop a large orb plus four small ones. Orbs drift
@@ -327,11 +329,12 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side. Enemies and bullets don't wrap, so the edges make a good escape route.
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
 - **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding (drops fall off it), **red crosshair** = marked (takes extra damage).
-- At 0 HP you're **downed**. Stand next to a downed ally for 3 seconds to revive them (or the healer can pulse them back).
+- At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the healer can pulse them back).
+- After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
 - **Boss bodies:** touching a boss hurts once (25 + 0.6 per wave) and shoves you about 100 px back out; it can't hurt you again for 1 s.
-- **Bullet budget:** enemy bullets on screen are capped at 50 + 4 per wave, up to 120 from wave 18 (30% more per extra player). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies only get 40% of the cap. Later waves get harder through tougher enemies, not more bullets.
+- **Bullet budget:** enemy bullets on screen are capped at 50 + 4 per wave, up to 120 from wave 18 (30% more per extra player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal). Later waves get harder through tougher enemies, not more bullets.
 
 ## Enemies
 
@@ -493,6 +496,38 @@ as chips above the wave panel during the match, and session recordings list them
 | Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
+
+## Difficulty
+
+The lobby's **Difficulty** tab: the host picks one of five cards, and everyone sees it (changing it takes back
+everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps
+its difficulty), shows as a chip above the wave panel during the match (not on Normal), and is written in session
+recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it
+(percent numbers are typed as percent: `12` is 12%); changing any number turns the difficulty into Custom, starting
+from the preset you had. Each slider has a tick where Normal is, and a value shows red when it's harder than Normal and
+green when it's easier. Hover a number for what it does.
+
+| Number | Easy | **Normal** | Hard | Nightmare | Custom range |
+|---|---|---|---|---|---|
+| Enemy health (enemies and bosses) | 0.75x | **1x** | 1.25x | 1.5x | 0.25-4x |
+| Boss health (on top) | 0.8x | **1x** | 1.2x | 1.4x | 0.25-4x |
+| Solo enemy health | 70% | **85%** | 100% | 115% | 40-150% |
+| Enemy damage (bullets, touching, hazards) | 0.75x | **1x** | 1.25x | 1.5x | 0.25-4x |
+| Damage growth per wave | +1.5% | **+3%** | +4% | +5% | 0-10% |
+| Enemy count (regular waves) | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2.5x |
+| Enemy fire rate | 0.9x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Enemy speed | 1x | **1x** | 1.1x | 1.2x | 0.5-2x |
+| Elites (chance, from wave 12) | 0.5x | **1x** (up to 35%) | 1.5x | 2x | 0-3x (at most 90%) |
+| Bullet budget | 0.85x | **1x** | 1.15x | 1.3x | 0.5-2x |
+| Adds' fire in boss fights (share of the budget) | 40% | **60%** | 75% | 90% | 0-100% |
+| Regeneration | 0.5 HP/s | **0.25 HP/s** | 0.15 HP/s | 0 | 0-3 HP/s |
+| Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
+| Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
+| Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
+
+Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
+multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack
+on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 ## Practice Range
 
@@ -791,6 +826,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
+  - `Difficulty.cs` / `DifficultyUi.cs`: the difficulty presets and every Custom number (with their ranges), and the lobby's Difficulty tab
   - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
   - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
   - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with a live mini-arena preview) and the Practice Range editor

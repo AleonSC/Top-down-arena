@@ -37,6 +37,7 @@ namespace Arena
         public int Wave;              // waves cleared: resuming starts wave Wave + 1
         public int Score;
         public RunMod Mods;
+        public Difficulty Diff = new Difficulty();  // saves from before difficulties load as Normal
         public bool Endless, DevUsed;
         public float RunTime;
         public PathId CurrentPath, LastPath;
@@ -58,6 +59,7 @@ namespace Arena
             Line(sb, "wave", Wave);
             Line(sb, "score", Score);
             Line(sb, "mods", (int)Mods);
+            Line(sb, "difficulty", Diff.ToText());
             Line(sb, "endless", Endless ? 1 : 0);
             Line(sb, "dev", DevUsed ? 1 : 0);
             Line(sb, "time", RunTime);
@@ -111,6 +113,7 @@ namespace Arena
                         case "wave": save.Wave = I(val); break;
                         case "score": save.Score = I(val); break;
                         case "mods": save.Mods = (RunMod)I(val); break;
+                        case "difficulty": save.Diff = Difficulty.Parse(val); break;
                         case "endless": save.Endless = I(val) != 0; break;
                         case "dev": save.DevUsed = I(val) != 0; break;
                         case "time": save.RunTime = Fl(val); break;

@@ -46,7 +46,7 @@ static partial class Program
         };
         Func<Game, float, float> Gain = null;
 
-        // The aura heals you 1 HP/s (on top of everyone's 0.5), +1 per Sanctuary.
+        // The aura heals you 1 HP/s (on top of everyone's regeneration), +1 per Sanctuary.
         var a = Solo(Kit.Soldier, 1);  // with Haven
         var ag = a.Item1.Game; var am = ag.Players[1];
         Gain = (g, secs) => { var p = g.Players[1]; p.Hp = p.MaxHp * 0.5f; float h = p.Hp; a.Item2(secs); return p.Hp - h; };
@@ -56,8 +56,9 @@ static partial class Program
         ag.GrantUpgrade(1, U("Sanctuary"));
         float two = Gain(ag, 2f);
         Console.WriteLine("  healer alone: healed {0:0.0} / {1:0.0} / {2:0.0} in 2 s with 0 / 1 / 2 Sanctuary", plain, one, two);
-        Check(Math.Abs(plain - 3f) < 0.3f && Math.Abs(one - 5f) < 0.3f && Math.Abs(two - 7f) < 0.3f,
-            "the aura heals the Healer 1 HP/s, +1 per Sanctuary (plus everyone's 0.5 regeneration)");
+        float regen = 2f * ag.PassiveRegen;
+        Check(Math.Abs(plain - 2f - regen) < 0.3f && Math.Abs(one - 4f - regen) < 0.3f && Math.Abs(two - 6f - regen) < 0.3f,
+            "the aura heals the Healer 1 HP/s, +1 per Sanctuary (plus everyone's regeneration)");
 
         // Overhealing from a Healer becomes a shield (up to 20% of max health); other healing doesn't.
         am.Hp = am.MaxHp; am.ShieldHp = 0f;

@@ -15,6 +15,7 @@ namespace Arena
                 return;
             if (p.SwallowT > 0f && !stomach)
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
+            amount *= EnemyDamageScale(Math.Max(1, Wave));  // the difficulty's enemy damage, growing each wave (Difficulty.cs)
             if (p.TauntT > 0f)
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             foreach (var q in Players.Values)
@@ -57,7 +58,7 @@ namespace Arena
             Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             BloodTookHit(p, amount);  // Crimson Pact stores it; Blood Rite heals allies with it
             p.Hp -= amount;
-            p.InvulnT = HitIframes;
+            p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
             if (p.Hp <= 0f && LastStanding(p))
                 p.Hp = 1f;  // Last Stand
@@ -1010,7 +1011,7 @@ namespace Arena
             double roll = rng.NextDouble();
             if (roll < BigOrbChance)
                 SpawnOrb(e.Pos, true);
-            else if (roll < BigOrbChance + OrbChance)
+            else if (roll < BigOrbChance + D(DiffKnob.OrbChance))
                 SpawnOrb(e.Pos, false);
         }
 
