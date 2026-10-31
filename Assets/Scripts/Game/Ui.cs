@@ -171,11 +171,10 @@ namespace Arena
         }
 
         /// The menus' showpiece button: an icon chip, game-style lettering (two-tone with an
-        /// outline, like titles), and on hover a brighter rim and a shine sweeping across. t = time in seconds.
+        /// outline, like titles), and on hover a lighter face and a shine sweeping across. No outline around it. t = time in seconds.
         public static bool FancyButton(Rect r, string text, Color tint, Texture2D icon, float t, int size = 0)
         {
-            bool hover = r.Contains(Event.current.mousePosition);
-            var old = GUI.backgroundColor;
+            bool hover = r.Contains(Event.current.mousePosition) && GUI.enabled;
             bool clicked = Button(r, "", hover ? Color.Lerp(tint, Color.white, 0.12f) : tint);
             Fill(new Rect(r.x + 12f, r.y + 2f, r.width - 24f, 1f), new Color(1f, 1f, 1f, hover ? 0.4f : 0.22f));  // top highlight
             if (hover)
@@ -186,13 +185,12 @@ namespace Arena
                 Fill(new Rect(sx, 0f, 12f, r.height), new Color(1f, 1f, 1f, 0.1f));
                 Fill(new Rect(sx + 16f, 0f, 4f, r.height), new Color(1f, 1f, 1f, 0.08f));
                 GUI.EndGroup();
-                GUI.backgroundColor = new Color(1f, 1f, 1f, 0.6f);
-                GUI.Box(r, GUIContent.none, cardRim);
-                GUI.backgroundColor = old;
             }
             int fs = size > 0 ? size : r.height >= 44f ? 19 : r.height >= 34f ? 16 : 13;
-            float tw = TextWidth(text, fs, true) - 6f;
             float cs = icon != null ? Mathf.Min(26f, r.height - 12f) : 0f, gap = icon != null ? 9f : 0f;
+            float tw = TextWidth(text, fs, true) - 6f;
+            while (fs > 11 && cs + gap + tw > r.width - 24f)
+                tw = TextWidth(text, --fs, true) - 6f;  // long labels shrink to fit
             float x = r.center.x - (cs + gap + tw) / 2f;
             if (icon != null)
             {

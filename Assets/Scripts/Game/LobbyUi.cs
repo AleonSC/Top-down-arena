@@ -505,14 +505,13 @@ namespace Arena
         {
             Ui.Fill(new Rect(0f, H - 88f, W, 88f), new Color(0.02f, 0.025f, 0.04f, 0.55f));
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
-            if (Ui.Button(new Rect(40f, H - 70f, 150f, 48f), "Leave", Ui.Danger))
+            float t = Time.unscaledTime;
+            if (Ui.FancyButton(new Rect(40f, H - 70f, 150f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), t))
                 session.Leave("");
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W - 560f : W - 300f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
-            if (ready)
-                Ui.PulseRing(readyRect, new Color(1f, 0.85f, 0.48f), Time.unscaledTime);
-            if (Ui.Button(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check")))
+            if (Ui.FancyButton(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, ready ? 15 : 0))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -528,7 +527,7 @@ namespace Arena
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0);
                 string start = practice ? "Start practice" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
-                if (Ui.Button(new Rect(W - 300f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play")))
+                if (Ui.FancyButton(new Rect(W - 300f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }
