@@ -2174,7 +2174,9 @@ static partial class Program
                 max = Math.Max(max, s[0].Game.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)));
         });
         Console.WriteLine("  wave 21: at most {0} enemy bullets on screen (budget {1}; it used to reach 800+)", max, budget);
-        Check(budget > 100 && max <= budget * 1.35f, "enemy bullets stay near the bullet budget");
+        // Only volleys check the budget: a Phantom's blink ring, a Charger's dash ring and a Mortar bomb's burst
+        // fire regardless, so the screen can run a little over it (183-214 at wave 21 over random seeds).
+        Check(budget > 100 && max <= budget * 1.5f, "enemy bullets stay near the bullet budget");
         s[0].Leave(""); s[1].Leave("");
 
         s = StartBuffed(dt, 3, 0);

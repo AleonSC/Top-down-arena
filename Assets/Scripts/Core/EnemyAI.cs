@@ -286,13 +286,19 @@ namespace Arena
                     enemyShots++;
         }
 
+        // Reused every tick by TickEnemies: the enemies to move (a copy, since some spawn others) and to keep apart.
+        readonly List<Enemy> tickEnemies = new List<Enemy>();
+        readonly List<Enemy> separateEnemies = new List<Enemy>();
+
         void TickEnemies(float dt)
         {
             float rate = Math.Min(2f, 1f + 0.05f * (Wave - 1));
             PullStrength = 0f;
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
-            foreach (var e in new List<Enemy>(Enemies.Values))  // copy: some enemies spawn others
+            tickEnemies.Clear();
+            tickEnemies.AddRange(Enemies.Values);
+            foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
                 e.T += dt;
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
@@ -413,7 +419,9 @@ namespace Arena
             }
 
             // Keep enemies from stacking on top of each other.
-            var list = new List<Enemy>(Enemies.Values);
+            var list = separateEnemies;
+            list.Clear();
+            list.AddRange(Enemies.Values);
             for (int i = 0; i < list.Count; i++)
             {
                 for (int j = i + 1; j < list.Count; j++)

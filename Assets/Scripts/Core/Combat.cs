@@ -196,6 +196,8 @@ namespace Arena
         }
 
         readonly List<int> scratchIds = new List<int>();
+        readonly List<Enemy> scratchDead = new List<Enemy>();  // Collide's dead enemies
+        readonly List<int> scratchOrbsGone = new List<int>();  // TickOrbs
 
         readonly List<Bullet> landed = new List<Bullet>();
 
@@ -637,7 +639,8 @@ namespace Arena
                     CharmHeal(b);  // Ofuda (Ninja.cs)
             }
 
-            var dead = new List<Enemy>();
+            var dead = scratchDead;
+            dead.Clear();
             foreach (var e in Enemies.Values)
                 if (e.Hp <= 0f)
                     dead.Add(e);
@@ -920,7 +923,8 @@ namespace Arena
         /// Players at full health leave them for their ally.
         void TickOrbs(float dt)
         {
-            var gone = new List<int>();
+            var gone = scratchOrbsGone;
+            gone.Clear();
             foreach (var o in Orbs.Values)
             {
                 o.Life -= dt;

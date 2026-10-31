@@ -203,9 +203,13 @@ namespace Arena
             }
         }
 
+        readonly List<int> broadcastIds = new List<int>();  // reused by Broadcast
+
         public void Broadcast(byte[] data)
         {
-            foreach (int id in new List<int>(conns.Keys))
+            broadcastIds.Clear();
+            broadcastIds.AddRange(conns.Keys);
+            foreach (int id in broadcastIds)
                 Send(id, data);
         }
 
