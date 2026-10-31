@@ -193,6 +193,7 @@ namespace Arena
         public int MirrorCount;       // host: player shots that have hit it (Mirrored bounces every fourth)
         public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag
+        public float PowerScale = 1f;       // host: a boss's extra health for a strong party (BuildPower.cs)
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
         public float BurnT, BurnDps;        // the Flamethrower's fire (host)
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)

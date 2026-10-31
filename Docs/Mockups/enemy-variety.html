@@ -234,7 +234,7 @@ $("squadTable").innerHTML = `<thead><tr><th>Squad</th><th>From</th><th>Members</
 
 // --- Building a wave ------------------------------------------------------------------------------------------------
 const POOL = [["Grunt", 1], ["Burster", 2], ["Sniper", 3], ["Charger", 6], ["Splitter", 7], ["Mortar", 8], ["Shielder", 9], ["Medic", 11], ["Phantom", 16], ["BeamSentry", 18], ["Hexer", 21], ["Scorcher", 24], ["Juggernaut", 26], ["Reaver", 28], ["Nest", 31], ["Warder", 36]];
-function waveSize(n) { return Math.min(4 + n * 2, n < 20 ? 32 : Math.min(40, 32 + Math.floor((n - 20) / 2))) + (n <= 3 ? 2 : 0); }
+function waveSize(n) { return Math.min(4 + n * 2, n < 20 ? 32 : Math.min(40, 32 + Math.floor((n - 20) / 2))) + (n <= 5 ? 7 - n : 0); }
 function buildWave(n) {
   const budget = waveSize(n), squads = [], singles = [];
   const ok = SQUADS.filter(s => s.from <= n);

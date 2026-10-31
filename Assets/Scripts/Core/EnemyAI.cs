@@ -139,8 +139,8 @@ namespace Arena
             if (n >= 31) pool.Add(EnemyType.Nest);
             if (n >= 36) pool.Add(EnemyType.Warder);
             int count = Math.Min(4 + n * 2, n < 20 ? 32 : Math.Min(40, 32 + (n - 20) / 2));
-            if (n <= 3)
-                count += 2;  // the first waves get a couple more of the same, so the opening isn't too quiet
+            if (n <= 5)
+                count += 7 - n;  // the first waves get extra (12, 13, 14, 15, 16), so the opening isn't too quiet
             if (Players.Count >= 3)
                 count = (int)(count * 1.25f);  // a third player: a quarter more enemies
             count = Math.Max(1, (int)Math.Round(count * D(DiffKnob.EnemyCount)));  // the difficulty's enemy count
@@ -229,6 +229,11 @@ namespace Arena
             {
                 e.MaxHp *= 2.5f;
                 e.Radius *= EliteSize;
+            }
+            if (d.IsBoss)
+            {
+                e.PowerScale = BossPowerScale();  // a party far above a typical build meets a tougher boss (BuildPower.cs)
+                e.MaxHp *= e.PowerScale;
             }
             e.Hp = e.MaxHp;
             if (elite)

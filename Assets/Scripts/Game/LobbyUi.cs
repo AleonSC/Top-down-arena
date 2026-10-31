@@ -49,7 +49,7 @@ namespace Arena
                 Event.current.Use();
             }
 
-            // --- Top bar: title, mode switch, version.
+            // --- Top bar: title, mode switch.
             Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
@@ -57,12 +57,11 @@ namespace Arena
                 DrawResumeBanner(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);  // continuing a saved run (SavesUi.cs)
             else
                 DrawModeSwitch(new Rect(W / 2f - 230f, 18f, 460f, 58f), t);
-            Ui.Label(new Rect(W - 240f, 8f, 200f, 16f), Session.VersionText, 11, Ui.Muted, TextAnchor.MiddleRight);
 
-            // --- Left: the party.
-            float lx = 40f, lw = 376f, y = 100f;
+            // --- Left: the party. Its heading sits level with the tabs, and the first card's top with the loadout's.
+            float lx = 40f, lw = 376f, y = 106f;
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
-            y += 30f;
+            y = LobbyBodyTop;
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
@@ -82,7 +81,7 @@ namespace Arena
             // --- Right: tabs, then your loadout or the practice waves.
             var area = new Rect(440f, 100f, W - 480f, H - 196f);
             DrawLobbyTabs(new Rect(area.x, area.y, area.width, 34f), practice);
-            var body = new Rect(area.x, area.y + 40f, area.width, area.height - 40f);
+            var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
             if (lobbyTab == 1 && practice)
                 DrawPracticeEditor(body, t);
             else if (lobbyTab == 2)
@@ -98,6 +97,8 @@ namespace Arena
             if (connInfoOpen)
                 DrawConnInfo(infoPanel);
         }
+
+        const float LobbyBodyTop = 140f;  // the top of the loadout box (under the tabs) and of the first party card
 
         string HostName()
         {

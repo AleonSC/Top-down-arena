@@ -50,6 +50,10 @@ static partial class Program
         {
             var s = StartBuffed(dt, 4, 0);
             s[0].Game.Bot = s[1].Game.Bot = false;
+            Run(s, dt, 6, () => s[0].Game.State == MatchState.Fighting);
+            // Waves are random, so make sure there is a brute to walk into.
+            var spawnBrute = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            spawnBrute.Invoke(s[0].Game, new object[] { EnemyType.Brute, new V2(300f, 120f), 0.5f, 0, false });
             Run(s, dt, 20, () => { foreach (var e in s[0].Game.Enemies.Values) if (e.Type == EnemyType.Brute && e.SpawnT <= 0f) return true; return false; });
             Enemy brute = null;
             foreach (var e in s[0].Game.Enemies.Values)

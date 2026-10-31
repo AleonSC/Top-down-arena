@@ -60,7 +60,6 @@ namespace Arena
                 settingsOpen = true;
             if (Ui.FancyButton(new Rect(W / 2f + 90f, by, 160f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t))
                 Application.Quit();
-            Ui.Label(new Rect(0, H - 30f, W, 20f), Session.VersionText + "  ·  you and your friend need the same version", 12, Ui.Muted, TextAnchor.MiddleCenter);
         }
 
         /// A glowing x-axis under a title: ticks (a long one every fourth), arrowheads, a pulsing origin and
