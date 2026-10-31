@@ -215,6 +215,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
+**Bug fixes from a code review (Oct 2026), no protocol change:** a sweeping Beam Sentry no longer has its `Strafe` flipped by `MoveEnemy` (its beam could turn back halfway); `ResetVariety` (Variety.cs, from `WaveCleared` and `Stop`) drops pending Volatile bursts, bounced Mirrored shots and squad lists, so a burst can't go off in the intermission or the next run; `DotDamage` (burn, bleed, poison, vines) now respects the boss immunities (`BossImmune`, shared with `HurtEnemy`, plus `SingImmune`) and goes through `SoakBubble`. Three new `variety` checks; the Beam Sentry check waits for the client to see the sweep (it was flaky in `all`).
+
 **Dev text editor (Oct 2026):** F4 / F1 → Tools: click any UI text to edit it; edits in `TextOverrides.txt` (numbers stay the game's), folded into the code by `Tools/TextEdits/fold.py`; `textedit` test mode.
 
 **Blood Mage class (Oct 2026, protocol 61):** 6th kit for all three roles: health as a resource (Space abilities cost health, never below 1 HP; Blood Price up to +40% damage at low health; 3% lifesteal), 9 weapons, 9 Space abilities, 3 ultimates, 9 ability upgrades + class cards, icons, look; `blood` test suite; preview `BLOOD=n`.

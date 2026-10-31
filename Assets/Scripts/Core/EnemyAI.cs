@@ -646,7 +646,8 @@ namespace Arena
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
-            if (rng.NextDouble() < dt * 0.3)
+            // A sweeping Beam Sentry steers its beam by Strafe, so it keeps the side it telegraphed (the roll still happens, keeping the RNG sequence).
+            if (rng.NextDouble() < dt * 0.3 && !(e.Type == EnemyType.BeamSentry && e.Phase == 3))
                 e.Strafe = -e.Strafe;
             if (e.SlowT > 0f && !Heavy(e))
                 speed *= e.SlowMult;

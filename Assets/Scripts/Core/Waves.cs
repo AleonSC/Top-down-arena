@@ -120,6 +120,7 @@ namespace Arena
         {
             Recorder?.WaveEnd(this);
             ResetBossState();
+            ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

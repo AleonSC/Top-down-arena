@@ -70,7 +70,8 @@ static partial class Program
         float taken = me.Run.DamageTaken;
         int phases = 0, clientPhase = 0;
         bool beamHit = false;
-        Run(s, dt, 9f, () => beamHit, () =>
+        // Stop once the sweep has hurt you and the client has seen it (a snapshot can lag the first sweep tick).
+        Run(s, dt, 9f, () => beamHit && (clientPhase & 0b1000) != 0, () =>
         {
             hold();
             beamHit |= sentry.Phase == 3 && me.Run.DamageTaken > taken;
@@ -191,6 +192,51 @@ static partial class Program
         bool back = g.Bullets.Values.Any(b => b.Kind == Defs.FastShot && b.Vel.Y > 0f);
         Console.WriteLine("  mirrored: {0} of 8 shots bounced; one flying back at you {1}", bounced, back);
         Check(bounced == 2 && back, "Mirrored sends one in four of your shots back at you");
+        clear(); Run(s, dt, 0.2f);
+
+        // A sweeping Beam Sentry keeps the side it telegraphed (enemies' random strafe flips leave it alone).
+        var sweeper = Spawn(EnemyType.BeamSentry, new V2(800f, 450f), false);
+        int sweeps = 0, steady = 0;
+        for (int k = 0; k < 6; k++)
+        {
+            sweeper.Phase = 3; sweeper.PhaseT = Game.SentrySweep; sweeper.Strafe = k % 2 == 0 ? 1f : -1f;
+            float last = sweeper.Facing, dir = sweeper.Strafe;
+            bool turned = false;
+            Run(s, dt, Game.SentrySweep - 0.1f, null, () =>
+            {
+                hold(); foreach (var p in g.Players.Values) p.InvulnT = 1f;
+                if ((sweeper.Facing - last) * dir < 0f) turned = true;
+                last = sweeper.Facing;
+            });
+            sweeps++;
+            if (!turned) steady++;
+        }
+        Console.WriteLine("  beam sentry: {0} of {1} sweeps kept their side", steady, sweeps);
+        Check(steady == sweeps, "a Beam Sentry's sweep never turns back halfway");
+        clear(); Run(s, dt, 0.2f);
+
+        // Damage over time goes through a bubble first, like a hit.
+        var burning = Elite(EliteTrait.Shielded, new V2(800f, 200f));
+        float bhp = burning.Hp, bubble = burning.BubbleHp;
+        burning.BurnT = 1f; burning.BurnDps = bubble * 0.5f; burning.BurnBy = 1;
+        Run(s, dt, 0.5f, null, () => { hold(); burning.FrozenT = 1f; foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        Console.WriteLine("  burning shielded elite: health {0:0} -> {1:0}, bubble {2:0} -> {3:0}", bhp, burning.Hp, bubble, burning.BubbleHp);
+        Check(burning.Hp == bhp && burning.BubbleHp < bubble, "burning eats a Shielded elite's bubble before its health");
+        clear(); Run(s, dt, 0.2f);
+
+        // A Volatile burst still on its fuse when the wave ends doesn't go off in the intermission.
+        var lastVol = Elite(EliteTrait.Volatile, new V2(800f, 200f));
+        lastVol.Hp = 0f;
+        Run(s, dt, 0.05f, null, () => { hold(); foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        typeof(Game).GetMethod("WaveCleared", flags).Invoke(g, null);
+        int late = 0;
+        Run(s, dt, 1.2f, null, () =>
+        {
+            foreach (var p in g.Players.Values) p.InvulnT = 1f;
+            late = Math.Max(late, g.Bullets.Values.Count(b => b.Kind == Defs.SmallShot && b.Pos.DistanceTo(new V2(800f, 200f)) < 120f));
+        });
+        Console.WriteLine("  volatile fuse at the wave's end: {0} shots after it", late);
+        Check(late == 0 && g.State == MatchState.Intermission, "a Volatile burst on its fuse is dropped when the wave ends");
         s[0].Leave(""); s[1].Leave("");
     }
 }

@@ -222,6 +222,24 @@ namespace Arena
             }
         }
 
+        /// Host: drop what's still pending from the enemies of a finished wave or run (Volatile bursts on their fuse,
+        /// bounced Mirrored shots, squad lists), so none of it goes off in the intermission or the next run.
+        void ResetVariety(bool newRun)
+        {
+            volatilePos.Clear();
+            volatileT.Clear();
+            volatileType.Clear();
+            mirrorFrom.Clear();
+            mirrorAt.Clear();
+            mirrorType.Clear();
+            squadMembers.Clear();
+            if (newRun)
+            {
+                nextSquadId = 1;
+                singlesSinceSquad = 0;
+            }
+        }
+
         /// How much faster it fires: Hasted, and near a living Commander.
         float TraitFireMult(Enemy e)
         {

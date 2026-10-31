@@ -693,13 +693,18 @@ namespace Arena
             return before.DistanceSq(center) >= r * r;
         }
 
+        /// A boss that takes no damage right now (changing stage, the Queen up in a dive, the Lich guarded...);
+        /// the Singularity's split is checked on its own (SingImmune), since its shards pass hits to the core.
+        bool BossImmune(Enemy e) =>
+            WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || DevourImmune(e) || EclipseImmune(e);
+
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
             if (SoulBound(e))
                 return;  // immune until its twin is brought down to match
             if (ShardPassesHit(e, dmg, attacker))
                 return;  // a Singularity shard: the core takes it (Singularity.cs)
-            if (WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || (SingImmune(e) && !shardPass) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || DevourImmune(e) || EclipseImmune(e))
+            if (BossImmune(e) || (SingImmune(e) && !shardPass))
                 return;  // a boss changing stage, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
@@ -858,6 +863,12 @@ namespace Arena
         /// Damage over time (burning, bleeding), credited to whoever caused it.
         void DotDamage(Enemy e, float dmg, int by)
         {
+            // The same immunities as a hit: a boss changing stage or guarded takes none, and bubbles soak it first.
+            if (SoulBound(e) || Hungry(e) || BossImmune(e) || SingImmune(e))
+                return;
+            dmg = SoakBubble(e, dmg);
+            if (dmg <= 0f)
+                return;
             Player p;
             if (Players.TryGetValue(by, out p))
             {

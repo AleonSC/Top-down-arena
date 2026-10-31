@@ -613,6 +613,7 @@ namespace Arena
             nextOrbId = 1;
             nextZoneId = 1;
             ResetBossState();
+            ResetVariety(true);
             DashT = 0f;
             Paused = false;
             PausedBy = 0;
