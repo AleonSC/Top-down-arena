@@ -221,6 +221,11 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 **From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
 
+**Button style trial (Oct 2026), no protocol change:** Settings → **Button style** dropdown (saved as PlayerPrefs
+`button_style`) switches every `Ui.FancyButton` between six looks, mocked up at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi:
+A Sheen (the original), B Slab, C Capsule, D Chamfer, E Glow, F Split (`ButtonStyles.cs`, `Ui.StyledButton`). Temporary:
+once the owner picks one, make it the only style and remove the dropdown. Preview: `BUTTONSTYLE=n`, `STYLEMENU=1` (settings).
+
 **Fancy menu buttons + Field guide button (Oct 2026), no protocol change:** `Ui.FancyButton(r, text, tint, icon, t)`
 (icon chip, `Ui.Fancy` lettering, a lighter face and a shine on hover; no outline: the owner doesn't want outlines around buttons) on the main menu's buttons (Host / Join / Cancel too), every Back, the saved
 runs' Continue / Delete, Resume / Leave game, the Field guide, and the lobby's Leave / Ready / Start (Ready no longer has a pulse ring). New icons `ui_back`, `ui_trophy`, `ui_gear`, `ui_book`,
