@@ -1373,6 +1373,25 @@ static partial class Program
         Check(sentOne && Math.Abs(wispHit - me.Weapon.Damage * me.Stats.DmgMult) < 0.5f && back, "firing the Wisp Lantern sends one wisp to strike what you aim at, and it comes back");
         reset();
 
+        // Wisp Lantern with Homing Rounds: a wisp sent at empty ground near an enemy turns onto it (for 10% less damage).
+        Func<float> wide = () =>
+        {
+            play(1.5f, new PlayerInput());
+            var foe = dummy(from + new V2(250f, 0f));
+            V2 miss = from + new V2(250f, 200f);  // 200 px off: too far for a plain wisp to pick it
+            me.AimAt = miss;
+            volley.Invoke(g, new object[] { me, 0f, 0 });
+            play(1.2f, new PlayerInput { AimAt = miss });
+            float done = foe.MaxHp - foe.Hp;
+            reset();
+            return done;
+        };
+        float plainMiss = wide();
+        g.GrantUpgrade(1, Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds"));
+        float homed = wide();
+        Console.WriteLine("  wisp lantern + Homing Rounds: sent beside an enemy, a plain wisp did {0:0.0}, a homing one {1:0.0}", plainMiss, homed);
+        Check(plainMiss == 0f && Math.Abs(homed - me.Weapon.Damage * me.Stats.DmgMult * 0.9f) < 0.5f, "Homing Rounds turn a sent wisp onto a nearby enemy, for 10% less damage");
+
         // Imp Caller.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ImpCaller);
         Func<int> imps = () => g.Minions.Values.Count(m => m.Owner == 1 && m.Kind == MinionKind.Imp && !m.Sent);

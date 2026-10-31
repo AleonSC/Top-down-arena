@@ -215,6 +215,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 ## 5. Recent history (newest first)
 
+**Homing Rounds on Wisp Lantern / Imp Caller (Oct 2026):** sent wisps and imps used to ignore the mod (no homing, no damage cost). Now each stack widens the cursor pick 50% (`SendPickRange`), a companion with no live target locks onto the nearest enemy within 260 px (`MoveSent`), and wisp hits / sent-imp blasts pay `HomingCost`; card text per weapon in `Upgrades.DescFor`; `fivemore` test.
+
 **Legion nerf (Oct 2026):** Legion's own wolves and bats no longer frenzy (`Minion.NoFrenzy`); your other minions still do. It added ~11,200 damage to one big target in 12 s (Bullet Storm ~6,200), now ~5,400. Measured by the new `ultdps` report (`run.sh 1 1 ultdps`). No protocol change (host-only flag).
 
 **Dev text editor (Oct 2026):** F4 / F1 → Tools: click any UI text to edit it; edits in `TextOverrides.txt` (numbers stay the game's), folded into the code by `Tools/TextEdits/fold.py`; `textedit` test mode.

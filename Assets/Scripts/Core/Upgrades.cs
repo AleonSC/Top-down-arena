@@ -384,6 +384,9 @@ namespace Arena
             string area;
             if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
                 return weapon.Name + ": " + area + " per stack, instead of bending shots. 10% less damage per stack";
+            if (u.Name == "Homing Rounds" && (weapon.Id == WeaponId.WispLantern || weapon.Id == WeaponId.ImpCaller))
+                return weapon.Name + ": " + (weapon.Id == WeaponId.WispLantern ? "wisps" : "imps")
+                    + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 10% less damage per stack";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
                 return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
             if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)

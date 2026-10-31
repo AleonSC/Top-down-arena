@@ -302,7 +302,7 @@ have chosen.
 
 | Mod | Per stack |
 |---|---|
-| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils, Frost Lance, Golem Staff, Chain Light, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc, lightning's reach, splinters, boulder, cone or strip, for the same damage cost |
+| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 10% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Clot Bolt, Vein Tether, Leech Tendrils, Frost Lance, Golem Staff, Chain Light, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, pool, collapse, beam width, tendrils' arc, lightning's reach, splinters, boulder, cone or strip, for the same damage cost. **Wisp Lantern and Imp Caller:** the wisps and imps you send pick an enemy 50% farther from your cursor per stack, and one sent at empty ground (or whose target dies) turns onto an enemy within 260 px of it, for the same damage cost |
 | **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 75% damage; +1 bounce per stack |
 | **Incendiary Rounds** | Hits set enemies on fire for 3 s, burning 25% of the hit's damage per second |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |

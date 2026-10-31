@@ -354,11 +354,16 @@ namespace Arena
 
         public const float WispReach = 420f, WispSpeed = 650f, SendPick = 120f, ImpReach = 600f, ImpSpeed = 300f, ImpMergeBonus = 1.25f, SentMax = 2.5f;
 
+        /// Homing Rounds on a sent wisp or imp: it picks an enemy up to 50% farther from your cursor a stack, and one
+        /// sent at empty ground (or whose target dies) turns onto the nearest enemy within HomingRange of it.
+        public const float SendPickPerStack = 0.5f;
+        static float SendPickRange(Player p) => SendPick * (1f + SendPickPerStack * p.Stats.Homing / 2f);  // Homing Rounds give 2 turn a stack
+
         /// What a sent companion goes for: the enemy nearest your cursor (within SendPick of it), or just the cursor.
         void PickGoal(Player p, Minion m, float reach)
         {
             V2 at = p.Pos + (p.AimAt - p.Pos).LimitLength(reach);
-            var e = NearestEnemy(at, SendPick);
+            var e = NearestEnemy(at, SendPickRange(p));
             m.GoalEnemy = e != null ? e.Id : 0;
             m.Goal = at;
             m.Sent = true;
@@ -428,6 +433,12 @@ namespace Arena
             Enemy e = null;
             if (m.GoalEnemy == 0 || !Enemies.TryGetValue(m.GoalEnemy, out e) || e.Hp <= 0f)
                 e = null;  // sent at a point, or its target is gone
+            if (e == null && owner.Stats.Homing > 0f && !m.Returning)
+            {
+                e = NearestEnemy(m.Pos, HomingRange);  // Homing Rounds: lock onto an enemy close by instead
+                if (e != null)
+                    m.GoalEnemy = e.Id;
+            }
             bool alive = e != null;
             if (!imp && m.Returning)
             {
@@ -460,7 +471,7 @@ namespace Arena
                 return hit != null || arrived;  // it blows up on whatever it reached
             if (hit != null)
             {
-                float dmg = owner.Weapon.Damage * owner.Stats.DmgMult * m.Power;
+                float dmg = owner.Weapon.Damage * owner.Stats.DmgMult * m.Power * HomingCost(owner);  // Homing Rounds trade damage for forgiveness
                 HurtEnemy(hit, dmg, owner.Id);
                 OnBulletHit(new Bullet { Pos = hit.Pos, Vel = to.Normalized(), Owner = owner.Id, Dmg = dmg, Kind = Defs.ArcaneShot }, hit);
                 BroadcastFx(FxKind.Spark, hit.Pos, d.Color, hit.Radius + 10f, 0.25f, Sfx.None);
@@ -1497,9 +1508,16 @@ namespace Arena
             }
             foreach (var m in exploding)
                 if (Minions.ContainsKey(m.Id))
-                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power, m.Def.Range * m.Scale);  // a merged imp blasts wider
+                    ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power * SentCost(m), m.Def.Range * m.Scale);  // a merged imp blasts wider
             foreach (var m in expired)
                 Minions.Remove(m.Id);
+        }
+
+        /// Homing Rounds' damage cost on an Imp Caller imp sent at something (the homing it pays for is in MoveSent).
+        float SentCost(Minion m)
+        {
+            Player p;
+            return m.Sent && m.Kind == MinionKind.Imp && Players.TryGetValue(m.Owner, out p) ? HomingCost(p) : 1f;
         }
 
         float OwnerDmg(Minion m)
