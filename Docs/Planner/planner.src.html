@@ -1,0 +1,393 @@
+<title>Top-Down Arena Build Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the Armory's sibling. Loadout on the left (role, class, weapon, Space ability, mastery), the upgrade cards in
+   the middle (stack them with + and -), and the stat sheet on the right, the way the game's pick screen shows it.
+   Single dark look by choice: it mirrors the arena. */
+:root {
+  --bg: #0a0c12; --panel: #121521; --panel-2: #181c2b; --line: #262b3f; --edge: #3a4260; --hover: #1f2436;
+  --fg: #e8ecf8; --soft: #c9cfe3; --muted: #8e97b3; --accent: #5b8cff; --accent-soft: #1f2c55; --gold: #ffcc59; --danger: #ff5a6e; --good: #6be38a;
+  --tank: #5999ff; --healer: #59ff8c; --dps: #ff8c40;
+  --common: #d9d9e6; --uncommon: #59e666; --rare: #5999ff; --veryrare: #cc66ff; --legendary: #ff9926; --mod: #40f2d9;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 1440px; margin: 0 auto; display: grid; gap: 16px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 4vw, 38px); letter-spacing: 0.04em; margin: 0; text-wrap: balance; }
+h1 span { color: var(--gold); }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.sub { color: var(--muted); margin: 2px 0 0; max-width: 72ch; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cols { display: grid; grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) minmax(300px, 360px); gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .cards-col { grid-column: 1 / -1; order: 3; } }
+@media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; display: grid; gap: 12px; align-content: start; }
+.sticky { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; }
+@media (max-width: 1180px) { .sticky { position: static; max-height: none; } }
+.seg { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { flex: 1 1 auto; height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 13px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: var(--hover); }
+.seg button.on { color: #fff; background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.pick { display: grid; gap: 4px; }
+.opt { display: grid; grid-template-columns: 24px 1fr; gap: 2px 10px; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--fg); font: inherit; cursor: pointer; }
+.opt:hover { border-color: var(--edge); }
+.opt.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.opt canvas { width: 24px; height: 24px; image-rendering: pixelated; grid-row: span 2; }
+.opt b { font-weight: 600; font-size: 14px; }
+.opt small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.opt.on small { color: var(--soft); }
+.opt.noicon { grid-template-columns: 1fr; }
+.ult { display: grid; grid-template-columns: 24px 1fr; gap: 2px 10px; padding: 8px 10px; border: 1px dashed var(--edge); border-radius: 8px; }
+.ult canvas { width: 24px; height: 24px; image-rendering: pixelated; grid-row: span 2; }
+.ult small { color: var(--muted); font-size: 12.5px; }
+.mastery { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; color: var(--soft); }
+.mastery input { width: 100%; accent-color: var(--gold); grid-column: 1 / -1; }
+.mastery output { font-family: var(--font-data); color: var(--gold); font-size: 12px; }
+
+.cardbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.search { height: 32px; min-width: 0; flex: 1 1 180px; max-width: 280px; background: var(--bg); border: 1px solid var(--line); border-radius: 7px; color: var(--fg); padding: 0 10px; font: 14px var(--font-body); }
+.rgroup { display: grid; gap: 6px; }
+.rgroup h3 { margin: 4px 0 0; font: 700 11.5px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--r); display: flex; gap: 10px; align-items: center; }
+.rgroup h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px; }
+.card { display: grid; grid-template-columns: 28px 1fr auto; gap: 2px 10px; align-items: start; background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--r); border-radius: 8px; padding: 8px 8px 8px 10px; }
+.card.has { background: color-mix(in srgb, var(--r) 9%, var(--panel-2)); border-color: color-mix(in srgb, var(--r) 55%, var(--line)); border-left-color: var(--r); }
+.card.off { opacity: 0.42; }
+.card canvas { width: 28px; height: 28px; image-rendering: pixelated; }
+.card .t b { font-weight: 600; font-size: 14px; display: block; line-height: 1.25; }
+.card .t small { color: var(--muted); font-size: 12.5px; line-height: 1.35; display: block; }
+.card .t i { font-style: normal; font-size: 11px; color: var(--muted); font-family: var(--font-data); }
+.stack { display: grid; grid-template-columns: 26px 26px 26px; align-items: center; text-align: center; font: 500 13px var(--font-data); }
+.stack button { width: 26px; height: 26px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); border-radius: 6px; cursor: pointer; font: 600 15px var(--font-body); line-height: 1; padding: 0; }
+.stack button:hover:not(:disabled) { background: var(--hover); }
+.stack button:disabled { opacity: 0.3; cursor: default; }
+
+.sheet-sec { display: grid; gap: 2px; }
+.sheet-sec h3 { margin: 6px 0 4px; font: 700 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.line { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); font-size: 13.5px; }
+.line span:first-child { color: var(--soft); }
+.line b { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; text-align: right; }
+.line b.up { color: var(--good); }
+.line b.down { color: var(--danger); }
+.line b del { color: var(--muted); text-decoration: none; margin-right: 6px; }
+.hero { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.hero div { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: grid; }
+.hero small { font: 600 9.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.hero b { font: 500 19px var(--font-data); font-variant-numeric: tabular-nums; }
+.hero em { font-style: normal; font-size: 11.5px; color: var(--muted); }
+.note { color: var(--muted); font-size: 12.5px; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font: 500 11.5px var(--font-data); padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--soft); }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; }
+button.btn { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; background: var(--panel); border: 1px solid var(--edge); color: var(--fg); border-radius: 7px; font: 600 13px var(--font-body); cursor: pointer; }
+button.btn:hover { background: var(--hover); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>BUILD <span>PLANNER</span></h1>
+      <p class="sub">Pick a loadout, stack upgrade cards, and see what they add up to: health, damage, fire rate, cooldowns and charges. Numbers come straight from the game's code; the page's address keeps the build, so copy it to share one.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="clear" type="button">Clear cards</button>
+    </div>
+  </header>
+
+  <div class="cols">
+    <section class="panel" aria-label="Loadout">
+      <h2>Role</h2><div class="seg" id="role"></div>
+      <h2>Class</h2><div class="seg" id="kit"></div>
+      <h2>Weapon</h2><div class="pick" id="weapon"></div>
+      <h2>Space ability</h2><div class="pick" id="ability"></div>
+      <h2>Ultimate (F)</h2><div id="ult"></div>
+      <h2>Mastery</h2>
+      <div class="mastery"><label for="mSpace">Space ability</label><output id="mSpaceOut"></output><input type="range" id="mSpace" min="1" max="5" step="1" value="1"></div>
+      <div class="mastery"><label for="mUlt">Ultimate</label><output id="mUltOut"></output><input type="range" id="mUlt" min="1" max="5" step="1" value="1"></div>
+      <p class="note">Each mastery level takes 4% off that ability's cooldown; level 5 adds its capstone.</p>
+    </section>
+
+    <section class="panel cards-col" aria-label="Upgrade cards">
+      <div class="cardbar">
+        <h2 id="cardCount">Upgrade cards</h2>
+        <input class="search" id="search" type="search" placeholder="Find a card" aria-label="Find a card">
+      </div>
+      <div class="seg" id="rfilter"></div>
+      <div id="cards" style="display:grid;gap:14px"></div>
+    </section>
+
+    <section class="panel sticky" aria-label="Stat sheet">
+      <h2>Stat sheet</h2>
+      <div class="hero" id="hero"></div>
+      <div id="sheet" style="display:grid;gap:4px"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const D = /*DATA*/null;
+const ICONS = /*ICONS*/null;
+const $ = id => document.getElementById(id);
+const ROLES = ["Tank", "Healer", "Dps"], ROLE_NAMES = ["Tank", "Healer", "DPS"];
+const RARITIES = [
+  ["Common", "Common", "--common"], ["Uncommon", "Uncommon", "--uncommon"], ["Rare", "Rare", "--rare"], ["VeryRare", "Very rare", "--veryrare"],
+  ["Legendary", "Legendary", "--legendary"], ["Mod", "Weapon mods", "--mod"],
+];
+const BOSS_NAMES = { Boss: "the Warden", HiveQueen: "the Hive Queen", TwinA: "the Twin Reapers", Singularity: "the Singularity" };
+const C = D.consts;
+const S = { role: 2, kit: 0, weapon: 0, ability: 0, mSpace: 1, mUlt: 1, picks: {}, filter: "all", q: "" };
+
+// --- Lookups -------------------------------------------------------------------------------------------------------
+const abilityList = () => Object.entries(D.abilities).map(([id, a]) => ({ id, ...a }));
+const spaceChoices = () => [0, 1, 2].map(c => abilityList().find(a => a.role === ROLES[S.role] && a.kit === D.kits[S.kit].id && a.choice === c));
+const ultimate = () => abilityList().find(a => a.role === ROLES[S.role] && a.kit === D.kits[S.kit].id && a.choice === "ult");
+const weapons = () => D.weapons.filter(w => w.role === S.role && w.kit === S.kit);
+const weapon = () => weapons()[S.weapon];
+const space = () => spaceChoices()[S.ability];
+
+// Every card a player of this loadout could ever see: the shared list plus the very rare cards for their class's other two Space abilities.
+function allCards() {
+  const cards = D.upgrades.map((u, i) => ({ ...u, key: String(i) }));
+  spaceChoices().forEach((a, c) => cards.push({ name: a.name, desc: a.desc, rarity: "VeryRare", max: 1, grants: a.id, classAbility: true, key: "c" + c, effects: [] }));
+  return cards;
+}
+const count = key => S.picks[key] || 0;
+function hasAbility(id, picks = S.picks, cards = allCards()) {
+  if (space().id === id) return true;
+  return cards.some(c => c.grants === id && (picks[c.key] || 0) > 0);
+}
+const grantsTaken = (picks = S.picks, cards = allCards()) => cards.filter(c => c.grants && (picks[c.key] || 0) > 0).length;
+// Upgrades.Available, for adding one more of this card.
+function canAdd(c, picks = S.picks, cards = allCards()) {
+  if (c.role && c.role !== ROLES[S.role]) return false;
+  if (c.requires && !hasAbility(c.requires, picks, cards)) return false;
+  if (c.classAbility && c.grants === space().id) return false;
+  if ((picks[c.key] || 0) >= (c.grants ? 1 : c.max)) return false;
+  if (c.grants && grantsTaken(picks, cards) >= 3) return false;
+  if (c.needsExtra && grantsTaken(picks, cards) === 0) return false;
+  return true;
+}
+const relevant = c => !(c.role && c.role !== ROLES[S.role]) && !(c.classAbility && c.grants === space().id) && !(c.requires && !hasAbility(c.requires, { ...S.picks, ...Object.fromEntries(allCards().filter(x => x.grants === c.requires).map(x => [x.key, 1])) }));
+// Drop picks that no longer fit (after a loadout change or removing a card others needed).
+function prune() {
+  const cards = allCards();
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const key of Object.keys(S.picks)) {
+      const c = cards.find(x => x.key === key);
+      if (!c) { delete S.picks[key]; changed = true; continue; }
+      const n = S.picks[key], rest = { ...S.picks }; rest[key] = n - 1; if (!rest[key]) delete rest[key];
+      if (!canAdd(c, rest, cards)) { if (n > 1) S.picks[key] = n - 1; else delete S.picks[key]; changed = true; }
+    }
+  }
+}
+
+// Upgrades.Compute: every card's Apply, in pick order.
+function compute() {
+  const s = { DmgMult: 1, FireRateMult: 1, SpeedMult: 1, CdMult: 1, DamageTaken: 1, BonusHp: 0, Regen: 0, ExtraShots: 0, Pierce: 0, Fan: 0, RoleCharges: 0, ExtraCharges: 0,
+    ParryCapacityMult: 1, ParryArcMult: 1, AuraRangeMult: 1, AuraHealMult: 1, DashCdMult: 1, Homing: 0, CritChance: 0, ExecuteBonus: 0 };
+  for (const c of allCards()) for (let k = 0; k < count(c.key); k++) for (const [f, op, v, cap] of c.effects) {
+    const cur = s[f] ?? (op === "*=" ? 1 : 0);
+    s[f] = op === "+=" ? cur + v : op === "*=" ? cur * v : op === "=" ? v : op === "+cap" ? Math.min(cap, cur + v) : op === "+first" ? cur + (cur === 0 ? v : cap) : cur;
+  }
+  return s;
+}
+
+// --- Drawing ---------------------------------------------------------------------------------------------------------
+function icon(name, size = 24) {
+  const c = document.createElement("canvas"); c.width = c.height = 24;
+  const rows = ICONS && ICONS.icons[ICONS.names[name]];
+  if (rows) { const g = c.getContext("2d"); for (let y = 0; y < 12; y++) for (let x = 0; x < 12; x++) { const col = ICONS.pal[rows[y][x]]; if (col) { g.fillStyle = col; g.fillRect(x * 2, y * 2, 2, 2); } } }
+  c.setAttribute("aria-hidden", "true");
+  return c;
+}
+const pct = v => Math.round(v * 100) + "%";
+const sec = v => (Math.round(v * 100) / 100) + " s";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+function cardText(c) {
+  const w = weapon();
+  if (c.name === "Multishot" && w.extra) return w.name + ": " + w.extra;
+  if (w.melee && D.meleeCardText[c.name]) return D.meleeCardText[c.name];
+  return c.desc;
+}
+
+function renderLoadout() {
+  $("role").innerHTML = ROLE_NAMES.map((n, i) => `<button type="button" data-role="${i}" class="${S.role === i ? "on" : ""}">${n}</button>`).join("");
+  $("kit").innerHTML = D.kits.map((k, i) => `<button type="button" data-kit="${i}" class="${S.kit === i ? "on" : ""}">${k.name}</button>`).join("");
+  $("weapon").replaceChildren(...weapons().map((w, i) => opt(w.name, w.desc, S.weapon === i, "weapon", i)));
+  $("ability").replaceChildren(...spaceChoices().map((a, i) => opt(a.name, `${a.desc}`, S.ability === i, "ability", i)));
+  const u = ultimate();
+  const ue = document.createElement("div"); ue.className = "ult";
+  ue.append(icon(u.name)); ue.insertAdjacentHTML("beforeend", `<b>${esc(u.name)} <span style="color:var(--muted);font:400 12px var(--font-data)">${u.cd} s</span></b><small>${esc(u.desc)}</small>`);
+  $("ult").replaceChildren(ue);
+  for (const k of ["mSpace", "mUlt"]) { $(k).value = S[k]; $(k + "Out").textContent = "Level " + S[k] + (S[k] === 5 ? " · mastered" : ""); }
+  function opt(name, desc, on, kind, i) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "opt" + (on ? " on" : ""); b.dataset[kind] = i;
+    if (ICONS && ICONS.icons[ICONS.names[name]]) b.append(icon(name)); else b.classList.add("noicon");
+    b.insertAdjacentHTML("beforeend", `<b>${esc(name)}</b><small>${esc(desc)}</small>`);
+    return b;
+  }
+}
+
+function renderCards() {
+  const cards = allCards(), q = S.q.trim().toLowerCase();
+  $("rfilter").innerHTML = [["all", "All"], ...RARITIES.map(r => [r[0], r[1]])].map(([k, n]) => `<button type="button" data-filter="${k}" class="${S.filter === k ? "on" : ""}">${n}</button>`).join("");
+  const total = Object.values(S.picks).reduce((a, b) => a + b, 0);
+  $("cardCount").textContent = total ? `Upgrade cards · ${total} picked` : "Upgrade cards";
+  const groups = [];
+  for (const [rar, label, col] of RARITIES) {
+    if (S.filter !== "all" && S.filter !== rar) continue;
+    const list = cards.filter(c => c.rarity === rar && relevant(c) && (!q || (c.name + " " + cardText(c)).toLowerCase().includes(q)));
+    if (!list.length) continue;
+    const g = document.createElement("div"); g.className = "rgroup"; g.style.setProperty("--r", `var(${col})`);
+    g.innerHTML = `<h3>${label}</h3>`;
+    const grid = document.createElement("div"); grid.className = "cardgrid";
+    for (const c of list) {
+      const n = count(c.key), add = canAdd(c), max = c.grants ? 1 : c.max;
+      const el = document.createElement("div"); el.className = "card" + (n ? " has" : "") + (!n && !add ? " off" : ""); el.style.setProperty("--r", `var(${col})`);
+      el.append(icon(c.name, 28));
+      const why = !n && !add ? (c.grants && grantsTaken() >= 3 ? "Q, E and Shift are full" : c.needsExtra ? "needs a bonus ability first" : "") : "";
+      const meta = [c.boss ? "from " + (BOSS_NAMES[c.boss] || c.boss) : "", max < 99 ? "max " + max : "", c.grants ? "new ability" : "", why].filter(Boolean).join(" · ");
+      el.insertAdjacentHTML("beforeend", `<div class="t"><b>${esc(c.name)}</b><small>${esc(cardText(c))}</small>${meta ? `<i>${esc(meta)}</i>` : ""}</div>
+        <div class="stack"><button type="button" data-minus="${c.key}" aria-label="Remove ${esc(c.name)}" ${n ? "" : "disabled"}>−</button><span>${n}</span><button type="button" data-plus="${c.key}" aria-label="Add ${esc(c.name)}" ${add ? "" : "disabled"}>+</button></div>`);
+      grid.append(el);
+    }
+    g.append(grid); groups.push(g);
+  }
+  if (!groups.length) { const p = document.createElement("p"); p.className = "note"; p.textContent = "No cards match that search."; groups.push(p); }
+  $("cards").replaceChildren(...groups);
+}
+
+function renderSheet() {
+  const s = compute(), role = D.roles[S.role], kit = D.kits[S.kit], w = weapon(), cards = allCards();
+  const baseHp = role.Hp * kit.hp, maxHp = baseHp + s.BonusHp;
+  const dmg = s.DmgMult * (1 - C.HomingDamageCost * s.Homing);
+  const avgHit = 1 + s.CritChance;  // Twin Fang: each hit has this chance to deal double
+  const interval = w.interval / s.FireRateMult;
+  const baseOut = w.damage / w.interval, out = w.damage * dmg * avgHit / interval;
+  const masteryCd = m => 1 - 0.04 * (m - 1);
+  $("hero").innerHTML = [
+    ["Max HP", Math.round(maxHp), Math.round(maxHp / s.DamageTaken) !== Math.round(maxHp) ? `${Math.round(maxHp / s.DamageTaken)} effective` : `${role.name} × ${kit.name}`],
+    ["Main hit", (w.damage * dmg).toFixed(w.damage * dmg < 10 ? 1 : 0), `every ${sec(interval)}`],
+    ["Output", "×" + (out / baseOut || 1).toFixed(2), "vs. no cards"],
+  ].map(([l, v, n]) => `<div><small>${l}</small><b>${v}</b><em>${n}</em></div>`).join("");
+
+  const L = [], line = (label, val, base, better) => {
+    const cls = base == null || val === base ? "" : better ? "up" : "down";
+    L.push(`<div class="line"><span>${label}</span><b class="${cls}">${base != null && val !== base ? `<del>${base}</del>` : ""}${val}</b></div>`);
+  };
+  const h = t => L.push(`<h3>${t}</h3>`);
+  h("Survival");
+  line("Max HP", Math.round(maxHp), Math.round(baseHp), true);
+  line("Damage taken", pct(s.DamageTaken), "100%", true);
+  line("Regeneration", (C.PassiveRegen + s.Regen).toFixed(1) + " HP/s", C.PassiveRegen.toFixed(1) + " HP/s", true);
+  line("Move speed", Math.round(role.Speed * kit.speed * s.SpeedMult) + " px/s", Math.round(role.Speed * kit.speed) + " px/s", true);
+  line("Parry durability", Math.round(C.ParryCapacity * s.ParryCapacityMult), Math.round(C.ParryCapacity), true);
+  if (s.ParryArcMult !== 1) line("Parry arc", pct(s.ParryArcMult), "100%", true);
+  if (S.role === 1) {
+    line("Aura: allies", (C.AuraHeal * s.AuraHealMult) + " HP/s", C.AuraHeal + " HP/s", true);
+    line("Aura: you", (C.AuraSelfHeal * s.AuraHealMult) + " HP/s", C.AuraSelfHeal + " HP/s", true);
+    line("Aura reach", Math.round(C.AuraRange * s.AuraRangeMult) + " px", Math.round(C.AuraRange) + " px", true);
+  }
+  h(w.name);
+  line("Damage", pct(dmg), "100%", dmg >= 1);
+  line("Fire rate", pct(s.FireRateMult), "100%", true);
+  line("Main hit", (w.damage * dmg).toFixed(1), w.damage.toFixed(1), dmg >= 1);
+  line(w.melee ? "Swing every" : "Attack every", sec(interval), sec(w.interval), true);
+  if (s.CritChance) line("Double-damage hits", pct(s.CritChance), null);
+  if (s.ExecuteBonus) line("Below 35% health", "×" + (1 + s.ExecuteBonus), null);
+  if (s.ExtraShots) line("Multishot", "+" + s.ExtraShots, null);
+  if (s.Fan) line(w.melee ? "Sword waves (Barrage)" : "Barrage copies", "+" + s.Fan, null);
+  if (s.Pierce) line(w.melee ? "Reach (Piercing)" : "Pierce", w.melee ? "+" + s.Pierce * 10 + "%" : "+" + s.Pierce, null);
+  if (s.ExtraShots && w.extra) L.push(`<p class="note">Each Multishot: ${esc(w.extra)}.</p>`);
+
+  h("Abilities");
+  const sp = space(), spCd = sp.cd * s.CdMult * masteryCd(S.mSpace) * (sp.id === "Dash" ? s.DashCdMult : 1);
+  const spCharges = 1 + s.RoleCharges + (sp.charges - 1) + (sp.capstoneCharge && S.mSpace === 5 ? 1 : 0);
+  line(sp.name + " (Space)", sec(spCd) + (spCharges > 1 ? ` · ${spCharges} charges` : ""), sec(sp.cd), true);
+  if (sp.healthCost) L.push(`<p class="note">${esc(sp.name)} costs ${pct(sp.healthCost)} of your max health (${Math.round(sp.healthCost * maxHp)} HP).</p>`);
+  const keys = ["Q", "E", "Shift"];
+  cards.filter(c => c.grants && count(c.key)).forEach((c, i) => {
+    const a = D.abilities[c.grants], ch = 1 + s.ExtraCharges + (a.charges - 1);
+    line(`${a.name} (${keys[i]})`, sec(a.cd * s.CdMult) + (ch > 1 ? ` · ${ch} charges` : ""), sec(a.cd), true);
+  });
+  const u = ultimate();
+  line(u.name + " (F)", sec(u.cd * masteryCd(S.mUlt)), sec(u.cd), true);
+  L.push(`<p class="note">Cooldown cards don't touch the ultimate; only its mastery does.</p>`);
+  if (S.mSpace === 5 && sp.capstone) L.push(`<p class="note"><b style="color:var(--gold)">${esc(sp.name)} mastered:</b> ${esc(sp.capstone)}</p>`);
+  if (S.mUlt === 5 && u.capstone) L.push(`<p class="note"><b style="color:var(--gold)">${esc(u.name)} mastered:</b> ${esc(u.capstone)}</p>`);
+
+  // When could you have this? Level-ups give the ordinary cards; each boss gives a legendary and a weapon mod.
+  const by = r => cards.filter(c => c.rarity === r).reduce((a, c) => a + count(c.key), 0);
+  const regular = ["Common", "Uncommon", "Rare", "VeryRare"].reduce((a, r) => a + by(r), 0), leg = by("Legendary"), mods = by("Mod");
+  if (regular + leg + mods) {
+    h("Getting there");
+    const level = 1 + regular; let xp = 0; for (let l = 1; l < level; l++) xp += D.xpToNext[0] + D.xpToNext[1] * (l - 1);
+    line("Level", level, null);
+    line("XP to get there", Math.round(xp).toLocaleString("en-US"), null);
+    const bosses = Math.max(leg, mods);
+    line("Bosses beaten", bosses ? `${bosses} (wave ${bosses * 5})` : "0", null);
+    L.push(`<p class="note">Level-ups give the common to very rare cards, one each. Every boss gives one legendary and one weapon mod; some paths give an extra pick or legendary.</p>`);
+  }
+  const picked = cards.filter(c => count(c.key));
+  if (picked.length) { h("Picked"); L.push(`<div class="chips">${picked.map(c => `<span class="chip">${esc(c.name)}${count(c.key) > 1 ? " ×" + count(c.key) : ""}</span>`).join("")}</div>`); }
+  L.push(`<p class="note" style="margin-top:8px">Output multiplies damage, fire rate and double-damage hits for the main attack. Charged, area and minion weapons, burning, ricochets and the like add on top, and weapons differ in how they hit, so compare builds of the same weapon.</p>`);
+  $("sheet").innerHTML = L.join("");
+}
+
+// --- The build in the link: #b-<role>-<kit>-<weapon>-<ability>-<mSpace>-<mUlt>-<card>x<n>... -----------------------
+function saveHash() {
+  const cards = Object.entries(S.picks).map(([k, n]) => n > 1 ? k + "x" + n : k);
+  const h = ["b", S.role, S.kit, S.weapon, S.ability, S.mSpace, S.mUlt, ...cards].join("-");
+  try { history.replaceState(null, "", "#" + h); } catch (e) { /* the hash is a convenience */ }
+}
+function loadHash() {
+  const p = location.hash.replace(/^#/, "").split("-");
+  if (p[0] !== "b" || p.length < 7) return false;
+  const n = p.slice(1, 7).map(Number);
+  if (n.some(isNaN)) return false;
+  [S.role, S.kit, S.weapon, S.ability, S.mSpace, S.mUlt] = [n[0] % 3, n[1] % D.kits.length, n[2] % 3, n[3] % 3, Math.min(5, Math.max(1, n[4])), Math.min(5, Math.max(1, n[5]))];
+  S.picks = {};
+  for (const t of p.slice(7)) { const [k, x] = t.split("x"); if (k) S.picks[k] = Math.max(1, parseInt(x || "1", 10) || 1); }
+  prune();
+  return true;
+}
+function sample() {
+  // An example DPS Soldier build halfway through a run, so the page opens with something to read.
+  const idx = name => String(D.upgrades.findIndex(u => u.name === name));
+  Object.assign(S, { role: 2, kit: 0, weapon: 0, ability: 0, mSpace: 3, mUlt: 2 });
+  S.picks = { [idx("Sharpened Rounds")]: 3, [idx("Quick Trigger")]: 2, [idx("Hollow Points")]: 1, [idx("Vitality")]: 2, [idx("Phase Step")]: 1, [idx("Multishot")]: 1,
+    [idx("Twin Fang")]: 1, [idx("Executioner")]: 1, [idx("Velocity Rounds")]: 1, [idx("Ricochet")]: 1, [idx("Overdrive")]: 1 };
+  prune();
+}
+
+function render() { renderLoadout(); renderCards(); renderSheet(); saveHash(); }
+document.addEventListener("click", ev => {
+  const t = ev.target.closest("button"); if (!t) return;
+  const d = t.dataset;
+  if (d.role != null) { S.role = +d.role; S.weapon = 0; S.ability = 0; prune(); }
+  else if (d.kit != null) { S.kit = +d.kit; S.weapon = 0; S.ability = 0; prune(); }
+  else if (d.weapon != null) S.weapon = +d.weapon;
+  else if (d.ability != null) { S.ability = +d.ability; prune(); }
+  else if (d.plus != null) { const c = allCards().find(x => x.key === d.plus); if (c && canAdd(c)) S.picks[d.plus] = count(d.plus) + 1; }
+  else if (d.minus != null) { if (count(d.minus) > 1) S.picks[d.minus]--; else delete S.picks[d.minus]; prune(); }
+  else if (d.filter != null) S.filter = d.filter;
+  else return;
+  render();
+});
+for (const k of ["mSpace", "mUlt"]) $(k).addEventListener("input", e => { S[k] = +e.target.value; render(); });
+$("search").addEventListener("input", e => { S.q = e.target.value; renderCards(); });
+$("clear").addEventListener("click", () => { S.picks = {}; render(); });
+addEventListener("hashchange", () => { if (loadHash()) { renderLoadout(); renderCards(); renderSheet(); } });
+if (!loadHash()) sample();
+render();
+</script>

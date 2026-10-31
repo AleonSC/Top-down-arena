@@ -22,3 +22,5 @@ crashlytics-buildsettings.properties
 Tools/SimTest/*.exe
 Tools/Preview/out/
 Docs/Armory/out/
+Docs/Almanac/out/
+Docs/Planner/out/

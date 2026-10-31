@@ -50,7 +50,8 @@ Tools/SessionReport/   report.py: summarises recorded session JSON
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
-Docs/                  sources of the Armory and Bestiary reference pages            [added in the audit]
+Docs/                  sources of the reference pages: Armory, Bestiary, Wave Almanac, Build Planner
+                       (the last two built from the code by Docs/Data/build.sh; see Docs/README.md)
 ```
 
 ### Core (logic) — `Game` is one big `partial class` split by feature

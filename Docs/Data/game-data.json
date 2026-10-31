@@ -1,0 +1,4846 @@
+{
+ "roles": [
+  {
+   "Hp": 240.0,
+   "Speed": 185.0,
+   "FireInterval": 0.45,
+   "AbilityCd": 12.0,
+   "name": "Tank",
+   "desc": "Big HP pool. Enemies prefer to target you.",
+   "color": [
+    0.35,
+    0.6,
+    1.0
+   ]
+  },
+  {
+   "Hp": 120.0,
+   "Speed": 215.0,
+   "FireInterval": 0.25,
+   "AbilityCd": 10.0,
+   "name": "Healer",
+   "desc": "Your aura slowly heals an ally standing near you, and you a little.",
+   "color": [
+    0.35,
+    1.0,
+    0.55
+   ]
+  },
+  {
+   "Hp": 95.0,
+   "Speed": 240.0,
+   "FireInterval": 0.1,
+   "AbilityCd": 3.5,
+   "name": "DPS",
+   "desc": "Fragile, but deals the most damage.",
+   "color": [
+    1.0,
+    0.55,
+    0.25
+   ]
+  }
+ ],
+ "kits": [
+  {
+   "id": "Soldier",
+   "name": "Soldier",
+   "hp": 1.0,
+   "speed": 1.0
+  },
+  {
+   "id": "Mage",
+   "name": "Elementalist",
+   "hp": 0.85,
+   "speed": 1.0
+  },
+  {
+   "id": "Summoner",
+   "name": "Summoner",
+   "hp": 0.9,
+   "speed": 1.0
+  },
+  {
+   "id": "Knight",
+   "name": "Knight",
+   "hp": 1.15,
+   "speed": 1.0
+  },
+  {
+   "id": "Ninja",
+   "name": "Ninja",
+   "hp": 0.85,
+   "speed": 1.12
+  },
+  {
+   "id": "BloodMage",
+   "name": "Hemomancer",
+   "hp": 1.0,
+   "speed": 1.0
+  }
+ ],
+ "xpToNext": [
+  50.0,
+  30.0
+ ],
+ "weapons": [
+  {
+   "id": "Scattergun",
+   "name": "Scattergun",
+   "desc": "A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.",
+   "extra": "+2 pellets and a 15% tighter cone",
+   "interval": 0.45,
+   "damage": 7.0,
+   "speed": 520.0,
+   "life": 0.5,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 0
+  },
+  {
+   "id": "FlakCannon",
+   "name": "Flak Cannon",
+   "desc": "Shells fly over enemies to your cursor and burst in the air there (30 within 80 px), destroying enemy bullets caught in the burst.",
+   "extra": "Shells burst into 2 more bomblets",
+   "interval": 0.8,
+   "damage": 30.0,
+   "speed": 380.0,
+   "life": 1.1,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 0
+  },
+  {
+   "id": "RiotRepeater",
+   "name": "Riot Repeater",
+   "desc": "Steady single shots with a little spread. Each round that hits suppresses the enemy: it shoots 8% slower, up to 50% (25% for bosses), fading quickly.",
+   "extra": "+1 round per burst (each trigger pull fires a burst, then a short pause)",
+   "interval": 0.18,
+   "damage": 11.0,
+   "speed": 600.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 0
+  },
+  {
+   "id": "Flamethrower",
+   "name": "Flamethrower",
+   "desc": "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s).",
+   "extra": "+1 flame a burst and 25% more reach",
+   "interval": 0.06,
+   "damage": 3.0,
+   "speed": 480.0,
+   "life": 0.4,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 1
+  },
+  {
+   "id": "FrostLance",
+   "name": "Frost Lance",
+   "desc": "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow.",
+   "extra": "+30 px longer icicle, and its splinters fly 15 px further",
+   "interval": 0.4,
+   "damage": 18.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 230.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 1
+  },
+  {
+   "id": "StormHammer",
+   "name": "Storm Hammer",
+   "desc": "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage.",
+   "extra": "+15% hammer damage, and the electrified enemy arcs to 1 more enemy",
+   "interval": 0.7,
+   "damage": 40.0,
+   "speed": 460.0,
+   "life": 1.1,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 1
+  },
+  {
+   "id": "GolemStaff",
+   "name": "Golem Staff",
+   "desc": "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.",
+   "extra": "+1 Golem (up to 3)",
+   "interval": 0.5,
+   "damage": 40.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": "Golem",
+   "companions": 1.0,
+   "role": 0,
+   "kit": 2
+  },
+  {
+   "id": "BoneGuard",
+   "name": "Bone Guard",
+   "desc": "Bone darts that stick in enemies: the third in one enemy cages it for 1.5 s (not bosses). Two skeleton guards circle you, block bullets, and shoot at caged enemies.",
+   "extra": "+1 Skeleton Guard",
+   "interval": 0.3,
+   "damage": 7.0,
+   "speed": 720.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": "Guard",
+   "companions": 2.0,
+   "role": 0,
+   "kit": 2
+  },
+  {
+   "id": "BearTotem",
+   "name": "Bear Totem",
+   "desc": "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.",
+   "extra": "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target",
+   "interval": 0.45,
+   "damage": 11.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 85.0,
+   "melee": true,
+   "companion": "Bear",
+   "companions": 1.0,
+   "role": 0,
+   "kit": 2
+  },
+  {
+   "id": "Warhammer",
+   "name": "Warhammer",
+   "desc": "Hold to charge, let go to slam the ground in front of you (a 100 px wide strip). The longer the charge, the harder it hits (up to 80) and the longer it stuns (up to 0.9 s).",
+   "extra": "+1 aftershock: another slam 0.2 s later, 40 px further out, at 60% damage",
+   "interval": 0.75,
+   "damage": 80.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 130.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 3
+  },
+  {
+   "id": "Lance",
+   "name": "Lance",
+   "desc": "A heavy jab in front of you that shoves enemies far back and stuns them for 1 s.",
+   "extra": "+30 px reach, 24 px wider and +60 px knockback",
+   "interval": 0.6,
+   "damage": 36.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 180.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 3
+  },
+  {
+   "id": "Halberd",
+   "name": "Halberd",
+   "desc": "Sweeps a long, thin blade across in front of you (200 px, 80°), hitting each enemy once a sweep.",
+   "extra": "+30 px reach and a return sweep (60% damage)",
+   "interval": 0.6,
+   "damage": 30.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 200.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 3
+  },
+  {
+   "id": "Kusarigama",
+   "name": "Kusarigama",
+   "desc": "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun).",
+   "extra": "+40 px throw and +30% slash damage",
+   "interval": 0.55,
+   "damage": 26.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 280.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 4
+  },
+  {
+   "id": "BoStaff",
+   "name": "Bo Staff",
+   "desc": "A staff spun all the way around you (90 px) that cuts small bullets out of the air. Click while moving to vault 150 px, striking everything you pass (24); once every 1.2 s.",
+   "extra": "+20 px reach and a 30 px longer vault",
+   "interval": 0.4,
+   "damage": 16.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 90.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 4
+  },
+  {
+   "id": "FumaShuriken",
+   "name": "Fuma Shuriken",
+   "desc": "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways.",
+   "extra": "+1 shuriken, looping the other way",
+   "interval": 0.7,
+   "damage": 30.0,
+   "speed": 0,
+   "life": 1.1,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 4
+  },
+  {
+   "id": "BloodLash",
+   "name": "Blood Lash",
+   "desc": "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you.",
+   "extra": "+20 px reach and +1 max Clot",
+   "interval": 0.5,
+   "damage": 24.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 130.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 5
+  },
+  {
+   "id": "ClotBolt",
+   "name": "Clot Bolt",
+   "desc": "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool.",
+   "extra": "+1 bolt, fanned out",
+   "interval": 0.75,
+   "damage": 26.0,
+   "speed": 520.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 5
+  },
+  {
+   "id": "LeechBeam",
+   "name": "Leech Tendrils",
+   "desc": "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on.",
+   "extra": "+1 tendril and +20 px reach",
+   "interval": 0.1,
+   "damage": 1.2,
+   "speed": 0,
+   "life": 0,
+   "reach": 160.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 0,
+   "kit": 5
+  },
+  {
+   "id": "LightBolt",
+   "name": "Repulsion Cannon",
+   "desc": "Blasts enemies away in a cone. Light damage; enemies it hits shed tiny health orbs.",
+   "extra": "+20° wider blast, +2 damage and a harder push",
+   "interval": 0.7,
+   "damage": 6.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 240.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 0
+  },
+  {
+   "id": "Pistol",
+   "name": "Revolver",
+   "desc": "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy.",
+   "extra": "+2 rounds in the cylinder, loaded as heavy rounds (double damage)",
+   "interval": 0.45,
+   "damage": 24.0,
+   "speed": 700.0,
+   "life": 1.1,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 0
+  },
+  {
+   "id": "MendersBow",
+   "name": "Mender's Bow",
+   "desc": "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%).",
+   "extra": "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan",
+   "interval": 0.9,
+   "damage": 0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 0
+  },
+  {
+   "id": "RadiantOrb",
+   "name": "Radiant Orb",
+   "desc": "Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them (8, 5 times a second) and over allies to heal them.",
+   "extra": "+1 light orb circling you that hurts enemies and heals allies it touches",
+   "interval": 0.2,
+   "damage": 8.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 520.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 1
+  },
+  {
+   "id": "ChainLight",
+   "name": "Chain Light",
+   "desc": "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each.",
+   "extra": "+25% damage and a 15% longer cone",
+   "interval": 0.5,
+   "damage": 40.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 1
+  },
+  {
+   "id": "PrismBeam",
+   "name": "Prism Beam",
+   "desc": "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them.",
+   "extra": "+30% beam length, +25% damage and +50% healing",
+   "interval": 0.06,
+   "damage": 4.0,
+   "speed": 1200.0,
+   "life": 0.35,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 1
+  },
+  {
+   "id": "SpriteStaff",
+   "name": "Sprite Staff",
+   "desc": "Seed shots that stick in enemies. Two sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another for 6 s (up to 4 more).",
+   "extra": "+1 Sprite",
+   "interval": 0.35,
+   "damage": 9.0,
+   "speed": 600.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": "Sprite",
+   "companions": 2.0,
+   "role": 1,
+   "kit": 2
+  },
+  {
+   "id": "TreantRod",
+   "name": "Treant Rod",
+   "desc": "Bolts heal allies they pass. Your Treant roots where it stands and blocks bullets; a vine runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).",
+   "extra": "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther",
+   "interval": 0.3,
+   "damage": 8.0,
+   "speed": 600.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": "Treant",
+   "companions": 1.0,
+   "role": 1,
+   "kit": 2
+  },
+  {
+   "id": "TotemStaff",
+   "name": "Totem Staff",
+   "desc": "Seed shots. Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Seed hits on enemies near your totems charge them: at 6, a totem pulses 25 healing to allies near it.",
+   "extra": "Plants totems 60% more often",
+   "interval": 0.35,
+   "damage": 9.0,
+   "speed": 600.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 2
+  },
+  {
+   "id": "HolyMace",
+   "name": "Quarterstaff",
+   "desc": "Wide staff sweeps that knock enemies back and bat enemy bullets in the arc back at them (all but red aimed shots). Every enemy hit heals you and allies near you for 2 (up to 8 a swing).",
+   "extra": "+1 strike with the other end of the staff (60% damage)",
+   "interval": 0.5,
+   "damage": 18.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 105.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 3
+  },
+  {
+   "id": "Lightbringer",
+   "name": "Lightbringer",
+   "desc": "Sword swings that also send a short crescent of light, which heals allies it passes. Every enemy you hit fills a light gauge; at 12, your next swing's crescents heal three times as much.",
+   "extra": "+1 crescent of light, fanned out",
+   "interval": 0.5,
+   "damage": 17.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 80.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 3
+  },
+  {
+   "id": "Censer",
+   "name": "Censer",
+   "desc": "A flail whirled all the way around you. Each spin heals allies near you for 3. As you move it leaves a trail of incense (3 s) that heals allies in it, and enemy shots fired from inside it stray.",
+   "extra": "+20 px reach and +1 HP healed per spin",
+   "interval": 0.4,
+   "damage": 14.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 80.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 3
+  },
+  {
+   "id": "MedicineDarts",
+   "name": "Medicine Darts",
+   "desc": "Fast needles that dose what they hit. Enemies: a stack of poison (2 a second for 3 s). Hurt allies: a stack of healing (2 a second for 3 s). Up to 5 stacks each.",
+   "extra": "+1 dart, fanned out",
+   "interval": 0.18,
+   "damage": 7.0,
+   "speed": 900.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 4
+  },
+  {
+   "id": "SpiritFan",
+   "name": "Spirit Fan",
+   "desc": "A short gust that heals allies in it for 3 and pushes small enemy bullets back. Shots alternate: one blows enemies in front away, the next draws them in.",
+   "extra": "+25% reach and +1 HP healed",
+   "interval": 0.4,
+   "damage": 6.0,
+   "speed": 420.0,
+   "life": 0.3,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 4
+  },
+  {
+   "id": "Ofuda",
+   "name": "Ofuda",
+   "desc": "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it.",
+   "extra": "+1 charm, fanned out",
+   "interval": 0.5,
+   "damage": 25.0,
+   "speed": 360.0,
+   "life": 1.6,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 4
+  },
+  {
+   "id": "TransfusionDarts",
+   "name": "Transfusion Darts",
+   "desc": "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5).",
+   "extra": "+1 dart, fanned out",
+   "interval": 0.2,
+   "damage": 7.0,
+   "speed": 850.0,
+   "life": 0.85,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 5
+  },
+  {
+   "id": "SanguineOrb",
+   "name": "Sanguine Orb",
+   "desc": "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s).",
+   "extra": "+1 orb, fanned out",
+   "interval": 0.45,
+   "damage": 16.0,
+   "speed": 420.0,
+   "life": 1.4,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 5
+  },
+  {
+   "id": "VeinTether",
+   "name": "Vein Tether",
+   "desc": "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.",
+   "extra": "+25% beam length and +25% damage",
+   "interval": 0.08,
+   "damage": 4.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 350.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 1,
+   "kit": 5
+  },
+  {
+   "id": "TwinRifle",
+   "name": "Twin Rifle",
+   "desc": "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.",
+   "extra": "+1 barrel",
+   "interval": 0.1,
+   "damage": 5.0,
+   "speed": 820.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 0
+  },
+  {
+   "id": "Railgun",
+   "name": "Railgun",
+   "desc": "Slow, devastating shots that pierce 3 enemies. The round's path stays charged for 1 s behind it, hurting anything in it (25 a second).",
+   "extra": "Throws 2 shrapnel shards sideways at every enemy it pierces",
+   "interval": 0.7,
+   "damage": 45.0,
+   "speed": 1600.0,
+   "life": 0.7,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 0
+  },
+  {
+   "id": "BurstSmg",
+   "name": "Burst SMG",
+   "desc": "Sprays very fast shots. Keep firing to spin it up (2 s): the spray tightens and damage climbs to +60%. It winds down fast when you stop.",
+   "extra": "+1 bullet per shot, with a wider spray",
+   "interval": 0.055,
+   "damage": 5.0,
+   "speed": 760.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 0
+  },
+  {
+   "id": "Fireball",
+   "name": "Fireball",
+   "desc": "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s).",
+   "extra": "+1 fireball, fanned out",
+   "interval": 0.5,
+   "damage": 22.0,
+   "speed": 430.0,
+   "life": 1.4,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 1
+  },
+  {
+   "id": "ArcLightning",
+   "name": "Arc Lightning",
+   "desc": "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun).",
+   "extra": "+25% damage",
+   "interval": 0.25,
+   "damage": 40.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 1
+  },
+  {
+   "id": "ArcaneMissiles",
+   "name": "Arcane Missiles",
+   "desc": "Each cast conjures 3 missiles into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim.",
+   "extra": "+1 missile a cast, +2 in orbit, and faster launches",
+   "interval": 0.3,
+   "damage": 7.0,
+   "speed": 520.0,
+   "life": 1.0,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 1
+  },
+  {
+   "id": "WolfWhistle",
+   "name": "Wolf Whistle",
+   "desc": "Darts mark the enemy they hit as prey, and your two wolves hunt it. When every wolf bites it within a second: a takedown (20 per wolf and a 0.6 s stun).",
+   "extra": "+1 Wolf",
+   "interval": 0.3,
+   "damage": 6.5,
+   "speed": 720.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": "Wolf",
+   "companions": 2.0,
+   "role": 2,
+   "kit": 2
+  },
+  {
+   "id": "WispLantern",
+   "name": "Wisp Lantern",
+   "desc": "Three wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor (22), strikes it and comes back.",
+   "extra": "+1 Wisp, and each shot sends one more",
+   "interval": 0.25,
+   "damage": 22.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": "Wisp",
+   "companions": 3.0,
+   "role": 2,
+   "kit": 2
+  },
+  {
+   "id": "ImpCaller",
+   "name": "Imp Caller",
+   "desc": "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.",
+   "extra": "+1 Imp, and they arrive 50% faster",
+   "interval": 0.35,
+   "damage": 0,
+   "speed": 0,
+   "life": 0,
+   "reach": 0,
+   "melee": false,
+   "companion": "Imp",
+   "companions": 3.0,
+   "role": 2,
+   "kit": 2
+  },
+  {
+   "id": "TwinBlades",
+   "name": "Twin Blades",
+   "desc": "Very fast alternating slashes. Land 10 in a row and your next one is a dash-strike: you lunge 140 px through enemies for triple damage.",
+   "extra": "+1 cut: each swing strikes once more (60% damage)",
+   "interval": 0.16,
+   "damage": 15.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 75.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 3
+  },
+  {
+   "id": "Greatsword",
+   "name": "Greatsword",
+   "desc": "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets.",
+   "extra": "+1 sword beam: each sweep launches a piercing crescent (40% damage)",
+   "interval": 0.7,
+   "damage": 60.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 125.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 3
+  },
+  {
+   "id": "Rapier",
+   "name": "Rapier",
+   "desc": "Precise thrusts at the nearest enemy in front. Each hit in a row on the same enemy deals 10% more (up to +60%). Each thrust skewers up to 3 enemy bullets along its line (not red aimed shots), and each adds to the streak.",
+   "extra": "Skewers 1 more enemy behind the first",
+   "interval": 0.28,
+   "damage": 18.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 130.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 3
+  },
+  {
+   "id": "Shuriken",
+   "name": "Shuriken",
+   "desc": "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes.",
+   "extra": "+1 star in the fan",
+   "interval": 0.35,
+   "damage": 9.0,
+   "speed": 700.0,
+   "life": 0.75,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 4
+  },
+  {
+   "id": "Katana",
+   "name": "Katana",
+   "desc": "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage.",
+   "extra": "+1 cut: each slash strikes once more (60% damage)",
+   "interval": 0.3,
+   "damage": 20.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 95.0,
+   "melee": true,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 4
+  },
+  {
+   "id": "Kunai",
+   "name": "Kunai",
+   "desc": "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double.",
+   "extra": "+1 knife, fanned out (half damage)",
+   "interval": 0.12,
+   "damage": 8.0,
+   "speed": 850.0,
+   "life": 0.75,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 4
+  },
+  {
+   "id": "BloodBolts",
+   "name": "Blood Bolts",
+   "desc": "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px.",
+   "extra": "+1 bolt, fanned out",
+   "interval": 0.13,
+   "damage": 9.0,
+   "speed": 800.0,
+   "life": 0.8,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 5
+  },
+  {
+   "id": "Implosion",
+   "name": "Implosion",
+   "desc": "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in.",
+   "extra": "+1 implosion: another enemy near your target collapses too (60% damage)",
+   "interval": 0.45,
+   "damage": 34.0,
+   "speed": 0,
+   "life": 0,
+   "reach": 480.0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 5
+  },
+  {
+   "id": "BoneSpear",
+   "name": "Bone Spear",
+   "desc": "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back.",
+   "extra": "+1 spear, fanned out (costs no more health)",
+   "interval": 0.8,
+   "damage": 60.0,
+   "speed": 1000.0,
+   "life": 0.9,
+   "reach": 0,
+   "melee": false,
+   "companion": null,
+   "companions": 0,
+   "role": 2,
+   "kit": 5
+  }
+ ],
+ "enemies": {
+  "Grunt": {
+   "name": "Grunt",
+   "hp": 60.0,
+   "radius": 14.0,
+   "speed": 85.0,
+   "xp": 10.0,
+   "score": 10.0,
+   "sides": 3.0,
+   "color": [
+    1.0,
+    0.35,
+    0.35
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Fires aimed 3-shot spreads."
+  },
+  "Burster": {
+   "name": "Burster",
+   "hp": 110.0,
+   "radius": 17.0,
+   "speed": 55.0,
+   "xp": 18.0,
+   "score": 20.0,
+   "sides": 6.0,
+   "color": [
+    0.8,
+    0.4,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Fires rings of bullets; more in each ring on later waves."
+  },
+  "Sniper": {
+   "name": "Sniper",
+   "hp": 50.0,
+   "radius": 12.0,
+   "speed": 95.0,
+   "xp": 14.0,
+   "score": 15.0,
+   "sides": 4.0,
+   "color": [
+    1.0,
+    0.9,
+    0.3
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Fast, accurate shots from far away."
+  },
+  "Spinner": {
+   "name": "Spinner",
+   "hp": 150.0,
+   "radius": 18.0,
+   "speed": 35.0,
+   "xp": 22.0,
+   "score": 25.0,
+   "sides": 5.0,
+   "color": [
+    1.0,
+    0.6,
+    0.2
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Wanders and sprays spirals in bursts; it spins up while bursting."
+  },
+  "Boss": {
+   "name": "The Warden",
+   "hp": 2400.0,
+   "radius": 46.0,
+   "speed": 45.0,
+   "xp": 150.0,
+   "score": 300.0,
+   "sides": 8.0,
+   "color": [
+    1.0,
+    0.25,
+    0.5
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 5): a prison riot in three stages — searchlight, gates and gas, then rioters."
+  },
+  "Charger": {
+   "name": "Charger",
+   "hp": 90.0,
+   "radius": 15.0,
+   "speed": 70.0,
+   "xp": 18.0,
+   "score": 20.0,
+   "sides": 3.0,
+   "color": [
+    0.3,
+    0.9,
+    0.9
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Flashes a red line, then dashes along it and bursts into a ring."
+  },
+  "Splitter": {
+   "name": "Splitter",
+   "hp": 120.0,
+   "radius": 19.0,
+   "speed": 50.0,
+   "xp": 16.0,
+   "score": 20.0,
+   "sides": 4.0,
+   "color": [
+    0.6,
+    1.0,
+    0.3
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Splits into 3 fast Shards when killed."
+  },
+  "Shard": {
+   "name": "Shard",
+   "hp": 25.0,
+   "radius": 8.0,
+   "speed": 130.0,
+   "xp": 4.0,
+   "score": 5.0,
+   "sides": 3.0,
+   "color": [
+    0.8,
+    1.0,
+    0.55
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Tiny and fast. Comes from Splitters, Nests and the Hive Queen."
+  },
+  "Mortar": {
+   "name": "Mortar",
+   "hp": 80.0,
+   "radius": 16.0,
+   "speed": 40.0,
+   "xp": 18.0,
+   "score": 20.0,
+   "sides": 7.0,
+   "color": [
+    0.95,
+    0.55,
+    0.3
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Lobs bombs at where you stand; they burst into a ring on landing."
+  },
+  "Shielder": {
+   "name": "Shielder",
+   "hp": 140.0,
+   "radius": 17.0,
+   "speed": 60.0,
+   "xp": 22.0,
+   "score": 25.0,
+   "sides": 6.0,
+   "color": [
+    0.6,
+    0.7,
+    0.9
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "A front shield blocks shots and swings. It turns slowly: flank it."
+  },
+  "Medic": {
+   "name": "Medic",
+   "hp": 70.0,
+   "radius": 13.0,
+   "speed": 75.0,
+   "xp": 20.0,
+   "score": 25.0,
+   "sides": 4.0,
+   "color": [
+    1.0,
+    0.5,
+    0.75
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Heals nearby enemies every few seconds. Kill it first."
+  },
+  "HiveQueen": {
+   "name": "Hive Queen",
+   "hp": 3000.0,
+   "radius": 44.0,
+   "speed": 40.0,
+   "xp": 180.0,
+   "score": 400.0,
+   "sides": 6.0,
+   "color": [
+    1.0,
+    0.8,
+    0.2
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 10): a hive in three stages — drones and bombers, sealing cells and honey, then a frenzied swarm."
+  },
+  "TwinA": {
+   "name": "Reaper of Dusk",
+   "hp": 2600.0,
+   "radius": 34.0,
+   "speed": 95.0,
+   "xp": 100.0,
+   "score": 250.0,
+   "sides": 5.0,
+   "color": [
+    1.0,
+    0.35,
+    0.6
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale."
+  },
+  "TwinB": {
+   "name": "Reaper of Dawn",
+   "hp": 2600.0,
+   "radius": 34.0,
+   "speed": 95.0,
+   "xp": 100.0,
+   "score": 250.0,
+   "sides": 5.0,
+   "color": [
+    0.45,
+    0.55,
+    1.0
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "Singularity": {
+   "name": "The Singularity",
+   "hp": 3600.0,
+   "radius": 40.0,
+   "speed": 0.0,
+   "xp": 220.0,
+   "score": 500.0,
+   "sides": 10.0,
+   "color": [
+    0.6,
+    0.35,
+    1.0
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages."
+  },
+  "Phantom": {
+   "name": "Phantom",
+   "hp": 90.0,
+   "radius": 13.0,
+   "speed": 90.0,
+   "xp": 22.0,
+   "score": 25.0,
+   "sides": 4.0,
+   "color": [
+    0.55,
+    0.85,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Flickers, blinks next to you and bursts into a ring."
+  },
+  "Hexer": {
+   "name": "Hexer",
+   "hp": 100.0,
+   "radius": 14.0,
+   "speed": 60.0,
+   "xp": 22.0,
+   "score": 25.0,
+   "sides": 5.0,
+   "color": [
+    0.75,
+    0.3,
+    0.9
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Fires curving pincer shots that close in from both sides."
+  },
+  "Juggernaut": {
+   "name": "Juggernaut",
+   "hp": 420.0,
+   "radius": 26.0,
+   "speed": 32.0,
+   "xp": 50.0,
+   "score": 60.0,
+   "sides": 8.0,
+   "color": [
+    0.55,
+    0.55,
+    0.62
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": true,
+   "contact": 0,
+   "blurb": "Armored and slow, can't be slowed or knocked back. Rotating stars of orbs."
+  },
+  "Nest": {
+   "name": "Nest",
+   "hp": 260.0,
+   "radius": 22.0,
+   "speed": 0.0,
+   "xp": 35.0,
+   "score": 40.0,
+   "sides": 6.0,
+   "color": [
+    0.7,
+    0.9,
+    0.4
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": true,
+   "contact": 0,
+   "blurb": "Stationary spawner that keeps hatching Shards until destroyed."
+  },
+  "Colossus": {
+   "name": "The Colossus",
+   "hp": 6800.0,
+   "radius": 54.0,
+   "speed": 35.0,
+   "xp": 260.0,
+   "score": 600.0,
+   "sides": 6.0,
+   "color": [
+    0.78,
+    0.62,
+    0.45
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 25): huge stomp rings with one gap, and thrown rocks."
+  },
+  "Duelist": {
+   "name": "The Duelist",
+   "hp": 6000.0,
+   "radius": 30.0,
+   "speed": 80.0,
+   "xp": 280.0,
+   "score": 650.0,
+   "sides": 4.0,
+   "color": [
+    0.85,
+    0.85,
+    1.0
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 30): teleports and leaves decoys that burst unless killed."
+  },
+  "Decoy": {
+   "name": "The Duelist",
+   "hp": 70.0,
+   "radius": 30.0,
+   "speed": 0.0,
+   "xp": 0.0,
+   "score": 0.0,
+   "sides": 4.0,
+   "color": [
+    0.85,
+    0.85,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "Lich": {
+   "name": "The Lich",
+   "hp": 5000.0,
+   "radius": 36.0,
+   "speed": 45.0,
+   "xp": 300.0,
+   "score": 700.0,
+   "sides": 7.0,
+   "color": [
+    0.5,
+    1.0,
+    0.75
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 35): immune while its phylactery stands; raises skeletons."
+  },
+  "Phylactery": {
+   "name": "Phylactery",
+   "hp": 600.0,
+   "radius": 18.0,
+   "speed": 0.0,
+   "xp": 0.0,
+   "score": 50.0,
+   "sides": 4.0,
+   "color": [
+    0.4,
+    1.0,
+    0.6
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": true,
+   "contact": 0,
+   "blurb": null
+  },
+  "StormHerald": {
+   "name": "Storm Herald",
+   "hp": 6000.0,
+   "radius": 40.0,
+   "speed": 55.0,
+   "xp": 320.0,
+   "score": 800.0,
+   "sides": 9.0,
+   "color": [
+    0.55,
+    0.75,
+    1.0
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 40), three stages: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time."
+  },
+  "Devourer": {
+   "name": "The Devourer",
+   "hp": 6500.0,
+   "radius": 50.0,
+   "speed": 40.0,
+   "xp": 340.0,
+   "score": 900.0,
+   "sides": 12.0,
+   "color": [
+    0.85,
+    0.28,
+    0.38
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Boss (wave 45), three stages: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front."
+  },
+  "Eclipse": {
+   "name": "The Eclipse",
+   "hp": 9000.0,
+   "radius": 52.0,
+   "speed": 30.0,
+   "xp": 500.0,
+   "score": 2000.0,
+   "sides": 16.0,
+   "color": [
+    1.0,
+    0.85,
+    0.4
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova."
+  },
+  "GravityWell": {
+   "name": "Gravity Well",
+   "hp": 260.0,
+   "radius": 15.0,
+   "speed": 160.0,
+   "xp": 15.0,
+   "score": 40.0,
+   "sides": 6.0,
+   "color": [
+    0.7,
+    0.45,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "Swarmer": {
+   "name": "Swarmer",
+   "hp": 22.0,
+   "radius": 9.0,
+   "speed": 135.0,
+   "xp": 5.0,
+   "score": 5.0,
+   "sides": 3.0,
+   "color": [
+    1.0,
+    0.6,
+    0.3
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 10.0,
+   "blurb": "Small and fast melee rusher that weaves toward you in pairs."
+  },
+  "Brute": {
+   "name": "Brute",
+   "hp": 110.0,
+   "radius": 19.0,
+   "speed": 62.0,
+   "xp": 14.0,
+   "score": 15.0,
+   "sides": 7.0,
+   "color": [
+    0.8,
+    0.45,
+    0.35
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 24.0,
+   "blurb": "Slow, tough melee bruiser that hits hard (24) when it reaches you."
+  },
+  "Lunger": {
+   "name": "Lunger",
+   "hp": 45.0,
+   "radius": 12.0,
+   "speed": 95.0,
+   "xp": 12.0,
+   "score": 12.0,
+   "sides": 4.0,
+   "color": [
+    0.95,
+    0.35,
+    0.65
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 18.0,
+   "blurb": "Circles in close, flashes a pink line, then leaps along it."
+  },
+  "HiveBomber": {
+   "name": "Hive Bomber",
+   "hp": 30.0,
+   "radius": 10.0,
+   "speed": 330.0,
+   "xp": 0.0,
+   "score": 2.0,
+   "sides": 3.0,
+   "color": [
+    1.0,
+    0.45,
+    0.15
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "CageWell": {
+   "name": "Cage Well",
+   "hp": 40.0,
+   "radius": 11.0,
+   "speed": 0.0,
+   "xp": 2.0,
+   "score": 5.0,
+   "sides": 6.0,
+   "color": [
+    0.85,
+    0.4,
+    1.0
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "Rioter": {
+   "name": "Rioter",
+   "hp": 40.0,
+   "radius": 12.0,
+   "speed": 110.0,
+   "xp": 2.0,
+   "score": 3.0,
+   "sides": 8.0,
+   "color": [
+    1.0,
+    0.55,
+    0.2
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 10.0,
+   "blurb": null
+  },
+  "HiveEgg": {
+   "name": "Hive Egg",
+   "hp": 60.0,
+   "radius": 15.0,
+   "speed": 0.0,
+   "xp": 3.0,
+   "score": 4.0,
+   "sides": 10.0,
+   "color": [
+    0.96,
+    0.92,
+    0.78
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "Guard": {
+   "name": "Guard",
+   "hp": 90.0,
+   "radius": 13.0,
+   "speed": 125.0,
+   "xp": 4.0,
+   "score": 6.0,
+   "sides": 8.0,
+   "color": [
+    0.35,
+    0.55,
+    1.0
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 14.0,
+   "blurb": null
+  },
+  "DualReaper": {
+   "name": "The Dual Reaper",
+   "hp": 5200.0,
+   "radius": 58.0,
+   "speed": 150.0,
+   "xp": 200.0,
+   "score": 500.0,
+   "sides": 10.0,
+   "color": [
+    1.0,
+    0.8,
+    0.45
+   ],
+   "boss": true,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "ReaperPillar": {
+   "name": "Reaper Pillar",
+   "hp": 120.0,
+   "radius": 24.0,
+   "speed": 0.0,
+   "xp": 4.0,
+   "score": 5.0,
+   "sides": 4.0,
+   "color": [
+    0.55,
+    0.5,
+    0.75
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "SingShard": {
+   "name": "Singularity Shard",
+   "hp": 1000000.0,
+   "radius": 20.0,
+   "speed": 0.0,
+   "xp": 0.0,
+   "score": 0.0,
+   "sides": 5.0,
+   "color": [
+    0.8,
+    0.5,
+    1.0
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "BallLightning": {
+   "name": "Ball Lightning",
+   "hp": 70.0,
+   "radius": 15.0,
+   "speed": 0.0,
+   "xp": 2.0,
+   "score": 3.0,
+   "sides": 8.0,
+   "color": [
+    0.75,
+    0.9,
+    1.0
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": false,
+   "contact": 20.0,
+   "blurb": null
+  },
+  "Morsel": {
+   "name": "Morsel",
+   "hp": 60.0,
+   "radius": 14.0,
+   "speed": 0.0,
+   "xp": 0.0,
+   "score": 0.0,
+   "sides": 7.0,
+   "color": [
+    0.88,
+    0.5,
+    0.35
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": null
+  },
+  "BeamSentry": {
+   "name": "Beam Sentry",
+   "hp": 160.0,
+   "radius": 17.0,
+   "speed": 70.0,
+   "xp": 12.0,
+   "score": 30.0,
+   "sides": 6.0,
+   "color": [
+    0.44,
+    0.89,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Plants itself, aims a line at you, then sweeps a beam across your side."
+  },
+  "Scorcher": {
+   "name": "Scorcher",
+   "hp": 130.0,
+   "radius": 15.0,
+   "speed": 95.0,
+   "xp": 12.0,
+   "score": 30.0,
+   "sides": 5.0,
+   "color": [
+    1.0,
+    0.71,
+    0.28
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Circles you leaving a trail of embers. Cut across before it closes."
+  },
+  "Reaver": {
+   "name": "Reaver",
+   "hp": 240.0,
+   "radius": 19.0,
+   "speed": 150.0,
+   "xp": 16.0,
+   "score": 40.0,
+   "sides": 3.0,
+   "color": [
+    1.0,
+    0.3,
+    0.43
+   ],
+   "boss": false,
+   "melee": true,
+   "heavy": true,
+   "contact": 20.0,
+   "blurb": "Armoured melee: a red cone, then a rake. Open for a moment after: +50% damage."
+  },
+  "Warder": {
+   "name": "Warder",
+   "hp": 180.0,
+   "radius": 16.0,
+   "speed": 65.0,
+   "xp": 16.0,
+   "score": 40.0,
+   "sides": 8.0,
+   "color": [
+    0.71,
+    0.61,
+    1.0
+   ],
+   "boss": false,
+   "melee": false,
+   "heavy": false,
+   "contact": 0,
+   "blurb": "Puts bubbles on up to three allies. Kill it and they all pop."
+  }
+ },
+ "enemyBulletMult": 1.15,
+ "bossCycle": [
+  "Boss",
+  "HiveQueen",
+  "TwinA",
+  "Singularity",
+  "Colossus",
+  "Duelist",
+  "Lich",
+  "StormHerald",
+  "Devourer",
+  "Eclipse"
+ ],
+ "pool": [
+  {
+   "type": "Grunt",
+   "from": 1
+  },
+  {
+   "type": "Burster",
+   "from": 2
+  },
+  {
+   "type": "Sniper",
+   "from": 3
+  },
+  {
+   "type": "Spinner",
+   "from": 4
+  },
+  {
+   "type": "Charger",
+   "from": 6
+  },
+  {
+   "type": "Splitter",
+   "from": 7
+  },
+  {
+   "type": "Mortar",
+   "from": 8
+  },
+  {
+   "type": "Shielder",
+   "from": 9
+  },
+  {
+   "type": "Medic",
+   "from": 11
+  },
+  {
+   "type": "Phantom",
+   "from": 16
+  },
+  {
+   "type": "BeamSentry",
+   "from": 18
+  },
+  {
+   "type": "Hexer",
+   "from": 21
+  },
+  {
+   "type": "Scorcher",
+   "from": 24
+  },
+  {
+   "type": "Juggernaut",
+   "from": 26
+  },
+  {
+   "type": "Reaver",
+   "from": 28
+  },
+  {
+   "type": "Nest",
+   "from": 31
+  },
+  {
+   "type": "Warder",
+   "from": 36
+  }
+ ],
+ "meleePool": [
+  {
+   "type": "Swarmer",
+   "from": 1
+  },
+  {
+   "type": "Brute",
+   "from": 3
+  },
+  {
+   "type": "Lunger",
+   "from": 5
+  }
+ ],
+ "bossAdds": {
+  "Boss": {
+   "per": 2,
+   "types": [
+    "Grunt"
+   ]
+  },
+  "Singularity": {
+   "per": 6,
+   "types": [
+    "Grunt",
+    "Sniper"
+   ]
+  },
+  "Colossus": {
+   "per": 5,
+   "types": [
+    "Grunt"
+   ]
+  },
+  "StormHerald": {
+   "per": 8,
+   "types": [
+    "Sniper"
+   ]
+  }
+ },
+ "bossHpMult": {
+  "Boss": 4.0,
+  "HiveQueen": 3.5,
+  "TwinA": 1.2,
+  "TwinB": 1.2,
+  "DualReaper": 1.2,
+  "Singularity": 3.0,
+  "Colossus": 2.3,
+  "Duelist": 2.8,
+  "Lich": 3.2,
+  "StormHerald": 3.5,
+  "Devourer": 2.0,
+  "Eclipse": 5.5,
+  "default": 2.5
+ },
+ "LateBossWave": 20,
+ "MaxWave": 50,
+ "LateBossScaling": 0.1,
+ "squads": [
+  {
+   "name": "Rush",
+   "from": 1,
+   "members": [
+    "Swarmer",
+    "Swarmer",
+    "Swarmer",
+    "Swarmer"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Firing line",
+   "from": 3,
+   "members": [
+    "Grunt",
+    "Grunt",
+    "Grunt",
+    "Sniper"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Brute pack",
+   "from": 5,
+   "members": [
+    "Brute",
+    "Brute",
+    "Lunger"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Splinters",
+   "from": 7,
+   "members": [
+    "Splitter",
+    "Splitter",
+    "Grunt"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Bombardment",
+   "from": 8,
+   "members": [
+    "Charger",
+    "Mortar",
+    "Mortar"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Shield wall",
+   "from": 9,
+   "members": [
+    "Shielder",
+    "Sniper",
+    "Sniper"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Field hospital",
+   "from": 11,
+   "members": [
+    "Brute",
+    "Brute",
+    "Brute",
+    "Medic"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Ambush",
+   "from": 16,
+   "members": [
+    "Phantom",
+    "Phantom",
+    "Phantom"
+   ],
+   "form": "Around"
+  },
+  {
+   "name": "Beam battery",
+   "from": 18,
+   "members": [
+    "Shielder",
+    "BeamSentry",
+    "BeamSentry"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Pincer",
+   "from": 21,
+   "members": [
+    "Hexer",
+    "Hexer",
+    "Grunt",
+    "Grunt"
+   ],
+   "form": "Pincer"
+  },
+  {
+   "name": "Scorched earth",
+   "from": 24,
+   "members": [
+    "Scorcher",
+    "Scorcher",
+    "Swarmer",
+    "Swarmer"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Siege",
+   "from": 26,
+   "members": [
+    "Juggernaut",
+    "Medic",
+    "Medic"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Reaver pack",
+   "from": 28,
+   "members": [
+    "Reaver",
+    "Reaver",
+    "Lunger",
+    "Lunger"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Hive",
+   "from": 31,
+   "members": [
+    "Nest",
+    "Splitter",
+    "Splitter"
+   ],
+   "form": "Line"
+  },
+  {
+   "name": "Bastion",
+   "from": 36,
+   "members": [
+    "Warder",
+    "Juggernaut",
+    "Grunt",
+    "Grunt"
+   ],
+   "form": "Line"
+  }
+ ],
+ "traits": [
+  "Hasted",
+  "Shielded",
+  "Volatile",
+  "Splitting",
+  "Mirrored",
+  "Commander"
+ ],
+ "squadShare": 0.7,
+ "abilities": {
+  "Barrier": {
+   "name": "Barrier",
+   "desc": "A bubble that stops incoming enemy bullets. Bosses can break it (it soaks 360 of their damage).",
+   "capstone": "Bullets that hit the barrier are reflected back as your own.",
+   "cd": 12.0,
+   "kit": "Soldier",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "MendPulse": {
+   "name": "Mend Pulse",
+   "desc": "Heal everyone nearby and revive downed allies.",
+   "capstone": "Also erases enemy bullets within its range.",
+   "cd": 10.0,
+   "kit": "Soldier",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Dash": {
+   "name": "Dash",
+   "desc": "Quick dash with brief invulnerability.",
+   "capstone": "+1 charge.",
+   "cd": 3.5,
+   "kit": "Soldier",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": true
+  },
+  "Shockwave": {
+   "name": "Shockwave",
+   "desc": "Erase enemy bullets around you and damage nearby enemies.",
+   "capstone": "Also knocks nearby enemies back 120 px.",
+   "cd": 14.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Overdrive": {
+   "name": "Overdrive",
+   "desc": "Double fire rate for 5 seconds.",
+   "capstone": "+1 extra projectile while it lasts.",
+   "cd": 18.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Blink": {
+   "name": "Blink",
+   "desc": "Teleport toward your cursor.",
+   "capstone": "Erases enemy bullets where you leave and where you land.",
+   "cd": 7.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Nova": {
+   "name": "Nova",
+   "desc": "Fire a ring of 24 heavy shots.",
+   "capstone": "Fires 48 shots instead of 24.",
+   "cd": 9.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Turret": {
+   "name": "Turret",
+   "desc": "Deploy a turret that shoots for 10 seconds.",
+   "capstone": "Deploys two turrets.",
+   "cd": 20.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Roar": {
+   "name": "Roar",
+   "desc": "Every enemy targets you for 5 s, and you take 40% less damage meanwhile.",
+   "capstone": "Also knocks enemies within 250 px back and slows them for 2 s.",
+   "cd": 14.0,
+   "kit": "Soldier",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Bulldoze": {
+   "name": "Bulldoze",
+   "desc": "Charge forward, damaging and knocking back everything in your path.",
+   "capstone": "Erases enemy bullets along the charge.",
+   "cd": 9.0,
+   "kit": "Soldier",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Haven": {
+   "name": "Haven",
+   "desc": "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker (alone: you heal 50% faster).",
+   "capstone": "Allies inside also take 30% less damage.",
+   "cd": 16.0,
+   "kit": "Soldier",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SoulLink": {
+   "name": "Soul Link",
+   "desc": "Tether to your ally for 6 s: they take half damage and you both regenerate. Alone, you link to a ghost of yourself that fights beside you.",
+   "capstone": "Lasts 9 s, and both of you are invulnerable for 1 s when it starts.",
+   "cd": 18.0,
+   "kit": "Soldier",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Grenade": {
+   "name": "Cluster Grenade",
+   "desc": "Throw a grenade at your cursor that explodes into shrapnel.",
+   "capstone": "Throws a second grenade 80 px further.",
+   "cd": 6.0,
+   "kit": "Soldier",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Mark": {
+   "name": "Mark for Death",
+   "desc": "Mark the enemy nearest your cursor: it takes 50% more damage for 6 s.",
+   "capstone": "Marks the three enemies nearest your cursor.",
+   "cd": 12.0,
+   "kit": "Soldier",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BloodShell": {
+   "name": "Blood Shell",
+   "desc": "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
+   "capstone": "Also erases enemy bullets within 160 px.",
+   "cd": 9.0,
+   "kit": "BloodMage",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0.15,
+   "capstoneCharge": false
+  },
+  "CrimsonPact": {
+   "name": "Crimson Pact",
+   "desc": "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px.",
+   "capstone": "You take 30% less damage while it lasts.",
+   "cd": 10.0,
+   "kit": "BloodMage",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0.1,
+   "capstoneCharge": false
+  },
+  "Exsanguinate": {
+   "name": "Exsanguinate",
+   "desc": "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
+   "capstone": "Also slows the enemies it drains by 50% for 2 s.",
+   "cd": 8.0,
+   "kit": "BloodMage",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0.1,
+   "capstoneCharge": false
+  },
+  "BloodGift": {
+   "name": "Blood Gift",
+   "desc": "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you.",
+   "capstone": "Also heals everyone else within 200 px of them for half as much.",
+   "cd": 8.0,
+   "kit": "BloodMage",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0.25,
+   "capstoneCharge": false
+  },
+  "SiphonField": {
+   "name": "Siphon Field",
+   "desc": "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
+   "capstone": "The field follows you.",
+   "cd": 11.0,
+   "kit": "BloodMage",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0.1,
+   "capstoneCharge": false
+  },
+  "Martyr": {
+   "name": "Martyr",
+   "desc": "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally (you, if you're alone) is warded for 12 s: if they go down, they get straight back up at 50%.",
+   "capstone": "You're invulnerable for 2 s after the sacrifice.",
+   "cd": 16.0,
+   "kit": "BloodMage",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0.4,
+   "capstoneCharge": false
+  },
+  "BloodBoil": {
+   "name": "Blood Boil",
+   "desc": "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
+   "capstone": "Each burst also hits enemies within 80 px of it.",
+   "cd": 8.0,
+   "kit": "BloodMage",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0.2,
+   "capstoneCharge": false
+  },
+  "FrenzyPact": {
+   "name": "Frenzy Pact",
+   "desc": "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
+   "capstone": "No health drain.",
+   "cd": 11.0,
+   "kit": "BloodMage",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0.05,
+   "capstoneCharge": false
+  },
+  "HemoNova": {
+   "name": "Hemo Nova",
+   "desc": "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
+   "capstone": "Bolts pierce 2 enemies.",
+   "cd": 6.0,
+   "kit": "BloodMage",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0.1,
+   "capstoneCharge": false
+  },
+  "BloodRite": {
+   "name": "Blood Rite",
+   "desc": "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
+   "capstone": "Lasts 12 s.",
+   "cd": 75.0,
+   "kit": "BloodMage",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SanguineRain": {
+   "name": "Sanguine Rain",
+   "desc": "For 6 s, every hit any ally lands heals them for 20% of its damage.",
+   "capstone": "Lasts 9 s and heals 30%.",
+   "cd": 80.0,
+   "kit": "BloodMage",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "CrimsonApotheosis": {
+   "name": "Crimson Apotheosis",
+   "desc": "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
+   "capstone": "Lasts 9 s.",
+   "cd": 65.0,
+   "kit": "BloodMage",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ShieldWall": {
+   "name": "Shield Wall",
+   "desc": "Raise your shield for 4 s: it stops every enemy bullet coming at your front (120°), even red aimed shots. Bosses can break it (it soaks 400 of their damage).",
+   "capstone": "Bullets that hit the shield are reflected back as your own.",
+   "cd": 12.0,
+   "kit": "Knight",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "LeapSlam": {
+   "name": "Leap Slam",
+   "desc": "Leap to your cursor (up to 320 px), untouchable in the air. Landing deals 50 damage around you and stuns enemies for 1 s.",
+   "capstone": "The landing also erases enemy bullets within 160 px.",
+   "cd": 9.0,
+   "kit": "Knight",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Unbreakable": {
+   "name": "Unbreakable",
+   "desc": "For 5 s you take 50% less damage and your hits heal you for 15% of the damage they deal.",
+   "capstone": "Lasts 8 s.",
+   "cd": 16.0,
+   "kit": "Knight",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Consecrate": {
+   "name": "Consecrate",
+   "desc": "Bless the ground at your feet for 6 s: allies inside heal 12 HP/s and enemies burn for 20 damage a second.",
+   "capstone": "The blessed ground follows you.",
+   "cd": 14.0,
+   "kit": "Knight",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "GuardiansOath": {
+   "name": "Guardian's Oath",
+   "desc": "Shield the ally nearest your cursor for 100 damage (and yourself for 50) for 6 s.",
+   "capstone": "Everyone within 300 px gets the full shield.",
+   "cd": 15.0,
+   "kit": "Knight",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "LayOnHands": {
+   "name": "Lay on Hands",
+   "desc": "Heal the most hurt ally within 300 px (or yourself) for 70, or instantly revive them at half health if they're down.",
+   "capstone": "Also heals everyone else near them for half as much.",
+   "cd": 18.0,
+   "kit": "Knight",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Whirlwind": {
+   "name": "Whirlwind",
+   "desc": "Spin for 2 s, hitting everything within 110 px for 12 every 0.2 s and slicing small bullets out of the air.",
+   "capstone": "Lasts 3 s and cuts every bullet except red aimed shots.",
+   "cd": 10.0,
+   "kit": "Knight",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Lunge": {
+   "name": "Lunge",
+   "desc": "Dash 260 px toward your cursor, hitting everything you pass for 35. Two charges.",
+   "capstone": "+1 charge (three in all).",
+   "cd": 6.0,
+   "kit": "Knight",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 2,
+   "healthCost": 0,
+   "capstoneCharge": true
+  },
+  "BattleFury": {
+   "name": "Battle Fury",
+   "desc": "For 6 s you swing 40% faster and deal 25% more damage.",
+   "capstone": "+1 extra projectile while it lasts.",
+   "cd": 16.0,
+   "kit": "Knight",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "LastStand": {
+   "name": "Last Stand",
+   "desc": "For 8 s you can't drop below 1 HP, every enemy targets you, and you deal 50% more damage.",
+   "capstone": "Lasts 12 s.",
+   "cd": 70.0,
+   "kit": "Knight",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "HallowedBlade": {
+   "name": "Hallowed Blade",
+   "desc": "A giant holy sword falls at your cursor: 200 damage around it, then the ground is blessed for 8 s (allies heal 15 HP/s, enemies burn).",
+   "capstone": "Three swords fall: one at your cursor and one either side.",
+   "cd": 80.0,
+   "kit": "Knight",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BladeTempest": {
+   "name": "Blade Tempest",
+   "desc": "For 6 s every swing also hurls three piercing sword beams.",
+   "capstone": "Five sword beams a swing instead of three.",
+   "cd": 65.0,
+   "kit": "Knight",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ArcaneAegis": {
+   "name": "Arcane Aegis",
+   "desc": "For 3 s, enemy bullets that touch you are reflected back as your own.",
+   "capstone": "Lasts 4.5 s and reflects bullets for double damage.",
+   "cd": 11.0,
+   "kit": "Mage",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "FrostNova": {
+   "name": "Frost Nova",
+   "desc": "Freeze every enemy near you for 3 s and deal 40 damage.",
+   "capstone": "Also erases enemy bullets around you.",
+   "cd": 12.0,
+   "kit": "Mage",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "FlameWall": {
+   "name": "Flame Wall",
+   "desc": "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
+   "capstone": "The fire also slows enemies by 40%.",
+   "cd": 14.0,
+   "kit": "Mage",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "TimeRewind": {
+   "name": "Time Rewind",
+   "desc": "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
+   "capstone": "Also erases enemy bullets around every player.",
+   "cd": 22.0,
+   "kit": "Mage",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ArcaneWard": {
+   "name": "Arcane Ward",
+   "desc": "Shield you and allies within 300 px for 60 damage for 8 s. When a shield breaks or runs out, half of what it soaked comes back as healing.",
+   "capstone": "The shield soaks 120 damage.",
+   "cd": 14.0,
+   "kit": "Mage",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Sanctify": {
+   "name": "Sanctify",
+   "desc": "Erase enemy bullets around you and heal everyone nearby for 25.",
+   "capstone": "Also freezes enemies around you solid for 1.5 s (not bosses).",
+   "cd": 12.0,
+   "kit": "Mage",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Meteor": {
+   "name": "Meteor",
+   "desc": "Call a meteor at your cursor: after a short warning it hits for 150 damage.",
+   "capstone": "Leaves burning ground for 3 s.",
+   "cd": 10.0,
+   "kit": "Mage",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Blizzard": {
+   "name": "Blizzard",
+   "desc": "A storm at your cursor for 5 s that slows and damages enemies.",
+   "capstone": "Lasts 10 s.",
+   "cd": 14.0,
+   "kit": "Mage",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ArcaneSurge": {
+   "name": "Arcane Surge",
+   "desc": "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
+   "capstone": "+1 extra projectile while it lasts.",
+   "cd": 16.0,
+   "kit": "Mage",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "GolemWall": {
+   "name": "Golem Wall",
+   "desc": "Raise three stone walls in front of you for 6 s that block bullets.",
+   "capstone": "Raises five walls.",
+   "cd": 13.0,
+   "kit": "Summoner",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Earthquake": {
+   "name": "Earthquake",
+   "desc": "You and every minion you have slam the ground, damaging and slowing enemies.",
+   "capstone": "Also freezes the enemies it hits for 1 s (not bosses).",
+   "cd": 10.0,
+   "kit": "Summoner",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "GuardianSpirit": {
+   "name": "Guardian Spirit",
+   "desc": "A guardian follows you for 8 s and absorbs every bullet near it.",
+   "capstone": "The guardian also heals you 6 HP/s.",
+   "cd": 18.0,
+   "kit": "Summoner",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SpiritSwarm": {
+   "name": "Spirit Swarm",
+   "desc": "Release 5 healing sprites for 6 s.",
+   "capstone": "Releases 8 sprites.",
+   "cd": 14.0,
+   "kit": "Summoner",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Phoenix": {
+   "name": "Phoenix",
+   "desc": "A phoenix fights for 10 s. If anyone goes down (you too), it revives them instantly.",
+   "capstone": "Revives at full health, and the phoenix keeps fighting.",
+   "cd": 22.0,
+   "kit": "Summoner",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SoulLantern": {
+   "name": "Soul Lantern",
+   "desc": "For 5 s, allies near the lantern can't go down.",
+   "capstone": "The lantern follows you.",
+   "cd": 20.0,
+   "kit": "Summoner",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BatSwarm": {
+   "name": "Bat Swarm",
+   "desc": "Release 8 bats that hunt enemies for 6 s.",
+   "capstone": "Releases 14 bats.",
+   "cd": 12.0,
+   "kit": "Summoner",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Sacrifice": {
+   "name": "Sacrifice",
+   "desc": "All your minions explode; your companions return 3 s later.",
+   "capstone": "Double explosion damage, and your companions return at once.",
+   "cd": 10.0,
+   "kit": "Summoner",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "AlphaCall": {
+   "name": "Alpha Call",
+   "desc": "Your minions frenzy for 6 s: faster, and they attack twice as often.",
+   "capstone": "Also summons 3 wolves for 6 s.",
+   "cd": 14.0,
+   "kit": "Summoner",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ShadowClone": {
+   "name": "Shadow Clone",
+   "desc": "Leave a decoy for 5 s that every enemy targets. It bursts for 60 damage when it ends.",
+   "capstone": "Leaves two clones.",
+   "cd": 14.0,
+   "kit": "Ninja",
+   "role": "Tank",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SmokeBomb": {
+   "name": "Smoke Bomb",
+   "desc": "A 140 px cloud at your feet for 5 s: enemy bullets inside slow to half speed, and allies inside take 30% less damage.",
+   "capstone": "Enemies inside the smoke are also slowed by 40%.",
+   "cd": 14.0,
+   "kit": "Ninja",
+   "role": "Tank",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "IronBody": {
+   "name": "Iron Body",
+   "desc": "For 2 s you take 80% less damage, then a shockwave hits everything within 140 px for 50.",
+   "capstone": "The shockwave also erases enemy bullets within 160 px.",
+   "cd": 12.0,
+   "kit": "Ninja",
+   "role": "Tank",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "HealingMist": {
+   "name": "Healing Mist",
+   "desc": "A mist follows you for 6 s, shedding drops of dew around you (two a second, 10 healing each, lasting 6 s) for you and your allies to pick up.",
+   "capstone": "Lasts 9 s.",
+   "cd": 15.0,
+   "kit": "Ninja",
+   "role": "Healer",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Substitution": {
+   "name": "Substitution",
+   "desc": "Swap places with the ally nearest your cursor and shield them for 60 for 6 s. Alone: slip to your cursor and shield yourself.",
+   "capstone": "You and your ally are both invulnerable for 1 s after the swap.",
+   "cd": 12.0,
+   "kit": "Ninja",
+   "role": "Healer",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "SpiritWard": {
+   "name": "Spirit Ward",
+   "desc": "Plant a talisman at your cursor for 8 s: it takes the damage allies near it would take (up to 150). When it breaks or ends, a quarter of what it took heals allies near it.",
+   "capstone": "The ward follows you.",
+   "cd": 18.0,
+   "kit": "Ninja",
+   "role": "Healer",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ShadowStep": {
+   "name": "Shadow Step",
+   "desc": "Teleport behind the enemy nearest your cursor (up to 450 px away) and strike it for 80.",
+   "capstone": "+1 charge.",
+   "cd": 7.0,
+   "kit": "Ninja",
+   "role": "Dps",
+   "choice": 0,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": true
+  },
+  "Vanish": {
+   "name": "Vanish",
+   "desc": "For 3 s enemies lose track of you. Your next hit (within 4 s) deals double damage.",
+   "capstone": "Erases enemy bullets around you when you vanish.",
+   "cd": 16.0,
+   "kit": "Ninja",
+   "role": "Dps",
+   "choice": 1,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BladeFan": {
+   "name": "Blade Fan",
+   "desc": "Throw 12 kunai in a ring around you, 18 damage each.",
+   "capstone": "Throws twice as many kunai.",
+   "cd": 9.0,
+   "kit": "Ninja",
+   "role": "Dps",
+   "choice": 2,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "ThousandClones": {
+   "name": "Thousand Clones",
+   "desc": "Five clones surround you for 8 s: every enemy targets them, and each bursts for 60 when it ends.",
+   "capstone": "Eight clones.",
+   "cd": 70.0,
+   "kit": "Ninja",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BlossomStorm": {
+   "name": "Blossom Storm",
+   "desc": "For 5 s petals heal the whole party 20 HP/s and erase enemy bullets near every ally.",
+   "capstone": "Lasts 8 s.",
+   "cd": 80.0,
+   "kit": "Ninja",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "DeathLotus": {
+   "name": "Death Lotus",
+   "desc": "Strike up to 8 enemies near your cursor in a flurry of cuts, 100 damage each.",
+   "capstone": "Strikes up to 14 enemies.",
+   "cd": 65.0,
+   "kit": "Ninja",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "StunGun": {
+   "name": "Stun Gun",
+   "desc": "Draw a stun gun: your next 6 shots are stun bolts (15 damage) that stun enemies for 1.5 s (bosses are only slowed). The cooldown starts once all 6 are fired.",
+   "capstone": "Nine shots instead of six.",
+   "cd": 14.0,
+   "kit": null,
+   "role": null,
+   "choice": null,
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Fortress": {
+   "name": "Fortress",
+   "desc": "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
+   "capstone": "Lasts 12 s.",
+   "cd": 70.0,
+   "kit": "Soldier",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "GlacialTomb": {
+   "name": "Glacial Tomb",
+   "desc": "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
+   "capstone": "Enemies stay frozen for 6 s and bosses take 500.",
+   "cd": 75.0,
+   "kit": "Mage",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Titan": {
+   "name": "Titan",
+   "desc": "Summon a stone titan for 15 s that smashes enemies and blocks bullets (it soaks 1000 boss damage).",
+   "capstone": "The titan is bigger and stays for 25 s.",
+   "cd": 80.0,
+   "kit": "Summoner",
+   "role": "Tank",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Lifeline": {
+   "name": "Lifeline",
+   "desc": "Instantly revive and fully heal the whole party, with 3 s of invulnerability.",
+   "capstone": "Everyone also gets 4 s of Overdrive.",
+   "cd": 90.0,
+   "kit": "Soldier",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Sanctum": {
+   "name": "Sanctum",
+   "desc": "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in.",
+   "capstone": "The dome is half again as wide (300 px).",
+   "cd": 80.0,
+   "kit": "Mage",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "WorldTree": {
+   "name": "World Tree",
+   "desc": "Grow a great tree for 10 s that heals allies, entangles enemies around it and sends out healing sprites.",
+   "capstone": "Lasts 16 s with 8 sprites.",
+   "cd": 80.0,
+   "kit": "Summoner",
+   "role": "Healer",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "BulletStorm": {
+   "name": "Bullet Storm",
+   "desc": "For 6 s you fire three times as fast, with +2 extra projectiles.",
+   "capstone": "+4 extra projectiles instead of +2.",
+   "cd": 60.0,
+   "kit": "Soldier",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "MeteorStorm": {
+   "name": "Meteor Storm",
+   "desc": "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
+   "capstone": "Twenty meteors.",
+   "cd": 70.0,
+   "kit": "Mage",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  },
+  "Legion": {
+   "name": "Legion",
+   "desc": "Summon 6 wolves and 6 bats for 10 s, and all your minions frenzy.",
+   "capstone": "Summons 10 wolves and 10 bats.",
+   "cd": 70.0,
+   "kit": "Summoner",
+   "role": "Dps",
+   "choice": "ult",
+   "charges": 1,
+   "healthCost": 0,
+   "capstoneCharge": false
+  }
+ },
+ "upgrades": [
+  {
+   "name": "Sharpened Rounds",
+   "desc": "+8% damage",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "DmgMult",
+     "+=",
+     0.08
+    ]
+   ]
+  },
+  {
+   "name": "Quick Trigger",
+   "desc": "+8% fire rate",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "FireRateMult",
+     "+=",
+     0.08
+    ]
+   ]
+  },
+  {
+   "name": "Light Boots",
+   "desc": "+6% move speed",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SpeedMult",
+     "+=",
+     0.06
+    ]
+   ]
+  },
+  {
+   "name": "Vitality",
+   "desc": "+15 max HP",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BonusHp",
+     "+=",
+     15.0
+    ]
+   ]
+  },
+  {
+   "name": "Mending",
+   "desc": "Regenerate 1 HP per second",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Regen",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Focus",
+   "desc": "-6% ability cooldowns",
+   "rarity": "Common",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "CdMult",
+     "*=",
+     0.94
+    ]
+   ]
+  },
+  {
+   "name": "Reinforced Guard",
+   "desc": "Your parry shield takes 25% more before it breaks",
+   "rarity": "Common",
+   "max": 4,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ParryCapacityMult",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Hollow Points",
+   "desc": "+20% damage",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "DmgMult",
+     "+=",
+     0.2
+    ]
+   ]
+  },
+  {
+   "name": "Hair Trigger",
+   "desc": "+18% fire rate",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "FireRateMult",
+     "+=",
+     0.18
+    ]
+   ]
+  },
+  {
+   "name": "Sprinter",
+   "desc": "+12% move speed",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SpeedMult",
+     "+=",
+     0.12
+    ]
+   ]
+  },
+  {
+   "name": "Fortitude",
+   "desc": "+40 max HP",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BonusHp",
+     "+=",
+     40.0
+    ]
+   ]
+  },
+  {
+   "name": "Regeneration",
+   "desc": "Regenerate 3 HP per second",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Regen",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Clarity",
+   "desc": "-15% ability cooldowns",
+   "rarity": "Uncommon",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "CdMult",
+     "*=",
+     0.85
+    ]
+   ]
+  },
+  {
+   "name": "Thick Skin",
+   "desc": "Take 10% less damage",
+   "rarity": "Uncommon",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "DamageTaken",
+     "*=",
+     0.9
+    ]
+   ]
+  },
+  {
+   "name": "Wide Guard",
+   "desc": "Your parry shield covers a 30% wider arc",
+   "rarity": "Uncommon",
+   "max": 2,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ParryArcMult",
+     "+=",
+     0.3
+    ]
+   ]
+  },
+  {
+   "name": "Second Charge",
+   "desc": "Your Space ability gets a second charge",
+   "rarity": "Rare",
+   "max": 1,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "RoleCharges",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Bastion",
+   "desc": "Barrier is 40% bigger, lasts 1.5 s longer and soaks 50% more",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Barrier",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BarrierRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "BarrierBonusTime",
+     "+=",
+     1.5
+    ],
+    [
+     "BarrierCapacityMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Bellow",
+   "desc": "Roar lasts 2 s longer and blocks 15% more damage",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Roar",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "RoarBonusTime",
+     "+=",
+     2.0
+    ],
+    [
+     "RoarExtraReduction",
+     "+=",
+     0.15
+    ]
+   ]
+  },
+  {
+   "name": "Juggernaut",
+   "desc": "Bulldoze deals double damage",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Bulldoze",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BulldozeMult",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Greater Mending",
+   "desc": "Mend Pulse heals 60% more and reaches 25% farther",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "MendPulse",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "PulseHealMult",
+     "+=",
+     0.6
+    ],
+    [
+     "PulseRangeMult",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Hallowed Ground",
+   "desc": "Haven is 50% bigger and lasts 3 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Haven",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "HavenRadiusMult",
+     "+=",
+     0.5
+    ],
+    [
+     "HavenBonusTime",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Kindred Spirits",
+   "desc": "Soul Link heals twice as fast",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "SoulLink",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "LinkHealMult",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Sanctuary",
+   "desc": "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
+   "rarity": "Rare",
+   "max": 2,
+   "role": "Healer",
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "AuraRangeMult",
+     "+=",
+     0.4
+    ],
+    [
+     "AuraHealMult",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Phase Step",
+   "desc": "Dash invulnerability lasts 0.25 s longer; -25% Dash cooldown",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Dash",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "DashIframeBonus",
+     "+=",
+     0.25
+    ],
+    [
+     "DashCdMult",
+     "*=",
+     0.75
+    ]
+   ]
+  },
+  {
+   "name": "Bigger Boom",
+   "desc": "Grenade blast is 50% bigger with 6 more shrapnel",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Grenade",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "GrenadeRadiusMult",
+     "+=",
+     0.5
+    ],
+    [
+     "GrenadeExtraShrapnel",
+     "+=",
+     6.0
+    ]
+   ]
+  },
+  {
+   "name": "Exploit Weakness",
+   "desc": "Marked enemies take an extra 50% damage",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Mark",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "MarkBonus",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Tower Shield",
+   "desc": "Shield Wall covers 160°, lasts 1.5 s longer and soaks 50% more",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "ShieldWall",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "WallArcMult",
+     "+=",
+     0.33
+    ],
+    [
+     "WallBonusTime",
+     "+=",
+     1.5
+    ],
+    [
+     "WallCapMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Earthshaker",
+   "desc": "Leap Slam hits 40% wider and stuns for 1 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "LeapSlam",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SlamRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "SlamStunBonus",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Iron Will",
+   "desc": "Unbreakable blocks 15% more damage and heals you for 10% more of what you deal",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Unbreakable",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "UnbreakBonus",
+     "+=",
+     0.15
+    ],
+    [
+     "UnbreakHealBonus",
+     "+=",
+     0.1
+    ]
+   ]
+  },
+  {
+   "name": "Sacred Ground",
+   "desc": "Consecrate is 40% bigger and lasts 3 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Consecrate",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ConsecrateRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "ConsecrateBonusTime",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Bulwark",
+   "desc": "Guardian's Oath shields are 60% stronger",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "GuardiansOath",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "OathMult",
+     "+=",
+     0.6
+    ]
+   ]
+  },
+  {
+   "name": "Miracle",
+   "desc": "Lay on Hands heals 60% more and reaches 30% further",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "LayOnHands",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "LayMult",
+     "+=",
+     0.6
+    ]
+   ]
+  },
+  {
+   "name": "Cyclone",
+   "desc": "Whirlwind lasts 1 s longer and reaches 30% further",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Whirlwind",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "WhirlBonusTime",
+     "+=",
+     1.0
+    ],
+    [
+     "WhirlRadiusMult",
+     "+=",
+     0.3
+    ]
+   ]
+  },
+  {
+   "name": "Flurry",
+   "desc": "Lunge goes 40% further and hits 50% harder",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Lunge",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "LungeRangeMult",
+     "+=",
+     0.4
+    ],
+    [
+     "LungeDmgMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Bloodlust",
+   "desc": "During Battle Fury your hits heal you for 10% of the damage they deal",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "BattleFury",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "FuryLifesteal",
+     "+=",
+     0.1
+    ]
+   ]
+  },
+  {
+   "name": "Mirror Image",
+   "desc": "Shadow Clone lasts 2 s longer and bursts 50% harder",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "ShadowClone",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "CloneBonusTime",
+     "+=",
+     2.0
+    ],
+    [
+     "CloneBurstMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Thick Smoke",
+   "desc": "Smoke Bomb is 40% bigger and lasts 2 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "SmokeBomb",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SmokeRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "SmokeBonusTime",
+     "+=",
+     2.0
+    ]
+   ]
+  },
+  {
+   "name": "Tempered Steel",
+   "desc": "Iron Body lasts 1 s longer and its shockwave hits 50% harder",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "IronBody",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "IronBonusTime",
+     "+=",
+     1.0
+    ],
+    [
+     "IronWaveMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Morning Dew",
+   "desc": "Healing Mist's dew heals 50% more, and the mist is 25% bigger",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "HealingMist",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "MistHealMult",
+     "+=",
+     0.5
+    ],
+    [
+     "MistRadiusMult",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Body Double",
+   "desc": "Substitution's shield is 60% stronger and lasts 2 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Substitution",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SubShieldMult",
+     "+=",
+     0.6
+    ],
+    [
+     "SubBonusTime",
+     "+=",
+     2.0
+    ]
+   ]
+  },
+  {
+   "name": "Sacred Seal",
+   "desc": "Spirit Ward is 40% bigger and lasts 3 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "SpiritWard",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "WardRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "WardBonusTime",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Assassinate",
+   "desc": "Shadow Step strikes 60% harder and reaches enemies 30% farther",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "ShadowStep",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "StepDmgMult",
+     "+=",
+     0.6
+    ],
+    [
+     "StepRangeMult",
+     "+=",
+     0.3
+    ]
+   ]
+  },
+  {
+   "name": "Unseen Blade",
+   "desc": "Vanish lasts 1.5 s longer and your ambush hit deals one more times its damage",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Vanish",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "VanishBonusTime",
+     "+=",
+     1.5
+    ],
+    [
+     "AmbushMult",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Storm of Steel",
+   "desc": "Blade Fan throws 6 more kunai",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "BladeFan",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "FanExtraKunai",
+     "+=",
+     6.0
+    ]
+   ]
+  },
+  {
+   "name": "Hardened Blood",
+   "desc": "Blood Shell is worth one more times what you paid and lasts 2 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "BloodShell",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ShellBonus",
+     "+=",
+     1.0
+    ],
+    [
+     "ShellBonusTime",
+     "+=",
+     2.0
+    ]
+   ]
+  },
+  {
+   "name": "Blood Oath",
+   "desc": "Crimson Pact's burst hits 50% harder and reaches 30% farther",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "CrimsonPact",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "PactMult",
+     "+=",
+     0.5
+    ],
+    [
+     "PactRadiusMult",
+     "+=",
+     0.3
+    ]
+   ]
+  },
+  {
+   "name": "Deep Veins",
+   "desc": "Exsanguinate reaches 30% farther and drains 50% more",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Exsanguinate",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "DrainRadiusMult",
+     "+=",
+     0.3
+    ],
+    [
+     "DrainMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Lifeblood",
+   "desc": "Blood Gift gives 50% more",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "BloodGift",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "GiftMult",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Hungry Earth",
+   "desc": "Siphon Field is 40% bigger and lasts 3 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "SiphonField",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "SiphonRadiusMult",
+     "+=",
+     0.4
+    ],
+    [
+     "SiphonBonusTime",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Saint's Blood",
+   "desc": "Martyr revives with 25% more health and leaves them invulnerable 1 s longer",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "Martyr",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "MartyrBonus",
+     "+=",
+     0.25
+    ],
+    [
+     "MartyrInvuln",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Boiling Point",
+   "desc": "Blood Boil bursts 50% harder and reaches 25% farther",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "BloodBoil",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BoilMult",
+     "+=",
+     0.5
+    ],
+    [
+     "BoilRadiusMult",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Bloodrush",
+   "desc": "Frenzy Pact lasts 2 s longer and fires another 25% faster",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "FrenzyPact",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "RushBonusTime",
+     "+=",
+     2.0
+    ],
+    [
+     "RushRate",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Crimson Tide",
+   "desc": "Hemo Nova fires 8 more bolts",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": "HemoNova",
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "NovaExtraBolts",
+     "+=",
+     8.0
+    ]
+   ]
+  },
+  {
+   "name": "Multishot",
+   "desc": "+1 projectile: upgrades your weapon in its own way",
+   "rarity": "Rare",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ExtraShots",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Barrage",
+   "desc": "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
+   "rarity": "Rare",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Fan",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Piercing Rounds",
+   "desc": "Shots pass through one more enemy",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Pierce",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Riposte",
+   "desc": "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "PerfectBonus",
+     "+=",
+     0.12
+    ],
+    [
+     "ReflectMult",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Counterstance",
+   "desc": "A perfect parry gives +50% fire rate for 2.5 s",
+   "rarity": "Rare",
+   "max": 2,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "CounterFireRate",
+     "+=",
+     0.5
+    ]
+   ]
+  },
+  {
+   "name": "Light Guard",
+   "desc": "You don't slow down while parrying",
+   "rarity": "Rare",
+   "max": 1,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ParryNoSlow",
+     "=",
+     1
+    ]
+   ]
+  },
+  {
+   "name": "Overcharge",
+   "desc": "Your Q, E and Shift abilities get a second charge",
+   "rarity": "Rare",
+   "max": 1,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": true,
+   "boss": null,
+   "effects": [
+    [
+     "ExtraCharges",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Shockwave",
+   "desc": "New ability: erase enemy bullets around you and damage nearby enemies",
+   "rarity": "VeryRare",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "Shockwave",
+   "needsExtra": false,
+   "boss": null,
+   "effects": []
+  },
+  {
+   "name": "Overdrive",
+   "desc": "New ability: double fire rate for 5 seconds",
+   "rarity": "VeryRare",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "Overdrive",
+   "needsExtra": false,
+   "boss": null,
+   "effects": []
+  },
+  {
+   "name": "Blink",
+   "desc": "New ability: teleport toward your cursor",
+   "rarity": "VeryRare",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "Blink",
+   "needsExtra": false,
+   "boss": null,
+   "effects": []
+  },
+  {
+   "name": "Nova",
+   "desc": "New ability: fire a ring of 24 heavy shots",
+   "rarity": "VeryRare",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "Nova",
+   "needsExtra": false,
+   "boss": null,
+   "effects": []
+  },
+  {
+   "name": "Turret",
+   "desc": "New ability: deploy a turret that shoots for 10 seconds",
+   "rarity": "VeryRare",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "Turret",
+   "needsExtra": false,
+   "boss": null,
+   "effects": []
+  },
+  {
+   "name": "Warden's Guard",
+   "desc": "One of the Warden's riot guards switches sides: it follows you and fights for you with its baton (+1 guard per stack). If it falls, another arrives 15 s later",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "Boss",
+   "effects": [
+    [
+     "Guards",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Stun Gun",
+   "desc": "New ability: draw a stun gun with 6 shots that stun enemies. The cooldown starts once they're all fired",
+   "rarity": "Legendary",
+   "max": 99,
+   "role": null,
+   "requires": null,
+   "grants": "StunGun",
+   "needsExtra": false,
+   "boss": "Boss",
+   "effects": []
+  },
+  {
+   "name": "Searchlight",
+   "desc": "A searchlight follows your cursor: enemies in it take 25% more damage from everyone, and one held in it for 2 s is stunned for 1 s. More stacks: a wider light, then +40%",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "Boss",
+   "effects": [
+    [
+     "Searchlight",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Swarm Rounds",
+   "desc": "Your shots split into 3 smaller shots when they hit",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "HiveQueen",
+   "effects": [
+    [
+     "SplitShots",
+     "+=",
+     3.0
+    ]
+   ]
+  },
+  {
+   "name": "Royal Jelly",
+   "desc": "Every hit heals you 1 HP (up to 10 HP per second)",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "HiveQueen",
+   "effects": [
+    [
+     "Lifesteal",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Brood Mother",
+   "desc": "20% of your kills spawn a mini-turret for 4 seconds",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "HiveQueen",
+   "effects": [
+    [
+     "BroodChance",
+     "+=",
+     0.2
+    ]
+   ]
+  },
+  {
+   "name": "Executioner",
+   "desc": "Double damage to enemies below 35% health",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "TwinA",
+   "effects": [
+    [
+     "ExecuteBonus",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Twin Fang",
+   "desc": "25% chance for each hit to deal double damage",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "TwinA",
+   "effects": [
+    [
+     "CritChance",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Soul Harvest",
+   "desc": "Every kill heals you 5 HP",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "TwinA",
+   "effects": [
+    [
+     "KillHeal",
+     "+=",
+     5.0
+    ]
+   ]
+  },
+  {
+   "name": "Collapse Rounds",
+   "desc": "Shots implode on impact, hurting enemies nearby",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "Singularity",
+   "effects": [
+    [
+     "ImpactSplash",
+     "+=",
+     45.0
+    ]
+   ]
+  },
+  {
+   "name": "Graviton Rounds",
+   "desc": "Enemies you hit are slowed by 40% for 2 seconds",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "Singularity",
+   "effects": [
+    [
+     "SlowOnHit",
+     "+cap",
+     0.4,
+     0.7
+    ]
+   ]
+  },
+  {
+   "name": "Dark Matter",
+   "desc": "Shots pierce 2 more enemies and deal 20% more damage",
+   "rarity": "Legendary",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": "Singularity",
+   "effects": [
+    [
+     "Pierce",
+     "+=",
+     2.0
+    ],
+    [
+     "DmgMult",
+     "+=",
+     0.2
+    ]
+   ]
+  },
+  {
+   "name": "Homing Rounds",
+   "desc": "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 10% less damage per stack. More stacks bend harder",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Homing",
+     "+=",
+     2.0
+    ]
+   ]
+  },
+  {
+   "name": "Ricochet",
+   "desc": "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "Ricochet",
+     "+=",
+     1.0
+    ]
+   ]
+  },
+  {
+   "name": "Incendiary Rounds",
+   "desc": "Hits set enemies on fire, burning for 25% of the hit's damage each second for 3 s",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "BurnFrac",
+     "+=",
+     0.25
+    ]
+   ]
+  },
+  {
+   "name": "Cryo Rounds",
+   "desc": "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "CryoSlow",
+     "+cap",
+     0.2,
+     0.6
+    ],
+    [
+     "FreezeChance",
+     "+=",
+     0.06
+    ]
+   ]
+  },
+  {
+   "name": "Shock Rounds",
+   "desc": "15% chance per hit for lightning to arc to 2 more enemies (60% damage)",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ShockChance",
+     "+=",
+     0.15
+    ]
+   ]
+  },
+  {
+   "name": "Explosive Rounds",
+   "desc": "Shots explode on impact, dealing 30% damage to enemies nearby",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ExplosiveRadius",
+     "+first",
+     40.0,
+     15.0
+    ]
+   ]
+  },
+  {
+   "name": "Mirror Guard",
+   "desc": "Each bullet your parry blocks has a 25% chance to fly back at enemies",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "MirrorChance",
+     "+cap",
+     0.25,
+     0.75
+    ]
+   ]
+  },
+  {
+   "name": "Velocity Rounds",
+   "desc": "Shots fly 30% faster and farther and deal 15% more damage",
+   "rarity": "Mod",
+   "max": 3,
+   "role": null,
+   "requires": null,
+   "grants": null,
+   "needsExtra": false,
+   "boss": null,
+   "effects": [
+    [
+     "ShotSpeedMult",
+     "+=",
+     0.3
+    ],
+    [
+     "DmgMult",
+     "+=",
+     0.15
+    ]
+   ]
+  }
+ ],
+ "meleeCardText": {
+  "Piercing Rounds": "Your swings reach 10% further, and sword waves pass through one more enemy",
+  "Barrage": "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel",
+  "Homing Rounds": "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected",
+  "Ricochet": "Your sword waves bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
+  "Explosive Rounds": "Your hits explode, dealing 30% damage to enemies nearby",
+  "Velocity Rounds": "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage"
+ },
+ "modifiers": [
+  {
+   "name": "Glass Cannon",
+   "desc": "Everyone deals 50% more damage, and takes 50% more.",
+   "lean": "Risky"
+  },
+  {
+   "name": "Tough Crowd",
+   "desc": "Enemies and bosses have 50% more health.",
+   "lean": "Harder"
+  },
+  {
+   "name": "Frenzy",
+   "desc": "Enemies and bosses shoot 30% faster.",
+   "lean": "Harder"
+  },
+  {
+   "name": "Swift Foes",
+   "desc": "Enemies move 30% faster.",
+   "lean": "Harder"
+  },
+  {
+   "name": "Famine",
+   "desc": "Enemies never drop health orbs.",
+   "lean": "Harder"
+  },
+  {
+   "name": "Lucky",
+   "desc": "Everyone starts with 3 extra upgrade rerolls.",
+   "lean": "Easier"
+  },
+  {
+   "name": "Head Start",
+   "desc": "Everyone starts at level 3 with a free legendary pick.",
+   "lean": "Easier"
+  },
+  {
+   "name": "Practiced",
+   "desc": "Abilities gain mastery twice as fast.",
+   "lean": "Easier"
+  },
+  {
+   "name": "Bloodlust",
+   "desc": "Every kill heals its killer, but no health orbs drop and nobody regenerates.",
+   "lean": "Risky"
+  },
+  {
+   "name": "Gold Rush",
+   "desc": "Every kill drops gold, and a shop opens before each boss. Unspent gold is kept.",
+   "lean": "Easier"
+  },
+  {
+   "name": "Tiny Arena",
+   "desc": "After each boss, walls take a quarter of the room (down to 40%).",
+   "lean": "Harder"
+  },
+  {
+   "name": "Nightfall",
+   "desc": "It's dark: you see a short way round each player, plus where you aim.",
+   "lean": "Harder"
+  }
+ ],
+ "paths": [
+  {
+   "name": "Swarm Fields",
+   "danger": 2.0
+  },
+  {
+   "name": "Sniper Ridge",
+   "danger": 2.0
+  },
+  {
+   "name": "Elite Gauntlet",
+   "danger": 3.0
+  },
+  {
+   "name": "Burning Grounds",
+   "danger": 3.0
+  },
+  {
+   "name": "Sanctuary",
+   "danger": 1.0
+  },
+  {
+   "name": "Frozen Lake",
+   "danger": 2.0
+  },
+  {
+   "name": "Blood Moon",
+   "danger": 3.0
+  },
+  {
+   "name": "Fogbound",
+   "danger": 2.0
+  },
+  {
+   "name": "Narrow Pass",
+   "danger": 2.0
+  },
+  {
+   "name": "Bazaar",
+   "danger": 1.0
+  }
+ ],
+ "consts": {
+  "HomingDamageCost": 0.05,
+  "ParryCapacity": 150.0,
+  "PassiveRegen": 0.5,
+  "AuraHeal": 9.0,
+  "AuraRange": 170.0,
+  "AuraSelfHeal": 1.0
+ }
+}
