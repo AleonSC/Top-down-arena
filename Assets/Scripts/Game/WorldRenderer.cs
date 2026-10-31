@@ -120,6 +120,7 @@ namespace Arena
             DrawColossusFloor(t);  // the Colossus's rings, shadows, fissures, plates and pillars (ColossusLook.cs)
             DrawEclipseFloor(t);   // the Eclipse's shadow, sunspots, flares, rings and echoes (EclipseLook.cs)
             DrawVarietyFloor(t);   // Beam Sentry beams, Reaver cones, Warder tethers (VarietyLook.cs)
+            DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
@@ -137,7 +138,8 @@ namespace Arena
             DrawEclipseMoon(t);    // EclipseLook.cs
             DrawLichScene(t);  // LichLook.cs
             foreach (var e in game.Enemies.Values)
-                DrawEnemy(e, t);
+                if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
+                    DrawEnemy(e, t);
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
@@ -145,6 +147,8 @@ namespace Arena
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             foreach (var p in game.Players.Values)
             {
+                if (p.SwallowT > 0f && !p.Downed)
+                    continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
                 DrawPlayerWrapped(p, t);
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawHeldStunGun(p, t);
@@ -567,6 +571,11 @@ namespace Arena
             if (b.Kind == Defs.HoneyShot)
             {
                 DrawHoneyShot(b);  // QueenLook.cs
+                return;
+            }
+            if (b.Kind == Defs.BileShot || b.Kind == Defs.ToothShot)
+            {
+                DrawDevourerShot(b, t);  // DevourerLook.cs
                 return;
             }
             if (b.Kind == Defs.HollowShot)
@@ -1592,8 +1601,7 @@ namespace Arena
                     DrawHeraldUnderlay(e, pos, r, t);  // HeraldLook.cs
                     break;
                 case EnemyType.Devourer:
-                    if (e.Phase == 1)  // hungry: a pulsing warning glow
-                        Circle(pos, r + 18f + 6f * Mathf.Sin(t * 10f), new Rgba(1f, 0.2f, 0.6f, 0.25f), 40);
+                    DrawDevourerUnderlay(e, pos, r, t);  // DevourerLook.cs
                     break;
                 case EnemyType.Eclipse:
                     DrawEclipseCorona(e, pos, r, col, t);
@@ -1807,7 +1815,10 @@ namespace Arena
                     Arc(pos, r * 0.45f, 2f, Rgba.White.WithAlpha(0.6f), 24);
                     break;
                 case EnemyType.Devourer:
-                    Circle(pos, r * (e.Phase == 1 ? 0.7f : 0.4f), new Rgba(0.1f, 0f, 0.05f, 1f), 24);  // the mouth opens when hungry
+                    DrawDevourerMouth(e, pos, r, t);  // DevourerLook.cs: its mouth opens when it feeds
+                    break;
+                case EnemyType.Morsel:
+                    DrawMorsel(e, pos, r, t);  // DevourerLook.cs
                     break;
                 case EnemyType.Eclipse:
                     Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);

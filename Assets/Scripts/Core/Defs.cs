@@ -22,6 +22,7 @@ namespace Arena
         ReaperPillar,  // the Dual Reaper's corner pillars: each one killed leaves a hole that can trap it (Reapers.cs)
         SingShard,     // the Singularity's Split: shards that orbit and fire; their damage goes to the core (Singularity.cs)
         BallLightning, // the Storm Herald's Gale: slow orbs that drift at you on the wind and arc to each other (Herald.cs)
+        Morsel,        // the Devourer's Hungry turn: food it spits out and crawls over to eat; shoot it or step on it (Devourer.cs)
         // the second half of the run (Variety.cs)
         BeamSentry, Scorcher, Reaver, Warder,
     }
@@ -169,7 +170,7 @@ namespace Arena
             new EnemyDef { Name = "Storm Herald", IsBoss = true, Hp = 6000f, Radius = 40f, Speed = 55f, Score = 800, Xp = 320, Sides = 9, Color = new Rgba(0.55f, 0.75f, 1f),
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 40), three stages: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time." },
             new EnemyDef { Name = "The Devourer", IsBoss = true, Hp = 6500f, Radius = 50f, Speed = 40f, Score = 900, Xp = 340, Sides = 12, Color = new Rgba(0.85f, 0.28f, 0.38f),
-                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 45): hungry for 3 s of every 10, when your shots heal it. Hold fire." },
+                Picker = PickerGroup.Boss, Late = true, Blurb = "Boss (wave 45), three stages: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front." },
             new EnemyDef { Name = "The Eclipse", IsBoss = true, Hp = 9000f, Radius = 52f, Speed = 30f, Score = 2000, Xp = 500, Sides = 16, Color = new Rgba(1f, 0.85f, 0.4f),
                 Picker = PickerGroup.Boss, Late = true, Blurb = "Final boss (wave 50), five stages and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova." },
             new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
@@ -189,6 +190,7 @@ namespace Arena
             new EnemyDef { Name = "Reaper Pillar", Hp = 120f, Radius = 24f, Speed = 0f, Score = 5, Xp = 4, Sides = 4, Color = new Rgba(0.55f, 0.5f, 0.75f), Melee = true },
             new EnemyDef { Name = "Singularity Shard", Hp = 1e6f, Radius = 20f, Speed = 0f, Score = 0, Xp = 0, Sides = 5, Color = new Rgba(0.8f, 0.5f, 1f), Melee = true },
             new EnemyDef { Name = "Ball Lightning", Hp = 70f, Radius = 15f, Speed = 0f, Score = 3, Xp = 2, Sides = 8, Color = new Rgba(0.75f, 0.9f, 1f), Melee = true, Contact = 20f },
+            new EnemyDef { Name = "Morsel", Hp = 60f, Radius = 14f, Speed = 0f, Score = 0, Xp = 0, Sides = 7, Color = new Rgba(0.88f, 0.5f, 0.35f), Late = true },
             new EnemyDef { Name = "Beam Sentry", Hp = 160f, Radius = 17f, Speed = 70f, Score = 30, Xp = 12, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f),
                 Picker = PickerGroup.Late, Blurb = "Plants itself, aims a line at you, then sweeps a beam across your side." },
             new EnemyDef { Name = "Scorcher", Hp = 130f, Radius = 15f, Speed = 95f, Score = 30, Xp = 12, Sides = 5, Color = new Rgba(1f, 0.71f, 0.28f),
@@ -359,7 +361,7 @@ namespace Arena
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
-        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15, HoneyShot = 16, HollowShot = 17, CrescentShot = 18,
+        public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15, HoneyShot = 16, HollowShot = 17, BileShot = 18, ToothShot = 19,
             // more player kinds (enemy kinds are 10-19)
             FireShot = 20, FrostShot = 21, ArcaneShot = 22, HolyShot = 23, BoltShot = 24, SeedShot = 25, BoneShot = 26, RockShot = 27, MinionShot = 28,
             KnightSlash = 29,  // never flies: stands in for a melee hit so weapon mods and legendaries apply to it
@@ -374,9 +376,10 @@ namespace Arena
             FlameShot = 48,  // a Flamethrower flame
             HammerShot = 49, // the Storm Hammer, spinning as it flies
             BoulderShot = 50, // the Golem Staff's boulder, lobbed: it flies over enemies and crushes where it lands
-            FireballShot = 51; // the Fireball: big, rolling on through enemies and setting them burning
+            FireballShot = 51, // the Fireball: big, rolling on through enemies and setting them burning
+            CrescentShot = 52; // the Eclipse's crescent blade (an enemy kind: 10-19 were all taken)
 
-        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20;
+        public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot;
 
         /// Bosses' aimed attacks: barriers, walls and other blockers can't stop these.
         public static bool Unblockable(byte kind) => kind == PierceShot;
@@ -433,6 +436,8 @@ namespace Arena
                 case HoneyShot: return 9f;
                 case HollowShot: return 7f;
                 case CrescentShot: return 14f;
+                case BileShot: return 6f;
+                case ToothShot: return 10f;
                 default: return 6f;
             }
         }
@@ -452,6 +457,7 @@ namespace Arena
                 case FastShot: return 15f;
                 case StunShot: return 8f;  // the Warden's searchlight turn: it stuns you for 1 s
                 case HoneyShot: return 14f;  // the Hive Queen's nectar spray
+                case ToothShot: return 20f;  // the Devourer's Jaws
                 case HollowShot: return 0f;  // the Duelist's decoys fire these: they pass through you
                 case CrescentShot: return 18f;  // the Eclipse's crescent blades
                 default: return 12f;
@@ -512,6 +518,8 @@ namespace Arena
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 case HollowShot: return new Rgba(0.9f, 0.91f, 1f);  // a Duelist decoy's shot: a harmless ring
                 case CrescentShot: return new Rgba(0.89f, 0.83f, 1f);  // the Eclipse's crescent blade
+                case BileShot: return new Rgba(0.75f, 0.9f, 0.31f);  // the Devourer's vomit
+                case ToothShot: return new Rgba(0.96f, 0.9f, 0.82f);  // the Devourer's Jaws
                 default: return new Rgba(1f, 0.3f, 0.45f);
             }
         }

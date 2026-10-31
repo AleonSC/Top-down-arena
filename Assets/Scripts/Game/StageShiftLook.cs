@@ -138,6 +138,19 @@ namespace Arena
                     };
                     return true;
                 }
+                if (e.Type == EnemyType.Devourer && e.Devour != null && e.Devour.TransT > 0f)
+                {
+                    bool gorge = e.Devour.TransTo == DevourStage.Gorging;
+                    s = new StageShift
+                    {
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Devour.TransT / 2f), Number = (int)e.Devour.TransTo + 1,
+                        Name = gorge ? "GORGING" : "RAVENOUS",
+                        Line = gorge ? "It has eaten, and it's bigger" : "Its mouth never closes",
+                        Color = gorge ? new Rgba(0.78f, 0.88f, 0.35f) : new Rgba(1f, 0.24f, 0.37f),
+                        Second = gorge ? new Rgba(0.95f, 0.75f, 0.6f) : new Rgba(1f, 0.6f, 0.68f),
+                    };
+                    return true;
+                }
                 if (e.Type == EnemyType.HiveQueen && e.Queen != null && e.Queen.TransT > 0f)
                 {
                     var to = e.Queen.TransTo;

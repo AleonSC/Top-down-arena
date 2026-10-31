@@ -117,7 +117,7 @@ namespace Arena
                 bool cageWell = e.Type == EnemyType.CageWell;
                 if (caged && !cageWell)
                     continue;
-                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard || e.Type == EnemyType.BallLightning)
+                if ((cageWell || e.Type == EnemyType.Phylactery || e.Type == EnemyType.GravityWell || e.Type == EnemyType.Shard || e.Type == EnemyType.SingShard || e.Type == EnemyType.BallLightning || e.Type == EnemyType.Morsel)
                     && (key == null || e.Pos.DistanceSq(me.Pos) < key.Pos.DistanceSq(me.Pos)))
                     key = e;
             }
@@ -167,8 +167,9 @@ namespace Arena
                 me.Aim = (aimAt - me.Pos).Angle;
             }
 
-            // --- Fire: hold the trigger; the bow draws to full, then lets go.
-            firing = shootAt != null;
+            // --- Fire: hold the trigger; the bow draws to full, then lets go. Not into a hungry Devourer, or its Maw.
+            firing = shootAt != null && !(shootAt.Type == EnemyType.Devourer && (Hungry(shootAt) || DevourImmune(shootAt)
+                || shootAt.Devour != null && shootAt.Devour.Stage == DevourStage.Ravenous && InMaw(shootAt, me.Pos)));
             if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
 
@@ -318,7 +319,13 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (e.Type == EnemyType.BallLightning && !IsSpawning(e))
                     botBalls.Add(e);
-            V2 windDrift = HeraldWind(WindPush);
+            V2 windDrift = HeraldWind(WindPush) + DevourPull(me.Pos);
+            // The Devourer: its lunge lines, the inhale cone, the eruption, its Maw and the last stand's teeth (Devourer.cs).
+            Enemy dev = null;
+            foreach (var e in Enemies.Values)
+                if (e.Type == EnemyType.Devourer && e.Devour != null && !IsSpawning(e) && e.Devour.TransT <= 0f)
+                    dev = e;
+            var ds = dev?.Devour;
             Player conductor = null;
             if (hs != null && hs.CondId != 0)
                 Players.TryGetValue(hs.CondId, out conductor);
@@ -380,8 +387,8 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
-                    foreach (var pt in Patches.Values)  // a path's fire or the Colossus's lava: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Embers) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or a Scorcher's embers: burning now or about to (Paths.cs)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var e in Enemies.Values)  // a Beam Sentry's beam, a Reaver's rake (Variety.cs)
                     {
@@ -442,6 +449,27 @@ namespace Arena
                                 }
                             disk.Sing.DiskT -= t;
                         }
+                    }
+                    if (ds != null)
+                    {
+                        float pad = hitR + sk.Margin + 8f;
+                        if (ds.Lunging && SegmentDistance(p, ds.LungeFrom, ds.LungeFrom + V2.FromAngle(ds.LungeAng) * (ds.LungeLen + BiteReach * 0.6f)) < dev.Radius + pad)
+                            d += w * 3f;
+                        V2 off = p - dev.Pos;
+                        if ((ds.InhaleT > 0f || ds.Turn == DevourTurn.Inhale) && off.Length < InhaleReach + 40f
+                            && Math.Abs(MathX.Fmod(off.Angle - dev.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < InhaleHalf + 0.15f)
+                            d += w * 2.5f;
+                        if (ds.BurrowT > 0f && off.Length < EruptRadius + pad + (ds.BurrowT < BurrowChase ? 60f : 0f))
+                            d += w * 3f;
+                        if (ds.Stage == DevourStage.Ravenous && InMaw(dev, p))
+                            d += w * 0.5f;  // rather be on its back
+                        if (ds.Stage == DevourStage.LastStand)
+                            for (int tk = 0; tk < 12; tk++)
+                                if (tk != 0 && tk != 6 && p.DistanceTo(ToothPos(dev.Pos, ds.Spin + TeethSpin * t, tk)) < ToothHit + pad)
+                                {
+                                    d += w * 2.5f;
+                                    break;
+                                }
                     }
                     if (hs != null)
                     {

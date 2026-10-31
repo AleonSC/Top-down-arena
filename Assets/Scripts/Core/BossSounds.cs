@@ -21,7 +21,7 @@ namespace Arena
                 case EnemyType.Singularity: return (e.Sing == null ? 0 : (int)e.Sing.Stage * 100) + e.Phase;
                 case EnemyType.StormHerald: return e.Herald == null ? 0 : (int)e.Herald.Stage * 100 + (e.Herald.TransT > 0f ? 50 : (int)e.Herald.Turn);
                 case EnemyType.Lich: return e.Lich == null ? 0 : (int)e.Lich.Stage * 100 + (e.Lich.TransT > 0f ? 50 : (int)e.Lich.Turn);
-                case EnemyType.Devourer: return e.Phase;
+                case EnemyType.Devourer: return e.Devour == null ? 0 : (int)e.Devour.Stage * 100 + (e.Devour.TransT > 0f ? 50 : (int)e.Devour.Turn);
                 case EnemyType.Eclipse: return e.Eclipse == null ? 0 : (int)e.Eclipse.Stage * 100 + (e.Eclipse.TransT > 0f ? 50 : (int)e.Eclipse.Turn);
                 default: return 0;  // Colossus and Duelist cue from their events
             }
@@ -79,7 +79,13 @@ namespace Arena
                         return Sfx.BossChime;
                     return turn == LichTurn.Sweep || turn == LichTurn.Hands || turn == LichTurn.Spirits ? Sfx.BossCharge : Sfx.BossShift;
                 }
-                case EnemyType.Devourer: return sig == 1 ? Sfx.BossCharge : Sfx.None;
+                case EnemyType.Devourer:  // a stage change chimes (StartDevourTransition); a breather is quiet (Devourer.cs)
+                    switch ((DevourTurn)(sig % 100))
+                    {
+                        case DevourTurn.Hungry: case DevourTurn.Inhale: case DevourTurn.Burrow: case DevourTurn.Frenzy: case DevourTurn.LastMeal: return Sfx.BossCharge;
+                        case DevourTurn.Spiral: case DevourTurn.Snap: case DevourTurn.Bile: case DevourTurn.Jaws: case DevourTurn.Vomit: return Sfx.BossPulse;
+                        default: return Sfx.None;  // breathers, the stage change
+                    }
                 case EnemyType.Eclipse:  // a stage change chimes (StartEclipseTransition); a breather is quiet (Eclipse.cs)
                     switch ((EclipseTurn)(sig % 100))
                     {

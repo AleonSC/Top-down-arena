@@ -77,6 +77,7 @@ namespace Arena
             var s0 = Seats[0];
             if (!host.Host(port, s0.Human ? "You" : "Bot 1", s0.Role, s0.Weapon, s0.Ability, s0.Kit))
                 return false;
+            host.Game.Unrecorded = true;  // lab fights aren't saved or counted in records
             host.Game.Bot = !s0.Human;
             host.Game.BotLevel = s0.Human ? BotSkill.Off : Skill;
             host.Game.BotRerolls = false;
@@ -84,6 +85,7 @@ namespace Arena
             for (int i = 1; i < PlayerCount; i++)
             {
                 var c = new Session();
+                c.Game.Unrecorded = true;
                 c.Game.Bot = true;
                 c.Game.BotLevel = Skill;
                 c.Game.BotRerolls = false;
@@ -104,6 +106,7 @@ namespace Arena
             if (Host != null)
             {
                 Host.Game.DamageEvent = null;
+                Host.Game.Unrecorded = false;
                 Host.Game.Bot = false;
                 Host.Game.BotLevel = BotSkill.Off;
                 Host.AutoStart = 0;

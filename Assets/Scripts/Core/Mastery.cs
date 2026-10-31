@@ -156,7 +156,7 @@ namespace Arena
             Player p;
             if (!IsHost || !Players.TryGetValue(id, out p))
                 return;
-            Recorder?.Dev(this, p.Name + ": every ability mastered");
+            DevUsed(p.Name + ": every ability mastered");
             foreach (var s in p.Slots)
                 if (s.Id != AbilityId.None)
                     GainMastery(p, s.Id, MasteryXpFor[MasteryMax - 1]);
