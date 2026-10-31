@@ -115,6 +115,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
 | `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |
+| `RunStatsUi.cs` | 0.4k | the Run stats screen (Tab, or the pause menu's Run stats): tabs Run so far (header chips, totals strip, `BuildRoute`, fight and party-share cards), Your build (`DrawTabMenu`), Team (`DrawMateCard`) |
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
@@ -128,7 +129,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 107) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 108) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -243,6 +244,15 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 **Bosses scale with build strength (Oct 2026):** `BuildPower.cs`. `BuildPower(Stats)` scores a build (damage x fire rate x (1+0.4 Multishot)(1+0.3 Barrage) x crits x boss legendaries x companions); `TypicalPower(role, ability, wave)` is the 75th percentile of 200 builds picked at random from the game's own offers (`TypicalLevel` = 1.35 x wave level-ups, plus a legendary and a mod per earlier boss; cached); `BossPowerScale()` = (party's mean power / typical)^0.75, x1 to x3, applied in `SpawnEnemyAt` to bosses (`Enemy.PowerScale`, recorded as `powerScale` in sessions). Off with `Game.ScaleBosses = false` (Boss Lab, the quick-kill Queen test) and in the Practice Range. The uploaded run's build: x1.07 at the Queen, x1.47 at the Reapers, x2.50 at the Singularity, x3 at the Colossus (`bosspower` report; `bosspowertest`).
 
 **From the OP Hemomancer session (Oct 2026):** Barrage's fanned copies deal `BarrageCopyDamage` (60%) via `volleyShare` in `FirePlayer`/`FireVolley` (one pick: boss +28% -> +19%, pack +60% -> +43%). Session recordings: bosses that leave without dying (the twins fusing, the Dual Reaper splitting) are closed by `SessionRecorder.BossMerged` and written with `"merged": true`; `report.py` skips them (before, they stayed open and collected every later hit and down). Checked in `reapers`.
+
+**Run stats screen (Oct 2026), protocol 108:** Tab now shows `RunStatsUi.cs` (mockup A at
+https://claude.ai/artifact/R283Z23R49V3k9KUVETFoA): tabs Run so far / Your build (the old `DrawTabMenu`) / Team. The pause
+menu has a **Run stats** button (`runStatsOpen`) for a paused party. Solo, holding Tab pauses (`tabPaused` in
+`ArenaApp.Update`; the pause menu stays hidden for it); in multiplayer it doesn't. New `Msg.RunStatsLive`: the host
+sends every player's `RunStats` about once a second (`TickLiveStats` in `HostTick`) and on pausing (`SetPaused`);
+`ReadRunStats(r, final: false)` leaves `RunStatsReady` alone. The route is built from `Game.Route` + `BossForWave`
+(`BuildRoute`). Not tracked yet (so not shown): damage by source, path prizes, boss fight times. Test: `runstats` (in
+the feature suite). Preview: `STATSTAB=0|1|2 [PAUSE=1] Tools/Preview/shot.sh <name> tab 14 12.2 3`.
 
 **Button style trial (Oct 2026), no protocol change:** six looks (A Sheen, B Slab, C Capsule, D Chamfer, E Glow, F Split;
 mockups at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi) were tried from a Settings dropdown; the owner kept **A Sheen**

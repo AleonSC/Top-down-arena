@@ -99,14 +99,14 @@ namespace Arena
                     break;
             }
             if (tabHeld)
-                DrawTabMenu(me);
+                DrawRunStatsScreen(me, false);  // RunStatsUi.cs
             else if (me != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
                 HudGroup(3, new Vector2(0f, -60f), new Rect(W - 290f, 10f, 274f, 22f), () =>
                 {
                     var hint = new Rect(W - 290f, 10f, 274f, 22f);
                     Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f));
-                    Ui.Label(hint, "Hold TAB  ·  stats & upgrades      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
+                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  hide HUD", 11, new Color(1f, 1f, 1f, 0.55f), TextAnchor.MiddleCenter, true);
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
                 float back = Mathf.Clamp01((0.35f - hudT) / 0.35f);

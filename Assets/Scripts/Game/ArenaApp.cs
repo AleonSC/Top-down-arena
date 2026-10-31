@@ -29,6 +29,7 @@ namespace Arena
         int weaponChoice, abilityChoice;
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
+        bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
@@ -212,6 +213,8 @@ namespace Arena
                 settingsOpen = false;
             if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : !settingsOpen)
                 fieldGuideOpen = false;
+            if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
+                runStatsOpen = false;  // the pause menu's Run stats closes with it (RunStatsUi.cs)
             else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
                 FieldGuideKeys();
             if (Input.GetKeyDown(KeyCode.F1))
@@ -219,14 +222,29 @@ namespace Arena
                 devMenuOpen = !devMenuOpen;
                 GUIUtility.keyboardControl = 0;
             }
-            bool menuUp = pauseMenuOpen || game.Paused || devMenuOpen || labSetupOpen;
+            // Solo, holding Tab pauses the match while the Run stats screen is up (RunStatsUi.cs); in multiplayer
+            // it doesn't (the pause menu's Run stats button is for looking together).
+            bool tabKey = session.Screen == AppScreen.Game && me != null && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
+            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !devMenuOpen && !labSetupOpen
+                && (game.State == MatchState.Fighting || game.State == MatchState.Intermission);
+            if (soloTab && !game.Paused)
+            {
+                game.RequestPause(true);
+                tabPaused = true;
+            }
+            if (tabPaused && (!soloTab || !game.Paused))
+            {
+                if (game.Paused && !pauseMenuOpen)
+                    game.RequestPause(false);
+                tabPaused = false;
+            }
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || devMenuOpen || labSetupOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works
             // while choosing an upgrade too: the cards hide until you let go.
-            tabHeld = session.Screen == AppScreen.Game && me != null && !menuUp
-                && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
+            tabHeld = tabKey && !menuUp;
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && game.PathOffer != null;
             bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
@@ -291,6 +309,8 @@ namespace Arena
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape) && runStatsOpen && !devMenuOpen)
+                    runStatsOpen = false;  // back to the pause menu (RunStatsUi.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && fieldGuideOpen && !devMenuOpen)
                     CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
@@ -461,10 +481,12 @@ namespace Arena
                     DrawHud();
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((pauseMenuOpen || game.Paused) && !devMenuOpen && !labSetupOpen)
+                    if ((pauseMenuOpen || (game.Paused && !tabPaused)) && !devMenuOpen && !labSetupOpen)
                     {
                         if (fieldGuideOpen)
                             DrawFieldGuideScreen();  // FieldGuide.cs
+                        else if (runStatsOpen)
+                            DrawRunStatsScreen(game.Me, true);  // RunStatsUi.cs
                         else
                             DrawPauseMenu();
                     }

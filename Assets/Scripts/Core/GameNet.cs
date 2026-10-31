@@ -247,6 +247,9 @@ namespace Arena
                 case Msg.RunStats:
                     ReadRunStats(r);
                     break;
+                case Msg.RunStatsLive:
+                    ReadRunStats(r, false);  // RunStats.cs
+                    break;
             }
         }
 

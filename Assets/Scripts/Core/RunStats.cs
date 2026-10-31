@@ -63,7 +63,28 @@ namespace Arena
         void BroadcastRunStats()
         {
             RunStatsReady = true;
-            var w = Proto.Begin(Msg.RunStats);
+            session.Broadcast(RunStatsMessage(Msg.RunStats));
+        }
+
+        const float LiveStatsEvery = 1f;  // seconds between the live tallies the host sends (Msg.RunStatsLive)
+        float liveStatsT;
+
+        /// The host sends everyone the tallies so far, about once a second and when the game pauses, so the
+        /// Run stats screen (Tab, or the pause menu) shows the whole party's numbers on every player's game.
+        void TickLiveStats(float dt, bool now = false)
+        {
+            if (!IsHost || ShowcaseMode || Players.Count < 2)
+                return;
+            liveStatsT -= dt;
+            if (!now && liveStatsT > 0f)
+                return;
+            liveStatsT = LiveStatsEvery;
+            session.Broadcast(RunStatsMessage(Msg.RunStatsLive));
+        }
+
+        byte[] RunStatsMessage(Msg kind)
+        {
+            var w = Proto.Begin(kind);
             w.Write(RunTime);
             w.Write((byte)Players.Count);
             foreach (var p in Players.Values)
@@ -83,10 +104,11 @@ namespace Arena
                 w.Write(s.ShotsHit);
                 w.Write(s.AbilitiesUsed);
             }
-            session.Broadcast(Proto.End(w));
+            return Proto.End(w);
         }
 
-        void ReadRunStats(BinaryReader r)
+        /// The end-of-run tallies (final) or the live ones (Msg.RunStatsLive, which leaves RunStatsReady alone).
+        void ReadRunStats(BinaryReader r, bool final = true)
         {
             RunTime = r.ReadSingle();
             int n = r.ReadByte();
@@ -110,7 +132,8 @@ namespace Arena
                 if (Players.TryGetValue(id, out p))
                     p.Run = s;
             }
-            RunStatsReady = true;
+            if (final)
+                RunStatsReady = true;
         }
     }
 }

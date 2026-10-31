@@ -39,6 +39,8 @@ namespace Arena
                 return;
             Paused = pause;
             PausedBy = pause ? id : 0;
+            if (pause)
+                TickLiveStats(0f, true);  // everyone looks at the same numbers while paused (RunStats.cs)
             var w = Proto.Begin(Msg.BulletSync);
             w.Write(Paused);
             w.Write(PausedBy);

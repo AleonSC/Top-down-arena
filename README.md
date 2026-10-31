@@ -644,18 +644,30 @@ Kept in `profile.txt` in the game's data folder.
 records; it's earned the moment the condition holds (an **Unlocked** toast in the match, listed in Records).
 There are none yet.
 
-## Loadout screen (Tab)
+## Run stats (Tab)
 
-Hold **Tab** during a match to see your stats, weapon, abilities (with charges, cooldowns and mastery level) and every
-upgrade you've picked, rarest first. It only shows on your screen: the game **doesn't pause** and your
-friend isn't affected, so you can check it mid-fight (you can still move and shoot while it's up).
+Hold **Tab** during a match for the **Run stats** screen, with three tabs (click to switch; it remembers the last one):
+
+- **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
+  and the run's modifiers; your totals (damage, kills, healing, accuracy, biggest hit, level, times downed, allies
+  revived); the **route** (each stretch of waves with its path, then the boss that ended it, down to the one coming
+  next); your fight (damage taken, elite and boss kills, shots that hit, abilities used); and each player's share of
+  the party's damage.
+- **Your build:** your stats, weapon, abilities (charges, cooldowns, mastery, moving them between keys) and every
+  upgrade you've picked, rarest first.
+- **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and upgrades.
+
+**Solo, holding Tab pauses the match** (letting go resumes it). **With friends it doesn't pause** (you can still move
+and shoot while it's up); to look together, pause (**Esc**) and press **Run stats** in the pause menu. The host sends
+everyone the run's numbers about once a second, and again the moment the game pauses.
 
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
 sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your
 and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
-a mute toggle, a **Field guide** button and **Leave game**. The **Field guide** (also a button in **Settings** on the
+a mute toggle, **Run stats** (the Tab screen, so a paused party can look at it together), a **Field guide** button and
+**Leave game**. The **Field guide** (also a button in **Settings** on the
 main menu) opens two in-game databases:
 
 - **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health

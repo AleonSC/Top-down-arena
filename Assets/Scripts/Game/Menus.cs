@@ -341,6 +341,7 @@ namespace Arena
         void ResumeGame()
         {
             pauseMenuOpen = false;
+            runStatsOpen = false;
             if (game.Paused)
                 game.RequestPause(false);
         }
@@ -349,7 +350,7 @@ namespace Arena
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
             float t = Time.unscaledTime;
-            var panel = new Rect(W / 2f - 240f, 45f, 480f, 630f);
+            var panel = new Rect(W / 2f - 240f, 20f, 480f, 680f);
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
             Player by;
@@ -363,18 +364,23 @@ namespace Arena
             float x = panel.x + 40f, w = panel.width - 80f;
             if (Ui.FancyButton(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary, PixelArt.Get("ui_play"), t))
                 ResumeGame();
-            DrawAudioOptions(x, panel.y + 168f, w);
+            // Run stats (the Tab screen, RunStatsUi.cs: everyone paused can look together) and the Field guide
+            // (the in-game Bestiary and Armory, FieldGuide.cs).
+            if (Ui.FancyButton(new Rect(x, panel.y + 154f, w / 2f - 6f, 42f), "Run stats", RunStatsColor, PixelArt.Get("ui_trophy"), t))
+                runStatsOpen = true;
+            if (Ui.FancyButton(new Rect(x + w / 2f + 6f, panel.y + 154f, w / 2f - 6f, 42f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+                OpenFieldGuide();
+            DrawAudioOptions(x, panel.y + 214f, w);
             if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
                 Ui.Label(new Rect(x, panel.yMax - 100f, w, 26f), "Your run is saved as each wave starts: continue it from the main menu.", 12, Ui.Muted, TextAnchor.MiddleCenter, false, true);
-            // The Field guide (the in-game Bestiary and Armory, FieldGuide.cs) beside Leave game.
-            if (Ui.FancyButton(new Rect(x, panel.yMax - 68f, w / 2f - 6f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
-                OpenFieldGuide();
-            if (Ui.FancyButton(new Rect(x + w / 2f + 6f, panel.yMax - 68f, w / 2f - 6f, 44f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
+            if (Ui.FancyButton(new Rect(x, panel.yMax - 68f, w, 44f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
             {
                 pauseMenuOpen = false;
                 session.Leave("");
             }
         }
+
+        static readonly Color RunStatsColor = new Color(0.62f, 0.5f, 0.2f);  // the pause menu's Run stats button
 
         void DrawSettings()
         {

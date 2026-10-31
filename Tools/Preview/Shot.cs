@@ -600,7 +600,30 @@ class Shot {
         host.Game.GrantUpgrade(1, U(n));
       if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
       me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
-      typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
+      if (Environment.GetEnvironmentVariable("STATSTAB") == null)
+        typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
+      else
+      {
+        // The Run stats screen (RunStatsUi.cs): STATSTAB=0 Run so far, 1 Your build, 2 Team; PAUSE=1 as opened from the pause menu.
+        var g = host.Game;
+        g.Wave = 23; g.State = MatchState.Fighting; g.RunTime = 1902f; g.Score = 18450;
+        g.Route.Clear(); g.Route.AddRange(new[] { PathId.SniperRidge, PathId.Bazaar, PathId.SwarmFields, PathId.FrozenLake });
+        g.CurrentPath = PathId.FrozenLake; g.PathFrom = 21; g.PathTo = 24;
+        int k = 0;
+        foreach (var pl in g.Players.Values)
+        {
+          var r = pl.Run; float f = k == 0 ? 1f : k == 1 ? 0.82f : 0.35f;
+          r.DamageDealt = 306307f * f; r.Kills = (int)(781 * f); r.HealingDone = k == 2 ? 9420f : 2227f * f; r.BiggestHit = 1240f + 900f * k;
+          r.Downs = 2 - k; r.Revives = k == 2 ? 3 : 1 - k; r.ShotsFired = 9000; r.ShotsHit = 5800 + 500 * k; r.DamageTaken = 4210f - 800f * k;
+          r.EliteKills = 31 - 5 * k; r.BossKills = 4; r.AbilitiesUsed = 212 - 30 * k; k++;
+          if (pl.Id != 1) foreach (var n in new[] { "Hollow Points", "Multishot", "Fortitude", "Vitality", "Vitality", "Executioner", "Piercing Rounds", "Sprinter", "Quick Trigger" }) g.GrantUpgrade(pl.Id, U(n));
+        }
+        set("statsTab", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
+        if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
+        Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
+        typeof(ArenaApp).GetMethod("DrawRunStatsScreen", f2).Invoke(app, new object[] { me, Environment.GetEnvironmentVariable("PAUSE") != null });
+        GL.ToUi = false;
+      }
     }
     else if (mode == "shop")
     {

@@ -1349,6 +1349,7 @@ namespace Arena
         void HostTick(float dt)
         {
             tickDt = dt;
+            TickLiveStats(dt);  // RunStats.cs
             Recorder?.Tick(this, dt);
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
