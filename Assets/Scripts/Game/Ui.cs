@@ -290,8 +290,9 @@ namespace Arena
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
         /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
-        /// glow: false leaves out the soft halo around the selected one (the lobby loadout).
-        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true)
+        /// glow: false leaves out the soft halo around the selected one (the lobby loadout). iconLeft: the icon sits
+        /// left of the name and second line, the group centred (the lobby's role cards).
+        public static bool Choice(Rect r, string text, bool selected, Color accent, Texture2D icon = null, string sub = null, int textSize = 0, bool glow = true, bool iconLeft = false)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             var old = GUI.backgroundColor;
@@ -319,7 +320,22 @@ namespace Arena
 
             Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
             int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
-            if (icon != null)
+            if (icon != null && iconLeft)
+            {
+                float isz = Mathf.Min(28f, r.height * 0.5f);
+                float tw = Mathf.Max(TextWidth(text, 15, true), sub != null ? TextWidth(sub, 11) : 0f);
+                float gx = r.center.x - (isz + 10f + tw) / 2f;
+                Icon(new Rect(gx, r.center.y - isz / 2f - 1f, isz, isz), icon);
+                float tx = gx + isz + 10f;
+                if (sub != null)
+                {
+                    Label(new Rect(tx, r.center.y - 19f, tw + 8f, 20f), text, 15, name, TextAnchor.MiddleLeft, true);
+                    Label(new Rect(tx, r.center.y + 1f, tw + 8f, 16f), sub, 11, selected ? new Color(1f, 1f, 1f, 0.8f) : Muted, TextAnchor.MiddleLeft);
+                }
+                else
+                    Label(new Rect(tx, r.y, tw + 8f, r.height - barH), text, 15, name, TextAnchor.MiddleLeft, true);
+            }
+            else if (icon != null)
             {
                 float isz = Mathf.Min(24f, r.height * 0.36f);
                 Icon(new Rect(r.center.x - isz / 2f, r.y + 6f, isz, isz), icon);

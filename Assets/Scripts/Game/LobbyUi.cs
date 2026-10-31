@@ -363,7 +363,7 @@ namespace Arena
             {
                 var rc = ToColor(Defs.Roles[i].Color);
                 var b = new Rect(x + i * (third + gap), y + 28f, third, 66f);
-                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false))
+                if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false, iconLeft: true))
                 {
                     session.RequestRole((Role)i);
                     hostRole = (Role)i;
