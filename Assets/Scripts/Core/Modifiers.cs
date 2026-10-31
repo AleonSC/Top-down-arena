@@ -20,6 +20,10 @@ namespace Arena
         GoldRush = 512,
         TinyArena = 1024,
         Nightfall = 2048,
+        Hunted = 4096,
+        DeathThroes = 8192,
+        SolidWalls = 16384,
+        SecondWind = 32768,
     }
 
     public enum ModLean { Harder, Easier, Risky }
@@ -47,12 +51,20 @@ namespace Arena
             new ModDef { Mod = RunMod.GoldRush, Name = "Gold Rush", Desc = "Every kill drops gold, and a shop opens before each boss. Unspent gold is kept.", Lean = ModLean.Easier },
             new ModDef { Mod = RunMod.TinyArena, Name = "Tiny Arena", Desc = "After each boss, walls take a quarter of the room (down to 40%).", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Nightfall, Name = "Nightfall", Desc = "It's dark: you see a short way round each player, plus where you aim.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.Hunted, Name = "Hunted", Desc = "Each wave one player is hunted by every enemy, and deals double damage.", Lean = ModLean.Risky },
+            new ModDef { Mod = RunMod.DeathThroes, Name = "Death Throes", Desc = "Every regular enemy bursts into a ring of 8 shots a moment after it dies.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.SolidWalls, Name = "Solid Walls", Desc = "No wrapping round the edges: the arena's sides are walls.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.SecondWind, Name = "Second Wind", Desc = "Once between bosses, each player gets back up by themselves at half health.", Lean = ModLean.Easier },
         };
 
         public const float GlassCannonDealt = 1.5f, GlassCannonTaken = 1.5f, ToughCrowdHp = 1.5f, FrenzyFire = 1.3f, SwiftFoesSpeed = 1.3f;
         public const int LuckyRerolls = 3;
         public const int HeadStartLevel = 3;
         public const float PracticedMastery = 2f;
+        public const float HuntedDamage = 2f;                                   // the hunted player's damage
+        public const int ThroesShots = 8;
+        public const float ThroesFuse = 0.5f, ThroesSpeed = 140f;               // Death Throes: a small ring, a moment after the kill
+        public const float SecondWindTime = 2f;                                 // down this long, then up at half health
 
         public static int Count(RunMod mods)
         {
@@ -79,5 +91,35 @@ namespace Arena
         public RunMod Mods;
 
         public bool Has(RunMod m) => (Mods & m) != 0;
+
+        /// Hunted: the player every enemy goes for this wave (0: nobody). Replicated.
+        public int HuntedId;
+
+        public bool IsHunted(Player p) => p != null && HuntedId == p.Id && Has(RunMod.Hunted);
+
+        /// Host, as a wave starts: Hunted picks its quarry; Second Wind comes back at the start of each boss cycle.
+        void ModsWaveStart()
+        {
+            HuntedId = 0;
+            if (Has(RunMod.Hunted))
+            {
+                var up = new List<Player>();
+                foreach (var p in Players.Values)
+                    if (!p.Downed)
+                        up.Add(p);
+                if (up.Count > 0)
+                {
+                    var h = up[rng.Next(up.Count)];
+                    HuntedId = h.Id;
+                    foreach (var e in Enemies.Values)
+                        e.RetargetT = 0f;
+                    BroadcastFx(FxKind.Ring, h.Pos, new Rgba(1f, 0.3f, 0.3f), 120f, 0.6f, Sfx.BossCharge);
+                    DoLog(h.Role + " is hunted on wave " + Wave);
+                }
+            }
+            if (Has(RunMod.SecondWind) && (Wave - 1) % 5 == 0)
+                foreach (var p in Players.Values)
+                    p.SecondWind = true;
+        }
     }
 }

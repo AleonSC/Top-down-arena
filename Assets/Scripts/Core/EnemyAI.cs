@@ -263,6 +263,9 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (!p.Downed && (p.TauntT > 0f || BloodTaunting(p)))
                     return p.Id;  // Roar: everyone goes for the roaring tank
+            Player hunted;
+            if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
+                return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
                 if (p.Downed || p.VanishT > 0f)  // a vanished Ninja can't be picked out (Ninja.cs)

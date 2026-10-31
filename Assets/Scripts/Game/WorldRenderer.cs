@@ -443,6 +443,10 @@ namespace Arena
         void DrawPlayerWrapped(Player p, float t)
         {
             DrawPlayer(p, t);
+            if (game.IsHunted(p) && !p.Downed)
+                DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs
+            if (game.Walled)
+                return;  // nothing comes in on the far side when the edges are walls
             V2 real = p.Disp;
             float edge = p.Def.BodyR + 12f;
             float dx = real.X < edge ? AW : real.X > AW - edge ? -AW : 0f;

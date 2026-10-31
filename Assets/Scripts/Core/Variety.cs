@@ -89,6 +89,7 @@ namespace Arena
         readonly List<V2> volatilePos = new List<V2>();
         readonly List<float> volatileT = new List<float>();
         readonly List<EnemyType> volatileType = new List<EnemyType>();
+        readonly List<int> volatileN = new List<int>();  // shots in each burst (Volatile 16, Death Throes 8)
         readonly List<V2> mirrorFrom = new List<V2>();
         readonly List<int> mirrorAt = new List<int>();
         readonly List<EnemyType> mirrorType = new List<EnemyType>();
@@ -248,6 +249,7 @@ namespace Arena
             volatilePos.Clear();
             volatileT.Clear();
             volatileType.Clear();
+            volatileN.Clear();
             mirrorFrom.Clear();
             mirrorAt.Clear();
             mirrorType.Clear();
@@ -302,12 +304,15 @@ namespace Arena
                     continue;
                 V2 at = volatilePos[i];
                 float off = Rand(0f, MathX.Tau);
-                for (int k = 0; k < VolatileShots; k++)
+                int n = volatileN[i];
+                bool throes = n != VolatileShots;
+                for (int k = 0; k < n; k++)
                 {
-                    V2 dir = V2.FromAngle(off + MathX.Tau * k / VolatileShots);
-                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * 150f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
+                    V2 dir = V2.FromAngle(off + MathX.Tau * k / n);
+                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * (throes ? Modifiers.ThroesSpeed : 150f), 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
                 }
-                BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.55f, 0.23f), 60f, 0.3f, Sfx.Explode);
+                BroadcastFx(FxKind.Boom, at, throes ? new Rgba(0.75f, 0.3f, 0.35f) : new Rgba(1f, 0.55f, 0.23f), throes ? 34f : 60f, 0.3f, throes ? Sfx.None : Sfx.Explode);
+                volatileN.RemoveAt(i);
                 volatileT.RemoveAt(i);
                 volatilePos.RemoveAt(i);
                 volatileType.RemoveAt(i);
@@ -861,7 +866,17 @@ namespace Arena
                 volatilePos.Add(e.Pos);
                 volatileT.Add(VolatileFuse);
                 volatileType.Add(e.Type);
+                volatileN.Add(VolatileShots);
                 BroadcastFx(FxKind.Target, e.Pos, new Rgba(1f, 0.55f, 0.23f), 60f, VolatileFuse, Sfx.BossCharge);
+            }
+            else if (Has(RunMod.DeathThroes) && !e.Def.IsBoss && e.Def.Xp > 0)
+            {
+                // Death Throes: every regular enemy bursts into a small ring a moment after it dies (Modifiers.cs).
+                volatilePos.Add(e.Pos);
+                volatileT.Add(Modifiers.ThroesFuse);
+                volatileType.Add(e.Type);
+                volatileN.Add(Modifiers.ThroesShots);
+                BroadcastFx(FxKind.Target, e.Pos, new Rgba(0.75f, 0.3f, 0.35f), 34f, Modifiers.ThroesFuse, Sfx.None);
             }
             if (HasTrait(e, EliteTrait.Splitting))
             {

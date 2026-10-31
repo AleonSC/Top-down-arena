@@ -377,8 +377,8 @@ namespace Arena
             return new V2(Width * (1f - s) / 2f, Height * (1f - s) / 2f);
         }
 
-        /// Narrow Pass or Tiny Arena is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
-        public bool Walled => NarrowF > 0f || TinyInset.X > 0.5f;
+        /// Narrow Pass, Tiny Arena or Solid Walls is walling the arena in: you can't wrap round the edges, and bullets stop at the walls.
+        public bool Walled => NarrowF > 0f || TinyInset.X > 0.5f || Has(RunMod.SolidWalls) && State != MatchState.Idle;
 
         /// The playable part of the arena: all of it, or what's inside Narrow Pass's or Tiny Arena's walls.
         public V2 ArenaMin

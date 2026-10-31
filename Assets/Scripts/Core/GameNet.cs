@@ -275,6 +275,7 @@ namespace Arena
             s.Bool(ref Paused);
             s.Int(ref PausedBy);
             s.Bool(ref Endless);
+            s.Int(ref HuntedId);  // Hunted (Modifiers.cs)
             s.Vec(ref PullCenter);
             s.Float(ref PullStrength);
             s.Float(ref TwinReviveT);

@@ -11,7 +11,7 @@ namespace Arena
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
             foreach (var p in Players.Values)
-                if (!p.Downed || p.ReviveToken)
+                if (!p.Downed || p.ReviveToken || p.SecondWind)
                     return;  // someone's standing, or will get up on their own
             foreach (var m in Minions.Values)
                 if (m.Kind == MinionKind.Phoenix)
@@ -74,6 +74,7 @@ namespace Arena
                             BuildWave(Wave);
                             bossName = Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null;
                         }
+                        ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         Recorder?.WaveStart(this, Wave, bossName);
                         DoLog("wave " + Wave + ": " + string.Join(",", spawnQueue));
                     }

@@ -393,6 +393,8 @@ namespace Arena
                 float f = Mathf.Clamp01(game.TinyInset.X / 40f) * (game.TinyMoving ? 0.999f : 1f);
                 DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, f, TinyAccent, t);
             }
+            else if (game.Walled && game.Has(RunMod.SolidWalls))
+                DrawSolidWalls(t);  // ModifiersUi.cs
             if (game.NightF > 0f)
                 DrawNight(t);
             if (game.FogF > 0f)

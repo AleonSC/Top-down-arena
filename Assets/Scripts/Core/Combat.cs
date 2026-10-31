@@ -767,6 +767,8 @@ namespace Arena
             {
                 var s = p.Stats;
                 dmg *= KnightDamageMult(p);  // Battle Fury, Last Stand
+                if (IsHunted(p))
+                    dmg *= Modifiers.HuntedDamage;  // Hunted: the quarry hits twice as hard (Modifiers.cs)
                 dmg *= BloodDamageMult(p);   // Blood Price
                 if (s.ExecuteBonus > 0f && e.Hp < e.MaxHp * ExecuteBelow)
                     dmg *= 1f + s.ExecuteBonus;

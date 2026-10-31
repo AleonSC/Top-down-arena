@@ -142,6 +142,7 @@ namespace Arena
         public int Restocks;                   // shelf restocks this visit (replicated; each costs more)
         public bool ShopDone;                  // clicked Done shopping (replicated)
         public bool ReviveToken;               // bought at the Bazaar: get back up once by yourself (replicated)
+        public bool SecondWind;                // the Second Wind modifier: get back up once by yourself this boss cycle (replicated)
         public float TokenT;                   // host: how long you've been down with a token
         public float Xp;
         public int[] Offer;  // three upgrade ids while choosing, otherwise null
@@ -602,6 +603,7 @@ namespace Arena
                 Recorder.End(this, how);
             Running = false;
             State = MatchState.Idle;
+            HuntedId = 0;
             Wave = 0;
             Score = 0;
             Remaining = 0;

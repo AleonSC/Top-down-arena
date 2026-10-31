@@ -235,22 +235,26 @@ namespace Arena
             SendSnapshot();
         }
 
-        /// Host: a downed player with a revive token gets up on their own.
+        /// Host: a downed player with a revive token (or Second Wind, used first) gets up on their own.
         void TickReviveToken(Player p, float dt)
         {
-            if (!p.Downed || !p.ReviveToken)
+            if (!p.Downed || !p.ReviveToken && !p.SecondWind)
             {
                 p.TokenT = 0f;
                 return;
             }
             p.TokenT += dt;
-            if (p.TokenT < TokenReviveTime)
+            if (p.TokenT < (p.SecondWind ? Modifiers.SecondWindTime : TokenReviveTime))
                 return;
-            p.ReviveToken = false;
+            bool wind = p.SecondWind;
+            if (wind)
+                p.SecondWind = false;
+            else
+                p.ReviveToken = false;
             p.TokenT = 0f;
             RevivePlayer(p, 0.5f);
-            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.85f, 0.4f), 90f, 0.6f, Sfx.Revive);
-            DoLog(p.Role + " used a revive token");
+            BroadcastFx(FxKind.Ring, p.Pos, wind ? new Rgba(0.55f, 0.95f, 1f) : new Rgba(1f, 0.85f, 0.4f), 90f, 0.6f, Sfx.Revive);
+            DoLog(p.Role + (wind ? " got a second wind" : " used a revive token"));
         }
 
         void ReadShopGift(BinaryReader r)
@@ -303,6 +307,7 @@ namespace Arena
             s.Int(ref p.Gold);
             s.Bool(ref p.ShopDone);
             s.Bool(ref p.ReviveToken);
+            s.Bool(ref p.SecondWind);  // Modifiers.cs
             s.Byte(ref p.Restocks);
             s.Byte(ref p.ShelfSold);
             for (int i = 0; i < ShelfSize; i++)

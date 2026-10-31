@@ -491,7 +491,7 @@ wave, everyone gets a shop before the boss:
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists switches that change the whole run, for everyone (Practice Range too). The
+The lobby's **Modifiers** tab lists 16 switches (four to a row) that change the whole run, for everyone (Practice Range too). The
 host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
 as chips above the wave panel during the match, and session recordings list them.
 
@@ -509,6 +509,10 @@ as chips above the wave panel during the match, and session recordings list them
 | Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
+| Hunted | As each wave starts, one player (at random, among those standing) is hunted: every enemy goes for them (a Roar still pulls enemies off), and they deal double damage. Red brackets turn round them, and the HUD chip says who. While they're down, enemies pick someone else | Risky |
+| Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 8 shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
+| Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
+| Second Wind | Once per boss cycle (waves 1-5, 6-10, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
 
 ## Difficulty
 
