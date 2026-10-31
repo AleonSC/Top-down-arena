@@ -270,12 +270,28 @@ namespace Arena
                 NextWardenTurn(e, w, target);
         }
 
-        /// A new stage starts with a bang: a flash and a wide ring from the boss.
+        /// A new stage starts with a bang: a flash and a wide ring from the boss, and a few small health orbs.
         void StageStartBurst(Enemy e, Rgba color)
         {
             BroadcastFx(FxKind.Boom, e.Pos, Rgba.White, e.Radius + 70f, 0.4f, Sfx.BigExplode);
             BroadcastFx(FxKind.Ring, e.Pos, color, 1100f, 0.9f, Sfx.None);
+            StageOrbs(e.Pos, e.Radius);
         }
+
+        /// A boss changing stage knocks a few small health orbs loose: StageOrbBase plus one per player, scattered in a
+        /// ring just outside it (every boss's StageStartBurst, and the Twin Reapers fusing and splitting).
+        void StageOrbs(V2 at, float radius)
+        {
+            int n = StageOrbBase + Players.Count;
+            float turn = (float)orbRng.NextDouble() * MathX.Tau;
+            for (int i = 0; i < n; i++)
+            {
+                float a = turn + MathX.Tau * i / n + ((float)orbRng.NextDouble() - 0.5f) * 0.5f;
+                SpawnOrb(at + V2.FromAngle(a) * (radius + 70f + 70f * (float)orbRng.NextDouble()), false);
+            }
+        }
+
+        readonly Random orbRng = new Random();  // its own rolls, so the orbs don't change the bosses' random choices (or seeded tests)
 
         void EnterWardenStage(Enemy e, WardenStage stage)
         {

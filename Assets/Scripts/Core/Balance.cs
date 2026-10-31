@@ -62,6 +62,7 @@ namespace Arena
         public const float TinyOrbHeal = 6f;   // the Repulsion Cannon knocks these loose (Repulsion.cs)
         public const float BigOrbHeal = 60f;
         public const float OrbLifetime = 12f;
+        public const int StageOrbBase = 2;  // a boss changing stage drops this many small health orbs, plus one per player (Warden.cs: StageOrbs)
         const float OrbMagnetRange = 110f;
         const float ReviveRange = 70f;
 
