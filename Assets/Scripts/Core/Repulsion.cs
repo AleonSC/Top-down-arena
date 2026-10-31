@@ -14,7 +14,7 @@ namespace Arena
         void FireRepulsion(Player p, float aim, float dmg, int extra)
         {
             var w = p.Weapon;
-            float reach = w.Reach * AreaMult(p), half = RepelHalfArc + RepelArcPerExtra * extra;
+            float reach = w.Reach * AreaMult(p) * PierceReach(p), half = RepelHalfArc + RepelArcPerExtra * extra;
             float hit = (w.Damage + RepelDmgPerExtra * extra) * dmg, push = RepelPush + RepelPushPerExtra * extra;
             V2 origin = p.Pos;
             BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, 0.35f, Sfx.Shockwave);

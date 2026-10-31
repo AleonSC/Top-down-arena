@@ -2324,7 +2324,7 @@ static partial class Program
         Func<string, int> U = n => Array.FindIndex(Upgrades.All, u => u.Name == n);
         Action<string, int> build = (up, n) => { me.Taken.Clear(); for (int k = 0; k < n; k++) me.Taken.Add(U(up)); g.GrantUpgrade(1, U("Vitality")); };
         V2 from = new V2(400f, 450f);
-        Action clear = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); } g.Bullets.Clear(); g.Zones.Clear(); };
+        Action clear = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); } g.Bullets.Clear(); g.Zones.Clear(); g.Minions.Clear(); };
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; return e; };
 
         // Velocity Rounds: where a Flak shell bursts and an Ofuda charm lands, aimed 250 px away.
@@ -2398,6 +2398,57 @@ static partial class Program
         }
         Console.WriteLine("  Explosive + Incendiary Rounds on non-bullet weapons: " + string.Join(", ", res));
         Check(modsRide, "weapon mods (Explosive, Incendiary) apply to Chain Light, Repulsion Cannon and Ofuda hits");
+
+        // Ricochet on a weapon whose hits can't bounce (Chain Light's cone): a bounce bolt carries on to an enemy outside it.
+        var outside = new float[2];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            clear();
+            me.Taken.Clear();
+            if (pass == 1) me.Taken.Add(U("Ricochet"));
+            g.GrantUpgrade(1, U("Vitality"));
+            me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
+            V2 at = from + new V2(150f, 0f), beside = at + new V2(0f, 200f);  // well outside the cone, within a bounce of the first
+            var a1 = dummy(at); var a2 = dummy(beside);
+            for (int f = 0; f < 60 * 3; f++)
+            {
+                a1.Pos = at; a2.Pos = beside; a1.FrozenT = a2.FrozenT = 1f; me.Pos = from;
+                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at });
+            }
+            outside[pass] = a2.MaxHp - a2.Hp;
+        }
+        Console.WriteLine("  ricochet on Chain Light: the enemy outside the cone took {0:0.0} without, {1:0.0} with", outside[0], outside[1]);
+        Check(outside[0] == 0f && outside[1] > 0f, "Ricochet flings bounce bolts off hits that can't bounce (Chain Light's cone)");
+
+        // Piercing Rounds on weapons without bullets that run out of pierce: each stack reaches 10% farther.
+        var longer = new List<string>();
+        bool allLonger = true;
+        foreach (var id in new[] { WeaponId.Flamethrower, WeaponId.FrostLance, WeaponId.FumaShuriken, WeaponId.LightBolt, WeaponId.RadiantOrb,
+            WeaponId.ChainLight, WeaponId.SpiritFan, WeaponId.Ofuda, WeaponId.ArcLightning, WeaponId.WispLantern, WeaponId.ImpCaller })
+        {
+            me.Weapon = Defs.Weapons.First(w => w.Id == id);
+            build("Piercing Rounds", 0);
+            float r0 = g.WeaponRange(me) - me.Def.BodyR;
+            build("Piercing Rounds", 2);
+            float r2 = g.WeaponRange(me) - me.Def.BodyR;
+            float ratio = r2 / r0;
+            if (Math.Abs(ratio - 1.2f) > 0.03f) { allLonger = false; longer.Add(me.Weapon.Name + string.Format(" x{0:0.00}", ratio)); }
+        }
+        Console.WriteLine("  piercing (2 stacks): every reach x1.2 {0}{1}", allLonger, longer.Count > 0 ? " (off: " + string.Join(", ", longer) + ")" : "");
+        Check(allLonger, "Piercing Rounds make weapons without piercing bullets reach 10% farther a stack");
+        var reached = new float[2];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            clear();
+            build("Piercing Rounds", pass * 2);
+            me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
+            V2 at = from + new V2(Game.LightConeReach * 1.15f + Defs.Get(EnemyType.Brute).Radius, 0f);  // its edge 15% past the plain cone (the cone counts from your centre)
+            var a1 = dummy(at);
+            for (int f = 0; f < 60 * 2; f++) { a1.Pos = at; a1.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = at }); }
+            reached[pass] = a1.MaxHp - a1.Hp;
+        }
+        Console.WriteLine("  piercing on Chain Light: an enemy 15% past the plain cone took {0:0.0} without, {1:0.0} with 2 stacks", reached[0], reached[1]);
+        Check(reached[0] == 0f && reached[1] > 0f, "with Piercing Rounds the Chain Light's cone reaches enemies past its plain length");
         host.Leave("");
     }
 }

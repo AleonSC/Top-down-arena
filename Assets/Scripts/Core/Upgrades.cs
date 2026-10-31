@@ -276,7 +276,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy", Apply = s => s.Pierce += 1 },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through one more enemy. Weapons without such shots reach 10% farther instead", Apply = s => s.Pierce += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
                 Apply = s => { s.PerfectBonus += 0.12f; s.ReflectMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Counterstance", Desc = "A perfect parry gives +50% fire rate for 2.5 s",
@@ -323,7 +323,7 @@ namespace Arena
             // Weapon mods: one is picked after every boss, from the full list.
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 10% less damage per stack. More stacks bend harder",
                 Apply = s => s.Homing += 2f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack",
+            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
                 Apply = s => s.Ricochet += 1 },
             new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 25% of the hit's damage over 3 s, and burns from every hit add up",
                 Apply = s => s.BurnFrac += 0.25f },
@@ -419,7 +419,7 @@ namespace Arena
             { "Piercing Rounds", "Your swings reach 10% further, and sword waves pass through one more enemy" },
             { "Barrage", "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" },
             { "Homing Rounds", "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected" },
-            { "Ricochet", "Your sword waves bounce to another nearby enemy after a hit (75% damage). +1 bounce per stack" },
+            { "Ricochet", "Your hits fling a bounce bolt at another nearby enemy (75% of the damage, up to 4 a second), and sword waves bounce. +1 bounce per stack" },
             { "Explosive Rounds", "Your hits explode, dealing 30% damage to enemies nearby" },
             { "Velocity Rounds", "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage" },
         };

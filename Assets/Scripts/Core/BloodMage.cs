@@ -133,6 +133,7 @@ namespace Arena
                     {
                         var b = SpawnBullet(Defs.BoneSpearShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.12f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                         b.Pierce += 3;
+                        b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
                         b.DropsSpear = i == 0;  // stays stuck where it stops: walk over it for its health back
                     }
                     break;

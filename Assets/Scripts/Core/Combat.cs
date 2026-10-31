@@ -459,7 +459,7 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 if (b.DropsSpear)
                                     DropSpear(b);  // a Bone Spear drops where it's spent (BloodMage.cs)
-                                if (b.Bounces > 0)
+                                if (b.Bounces > 0 && !b.Bolts)  // a piercing shot flung bounce bolts instead
                                     ricochets.Add(b);
                             }
                             break;
@@ -562,19 +562,7 @@ namespace Arena
             // Ricochet: the bullet carries on toward the nearest other enemy.
             foreach (var rb in ricochets)
             {
-                Enemy next = null;
-                float bestD = 300f * 300f;
-                foreach (var e in Enemies.Values)
-                {
-                    if (e.Id == rb.LastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0)
-                        continue;
-                    float d = e.Pos.DistanceSq(rb.Pos);
-                    if (d < bestD)
-                    {
-                        next = e;
-                        bestD = d;
-                    }
-                }
+                Enemy next = BounceTarget(rb.Pos, rb.LastHit);
                 if (next == null)
                     continue;
                 float speed = Math.Max(400f, rb.Vel.Length);
@@ -583,7 +571,7 @@ namespace Arena
                 Player owner;
                 if (Players.TryGetValue(rb.Owner, out owner))
                     speed /= owner.Stats.ShotSpeedMult;
-                var nb = SpawnBullet(rb.Kind, rb.Pos, dir * speed, 0f, 0.8f, rb.Dmg * 0.75f, rb.Owner);
+                var nb = SpawnBullet(rb.Kind, rb.Pos, dir * speed, 0f, 0.8f, rb.Dmg * RicochetMult, rb.Owner);
                 nb.LastHit = rb.LastHit;
                 nb.Pierce = 0;
                 nb.Bounces = rb.Bounces - 1;
@@ -614,6 +602,20 @@ namespace Arena
                     }
                 }
             }
+
+            // Bounce bolts (Ricochet on hits that can't bounce): from the enemy hit to the nearest other one.
+            foreach (var bb in bolts)
+            {
+                Enemy next = BounceTarget(bb.Pos, bb.LastHit);
+                if (next == null)
+                    continue;
+                V2 dir = (next.Pos - bb.Pos).Normalized();
+                var nb = SpawnBullet(Defs.BoltShot, bb.Pos, dir * 650f, 0f, 0.8f, bb.Dmg, bb.Owner);
+                nb.LastHit = bb.LastHit;
+                nb.Pierce = 0;
+                nb.Bounces = bb.Bounces;  // more stacks: it bounces on as an ordinary ricochet
+            }
+            bolts.Clear();
 
             foreach (var sp in splits)
             {
@@ -842,6 +844,49 @@ namespace Arena
             }
             if (s.ShockChance > 0f && rng.NextDouble() < s.ShockChance)
                 ChainLightning(e, b.Dmg * 0.6f, 2, b.Owner);
+            if (s.Ricochet > 0 && !CanBounce(b))
+            {
+                // Ricochet on a hit that can't bounce (a swing, beam, cone, burst, sent wisp, or a shot that pierces
+                // everything): the damage is stored, and a few times a second a bounce bolt carries 75% of it on.
+                p.BoltStore += b.Dmg;
+                if (p.BoltCd <= 0f)
+                {
+                    bolts.Add(new Bullet { Pos = e.Pos, Owner = b.Owner, Dmg = p.BoltStore * RicochetMult, LastHit = e.Id, Bounces = s.Ricochet - 1 });
+                    p.BoltStore = 0f;
+                    p.BoltCd = BoltEvery;
+                }
+            }
+        }
+
+        public const float RicochetMult = 0.75f, RicochetReach = 300f, BoltEvery = 0.25f;  // a bounce's share of the hit; how far it looks; bounce bolts at most this often
+        readonly List<Bullet> bolts = new List<Bullet>();
+
+        /// A flying bullet that bounces on its own when it's spent (Ricochet's usual way). Stand-in bullets for
+        /// swings, beams, cones and bursts can't, and nor can shots that pierce everything, grenades or boulders.
+        bool CanBounce(Bullet b)
+        {
+            Bullet live;
+            return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0 && !b.Ward
+                && b.Kind != Defs.BoulderShot && b.Kind != Defs.FumaStar;
+        }
+
+        /// The nearest enemy a bounce can go to from `pos`, other than the one it just hit.
+        Enemy BounceTarget(V2 pos, int lastHit)
+        {
+            Enemy next = null;
+            float bestD = RicochetReach * RicochetReach;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.Id == lastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0)
+                    continue;
+                float d = e.Pos.DistanceSq(pos);
+                if (d < bestD)
+                {
+                    next = e;
+                    bestD = d;
+                }
+            }
+            return next;
         }
 
         public const float IncendiaryTime = 3f;  // Incendiary Rounds' pool burns off evenly over this long after the last hit

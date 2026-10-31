@@ -358,6 +358,7 @@ namespace Arena
                         var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
                         b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
                         b.Pierce += c >= 1f ? 2 : c >= 0.5f ? 1 : 0;
+                        b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
                         if (perfect)
                             b.Radius = 6f;
                     }
@@ -386,6 +387,7 @@ namespace Arena
                 {
                     var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 3;
+                    b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
                     IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (Minions.cs)
                     if (extra > 0)
                         SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
@@ -431,21 +433,24 @@ namespace Arena
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.Ofuda:  // where a charm lands as a ward, at most (Ninja.cs)
-                    return p.Def.BodyR + WardRange * p.Stats.ShotSpeedMult;
+                    return p.Def.BodyR + WardRange * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.WispLantern:  // how far a wisp is sent (Minions.cs)
-                    return WispReach;
+                    return WispReach * PierceReach(p);
                 case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
-                    return ImpReach;
+                    return ImpReach * PierceReach(p);
                 case WeaponId.ArcLightning:  // the strip's length with the current charge (Minions.cs)
                     return ArcLength(p, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f);
                 case WeaponId.ChainLight:  // the cone's reach (Minions.cs)
                     return LightConeLength(p, x);
                 case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
-                    return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult;
+                    return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.Implosion:  // how far away you can click (BloodMage.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
+                case WeaponId.Flamethrower:  // the lead flame's reach (Minions.cs)
+                case WeaponId.SpiritFan:     // the gust's reach (Ninja.cs)
+                    return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.LightBolt:  // the Repulsion Cannon's cone
-                    return p.Def.BodyR + w.Reach * AreaMult(p);
+                    return p.Def.BodyR + w.Reach * AreaMult(p) * PierceReach(p);
                 case WeaponId.LeechBeam:  // Leech Tendrils reach from your edge (BloodMage.cs)
                     return p.Def.BodyR + GraspReach(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)

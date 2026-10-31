@@ -66,7 +66,7 @@ namespace Arena
                 {
                     // A steady stream: two flames a burst (+1 and 25% more reach per extra projectile) that pass
                     // through enemies and set them burning.
-                    float reach = w.Life * (1f + w.Grow * extra);
+                    float reach = w.Life * (1f + w.Grow * extra) * PierceReach(p);  // the flames fly longer: Piercing Rounds reach farther
                     for (int i = 0; i < 2 + extra; i++)
                     {
                         var b = SpawnBullet(Defs.FlameShot, muzzle, V2.FromAngle(aim + Rand(-0.2f, 0.2f)) * (i == 0 ? w.Speed : Rand(0.8f * w.Speed, w.Speed)), 0f, reach, w.Damage * dmg, p.Id);  // the lead flame goes the whole way
@@ -80,13 +80,13 @@ namespace Arena
                     // A great icicle juts out from you along your aim, then splinters off its sides into
                     // whatever stands beside it. Both slow.
                     dmg *= HomingCost(p);  // Homing Rounds widen the splinters instead (AreaMult)
-                    var ice = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * dmg);
+                    var ice = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * dmg);  // Piercing Rounds lengthen it
                     ice.HalfWidth = IcicleHalfWidth;
                     ice.Ice = 1;
                     ice.Slow = IcicleSlow;
                     ice.NoCut = true;
                     pendingSwings.Add(ice);
-                    var shards = NewSwing(p, aim, w.Reach + w.Grow * extra, 0f, w.Damage * SplinterMult * dmg);
+                    var shards = NewSwing(p, aim, MeleeReach(p, w.Reach + w.Grow * extra), 0f, w.Damage * SplinterMult * dmg);
                     shards.HalfWidth = (SplinterReach + SplinterGrow * extra) * AreaMult(p);
                     shards.Hollow = IcicleHalfWidth;
                     shards.Delay = SplinterDelay;
@@ -380,7 +380,7 @@ namespace Arena
                     pick = m;  // the one most in front of you
             if (pick == null)
                 return;
-            PickGoal(p, pick, WispReach);
+            PickGoal(p, pick, WispReach * PierceReach(p));  // Piercing Rounds send it farther
             p.Run.ShotsFired++;
         }
 
@@ -405,7 +405,7 @@ namespace Arena
                 idle.RemoveRange(1, idle.Count - 1);
             }
             foreach (var m in idle)
-                PickGoal(p, m, ImpReach);
+                PickGoal(p, m, ImpReach * PierceReach(p));
         }
 
         /// Host, each tick for a Wisp Lantern wisp or Imp Caller imp (instead of its usual moves). Returns true if it
@@ -672,7 +672,7 @@ namespace Arena
         /// Arc Lightning: hold to charge a strip of ground in front of you, longer the longer you hold (out to half
         /// the arena); let go and lightning shocks everything in it.
         public const float ArcMin = 160f, ArcMax = Width * 0.5f, ArcHalfWidth = 45f, ArcStun = 0.4f, ArcGrow = 0.25f;  // lengths from your centre; half its width; stun (not bosses); +damage per extra projectile
-        public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch it
+        public static float ArcLength(Player p, float c) => (ArcMin + (ArcMax - ArcMin) * c) * p.Stats.ShotSpeedMult * PierceReach(p);  // Velocity and Piercing Rounds stretch it
         public static float ArcWidth(Player p) => ArcHalfWidth * AreaMult(p);  // Homing Rounds widen it
 
         /// Barrage adds strips side by side, parallel to the first and alternating sides, so they never overlap: an
@@ -724,7 +724,7 @@ namespace Arena
         /// Chain Light: a great cone of light in front of you. Its damage is shared out between every enemy in it,
         /// so one enemy alone takes all of it; light arcs from you to each.
         public const float LightConeReach = 320f, LightConeHalf = 0.6f, LightConeGrow = 0.25f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
-        public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra);
+        public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra) * PierceReach(p);  // Piercing Rounds reach farther
 
         /// Barrage adds cones edge to edge beside the first, alternating sides (evenly round you if they'd go all the
         /// way round). Each enemy belongs to one cone only, the one it's nearest the middle of, and each cone shares

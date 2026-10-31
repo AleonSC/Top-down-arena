@@ -82,6 +82,7 @@ namespace Arena
         public float IronPower = 1f;                  // host: Iron Body's mastery, for its shockwave
         public bool IronMastered;
         public float PactT, RushT;                    // Blood Mage: Crimson Pact and Frenzy Pact (replicated)
+        public float BoltStore, BoltCd;               // host: Ricochet on hits that can't bounce, stored toward the next bounce bolt (Combat.cs)
         public float BloodReserve;                    // Sanguine Orb: heal reserve charged by coating enemies (replicated, whole points)
         public float CoatT;                           // coated in a Sanguine Orb's healing blood: heals while it lasts (replicated)
         public int CoatBy;                            // host: who coated them
@@ -248,6 +249,7 @@ namespace Arena
         public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
         public bool DropsSpear;   // host only: a Bone Spear, which stays stuck where it stops (a pickup)
         public bool Ward;         // host only: an Ofuda charm flying to where it will lie as a ward
+        public bool Bolts;        // host only: a piercing shot whose hits fling Ricochet's bounce bolts instead of it bouncing (Combat.cs)
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through
@@ -1402,6 +1404,7 @@ namespace Arena
                 p.AegisT = Math.Max(0f, p.AegisT - dt);
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);
                 p.FrenzyT = Math.Max(0f, p.FrenzyT - dt);
+                p.BoltCd -= dt;  // Ricochet's bounce bolts (Combat.cs)
                 p.UltT = p.Downed ? 0f : Math.Max(0f, p.UltT - dt);
                 TickParry(p, dt);
                 p.ShieldT = Math.Max(0f, p.ShieldT - dt);
