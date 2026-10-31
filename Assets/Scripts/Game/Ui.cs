@@ -287,6 +287,26 @@ namespace Arena
 
         public static bool SmallButton(Rect r, string text, int size = 12) => SmallButton(r, text, Neutral, size);
 
+        /// A thin bar whose two ends fade out (the colour line along the bottom of a choice card): a solid middle
+        /// and a smoothstep ramp of thin slices at each end. Neighbouring slices share their edges exactly, so the
+        /// GPU leaves no seams between them.
+        public static void FadedBar(Rect r, Color c)
+        {
+            float fade = Mathf.Min(28f, r.width * 0.3f);
+            const int steps = 14;
+            float step = fade / steps;
+            Fill(new Rect(r.x + fade, r.y, r.width - 2f * fade, r.height), c);
+            for (int i = 0; i < steps; i++)
+            {
+                float f = (i + 0.5f) / steps;
+                f = f * f * (3f - 2f * f);
+                var sc = new Color(c.r, c.g, c.b, c.a * f);
+                float x0 = r.x + i * step, x1 = r.x + (i + 1) * step;
+                Fill(new Rect(x0, r.y, x1 - x0, r.height), sc);
+                Fill(new Rect(r.xMax - (r.x + (i + 1) * step - r.x), r.y, x1 - x0, r.height), sc);
+            }
+        }
+
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
         /// as "276 HP") it becomes a small icon card: icon on top, name, then the second line.
@@ -316,7 +336,7 @@ namespace Arena
             }
             GUI.backgroundColor = old;
             float barH = r.height >= 34f ? 3f : 2f;
-            Fill(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
+            FadedBar(new Rect(r.x + 5f, r.yMax - barH - 2f, r.width - 10f, barH), new Color(accent.r, accent.g, accent.b, selected ? 1f : hover ? 0.6f : 0.35f));
 
             Color name = selected ? Color.white : Color.Lerp(accent, Color.white, 0.2f);
             int size = textSize > 0 ? textSize : r.height < 30f ? 12 : 14;
