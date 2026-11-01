@@ -272,6 +272,8 @@ namespace Arena
                     }
                     break;
                 case QueenTurn.Spray:
+                    if (q.TurnT >= 0.5f && q.TurnT - dt < 0.5f)
+                        BroadcastSound(Sfx.BossSplat);  // the honey starts flowing
                     // One stream sweeping 140 degrees back and forth below her.
                     q.Aux += q.SprayDir * SpraySweep * dt;
                     if (q.Aux > 1f || q.Aux < 0f)
@@ -307,7 +309,10 @@ namespace Arena
             q.Stage = stage;
             q.Step = -1;
             if (stage == QueenStage.LastStand)
+            {
                 q.CloudOn = false;
+                BroadcastSound(Sfx.BossGong);  // her last stand
+            }
             NextQueenTurn(e, q);
             DoLog("the Hive Queen: " + stage);
         }
@@ -372,7 +377,7 @@ namespace Arena
                     int n = Math.Max(0, Math.Min(QueenSwarmCap - swarm, 3 + AlivePlayers()));
                     for (int i = 0; i < n; i++)
                         q.Royal.Add(SpawnDrone(e, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / n) * 70f).Id);
-                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.Ability);
+                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.BossBuzz);
                     break;
                 }
                 case QueenTurn.Eggs:
@@ -386,6 +391,7 @@ namespace Arena
                     q.CloudOn = true;
                     q.CloudHome = false;
                     q.Cloud = q.CloudDisp = e.Pos + new V2(0f, 60f);
+                    BroadcastSound(Sfx.BossBuzz);  // the swarm let loose
                     break;
                 case QueenTurn.Dive:
                     StartDive(e, q);
@@ -418,6 +424,7 @@ namespace Arena
             {
                 case QueenTurn.Bombers:  // one explosive drone per player, at where they are right now
                     e.FireT = 0.9f;
+                    BroadcastSound(Sfx.BossBuzz);
                     foreach (var p in Players.Values)
                         if (!p.Downed)
                             LaunchBomber(e, p.Pos);
@@ -452,6 +459,7 @@ namespace Arena
                 }
                 case QueenTurn.Barrage:  // two per player: where you are, and where you're heading
                     e.FireT = 0.9f;
+                    BroadcastSound(Sfx.BossBuzz);
                     foreach (var p in Players.Values)
                     {
                         if (p.Downed)
@@ -472,6 +480,7 @@ namespace Arena
                     if (q.BombT <= 0f)
                     {
                         q.BombT = 2f;
+                        BroadcastSound(Sfx.BossBuzz);
                         foreach (var p in Players.Values)
                             if (!p.Downed)
                                 LaunchBomber(e, p.Pos);
@@ -561,7 +570,7 @@ namespace Arena
                 Enemies.Remove(egg.Id);
                 for (int i = 0; i < DronesPerEgg; i++)
                     SpawnDrone(queen, egg.Pos + V2.FromAngle(MathX.Tau * i / DronesPerEgg) * 16f);
-                BroadcastFx(FxKind.Ring, egg.Pos, new Rgba(0.8f, 1f, 0.55f), 50f, 0.5f, Sfx.Hit);
+                BroadcastFx(FxKind.Ring, egg.Pos, new Rgba(0.8f, 1f, 0.55f), 50f, 0.5f, Sfx.BossSplat);
             }
         }
 
@@ -591,22 +600,26 @@ namespace Arena
                 if (rng.NextDouble() < CellShare || (mine.Contains(i) && rng.NextDouble() < 0.7))
                     q.Cells.Add(new QueenCell { Index = (ushort)i });
             }
-            Sounds.Add(Sfx.BossPulse);
+            BroadcastSound(Sfx.BossLaserWarn);  // the cells start glowing
         }
 
         /// Every game moves the cells' clocks; the host seals them and hurts whoever is inside.
         void TickQueenCells(QueenState q, float dt)
         {
+            bool sealedAny = false;
             foreach (var c in q.Cells)
             {
                 c.T += dt;
                 if (!IsHost || c.Hit || c.T < CellWarn)
                     continue;
                 c.Hit = true;
+                sealedAny = true;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && InHexCell(HiveCells[c.Index], p.Pos, HiveCell - 4f))
                         Damage(p, CellDamage, "Hive Queen (cells)");
             }
+            if (sealedAny)
+                BroadcastSound(Sfx.BossCage);  // a wave of cells seals (host only: clients' cells are already Hit)
             q.Cells.RemoveAll(c => c.T >= CellLife);
         }
 
@@ -653,6 +666,7 @@ namespace Arena
             q.DiveFrom = e.Pos;
             var t = PlayerOrNull(e.TargetId);
             q.Shadow = t != null && !t.Downed ? t.Pos : e.Pos;
+            BroadcastSound(Sfx.BossWhoosh);  // up she goes
         }
 
         /// Her shadow follows her target for a moment, then stays put; she flies up, comes down on it, hurts whoever
@@ -677,7 +691,7 @@ namespace Arena
                 e.Ang += 0.17f;
                 for (int i = 0; i < 18; i++)
                     EnemyShot(e, e.Ang + MathX.Tau * i / 18f, 110f, Defs.BigShot);
-                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.45f, 0.25f), DiveRadius + 60f, 0.45f, Sfx.Explode);
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.45f, 0.25f), DiveRadius + 60f, 0.45f, Sfx.BossSlam);
             }
             if (q.DiveT >= DiveTime)
             {

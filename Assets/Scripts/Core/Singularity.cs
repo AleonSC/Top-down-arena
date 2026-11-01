@@ -162,7 +162,10 @@ namespace Arena
             if (s.Stage == SingStage.EventHorizon && frac <= SingLockdownAt) { StartSingTransition(e, SingStage.Accretion); return; }
             if (s.Stage == SingStage.Accretion && frac <= SingSpaghettiAt) { StartSingTransition(e, SingStage.Spaghettify); return; }
             if (s.Stage == SingStage.Spaghettify && frac <= SingLastAt && s.Turn != SingTurn.Split)
+            {
                 EnterSingStage(e, SingStage.LastStand);  // straight away, as the others do
+                BroadcastSound(Sfx.BossWarp);  // the horizon swells
+            }
 
             s.TurnT += dt;
             s.StageT += dt;
@@ -198,7 +201,7 @@ namespace Arena
                         s.Reversed = true;
                         ReverseEnemyBullets();
                         session.Broadcast(Proto.End(Proto.Begin(Msg.ReverseEnemyBullets)));
-                        BroadcastFx(FxKind.Ring, e.Pos, Rgba.White, 700f, 0.6f, Sfx.BossPulse);
+                        BroadcastFx(FxKind.Ring, e.Pos, Rgba.White, 700f, 0.6f, Sfx.Shockwave);  // the white hole pushes
                     }
                 }
             }
@@ -213,7 +216,12 @@ namespace Arena
                 case SingTurn.Lasers:
                 case SingTurn.TwinLasers:
                     if (e.Phase == SingLaserWarn && was != SingLaserWarn)
+                    {
                         e.Facing = Rand(0f, MathX.Tau);  // a new starting angle for each sweep
+                        BroadcastSound(Sfx.BossLaserWarn);
+                    }
+                    if (e.Phase == SingLasers && was != SingLasers)
+                        BroadcastSound(Sfx.BossLaser);  // they fire
                     if (e.Phase == SingLasers)
                         e.Facing += SingLaserSpin(e) * dt;
                     break;
@@ -292,12 +300,18 @@ namespace Arena
             e.FireT = 0.3f;
             if (s.Turn == SingTurn.Cage)
                 SpawnCages(e);
+            if (s.Turn == SingTurn.Pull || s.Turn == SingTurn.Collapse || s.Turn == SingTurn.WhiteHole)
+                BroadcastSound(Sfx.BossWarp);  // dragging in, imploding, or swelling before the white hole
+            if (s.Turn == SingTurn.TwinLasers)
+                BroadcastSound(Sfx.BossLaserWarn);  // its warning starts with the turn
+            if (s.Turn == SingTurn.Hawking)
+                BroadcastSound(Sfx.SpellZap);  // radiation crackles off the horizon
             if (s.Turn == SingTurn.Split)
                 for (int k = 0; k < 3; k++)
                 {
                     var sh = SpawnEnemyAt(EnemyType.SingShard, e.Pos + V2.FromAngle(MathX.Tau * k / 3f) * ShardOrbit, 0.3f, e.Id);
                     sh.Ang = k;
-                    BroadcastFx(FxKind.Ring, sh.Pos, sh.Def.Color, 50f, 0.4f, Sfx.None);
+                    BroadcastFx(FxKind.Ring, sh.Pos, sh.Def.Color, 50f, 0.4f, k == 0 ? Sfx.BossCrack : Sfx.None);  // it breaks into shards
                 }
             e.Phase = SingPhaseOf(s);
         }
@@ -313,7 +327,7 @@ namespace Arena
                 w.Waypoint = c;
                 BroadcastFx(FxKind.Ring, c, Defs.Get(EnemyType.GravityWell).Color, 120f, 0.6f, Sfx.None);
             }
-            Sounds.Add(Sfx.Summon);
+            BroadcastSound(Sfx.BossWarp);  // gravity wells open
         }
 
         void ClearCornerWells() => RemoveAll(EnemyType.GravityWell);
@@ -361,7 +375,7 @@ namespace Arena
                 shots++;
             }
             if (shots > 0)
-                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.35f, 1f), DiskOuterR + 20f, 0.3f, Sfx.Throw);
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.35f, 1f), DiskOuterR + 20f, 0.3f, Sfx.Throw);  // every fling (a whoosh each time was too much)
         }
 
         /// White hole: every enemy bullet on screen turns round (each game does it; the host says when).
@@ -472,7 +486,7 @@ namespace Arena
                 Cages[cage.Id] = cage;
                 BroadcastFx(FxKind.Ring, cage.Center, Defs.Get(EnemyType.CageWell).Color, CageStartRadius, 0.5f, Sfx.None);
             }
-            Sounds.Add(Sfx.Summon);
+            BroadcastSound(Sfx.BossCage);
         }
 
         static V2 CagePoint(Cage c, int i) => c.Center + V2.FromAngle(c.Spin + MathX.Tau * i / CageWellsEach) * c.Radius;
@@ -542,7 +556,7 @@ namespace Arena
                 if (c.Wells.Count == 0)
                 {
                     broken.Add(c.Id);
-                    BroadcastFx(FxKind.Ring, c.Center, Defs.Get(EnemyType.CageWell).Color, c.Radius + 20f, 0.4f, Sfx.Hit);
+                    BroadcastFx(FxKind.Ring, c.Center, Defs.Get(EnemyType.CageWell).Color, c.Radius + 20f, 0.4f, Sfx.Clang);  // a cage breaks
                     continue;
                 }
                 c.Radius = Math.Max(0f, c.Radius - CageShrink * dt);

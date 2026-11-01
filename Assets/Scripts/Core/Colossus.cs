@@ -225,10 +225,12 @@ namespace Arena
                     c.Slabs.Add(new ColSlab { Pos = SlabSpots[i], W = upright ? SlabH : SlabW, H = upright ? SlabW : SlabH, Hp = SlabHp });
                     BroadcastFx(FxKind.Boom, SlabSpots[i], ColStageColor(ColStage.Awakening), 80f, 0.5f, Sfx.None);
                 }
-                Sounds.Add(Sfx.BigExplode);
+                BroadcastSound(Sfx.BossCrack);  // its armour breaks off
             }
             else
                 c.Slabs.Clear();
+            if (stage == ColStage.LastStand)
+                BroadcastSound(Sfx.BossGong);
             NextColTurn(e, c);
             DoLog("the Colossus: " + stage);
         }
@@ -245,7 +247,7 @@ namespace Arena
             c.ChargeWarn = c.ChargeLeft = c.DazeT = 0f;
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(to), 900f, 0.8f, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(to), 900f, 0.8f, to == ColStage.MoltenCore ? Sfx.BossWarp : Sfx.BossRumble);
             e.Phase = ColShift;
             DoLog("the Colossus: changing to " + to);
         }
@@ -338,7 +340,7 @@ namespace Arena
                         c.ActT = 2.5f;
                         c.Fired++;
                         c.Cracks.Add(new ColCrack { From = e.Pos, Ang = aim, Max = CrackMax, Seed = rng.Next(1000) });
-                        BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(ColStage.Awakening), e.Radius * 1.6f, 0.4f, Sfx.BossPulse);
+                        BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(ColStage.Awakening), e.Radius * 1.6f, 0.4f, Sfx.BossRumble);  // a fissure opens
                     }
                     else
                         c.ActT = 99f;
@@ -350,7 +352,7 @@ namespace Arena
                         c.Fired++;
                         c.ChargeWarn = ColChargeWarn;
                         c.ChargeDir = aim;
-                        Sounds.Add(Sfx.BossCharge);
+                        BroadcastSound(Sfx.Roar);  // aiming the charge
                     }
                     else
                         c.ActT = 0.2f;
@@ -370,7 +372,7 @@ namespace Arena
                         else
                             ColShot(e, new V2(-10f, (i + 0.5f) * Height / rows), 0f, 180f, Defs.BigShot, 10f);
                     }
-                    Sounds.Add(Sfx.Throw);
+                    BroadcastSound(Sfx.BossRumble);  // a row of rocks comes down
                     break;
                 }
                 case ColTurn.Aftershocks:  // rings of shots with two gaps that turn 20 degrees a ring
@@ -383,13 +385,14 @@ namespace Arena
                             continue;
                         EnemyShot(e, a, 170f, Defs.SmallShot);
                     }
-                    BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(ColStage.Crumbling), 120f, 0.35f, Sfx.BossPulse);
+                    BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(ColStage.Crumbling), 120f, 0.35f, c.TurnT < 0.5f ? Sfx.BossRumble : Sfx.BossPulse);  // the first one quakes
                     break;
                 case ColTurn.LavaStomps:  // a stomp every 1.5 s with a gap a short step to each side of you, and a pool where it stood
                     c.ActT = 1.5f;
                     c.StompSide = -c.StompSide;
                     AddRing(e, c, GapBeside(e, tpos, c.StompSide), SecondGap(e, tpos, -c.StompSide));
                     SpawnPatchAt(PatchKind.Lava, e.Pos, LavaWarn, LavaWarn + LavaLife, 90f, 90f);
+                    BroadcastSound(Sfx.BossSplat);
                     break;
                 case ColTurn.Meteors:  // two volleys of three, 0.5 s apart
                 {
@@ -413,7 +416,7 @@ namespace Arena
                         if (!p.Downed)
                             for (int k = 0; k < 2; k++)
                                 DropPillar(c, ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 45f, 60f));
-                    Sounds.Add(Sfx.BossCharge);
+                    BroadcastSound(Sfx.BossRumble);  // the roof starts coming down
                     break;
                 case ColTurn.Last:  // two gaps: one a step beside its target (alternating sides), one by the other player (or opposite)
                     c.ActT = 1.6f;
@@ -460,7 +463,7 @@ namespace Arena
                 r.Gaps = 2;
             }
             c.Rings.Add(r);
-            Sounds.Add(Sfx.BossPulse);
+            BroadcastSound(Sfx.BossSlam);  // the stomp
         }
 
         void ColShot(Enemy e, V2 pos, float ang, float speed, byte kind, float life = 8f)
@@ -472,7 +475,7 @@ namespace Arena
         {
             at = ClampToArena(at, 40f);
             c.Drops.Add(new ColDrop { Pos = at, From = e.Pos, Dur = kind == ColDrop.Boulder ? 1.1f : 1.2f, Radius = kind == ColDrop.Boulder ? 60f : 70f, Kind = kind });
-            Sounds.Add(Sfx.Throw);
+            BroadcastSound(kind == ColDrop.Boulder ? Sfx.Throw : Sfx.BossWarp);  // a meteor swells in
         }
 
         void DropPillar(ColossusState c, V2 at) => c.Drops.Add(new ColDrop { Pos = at, From = at, Dur = 1.2f, Radius = 40f, Kind = ColDrop.Pillar });
@@ -485,7 +488,10 @@ namespace Arena
             {
                 c.ChargeWarn -= dt;
                 if (c.ChargeWarn <= 0f)
+                {
                     c.ChargeLeft = ColChargeLength;
+                    BroadcastSound(Sfx.BossWhoosh);
+                }
                 return;
             }
             if (c.ChargeLeft <= 0f)
@@ -496,7 +502,7 @@ namespace Arena
             for (int i = c.Slabs.Count - 1; i >= 0; i--)
                 if (InSlab(c.Slabs[i], next, e.Radius - 6f))
                 {
-                    BroadcastFx(FxKind.Boom, c.Slabs[i].Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.5f, Sfx.BigExplode);
+                    BroadcastFx(FxKind.Boom, c.Slabs[i].Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.5f, Sfx.BossCrack);  // the plate breaks, it's dazed
                     c.Slabs.RemoveAt(i);
                     c.DazeT = ColDazeTime;
                     stop = true;
@@ -565,7 +571,7 @@ namespace Arena
                         c.Pillars.Add(new ColPillar { Pos = d.Pos, T = PillarLife });
                         break;
                 }
-                BroadcastFx(FxKind.Boom, d.Pos, d.Hot ? new Rgba(1f, 0.48f, 0.23f) : ColStageColor(ColStage.Awakening), d.Radius + 20f, 0.4f, d.Kind == ColDrop.Pillar ? Sfx.Hit : Sfx.Explode);
+                BroadcastFx(FxKind.Boom, d.Pos, d.Hot ? new Rgba(1f, 0.48f, 0.23f) : ColStageColor(ColStage.Awakening), d.Radius + 20f, 0.4f, d.Hot ? Sfx.BigExplode : Sfx.BossSlam);
             }
             // Fissures: race out, wait, erupt (shots out of both sides every 45 px)
             for (int i = c.Cracks.Count - 1; i >= 0; i--)
@@ -584,7 +590,7 @@ namespace Arena
                     ColShot(e, at, k.Ang + MathX.Pi / 2f, 120f, Defs.SmallShot);
                     ColShot(e, at, k.Ang - MathX.Pi / 2f, 120f, Defs.SmallShot);
                 }
-                BroadcastFx(FxKind.Bolt, k.From, k.From + dir * k.Len, new Rgba(1f, 0.6f, 0.3f), 0f, 0.3f, Sfx.Explode);
+                BroadcastFx(FxKind.Bolt, k.From, k.From + dir * k.Len, new Rgba(1f, 0.6f, 0.3f), 0f, 0.3f, Sfx.BossCrack);  // the fissure erupts
             }
             // Pillars shatter
             for (int i = c.Pillars.Count - 1; i >= 0; i--)
@@ -599,7 +605,7 @@ namespace Arena
                     float a = MathX.Tau * k / 6f + pl.Pos.X * 0.01f;
                     ColShot(e, pl.Pos + V2.FromAngle(a) * PillarR, a, 150f, Defs.SmallShot);
                 }
-                BroadcastFx(FxKind.Boom, pl.Pos, ColStageColor(ColStage.Awakening), 50f, 0.3f, Sfx.Hit);
+                BroadcastFx(FxKind.Boom, pl.Pos, ColStageColor(ColStage.Awakening), 50f, 0.3f, Sfx.BossCrack);  // a pillar shatters
             }
             // Lava
             c.LavaTickT -= dt;
@@ -724,7 +730,7 @@ namespace Arena
                     continue;
                 if (Defs.IsEnemyShot(b.Kind) && --s.Hp <= 0)
                 {
-                    BroadcastFx(FxKind.Boom, s.Pos, ColStageColor(ColStage.Awakening), 70f, 0.4f, Sfx.Hit);
+                    BroadcastFx(FxKind.Boom, s.Pos, ColStageColor(ColStage.Awakening), 70f, 0.4f, Sfx.BossCrack);  // a plate crumbles
                     c.Slabs.RemoveAt(i);
                 }
                 return true;

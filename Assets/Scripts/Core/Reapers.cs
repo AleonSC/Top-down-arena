@@ -102,7 +102,7 @@ namespace Arena
                 if (R.Shield <= 0f)
                 {
                     R.Open = OpenTime;
-                    BroadcastFx(FxKind.Shatter, e.Pos, e.Pos + new V2(0f, -(e.Radius + 18f)), new Rgba(0.8f, 0.88f, 1f), MathX.Pi, 0.6f, Sfx.Clang);
+                    BroadcastFx(FxKind.Shatter, e.Pos, e.Pos + new V2(0f, -(e.Radius + 18f)), new Rgba(0.8f, 0.88f, 1f), MathX.Pi, 0.6f, Sfx.BossCrack);  // the shield breaks
                 }
                 return false;
             }
@@ -213,13 +213,18 @@ namespace Arena
                     {
                         R.SweepC = V2.Lerp(a.Pos, b.Pos, 0.5f);
                         R.SweepA = (b.Pos - a.Pos).Angle;
+                        BroadcastSound(Sfx.BossLaserWarn);  // the tether draws taut before it sweeps
                     }
                     break;
                 case ReaperTurn.Lasers:
                     R.Laser = Rand(0f, MathX.Tau);
                     R.Suck = 0f;
                     if (d != null)
+                    {
                         RaisePillars(d, R);
+                        BroadcastSound(Sfx.BossRumble);      // the pillars rise
+                        BroadcastSound(Sfx.BossLaserWarn);   // and the lasers warm up
+                    }
                     break;
                 case ReaperTurn.Chase:
                     R.SwingT = SwingEvery;
@@ -229,6 +234,9 @@ namespace Arena
                     R.ReapA.Phase = R.ReapB.Phase = 0;
                     R.ReapA.Wait = 0f;
                     R.ReapB.Wait = 0.5f;
+                    break;
+                case ReaperTurn.Spiral:
+                    BroadcastSound(Sfx.BossWhoosh);  // they rush to their spots
                     break;
             }
         }
@@ -247,7 +255,8 @@ namespace Arena
             TwinReviveT = 0f;
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), kind == 1 ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), kind == 1 ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossGong);
+            BroadcastSound(kind == 1 ? Sfx.BossWarp : Sfx.BossRumble);  // they spiral in; or it shakes before it cracks
             DoLog(kind == 1 ? "the Twin Reapers fuse" : "the Dual Reaper splits");
         }
 
@@ -276,7 +285,7 @@ namespace Arena
                     dual.MaxHp = R.MaxA + R.MaxB;
                     dual.Hp = Math.Max(1f, hp);
                     BroadcastFx(FxKind.Boom, mid, Rgba.White, 160f, 0.5f, Sfx.BigExplode);
-                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 900f, 1f, Sfx.None);
+                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 900f, 1f, Sfx.BossGong);
                 }
                 // It powers up: marked circles all round the arena (one on each of you), then they blow.
                 if (t >= BlastsAt && !R.Blasted)
@@ -295,7 +304,7 @@ namespace Arena
                             R.Blasts.Add(p.Pos);
                     foreach (var at in R.Blasts)
                         BroadcastFx(FxKind.Target, at, new Rgba(1f, 0.67f, 0.24f), BlastRadius, BlastWarn, Sfx.None);
-                    Sounds.Add(Sfx.BossCharge);
+                    BroadcastSound(Sfx.BossLaserWarn);
                 }
                 if (t >= BlastsAt + BlastWarn && !R.Boomed)
                 {
@@ -307,7 +316,7 @@ namespace Arena
                                 Damage(p, BlastDamage, "The Dual Reaper (power-up)");
                         BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.7f, 0.3f), BlastRadius, 0.45f, Sfx.None);
                     }
-                    Sounds.Add(Sfx.BigExplode);
+                    BroadcastSound(Sfx.BigExplode);
                 }
                 if (t >= FuseTime)
                 {
@@ -335,7 +344,7 @@ namespace Arena
                 na.MaxHp = R.MaxA; na.Hp = Math.Max(1f, hp * share);
                 nb.MaxHp = R.MaxB; nb.Hp = Math.Max(1f, hp * (1f - share));
                 BroadcastFx(FxKind.Boom, at, Rgba.White, 140f, 0.5f, Sfx.BigExplode);
-                BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.35f, 0.35f), 700f, 0.9f, Sfx.None);
+                BroadcastFx(FxKind.Ring, at, new Rgba(1f, 0.35f, 0.35f), 700f, 0.9f, Sfx.BossCrack);
             }
             if (t >= SplitTime)
             {
@@ -360,6 +369,8 @@ namespace Arena
             R.SweepC = new V2(Math.Max(SweepRadius + 40f, Math.Min(Width - SweepRadius - 40f, R.SweepC.X)), Math.Max(320f, Math.Min(Height - 320f, R.SweepC.Y)));
             if (R.TurnT > SweepWarm)
                 R.SweepA += SweepSpin * dt;
+            if (R.TurnT > SweepWarm && R.TurnT - dt <= SweepWarm)
+                BroadcastSound(Sfx.BossWhoosh);  // the sweep starts
             foreach (var e in new[] { a, b })
             {
                 V2 goal = ClampToArena(R.SweepC + V2.FromAngle(R.SweepA + (e == a ? MathX.Pi : 0f)) * SweepRadius, e.Radius);
@@ -446,6 +457,8 @@ namespace Arena
             {
                 case ReaperTurn.Lines:  // three lines of rising-speed shots, the middle one red
                     e.FireT = 1.4f;
+                    if (R.TurnT < 1f)
+                        BroadcastSound(Sfx.BossScythe);  // the first lines of the turn: a flick of the scythe
                     for (int l = -1; l <= 1; l++)
                         for (int k = 0; k < 6; k++)
                             EnemyShot(e, aim + l * 0.5f, 140f + k * 35f, l == 0 ? Defs.PierceShot : Defs.SmallShot);
@@ -521,7 +534,7 @@ namespace Arena
             if (Reapers != null && Reapers.Stage == ReaperStage.Dual && Reapers.Trans == 0)
             {
                 Reapers.Holes.Add(pillar.Pos);
-                BroadcastFx(FxKind.Boom, pillar.Pos, new Rgba(0.55f, 0.5f, 0.75f), 70f, 0.5f, Sfx.Explode);
+                BroadcastFx(FxKind.Boom, pillar.Pos, new Rgba(0.55f, 0.5f, 0.75f), 70f, 0.5f, Sfx.BossCrack);
             }
         }
 
@@ -539,7 +552,7 @@ namespace Arena
                         R.Trapped = false;  // out it pops, back to the middle
                         R.Leap = DualLeapTime;
                         R.LeapFrom = d.Pos;
-                        BroadcastFx(FxKind.Ring, d.Pos, new Rgba(1f, 0.8f, 0.35f), 160f, 0.4f, Sfx.Shockwave);
+                        BroadcastFx(FxKind.Ring, d.Pos, new Rgba(1f, 0.8f, 0.35f), 160f, 0.4f, Sfx.BossWhoosh);  // it leaps out
                     }
                 }
                 return false;
@@ -553,7 +566,7 @@ namespace Arena
                     R.Leap = 0f;
                     d.Pos = mid;
                     R.Holes.Clear();
-                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 500f, 0.6f, Sfx.Explode);
+                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 500f, 0.6f, Sfx.BossSlam);  // and lands
                     R.Step = -1;  // and round again, with new pillars
                     return true;
                 }
@@ -582,6 +595,8 @@ namespace Arena
                         }
                         return false;
                     }
+                    if (R.TurnT > DualLaserWarm && R.TurnT - dt <= DualLaserWarm)
+                        BroadcastSound(Sfx.BossLaser);  // the lasers fire
                     if (R.TurnT > DualLaserWarm)
                     {
                         R.Laser += DualLaserSpin * dt;
@@ -606,7 +621,7 @@ namespace Arena
                     if (R.TurnT >= DualLaserTime)
                     {
                         R.Suck = 0.001f;
-                        BroadcastFx(FxKind.Ring, d.Pos, new Rgba(1f, 0.4f, 0.4f), SuckRadius, 0.5f, Sfx.BossCharge);
+                        BroadcastFx(FxKind.Ring, d.Pos, new Rgba(1f, 0.4f, 0.4f), SuckRadius, 0.5f, Sfx.BossWarp);
                     }
                     return false;
                 }
@@ -631,7 +646,7 @@ namespace Arena
                                     Damage(p, SwingDamage, "The Dual Reaper (scythe)");
                             }
                             BroadcastFx(FxKind.Slash, d.Pos, d.Pos + V2.FromAngle(sa) * SwingReach, side < 0 ? Defs.Get(EnemyType.TwinA).Color : Defs.Get(EnemyType.TwinB).Color,
-                                SwingHalfArc, 0.2f, Sfx.SwingHeavy);
+                                SwingHalfArc, 0.2f, side < 0 ? Sfx.BossScythe : Sfx.None);  // one sound for the pair
                         }
                     }
                     foreach (var h in R.Holes)
@@ -643,7 +658,7 @@ namespace Arena
                             R.Shield = R.ShieldMax = d.MaxHp * ShieldShareDual;
                             R.ShieldFrac = 1f;
                             R.Open = 0f;
-                            BroadcastFx(FxKind.Ring, h, new Rgba(1f, 0.8f, 0.35f), 140f, 0.5f, Sfx.Shockwave);
+                            BroadcastFx(FxKind.Ring, h, new Rgba(1f, 0.8f, 0.35f), 140f, 0.5f, Sfx.BossCage);  // trapped
                             DoLog("the Dual Reaper fell into a hole");
                             return false;
                         }
@@ -651,6 +666,7 @@ namespace Arena
                     {
                         R.Leap = DualLeapTime;  // gave up: back to the middle
                         R.LeapFrom = d.Pos;
+                        BroadcastSound(Sfx.BossWhoosh);
                     }
                     return false;
                 }
@@ -693,6 +709,7 @@ namespace Arena
                 case 0:
                     rp.Phase = 1;
                     rp.T = 0f;
+                    BroadcastSound(Sfx.BossLaserWarn);  // marked
                     goto case 1;
                 case 1:  // marked: it tracks its target for half the time, then locks
                     if (rp.T < ReapMark * 0.5f)
@@ -705,6 +722,7 @@ namespace Arena
                         rp.Phase = 2;
                         rp.T = 0f;
                         rp.Left = rp.Len;
+                        BroadcastSound(Sfx.BossWhoosh);  // the dash
                     }
                     break;
                 case 2:
@@ -724,7 +742,7 @@ namespace Arena
                             if (diff < ReapHalfArc)
                                 Damage(p, ReapDamage, e.Def.Name + " (reap)");
                         }
-                        BroadcastFx(FxKind.Slash, e.Pos, e.Pos + V2.FromAngle(rp.A) * ReapReach, e.Def.Color, ReapHalfArc, 0.22f, Sfx.SwingHeavy);
+                        BroadcastFx(FxKind.Slash, e.Pos, e.Pos + V2.FromAngle(rp.A) * ReapReach, e.Def.Color, ReapHalfArc, 0.22f, Sfx.BossScythe);
                     }
                     break;
                 }

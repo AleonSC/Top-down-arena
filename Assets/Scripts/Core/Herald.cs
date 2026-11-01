@@ -32,7 +32,7 @@ namespace Arena
 
         // Host only.
         public int Step = -1, Fired, FrontSide = -1, FrontStep, FrontGap, CageOpen, CondNext;
-        public float TurnLen, ActT, CondWait;
+        public float TurnLen, ActT, CondWait, BoomT;  // BoomT: > 0, counting down to the thunder of strikes it marked
     }
 
     /// The Storm Herald (wave 40): a fight in three stages by its health, like the Warden's, then a last stand.
@@ -120,6 +120,12 @@ namespace Arena
                 EnterHeraldStage(e, HeraldStage.LastStand);  // straight away, as the others do
 
             s.TurnT += dt;
+            if (s.BoomT > 0f)
+            {
+                s.BoomT -= dt;
+                if (s.BoomT <= 0f)
+                    BroadcastSound(Sfx.BossThunder);  // the marked strikes land
+            }
             if (s.Stage == HeraldStage.LastStand)
                 s.Spin += SpokeSpin * dt;
             TickRodsAndArcs(s, dt);
@@ -141,7 +147,8 @@ namespace Arena
                         StrikeEveryone(StrikeRadius, StrikeWarn);
                         for (int i = 0; i < 2; i++)
                             AddHazard(RandomInArena(80f), StrikeRadius, StrikeWarn);
-                        Sounds.Add(Sfx.BossCharge);
+                        BroadcastSound(Sfx.BossLaserWarn);
+                        s.BoomT = StrikeWarn;
                         break;
                     case HeraldTurn.Rods:
                         s.ActT = 1.4f;
@@ -153,12 +160,14 @@ namespace Arena
                             AddRod(s, at + new V2(300f, Rand(-60f, 60f)));
                             AddRod(s, at + new V2(Rand(-60f, 60f), -230f));
                             AddRod(s, at + new V2(Rand(-60f, 60f), 230f));
+                            BroadcastSound(Sfx.BossLaserWarn);  // the rods' spots marked
                         }
                         else
                         {
                             int pair = s.Fired % 3;  // one pair, the other, then both
                             if (pair != 1) AddArc(s, 0, 1, ArcWarn);
                             if (pair != 0) AddArc(s, 2, 3, ArcWarn);
+                            BroadcastSound(Sfx.BossLaserWarn);  // the arcs flicker
                         }
                         s.Fired++;
                         break;
@@ -169,7 +178,7 @@ namespace Arena
                             var b = SpawnEnemyAt(EnemyType.BallLightning, ClampToArena(e.Pos + new V2((k - 1) * 260f, 70f), 20f), 0.3f, e.Id);
                             BroadcastFx(FxKind.Ring, b.Pos, b.Def.Color, 40f, 0.3f, Sfx.None);
                         }
-                        Sounds.Add(Sfx.SpellZap);
+                        BroadcastSound(Sfx.BossBuzz);  // the orbs crackle into being
                         break;
                     case HeraldTurn.Downburst:
                     {
@@ -178,13 +187,19 @@ namespace Arena
                         float y = Math.Max(60f, Math.Min(Height - 60f, at.Y));
                         for (int i = 0; i < 6; i++)
                             AddHazard(new V2(150f + i * 260f, y), 110f, 0.8f + 0.25f * Math.Abs(i - from));
-                        Sounds.Add(Sfx.BossCharge);
+                        BroadcastSound(Sfx.BossLaserWarn);
+                        s.BoomT = 0.8f;  // the first of the row
                         break;
                     }
                     case HeraldTurn.StormFront:
                     {
                         s.ActT = 0.5f;
                         float x = s.FrontSide > 0 ? 70f + s.FrontStep * 110f : Width - 70f - s.FrontStep * 110f;
+                        if (s.FrontStep == 0)
+                        {
+                            BroadcastSound(Sfx.BossRumble);  // the front rolls in
+                            s.BoomT = 0.7f;
+                        }
                         if (x > 30f && x < Width - 30f)
                         {
                             for (int i = 0; i < 7; i++)
@@ -198,6 +213,11 @@ namespace Arena
                     case HeraldTurn.StrikeRain:
                     {
                         s.ActT = 0.6f;
+                        if (s.Fired++ == 0)  // the first volley of the rain
+                        {
+                            BroadcastSound(Sfx.BossLaserWarn);
+                            s.BoomT = 0.9f;
+                        }
                         for (int i = 0; i < 3; i++)
                             AddHazard(RandomInArena(80f), 50f, 0.9f);
                         var alive = AlivePlayersList();
@@ -215,6 +235,7 @@ namespace Arena
                             s.CageOpen = rng.Next(6);
                             for (int k = 0; k < 6; k++)
                                 AddRod(s, at + V2.FromAngle(MathX.Tau * k / 6f + Rand(-0.1f, 0.1f)) * CageRadius);
+                            BroadcastSound(Sfx.BossLaserWarn);  // the rods' spots marked
                         }
                         else
                         {
@@ -222,11 +243,14 @@ namespace Arena
                             for (int k = 0; k < 6; k++)
                                 if (k != s.CageOpen)
                                     AddArc(s, k, (k + 1) % 6, CageArcWarn);
+                            BroadcastSound(Sfx.BossCage);  // the cage closes
                         }
                         break;
                     case HeraldTurn.Eye:
                         s.ActT = 2f;
                         StrikeEveryone(StrikeRadius, StrikeWarn);
+                        BroadcastSound(Sfx.BossLaserWarn);
+                        s.BoomT = StrikeWarn;
                         break;
                     default:
                         s.ActT = 0.1f;
@@ -281,7 +305,7 @@ namespace Arena
                 {
                     r.Fall -= dt;
                     if (r.Fall <= 0f)
-                        BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.56f, 0.82f, 1f), 40f, 0.3f, Sfx.Hit);
+                        BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.56f, 0.82f, 1f), 40f, 0.3f, Sfx.Clang);  // a rod lands
                 }
             foreach (var a in s.Arcs)
             {
@@ -326,7 +350,7 @@ namespace Arena
                         if (q.InvulnT <= 0f)
                             Damage(q, ArcDamage, "Storm Herald (Conductor)");
                     }
-                BroadcastFx(FxKind.Bolt, new V2(c.Pos.X + Rand(-60f, 60f), -20f), c.Pos, col, 0f, 0.3f, Sfx.SpellZap);
+                BroadcastFx(FxKind.Bolt, new V2(c.Pos.X + Rand(-60f, 60f), -20f), c.Pos, col, 0f, 0.3f, Sfx.BossThunder);
                 BroadcastFx(FxKind.Ring, c.Pos, col, ConductorRadius, 0.4f, Sfx.None);
                 if (jumped && c.InvulnT <= 0f)  // the charge only hurts its carrier when it finds someone to jump to
                     Damage(c, ArcDamage, "Storm Herald (Conductor)");
@@ -351,7 +375,7 @@ namespace Arena
             s.CondNext++;
             s.CondId = next.Id;
             s.CondT = ConductorTime;
-            BroadcastFx(FxKind.Ring, next.Pos, new Rgba(0.83f, 0.6f, 1f), ConductorRadius, 0.5f, Sfx.BossCharge);
+            BroadcastFx(FxKind.Ring, next.Pos, new Rgba(0.83f, 0.6f, 1f), ConductorRadius, 0.5f, Sfx.BossLaserWarn);  // the charge locks on
         }
 
         /// Host, every tick while the herald is up: ball lightning drifts and arcs, and the spokes hurt.
@@ -430,8 +454,12 @@ namespace Arena
             s.CondWait = ConductorFirst;
             s.Rods.Clear();
             s.Arcs.Clear();
+            s.BoomT = 0f;
             if (stage == HeraldStage.LastStand)
+            {
                 ClearBallLightning();
+                BroadcastSound(Sfx.BossWarp);  // the eye forms
+            }
             NextHeraldTurn(e, s);
             DoLog("the Storm Herald: " + stage);
         }
@@ -443,6 +471,7 @@ namespace Arena
             s.TransTo = to;
             s.Wind = 0;
             s.CondId = 0;
+            s.BoomT = 0f;  // its marked strikes are gone
             s.Rods.Clear();
             s.Arcs.Clear();
             ClearBallLightning();
@@ -465,7 +494,10 @@ namespace Arena
             s.Rods.Clear();
             s.Arcs.Clear();
             if (s.Stage == HeraldStage.Gale && s.Turn != HeraldTurn.Rest)
+            {
                 s.Wind = s.Wind > 0 ? -1 : 1;  // the wind turns round with each attack
+                BroadcastSound(Sfx.BossWhoosh);  // a gust as it turns
+            }
             if (s.Turn == HeraldTurn.StormFront)
             {
                 s.FrontSide = -s.FrontSide;
@@ -507,7 +539,7 @@ namespace Arena
                             continue;
                         EnemyShot(e, a, 160f, Defs.SmallShot);
                     }
-                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.56f, 0.82f, 1f), 160f, 0.4f, Sfx.BossPulse);
+                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.56f, 0.82f, 1f), 160f, 0.4f, Sfx.BossThunder);
                     break;
                 }
                 case HeraldTurn.Crosswind:  // 5 piercing shots aimed upwind, so the wind carries them onto you

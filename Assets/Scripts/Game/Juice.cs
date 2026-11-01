@@ -24,12 +24,12 @@ namespace Arena
     {
         // --- Settings --------------------------------------------------------------------------------------------------
         bool fxOn = true, fxNumbers = true, fxReduced;
-        int fxShake = 2;  // 0 off, 1 low, 2 full
+        int fxShake = 1;  // 0 off, 1 low (the default), 2 full
 
         void LoadFxSettings()
         {
             fxOn = PlayerPrefs.GetInt("fx_on", 1) == 1;
-            fxShake = Mathf.Clamp(PlayerPrefs.GetInt("fx_shake", 2), 0, 2);
+            fxShake = Mathf.Clamp(PlayerPrefs.GetInt("fx_shake", 1), 0, 2);
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
         }
@@ -193,6 +193,7 @@ namespace Arena
 
             // New effects: blasts shake, spark, scorch and ripple.
             newBooms.Clear();
+            float boomShake = 0f;  // explosions this frame shake together, up to a cap, rather than piling up
             foreach (var fx in game.Effects)
             {
                 if (fx.Juiced)
@@ -202,7 +203,7 @@ namespace Arena
                     continue;
                 newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
                 float near = me != null ? Mathf.Clamp01(1.2f - me.Pos.DistanceTo(fx.Pos) / 900f) : 0.5f;
-                Shake(Mathf.Min(0.45f, fx.Radius / 260f) * near);
+                boomShake = Mathf.Max(boomShake, Mathf.Min(0.22f, fx.Radius / 450f) * near);
                 Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
                 if (fx.Radius >= 80f)
                 {
@@ -210,6 +211,9 @@ namespace Arena
                     ripples.Add(new Ripple { Pos = fx.Pos, Power = Mathf.Min(2f, fx.Radius / 110f) });
                 }
             }
+
+            if (boomShake > 0f && trauma < 0.35f)
+                Shake(Mathf.Min(boomShake, 0.35f - trauma));  // explosions alone never shake past a light rumble
 
             // Enemies: hits (flash, bulge, numbers, big-hit pause), and the ones that are gone (shatter).
             foreach (var e in game.Enemies.Values)
@@ -398,7 +402,7 @@ namespace Arena
                 nb.Pos += new V2(0f, -38f * dt);
                 if (nb.T >= NumberLife) numbers.RemoveAt(i); else numbers[i] = nb;
             }
-            trauma = Mathf.Max(0f, trauma - dt * 1.3f);
+            trauma = Mathf.Max(0f, trauma - dt * 1.8f);
             hurtTint = Mathf.Max(0f, hurtTint - dt * 2.2f);
             introT = Mathf.Max(0f, introT - dt);
         }
@@ -559,7 +563,7 @@ namespace Arena
             shakeX = shakeY = 0f;
             if (!Juicy || trauma <= 0f)
                 return;
-            float k = trauma * trauma * (fxShake == 1 ? 0.5f : 1f) * 22f * drawScale, s = Time.unscaledTime;
+            float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
             shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);
             shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
         }
