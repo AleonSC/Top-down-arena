@@ -147,6 +147,40 @@ class JuiceCheck {
     Check((PathId)get("weatherPath") == PathId.FrozenLake && (float)get("weatherFade") > 0.5f, "a path brings its weather (Frozen Lake: snow), fading in");
     g.CurrentPath = PathId.None;
 
+    // Bullet endings: why a shot went, and what it does as it goes.
+    for (int i = 0; i < 30; i++) frame();
+    foreach (var en in g.Enemies.Values.ToList()) g.Enemies.Remove(en.Id);
+    var why = typeof(ArenaApp).GetMethod("WhyGone");
+    Func<V2, V2, float, int, string> W = (pos, vel, life, owner) => why.Invoke(app, new object[] { pos, vel, life, 4f, owner }).ToString();
+    var shielder = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shielder, new V2(1200f, 300f), 0f, 0, false });
+    shielder.SpawnT = 0f; shielder.Facing = 0f; shielder.Disp = shielder.Pos;   // its shield faces +x
+    var grunt = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(1200f, 700f), 0f, 0, false });
+    grunt.SpawnT = 0f; grunt.Disp = grunt.Pos;
+    me.Pos = me.Disp = new V2(400f, 450f);
+    string ranOut = W(new V2(800f, 200f), new V2(500f, 0f), 0.01f, 1);
+    string hit = W(grunt.Pos + new V2(-12f, 0f), new V2(600f, 0f), 0.4f, 1);
+    string shieldFront = W(shielder.Pos + new V2(20f, 0f), new V2(-600f, 0f), 0.4f, 1);
+    string shieldBack = W(shielder.Pos + new V2(-20f, 0f), new V2(600f, 0f), 0.4f, 1);
+    string hitMe = W(me.Pos + new V2(6f, 0f), new V2(-200f, 0f), 3f, 0);
+    me.Parrying = true;
+    string parried = W(me.Pos + new V2(30f, 0f), new V2(-200f, 0f), 3f, 0);
+    me.Parrying = false; me.BarrierT = 3f;
+    string barrier = W(me.Pos + new V2(me.BarrierRadius - 4f, 0f), new V2(-200f, 0f), 3f, 0);
+    me.BarrierT = 0f;
+    string offArena = W(new V2(-30f, 450f), new V2(-500f, 0f), 0.5f, 1);
+    Console.WriteLine("  endings: ran out {0}, hit {1}, shield front {2}, shield back {3}, hit you {4}, parried {5}, barrier {6}, off the arena {7}", ranOut, hit, shieldFront, shieldBack, hitMe, parried, barrier, offArena);
+    Check(ranOut == "RanOut" && hit == "HitEnemy" && hitMe == "HitPlayer" && offArena == "None", "a shot that's gone ran out, hit an enemy or hit you (or just left the arena)");
+    Check(shieldFront == "Blocked" && shieldBack == "HitEnemy" && parried == "Blocked" && barrier == "Blocked", "a shot stopped by a shield's front, a parry or a Barrier was blocked (a Shielder hit from behind wasn't)");
+    // End to end: an enemy shot parried tumbles off as a ricochet.
+    var sb = typeof(Game).GetMethod("SpawnBullet", f2);
+    me.Parrying = true;
+    var shot = (Bullet)sb.Invoke(g, new object[] { Defs.SmallShot, me.Pos + new V2(30f, 0f), new V2(-200f, 0f), 0f, 3f, 10f, 0, false, 0f });
+    frame();
+    g.Bullets.Remove(shot.Id);
+    frame();
+    me.Parrying = false;
+    Check(countParts(7, -1f) >= 1, "a parried shot ricochets off, tumbling");
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);

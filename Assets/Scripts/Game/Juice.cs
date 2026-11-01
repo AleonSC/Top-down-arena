@@ -75,7 +75,7 @@ namespace Arena
             public Rgba Col;
         }
 
-        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4;
+        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;
 
         struct Decal { public V2 Pos; public float R, Age; }
         struct Ripple { public V2 Pos; public float T, Power; }
@@ -324,14 +324,7 @@ namespace Arena
             {
                 var s = seenShots[id];
                 seenShots.Remove(id);
-                bool inside = s.Pos.X > 10f && s.Pos.Y > 10f && s.Pos.X < Game.Width - 10f && s.Pos.Y < Game.Height - 10f;
-                if (inside && s.Life > 0.04f)
-                {
-                    if (s.Owner != 0)
-                        Sparks(s.Pos, Defs.BulletColor(s.Kind), 4, 220f, 0.25f, 1.8f);
-                    else if (me != null && s.Pos.DistanceTo(me.Pos) < 40f)
-                        Sparks(s.Pos, Defs.BulletColor(s.Kind), 6, 200f, 0.3f, 2f);
-                }
+                BulletEnding(s);
                 shotPool.Push(s);
             }
 
@@ -408,6 +401,90 @@ namespace Arena
             trauma = Mathf.Max(0f, trauma - dt * 1.3f);
             hurtTint = Mathf.Max(0f, hurtTint - dt * 2.2f);
             introT = Mathf.Max(0f, introT - dt);
+        }
+
+        // --- Bullet endings: what a shot does as it goes, by why it went ---------------------------------------------------
+
+        public enum Ending : byte { None, RanOut, HitEnemy, Blocked, HitPlayer }
+
+        /// Why a shot that's just gone went, from where it was, how fast, how much life it had left and what was near it.
+        public Ending WhyGone(V2 pos, V2 vel, float life, float radius, int owner)
+        {
+            bool inside = pos.X > 10f && pos.Y > 10f && pos.X < Game.Width - 10f && pos.Y < Game.Height - 10f;
+            if (!inside)
+                return Ending.None;  // flew off the arena
+            if (life <= 0.06f)
+                return Ending.RanOut;
+            if (owner != 0)
+            {
+                // A player's shot: stopped by a shield from the front, or hit an enemy.
+                foreach (var e in game.Enemies.Values)
+                {
+                    float reach = e.Radius + radius + 14f;
+                    if (e.Disp.DistanceSq(pos) > reach * reach)
+                        continue;
+                    bool shield = e.Type == EnemyType.Shielder && e.Phase < Game.ShieldBroken
+                        || e.Type == EnemyType.RiotShield && Game.RiotCrack(e) < Game.RiotCracked && Game.RiotState(e) != Game.RiotLow;
+                    if (shield && V2.FromAngle(e.Facing).Dot((pos - e.Disp).Normalized()) > 0.45f)
+                        return Ending.Blocked;
+                    return Ending.HitEnemy;
+                }
+                return Ending.None;  // gone for some other reason (a wave cleared, a ward placed...)
+            }
+            // An enemy's shot: blocked by a parry, Barrier, Shield Wall or a blocking minion, or it hit someone.
+            foreach (var p in game.Players.Values)
+            {
+                if (p.Downed)
+                    continue;
+                float d = p.Disp.DistanceTo(pos);
+                if (p.ParryActive && d < p.Def.BodyR + 46f || p.BarrierT > 0f && d < p.BarrierRadius + radius + 10f || p.WallT > 0f && d < p.Def.BodyR + 60f)
+                    return Ending.Blocked;
+                if (d < p.Def.HitR + radius + 14f)
+                    return Ending.HitPlayer;
+            }
+            foreach (var m in game.Minions.Values)
+                if (m.Def.BlockRadius > 0f && m.Disp.DistanceTo(pos) < m.Def.BlockRadius + radius + 10f)
+                    return Ending.Blocked;
+            return Ending.None;
+        }
+
+        void BulletEnding(ShotSeen s)
+        {
+            var c = Defs.BulletColor(s.Kind);
+            float r = Mathf.Max(2.5f, s.Radius);
+            V2 dir = s.Vel.IsZero ? V2.FromAngle(0f) : s.Vel.Normalized();
+            switch (WhyGone(s.Pos, s.Vel, s.Life, s.Radius, s.Owner))
+            {
+                case Ending.RanOut:
+                    // It shrinks and fades as it drifts to a stop, then leaves a wisp of smoke.
+                    AddPart(new Part { Kind = PFade, Pos = s.Pos, Vel = s.Vel * 0.25f, Life = 0.16f, Max = 0.16f, Size = r, Col = c });
+                    AddPart(new Part { Kind = PDust, Pos = s.Pos + dir * 3f, Vel = dir * 20f, Life = 0.35f, Max = 0.35f, Size = r * 0.9f, Col = c.Mix(DustColor, 0.5f) });
+                    break;
+                case Ending.HitEnemy:
+                    // A splash flattened against the enemy, and sparks bouncing back the way it came.
+                    AddPart(new Part { Kind = PSplash, Pos = s.Pos, Rot = dir.Angle, Life = 0.14f, Max = 0.14f, Size = r * 2.6f, Col = c });
+                    for (int i = 0; i < 5; i++)
+                    {
+                        float a = dir.Angle + MathX.Pi + Rnd(-0.75f, 0.75f);
+                        AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(90f, 260f), Life = Rnd(0.15f, 0.28f), Max = 0.28f, Size = 1.8f, Col = c });
+                    }
+                    break;
+                case Ending.Blocked:
+                {
+                    // A ricochet: the shot glances off, tumbling and fading, with a bright metallic spark.
+                    float a = dir.Angle + MathX.Pi + Rnd(-0.9f, 0.9f);
+                    AddPart(new Part { Kind = PTumble, Pos = s.Pos, Vel = V2.FromAngle(a) * Mathf.Max(140f, s.Vel.Length * 0.45f), Rot = a, Spin = Rnd(-18f, 18f), Life = 0.42f, Max = 0.42f, Size = r, Col = c });
+                    AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.Zero, Life = 0.07f, Max = 0.07f, Size = 5f, Col = Rgba.White });
+                    for (int i = 0; i < 3; i++)
+                        AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(a + Rnd(-0.5f, 0.5f)) * Rnd(150f, 320f), Life = 0.2f, Max = 0.2f, Size = 1.6f, Col = new Rgba(0.95f, 0.97f, 1f) });
+                    break;
+                }
+                case Ending.HitPlayer:
+                    // It bursts in its own colour with a small ring, so you can see what hit you.
+                    Ring(s.Pos, r * 4f + 10f, 0.25f, c);
+                    Sparks(s.Pos, c, 8, 220f, 0.3f, 2f);
+                    break;
+            }
         }
 
         void FlushNumber(EnemySeen s)
@@ -543,6 +620,23 @@ namespace Arena
                     case PDust:  // a soft puff that swells as it fades
                         Circle(p.Pos, p.Size * (1.8f - 0.8f * f), p.Col.WithAlpha(0.35f * f), 8);
                         break;
+                    case PFade:  // a shot at the end of its range, shrinking away
+                        Circle(p.Pos, p.Size * f, p.Col.WithAlpha(0.9f * f), 10);
+                        break;
+                    case PSplash:  // a shot flattened against what it hit: a squashed disc across its path
+                    {
+                        V2 along = V2.FromAngle(p.Rot), across = along.Orthogonal();
+                        float w = p.Size * (1.2f - 0.4f * f), h = p.Size * 0.35f * f;
+                        SetColor(p.Col.WithAlpha(f));
+                        Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);
+                        break;
+                    }
+                    case PTumble:  // a ricochet spinning off: a short bar that turns as it flies
+                    {
+                        V2 d = V2.FromAngle(p.Rot) * (p.Size * 1.6f);
+                        Line(p.Pos - d, p.Pos + d, p.Size * 1.1f, p.Col.WithAlpha(f));
+                        break;
+                    }
                     default:
                         Circle(p.Pos, p.Size * (0.5f + 0.5f * f), p.Col.WithAlpha(f), 6);
                         break;
@@ -564,6 +658,11 @@ namespace Arena
                 float f = p.Life / p.Max;
                 if (p.Kind == PDust)
                     continue;
+                if (p.Kind == PFade || p.Kind == PSplash || p.Kind == PTumble)
+                {
+                    GlowDisc(p.Pos, p.Size * 4f, p.Col, 0.45f * f);
+                    continue;
+                }
                 if (p.Kind == PSpark)
                     GlowDisc(p.Pos, p.Size * 6f, p.Col, 0.55f * f);
                 else if (p.Kind == PShard)

@@ -277,6 +277,15 @@ The lobby fits about 8 class cards in a row before they get too small.
 
 **Arena props (Nov 2026), protocol 110:** `Props.cs` (logic) and `Game/PropsLook.cs` (look, the item card, the HUD line). `PropKind` Crate / HeavyCrate / Pot / Barrel / Chest on `Game.Props`; chest items are `Loot` on `Game.Loots` (every game has all of them, only the owner's draws them). `WaveProps` (after `BuildWave`) tops props up by `CrateTarget`/`PotTarget`/`BarrelChance`/`ChestChance`, or clears them for a boss; `PropStops` in `Collide` (crates stop enemy shots, barrels any shot, pots break under yours), `PropBlast` from grenades/flak/splashes, `TickProps` (fuses, touches, breaks, `ExplodeBarrel`, `OpenChest`), `PushOutOfProps` for your own movement (`LocalControl`) and enemies (`TickEnemies`). The wave waits while `PropsHoldWave()` (`HoldForTreasure` revives the downed). Items: `RollChestLoot` (`Upgrades.RandomOfRarity`, `LegendaryOffer`), `ResolveLoot` → `Msg.Loot` → `HostLoot` (G / X in `ArenaApp`), recorded as `"chest"` picks; bots collect in `BotTreasure`. New `FxKind.Debris`; `PixelArt.RowsFor`/`PixelColor` draw icons in GL. The test runner turns props off by default (`Game.PropsByDefault = false` in `Seeded`) so a crate or pot can't throw a mechanic test; the core match and `props` tests turn them on. Test `props` (in the feature suite); preview `PROPS=1` (`PROPS=2`: a legendary item) `Tools/Preview/shot.sh <name> hud 6 4`.
 
+**More visual effects (Nov 2026), no protocol change:** H (HUD hidden) keeps a slim bar per boss at the top
+(`DrawMiniBossBars`); every health bar has a damage ghost (`HealthBars.cs`: `GhostBar` for IMGUI and GL bars, keyed per
+enemy / player, `GhostHold` 0.45 s then `GhostDrain`); `Ambience.cs`: orb trails, a link to the player and a pickup pulse
+(orb movement unchanged), dust puffs on setting off, hard turns and dashes, per-path weather (`WeatherFor`, fading in);
+bullet endings (`Juice.cs`: `WhyGone` sorts a gone shot into ran out / hit an enemy / blocked / hit a player from its last
+position, speed, life and what was near: a shield's front, a parry, Barrier, Shield Wall or a blocking minion; then
+`BulletEnding` plays a fade and wisp, a splash, a tumbling ricochet or a burst). All checked in `juice.sh`; the render
+check (effects off) stays IDENTICAL. Not done: exit sparks for piercing shots (a shot that carries on isn't "gone").
+
 **Visual effects (Nov 2026), no protocol change:** mocked up in `Docs/Mockups/visual-flair.html` (the owner asked for all
 of it, with the hurt and low-health tints made a faint red in the corners only and bullet glow 5% softer).
 `Game/Juice.cs`, front end only: `UpdateJuice` (start of `DrawWorld`) compares the screen with last frame (`seenEnemies`:
