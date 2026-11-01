@@ -334,23 +334,15 @@ namespace Arena
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
             HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.45f, 0.75f, 1f));
             HeroStat(hero, ref hy, wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), Ui.Gold);
+            // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
+            float dps = Defs.WeaponDps(wdef.Id);
+            HeroStat(hero, ref hy, "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+                dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.45f, 0.4f));
             hy += 8f;
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
             Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
             hy += 8f;
-            // Click the ultimate to watch it in the preview above.
-            var ultArea = new Rect(hero.x + 6f, hy - 4f, hero.width - 12f, hero.yMax - hy - 2f);
-            bool ultOn = Time.unscaledTime < ultDemoUntil, ultHover = ultArea.Contains(Event.current.mousePosition);
-            if (ultOn || ultHover)
-                Ui.Pill(ultArea, new Color(1f, 0.8f, 0.35f, ultOn ? 0.12f : 0.06f));
-            Ui.Label(new Rect(hero.x + 14f, hy, hero.width - 28f, 16f), ultOn ? "ULTIMATE  ·  F  ·  PREVIEWING" : "ULTIMATE  ·  F  ·  CLICK TO PREVIEW", 10, ultOn || ultHover ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-            if (Ui.HitArea(ultArea))
-            {
-                ultDemoUntil = ultOn ? 0f : Time.unscaledTime + UltDemoTime;  // a second click stops it
-                abilityDemoUntil = 0f;
-            }
-            Ui.Fancy(new Rect(hero.x + 14f, hy + 14f, hero.width - 28f, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(hero.x + 14f, hy + 38f, hero.width - 28f, hero.yMax - hy - 44f), ult.Desc + "  (" + ult.Cooldown.ToString("0") + " s)", 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            DrawUltBox(ult, new Rect(hero.x + 6f, hy - 4f, hero.width - 12f, hero.yMax - hy - 2f));
 
             // Choices: role and class rows (their blurbs sit in the heading line), then weapon and ability side by
             // side, then a spec sheet for the picked weapon and ability.
@@ -461,7 +453,11 @@ namespace Arena
 
             // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
             SpecHeader(right, "ABILITY  ·  SPACE", ability.Name, accent);
-            Ui.Label(new Rect(right.x, right.y + 46f, right.width, descH), ability.Desc, 12, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
+            // What it does, then what Lv 5 adds (a size smaller than the weapon's text, to make room for both).
+            float adh = Mathf.Min(descH, Ui.TextHeight(ability.Desc, 11, right.width));
+            Ui.Label(new Rect(right.x, right.y + 46f, right.width, adh), ability.Desc, 11, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
+            float my = right.y + 48f + adh;
+            DrawMasteryLine(new Rect(right.x, my, right.width, right.yMax - tileH - 3f - my), ability.Id, 10);
             var aTiles = new System.Collections.Generic.List<string[]>();
             aTiles.Add(new[] { ability.Cooldown.ToString("0.#") + " s", "COOLDOWN" });
             if (ability.ExtraCharges > 0)
@@ -481,6 +477,63 @@ namespace Arena
                 Arc(ring, 12f, 3.5f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.95f), 40, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, f));
                 EndUiGl();
             }
+        }
+
+        /// The hero card's ultimate (style D): a charge ring (half full, as every ultimate starts a match) with its key, the
+        /// name and charge time beside it, then what it does and what mastering it adds. Click it to watch it in the
+        /// preview above; while that plays, the ring fills.
+        void DrawUltBox(AbilityDef ult, Rect area)
+        {
+            float t = Time.unscaledTime;
+            bool on = t < ultDemoUntil, hover = area.Contains(Event.current.mousePosition);
+            if (on || hover)
+                Ui.Pill(area, new Color(1f, 0.8f, 0.35f, on ? 0.12f : 0.06f));
+            if (Ui.HitArea(area))
+            {
+                ultDemoUntil = on ? 0f : t + UltDemoTime;  // a second click stops it
+                abilityDemoUntil = 0f;
+            }
+            float x = area.x + 8f, w = area.width - 16f, y = area.y + 8f;
+            // The ring: half full, or filling up while the preview plays.
+            const float rr = 23f;
+            var c = new V2(x + rr + 4f, y + rr + 4f);
+            float fill = on ? 0.5f + 0.5f * Mathf.Clamp01(1f - (ultDemoUntil - t) / UltDemoTime) : 0.5f;
+            if (BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                Circle(c, rr - 4f, new Rgba(0.06f, 0.08f, 0.15f), 32);
+                Arc(c, rr, 6f, new Rgba(0.14f, 0.16f, 0.24f), 48);
+                Arc(c, rr, 6f, new Rgba(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 1f), 48, -MathX.Pi / 2f, MathX.Tau * fill);
+                EndUiGl();
+            }
+            Ui.Fancy(new Rect(c.X - 20f, c.Y - 14f, 40f, 28f), "F", 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
+            float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
+            Ui.Fancy(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
+            Ui.Label(new Rect(tx, y + 37f, tw, 16f), "starts each match half full", 11, Ui.Muted);
+            y += rr * 2f + 14f;
+            // What it does, then what mastering it adds; the click hint stays at the bottom.
+            float bottom = area.yMax - 20f;
+            float dh = Mathf.Min(bottom - y, Ui.TextHeight(ult.Desc, 11, w));
+            Ui.Label(new Rect(x, y, w, dh), ult.Desc, 11, new Color(0.79f, 0.82f, 0.91f), TextAnchor.UpperLeft, false, true);
+            y += dh + 6f;
+            DrawMasteryLine(new Rect(x, y, w, bottom - y), ult.Id, 10);
+            Ui.Label(new Rect(area.x, area.yMax - 18f, area.width, 14f), on ? "PREVIEWING  ·  CLICK TO STOP" : "CLICK THE RING TO PREVIEW", 9,
+                on || hover ? Ui.Gold : new Color(0.44f, 0.47f, 0.58f), TextAnchor.MiddleCenter, true);
+        }
+
+        /// "★ Mastered: …": what an ability's level 5 adds, in gold, if it fits in r.
+        void DrawMasteryLine(Rect r, AbilityId id, int size)
+        {
+            string cap = Game.Capstone(id);
+            if (string.IsNullOrEmpty(cap) || r.height < size + 4f)
+                return;
+            string text = "Mastered (Lv 5): " + cap;
+            float h = Ui.TextHeight(text, size, r.width - 14f);
+            if (h > r.height + 2f)
+                return;  // only whole: never cut off part-way
+            Ui.Icon(new Rect(r.x, r.y + 1f, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
+            Ui.Label(new Rect(r.x + 14f, r.y, r.width - 14f, h), text, size, new Color(0.85f, 0.75f, 0.48f), TextAnchor.UpperLeft, false, true);
         }
 
         void SpecHeader(Rect col, string eyebrow, string name, Color accent)
@@ -583,12 +636,24 @@ namespace Arena
             showcase.Step(dt);
         }
 
+        static float maxWeaponDps;
+        static float MaxWeaponDps
+        {
+            get
+            {
+                if (maxWeaponDps <= 0f)
+                    foreach (var w in Defs.Weapons)
+                        maxWeaponDps = Mathf.Max(maxWeaponDps, Defs.WeaponDps(w.Id));
+                return Mathf.Max(1f, maxWeaponDps);
+            }
+        }
+
         void HeroStat(Rect hero, ref float y, string name, string value, float frac, Color c)
         {
             Ui.Label(new Rect(hero.x + 14f, y, 90f, 16f), name.ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(hero.x + 14f, y, hero.width - 28f, 16f), value, 12, Color.white, TextAnchor.MiddleRight, true);
             Ui.Bar(new Rect(hero.x + 14f, y + 18f, hero.width - 28f, 5f), frac, c);
-            y += 30f;
+            y += 27f;
         }
 
         // --- Bottom bar ------------------------------------------------------------

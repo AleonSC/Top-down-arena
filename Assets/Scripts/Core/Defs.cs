@@ -107,7 +107,7 @@ namespace Arena
     }
 
     /// Stats for roles, enemies and bullets. Tweak numbers here to rebalance.
-    public static class Defs
+    public static partial class Defs
     {
         public static readonly RoleDef[] Roles =
         {
@@ -227,6 +227,10 @@ namespace Arena
         /// Minions.cs (Mage, Summoner), Knight.cs, Ninja.cs, BloodMage.cs. Every place must be filled exactly once.
         public static readonly WeaponDef[] Weapons = WeaponRegistry(Game.SoldierWeapons, Game.ElementalistWeapons, Game.SummonerWeapons,
             Game.KnightWeapons, Game.NinjaWeapons, Game.HemomancerWeapons);
+
+        /// A weapon's damage a second with no upgrades (companions and burning included), measured in the sim
+        /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
+        public static float WeaponDps(WeaponId id) => MeasuredDps.TryGetValue(id, out float v) ? v : 0f;
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 

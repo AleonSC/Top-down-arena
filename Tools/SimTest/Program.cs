@@ -265,6 +265,7 @@ static partial class Program
         Report("levels", "the level a team of Good bots has at each boss", args => LevelReport(Dt)),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
+        Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table", args => MeasuredWeaponDps(Dt, args.Contains("write"))),
         Report("upgradecov", "which weapon upgrades each weapon ignores", args => UpgradeCoverageReport(Dt)),
         Report("bosspower", "a typical build's power at each boss wave, and the boss health a strong build would bring", args => BossPowerReport(Dt)),
         Report("balance", "what one pick and a full stack of each damage upgrade is worth: boss, pack, spread wave", args => UpgradeBalanceReport(Dt)),

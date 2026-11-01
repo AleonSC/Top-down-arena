@@ -30,6 +30,10 @@ static partial class Program
         var groupOrder = all.Select(e => Array.IndexOf(BestiaryData.Groups, e.Group)).ToArray();
         Check(groupOrder.Zip(groupOrder.Skip(1), (a, b) => a <= b).All(x => x), "the Bestiary lists its groups in order");
 
+        // The lobby's Damage stat: every weapon has a measured damage a second (run.sh 1 1 weapondps write).
+        var unmeasured = Defs.Weapons.Where(w => Defs.WeaponDps(w.Id) <= 0f).Select(w => w.Name).ToList();
+        Check(unmeasured.Count == 0, "every weapon has a measured damage a second for the lobby" + (unmeasured.Count > 0 ? " (missing: " + string.Join(", ", unmeasured) + ")" : ""));
+
         // The health the Bestiary shows is what spawns.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
