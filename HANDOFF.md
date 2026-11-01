@@ -23,8 +23,8 @@ and tool is described there). This document is the developer-facing overview; re
 - **Defence:** everyone has a **parry** shield (right mouse) that soaks damage and can reflect; Knights' swings
   cut small bullets. Boss bullets come in two kinds: violet (wear down blockers) and **red aimed shots**
   (unblockable except by the Knight's Shield Wall).
-- **Pacing rules:** a **bullet budget** caps regular enemies' bullets on screen (50 + 4/wave, max 120,
-  +30% per extra player; 40% of it while a boss is up). Touching a boss hurts once per second and shoves
+- **Pacing rules:** a **bullet budget** caps regular enemies' bullets on screen (40 + 3/wave, max 85,
+  +20% per extra player; 60% of it while a boss is up on Normal). Touching a boss hurts once per second and shoves
   you ~100 px out.
 - **Modes in the lobby:** **Run** or **Practice Range** (hand-built waves of any enemies/bosses at any level,
   shared live with the lobby, savable as text files). The host picks the mode, and the run's **modifiers**

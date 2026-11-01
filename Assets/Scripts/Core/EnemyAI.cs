@@ -301,7 +301,11 @@ namespace Arena
 
         int enemyShots;  // enemy bullets in flight, counted each tick (and as they're fired)
 
-        public int ShotBudget => (int)(Math.Min(120f, 50f + 4f * Wave) * (1f + 0.3f * (Players.Count - 1)) * D(DiffKnob.BulletBudget));
+        // 40 + 3 a wave, up to 85 (wave 15 on), 20% more for each extra player. (It was 50 + 4 a wave up to 120, 30% more
+        // a player: a duo's screen sat at 130-160 bullets from wave 11 in recorded runs.)
+        const float BudgetBase = 40f, BudgetPerWave = 3f, BudgetMax = 85f, BudgetPerPlayer = 0.2f;
+
+        public int ShotBudget => (int)(Math.Min(BudgetMax, BudgetBase + BudgetPerWave * Wave) * (1f + BudgetPerPlayer * (Players.Count - 1)) * D(DiffKnob.BulletBudget));
 
         int RegularShotBudget()
         {

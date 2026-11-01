@@ -341,7 +341,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
 - **Boss bodies:** touching a boss hurts once (25 + 0.6 per wave) and shoves you about 100 px back out; it can't hurt you again for 1 s.
-- **Bullet budget:** enemy bullets on screen are capped at 50 + 4 per wave, up to 120 from wave 18 (30% more per extra player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal). Later waves get harder through tougher enemies, not more bullets.
+- **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal). Later waves get harder through tougher enemies, not more bullets.
 
 ## Enemies
 

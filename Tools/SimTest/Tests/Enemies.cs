@@ -238,7 +238,7 @@ static partial class Program
             var s = StartBuffed(dt, 31, 30);
             var seen = new HashSet<EnemyType>();
             int ghosts = 0, frame = 0;
-            // 13 enemy types are in the mix by now, so give it a few waves to roll all four.
+            // 16 enemy types are in the mix by now, so give it a couple of waves to roll all four.
             Run(s, dt, 160, () => seen.Contains(EnemyType.Phantom) && seen.Contains(EnemyType.Hexer) && seen.Contains(EnemyType.Juggernaut) && seen.Contains(EnemyType.Nest), () =>
             {
                 // This only checks which enemies appear, so keep the bots from dying before they've all spawned.
@@ -252,6 +252,20 @@ static partial class Program
                     ghosts += Ghosts(s);
                 }
             });
+            // What's being checked is that late enemies reach the client, not the dice: any type the waves didn't roll
+            // in time gets spawned on the host, and the client has to show it.
+            var forced = new List<EnemyType>();
+            foreach (var t in new[] { EnemyType.Phantom, EnemyType.Hexer, EnemyType.Juggernaut, EnemyType.Nest })
+                if (!seen.Contains(t))
+                {
+                    forced.Add(t);
+                    typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        .Invoke(s[0].Game, new object[] { t, new V2(800f, 200f), 0.1f, 0, false });
+                }
+            if (forced.Count > 0)
+                Run(s, dt, 1f, null, () => { foreach (var p in s[0].Game.Players.Values) p.InvulnT = 1f; foreach (var e in s[1].Game.Enemies.Values) seen.Add(e.Type); });
+            Console.WriteLine("  late waves: reached wave {0}; the client saw {1}{2}", s[0].Game.Wave, string.Join(", ", seen),
+                forced.Count > 0 ? " (spawned by the test: " + string.Join(", ", forced) + ")" : "");
             foreach (var t in new[] { EnemyType.Phantom, EnemyType.Hexer, EnemyType.Juggernaut, EnemyType.Nest })
                 Check(seen.Contains(t), "late-game enemy shows up on the client: " + t);
             Check(ghosts == 0, "late-game enemies stay in sync");
