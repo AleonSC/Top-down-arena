@@ -571,8 +571,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
     // The additive glow pass.
     if (E("glow")) {
       ctx.globalCompositeOperation = "lighter";
-      for (const b of S.shots) glow(b.x, b.y, 22, COL.tankShot, 0.75);
-      for (const b of S.foes) glow(b.x, b.y, b.kind === "bigShot" ? 34 : 24, COL[b.kind], 0.8);
+      for (const b of S.shots) glow(b.x, b.y, 22, COL.tankShot, 0.71);  // bullet glow at 95%
+      for (const b of S.foes) glow(b.x, b.y, b.kind === "bigShot" ? 34 : 24, COL[b.kind], 0.76);
       for (const q of S.particles) glow(q.x, q.y, q.kind === "shard" ? q.r * 1.4 : q.size * 6, q.col, (q.life / q.max) * (q.kind === "shard" ? 0.5 : 0.9));
       for (const r of S.rings) { const f = r.t / r.dur; glow(r.x, r.y, r.r * (1 + f), r.kind === "flash" ? [1, 1, 1] : r.col, (1 - f) * 0.9); }
       for (const e of S.enemies) if (e.d.boss) glow(e.x, e.y, e.d.r * 2.6, e.d.col, 0.45 + 0.1 * Math.sin(S.t * 3));
