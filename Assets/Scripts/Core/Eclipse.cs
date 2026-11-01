@@ -242,6 +242,7 @@ namespace Arena
                         foreach (var p in alive)
                             AddFlare(e, s, (p.Pos - e.Pos).Angle);
                         AddFlare(e, s, Rand(0f, MathX.Tau));
+                        BroadcastSound(Sfx.BossLaserWarn);  // the flares' warning lines
                         break;
                     case EclipseTurn.LunarWake:  // the moon drops a slow shot behind it
                     {
@@ -261,7 +262,7 @@ namespace Arena
                         s.ActT = 1.2f;
                         for (int i = 0; i < alive.Count; i++)
                             ThrowCrescent(e, alive[i].Pos, i % 2 == 0 ? 1 : -1);
-                        Sounds.Add(Sfx.SpellZap);
+                        BroadcastSound(Sfx.BossScythe);
                         break;
                     case EclipseTurn.ClosingUmbra:
                         if (s.Fired < 2)
@@ -270,7 +271,7 @@ namespace Arena
                             s.ActT = 3.4f;
                             float g = Rand(0f, MathX.Tau);
                             s.Rings.Add(new EclipseRing { Center = e.Pos, R = UmbraRingStart, Gap1 = g, Gap2 = MathX.Fmod(g + Rand(2f, 4f), MathX.Tau) });
-                            Sounds.Add(Sfx.BossPulse);
+                            BroadcastSound(Sfx.BossWarp);  // the shadow closing in
                         }
                         else
                             s.ActT = 99f;
@@ -292,7 +293,7 @@ namespace Arena
                                 continue;
                             EnemyShot(e, a, 180f, Defs.BigShot);
                         }
-                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.63f, 0.4f), 120f, 0.4f, Sfx.BossPulse);
+                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.63f, 0.4f), 120f, 0.4f, Sfx.BossSlam);  // the Colossus's stomp
                         break;
                     }
                     case EclipseTurn.EchoLich:
@@ -302,11 +303,14 @@ namespace Arena
                             s.SweepOn = 1;
                             s.SweepT = 0f;
                             s.SweepA = (at - e.Pos).Angle + MathX.Pi / 2f;
+                            BroadcastSound(Sfx.BossLaserWarn);  // the Lich's beams warn
                         }
                         s.ActT = 99f;
                         break;
                     case EclipseTurn.EchoHerald:  // strike rain
                         s.ActT = 0.6f;
+                        if (s.Fired++ == 0)
+                            BroadcastSound(Sfx.BossThunder);  // the Herald's storm rolls in
                         for (int i = 0; i < 3; i++)
                             AddHazard(RandomInArena(80f), 55f, 0.9f);
                         if (alive.Count > 0)
@@ -314,7 +318,10 @@ namespace Arena
                         break;
                     case EclipseTurn.EchoSingularity:
                         if (s.DiskT < 0f)
+                        {
                             s.DiskT = 0f;
+                            BroadcastSound(Sfx.BossWarp);  // the Singularity's pull
+                        }
                         s.ActT = 99f;
                         break;
                     case EclipseTurn.FranticSpiral:  // its old final spiral: five arms, switching every 3 s
@@ -326,11 +333,17 @@ namespace Arena
                     case EclipseTurn.SolarStorm:  // flares at everyone, then crescents, by turns
                         s.ActT = 0.8f;
                         if (s.Fired++ % 2 == 0)
+                        {
                             foreach (var p in alive)
                                 AddFlare(e, s, (p.Pos - e.Pos).Angle);
+                            BroadcastSound(Sfx.BossLaserWarn);
+                        }
                         else
+                        {
                             for (int i = 0; i < alive.Count; i++)
                                 ThrowCrescent(e, alive[i].Pos, i % 2 == 0 ? 1 : -1);
+                            BroadcastSound(Sfx.BossScythe);
+                        }
                         break;
                     case EclipseTurn.Totality:  // slow rings of big shots
                         s.ActT = 1.4f;
@@ -374,8 +387,7 @@ namespace Arena
 
         void AddFlare(Enemy e, EclipseState s, float ang)
         {
-            s.Flares.Add(new EclipseFlare { From = e.Pos, Ang = ang });
-            Sounds.Add(Sfx.BossCharge);
+            s.Flares.Add(new EclipseFlare { From = e.Pos, Ang = ang });  // the caller sounds the warning, once a volley
         }
 
         static Rgba EclipseColor(EclipseStage stage)
@@ -396,12 +408,13 @@ namespace Arena
         void TickEclipseHazards(Enemy e, EclipseState s, float dt)
         {
             // Flares burn whoever stands in their lane while they're live.
+            bool flared = false;
             foreach (var f in s.Flares)
             {
                 bool was = FlareLiveNow(f);
                 f.T += dt;
                 if (!was && FlareLiveNow(f))
-                    Sounds.Add(Sfx.SpellFire);
+                    flared = true;
                 if (!FlareLiveNow(f))
                     continue;
                 V2 tip = f.From + V2.FromAngle(f.Ang) * FlareLen;
@@ -413,6 +426,8 @@ namespace Arena
                     }
             }
             s.Flares.RemoveAll(f => f.T >= FlareWarn + FlareLive);
+            if (flared)
+                BroadcastSound(Sfx.BossLaser);  // a volley of flares fires (one sound for all)
 
             // The flash: everyone outside the moon's shadow is hit.
             if (s.FlashT > 0f)
@@ -424,12 +439,13 @@ namespace Arena
                     foreach (var p in Players.Values)
                         if (!p.Downed && p.InvulnT <= 0f && !InMoonShadow(s, e.Pos, p.Pos, -p.Def.HitR * 0.5f))
                             Damage(p, EclipseFlashDamage, "The Eclipse (eclipse flash)");
-                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.95f, 0.8f), 1600f, 0.6f, Sfx.Roar);
+                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.95f, 0.8f), 1600f, 0.6f, Sfx.BossGong);  // the flash
                     if (--s.FlashLeft > 0)
                     {
                         s.MoonA += MathX.Tau / 5f;  // the moon jumps round before the second
                         s.FlashT = s.FlashLen = NovaSecond;
                         BroadcastFx(FxKind.Ring, MoonPos(e, e.Pos), new Rgba(0.79f, 0.82f, 0.89f), 90f, 0.4f, Sfx.Blink);
+                        BroadcastSound(Sfx.BossWarp);  // the sun swells again
                     }
                 }
             }
@@ -469,7 +485,7 @@ namespace Arena
                 if (s.SweepOn == 1 && s.SweepT >= EchoSweepWarn)
                 {
                     s.SweepOn = 2;
-                    Sounds.Add(Sfx.BossCharge);
+                    BroadcastSound(Sfx.BossLaser);
                 }
                 if (s.SweepOn == 2)
                 {
@@ -529,7 +545,10 @@ namespace Arena
             // Totality: the nova.
             if (s.Stage == EclipseStage.Totality)
             {
+                float was = s.NovaT;
                 s.NovaT -= dt;
+                if (was > 3f && s.NovaT <= 3f)
+                    BroadcastSound(Sfx.BossWarp);  // the nova charging up, 3 s out
                 if (s.NovaT <= 0f)
                 {
                     s.NovaT = NovaTime;
@@ -540,7 +559,7 @@ namespace Arena
                             Damage(p, p.MaxHp * NovaFrac, "The Eclipse (nova)");
                         }
                     e.Hp = Math.Min(e.MaxHp * EclipseTotalityAt, e.Hp + e.MaxHp * EclipseNovaHeal);
-                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.9f, 0.8f), 1700f, 1f, Sfx.Roar);
+                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.9f, 0.8f), 1700f, 1f, Sfx.BigExplode);  // the nova
                     DoLog("the Eclipse: nova");
                 }
             }
@@ -628,12 +647,16 @@ namespace Arena
             else
                 s.MoonD = 0f;
             if (stage == EclipseStage.Penumbra)
+            {
                 for (int i = 0; i < 2; i++)
                     SpawnEnemyAt(EnemyType.Phantom, e.Pos + V2.FromAngle(MathX.Pi * i) * 200f, 0.8f, e.Id);
+                BroadcastSound(Sfx.Summon);
+            }
             if (stage == EclipseStage.Umbra)
             {
                 for (int i = 0; i < 2; i++)
                     SpawnEnemyAt(EnemyType.Hexer, e.Pos + V2.FromAngle(MathX.Pi * i + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
+                BroadcastSound(Sfx.Summon);
                 for (int i = 0; i < 3; i++)
                     s.Spots.Add(new Sunspot { Pos = new V2(300f + i * 500f, i == 1 ? 250f : Height - 220f), Dir = Rand(0f, MathX.Tau) });
             }
@@ -641,8 +664,10 @@ namespace Arena
             {
                 s.Inset = 0f;
                 s.NovaT = NovaTime;
-                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.79f, 0.82f, 0.89f), 400f, 0.8f, Sfx.Roar);  // the moon breaks apart
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.79f, 0.82f, 0.89f), 400f, 0.8f, Sfx.BossGong);  // the moon breaks apart: totality
             }
+            if (stage == EclipseStage.LastLight)
+                BroadcastSound(Sfx.SpellFire);  // the edges catch fire
             NextEclipseTurn(e, s);
             DoLog("the Eclipse: " + stage);
         }
@@ -660,7 +685,7 @@ namespace Arena
             Hazards.Clear();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, e.Pos, EclipseColor(to), 900f, 0.8f, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, e.Pos, EclipseColor(to), 900f, 0.8f, Sfx.BossGong);  // the moon moves on
             DoLog("the Eclipse: changing to " + to);
         }
 
@@ -679,12 +704,16 @@ namespace Arena
             {
                 s.FlashT = s.FlashLen = FlashCharge;
                 s.FlashLeft = 1;
+                BroadcastSound(Sfx.BossWarp);  // the sun swells
             }
             else if (s.Turn == EclipseTurn.ShadowNova)
             {
                 s.FlashT = s.FlashLen = NovaFirst;
                 s.FlashLeft = 2;
+                BroadcastSound(Sfx.BossWarp);
             }
+            else if (s.Turn == EclipseTurn.Gravity)
+                BroadcastSound(Sfx.BossWarp);  // the pull
             e.FireT = 0.3f;
         }
 

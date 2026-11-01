@@ -417,6 +417,14 @@ first and last waves says you're on the road to the boss, then that it's near. S
 
 ## Bosses
 
+**Every boss sounds like itself.** Each mechanic has a sound for its warning and for its strike, from a palette of
+synthesized boss sounds: a rising whine before lasers and aimed attacks and a buzzing beam when they fire, a crack and
+deep thud for slams and landings, a rush for charges and dives, the Warden's prison siren, the Queen's swarm buzz
+and honey splats, scythe swishes for the Reapers and the Duelist, an in-rush for the Singularity's pulls and the
+Devourer's inhale, the Colossus's rumbles and breaking stone, cages slamming, the Devourer's jaws, the Herald's
+thunder and a deep gong for rites, last stands and the Eclipse's totality. They follow the Enemies volume.
+(`Tools/SoundCheck/render.sh` writes them to WAV files.)
+
 **Bosses keep up with strong builds.** When a boss arrives, each player's upgrades are scored (damage x fire rate
 x projectiles x crits, plus boss legendaries and companions) and compared with a typical build at that wave (one
 picked sensibly from the same offers). A party far above typical meets a boss with more health: (how far above)

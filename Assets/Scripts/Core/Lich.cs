@@ -42,7 +42,7 @@ namespace Arena
         public readonly List<LichSpirit> Spirits = new List<LichSpirit>();
 
         // Host only.
-        public int Step = -1, Fired;
+        public int Step = -1, Fired, PhylLeft;  // PhylLeft: phylacteries standing last tick (a drop cracks)
         public float TurnLen, Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
     }
 
@@ -143,7 +143,11 @@ namespace Arena
             bool guarded = false;
             if (s.Stage <= LichStage.Harvest)
             {
-                guarded = LichPhylacteries(e).Count > 0;
+                int left = LichPhylacteries(e).Count;
+                if (left < s.PhylLeft)
+                    BroadcastSound(Sfx.BossCrack);  // a phylactery breaks
+                s.PhylLeft = left;
+                guarded = left > 0;
                 if (!guarded)
                 {
                     if (s.Window <= 0f && s.Rebuild <= 0f)
@@ -272,7 +276,7 @@ namespace Arena
                 }
                 V2 at = GraveSpot(far);
                 SpawnEnemyAt(EnemyType.Phylactery, at, 0.8f, e.Id);
-                BroadcastFx(FxKind.Ring, at, color, 60f, 0.6f, Sfx.Summon);
+                BroadcastFx(FxKind.Ring, at, color, 60f, 0.6f, Sfx.BossGong);
                 return;
             }
             V2 middle = new V2(Width / 2f, Height / 2f);
@@ -282,8 +286,9 @@ namespace Arena
                 var ph = SpawnEnemyAt(EnemyType.Phylactery, ClampToArena(at, 40f), 0.8f, e.Id);
                 ph.MaxHp *= TrianglePhylHp;
                 ph.Hp = ph.MaxHp;
-                BroadcastFx(FxKind.Ring, ph.Pos, LichColor(LichStage.Harvest), 60f, 0.6f, Sfx.Summon);
+                BroadcastFx(FxKind.Ring, ph.Pos, LichColor(LichStage.Harvest), 60f, 0.6f, Sfx.None);
             }
+            BroadcastSound(Sfx.BossGong);  // one toll for the three
         }
 
         /// Where the Lich stands at a grave: a little way from it toward the middle.
@@ -307,6 +312,7 @@ namespace Arena
             e.FireT = 0.3f;
             if (s.Turn == LichTurn.Raise)
             {
+                BroadcastSound(Sfx.BossGong);
                 // Three graves at random raise two of the dead each (at most 6 up).
                 var order = new List<int> { 0, 1, 2, 3, 4, 5 };
                 for (int k = 0; k < 3; k++)
@@ -317,14 +323,17 @@ namespace Arena
                 }
             }
             if (s.Turn == LichTurn.Spirits)
+            {
+                BroadcastSound(Sfx.BossWarp);  // the spirits gather
                 for (int k = 0; k < 6; k++)
                     s.Spirits.Add(new LichSpirit { Pos = e.Pos, A = MathX.Tau * k / 6f, Delay = 1.3f + 0.4f * k });
+            }
         }
 
         void RaiseDead(Enemy e, int grave, int each, int cap)
         {
             V2 g = GravePos(grave);
-            BroadcastFx(FxKind.Ring, g, new Rgba(0.43f, 1f, 0.69f), 40f, 0.9f, Sfx.Summon);
+            BroadcastFx(FxKind.Ring, g, new Rgba(0.43f, 1f, 0.69f), 40f, 0.9f, Sfx.BossRumble);  // the grave heaves
             for (int k = 0; k < each && CountChildren(e, EnemyType.Grunt) < cap; k++)
                 SpawnEnemyAt(EnemyType.Grunt, ClampToArena(g + new V2(k == 0 ? -18f : 18f, 34f), 20f), 1f, e.Id);  // they climb out for 1 s
         }
@@ -346,13 +355,15 @@ namespace Arena
                         s.SweepA = s.SweepFrom;
                         s.SweepT = 0f;
                         s.SweepOn = 1;
-                        BroadcastSound(Sfx.BossCharge);
+                        BroadcastSound(Sfx.BossLaserWarn);
                     }
                     if (s.SweepOn > 0)
                     {
                         s.SweepT += dt;
                         if (s.SweepT >= LichSweepWarn)
                         {
+                            if (s.SweepOn == 1)
+                                BroadcastSound(Sfx.BossLaser);  // the beam fires
                             s.SweepOn = 2;
                             float swung = (s.SweepT - LichSweepWarn) * LichSweepSpin;
                             s.SweepA = s.SweepFrom + s.SweepDir * Math.Min(LichSweepArc, swung);
@@ -369,7 +380,7 @@ namespace Arena
                         foreach (var p in Players.Values)
                             if (!p.Downed)
                                 s.Prisons.Add(new BonePrison { Center = p.Pos, Gap = (p.Pos - e.Pos).Angle });
-                        BroadcastSound(Sfx.Clang);
+                        BroadcastSound(Sfx.BossRumble);  // the spikes begin to rise
                     }
                     break;
                 case LichTurn.Hop:
@@ -384,6 +395,7 @@ namespace Arena
                         int to = (at + 1 + (int)Rand(0f, GraveCount - 1.001f)) % GraveCount;
                         s.BlinkTo = GraveSpot(to);
                         s.FadeT = HopFade;
+                        BroadcastSound(Sfx.BossWarp);  // it fades out
                     }
                     break;
                 case LichTurn.Hands:
@@ -391,6 +403,7 @@ namespace Arena
                     if (s.HandT <= 0f)
                     {
                         s.HandT = 0.9f;
+                    BroadcastSound(Sfx.BossRumble);  // hands stir under you
                         foreach (var p in Players.Values)
                             if (!p.Downed)
                                 AddHazard(p.Pos, HandRadius, HandDelay).Kind = HazardHand;
@@ -401,6 +414,7 @@ namespace Arena
                     if (s.RiseT <= 0f)
                     {
                         s.RiseT = 6f;
+                        BroadcastSound(Sfx.BossGong);
                         for (int i = 0; i < GraveCount; i++)
                             RaiseDead(e, i, 2, 10);
                     }
@@ -413,12 +427,16 @@ namespace Arena
         {
             float dmg = 12f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             // Bone prisons: when the spikes are up, each fires inward.
+            bool shut = false;
             foreach (var q in s.Prisons)
             {
                 q.T += dt;
                 if (q.T >= PrisonRise && !q.Fired)
                 {
                     q.Fired = true;
+                    if (!shut)
+                        BroadcastSound(Sfx.BossCage);  // once for the prisons closing together
+                    shut = true;
                     for (int k = 0; k < PrisonSpikes; k++)
                     {
                         V2 dir = V2.FromAngle(PrisonSpikeAngle(q, k)), at = q.Center + dir * PrisonR;
@@ -440,6 +458,7 @@ namespace Arena
                     {
                         var p = RandomLivingPlayer();
                         sp.Diving = true;
+                        BroadcastSound(Sfx.BossWhoosh);
                         sp.To = p != null ? p.Pos : e.Pos;
                     }
                 }
@@ -534,7 +553,7 @@ namespace Arena
                 V2 dir = V2.FromAngle(off + MathX.Tau * k / 8f);
                 SpawnBullet(Defs.SmallShot, h.Pos, dir * 150f, 0f, 4f, Defs.BulletDamage(Defs.SmallShot), 0, true).Source = EnemyType.Lich;
             }
-            BroadcastFx(FxKind.Boom, h.Pos, new Rgba(0.91f, 0.89f, 0.8f), h.Radius, 0.3f, Sfx.Clang);
+            BroadcastFx(FxKind.Boom, h.Pos, new Rgba(0.91f, 0.89f, 0.8f), h.Radius, 0.3f, Sfx.BossSlam);
         }
 
         void LichFire(Enemy e, float aim)
@@ -557,6 +576,11 @@ namespace Arena
                     break;
                 case LichTurn.Storm:  // a two-armed spiral that reverses halfway
                     e.FireT = 0.09f;
+                    if (s.Fired == 0 && s.TurnT >= s.TurnLen / 2f)
+                    {
+                        s.Fired = 1;
+                        BroadcastSound(Sfx.BossWhoosh);  // the spiral reverses
+                    }
                     e.Ang += (s.TurnT < s.TurnLen / 2f ? 1f : -1f) * 0.244f;
                     EnemyShot(e, e.Ang, 150f, Defs.SmallShot);
                     EnemyShot(e, e.Ang + MathX.Pi, 150f, Defs.SmallShot);

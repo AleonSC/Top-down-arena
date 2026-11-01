@@ -274,7 +274,7 @@ namespace Arena
                     V2 to = first ? new V2(Width - CrossInset, Height - CrossInset) : new V2(CrossInset, Height - CrossInset);
                     BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 50f, 0.3f, Sfx.None);
                     e.Pos = e.Disp = from;
-                    BroadcastFx(FxKind.Ring, from, e.Def.Color, 60f, 0.3f, Sfx.BossShift);
+                    BroadcastFx(FxKind.Ring, from, e.Def.Color, 60f, 0.3f, Sfx.Blink);
                     StartDash(e, s, DuelDash.Cross, (to - from).Angle, from.DistanceTo(to), CrossWarn);
                     break;
                 }
@@ -288,7 +288,7 @@ namespace Arena
                     for (int i = 0; i < 9; i++)
                         EnemyShot(e, aim + (i - 4) * (1.22f / 8f), 240f, Defs.SmallShot);
                     e.Pos = ClampToArena(e.Pos + (tpos - e.Pos).Normalized() * 30f, e.Radius);
-                    BroadcastFx(FxKind.Slash, e.Pos, e.Pos + V2.FromAngle(aim) * 90f, new Rgba(1f, 0.85f, 0.87f), 0.6f, 0.2f, k % 5 == 0 ? Sfx.SwingHeavy : Sfx.SwingLight);
+                    BroadcastFx(FxKind.Slash, e.Pos, e.Pos + V2.FromAngle(aim) * 90f, new Rgba(1f, 0.85f, 0.87f), 0.6f, 0.2f, k % 5 == 0 ? Sfx.BossScythe : Sfx.SwingLight);
                     break;
                 }
                 case DuelTurn.Blink:
@@ -301,7 +301,7 @@ namespace Arena
                     V2 from = e.Pos;
                     e.Pos = e.Disp = FarFromPlayers(e.Radius);
                     BroadcastFx(FxKind.Ring, from, e.Def.Color, 50f, 0.3f, Sfx.None);
-                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 60f, 0.3f, Sfx.BossShift);
+                    BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 60f, 0.3f, Sfx.Blink);
                     break;
                 }
             }
@@ -310,7 +310,7 @@ namespace Arena
         void StartSalute(Enemy e, DuelState s, float tell)
         {
             s.SaluteT = tell;
-            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.8f, 0.35f), 70f, tell, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.8f, 0.35f), 70f, tell, Sfx.BossGong);  // the salute
         }
 
         void StartDash(Enemy e, DuelState s, DuelDash kind, float ang, float len, float warn)
@@ -322,8 +322,7 @@ namespace Arena
             s.DashLen = len;
             s.DashDone = 0f;
             e.Facing = ang;
-            if (warn <= 0f)
-                Sounds.Add(Sfx.BossCharge);
+            BroadcastSound(warn <= 0f ? Sfx.BossScythe : Sfx.BossLaserWarn);  // the salute's strike, or a warning line
         }
 
         void TickDuelDash(Enemy e, DuelState s, float dt)
@@ -332,7 +331,7 @@ namespace Arena
             {
                 s.DashWarn -= dt;
                 if (s.DashWarn <= 0f)
-                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.3f, 0.42f), 50f, 0.2f, Sfx.BossCharge);
+                    BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.3f, 0.42f), 50f, 0.2f, s.Dash == DuelDash.Cross ? Sfx.BossWhoosh : Sfx.BossScythe);
                 return;
             }
             float speed = s.Dash == DuelDash.Cross ? CrossSpeed : s.Dash == DuelDash.Salute ? SaluteSpeed : DuelLungeSpeed;
@@ -382,6 +381,7 @@ namespace Arena
                     float aim = near != null ? (near.Pos - e.Pos).Angle : s.DashAng;
                     for (int i = 0; i < 9; i++)
                         EnemyShot(e, aim + (i - 4) * 0.16f, 230f, Defs.SmallShot);
+                    BroadcastSound(Sfx.SwingHeavy);
                 }
                 s.Dash = DuelDash.None;
             }
@@ -434,6 +434,10 @@ namespace Arena
             s.Stage = stage;
             s.Step = -1;
             s.FlourishT = 1.5f;
+            if (stage == DuelStage.ToTheDeath)
+                BroadcastSound(Sfx.BossCage);  // the dueling circle closes
+            else if (stage == DuelStage.LastStand)
+                BroadcastSound(Sfx.BossGong);
             NextDuelTurn(e, s);
             DoLog("the Duelist: " + stage);
         }
@@ -464,6 +468,8 @@ namespace Arena
             s.TurnT = 0f;
             s.Done = 0;
             e.FireT = 0.4f;
+            if (s.Turn == DuelTurn.Guard)
+                BroadcastSound(Sfx.Clang);  // blade up
             if (s.Turn == DuelTurn.Masquerade)
             {
                 // It and three lookalikes take places round its target; only it is real.
@@ -508,7 +514,7 @@ namespace Arena
         {
             for (int i = 0; i < n; i++)
                 EnemyShot(d, MathX.Tau * i / n, speed, Defs.SmallShot);
-            BroadcastFx(FxKind.Ring, d.Pos, new Rgba(0.71f, 0.61f, 1f), 50f, 0.3f, Sfx.None);
+            BroadcastFx(FxKind.Ring, d.Pos, new Rgba(0.71f, 0.61f, 1f), 50f, 0.3f, Sfx.Blink);
         }
 
         /// A masquerade decoy shot down shatters into a ring (Combat.cs, as it dies).

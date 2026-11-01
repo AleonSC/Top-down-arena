@@ -233,6 +233,7 @@ namespace Arena
                     if (plant != w.Plant)
                     {
                         w.Plant = plant;
+                        BroadcastSound(Sfx.BossWhoosh);  // dashes to its next plant
                         for (int tries = 0; tries < 8; tries++)
                         {
                             e.Waypoint = new V2(Rand(Width * 0.28f, Width * 0.72f), Rand(Height * 0.3f, Height * 0.7f));
@@ -240,11 +241,15 @@ namespace Arena
                             if (d > 160f && d < 330f) break;
                         }
                     }
+                    bool wasDashing = w.Dashing;
                     w.Dashing = MathX.Fmod(w.TurnT, CrossPlant) < CrossDash;
+                    if (wasDashing && !w.Dashing)
+                        BroadcastSound(Sfx.BossPulse);  // plants its feet (softly: every 3 s through the turn)
                     // At the same time, the gates: three, 4 s apart, top then bottom then top; gas with the 1st and 3rd.
                     if (w.GatesSent < 3 && w.TurnT >= 0.2f + w.GatesSent * GateEvery)
                     {
                         AddWardenGate(w, w.GatesSent % 2 == 0 ? 1f : -1f);
+                        BroadcastSound(w.GatesSent == 0 ? Sfx.BossSiren : Sfx.BossLaserWarn);  // the lockdown alarm, then each gate's warning
                         if (w.GatesSent != 1)
                             LobGas(e, target);
                         w.GatesSent++;
@@ -274,11 +279,16 @@ namespace Arena
                 case WardenTurn.Charge:
                     if (w.TurnT >= ChargeWarn && w.ChargeLeft > 0f)
                     {
+                        if (w.TurnT - dt < ChargeWarn)
+                            BroadcastSound(Sfx.BossWhoosh);  // off it goes
                         // MoveEnemy moves it; count the distance, and stop at a wall.
                         w.ChargeLeft -= ChargeSpeed * dt;
                         V2 next = e.Pos + V2.FromAngle(w.Aux) * ChargeSpeed * dt;
                         if (ClampToArena(next, e.Radius).DistanceTo(next) > 1f)
+                        {
                             w.ChargeLeft = 0f;
+                            BroadcastSound(Sfx.BossSlam);  // into the wall
+                        }
                     }
                     break;
                 case WardenTurn.LastStand:
@@ -337,7 +347,7 @@ namespace Arena
                 w.LightMode = WardenLight.Follow;  // the alarm: lights out, the searchlight comes on (WardenLook.cs)
                 w.LightT = 0f;
                 w.Light = w.LightDisp = new V2(Width / 2f, 110f);
-                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.15f, 0.1f), 1200f, 1f, Sfx.BossCharge);
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.15f, 0.1f), 1200f, 1f, Sfx.BossSiren);
             }
             DoLog("the Warden: " + stage);
         }
@@ -440,6 +450,8 @@ namespace Arena
                         w.FanWarn = FanWarnTime;
                         e.FireT = FanWarnTime;
                         fanPending = true;
+                        if (w.TurnT < FanWarnTime + 0.5f)
+                            BroadcastSound(Sfx.BossLaserWarn);  // the first red lines of the turn (not every volley)
                         break;
                     }
                     e.FireT = FanEvery - FanWarnTime;
@@ -548,7 +560,7 @@ namespace Arena
                         w.LightMode = WardenLight.Lock;
                         w.LightT = 0f;
                         w.Caught = 0f;
-                        Sounds.Add(Sfx.BossCharge);
+                        BroadcastSound(Sfx.BossLaserWarn);  // lock-on
                         DoLog("the searchlight caught someone");
                     }
                     break;
@@ -606,7 +618,7 @@ namespace Arena
                 b.Source = e.Type;
                 w.Shackle.Add(b.Id);
             }
-            BroadcastFx(FxKind.Ring, at, new Rgba(0.85f, 0.35f, 1f), ShackleRadius, 0.5f, Sfx.BossPulse);
+            BroadcastFx(FxKind.Ring, at, new Rgba(0.85f, 0.35f, 1f), ShackleRadius, 0.5f, Sfx.BossCage);
         }
 
         // --- The gates and the gas ------------------------------------------------------------------
@@ -737,6 +749,8 @@ namespace Arena
 
         void OpenRiotDoors(WardenState w, int count)
         {
+            if (w.DoorsOpened == 0)
+                BroadcastSound(Sfx.BossSiren);  // the riot alarm
             var doors = new List<int> { 0, 1, 2, 3, 4, 5 };
             for (int k = 0; k < count && doors.Count > 0; k++)
             {
@@ -746,7 +760,7 @@ namespace Arena
                 V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
                 for (int i = 0; i < RiotersPerDoor; i++)  // three rows of three, pouring in
                     SpawnEnemyAt(EnemyType.Rioter, d + inward * (40f + (i / 3) * 30f) + inward.Orthogonal() * ((i % 3 - 1) * 30f), 0.3f + (i / 3) * 0.25f, 0);
-                BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.Explode);
+                BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.BossCrack);
                 w.DoorsOpened++;
             }
         }
@@ -782,7 +796,7 @@ namespace Arena
                 SpawnEnemyAt(EnemyType.Guard, d + inward * 40f + inward.Orthogonal() * Rand(-30f, 30f), 0.4f, 0);
                 BroadcastFx(FxKind.Ring, d + inward * 30f, Defs.Get(EnemyType.Guard).Color, 70f, 0.5f, Sfx.None);
             }
-            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), Defs.Get(EnemyType.Guard).Color, 900f, 0.7f, Sfx.BossCharge);
+            BroadcastFx(FxKind.Ring, new V2(Width / 2f, Height / 2f), Defs.Get(EnemyType.Guard).Color, 900f, 0.7f, Sfx.BossCage);
             DoLog("the Warden's guards come in: " + n);
         }
 

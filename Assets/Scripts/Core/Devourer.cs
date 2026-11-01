@@ -280,7 +280,7 @@ namespace Arena
                             if (q != null)
                                 e.Facing = (q.Pos - e.Pos).Angle;
                             s.InhaleT = InhaleTime;
-                            BroadcastFx(FxKind.Ring, e.Pos, DevourColor(DevourStage.Gorging), e.Radius + 40f, 0.4f, Sfx.BossCharge);
+                            BroadcastFx(FxKind.Ring, e.Pos, DevourColor(DevourStage.Gorging), e.Radius + 40f, 0.4f, Sfx.BossWarp);  // breathing in
                         }
                         break;
                     case DevourTurn.Bile:
@@ -289,7 +289,7 @@ namespace Arena
                             if (p.SwallowT <= 0f)
                                 SpawnPatchAt(PatchKind.Bile, ClampToArena(p.Pos, 60f), BileFlight, BileFlight + BileLife, BileRadius, BileRadius);
                         SpawnPatchAt(PatchKind.Bile, RandomInArena(120f), BileFlight, BileFlight + BileLife, BileRadius, BileRadius);
-                        Sounds.Add(Sfx.BossPulse);
+                        BroadcastSound(Sfx.BossSplat);  // the bile lobbed
                         break;
                     case DevourTurn.Burrow:
                         s.ActT = 0.1f;
@@ -299,7 +299,7 @@ namespace Arena
                             var q = NextDevourTarget(s);
                             s.BurrowTarget = q != null ? q.Id : 0;
                             s.BurrowT = 0.001f;
-                            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), 90f, 0.4f, Sfx.Explode);
+                            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), 90f, 0.4f, Sfx.BossRumble);  // it dives
                         }
                         break;
                     case DevourTurn.Jaws:
@@ -312,7 +312,7 @@ namespace Arena
                                 s.JawsSide = side;
                                 s.JawsAt = q.Pos;
                                 s.JawsT = JawsWarn;
-                                Sounds.Add(Sfx.BossCharge);
+                                BroadcastSound(Sfx.BossLaserWarn);  // the teeth show
                             }
                         }
                         break;
@@ -344,6 +344,7 @@ namespace Arena
             s.LungeDone = 0f;
             s.LungeRing = ring;
             e.Facing = ang;
+            BroadcastSound(Sfx.BossLaserWarn);  // the warning line
         }
 
         /// Host: the warning line, then the dash, then a bite in a half-circle in front of it.
@@ -353,7 +354,7 @@ namespace Arena
             {
                 s.LungeWarn -= dt;
                 if (s.LungeWarn <= 0f)
-                    Sounds.Add(Sfx.BossCharge);
+                    BroadcastSound(Sfx.BossWhoosh);  // the dash
                 return;
             }
             V2 dir = V2.FromAngle(s.LungeAng);
@@ -366,7 +367,7 @@ namespace Arena
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < e.Radius + BiteReach + p.Def.HitR
                     && Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - s.LungeAng + MathX.Pi, MathX.Tau) - MathX.Pi) < MathX.Pi / 2f + 0.2f)
                     Damage(p, BiteDamage, "The Devourer (bite)");
-            BroadcastFx(FxKind.Ring, e.Pos + dir * e.Radius, new Rgba(1f, 0.55f, 0.63f), BiteReach, 0.3f, Sfx.Hit);
+            BroadcastFx(FxKind.Ring, e.Pos + dir * e.Radius, new Rgba(1f, 0.55f, 0.63f), BiteReach, 0.3f, Sfx.BossChomp);
             if (s.LungeRing)
                 for (int i = 0; i < 12; i++)
                     EnemyShot(e, s.LungeAng + MathX.Tau * i / 12f, 170f, Defs.SmallShot);
@@ -386,7 +387,11 @@ namespace Arena
                 return;
             }
             if (s.BurrowT < BurrowTime)
+            {
+                if (s.BurrowT - dt < BurrowChase)
+                    BroadcastSound(Sfx.BossLaserWarn);  // the ripple stops and flashes (once)
                 return;
+            }
             s.BurrowT = 0f;
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.DistanceTo(e.Pos) < EruptRadius + p.Def.HitR)
@@ -394,7 +399,7 @@ namespace Arena
             float off = Rand(0f, MathX.Tau);
             for (int i = 0; i < 16; i++)
                 EnemyShot(e, off + MathX.Tau * i / 16f, 170f, Defs.SmallShot);
-            BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), EruptRadius + 20f, 0.45f, Sfx.BigExplode);
+            BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), EruptRadius + 20f, 0.45f, Sfx.BossSlam);  // it erupts
         }
 
         /// Host: the Jaws' two rows of teeth fly at where the player was.
@@ -407,7 +412,7 @@ namespace Arena
                     V2 at = s.JawsAt + V2.FromAngle(a) * JawsReach, dir = (s.JawsAt - at).Normalized();
                     SpawnBullet(Defs.ToothShot, at, dir * JawsSpeed, 0f, 4.6f, Defs.BulletDamage(Defs.ToothShot), 0, true).Source = e.Type;
                 }
-            Sounds.Add(Sfx.Clang);
+            BroadcastSound(Sfx.BossChomp);
         }
 
         /// The teeth of the Jaws, before they fly: where each of the fourteen starts.
@@ -425,7 +430,7 @@ namespace Arena
                 return;
             e.Hp = Math.Min(e.MaxHp, e.Hp + e.MaxHp * MorselEat);
             Enemies.Remove(m.Id);  // eaten (no kill, no reward)
-            BroadcastFx(FxKind.Ring, m.Pos, new Rgba(1f, 0.69f, 0.44f), 50f, 0.4f, Sfx.Hit);
+            BroadcastFx(FxKind.Ring, m.Pos, new Rgba(1f, 0.69f, 0.44f), 50f, 0.4f, Sfx.BossChomp);
             DoLog("the Devourer ate a morsel");
         }
 
@@ -455,7 +460,7 @@ namespace Arena
                 var m = SpawnEnemyAt(EnemyType.Morsel, at, 0.3f, e.Id);
                 m.FireT = 99f;
             }
-            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.69f, 0.44f), e.Radius + 30f, 0.35f, Sfx.None);
+            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.69f, 0.44f), e.Radius + 30f, 0.35f, Sfx.BossSplat);  // morsels spat out
         }
 
         /// Host: whoever touches its mouth while it breathes in (or in its last stand) is swallowed, one at a time.
@@ -472,7 +477,7 @@ namespace Arena
                     s.StomachT = 0f;
                     p.SwallowT = SwallowTime;
                     p.Pos = e.Pos;
-                    BroadcastFx(FxKind.Ring, e.Pos, DevourColor(DevourStage.Gorging), 90f, 0.4f, Sfx.BossChime);
+                    BroadcastFx(FxKind.Ring, e.Pos, DevourColor(DevourStage.Gorging), 90f, 0.4f, Sfx.BossChomp);
                     DoLog(p.Name + " was swallowed by the Devourer");
                     return;
                 }
@@ -520,7 +525,7 @@ namespace Arena
             MovePlayer(p, ClampToArena(e.Pos + dir * (e.Radius + 170f), p.Def.BodyR + 4f));
             for (int i = 0; i < 12; i++)
                 EnemyShot(e, e.Facing + MathX.Tau * i / 12f, 170f, Defs.SmallShot);
-            BroadcastFx(FxKind.Ring, p.Pos, DevourColor(DevourStage.Gorging), 60f, 0.4f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, p.Pos, DevourColor(DevourStage.Gorging), 60f, 0.4f, Sfx.BossSplat);
             DoLog(p.Name + " was spat out by the Devourer");
         }
 
@@ -649,6 +654,8 @@ namespace Arena
             s.JawsT = 0f;
             e.Radius = DevourRadius(e);
             NextDevourTurn(e, s);
+            if (stage == DevourStage.LastStand)
+                BroadcastSound(Sfx.BossWarp);  // the Last meal: it pulls everyone in
             DoLog("the Devourer: " + stage);
         }
 
@@ -668,7 +675,7 @@ namespace Arena
             ClearBile();
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, e.Pos, DevourColor(to), 900f, 0.8f, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, e.Pos, DevourColor(to), 900f, 0.8f, Sfx.Roar);
             DoLog("the Devourer: changing to " + to);
         }
 
@@ -726,6 +733,11 @@ namespace Arena
                 case DevourTurn.Vomit:  // a spray from its mouth, sweeping 70 degrees either side of you and back
                 {
                     e.FireT = 0.07f;
+                    if (s.Fired == 0)
+                    {
+                        s.Fired = 1;
+                        BroadcastSound(Sfx.BossSplat);  // the spray starts (once a turn)
+                    }
                     e.Facing = aim + (float)Math.Sin(s.TurnT * 1.6f) * 1.22f;
                     V2 mouth = e.Pos + V2.FromAngle(e.Facing) * e.Radius;
                     for (int k = 0; k < 2; k++)
