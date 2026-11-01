@@ -493,7 +493,7 @@ namespace Arena
         void AlarmVertex(V2 p, float a)
         {
             GL.Color(new Color(alarmCol.r, alarmCol.g, alarmCol.b, a));
-            GL.Vertex(Px(p));
+            Vtx(Px(p));  // through Vtx, so a held frame replays it (Juice.cs)
         }
 
         /// HUD: "EXPOSED" or "STUNNED" over the Warden while it lasts.
