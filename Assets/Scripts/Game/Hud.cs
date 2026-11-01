@@ -22,6 +22,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
             if (aimDebug && me != null)
                 DrawAimDebug(me);

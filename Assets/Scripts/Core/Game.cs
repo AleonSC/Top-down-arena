@@ -279,6 +279,7 @@ namespace Arena
         public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
         public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
+        public bool StunBack;     // host only: a Warden's stun shot sent back by a perfect parry (stuns the Warden)
         public EnemyType? Source; // host only: the enemy that fired it (for the session record)
     }
 

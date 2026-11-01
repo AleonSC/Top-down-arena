@@ -20,7 +20,7 @@ namespace Arena
             var w = e.Warden;
             bool riot = w.TransT > 0f ? w.TransTo >= WardenStage.Riot : w.Stage >= WardenStage.Riot;
             DrawRiotDoors(riot, t);
-            if (w.Turn == WardenTurn.Light && w.TransT <= 0f)
+            if ((w.Turn == WardenTurn.Light || w.Turn == WardenTurn.LastStand) && w.TransT <= 0f)
                 DrawSearchlight(w, t);
             DrawWatchtower(w, t);
             foreach (var g in w.Gates)
@@ -31,7 +31,7 @@ namespace Arena
 
         void DrawWatchtower(WardenState w, float t)
         {
-            bool lit = w.Turn == WardenTurn.Light && w.TransT <= 0f && (w.LightMode == WardenLight.Follow || w.LightMode == WardenLight.Lock);
+            bool lit = (w.Turn == WardenTurn.Light || w.Turn == WardenTurn.LastStand) && w.TransT <= 0f && (w.LightMode == WardenLight.Follow || w.LightMode == WardenLight.Lock);
             bool locked = lit && w.LightMode == WardenLight.Lock;
             var trim = new Rgba(1f, 0.9f, 0.62f, 0.5f);  // a corner tower, its lamp in the middle
             FillRect(0f, 0f, 80f, 80f, new Rgba(0.1f, 0.12f, 0.2f, 0.95f));
@@ -50,6 +50,14 @@ namespace Arena
                 }
             }
             Circle(Tower, 9f, lit ? (locked ? new Rgba(1f, 0.6f, 0.5f) : new Rgba(1f, 0.97f, 0.86f)) : new Rgba(0.45f, 0.45f, 0.52f, 0.7f), 16);
+            if (w.Stage == WardenStage.LastStand && w.TransT <= 0f)
+            {
+                // The alarm beacon on the tower: a red lamp turning.
+                float spin = t * 4f;
+                SetColor(new Rgba(1f, 0.15f, 0.1f, 0.22f));
+                Tri(Tower, Tower + V2.FromAngle(spin - 0.35f) * 150f, Tower + V2.FromAngle(spin + 0.35f) * 150f);
+                Circle(Tower, 6f, new Rgba(1f, 0.25f, 0.2f, 0.7f + 0.3f * Mathf.Sin(t * 12f)), 12);
+            }
         }
 
         /// A soft beam from the tower and a feathered pool of light where it lands, dust drifting in it. Red when
@@ -196,6 +204,20 @@ namespace Arena
             }
             if (w.Stage >= WardenStage.Riot)  // red-hot
                 Circle(pos, r + 18f, new Rgba(1f, 0.47f, 0.16f, 0.12f + 0.06f * Mathf.Sin(t * 8f)), 32);
+            if (w.ExposedT > 0f)  // caught in its own light: a white glare round it
+                for (int k = 3; k >= 1; k--)
+                    Circle(pos, r + 12f + k * 14f, new Rgba(1f, 0.97f, 0.85f, 0.08f * (4 - k)), 32);
+            if (w.Turn == WardenTurn.Fan && w.FanWarn > 0f && w.StunT <= 0f && w.ExposedT <= 0f)
+            {
+                // Where the next volley goes: nine red lanes, brightening until it fires.
+                float k = 1f - w.FanWarn / Game.FanWarnTime;
+                for (int i = 0; i < 9; i++)
+                {
+                    V2 d = V2.FromAngle(w.FanAim + (i - 4) * 0.12f);
+                    Line(pos + d * (r + 4f), pos + d * (r + 300f), 2f + 2f * k, new Rgba(1f, 0.15f, 0.12f, 0.15f + 0.45f * k));
+                }
+                Arc(pos, r + 6f, 4f, new Rgba(1f, 0.2f, 0.15f, 0.4f + 0.5f * k), 32, w.FanAim - 0.6f, 1.2f);
+            }
             switch (w.Turn)
             {
                 case WardenTurn.Cross:
@@ -375,6 +397,119 @@ namespace Arena
         {
             Line(pos + new V2(-r * 0.75f, r * 0.15f), pos + new V2(r * 0.75f, r * 0.15f), 3f, new Rgba(0.15f, 0.12f, 0.16f, 0.85f));
             Circle(pos + new V2(0f, -r * 0.3f), r * 0.28f, col.Mix(Rgba.White, 0.35f), 10);
+        }
+
+        // --- Over the Warden: blinded, stunned; the last stand's alarm; the HUD tags ---------------------
+
+        /// Drawn over the enemies: the glare while it's blinded by its own light, the stars while it's stunned.
+        void DrawWardenOver(float t)
+        {
+            var e = game.TheWarden();
+            if (e == null || e.Warden == null || e.Warden.TransT > 0f)
+                return;
+            var w = e.Warden;
+            V2 pos = e.Disp;
+            float r = e.Radius;
+            if (w.ExposedT > 0f)
+            {
+                float flick = 0.55f + 0.25f * Mathf.Sin(t * 22f);
+                Circle(pos, r, new Rgba(1f, 0.98f, 0.9f, 0.35f * flick), 28);
+                for (int k = 0; k < 10; k++)  // the glare's rays
+                {
+                    V2 d = V2.FromAngle(t * 0.7f + k * MathX.Tau / 10f);
+                    Line(pos + d * (r + 4f), pos + d * (r + 22f + 8f * Mathf.Sin(t * 9f + k)), 2f, new Rgba(1f, 0.97f, 0.8f, 0.7f));
+                }
+                Arc(pos, r + 30f, 3f, new Rgba(1f, 0.85f, 0.4f, 0.9f), 40, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(w.ExposedT / Game.ExposeTime));
+            }
+            if (w.StunT > 0f)
+            {
+                for (int i = 0; i < 5; i++)  // stars circling over its head
+                {
+                    V2 o = V2.FromAngle(t * 5f + i * MathX.Tau / 5f);
+                    V2 s = pos + new V2(o.X * r * 0.8f, -r - 10f + o.Y * 9f);
+                    var col = new Rgba(1f, 0.9f, 0.35f, 0.95f);
+                    Line(s - new V2(5f, 0f), s + new V2(5f, 0f), 2f, col);
+                    Line(s - new V2(0f, 5f), s + new V2(0f, 5f), 2f, col);
+                }
+                for (int i = 0; i < 6; i++)  // and the stun crackling round it
+                {
+                    float a = t * 10f + i * MathX.Tau / 6f;
+                    Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a + 0.3f) * (r + 12f), 2f, StunCol.WithAlpha(0.9f));
+                }
+                Arc(pos, r + 18f, 3f, StunCol.WithAlpha(0.9f), 40, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(w.StunT / Game.WardenStunTime));
+            }
+        }
+
+        const float AlarmSight = 190f, AlarmEdge = 80f, AlarmCell = 30f;
+        float[] alarmAlpha;
+
+        /// The last stand's alarm: the lights go out (lit round each player, the Warden and its searchlight's pool) and
+        /// the dark pulses red, like a siren.
+        void DrawWardenAlarm(float t)
+        {
+            var e = game.TheWarden();
+            if (e == null || e.Warden == null || e.Warden.Stage != WardenStage.LastStand || e.Warden.TransT > 0f)
+                return;
+            var w = e.Warden;
+            int nx = Mathf.CeilToInt(AW / AlarmCell), ny = Mathf.CeilToInt(AH / AlarmCell);
+            if (alarmAlpha == null || alarmAlpha.Length < (nx + 1) * (ny + 1))
+                alarmAlpha = new float[(nx + 1) * (ny + 1)];
+            bool light = w.LightMode == WardenLight.Follow || w.LightMode == WardenLight.Lock;
+            for (int j = 0; j <= ny; j++)
+                for (int i = 0; i <= nx; i++)
+                {
+                    V2 p = new V2(Mathf.Min(AW, i * AlarmCell), Mathf.Min(AH, j * AlarmCell));
+                    float dark = Smooth((p.DistanceTo(e.Disp) - e.Radius - 40f) / AlarmEdge);
+                    foreach (var pl in game.Players.Values)
+                        dark = Mathf.Min(dark, Smooth((p.DistanceTo(pl.Disp) - AlarmSight) / AlarmEdge));
+                    if (light)
+                        dark = Mathf.Min(dark, Smooth((p.DistanceTo(w.LightDisp) - Game.LightRadius) / 40f));
+                    alarmAlpha[j * (nx + 1) + i] = 0.82f * dark;
+                }
+            float siren = 0.5f + 0.5f * Mathf.Sin(t * 5f);
+            alarmCol = new Color(0.03f + 0.16f * siren, 0.005f, 0.01f, 1f);
+            for (int j = 0; j < ny; j++)
+                for (int i = 0; i < nx; i++)
+                {
+                    int k = j * (nx + 1) + i;
+                    float a00 = alarmAlpha[k], a10 = alarmAlpha[k + 1], a01 = alarmAlpha[k + nx + 1], a11 = alarmAlpha[k + nx + 2];
+                    if (a00 + a10 + a01 + a11 <= 0.001f)
+                        continue;
+                    V2 p00 = new V2(i * AlarmCell, j * AlarmCell), p11 = new V2(Mathf.Min(AW, p00.X + AlarmCell), Mathf.Min(AH, p00.Y + AlarmCell));
+                    V2 p10 = new V2(p11.X, p00.Y), p01 = new V2(p00.X, p11.Y);
+                    AlarmVertex(p00, a00); AlarmVertex(p10, a10); AlarmVertex(p11, a11);
+                    AlarmVertex(p00, a00); AlarmVertex(p11, a11); AlarmVertex(p01, a01);
+                }
+            // Red light washing along the walls.
+            var wash = new Rgba(1f, 0.1f, 0.08f, 0.18f * siren);
+            FillRect(0f, 0f, AW, 10f, wash);
+            FillRect(0f, AH - 10f, AW, 10f, wash);
+            FillRect(0f, 0f, 10f, AH, wash);
+            FillRect(AW - 10f, 0f, 10f, AH, wash);
+        }
+
+        Color alarmCol;
+
+        void AlarmVertex(V2 p, float a)
+        {
+            GL.Color(new Color(alarmCol.r, alarmCol.g, alarmCol.b, a));
+            GL.Vertex(Px(p));
+        }
+
+        /// HUD: "EXPOSED" or "STUNNED" over the Warden while it lasts.
+        void DrawWardenTags()
+        {
+            var e = game.TheWarden();
+            if (e == null || e.Warden == null || e.Warden.TransT > 0f)
+                return;
+            var w = e.Warden;
+            string tag = w.StunT > 0f ? "STUNNED" : w.ExposedT > 0f ? "EXPOSED  ·  +" + Mathf.RoundToInt((Game.ExposedMult - 1f) * 100f) + "% DAMAGE" : null;
+            if (tag == null)
+                return;
+            V2 at = e.Disp * WorldToUi;
+            float r = e.Radius * WorldToUi;
+            var col = w.StunT > 0f ? new Color(0.55f, 0.9f, 1f) : new Color(1f, 0.88f, 0.45f);
+            Ui.Shadowed(new Rect(at.X - 160f, at.Y - r - 52f, 320f, 22f), tag, 16, new Color(col.r, col.g, col.b, 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 8f)));
         }
     }
 }

@@ -135,7 +135,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 111) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 112) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -260,6 +260,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**The Warden fights back less one-sidedly (Nov 2026), protocol 112:** four changes in `Warden.cs` / `WardenLook.cs`. **Exposed:** `CheckExposed` (every tick, after the turn logic): the searchlight's pool on the Warden for `ExposeCatch` (0.3 s) blinds it for `ExposeTime` (3 s; then `ExposeCooldown`): `WardenFire` holds fire, `HurtEnemy` multiplies by `ExposedMult` (1.5; `WardenExposed`). **Stunned:** a perfect parry of a `StunShot` marks the reflect `Bullet.StunBack` (host only); the reflect flies straight at the Warden (`Collide`'s reflects loop) and its hit calls `StunWarden` (`WardenStunTime` 1.5 s: `WardenSpecial` returns early, `WardenMove` stands still, no fire). **Fan telegraph:** `WardenFire`'s Fan case warns first (`FanAim`, `FanWarn` = `FanWarnTime` 0.35 s; `fanPending`), then fires along `FanAim`; a volley every `FanEvery` 0.8 s (was 0.45 s, unwarned). **Alarm:** entering `LastStand` turns the searchlight on (`LightMode.Follow`; it follows the target, never catches, but still exposes); `DrawWardenAlarm` (from `DrawArenaRules`) darkens the arena red with holes round players, the Warden and the light's pool; the tower's red beacon turns. `ExposedT`, `StunT`, `FanAim`, `FanWarn` are in `SyncWarden`; clients count them down in `UpdateWardenView`. Looks: glare and a countdown ring (`DrawWardenOver`, after the enemies), stun stars, red fan lanes (`DrawWardenUnderlay`), "EXPOSED · +50% DAMAGE" / "STUNNED" tags (`DrawWardenTags`, HUD). Bestiary text updated (its web demo's Warden sim isn't). Tests in `warden`; preview `WARDEN=0.8 WARDENSET=exposed|stun|fan` and `WARDEN=0.05 ... hud 5 14` for the alarm.
 
 **Health barrels in boss fights (Nov 2026), protocol 111:** `PropKind.HealthBarrel` (at the end of the enum). `TickBossBarrels` (Props.cs, from `HostTick`) drops one every `BossBarrelMin`-`BossBarrelMax` (18-26 s; the first after `BossBarrelFirst`, 15 s; `BossBarrelCap` 2 at once) while a boss is up, clear of the players and 120 px past the boss; like a pot it isn't solid and breaks under your shots or when walked into (`Smashable`), into `BossBarrelOrbs` (2) small health orbs. Regular waves' `WaveProps` clears any left over. Look: `DrawHealthBarrel` (PropsLook.cs); preview `PROPS=1` has one. Checked in `props`.
 

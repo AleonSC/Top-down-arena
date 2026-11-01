@@ -432,6 +432,8 @@ namespace Arena
                                 scratchIds.Add(b.Id);
                                 break;
                             }
+                            if (b.StunBack && e.Type == EnemyType.Boss)
+                                StunWarden(e);  // its own stun shot, parried back (Warden.cs)
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
                             foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
@@ -476,7 +478,7 @@ namespace Arena
                             // The parry stops anything in front of it, even shots barriers can't.
                             scratchIds.Add(b.Id);
                             if (ParryHit(p, b.Dmg, b.Pos))  // perfect parry or Mirror Guard: sent back
-                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult });
+                                reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.Stats.ReflectMult, StunBack = b.Kind == Defs.StunShot });
                             break;
                         }
                         if (p.WallT > 0f && WallCovers(p, b.Pos, b.Radius))
@@ -546,8 +548,12 @@ namespace Arena
             foreach (var rb in reflects)
             {
                 Player owner;
-                if (Players.TryGetValue(rb.Owner, out owner))
-                    SpawnBullet(Defs.ArcaneShot, rb.Pos, rb.Vel.Normalized() * -520f, 0f, 1f, 12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
+                if (!Players.TryGetValue(rb.Owner, out owner))
+                    continue;
+                var warden = rb.StunBack ? TheWarden() : null;
+                V2 back = warden != null ? (warden.Pos - rb.Pos).Normalized() : -rb.Vel.Normalized();  // a parried stun shot goes straight back at the Warden
+                var shot = SpawnBullet(Defs.ArcaneShot, rb.Pos, back * 520f, 0f, warden != null ? 2.5f : 1f, 12f * owner.Stats.DmgMult * (rb.Dmg > 0f ? rb.Dmg : 1f), rb.Owner);
+                shot.StunBack = rb.StunBack;
             }
 
             // Ricochet: the bullet carries on toward the nearest other enemy.
@@ -722,6 +728,8 @@ namespace Arena
                 dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
             if (RiotShieldBroken(e))
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
+            if (WardenExposed(e))
+                dmg *= ExposedMult;  // blinded by its own searchlight (Warden.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

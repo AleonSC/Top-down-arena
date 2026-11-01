@@ -118,6 +118,15 @@ class Shot {
     if (host.Game.Reapers != null) { var R = host.Game.Reapers; Console.WriteLine("reapers stage {0} turn {1} turnT {2:0.0} trans {3} {4:0.0} suck {5:0.0} trapped {6} holes {7}", R.Stage, R.Turn, R.TurnT, R.Trans, R.TransT, R.Suck, R.Trapped, R.Holes.Count); }
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) Console.WriteLine("lich stage {0} turn {1} turnT {2:0.0} prisons {3} spirits {4} sweep {5}", e.Lich?.Stage, e.Lich?.Turn, e.Lich?.TurnT, e.Lich?.Prisons.Count, e.Lich?.Spirits.Count, e.Lich?.SweepOn);
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) Console.WriteLine("queen stage {0} turn {1} turnT {2:0.0} trans {3:0.0} cells {4} cloud {5}", e.Queen?.Stage, e.Queen?.Turn, e.Queen?.TurnT, e.Queen?.TransT, e.Queen?.Cells.Count, e.Queen?.CloudOn);
+    // WARDENSET=exposed|stun|fan: the Warden blinded by its own light (the light on it), stunned, or warning of a fan volley.
+    var wset = Environment.GetEnvironmentVariable("WARDENSET");
+    if (wset != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss && e.Warden != null)
+    {
+      var ww = e.Warden;
+      if (wset == "exposed") { ww.Turn = WardenTurn.Light; ww.LightMode = WardenLight.Follow; ww.Light = ww.LightDisp = e.Pos + new V2(20f, 10f); ww.ExposedT = 2.2f; }
+      if (wset == "stun") ww.StunT = 1f;
+      if (wset == "fan") { ww.Turn = WardenTurn.Fan; ww.FanWarn = 0.08f; ww.FanAim = (host.Game.Players[1].Pos - e.Pos).Angle; }
+    }
     // GATEHOLD=1: every Warden gate on screen is caught in its stop just inside the arena (doors flashing).
     if (Environment.GetEnvironmentVariable("GATEHOLD") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Boss && e.Warden != null)
       foreach (var gt in e.Warden.Gates) { gt.Warn = -(Game.GateHoldIn / Game.GateSpeed + 0.1f); gt.Front = (gt.Dir > 0f ? 6f : Game.Height - 6f) + gt.Dir * Game.GateHoldIn; }
