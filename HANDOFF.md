@@ -268,6 +268,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 
 ## 5. Recent history (newest first)
 
+**Weapon ascension strip (Nov 2026), no protocol change:** `LobbyUi.DrawAscensionStrip`: under the weapon and ability grids, one row with the picked weapon's name over "ASCENSIONS 0/3" and three locked cards (Ascension I › II › III, `AscensionsPerWeapon`), each with the "Coming soon" tooltip. Placeholders only: ascensions don't exist yet. To make room the role cards are 46 px, class cards 32 px and spec tiles 38 px; descriptions still fit (checked for Knight Tank, Hemomancer DPS, Summoner Healer). Locked cards share `DashedCard` and now give the hover tick.
+
 **Dev kill-all key (Nov 2026), no protocol change:** F1 Match tab toggle (`ArenaApp.devKillAllKey`, PlayerPrefs `dev_killall`); X (host, not while standing on a chest item) calls `Game.DevKillAll(id)` (DevTools.cs), which sets every enemy's Hp to 0 with `LastHitBy` = that player (shields and bubbles cleared, damage counted), so the next `Collide` dead-sweep gives XP, score, drops, gold and kill credit as usual. Checked in the `dev` suite.
 
 **Results screen restyled (Nov 2026), no protocol change:** `DrawRunSummary` / `DrawPlayerSummary` (Hud.cs) in the picker's trophy style: outlined `Ui.Fancy` title (red GAME OVER with the boss on a boss wave, gold VICTORY!), totals as `Ui.Card` tiles, a card per player (class icon `class_<kit>` on a glowing `Hatch()` backdrop in their colour, role chip, level chip, a trophy chip per award; name in fancy lettering, rows with bars against the party's best), `Ui.FancyButton`s (Leave bottom-left; Play again, Back to lobby, Keep going on the right). Preview: `shot.sh <name> gameover|victory <wave> <secs> <players>`.

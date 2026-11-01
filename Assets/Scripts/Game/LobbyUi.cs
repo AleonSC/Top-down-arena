@@ -357,7 +357,7 @@ namespace Arena
             int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
             for (int i = 0; i < roleSlots; i++)
             {
-                var b = new Rect(x + i * (quarter + gap), y + 28f, quarter, 52f);
+                var b = new Rect(x + i * (quarter + gap), y + 28f, quarter, 46f);
                 if (i >= Defs.Roles.Length)
                 {
                     LockedSlot(b);
@@ -373,7 +373,7 @@ namespace Arena
                     abilityChoice = 0;
                 }
             }
-            y += 92f;
+            y += 84f;
 
             // Classes: rows of 4, the icon beside the name.
             HeadingWithBlurb(x, y, w, "Class", KitBlurb(me.Kit));
@@ -384,7 +384,7 @@ namespace Arena
                     kitSize--;
             for (int i = 0; i < classSlots; i++)
             {
-                var b = new Rect(x + (i % 4) * (quarter + gap), y + 28f + (i / 4) * 40f, quarter, 34f);
+                var b = new Rect(x + (i % 4) * (quarter + gap), y + 28f + (i / 4) * 38f, quarter, 32f);
                 if (i >= Defs.KitCount)
                 {
                     LockedSlot(b);
@@ -398,7 +398,7 @@ namespace Arena
                     abilityChoice = 0;
                 }
             }
-            y += 28f + ((classSlots + 3) / 4) * 40f + 8f;
+            y += 28f + ((classSlots + 3) / 4) * 38f + 4f;
 
             // Weapon and ability: side by side, each a 2 x 2 grid.
             float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
@@ -438,7 +438,11 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 abilityHover = hovered;
-            y += 28f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 36f + 8f;
+            y += 28f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 36f + 4f;
+
+            // The picked weapon's ascensions: all locked for now (hover one: "Coming soon").
+            DrawAscensionStrip(new Rect(x, y, w, 32f), wdef);
+            y += 42f;
 
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             DrawSpecSheet(new Rect(x, y, w, r.yMax - 16f - y), wdef, ability, roleColor, t);
@@ -452,6 +456,24 @@ namespace Arena
 
         /// A slot for content still to come: dark, a dashed rim, a padlock and "Locked". Hovering shows "Coming soon".
         void LockedSlot(Rect r)
+        {
+            DashedCard(r);
+            bool hover = r.Contains(Event.current.mousePosition);
+            Ui.NoteHover(r);
+            var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
+            float isz = Mathf.Min(14f, r.height - 12f), tw = Ui.TextWidth("Locked", 12, true) - 6f;
+            float gx = r.center.x - (isz + 6f + tw) / 2f;
+            Ui.Icon(new Rect(gx, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_lock"), ink);
+            Ui.Label(new Rect(gx + isz + 6f, r.y, tw + 10f, r.height), "Locked", 12, ink, TextAnchor.MiddleLeft, true);
+            if (hover)
+            {
+                lockedTip = r;
+                lockedTipOn = true;
+            }
+        }
+
+        /// A dark card with a dashed rim: the look of everything locked.
+        static void DashedCard(Rect r)
         {
             Ui.Pill(r, new Color(0.05f, 0.06f, 0.1f, 0.85f));
             var dash = new Color(1f, 1f, 1f, 0.14f);
@@ -467,16 +489,40 @@ namespace Arena
                 Ui.Fill(new Rect(r.x, dy, 1f, len), dash);
                 Ui.Fill(new Rect(r.xMax - 1f, dy, 1f, len), dash);
             }
-            bool hover = r.Contains(Event.current.mousePosition);
-            var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
-            float isz = Mathf.Min(14f, r.height - 12f), tw = Ui.TextWidth("Locked", 12, true) - 6f;
-            float gx = r.center.x - (isz + 6f + tw) / 2f;
-            Ui.Icon(new Rect(gx, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_lock"), ink);
-            Ui.Label(new Rect(gx + isz + 6f, r.y, tw + 10f, r.height), "Locked", 12, ink, TextAnchor.MiddleLeft, true);
-            if (hover)
+        }
+
+        const int AscensionsPerWeapon = 3;
+        static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
+
+        /// The picked weapon's ascensions in one row: its name over "ASCENSIONS" on the left, then a locked card per
+        /// ascension (padlock, "Ascension II", "Locked") with a chevron between them. Hovering one shows "Coming soon".
+        void DrawAscensionStrip(Rect r, WeaponDef wdef)
+        {
+            const float labelW = 92f;
+            int nameSize = 11;
+            while (nameSize > 8 && Ui.TextWidth(wdef.Name.ToUpperInvariant(), nameSize, true) > labelW + 4f)
+                nameSize--;
+            Ui.Label(new Rect(r.x, r.y + 1f, labelW + 10f, 15f), wdef.Name.ToUpperInvariant(), nameSize, Ui.Text, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x, r.y + 16f, labelW + 10f, 14f), "ASCENSIONS  0/" + AscensionsPerWeapon, 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+            const float arrowW = 14f;
+            float cx = r.x + labelW, cw = (r.xMax - cx - arrowW * (AscensionsPerWeapon - 1)) / AscensionsPerWeapon;
+            for (int i = 0; i < AscensionsPerWeapon; i++)
             {
-                lockedTip = r;
-                lockedTipOn = true;
+                var c = new Rect(cx + i * (cw + arrowW), r.y, cw, r.height);
+                if (i > 0)
+                    Ui.Label(new Rect(c.x - arrowW, c.y, arrowW, c.height), "›", 16, new Color(1f, 1f, 1f, 0.25f), TextAnchor.MiddleCenter, true);
+                DashedCard(c);
+                bool hover = c.Contains(Event.current.mousePosition);
+                Ui.NoteHover(c);
+                var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
+                Ui.Icon(new Rect(c.x + 10f, c.center.y - 7f, 14f, 14f), PixelArt.Get("ui_lock"), ink);
+                Ui.Label(new Rect(c.x + 30f, c.y + 2f, c.width - 34f, 15f), "Ascension " + Numerals[i], 11, new Color(0.8f, 0.68f, 0.35f, hover ? 1f : 0.75f), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(c.x + 30f, c.y + 16f, c.width - 34f, 13f), "Locked", 9, ink, TextAnchor.MiddleLeft, true);
+                if (hover)
+                {
+                    lockedTip = c;
+                    lockedTipOn = true;
+                }
             }
         }
 
@@ -519,7 +565,7 @@ namespace Arena
             Ui.Fill(new Rect(r.x + half, r.y + 12f, 1f, r.height - 24f), new Color(1f, 1f, 1f, 0.07f));
             var left = new Rect(r.x + 14f, r.y + 12f, half - 28f, r.height - 24f);
             var right = new Rect(r.x + half + 14f, r.y + 12f, half - 28f, r.height - 24f);
-            const float tileH = 42f;
+            const float tileH = 38f;
 
             // Weapon.
             SpecHeader(left, "WEAPON", wdef.Name, accent);
