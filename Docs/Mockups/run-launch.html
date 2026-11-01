@@ -1,0 +1,304 @@
+<title>Run Launch Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a column of animated 1280x720 game screens (canvas), each with a replay button and notes.
+   Single dark look on purpose: these are mockups of the game's own screen. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 72ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.bar button { margin-left: auto; font: 700 14px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+.bar button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 6ch; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Run Launch Mockups</h1>
+    <p>Three ways to go from the lobby's Start button into wave 1, each about five seconds. They play on a loop; Replay starts one again. The game already waits 3 seconds before the first wave, so each of these fits inside that wait rather than adding to it.</p>
+  </header>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option A</span>Drop in</h2><span class="time" id="tA"></span><button id="rA">Replay</button></div>
+    <canvas class="screen" id="A" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The lobby's panels slide out to the sides; the arena's grid lights up in a ripple from the middle.</li>
+      <li>Each player beams down as a pillar of light in their colour, lands with a ring, and their class icon flashes above them.</li>
+      <li>The HUD slides in, then GET READY counts down to a gold WAVE 1. Enemies flicker in at the edges as it ends.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option B</span>Into the preview</h2><span class="time" id="tB"></span><button id="rB">Replay</button></div>
+    <canvas class="screen" id="B" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Everything but your loadout's live mini-arena fades; the mini-arena grows to fill the screen and becomes the real arena, your character in it.</li>
+      <li>Your friend streaks in from their party card to their spot.</li>
+      <li>Ties the lobby to the match: the little arena you've been watching is where you land.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option C</span>Title card</h2><span class="time" id="tC"></span><button id="rC">Replay</button></div>
+    <canvas class="screen" id="C" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Letterbox bars close in; a title card names the run (difficulty, modifiers) and the party slides in from both sides, each with their class icon and loadout.</li>
+      <li>The bars split open on the arena, the players already standing in it, then a FIGHT! stamp.</li>
+      <li>Most cinematic; nice for a fresh run or a continued save ("WAVE 14 · CONTINUED").</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal": {".": null, "k": "#14141e", "w": "#ffffff", "g": "#bec6d7", "G": "#6e768a", "y": "#ffd750", "Y": "#e18c28", "o": "#ff8c28", "r": "#f04040", "R": "#961e28", "p": "#ff80b4", "b": "#5a96ff", "B": "#284bb4", "c": "#8ce6ff", "n": "#64e664", "N": "#288c41", "v": "#b473ff", "V": "#6432a5", "m": "#9b6441", "M": "#5a371e"}, "icons": {"role_tank": ["..kkkkkkkk..", ".kbbbbbbbbk.", ".kbwbbbbbbk.", ".kbwbbbbbbk.", ".kbbbbbbbbk.", ".kbbbbbbbbk.", ".kBbbbbbbBk.", "..kBbbbbBk..", "..kBbbbbBk..", "...kBbbBk...", "....kBBk....", ".....kk....."], "role_dps": ["..........kk", ".........kwk", "........kwgk", ".......kwgk.", "......kwgk..", ".....kwgk...", "..k..kgk....", "..kkkgk.....", "...kok......", "..kok.kk....", ".kok........", "kk.........."], "role_healer": ["....kkkk....", "....knnk....", "....kwnk....", "....knnk....", "kkkkknnkkkkk", "knwnnnnnnnnk", "knnnnnnnnnNk", "kkkkknNkkkkk", "....knNk....", "....knNk....", "....kNNk....", "....kkkk...."], "ui_play": ["............", "..ww........", "..www.......", "..wwww......", "..wwwww.....", "..wwwwww....", "..wwwwww....", "..wwwww.....", "..wwww......", "..www.......", "..ww........", "............"], "ui_power": ["............", ".....ww.....", "..w..ww..w..", ".ww..ww..ww.", ".w...ww...w.", ".w........w.", ".w........w.", ".ww......ww.", "..ww....ww..", "...wwwwww...", "............", "............"], "ui_check": ["............", "..........ww", ".........www", "........www.", ".......www..", "ww....www...", "www..www....", ".wwwwww.....", "..wwww......", "...ww.......", "............", "............"], "ui_skull": ["............", "...wwwwww...", "..wwwwwwww..", ".wwwwwwwwww.", ".ww..ww..ww.", ".ww..ww..ww.", ".wwwwwwwwww.", "..wwww.www..", "...wwwwww...", "...w.ww.w...", "...wwwwww...", "............"], "class_knight": ["...kkkkkk...", "..kggggggk..", ".kgwggggggk.", ".kgwggggggk.", ".kkkkkkkkkk.", ".kgwgkkggGk.", ".kgggkkggGk.", ".kgggkkggGk.", ".kgggggggGk.", ".kGgggggGGk.", "..kGGGGGGk..", "...kkkkkk..."], "class_elementalist": [".....k......", "....kok.....", "....kok..k..", "...koyok.kk.", "..koyyok.kok", "..koyyyokkok", ".koyywyyokok", ".koywwyyyok.", ".koywwwyyok.", "..koyyyyok..", "...kooook...", "....kkkk...."], "class_soldier": ["............", "............", "....kkkk....", "..kkNNNNkk..", ".kNnNNNNNNk.", ".kNnNNNNNNk.", "kNNNNNNNNNNk", "kkkkkkkkkkkk", ".k.k....k.k.", "..kMk..kMk..", "...kMMMMk...", "....kkkk...."]}};
+const W = 1280, H = 720;
+const PARTY = [
+  { name: "Anthony", role: "Tank", kit: "Knight", weapon: "Lance", ability: "Unbreakable", col: "#5a96ff", icon: "class_knight", role_icon: "role_tank", spawn: [570, 500] },
+  { name: "Aleon", role: "DPS", kit: "Elementalist", weapon: "Fireball", ability: "Blizzard", col: "#ff9a4a", icon: "class_elementalist", role_icon: "role_dps", spawn: [710, 500] },
+];
+
+// --- small helpers -------------------------------------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);           // 0..1 across [a, b]
+const ease = x => 1 - Math.pow(1 - x, 3);                           // ease out
+const easeIn = x => x * x * x;
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };  // overshoot
+const lerp = (a, b, k) => a + (b - a) * k;
+const iconCache = {};
+function icon(name) {
+  if (iconCache[name]) return iconCache[name];
+  const g = ICONS.icons[name], c = document.createElement("canvas");
+  c.width = g[0].length; c.height = g.length;
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return iconCache[name] = c;
+}
+function drawIcon(ctx, name, x, y, size, alpha = 1) { ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false; ctx.drawImage(icon(name), x - size / 2, y - size / 2, size, size); ctx.restore(); }
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function panel(ctx, x, y, w, h, alpha = 1, rim) {
+  ctx.save(); ctx.globalAlpha *= alpha; rr(ctx, x, y, w, h, 12); ctx.fillStyle = "#151a26"; ctx.fill();
+  ctx.strokeStyle = rim || "rgba(255,255,255,0.08)"; ctx.lineWidth = rim ? 2 : 1; ctx.stroke(); ctx.restore();
+}
+/** Ui.Fancy: gradient lettering over a dark outline, with a soft glow. */
+function fancy(ctx, text, x, y, size, low, alpha = 1, align = "center", glow = true) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `900 ${size}px Arial, sans-serif`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (glow) { ctx.shadowColor = low; ctx.shadowBlur = size * 0.35; }
+  ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size * 0.11); ctx.strokeStyle = "#0b1020"; ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0;
+  const g = ctx.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); g.addColorStop(0.3, "#fff"); g.addColorStop(1, low);
+  ctx.fillStyle = g; ctx.fillText(text, x, y); ctx.restore();
+}
+function label(ctx, text, x, y, size, col, align = "left", weight = 700, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `${weight} ${size}px Arial, sans-serif`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(text, x, y); ctx.restore();
+}
+function fbtn(ctx, x, y, w, h, text, c1, c2, ic, alpha = 1, press = 0) {
+  ctx.save(); ctx.globalAlpha *= alpha; const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  rr(ctx, x, y + press * 2, w, h, 10); ctx.fillStyle = g; ctx.fill(); ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 12, y + 2 + press * 2, w - 24, 1);
+  if (ic) { rr(ctx, x + 10, y + h / 2 - 15 + press * 2, 30, 30, 6); ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fill(); drawIcon(ctx, ic, x + 25, y + h / 2 + press * 2, 18); }
+  fancy(ctx, text, x + w / 2 + (ic ? 16 : 0), y + h / 2 + press * 2, 19, "#e0ebff", 1, "center", false); ctx.restore();
+}
+/** The arena floor: a dark field with a 40 px grid (lit = 0..1 brightens it). */
+function arena(ctx, lit = 1, ox = 0, oy = 0, scale = 1, clip) {
+  ctx.save(); if (clip) { rr(ctx, clip[0], clip[1], clip[2], clip[3], clip[4] || 0); ctx.clip(); }
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(0, 0, W, H);
+  const step = 40 * scale; ctx.strokeStyle = `rgba(110,140,220,${0.05 + 0.07 * lit})`; ctx.lineWidth = 1;
+  for (let x = (ox % step + step) % step; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+  for (let y = (oy % step + step) % step; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+  ctx.restore();
+}
+/** A grid ripple: a bright ring running out from the middle across the grid lines. */
+function ripple(ctx, k, cx = W / 2, cy = H / 2) {
+  if (k <= 0 || k >= 1) return;
+  const r = ease(k) * 900; ctx.save();
+  const g = ctx.createRadialGradient(cx, cy, Math.max(0, r - 70), cx, cy, r + 8);
+  g.addColorStop(0, "rgba(90,150,255,0)"); g.addColorStop(0.85, `rgba(140,185,255,${0.7 * (1 - k)})`); g.addColorStop(1, "rgba(120,170,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+/** A player, as the game draws one: dark body, rim in their colour, an aim stub; a soft glow. */
+function player(ctx, x, y, col, s = 1, alpha = 1, aim = -Math.PI / 2) {
+  if (s <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.scale(s, s);
+  ctx.shadowColor = col; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fillStyle = "#121827"; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.stroke(); ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.moveTo(Math.cos(aim) * 8, Math.sin(aim) * 8); ctx.lineTo(Math.cos(aim) * 26, Math.sin(aim) * 26); ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore();
+}
+function ring(ctx, x, y, r, col, alpha, w = 3) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.restore(); }
+/** A light pillar from the top of the screen down to a spot (k: 0 none, 0.5 full, 1 gone). */
+function pillar(ctx, x, y, col, k) {
+  if (k <= 0 || k >= 1) return; const a = Math.sin(Math.PI * k), w = 34 * (1 - k * 0.6);
+  ctx.save(); const g = ctx.createLinearGradient(0, 0, 0, y); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, col);
+  ctx.globalAlpha = a * 0.75; ctx.fillStyle = g; ctx.fillRect(x - w / 2, 0, w, y); ctx.globalAlpha = a; ctx.fillStyle = "#fff"; ctx.fillRect(x - w * 0.12, 0, w * 0.24, y); ctx.restore();
+}
+/** The in-match HUD's frame: wave plate bottom-left, ability bar, your card bottom-right (slid by k: 0 hidden, 1 in). */
+function hud(ctx, k) {
+  if (k <= 0) return; const dy = (1 - ease(k)) * 120;
+  ctx.save(); ctx.globalAlpha = k; ctx.translate(0, dy);
+  panel(ctx, 12, 636, 228, 72); label(ctx, "WAVE", 30, 652, 11, "#9ea9c4"); label(ctx, "1", 30, 684, 34, "#fff", "left", 800); label(ctx, "/ 50", 58, 690, 14, "#9ea9c4");
+  for (let i = 0; i < 5; i++) panel(ctx, 252 + i * 160, 652, 150, 56); label(ctx, "SPACE", 266, 666, 10, "#9ea9c4"); label(ctx, "Unbreakable", 266, 690, 15, "#fff");
+  label(ctx, "ULT · F", 906, 666, 10, "#9ea9c4"); label(ctx, "Last Stand", 906, 690, 15, "#fff");
+  panel(ctx, 1072, 636, 196, 72, 1, "#5a96ff55"); label(ctx, "Anthony", 1086, 656, 15, "#fff"); label(ctx, "Knight Tank", 1086, 674, 11, "#5a96ff");
+  rr(ctx, 1086, 688, 168, 8, 4); ctx.fillStyle = "#4fd166"; ctx.fill();
+  ctx.restore();
+}
+/** A simplified lobby (the real one's layout), with a few things that can move. */
+function lobby(ctx, o) {
+  const a = o.alpha ?? 1, sl = o.slide ?? 0, keepPreview = o.keepPreview, press = o.press ?? 0;
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.save(); ctx.translate(-sl * 520, 0);
+  fancy(ctx, "LOBBY", 40, 44, 42, "#9cc0ff", 1, "left");
+  rr(ctx, 44, 76, 372, 54, 10); ctx.fillStyle = "#0d1018"; ctx.fill(); rr(ctx, 48, 80, 182, 46, 8); ctx.fillStyle = "#3a6fe0"; ctx.fill();
+  fancy(ctx, "RUN", 139, 98, 17, "#cfe0ff", 1, "center", false); label(ctx, "50 waves, a boss every 5", 139, 116, 11, "#dbe6ff", "center", 400);
+  fancy(ctx, "PRACTICE RANGE", 320, 98, 17, "#8ff0cf", 1, "center", false);
+  label(ctx, "PARTY  (2/3)", 42, 158, 12, "#9ea9c4");
+  PARTY.forEach((p, i) => { if (o.hideCard === i) return; const y = 184 + i * 96; panel(ctx, 40, y, 376, 88, 1, i === 0 ? "#5a96ff" : null);
+    rr(ctx, 48, y + 8, 72, 72, 8); ctx.fillStyle = "#101626"; ctx.fill(); drawIcon(ctx, p.icon, 84, y + 44, 48);
+    label(ctx, p.name, 136, y + 20, 19, "#fff", "left", 800); label(ctx, p.kit + " " + p.role, 136, y + 42, 14, p.col); label(ctx, p.weapon + "  ·  " + p.ability, 136, y + 64, 12, "#9ea9c4", "left", 400);
+    rr(ctx, 318, y + 56, 86, 22, 11); ctx.fillStyle = "#1f5a33"; ctx.fill(); label(ctx, "READY", 361, y + 67, 11, "#bff5c9", "center", 800); });
+  fbtn(ctx, 40, 650, 150, 48, "Leave", "#c85a63", "#a43d48", "ui_power");
+  ctx.restore();
+  ctx.save(); ctx.translate(sl * 860, 0);
+  rr(ctx, 440, 24, 128, 34, 8); ctx.fillStyle = "#3a6fe0"; ctx.fill(); label(ctx, "YOUR LOADOUT", 504, 41, 12, "#fff", "center", 800);
+  panel(ctx, 440, 68, 800, 556);
+  if (!keepPreview) { previewBox(ctx, [454, 82, 232, 200], 0); }
+  label(ctx, "Knight Tank", 570, 300, 18, "#fff", "center", 800);
+  ["HEALTH", "SPEED", "REACH", "DAMAGE"].forEach((s, i) => { label(ctx, s, 470, 330 + i * 26, 10, "#9ea9c4"); rr(ctx, 470, 340 + i * 26, 200, 4, 2); ctx.fillStyle = ["#4fd166", "#6ea0e0", "#e7b43a", "#e06060"][i]; ctx.fill(); });
+  ["ROLE", "CLASS", "WEAPON", "ABILITY · SPACE"].forEach((s, i) => label(ctx, s, 708, 96 + i * [0, 80, 196, 196][i] / Math.max(1, i) * (i ? 1 : 0) + (i ? [0, 0, 0, 0][i] : 0), 12, "#9ea9c4"));
+  for (let i = 0; i < 4; i++) { rr(ctx, 706 + i * 131, 112, 123, 50, 8); ctx.fillStyle = i === 0 ? "#22305a" : "#1b2131"; ctx.fill(); }
+  for (let i = 0; i < 8; i++) { rr(ctx, 706 + (i % 4) * 131, 204 + Math.floor(i / 4) * 40, 123, 32, 8); ctx.fillStyle = i === 3 ? "#22305a" : "#1b2131"; ctx.fill(); }
+  panel(ctx, 706, 400, 516, 208);
+  ctx.restore();
+  ctx.save(); ctx.translate(sl * 860, 0);
+  fbtn(ctx, 720, 650, 240, 48, "Ready!", "#e6ad3a", "#b47e14", "ui_check");
+  fbtn(ctx, 980, 650, 260, 48, "Start game", "#5a97ff", "#3a6fe0", "ui_play", 1, press);
+  if (press > 0) ring(ctx, 1110, 674, 60 + press * 70, "#9cc0ff", (1 - press) * 0.8, 3);
+  ctx.restore();
+  ctx.restore();
+}
+/** The loadout's live mini-arena: a grid box with your character in it (r: x, y, w, h; k: 0 lobby .. 1 full screen). */
+function previewBox(ctx, r, k, t = 0) {
+  const [x, y, w, h] = r; ctx.save(); rr(ctx, x, y, w, h, lerp(6, 0, k)); ctx.clip();
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(x, y, w, h);
+  const step = lerp(24, 40, k); ctx.strokeStyle = `rgba(110,140,220,${lerp(0.25, 0.12, k)})`; ctx.lineWidth = 1;
+  for (let gx = x; gx < x + w; gx += step) { ctx.beginPath(); ctx.moveTo(gx + 0.5, y); ctx.lineTo(gx + 0.5, y + h); ctx.stroke(); }
+  for (let gy = y; gy < y + h; gy += step) { ctx.beginPath(); ctx.moveTo(x, gy + 0.5); ctx.lineTo(x + w, gy + 0.5); ctx.stroke(); }
+  // three target dummies in the lobby's preview, fading as it becomes the arena
+  for (let i = 0; i < 3; i++) { const dx = x + w * (0.3 + 0.2 * i), dy = y + h * 0.25; ctx.globalAlpha = 1 - k; drawIcon(ctx, "ui_skull", dx, dy, lerp(16, 30, k)); }
+  ctx.globalAlpha = 1; ctx.restore();
+  ctx.save(); rr(ctx, x, y, w, h, lerp(6, 0, k)); ctx.strokeStyle = `rgba(90,150,255,${0.6 * (1 - k)})`; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+}
+function banner(ctx, t, a, b, title, sub, col) {
+  const k = seg(t, a, a + 0.35), out = seg(t, b - 0.3, b); if (k <= 0 || out >= 1) return;
+  const s = lerp(1.6, 1, back(k)), al = k * (1 - out);
+  ctx.save(); ctx.globalAlpha = al * 0.55; const g = ctx.createLinearGradient(0, 300, 0, 420); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.5, "rgba(0,0,0,0.9)"); g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 240, W, 140); ctx.restore();
+  ctx.save(); ctx.translate(W / 2, 300); ctx.scale(s, s); fancy(ctx, title, 0, 0, 64, col, al); ctx.restore();
+  if (sub) label(ctx, sub, W / 2, 352, 15, "#c7d0e6", "center", 800, al);
+}
+function enemiesIn(ctx, t, a) {
+  const k = seg(t, a, a + 0.8); if (k <= 0) return;
+  [[120, 120], [1160, 140], [100, 560], [1180, 540], [640, 70]].forEach(([x, y], i) => { const kk = seg(t, a + i * 0.08, a + i * 0.08 + 0.5);
+    ring(ctx, x, y, 14 + 18 * (1 - kk), "#ff5a6a", kk * 0.8, 2); ctx.save(); ctx.globalAlpha = kk; ctx.beginPath();
+    for (let s = 0; s < 3; s++) { const an = -Math.PI / 2 + s * Math.PI * 2 / 3; ctx[s ? "lineTo" : "moveTo"](x + Math.cos(an) * 14, y + Math.sin(an) * 14); }
+    ctx.closePath(); ctx.fillStyle = "#ff5a5a"; ctx.fill(); ctx.restore(); });
+}
+
+// --- A: drop in ----------------------------------------------------------------------------------
+const A = { len: 5.6, draw(ctx, t) {
+  const lit = seg(t, 1.0, 2.2);
+  arena(ctx, 0.3 + 0.7 * lit); ripple(ctx, seg(t, 1.0, 2.4));
+  if (t < 1.5) lobby(ctx, { press: seg(t, 0.15, 0.6), slide: ease(seg(t, 0.6, 1.3)), alpha: 1 - seg(t, 0.9, 1.4) });
+  PARTY.forEach((p, i) => { const a = 1.9 + i * 0.25; pillar(ctx, p.spawn[0], p.spawn[1], p.col, seg(t, a, a + 0.7));
+    const land = seg(t, a + 0.3, a + 0.6); if (land > 0) { player(ctx, p.spawn[0], p.spawn[1], p.col, back(land)); ring(ctx, p.spawn[0], p.spawn[1], 20 + 60 * seg(t, a + 0.3, a + 0.9), p.col, 1 - seg(t, a + 0.3, a + 0.9));
+      const ic = seg(t, a + 0.35, a + 1.2); if (ic < 1) drawIcon(ctx, p.icon, p.spawn[0], p.spawn[1] - 50 - 14 * ic, 34, Math.sin(Math.PI * ic)); } });
+  hud(ctx, seg(t, 2.8, 3.3));
+  banner(ctx, t, 3.0, 4.1, "GET READY", "NORMAL  ·  2 PLAYERS", "#9cc0ff");
+  banner(ctx, t, 4.1, 5.4, "WAVE 1", "50 WAVES  ·  A BOSS EVERY 5", "#ffcc59");
+  enemiesIn(ctx, t, 4.6);
+} };
+
+// --- B: into the preview ---------------------------------------------------------------------------
+const B = { len: 5.4, draw(ctx, t) {
+  const grow = ease(seg(t, 0.9, 2.1));
+  arena(ctx, 0.2);
+  lobby(ctx, { press: seg(t, 0.15, 0.6), alpha: 1 - seg(t, 0.6, 1.2), keepPreview: true, hideCard: seg(t, 2.1, 2.2) > 0 ? 1 : undefined });
+  const r = [lerp(454, 0, grow), lerp(82, 0, grow), lerp(232, W, grow), lerp(200, H, grow)];
+  previewBox(ctx, r, grow, t);
+  // you, in the preview, carried along as it grows
+  const yx = lerp(454 + 116, PARTY[0].spawn[0], grow), yy = lerp(82 + 150, PARTY[0].spawn[1], grow);
+  player(ctx, yx, yy, PARTY[0].col, lerp(0.7, 1, grow));
+  // the friend streaks in from their party card
+  const f = PARTY[1], k = ease(seg(t, 2.1, 2.7)); if (k > 0) {
+    const sx = 84, sy = 184 + 96 + 44, x = lerp(sx, f.spawn[0], k), y = lerp(sy, f.spawn[1], k) - Math.sin(Math.PI * k) * 120;
+    ctx.save(); ctx.globalAlpha = 0.4 * (1 - seg(t, 2.6, 3.0)); ctx.strokeStyle = f.col; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.beginPath();
+    for (let s = 0; s <= 20; s++) { const kk = Math.max(0, k - 0.25 + s * 0.0125), px = lerp(sx, f.spawn[0], kk), py = lerp(sy, f.spawn[1], kk) - Math.sin(Math.PI * kk) * 120; ctx[s ? "lineTo" : "moveTo"](px, py); }
+    ctx.stroke(); ctx.restore();
+    player(ctx, x, y, f.col, lerp(0.6, 1, k)); if (k >= 1) ring(ctx, f.spawn[0], f.spawn[1], 20 + 50 * seg(t, 2.7, 3.2), f.col, 1 - seg(t, 2.7, 3.2)); }
+  hud(ctx, seg(t, 2.8, 3.3));
+  banner(ctx, t, 3.1, 5.2, "WAVE 1", "GET READY", "#ffcc59");
+  enemiesIn(ctx, t, 4.4);
+} };
+
+// --- C: title card -------------------------------------------------------------------------------
+const C = { len: 6.0, draw(ctx, t) {
+  const open = ease(seg(t, 3.3, 4.0));
+  // the arena behind, with the players standing in it
+  arena(ctx, 1); PARTY.forEach(p => player(ctx, p.spawn[0], p.spawn[1], p.col, 1)); hud(ctx, seg(t, 4.0, 4.5));
+  if (t < 1.2) lobby(ctx, { press: seg(t, 0.15, 0.6), alpha: 1 - seg(t, 0.6, 1.1) });
+  // the card: black, closing from top and bottom, then splitting open
+  const close = ease(seg(t, 0.5, 1.0)), half = H / 2 * close * (1 - open);
+  ctx.save(); ctx.fillStyle = "#06070c"; ctx.fillRect(0, 0, W, half); ctx.fillRect(0, H - half, W, half);
+  if (open > 0 && open < 1) { ctx.fillStyle = `rgba(255,214,120,${0.9 * (1 - open)})`; ctx.fillRect(0, half - 2, W, 2); ctx.fillRect(0, H - half, W, 2); }
+  ctx.restore();
+  if (half > H * 0.35) {
+    const a = seg(t, 1.0, 1.3) * (1 - seg(t, 3.0, 3.3));
+    label(ctx, "A NEW RUN", W / 2, 150, 15, "#9ea9c4", "center", 800, a);
+    ctx.save(); const s = lerp(1.25, 1, back(seg(t, 1.0, 1.4))); ctx.translate(W / 2, 220); ctx.scale(s, s); fancy(ctx, "WAVE 1 OF 50", 0, 0, 62, "#ffcc59", a); ctx.restore();
+    [["NORMAL", "#4d8cff"], ["NO MODIFIERS", "#3a4258"]].forEach(([txt, c], i) => { const x = W / 2 - 120 + i * 130; ctx.save(); ctx.globalAlpha = a; rr(ctx, x - 58, 270, 116 + i * 20, 26, 13); ctx.fillStyle = c; ctx.fill(); ctx.restore(); label(ctx, txt, x + i * 10, 283, 11, "#fff", "center", 800, a); });
+    PARTY.forEach((p, i) => { const k = ease(seg(t, 1.5 + i * 0.25, 2.1 + i * 0.25)), side = i ? 1 : -1, x = W / 2 + side * 200 + side * (1 - k) * 700;
+      ctx.save(); ctx.globalAlpha = a * k; panel(ctx, x - 170, 350, 340, 150, 1, p.col + "88");
+      rr(ctx, x - 156, 364, 100, 122, 10); ctx.fillStyle = "#0f1424"; ctx.fill(); drawIcon(ctx, p.icon, x - 106, 425, 72);
+      fancy(ctx, p.name, x - 40, 384, 26, p.col, 1, "left", false); label(ctx, p.kit + " " + p.role, x - 40, 414, 14, p.col, "left");
+      label(ctx, p.weapon + "  ·  " + p.ability, x - 40, 440, 13, "#c7d0e6", "left", 400); drawIcon(ctx, p.role_icon, x - 32, 470, 18); label(ctx, p.role.toUpperCase(), x - 18, 470, 11, "#9ea9c4", "left", 800);
+      ctx.restore(); });
+    label(ctx, "VS", W / 2, 425, 22, "#3a4258", "center", 900, a * seg(t, 2.0, 2.3));
+  }
+  // FIGHT! stamp
+  const f = seg(t, 4.1, 4.4), fo = seg(t, 5.3, 5.7);
+  if (f > 0 && fo < 1) { ctx.save(); ctx.translate(W / 2, 300); ctx.rotate(-0.06); ctx.scale(lerp(2.4, 1, back(f)), lerp(2.4, 1, back(f))); fancy(ctx, "FIGHT!", 0, 0, 92, "#ff6a5a", f * (1 - fo)); ctx.restore(); }
+  enemiesIn(ctx, t, 4.6);
+} };
+
+// --- players: loop each one, replay on click, still frames when motion is reduced ------------------
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function run(id, anim, stillAt) {
+  const cv = document.getElementById(id), ctx = cv.getContext("2d"), tl = document.getElementById("t" + id);
+  let start = performance.now(), playing = !reduce;
+  const frame = now => {
+    let t = (now - start) / 1000;
+    if (t > anim.len + 1.2) { if (reduce) playing = false; else { start = now; t = 0; } }
+    const tt = playing ? Math.min(t, anim.len) : stillAt;
+    ctx.clearRect(0, 0, W, H); anim.draw(ctx, tt); tl.textContent = tt.toFixed(1) + " s";
+    if (playing) requestAnimationFrame(frame);
+  };
+  document.getElementById("r" + id).addEventListener("click", () => { start = performance.now(); if (!playing) { playing = true; requestAnimationFrame(frame); } });
+  requestAnimationFrame(frame);
+}
+run("A", A, 4.6); run("B", B, 4.0); run("C", C, 2.6);
+</script>
