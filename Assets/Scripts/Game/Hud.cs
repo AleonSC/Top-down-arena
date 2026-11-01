@@ -37,8 +37,11 @@ namespace Arena
                 float r = p.Def.BodyR;
                 V2 at = p.Disp * WorldToUi;  // arena -> HUD coordinates
                 r *= WorldToUi;
-                if (banner && at.X > BannerRect.x - 100f && at.X < BannerRect.xMax + 100f && at.Y > BannerRect.y - 20f && at.Y < BannerRect.yMax + r + 60f)
+                if (banner && !LaunchHoldsBanner && at.X > BannerRect.x - 100f && at.X < BannerRect.xMax + 100f && at.Y > BannerRect.y - 20f && at.Y < BannerRect.yMax + r + 60f)
                     continue;
+                if (LaunchHides(p))
+                    continue;  // not landed yet (LaunchIntro.cs)
+                DrawLaunchIcon(p, at, r);
                 Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 30f, 200f, 18f), p.Name + (p.Id == game.MyId ? " (you)" : ""), 12,
                     ToColor(p.Def.Color.WithAlpha(0.95f)));
                 if (p.LevelFlash > 0f)
@@ -91,6 +94,8 @@ namespace Arena
                         : game.AnyonePicking() ? ""
                         : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
                         : ApproachLine(game.Wave + 1) + "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
+                    if (LaunchHoldsBanner)
+                        break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
@@ -114,7 +119,7 @@ namespace Arena
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
                 float back = Mathf.Clamp01((0.35f - hudT) / 0.35f);
-                if (back > 0f)
+                if (back > 0f && !LaunchActive)  // (not while a run launches: the HUD's on its way in)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
                     Ui.Shadowed(new Rect(0f, H - 30f + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));

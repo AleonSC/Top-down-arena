@@ -330,6 +330,9 @@ namespace Arena
             hy += 32f;
             int hp = (int)(Defs.Get(me.Role).Hp * Defs.KitHpMult(me.Kit));
             var wdef = Defs.Weapon(me.Role, me.Kit, me.Weapon);
+            previewPlayer.Role = me.Role;  // (set here too: the party cards' live models set it, but they can be paused)
+            previewPlayer.Def = Defs.Get(me.Role);
+            previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
             HeroStat(hero, ref hy, "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.35f, 0.95f, 0.45f));
@@ -750,6 +753,8 @@ namespace Arena
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
+            if (uiGlBlocked)
+                return;  // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
             int shown = abilityHover >= 0 ? abilityHover : me.Ability;
             bool ult = abilityHover < 0 && Time.unscaledTime < ultDemoUntil;  // hovering an ability shows that instead
             bool demo = ult || abilityHover >= 0 || Time.unscaledTime < abilityDemoUntil;

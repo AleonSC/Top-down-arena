@@ -74,7 +74,7 @@ namespace Arena
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
 
-            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive)
+            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me))
                 DrawAimLine(game.Me, MouseArena(), t);
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Pistol && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
@@ -135,6 +135,7 @@ namespace Arena
             DrawVarietyFloor(t);   // Beam Sentry beams, Reaver cones, Warder tethers (VarietyLook.cs)
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
+            DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
@@ -180,6 +181,8 @@ namespace Arena
         /// Under a player: the healer's aura, Barrier, buffs, the parry shield and ultimates' looks.
         void DrawPlayerAuras(Player p, float t)
         {
+            if (LaunchHides(p))
+                return;  // not landed yet (LaunchIntro.cs)
             if (p.Downed)
                 return;
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
@@ -403,6 +406,8 @@ namespace Arena
         /// Soul Link's tether (to an ally, or to your Soul Ghost when you're alone), and Roar's ring.
         void DrawPlayerLinks(Player p, float t)
         {
+            if (LaunchHides(p))
+                return;
             Player q;
             V2? other = null;
             if (p.LinkT > 0f && p.LinkTo != p.Id && game.Players.TryGetValue(p.LinkTo, out q))
@@ -459,6 +464,8 @@ namespace Arena
         /// A player, plus, near an edge, the part of them already coming in on the far side.
         void DrawPlayerWrapped(Player p, float t)
         {
+            if (LaunchHides(p))
+                return;  // still on its way down in a pillar of light (LaunchIntro.cs)
             DrawPlayer(p, t);
             if (game.IsHunted(p) && !p.Downed)
                 DrawHuntedMark(p.Disp, p.Def.BodyR, t);  // ModifiersUi.cs
@@ -2299,8 +2306,8 @@ namespace Arena
         /// false (draw nothing) on other events. Always pair with EndUiGl.
         bool BeginUiGl()
         {
-            if (Event.current.type != EventType.Repaint || glMaterial == null)
-                return false;
+            if (Event.current.type != EventType.Repaint || glMaterial == null || uiGlBlocked)
+                return false;  // (uiGlBlocked: the lobby sliding away, whose live models wait; LaunchIntro.cs)
             glMaterial.SetPass(0);
             GL.PushMatrix();
             GL.LoadPixelMatrix();

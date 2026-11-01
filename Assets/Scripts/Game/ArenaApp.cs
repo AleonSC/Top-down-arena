@@ -281,7 +281,8 @@ namespace Arena
             TextEditKeys();  // F4: the dev text editor
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
-            hudT = MathX.MoveTowards(hudT, hudShown ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
+            TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
@@ -496,6 +497,8 @@ namespace Arena
                     break;
                 case AppScreen.Game:
                     DrawHud();
+                    DrawLaunchWave();    // WAVE 1 popping in as a launched run's fight starts (LaunchIntro.cs)
+                    DrawLobbyLeaving();  // the lobby sliding away as the run launches (LaunchIntro.cs)
                     DrawPickOutro();  // an upgrade just taken: shards and the card flying into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();

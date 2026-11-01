@@ -479,6 +479,14 @@ class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("PATHON") != null) { host.Game.CurrentPath = (PathId)int.Parse(Environment.GetEnvironmentVariable("PATHON")); host.Game.PathFrom = host.Game.Wave - 1; host.Game.PathTo = host.Game.Wave + 2; host.Game.Mods = RunMod.Frenzy; if (host.Game.CurrentPath == PathId.Fogbound) host.Game.FogF = 1f; if (host.Game.CurrentPath == PathId.NarrowPass) { host.Game.NarrowF = 1f; foreach (var pl in host.Game.Players.Values) pl.Disp = pl.Pos = pl.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); foreach (var en in host.Game.Enemies.Values) en.Disp = en.Pos = en.Pos.Clamp(host.Game.ArenaMin + new V2(30f, 30f), host.Game.ArenaMax - new V2(30f, 30f)); } }
+    // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
+    float launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
+    if (launchAt >= 0f) {
+      set("launchT", launchAt); set("launchFromLobby", true); set("launchRippled", true);
+      host.Game.State = launchAt < 3f ? MatchState.Intermission : MatchState.Fighting; host.Game.Wave = launchAt < 3f ? 0 : 1; host.Game.StateTimer = Math.Max(0.1f, 3f - launchAt);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); foreach (var pl in host.Game.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
+      float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("hudT", hk);
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();
@@ -495,8 +503,10 @@ class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null) { host.Game.PathOffer = Environment.GetEnvironmentVariable("PATHOFFER") == "bazaar" ? new[] { PathId.Bazaar, PathId.EliteGauntlet } : Environment.GetEnvironmentVariable("PATHOFFER") == "4" ? new[] { PathId.Fogbound, PathId.NarrowPass } : Environment.GetEnvironmentVariable("PATHOFFER") == "3" ? new[] { PathId.FrozenLake, PathId.BloodMoon } : Environment.GetEnvironmentVariable("PATHOFFER") == "2" ? new[] { PathId.BurningGrounds, PathId.Sanctuary } : new[] { PathId.SwarmFields, PathId.EliteGauntlet }; host.Game.State = MatchState.Intermission; host.Game.Route.Add(PathId.SniperRidge); }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
-    if (mode == "hud")
+    if (mode == "hud") {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      if (launchAt >= 0f) { typeof(ArenaApp).GetMethod("DrawLaunchWave", f2).Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobbyLeaving", f2).Invoke(app, null); }
+    }
     else if (mode == "gameover" || mode == "victory")
     {
       // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.

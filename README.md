@@ -665,6 +665,14 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
+## Launching a run
+
+When a run starts it drops you in, all within the 3 s before wave 1 (on your own screen only): the lobby's two
+sides slide off left and right; a ripple runs out from the middle of the arena, bending its grid; each player
+beams down as a pillar of light in their colour, a quarter second apart, landing with a ring and their class icon
+flashing above them; the HUD slides in; GET READY counts down; and a gold **WAVE 1** pops in as the fight starts.
+**Play again** from the results screen does the same without the lobby part.
+
 ## The HUD
 
 Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)
