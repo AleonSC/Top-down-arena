@@ -139,7 +139,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 112) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 117) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -266,6 +266,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Warden Lockdown: fairer gates, gold locks, a gas barrage (Nov 2026), protocol 117:** `Warden.cs`. Gates: a cross turn's three all come from `WardenState.GateSide` (flipped as each cross turn starts; the first is the top), so two never close in; pinned at the edge a gate rolls over you without a second hit; `LobGas` retries until it's clear of the newest gate's lanes (`InDoorLane`/`InGateLanes`), and `AddWardenGate` rolls each gate's doors and lock clear of gas already down. Locks: `WardenGate.LockX`/`LockHp`/`LockOpen` (synced); `GateLockHit` in `Collide` takes your shots (`LockHits` 6), then `InGateGap` lets you through a `LockDoor` (110 px) door there; drawn by `DrawGateLock`. Lockdown's turns are now Cross 12 s, Rest 2, **Gas** 8, Rest 2 (`WardenTurn.Gas`, at the end of the enum): `GasBarrage` drops two volleys (0.3 s and `GasVolley2` 4.3 s) onto one of `GasPatterns` (not the same twice; mirrored at random; the ring is round the Warden), and `WardenFire` sends 3-shot aimed bursts every `GasBurstEvery` 1.2 s. Checks in `warden`.
 
 **Balance from a duo run to wave 25 (Nov 2026), protocol 116:** (1) Boss health: the build-strength boost and the late-boss boost no longer multiply: `SpawnHp` applies `LateBossBoost(wave)`, and `SpawnEnemyAt` sets `PowerScale = max(late, BossPowerScale())` and multiplies by `PowerScale / late`; `BossPowerCurve` 0.75 -> 0.6 (the run's Colossus would have had ~119k health instead of 201k). (2) Damage to players that grew with the wave on top of the difficulty's 3% a wave lost its own per-wave term (boss contact, Beam Sentry, Colossus stomp, Singularity cage, Reaper tether, Lich, Herald, Devourer bite, Eclipse, LateGame hazards, Burning Grounds); the Bestiary shows these as "X, +3% a wave" via `dmgGrow`. (3) Beam Sentry: 16 a sweep, and at most `MaxSentries` 3 a wave (`CapSentries` after `BuildWave`: squads that would bring more break up, spare Sentries become Snipers or Grunts). (4) Healer 140 HP (was 120). (5) Warden and Hive Queen `BossHpMult` 2.5 (were 4 and 3.5). Also Chain Light: Barrage's extra cones deal `BarrageCopyDamage` 60%, one cone is at most `LightConeMaxHalf` (100 degrees across) and all cones fit in `LightConeMaxSpread` 200 degrees (`LightConeHalfFor`), so Homing + Magnum + Barrage can't make a ring round you any more (the run had three 150-degree cones).
 

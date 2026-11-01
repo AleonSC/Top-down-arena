@@ -9,7 +9,7 @@ namespace Arena
 
     /// What the Warden is doing right now. Each stage loops through its turns, one mechanic at a time,
     /// with a short breather (Rest) between them.
-    public enum WardenTurn : byte { Rest, Rings, Spiral, Fan, Light, Cross, Rioters, Charge, LastStand }
+    public enum WardenTurn : byte { Rest, Rings, Spiral, Fan, Light, Cross, Rioters, Charge, LastStand, Gas }  // Gas: the Lockdown's tear gas barrage
 
     /// The searchlight: off, hunting a player, locked on, or dark while its shackle ring closes.
     public enum WardenLight : byte { Off, Follow, Lock, Ring }
@@ -20,6 +20,9 @@ namespace Arena
     public class WardenGate
     {
         public float Front, Dir, Gap1, Gap2, Warn;            // replicated; the front row moves Dir (+1 down, -1 up)
+        public float LockX;                                   // replicated: the gold lock in its middle stretch...
+        public int LockHp;                                    // ...the hits it has left...
+        public bool LockOpen;                                 // ...and, shot out, a third door where it was
         public readonly HashSet<int> Hit = new HashSet<int>();     // host: players it has hurt (once each)...
         public readonly HashSet<int> Rolled = new HashSet<int>();  // ...and rolled over against the edge (once more)
     }
@@ -47,6 +50,7 @@ namespace Arena
         public int Step, Plant = -1, GatesSent, DoorsOpened;
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
         public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
+        public float GateSide = -1f;     // which edge this cross turn's gates all come from (+1 the top, -1 the bottom; flipped as each starts, so the first is the top)
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
 
@@ -79,6 +83,12 @@ namespace Arena
         // Each gate slides GateHoldIn px in, stops for GateHold s (a moment to line up a door), then carries on.
         public const float GateHoldIn = 30f, GateHold = 0.3f;
         const float GateDamage = 12f, GateEvery = 4f;
+        // Each gate's gold lock: LockHits of your shots break it, opening a third door LockDoor wide where it was.
+        public const float LockDoor = 110f, LockW = 24f;
+        public const int LockHits = 6;
+        // The tear gas barrage (Lockdown): two volleys of canisters in a pattern with clear lanes between, while it
+        // fires slow aimed bursts.
+        const float GasVolley2 = 4.3f, GasBurstEvery = 1.2f;
         // Gas canisters: with the 1st and 3rd gate, near the target; a cloud 90 px wide for 5 s, 8 damage a second.
         const float GasRadius = 90f, GasFlight = 1f, GasLife = 5f, GasDps = 8f;
         // The riot: doors burst open, rioters pour out (nine a door); any left after RiotTime bring the guards, who
@@ -95,14 +105,14 @@ namespace Arena
         static readonly WardenTurn[][] StageTurns =
         {
             new[] { WardenTurn.Rings, WardenTurn.Rest, WardenTurn.Spiral, WardenTurn.Rest, WardenTurn.Fan, WardenTurn.Rest, WardenTurn.Light, WardenTurn.Rest },
-            new[] { WardenTurn.Cross, WardenTurn.Rest },
+            new[] { WardenTurn.Cross, WardenTurn.Rest, WardenTurn.Gas, WardenTurn.Rest },
             new[] { WardenTurn.Rioters, WardenTurn.Rest, WardenTurn.Charge, WardenTurn.Rest },
             new[] { WardenTurn.LastStand },
         };
         static readonly float[][] StageTimes =
         {
             new[] { 5f, 1f, 6f, 1f, 4f, 2f, 18f, 1f },  // the fast fan last, so the arena is clear when the light comes on; the light hunts for 18 s
-            new[] { 12f, 2f },
+            new[] { 12f, 2f, 8f, 2f },
             new[] { 10f, 1f, ChargeWarn + ChargeLength / ChargeSpeed + 0.3f, 1f },
             new[] { 999f },
         };
@@ -248,7 +258,7 @@ namespace Arena
                     // At the same time, the gates: three, 4 s apart, top then bottom then top; gas with the 1st and 3rd.
                     if (w.GatesSent < 3 && w.TurnT >= 0.2f + w.GatesSent * GateEvery)
                     {
-                        AddWardenGate(w, w.GatesSent % 2 == 0 ? 1f : -1f);
+                        AddWardenGate(w, w.GateSide);  // all from the same edge, so two can never close in on you
                         BroadcastSound(w.GatesSent == 0 ? Sfx.BossSiren : Sfx.BossLaserWarn);  // the lockdown alarm, then each gate's warning
                         if (w.GatesSent != 1)
                             LobGas(e, target);
@@ -256,6 +266,14 @@ namespace Arena
                     }
                     break;
                 }
+                case WardenTurn.Gas:
+                    // Two volleys of canisters in a pattern (a different one each time), with lanes of clear air between.
+                    if ((w.GatesSent == 0 && w.TurnT >= 0.3f) || (w.GatesSent == 1 && w.TurnT >= GasVolley2))
+                    {
+                        GasBarrage(e, w.GatesSent == 0 ? -1 : lastGasPattern);
+                        w.GatesSent++;
+                    }
+                    break;
                 case WardenTurn.Rioters:
                 {
                     // Two doors burst open at once, two more 3 s later; the Warden holds its shield toward its target.
@@ -401,6 +419,7 @@ namespace Arena
                     break;
                 case WardenTurn.Cross:
                     w.Dashing = true;
+                    w.GateSide = -w.GateSide;  // the next cross turn's gates come from the other edge
                     break;
                 case WardenTurn.Charge:
                 {
@@ -463,6 +482,12 @@ namespace Arena
                     e.FireT = StunEvery;
                     if (w.LightMode == WardenLight.Follow && w.TurnT > 0.6f)
                         EnemyShot(e, aim, StunShotSpeed, Defs.StunShot);
+                    break;
+                case WardenTurn.Gas:  // slow aimed bursts through the gas
+                    e.FireT = GasBurstEvery;
+                    if (w.TurnT > 1f)
+                        for (int i = -1; i <= 1; i++)
+                            EnemyShot(e, aim + i * 0.14f, 200f, Defs.SmallShot);
                     break;
                 case WardenTurn.Cross:  // planted: straight streams up, down, left and right
                     e.FireT = 0.075f;
@@ -627,9 +652,22 @@ namespace Arena
         {
             var g = new WardenGate { Dir = dir, Front = GateStart(dir), Warn = GateWarn };
             // The door gaps sit near the side walls, outside where the cross ever plants (28-72% of the width),
-            // so its vertical stream can never block one: every quadrant the cross makes has a way through.
-            g.Gap1 = Rand(70f, Width * 0.28f - GateDoor - 40f);
-            g.Gap2 = Rand(Width * 0.72f + 40f, Width - GateDoor - 70f);
+            // so its vertical stream can never block one: every quadrant the cross makes has a way through. The lock
+            // sits in the middle stretch, far from both doors. All three are rolled clear of any tear gas already
+            // down or on its way.
+            for (int tries = 0; tries < 12; tries++)
+            {
+                g.Gap1 = Rand(70f, Width * 0.28f - GateDoor - 40f);
+                g.Gap2 = Rand(Width * 0.72f + 40f, Width - GateDoor - 70f);
+                g.LockX = Rand(Width * 0.36f, Width * 0.64f);
+                bool clear = true;
+                foreach (var pt in Patches.Values)
+                    if (pt.Kind == PatchKind.Gas && InGateLanes(g, pt.Pos.X, pt.Radius))
+                        clear = false;
+                if (clear)
+                    break;
+            }
+            g.LockHp = LockHits;
             w.Gates.Add(g);
         }
 
@@ -651,7 +689,42 @@ namespace Arena
 
         public static float GateBack(WardenGate g) => g.Front - g.Dir * (GateRows - 1) * GateRowGap;
 
-        public static bool InGateGap(WardenGate g, float x) => (x > g.Gap1 + 4f && x < g.Gap1 + GateDoor - 4f) || (x > g.Gap2 + 4f && x < g.Gap2 + GateDoor - 4f);
+        public static bool InGateGap(WardenGate g, float x) => (x > g.Gap1 + 4f && x < g.Gap1 + GateDoor - 4f) || (x > g.Gap2 + 4f && x < g.Gap2 + GateDoor - 4f)
+            || (g.LockOpen && Math.Abs(x - g.LockX) < LockDoor / 2f - 4f);
+
+        /// Is this point on a gate's gold lock (a moving gate's, still locked)?
+        public static bool OnGateLock(WardenGate g, V2 p, float r)
+        {
+            if (g.Warn > 0f || g.LockOpen)
+                return false;
+            float back = GateBack(g), lo = Math.Min(g.Front, back) - GateBulletR - 3f, hi = Math.Max(g.Front, back) + GateBulletR + 3f;
+            return Math.Abs(p.X - g.LockX) < LockW / 2f + r && p.Y > lo - r && p.Y < hi + r;
+        }
+
+        /// Host, in Collide: does one of your shots hit a gate's lock? Each takes a hit off it; the last opens a third
+        /// door there.
+        bool GateLockHit(Bullet b)
+        {
+            var e = TheWarden();
+            if (e == null || e.Warden == null || e.Warden.Gates.Count == 0)
+                return false;
+            foreach (var g in e.Warden.Gates)
+            {
+                if (!OnGateLock(g, b.Pos, b.Radius))
+                    continue;
+                V2 at = new V2(g.LockX, (g.Front + GateBack(g)) / 2f);
+                if (--g.LockHp <= 0)
+                {
+                    g.LockOpen = true;
+                    BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.82f, 0.3f), 60f, 0.4f, Sfx.Clang);
+                    DoLog("a gate's lock was shot out");
+                }
+                else
+                    BroadcastFx(FxKind.Spark, at, new Rgba(1f, 0.85f, 0.4f), 14f, 0.15f, Sfx.Hit);
+                return true;
+            }
+            return false;
+        }
 
         /// Moves the gates along (every game: the host, and clients between snapshots).
         static void AdvanceGates(WardenState w, float dt)
@@ -685,13 +758,7 @@ namespace Arena
                     if (p.Pos.Y < lo - pad || p.Pos.Y > hi + pad || InGateGap(g, p.Pos.X))
                         continue;
                     if (g.Hit.Add(p.Id))
-                        Damage(p, GateDamage, "The Warden (gate)");
-                    float ahead = g.Front + g.Dir * (pad + 2f);
-                    if ((ahead < p.Def.HitR || ahead > Height - p.Def.HitR) && g.Rolled.Add(p.Id))
-                    {
-                        p.InvulnT = 0f;
-                        Damage(p, GateDamage, "The Warden (gate)");
-                    }
+                        Damage(p, GateDamage, "The Warden (gate)");  // once a gate (pinned at the edge, it rolls over you without hurting again)
                 }
             }
         }
@@ -722,11 +789,64 @@ namespace Arena
         void LobGas(Enemy e, Player target)
         {
             V2 near = target != null ? target.Pos : RandomInArena(120f);
-            V2 at = ClampToArena(near + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 220f), 100f);
-            if (at.DistanceTo(e.Pos) < GasRadius + e.Radius)
-                at = ClampToArena(at + (at - e.Pos).Normalized() * (GasRadius + e.Radius), 100f);  // not on the Warden
+            V2 at = near;
+            for (int tries = 0; tries < 16; tries++)
+            {
+                at = ClampToArena(near + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(60f, 220f), 100f);
+                if (at.DistanceTo(e.Pos) < GasRadius + e.Radius)
+                    at = ClampToArena(at + (at - e.Pos).Normalized() * (GasRadius + e.Radius), 100f);  // not on the Warden
+                if (!InDoorLane(e.Warden, at.X))
+                    break;  // and never across a gate's door (or its lock), so the way through stays clear
+            }
             SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GasLife, GasRadius, GasRadius);
             BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GasRadius, GasFlight, Sfx.Throw);
+        }
+
+        /// Would a cloud here cover the newest gate's doors, or the lock that could become one? (Each gate's doors are
+        /// rolled clear of the gas already down, in AddWardenGate, so older clouds keep out of the way too.)
+        static bool InDoorLane(WardenState w, float x)
+        {
+            if (w == null || w.Gates.Count == 0)
+                return false;
+            return InGateLanes(w.Gates[w.Gates.Count - 1], x, GasRadius);
+        }
+
+        static bool InGateLanes(WardenGate g, float x, float pad) =>
+            Math.Abs(x - (g.Gap1 + GateDoor / 2f)) < GateDoor / 2f + pad || Math.Abs(x - (g.Gap2 + GateDoor / 2f)) < GateDoor / 2f + pad
+            || Math.Abs(x - g.LockX) < LockDoor / 2f + pad;
+
+        // The barrage's patterns, as shares of the arena: canisters land on these spots, leaving lanes between.
+        static readonly V2[][] GasPatterns =
+        {
+            new[] { new V2(0.22f, 0.3f), new V2(0.22f, 0.7f), new V2(0.5f, 0.3f), new V2(0.5f, 0.7f), new V2(0.78f, 0.3f), new V2(0.78f, 0.7f) },  // columns
+            new[] { new V2(0.17f, 0.27f), new V2(0.5f, 0.27f), new V2(0.83f, 0.27f), new V2(0.33f, 0.73f), new V2(0.67f, 0.73f) },              // two rows, staggered
+            new[] { new V2(0.2f, 0.22f), new V2(0.38f, 0.5f), new V2(0.56f, 0.78f), new V2(0.44f, 0.22f), new V2(0.62f, 0.5f), new V2(0.8f, 0.78f) },  // two diagonals
+            null,  // a ring round the Warden
+        };
+        int lastGasPattern = -1;
+
+        /// One volley of the barrage: canisters onto a pattern (not the one just used), each marked where it lands.
+        void GasBarrage(Enemy e, int notThis)
+        {
+            int k;
+            do k = rng.Next(GasPatterns.Length); while (k == notThis);
+            lastGasPattern = k;
+            bool flip = rng.Next(2) == 0;
+            var spots = new List<V2>();
+            if (GasPatterns[k] == null)
+                for (int i = 0; i < 6; i++)
+                    spots.Add(ClampToArena(e.Pos + V2.FromAngle(MathX.Tau * i / 6f + (float)rng.NextDouble()) * 270f, 100f));
+            else
+                foreach (var f in GasPatterns[k])
+                    spots.Add(new V2((flip ? 1f - f.X : f.X) * Width, f.Y * Height));
+            foreach (var at in spots)
+            {
+                if (at.DistanceTo(e.Pos) < GasRadius + e.Radius)
+                    continue;  // not on the Warden
+                SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GasLife, GasRadius, GasRadius);
+                BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GasRadius, GasFlight, Sfx.None);
+            }
+            BroadcastSound(Sfx.Throw);
         }
 
         void TickWardenGas(WardenState w, float dt)
@@ -939,6 +1059,9 @@ namespace Arena
                 s.Float(ref g.Gap1);
                 s.Float(ref g.Gap2);
                 s.Float(ref g.Warn);
+                s.Float(ref g.LockX);
+                s.Byte(ref g.LockHp);
+                s.Bool(ref g.LockOpen);
             }
         }
 
