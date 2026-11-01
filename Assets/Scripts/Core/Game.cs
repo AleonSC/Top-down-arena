@@ -197,6 +197,8 @@ namespace Arena
         public float WardT;           // host: a Warder's time until it wards again
         public float MarkT, MarkMult = 1f;  // Mark for Death (host); Marked is the replicated flag
         public float PowerScale = 1f;       // host: a boss's extra health for a strong party (BuildPower.cs)
+        public float ShootT, ShootRest, ShootWait;  // host: its turn to shoot, resting after one, and how long it's waited (Readability.cs)
+        public bool Winding;                // about to fire a volley: it glows (replicated; Readability.cs)
         public float SlowT, SlowMult = 1f;  // Graviton Rounds (host)
         public float BurnT, BurnDps;        // the Flamethrower's fire (host)
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
@@ -249,6 +251,8 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public float Splash;      // host only: explosion radius on impact
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
+        public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
+        public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)
         public bool Rush;         // host only: a Pauser's shot; when it runs out (after hanging still) one rushes at a player from where it hung
         public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
@@ -1403,7 +1407,7 @@ namespace Arena
                     w.Write(b.Vel);
                     w.Write(b.AngVel);
                     w.Write(b.Life);
-                    w.Write((byte)((b.FromBoss ? 1 : 0) | (b.Homing > 0f ? 2 : 0)));
+                    w.Write((byte)((b.FromBoss ? 1 : 0) | (b.Homing > 0f ? 2 : 0) | ((int)b.Look << 2)));
                     if (b.Homing > 0f)
                         w.Write(b.Homing);
                 }

@@ -333,6 +333,7 @@ namespace Arena
             PullStrength = 0f;
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
+            AssignShooterTurns(dt);  // only so many regular shooters at once (Readability.cs)
             tickEnemies.Clear();
             tickEnemies.AddRange(Enemies.Values);
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
@@ -391,9 +392,14 @@ namespace Arena
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
                     e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
+                    // A regular shooter glows just before it fires (Readability.cs).
+                    float rateNow = mult * (1f - e.Suppress);
+                    e.Winding = TakesTurns(e) && HasTurn(e) && rateNow > 0f && e.FireT / rateNow <= WindUp && e.FireT > -0.5f;
                     if (e.FireT <= 0f)
                     {
-                        if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())
+                        if (!HasTurn(e))
+                            e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
+                        else if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
                         else
                             EnemyFire(e, tpos);
@@ -790,8 +796,8 @@ namespace Arena
                     {
                         e.Phase = 0;
                         e.FireT = 3.2f;
-                        for (int i = 0; i < 10; i++)
-                            EnemyShot(e, e.Facing + MathX.Tau * i / 10f, 140f, Defs.SmallShot);
+                        for (int i = 0; i < 8; i++)  // its ring: 8, slow enough to step through (was 10 at 140)
+                            EnemyShot(e, e.Facing + MathX.Tau * i / 8f, 120f, Defs.SmallShot);
                     }
                     break;
                 case EnemyType.Medic:
@@ -861,10 +867,10 @@ namespace Arena
                 case EnemyType.Burster:
                 {
                     e.FireT = 2.4f;
-                    int n = 12 + Math.Min(Wave, 6);  // the ring grows each wave up to 18 bullets (wave 6)
+                    int n = 8 + Math.Min(Wave / 2, 4);  // the ring grows up to 12 bullets (wave 8), with gaps to slip through (was up to 18 at 135)
                     e.Ang += MathX.Pi / n;
                     for (int i = 0; i < n; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / n, 135f, Defs.SmallShot);
+                        EnemyShot(e, e.Ang + MathX.Tau * i / n, 115f, Defs.SmallShot);
                     break;
                 }
                 case EnemyType.Sniper:
@@ -913,7 +919,7 @@ namespace Arena
                     const float flight = 1.3f;
                     V2 vel = ((tpos - e.Pos) / flight).LimitLength(330f);
                     var bomb = SpawnBullet(Defs.MineShot, e.Pos + V2.FromAngle(aim) * e.Radius, vel, 0f, flight, Defs.BulletDamage(Defs.MineShot), 0);
-                    bomb.Burst = e.Elite ? 14 : 10;
+                    bomb.Burst = e.Elite ? 10 : 7;  // was 14 / 10
                     bomb.Source = e.Type;
                     break;
                 }
@@ -948,7 +954,10 @@ namespace Arena
         void EnemyShot(Enemy e, float ang, float speed, byte kind, float angVel = 0f)
         {
             V2 dir = V2.FromAngle(ang);
-            SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss).Source = e.Type;
+            var b = SpawnBullet(kind, e.Pos + dir * e.Radius, dir * speed, angVel, 8f, Defs.BulletDamage(kind), 0, e.Def.IsBoss);
+            b.Source = e.Type;
+            b.Look = b.Sent.Look = LookFor(e, ang, angVel);  // a dart, a crescent or round (Readability.cs)
+            NoteVolley(e, b);  // a ring or a spray stays round all the way round
         }
 
         /// Death side effects. Returns true when this kill earns the boss rewards

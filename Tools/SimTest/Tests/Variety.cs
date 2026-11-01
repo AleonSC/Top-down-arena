@@ -167,7 +167,7 @@ static partial class Program
         Console.WriteLine("  fire rate: hasted x{0}, near a commander x{1}, far away x{2}", hm, fm, am);
         Check(Math.Abs(hm - 1.4f) < 0.01f && Math.Abs(fm - 1.3f) < 0.01f && am == 1f, "Hasted fires 40% faster; allies near a Commander 30% faster");
         clear(); Run(s, dt, 0.2f);
-        // Volatile: a burst of 16 shots after its fuse. Splitting: Shards.
+        // Volatile: a burst of 12 shots after its fuse. Splitting: Shards.
         var vol = Elite(EliteTrait.Volatile, new V2(800f, 200f));
         var spl = Elite(EliteTrait.Splitting, new V2(1200f, 200f));
         vol.Hp = 0f; spl.Hp = 0f;
@@ -179,7 +179,7 @@ static partial class Program
             shards = Math.Max(shards, g.Enemies.Values.Count(e => e.Type == EnemyType.Shard));
         });
         Console.WriteLine("  volatile burst {0} shots; splitting left {1} shards", burst, shards);
-        Check(burst >= 14 && shards == 2, "Volatile bursts into a ring when it dies; Splitting leaves Shards");
+        Check(burst >= Game.VolatileShots - 2 && shards == 2, "Volatile bursts into a ring when it dies; Splitting leaves Shards");
         clear(); Run(s, dt, 0.2f);
         // Mirrored: every fourth of your shots that hits comes back at you.
         var mir = Elite(EliteTrait.Mirrored, new V2(800f, 300f));

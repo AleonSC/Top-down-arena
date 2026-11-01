@@ -52,7 +52,7 @@ namespace Arena
             new ModDef { Mod = RunMod.TinyArena, Name = "Tiny Arena", Desc = "After each boss, walls take a quarter of the room (down to 40%).", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Nightfall, Name = "Nightfall", Desc = "It's dark: you see a short way round each player, plus where you aim.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Hunted, Name = "Hunted", Desc = "Each wave one player is hunted by every enemy, and deals double damage.", Lean = ModLean.Risky },
-            new ModDef { Mod = RunMod.DeathThroes, Name = "Death Throes", Desc = "Every regular enemy bursts into a ring of 8 shots a moment after it dies.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.DeathThroes, Name = "Death Throes", Desc = "Every regular enemy bursts into a ring of 6 shots a moment after it dies.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.SolidWalls, Name = "Solid Walls", Desc = "No wrapping round the edges: the arena's sides are walls.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.SecondWind, Name = "Second Wind", Desc = "Once between bosses, each player gets back up by themselves at half health.", Lean = ModLean.Easier },
         };
@@ -62,8 +62,8 @@ namespace Arena
         public const int HeadStartLevel = 3;
         public const float PracticedMastery = 2f;
         public const float HuntedDamage = 2f;                                   // the hunted player's damage
-        public const int ThroesShots = 8;
-        public const float ThroesFuse = 0.5f, ThroesSpeed = 140f;               // Death Throes: a small ring, a moment after the kill
+        public const int ThroesShots = 6;
+        public const float ThroesFuse = 0.5f, ThroesSpeed = 120f;               // Death Throes: a small ring, a moment after the kill
         public const float SecondWindTime = 2f;                                 // down this long, then up at half health
 
         public static int Count(RunMod mods)

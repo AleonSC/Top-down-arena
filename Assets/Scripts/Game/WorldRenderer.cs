@@ -643,6 +643,11 @@ namespace Arena
                 Circle(b.Pos, b.Radius * 0.5f, new Rgba(0.08f, 0f, 0.12f, 1f), 8);
                 return;
             }
+            if (b.Look != ShotLook.Round && b.Owner == 0)
+            {
+                DrawShapedShot(b, c);  // an aimed dart or a curving crescent (VarietyLook.cs)
+                return;
+            }
             if (b.Kind == Defs.MineShot)  // mortar bomb: pulses faster as it's about to burst
                 Arc(b.Pos, b.Radius + 5f + 3f * Mathf.Sin(t * (10f + 20f * (1.3f - b.Life))), 2f, c.WithAlpha(0.8f), 16);
             Circle(b.Pos, b.Radius + 2.5f, c.WithAlpha(0.3f), 12);

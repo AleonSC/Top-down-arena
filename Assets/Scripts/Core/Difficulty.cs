@@ -28,6 +28,7 @@ namespace Arena
         OrbChance,      // share: small health orb drop chance per kill
         ReviveTime,     // s: holding still by a downed ally to get them up
         HitGrace,       // s: how long you can't be hit again after a hit
+        Shooters,       // x: how many regular enemies may shoot at once (Readability.cs)
         ApproachShare,  // share: the themed share of the last wave before each boss (Approaches.cs); 0 = off
         ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
     }
@@ -267,6 +268,8 @@ namespace Arena
                 Unit = KnobUnit.Seconds, Min = 1f, Max = 10f, Step = 0.5f, Presets = new[] { 3f, 4f, 5f, 6f } },
             new KnobDef { Knob = DiffKnob.HitGrace, Name = "Hit grace", Desc = "How long you can't be hit again after taking a hit.", HarderUp = false,
                 Unit = KnobUnit.Seconds, Min = 0.05f, Max = 1f, Step = 0.05f, Presets = new[] { 0.35f, 0.25f, 0.2f, 0.15f } },
+            new KnobDef { Knob = DiffKnob.Shooters, Name = "Shooters at once", Desc = "How many regular enemies take turns shooting at once (Normal: 4, up to 8 by wave 24; more with more players).",
+                Unit = KnobUnit.Times, Min = 0.25f, Max = 3f, Step = 0.05f, Presets = new[] { 0.75f, 1f, 1.25f, 1.5f } },
             // Boss approaches (Approaches.cs): flavour, the same on every preset. Blend = 60% with the ramp; Fully themed = 100% without.
             new KnobDef { Knob = DiffKnob.ApproachShare, Name = "Boss approach", Flavour = true,
                 Desc = "How much of the last wave before each boss is that boss's own kind of enemy (0%: the usual random waves).",

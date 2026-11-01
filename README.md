@@ -342,6 +342,13 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
 - **Boss bodies:** touching a boss hurts once (25 + 0.6 per wave) and shoves you about 100 px back out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal). Later waves get harder through tougher enemies, not more bullets.
+- **Taking turns:** only so many regular shooters fire at once: 4, one more every 6 waves up to 8 (wave 24), a quarter
+  more for each extra player (times the difficulty's **Shooters at once**). Each gets a 5 s turn, then rests 1.5 s
+  while whoever has waited longest takes over; the rest keep moving and hold fire. Bosses don't take turns.
+- **Reading the shots:** a regular shooter glows (a white core, a ring closing in) for 0.3 s before each volley. Enemy
+  bullets show what they'll do: a shot aimed at a player is a **dart** pointing where it flies, a curving shot is a
+  **crescent**, and rings and sprays (6 or more shots at once) are **round**. Rings are sparse and slow enough to slip
+  through: Burster up to 12 at 115 px/s, Charger 8, Phantom 8, Mortar bombs 7 (10 elite) at 125, Volatile 12.
 
 ## Enemies
 
@@ -369,7 +376,7 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 | Wave | Shooter | What it does |
 |---|---|---|
 | 1 | Grunt | Aimed 3-shot spreads |
-| 2 | Burster | Rings of bullets (one more per wave, up to 18) |
+| 2 | Burster | Rings of bullets (8, one more every 2 waves, up to 12), slow enough to slip through |
 | 3 | Sniper | Fast, accurate shots from far away |
 | 4 | Spinner | Wanders and sprays spirals in **bursts** (about 1.3 s on, 2 s off); it glows and spins up while bursting |
 | 6 | **Charger** | Flashes a red warning line, then dashes at you and bursts into a ring. Step out of the line |
@@ -553,7 +560,7 @@ as chips above the wave panel during the match, and session recordings list them
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
 | Hunted | As each wave starts, one player (at random, among those standing) is hunted: every enemy goes for them (a Roar still pulls enemies off), and they deal double damage. Red brackets turn round them, and the HUD chip says who. While they're down, enemies pick someone else | Risky |
-| Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 8 shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
+| Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
 | Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Second Wind | Once per boss cycle (waves 1-5, 6-10, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
 

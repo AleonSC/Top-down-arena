@@ -54,7 +54,7 @@ namespace Arena
         public const float StitchPairGap = 240f;  // a pair stands this far apart, side by side, so its fence is this wide
         // Elite traits.
         public const float HasteMult = 1.4f, ShieldedShare = 0.4f, BubbleRegrow = 4f, VolatileFuse = 0.6f, CommandRange = 220f, CommandMult = 1.3f;
-        public const int VolatileShots = 16, MirrorEvery = 4;
+        public const int VolatileShots = 12, MirrorEvery = 4;
         public const float SquadShare = 0.7f, SquadFormTime = 2.5f;
 
         public static readonly SquadDef[] Squads =
@@ -309,7 +309,7 @@ namespace Arena
                 for (int k = 0; k < n; k++)
                 {
                     V2 dir = V2.FromAngle(off + MathX.Tau * k / n);
-                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * (throes ? Modifiers.ThroesSpeed : 150f), 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
+                    SpawnBullet(Defs.SmallShot, at + dir * 12f, dir * (throes ? Modifiers.ThroesSpeed : 125f), 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = volatileType[i];
                 }
                 BroadcastFx(FxKind.Boom, at, throes ? new Rgba(0.75f, 0.3f, 0.35f) : new Rgba(1f, 0.55f, 0.23f), throes ? 34f : 60f, 0.3f, throes ? Sfx.None : Sfx.Explode);
                 volatileN.RemoveAt(i);

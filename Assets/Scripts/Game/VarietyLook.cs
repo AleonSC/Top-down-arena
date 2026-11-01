@@ -80,6 +80,12 @@ namespace Arena
         /// Over an enemy's body: a bubble, the Reaver's opening, a planted Beam Sentry's legs, and trait markers.
         void DrawVarietyOnEnemy(Enemy e, V2 pos, float r, float t)
         {
+            if (e.Winding)  // about to fire: a white-hot core and a ring closing in on it (Readability.cs)
+            {
+                float k = 0.5f + 0.5f * Mathf.Sin(t * 30f);
+                Circle(pos, r * 0.55f, new Rgba(1f, 1f, 1f, 0.55f + 0.3f * k), 14);
+                Arc(pos, r + 5f + 5f * (1f - k), 2.5f, e.Def.Color.Mix(Rgba.White, 0.6f).WithAlpha(0.9f), 22);
+            }
             if (e.BubbleFrac > 0f)
             {
                 var c = e.WardId != 0 ? WardViolet : BubbleBlue;
@@ -225,6 +231,32 @@ namespace Arena
                 Line(b.Pos - d, b.Pos + d, 1.6f, new Rgba(0.4f, 0.25f, 0.05f));
             }
             Circle(b.Pos, b.Radius * 0.3f, Rgba.White, 6);
+        }
+
+        /// Enemy shots by what they'll do (Readability.cs): an aimed shot is a dart pointing where it flies, a curving
+        /// one a crescent bowed toward the side it turns. Rings and sprays stay round.
+        void DrawShapedShot(Bullet b, Rgba c)
+        {
+            V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
+            float r = b.Radius;
+            if (b.Look == ShotLook.Dart)
+            {
+                V2 tip = b.Pos + dir * (r * 1.7f), back = b.Pos - dir * (r * 1.5f);
+                Line(back - dir * (r * 1.4f), back, r * 0.9f, c.WithAlpha(0.22f));  // a short streak behind
+                SetColor(c.WithAlpha(0.35f));
+                Tri(tip + dir * 3f, back + side * (r + 3f), back - side * (r + 3f));
+                SetColor(c);
+                Tri(tip, back + side * r, back - side * r);
+                SetColor(new Rgba(1f, 1f, 1f, 0.9f));
+                Tri(b.Pos + dir * (r * 0.9f), b.Pos - dir * (r * 0.4f) + side * (r * 0.35f), b.Pos - dir * (r * 0.4f) - side * (r * 0.35f));
+                return;
+            }
+            // A crescent: its horns point back and toward the side it curves.
+            float turn = b.AngVel >= 0f ? 1f : -1f;
+            float a = b.Vel.Angle + MathX.Pi - turn * 0.35f;
+            Circle(b.Pos, r + 2.5f, c.WithAlpha(0.22f), 12);
+            Arc(b.Pos, r * 0.85f, r * 0.9f, c, 12, a - 1.25f, 2.5f);
+            Arc(b.Pos, r * 0.85f, 1.5f, new Rgba(1f, 1f, 1f, 0.85f), 10, a - 0.9f, 1.8f);
         }
     }
 }

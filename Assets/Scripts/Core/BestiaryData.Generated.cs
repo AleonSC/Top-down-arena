@@ -77,7 +77,7 @@ namespace Arena
                 Lead = "Gets close (160 px) and fires full rings. Each ring is rotated half a gap from the last, so the safe gaps move.",
                 Attacks = new[]
                 {
-                    new BestiaryAttack { Name = "Ring", Pattern = "Full ring, rotates half a gap each volley", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "12 + wave (max 18)", Speed = "135 px/s", Damage = "13.8 each", Every = 2.4f },
+                    new BestiaryAttack { Name = "Ring", Pattern = "Full ring, rotates half a gap each volley", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "8 + 1 every 2 waves (max 12)", Speed = "115 px/s", Damage = "13.8 each", Every = 2.4f },
                 },
             },
             new BestiaryEntry
@@ -121,7 +121,7 @@ namespace Arena
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Dash", Pattern = "Wind-up 0.7 s (line shows the path) → dash 0.45 s at 560 px/s (~250 px)", Damage = "25 contact", Notes = "Direction locks at the start of the wind-up" },
-                    new BestiaryAttack { Name = "Burst", Pattern = "Ring at the end of the dash", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "10", Speed = "140 px/s", Damage = "13.8 each", Every = 3.2f, Notes = "Then a 3.2 s cooldown" },
+                    new BestiaryAttack { Name = "Burst", Pattern = "Ring at the end of the dash", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "8", Speed = "120 px/s", Damage = "13.8 each", Every = 3.2f, Notes = "Then a 3.2 s cooldown" },
                 },
             },
             new BestiaryEntry
@@ -152,7 +152,7 @@ namespace Arena
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Bomb", Pattern = "Lobbed at your spot, 1.3 s flight (max 330 px/s)", Shot = "Mortar bomb", ShotColor = new Rgba(1f, 0.55f, 0.2f), Count = "1", Speed = "≤330 px/s", Damage = "20.7 each", Every = 3f },
-                    new BestiaryAttack { Name = "Landing burst", Pattern = "Ring from the landing spot", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "10 (14 elite)", Speed = "150 px/s", Damage = "13.8 each" },
+                    new BestiaryAttack { Name = "Landing burst", Pattern = "Ring from the landing spot", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "7 (10 elite)", Speed = "125 px/s", Damage = "13.8 each" },
                 },
                 Notes = new[]
                 {
@@ -205,7 +205,7 @@ namespace Arena
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Pair", Pattern = "2 shots, 5.7° apart, aimed", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "2", Speed = "200 px/s", Damage = "13.8 each", Every = 1.5f },
-                    new BestiaryAttack { Name = "Blink burst", Pattern = "Teleports near you, then a ring", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "12", Speed = "130 px/s", Damage = "13.8 each", EveryText = "3–4.5", Fixed = true },
+                    new BestiaryAttack { Name = "Blink burst", Pattern = "Teleports near you, then a ring", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "8", Speed = "115 px/s", Damage = "13.8 each", EveryText = "3–4.5", Fixed = true },
                 },
             },
             new BestiaryEntry

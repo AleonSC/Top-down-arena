@@ -135,7 +135,9 @@ namespace Arena
                     b.Pierce += 2;
                 }
             }
-            pendingSpawns.Add(new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing });
+            var sent = new Bullet { Id = b.Id, Kind = kind, Owner = owner, Pos = pos, Vel = vel, AngVel = angVel, Life = life, FromBoss = fromBoss, Homing = homing };
+            pendingSpawns.Add(sent);
+            b.Sent = sent;  // a shape set after this (EnemyShot) goes out with it
             return b;
         }
 
@@ -278,7 +280,7 @@ namespace Arena
                 for (int i = 0; i < b.Burst; i++)
                 {
                     V2 dir = V2.FromAngle(offset + MathX.Tau * i / b.Burst);
-                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 150f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = b.Source;
+                    SpawnBullet(Defs.SmallShot, b.Pos, dir * 125f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0).Source = b.Source;  // a mortar bomb's ring (was 150)
                 }
                 BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.MineShot), 30f, 0.3f, Sfx.Hit);
             }

@@ -228,7 +228,7 @@ const E = [
     attacks: [{ name: "Spread", pattern: "3 shots, 12.6° apart, aimed", kind: "small", n: 3, speed: 175, every: 1.8 }] },
   { id: "Burster", cat: "Shooters", hp: 110, r: 17, speed: 55, sides: 6, col: rgb(0.8, 0.4, 1), xp: 18, score: 20, wave: 2,
     appears: "Wave 2+", lead: "Gets close (160 px) and fires full rings. Each ring is rotated half a gap from the last, so the safe gaps move.",
-    attacks: [{ name: "Ring", pattern: "Full ring, rotates half a gap each volley", kind: "small", n: w => 12 + Math.min(w, 6), nLabel: "12 + wave (max 18)", speed: 135, every: 2.4 }] },
+    attacks: [{ name: "Ring", pattern: "Full ring, rotates half a gap each volley", kind: "small", n: w => 8 + Math.min(Math.floor(w / 2), 4), nLabel: "8 + 1 every 2 waves (max 12)", speed: 115, every: 2.4 }] },
   { id: "Sniper", cat: "Shooters", hp: 50, r: 12, speed: 95, sides: 4, col: rgb(1, 0.9, 0.3), xp: 14, score: 15, wave: 3,
     appears: "Wave 3+", lead: "Hangs back at 420 px, strafing, and fires one fast aimed shot.",
     attacks: [{ name: "Snipe", pattern: "1 aimed shot", kind: "fast", n: 1, speed: 400, every: 2.6 }] },
@@ -240,7 +240,7 @@ const E = [
     appears: "Wave 6+", lead: "Circles at 300 px, then locks onto you, winds up, dashes, and bursts into a ring where it stops.",
     attacks: [
       { name: "Dash", pattern: "Wind-up 0.7 s (line shows the path) → dash 0.45 s at 560 px/s (~250 px)", dmg: "25 contact", every: null, notes: "Direction locks at the start of the wind-up" },
-      { name: "Burst", pattern: "Ring at the end of the dash", kind: "small", n: 10, speed: 140, every: 3.2, notes: "Then a 3.2 s cooldown" }] },
+      { name: "Burst", pattern: "Ring at the end of the dash", kind: "small", n: 8, speed: 120, every: 3.2, notes: "Then a 3.2 s cooldown" }] },
   { id: "Splitter", cat: "Shooters", hp: 120, r: 19, speed: 50, sides: 4, col: rgb(0.6, 1, 0.3), xp: 16, score: 20, wave: 7,
     appears: "Wave 7+", lead: "Fires a tight pair of shots. When it dies it breaks into three Shards (five if elite).",
     attacks: [{ name: "Pair", pattern: "2 shots, 9.2° apart, aimed", kind: "small", n: 2, speed: 150, every: 2 }],
@@ -249,7 +249,7 @@ const E = [
     appears: "Wave 8+", lead: "Stays far back (450 px) and lobs bombs at where you are. Each bomb bursts into a ring when it lands.",
     attacks: [
       { name: "Bomb", pattern: "Lobbed at your spot, 1.3 s flight (max 330 px/s)", kind: "mine", n: 1, speed: "≤330", every: 3 },
-      { name: "Landing burst", pattern: "Ring from the landing spot", kind: "small", n: "10 (14 elite)", speed: 150, every: null }],
+      { name: "Landing burst", pattern: "Ring from the landing spot", kind: "small", n: "7 (10 elite)", speed: 125, every: null }],
     notes: ["The bomb itself hurts too if it hits you in flight. Keep moving and the ring goes off behind you."] },
   { id: "Shielder", cat: "Shooters", hp: 140, r: 17, speed: 60, sides: 6, col: rgb(0.6, 0.7, 0.9), xp: 22, score: 25, wave: 9,
     appears: "Wave 9+", lead: "Carries a front shield that blocks your shots within 65° of where it faces. It turns slowly, so get around it. The shield holds 60% of its health: blocked hits wear it down and it crumbles by itself (about 33 s), cracking as it goes, then shatters.",
@@ -265,7 +265,7 @@ const E = [
     appears: "Wave 16+", lead: "Blinks to 220–300 px from you every 3–4.5 s and bursts into a ring, firing pairs in between.",
     attacks: [
       { name: "Pair", pattern: "2 shots, 5.7° apart, aimed", kind: "small", n: 2, speed: 200, every: 1.5 },
-      { name: "Blink burst", pattern: "Teleports near you, then a ring", kind: "small", n: 12, speed: 130, every: "3–4.5", unscaled: true }] },
+      { name: "Blink burst", pattern: "Teleports near you, then a ring", kind: "small", n: 8, speed: 115, every: "3–4.5", unscaled: true }] },
   { id: "Hexer", cat: "Late game", hp: 100, r: 14, speed: 60, sides: 5, col: rgb(0.75, 0.3, 0.9), xp: 22, score: 25, wave: 21,
     appears: "Wave 21+", lead: "Fires shots out to the sides that curve back in like pincers. Standing still between them gets you caught.",
     attacks: [
@@ -1826,7 +1826,7 @@ function special(e, dt) {
       if (e.phase === 0) break;
       e.phaseT -= dt; if (e.phaseT > 0) break;
       if (e.phase === 1) { e.phase = 2; e.phaseT = 0.45; }
-      else { e.phase = 0; e.fireT = 3.2; for (let i = 0; i < 10; i++) shot(e, e.facing + TAU * i / 10, 140, "small"); }
+      else { e.phase = 0; e.fireT = 3.2; for (let i = 0; i < 8; i++) shot(e, e.facing + TAU * i / 8, 120, "small"); }
       break;
     case "Medic":
       e.phaseT -= dt;
@@ -1869,7 +1869,7 @@ function special(e, dt) {
         const a = rnd(0, TAU), r = rnd(220, 300);
         e.x = clamp(p.x + Math.cos(a) * r, e.r, W - e.r); e.y = clamp(p.y + Math.sin(a) * r, e.r, H - e.r);
         addFx("ring", e.x, e.y, e.d.col, 40, 0.3);
-        for (let i = 0; i < 12; i++) shot(e, TAU * i / 12, 130, "small");
+        for (let i = 0; i < 8; i++) shot(e, TAU * i / 8, 115, "small");
       }
       break;
     case "Nest":
@@ -1922,7 +1922,7 @@ function fire(e) {
   if (d && d.melee) { e.fireT = 99; return; }
   switch (e.type) {
     case "Grunt": e.fireT = 1.8; for (let i = 0; i < 3; i++) shot(e, aim + (i - 1) * 0.22, 175, "small"); break;
-    case "Burster": { e.fireT = 2.4; const n = 12 + Math.min(S.wave, 6); e.ang += Math.PI / n; for (let i = 0; i < n; i++) shot(e, e.ang + TAU * i / n, 135, "small"); break; }
+    case "Burster": { e.fireT = 2.4; const n = 8 + Math.min(Math.floor(S.wave / 2), 4); e.ang += Math.PI / n; for (let i = 0; i < n; i++) shot(e, e.ang + TAU * i / n, 115, "small"); break; }
     case "Sniper": e.fireT = 2.6; shot(e, aim, 400, "fast"); break;
     case "Spinner": {
       const c = (e.t + e.id * 0.7) % 3.3;
@@ -1937,7 +1937,7 @@ function fire(e) {
     case "Mortar": {
       e.fireT = 3; const fl = 1.3; let vx = (p.x - e.x) / fl, vy = (p.y - e.y) / fl; const l = Math.hypot(vx, vy);
       if (l > 330) { vx *= 330 / l; vy *= 330 / l; }
-      world.bullets.push({ x: e.x + Math.cos(aim) * e.r, y: e.y + Math.sin(aim) * e.r, vx, vy, av: 0, r: B.mine.r, col: B.mine.col, dmg: B.mine.dmg, life: fl, burst: e.elite ? 14 : 10, kind: "mine" });
+      world.bullets.push({ x: e.x + Math.cos(aim) * e.r, y: e.y + Math.sin(aim) * e.r, vx, vy, av: 0, r: B.mine.r, col: B.mine.col, dmg: B.mine.dmg, life: fl, burst: e.elite ? 10 : 7, kind: "mine" });
       break;
     }
     case "Shielder": e.fireT = 2.2; for (let i = 0; i < 5; i++) shot(e, e.facing + (i - 2) * 0.15, 190, "small"); break;
@@ -2146,7 +2146,7 @@ function step(dt) {
     }
     if (b.burst && b.life <= 0) {
       const off = Math.random() * TAU;
-      for (let i = 0; i < b.burst; i++) { const a = off + TAU * i / b.burst; world.bullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, av: 0, r: B.small.r, col: B.small.col, dmg: B.small.dmg, life: 8, kind: "small" }); }
+      for (let i = 0; i < b.burst; i++) { const a = off + TAU * i / b.burst; world.bullets.push({ x: b.x, y: b.y, vx: Math.cos(a) * 125, vy: Math.sin(a) * 125, av: 0, r: B.small.r, col: B.small.col, dmg: B.small.dmg, life: 8, kind: "small" }); }
       addFx("boom", b.x, b.y, B.mine.col, 30, 0.3);
       continue;
     }

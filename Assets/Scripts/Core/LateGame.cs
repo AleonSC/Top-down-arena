@@ -110,8 +110,8 @@ namespace Arena
                         e.Disp = e.Pos;
                         BroadcastFx(FxKind.Ring, from, e.Def.Color, 30f, 0.3f, Sfx.None);
                         BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 40f, 0.3f, Sfx.Blink);
-                        for (int i = 0; i < 12; i++)
-                            EnemyShot(e, MathX.Tau * i / 12f, 130f, Defs.SmallShot);
+                        for (int i = 0; i < 8; i++)  // the blink ring: 8 at 115 (was 12 at 130)
+                            EnemyShot(e, MathX.Tau * i / 8f, 115f, Defs.SmallShot);
                     }
                     break;
                 case EnemyType.Nest:
