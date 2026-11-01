@@ -399,6 +399,13 @@ sends every player's `RunStats` about once a second (`TickLiveStats` in `HostTic
 `ReadRunStats(r, final: false)` leaves `RunStatsReady` alone. The route is built from `Game.Route` + `BossForWave`
 (`BuildRoute`). Not tracked yet (so not shown): damage by source, path prizes, boss fight times. Test: `runstats` (in
 the feature suite). Preview: `STATSTAB=0|1|2 [PAUSE=1] Tools/Preview/shot.sh <name> tab 14 12.2 3`.
+*Zoom-through (Nov 2026, mockup at https://claude.ai/artifact/DbvMWLr3LpEyi92MoArDrM):* `DrawRunStatsScreen`
+remembers `statsShown`/`statsFrom`/`statsSwitchAt`; for `StatsZoomOut` (0.14 s) the old page scales up 6% and fades,
+and after `StatsZoomDelay` the new one eases in from 94% over `StatsZoomIn` (0.2 s). `DrawStatsZoomed` scales
+`GUI.matrix` about the page centre and fades with `GUI.color` + `Ui.Alpha`; `DrawStatsPage(tab, …, dim)` draws one page
+(the backdrop dim is drawn once and blended between pages). GL ignores `GUI.matrix`, so `statsZooming` skips the Team
+page's live models mid-switch. `fxOn` off: instant; `fxReduced`: fade only. Preview a mid-switch frame with
+`STATSFROM=n STATSAT=0.12` (the preview stub ignores `GUI.matrix`, so it shows the fade only).
 
 **Button style trial (Oct 2026), no protocol change:** six looks (A Sheen, B Slab, C Capsule, D Chamfer, E Glow, F Split;
 mockups at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi) were tried from a Settings dropdown; the owner kept **A Sheen**

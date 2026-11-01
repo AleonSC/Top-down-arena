@@ -162,9 +162,10 @@ namespace Arena
 
         /// Held with Tab. Only drawn on this player's screen; nothing is sent to the
         /// other player and the game doesn't pause.
-        void DrawTabMenu(Player me)
+        void DrawTabMenu(Player me, bool dim = true)
         {
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.6f));
+            if (dim)  // (the Run stats screen draws one backdrop itself while it switches pages: RunStatsUi.cs)
+                Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.6f));
             DrawTabStats(me, StatsSidebar(me));
             var panel = new Rect(StatsSidebarW + 18f, 54f, W - StatsSidebarW - 18f - 24f, 640f);
             Ui.Panel(panel, true);

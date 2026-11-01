@@ -724,6 +724,10 @@ Hold **Tab** during a match for the **Run stats** screen, with three tabs (click
   upgrade you've picked, rarest first.
 - **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and upgrades.
 
+Switching tabs **zooms through**: the old page grows a little and fades while the new one rises in from just
+behind (about a quarter of a second; teammates' live models appear once it settles). With **Reduced effects** it's a
+plain crossfade, and with **Visual effects** off it switches instantly.
+
 **Solo, holding Tab pauses the match** (letting go resumes it). **With friends it doesn't pause** (you can still move
 and shoot while it's up); to look together, pause (**Esc**) and press **Run stats** in the pause menu. The host sends
 everyone the run's numbers about once a second, and again the moment the game pauses.
