@@ -1,0 +1,311 @@
+<title>Upgrade Picker Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a column of 1280x720 game screens scaled to the page width, each with its notes beneath.
+   Single dark look on purpose: these are mockups of the game's own screen. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;          /* the page behind the screens */
+  --ink: #e9edf8;           /* Ui.Text */
+  --muted: #9ea9c4;         /* Ui.Muted */
+  --panel: #151a26;         /* Ui.Panel fill */
+  --panel-hi: #1c2232;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;          /* Ui.Primary */
+  --gold: #ffcc59;          /* Ui.Gold */
+  --green: #4fd166;         /* uncommon */
+  --rare: #4f86f0;          /* rare */
+  --vrare: #a55be0;         /* very rare */
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;  /* what Unity's default font looks like */
+  --font-page: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-page); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: 0.02em; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 70ch; line-height: 1.5; }
+.option { display: grid; gap: 14px; }
+.option h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.option h2 .tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 90ch; }
+.notes li { margin: 2px 0; }
+
+/* A game screen: 1280x720 in game pixels, scaled to fit. */
+.screen-box { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); max-width: 100%; }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; font-family: var(--font-game); color: var(--ink); overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(40,52,90,0.35), transparent 60%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    #0b0d14; }
+.screen::after { content: ""; position: absolute; inset: 0; background: rgba(4,6,12,0.55); pointer-events: none; z-index: 0; }
+.screen > * { position: absolute; z-index: 1; }
+
+/* Ui.Fancy: gradient lettering, a dark outline and a soft glow (the LOBBY title). */
+.fancy { position: relative; font-weight: 900; letter-spacing: 0.01em; color: transparent; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c, #9cc0ff) 45%, transparent)) drop-shadow(0 2px 0 rgba(0,0,0,0.6)); }
+/* Its outline: a dark copy of the text behind the gradient letters (data-text, filled in by the script). */
+.fancy::before, .fancy::after { content: attr(data-text); position: absolute; inset: 0; }
+.fancy::before { color: #0b1020; -webkit-text-stroke: 5px #0b1020; }
+.fancy::after { background: linear-gradient(#ffffff 35%, var(--c, #9cc0ff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pill { border-radius: 999px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.sec { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+.chip { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; border-radius: 5px; padding: 3px 9px; color: #0b1020; }
+.key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; background: #2a3146; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.45); font-size: 12px; font-weight: 800; color: #c9d3ea; }
+canvas.px { image-rendering: pixelated; display: block; }
+
+/* The lobby's "fancy" buttons: a lighter face, an icon chip, a soft shine. */
+.fbtn { display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 22px 0 8px; border-radius: 10px; font-size: 19px; font-weight: 800; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,0.5); background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.35); }
+.fbtn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,0.18); display: grid; place-items: center; }
+.fbtn small { font-size: 13px; opacity: 0.75; font-weight: 700; }
+.fbtn.blue { --b1: #5a97ff; --b2: #3a6fe0; }
+.fbtn.gray { --b1: #4a5470; --b2: #343c54; }
+.fbtn.gold { --b1: #e6ad3a; --b2: #b47e14; }
+
+/* Corner brackets, like the lobby's detail panel. */
+.brackets { --bc: var(--blue); }
+.brackets::before, .brackets::after { content: ""; position: absolute; inset: -6px; pointer-events: none;
+  background:
+    linear-gradient(var(--bc), var(--bc)) top left / 22px 3px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top left / 3px 22px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top right / 22px 3px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top right / 3px 22px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 22px 3px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 3px 22px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 22px 3px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 3px 22px no-repeat; }
+.brackets::after { display: none; }
+
+/* The lobby's selection bar under a chosen card: a coloured line that fades out at both ends. */
+.selbar { position: absolute; left: 14px; right: 14px; bottom: 6px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--sc), transparent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse { animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 50% { filter: brightness(1.25); } }
+  .shine { position: relative; overflow: hidden; }
+  .shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.14) 50%, transparent 60%); background-size: 260% 100%; animation: shine 3.2s linear infinite; pointer-events: none; }
+  @keyframes shine { from { background-position: 130% 0; } to { background-position: -130% 0; } }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Upgrade Picker Mockups</h1>
+    <p>Three directions for the level-up screen, drawn in the lobby's style: its outlined gradient titles, dark rounded panels, icon tiles, the selection bar that fades at both ends, corner brackets and the icon-chip buttons. Same three cards as your screenshot (level 2, Soldier DPS with the Twin Rifle), with Regeneration picked so you can see the selected state and the stat preview.</p>
+  </header>
+
+  <!-- ===================== A ===================== -->
+  <section class="option">
+    <h2><span class="tag">Option A</span>Lobby cards</h2>
+    <div class="screen-box"><div class="screen" id="A">
+      <!-- stats sidebar, as a lobby hero card -->
+      <div class="panel" style="left:24px; top:24px; width:262px; height:672px; padding:18px 18px; box-sizing:border-box;">
+        <div class="fancy" style="--c:#ffb05a; font-size:22px;">YOUR STATS</div>
+        <div style="color:#ff9b47; font-size:13px; font-weight:700; margin-top:3px;">Soldier DPS · Twin Rifle · Dash</div>
+        <div style="height:1px; background:var(--line); margin:14px 0 10px;"></div>
+        <div id="A-stats" style="display:grid; gap:9px;"></div>
+      </div>
+      <!-- title -->
+      <div style="left:300px; right:0; top:52px; display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <span class="chip pill" style="background:var(--gold); padding:4px 14px;">LEVEL 2</span>
+        <div class="fancy" style="--c:#8fb6ff; font-size:46px;">CHOOSE AN UPGRADE</div>
+      </div>
+      <div id="A-cards" style="left:316px; top:196px; width:940px; height:330px; display:grid; grid-template-columns:repeat(3,1fr); gap:20px;"></div>
+      <div style="left:316px; top:560px; width:940px; display:flex; justify-content:center; gap:20px;">
+        <div class="fbtn blue" style="width:300px;"><span class="ichip" data-icon="ui_check" data-s="2"></span>Confirm <small>[Enter]</small></div>
+        <div class="fbtn gray" style="width:300px;"><span class="ichip" data-icon="ui_arrow" data-s="2"></span>Reroll <small>2 left · [R]</small></div>
+      </div>
+      <div style="left:316px; top:620px; width:940px; text-align:center; color:var(--muted); font-size:13px;">Rerolls: start with 2, +2 for every boss you kill</div>
+    </div></div>
+    <ul class="notes">
+      <li>Cards copy the lobby's role cards: an icon tile tinted by rarity, the rarity as a chip, and the lobby's fading selection bar plus corner brackets on the one you pick.</li>
+      <li>Title and level tag in the lobby's outlined gradient lettering; buttons are the lobby's icon-chip buttons (Confirm blue like Start, Reroll grey).</li>
+      <li>The stats panel becomes a lobby-style card with small bars; the picked card's change shows in green with an arrow, as now.</li>
+      <li>Smallest change from today: same layout, everything restyled.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section class="option">
+    <h2><span class="tag">Option B</span>Spotlight</h2>
+    <div class="screen-box"><div class="screen" id="B">
+      <div style="left:0; right:0; top:40px; display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <span class="chip pill" style="background:var(--gold); padding:4px 14px;">LEVEL 2</span>
+        <div class="fancy" style="--c:#8fb6ff; font-size:44px;">CHOOSE AN UPGRADE</div>
+      </div>
+      <div id="B-tiles" style="left:150px; top:160px; width:980px; height:96px; display:grid; grid-template-columns:repeat(3,1fr); gap:16px;"></div>
+      <div class="panel brackets" style="left:150px; top:284px; width:980px; height:300px; box-sizing:border-box; padding:26px 30px; display:grid; grid-template-columns: 300px 1fr; gap:34px; overflow:visible;">
+        <div style="display:grid; grid-template-rows:auto auto 1fr; gap:12px;">
+          <div style="display:flex; gap:16px; align-items:center;">
+            <div data-icon="regen2" data-s="6" style="width:84px; height:84px; border-radius:12px; display:grid; place-items:center; background:rgba(79,209,102,0.16); box-shadow: inset 0 0 0 1px rgba(79,209,102,0.45);"></div>
+            <div><span class="chip" style="background:var(--green);">UNCOMMON</span><div class="fancy" style="--c:#9dffad; font-size:30px; margin-top:6px;">Regeneration</div></div>
+          </div>
+          <div style="font-size:17px; line-height:1.45;">Regenerate 3 HP per second.</div>
+          <div style="align-self:end; color:var(--muted); font-size:13px; line-height:1.45;">Stacks: 0 of 5 taken. Healing past full health doesn't shield you (only a Healer's does).</div>
+        </div>
+        <div style="display:grid; gap:12px; align-content:start;">
+          <div class="sec">What changes</div>
+          <div id="B-diff" style="display:grid; gap:10px;"></div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px;">
+            <div style="background:#10162a; border-radius:8px; padding:10px 12px;"><div style="color:var(--gold); font-size:22px; font-weight:800;">+3</div><div class="sec" style="font-size:10px;">HP a second</div></div>
+            <div style="background:#10162a; border-radius:8px; padding:10px 12px;"><div style="color:var(--gold); font-size:22px; font-weight:800;">29 s</div><div class="sec" style="font-size:10px;">to heal fully</div></div>
+            <div style="background:#10162a; border-radius:8px; padding:10px 12px;"><div style="color:var(--gold); font-size:22px; font-weight:800;">13x</div><div class="sec" style="font-size:10px;">your regeneration</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="left:150px; top:610px; width:980px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="fbtn gray" style="width:260px;"><span class="ichip" data-icon="ui_arrow" data-s="2"></span>Reroll <small>2 left · [R]</small></div>
+        <div style="color:var(--muted); font-size:13px;">1 / 2 / 3 or click a card · Hold Tab for your build</div>
+        <div class="fbtn blue" style="width:260px;"><span class="ichip" data-icon="ui_check" data-s="2"></span>Take it <small>[Enter]</small></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li>Like the lobby's loadout: small choice tiles on top, and a big bracketed detail panel for the one you picked.</li>
+      <li>The panel spells out what the card does to you: before/after bars for each stat it touches, plus number boxes like the lobby's "36 PER SWING" tiles.</li>
+      <li>The stats sidebar goes away (its job moves into the panel), so the arena stays visible on both sides.</li>
+      <li>Most informative; picking takes a click to look and a click to take.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== C ===================== -->
+  <section class="option">
+    <h2><span class="tag">Option C</span>Trophy cards</h2>
+    <div class="screen-box"><div class="screen" id="C">
+      <div style="left:0; right:0; top:34px; display:flex; flex-direction:column; align-items:center;">
+        <div class="fancy" style="--c:#ffd36b; font-size:58px; letter-spacing:0.04em;">LEVEL UP!</div>
+        <div style="color:var(--muted); font-size:15px; font-weight:700; letter-spacing:0.1em; margin-top:2px;">LEVEL 2 · PICK ONE</div>
+      </div>
+      <div id="C-cards" style="left:190px; top:150px; width:900px; height:400px; display:grid; grid-template-columns:repeat(3,1fr); gap:30px;"></div>
+      <div style="left:0; right:0; top:616px; display:flex; justify-content:center; gap:18px;">
+        <div class="fbtn gray" style="width:230px;"><span class="ichip" data-icon="ui_arrow" data-s="2"></span>Reroll <small>2 · [R]</small></div>
+        <div class="fbtn gold pulse" style="width:290px;"><span class="ichip" data-icon="ui_check" data-s="2"></span>Take Regeneration</div>
+      </div>
+      <div style="left:0; right:0; top:572px; display:flex; justify-content:center; gap:10px; align-items:baseline; font-size:15px;" id="C-mini"></div>
+    </div></div>
+    <ul class="notes">
+      <li>Tall cards with the icon big on a rarity backdrop; the picked card lifts and glows, the others tilt back a little. Rare and better cards have a slow shine across them.</li>
+      <li>A loud gold "LEVEL UP!" title and a gold take button named after your pick, for more of a reward moment.</li>
+      <li>The stats sidebar goes; one line under the cards says what your pick changes.</li>
+      <li>Flashiest; the furthest from today's screen.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal": {".": null, "k": "#14141e", "w": "#ffffff", "g": "#bec6d7", "G": "#6e768a", "y": "#ffd750", "Y": "#e18c28", "o": "#ff8c28", "r": "#f04040", "R": "#961e28", "p": "#ff80b4", "b": "#5a96ff", "B": "#284bb4", "c": "#8ce6ff", "n": "#64e664", "N": "#288c41", "v": "#b473ff", "V": "#6432a5", "m": "#9b6441", "M": "#5a371e"}, "icons": {"shield": [".kkkkkkkkkk.", ".kggggggggk.", ".kgwwggggGk.", ".kgwggggGGk.", ".kgggggGGGk.", ".kggggGGGGk.", "..kgggGGGk..", "..kgggGGGk..", "...kggGGk...", "....kgGk....", ".....kk.....", "............"], "regen2": [".n.......n..", "nnnkk..kknnn", ".nrrrkkrrrn.", "krrrrwwrrrrk", "krrrrwwrrrrk", "krrwwwwwwrrk", ".krwwwwwwrk.", "..krrwwrrk..", "...krwwrk.n.", "....krrk.nnn", ".....kk...n.", "............"], "dash": ["............", "......kkkk..", "..cc..kbbk..", "......kbwk..", ".ccc..kbbk..", "......kbbk..", "..cc..kbbkkk", "......kbbbbk", ".ccc.kbbbbbk", ".....kBBBBBk", ".....kkkkkkk", "............"], "ui_check": ["............", "..........ww", ".........www", "........www.", ".......www..", "ww....www...", "www..www....", ".wwwwww.....", "..wwww......", "...ww.......", "............", "............"], "ui_arrow": ["............", "............", "......w.....", "......ww....", "......www...", ".wwwwwwwww..", ".wwwwwwwww..", "......www...", "......ww....", "......w.....", "............", "............"], "ui_star": ["............", ".....ww.....", ".....ww.....", "....wwww....", "wwwwwwwwwwww", ".wwwwwwwwww.", "..wwwwwwww..", "..wwwwwwww..", ".wwww..wwww.", ".www....www.", ".ww......ww.", "............"], "role_dps": ["..........kk", ".........kwk", "........kwgk", ".......kwgk.", "......kwgk..", ".....kwgk...", "..k..kgk....", "..kkkgk.....", "...kok......", "..kok.kk....", ".kok........", "kk.........."], "multishot": [".....kk.....", "....kyyk....", ".kk.kywk.kk.", "kyykkyykkyyk", "kywkkYYkkywk", "kyykkggkkyyk", "kYYkkgwkkYYk", "kggkkggkkggk", "kgwkkGGkkgwk", "kggkkkkkkggk", "kGGk....kGGk", "kkkk....kkkk"], "hollow": ["...kkkkkk...", "...kokkok...", "...kooook...", "...kYYYYk...", "...kggggk...", "...kgwggk...", "...kgwggk...", "...kgwggk...", "...kggggk...", "...kggggk...", "...kGGGGk...", "...kkkkkk..."], "blink": [".v.......v..", "..v..vv..v..", ".....vv.....", "..kkk..v..v.", ".kvvvk......", "kvvwvvk.vv..", "kvvvvvk.vv..", ".kvvvk......", "..kkk...v...", ".v.....v..v.", "....v.......", "..v...v...v."], "ui_play": ["............", "..ww........", "..www.......", "..wwww......", "..wwwww.....", "..wwwwww....", "..wwwwww....", "..wwwww.....", "..wwww......", "..www.......", "..ww........", "............"]}};
+const RAR = { UNCOMMON: "#4fd166", RARE: "#4f86f0", "VERY RARE": "#a55be0" };
+const CARDS = [
+  { name: "Thick Skin", icon: "shield", rarity: "UNCOMMON", desc: "Take 10% less damage", key: 1 },
+  { name: "Regeneration", icon: "regen2", rarity: "UNCOMMON", desc: "Regenerate 3 HP per second", key: 2, picked: true },
+  { name: "Phase Step", icon: "dash", rarity: "RARE", desc: "Dash invulnerability lasts 0.25 s longer; -25% Dash cooldown", key: 3 },
+];
+const STATS = [
+  ["Max HP", "95", 0.4], ["Damage", "100%", 0.5], ["Fire rate", "100%", 0.5], ["Move speed", "100%", 0.5],
+  ["Ability cooldowns", "100%", 0.5], ["Damage taken", "100%", 0.5], ["Regeneration", "0.25 HP/s", 0.05, "3.25 HP/s", 0.65],
+  ["Extra projectiles", "+0", 0], ["Barrage", "+0", 0], ["Pierce", "+0", 0], ["Parry durability", "150", 0.5], ["Dash charges", "1", 0.33],
+];
+
+function iconCanvas(name, scale) {
+  const g = ICONS.icons[name]; if (!g) return document.createElement("span");
+  const h = g.length, w = g[0].length, c = document.createElement("canvas");
+  c.width = w; c.height = h; c.className = "px"; c.style.width = (w * scale) + "px"; c.style.height = (h * scale) + "px";
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+
+// --- A: lobby cards
+(function () {
+  const st = document.getElementById("A-stats");
+  for (const [k, v, f, after, f2] of STATS) {
+    const changed = !!after;
+    st.appendChild(el(`<div style="display:grid; grid-template-columns:1fr auto; gap:3px 8px; align-items:center;">
+      <span style="font-size:13px; color:${changed ? "#7dff8f" : "#c9d0e2"}; font-weight:${changed ? 800 : 500}">${k}</span>
+      <span style="font-size:13px; font-weight:800; color:${changed ? "#7dff8f" : "#fff"}">${changed ? `<span style="color:#7c8aa8; font-weight:600">0.25 →</span> ${after}` : v}</span>
+      <div style="grid-column:1/3; height:4px; background:#0b0f1a; border-radius:2px; position:relative;">
+        <div style="position:absolute; inset:0 auto 0 0; width:${(changed ? f2 : f) * 100}%; background:${changed ? "linear-gradient(90deg,#3fae55,#7dff8f)" : "#4a6cb5"}; border-radius:2px;"></div></div>
+    </div>`));
+  }
+  const host = document.getElementById("A-cards");
+  for (const c of CARDS) {
+    const rc = RAR[c.rarity];
+    const card = el(`<div class="panel ${c.picked ? "brackets" : ""}" style="position:relative; border-radius:12px; padding:18px 18px 22px; box-sizing:border-box; display:grid; grid-template-rows:auto auto auto 1fr auto; justify-items:center; gap:12px; overflow:visible;
+      ${c.picked ? `--bc:${rc}; background:linear-gradient(${rc}22, #151a26 60%); box-shadow:0 0 0 1px ${rc}88, 0 0 30px ${rc}33;` : ""}">
+      <span class="chip" style="background:${rc};">${c.rarity}</span>
+      <div class="itile" style="width:96px; height:96px; border-radius:14px; display:grid; place-items:center; background:${rc}26; box-shadow: inset 0 0 0 1px ${rc}66;"></div>
+      <div class="fancy" style="--c:${c.picked ? rc : "#c7d4f0"}; font-size:25px;">${c.name}</div>
+      <div style="font-size:15px; line-height:1.4; text-align:center; color:${c.picked ? "#fff" : "#c9d0e2"}; max-width:250px;">${c.desc}</div>
+      <span class="key">${c.key}</span>
+      ${c.picked ? `<div class="selbar" style="--sc:${rc}"></div>` : ""}
+    </div>`);
+    card.querySelector(".itile").appendChild(iconCanvas(c.icon, 6));
+    host.appendChild(card);
+  }
+})();
+
+// --- B: spotlight
+(function () {
+  const host = document.getElementById("B-tiles");
+  for (const c of CARDS) {
+    const rc = RAR[c.rarity];
+    const t = el(`<div class="panel" style="position:relative; display:flex; align-items:center; gap:14px; padding:0 16px; ${c.picked ? `background:linear-gradient(${rc}2a,#151a26); box-shadow:0 0 0 1px ${rc}aa, 0 0 22px ${rc}33;` : ""}">
+      <div class="itile" style="width:62px; height:62px; border-radius:10px; display:grid; place-items:center; background:${rc}26;"></div>
+      <div style="display:grid; gap:5px; min-width:0;">
+        <div style="font-size:19px; font-weight:800; color:${c.picked ? "#fff" : "#c9d3ea"}">${c.name}</div>
+        <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; color:${rc}">${c.rarity}</div>
+      </div>
+      <span class="key" style="margin-left:auto;">${c.key}</span>
+      ${c.picked ? `<div class="selbar" style="--sc:${rc}"></div>` : ""}
+    </div>`);
+    t.querySelector(".itile").appendChild(iconCanvas(c.icon, 4));
+    host.appendChild(t);
+  }
+  const diff = document.getElementById("B-diff");
+  for (const [k, a, b, fa, fb] of [["Regeneration", "0.25 HP/s", "3.25 HP/s", 0.05, 0.65]]) {
+    const same = a === b;
+    diff.appendChild(el(`<div style="display:grid; grid-template-columns:190px 1fr 150px; gap:12px; align-items:center;">
+      <span style="font-size:14px; font-weight:700; color:${same ? "#8d97b0" : "#fff"}">${k}</span>
+      <div style="height:10px; background:#0b0f1a; border-radius:5px; position:relative;">
+        <div style="position:absolute; inset:0 auto 0 0; width:${fb * 100}%; background:${same ? "#3c4866" : "linear-gradient(90deg,#3fae55,#7dff8f)"}; border-radius:5px;"></div>
+        <div style="position:absolute; inset:0 auto 0 0; width:${fa * 100}%; background:#6d7da5; border-radius:5px;"></div></div>
+      <span style="font-size:14px; font-weight:800; text-align:right; color:${same ? "#8d97b0" : "#7dff8f"}">${same ? a : `${a} → ${b}`}</span>
+    </div>`));
+  }
+})();
+
+// --- C: trophy cards
+(function () {
+  const host = document.getElementById("C-cards");
+  const tilt = [-4, 0, 4];
+  CARDS.forEach((c, i) => {
+    const rc = RAR[c.rarity], rare = c.rarity !== "UNCOMMON";
+    const card = el(`<div class="${rare ? "shine" : ""}" style="position:relative; border-radius:16px; overflow:hidden; display:grid; grid-template-rows:200px auto 1fr auto;
+      background:#141926; box-shadow:0 0 0 ${c.picked ? 2 : 1}px ${c.picked ? rc : "rgba(255,255,255,0.1)"}, 0 ${c.picked ? 24 : 10}px ${c.picked ? 50 : 24}px ${c.picked ? rc + "55" : "rgba(0,0,0,0.5)"};
+      transform: translateY(${c.picked ? -18 : 6}px) rotate(${c.picked ? 0 : tilt[i]}deg) scale(${c.picked ? 1.04 : 0.97}); ${c.picked ? "" : "filter:brightness(0.82);"}">
+      <div class="art" style="position:relative; display:grid; place-items:center;
+        background: radial-gradient(circle at 50% 55%, ${rc}66, ${rc}18 55%, transparent 75%), repeating-linear-gradient(45deg, ${rc}10 0 8px, transparent 8px 16px), #10141f;">
+        <span class="chip" style="position:absolute; top:12px; left:12px; background:${rc};">${c.rarity}</span>
+        <span class="key" style="position:absolute; top:12px; right:12px;">${c.key}</span>
+      </div>
+      <div class="fancy" style="--c:${c.picked ? rc : "#c7d4f0"}; font-size:28px; text-align:center; padding-top:14px;">${c.name}</div>
+      <div style="font-size:15px; line-height:1.4; text-align:center; color:#d3d9ea; padding:8px 20px 0;">${c.desc}</div>
+      <div style="height:6px; background:linear-gradient(90deg, transparent, ${rc}, transparent); margin:16px 0 0;"></div>
+    </div>`);
+    card.querySelector(".art").appendChild(iconCanvas(c.icon, 10));
+    host.appendChild(card);
+  });
+  const mini = document.getElementById("C-mini");
+  mini.appendChild(el(`<span class="sec" style="font-size:11px;">This pick</span>`));
+  mini.appendChild(el(`<span style="font-weight:700;">Regeneration</span>`));
+  mini.appendChild(el(`<span style="font-weight:800; color:#7dff8f;"><span style="color:#7c8aa8;">0.25 →</span> 3.25 HP/s</span>`));
+})();
+
+// The fancy lettering's outline copy.
+document.querySelectorAll(".fancy").forEach(n => { n.dataset.text = n.textContent; });
+// Icon chips on the buttons and the spotlight's big icon.
+document.querySelectorAll("[data-icon]").forEach(n => n.appendChild(iconCanvas(n.dataset.icon, +n.dataset.s)));
+
+// Scale each 1280x720 screen to its box.
+function fit() { document.querySelectorAll(".screen-box").forEach(b => { b.firstElementChild.style.transform = `scale(${b.clientWidth / 1280})`; }); }
+addEventListener("resize", fit); fit();
+</script>
