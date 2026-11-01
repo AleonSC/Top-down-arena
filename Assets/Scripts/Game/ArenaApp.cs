@@ -34,6 +34,7 @@ namespace Arena
         bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
+        bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
         bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
         void SetAimLine(bool on)
@@ -155,6 +156,7 @@ namespace Arena
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
             recordSessions = PlayerPrefs.GetInt("record_sessions", 1) == 1 || opts.ContainsKey("record");
+            devKillAllKey = PlayerPrefs.GetInt("dev_killall", 0) == 1;
             ApplyRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
@@ -306,6 +308,11 @@ namespace Arena
                 else if (Input.GetKeyDown(KeyCode.X))
                     game.ResolveLoot(false);
             }
+            // The F1 kill-all key (X), when it's on: every enemy on the field dies as your kill. Not while you're standing
+            // on a chest item (X throws that away), and only the host can (DevTools.cs).
+            else if (devKillAllKey && session.IsHost && session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0
+                     && Input.GetKeyDown(KeyCode.X))
+                game.DevKillAll(game.MyId);
 
             if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
             {

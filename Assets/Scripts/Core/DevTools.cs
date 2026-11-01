@@ -103,6 +103,38 @@ namespace Arena
                 NextOffer(p);
         }
 
+        /// Kill every enemy on the field as this player's kills: XP, score, drops, gold and kill credit as usual (the
+        /// next collision pass handles each death). Shields, bubbles and a boss's immunity don't save them.
+        /// Returns how many died.
+        public int DevKillAll(int id)
+        {
+            if (!IsHost || State == MatchState.Idle)
+                return 0;
+            Player p;
+            Players.TryGetValue(id, out p);
+            int n = 0;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.Hp <= 0f)
+                    continue;
+                if (p != null)
+                {
+                    p.Run.DamageDealt += e.Hp;
+                    if (e.Def.IsBoss)
+                        p.Run.BossDamage += e.Hp;
+                }
+                Recorder?.DamageDealt(id, e, e.Hp);
+                e.LastHitBy = id;
+                e.BubbleHp = 0f;
+                e.ShieldHp = 0f;
+                e.Hp = 0f;
+                n++;
+            }
+            if (n > 0)
+                DevUsed((p != null ? p.Name : "Host") + ": killed all " + n + " enemies");
+            return n;
+        }
+
         /// Clear the arena and start the given wave after a short countdown.
         public void DevJumpToWave(int wave)
         {

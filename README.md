@@ -659,6 +659,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a bonus ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
+| Kill every enemy on the field (dev, host) | X, once the F1 Match tab's kill-all key is on |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
@@ -826,7 +827,10 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 
 - **Match (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
   downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown
-  moving beside it. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once.
+  moving beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on
+  the field, bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and
+  immunity. It doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while
+  you're standing on one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.

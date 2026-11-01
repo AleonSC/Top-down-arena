@@ -640,6 +640,19 @@ static partial class Program
         Check(Find(s[1], EnemyType.HiveQueen) == null && host.Enemies.Count == 0, "jumping clears the arena");
         Run(s, dt, 3);
         Check(host.Wave == 3 && host.State == MatchState.Fighting, "and can go back to an earlier wave");
+
+        // The kill-all key: every enemy on the field dies as the player's kill (an elite and a Shielder's shield too).
+        var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var t in new[] { EnemyType.Grunt, EnemyType.Shielder, EnemyType.Brute })
+            spawnAt.Invoke(host, new object[] { t, new V2(400f + 200f * (int)t % 600, 300f), 0f, 0, t == EnemyType.Brute });
+        Run(s, dt, 0.1f);
+        int onField = host.Enemies.Count, kills0 = me.Run.Kills, score0 = host.Score;
+        float xp0 = me.Xp + me.Level * 1000f;
+        int killed = host.DevKillAll(1);
+        Run(s, dt, 0.3f);
+        Console.WriteLine("  kill all: {0} on the field, {1} killed; {2} left; kills {3} -> {4}, score {5} -> {6}", onField, killed, host.Enemies.Count, kills0, me.Run.Kills, score0, host.Score);
+        Check(killed == onField && onField >= 3 && me.Run.Kills >= kills0 + onField && host.Score > score0 && me.Xp + me.Level * 1000f > xp0,
+            "the kill-all key kills every enemy on the field as the player's kills (score, XP, kill credit)");
         s[0].Leave(""); s[1].Leave("");
     }
 

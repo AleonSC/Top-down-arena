@@ -143,9 +143,16 @@ namespace Arena
             y += 54f;
             if (Ui.Button(new Rect(x, y, 300f, 40f), "Go to wave " + devWave, Ui.Primary))
                 game.DevJumpToWave(devWave);
+            // The kill-all key: X kills every enemy on the field as if you had (XP, score, drops, kill credit).
+            bool killAll = Ui.Toggle(new Rect(x, y + 48f, 520f, 26f), devKillAllKey, "Kill-all key  (X): kill every enemy on screen, as your kills");
+            if (killAll != devKillAllKey)
+            {
+                devKillAllKey = killAll;
+                PlayerPrefs.SetInt("dev_killall", killAll ? 1 : 0);
+            }
             GUI.enabled = wasEnabled;
             if (!host)
-                Ui.Label(new Rect(x, y + 44f, 300f, 18f), "Only the host can change the wave.", 11, Ui.Muted);
+                Ui.Label(new Rect(x, y + 76f, 400f, 18f), "Only the host can change the wave or kill everything.", 11, Ui.Muted);
 
             // What's waiting on that wave: the boss, drawn live, or the next one.
             var show = new Rect(card.xMax - 230f, card.y + 52f, 210f, 184f);
