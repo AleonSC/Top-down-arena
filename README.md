@@ -651,7 +651,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden) |
+| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
@@ -750,12 +750,12 @@ so they never change the fight or what your friend sees):
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
 What it adds: an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
-when hit; **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
+when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
 0.4 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
 **scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
 shots; the **grid ripples** out from big blasts; a **vignette** and a tint for the path you're on or the boss you're
 fighting (darker round the edges in the Warden's searchlight turn); a faint **red tint in the corners** when you're
-hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (its name
+hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card**; a health orb flying to you leaves a **trail** and a faint link to you, and picking one up pulses green on you; a **puff of dust** at your feet when you set off, turn hard or dash; and **weather on every path** (embers rising on Burning Grounds, snow on Frozen Lake, petals on Sanctuary, red ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on Swarm Fields, wind-blown dust on Sniper Ridge, gold motes on the Elite Gauntlet, lantern sparks at the Bazaar), fading in as the path starts (its name
 and the wave, the arena dimming for a moment). A boss's death bursts in waves. Mocked up first in
 [`Docs/Mockups/visual-flair.html`](Docs/Mockups/visual-flair.html).
 

@@ -75,7 +75,7 @@ namespace Arena
             public Rgba Col;
         }
 
-        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3;
+        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4;
 
         struct Decal { public V2 Pos; public float R, Age; }
         struct Ripple { public V2 Pos; public float T, Power; }
@@ -117,6 +117,7 @@ namespace Arena
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
+            ClearAmbience();  // Ambience.cs
         }
 
         void AddPart(Part p)
@@ -355,6 +356,10 @@ namespace Arena
                 myLegendaries = legendaries;
             }
 
+            UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
+            UpdateDust(dt);      // dust at your feet
+            UpdateWeather(dt);   // the path's weather
+
             // A boss's death plays out in waves.
             for (int i = bursts.Count - 1; i >= 0; i--)
                 if (bursts[i].At <= juiceClock)
@@ -375,7 +380,7 @@ namespace Arena
                 if (p.Life <= 0f)
                     continue;
                 p.Pos += p.Vel * dt;
-                float drag = (float)Math.Exp(-(p.Kind == PShard ? 2.2f : 3.5f) * dt);
+                float drag = (float)Math.Exp(-(p.Kind == PShard ? 2.2f : p.Kind == PDust ? 5f : 3.5f) * dt);
                 p.Vel = p.Vel * drag;
                 p.Rot += p.Spin * dt;
                 parts[n++] = p;
@@ -489,6 +494,7 @@ namespace Arena
         {
             if (!Juicy)
                 return;
+            DrawOrbTrails();  // Ambience.cs
             foreach (var d in scorches)
             {
                 float a = 0.5f * (1f - d.Age / ScorchLife);
@@ -514,6 +520,7 @@ namespace Arena
         {
             if (!Juicy)
                 return;
+            DrawWeather();  // Ambience.cs: the path's weather
             for (int i = 0; i < partN; i++)
             {
                 var p = parts[i];
@@ -532,6 +539,9 @@ namespace Arena
                         break;
                     case PFlash:
                         Arc(p.Pos, p.Size * (0.3f + 0.7f * (1f - f)), 6f * f + 1f, Rgba.White.WithAlpha(0.9f * f), 28);
+                        break;
+                    case PDust:  // a soft puff that swells as it fades
+                        Circle(p.Pos, p.Size * (1.8f - 0.8f * f), p.Col.WithAlpha(0.35f * f), 8);
                         break;
                     default:
                         Circle(p.Pos, p.Size * (0.5f + 0.5f * f), p.Col.WithAlpha(f), 6);
@@ -552,6 +562,8 @@ namespace Arena
             {
                 var p = parts[i];
                 float f = p.Life / p.Max;
+                if (p.Kind == PDust)
+                    continue;
                 if (p.Kind == PSpark)
                     GlowDisc(p.Pos, p.Size * 6f, p.Col, 0.55f * f);
                 else if (p.Kind == PShard)
@@ -565,6 +577,7 @@ namespace Arena
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
                     GlowDisc(fx.Pos, fx.Radius * (1f + f), fx.Color, 0.55f * (1f - f));
                 }
+            DrawWeatherGlow();  // Ambience.cs
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));
@@ -804,8 +817,11 @@ namespace Arena
                     Ui.Fill(new Rect(0f, 0f, W, H), new Color(0f, 0f, 0f, 0.4f * k));
                 Ui.Fill(new Rect(0f, 0f, W, 64f * k), new Color(0f, 0f, 0f, 1f));
                 Ui.Fill(new Rect(0f, H - 64f * k, W, 64f * k), new Color(0f, 0f, 0f, 1f));
-                Ui.Title(new Rect(0f, H / 2f - 64f, W, 72f), introName, 58, new Color(1f, 0.42f, 0.55f, k));
-                Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.Wave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f * k), TextAnchor.MiddleCenter, true);
+                var old = GUI.color;
+                GUI.color = new Color(old.r, old.g, old.b, old.a * k);  // fades the title's shadow too
+                Ui.Title(new Rect(0f, H / 2f - 64f, W, 72f), introName, 58, new Color(1f, 0.42f, 0.55f, 1f));
+                Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.Wave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f), TextAnchor.MiddleCenter, true);
+                GUI.color = old;
             }
         }
     }

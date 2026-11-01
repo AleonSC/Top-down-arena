@@ -20,6 +20,16 @@ class JuiceCheck {
     set("session", s); set("game", g); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
     Func<int> frame = () => { GL.Tris.Clear(); draw.Invoke(app, null); return GL.Tris.Count / 18; };
+    // Particles of one kind (and, if given, one colour) alive now.
+    Func<byte, float, int> countParts = (kind, green) => {
+      var arr = (Array)get("parts"); int n = (int)get("partN"), cnt = 0;
+      for (int i = 0; i < n; i++) {
+        var p = arr.GetValue(i); var t = p.GetType();
+        if ((byte)t.GetField("Kind").GetValue(p) != kind) continue;
+        var col = (Rgba)t.GetField("Col").GetValue(p);
+        if (green < 0f || Math.Abs(col.G - green) < 1e-3f && col.R < 0.4f) cnt++;
+      }
+      return cnt; };
     Action tick = () => { g.FixedStep(1f / 60f, new PlayerInput()); g.Update(1f / 60f); g.Sounds.Clear(); };
 
     set("fxOn", false);
@@ -103,6 +113,39 @@ class JuiceCheck {
     set("holdGap", 0f);
     boss.Hp = 0f; g.Enemies.Remove(boss.Id); frame();
     Check(((System.Collections.IList)get("bursts")).Count == 4 && (float)get("trauma") > 0.5f, "a boss's death shakes hard and bursts in waves");
+
+    // The damage ghost: a bar that drops keeps a pale chunk for a moment, then drains to it; healing pulls it up.
+    var ghost = typeof(ArenaApp).GetMethod("Ghost", f2);
+    Func<float, float, float> G = (now, frac) => { UnityEngine.Time.unscaledTime = now; return (float)ghost.Invoke(app, new object[] { 77L, frac }); };
+    G(10f, 1f);
+    float held = G(10.05f, 0.6f), still = G(10.3f, 0.6f), draining = G(10.7f, 0.6f), done = G(12f, 0.6f), healed = G(12.1f, 0.9f);
+    Console.WriteLine("  ghost: {0:0.00} held, {1:0.00} still, {2:0.00} draining, {3:0.00} done, {4:0.00} healed", held, still, draining, done, healed);
+    Check(held == 1f && still == 1f && draining < 1f && draining > 0.6f && Math.Abs(done - 0.6f) < 1e-4f && Math.Abs(healed - 0.9f) < 1e-4f,
+      "a health bar's damage ghost holds where health was, then drains to it; healing pulls it up");
+
+    // A health orb picked up: a green pulse and sparks on the player (after the boss's hold has passed).
+    for (int i = 0; i < 30; i++) frame();
+    var me = g.Me;
+    var orb = new Orb { Id = 9001, Pos = me.Pos + new V2(15f, 0f), Disp = me.Pos + new V2(15f, 0f), Life = 9f };
+    g.Orbs[orb.Id] = orb;
+    frame();
+    int beforeOrb = countParts(0, 1f);
+    g.Orbs.Remove(orb.Id);
+    frame();
+    int greenSparks = countParts(0, 1f);
+    Console.WriteLine("  orb picked up: {0} green sparks (before: {1})", greenSparks, beforeOrb);
+    Check(greenSparks >= beforeOrb + 10, "picking up a health orb pulses green on you");
+
+    // Dust: setting off kicks up a puff at your feet.
+    int beforeDust = countParts(4, -1f);
+    for (int i = 0; i < 4; i++) { me.Disp = me.Disp + new V2(6f, 0f); frame(); }
+    Check(countParts(4, -1f) > beforeDust, "setting off kicks up a puff of dust");
+
+    // Weather: a path brings its own (Frozen Lake: snow).
+    g.CurrentPath = PathId.FrozenLake; g.PathFrom = 1; g.PathTo = 99;
+    for (int i = 0; i < 90; i++) frame();
+    Check((PathId)get("weatherPath") == PathId.FrozenLake && (float)get("weatherFade") > 0.5f, "a path brings its weather (Frozen Lake: snow), fading in");
+    g.CurrentPath = PathId.None;
 
     // Off again: exactly the plain drawing.
     set("fxOn", false);

@@ -1549,7 +1549,7 @@ namespace Arena
             if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);
-                Bar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f));
+                GhostBar(pos + new V2(-w / 2f, -r - 10f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // HealthBars.cs
             }
             if (e.Caged)
                 DrawBoneCage(pos, r, t);
@@ -2066,7 +2066,7 @@ namespace Arena
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);
 
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
-                Bar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f));
+                GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
             if (p.Downed)
                 Arc(p.Disp, r + 8f, 4f, new Rgba(0.4f, 1f, 0.5f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(p.Revive, 0.01f));
         }
