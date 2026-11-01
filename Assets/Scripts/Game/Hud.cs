@@ -1205,59 +1205,79 @@ namespace Arena
             Ui.Fancy(cap, key, 9, new Color(1f, 1f, 1f, 0.55f + 0.45f * color.a), new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
         }
 
+        /// The level-up picker ("trophy cards", Docs/Mockups/upgrade-picker.html option C): a gold LEVEL UP! title, three
+        /// tall cards with the icon big on a rarity backdrop (the picked one lifts and glows, the others step back; rare
+        /// and better shine), one line saying what your pick changes, and the lobby's fancy buttons. Weapon mods (more than
+        /// three cards) use a grid of smaller cards. Hold Tab for your full stats.
         void DrawUpgradePicker(Player me)
         {
             SyncSelection(me);
             float now = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.8f));
-            // Stats on the left; the cards and buttons fill the rest.
-            const float cardW = 290f, cardH = 300f, gap = 22f;
-            float x0 = StatsSidebarW + 20f;
-            float areaW = cardW * 3 + gap * 2, mid = x0 + areaW / 2f;
-            DrawStatPanel(me, StatsSidebar(me));
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.82f));
+            const float cardW = 270f, cardH = 384f, gap = 30f;
+            float mid = W / 2f;
 
-            // Heading: a small tag, a big title, and how many picks are left.
+            // Heading: a big outlined title in the offer's colour, and a line under it.
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
                 : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : Ui.Gold;
-            string tag = me.OfferLegendary ? "BOSS REWARD" : me.OfferMod ? "BOSS REWARD · WEAPON MOD" : "LEVEL " + me.Level;
-            string title = me.OfferLegendary ? "Choose a legendary upgrade" : me.OfferMod ? "Choose how your shots behave" : "Choose an upgrade";
-            float tagW = 30f + tag.Length * 8f;
-            var tagRect = new Rect(mid - tagW / 2f, 104f, tagW, 24f);
-            Ui.Pill(tagRect, new Color(theme.r, theme.g, theme.b, 0.25f));
-            Ui.Label(tagRect, tag, 12, theme, TextAnchor.MiddleCenter, true);
-            Ui.Title(new Rect(x0, 128f, areaW, 40f), title.ToUpperInvariant(), 30, Color.white);
+            string title = me.OfferLegendary ? "BOSS REWARD!" : me.OfferMod ? "WEAPON MOD" : "LEVEL UP!";
+            Ui.Fancy(new Rect(0f, 40f, W, 64f), title, 54, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods - 1;
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
-                Ui.Label(new Rect(x0, 164f, areaW, 18f), more + " more to choose after this", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                sub += "  ·  " + more + " MORE AFTER THIS";
+            Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
 
-            // Weapon mods show the whole list in a grid of smaller cards.
             bool grid = me.Offer.Length > 3;
-            const int perRow = 4;
-            float cw = grid ? (areaW - gap * (perRow - 1)) / perRow : cardW, ch = grid ? 150f : cardH;
-            int rows = grid ? (me.Offer.Length + perRow - 1) / perRow : 1;
-            float top = grid ? 196f : 196f;
-            for (int i = 0; i < me.Offer.Length; i++)
+            float by;
+            if (grid)
             {
-                var u = Upgrades.All[me.Offer[i]];
-                int row = grid ? i / perRow : 0, col = grid ? i % perRow : i;
-                int inRow = grid ? Math.Min(perRow, me.Offer.Length - row * perRow) : me.Offer.Length;
-                float rowX = mid - (inRow * cw + (inRow - 1) * gap) / 2f;  // center short rows
-                var slot = new Rect(rowX + col * (cw + gap), top + row * (ch + gap), cw, ch);
-                bool hover = slot.Contains(Event.current.mousePosition);
-                bool selected = selectedCard == i;
-                // The card lifts a little when hovered and more when selected.
-                var r = new Rect(slot.x, slot.y - (selected ? 10f : hover ? 4f : 0f), slot.width, slot.height);
-                DrawUpgradeCard(me, i, u, r, grid, selected, hover, now);
-                if (Ui.HitArea(slot) && selectedCard != i)
+                // Weapon mods: every one you can take, in a grid of smaller cards.
+                const int perRow = 4;
+                float areaW = cardW * 3 + gap * 2, gw = 18f, cw = (areaW - gw * (perRow - 1)) / perRow, ch = 150f, top = 140f;
+                int rows = (me.Offer.Length + perRow - 1) / perRow;
+                for (int i = 0; i < me.Offer.Length; i++)
                 {
-                    selectedCard = i;
-                    pickKey = 0;
+                    var u = Upgrades.All[me.Offer[i]];
+                    int row = i / perRow, col = i % perRow, inRow = Math.Min(perRow, me.Offer.Length - row * perRow);
+                    float rowX = mid - (inRow * cw + (inRow - 1) * gw) / 2f;
+                    var slot = new Rect(rowX + col * (cw + gw), top + row * (ch + gw), cw, ch);
+                    bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
+                    DrawUpgradeCard(me, i, u, new Rect(slot.x, slot.y - (selected ? 8f : hover ? 3f : 0f), slot.width, slot.height), true, selected, hover, now);
+                    if (Ui.HitArea(slot) && selectedCard != i)
+                    {
+                        selectedCard = i;
+                        pickKey = 0;
+                    }
                 }
+                by = top + rows * ch + (rows - 1) * gw + 20f;
+            }
+            else
+            {
+                const float top = 150f;
+                float x0 = mid - (me.Offer.Length * cardW + (me.Offer.Length - 1) * gap) / 2f;
+                for (int i = 0; i < me.Offer.Length; i++)
+                {
+                    var u = Upgrades.All[me.Offer[i]];
+                    var slot = new Rect(x0 + i * (cardW + gap), top, cardW, cardH);
+                    bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
+                    DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now);
+                    if (Ui.HitArea(slot) && selectedCard != i)
+                    {
+                        selectedCard = i;
+                        pickKey = 0;
+                    }
+                }
+                by = top + cardH + 14f;
             }
 
-            // Confirm and reroll buttons under the cards.
-            const float btnW = 280f;
-            float by = top + rows * ch + (rows - 1) * gap + 26f;
+            // What the pick changes, in one line (Hold Tab for everything).
+            string change = PickChangeLine(me);
+            if (change.Length > 0)
+            {
+                Ui.Label(new Rect(0f, by, W, 20f), change, 14, new Color(0.5f, 1f, 0.58f), TextAnchor.MiddleCenter, true);
+                by += 28f;
+            }
 
             // A card that grants a new ability: choose which key it goes on.
             if (selectedCard >= 0 && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
@@ -1269,32 +1289,157 @@ namespace Arena
                     for (int k = 1; k <= Upgrades.BonusSlots; k++)
                         if (me.Slots[k].Id == AbilityId.None) { pickKey = k; break; }
                 }
-                const float keyW = 170f;
+                const float keyW = 190f;
                 float kx = mid - (keyW * 3 + 16f) / 2f;
-                Ui.Label(new Rect(x0, by - 6f, areaW, 18f), "Put " + Upgrades.Ability(grant).Name + " on:", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(0f, by - 4f, W, 18f), "PUT " + Upgrades.Ability(grant).Name.ToUpperInvariant() + " ON", 12, Ui.Muted, TextAnchor.MiddleCenter, true);
                 for (int k = 1; k <= Upgrades.BonusSlots; k++)
                 {
                     var on = me.Slots[k].Id;
                     string label = SlotKeys[k] + (on != AbilityId.None ? "  ·  swap " + Upgrades.Ability(on).Name : "  ·  empty");
-                    if (Ui.Choice(new Rect(kx + (k - 1) * (keyW + 8f), by + 14f, keyW, 32f), label, pickKey == k, ToColor(me.Def.Color)))
+                    if (Ui.Choice(new Rect(kx + (k - 1) * (keyW + 8f), by + 16f, keyW, 32f), label, pickKey == k, ToColor(me.Def.Color)))
                         pickKey = k;
                 }
-                by += 58f;
+                by += 60f;
             }
+
+            // Reroll and take, the lobby's fancy buttons: the take button names your pick.
+            by = Mathf.Min(by, H - 70f);
             bool wasEnabled = GUI.enabled;
-            GUI.enabled = selectedCard >= 0 && !game.RerollPending;
-            string confirmText = selectedCard >= 0 ? "Confirm  [Enter]" : "Pick a card first";  // the selected card shows its name
-            if (Ui.Button(new Rect(mid - btnW - 10f, by, btnW, 46f), confirmText, selectedCard >= 0 ? Ui.Primary : Ui.Neutral))
+            bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
+            bool canReroll = !me.OfferLegendary && !me.OfferMod;  // boss rewards can't be rerolled: no button
+            const float rerollW = 240f, takeW = 320f, bgap = 18f;
+            float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;
+            if (canReroll && Ui.FancyButton(new Rect(bx, by, rerollW, 48f), "Reroll  " + me.Rerolls + "  [R]", Ui.Neutral, PixelArt.Get("ui_arrow"), now))
+                game.RerollOffer();
+            GUI.enabled = picked && !game.RerollPending;
+            string take = picked ? "Take " + Upgrades.All[me.Offer[selectedCard]].Name : "Pick a card";
+            if (Ui.FancyButton(new Rect(bx + rerollW + bgap, by, takeW, 48f), take, picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now))
                 ConfirmPick();
             SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)
-            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !me.OfferLegendary && !me.OfferMod && !RerollLocked;
-            if (Ui.Button(new Rect(mid + 10f, by, btnW, 46f), "Reroll (" + me.Rerolls + " left)  [R]"))
-                game.RerollOffer();
             GUI.enabled = wasEnabled;
-            string hint = me.OfferLegendary || me.OfferMod ? "Boss rewards can't be rerolled" : "Rerolls: start with " + Game.StartingRerolls + ", +2 for every boss you kill";
-            if (me.OfferMod)
-                hint = "Every weapon mod you can still take is shown. Each stacks up to 3 times.";
-            Ui.Label(new Rect(x0, by + 50f, areaW, 18), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            string hint = me.OfferMod ? "Every weapon mod you can still take is shown. Each stacks up to 3 times."
+                : me.OfferLegendary ? "Boss rewards can't be rerolled  ·  Hold Tab for your build"
+                : "1 / 2 / 3 or click a card, Enter to take it  ·  Rerolls: 2 to start, +2 a boss  ·  Hold Tab for your build";
+            Ui.Label(new Rect(0f, by + 54f, W, 18f), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+        }
+
+        /// "Regeneration 0.25 → 3.25 HP/s · Damage 100% → 110%": what the selected card changes (up to three stats),
+        /// or the new ability and its key.
+        string PickChangeLine(Player me)
+        {
+            if (selectedCard < 0 || me.Offer == null || selectedCard >= me.Offer.Length)
+                return "";
+            var u = Upgrades.All[me.Offer[selectedCard]];
+            var now = StatSheet.Describe(me, me.Taken, 0, game.PassiveRegen);
+            var after = StatSheet.Describe(me, new List<int>(me.Taken) { me.Offer[selectedCard] }, pickKey, game.PassiveRegen);
+            var parts = new List<string>();
+            string grant = u.Grants != AbilityId.None ? Upgrades.Ability(u.Grants).Name : null;
+            foreach (var line in after)
+            {
+                if (line.Header || parts.Count >= 3 || grant != null && (line.Value.Contains(grant) || line.Label.Contains(grant)))
+                    continue;  // (a new ability is named once, below)
+                string old = null;
+                foreach (var n in now)
+                    if (!n.Header && n.Label == line.Label)
+                        old = n.Value;
+                if (old == line.Value)
+                    continue;
+                parts.Add(old != null ? line.Label + "  " + old + " → " + line.Value : line.Label + "  " + line.Value);
+            }
+            if (grant != null)
+                parts.Insert(0, "New ability: " + grant + (pickKey >= 1 ? " on " + SlotKeys[pickKey] : ""));
+            return parts.Count == 0 ? "" : "THIS PICK   " + string.Join("   ·   ", parts.ToArray());
+        }
+
+        static Texture2D hatchTex;
+
+        /// A diagonal hatch for the cards' art (drawn tinted and stretched, so its stripes are chunky pixels).
+        static Texture2D Hatch()
+        {
+            if (hatchTex != null)
+                return hatchTex;
+            const int w = 68, h = 44;
+            var px = new Color[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    px[y * w + x] = (x + y) % 6 < 2 ? Color.white : new Color(1f, 1f, 1f, 0f);
+            hatchTex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            hatchTex.SetPixels(px);
+            hatchTex.Apply();
+            return hatchTex;
+        }
+
+        /// A tall "trophy" card: the icon big on a glowing, hatched rarity backdrop, its rarity and key, the name in
+        /// outlined lettering, what it does, a note, and a rarity line along the bottom that fades at both ends.
+        /// Picked: it lifts, glows and its icon bobs. Another one picked: it steps back and dims. Rare and better shine.
+        void DrawTrophyCard(Player me, int index, UpgradeDef u, Rect slot, bool selected, bool behind, bool hover, float now)
+        {
+            Color rc = ToColor(Upgrades.RarityColor(u.Rarity));
+            float lift = selected ? -16f : behind ? 8f : hover ? -4f : 0f;
+            var r = new Rect(slot.x, slot.y + lift, slot.width, slot.height);
+            if (selected)  // a soft glow round the picked card
+                for (int k = 3; k >= 1; k--)
+                    Ui.Pill(new Rect(r.x - 5f * k, r.y - 5f * k, r.width + 10f * k, r.height + 10f * k),
+                        new Color(rc.r, rc.g, rc.b, (0.07f + 0.03f * Mathf.Sin(now * 4f)) * (4 - k) / 3f));
+            Ui.Card(r, rc, selected ? 1f : hover ? 0.7f : 0.4f);
+
+            // The art: a glow of the rarity colour, a pixel hatch, then the icon big.
+            var art = new Rect(r.x + 3f, r.y + 3f, r.width - 6f, 176f);
+            Ui.Pill(art, new Color(rc.r * 0.12f, rc.g * 0.12f, rc.b * 0.12f, 0.95f));
+            for (int k = 0; k < 5; k++)
+            {
+                float s = 1f - k * 0.17f;
+                var g = new Rect(art.center.x - art.width * s / 2f, art.center.y - art.height * s / 2f + 6f, art.width * s, art.height * s);
+                Ui.Pill(g, new Color(rc.r, rc.g, rc.b, 0.06f + 0.02f * k + (selected ? 0.02f : 0f)));
+            }
+            Ui.Icon(art, Hatch(), new Color(rc.r, rc.g, rc.b, selected ? 0.1f : 0.07f));
+            var icon = PixelArt.ForUpgrade(u.Name);
+            float bob = selected ? 4f * Mathf.Sin(now * 3f) : 0f, isz = 108f;
+            Ui.Icon(new Rect(art.center.x - isz / 2f, art.center.y - isz / 2f + 8f + bob, isz, isz), icon);
+            if (u.Rarity >= Rarity.Rare)
+            {
+                // A slow shine across rare and better cards (quicker and brighter on legendaries).
+                bool leg = u.Rarity == Rarity.Legendary;
+                float sweep = MathX.Fmod(now * (leg ? 0.6f : 0.35f) + index * 0.3f, 1.6f) - 0.3f;
+                GUI.BeginGroup(new Rect(r.x + 3f, r.y + 3f, r.width - 6f, r.height - 6f));
+                Ui.Fill(new Rect(sweep * r.width, 0f, 22f, r.height), new Color(1f, 1f, 1f, leg ? 0.08f : 0.05f));
+                Ui.Fill(new Rect(sweep * r.width + 28f, 0f, 7f, r.height), new Color(1f, 1f, 1f, leg ? 0.06f : 0.04f));
+                GUI.EndGroup();
+            }
+            // Rarity chip and key, top corners.
+            string rarity = Upgrades.RarityName(u.Rarity);
+            float rw = 22f + rarity.Length * 7.2f;
+            var chipR = new Rect(r.x + 12f, r.y + 12f, rw, 20f);
+            Ui.Pill(chipR, new Color(rc.r, rc.g, rc.b, 0.9f));
+            Ui.Label(chipR, rarity, 10, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            DrawKeyCap(new Rect(r.xMax - 34f, r.y + 12f, 0f, 20f), (index + 1).ToString(), selected ? rc : new Color(1f, 1f, 1f, 0.6f));
+
+            // Name, description (and what mastering a granted ability adds), a note, the fading rarity line.
+            Color nameLow = selected ? Color.Lerp(rc, Color.white, 0.25f) : new Color(0.78f, 0.83f, 0.94f);
+            Ui.Fancy(new Rect(r.x + 8f, r.y + 184f, r.width - 16f, 34f), u.Name, u.Name.Length > 16 ? 21 : 25, Color.white, nameLow, TextAnchor.MiddleCenter,
+                selected ? (Color?)new Color(rc.r, rc.g, rc.b, 0.6f) : null);
+            string desc = Upgrades.DescFor(u, me.Weapon);
+            int ds = desc.Length > 110 ? 12 : 14;
+            string note = UpgradeNote(me, index, u);
+            var body = new Rect(r.x + 16f, r.y + 224f, r.width - 32f, r.height - 224f - 44f);
+            if (u.Grants != AbilityId.None)
+            {
+                DrawDescAndMastery(body, desc, u.Grants, ds, Ui.Text, true);
+                note = "";
+            }
+            else
+                Ui.Label(body, desc, ds, selected ? Color.white : Ui.Text, TextAnchor.UpperCenter, false, true);
+            if (note.Length > 0)
+                Ui.Label(new Rect(r.x, r.yMax - 38f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
+            for (int k = 0; k < 24; k++)  // the line along the bottom, fading out at both ends
+            {
+                float f = Mathf.Sin(MathX.Pi * (k + 0.5f) / 24f);
+                Ui.Fill(new Rect(r.x + 8f + (r.width - 16f) * k / 24f, r.yMax - 12f, (r.width - 16f) / 24f + 0.5f, selected ? 4f : 3f),
+                    new Color(rc.r, rc.g, rc.b, f * (selected ? 0.95f : 0.55f)));
+            }
+            if (behind)  // another card is picked: this one steps back
+                Ui.Pill(r, new Color(0.01f, 0.012f, 0.03f, 0.32f));
         }
 
         /// One upgrade card: rarity ribbon, pixel-art icon in a glowing frame, name, description and a note.

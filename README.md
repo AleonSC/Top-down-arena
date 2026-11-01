@@ -285,9 +285,10 @@ Mastery resets each run.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
 the wave is cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to
-select a card, then **Confirm** (or Enter). A panel on the left shows your stats (damage, fire rate, speed,
-cooldowns, damage taken, regen, projectiles, pierce, charges, bonus abilities, legendaries); with a card
-selected, the stats it would change are highlighted with their new values. Don't like the cards? **Reroll** (or R) for a fresh set. You
+select a card, then **Take** it (or Enter). The cards are tall, with the icon big on a backdrop of the card's rarity
+(rare and better ones shine); the one you pick lifts and glows, and a line under the cards says what it changes
+("Regeneration 0.25 → 3.25 HP/s", or a new ability and its key). Hold **Tab** for all your stats. Boss rewards say
+**BOSS REWARD!** (legendaries) or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set. You
 start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone
 have chosen.
 
