@@ -733,7 +733,17 @@ namespace Arena
             game = sg;  // the drawing code reads `game`
             try
             {
+                // Visual effects (Juice.cs) follow the preview while the lobby is up: the new shot looks, trails,
+                // sparks, bullet endings and hit flashes. (The glow and soft gradients can't be clipped to the window.)
+                bool fx = fxOn;  // (the preview only shows in the lobby, so no match is drawn alongside it)
+                if (fx)
+                {
+                    UpdateJuice();
+                    DrawJuiceFloor();
+                }
                 DrawArenaContents(sg.AnimT);
+                if (fx)
+                    DrawJuiceParts();
                 foreach (var p in sg.Players.Values)
                     if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                         DrawBowDraw(p, true, sg.AnimT);

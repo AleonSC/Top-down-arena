@@ -588,6 +588,8 @@ namespace Arena
             DrawOrbTrails();  // Ambience.cs
             foreach (var d in scorches)
             {
+                if (glClipOn)
+                    break;  // (a clipped window, the lobby's preview: gradients don't clip, so no scorch marks)
                 float a = 0.5f * (1f - d.Age / ScorchLife);
                 FanGradient(d.Pos, d.R, new Rgba(0.02f, 0.015f, 0.03f, a), new Rgba(0.02f, 0.015f, 0.03f, 0f), 14);
             }
