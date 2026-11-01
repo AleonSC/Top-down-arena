@@ -268,6 +268,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 
 ## 5. Recent history (newest first)
 
+**Upgrade pick outro (Nov 2026), no protocol change:** `PickOutro.cs`. Taking an upgrade plays 0.8 s: the unpicked cards shatter into six tumbling shards each (GL, rarity-coloured edges, sparks); the picked card flashes, shrinks and flies into your character (`me.Disp * WorldToUi`) with a short trail, landing in a ring and sparks in its rarity colour. The picker records card rects (`pickCardRects`) as it draws; `ConfirmPick` calls `StartPickOutro`, ignores input while it plays, and the next offer waits for it (`PickOutroPlaying`). The backdrop fades with it when no more picks are waiting. Preview: `OUTRO=<seconds> Tools/Preview/shot.sh <name> picker` shows that moment.
+
 **Weapon ascension strip (Nov 2026), no protocol change:** `LobbyUi.DrawAscensionStrip`: under the weapon and ability grids, one row with the picked weapon's name over "ASCENSIONS 0/3" and three locked cards (Ascension I › II › III, `AscensionsPerWeapon`), each with the "Coming soon" tooltip. Placeholders only: ascensions don't exist yet. To make room the role cards are 46 px, class cards 32 px and spec tiles 38 px; descriptions still fit (checked for Knight Tank, Hemomancer DPS, Summoner Healer). Locked cards share `DashedCard` and now give the hover tick.
 
 **Dev kill-all key (Nov 2026), no protocol change:** F1 Match tab toggle (`ArenaApp.devKillAllKey`, PlayerPrefs `dev_killall`); X (host, not while standing on a chest item) calls `Game.DevKillAll(id)` (DevTools.cs), which sets every enemy's Hp to 0 with `LastHitBy` = that player (shields and bubbles cleared, damage counted), so the next `Collide` dead-sweep gives XP, score, drops, gold and kill credit as usual. Checked in the `dev` suite.
@@ -399,6 +401,13 @@ sends every player's `RunStats` about once a second (`TickLiveStats` in `HostTic
 `ReadRunStats(r, final: false)` leaves `RunStatsReady` alone. The route is built from `Game.Route` + `BossForWave`
 (`BuildRoute`). Not tracked yet (so not shown): damage by source, path prizes, boss fight times. Test: `runstats` (in
 the feature suite). Preview: `STATSTAB=0|1|2 [PAUSE=1] Tools/Preview/shot.sh <name> tab 14 12.2 3`.
+*Zoom-through (Nov 2026, mockup at https://claude.ai/artifact/DbvMWLr3LpEyi92MoArDrM):* `DrawRunStatsScreen`
+remembers `statsShown`/`statsFrom`/`statsSwitchAt`; for `StatsZoomOut` (0.14 s) the old page scales up 6% and fades,
+and after `StatsZoomDelay` the new one eases in from 94% over `StatsZoomIn` (0.2 s). `DrawStatsZoomed` scales
+`GUI.matrix` about the page centre and fades with `GUI.color` + `Ui.Alpha`; `DrawStatsPage(tab, …, dim)` draws one page
+(the backdrop dim is drawn once and blended between pages). GL ignores `GUI.matrix`, so `statsZooming` skips the Team
+page's live models mid-switch. `fxOn` off: instant; `fxReduced`: fade only. Preview a mid-switch frame with
+`STATSFROM=n STATSAT=0.12` (the preview stub ignores `GUI.matrix`, so it shows the fade only).
 
 **Button style trial (Oct 2026), no protocol change:** six looks (A Sheen, B Slab, C Capsule, D Chamfer, E Glow, F Split;
 mockups at https://claude.ai/artifact/F99igZttNtrVDWJnMGCqTi) were tried from a Settings dropdown; the owner kept **A Sheen**

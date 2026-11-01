@@ -15,20 +15,37 @@ namespace Arena
         static readonly Color CardBg = new Color(0.094f, 0.11f, 0.165f, 1f);
         static readonly Color TileBg = new Color(0.118f, 0.137f, 0.2f, 1f);
 
+        // Switching tabs (with Visual effects on): "zoom through" (Docs/Mockups/tab-transitions.html). The old page grows
+        // a little and fades as if you pass through it; the new one settles in from just behind. About a quarter second.
+        public const float StatsZoomOut = 0.14f, StatsZoomIn = 0.2f, StatsZoomDelay = 0.04f;
+        int statsShown = -1, statsFrom;
+        float statsSwitchAt = -10f;
+
         void DrawRunStatsScreen(Player me, bool fromPause)
         {
             float t = Time.unscaledTime;
-            if (statsTab == 1 && me != null)
-                DrawTabMenu(me);  // Your build: the loadout screen (Hud.cs)
+            if (statsShown < 0)
+                statsShown = statsTab;  // (opening the screen isn't a switch)
+            if (statsTab != statsShown)
+            {
+                statsFrom = statsShown;
+                statsShown = statsTab;
+                statsSwitchAt = t;
+            }
+            float e = t - statsSwitchAt;
+            if (!fxOn || e >= StatsZoomDelay + StatsZoomIn)
+                DrawStatsPage(statsTab, me, t, true);
             else
             {
-                Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.78f));
-                var panel = new Rect(24f, 56f, W - 48f, H - 56f - 20f);
-                Ui.Panel(panel, true);
-                if (statsTab == 0)
-                    DrawRunSoFar(panel, me);
-                else
-                    DrawTeam(panel, me, t);
+                // One backdrop, blending from the old page's darkness to the new one's; then both pages over it.
+                float into = Mathf.Clamp01((e - StatsZoomDelay) / StatsZoomIn), smooth = 1f - (1f - into) * (1f - into) * (1f - into);
+                float dim = StatsDim(statsFrom, me) + (StatsDim(statsTab, me) - StatsDim(statsFrom, me)) * smooth;
+                Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, dim));
+                float outT = Mathf.Clamp01(e / StatsZoomOut);
+                if (outT < 1f && Event.current.type == EventType.Repaint)  // the old page is only drawn, never clicked
+                    DrawStatsZoomed(statsFrom, me, t, 1f + 0.06f * outT * outT, 1f - outT);
+                if (into > 0f)
+                    DrawStatsZoomed(statsTab, me, t, 0.94f + 0.06f * smooth, smooth);
             }
 
             // The tabs, centred above the panel; Back (from the pause menu) or how to close, on the right.
@@ -47,6 +64,49 @@ namespace Arena
             else
                 Ui.Label(new Rect(W - 330f, 12f, 306f, 34f), tabPaused ? "Paused while you look  ·  let go of Tab" : "Let go of Tab to close",
                     11, Ui.Muted, TextAnchor.MiddleRight);
+        }
+
+        static float StatsDim(int tab, Player me) => tab == 1 && me != null ? 0.6f : 0.78f;
+
+        /// One page of the screen (with its own backdrop when `dim`).
+        void DrawStatsPage(int tab, Player me, float t, bool dim)
+        {
+            if (tab == 1 && me != null)
+            {
+                DrawTabMenu(me, dim);  // Your build: the loadout screen (Hud.cs)
+                return;
+            }
+            if (dim)
+                Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.78f));
+            var panel = new Rect(24f, 56f, W - 48f, H - 56f - 20f);
+            Ui.Panel(panel, true);
+            if (tab == 0)
+                DrawRunSoFar(panel, me);
+            else
+                DrawTeam(panel, me, t);
+        }
+
+        /// A page scaled about the screen's middle and faded (the switch): like the HUD's own show and hide (HudGroup).
+        /// Reduced effects: just the fade.
+        /// True while a page is drawn mid zoom: its live models (GL, which ignores GUI.matrix and alpha) wait until it settles.
+        bool statsZooming;
+
+        void DrawStatsZoomed(int tab, Player me, float t, float k, float alpha)
+        {
+            if (fxReduced)
+                k = 1f;
+            Vector2 c = new Vector2(W / 2f, H / 2f + 20f);
+            var oldMatrix = GUI.matrix;
+            var oldColor = GUI.color;
+            GUI.matrix = Matrix4x4.TRS(new Vector3(offX + c.x * (1f - k) * scale, offY + c.y * (1f - k) * scale, 0f), Quaternion.identity, new Vector3(scale * k, scale * k, 1f));
+            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * alpha);
+            Ui.Alpha = alpha;
+            statsZooming = true;
+            DrawStatsPage(tab, me, t, false);
+            statsZooming = false;
+            Ui.Alpha = 1f;
+            GUI.color = oldColor;
+            GUI.matrix = oldMatrix;
         }
 
         // --- Run so far ----------------------------------------------------------------------
@@ -322,7 +382,7 @@ namespace Arena
             for (int k = 0; k < Defs.WeaponsPerRole; k++)
                 if (Defs.Weapon(p.Role, p.Kit, k) == p.Weapon)
                     weapon = k;
-            if (BeginUiGl())
+            if (!statsZooming && BeginUiGl())
             {
                 UiClip(stage);
                 UiModelAt(new V2(stage.center.x, stage.center.y), 1.7f);

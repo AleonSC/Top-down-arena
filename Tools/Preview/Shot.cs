@@ -715,6 +715,13 @@ class Shot {
         }
         set("statsTab", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
         if (Environment.GetEnvironmentVariable("SOLOTAB") != null) set("tabPaused", true);
+        // STATSFROM=n: caught mid switch from tab n, STATSAT seconds in (the zoom-through; the stub ignores GUI.matrix, so it shows the fade only).
+        if (Environment.GetEnvironmentVariable("STATSFROM") != null)
+        {
+          set("statsShown", int.Parse(Environment.GetEnvironmentVariable("STATSTAB")));
+          set("statsFrom", int.Parse(Environment.GetEnvironmentVariable("STATSFROM")));
+          set("statsSwitchAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("STATSAT") ?? "0.12"));
+        }
         Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
         typeof(ArenaApp).GetMethod("DrawRunStatsScreen", f2).Invoke(app, new object[] { me, Environment.GetEnvironmentVariable("PAUSE") != null });
         GL.ToUi = false;
@@ -751,7 +758,21 @@ class Shot {
       me.PendingPicks = 2;
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
       typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);
+      int pickMark = GUI.Log.Count;
       typeof(ArenaApp).GetMethod("DrawUpgradePicker", f2).Invoke(app, new object[] { me });
+      // OUTRO=<seconds>: the moment that long after taking the middle card (PickOutro.cs), instead of the picker.
+      var outro = Environment.GetEnvironmentVariable("OUTRO");
+      if (outro != null) {
+        GUI.Log.RemoveRange(pickMark, GUI.Log.Count - pickMark);
+        me.PendingPicks = 1;
+        typeof(ArenaApp).GetMethod("StartPickOutro", f2).Invoke(app, new object[] { me, 1 });
+        set("pickOutroAt", Time.unscaledTime - float.Parse(outro, System.Globalization.CultureInfo.InvariantCulture));
+        GL.ToUi = true;
+        Event.current.type = EventType.Repaint;
+        set("glMaterial", new Material(null));
+        typeof(ArenaApp).GetMethod("DrawPickOutro", f2).Invoke(app, null);
+        GL.ToUi = false;
+      }
     }
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);
     File.WriteAllLines(args[0] + ".ui", GUI.Log.ToArray());
