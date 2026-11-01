@@ -282,7 +282,7 @@ const E = [
   { id: "BeamSentry", label: "Beam Sentry", cat: "Late game", hp: 160, r: 17, speed: 70, sides: 6, col: rgb(0.44, 0.89, 1), xp: 12, score: 30, wave: 18,
     appears: "Wave 18+ (and in Beam battery squads)", lead: "Walks to about 380 px from you and plants itself. It aims a thin line at you for 1 s, turning slowly to follow, then sweeps a 900 px beam a quarter turn across your side.",
     attacks: [
-      { name: "Beam", pattern: "1 s aim (follows you at 34°/s), then a 90° sweep over 1.5 s toward the side you were heading; 1.5 s rest", dmg: w => (20 + 0.3 * w).toFixed(1), dmgLabel: "20 + 0.3 × wave", every: 4, unscaled: true }],
+      { name: "Beam", pattern: "1 s aim (follows you at 34°/s), then a 90° sweep over 1.5 s toward the side you were heading; 1.5 s rest", dmg: w => (16 * dmgGrow(w)).toFixed(1), dmgLabel: "16, +3% a wave (Normal)", every: 4, unscaled: true }],
     notes: ["Step behind the sweep, not away from it.", "From the design mockup (Docs/Mockups/enemy-variety.html)."] },
   { id: "Scorcher", cat: "Late game", hp: 130, r: 15, speed: 95, sides: 5, col: rgb(1, 0.71, 0.28), xp: 12, score: 30, wave: 24,
     appears: "Wave 24+ (and in Scorched earth squads)", lead: "Circles you about 260 px out, leaving a trail of embers that burn for 3 s. Two of them fence you in fast.",
@@ -355,7 +355,7 @@ const E = [
     appears: "Wave 15 (Reaper of Dusk + Reaper of Dawn, 2600 HP each)", lead: "Three stages by their combined health. Twilight (100–65%): a tether sweep that follows you, lines, and a cross, one at a time. At 65% they fuse into the Dual Reaper (armored, a third of the damage): twin rotating lasers while 4 corner pillars stand (kill them or it pulls you in and blows), each pillar leaving a hole; then it chases you swinging both scythes. Lure it into a hole, break its shield, and it's open for 4 s (half again the damage). At 30% it splits into Dusk and Dawn again: reaps, a twin spiral, and crossfire. (The preview here loops their Twilight bullet attacks.)",
     locks: ["Cycle", "Lines", "Cross"],
     attacks: [
-      { name: "Tether sweep (6 s)", pattern: "The tether lights up and they spin (0.7 rad/s) round a point that follows you at 110 px/s", dmg: w => (18 + 0.4 * w).toFixed(1), dmgLabel: "18 + 0.4 × wave", every: null },
+      { name: "Tether sweep (6 s)", pattern: "The tether lights up and they spin (0.7 rad/s) round a point that follows you at 110 px/s", dmg: w => (18 * dmgGrow(w)).toFixed(1), dmgLabel: "18, +3% a wave (Normal)", every: null },
       { name: "Lines (5 s)", pattern: "Holding still: 3 lines 28.6° apart, 6 shots each at 140–315 px/s; the middle line is aimed shots", kind: "small", n: 18, speed: "140–315", every: 1.4 },
       { name: "Cross (5 s)", pattern: "Holding still: 4 arms × 3 shots (120 / 170 / 220 px/s), +20° per volley", kind: "small", n: 12, speed: "120–220", every: 0.9 },
       { name: "Fusion (4.5 s)", pattern: "Can't be hurt. They spiral together into the Dual Reaper, then 10 marked circles (and one on each of you) blow up 1.6 s later, 120 px", dmg: "40", every: null },
@@ -371,11 +371,11 @@ const E = [
     attacks: [
       { name: "Pull (4 s)", pattern: "Drags players in at 150 px/s; 3-arm spiral, +12° per volley", kind: "small", n: 3, speed: 110, every: 0.13 },
       { name: "Collapse (3 s)", pattern: "Rings, each turned half a gap", kind: "small", n: 26, speed: 170, every: 0.9 },
-      { name: "Lasers (8 s)", pattern: "A 4-orb spiral (+17° a volley); from 1.5 s three red lines flicker for 0.8 s, then fire to the edges, 120° apart, sweeping counter-clockwise at 18°/s. 10 px wide", kind: "big", n: 4, speed: 150, every: 0.65, notes: "Lasers hurt 14 + 0.4 × wave" },
+      { name: "Lasers (8 s)", pattern: "A 4-orb spiral (+17° a volley); from 1.5 s three red lines flicker for 0.8 s, then fire to the edges, 120° apart, sweeping counter-clockwise at 18°/s. 10 px wide", kind: "big", n: 4, speed: 150, every: 0.65, notes: "Lasers hurt 14, +3% a wave" },
       { name: "Accretion disk (all stage, Accretion)", pattern: "Two rings of big orbs round it: 20 at 150 px turning +34°/s and 30 at 250 px turning −23°/s, two orbs missing every tenth (2 and 3 gaps). It orbits the middle 200 px out at 9°/s, carrying them", dmg: "23 per touch", every: null },
-      { name: "Cage (9 s, Accretion)", pattern: "Rings every player with 3 Cage Wells in a 180 px circle that spins and shrinks 22 px/s. Touching it hurts; shoot the 3 wells to break it. It holds fire", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
+      { name: "Cage (9 s, Accretion)", pattern: "Rings every player with 3 Cage Wells in a 180 px circle that spins and shrinks 22 px/s. Touching it hurts; shoot the 3 wells to break it. It holds fire", dmg: w => (14 * dmgGrow(w)).toFixed(1), dmgLabel: "14, +3% a wave (Normal)", every: null },
       { name: "Slingshot (6 s, Accretion)", pattern: "Every 0.8 s, the 3 outer-ring orbs nearest you leave the disk at 300 px/s, aimed at you; they come back one every 0.5 s afterwards", kind: "big", n: 3, speed: 300, every: 0.8 },
-      { name: "Twin lasers (7 s, Accretion)", pattern: "Two lasers, opposite each other, flicker for 0.8 s, then sweep at 26°/s", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null },
+      { name: "Twin lasers (7 s, Accretion)", pattern: "Two lasers, opposite each other, flicker for 0.8 s, then sweep at 26°/s", dmg: w => (14 * dmgGrow(w)).toFixed(1), dmgLabel: "14, +3% a wave (Normal)", every: null },
       { name: "Event horizon (Spaghettify)", pattern: "A black disc that grows 70 → 170 px over 20 s and is its body: touching it hurts and shoves you out. It pulls at 60 px/s all stage (slower than anyone walks)", dmg: "contact", every: null },
       { name: "Hawking (5 s, Spaghettify)", pattern: "Rings of 18 off the horizon's edge, +10° each", kind: "small", n: 18, speed: 160, every: 0.6 },
       { name: "White hole (4 s, Spaghettify)", pattern: "The rim flashes white for 1 s; then for 1.5 s it pushes at 260 px/s and every enemy bullet on screen turns round", dmg: "—", every: null },
@@ -422,12 +422,12 @@ const E = [
       { name: "Soul fans (5 s, Crypt)", pattern: "5 aimed piercing shots, 8.6° apart", kind: "pierce", n: 5, speed: 190, every: 0.8 },
       { name: "Grave rings (6 s, Crypt)", pattern: "16 orbs, +12° per ring", kind: "big", n: 16, speed: 90, every: 1.5 },
       { name: "Raise dead (4 s, Crypt)", pattern: "Three graves each raise 2 Grunts (up to 6 alive); they climb out for 1 s", dmg: "—", every: null, unscaled: true },
-      { name: "Soul beams (all stage, Harvest)", pattern: "Beams join the three phylacteries (450 HP each); a broken one cuts its beams", dmg: w => (12 + 0.3 * w).toFixed(1), dmgLabel: "12 + 0.3 × wave per touch", every: null },
-      { name: "Soul sweep (6 s, Harvest)", pattern: "Twice: a line flickers for 0.8 s, then a 900 px beam swings 120° at 70°/s across toward the nearest player", dmg: w => (16 + 0.3 * w).toFixed(1), dmgLabel: "16 + 0.3 × wave per touch", every: null },
+      { name: "Soul beams (all stage, Harvest)", pattern: "Beams join the three phylacteries (450 HP each); a broken one cuts its beams", dmg: w => (12 * dmgGrow(w)).toFixed(1), dmgLabel: "12, +3% a wave (Normal)", every: null },
+      { name: "Soul sweep (6 s, Harvest)", pattern: "Twice: a line flickers for 0.8 s, then a 900 px beam swings 120° at 70°/s across toward the nearest player", dmg: w => (16 * dmgGrow(w)).toFixed(1), dmgLabel: "16, +3% a wave (Normal)", every: null },
       { name: "Bone prison (5 s, Harvest)", pattern: "Twice: 14 spikes rise in a 110 px ring round each player over 1.2 s, the gap facing away from the Lich; then each fires inward at 200 px/s", kind: "small", n: 14, speed: 200, every: 2.5 },
-      { name: "Wailing spirits (6 s, Harvest)", pattern: "6 spirits circle it 220 px out, then dive one by one (0.4 s apart) at a player at 520 px/s, bursting into 4 shots", dmg: w => (12 + 0.3 * w).toFixed(1), dmgLabel: "12 + 0.3 × wave per touch", every: null },
+      { name: "Wailing spirits (6 s, Harvest)", pattern: "6 spirits circle it 220 px out, then dive one by one (0.4 s apart) at a player at 520 px/s, bursting into 4 shots", dmg: w => (12 * dmgGrow(w)).toFixed(1), dmgLabel: "12, +3% a wave (Normal)", every: null },
       { name: "Grave hop (6 s, Undeath)", pattern: "Every 2 s it fades for 0.5 s (can't be hurt) and appears at another grave, bursting 20 orbs", kind: "big", n: 20, speed: 110, every: 2 },
-      { name: "Dead hands (5 s, Undeath)", pattern: "A hand marks the ground under each player every 0.9 s and bursts up 0.8 s later (50 px), throwing 8 shots", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.9 },
+      { name: "Dead hands (5 s, Undeath)", pattern: "A hand marks the ground under each player every 0.9 s and bursts up 0.8 s later (50 px), throwing 8 shots", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 0.9 },
       { name: "Soul storm (6 s, Undeath)", pattern: "A two-armed spiral, +14° a step, reversing halfway", kind: "small", n: 2, speed: 150, every: 0.09 },
       { name: "Final rite (below 10%)", pattern: "Fans every 1 s, rings every 2 s, and 2 Grunts from every grave every 6 s (up to 10)", kind: "pierce", n: 5, speed: 190, every: 1 }],
     notes: ["Stage changes at 65% and 30% take 2 s: it can't be hurt and every enemy bullet is cleared.", "Phylactery: 600 HP in the Crypt (450 in Soul Harvest). Once every one is broken it can be hurt for 12 s, then they rise again."] },
@@ -435,35 +435,35 @@ const E = [
     appears: "Wave 40 (with wave ÷ 8 Snipers)", lead: "A storm in three stages, one attack at a time with breathers between. Gathering Storm (100–65%): it drifts along the top — Strikes, Lightning rods, Thunderclap. Gale (65–30%): the wind blows across the arena all stage, turning round each attack; it pushes you and bends every bullet — Crosswind volleys, Ball lightning, Downbursts. Supercell (30–10%): the sky goes dark and one player at a time carries the Conductor's charge — Storm front, Strike rain, Rod cage. Below 10% its last stand in the middle: four turning lightning spokes. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
     locks: ["Cycle", "Gathering Storm", "Gale", "Supercell", "Last stand"],
     attacks: [
-      { name: "Strikes (6 s)", pattern: "70 px circle on each player + 2 random every 1.8 s; strikes 1.1 s later", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 1.8, unscaled: true },
-      { name: "Lightning rods (7 s)", pattern: "4 rods fall around you (1 s); every 1.4 s an arc flickers 0.6 s between a pair, then fires for 0.25 s along the line (16 px)", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 1.4, unscaled: true },
+      { name: "Strikes (6 s)", pattern: "70 px circle on each player + 2 random every 1.8 s; strikes 1.1 s later", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 1.8, unscaled: true },
+      { name: "Lightning rods (7 s)", pattern: "4 rods fall around you (1 s); every 1.4 s an arc flickers 0.6 s between a pair, then fires for 0.25 s along the line (16 px)", dmg: w => (18 * dmgGrow(w)).toFixed(1), dmgLabel: "18, +3% a wave (Normal)", every: 1.4, unscaled: true },
       { name: "Thunderclap (5 s)", pattern: "Rings of 36 with two gaps, each turned 25°", kind: "small", n: 32, speed: 160, every: 1.5 },
       { name: "Volley (breathers)", pattern: "3 aimed shots, 8.6° apart", kind: "pierce", n: 3, speed: 330, every: 1 },
       { name: "Wind (all Gale)", pattern: "Pushes players 70 px/s and drifts every bullet 60 px/s, one way, then the other each attack", dmg: "—", every: null },
       { name: "Crosswind (6 s, Gale)", pattern: "5 piercing shots, 6.9° apart, aimed upwind of you so the wind carries them on", kind: "pierce", n: 5, speed: 260, every: 0.8 },
       { name: "Ball lightning (7 s, Gale)", pattern: "Twice, 3 orbs (70 HP) drift at you at 80 px/s plus the wind; two within 200 px arc to each other; each pops into 8 shots after 6 s", dmg: "20 (arc, touch)", every: 3.5 },
-      { name: "Downburst (6 s, Gale)", pattern: "Every 2 s a row of six 110 px strikes at your height, 0.25 s apart in the wind's direction (0.8 s first)", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2, unscaled: true },
-      { name: "Conductor (all Supercell)", pattern: "Every 8 s one player is marked for 3 s (a 180 px ring). Then the charge jumps to every ally in the ring, hurting both ends, and 10 shots burst out from them", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 8, unscaled: true },
-      { name: "Storm front (7 s, Supercell)", pattern: "Every 0.5 s a column of 7 strikes (65 px) 110 px further across, with a two-strike gap that drifts", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.5, unscaled: true },
-      { name: "Strike rain (6 s, Supercell)", pattern: "Every 0.6 s, 3 random strikes and 1 on a player: 50 px, 0.9 s warning", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.6, unscaled: true },
-      { name: "Rod cage (7 s, Supercell)", pattern: "Twice, 6 rods ring you 240 px out; arcs join them every 1.2 s (0.5 s flicker), all but one open side", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave", every: 1.2, unscaled: true },
-      { name: "Eye of the storm (last stand)", pattern: "In the middle: four 700 px spokes turning 20°/s, a strike on each player every 2 s, its volley every 1 s", dmg: w => (18 + 0.3 * w).toFixed(1), dmgLabel: "18 + 0.3 × wave (spokes)", every: null }],
+      { name: "Downburst (6 s, Gale)", pattern: "Every 2 s a row of six 110 px strikes at your height, 0.25 s apart in the wind's direction (0.8 s first)", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 2, unscaled: true },
+      { name: "Conductor (all Supercell)", pattern: "Every 8 s one player is marked for 3 s (a 180 px ring). Then the charge jumps to every ally in the ring, hurting both ends, and 10 shots burst out from them", dmg: w => (18 * dmgGrow(w)).toFixed(1), dmgLabel: "18, +3% a wave (Normal)", every: 8, unscaled: true },
+      { name: "Storm front (7 s, Supercell)", pattern: "Every 0.5 s a column of 7 strikes (65 px) 110 px further across, with a two-strike gap that drifts", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 0.5, unscaled: true },
+      { name: "Strike rain (6 s, Supercell)", pattern: "Every 0.6 s, 3 random strikes and 1 on a player: 50 px, 0.9 s warning", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 0.6, unscaled: true },
+      { name: "Rod cage (7 s, Supercell)", pattern: "Twice, 6 rods ring you 240 px out; arcs join them every 1.2 s (0.5 s flicker), all but one open side", dmg: w => (18 * dmgGrow(w)).toFixed(1), dmgLabel: "18, +3% a wave (Normal)", every: 1.2, unscaled: true },
+      { name: "Eye of the storm (last stand)", pattern: "In the middle: four 700 px spokes turning 20°/s, a strike on each player every 2 s, its volley every 1 s", dmg: w => (18 * dmgGrow(w)).toFixed(1), dmgLabel: "18, +3% a wave (Normal)", every: null }],
     notes: ["Alone, the Conductor's charge has no one to jump to: it only grounds into its ring of shots.", "Built from the design mockup (Docs/Mockups/storm-herald-3-stage.html)."] },
   { id: "Devourer", label: "The Devourer", cat: "Bosses", boss: true, hp: 6500, r: 50, speed: 40, sides: 12, col: rgb(0.85, 0.28, 0.38), xp: 340, score: 900, wave: 45,
     appears: "Wave 45 (alone)", lead: "A hunger in three stages, one attack at a time with breathers between, growing as it eats (50 → 58 → 64 px). Appetite (100–65%): it keeps 260 px from you — its double Spiral, Snap (lunging bites along a warning line), Hungry (your shots heal it while it spits morsels and crawls over to eat them). Gorging (65–30%): Inhale (a cone that pulls you into its mouth and swallows you), Bile (lobbed acid pools), Burrow (a ripple chases you underground and erupts). Ravenous (30–10%): the Maw, its mouth always open on one side — shots into it heal it, shots on its back hurt more — Frenzy, Jaws, Vomit. Below 10%, straight into its last meal in the middle: it pulls you in, a ring of teeth turns round it, its spiral comes back. Each stage change takes 2 s, clears the screen, and it can't be hurt meanwhile.",
     locks: ["Cycle", "Appetite", "Gorging", "Ravenous", "Last stand"],
     attacks: [
       { name: "Spiral (6 s)", pattern: "2 opposite shots, +9.7° per volley", kind: "small", n: 2, speed: 140, every: 0.08 },
-      { name: "Snap (5 s)", pattern: "3 lunges, 1.6 s apart: a body-wide warning line to 60 px past you for 0.7 s, a dash at 1000 px/s, then a bite in a 110 px half-circle in front", dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave", every: 1.6, unscaled: true },
+      { name: "Snap (5 s)", pattern: "3 lunges, 1.6 s apart: a body-wide warning line to 60 px past you for 0.7 s, a dash at 1000 px/s, then a bite in a 110 px half-circle in front", dmg: w => (13 * dmgGrow(w)).toFixed(1), dmgLabel: "13, +3% a wave (Normal)", every: 1.6, unscaled: true },
       { name: "Hungry (5 s)", pattern: "Your shots heal it for half their damage. Rings of 20 big orbs, every other one turned half a gap", kind: "big", n: 20, speed: 90, every: 1.2 },
       { name: "Morsels (Hungry)", pattern: "It spits 4 (60 HP, 14 px) 220–440 px away and crawls to the nearest at 90 px/s; each it eats heals it 1% of its health. Shoot them or walk over them first; any left rot at the turn's end", dmg: "—", every: null },
       { name: "Breathers", pattern: "It keeps 260 px from you and fires nothing", dmg: "—", every: null },
       { name: "Inhale (5 s, Gorging)", pattern: "Twice, it faces a player and breathes in for 2 s: a 70° cone, 600 px long, pulls you toward its mouth at 200 px/s close up, 80 px/s at the far end", dmg: "—", every: null },
       { name: "Swallowed (Gorging, last stand)", pattern: "Reach its mouth while it breathes in (or in its last stand) and you're inside it for 3 s; allies' hits on it do double, and 300 of them spit you out early. You come out 170 px in front of it with a ring of 12", kind: "small", n: 12, speed: 170, dmg: "10/s inside (20/s in the last stand)", every: null },
       { name: "Bile (6 s, Gorging)", pattern: "Every 1.5 s a glob at each player and one at a random spot: 1 s flight (a shadow marks it), then a 90 px acid pool for 6 s", dmg: "12/s", every: 1.5, unscaled: true },
-      { name: "Burrow (7 s, Gorging)", pattern: "Twice: it dives (can't be hurt, shots pass over), a ripple chases a player at 260 px/s for 1.9 s, stops, flashes a 100 px circle for 0.6 s, then it erupts: a bite in the circle and a ring of 16", kind: "small", n: 16, speed: 170, dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave (eruption)", every: null },
+      { name: "Burrow (7 s, Gorging)", pattern: "Twice: it dives (can't be hurt, shots pass over), a ripple chases a player at 260 px/s for 1.9 s, stops, flashes a 100 px circle for 0.6 s, then it erupts: a bite in the circle and a ring of 16", kind: "small", n: 16, speed: 170, dmg: w => (13 * dmgGrow(w)).toFixed(1), dmgLabel: "13, +3% a wave (Normal)", every: null },
       { name: "The Maw (all Ravenous)", pattern: "A 90° cone in front of it: shots that land in it heal it for half, shots outside do ×1.25. It turns to the nearest player at 60°/s with allies, 35°/s when you're alone (as here)", dmg: "—", every: null },
-      { name: "Frenzy (6 s, Ravenous)", pattern: "4 lunges, 1.4 s apart, with a 0.55 s warning line; each bite ends in a ring of 12", kind: "small", n: 12, speed: 170, dmg: w => (13 + 0.6 * w).toFixed(1), dmgLabel: "13 + 0.6 × wave (bite)", every: 1.4, unscaled: true },
+      { name: "Frenzy (6 s, Ravenous)", pattern: "4 lunges, 1.4 s apart, with a 0.55 s warning line; each bite ends in a ring of 12", kind: "small", n: 12, speed: 170, dmg: w => (13 * dmgGrow(w)).toFixed(1), dmgLabel: "13, +3% a wave (Normal)", every: 1.4, unscaled: true },
       { name: "Jaws (6 s, Ravenous)", pattern: "Twice, 3 s apart: two rows of 7 teeth 320 px above and below you (left and right when you're within 280 px of the top or bottom) show for 0.6 s, then fly at where you stood", kind: "tooth", n: 14, speed: 140, every: 3, unscaled: true },
       { name: "Vomit (5 s, Ravenous)", pattern: "2 bile shots from its mouth (±6.9°), sweeping 70° either side of you and back", kind: "bile", n: 2, speed: 260, every: 0.07 },
       { name: "Last meal (below 10%)", pattern: "In the middle: pulls everyone in at 55 px/s; ten teeth (two gaps) turn 1 rad/s 170 px out, hurting within 22 px; its spiral every 0.16 s", kind: "small", n: 2, speed: 140, dmg: w => (0.75 * (13 + 0.6 * w)).toFixed(1), dmgLabel: "0.75 × bite (teeth)", every: 0.16 }],
@@ -474,26 +474,26 @@ const E = [
     attacks: [
       { name: "Spiral (6 s, Corona)", pattern: "4 arms, +12° per volley", kind: "small", n: 4, speed: 150, every: 0.07 },
       { name: "Corona rings (5 s, Corona)", pattern: "Rings of 24, each turned 7°", kind: "big", n: 24, speed: 110, every: 1 },
-      { name: "Solar flares (6 s, Corona)", pattern: "A line at each player and one more: 1 s warning, then a 40 px lane of fire 1300 px long for 0.45 s", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 2, unscaled: true },
+      { name: "Solar flares (6 s, Corona)", pattern: "A line at each player and one more: 1 s warning, then a 40 px lane of fire 1300 px long for 0.45 s", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 2, unscaled: true },
       { name: "Sun shots (Corona breathers)", pattern: "3 aimed big shots, 6.9° apart", kind: "big", n: 3, speed: 280, every: 1 },
       { name: "The moon (Penumbra to Last Light)", pattern: "Orbits 300 px out at 20°/s. Can't be hurt and soaks your shots; its shadow is a cone pointing away from the sun", dmg: "—", every: null },
       { name: "Lunar wake (7 s, Penumbra)", pattern: "The moon speeds up to 70°/s and drops a slow shot behind it", kind: "small", n: 1, speed: 60, every: 0.12 },
-      { name: "Eclipse flash (5 s, Penumbra)", pattern: "The moon stops and the sun swells for 3 s, then hits everyone outside the moon's shadow", dmg: w => (40 + 0.3 * w).toFixed(1), dmgLabel: "40 + 0.3 × wave", every: null, unscaled: true },
+      { name: "Eclipse flash (5 s, Penumbra)", pattern: "The moon stops and the sun swells for 3 s, then hits everyone outside the moon's shadow", dmg: w => (40 * dmgGrow(w)).toFixed(1), dmgLabel: "40, +3% a wave (Normal)", every: null, unscaled: true },
       { name: "Gravity (6 s, Penumbra)", pattern: "Pull 120 px/s for 3.5 s; 4 directions × 3 speeds", kind: "small", n: 12, speed: "120–220", every: 0.5 },
       { name: "Piercing fan (Penumbra, Last Light breathers)", pattern: "5 aimed shots, 8° apart", kind: "pierce", n: 5, speed: 210, every: 1 },
       { name: "Sunspots and the dark (all Umbra)", pattern: "You see 140 px round you and in three 120 px pools of light drifting at 35 px/s; outside them the dark drains you (no brief immunity)", dmg: "6/s", every: null },
       { name: "Crescents (6 s, Umbra)", pattern: "A crescent at each player that loops out through them and back to where it was thrown", dmg: (1.15 * 18).toFixed(1), every: 1.2 },
-      { name: "Closing umbra (7 s, Umbra)", pattern: "Twice, a 30 px ring of shadow closes in from 950 px at 130 px/s with two 40° gaps (once each)", dmg: w => (20 + 0.3 * w).toFixed(1), dmgLabel: "20 + 0.3 × wave", every: 3.4, unscaled: true },
+      { name: "Closing umbra (7 s, Umbra)", pattern: "Twice, a 30 px ring of shadow closes in from 950 px at 130 px/s with two 40° gaps (once each)", dmg: w => (20 * dmgGrow(w)).toFixed(1), dmgLabel: "20, +3% a wave (Normal)", every: 3.4, unscaled: true },
       { name: "Dark spiral (5 s, Umbra)", pattern: "3 arms, seen only in the light", kind: "small", n: 3, speed: 130, every: 0.09 },
       { name: "Echo: Colossus (6 s, Echoes)", pattern: "Stomps: rings of 30 big shots with one gap", kind: "big", n: 27, speed: 180, every: 1.6 },
-      { name: "Echo: Lich (6 s, Echoes)", pattern: "Two 750 px soul beams opposite each other: 1 s warning, then they turn 35°/s", dmg: w => (15 + 0.3 * w).toFixed(1), dmgLabel: "15 + 0.3 × wave", every: null, unscaled: true },
-      { name: "Echo: Storm Herald (6 s, Echoes)", pattern: "Strike rain: 3 random strikes and 1 on a player, 55 px, 0.9 s warning", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave", every: 0.6, unscaled: true },
+      { name: "Echo: Lich (6 s, Echoes)", pattern: "Two 750 px soul beams opposite each other: 1 s warning, then they turn 35°/s", dmg: w => (15 * dmgGrow(w)).toFixed(1), dmgLabel: "15, +3% a wave (Normal)", every: null, unscaled: true },
+      { name: "Echo: Storm Herald (6 s, Echoes)", pattern: "Strike rain: 3 random strikes and 1 on a player, 55 px, 0.9 s warning", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 0.6, unscaled: true },
       { name: "Echo: Singularity (6 s, Echoes)", pattern: "A 110 px/s pull for 3.5 s; 12 orbs spin out from it at 95 px/s", dmg: w => (0.7 * (15 + 0.3 * w)).toFixed(1), dmgLabel: "70% of the echo damage", every: null, unscaled: true },
       { name: "Moon shots (all Echoes)", pattern: "3 shots from the moon at the nearest player", kind: "small", n: 3, speed: 240, every: 2 },
       { name: "Burning edge (all Last Light)", pattern: "The arena's edges close in 160 px over 20 s; you can't pass, and touching them burns", dmg: "20/s", every: null },
       { name: "Frantic spiral (6 s, Last Light)", pattern: "5 arms, switching direction every 3 s", kind: "small", n: 5, speed: 170, every: 0.06 },
-      { name: "Shadow nova (6 s, Last Light)", pattern: "Two flashes (2.5 s, then 3 s); the moon is 220 px out and jumps 72° round between them", dmg: w => (40 + 0.3 * w).toFixed(1), dmgLabel: "40 + 0.3 × wave", every: null, unscaled: true },
-      { name: "Solar storm (6 s, Last Light)", pattern: "Flares at each player, then crescents, by turns", dmg: w => (25 + 0.3 * w).toFixed(1), dmgLabel: "25 + 0.3 × wave (flares)", every: 0.8, unscaled: true },
+      { name: "Shadow nova (6 s, Last Light)", pattern: "Two flashes (2.5 s, then 3 s); the moon is 220 px out and jumps 72° round between them", dmg: w => (40 * dmgGrow(w)).toFixed(1), dmgLabel: "40, +3% a wave (Normal)", every: null, unscaled: true },
+      { name: "Solar storm (6 s, Last Light)", pattern: "Flares at each player, then crescents, by turns", dmg: w => (25 * dmgGrow(w)).toFixed(1), dmgLabel: "25, +3% a wave (Normal)", every: 0.8, unscaled: true },
       { name: "Totality (below 5%)", pattern: "In the middle, no moon. Rings of 20 big shots; it takes +50% damage; every 12 s the nova hits everyone for 70% of their health and heals it 2%", kind: "big", n: 20, speed: 100, every: 1.4 }],
     notes: ["Each stage keeps something from the last: the moon from the Penumbra on, the flash again in Last Light.", "Only one dummy here: in co-op the whole party has to fit in the moon's shadow.", "Built from the design mockup (Docs/Mockups/eclipse-5-stage.html)."] },
 
@@ -516,14 +516,16 @@ const E = [
       { name: "Drift", pattern: "Pulls players within 480 px toward it, up to 45 px/s", dmg: "—", every: null }] },
   { id: "CageWell", label: "Cage Well", cat: "Summons", summon: true, hp: 40, r: 11, speed: 0, sides: 6, col: rgb(0.85, 0.4, 1), xp: 2, score: 5, wave: 20, melee: true,
     appears: "The Singularity's Cage attack, in Accretion (3 per player)", lead: "Three of these orbit each player on a shrinking ring. The ring hurts to touch; shooting all three breaks it.",
-    attacks: [{ name: "Cage wall", pattern: "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", dmg: w => (14 + 0.4 * w).toFixed(1), dmgLabel: "14 + 0.4 × wave per touch", every: null }] },
+    attacks: [{ name: "Cage wall", pattern: "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", dmg: w => (14 * dmgGrow(w)).toFixed(1), dmgLabel: "14, +3% a wave (Normal)", every: null }] },
 ];
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
 
 // Party / wave scaling (EnemyAI.cs)
-const BOSS_HP = { Warden: 4, HiveQueen: 3.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 5.5 };  // BossHpMult (Balance.cs)
-const partyScale = (n, boss) => n <= 1 ? 0.7 : n === 2 ? 1 : boss ? 1.5 : 1.2;
+// Enemy damage grows 3% a wave on Normal difficulty (Difficulty.cs); attacks listed as "X, +3% a wave" scale by this.
+const dmgGrow = w => 1 + 0.03 * (Math.max(1, w) - 1);
+const BOSS_HP = { Warden: 2.5, HiveQueen: 2.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 5.5 };  // BossHpMult (Balance.cs)
+const partyScale = (n, boss) => n <= 1 ? 0.85 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
   if (d.boss) hp *= BOSS_HP[d.id] || 2.5;  // BossHpMult (Balance.cs)
@@ -720,7 +722,7 @@ const HD = {
   cols: [rgb(0.56, 0.82, 1), rgb(0.5, 0.7, 1), rgb(0.66, 0.55, 1), rgb(0.83, 0.55, 1)],
 };
 const BALL = { id: "BallLightning", r: 15, speed: 0, sides: 8, col: rgb(0.75, 0.9, 1), melee: true, summon: true, contact: 20 };
-const strikeDmg = () => 25 + 0.3 * S.wave, arcDmg = () => 18 + 0.3 * S.wave;
+const strikeDmg = () => 25 * dmgGrow(S.wave), arcDmg = () => 18 * dmgGrow(S.wave);
 function segDist(p, a, b) { const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1, k = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / l2, 0, 1); return Math.hypot(p.x - a.x - dx * k, p.y - a.y - dy * k); }
 function heraldInit(e) {
   e.h = { stage: S.sel === "StormHerald" && S.lock ? S.lock - 1 : 0, step: -1, loop: 0, turn: "", len: 0, tt: 0, trans: 0, to: 0, wind: 0, spin: 0, act: 0, fired: 0,
@@ -944,17 +946,17 @@ function eclipseTick(e, dt) {
   if (c.moonD) c.moonA += dt * (c.flash > 0 ? 0 : c.turn === "LunarWake" ? 1.2 : 0.35);
   if (c.stage === 4) c.inset = Math.min(160, c.inset + 8 * dt);
   // Flares burn their lane while live
-  for (const f of c.flares) { f.t += dt; if (f.t >= 1 && f.t < 1.45 && !f.hit && segDist(p, f, { x: f.x + Math.cos(f.a) * 1300, y: f.y + Math.sin(f.a) * 1300 }) < 20 + p.hitR) { f.hit = true; hurt(25 + 0.3 * S.wave); } }
+  for (const f of c.flares) { f.t += dt; if (f.t >= 1 && f.t < 1.45 && !f.hit && segDist(p, f, { x: f.x + Math.cos(f.a) * 1300, y: f.y + Math.sin(f.a) * 1300 }) < 20 + p.hitR) { f.hit = true; hurt(25 * dmgGrow(S.wave)); } }
   c.flares = c.flares.filter(f => f.t < 1.45);
   // The flash: everyone outside the moon's shadow
   if (c.flash > 0 && (c.flash -= dt) <= 0) {
     c.flash = 0;
-    if (!inShadow(e, p)) hurt(40 + 0.3 * S.wave);
+    if (!inShadow(e, p)) hurt(40 * dmgGrow(S.wave));
     addFx("boom", e.x, e.y, rgb(1, 0.95, 0.8), 1600, 0.6);
     if (--c.flashLeft > 0) { c.moonA += TAU / 5; c.flash = c.flashLen = 3; }
   }
   // Closing umbra
-  for (const r of c.rings) { r.r -= 130 * dt; if (!r.hit && Math.abs(dist(r, p) - r.r) < 15 + p.hitR && !umbraGap(r, p)) { r.hit = true; hurt(20 + 0.3 * S.wave); } }
+  for (const r of c.rings) { r.r -= 130 * dt; if (!r.hit && Math.abs(dist(r, p) - r.r) < 15 + p.hitR && !umbraGap(r, p)) { r.hit = true; hurt(20 * dmgGrow(S.wave)); } }
   c.rings = c.rings.filter(r => r.r > 70);
   // Sunspots drift; the dark drains
   for (const s of c.spots) {
@@ -966,11 +968,11 @@ function eclipseTick(e, dt) {
   // Echoes: the Lich's beams, the Singularity's disk and pull, the moon shooting back
   if (c.sweep) {
     c.sweepT += dt; if (c.sweep === 1 && c.sweepT >= 1) c.sweep = 2;
-    if (c.sweep === 2) { c.sweepA += 35 * Math.PI / 180 * dt; for (let k = 0; k < 2; k++) { const a = c.sweepA + k * Math.PI; if (segDist(p, e, { x: e.x + Math.cos(a) * 750, y: e.y + Math.sin(a) * 750 }) < 8 + p.hitR) { hurt(15 + 0.3 * S.wave); break; } } }
+    if (c.sweep === 2) { c.sweepA += 35 * Math.PI / 180 * dt; for (let k = 0; k < 2; k++) { const a = c.sweepA + k * Math.PI; if (segDist(p, e, { x: e.x + Math.cos(a) * 750, y: e.y + Math.sin(a) * 750 }) < 8 + p.hitR) { hurt(15 * dmgGrow(S.wave)); break; } } }
   }
   if (c.disk >= 0) {
     c.disk += dt; if (c.disk < 3.5) world.pull = { x: e.x, y: e.y, s: 110 };
-    for (let k = 0; k < 12; k++) if (dist(eclipseOrb(e, k), p) < 15 + p.hitR) { hurt(0.7 * (15 + 0.3 * S.wave)); break; }
+    for (let k = 0; k < 12; k++) if (dist(eclipseOrb(e, k), p) < 15 + p.hitR) { hurt(0.7 * (15 * dmgGrow(S.wave))); break; }
     if (c.disk > 6) c.disk = -1;
   }
   if (c.turn === "Gravity" && c.tt < 3.5) world.pull = { x: e.x, y: e.y, s: 120 };
@@ -995,7 +997,7 @@ function eclipseTick(e, dt) {
       addFx("ring", e.x, e.y, rgb(0.85, 0.63, 0.4), 120, 0.4); break;
     }
     case "EchoLich": if (!c.fired) { c.fired = 1; c.sweep = 1; c.sweepT = 0; c.sweepA = Math.atan2(p.y - e.y, p.x - e.x) + Math.PI / 2; } c.act = 99; break;
-    case "EchoHerald": c.act = 0.6; for (let i = 0; i < 3; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 55, 0.9, 25 + 0.3 * S.wave); hazard(p.x, p.y, 55, 0.9, 25 + 0.3 * S.wave); break;
+    case "EchoHerald": c.act = 0.6; for (let i = 0; i < 3; i++) hazard(rnd(80, W - 80), rnd(80, H - 80), 55, 0.9, 25 * dmgGrow(S.wave)); hazard(p.x, p.y, 55, 0.9, 25 * dmgGrow(S.wave)); break;
     case "EchoSingularity": if (c.disk < 0) c.disk = 0; c.act = 99; break;
     case "FranticSpiral": c.act = 0.06; e.ang += Math.floor(c.tt / 3) % 2 === 0 ? 0.19 : -0.19; for (let k = 0; k < 5; k++) shot(e, e.ang + TAU * k / 5, 170, "small"); break;
     case "SolarStorm": c.act = 0.8; if (c.fired++ % 2 === 0) c.flares.push({ x: e.x, y: e.y, a: Math.atan2(p.y - e.y, p.x - e.x), t: 0 }); else crescent(e, p, 1); break;
@@ -1096,7 +1098,7 @@ function varietyTick(e, dt) {
         if (e.phaseT <= 0) { e.sweep = diff >= 0 ? 1 : -1; e.facing -= e.sweep * 0.5; e.phase = 3; e.phaseT = 1.5; }
       } else if (e.phase === 3) {
         e.facing += e.sweep * (Math.PI / 2) / 1.5 * dt;
-        if (segDist(p, e, { x: e.x + Math.cos(e.facing) * 900, y: e.y + Math.sin(e.facing) * 900 }) < 8 + p.hitR) hurt(20 + 0.3 * S.wave);
+        if (segDist(p, e, { x: e.x + Math.cos(e.facing) * 900, y: e.y + Math.sin(e.facing) * 900 }) < 8 + p.hitR) hurt(16 * dmgGrow(S.wave));
         if (e.phaseT <= 0) { e.phase = 4; e.phaseT = 1.5; }
       } else if (e.phase === 4 && e.phaseT <= 0) { e.phase = d < 580 ? 2 : 0; e.phaseT = 1; }
       break;
@@ -1193,7 +1195,7 @@ const DV = {
   bile: rgb(0.75, 0.9, 0.31), enamel: rgb(0.96, 0.9, 0.82), dirt: rgb(0.85, 0.64, 0.35), maw: rgb(1, 0.35, 0.48),
 };
 const MORSEL = { id: "Morsel", r: 14, speed: 0, sides: 7, col: rgb(0.88, 0.5, 0.35), summon: true };
-const biteDmg = () => 13 + 0.6 * S.wave;
+const biteDmg = () => 13 * dmgGrow(S.wave);
 const angOff = (a, b) => Math.abs(((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI);
 const morsels = () => world.enemies.filter(o => o.type === "Morsel" && !o.dead);
 const nearestMorsel = e => morsels().reduce((a, m) => !a || dist(m, e) < dist(a, e) ? m : a, null);
@@ -2064,7 +2066,7 @@ function hurt(amount) {
 function contactDamage(e) {
   const d = e.d;
   if (!d) return 15;
-  if (d.boss) return 25 + S.wave * 0.6;
+  if (d.boss) return 25 * dmgGrow(S.wave);
   if (e.type === "Charger" && e.phase === 2 || e.type === "Juggernaut") return 25;
   if (e.type === "Lunger" && e.phase === 2) return 26;
   return d.contact || 15;
@@ -2120,11 +2122,11 @@ function step(dt) {
   if (tw.length === 2) {
     const [a, b] = tw, dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
     const along = (p.x - a.x) * ux + (p.y - a.y) * uy;
-    if (along > a.r && along < len - b.r && Math.hypot(p.x - (a.x + ux * along), p.y - (a.y + uy * along)) < 4 + p.hitR) hurt(18 + S.wave * 0.4);
+    if (along > a.r && along < len - b.r && Math.hypot(p.x - (a.x + ux * along), p.y - (a.y + uy * along)) < 4 + p.hitR) hurt(18 * dmgGrow(S.wave));
   }
   // The Singularity's lasers and cages
   const sing = world.enemies.find(o => o.type === "Singularity" && !o.dead && o.spawnT <= 0);
-  if (sing && sing.phase === 5) { const n = singLasers(sing); for (let k = 0; k < n; k++) if (onLaser(sing, sing.facing + TAU * k / n, p, 5 + p.hitR)) { hurt(14 + 0.4 * S.wave); break; } }
+  if (sing && sing.phase === 5) { const n = singLasers(sing); for (let k = 0; k < n; k++) if (onLaser(sing, sing.facing + TAU * k / n, p, 5 + p.hitR)) { hurt(14 * dmgGrow(S.wave)); break; } }
   if (sing && sing.g && sing.g.stage === 1 && sing.g.trans <= 0)  // the accretion disk's orbs
     for (let ring = 0; ring < 2; ring++) for (let i = 0; i < SG.rings[ring].n; i++) { const o = diskOrb(sing.g, sing, ring, i); if (o && dist(o, p) < 10 + p.hitR) hurt(B.big.dmg); }
   for (const c of world.cages) {
@@ -2132,7 +2134,7 @@ function step(dt) {
     if (!c.wells.length) { addFx("ring", c.x, c.y, BY.CageWell.col, c.r + 20, 0.4); c.broken = true; continue; }
     c.r = Math.max(0, c.r - 22 * dt); c.spin += 1.4 * dt;
     for (const w of c.wells) { w.x = c.x + Math.cos(c.spin + w.ang) * c.r; w.y = c.y + Math.sin(c.spin + w.ang) * c.r; }
-    if (Math.abs(Math.hypot(p.x - c.x, p.y - c.y) - c.r) < 5 + p.hitR) hurt(14 + 0.4 * S.wave);
+    if (Math.abs(Math.hypot(p.x - c.x, p.y - c.y) - c.r) < 5 + p.hitR) hurt(14 * dmgGrow(S.wave));
   }
   world.cages = world.cages.filter(c => !c.broken);
   world.enemies = world.enemies.filter(e => !e.dead);
@@ -2631,7 +2633,7 @@ function renderSheet() {
   const elite = S.elite && !d.boss && !d.summon;
   const hp = maxHp(d, S.wave, S.party, elite);
   const rate = fireRate(S.wave, elite);
-  const contact = d.boss ? 25 + S.wave * 0.6 : d.contact || (d.melee ? 15 : 15);
+  const contact = d.boss ? 25 * dmgGrow(S.wave) : d.contact || (d.melee ? 15 : 15);
   const st = [
     ["Health", `${fmt(hp)} <small>(base ${fmt(d.hp)}${d.id === "Twins" ? " each" : ""} · wave ${S.wave} · ${S.party}P${elite ? " · elite" : ""})</small>`],
     ["Radius", `${fmt(d.r * (elite ? 1.25 : 1), 1)} px`],
@@ -2666,7 +2668,7 @@ function renderBulletTable() {
     [["small", "Most patterns: spreads, rings, spirals"], ["fast", "Snipers and Shards"], ["big", "Boss and Juggernaut orb rings"], ["pierce", "Bosses' aimed fans and volleys (can't be blocked)"], ["mine", "Mortars (bursts into 10 small shots)"], ["stun", "The Warden's searchlight (stuns you for 1 s)"], ["bile", "The Devourer's Vomit"], ["tooth", "The Devourer's Jaws"]]
       .map(([k, who]) => `<tr><td><span class="dot" style="background:${css(B[k].col)}"></span>${B[k].name}</td><td class="n">${B[k].dmg}</td><td class="n">${B[k].r} px</td><td>${who}</td></tr>`).join("") +
     `<tr><td><span class="dot" style="background:${css(BY.HiveBomber.col)}"></span>Hive Bomber blast</td><td class="n">22</td><td class="n">60 px</td><td>Hive Queen</td></tr>` +
-    `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25 + 0.3 × wave</td><td class="n">50–110 px</td><td>Storm Herald (strikes, downbursts, the storm front), the Eclipse</td></tr></tbody>`;
+    `<tr><td><span class="dot" style="background:rgb(178,216,255)"></span>Lightning</td><td class="n">25, +3% a wave</td><td class="n">50–110 px</td><td>Storm Herald (strikes, downbursts, the storm front), the Eclipse</td></tr></tbody>`;
 }
 
 // ---------------------------------------------------------------------------------------------

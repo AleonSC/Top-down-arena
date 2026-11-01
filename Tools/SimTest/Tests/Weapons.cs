@@ -776,8 +776,16 @@ static partial class Program
         Console.WriteLine("  chain light + barrage: lone enemy takes {0:0.0} with 3 stacks ({1} cones); beside the cone {2:0.0} without, {3:0.0} with (and the one ahead {4:0.0})",
             lone[0], cones, noBarrage[0], withBarrage[1], withBarrage[0]);
         Check(cones == 4 && Math.Abs(lone[0] - one[0]) < 0.2f, "Barrage on Chain Light adds cones, but a lone enemy still takes one cone's damage");
-        Check(noBarrage[0] == 0f && Math.Abs(withBarrage[1] - one[0]) < 0.2f && Math.Abs(withBarrage[0] - one[0]) < 0.2f,
-            "each Barrage cone sits beside the first and shares out its own damage");
+        Check(noBarrage[0] == 0f && Math.Abs(withBarrage[1] - one[0] * Game.BarrageCopyDamage) < 0.2f && Math.Abs(withBarrage[0] - one[0]) < 0.2f,
+            "each Barrage cone sits beside the first and shares out its own damage (60%, like other weapons' Barrage copies)");
+        // Widened by Homing and Magnum Rounds and fanned by Barrage, it still never reaches round behind you.
+        me.Stats.Homing = 6f; float size0 = me.Stats.ShotSizeMult; me.Stats.ShotSizeMult = 1.6f;
+        float spread = 2f * Game.LightConeHalfFor(me, 3) * 3f;
+        var round = CastFanned(new[] { from + new V2(-200f, 0f), from + new V2(0f, 200f) }, 2);
+        me.Stats.Homing = 0f; me.Stats.ShotSizeMult = size0;
+        Console.WriteLine("  chain light, 3 Homing + big Magnum + 2 Barrage: cones cover {0:0} degrees; behind you {1:0.0}, beside you {2:0.0}",
+            spread * 180f / MathX.Pi, round[0], round[1]);
+        Check(spread <= Game.LightConeMaxSpread + 1e-3f && round[0] == 0f, "Chain Light's cones never make a ring: at most 200 degrees, nothing behind you is hit");
         host.Leave("");
     }
 

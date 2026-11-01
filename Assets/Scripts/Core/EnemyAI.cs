@@ -212,13 +212,16 @@ namespace Arena
             if (d.IsBoss)
                 hp *= BossHpMult(type);
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
-            if (d.IsBoss && wave > LateBossWave)
-                hp *= 1f + LateBossScaling * (wave - LateBossWave);
+            if (d.IsBoss)
+                hp *= LateBossBoost(wave);
             if (Has(RunMod.ToughCrowd))
                 hp *= Modifiers.ToughCrowdHp;
             hp *= D(DiffKnob.EnemyHp) * (d.IsBoss ? D(DiffKnob.BossHp) : 1f);  // the run's difficulty (Difficulty.cs)
             return hp;
         }
+
+        /// Late bosses' extra health: +10% a wave after wave 20 (x1.5 at 25, x4 at 50).
+        public static float LateBossBoost(int wave) => wave > LateBossWave ? 1f + LateBossScaling * (wave - LateBossWave) : 1f;
 
         /// How much faster enemies fire on a wave: 5% a wave, up to twice as fast (wave 21 on).
         public static float WaveFireRate(int wave) => Math.Min(2f, 1f + 0.05f * (wave - 1));
@@ -240,8 +243,11 @@ namespace Arena
             }
             if (d.IsBoss)
             {
-                e.PowerScale = BossPowerScale();  // a party far above a typical build meets a tougher boss (BuildPower.cs)
-                e.MaxHp *= e.PowerScale;
+                // A party far above a typical build meets a tougher boss (BuildPower.cs). Late bosses already get more
+                // health for the same reason (LateBossScaling), so the bigger of the two counts, not both together.
+                float late = LateBossBoost(Wave);
+                e.PowerScale = Math.Max(late, BossPowerScale());
+                e.MaxHp *= e.PowerScale / late;
             }
             e.Hp = e.MaxHp;
             if (elite)
@@ -408,8 +414,8 @@ namespace Arena
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
                     || e.Type == EnemyType.Morsel || DevourUnder(e))
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground
-                // Bosses and heavies hurt to stand in, more so later on.
-                float contact = e.Def.IsBoss ? 25f + Wave * 0.6f
+                // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
+                float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
                     : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
                     : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;

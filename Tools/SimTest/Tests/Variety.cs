@@ -38,6 +38,21 @@ static partial class Program
             if (squads.All(q => q.From <= w)) okUnlock++;
         }
         Check(okShare == tried && okRepeat == tried && okUnlock == tried, "waves are about 70% squads, only ones unlocked by then, none more than twice");
+        // At most 3 Beam Sentries a wave, squads included.
+        var cap = typeof(Game).GetMethod("CapSentries", flags);
+        int mostSentries = 0;
+        for (int w = 18; w <= 45; w++)
+            for (int k = 0; k < 3; k++)
+            {
+                g.Wave = w;
+                buildWave.Invoke(g, new object[] { w });
+                cap.Invoke(g, null);
+                int n = ((List<EnemyType>)queueField.GetValue(g)).Count(t => t == EnemyType.BeamSentry)
+                        + ((List<SquadDef>)squadField.GetValue(g)).Sum(q => q.Members.Count(t => t == EnemyType.BeamSentry));
+                mostSentries = Math.Max(mostSentries, n);
+            }
+        Console.WriteLine("  beam sentries: at most {0} in a wave (waves 18-45, 3 rolls each)", mostSentries);
+        Check(mostSentries <= Game.MaxSentries && mostSentries > 0, "at most 3 Beam Sentries in a wave");
         g.Wave = 22;
 
         // Clear the field; a frozen Grunt in a corner keeps the wave going while we test.

@@ -97,7 +97,8 @@ namespace Arena
 
         public static bool HasTrait(Enemy e, EliteTrait t) => (e.Traits & (byte)t) != 0;
 
-        float SentryDamage => 20f + 0.3f * Wave;
+        float SentryDamage => 16f;  // the difficulty's per-wave damage growth scales it (27 at wave 23 on Normal; it was 45)
+        public const int MaxSentries = 3;  // at most this many Beam Sentries in a wave (CapSentries)
 
         // --- Waves -----------------------------------------------------------------------------------------------
 
@@ -259,6 +260,33 @@ namespace Arena
                 nextSquadId = 1;
                 singlesSinceSquad = 0;
             }
+        }
+
+        /// At most MaxSentries Beam Sentries a wave (recorded runs had 5-7, and their beams did more damage than any
+        /// other regular enemy): squads that would bring more come apart into single enemies, and spare Sentries become
+        /// Snipers or Grunts.
+        void CapSentries()
+        {
+            int sentries = 0;
+            for (int i = 0; i < squadQueue.Count; i++)
+            {
+                int here = 0;
+                foreach (var t in squadQueue[i].Members)
+                    if (t == EnemyType.BeamSentry)
+                        here++;
+                if (sentries + here <= MaxSentries)
+                {
+                    sentries += here;
+                    continue;
+                }
+                foreach (var t in squadQueue[i].Members)
+                    if (t != EnemyType.BeamSentry)
+                        spawnQueue.Add(t);
+                squadQueue.RemoveAt(i--);
+            }
+            for (int i = 0; i < spawnQueue.Count; i++)
+                if (spawnQueue[i] == EnemyType.BeamSentry && ++sentries > MaxSentries)
+                    spawnQueue[i] = rng.NextDouble() < 0.5 ? EnemyType.Sniper : EnemyType.Grunt;
         }
 
         /// How much faster it fires: Hasted, and near a living Commander.

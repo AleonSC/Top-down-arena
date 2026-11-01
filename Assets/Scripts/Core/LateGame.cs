@@ -267,7 +267,7 @@ namespace Arena
                     Hazards.Remove(h.Id);
                     continue;
                 }
-                float dmg = 25f + Wave * 0.3f;
+                float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
                         Damage(p, dmg, "Storm Herald (lightning)");

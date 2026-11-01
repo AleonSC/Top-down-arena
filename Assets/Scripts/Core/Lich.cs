@@ -411,7 +411,7 @@ namespace Arena
         /// Prisons, spirits, the sweep and the soul beams: moving them and hurting players.
         void TickLichHazards(Enemy e, LichState s, float dt)
         {
-            float dmg = 12f + Wave * 0.3f;
+            float dmg = 12f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             // Bone prisons: when the spikes are up, each fires inward.
             foreach (var q in s.Prisons)
             {
@@ -524,7 +524,7 @@ namespace Arena
         /// A dead hand bursts up: it hurts players on it and throws 8 small shots.
         void HandBursts(Hazard h)
         {
-            float dmg = 25f + Wave * 0.3f;
+            float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             foreach (var p in Players.Values)
                 if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(h.Pos) < h.Radius)
                     Damage(p, dmg, "The Lich (dead hand)");
