@@ -11,7 +11,7 @@ and tool is described there). This document is the developer-facing overview; re
 
 ## 1. The game in one page
 
-- **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.0.23f1`, built-in render
+- **What:** a 1-3 player **co-op top-down bullet hell** made in **Unity 6** (`6000.6.7f1`, Unity 6.6; built-in render
   pipeline). The owner plays it with a friend over **Tailscale** (one hosts, the other joins by IP).
 - **A run:** 50 waves, a boss every 5 (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
   Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
