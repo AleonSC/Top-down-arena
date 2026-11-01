@@ -497,6 +497,19 @@ class Shot {
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
     if (mode == "hud")
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+    else if (mode == "gameover" || mode == "victory")
+    {
+      // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.
+      var gg = host.Game; gg.State = mode == "victory" ? MatchState.Victory : MatchState.GameOver; gg.RunStatsReady = true; gg.RunTime = 286f; gg.Score = 546;
+      int k = 0;
+      foreach (var pl in gg.Players.Values)
+      {
+        pl.Run.DamageDealt = k == 0 ? 11900f : 8400f; pl.Run.Kills = k == 0 ? 100 : 64; pl.Run.EliteKills = 3; pl.Run.BiggestHit = k == 0 ? 15f : 42f;
+        pl.Run.ShotsFired = 500; pl.Run.ShotsHit = k == 0 ? 205 : 260; pl.Run.HealingDone = k == 0 ? 0f : 640f; pl.Run.Revives = k; pl.Run.DamageTaken = k == 0 ? 246f : 180f;
+        pl.Run.Downs = 1 - k; pl.Run.AbilitiesUsed = 9 + 4 * k; pl.Level = 5 + k; k++;
+      }
+      typeof(ArenaApp).GetMethod("DrawRunSummary", f2).Invoke(app, null);
+    }
     else if (mode == "dev")
     {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);

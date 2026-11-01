@@ -285,9 +285,10 @@ Mastery resets each run.
 
 Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
 the wave is cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to
-select a card, then **Confirm** (or Enter). A panel on the left shows your stats (damage, fire rate, speed,
-cooldowns, damage taken, regen, projectiles, pierce, charges, bonus abilities, legendaries); with a card
-selected, the stats it would change are highlighted with their new values. Don't like the cards? **Reroll** (or R) for a fresh set. You
+select a card, then **Take** it (or Enter). The cards are tall, with the icon big on a backdrop of the card's rarity
+(rare and better ones shine); the one you pick lifts and glows, and a line under the cards says what it changes
+("Regeneration 0.25 → 3.25 HP/s", or a new ability and its key). Hold **Tab** for all your stats. Boss rewards say
+**BOSS REWARD!** (legendaries) or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set. You
 start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone
 have chosen.
 
@@ -673,11 +674,14 @@ the top middle, and the "Hold TAB" hint is in the top-right corner.
 
 ## End of a run
 
-When a run ends (game over or victory) a results screen shows the wave reached, time, score and total
-kills, plus a column per player: level, damage dealt, kills (elite and boss), biggest hit, accuracy,
-healing done, allies revived, damage taken, times downed, abilities used, and the upgrades picked by
-rarity. The best number in each row is highlighted, with awards like **Most damage**, **Best healer** and
-**Sharpshooter**. The host can play again, go back to the lobby, or keep going after a victory.
+When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
+stopped you) or **VICTORY!** (gold), with the wave reached, time, score and total kills as tiles, then a card per
+player: their class icon big on a backdrop in their colour, their role, level and awards (a trophy for each row
+where they had the best number: **Most damage**, **Best healer**, **Sharpshooter**...), and beside it their
+damage dealt, kills (elite and boss), biggest hit, accuracy, healing done, allies revived, damage taken, times
+downed and abilities used, each with a bar against the party's best (gold where they lead), and the upgrades
+picked by rarity. **Leave** sits bottom-left as in the lobby; the host can play again, go back to the lobby, or
+keep going after a victory.
 
 ## Saved runs and records
 
