@@ -66,8 +66,8 @@ namespace Arena
                 case MatchState.Intermission:
                     if (me != null && me.Offer != null)
                     {
-                        if (!tabHeld)
-                            DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu
+                        if (!tabHeld && !PickOutroPlaying)
+                            DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu; the next pick waits for the last one's outro (PickOutro.cs)
                         break;
                     }
                     if (game.PathOffer != null && !tabHeld)
@@ -1284,6 +1284,8 @@ namespace Arena
             Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
 
             bool grid = me.Offer.Length > 3;
+            if (pickCardRects.Length != me.Offer.Length)
+                pickCardRects = new Rect[me.Offer.Length];  // where each card is, for the outro when one is taken
             float by;
             if (grid)
             {
@@ -1297,6 +1299,7 @@ namespace Arena
                     int row = i / perRow, col = i % perRow, inRow = Math.Min(perRow, me.Offer.Length - row * perRow);
                     float rowX = mid - (inRow * cw + (inRow - 1) * gw) / 2f;
                     var slot = new Rect(rowX + col * (cw + gw), top + row * (ch + gw), cw, ch);
+                    pickCardRects[i] = slot;
                     bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
                     DrawUpgradeCard(me, i, u, new Rect(slot.x, slot.y - (selected ? 8f : hover ? 3f : 0f), slot.width, slot.height), true, selected, hover, now);
                     if (Ui.HitArea(slot) && selectedCard != i)
@@ -1315,6 +1318,7 @@ namespace Arena
                 {
                     var u = Upgrades.All[me.Offer[i]];
                     var slot = new Rect(x0 + i * (cardW + gap), top, cardW, cardH);
+                    pickCardRects[i] = slot;
                     bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
                     DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now);
                     if (Ui.HitArea(slot) && selectedCard != i)

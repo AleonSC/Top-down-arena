@@ -415,9 +415,10 @@ namespace Arena
 
         void ConfirmPick()
         {
-            if (selectedCard < 0 || game.RerollPending)
+            if (selectedCard < 0 || game.RerollPending || PickOutroPlaying)
                 return;
             var me = game.Me;
+            StartPickOutro(me, selectedCard);  // the unpicked cards shatter, the picked one flies into you (PickOutro.cs)
             int key = 0;
             if (me != null && me.Offer != null && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
                 key = pickKey;
@@ -495,6 +496,7 @@ namespace Arena
                     break;
                 case AppScreen.Game:
                     DrawHud();
+                    DrawPickOutro();  // an upgrade just taken: shards and the card flying into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();
                     if ((pauseMenuOpen || (game.Paused && !tabPaused)) && !devMenuOpen && !labSetupOpen)
