@@ -335,6 +335,8 @@ namespace Arena
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
             HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.45f, 0.75f, 1f));
             HeroStat(hero, ref hy, wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), Ui.Gold);
+            // The weapon's damage a hit (or swing), against the hardest-hitting weapon in the game.
+            HeroStat(hero, ref hy, "Damage", Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"), Mathf.Clamp01(wdef.Damage / MaxWeaponDamage), new Color(1f, 0.45f, 0.4f));
             hy += 8f;
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
             Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
@@ -492,7 +494,7 @@ namespace Arena
             }
             float x = area.x + 8f, w = area.width - 16f, y = area.y + 8f;
             // The ring: half full, or filling up while the preview plays.
-            const float rr = 26f;
+            const float rr = 23f;
             var c = new V2(x + rr + 4f, y + rr + 4f);
             float fill = on ? 0.5f + 0.5f * Mathf.Clamp01(1f - (ultDemoUntil - t) / UltDemoTime) : 0.5f;
             if (BeginUiGl())
@@ -505,10 +507,10 @@ namespace Arena
             }
             Ui.Fancy(new Rect(c.X - 20f, c.Y - 14f, 40f, 28f), "F", 22, Color.white, Ui.Gold, TextAnchor.MiddleCenter);
             float tx = x + rr * 2f + 18f, tw = area.xMax - 8f - tx;
-            Ui.Fancy(new Rect(tx, y + 6f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(tx, y + 28f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
-            Ui.Label(new Rect(tx, y + 43f, tw, 16f), "starts each match half full", 11, Ui.Muted);
-            y += rr * 2f + 16f;
+            Ui.Fancy(new Rect(tx, y + 2f, tw, 22f), ult.Name, 16, new Color(1f, 0.95f, 0.75f), Ui.Gold, TextAnchor.MiddleLeft);
+            Ui.Label(new Rect(tx, y + 23f, tw, 16f), ult.Cooldown.ToString("0") + " s to charge", 11, Ui.Text);
+            Ui.Label(new Rect(tx, y + 37f, tw, 16f), "starts each match half full", 11, Ui.Muted);
+            y += rr * 2f + 14f;
             // What it does, then what mastering it adds; the click hint stays at the bottom.
             float bottom = area.yMax - 20f;
             float dh = Mathf.Min(bottom - y, Ui.TextHeight(ult.Desc, 11, w));
@@ -633,12 +635,24 @@ namespace Arena
             showcase.Step(dt);
         }
 
+        static float maxWeaponDamage;
+        static float MaxWeaponDamage
+        {
+            get
+            {
+                if (maxWeaponDamage <= 0f)
+                    foreach (var w in Defs.Weapons)
+                        maxWeaponDamage = Mathf.Max(maxWeaponDamage, w.Damage);
+                return Mathf.Max(1f, maxWeaponDamage);
+            }
+        }
+
         void HeroStat(Rect hero, ref float y, string name, string value, float frac, Color c)
         {
             Ui.Label(new Rect(hero.x + 14f, y, 90f, 16f), name.ToUpperInvariant(), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(hero.x + 14f, y, hero.width - 28f, 16f), value, 12, Color.white, TextAnchor.MiddleRight, true);
             Ui.Bar(new Rect(hero.x + 14f, y + 18f, hero.width - 28f, 5f), frac, c);
-            y += 30f;
+            y += 27f;
         }
 
         // --- Bottom bar ------------------------------------------------------------
