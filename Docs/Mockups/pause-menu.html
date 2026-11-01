@@ -1,0 +1,477 @@
+<title>Pause Menu Openings</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the game's 1280 x 720 canvas scaled to fit: a live
+   arena (bullets, a boss, you) with the real pause panel copied over it. Pause and resume to watch the opening and
+   closing; the strip below picks the style, slows it down or loops it. Under that, one card per style with how it
+   would be built in the game's GL and IMGUI. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  /* the game's own colours */
+  --g-bg: #0b0e18; --g-panel: #1a1f2e; --g-edge: #4f6cff; --g-text: #eef2fb; --g-muted: #8f9bb8; --g-track: #2b3248;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --game: "Barlow", "Liberation Sans", Arial, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 24px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.viewport { position: relative; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; background: var(--g-bg); }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; font-family: var(--game); color: var(--g-text); overflow: hidden; }
+.screen canvas { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 30px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.go { height: 36px; padding: 0 16px; border-radius: 8px; border: 1px solid #6a5420; background: #2a2210; color: var(--amber); font: 700 13px var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+.go:hover { background: #3a2e14; }
+.tog { display: inline-flex; align-items: center; gap: 7px; color: var(--soft); font-size: 13.5px; cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 16px; height: 16px; }
+.hint { font: 12px var(--font-data); color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.spacer { flex: 1 1 auto; }
+
+/* --- the game screen (sizes in the game's canvas pixels) --- */
+.hud-boss { position: absolute; left: 320px; top: 12px; width: 640px; height: 60px; border-radius: 10px; background: rgba(60,20,45,0.75); border: 1px solid rgba(255,90,140,0.35); }
+.hud-boss b { position: absolute; left: 28px; top: 8px; font: 700 14px var(--game); color: #fff; }
+.hud-boss i { position: absolute; right: 16px; top: 8px; font: 600 13px var(--game); color: #e6c9d6; font-style: normal; }
+.hud-boss .fill { position: absolute; left: 14px; right: 14px; top: 30px; height: 10px; border-radius: 4px; background: #2b1424; overflow: hidden; }
+.hud-boss .fill::after { content: ""; position: absolute; inset: 0; width: 62%; background: #ff4f8a; }
+.hud-boss small { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font: 700 11px var(--game); color: #ff9db8; letter-spacing: 0.06em; }
+.hud-wave { position: absolute; left: 12px; bottom: 12px; width: 228px; height: 72px; border-radius: 10px; background: rgba(70,55,25,0.8); border: 1px solid rgba(255,200,90,0.3); }
+.hud-wave b { position: absolute; left: 16px; bottom: 8px; font: 700 34px var(--game); color: #fff; }
+.hud-wave span { position: absolute; left: 18px; top: 8px; font: 700 10px var(--game); color: #ffcf6e; letter-spacing: 0.06em; }
+.hud-bar { position: absolute; left: 249px; bottom: 12px; width: 782px; height: 58px; border-radius: 10px; background: rgba(18,22,36,0.85); border: 1px solid #262e48; }
+.hud-card { position: absolute; right: 12px; bottom: 12px; width: 228px; height: 72px; border-radius: 10px; background: rgba(25,32,58,0.9); border: 1px solid #34407a; }
+.hud-card b { position: absolute; left: 18px; top: 8px; font: 700 13px var(--game); }
+.hud-card .hp { position: absolute; left: 18px; right: 12px; top: 40px; height: 10px; border-radius: 3px; background: #2a3150; overflow: hidden; }
+.hud-card .hp::after { content: ""; position: absolute; inset: 0; width: 64%; background: #e9d76a; }
+
+.dim { position: absolute; inset: 0; background: rgb(2,3,8); opacity: 0; pointer-events: none; }
+.door { position: absolute; left: 0; width: 1280px; height: 360px; pointer-events: none; transform: translateY(-100%); background:
+    linear-gradient(rgba(0,0,0,0) 0 92%, rgba(255,190,70,0.95) 92% 100%),
+    repeating-linear-gradient(135deg, #2a2f3d 0 26px, #232836 26px 52px); }
+.door.bottom { top: 360px; transform: translateY(100%); background:
+    linear-gradient(rgba(255,190,70,0.95) 0 8%, rgba(0,0,0,0) 8% 100%),
+    repeating-linear-gradient(135deg, #2a2f3d 0 26px, #232836 26px 52px); }
+.door .stripe { position: absolute; left: 0; right: 0; height: 22px; background: repeating-linear-gradient(135deg, #ffb547 0 18px, #1b1b1b 18px 36px); opacity: 0.9; }
+.door.top .stripe { bottom: 6%; }
+.door.bottom .stripe { top: 6%; }
+.door .rivets { position: absolute; left: 40px; right: 40px; height: 6px; background: radial-gradient(circle, #8a93a8 2px, transparent 2.5px) 0 0 / 60px 6px repeat-x; }
+.door.top .rivets { bottom: 20%; }
+.door.bottom .rivets { top: 20%; }
+.scan { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: repeating-linear-gradient(rgba(255,255,255,0.05) 0 1px, transparent 1px 3px); }
+.seam { position: absolute; left: 210px; top: 359px; width: 860px; height: 2px; background: #9fb6ff; box-shadow: 0 0 18px #6f8dff, 0 0 4px #fff; opacity: 0; pointer-events: none; transform-origin: 50% 50%; }
+
+/* the pause panel: the game's Settings panel in a match, laid out at its real place */
+.panel { position: absolute; left: 210px; top: 30px; width: 860px; height: 660px; border-radius: 14px; background: linear-gradient(#1c2233, #161b29); border: 1.5px solid var(--g-edge); box-shadow: 0 0 0 1px rgba(79,108,255,0.15), 0 24px 70px rgba(0,0,0,0.6); transform-origin: 50% 50%; opacity: 0; }
+.ptitle { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font: 800 34px var(--game); letter-spacing: 0.02em; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,0.6); height: 44px; white-space: pre; }
+.ptitle span { display: inline-block; }
+.psub { position: absolute; left: 0; right: 0; top: 62px; text-align: center; font: 500 13px var(--game); color: var(--g-muted); }
+.col { position: absolute; top: 112px; width: 360px; }
+.col.l { left: 50px; } .col.r { right: 50px; }
+.col h4 { margin: 0 0 6px; font: 700 12px var(--game); letter-spacing: 0.04em; color: #b5c0dd; padding-bottom: 6px; border-bottom: 1px solid #2c3550; }
+.row { position: relative; height: 54px; }
+.row .n { position: absolute; left: 2px; top: 12px; font: 500 15px var(--game); }
+.row .v { position: absolute; right: 2px; top: 12px; font: 700 14px var(--game); color: #b5c0dd; }
+.row .tr { position: absolute; left: 4px; right: 4px; top: 40px; height: 5px; border-radius: 3px; background: var(--g-track); }
+.row .tr::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: var(--w, 70%); border-radius: 3px; background: #5f8cff; }
+.chk { position: relative; height: 34px; display: flex; align-items: center; gap: 12px; font: 500 15px var(--game); }
+.chk::before { content: ""; width: 22px; height: 22px; border-radius: 3px; background: #fff; flex: none; }
+.chk.on::before { background: #5f8cff; box-shadow: inset 0 0 0 4px #fff; }
+.note { font: 400 11px var(--game); color: var(--g-muted); margin: -4px 0 10px 34px; }
+.segg { display: flex; gap: 6px; margin: 8px 0 14px; }
+.segg span { flex: 1; height: 26px; border-radius: 6px; border: 1px solid #2c3550; background: #151b2a; text-align: center; font: 700 12px/26px var(--game); color: #6f8dff; }
+.segg span.on { background: #24305a; color: #fff; border-color: #6f8dff; }
+.btn { position: absolute; width: 260px; height: 44px; border-radius: 8px; font: 800 19px/44px var(--game); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,0.5); text-align: center; box-shadow: inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -3px 0 rgba(0,0,0,0.25); }
+.btn.stats { left: 160px; top: 486px; background: linear-gradient(#a9832e, #866520); }
+.btn.guide { left: 440px; top: 486px; background: linear-gradient(#5674c9, #3f58a6); }
+.btn.resume { left: 160px; top: 594px; background: linear-gradient(#4f86ff, #3566e0); }
+.btn.leave { left: 440px; top: 594px; background: linear-gradient(#cf4f60, #a83a4a); }
+.saved { position: absolute; left: 0; right: 0; top: 544px; text-align: center; font: 400 11px var(--game); color: var(--g-muted); }
+
+/* style cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 14px; }
+.card { display: grid; gap: 8px; align-content: start; padding: 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: #3a4855; }
+.card.on { border-color: var(--teal); box-shadow: inset 0 0 0 1px var(--teal); }
+.card .k { display: flex; align-items: baseline; gap: 10px; }
+.card .letter { font: 800 22px var(--font-display); color: var(--teal); }
+.card h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+.card p { color: var(--soft); font-size: 14.5px; }
+.card .how { font: 12px/1.5 var(--font-data); color: var(--muted); }
+.card .effort { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · pause menu</div>
+    <h1>Pause menu <span>openings</span></h1>
+    <p class="lead">Six ways for the pause menu to arrive over a frozen fight. The arena below is live: press Pause (or Esc) to open the menu, Resume to close it. Pick a style, slow it to a quarter speed to see each beat, or loop it. The panel is the game's Settings panel as it looks in a match today.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <div class="viewport" id="viewport">
+      <div class="screen" id="screen">
+        <canvas id="arena" width="1280" height="720"></canvas>
+        <div class="hud-boss"><b>◆ THE WARDEN</b><i>62%</i><div class="fill"></div><small>LOCKDOWN</small></div>
+        <div class="hud-wave"><span>BOSS WAVE</span><b>5</b></div>
+        <div class="hud-bar"></div>
+        <div class="hud-card"><b>Anthony</b><div class="hp"></div></div>
+        <canvas id="fx" width="1280" height="720"></canvas>
+        <div class="dim" id="dim"></div>
+        <div class="scan" id="scan"></div>
+        <div class="door top" id="doorTop"><div class="rivets"></div><div class="stripe"></div></div>
+        <div class="door bottom" id="doorBottom"><div class="stripe"></div><div class="rivets"></div></div>
+        <div class="seam" id="seam"></div>
+        <div class="panel" id="panel">
+          <div class="ptitle" id="ptitle">PAUSED</div>
+          <div class="psub stag">Paused</div>
+          <div class="col l stag">
+            <h4>AUDIO</h4>
+            <div class="row"><span class="n">Master</span><span class="v">80%</span><div class="tr" style="--w:80%"></div></div>
+            <div class="row"><span class="n">Music</span><span class="v">60%</span><div class="tr" style="--w:60%"></div></div>
+            <div class="row"><span class="n">Weapons (your shots and spells)</span><span class="v">70%</span><div class="tr" style="--w:70%"></div></div>
+            <div class="row"><span class="n">Enemies</span><span class="v">70%</span><div class="tr" style="--w:70%"></div></div>
+            <div class="row"><span class="n">Effects (explosions, abilities, UI)</span><span class="v">75%</span><div class="tr" style="--w:75%"></div></div>
+            <div class="chk" style="margin-top:14px">Mute all sound &nbsp;[M]</div>
+            <div class="chk on">Aim line &nbsp;[V]</div>
+          </div>
+          <div class="col r stag">
+            <h4>VISUAL EFFECTS</h4>
+            <div class="chk on">Visual effects</div>
+            <div class="note">Glow, sparks, shattering enemies, lighting.</div>
+            <div style="font:500 15px var(--game);margin-top:6px">Screen shake</div>
+            <div class="segg"><span>Off</span><span class="on">Low</span><span>Full</span></div>
+            <div class="chk on">Damage numbers</div>
+            <div class="note">Small numbers rising off what's hit.</div>
+            <div class="chk">Reduced effects</div>
+            <div class="note">No screen shake, hit-pause or white flashes.</div>
+          </div>
+          <div class="btn stats stag">Run stats</div>
+          <div class="btn guide stag">Field guide</div>
+          <div class="saved stag">Your run is saved as each wave starts: continue it from the main menu.</div>
+          <div class="btn resume stag">Resume &nbsp;[Esc]</div>
+          <div class="btn leave stag">Leave game</div>
+        </div>
+      </div>
+    </div>
+    <div class="bar">
+      <button class="go" id="toggle" type="button">Pause</button>
+      <span class="lbl">Style</span>
+      <div class="seg" id="styles" role="group" aria-label="Opening style"></div>
+      <label class="tog" for="slow"><input type="checkbox" id="slow"> Quarter speed</label>
+      <label class="tog" for="loop"><input type="checkbox" id="loop"> Loop</label>
+      <span class="spacer"></span>
+      <span class="hint" id="state">playing</span>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>The six styles</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <footer>Timings: opening 0.55-0.8 s, closing 0.3-0.35 s (the game stays paused until the menu has fully closed, so nothing moves under a half-open panel). Every style falls back to a plain 0.15 s fade with Reduced effects on.</footer>
+</div>
+
+<script>
+(() => {
+  const STYLES = [
+    { id: "A", name: "Freeze frame", open: 0.55, close: 0.3, effort: "Easy",
+      text: "The fight drains of colour and drifts a hair closer, a white scan line wipes down the screen, then the panel comes into focus from a soft blur, its rows rising one after another.",
+      how: "GL: draw the world with a grey tint over it and DrawWorld's scale +3%. Scan line: one FillRect. IMGUI: GUI.matrix scale on the panel; GUI.color alpha per row for the stagger (no real blur: a ghosted second copy fades out)." },
+    { id: "B", name: "Blast doors", open: 0.8, close: 0.35, effort: "Medium",
+      text: "Two prison blast doors with hazard stripes slam shut over the arena with a jolt, then slide back to frame the screen while the panel opens out of the seam between them. Fits the Warden's lockdown.",
+      how: "GL: two quads with the Warden gate's striped look and a rivet row; the hit reuses screen shake. IMGUI: the panel's GUI.matrix scaled vertically from the seam. A metal clank from SoundBank." },
+    { id: "C", name: "Time stop", open: 0.7, close: 0.3, effort: "Medium",
+      text: "A ring of light spreads from you across the arena with clock ticks round its edge. Everything it passes turns grey-blue and still. The panel settles in once the ring has passed.",
+      how: "GL: the ring and its ticks with Arc and Line; the grey inside it uses the Nightfall darkness grid (PathsUi.cs), with each cell's alpha set by whether it's inside the ring. IMGUI: panel fade with a small scale." },
+    { id: "D", name: "Unfold", open: 0.75, close: 0.3, effort: "Easy",
+      text: "A bright line draws across the middle of the screen, the panel unfolds open from it like a card tipping toward you, and the letters of PAUSED drop in one by one.",
+      how: "IMGUI: the line is a Ui.Fill growing from the centre; the panel's GUI.matrix scale on Y with a slight overshoot; each letter of the title is its own Ui.Title call with its own offset and alpha." },
+    { id: "E", name: "Signal glitch", open: 0.65, close: 0.3, effort: "Medium",
+      text: "The screen tears for a moment: slices of the arena jump sideways with red and cyan fringes, scanlines roll in, the panel flickers on, and PAUSED types itself out with a block cursor.",
+      how: "GL: redraw horizontal bands of the world with small X offsets (clip each band with UiClip) plus tinted bars. IMGUI: scanlines as thin Ui.Fill rows; the title shows one more letter each frame. Off with Reduced effects." },
+    { id: "F", name: "Pixel sweep", open: 0.75, close: 0.35, effort: "Easy",
+      text: "The arena breaks into big pixels that go dark in a wave from the top-left corner, each blinking blue as it turns, and the panel builds in from the left in blocky steps behind it.",
+      how: "GL: a grid of 32 px cells over the world, each darkening when the sweep reaches it (the same per-cell loop as Nightfall). IMGUI: GUI.BeginGroup clips the panel to a width that grows in 54 px steps." },
+  ];
+
+  const $ = id => document.getElementById(id);
+  const screen = $("screen"), viewport = $("viewport"), arena = $("arena"), fx = $("fx");
+  const ac = arena.getContext("2d"), fc = fx.getContext("2d");
+  const dim = $("dim"), scan = $("scan"), doorTop = $("doorTop"), doorBottom = $("doorBottom"), seam = $("seam"), panel = $("panel"), ptitle = $("ptitle");
+  const stag = Array.from(panel.querySelectorAll(".stag"));
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let style = STYLES[0], phase = "playing", p = 0, last = performance.now(), loopT = 0;
+
+  // Scale the 1280 x 720 screen to the viewport.
+  const fit = () => { screen.style.transform = "scale(" + (viewport.clientWidth / 1280) + ")"; };
+  new ResizeObserver(fit).observe(viewport); fit();
+
+  // Style picker and cards.
+  const seg = $("styles"), cards = $("cards");
+  STYLES.forEach(s => {
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "style-" + s.id; b.textContent = s.id + " · " + s.name;
+    b.addEventListener("click", () => pick(s)); seg.appendChild(b);
+    const c = document.createElement("button");
+    c.type = "button"; c.className = "card"; c.id = "card-" + s.id;
+    c.innerHTML = '<div class="k"><span class="letter">' + s.id + '</span><h3>' + s.name + '</h3></div><p>' + s.text + '</p><div class="how">' + s.how + '</div><div class="effort">Effort: ' + s.effort + ' · open ' + s.open + ' s</div>';
+    c.addEventListener("click", () => { pick(s); viewport.scrollIntoView({ behavior: "smooth", block: "center" }); });
+    cards.appendChild(c);
+  });
+  function pick(s) {
+    style = s;
+    STYLES.forEach(o => { $("style-" + o.id).classList.toggle("on", o === s); $("card-" + o.id).classList.toggle("on", o === s); });
+    reset(); phase = "opening"; p = 0;
+  }
+
+  // --- The live arena ---------------------------------------------------------------------------
+  const W = 1280, H = 720;
+  const boss = { x: 640, y: 300 }, me = { x: 500, y: 470 };
+  const bullets = [], foes = [];
+  for (let i = 0; i < 5; i++) foes.push({ a: i * 1.3, r: 240 + i * 30 });
+  let t = 0, spin = 0, fireT = 0, ringT = 0;
+  function stepArena(dt) {
+    t += dt;
+    boss.x = 640 + Math.sin(t * 0.4) * 160; boss.y = 300 + Math.sin(t * 0.7) * 30;
+    me.x = 640 + Math.cos(t * 0.6) * 300; me.y = 480 + Math.sin(t * 1.1) * 70;
+    fireT -= dt; ringT -= dt;
+    if (fireT <= 0) { fireT = 0.08; spin += 0.19; for (let k = 0; k < 4; k++) { const a = spin + k * Math.PI / 2; bullets.push({ x: boss.x, y: boss.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 5, big: false }); } }
+    if (ringT <= 0) { ringT = 1.4; for (let k = 0; k < 22; k++) { const a = k * Math.PI * 2 / 22 + t; bullets.push({ x: boss.x, y: boss.y, vx: Math.cos(a) * 105, vy: Math.sin(a) * 105, r: 9, big: true }); } }
+    for (const b of bullets) { b.x += b.vx * dt; b.y += b.vy * dt; }
+    for (let i = bullets.length - 1; i >= 0; i--) { const b = bullets[i]; if (b.x < -20 || b.x > W + 20 || b.y < -20 || b.y > H + 20) bullets.splice(i, 1); }
+    foes.forEach(f => { f.a += dt * 0.5; });
+  }
+  function drawArena() {
+    ac.fillStyle = "#0b0e18"; ac.fillRect(0, 0, W, H);
+    ac.strokeStyle = "rgba(255,255,255,0.035)"; ac.lineWidth = 1;
+    for (let x = 0; x <= W; x += 51) { ac.beginPath(); ac.moveTo(x + 0.5, 0); ac.lineTo(x + 0.5, H); ac.stroke(); }
+    for (let y = 0; y <= H; y += 51) { ac.beginPath(); ac.moveTo(0, y + 0.5); ac.lineTo(W, y + 0.5); ac.stroke(); }
+    // foes: red triangles circling
+    foes.forEach(f => {
+      const x = boss.x + Math.cos(f.a) * f.r, y = boss.y + Math.sin(f.a) * f.r * 0.7, a = f.a + Math.PI / 2;
+      ac.fillStyle = "#e5484d"; ac.beginPath();
+      ac.moveTo(x + Math.cos(a) * 12, y + Math.sin(a) * 12); ac.lineTo(x + Math.cos(a + 2.5) * 10, y + Math.sin(a + 2.5) * 10); ac.lineTo(x + Math.cos(a - 2.5) * 10, y + Math.sin(a - 2.5) * 10); ac.fill();
+    });
+    // the boss: a crimson octagon
+    ac.save(); ac.translate(boss.x, boss.y); ac.rotate(t * 0.2);
+    ac.fillStyle = "#b8264f"; ac.strokeStyle = "#ff5d8f"; ac.lineWidth = 3; ac.beginPath();
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ac.lineTo(Math.cos(a) * 36, Math.sin(a) * 36); }
+    ac.closePath(); ac.fill(); ac.stroke(); ac.restore();
+    // bullets
+    for (const b of bullets) {
+      if (b.big) { ac.fillStyle = "rgba(201,76,255,0.25)"; ac.beginPath(); ac.arc(b.x, b.y, b.r + 4, 0, 7); ac.fill(); ac.fillStyle = "#d95cff"; }
+      else ac.fillStyle = "#ff4d73";
+      ac.beginPath(); ac.arc(b.x, b.y, b.r, 0, 7); ac.fill();
+    }
+    // you
+    ac.fillStyle = "#24346e"; ac.strokeStyle = "#8fb0ff"; ac.lineWidth = 2.5;
+    ac.beginPath(); ac.arc(me.x, me.y, 17, 0, 7); ac.fill(); ac.stroke();
+    ac.fillStyle = "#fff"; ac.beginPath(); ac.arc(me.x, me.y, 3.5, 0, 7); ac.fill();
+  }
+
+  // --- Easing -------------------------------------------------------------------------------------
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const seg01 = (x, a, b) => clamp((x - a) / (b - a));
+  const outCubic = x => 1 - Math.pow(1 - x, 3);
+  const inCubic = x => x * x * x;
+  const outBack = x => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  const inOut = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+  function staggerRows(q, from, span, rise) {
+    stag.forEach((el, i) => {
+      const k = outCubic(seg01(q, from + i * 0.045, from + i * 0.045 + span));
+      el.style.opacity = k; el.style.transform = "translateY(" + ((1 - k) * (rise ?? 14)) + "px)";
+    });
+  }
+  function setTitle(text, html) { if (html) ptitle.innerHTML = text; else ptitle.textContent = text; }
+
+  function reset() {
+    arena.style.filter = ""; arena.style.transform = ""; screen.style.translate = "";
+    fc.clearRect(0, 0, W, H);
+    dim.style.opacity = 0; scan.style.opacity = 0;
+    doorTop.style.transform = "translateY(-100%)"; doorBottom.style.transform = "translateY(100%)";
+    seam.style.opacity = 0; seam.style.transform = "";
+    panel.style.opacity = 0; panel.style.transform = ""; panel.style.filter = ""; panel.style.clipPath = "";
+    stag.forEach(el => { el.style.opacity = ""; el.style.transform = ""; });
+    setTitle("PAUSED");
+  }
+
+  // Each style draws one moment: q = how open (0 closed, 1 fully open).
+  const APPLY = {
+    A(q) {
+      const k = outCubic(q);
+      arena.style.filter = "saturate(" + (1 - 0.85 * k) + ") brightness(" + (1 - 0.5 * k) + ")";
+      arena.style.transform = "scale(" + (1 + 0.03 * k) + ")";
+      fc.clearRect(0, 0, W, H);
+      const s = seg01(q, 0, 0.45);
+      if (s > 0 && s < 1) {
+        const y = outCubic(s) * H;
+        const g = fc.createLinearGradient(0, y - 60, 0, y + 4);
+        g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(220,235,255," + (0.55 * (1 - s)) + ")");
+        fc.fillStyle = g; fc.fillRect(0, y - 60, W, 64);
+        fc.fillStyle = "rgba(255,255,255," + (0.9 * (1 - s)) + ")"; fc.fillRect(0, y, W, 2);
+      }
+      dim.style.opacity = 0.35 * k;
+      const pk = seg01(q, 0.2, 0.85);
+      panel.style.opacity = outCubic(pk);
+      panel.style.transform = "scale(" + (0.94 + 0.06 * outCubic(pk)) + ")";
+      panel.style.filter = "blur(" + ((1 - outCubic(pk)) * 8) + "px)";
+      staggerRows(q, 0.35, 0.35);
+    },
+    B(q) {
+      // close (0-0.38), hit, part to a frame (0.5-0.85); the panel opens from the seam (0.42-0.85)
+      const shut = outCubic(seg01(q, 0, 0.38)), part = inOut(seg01(q, 0.5, 0.85));
+      const cover = shut * (1 - 0.78 * part);  // share of each half covered
+      doorTop.style.transform = "translateY(" + (-100 + 100 * cover) + "%)";
+      doorBottom.style.transform = "translateY(" + (100 - 100 * cover) + "%)";
+      const hit = seg01(q, 0.38, 0.5);
+      screen.style.translate = hit > 0 && hit < 1 ? ((Math.sin(hit * 50) * 6 * (1 - hit)) + "px " + (Math.cos(hit * 37) * 5 * (1 - hit)) + "px") : "";
+      arena.style.filter = "brightness(" + (1 - 0.6 * shut) + ") saturate(" + (1 - 0.5 * shut) + ")";
+      dim.style.opacity = 0.25 * shut;
+      const so = seg01(q, 0.36, 0.5) * (1 - seg01(q, 0.7, 0.9));
+      seam.style.opacity = so; seam.style.transform = "scaleX(" + seg01(q, 0.36, 0.48) + ")";
+      const pk = seg01(q, 0.45, 0.88);
+      panel.style.opacity = pk > 0 ? 1 : 0;
+      panel.style.transform = "scaleY(" + Math.max(0.003, outBack(pk)) + ")";
+      staggerRows(q, 0.62, 0.3, 10);
+    },
+    C(q) {
+      const k = outCubic(seg01(q, 0, 0.7));
+      const r = k * 1500;
+      fc.clearRect(0, 0, W, H);
+      if (r > 1) {
+        fc.save(); fc.beginPath(); fc.arc(me.x, me.y, r, 0, 7); fc.clip();
+        fc.filter = "grayscale(0.9) brightness(0.55) contrast(1.15)"; fc.drawImage(arena, 0, 0); fc.filter = "none";
+        fc.fillStyle = "rgba(60,110,220,0.18)"; fc.fillRect(0, 0, W, H);
+        fc.restore();
+        if (k < 1) {
+          const a = 1 - k;
+          fc.strokeStyle = "rgba(170,215,255," + (0.9 * a + 0.1) + ")"; fc.lineWidth = 4; fc.beginPath(); fc.arc(me.x, me.y, r, 0, 7); fc.stroke();
+          fc.strokeStyle = "rgba(220,240,255," + a + ")"; fc.lineWidth = 3;
+          for (let i = 0; i < 60; i++) { const ang = i * Math.PI / 30 + q * 2, len = i % 5 === 0 ? 22 : 10;
+            fc.beginPath(); fc.moveTo(me.x + Math.cos(ang) * (r - len), me.y + Math.sin(ang) * (r - len)); fc.lineTo(me.x + Math.cos(ang) * r, me.y + Math.sin(ang) * r); fc.stroke(); }
+        }
+      }
+      dim.style.opacity = 0.2 * k;
+      const pk = outCubic(seg01(q, 0.45, 0.95));
+      panel.style.opacity = pk; panel.style.transform = "scale(" + (0.97 + 0.03 * pk) + ")";
+      staggerRows(q, 0.55, 0.3);
+    },
+    D(q) {
+      dim.style.opacity = 0.55 * outCubic(seg01(q, 0, 0.4));
+      arena.style.filter = "brightness(" + (1 - 0.35 * seg01(q, 0, 0.4)) + ")";
+      const line = outCubic(seg01(q, 0, 0.3));
+      seam.style.opacity = seg01(q, 0, 0.1) * (1 - seg01(q, 0.35, 0.5));
+      seam.style.transform = "scaleX(" + line + ")";
+      const pk = seg01(q, 0.28, 0.78);
+      panel.style.opacity = pk > 0 ? 1 : 0;
+      panel.style.transform = "perspective(1400px) rotateX(" + ((1 - outCubic(pk)) * 70) + "deg) scaleY(" + Math.max(0.01, outBack(pk)) + ")";
+      const letters = "PAUSED".split("").map((ch, i) => {
+        const lk = outBack(seg01(q, 0.5 + i * 0.06, 0.66 + i * 0.06));
+        return '<span style="opacity:' + clamp(lk) + ';transform:translateY(' + ((1 - lk) * -28) + 'px)">' + ch + '</span>';
+      }).join("");
+      setTitle(letters, true);
+      staggerRows(q, 0.6, 0.3);
+    },
+    E(q) {
+      fc.clearRect(0, 0, W, H);
+      const g = seg01(q, 0, 0.4), live = g > 0 && g < 1;
+      if (live) {
+        const n = 9, seed = Math.floor(q * 40);
+        for (let i = 0; i < n; i++) {
+          const rnd = Math.sin((seed + 1) * (i + 3) * 12.9898) * 43758.5453, fr = rnd - Math.floor(rnd);
+          const y = Math.floor(fr * H), h = 8 + Math.floor(fr * 46), dx = (fr - 0.5) * 90 * (1 - g);
+          fc.drawImage(arena, 0, y, W, h, dx, y, W, h);
+          fc.fillStyle = i % 2 ? "rgba(255,40,80,0.25)" : "rgba(40,220,255,0.25)"; fc.fillRect(0, y, W, 2);
+        }
+        screen.style.translate = ((Math.sin(q * 300) * 3) * (1 - g)) + "px 0";
+      } else screen.style.translate = "";
+      arena.style.filter = "brightness(" + (1 - 0.5 * outCubic(seg01(q, 0.2, 0.6))) + ") saturate(" + (1 - 0.6 * seg01(q, 0.2, 0.6)) + ")";
+      scan.style.opacity = 0.9 * outCubic(seg01(q, 0.1, 0.5));
+      dim.style.opacity = 0.3 * seg01(q, 0.2, 0.6);
+      const pk = seg01(q, 0.28, 0.55);
+      const flick = pk >= 1 ? 1 : (Math.sin(q * 160) > 0 ? pk : pk * 0.3);
+      panel.style.opacity = flick;
+      panel.style.transform = pk < 1 ? "translateX(" + (Math.sin(q * 220) * 4 * (1 - pk)) + "px)" : "";
+      const typed = Math.round(seg01(q, 0.45, 0.8) * 6);
+      setTitle("PAUSED".slice(0, typed) + (typed < 6 ? "▌" : ""));
+      staggerRows(q, 0.55, 0.25, 6);
+    },
+    F(q) {
+      fc.clearRect(0, 0, W, H);
+      const cell = 32, cols = W / cell, rows = Math.ceil(H / cell), sweep = seg01(q, 0, 0.75) * 1.25;
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const n = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453, noise = (n - Math.floor(n)) * 0.18;
+        const th = (i / cols * 0.6 + j / rows * 0.4) + noise;
+        const k = clamp((sweep - th) / 0.15);
+        if (k <= 0) continue;
+        fc.fillStyle = "rgba(5,7,16," + (0.72 * k) + ")"; fc.fillRect(i * cell, j * cell, cell, cell);
+        if (k < 1) { fc.strokeStyle = "rgba(111,141,255," + (0.9 * (1 - k)) + ")"; fc.lineWidth = 2; fc.strokeRect(i * cell + 1, j * cell + 1, cell - 2, cell - 2); }
+      }
+      const pk = seg01(q, 0.35, 0.95), steps = 16, shown = Math.ceil(pk * steps) / steps;
+      panel.style.opacity = pk > 0 ? 1 : 0;
+      panel.style.clipPath = "inset(0 " + ((1 - shown) * 100) + "% 0 0)";
+      staggerRows(q, 0.55, 0.3, 0);
+    },
+  };
+  const FADE = q => { dim.style.opacity = 0.6 * q; panel.style.opacity = q; staggerRows(1, 0, 1); };
+
+  function render() {
+    const apply = reduced ? FADE : APPLY[style.id];
+    reset();
+    if (phase !== "playing") apply(clamp(p));
+  }
+
+  // --- Controls -----------------------------------------------------------------------------------
+  const toggleBtn = $("toggle"), stateEl = $("state"), slowEl = $("slow"), loopEl = $("loop");
+  function toggle() {
+    if (phase === "playing" || phase === "closing") phase = "opening";
+    else phase = "closing";
+  }
+  toggleBtn.addEventListener("click", toggle);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); toggle(); } });
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const speed = slowEl.checked ? 0.25 : 1;
+    const openT = reduced ? 0.15 : style.open, closeT = reduced ? 0.15 : style.close;
+    if (phase === "playing") { stepArena(dt); drawArena(); }
+    else if (phase === "opening") { p += dt * speed / openT; if (p >= 1) { p = 1; phase = "open"; loopT = 0; } }
+    else if (phase === "closing") { p -= dt * speed / closeT; if (p <= 0) { p = 0; phase = "playing"; loopT = 0; } }
+    if (loopEl.checked) {
+      loopT += dt;
+      if (phase === "open" && loopT > 1.2) phase = "closing";
+      else if (phase === "playing" && loopT > 1.2) phase = "opening";
+    }
+    toggleBtn.textContent = phase === "playing" || phase === "closing" ? "Pause" : "Resume";
+    stateEl.textContent = phase === "playing" ? "playing" : phase === "open" ? "paused" : phase + " " + Math.round(clamp(p) * 100) + "%";
+    render();
+    requestAnimationFrame(frame);
+  }
+  for (let i = 0; i < 150; i++) stepArena(1 / 60);
+  drawArena();
+  pick(STYLES[0]);
+  requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(frame); });
+})();
+</script>
