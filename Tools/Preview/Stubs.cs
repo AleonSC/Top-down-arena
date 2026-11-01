@@ -74,7 +74,7 @@ namespace UnityEngine {
   public enum FullScreenMode { ExclusiveFullScreen, FullScreenWindow, MaximizedWindow, Windowed }
 }
 namespace UnityEngine.Rendering {
-  public enum BlendMode { SrcAlpha=5, OneMinusSrcAlpha=10 } public enum CullMode { Off=0 } public enum CompareFunction { Always=8 }
+  public enum BlendMode { One=1, SrcAlpha=5, OneMinusSrcAlpha=10 } public enum CullMode { Off=0 } public enum CompareFunction { Always=8 }
 }
 namespace UnityEditor {
   public class InitializeOnLoadAttribute : Attribute {} public class MenuItem : Attribute { public MenuItem(string p){} }

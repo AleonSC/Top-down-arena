@@ -123,6 +123,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
+| `Juice.cs` | 0.8k | visual effects, all local: glow pass, shake, hit-pause (frame replay), shatter, particles, trails, scorch, ripples, mood, damage numbers, level-up bursts, boss entrance card; their settings |
 | `ApproachUi.cs` | 0.04k | the approach chip above the wave panel and the banner's line |
 | `ClassLooks.cs` | 0.05k | one `KitLook` per class (its body drawn over the player, and auras under them), in Kit order; the Elementalist's star and the Summoner's motes |
 | `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
@@ -225,6 +226,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
     `T/K/1` (Tank Knight, second weapon; `M` = Elementalist, `U` = Summoner, `N` = Ninja, `B` = Hemomancer, or the start of
     any class's name, e.g. `D/Hemo/0`).
+- **Visual effects check:** `Tools/RenderCheck/juice.sh` drives the effects (`Game/Juice.cs`) through real frames and checks each one fires; the render check below runs with effects off.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
   type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes, so every class's own shots are drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.
@@ -266,6 +268,24 @@ The lobby fits about 8 class cards in a row before they get too small.
 **Shuriken on bosses (Nov 2026), no protocol change:** from a solo Ninja session (32 boss damage a second on the Warden). The fan was 0.22 rad between stars, so past about 240 px only the middle star hit a boss; now `Game.StarFan` 0.08 (all three hit out to about 650 px). Stuck stars no longer just drop after `StarStick` (5 s): `TickStuckStars` sends them back with `ReturnStar` (the recall's second hit and the cut on the way back), so the double-tap only brings them sooner. Measured damage a second 52 → 157 (`weapondps write`); Boss Lab, Good bot, wave 5 solo: average fight 150 s → 98 s, boss left at 39% → 24% on average (the bot still goes down in 2 of 3: the Ninja's 85% health). Armory text and demo updated (`Docs/Armory/out` rebuilt, not republished). Checks in `fourmore` (run last in it: their 5 s wait would otherwise move the wave's end, and its +30% heal, into the Lightbringer checks).
 
 **Arena props (Nov 2026), protocol 110:** `Props.cs` (logic) and `Game/PropsLook.cs` (look, the item card, the HUD line). `PropKind` Crate / HeavyCrate / Pot / Barrel / Chest on `Game.Props`; chest items are `Loot` on `Game.Loots` (every game has all of them, only the owner's draws them). `WaveProps` (after `BuildWave`) tops props up by `CrateTarget`/`PotTarget`/`BarrelChance`/`ChestChance`, or clears them for a boss; `PropStops` in `Collide` (crates stop enemy shots, barrels any shot, pots break under yours), `PropBlast` from grenades/flak/splashes, `TickProps` (fuses, touches, breaks, `ExplodeBarrel`, `OpenChest`), `PushOutOfProps` for your own movement (`LocalControl`) and enemies (`TickEnemies`). The wave waits while `PropsHoldWave()` (`HoldForTreasure` revives the downed). Items: `RollChestLoot` (`Upgrades.RandomOfRarity`, `LegendaryOffer`), `ResolveLoot` → `Msg.Loot` → `HostLoot` (G / X in `ArenaApp`), recorded as `"chest"` picks; bots collect in `BotTreasure`. New `FxKind.Debris`; `PixelArt.RowsFor`/`PixelColor` draw icons in GL. The test runner turns props off by default (`Game.PropsByDefault = false` in `Seeded`) so a crate or pot can't throw a mechanic test; the core match and `props` tests turn them on. Test `props` (in the feature suite); preview `PROPS=1` (`PROPS=2`: a legendary item) `Tools/Preview/shot.sh <name> hud 6 4`.
+
+**Visual effects (Nov 2026), no protocol change:** mocked up in `Docs/Mockups/visual-flair.html` (the owner asked for all
+of it, with the hurt and low-health tints made a faint red in the corners only and bullet glow 5% softer).
+`Game/Juice.cs`, front end only: `UpdateJuice` (start of `DrawWorld`) compares the screen with last frame (`seenEnemies`:
+health drops = hit flash, bulge, damage numbers merged per 0.15 s; gone = `Shatter`; `seenShots`: trails, muzzle flashes,
+impact sparks; new `Effect`s, marked by `Effect.Juiced`; your own health, level and legendaries; a new boss = the entrance
+card). It never touches the simulation or the network. Death detection: any enemy that's gone after spawning shatters (a
+client already played a death for every removal); a killing blow's number comes from the death `Effect` the game plays
+where it died; the big boss death plays only when no boss is left (not at the Reapers' fusion). Drawing: `Tri` and the
+direct `GL.Vertex` calls now go through `Vtx`, and `SetColor` remembers `glCur`, so a frame can be recorded and replayed:
+**hit-pause** replays last frame's triangles (`ReplayHeldFrame`) for `holdT`, at most every 0.4 s. **Shake** is
+`shakeX/Y` added in `Px` (world only; the lobby's preview uses the clipped path). **Glow** is a second material
+(`BlendMode.SrcAlpha` / `One`) between GL batches (`GlowPass`, `SwitchToGlow`); `GlowDisc`/`FanGradient`/`VQuad` use a
+colour per vertex, ordered so the preview tool (which colours a triangle by its first vertex) leaves them out. Settings:
+`fxOn`, `fxShake` (0-2), `fxNumbers`, `fxReduced` in PlayerPrefs; Settings is now two columns (Audio, Visual effects).
+Checks: `Tools/RenderCheck/check.sh` turns effects off and stays IDENTICAL; `Tools/RenderCheck/juice.sh` (new) drives real
+frames through hits, kills, a one-shot kill's number, a hold, a blast, being hurt, a level up and a boss's entrance and
+death. The stubs gained `BlendMode.One`.
 
 **Boss approaches, step 1: the framework and the Warden (Nov 2026), protocol 109:** designed in `Docs/Approaches.md`.
 `Approaches.cs`: `FactionDef` per boss (members with weight and `From`, squads), `Game.ApproachShare(wave)` from two new

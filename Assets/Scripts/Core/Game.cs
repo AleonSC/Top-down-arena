@@ -352,6 +352,7 @@ namespace Arena
         public V2 Pos, Pos2;  // Pos2: the far end of a lightning bolt
         public Rgba Color;
         public float Radius, T, Dur;
+        public bool Juiced;  // the screen's visual effects have seen it (Game/Juice.cs); never sent
     }
 
     public struct PlayerInput

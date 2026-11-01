@@ -384,22 +384,56 @@ namespace Arena
 
         void DrawSettings()
         {
-            var panel = new Rect(W / 2f - 240f, 30f, 480f, 660f);
-            float x = panel.x + 40f, w = panel.width - 80f;
+            // Two columns: Audio on the left, Visual effects on the right; the Field guide and Back across the bottom.
+            var panel = new Rect(W / 2f - 430f, 30f, 860f, 660f);
+            float colW = 360f, x = panel.x + 50f, x2 = panel.xMax - 50f - colW;
             Ui.Panel(panel, true);
             Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
-            DrawAudioOptions(x, panel.y + 82f, w);
+            DrawAudioOptions(x, panel.y + 82f, colW);
+            DrawFxOptions(x2, panel.y + 82f, colW);
             float t = Time.unscaledTime;
 
             // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
-            if (Ui.FancyButton(new Rect(x, panel.y + 466f, w, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+            float mid = panel.x + panel.width / 2f;
+            if (Ui.FancyButton(new Rect(mid - 180f, panel.y + 486f, 360f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
                 OpenFieldGuide();
-            Ui.Label(new Rect(x, panel.y + 512f, w, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
+            Ui.Label(new Rect(mid - 300f, panel.y + 532f, 600f, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
 
             // The developer tools (session recording etc.) live in the F1 menu.
-            Ui.Label(new Rect(x, panel.y + 548f, w, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
-            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
+            Ui.Label(new Rect(mid - 300f, panel.y + 562f, 600f, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
+            if (Ui.FancyButton(new Rect(mid - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
                 settingsOpen = false;
+        }
+
+        /// Visual effects (Juice.cs): on/off, screen shake, damage numbers, reduced effects; saved right away.
+        void DrawFxOptions(float x, float y, float w)
+        {
+            Ui.Heading(x, y, w, "Visual effects");
+            y += 34f;
+            bool changed = false;
+            bool on = Ui.Toggle(new Rect(x, y, w, 26f), fxOn, "Visual effects");
+            if (on != fxOn) { fxOn = on; changed = true; }
+            Ui.Label(new Rect(x, y + 26f, w, 32f), "Glow, sparks, shattering enemies, lighting. Off: as before.", 11, Ui.Muted);
+            y += 66f;
+            Ui.Label(new Rect(x, y, w, 20f), "Screen shake", 14, fxOn ? Ui.Text : Ui.Muted);
+            string[] shakes = { "Off", "Low", "Full" };
+            float bw = (w - 8f) / 3f;
+            for (int i = 0; i < 3; i++)
+                if (Ui.Choice(new Rect(x + i * (bw + 4f), y + 24f, bw, 28f), shakes[i], fxShake == i, Ui.Accent, null, null, 12, glow: false) && fxShake != i)
+                {
+                    fxShake = i;
+                    changed = true;
+                }
+            y += 66f;
+            bool nums = Ui.Toggle(new Rect(x, y, w, 26f), fxNumbers, "Damage numbers");
+            if (nums != fxNumbers) { fxNumbers = nums; changed = true; }
+            Ui.Label(new Rect(x, y + 26f, w, 18f), "Small numbers rising off what's hit.", 11, Ui.Muted);
+            y += 54f;
+            bool calm = Ui.Toggle(new Rect(x, y, w, 26f), fxReduced, "Reduced effects");
+            if (calm != fxReduced) { fxReduced = calm; changed = true; }
+            Ui.Label(new Rect(x, y + 26f, w, 32f), "No screen shake, hit-pause or white flashes.", 11, Ui.Muted);
+            if (changed)
+                SaveFxSettings();
         }
 
         /// Volume sliders and mute; changes are saved right away.

@@ -323,10 +323,10 @@ namespace Arena
         /// A quad shaded from `top` (a, b) to `bottom` (c, d).
         void GradQuad(V2 a, V2 b, V2 c, V2 d, Rgba top, Rgba bottom)
         {
-            SetColor(top); GL.Vertex(Px(a)); GL.Vertex(Px(b));
-            SetColor(bottom); GL.Vertex(Px(c));
-            SetColor(top); GL.Vertex(Px(a));
-            SetColor(bottom); GL.Vertex(Px(c)); GL.Vertex(Px(d));
+            SetColor(top); Vtx(Px(a)); Vtx(Px(b));
+            SetColor(bottom); Vtx(Px(c));
+            SetColor(top); Vtx(Px(a));
+            SetColor(bottom); Vtx(Px(c)); Vtx(Px(d));
         }
 
         void SoftGlow(V2 at, float r, Rgba c, int rings = 4)

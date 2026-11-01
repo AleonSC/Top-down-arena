@@ -731,6 +731,26 @@ their own entries (a class's weapons, an upgrade's ability...). Whatever is your
 the book you're in (the Armory's has live weapon demos; in the Unity editor it opens the local copy from `Docs/`). The same audio options are under **Settings** on the main menu, and
 they're saved between sessions.
 
+**Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
+so they never change the fight or what your friend sees):
+
+- **Visual effects** on/off. Off draws the arena exactly as before.
+- **Screen shake:** Off, Low or Full. Big blasts near you, getting hurt, a heavy enemy's death and above all a
+  boss's death kick the camera.
+- **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
+  big hits are larger and gold.
+- **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
+
+What it adds: an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
+when hit; **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
+0.4 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
+**scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
+shots; the **grid ripples** out from big blasts; a **vignette** and a tint for the path you're on or the boss you're
+fighting (darker round the edges in the Warden's searchlight turn); a faint **red tint in the corners** when you're
+hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (its name
+and the wave, the arena dimming for a moment). A boss's death bursts in waves. Mocked up first in
+[`Docs/Mockups/visual-flair.html`](Docs/Mockups/visual-flair.html).
+
 **Music:** everything is generated in code, like the sound effects. The menus and lobby play a synthwave
 theme (`Assets/Scripts/Game/MenuMusic.cs`); matches play a soft track during regular waves, and **every boss
 has its own track** that crossfades in while it's on the field (`Assets/Scripts/Game/GameMusic.cs`, where each
@@ -903,6 +923,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
   - `Stun.cs`: the Warden's legendaries: the Stun Gun ability and Warden's Guard companions
+  - `Game/Juice.cs`: the visual effects (glow, shake, hit-pause, shatter, particles, trails, floor, mood, level up, boss entrances) and their settings
   - `Approaches.cs` / `ApproachUi.cs`: boss approaches: each boss's faction, the themed share of a wave, building it into the wave; the chip and banner
   - `WardenFaction.cs`: the Warden's faction: the Riot Shield (shield, bash and knockback) and the Gas Grenadier
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)

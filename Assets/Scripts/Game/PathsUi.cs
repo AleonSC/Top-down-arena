@@ -520,7 +520,7 @@ namespace Arena
         void NightVertex(V2 p, float a)
         {
             GL.Color(new Color(0.015f, 0.02f, 0.06f, a));
-            GL.Vertex(Px(p));
+            Vtx(Px(p));
         }
 
         /// One layer of strata between two points: a wavy line seeded by k.
@@ -575,7 +575,7 @@ namespace Arena
         void FogVertex(V2 p, float a)
         {
             GL.Color(new Color(0.12f, 0.13f, 0.16f, a));
-            GL.Vertex(Px(p));
+            Vtx(Px(p));
         }
 
         // --- HUD chip -------------------------------------------------------------------------------

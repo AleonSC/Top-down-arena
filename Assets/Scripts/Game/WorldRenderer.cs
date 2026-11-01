@@ -38,6 +38,10 @@ namespace Arena
 
         void DrawWorld()
         {
+            UpdateJuice();  // visual effects catch up with this frame (Juice.cs)
+            if (ReplayHeldFrame())
+                return;  // hit-pause: last frame again
+            BeginJuiceFrame();
             float t = game.AnimT;
             // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
             float worldScale = drawScale;
@@ -47,18 +51,25 @@ namespace Arena
             FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
-            for (float x = 0; x <= AW; x += 64f)
-                Line(new V2(x, 0), new V2(x, AH), 1f, grid);
-            for (float y = 0; y <= AH; y += 64f)
-                Line(new V2(0, y), new V2(AW, y), 1f, grid);
+            if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
+            {
+                for (float x = 0; x <= AW; x += 64f)
+                    Line(new V2(x, 0), new V2(x, AH), 1f, grid);
+                for (float y = 0; y <= AH; y += 64f)
+                    Line(new V2(0, y), new V2(AW, y), 1f, grid);
+            }
             var border = new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
             Line(new V2(2, 2), new V2(AW - 2, 2), 3f, border);
             Line(new V2(2, AH - 2), new V2(AW - 2, AH - 2), 3f, border);
             Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);
             Line(new V2(AW - 2, 2), new V2(AW - 2, AH - 2), 3f, border);
 
+            DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawArenaContents(t);
+            DrawJuiceParts();  // shards, rings and sparks
+            GlowPass();        // the additive glow
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
+            DrawMood(AW, AH);  // vignette, tint, red corners when hurt or low
 
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
@@ -99,6 +110,8 @@ namespace Arena
             Line(m + new V2(5, 0), m + new V2(13, 0), 1.5f, ch);
             Line(m - new V2(0, 13), m - new V2(0, 5), 1.5f, ch);
             Line(m + new V2(0, 5), m + new V2(0, 13), 1.5f, ch);
+            EndJuiceFrame();
+            EndRecording();
         }
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
@@ -1504,7 +1517,7 @@ namespace Arena
         {
             Rgba col = e.Def.Color;
             V2 pos = e.Disp;
-            float r = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;  // its Radius grows with the event horizon (SingularityLook.cs)
+            float r = (e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius) * JuiceScale(e);  // its Radius grows with the event horizon (SingularityLook.cs); JuiceScale: a hit's bulge (Juice.cs)
             bool spawning = game.IsSpawning(e);
             if (spawning)
             {
@@ -1518,7 +1531,7 @@ namespace Arena
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
             col = DrawEnemyStatus(e, pos, r, col, t);
-            if (e.Flash > 0f)
+            if (e.Flash > 0f || JuiceFlash(e))
                 col = Rgba.White;
             Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen)
@@ -2247,7 +2260,13 @@ namespace Arena
 
         // --- GL primitives (arena coordinates; everything is triangles) -------
 
-        Vector3 Px(V2 p) => CanvasPx(glShift + p * glZoom);
+        Vector3 Px(V2 p)
+        {
+            var v = CanvasPx(glShift + p * glZoom);
+            v.x += shakeX;  // screen shake while the world is drawn (Juice.cs); 0 otherwise
+            v.y += shakeY;
+            return v;
+        }
 
         /// A point on the UI canvas (or, while the world is drawn, in the arena) in screen pixels.
         Vector3 CanvasPx(V2 u) => new Vector3(offX + u.X * drawScale, UnityEngine.Screen.height - (offY + u.Y * drawScale), 0f);
@@ -2297,15 +2316,19 @@ namespace Arena
             glZoom = zoom;
         }
 
-        static void SetColor(Rgba c) => GL.Color(new Color(c.R, c.G, c.B, c.A));
+        static void SetColor(Rgba c)
+        {
+            glCur = new Color(c.R, c.G, c.B, c.A);  // remembered for a held frame's replay (Juice.cs)
+            GL.Color(glCur);
+        }
 
         void Tri(V2 a, V2 b, V2 c)
         {
             if (!glClipOn)
             {
-                GL.Vertex(Px(a));
-                GL.Vertex(Px(b));
-                GL.Vertex(Px(c));
+                Vtx(Px(a));
+                Vtx(Px(b));
+                Vtx(Px(c));
                 return;
             }
             V2 ua = glShift + a * glZoom, ub = glShift + b * glZoom, uc = glShift + c * glZoom;
@@ -2315,9 +2338,9 @@ namespace Arena
                 return;  // all outside
             if (InClip(ua) && InClip(ub) && InClip(uc))
             {
-                GL.Vertex(CanvasPx(ua));
-                GL.Vertex(CanvasPx(ub));
-                GL.Vertex(CanvasPx(uc));
+                Vtx(CanvasPx(ua));
+                Vtx(CanvasPx(ub));
+                Vtx(CanvasPx(uc));
                 return;
             }
             // Cut the triangle against each edge in turn (Sutherland-Hodgman), then fan it back into triangles.
@@ -2329,9 +2352,9 @@ namespace Arena
             n = ClipEdge(clipOut, n, clipIn, 1, y1, true);
             for (int i = 1; i + 1 < n; i++)
             {
-                GL.Vertex(CanvasPx(clipIn[0]));
-                GL.Vertex(CanvasPx(clipIn[i]));
-                GL.Vertex(CanvasPx(clipIn[i + 1]));
+                Vtx(CanvasPx(clipIn[0]));
+                Vtx(CanvasPx(clipIn[i]));
+                Vtx(CanvasPx(clipIn[i + 1]));
             }
         }
 

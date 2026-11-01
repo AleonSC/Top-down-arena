@@ -38,6 +38,8 @@ class Harness {
       var app = new ArenaApp();
       Action<string, object> set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
       set("session", s); set("game", g); set("scale", 1f); set("drawScale", 1280f / Game.Width);
+      // Visual effects off (Juice.cs, from Nov 2026; older refs have no such setting): the check compares the plain drawing.
+      var fxOn = typeof(ArenaApp).GetField("fxOn", f2); if (fxOn != null) fxOn.SetValue(app, false);
       GL.Tris.Clear();
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       Console.WriteLine("wave {0}: {1} enemies, {2} bullets, {3} minions, {4} zones, {5} effects, {6} triangles", sc[0], g.Enemies.Count, g.Bullets.Count, g.Minions.Count, g.Zones.Count, g.Effects.Count, GL.Tris.Count / 18);

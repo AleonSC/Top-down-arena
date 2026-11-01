@@ -14,6 +14,7 @@ namespace Arena
         void DrawHud()
         {
             var me = game.Me;
+            DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
             HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
             {
@@ -41,7 +42,7 @@ namespace Arena
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;
-                    Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 54f - rise, 200f, 24f), "LEVEL UP!", 19,
+                    Ui.Shadowed(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
                         new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)));
                 }
                 if (p.Downed)

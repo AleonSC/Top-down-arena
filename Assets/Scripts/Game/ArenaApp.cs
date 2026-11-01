@@ -109,6 +109,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            LoadFxSettings();  // Juice.cs
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
