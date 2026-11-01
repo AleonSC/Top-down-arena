@@ -346,63 +346,68 @@ namespace Arena
                 game.RequestPause(false);
         }
 
+        /// The pause menu is the Settings panel (DrawSettings) with the match's buttons: Resume, Run stats, Field guide,
+        /// Leave game.
         void DrawPauseMenu()
         {
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
-            float t = Time.unscaledTime;
-            var panel = new Rect(W / 2f - 240f, 20f, 480f, 680f);
-            Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "PAUSED", 36, Color.white);
-            Player by;
-            string sub = "";
-            if (game.Paused && game.PausedBy != game.MyId && game.Players.TryGetValue(game.PausedBy, out by))
-                sub = "Paused by " + by.Name;
-            else if (!game.Paused && game.State != MatchState.GameOver && game.State != MatchState.Victory)
-                sub = "Pausing…";
-            Ui.Label(new Rect(panel.x, panel.y + 62f, panel.width, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter);
-
-            float x = panel.x + 40f, w = panel.width - 80f;
-            if (Ui.FancyButton(new Rect(x, panel.y + 96f, w, 48f), "Resume   [Esc]", Ui.Primary, PixelArt.Get("ui_play"), t))
-                ResumeGame();
-            // Run stats (the Tab screen, RunStatsUi.cs: everyone paused can look together) and the Field guide
-            // (the in-game Bestiary and Armory, FieldGuide.cs).
-            if (Ui.FancyButton(new Rect(x, panel.y + 154f, w / 2f - 6f, 42f), "Run stats", RunStatsColor, PixelArt.Get("ui_trophy"), t))
-                runStatsOpen = true;
-            if (Ui.FancyButton(new Rect(x + w / 2f + 6f, panel.y + 154f, w / 2f - 6f, 42f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
-                OpenFieldGuide();
-            DrawAudioOptions(x, panel.y + 214f, w);
-            if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
-                Ui.Label(new Rect(x, panel.yMax - 100f, w, 26f), "Your run is saved as each wave starts: continue it from the main menu.", 12, Ui.Muted, TextAnchor.MiddleCenter, false, true);
-            if (Ui.FancyButton(new Rect(x, panel.yMax - 68f, w, 44f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
-            {
-                pauseMenuOpen = false;
-                session.Leave("");
-            }
+            DrawSettingsPanel(true);
         }
 
         static readonly Color RunStatsColor = new Color(0.62f, 0.5f, 0.2f);  // the pause menu's Run stats button
 
-        void DrawSettings()
+        void DrawSettings() => DrawSettingsPanel(false);
+
+        /// One panel for Settings (main menu, lobby) and the pause menu: Audio on the left, Visual effects on the right,
+        /// then the buttons across the bottom: Field guide and Back, or in a match Run stats, Field guide, Resume and Leave.
+        void DrawSettingsPanel(bool paused)
         {
-            // Two columns: Audio on the left, Visual effects on the right; the Field guide and Back across the bottom.
             var panel = new Rect(W / 2f - 430f, 30f, 860f, 660f);
             float colW = 360f, x = panel.x + 50f, x2 = panel.xMax - 50f - colW;
+            float t = Time.unscaledTime, mid = panel.x + panel.width / 2f;
             Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), "SETTINGS", 34, Color.white);
+            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), paused ? "PAUSED" : "SETTINGS", 34, Color.white);
+            if (paused)
+            {
+                Player by;
+                string sub = "";
+                if (game.Paused && game.PausedBy != game.MyId && game.Players.TryGetValue(game.PausedBy, out by))
+                    sub = "Paused by " + by.Name;
+                else if (!game.Paused && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+                    sub = "Pausing…";
+                Ui.Label(new Rect(panel.x, panel.y + 58f, panel.width, 18f), sub, 13, Ui.Muted, TextAnchor.MiddleCenter);
+            }
             DrawAudioOptions(x, panel.y + 82f, colW);
             DrawFxOptions(x2, panel.y + 82f, colW);
-            float t = Time.unscaledTime;
 
-            // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
-            float mid = panel.x + panel.width / 2f;
-            if (Ui.FancyButton(new Rect(mid - 180f, panel.y + 486f, 360f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+            if (!paused)
+            {
+                // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
+                if (Ui.FancyButton(new Rect(mid - 180f, panel.y + 486f, 360f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
+                    OpenFieldGuide();
+                Ui.Label(new Rect(mid - 300f, panel.y + 532f, 600f, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
+                // The developer tools (session recording etc.) live in the F1 menu.
+                Ui.Label(new Rect(mid - 300f, panel.y + 562f, 600f, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
+                if (Ui.FancyButton(new Rect(mid - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
+                    settingsOpen = false;
+                return;
+            }
+
+            // In a match: Run stats (the Tab screen, so a paused party can look together) and the Field guide, then
+            // Resume and Leave game.
+            if (Ui.FancyButton(new Rect(mid - 270f, panel.y + 486f, 260f, 44f), "Run stats", RunStatsColor, PixelArt.Get("ui_trophy"), t))
+                runStatsOpen = true;
+            if (Ui.FancyButton(new Rect(mid + 10f, panel.y + 486f, 260f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
                 OpenFieldGuide();
-            Ui.Label(new Rect(mid - 300f, panel.y + 532f, 600f, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
-
-            // The developer tools (session recording etc.) live in the F1 menu.
-            Ui.Label(new Rect(mid - 300f, panel.y + 562f, 600f, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
-            if (Ui.FancyButton(new Rect(mid - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
-                settingsOpen = false;
+            if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
+                Ui.Label(new Rect(mid - 300f, panel.y + 540f, 600f, 18f), "Your run is saved as each wave starts: continue it from the main menu.", 11, Ui.Muted, TextAnchor.MiddleCenter);
+            if (Ui.FancyButton(new Rect(mid - 270f, panel.yMax - 66f, 260f, 48f), "Resume   [Esc]", Ui.Primary, PixelArt.Get("ui_play"), t))
+                ResumeGame();
+            if (Ui.FancyButton(new Rect(mid + 10f, panel.yMax - 66f, 260f, 48f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
+            {
+                pauseMenuOpen = false;
+                session.Leave("");
+            }
         }
 
         /// Visual effects (Juice.cs): on/off, screen shake, damage numbers, reduced effects; saved right away.

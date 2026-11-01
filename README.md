@@ -726,10 +726,11 @@ everyone the run's numbers about once a second, and again the moment the game pa
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The menu has volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your
-and your friend's shots and spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI),
-a mute toggle, **Run stats** (the Tab screen, so a paused party can look at it together), a **Field guide** button and
-**Leave game**. The **Field guide** (also a button in **Settings** on the
+sees who paused) and either player can resume. The pause menu is the same panel as **Settings** (main menu, and the
+lobby's cog): volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and
+spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI), mute and aim line on the left, the
+visual effects on the right; in a match its buttons are **Run stats** (the Tab screen, so a paused party can look at
+it together), **Field guide**, **Resume** and **Leave game**. The **Field guide** (also a button in **Settings** on the
 main menu) opens two in-game databases:
 
 - **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
@@ -751,8 +752,8 @@ they're saved between sessions.
 so they never change the fight or what your friend sees):
 
 - **Visual effects** on/off. Off draws the arena exactly as before.
-- **Screen shake:** Off, Low or Full. Big blasts near you, getting hurt, a heavy enemy's death and above all a
-  boss's death kick the camera.
+- **Screen shake:** Off, **Low** (the default) or Full. Getting hurt, a heavy enemy's death and above all a boss's
+  death kick the camera; explosions only add a light rumble (several at once don't pile up).
 - **Damage numbers:** damage to each enemy rises off it, merged every 0.15 s (so a fast weapon shows one total);
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
