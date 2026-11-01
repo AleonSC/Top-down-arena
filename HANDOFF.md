@@ -123,6 +123,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
+| `Ambience.cs` | 0.25k | more local effects: orb trails and pickup pulses, dust puffs, each path's weather (`WeatherFor`) |
+| `HealthBars.cs` | 0.1k | the damage ghost on every health bar (`GhostBar`, `Ghost`), and the slim boss bars when the HUD is hidden (H) |
 | `Juice.cs` | 0.8k | visual effects, all local: glow pass, shake, hit-pause (frame replay), shatter, particles, trails, scorch, ripples, mood, damage numbers, level-up bursts, boss entrance card; their settings |
 | `ApproachUi.cs` | 0.04k | the approach chip above the wave panel and the banner's line |
 | `ClassLooks.cs` | 0.05k | one `KitLook` per class (its body drawn over the player, and auras under them), in Kit order; the Elementalist's star and the Summoner's motes |
