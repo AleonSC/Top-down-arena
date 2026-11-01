@@ -52,11 +52,9 @@ namespace Arena
             Circle(Tower, 9f, lit ? (locked ? new Rgba(1f, 0.6f, 0.5f) : new Rgba(1f, 0.97f, 0.86f)) : new Rgba(0.45f, 0.45f, 0.52f, 0.7f), 16);
             if (w.Stage == WardenStage.LastStand && w.TransT <= 0f)
             {
-                // The alarm beacon on the tower: a red lamp turning.
-                float spin = t * 4f;
-                SetColor(new Rgba(1f, 0.15f, 0.1f, 0.22f));
-                Tri(Tower, Tower + V2.FromAngle(spin - 0.35f) * 150f, Tower + V2.FromAngle(spin + 0.35f) * 150f);
-                Circle(Tower, 6f, new Rgba(1f, 0.25f, 0.2f, 0.7f + 0.3f * Mathf.Sin(t * 12f)), 12);
+                // The alarm beacon on the tower: a steady red lamp (no flashing or sweeping beam).
+                Circle(Tower, 11f, new Rgba(1f, 0.2f, 0.15f, 0.25f), 14);
+                Circle(Tower, 6f, new Rgba(1f, 0.25f, 0.2f, 0.9f), 12);
             }
         }
 
@@ -471,7 +469,7 @@ namespace Arena
         float[] alarmAlpha;
 
         /// The last stand's alarm: the lights go out (lit round each player, the Warden and its searchlight's pool) and
-        /// the dark pulses red, like a siren.
+        /// the dark has a steady red tint. Nothing flashes or pulses (the owner asked for no flashing lights here).
         void DrawWardenAlarm(float t)
         {
             var e = game.TheWarden();
@@ -493,8 +491,7 @@ namespace Arena
                         dark = Mathf.Min(dark, Smooth((p.DistanceTo(w.LightDisp) - Game.LightRadius) / 40f));
                     alarmAlpha[j * (nx + 1) + i] = 0.82f * dark;
                 }
-            float siren = 0.5f + 0.5f * Mathf.Sin(t * 5f);
-            alarmCol = new Color(0.03f + 0.16f * siren, 0.005f, 0.01f, 1f);
+            alarmCol = new Color(0.09f, 0.005f, 0.01f, 1f);  // a steady red-black
             for (int j = 0; j < ny; j++)
                 for (int i = 0; i < nx; i++)
                 {
@@ -507,8 +504,8 @@ namespace Arena
                     AlarmVertex(p00, a00); AlarmVertex(p10, a10); AlarmVertex(p11, a11);
                     AlarmVertex(p00, a00); AlarmVertex(p11, a11); AlarmVertex(p01, a01);
                 }
-            // Red light washing along the walls.
-            var wash = new Rgba(1f, 0.1f, 0.08f, 0.18f * siren);
+            // A faint, steady red along the walls.
+            var wash = new Rgba(1f, 0.1f, 0.08f, 0.08f);
             FillRect(0f, 0f, AW, 10f, wash);
             FillRect(0f, AH - 10f, AW, 10f, wash);
             FillRect(0f, 0f, 10f, AH, wash);

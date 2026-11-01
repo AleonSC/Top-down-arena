@@ -210,7 +210,7 @@ namespace Arena
             var d = Defs.Get(type);
             float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
             if (d.IsBoss)
-                hp *= BossHpMult(type);
+                hp *= BossHpMult(type) * BossHpBonus;  // Balance.cs
             // Players' damage multiplies as upgrades stack, so late bosses need more than linear scaling.
             if (d.IsBoss)
                 hp *= LateBossBoost(wave);
