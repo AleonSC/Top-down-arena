@@ -10,15 +10,15 @@ namespace Arena
     public enum ColTurn : byte { Rest, Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last }
 
     /// A stomp: a ring of push blocks (two rows, like the Warden's gates) spreading out from where it stomped, with
-    /// one or two gaps. You can't get through it: it shoves you back in if you walk into it, carries you out if it
-    /// catches you, and rolls over you if it pins you against the edge (see ColossusPush).
+    /// one or two gaps, each placed a short step to the side of a player. Step into a gap and it passes you by; caught,
+    /// it passes over you (one hit, and you're behind it); walk into it from inside and it shoves you back (ColossusPush).
     public class StompRing
     {
         public V2 Center;
         public float Radius, Warn, Gap1, Gap2;  // replicated; Gap2 only with Gaps == 2
         public int Gaps = 1;
-        public readonly HashSet<int> Hit = new HashSet<int>();     // host: players it has hurt (once each)...
-        public readonly HashSet<int> Rolled = new HashSet<int>();  // ...and rolled over against the edge (once more)
+        public readonly HashSet<int> Hit = new HashSet<int>();      // host: players it has hurt (once each)
+        public readonly HashSet<int> Outside = new HashSet<int>();  // host: players seen in front of it (so a crossing can be told)
     }
 
     /// Something thrown or falling: a boulder, a meteor or a cave-in pillar. Its shadow grows until it lands.
@@ -68,7 +68,7 @@ namespace Arena
         public readonly List<ColPillar> Pillars = new List<ColPillar>();
 
         // Host only.
-        public int Step = -1, Fired, SlideEdge, SlideGap, NextTarget;
+        public int Step = -1, Fired, SlideEdge, SlideGap, NextTarget, StompSide = 1;
         public float TurnLen, ActT, GapA, ShockA, MeteorT, LavaTickT;
         public readonly Dictionary<int, V2> LastPos = new Dictionary<int, V2>(), Vel = new Dictionary<int, V2>();
     }
@@ -86,7 +86,10 @@ namespace Arena
     {
         const float ColCrumbleAt = 0.65f, ColMoltenAt = 0.3f, ColLastAt = 0.1f, ColTransTime = 2f;
         // Stomp rings: push blocks like the Warden's gates (GateRows, GateRowGap, GateBulletR), spreading out.
-        public const float RingSpeed = 150f, RingWarn = 0.45f, RingGapHalf = 0.33f;  // the gap is 0.66 rad (about 38 degrees) wide
+        public const float RingSpeed = 150f, RingWarn = 0.45f, RingGapHalf = 0.33f;  // the gap is 0.66 rad (about 38 degrees) wide...
+        public const float RingGapMinArc = 100f;  // ...but never less than 100 px across, however close to its middle
+        public const float StompStep = 130f;      // a gap is placed about this far to one side of the player it's for
+        public const float StompDamage = 20f;     // a ring's hit (the difficulty's damage growth scales it: about 34 at wave 25 on Normal)
         public const float ColKeep = 200f, ColDazeTime = 1.5f, ColDazeMult = 1.5f;
         public const float ColChargeWarn = 1f, ColChargeSpeed = 700f, ColChargeLength = 1100f;
         public const float SlabW = 110f, SlabH = 34f;
@@ -266,6 +269,13 @@ namespace Arena
             e.Phase = (byte)c.Turn;
         }
 
+        /// Where its current target stands (the middle if there's nobody).
+        V2 ColTargetPos(Enemy e)
+        {
+            Player p;
+            return Players.TryGetValue(e.TargetId, out p) && !p.Downed ? p.Pos : new V2(Width / 2f, Height / 2f);
+        }
+
         /// The players it goes for, in turn (one each for meteors and boulders, so a team shares them).
         Player ColTarget(ColossusState c)
         {
@@ -305,10 +315,10 @@ namespace Arena
             float aim = (tpos - e.Pos).Angle;
             switch (c.Turn)
             {
-                case ColTurn.Stomps:  // three stomps 2 s apart, each gap 60 degrees round from the last
+                case ColTurn.Stomps:  // three stomps 2 s apart, each gap a short step to one side of its target, alternating
                     c.ActT = 2f;
-                    c.GapA += MathX.Tau / 6f;
-                    AddRing(e, c, c.GapA, float.NaN);
+                    c.StompSide = -c.StompSide;
+                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), float.NaN);
                     break;
                 case ColTurn.Boulders:
                 {
@@ -375,9 +385,10 @@ namespace Arena
                     }
                     BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(ColStage.Crumbling), 120f, 0.35f, Sfx.BossPulse);
                     break;
-                case ColTurn.LavaStomps:  // a stomp every 1.5 s with gaps to your sides, and a pool where it stood
+                case ColTurn.LavaStomps:  // a stomp every 1.5 s with a gap a short step to each side of you, and a pool where it stood
                     c.ActT = 1.5f;
-                    AddRing(e, c, aim + MathX.Pi / 2f, aim - MathX.Pi / 2f);
+                    c.StompSide = -c.StompSide;
+                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), SecondGap(e, tpos, -c.StompSide));
                     SpawnPatchAt(PatchKind.Lava, e.Pos, LavaWarn, LavaWarn + LavaLife, 90f, 90f);
                     break;
                 case ColTurn.Meteors:  // two volleys of three, 0.5 s apart
@@ -404,10 +415,10 @@ namespace Arena
                                 DropPillar(c, ClampToArena(p.Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * 45f, 60f));
                     Sounds.Add(Sfx.BossCharge);
                     break;
-                case ColTurn.Last:  // two gaps, each stomp turned a quarter turn and a bit
+                case ColTurn.Last:  // two gaps: one a step beside its target (alternating sides), one by the other player (or opposite)
                     c.ActT = 1.6f;
-                    c.GapA += MathX.Pi / 2f + 0.16f;
-                    AddRing(e, c, c.GapA, c.GapA + MathX.Pi);
+                    c.StompSide = -c.StompSide;
+                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), SecondGap(e, tpos, float.NaN));
                     break;
                 default:
                     c.ActT = 0.2f;
@@ -416,6 +427,28 @@ namespace Arena
         }
 
         static float AngleGap(float a, float b) => Math.Abs(MathX.Fmod(a - b + MathX.Pi, MathX.Tau) - MathX.Pi);
+
+        /// Where to put a gap for someone at `at`: StompStep to their left (side -1) or right (+1) round the Colossus,
+        /// so a short sidestep reaches it in time wherever they stand (it used to be up to 90 degrees round, too far to run).
+        float GapBeside(Enemy e, V2 at, float side)
+        {
+            V2 rel = at - e.Pos;
+            float d = Math.Max(60f, rel.Length);
+            return rel.Angle + side * Math.Max(0.25f, Math.Min(0.8f, StompStep / d));
+        }
+
+        /// A two-gap ring's second gap: beside the other player if there's one standing (side NaN: right on them),
+        /// otherwise on the target's other side (side given) or straight across (side NaN).
+        float SecondGap(Enemy e, V2 tpos, float side)
+        {
+            Player other = null;
+            foreach (var p in Players.Values)
+                if (!p.Downed && p.Pos.DistanceTo(tpos) > 60f && (other == null || p.Pos.DistanceTo(tpos) > other.Pos.DistanceTo(tpos)))
+                    other = p;
+            if (other != null)
+                return GapBeside(e, other.Pos, float.IsNaN(side) ? 0.5f : side);
+            return float.IsNaN(side) ? (tpos - e.Pos).Angle + MathX.Pi : GapBeside(e, tpos, side);
+        }
 
         /// A stomp: a ring of push blocks from its feet with one gap (gap2 NaN) or two.
         void AddRing(Enemy e, ColossusState c, float gap1, float gap2)
@@ -471,7 +504,7 @@ namespace Arena
             if (stop)
             {
                 c.ChargeLeft = 0f;
-                AddRing(e, c, Rand(0f, MathX.Tau), float.NaN);
+                AddRing(e, c, GapBeside(e, ColTargetPos(e), Rand(0f, 1f) < 0.5f ? -1f : 1f), float.NaN);
             }
         }
 
@@ -481,7 +514,6 @@ namespace Arena
         /// Host: rings spread and hurt, things land, fissures race and erupt, pillars shatter, lava burns.
         void TickColHazards(Enemy e, ColossusState c, float dt)
         {
-            float ringDmg = 14f + Wave * 0.4f;
             AdvanceRings(c, dt);
             foreach (var r in c.Rings)
             {
@@ -489,15 +521,18 @@ namespace Arena
                     continue;
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || !InRing(r, p.Pos, GateBulletR + p.Def.HitR))
+                    if (p.Downed)
                         continue;
-                    if (r.Hit.Add(p.Id))
-                        Damage(p, ringDmg, "The Colossus (stomp)");
-                    V2 out1 = r.Center + (p.Pos - r.Center).Normalized() * (r.Radius + GateBulletR + p.Def.HitR + 2f);
-                    if (ClampToArena(out1, p.Def.HitR).DistanceTo(out1) > 1f && r.Rolled.Add(p.Id))
+                    // Hurt once when it passes over you: seen in front of it, now at it or just behind it (your own
+                    // game puts you behind it, so the host may only ever see you there), and not in a gap.
+                    float pad = GateBulletR + p.Def.HitR, d = p.Pos.DistanceTo(r.Center);
+                    if (d > r.Radius + pad)
+                        r.Outside.Add(p.Id);
+                    else if (r.Outside.Contains(p.Id) && d > RingBack(r) - pad - 40f)
                     {
-                        p.InvulnT = 0f;
-                        Damage(p, ringDmg, "The Colossus (stomp)");
+                        r.Outside.Remove(p.Id);
+                        if (!InRingGap(r, p.Pos, pad) && r.Hit.Add(p.Id))
+                            Damage(p, StompDamage, "The Colossus (stomp)");
                     }
                 }
             }
@@ -620,14 +655,18 @@ namespace Arena
         /// The ring's band of push blocks (both rows) at this distance from its centre, with `pad` on either side.
         public static float RingBack(StompRing r) => r.Radius - (GateRows - 1) * GateRowGap;
 
+        /// A gap's half-width (radians) at this distance from the ring's middle: RingGapHalf, or wider near the middle so
+        /// it's never less than RingGapMinArc across.
+        public static float RingGapHalfAt(float d) => Math.Max(RingGapHalf, RingGapMinArc / 2f / Math.Max(1f, d));
+
         public static bool InRingGap(StompRing r, V2 p, float pad)
         {
             V2 rel = p - r.Center;
             float d = rel.Length;
             if (d < 1f)
                 return false;
-            float a = rel.Angle, slack = pad / d;
-            return AngleGap(a, r.Gap1) < RingGapHalf - slack || (r.Gaps == 2 && AngleGap(a, r.Gap2) < RingGapHalf - slack);
+            float a = rel.Angle, half = RingGapHalfAt(d) - pad / d;
+            return AngleGap(a, r.Gap1) < half || (r.Gaps == 2 && AngleGap(a, r.Gap2) < half);
         }
 
         public static bool InRing(StompRing r, V2 p, float pad)
@@ -636,8 +675,9 @@ namespace Arena
             return r.Warn <= 0f && d > RingBack(r) - pad && d < r.Radius + pad && !InRingGap(r, p, pad);
         }
 
-        /// Your own game: a ring shoves you back in if you walk into it, carries you out if it catches you, and
-        /// rolls over you (you end up inside it) if it pins you against the edge. Plates and pillars are solid.
+        /// Your own game: a ring that reaches you passes over you (you end up just behind it; the host hurts you once),
+        /// and one you walk into from inside shoves you back. Either way you're behind it, never carried along.
+        /// Plates and pillars are solid.
         void ColossusPush(Player me, V2 before)
         {
             var e = TheColossus();
@@ -650,9 +690,7 @@ namespace Arena
                 if (!InRing(r, me.Pos, pad))
                     continue;
                 V2 dir = (me.Pos - r.Center).Normalized();
-                bool outside = before.DistanceTo(r.Center) > (r.Radius + RingBack(r)) / 2f;
-                V2 outPos = r.Center + dir * (r.Radius + pad + 2f), inPos = r.Center + dir * Math.Max(0f, RingBack(r) - pad - 2f);
-                me.Pos = outside && ClampToArena(outPos, me.Def.HitR).DistanceTo(outPos) <= 1f ? outPos : inPos;
+                me.Pos = r.Center + dir * Math.Max(0f, RingBack(r) - pad - 2f);
             }
             foreach (var s in c.Slabs)
             {

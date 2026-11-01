@@ -1324,8 +1324,8 @@ static partial class Program
         Check(ringOnClient && oneGap && dropOnClient && crackOnClient, "stomp rings (one gap), thrown boulders and fissures show on the client");
         Check(volley, "its rock volley still flies between turns");
 
-        // The stomp ring is a wall of push blocks: walk into it and it shoves you back; caught, it carries you out;
-        // in its gap you're left alone; pinned against the edge, it rolls over you. It hurts once (twice if it rolls you).
+        // The stomp ring is a wall of push blocks: walk into it and it shoves you back; caught, it passes over you (you
+        // end up behind it, never carried along) and hurts once; in its gap you're left alone.
         var cst = col.Colossus;
         cst.Rings.Clear(); cst.Drops.Clear(); cst.Cracks.Clear();
         var me = g.Players[1];
@@ -1335,16 +1335,16 @@ static partial class Program
         Func<float, float, StompRing> Ring = (radius, gap) => { var r = new StompRing { Center = center, Radius = radius, Gap1 = gap, Gaps = 1 }; cst.Rings.Add(r); return r; };
         Action quiet = () => { col.FireT = 99f; cst.TurnT = 0f; cst.ActT = 99f; cst.Drops.Clear(); cst.Cracks.Clear(); foreach (var b in g.Bullets.Values.Where(b => b.Owner == 0).ToList()) g.Bullets.Remove(b.Id); };
         Action<float> Hold = secs => Run(s, dt, secs, null, quiet);
-        // Shoved back: standing just inside a ring that's about to pass (it moves out at 150 px/s).
+        // Caught: standing just outside a ring that's about to pass (it moves out at 150 px/s).
         me.Pos = center + new V2(0f, -200f);
-        var r1 = Ring(190f, 0f);  // gap to the right, the player is above
+        var r1 = Ring(180f, 0f);  // gap to the right, the player is above
         float took = me.Run.DamageTaken;
         Hold(0.3f);
         float d1 = me.Pos.DistanceTo(center), hit1 = me.Run.DamageTaken - took;
-        Hold(0.7f);  // (by 1.7 s it would pin you against the top edge and roll over you)
+        Hold(0.7f);
         float d2 = me.Pos.DistanceTo(center), hit2 = me.Run.DamageTaken - took;
         Console.WriteLine("  ring catches you: {0:0} px out after 0.3 s, {1:0} after 1 s (ring at {2:0}); damage {3:0} then {4:0}", d1, d2, r1.Radius, hit1, hit2);
-        Check(d2 > r1.Radius && hit1 > 0f && hit2 == hit1, "a stomp ring that catches you carries you out in front of it, and hurts once");
+        Check(d1 < 200f && d2 < 200f && d2 < Game.RingBack(r1) && hit1 > 0f && hit2 == hit1, "a stomp ring that reaches you passes over you (you're behind it, not carried along), and hurts once");
         // Walking into it from inside: shoved back in.
         cst.Rings.Clear();
         var r2 = Ring(260f, 0f);
@@ -1361,14 +1361,28 @@ static partial class Program
         Hold(1f);
         Console.WriteLine("  in the gap: {0:0} px out, damage {1:0}", me.Pos.DistanceTo(center), me.Run.DamageTaken - took);
         Check(Math.Abs(me.Pos.DistanceTo(center) - 250f) < 2f && me.Run.DamageTaken == took && r3.Radius > 300f, "a ring passes you by if you're in its gap");
-        // Pinned against the edge: it rolls over you.
+        // At the edge: it passes over you the same way, once.
         cst.Rings.Clear();
         me.Pos = new V2(800f, 30f);
         took = me.Run.DamageTaken;
         var r4 = Ring(380f, MathX.Pi / 2f);  // gap at the bottom; the player is at the top edge
         Hold(1.5f);
-        Console.WriteLine("  pinned at the edge: now {0:0} px from the centre (ring at {1:0}); damage {2:0}", me.Pos.DistanceTo(center), r4.Radius, me.Run.DamageTaken - took);
-        Check(me.Pos.DistanceTo(center) < Game.RingBack(r4) && me.Run.DamageTaken - took > 1.5f * hit1, "pinned against the edge, a ring rolls over you (and hurts again)");
+        Console.WriteLine("  at the edge: now {0:0} px from the centre (ring at {1:0}); damage {2:0}", me.Pos.DistanceTo(center), r4.Radius, me.Run.DamageTaken - took);
+        Check(me.Pos.DistanceTo(center) < Game.RingBack(r4) && Math.Abs(me.Run.DamageTaken - took - hit1) < 0.5f, "against the edge it passes over you once too (no second hit)");
+        // Gaps: a short step beside you, wherever you stand, and never too narrow near its middle.
+        var beside = typeof(Game).GetMethod("GapBeside", flags);
+        bool reachable = true;
+        foreach (float dist in new[] { 150f, 300f, 600f })
+        {
+            V2 at = col.Pos + new V2(0f, dist);
+            float gap = (float)beside.Invoke(g, new object[] { col, at, 1f });
+            V2 gapAt = col.Pos + V2.FromAngle(gap) * dist;
+            reachable &= at.DistanceTo(gapAt) < 200f && at.DistanceTo(gapAt) > 60f;
+        }
+        var near = new StompRing { Center = center, Radius = 90f, Gap1 = 0f, Gaps = 1 };
+        Check(reachable, "a stomp's gap is a short step to your side (60-200 px), however far from it you stand");
+        Check(Game.InRingGap(near, center + V2.FromAngle(0.3f) * 80f, 0f) && Game.RingGapHalfAt(80f) * 2f * 80f >= Game.RingGapMinArc - 0.5f,
+            "close to the Colossus a gap is still 100 px across");
         cst.Rings.Clear();
         g.DevSetGod(1, true);
 

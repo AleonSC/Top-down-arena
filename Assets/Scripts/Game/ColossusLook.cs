@@ -119,7 +119,8 @@ namespace Arena
         void DrawRingGap(StompRing r, float gap, float rad)
         {
             var green = new Rgba(0.5f, 1f, 0.65f, 0.8f);
-            Arc(r.Center, rad, 4f, green, 10, gap - Game.RingGapHalf, Game.RingGapHalf * 2f);
+            float half = Game.RingGapHalfAt(rad);
+            Arc(r.Center, rad, 4f, green, 10, gap - half, half * 2f);
         }
 
         /// One push block, turned to face outward: the same look as the Warden's gate bullets (WardenLook.cs).
