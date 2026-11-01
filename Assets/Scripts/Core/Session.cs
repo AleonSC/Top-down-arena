@@ -509,7 +509,7 @@ namespace Arena
 
         static int ClampWeapon(int weapon) => weapon >= 0 && weapon < Defs.WeaponsPerRole ? weapon : 0;
         static int ClampAbility(int ability) => ability >= 0 && ability < Upgrades.RoleAbilityChoices ? ability : 0;
-        static Kit ClampKit(int kit) => kit >= 0 && kit <= (int)Kit.BloodMage ? (Kit)kit : Kit.Soldier;
+        static Kit ClampKit(int kit) => kit >= 0 && kit < Defs.KitCount ? (Kit)kit : Kit.Soldier;
 
         void SetKit(int id, int kit)
         {

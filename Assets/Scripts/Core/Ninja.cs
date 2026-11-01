@@ -169,6 +169,44 @@ namespace Arena
 
         // --- Abilities ------------------------------------------------------------------
 
+        /// The Ninja: FireNinjaWeapon, NinjaAbility, TickNinjas. See KitDef (Classes.cs) for what each hook does.
+        internal static readonly KitDef NinjaKit = new KitDef
+        {
+            Id = Kit.Ninja, Name = "Ninja", Icon = "class_ninja", HpMult = 0.85f, SpeedMult = 1.12f,
+            Blurb = "Thrown blades and quick melee; tricks and misdirection. Fast (+12% speed), 85% health.",
+            Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra),
+            Ability = (g, p, id, target) => g.NinjaAbility(p, id, target),
+            Tick = (g, dt) => g.TickNinjas(dt),
+        };
+
+        /// The Ninja's weapons (FireNinjaWeapon).
+        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
+        internal static readonly WeaponDef[] NinjaWeapons =
+        {
+            // Tank
+            new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +30% slash damage", Name = "Kusarigama", FireInterval = 0.55f,
+                Desc = "Throw the chain-sickle straight out (280 px): it hooks the first enemy it hits (26). Fire again to reel yourself in to it and land a heavy slash (52, a 0.5 s stun)." },
+            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 90f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and a 30 px longer vault", Name = "Bo Staff", FireInterval = 0.4f,
+                Desc = "A staff spun all the way around you (90 px) that cuts small bullets out of the air. Click while moving to vault 150 px, striking everything you pass (24); once every 1.2 s." },
+            new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
+                Desc = "A giant spinning star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways." },
+            // Healer
+            new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
+                Desc = "Fast needles that dose what they hit. Enemies: a stack of poison (2 a second for 3 s). Hurt allies: a stack of healing (2 a second for 3 s). Up to 5 stacks each." },
+            new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
+                Desc = "A short gust that heals allies in it for 3 and pushes small enemy bullets back. Shots alternate: one blows enemies in front away, the next draws them in." },
+            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
+                Desc = "Paper charms fly to your cursor and lie there as wards (up to 5, for 10 s). An enemy that steps on one sets it off: 25 to enemies round it and 12 healing to allies near it.",
+                AreaDesc = "bursts 25% wider, for damage and healing" },
+            // DPS
+            new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
+                Desc = "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes." },
+            new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
+                Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
+            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
+                Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double." },
+        };
+
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] NinjaAbilities =
         {

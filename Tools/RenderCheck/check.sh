@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: Tools/RenderCheck/check.sh [git-ref]   (default: HEAD)
-# Proves a refactor didn't change what the arena looks like: renders 11 fixed, seeded scenes (every enemy and
-# minion type, each class's abilities and ultimate) with DrawWorld, in this working tree and at <git-ref>, and
+# Proves a refactor didn't change what the arena looks like: renders 16 fixed, seeded scenes (every enemy and
+# minion type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes) with DrawWorld, in this working tree and at <git-ref>, and
 # compares every GL triangle. "IDENTICAL" means nothing on screen changed. Needs mono.
 set -e
 cd "$(dirname "$0")/../.."

@@ -5,10 +5,13 @@ class Harness {
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     var f2 = BindingFlags.NonPublic | BindingFlags.Instance;
     var all = new List<float>();
-    var scenes = new[] { new object[] { 1, Role.Tank, Kit.Mage, 0 }, new object[] { 6, Role.Dps, Kit.Knight, 1 }, new object[] { 14, Role.Healer, Kit.Summoner, 2 },
+    // (Kit)1 is the Elementalist: it was Kit.Mage before Oct 2026, and this harness also builds against older refs.
+    var scenes = new[] { new object[] { 1, Role.Tank, (Kit)1, 0 }, new object[] { 6, Role.Dps, Kit.Knight, 1 }, new object[] { 14, Role.Healer, Kit.Summoner, 2 },
                          new object[] { 20, Role.Tank, Kit.Knight, 1 }, new object[] { 33, Role.Dps, Kit.Soldier, 0 }, new object[] { 50, Role.Healer, Kit.Soldier, 2 },
-                         new object[] { 10, Role.Dps, Kit.Summoner, 0 }, new object[] { 25, Role.Healer, Kit.Mage, 1 }, new object[] { 40, Role.Tank, Kit.Soldier, 2 },
-                         new object[] { 15, Role.Tank, Kit.Ninja, 2 }, new object[] { 30, Role.Healer, Kit.Ninja, 1 } };
+                         new object[] { 10, Role.Dps, Kit.Summoner, 0 }, new object[] { 25, Role.Healer, (Kit)1, 1 }, new object[] { 40, Role.Tank, Kit.Soldier, 2 },
+                         new object[] { 15, Role.Tank, Kit.Ninja, 2 }, new object[] { 30, Role.Healer, Kit.Ninja, 1 }, new object[] { 18, Role.Dps, Kit.Ninja, 0 }, new object[] { 28, Role.Healer, Kit.Ninja, 0 },
+                         // (Kit)5 is the Hemomancer (Kit.BloodMage before Oct 2026).
+                         new object[] { 12, Role.Dps, (Kit)5, 0 }, new object[] { 22, Role.Healer, (Kit)5, 1 }, new object[] { 35, Role.Tank, (Kit)5, 2 } };
     foreach (var sc in scenes) {
       var s = new Session { StartWave = (int)sc[0] };
       s.HostOffline((Role)sc[1], (Kit)sc[2], (int)sc[3], (int)sc[0] % 3);

@@ -16,7 +16,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Healer", Role.Healer, 2, 0, Kit.BloodMage);
+        host.Host(port, "Healer", Role.Healer, 2, 0, Kit.Hemomancer);
         var client = new Session();
         client.Join("127.0.0.1", port, "Friend", Role.Dps);
         var s = new[] { host, client };
@@ -76,7 +76,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.BloodMage);
+        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.Hemomancer);
         var client = new Session();
         client.Join("127.0.0.1", port, "Friend", Role.Dps);
         var s = new[] { host, client };
@@ -171,20 +171,20 @@ static partial class Program
         var price = typeof(Game).GetMethod("BloodDamageMult", flags);
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
-        Check(Defs.Weapon(Role.Tank, Kit.BloodMage, 0).Name == "Blood Lash" && Defs.Weapon(Role.Healer, Kit.BloodMage, 0).Name == "Transfusion Darts"
-            && Defs.Weapon(Role.Dps, Kit.BloodMage, 2).Name == "Bone Spear" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
+        Check(Defs.Weapon(Role.Tank, Kit.Hemomancer, 0).Name == "Blood Lash" && Defs.Weapon(Role.Healer, Kit.Hemomancer, 0).Name == "Transfusion Darts"
+            && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Bone Spear" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
             && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Blood Mage weapons sit in the role/class tables without shifting the others");
-        Check(Upgrades.RoleAbility(Role.Healer, Kit.BloodMage, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
-            && Upgrades.Ultimate(Role.Dps, Kit.BloodMage) == AbilityId.CrimsonApotheosis && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
-            && Upgrades.Ultimate(Role.Tank, Kit.BloodMage) == AbilityId.BloodRite && Defs.KitName(Kit.BloodMage) == "Hemomancer" && Defs.KitName(Kit.Mage) == "Elementalist",
+        Check(Upgrades.RoleAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.RoleAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep
+            && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonApotheosis && Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm
+            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.BloodRite && Defs.KitName(Kit.Hemomancer) == "Hemomancer" && Defs.KitName(Kit.Elementalist) == "Elementalist",
             "Blood Mage abilities and ultimates map to the right role and class");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 0, 0, Kit.BloodMage);
+        host.Host(port, "Tank", Role.Tank, 0, 0, Kit.Hemomancer);
         var client = new Session();
-        client.Join("127.0.0.1", port, "Healer", Role.Healer, 0, 0, Kit.BloodMage);
+        client.Join("127.0.0.1", port, "Healer", Role.Healer, 0, 0, Kit.Hemomancer);
         var s = new[] { host, client };
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
         var g = host.Game;
@@ -192,7 +192,7 @@ static partial class Program
         var hp = g.Players[1];
         var cp = g.Players[2];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Check(hp.Kit == Kit.BloodMage && Math.Abs(hp.MaxHp - Defs.Get(Role.Tank).Hp) < 0.5f && Math.Abs(hp.Speed - Defs.Get(Role.Tank).Speed) < 0.5f,
+        Check(hp.Kit == Kit.Hemomancer && Math.Abs(hp.MaxHp - Defs.Get(Role.Tank).Hp) < 0.5f && Math.Abs(hp.Speed - Defs.Get(Role.Tank).Speed) < 0.5f,
             "Blood Mages have full health and normal speed");
 
         var keep = new HashSet<Enemy>();
@@ -307,7 +307,7 @@ static partial class Program
         // Bone Spear: 2 health a throw.
         g.Bullets.Clear();
         hp.Hp = 50f;
-        hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 2);
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 2);
         typeof(Game).GetMethod("FireVolley", flags).Invoke(g, new object[] { hp, 0f, 0 });
         Check(Math.Abs(hp.Hp - 48f) < 0.01f && g.Bullets.Values.Any(b => b.Kind == Defs.BoneSpearShot), "a Bone Spear costs 2 health a throw");
 
@@ -315,7 +315,7 @@ static partial class Program
         // an extra projectile collapses one more enemy nearby (60%). Nothing under the cursor, nothing fires.
         hp.Hp = hp.MaxHp;
         place(1, 600f); run(0.2f);
-        hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 1);
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 1);
         var i2 = dummy(d1.Pos + new V2(0f, d1.Radius * 2f + 20f));
         var i3 = dummy(d1.Pos + new V2(0f, -150f));
         float gap0 = i2.Pos.DistanceTo(d1.Pos);
@@ -331,7 +331,7 @@ static partial class Program
         Check(Math.Abs(t1 - 34f) < 0.5f && Math.Abs(t2 - 15f) < 0.5f && Math.Abs(t3 - 34f * 0.6f) < 0.5f && i2.Pos.DistanceTo(d1.Pos) < gap0 - 10f,
             "Implosion: 34 to the target, 15 to an enemy against it (pulled in), and an extra collapses another enemy for 60%");
         keep.Remove(i2); keep.Remove(i3); i2.Hp = i3.Hp = 0f;
-        hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 0);
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 0);
 
         // Blood Lash: the tip cracks for double and taunts, closer in flings out to the tip, and every hit clots.
         keep.Remove(d1); d1.Hp = 0f;

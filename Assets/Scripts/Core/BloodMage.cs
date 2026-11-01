@@ -616,7 +616,7 @@ namespace Arena
         /// health); during Crimson Apotheosis up to 100% more. Applied in HurtEnemy.
         float BloodDamageMult(Player p)
         {
-            if (p.Kit != Kit.BloodMage || p.MaxHp <= 0f)
+            if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
                 return 1f;
             float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / 0.9f));
             return 1f + (Exalted(p) ? 1f : BloodPriceMax) * missing;
@@ -630,7 +630,7 @@ namespace Arena
             if (p.Downed || dealt <= 0f)
                 return;
             float frac = rainSteal;
-            if (p.Kit == Kit.BloodMage)
+            if (p.Kit == Kit.Hemomancer)
                 frac += BloodSteal;
             if (p.RushT > 0f)
                 frac += RushSteal;
@@ -711,89 +711,135 @@ namespace Arena
             public bool Splash;
         }
 
+        /// The Hemomancer (Kit.Hemomancer): FireBloodWeapon, BloodAbility, TickBloodMages, BloodShotHit. See KitDef (Classes.cs) for what each hook does.
+        internal static readonly KitDef HemomancerKit = new KitDef
+        {
+            Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
+            Blurb = "Blood spells that drain and heal. Abilities cost health; hits harder the lower your health.",
+            Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
+            Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
+            Tick = (g, dt) => g.TickBloodMages(dt),
+            OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Blood Mage shots drain, pool and drop orbs
+        };
+
+        /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
+        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
+        internal static readonly WeaponDef[] HemomancerWeapons =
+        {
+            // Tank
+            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +1 max Clot", Name = "Blood Lash", FireInterval = 0.5f,
+                Desc = "A whip of blood (130 px, 110°). Its tip cracks for double damage and taunts; enemies hit closer in are flung out to the tip. "
+                    + "Each hit clots your blood (+1 Clot, +2 from the tip; 4% less damage taken each, up to 5). At full Clot your next lash bursts all round you." },
+            new WeaponDef { Id = WeaponId.ClotBolt, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Speed = 520f, Life = 1f, Damage = 26f, ExtraDesc = "+1 bolt, fanned out", Name = "Clot Bolt", FireInterval = 0.75f,
+                Desc = "A heavy bolt (26) that leaves a pool of blood where it hits, slowing enemies in it by 40% for 3 s. After 1 s the pool congeals: enemies still in it are stuck for 1 s. You take 15% less damage standing in your own pool.",
+                Sound = Sfx.SpellArcane, AreaDesc = "blood pools 25% wider" },
+            new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
+                Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on.",
+                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc" },
+            // Healer
+            new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
+                Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5)." },
+            new WeaponDef { Id = WeaponId.SanguineOrb, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 1.4f, Damage = 16f, ExtraDesc = "+1 orb, fanned out", Name = "Sanguine Orb", FireInterval = 0.45f, BotRange = 380f,
+                Desc = "Orbs of blood that home in at the last moment, circle an enemy and cover it (16, plus a bleed stack), charging your heal reserve. "
+                    + "With 25 reserve, an orb that touches a hurt ally coats them in healing blood instead (30 health over 4 s).",
+                Sound = Sfx.SpellArcane },
+            new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
+                Desc = "A draining beam that hurts whatever you hold it on: keep it on your target. 40% of its damage heals, split between you and the nearest ally.",
+                Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
+            // DPS
+            new WeaponDef { Id = WeaponId.BloodBolts, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
+                Desc = "Fast bolts of blood (9) that stick in enemies: the fifth within 2 s makes it hemorrhage, bursting for 36 to it and every enemy within 80 px.",
+                Sound = Sfx.SpellArcane },
+            new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
+                Desc = "Click an enemy: its blood collapses inward (34), hurting enemies pressed against it (15) and pulling them in.",
+                Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
+            new WeaponDef { Id = WeaponId.BoneSpear, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
+                Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back." },
+        };
+
         /// The Blood Mage's abilities and ultimates: every Space ability costs health. (Upgrades.Abilities gathers every class's list.)
-        internal static readonly AbilityDef[] BloodMageAbilities =
+        internal static readonly AbilityDef[] HemomancerAbilities =
         {
             new AbilityDef
             {
-                Id = AbilityId.BloodShell, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 0,
+                Id = AbilityId.BloodShell, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0,
                 Name = "Blood Shell", Cooldown = 9f, HealthCost = 0.15f, Desc = "Pay 15% of your max health for a shield worth three times as much, for 5 s.",
                 Capstone = "Also erases enemy bullets within 160 px.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },
             new AbilityDef
             {
-                Id = AbilityId.CrimsonPact, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 1,
+                Id = AbilityId.CrimsonPact, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
                 Name = "Crimson Pact", Cooldown = 10f, HealthCost = 0.1f, Desc = "Pay 10% of your max health: every enemy targets you for 4 s, then the damage you took meanwhile bursts back out at 150% within 220 px.",
                 Capstone = "You take 30% less damage while it lasts.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.6f,
             },
             new AbilityDef
             {
-                Id = AbilityId.Exsanguinate, Kit = Kit.BloodMage, Role = Role.Tank, Choice = 2,
+                Id = AbilityId.Exsanguinate, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2,
                 Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to pull enemies within 220 px toward you and drain 20 health from each into you.",
                 Capstone = "Also slows the enemies it drains by 50% for 2 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BloodGift, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 0,
+                Id = AbilityId.BloodGift, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0,
                 Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay 25% of your current health: the most hurt ally heals twice as much. Alone, it becomes a shield for you.",
                 Capstone = "Also heals everyone else within 200 px of them for half as much.",
                 Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
-                Id = AbilityId.SiphonField, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 1,
+                Id = AbilityId.SiphonField, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
                 Name = "Siphon Field", Cooldown = 11f, HealthCost = 0.1f, Desc = "Pay 10% of your max health for a 140 px field at your feet for 6 s: enemies inside lose 10 HP/s and allies inside heal 10 HP/s.",
                 Capstone = "The field follows you.",
                 Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
-                Id = AbilityId.Martyr, Kit = Kit.BloodMage, Role = Role.Healer, Choice = 2,
+                Id = AbilityId.Martyr, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2,
                 Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay 40% of your max health to revive the downed ally nearest your cursor, anywhere, at 50% health. If no one is down, the most hurt ally (you, if you're alone) is warded for 12 s: if they go down, they get straight back up at 50%.",
                 Capstone = "You're invulnerable for 2 s after the sacrifice.",
                 Bot = b => b.AllyDown || b.Players == 1 && b.Danger && b.Me.WardT <= 0f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BloodBoil, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 0,
+                Id = AbilityId.BloodBoil, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
                 Name = "Blood Boil", Cooldown = 8f, HealthCost = 0.2f, Desc = "Pay 20% of your max health: enemies within 260 px boil and burst after 1 s for three times what you paid.",
                 Capstone = "Each burst also hits enemies within 80 px of it.",
                 Bot = b => b.HaveTarget && b.TargetD < 250f && b.Me.Hp > b.Me.MaxHp * 0.45f,
             },
             new AbilityDef
             {
-                Id = AbilityId.FrenzyPact, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 1,
+                Id = AbilityId.FrenzyPact, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
                 Name = "Frenzy Pact", Cooldown = 11f, HealthCost = 0.05f, Desc = "Pay 5% of your max health: for 6 s you fire 50% faster and heal 10% of the damage you deal, but lose 3 HP/s.",
                 Capstone = "No health drain.",
                 Bot = b => b.HaveTarget && b.TargetD < 500f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
-                Id = AbilityId.HemoNova, Kit = Kit.BloodMage, Role = Role.Dps, Choice = 2,
+                Id = AbilityId.HemoNova, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2,
                 Name = "Hemo Nova", Cooldown = 6f, HealthCost = 0.1f, Desc = "Pay 10% of your max health to fire a ring of 16 blood bolts (20 each). Each that hits heals you 3.",
                 Capstone = "Bolts pierce 2 enemies.",
                 Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
             },
             new AbilityDef
             {
-                Id = AbilityId.BloodRite, Kit = Kit.BloodMage, Role = Role.Tank, Choice = AbilityDef.Ult,
+                Id = AbilityId.BloodRite, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Blood Rite", Cooldown = 75f, Desc = "For 8 s every enemy targets you and you take 60% less damage. The damage you take heals your allies.",
                 Capstone = "Lasts 12 s.",
                 Bot = b => b.Danger || b.HaveTarget && b.Players > 1,
             },
             new AbilityDef
             {
-                Id = AbilityId.SanguineRain, Kit = Kit.BloodMage, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Id = AbilityId.SanguineRain, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = AbilityDef.Ult,
                 Name = "Sanguine Rain", Cooldown = 80f, Desc = "For 6 s, every hit any ally lands heals them for 20% of its damage.",
                 Capstone = "Lasts 9 s and heals 30%.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {
-                Id = AbilityId.CrimsonApotheosis, Kit = Kit.BloodMage, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Id = AbilityId.CrimsonApotheosis, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Ult,
                 Name = "Crimson Apotheosis", Cooldown = 65f, Desc = "For 6 s you can't drop below 1 health and Blood Price can double your damage. When it ends, heal for half the damage you dealt.",
                 Capstone = "Lasts 9 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 500f,

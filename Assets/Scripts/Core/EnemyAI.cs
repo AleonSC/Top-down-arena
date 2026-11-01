@@ -336,6 +336,8 @@ namespace Arena
                 TickBoneCage(e, dt);  // Minions.cs
                 TickHemorrhage(e, dt);  // BloodMage.cs
                 TickPoison(e, dt);  // Ninja.cs
+                foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
+                    tick(this, e, dt);
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 if (e.SpawnT > 0f)
                 {

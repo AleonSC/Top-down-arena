@@ -168,35 +168,7 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;
-            switch (p.Weapon.Id)
-            {
-                case WeaponId.Scattergun: return Sfx.ShotShotgun;
-                case WeaponId.FlakCannon: return Sfx.ShotCannon;
-                case WeaponId.RiotRepeater: return Sfx.ShotRifle;
-                case WeaponId.LightBolt: return Sfx.ShotSuppressed;
-                case WeaponId.Pistol: return Sfx.ShotPistol;
-                case WeaponId.MendersBow: return Sfx.ShotBow;
-                case WeaponId.TwinRifle: return Sfx.ShotAssault;
-                case WeaponId.Railgun: return Sfx.ShotSniper;
-                case WeaponId.BurstSmg: return Sfx.ShotSmg;
-                case WeaponId.Flamethrower:
-                case WeaponId.Fireball: return Sfx.SpellFire;
-                case WeaponId.FrostLance: return Sfx.SpellFrost;
-                case WeaponId.StormHammer:
-                case WeaponId.ChainLight:
-                case WeaponId.ArcLightning: return Sfx.SpellZap;
-                case WeaponId.PrismBeam:
-                case WeaponId.ArcaneMissiles:
-                case WeaponId.WispLantern: return Sfx.SpellArcane;
-                case WeaponId.RadiantOrb: return Sfx.SpellHoly;
-                case WeaponId.ClotBolt:
-                case WeaponId.LeechBeam:
-                case WeaponId.SanguineOrb:
-                case WeaponId.VeinTether:
-                case WeaponId.BloodBolts:
-                case WeaponId.Implosion: return Sfx.SpellArcane;
-                default: return Sfx.Throw;  // summoner staffs, darts and rocks
-            }
+            return p.Weapon.Sound;  // WeaponDef.Sound
         }
 
         readonly List<int> scratchIds = new List<int>();
@@ -318,8 +290,7 @@ namespace Arena
         /// Weapons whose damage lands in an area (blasts, pools, the Implosion, the Vein Tether beam, the Leech
         /// Tendrils' arc, Storm Hammer's lightning). On them Homing Rounds don't bend shots: each stack makes the area 25% bigger instead, for
         /// the same damage cost.
-        public static bool AreaWeapon(WeaponId w) => w == WeaponId.Implosion || w == WeaponId.FlakCannon || w == WeaponId.Ofuda
-            || w == WeaponId.StormHammer || w == WeaponId.ClotBolt || w == WeaponId.VeinTether || w == WeaponId.LeechBeam || w == WeaponId.FrostLance || w == WeaponId.GolemStaff || w == WeaponId.ChainLight || w == WeaponId.ArcLightning;
+        public static bool AreaWeapon(WeaponId w) => Defs.WeaponOf(w).AreaDesc != null;  // WeaponDef.AreaDesc
         public const float HomingAreaPerStack = 0.25f;
         public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? (1f + HomingAreaPerStack * p.Stats.Homing / 2f) * p.Stats.ShotSizeMult : 1f;  // Magnum Rounds widen areas too  // Homing Rounds give 2 turn a stack
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
@@ -456,7 +427,8 @@ namespace Arena
                             }
                             float hit = b.Dmg * NinjaHitMult(b.Owner, b.Kind, e) * PointBlankMult(b, e) * CrossfireMult(b, e);  // Kunai and ambush bonuses (Ninja.cs); the Scattergun up close and the Twin Rifle's crossfire (Weapons.cs)
                             HurtEnemy(e, hit, b.Owner);
-                            BloodShotHit(b, e, hit);  // Blood Mage shots drain, pool and drop orbs (BloodMage.cs)
+                            foreach (var onHit in Classes.HitHooks)  // each class's KitDef.OnShotHit (BloodShotHit: Blood Mage shots drain, pool and drop orbs)
+                                onHit(this, b, e, hit);
                             OnBulletHit(b, e);
                             b.LastHit = e.Id;
                             if (b.Frags > 0)
@@ -671,6 +643,8 @@ namespace Arena
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 Recorder?.EnemyKilled(e);
                 SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
+                foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
+                    onKill(this, e);
                 bool bossReward = OnEnemyKilled(e);
                 if (bossReward)
                     BossRecord(e);  // everyone's profile (RunSaves.cs)

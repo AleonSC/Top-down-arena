@@ -236,7 +236,7 @@ namespace Arena
                 ".kok........",
                 "kk..........",
             },
-            // Class icons for the lobby's class buttons (LobbyUi.KitIcons), in Kit order.
+            // Class icons for the lobby's class buttons (each KitDef.Icon names one).
             ["class_soldier"] = new[]  // Soldier: helmet
             {
                 "............",

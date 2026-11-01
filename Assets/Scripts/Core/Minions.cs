@@ -920,68 +920,157 @@ namespace Arena
 
         // --- Abilities ---------------------------------------------------------
 
+        /// The Elementalist (Kit.Elementalist): weapons in FireKitWeapon, abilities in KitAbility (both here). See KitDef (Classes.cs) for what each hook does.
+        internal static readonly KitDef ElementalistKit = new KitDef
+        {
+            Id = Kit.Elementalist, Name = "Elementalist", Icon = "class_elementalist", HpMult = 0.85f,
+            Blurb = "Spells: fire, frost, lightning and arcane magic. 85% health.",
+            Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),
+        };
+
+        /// The Elementalist's weapons (Kit.Elementalist; fired in FireKitWeapon).
+        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
+        internal static readonly WeaponDef[] ElementalistWeapons =
+        {
+            // Tank
+            new WeaponDef { Id = WeaponId.Flamethrower, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
+                Desc = "A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning (5 a second for 3 s).",
+                Sound = Sfx.SpellFire },
+            new WeaponDef { Id = WeaponId.FrostLance, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 230f, Grow = 30f, BotRange = 190f, ExtraDesc = "+30 px longer icicle and 25% more damage, and its splinters fly 15 px further", Name = "Frost Lance", FireInterval = 0.4f,
+                Desc = "A great icicle juts out from you (230 px), then splinters off its sides into enemies up to 60 px beside it (50% damage). Both slow.",
+                Sound = Sfx.SpellFrost, AreaDesc = "the icicle's splinters fly 25% further out" },
+            new WeaponDef { Id = WeaponId.StormHammer, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
+                Desc = "Throws a spinning hammer that smashes one enemy and electrifies it: for a second it arcs lightning to 3 enemies around it, three times, for a little damage.",
+                Sound = Sfx.SpellZap, AreaDesc = "the electrified enemy's lightning reaches 25% farther" },
+            // Healer
+            new WeaponDef { Id = WeaponId.RadiantOrb, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0, Damage = 8f, Reach = 520f, BotRange = 300f, ExtraDesc = "+1 light orb that circles your Radiant Orb (you, when it's not out), hurting enemies and healing allies it touches", Name = "Radiant Orb", FireInterval = 0.2f,
+                Desc = "Hold to cast an orb of light out to your cursor; it stays there while you hold. Drag it through enemies to burn them (8, 5 times a second) and over allies to heal them.",
+                Sound = Sfx.SpellHoly, BarrageDesc = "+1 light orb per stack that circles your orb, hurting enemies and healing allies it touches" },
+            new WeaponDef { Id = WeaponId.ChainLight, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
+                Desc = "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each.",
+                Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
+            new WeaponDef { Id = WeaponId.PrismBeam, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f,
+                Desc = "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them.",
+                Sound = Sfx.SpellArcane },
+            // DPS
+            new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
+                Desc = "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s).",
+                Sound = Sfx.SpellFire },
+            new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
+                Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun).",
+                Sound = Sfx.SpellZap, AreaDesc = "the lightning strip 25% wider", BarrageDesc = "+1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice" },
+            new WeaponDef { Id = WeaponId.ArcaneMissiles, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 missile a cast, +2 in orbit, and faster launches", Name = "Arcane Missiles", FireInterval = 0.3f,
+                Desc = "Each cast conjures 3 missiles into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim.",
+                Sound = Sfx.SpellArcane },
+        };
+
         /// The Mage's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
-        internal static readonly AbilityDef[] MageAbilities =
+        internal static readonly AbilityDef[] ElementalistAbilities =
         {
             new AbilityDef
             {
-                Id = AbilityId.ArcaneAegis, Kit = Kit.Mage, Role = Role.Tank, Choice = 0,
+                Id = AbilityId.ArcaneAegis, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0,
                 Name = "Arcane Aegis", Cooldown = 11f, Desc = "For 3 s, enemy bullets that touch you are reflected back as your own.",
                 Capstone = "Lasts 4.5 s and reflects bullets for double damage.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
-                Id = AbilityId.FrostNova, Kit = Kit.Mage, Role = Role.Tank, Choice = 1, Instant = true,
+                Id = AbilityId.FrostNova, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Instant = true,
                 Name = "Frost Nova", Cooldown = 12f, Desc = "Freeze every enemy near you for 3 s and deal 40 damage.",
                 Capstone = "Also erases enemy bullets around you.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
             {
-                Id = AbilityId.FlameWall, Kit = Kit.Mage, Role = Role.Tank, Choice = 2,
+                Id = AbilityId.FlameWall, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2,
                 Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor for 5 s: burns enemies and blocks bullets.",
                 Capstone = "The fire also slows enemies by 40%.",
             },
             new AbilityDef
             {
-                Id = AbilityId.TimeRewind, Kit = Kit.Mage, Role = Role.Healer, Choice = 0, Instant = true,
+                Id = AbilityId.TimeRewind, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0, Instant = true,
                 Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
                 Capstone = "Also erases enemy bullets around every player.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
-                Id = AbilityId.ArcaneWard, Kit = Kit.Mage, Role = Role.Healer, Choice = 1, Instant = true,
+                Id = AbilityId.ArcaneWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Instant = true,
                 Name = "Arcane Ward", Cooldown = 14f, Desc = "Shield you and allies within 300 px for 60 damage for 8 s. When a shield breaks or runs out, half of what it soaked comes back as healing.",
                 Capstone = "The shield soaks 120 damage.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
-                Id = AbilityId.Sanctify, Kit = Kit.Mage, Role = Role.Healer, Choice = 2, Instant = true,
+                Id = AbilityId.Sanctify, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Instant = true,
                 Name = "Sanctify", Cooldown = 12f, Desc = "Erase enemy bullets around you and heal everyone nearby for 25.",
                 Capstone = "Also freezes enemies around you solid for 1.5 s (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
             },
             new AbilityDef
             {
-                Id = AbilityId.Meteor, Kit = Kit.Mage, Role = Role.Dps, Choice = 0,
+                Id = AbilityId.Meteor, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0,
                 Name = "Meteor", Cooldown = 10f, Desc = "Call a meteor at your cursor: after a short warning it hits for 150 damage.",
                 Capstone = "Leaves burning ground for 3 s.",
             },
             new AbilityDef
             {
-                Id = AbilityId.Blizzard, Kit = Kit.Mage, Role = Role.Dps, Choice = 1,
+                Id = AbilityId.Blizzard, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1,
                 Name = "Blizzard", Cooldown = 14f, Desc = "A storm at your cursor for 5 s that slows and damages enemies.",
                 Capstone = "Lasts 10 s.",
             },
             new AbilityDef
             {
-                Id = AbilityId.ArcaneSurge, Kit = Kit.Mage, Role = Role.Dps, Choice = 2,
+                Id = AbilityId.ArcaneSurge, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2,
                 Name = "Arcane Surge", Cooldown = 16f, Desc = "For 5 s your shots deal 60% more damage and pierce 2 more enemies.",
                 Capstone = "+1 extra projectile while it lasts.",
             },
+        };
+
+        /// The Summoner: weapons in FireKitWeapon, abilities in KitAbility (both here). See KitDef (Classes.cs) for what each hook does.
+        internal static readonly KitDef SummonerKit = new KitDef
+        {
+            Id = Kit.Summoner, Name = "Summoner", Icon = "class_summoner", HpMult = 0.9f,
+            Blurb = "Fights alongside minions that come with your weapon. 90% health.",
+            Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),  // the Bear Totem has its own case
+        };
+
+        /// The Summoner's weapons (fired in FireKitWeapon; the Bear Totem in FireBearClaws).
+        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
+        internal static readonly WeaponDef[] SummonerWeapons =
+        {
+            // Tank
+            new WeaponDef { Id = WeaponId.GolemStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Hold to heave a boulder, let go to throw it in an arc: the longer you hold, the farther it flies. It crushes everything where it lands. A stone Golem fights beside you and blocks bullets.",
+                Companion = MinionKind.Golem, CompanionCount = 1,
+                AreaDesc = "the boulder crushes 25% wider" },
+            new WeaponDef { Id = WeaponId.BoneGuard, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
+                Desc = "Bone darts that stick in enemies: the third in one enemy cages it for 1.5 s (not bosses). Two skeleton guards circle you, block bullets, and shoot at caged enemies.",
+                Companion = MinionKind.Guard, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.BearTotem, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2, Damage = 11f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.45f,
+                Desc = "Two quick claw swipes in front of you that make enemies bleed. A Bear companion mauls nearby enemies.",
+                Companion = MinionKind.Bear, CompanionCount = 1 },
+            // Healer
+            new WeaponDef { Id = WeaponId.SpriteStaff, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "+1 Sprite", Name = "Sprite Staff", FireInterval = 0.35f,
+                Desc = "Seed shots that stick in enemies. Two sprites fly to whoever is hurt and heal them, and every seeded enemy you kill frees another for 6 s (up to 4 more).",
+                Companion = MinionKind.Sprite, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.TreantRod, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1, Speed = 600f, Life = 1f, Damage = 8f, ExtraDesc = "Your Treant grows 30% bigger: blocks more, hits harder and reaches farther", Name = "Treant Rod", FireInterval = 0.3f,
+                Desc = "Bolts heal allies they pass. Your Treant roots where it stands and blocks bullets; a vine runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).",
+                Companion = MinionKind.Treant, CompanionCount = 1 },
+            new WeaponDef { Id = WeaponId.TotemStaff, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f,
+                Desc = "Seed shots. Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Seed hits on enemies near your totems charge them: at 6, a totem pulses 25 healing to allies near it." },
+            // DPS
+            new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
+                Desc = "Darts mark the enemy they hit as prey, and your two wolves hunt it. When every wolf bites it within a second: a takedown (20 per wolf and a 0.6 s stun).",
+                Companion = MinionKind.Wolf, CompanionCount = 2 },
+            new WeaponDef { Id = WeaponId.WispLantern, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Damage = 22f, BotRange = 340f, ExtraDesc = "+1 Wisp, and each shot sends one more", Name = "Wisp Lantern", FireInterval = 0.25f,
+                Desc = "Three wisps orbit you, and they are your shots: each time you fire, one flies at the enemy nearest your cursor (22), strikes it and comes back.",
+                Companion = MinionKind.Wisp, CompanionCount = 3,
+                Sound = Sfx.SpellArcane, HomingDesc = "wisps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+            new WeaponDef { Id = WeaponId.ImpCaller, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2, BotRange = 380f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f,
+                Desc = "An imp arrives every 3 s (up to 3) and waits by you. Tap fire to send them all charging at your cursor to explode (45 each); hold to merge them into one big imp whose blast is bigger than theirs put together.",
+                Companion = MinionKind.Imp, CompanionCount = 3, CompanionRespawn = 3f,
+                HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
         };
 
         /// The Summoner's Space abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)
@@ -1225,8 +1314,10 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.5f, 0.3f), 120f, 0.4f, Sfx.Roar);
                     break;
                 default:
-                    if (!KnightAbility(p, id, target) && !NinjaAbility(p, id, target) && !BloodAbility(p, id, target))  // Knight.cs, Ninja.cs, BloodMage.cs
-                        Ultimate(p, id, target);  // Ultimates.cs
+                    foreach (var cast in Classes.AbilityHooks)  // each class's KitDef.Ability (Knight.cs, Ninja.cs, BloodMage.cs)
+                        if (cast(this, p, id, target))
+                            return;
+                    Ultimate(p, id, target);  // Ultimates.cs
                     break;
             }
         }

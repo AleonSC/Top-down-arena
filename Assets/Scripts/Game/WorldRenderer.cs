@@ -166,8 +166,7 @@ namespace Arena
         {
             if (p.Downed)
                 return;
-            if (p.Kit == Kit.BloodMage)
-                DrawBloodAuras(p, t);  // BloodMageLook.cs
+            LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
@@ -531,16 +530,9 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
-            if (b.Kind >= Defs.StarShot && b.Kind <= Defs.FumaStar)
-            {
-                DrawNinjaShot(b, c, t);
-                return;
-            }
-            if (b.Kind >= Defs.BloodShot && b.Kind <= Defs.BoneSpearShot)
-            {
-                DrawBloodShot(b, c, t);  // BloodMageLook.cs
-                return;
-            }
+            foreach (var look in KitLooks)  // a class's own shots (KitLook.Shot in ClassLooks.cs: the Ninja's, the Hemomancer's)
+                if (look.Shot != null && look.Shot(this, b, c, t))
+                    return;
             if (b.Kind == Defs.HammerShot)
             {
                 DrawStormHammer(b, c, t);
@@ -643,8 +635,11 @@ namespace Arena
         }
 
         /// The Ninja's thrown things: spinning stars, needles, knives, paper charms and gusts of wind.
-        void DrawNinjaShot(Bullet b, Rgba c, float t)
+        /// The Ninja's shots (KitLook.Shot): false for any other kind.
+        bool DrawNinjaShot(Bullet b, Rgba c, float t)
         {
+            if (b.Kind < Defs.StarShot || b.Kind > Defs.FumaStar)
+                return false;
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
@@ -678,6 +673,7 @@ namespace Arena
                     Arc(b.Pos, b.Radius * 0.7f, 1.5f, c.WithAlpha(0.45f), 10, b.Vel.Angle + t * 8f, 2f);
                     break;
             }
+            return true;
         }
 
         /// A short-lived effect, by kind.
@@ -2029,20 +2025,10 @@ namespace Arena
                 Line(p.Disp - new V2(r * 0.6f, 0), p.Disp + new V2(r * 0.6f, 0), 3f, col.WithAlpha(0.6f));
                 Line(p.Disp - new V2(0, r * 0.6f), p.Disp + new V2(0, r * 0.6f), 3f, col.WithAlpha(0.6f));
             }
-            // Class marker: a mage's four-point star, a summoner's three orbiting motes.
-            if (p.Kit == Kit.Mage && !p.Downed)
-                for (int k = 0; k < 4; k++)
-                    Line(p.Disp + V2.FromAngle(MathX.Pi / 4f + k * MathX.Pi / 2f) * (r * 0.35f),
-                         p.Disp + V2.FromAngle(MathX.Pi / 4f + k * MathX.Pi / 2f) * (r + 6f), 2f, new Rgba(0.8f, 0.55f, 1f, 0.8f));
-            else if (p.Kit == Kit.Summoner && !p.Downed)
-                for (int k = 0; k < 3; k++)
-                    Circle(p.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (r + 7f), 2.5f, new Rgba(0.6f, 1f, 0.7f, 0.9f), 8);
-            else if (p.Kit == Kit.Knight && !p.Downed)
-                DrawKnight(p, r, t);
-            else if (p.Kit == Kit.Ninja && !p.Downed)
-                DrawNinja(p, r, t, col);
-            else if (p.Kit == Kit.BloodMage && !p.Downed)
-                DrawBloodMage(p, r, t, col);  // BloodMageLook.cs
+            // The class's look on top: a mage's star, a summoner's motes, a knight's helm and weapon... (ClassLooks.cs)
+            var look = LookOf(p.Kit).Body;
+            if (look != null && !p.Downed)
+                look(this, p, r, t, col);
             // The real hitbox, drawn as a bright core.
             Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
             Circle(p.Disp, p.Def.HitR * 0.5f, col, 12);

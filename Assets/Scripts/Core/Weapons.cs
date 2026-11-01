@@ -6,6 +6,47 @@ namespace Arena
     /// Player weapons: firing volleys, the Revolver and Mender's Bow, and how far each weapon reaches.
     public partial class Game
     {
+        /// The Soldier: its weapons fire in FireVolley's own cases, its abilities in CastAbility (Abilities.cs). See KitDef (Classes.cs) for what each hook does.
+        internal static readonly KitDef SoldierKit = new KitDef
+        {
+            Id = Kit.Soldier, Name = "Soldier", Icon = "class_soldier",
+            Blurb = "Guns and gear. Full health.",
+        };
+
+        /// The Soldier's weapons (fired in FireVolley below).
+        /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
+        internal static readonly WeaponDef[] SoldierWeapons =
+        {
+            // Tank
+            new WeaponDef { Id = WeaponId.Scattergun, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0, Speed = 520f, Life = 0.5f, Damage = 7f, BotRange = 210f, ExtraDesc = "+2 pellets and a 15% tighter cone", Name = "Scattergun", FireInterval = 0.45f,
+                Desc = "A short-range spread of 5 pellets. Point-blank (within 120 px), each pellet does double and shoves the enemy back.",
+                Sound = Sfx.ShotShotgun },
+            new WeaponDef { Id = WeaponId.FlakCannon, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Speed = 380f, Life = 1.1f, Damage = 30f, ExtraDesc = "Shells burst into 2 more bomblets", Name = "Flak Cannon", FireInterval = 0.8f,
+                Desc = "Shells fly over enemies to your cursor and burst in the air there (30 within 80 px), destroying enemy bullets caught in the burst.",
+                Sound = Sfx.ShotCannon, AreaDesc = "blasts (and bomblets) 25% wider" },
+            new WeaponDef { Id = WeaponId.RiotRepeater, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Speed = 600f, Life = 0.8f, Damage = 11f, ExtraDesc = "+1 round per burst (each trigger pull fires a burst, then a short pause)", Name = "Riot Repeater", FireInterval = 0.18f,
+                Desc = "Steady single shots with a little spread. Each round that hits suppresses the enemy: it shoots 8% slower, up to 50% (25% for bosses), fading quickly.",
+                Sound = Sfx.ShotRifle },
+            // Healer
+            new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
+                Desc = "Blasts enemies away in a cone. Light damage; enemies it hits shed tiny health orbs.",
+                Sound = Sfx.ShotSuppressed },
+            new WeaponDef { Id = WeaponId.Pistol, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy.",
+                Sound = Sfx.ShotPistol },
+            new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%).",
+                Sound = Sfx.ShotBow },
+            // DPS
+            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
+                Desc = "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.",
+                Sound = Sfx.ShotAssault },
+            new WeaponDef { Id = WeaponId.Railgun, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f,
+                Desc = "Slow, devastating shots that pierce 3 enemies. The round's path stays charged for 1 s behind it, hurting anything in it (25 a second).",
+                Sound = Sfx.ShotSniper },
+            new WeaponDef { Id = WeaponId.BurstSmg, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Speed = 760f, Life = 0.8f, Damage = 5f, BotRange = 280f, ExtraDesc = "+1 bullet per shot, with a wider spray", Name = "Burst SMG", FireInterval = 0.055f,
+                Desc = "Sprays very fast shots. Keep firing to spin it up (2 s): the spray tightens and damage climbs to +60%. It winds down fast when you stop.",
+                Sound = Sfx.ShotSmg },
+        };
+
         /// Everything that speeds up firing: upgrades, Overdrive, Bullet Storm, Counterstance.
         float FireRate(Player p) => p.Stats.FireRateMult * (p.OverdriveT > 0f ? 2f : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * BloodFireRate(p);
@@ -413,14 +454,7 @@ namespace Arena
                     break;
                 }
                 default:
-                    if (w.Id >= WeaponId.BloodLash)
-                        FireBloodWeapon(p, aim, dir, muzzle, dmg, extra);  // BloodMage.cs
-                    else if (w.Id >= WeaponId.Kusarigama)
-                        FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra);  // Ninja.cs
-                    else if (w.Melee)
-                        FireKnightWeapon(p, aim, dmg, extra);  // Knight.cs
-                    else
-                        FireKitWeapon(p, aim, dir, muzzle, dmg, extra);  // mage and summoner weapons (Minions.cs)
+                    Classes.Get(w.Kit).Fire?.Invoke(this, p, aim, dir, muzzle, dmg, extra);  // the weapon's class fires it (its KitDef.Fire)
                     break;
             }
             firingWeapon = false;

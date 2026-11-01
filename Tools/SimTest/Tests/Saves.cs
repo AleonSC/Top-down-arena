@@ -32,6 +32,14 @@ static partial class Program
                 && bs.Role == Role.Healer && bs.Kit == Kit.Ninja && bs.Weapon == 2 && bs.Level == 9 && bs.Gold == 120 && bs.ReviveToken && Math.Abs(bs.HpFrac - 0.75f) < 0.01f
                 && bs.Taken.SequenceEqual(seat.Taken) && bs.BonusKeys[1] == "Dash" && Math.Abs(bs.Mastery["Dash"] - 123.5f) < 0.01f && bs.Run.Kills == 77,
                 "a saved run's text reads back the same (upgrades and abilities by name)");
+            // Saves from before the classes were renamed in the code (Kit.Mage, Kit.BloodMage) still load.
+            seat.Kit = Kit.Elementalist;
+            var oldMage = RunSave.Parse(made.ToText().Replace("Healer Elementalist ", "Healer Mage "));
+            seat.Kit = Kit.Hemomancer;
+            var oldBlood = RunSave.Parse(made.ToText().Replace("Healer Hemomancer ", "Healer BloodMage "));
+            seat.Kit = Kit.Ninja;
+            Check(made.ToText().Contains("Healer Ninja ") && oldMage?.Seats[0].Kit == Kit.Elementalist && oldBlood?.Seats[0].Kit == Kit.Hemomancer,
+                "saves that call the classes Mage and BloodMage (before the rename) load as the Elementalist and Hemomancer");
             Check(RunSave.Parse("not a save") == null && RunSave.Parse("") == null, "a file that isn't a save isn't read as one");
 
             // The host saves as each wave starts; the save has every seat and their picks.
@@ -41,7 +49,7 @@ static partial class Program
             host.Host(port, "Host", Role.Tank, 0, 0, Kit.Knight);
             var client = new Session();
             client.Game.Bot = true;
-            client.Join("127.0.0.1", port, "Friend", Role.Dps, 1, 0, Kit.Mage);
+            client.Join("127.0.0.1", port, "Friend", Role.Dps, 1, 0, Kit.Elementalist);
             var s = new[] { host, client };
             for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
             var g = host.Game;
@@ -53,7 +61,7 @@ static partial class Program
             var friendSeat = sv?.Seats.FirstOrDefault(x => x.Name == "Friend");
             Console.WriteLine("  autosave: {0} file(s); wave {1}, seats {2}, the friend's upgrades {3} (in game {4})", saves.Count, sv?.Wave, sv == null ? "" : string.Join(", ", sv.Seats.Select(x => x.Name + " " + x.Summary)), friendSeat?.Taken.Count, g.Players[2].Taken.Count);
             Check(saves.Count == 1 && sv.Wave == 2 && sv.Seats.Count == 2 && sv.Id == g.RunId, "the host saves the run as a wave starts (one slot per run)");
-            Check(friendSeat != null && friendSeat.Kit == Kit.Mage && friendSeat.Weapon == 1 && friendSeat.Taken.Count == g.Players[2].Taken.Count && friendSeat.Taken.Count(t => t == "Fortitude") >= 2,
+            Check(friendSeat != null && friendSeat.Kit == Kit.Elementalist && friendSeat.Weapon == 1 && friendSeat.Taken.Count == g.Players[2].Taken.Count && friendSeat.Taken.Count(t => t == "Fortitude") >= 2,
                 "each seat keeps its class, weapon and picks");
 
             // Play on a little, give the friend some mastery and gold, then everyone leaves between waves: saved there.
@@ -86,7 +94,7 @@ static partial class Program
             Console.WriteLine("  continued: wave {0} (client {1}), score {2} (client {3}); Pal is a {4} {5}, level {6} (client {7}), {8} upgrades (client {9}), gold {10}, mastery {11:0}",
                 g.Wave, c.Wave, g.Score, c.Score, pal?.Role, pal == null ? "" : Defs.KitName(pal.Kit), pal?.Level, palC?.Level, pal?.Taken.Count, palC?.Taken.Count, pal?.Gold, pal == null ? 0f : pal.MasteryXp.Values.FirstOrDefault());
             Check(g.Running && g.Resumed && c.Resumed && g.Wave == 3 && c.Wave == 3 && g.Score == wantScore && c.Score == wantScore, "continuing starts the next wave with the run's score, on both games");
-            Check(pal != null && pal.Role == Role.Dps && pal.Kit == Kit.Mage && pal.Level == wantLevel && palC?.Level == wantLevel && pal.Taken.Count == wantTaken && palC?.Taken.Count == wantTaken
+            Check(pal != null && pal.Role == Role.Dps && pal.Kit == Kit.Elementalist && pal.Level == wantLevel && palC?.Level == wantLevel && pal.Taken.Count == wantTaken && palC?.Taken.Count == wantTaken
                 && pal.Gold == 55 && pal.MasteryXp.Values.Any(v => v >= 74f), "a player in a seat gets back its class, level, picks, gold and mastery (seen on their own game)");
             Run(s, dt, 15f, () => g.State == MatchState.Fighting);
             Check(g.Wave == 4 && SaveStore.List().Count == 1 && SaveStore.List()[0].Id == sv.Id, "the continued run plays on and keeps saving to its slot");

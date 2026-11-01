@@ -10,7 +10,7 @@ static partial class Program
     {
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var host = new Session { AutoStart = 1, StartWave = 20 };
-        host.Host(nextPort++, "A", Role.Dps, 0, 0, Kit.BloodMage);
+        host.Host(nextPort++, "A", Role.Dps, 0, 0, Kit.Hemomancer);
         host.StartMatch();
         var g = host.Game;
         for (int i = 0; i < 300 && !g.Running; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }

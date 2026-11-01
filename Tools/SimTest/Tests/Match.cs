@@ -284,7 +284,7 @@ static partial class Program
         a.Join("127.0.0.1", port, "Friend A", Role.Healer);
         var b = new Session();
         b.Game.Bot = true;
-        b.Join("127.0.0.1", port, "Friend B", Role.Dps, 0, 0, Kit.Mage);
+        b.Join("127.0.0.1", port, "Friend B", Role.Dps, 0, 0, Kit.Elementalist);
         var all = new[] { host, a, b };
         for (int i = 0; i < 600 && (a.Screen != AppScreen.Game || b.Screen != AppScreen.Game); i++)
         {
@@ -531,7 +531,7 @@ static partial class Program
         var host = new Session { AutoStart = 2, StartWave = 4 };
         host.Game.Bot = true;
         host.Game.RecordFolder = folder;
-        host.Host(port, "Host", Role.Tank, 0, 0, Kit.Mage);
+        host.Host(port, "Host", Role.Tank, 0, 0, Kit.Elementalist);
         var client = new Session();
         client.Game.Bot = true;
         client.Join("127.0.0.1", port, "Friend", Role.Dps);

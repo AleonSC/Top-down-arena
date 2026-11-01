@@ -8,8 +8,24 @@ using Arena;
 // The Boss Lab: its bot fights from the command line, and its test.
 static partial class Program
 {
+    /// A seat's class on the lab's command line: the old letters (S = Soldier, M = Elementalist, U = Summoner, K = Knight,
+    /// N = Ninja, B = Hemomancer), or the start of any class's name ("Hemo", "knight"). Anything else is a Soldier.
+    static Kit LabKit(string s)
+    {
+        switch (s)
+        {
+            case "M": return Kit.Elementalist;
+            case "U": return Kit.Summoner;
+            case "K": return Kit.Knight;
+            case "N": return Kit.Ninja;
+            case "B": return Kit.Hemomancer;
+        }
+        var k = Classes.All.FirstOrDefault(c => s.Length > 1 && c.Name.StartsWith(s, StringComparison.OrdinalIgnoreCase));
+        return k != null ? k.Id : Kit.Soldier;
+    }
+
     // Boss Lab from the command line: run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]
-    // A seat is role/class/weapon, e.g. T/S/0 (Tank Soldier, first weapon), H/M/1, D/U/2 (U = summoner).
+    // A seat is role/class/weapon, e.g. T/S/0 (Tank Soldier, first weapon), H/M/1, D/U/2 (U = summoner; a class name works too: D/Hemo/0).
     public static List<LabOutcome> LabRun(int wave, BotSkill skill, int runs, string[] seats, bool quiet = false)
     {
         float dt = 1f / 60f;
@@ -24,7 +40,7 @@ static partial class Program
             {
                 var parts = seats[i].Split('/');
                 lab.Seats[i].Role = parts[0] == "T" ? Role.Tank : parts[0] == "H" ? Role.Healer : Role.Dps;
-                lab.Seats[i].Kit = parts.Length > 1 && parts[1] == "M" ? Kit.Mage : parts.Length > 1 && parts[1] == "U" ? Kit.Summoner : parts.Length > 1 && parts[1] == "K" ? Kit.Knight : parts.Length > 1 && parts[1] == "N" ? Kit.Ninja : parts.Length > 1 && parts[1] == "B" ? Kit.BloodMage : Kit.Soldier;
+                lab.Seats[i].Kit = parts.Length > 1 ? LabKit(parts[1]) : Kit.Soldier;
                 lab.Seats[i].Weapon = parts.Length > 2 ? int.Parse(parts[2]) : 0;
             }
             var host = new Session();

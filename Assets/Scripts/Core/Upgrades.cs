@@ -129,8 +129,8 @@ namespace Arena
         /// Every ability, indexed by AbilityId. Each class keeps its entries beside its cast code: Abilities.cs (Soldier and
         /// the card-only abilities), Minions.cs (Mage, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// BloodMage.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
-        public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.MageAbilities, Game.SummonerAbilities,
-            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.BloodMageAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities);
+        public static readonly AbilityDef[] Abilities = Registry(Game.SoldierAbilities, Game.ElementalistAbilities, Game.SummonerAbilities,
+            Game.UltimateAbilities, Game.KnightAbilities, Game.NinjaAbilities, Game.HemomancerAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities);
 
         /// Each role and class has its own ultimate; it can't be changed.
         static readonly AbilityId[] Ultimates = LobbyTable(true);
@@ -182,7 +182,8 @@ namespace Arena
             }
             int empty = Array.IndexOf(table, AbilityId.None);
             if (empty >= 0)
-                throw new InvalidOperationException("No " + (ultimates ? "ultimate" : "Space ability") + " for lobby place " + empty);
+                throw new InvalidOperationException("No " + (Role)(empty / per / Defs.KitCount) + " " + (ultimates ? "ultimate" : "Space ability (Choice " + empty % per + ")")
+                    + " for Kit." + (Kit)(empty / per % Defs.KitCount) + ": add it to that class's AbilityDef list");
             return table;
         }
 
@@ -405,39 +406,17 @@ namespace Arena
                 return u.Desc;
             if (u.Name == "Multishot")
                 return weapon.Name + ": " + weapon.ExtraDesc;
-            string area;
-            if (u.Name == "Homing Rounds" && AreaDesc.TryGetValue(weapon.Id, out area))
-                return weapon.Name + ": " + area + " per stack, instead of bending shots. 5% less damage per stack";
-            if (u.Name == "Homing Rounds" && (weapon.Id == WeaponId.WispLantern || weapon.Id == WeaponId.ImpCaller))
-                return weapon.Name + ": " + (weapon.Id == WeaponId.WispLantern ? "wisps" : "imps")
-                    + " pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack";
-            if (u.Name == "Barrage" && weapon.Id == WeaponId.RadiantOrb)
-                return "Radiant Orb: +1 light orb per stack that circles your orb, hurting enemies and healing allies it touches";
-            if (u.Name == "Barrage" && weapon.Id == WeaponId.ChainLight)
-                return "Chain Light: +1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone";
-            if (u.Name == "Barrage" && weapon.Id == WeaponId.ArcLightning)
-                return "Arc Lightning: +1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice";
+            if (u.Name == "Homing Rounds" && weapon.AreaDesc != null)
+                return weapon.Name + ": " + weapon.AreaDesc + " per stack, instead of bending shots. 5% less damage per stack";
+            if (u.Name == "Homing Rounds" && weapon.HomingDesc != null)
+                return weapon.Name + ": " + weapon.HomingDesc;
+            if (u.Name == "Barrage" && weapon.BarrageDesc != null)
+                return weapon.Name + ": " + weapon.BarrageDesc;
             string knight;
             if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
                 return knight;
             return u.Desc;
         }
-
-        /// What Homing Rounds grow on each area weapon (Game.AreaWeapon) instead of bending its shots.
-        static readonly Dictionary<WeaponId, string> AreaDesc = new Dictionary<WeaponId, string>
-        {
-            { WeaponId.Implosion, "the collapse hurts and pulls in enemies 25% farther out" },
-            { WeaponId.FlakCannon, "blasts (and bomblets) 25% wider" },
-            { WeaponId.Ofuda, "bursts 25% wider, for damage and healing" },
-            { WeaponId.StormHammer, "the electrified enemy's lightning reaches 25% farther" },
-            { WeaponId.ClotBolt, "blood pools 25% wider" },
-            { WeaponId.VeinTether, "the beam 25% wider" },
-            { WeaponId.LeechBeam, "the tendrils reach across a 25% wider arc" },
-            { WeaponId.FrostLance, "the icicle's splinters fly 25% further out" },
-            { WeaponId.GolemStaff, "the boulder crushes 25% wider" },
-            { WeaponId.ChainLight, "the cone of light 25% wider" },
-            { WeaponId.ArcLightning, "the lightning strip 25% wider" },
-        };
 
         /// What shot-based upgrades do for a Knight's melee weapon instead.
         static readonly Dictionary<string, string> KnightDesc = new Dictionary<string, string>

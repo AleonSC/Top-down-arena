@@ -154,7 +154,7 @@ namespace Arena
                 {
                     var p = val.Split(' ');
                     s.Role = Enum<Role>(p[0]);
-                    s.Kit = Enum<Kit>(p[1]);
+                    s.Kit = KitFromSave(p[1]);
                     s.Weapon = Math.Max(0, Math.Min(Defs.WeaponsPerRole - 1, I(p[2])));
                     s.Ability = Math.Max(0, Math.Min(Upgrades.RoleAbilityChoices - 1, I(p[3])));
                     break;
@@ -204,6 +204,9 @@ namespace Arena
         internal static int I(string s) => int.Parse(s.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture);
         internal static float Fl(string s) => float.Parse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture);
         internal static T Enum<T>(string s) where T : struct => (T)System.Enum.Parse(typeof(T), s.Trim());
+
+        /// A class by its name in a save: older saves call the Elementalist "Mage" and the Hemomancer "BloodMage".
+        internal static Kit KitFromSave(string s) => s.Trim() == "Mage" ? Kit.Elementalist : s.Trim() == "BloodMage" ? Kit.Hemomancer : Enum<Kit>(s);
     }
 
     /// The saved runs on this computer: one file per run in Folder (the front end points it at the game's data

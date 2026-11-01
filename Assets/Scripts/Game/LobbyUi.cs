@@ -313,7 +313,6 @@ namespace Arena
         }
 
         static readonly string[] RoleIcons = { "role_tank", "role_healer", "role_dps" };  // PixelArt.cs
-        static readonly string[] KitIcons = { "class_soldier", "class_elementalist", "class_summoner", "class_knight", "class_ninja", "class_hemomancer" };  // in Kit order
 
         void DrawLoadout(LobbyEntry me, Rect r, float t)
         {
@@ -382,7 +381,7 @@ namespace Arena
                 while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 14f)
                     kitSize--;
             for (int i = 0; i < Defs.KitCount; i++)
-                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 48f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(KitIcons[i]), null, kitSize, glow: false))
+                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 48f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(Classes.Get((Kit)i).Icon), null, kitSize, glow: false))
                 {
                     session.RequestKit((Kit)i);
                     kitChoice = (Kit)i;

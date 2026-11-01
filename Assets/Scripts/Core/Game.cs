@@ -1355,8 +1355,8 @@ namespace Arena
             TickKnights(dt);  // Knight.cs
             TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
             TickScytheClock(dt);  // Twin Scythes' cut timers (ReaperLoot.cs)
-            TickNinjas(dt);   // Ninja.cs
-            TickBloodMages(dt);  // BloodMage.cs
+            foreach (var tick in Classes.TickHooks)  // each class's KitDef.Tick: TickNinjas (Ninja.cs), TickBloodMages (BloodMage.cs)
+                tick(this, dt);
             TickShocks(dt);   // Minions.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // Minions.cs: the Railgun's charged paths
             TickPack(dt);     // Minions.cs: the Wolf Whistle's prey

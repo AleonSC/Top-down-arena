@@ -37,7 +37,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.GlacialTomb, Kit = Kit.Mage, Role = Role.Tank, Choice = AbilityDef.Ult, Instant = true,
+                Id = AbilityId.GlacialTomb, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Ult, Instant = true,
                 Name = "Glacial Tomb", Cooldown = 75f, Desc = "Erase every enemy bullet and freeze every enemy solid for 4 s (bosses take 250 damage instead).",
                 Capstone = "Enemies stay frozen for 6 s and bosses take 500.",
                 Bot = b => b.Danger,
@@ -57,7 +57,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Sanctum, Kit = Kit.Mage, Role = Role.Healer, Choice = AbilityDef.Ult,
+                Id = AbilityId.Sanctum, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Ult,
                 Name = "Sanctum", Cooldown = 80f, Desc = "A holy dome for 7 s: allies inside heal fast and can't go down, and bullets can't get in.",
                 Capstone = "The dome is half again as wide (300 px).",
                 Bot = b => b.AllyHurt,
@@ -77,7 +77,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.MeteorStorm, Kit = Kit.Mage, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Id = AbilityId.MeteorStorm, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
                 Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
                 Capstone = "Twenty meteors.",
             },

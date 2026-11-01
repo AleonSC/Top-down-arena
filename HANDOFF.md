@@ -16,7 +16,7 @@ and tool is described there). This document is the developer-facing overview; re
 - **A run:** 50 waves, a boss every 5 (Warden, Hive Queen, Twin Reapers, Singularity, Colossus, Duelist,
   Lich, Storm Herald, Devourer, Eclipse), then optional endless mode. Level-ups give a pick of 3 upgrade
   cards (rerolls available); each boss gives a legendary upgrade and a weapon mod.
-- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer; in code the Elementalist is still `Kit.Mage` and the Hemomancer `Kit.BloodMage`, only `Defs.KitName` shows the new names), then one
+- **Players** pick a **role** (Tank, Healer, DPS) × **class/kit** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer; `Kit.Elementalist` and `Kit.Hemomancer` were `Kit.Mage` and `Kit.BloodMage` until Oct 2026, and many methods and files still say Mage or BloodMage, e.g. `BloodMage.cs`), then one
   of 3 weapons and one of 3 Space abilities for that combination. Each role × kit has an ultimate (F).
   Bonus abilities on Q/E/Shift come from very rare upgrade cards. Abilities level up with use (**mastery**,
   levels 1-5, with a level-5 "capstone" bonus each).
@@ -66,7 +66,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Abilities.cs` | 0.2k | `HostAbility`, `CastAbility` (Soldier abilities; kits, Knight and ultimates have their own files) |
 | `Waves.cs` | 0.12k | `TickWaves`, `WaveCleared`, `CheckGameOver` |
 | `Ninja.cs` | 0.45k | the Ninja: `FireNinjaWeapon`, `NinjaAbility`, Substitution's `MovePlayer` (`Msg.Teleport`), Shadow Step's landing, clones and Vanish (`NinjaTarget`), Smoke Bomb's slowed bullets, `TickNinjas` |
-| `BloodMage.cs` | 0.55k | the Hemomancer (`Kit.BloodMage`): `FireBloodWeapon`, Implosion (`ImplodeTarget` picks the enemy under `Player.AimAt`, `ImplodeReady` holds fire without one, `pendingImplosions`/`ResolveImplosions` from `Collide`, `FxKind.Implode`), `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
+| `BloodMage.cs` | 0.55k | the Hemomancer (`Kit.Hemomancer`): `FireBloodWeapon`, Implosion (`ImplodeTarget` picks the enemy under `Player.AimAt`, `ImplodeReady` holds fire without one, `pendingImplosions`/`ResolveImplosions` from `Collide`, `FxKind.Implode`), `BloodShotHit` (leech, pools, orb drops), health costs (`PayHealth`, `PayAbilityCost` from `HostAbility`, `castPaid`), Blood Price (`BloodDamageMult` in `HurtEnemy`), `BloodLifesteal`, `BloodAbility`, Crimson Pact / Blood Rite hooks in `Damage` (`BloodCut`, `BloodTookHit`), `TickBloodMages` (Pact burst, Frenzy drain, Apotheosis payout, Blood Boils) |
 | `TextOverrides.cs` | 0.15k | the dev text editor's edits: `Apply` (what to show; digit runs are "#" in keys, so numbers stay the game's), `Problem` (an edit must keep its numbers), `TextOverrides.txt` load/save |
 | `Showcase.cs` | 0.2k | the lobby's loadout preview: `Showcase` runs a private offline `Game` (`Session.HostOffline`, `NetPeer.Offline`) with 3 target dummies; `Game.ShowcaseMode` hooks skip waves, freeze enemies, and block XP/mastery |
 | `Difficulty.cs` | 0.25k | the run's difficulty: presets (Easy / Normal / Hard / Nightmare) and Custom, every knob's range and unit, `Game.Diff` / `D(DiffKnob)`, `EnemyDamageScale`; the lobby tab is `DifficultyUi.cs` |
@@ -91,7 +91,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, the picker list (`Choices`, built from each `EnemyDef.Picker`), building a practice wave |
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
-| `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
+| `Classes.cs` | 0.08k | the class registry: `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks `Fire`, `Ability`, `Tick`, `TickEnemy`, `OnShotHit`, `OnKill`), `Classes.All` (Kit order, checked at start-up) and the gathered hook lists the game loop runs |
+| `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (each class's `WeaponDef`s live in its own file; `Defs.Weapons` gathers them) (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
 | `BestiaryData.cs` | 0.1k | the in-game Bestiary's words (`BestiaryEntry`, `BestiaryAttack`); most come from `BestiaryData.Generated.cs`, built from the Bestiary page by `Docs/Bestiary/build_data.js` |
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
@@ -119,6 +120,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
+| `ClassLooks.cs` | 0.05k | one `KitLook` per class (its body drawn over the player, and auras under them), in Kit order; the Elementalist's star and the Summoner's motes |
 | `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
@@ -149,10 +151,43 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   arena (paths never apply to boss waves).
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
   patches itself; only the offer, the choice and each patch's spawn go over the network.
-- **Class tables** (weapons, Space abilities, ultimates) are indexed by role × kit with `Defs.KitCount = 6`; a new class's
-  entries go after each role's last class. Ninja and Blood Mage weapons are routed by weapon id (`>= WeaponId.Kusarigama`,
-  `>= WeaponId.BloodLash`). Blood Mage abilities cost health: `AbilityDef.HealthCost` (share of max health, or of
-  current with `CostsCurrent`), paid in `HostAbility` before the cast, never below 1 HP.
+- **Classes** are registries, like abilities: each class keeps its `KitDef` (name, blurb, icon, health and speed shares,
+  hooks), its `WeaponDef` list and its `AbilityDef` list in its own file; `Classes.All`, `Defs.Weapons` and
+  `Upgrades.Abilities` gather them, and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
+  role × kit, `Defs.KitCount = 6`). FireVolley sends a weapon without its own case to its class's `KitDef.Fire`;
+  CastAbility's default goes to `KitAbility`, then each class's `KitDef.Ability`, then `Ultimate`. The look is a
+  `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Blood Mage abilities cost health:
+  `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the cast, never below 1 HP.
+
+### Adding a class
+
+A class is mostly two new files plus a line in each registry. Templates: `Docs/ClassTemplate/MyClass.cs` (logic) and
+`Docs/ClassTemplate/MyClassLook.cs` (drawing); both compile once copied in and renamed (checked as a 7th class in Oct 2026).
+
+1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit` value
+   (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 Space and 3 ultimate `AbilityId`s (`Upgrades.cs`).
+   New player bullet kinds, if any: a `Defs` byte constant with its radius and colour (`BulletRadius`, `BulletColor`) and
+   its drawing in `WorldRenderer.DrawShot`. **Bump `Session.ProtocolVersion`.**
+2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
+   `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
+   `AbilityDef`s (Space `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
+   weapon), the cast method (one `case` per ability, ultimates included, returning true) and a tick if it needs one.
+   Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon.
+   Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).
+3. **Register it** in three lists: `Classes.All` (`Classes.cs`), `Defs.Weapons` (`Defs.cs`), `Upgrades.Abilities`
+   (`Upgrades.cs`). The game stops at start-up with a message naming anything missing or doubled.
+4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
+   fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
+5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per Space ability
+   (`ByUpgrade` maps the ability's name to it). Ultimates have none.
+6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
+   look). Then a sim test file for the class (`Tests/<Class>.cs`, see `Tests/Ninja.cs`), `run.sh 1 1 extra` and `aim`
+   (every weapon's extra projectiles and range), a Boss Lab run (`run.sh 1 1 lab 5 2 3 D/<Name>/0`), previews
+   (`KIT=<n> Tools/Preview/shot.sh <name> kitgrid`, `LOADOUT=...` in `lobby`), README, Armory (`Docs/Armory`).
+
+Things that already work for any class without edits: the lobby's class cards (they size themselves to
+`Defs.KitCount`), the Boss Lab's class picker, the Field guide, saves and records (by name), the session recorder.
+The lobby fits about 8 class cards in a row before they get too small.
 
 ## 3. Testing and previewing (no Unity in the cloud container)
 
@@ -164,7 +199,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the
   **`Suites` table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`,
-  `Parry`, `Knight`, `Ninja`, `BloodMage`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `Parry`, `Knight`, `Ninja`, `BloodMage`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
   `TextEdit`). `run.sh list` prints every suite.
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
@@ -184,9 +219,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
     for the Warden to fire; it now fires its own test shot. If one starts failing for every run, it's a real
     break (or that seed found an edge): check it with `SEED=random` a few times before blaming the seed.
   - Boss Lab batch from the CLI: `run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]`, seats like
-    `T/K/1` (Tank Knight, second weapon; `N` = Ninja, `B` = Blood Mage).
-- **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 11 fixed, seeded scenes (every enemy and minion
-  type, each class's abilities and ultimate, two Ninja scenes; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
+    `T/K/1` (Tank Knight, second weapon; `M` = Elementalist, `U` = Summoner, `N` = Ninja, `B` = Hemomancer, or the start of
+    any class's name, e.g. `D/Hemo/0`).
+- **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
+  type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes, so every class's own shots are drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`.
   Modes: `hud`, `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `howto`, `bg`
@@ -220,6 +256,22 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Classes are registries (Oct 2026), no protocol change:** adding a class went from edits in ~15 files to two new files and
+three registry lines (see "Adding a class" in section 2). `KitDef` (`Classes.cs`: name, blurb, icon, health and speed
+shares, hooks `Fire`, `Ability`, `Tick`, `TickEnemy`, `OnShotHit`, `OnKill`) replaced `KitName`/`KitHpMult`/`KitSpeedMult`'s
+ternaries, `Menus.KitBlurb`'s switch, `LobbyUi.KitIcons`, `ClampKit`'s last-class check, FireVolley's weapon-id ranges and
+the Knight/Ninja/Blood ability chain; the Ninja's and Hemomancer's ticks and `BloodShotHit` run through the hooks (same
+order as before; the Knight's tick stays a plain call because it also times everyone's boss contact). Each class's
+`WeaponDef`s moved into its file with `Kit`, `Role`, `Choice` (`Defs.Weapons` is gathered and checked like
+`Upgrades.Abilities`), and `Sound`, `AreaDesc`, `HomingDesc`, `BarrageDesc` replaced `ShotSound`'s switch, `AreaWeapon`'s
+list and `DescFor`'s per-weapon cases. Front end: `Game/ClassLooks.cs` (`KitLook` per class). `Kit.Mage` and `Kit.BloodMage`
+are now `Kit.Elementalist` and `Kit.Hemomancer` (same numbers; old saves load through `KitFromSave`; session JSON now says
+the new names). New: `run.sh 1 1 classes` (also in the feature suite), the templates in `Docs/ClassTemplate/`, Boss Lab
+seats by class name (`D/Hemo/0`). Proven unchanged: a fingerprint of every weapon's fields, the lobby tables, every
+weapon's shot sound and area flag and every upgrade card's text for every weapon (8,000 lines) was identical; the render
+check (now 16 scenes: two Ninja and three Hemomancer scenes added, after breaking each shot hook on purpose went
+unnoticed with the old 11) was IDENTICAL; both suites pass as before. The test found that no ultimate has a pixel icon (by design, it seems).
 
 **Warden gates stop for a moment (Oct 2026), no protocol change:** each Lockdown gate slides `GateHoldIn` (30 px) in, stops for `GateHold` (0.3 s) with its doors flashing (`WardenLook.DrawGate`, `Game.GateHolding`), then carries on at 180 px/s. `WardenGate.Warn` now keeps counting down past 0 and `AdvanceGates` sets `Front` from `-Warn` (`GateMoved`), so host and clients place it the same way from the existing snapshot fields. The web Bestiary's demo does the same. Test: `warden` checks the stop on host and client. Preview: `WARDEN=0.5 GATEHOLD=1 Tools/Preview/shot.sh <name> hud 5 13`. Asked for after a solo Tank Elementalist run died to the first gate with 14 HP (that session's analysis: a solo Tank does about a third of a DPS's damage to the Warden, 199-208 s fights in the Boss Lab).
 
@@ -349,7 +401,7 @@ copies of the same numbers:
 
 | Adding a... | Touches |
 |---|---|
-| **Weapon** | `Defs` (definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
+| **Weapon** | its `WeaponDef` in its class's file (since Oct 2026: lobby place, numbers, sound, area and card texts; before, `Defs` held the definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory |
 | **Ability** | `AbilityId` · its `AbilityDef` entry in its class's file (lobby place, name, cooldown, texts, capstone, instant, charges, bot rule; since Oct 2026) · its cast `case` next to the entry (`CastAbility` / `KitAbility` / `KnightAbility` / `NinjaAbility` / `BloodAbility` / `Ultimate`), including what its capstone does · `PixelArt` icon by name · README · Armory |
 | **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldRenderer.DrawEnemy` · README · Bestiary (then `node Docs/Bestiary/build_data.js` for the in-game one) |
 
@@ -361,7 +413,11 @@ copies of the same numbers:
    instead of 5+ parallel switches. Adding a Knight-sized class took most of a session because of this.
 3. ✅ **Done (Oct 2026), data only (owner's choice):** each `EnemyDef` holds its Practice `Blurb`, its picker group (`PickerGroup`: the picker lists by group, then `EnemyType` order) and `Late`/`Heavy` flags; `BlurbOf`, `Choices`, `IsLateGame` and `Heavy` read them. AI, drawing, boss sounds and music stay per-type switches. **An enemy registry** in the same spirit (definition + blurb + draw style + AI hooks), so the Practice
    Range, Bestiary and README tables could be generated rather than hand-kept.
-4. **Generate the reference docs** (README tables, Armory/Bestiary data) from the definitions with a small
+4. ✅ **Done (Oct 2026), the class side:** a class is a `KitDef` (`Classes.cs`) with hooks, its weapons and abilities
+   are lists in its own file, the look is a `KitLook` line, and the `classes` sim test checks a class is complete;
+   see "Adding a class" in section 2. The scattered per-weapon lists (`ShotSound`, `AreaWeapon`, the card texts) became
+   `WeaponDef` fields.
+5. **Generate the reference docs** (README tables, Armory/Bestiary data) from the definitions with a small
    tool, so balance changes don't need three manual edits.
 
 ### 6.3 File organisation

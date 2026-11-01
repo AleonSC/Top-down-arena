@@ -1412,7 +1412,7 @@ static partial class Program
     {
         float dt = 1f / 60f;
         var lab = new BossLab { Wave = 20, Skill = BotSkill.Good, PlayerCount = 1, Seed = 3 };
-        lab.Seats[0].Role = Role.Healer; lab.Seats[0].Kit = Kit.Mage;
+        lab.Seats[0].Role = Role.Healer; lab.Seats[0].Kit = Kit.Elementalist;
         var host = new Session();
         lab.Start(host, nextPort++);
         var g = host.Game;

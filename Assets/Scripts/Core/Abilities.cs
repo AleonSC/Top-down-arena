@@ -317,7 +317,7 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 0.95f, 1f), 40f, 0.35f, Sfx.Ability);
                     break;
                 default:
-                    KitAbility(p, p.Slots[slot].Id, target);  // mage and summoner abilities (Minions.cs)
+                    KitAbility(p, p.Slots[slot].Id, target);  // mage and summoner abilities (Minions.cs), then each class's KitDef.Ability, then ultimates
                     break;
             }
         }

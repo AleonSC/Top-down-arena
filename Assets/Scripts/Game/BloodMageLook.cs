@@ -397,8 +397,10 @@ namespace Arena
         }
 
         /// The Blood Mage's shots.
-        void DrawBloodShot(Bullet b, Rgba c, float t)
+        bool DrawBloodShot(Bullet b, Rgba c, float t)  // KitLook.Shot: false for any other kind
         {
+            if (b.Kind < Defs.BloodShot || b.Kind > Defs.BoneSpearShot)
+                return false;
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
             switch (b.Kind)
             {
@@ -433,6 +435,7 @@ namespace Arena
                     DrawDrop(b.Pos, b.Radius, dir, c);
                     break;
             }
+            return true;
         }
 
         /// The Blood Mage's zones: the Siphon Field drawing motes in, and a Clot Bolt's glossy pool.

@@ -84,7 +84,7 @@ static partial class Program
         a.Item1.Leave("");
 
         // Martyr alone: pay 40%, and you're warded: going down puts you straight back up at 50%.
-        var m = Solo(Kit.BloodMage, 2);
+        var m = Solo(Kit.Hemomancer, 2);
         var mg = m.Item1.Game; var mm = mg.Players[1];
         Check(mm.Slots[0].Id == AbilityId.Martyr, "the Hemomancer Healer's third Space ability is Martyr");
         float before = mm.Hp;

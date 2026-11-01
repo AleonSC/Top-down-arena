@@ -74,7 +74,7 @@ static partial class Program
     // Every mage and summoner weapon and ability, over the network.
     static void KitSweep(float dt)
     {
-        foreach (var kit in new[] { Kit.Mage, Kit.Summoner })
+        foreach (var kit in new[] { Kit.Elementalist, Kit.Summoner })
         foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
         for (int choice = 0; choice < 3; choice++)
         {
@@ -163,7 +163,7 @@ static partial class Program
     static void UltimateSweep(float dt)
     {
         var seenUlts = new HashSet<AbilityId>();
-        foreach (var kit in new[] { Kit.Soldier, Kit.Mage, Kit.Summoner })
+        foreach (var kit in new[] { Kit.Soldier, Kit.Elementalist, Kit.Summoner })
         foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
         {
             int port = nextPort++;

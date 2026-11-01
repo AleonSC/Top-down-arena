@@ -546,7 +546,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Tank, 1, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Tank, 1, 0, Kit.Elementalist);
         var g = host.Game;
         host.StartMatch();
         var me = g.Players[1];
@@ -583,7 +583,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Tank, 2, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Tank, 2, 0, Kit.Elementalist);
         var g = host.Game;
         host.StartMatch();
         var me = g.Players[1];
@@ -732,7 +732,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Healer, 0, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Healer, 0, 0, Kit.Elementalist);
         var g = host.Game;
         host.StartMatch();
         var me = g.Players[1];
@@ -790,7 +790,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.BloodMage);
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Hemomancer);
         var client = new Session();
         client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
         var s = new[] { host, client };
@@ -864,7 +864,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Elementalist);
         var g = host.Game;
         host.StartMatch();
         var me = g.Players[1];
@@ -1011,7 +1011,7 @@ static partial class Program
 
         // Blood Bolts.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BloodBolts);
-        me.Kit = Kit.BloodMage;
+        me.Kit = Kit.Hemomancer;
         var bb = place(new[] { from + new V2(200f, 0f), from + new V2(200f, 60f) });
         Func<int, float> Bolts = n =>
         {
@@ -1096,7 +1096,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Mage);
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Elementalist);
         var client = new Session();
         client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
         var s = new[] { host, client };
@@ -1199,7 +1199,7 @@ static partial class Program
         var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Dps, 0, 0, Kit.Elementalist);
         var g = host.Game;
         host.StartMatch();
         var me = g.Players[1];
@@ -1476,7 +1476,7 @@ static partial class Program
 
         // Bone Spear.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoneSpear);
-        me.Kit = Kit.BloodMage;
+        me.Kit = Kit.Hemomancer;
         me.Hp = me.MaxHp * 0.5f;
         volley.Invoke(g, new object[] { me, 0f, 0 });
         float paid = me.MaxHp * 0.5f - me.Hp;
@@ -1695,7 +1695,7 @@ static partial class Program
         var damage = typeof(Game).GetMethod("Damage", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.BloodMage);
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Hemomancer);
         var client = new Session();
         client.Join("127.0.0.1", port, "Tank", Role.Tank, 0);
         var s = new[] { host, client };
@@ -1918,7 +1918,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Mage);
+        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Elementalist);
         var g = host.Game;
         g.Bot = false;
         host.StartMatch();
@@ -2235,12 +2235,12 @@ static partial class Program
         Check(Math.Abs(ball.Splash - Game.FlakBurst * 1.75f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.85f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
         // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
-        hp.Weapon = Defs.Weapon(Role.Tank, Kit.BloodMage, 2);
+        hp.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 2);
         V2 at = hp.Pos + V2.FromAngle(50f * MathX.Pi / 180f) * 100f;
         Check(hp.Weapon.Name == "Leech Tendrils" && Math.Abs(Game.GraspArcFor(hp) - Game.GraspArc * 1.75f) < 0.001f
             && Game.InGraspArc(hp.Pos, 0f, at, 5f, Game.GraspArcFor(hp)) && !Game.InGraspArc(hp.Pos, 0f, at, 5f),
             "Leech Tendrils with Homing Rounds reach across a wider arc (75% at 3 stacks)");
-        hp.Weapon = Defs.Weapon(Role.Dps, Kit.BloodMage, 1);
+        hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 1);
         var core = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f, 600f), 0f, 0, false });
         var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f + 2f * core.Radius + 80f, 600f), 0f, 0, false });
         core.SpawnT = far.SpawnT = 0f; core.Hp = core.MaxHp = far.Hp = far.MaxHp = 1e6f;
@@ -2258,7 +2258,7 @@ static partial class Program
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
         var host = new Session { AutoStart = 2 };
-        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Mage);
+        host.Host(port, "Healer", Role.Healer, 0, 0, Kit.Elementalist);
         var client = new Session();
         client.Join("127.0.0.1", port, "Friend", Role.Dps);
         var s = new[] { host, client };
