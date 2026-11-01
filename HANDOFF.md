@@ -51,6 +51,7 @@ Tools/SessionReport/   report.py: summarises recorded session JSON
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
+Tools/SoundCheck/      renders the synthesized sounds to WAV to listen without Unity  [added Nov 2026]
 Docs/                  sources of the Armory and Bestiary reference pages            [added in the audit]
 ```
 
@@ -229,6 +230,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     `T/K/1` (Tank Knight, second weapon; `M` = Elementalist, `U` = Summoner, `N` = Ninja, `B` = Hemomancer, or the start of
     any class's name, e.g. `D/Hemo/0`).
 - **Visual effects check:** `Tools/RenderCheck/juice.sh` drives the effects (`Game/Juice.cs`) through real frames and checks each one fires; the render check below runs with effects off.
+- **Sound check:** `Tools/SoundCheck/render.sh [prefix]` renders the synthesized sound effects whose names start with prefix (default `Boss`) from `SoundBank.cs` to `Tools/SoundCheck/out/*.wav`, so they can be heard (and their levels checked) without Unity.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
   type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes, so every class's own shots are drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.

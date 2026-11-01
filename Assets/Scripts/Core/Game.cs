@@ -20,6 +20,9 @@ namespace Arena
         SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
         SwingLight, SwingHeavy, Clang,  // Knight swings, and a shield taking a hit
         BossShift, BossCharge, BossPulse, BossChime,  // soft cues for bosses' abilities (BossSounds.cs)
+        // Bosses' own mechanics (SoundBank.cs recipes; wired in each boss's file). Kept at the end so values don't shift.
+        BossLaserWarn, BossLaser, BossSlam, BossWhoosh, BossSiren, BossBuzz, BossSplat, BossGong,
+        BossScythe, BossThunder, BossWarp, BossRumble, BossCrack, BossCage, BossChomp,
     }
 
     public struct SoundCue

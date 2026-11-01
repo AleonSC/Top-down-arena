@@ -315,6 +315,28 @@ namespace Arena
             Set(Sfx.BossCharge, Tone(0.6f, Osc.Triangle, 260f, 620f, 0.08f, lowpass: 0.5f, attack: 0.25f, decay: 1.2f), 0.3f);
             Set(Sfx.BossPulse, Tone(0.5f, Osc.Sine, 95f, 45f, 0.16f, noise: 0.15f, lowpass: 0.15f, attack: 0.02f, decay: 1.5f), 0.3f);
             Set(Sfx.BossChime, Notes(new[] { 392f, 523f, 659f }, 0.09f, Osc.Sine, 0.09f, 1f), 0.3f);
+            // Bosses' own mechanics: each boss's attacks have a sound of their own (wired in each boss's file).
+            Set(Sfx.BossLaserWarn, Tone(0.7f, Osc.Triangle, 380f, 1500f, 0.14f, lowpass: 0.5f, attack: 0.45f, decay: 0.6f), 0.25f);  // a thin rising whine
+            Set(Sfx.BossLaser, Finish(Mix(Tremolo(Tone(0.65f, Osc.Saw, 160f, 120f, 0.5f, noise: 0.12f, lowpass: 0.35f, attack: 0.01f, decay: 1f), 38f, 0.5f),
+                Tone(0.5f, Osc.Sine, 1300f, 900f, 0.18f, attack: 0.005f, decay: 2f)), 0.32f), 0.25f);  // a buzzing beam with a bright edge
+            Set(Sfx.BossSlam, Finish(Mix(Tone(0.9f, Osc.Sine, 75f, 28f, 1f, noise: 0.5f, lowpass: 0.08f, attack: 0.002f, decay: 2.2f),
+                Tone(0.08f, Osc.Sine, 900f, 300f, 0.5f, noise: 0.9f, lowpass: 0.5f, decay: 3f)), 0.6f), 0.15f);  // a crack, then a deep thud
+            Set(Sfx.BossWhoosh, Tone(0.45f, Osc.Sine, 320f, 90f, 0.5f, noise: 0.9f, lowpass: 0.22f, attack: 0.12f, decay: 1.3f), 0.12f);  // something big rushing past
+            Set(Sfx.BossSiren, Finish(Concat(Tone(0.22f, Osc.Square, 660f, 660f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 0.3f), Tone(0.22f, Osc.Square, 880f, 880f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 0.3f),
+                Tone(0.22f, Osc.Square, 660f, 660f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 0.3f), Tone(0.3f, Osc.Square, 880f, 880f, 0.3f, lowpass: 0.25f, attack: 0.02f, decay: 1.5f)), 0.14f), 0.8f);  // the prison alarm
+            Set(Sfx.BossBuzz, Finish(Tremolo(Tone(0.75f, Osc.Saw, 150f, 175f, 0.6f, noise: 0.2f, lowpass: 0.3f, attack: 0.12f, decay: 0.8f), 27f, 0.7f), 0.22f), 0.3f);  // a swarm
+            Set(Sfx.BossSplat, Tone(0.28f, Osc.Sine, 190f, 55f, 0.38f, noise: 0.65f, lowpass: 0.3f, attack: 0.002f, decay: 3f), 0.1f);  // something wet landing
+            Set(Sfx.BossGong, Finish(Reverb(Bell(1.8f, 98f, 0.6f)), 0.42f), 0.6f);  // a deep bell: stage shifts, rites, tolls
+            Set(Sfx.BossScythe, Finish(Mix(Tone(0.22f, Osc.Sine, 1200f, 350f, 0.4f, noise: 0.85f, lowpass: 0.5f, attack: 0.03f, decay: 1.6f),
+                Tone(0.35f, Osc.Sine, 2300f, 2050f, 0.12f, attack: 0.04f, decay: 2.5f)), 0.36f), 0.1f);  // a blade's swish with a ring
+            Set(Sfx.BossThunder, Finish(Mix(Tone(0.1f, Osc.Sine, 2000f, 600f, 0.9f, noise: 1f, lowpass: 0.8f, decay: 4f),
+                Tremolo(Tone(1.6f, Osc.Sine, 60f, 35f, 0.8f, noise: 0.7f, lowpass: 0.04f, attack: 0.03f, decay: 1.6f), 6f, 0.4f)), 0.6f), 0.2f);  // a crack, then rolling thunder
+            Set(Sfx.BossWarp, Finish(Reverse(Tone(0.85f, Osc.Sine, 700f, 70f, 0.5f, noise: 0.35f, lowpass: 0.28f, decay: 2f)), 0.34f), 0.4f);  // an in-rush: something pulling everything in
+            Set(Sfx.BossRumble, Finish(Tremolo(Tone(1.3f, Osc.Sine, 50f, 38f, 0.8f, noise: 0.8f, lowpass: 0.035f, attack: 0.2f, decay: 1.2f), 9f, 0.5f), 0.5f), 0.4f);  // the ground shaking
+            Set(Sfx.BossCrack, Finish(Mix(Crackle(0.35f, 7), Tone(0.3f, Osc.Sine, 120f, 50f, 0.6f, noise: 0.5f, lowpass: 0.12f, decay: 2.5f)), 0.42f), 0.15f);  // stone breaking
+            Set(Sfx.BossCage, Finish(Concat(Tone(0.12f, Osc.Square, 720f, 690f, 0.3f, noise: 0.1f, lowpass: 0.6f, decay: 4f), Tone(0.4f, Osc.Square, 540f, 520f, 0.3f, noise: 0.1f, lowpass: 0.6f, decay: 3.5f)), 0.3f), 0.3f);  // bars slamming shut
+            Set(Sfx.BossChomp, Finish(Concat(Tone(0.08f, Osc.Sine, 160f, 80f, 0.6f, noise: 0.6f, lowpass: 0.2f, decay: 3f), Tone(0.16f, Osc.Sine, 140f, 60f, 0.8f, noise: 0.5f, lowpass: 0.18f, decay: 3f)), 0.45f), 0.12f);  // jaws snapping shut
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
@@ -585,6 +607,82 @@ namespace Arena
                 y += lowpass * (x - y);
                 float env = Mathf.Min(1f, t / attack) * Mathf.Pow(1f - u, decay);
                 data[i] = y * env * vol;
+            }
+            return data;
+        }
+
+        /// Two or more layers played together (the longest sets the length).
+        static float[] Mix(params float[][] layers)
+        {
+            int n = 0;
+            foreach (var l in layers)
+                n = Math.Max(n, l.Length);
+            var outp = new float[n];
+            foreach (var l in layers)
+                for (int i = 0; i < l.Length; i++)
+                    outp[i] += l[i];
+            return outp;
+        }
+
+        /// Sounds one after another.
+        static float[] Concat(params float[][] parts)
+        {
+            int n = 0;
+            foreach (var p in parts)
+                n += p.Length;
+            var outp = new float[n];
+            int at = 0;
+            foreach (var p in parts)
+            {
+                Array.Copy(p, 0, outp, at, p.Length);
+                at += p.Length;
+            }
+            return outp;
+        }
+
+        /// Played backwards: a decaying sweep becomes a swell (an in-rush).
+        static float[] Reverse(float[] data)
+        {
+            var outp = (float[])data.Clone();
+            Array.Reverse(outp);
+            return outp;
+        }
+
+        /// A wobble in loudness (hz times a second; depth 0..1): buzzing, humming, rumbling.
+        static float[] Tremolo(float[] data, float hz, float depth)
+        {
+            for (int i = 0; i < data.Length; i++)
+                data[i] *= 1f - depth * (0.5f + 0.5f * Mathf.Sin(2f * Mathf.PI * hz * i / Rate));
+            return data;
+        }
+
+        /// A struck bell: a few inharmonic partials, each dying away at its own pace.
+        static float[] Bell(float dur, float f, float vol)
+        {
+            float[] ratio = { 1f, 2.76f, 5.4f, 8.93f }, amp = { 1f, 0.5f, 0.25f, 0.12f }, life = { 1f, 0.6f, 0.35f, 0.2f };
+            int n = (int)(dur * Rate);
+            var data = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / Rate, u = (float)i / n, x = 0f;
+                for (int k = 0; k < ratio.Length; k++)
+                    x += amp[k] * Mathf.Sin(2f * Mathf.PI * f * ratio[k] * t) * Mathf.Pow(Mathf.Max(0f, 1f - u / life[k]), 2f);
+                data[i] = x * vol * Mathf.Min(1f, t / 0.004f);
+            }
+            return data;
+        }
+
+        /// A burst of sharp clicks (stone cracking), fading over dur.
+        float[] Crackle(float dur, int clicks)
+        {
+            int n = (int)(dur * Rate);
+            var data = new float[n];
+            for (int c = 0; c < clicks; c++)
+            {
+                int at = (int)(n * Mathf.Pow((float)rng.NextDouble(), 1.6f));
+                float amp = 0.5f + 0.5f * (float)rng.NextDouble();
+                for (int i = 0; i < Rate / 200 && at + i < n; i++)
+                    data[at + i] += ((float)rng.NextDouble() * 2f - 1f) * amp * (1f - (float)i / (Rate / 200));
             }
             return data;
         }
