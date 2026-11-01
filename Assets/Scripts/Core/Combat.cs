@@ -712,6 +712,8 @@ namespace Arena
                 dmg *= TotalityMult;  // the Eclipse's Totality (Eclipse.cs)
             if (ReaverIsOpen(e))
                 dmg *= ReaverOpenMult;  // just swiped (Variety.cs)
+            if (RiotShieldBroken(e))
+                dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

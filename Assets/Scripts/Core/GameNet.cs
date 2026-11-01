@@ -190,6 +190,15 @@ namespace Arena
                         ApplyCooldownCut(Me, ab, share);
                     break;
                 }
+                case Msg.Knock:  // a Riot Shield bashed someone; only their own game moves them (WardenFaction.cs)
+                {
+                    int id = r.ReadInt32();
+                    V2 dir = r.ReadV2();
+                    float dist = r.ReadSingle();
+                    if (id == MyId)
+                        StartKnock(dir, dist);
+                    break;
+                }
                 case Msg.Teleport:  // Substitution moved someone; each player's own game moves them
                 {
                     int id = r.ReadInt32();

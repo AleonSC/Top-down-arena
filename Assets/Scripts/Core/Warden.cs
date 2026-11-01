@@ -315,6 +315,7 @@ namespace Arena
             w.Gates.Clear();
             w.Shackle.Clear();
             ClearRioters();
+            ClearWardenShields(e);  // WardenFaction.cs
             ClearEnemyBullets();  // (and the gas)
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             BroadcastFx(FxKind.Ring, e.Pos, to == WardenStage.Riot ? new Rgba(1f, 0.5f, 0.2f) : new Rgba(0.35f, 0.65f, 1f), 900f, 0.8f, Sfx.BossChime);
@@ -343,6 +344,7 @@ namespace Arena
             switch (w.Turn)
             {
                 case WardenTurn.Light:
+                    SendRiotShields(e);  // two Riot Shields to herd you into the light (WardenFaction.cs)
                     w.LightMode = WardenLight.Follow;
                     w.LightT = 0f;
                     w.Caught = 0f;
@@ -734,6 +736,8 @@ namespace Arena
         V2 GuardMove(Enemy e, V2 tpos)
         {
             V2 goal = tpos;
+            if (TheWarden() == null)
+                return (goal - e.Pos).Normalized();  // a boss approach (Approaches.cs): no riot to put down, just you
             float best = float.MaxValue;
             foreach (var r in Enemies.Values)
                 if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f)

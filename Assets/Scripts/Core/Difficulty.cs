@@ -28,9 +28,11 @@ namespace Arena
         OrbChance,      // share: small health orb drop chance per kill
         ReviveTime,     // s: holding still by a downed ally to get them up
         HitGrace,       // s: how long you can't be hit again after a hit
+        ApproachShare,  // share: the themed share of the last wave before each boss (Approaches.cs); 0 = off
+        ApproachRamp,   // on/off: the four approach waves rise to that share (on) or all use it (off)
     }
 
-    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond }
+    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff }
 
     public class KnobDef
     {
@@ -39,6 +41,7 @@ namespace Arena
         public KnobUnit Unit;
         public float Min, Max, Step;
         public bool HarderUp = true;  // a higher value makes the run harder (shown in red; lower in green)
+        public bool Flavour;          // changes how a run feels, not how hard it is (never shown in red or green)
         public float[] Presets;       // Easy, Normal, Hard, Nightmare
 
         public float Normal => Presets[(int)DifficultyLevel.Normal];
@@ -52,6 +55,7 @@ namespace Arena
                 case KnobUnit.Percent: return Math.Round(v * 100f).ToString(CultureInfo.InvariantCulture) + "%";
                 case KnobUnit.PercentPerWave: return "+" + (v * 100f).ToString("0.0", CultureInfo.InvariantCulture) + "% / wave";
                 case KnobUnit.Seconds: return v.ToString("0.##", CultureInfo.InvariantCulture) + " s";
+                case KnobUnit.OnOff: return v >= 0.5f ? "On" : "Off";
                 default: return v.ToString("0.##", CultureInfo.InvariantCulture) + " HP/s";
             }
         }
@@ -59,6 +63,8 @@ namespace Arena
         /// What goes in its text box: the number alone, in the unit shown (percent knobs as 12, not 0.12).
         public string Edit(float v)
         {
+            if (Unit == KnobUnit.OnOff)
+                return v >= 0.5f ? "on" : "off";
             bool pct = Unit == KnobUnit.Percent || Unit == KnobUnit.PercentPerWave;
             return (pct ? v * 100f : v).ToString(Unit == KnobUnit.PercentPerWave ? "0.0" : "0.##", CultureInfo.InvariantCulture);
         }
@@ -67,6 +73,13 @@ namespace Arena
         public bool TryParse(string text, out float v)
         {
             v = 0f;
+            if (Unit == KnobUnit.OnOff)
+            {
+                string o = (text ?? "").Trim().ToLowerInvariant();
+                if (o == "on" || o == "1" || o == "yes") { v = 1f; return true; }
+                if (o == "off" || o == "0" || o == "no") { v = 0f; return true; }
+                return false;
+            }
             string t = (text ?? "").Trim().TrimEnd('x', 'X', '%', 's', ' ').Replace(',', '.');
             if (t.StartsWith("+", StringComparison.Ordinal))
                 t = t.Substring(1);
@@ -91,7 +104,12 @@ namespace Arena
 
         public float this[DiffKnob k] => Values[(int)k];
 
-        public Difficulty() { SetLevel(DifficultyLevel.Normal); }
+        public Difficulty()
+        {
+            for (int i = 0; i < Knobs.Length; i++)
+                Values[i] = Knobs[i].Normal;  // the flavour knobs start here; presets leave them be
+            SetLevel(DifficultyLevel.Normal);
+        }
 
         public static Difficulty Of(DifficultyLevel level)
         {
@@ -101,20 +119,23 @@ namespace Arena
         }
 
         /// A preset copies its numbers in; Custom keeps the numbers you have (so it starts from the last preset).
+        /// Flavour knobs (the boss approach) aren't part of a preset: they keep what they're set to.
         public void SetLevel(DifficultyLevel level)
         {
             Level = level;
             if (level == DifficultyLevel.Custom)
                 return;
             for (int i = 0; i < Knobs.Length; i++)
-                Values[i] = Knobs[i].Presets[(int)level];
+                if (!Knobs[i].Flavour)
+                    Values[i] = Knobs[i].Presets[(int)level];
         }
 
-        /// Changing a number makes it a Custom difficulty.
+        /// Changing a number makes it a Custom difficulty (a flavour knob doesn't: it isn't about how hard it is).
         public void Set(DiffKnob k, float v)
         {
             Values[(int)k] = Knobs[(int)k].Clamp(v);
-            Level = DifficultyLevel.Custom;
+            if (!Knobs[(int)k].Flavour)
+                Level = DifficultyLevel.Custom;
         }
 
         public Difficulty Copy()
@@ -169,14 +190,13 @@ namespace Arena
             return d;
         }
 
-        /// "Hard" for a preset; "Custom EnemyHp=1.5 Regen=0 ..." (every knob by name) for a custom one.
+        /// "Hard" for a preset (plus any changed flavour knob: "Hard ApproachShare=1"); "Custom EnemyHp=1.5 Regen=0 ..." (every knob by name) for a custom one.
         public string ToText()
         {
-            if (Level != DifficultyLevel.Custom)
-                return Level.ToString();
-            var sb = new StringBuilder("Custom");
+            var sb = new StringBuilder(Level.ToString());
             foreach (var k in Knobs)
-                sb.Append(' ').Append(k.Knob).Append('=').Append(this[k.Knob].ToString("R", CultureInfo.InvariantCulture));
+                if (Level == DifficultyLevel.Custom || k.Flavour && Math.Abs(this[k.Knob] - k.Normal) > 1e-5f)  // a preset adds its flavour knobs only when they're changed
+                    sb.Append(' ').Append(k.Knob).Append('=').Append(this[k.Knob].ToString("R", CultureInfo.InvariantCulture));
             return sb.ToString();
         }
 
@@ -247,6 +267,13 @@ namespace Arena
                 Unit = KnobUnit.Seconds, Min = 1f, Max = 10f, Step = 0.5f, Presets = new[] { 3f, 4f, 5f, 6f } },
             new KnobDef { Knob = DiffKnob.HitGrace, Name = "Hit grace", Desc = "How long you can't be hit again after taking a hit.", HarderUp = false,
                 Unit = KnobUnit.Seconds, Min = 0.05f, Max = 1f, Step = 0.05f, Presets = new[] { 0.35f, 0.25f, 0.2f, 0.15f } },
+            // Boss approaches (Approaches.cs): flavour, the same on every preset. Blend = 60% with the ramp; Fully themed = 100% without.
+            new KnobDef { Knob = DiffKnob.ApproachShare, Name = "Boss approach", Flavour = true,
+                Desc = "How much of the last wave before each boss is that boss's own kind of enemy (0%: the usual random waves).",
+                Unit = KnobUnit.Percent, Min = 0f, Max = 1f, Step = 0.05f, Presets = new[] { 0.6f, 0.6f, 0.6f, 0.6f } },
+            new KnobDef { Knob = DiffKnob.ApproachRamp, Name = "Approach ramp", Flavour = true,
+                Desc = "On: the four waves before a boss build up to that share (a quarter, half, three quarters, all). Off: every one of them uses it.",
+                Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
         };
     }
 

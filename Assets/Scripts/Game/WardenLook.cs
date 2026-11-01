@@ -306,6 +306,70 @@ namespace Arena
             Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
         }
 
+        static readonly Rgba RiotSteel = new Rgba(0.62f, 0.74f, 0.98f);
+
+        /// A Riot Shield: a guard's visor behind a tall slab of a shield. The shield cracks as it wears (Phase's low bits),
+        /// flashes as it winds up a bash, glows through the lunge and is held low after it; once broken, a flailing baton.
+        void DrawRiotShield(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            byte st = Game.RiotState(e), crack = Game.RiotCrack(e);
+            Line(pos + f * (r * 0.1f) - side * (r * 0.5f), pos + f * (r * 0.1f) + side * (r * 0.5f), 3f, new Rgba(0.75f, 0.9f, 1f, 0.9f));  // visor
+            if (crack >= Game.RiotCracked)
+            {
+                // Shield gone: a baton flailing fast.
+                V2 grip = pos + side * (r * 0.8f), tip = grip + V2.FromAngle(e.Facing + 0.9f * Mathf.Sin(t * 18f + e.Id)) * (r + 12f);
+                Line(grip, tip, 4f, new Rgba(0.12f, 0.14f, 0.22f));
+                Circle(tip, 2.5f, new Rgba(0.6f, 0.65f, 0.75f), 6);
+                if (st == Game.RiotStaggered)  // stars round its head
+                    for (int k = 0; k < 3; k++)
+                        Circle(pos + V2.FromAngle(t * 6f + k * MathX.Tau / 3f) * (r * 0.7f) + new V2(0f, -r * 0.4f), 2f, new Rgba(1f, 0.95f, 0.6f, 0.9f), 6);
+                return;
+            }
+            bool low = st == Game.RiotLow;
+            // The shield: a tall slab across its front (shorter and off to the side when held low after a bash).
+            float half = low ? r * 0.8f : r * 1.6f, depth = 10f;
+            V2 c = pos + f * (r + (st == Game.RiotLunging ? 11f : 7f)) + (low ? side * (r * 0.7f) : V2.Zero);
+            V2 a = c - side * half, b = c + side * half, a2 = a + f * depth, b2 = b + f * depth;
+            float wear = crack / 4f;
+            Rgba face = RiotSteel.WithAlpha(low ? 0.5f : 0.92f - 0.18f * wear);
+            if (st == Game.RiotWinding)  // the warning: it flashes white
+                face = face.Mix(Rgba.White, 0.5f + 0.5f * Mathf.Sin(t * 40f));
+            else if (st == Game.RiotLunging)
+                face = face.Mix(Rgba.White, 0.65f);
+            var edge = new Rgba(0.1f, 0.13f, 0.24f, 0.95f);
+            Line(a + f * (depth / 2f), b + f * (depth / 2f), depth, face);
+            Line(a, b, 1.6f, edge);
+            Line(a2, b2, 2f, new Rgba(0.92f, 0.96f, 1f, 0.95f));  // the bright front rim
+            Line(a, a2, 1.6f, edge);
+            Line(b, b2, 1.6f, edge);
+            // A window to see through, and the stripe across it.
+            Line(c + f * (depth * 0.45f) - side * (half * 0.3f), c + f * (depth * 0.45f) - side * (half * 0.05f), 3f, new Rgba(0.18f, 0.26f, 0.42f, 0.9f));
+            Line(c + f * (depth * 0.45f) + side * (half * 0.15f), c + f * (depth * 0.45f) + side * (half * 0.55f), 2f, new Rgba(1f, 1f, 1f, 0.55f));
+            // Cracks: fixed for each shield (from its id), more at each stage.
+            for (int k = 0; k < crack * 2; k++)
+            {
+                float u = -0.85f + 1.7f * (((e.Id * 37 + k * 61) % 97) / 96f);
+                V2 p0 = c + side * (half * u) + f * depth, p1 = p0 - f * (depth * 0.55f) + side * (k % 2 == 0 ? 4f : -4f), p2 = p1 - f * (depth * 0.45f) + side * (k % 2 == 0 ? -2f : 2f);
+                Line(p0, p1, 1.5f, edge);
+                Line(p1, p2, 1.5f, edge);
+            }
+        }
+
+        /// A Gas Grenadier: a gas mask (two round lenses and a filter) and a canister in hand.
+        void DrawGrenadier(Enemy e, V2 pos, float r, float t)
+        {
+            V2 f = V2.FromAngle(e.Facing), side = f.Orthogonal();
+            var lens = new Rgba(0.15f, 0.2f, 0.12f, 0.95f);
+            Circle(pos + f * (r * 0.25f) - side * (r * 0.32f), r * 0.22f, lens, 10);
+            Circle(pos + f * (r * 0.25f) + side * (r * 0.32f), r * 0.22f, lens, 10);
+            Circle(pos + f * (r * 0.62f), r * 0.2f, new Rgba(0.35f, 0.4f, 0.3f), 8);  // the filter
+            V2 can = pos + side * (r * 0.95f) + f * (r * 0.3f);
+            Circle(can, 4.5f, new Rgba(0.7f, 0.95f, 0.45f), 10);
+            float puff = MathX.Fmod(t * 0.8f + e.Id * 0.37f, 1f);
+            Circle(can + new V2(0f, -6f - puff * 10f), 2f + puff * 3f, new Rgba(0.65f, 0.95f, 0.45f, 0.5f * (1f - puff)), 8);
+        }
+
         /// A rioter: an orange jumpsuit with a dark band across it.
         void DrawRioterDetails(Enemy e, V2 pos, float r, Rgba col)
         {

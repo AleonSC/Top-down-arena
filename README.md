@@ -390,6 +390,24 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 | 36 | **Warder** | Hangs back behind its allies; every 6 s up to three allies within 320 px get a bubble worth half their health, tethered to it. Kill it and every bubble pops |
 | 12+ | **Elites** | Any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a **trait** shown as a marker over it (two traits from wave 35): **Hasted** (40% faster moving and firing), **Shielded** (a bubble worth 40% of its health that grows back 4 s after it was last hit), **Volatile** (bursts into a ring of 16 shots 0.6 s after it dies), **Splitting** (dies into two Shards, four from a Juggernaut, Nest or Brute), **Mirrored** (one in four of your shots that hit it bounce back at you), **Commander** (allies within 220 px fire 30% faster). More common each wave |
 
+### Boss approaches
+
+The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
+its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting (Difficulty
+tab, below): **Blend** (the default) builds up over the four waves, 15%, 30%, 45% then 60% of each wave; **Fully
+themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix, paths
+still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the boss
+fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before the
+first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
+(waves 1-4); the other bosses' come next.
+
+| From | The Warden's faction | What it does |
+|---|---|---|
+| 1 | **Rioter** | A prisoner on the loose: weaves at you, in pairs (contact 10). Squad: Breakout (six Rioters and a Guard) |
+| 1 | **Guard** | A riot guard with a baton, straight at you (contact 14) |
+| 2 | **Riot Shield** | A guard behind a tall shield that stops shots and swings from the front. Up close the shield flashes (0.4 s), then it lunges and **bashes** you: 10 damage and knocked **160 px** back (you can't be bashed again for 0.8 s). It holds the shield low for a second after, when front hits land. The shield holds 4x its health and cracks as it wears; broken, the guard staggers for a second, then flails and takes 50% more damage. Go round it or break it. Squad (wave 3): Cell block (two Riot Shields with Rioters pouring past) |
+| 2 | **Gas Grenadier** | Keeps its distance and lobs a tear-gas canister near you every 3.6 s: a 70 px cloud that settles after 1 s and hurts (8 a second) for 4 s |
+
 ## Bosses
 
 **Bosses keep up with strong builds.** When a boss arrives, each player's upgrades are scored (damage x fire rate
@@ -421,7 +439,7 @@ bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
 |---|---|---|
-| 5 | **The Warden** | A prison riot in three stages, one mechanic at a time (2 s between stages, when the screen clears and it can't be hurt). **Count** (100–65%): sways through the middle — orb rings, a spiral (holding still), aimed fans, then an 18 s **searchlight** from the corner tower that follows you at an outrunnable pace while it fires single **stun shots**; get stunned or linger in the light and a **shackle ring** of orbs closes in on you, its gap facing away from the Warden. **Lockdown** (65–30%): the 12 s **cross** (dash, plant, fire a static "+", four times) runs alongside three **gates** — walls of push bullets 2 rows deep, with two doors near the side walls; each slides a little way in and stops for a moment (its doors flash) so you can line up a door, then sweeps across, shoving you back the way you came — and lobbed **tear gas**. **Riot** (30–0%): cell doors burst open and **rioters** pour out, nine a door (they attack whoever is nearest, the Warden too); any still standing after 10 s bring blue **guards** with batons, who beat them down and then come for you while it turns a riot shield toward you and fires a shotgun; then a telegraphed **baton charge**. Below 10% it makes a **last stand** in the middle |
+| 5 | **The Warden** | A prison riot in three stages, one mechanic at a time (2 s between stages, when the screen clears and it can't be hurt). **Count** (100–65%): sways through the middle — orb rings, a spiral (holding still), aimed fans, then an 18 s **searchlight** from the corner tower that follows you at an outrunnable pace while it fires single **stun shots**; get stunned or linger in the light and a **shackle ring** of orbs closes in on you, its gap facing away from the Warden. Each searchlight turn also sends in **two Riot Shields** (if fewer are up) that work round to your side away from the light and bash you into it. **Lockdown** (65–30%): the 12 s **cross** (dash, plant, fire a static "+", four times) runs alongside three **gates** — walls of push bullets 2 rows deep, with two doors near the side walls; each slides a little way in and stops for a moment (its doors flash) so you can line up a door, then sweeps across, shoving you back the way you came — and lobbed **tear gas**. **Riot** (30–0%): cell doors burst open and **rioters** pour out, nine a door (they attack whoever is nearest, the Warden too); any still standing after 10 s bring blue **guards** with batons, who beat them down and then come for you while it turns a riot shield toward you and fires a shotgun; then a telegraphed **baton charge**. Below 10% it makes a **last stand** in the middle |
 | 10 | **Hive Queen** | A hive in three stages, one mechanic at a time (2 s between stages, when the screen clears and she can't be hurt). **Swarm** (100–65%): she sways along the top — **drones** (tough Shards; she's **shielded and waits** while they live, and any left after 10 s fly back into her and heal her 2% each), **bombers** at the spot you're standing on, aimed **fans**, then orb **rings**. **Honeycomb** (65–30%): she lays 4 **eggs** that each hatch 2 drones unless you break them in 6 s; the floor's hex **cells** glow and seal (18) in waves, always leaving a safe cell next to you; a sweeping **nectar spray** leaves honey puddles that slow you. **Frenzy** (30–0%): she drops into the arena — a **swarm cloud** of bees hunts you at an outrunnable 170 px/s, three **royal dives** land on your shadow (she can't be hurt in the air) with a ring of orbs, and a **bomber barrage** aims at where you are and where you're heading. Below 10% she makes a **last stand** in the middle |
 | 15 | **Twin Reapers** | Two Reapers (2600 HP each) in three stages by their combined health, one mechanic at a time. **Twilight** (100–65%): a **tether sweep** that spins round a point following you, then **lines** and a **cross** fired holding still; **Soul Bond** (the more-hurt one is immune until you even them out). **The Dual Reaper** (65–30%): they spiral together and fuse (a power-up of marked blasts), armored to a third of the damage. It fires **twin rotating lasers** while 4 **pillars** stand in the corners — kill them, or it pulls you in and blows up — and each pillar leaves a **hole**. Then it **chases** you swinging both scythes; lure it over a hole and it falls in: break its **shield** and it's **open** for 4 s (half again the damage), then it leaps back and starts over. **Sundered** (30–0%): it splits back into Dusk and Dawn and the tether snaps — marked **reaps**, a **twin spiral**, then **crossfire**; kill one and the other **enrages**, and the fallen one revives at 60% after 6 s unless you finish the pair |
 | 20 | **The Singularity** | A black hole in three stages, one mechanic at a time with breathers between (2 s between stages, when the screen clears and it can't be hurt). Four **Gravity Wells** spawn in the corners at the start of each stage: they bend your shots hard into themselves and drift you toward them; killed, they stay gone until the next stage. **Event Horizon** (100–65%): in the middle; **Pull** (4 s, drags everyone in under a three-armed spiral), **Collapse** (3 s of bullet rings), **Lasers** (8 s: a purple spiral, then three red lasers that flicker as a warning and sweep slowly round). **Accretion** (65–30%): it orbits the middle inside a **disk** of two rings of big orbs turning opposite ways, with gaps (touching one hurts); **Cage** (9 s: three small wells orbit every player in a shrinking ring; touching it hurts, shooting the wells breaks it), **Slingshot** (6 s: every 0.8 s three orbs leave the outer ring at you), **Twin lasers** (two, sweeping faster). **Spaghettify** (30–10%): back in the middle behind an **event horizon** that grows from 70 to 170 px (touching it hurts) and pulls all the time (60 px/s, slower than anyone walks); **Hawking** bursts (rings of 18 off the horizon), **White hole** (a 1 s white flash, then for 1.5 s it pushes and every enemy bullet on screen turns round), **Split** (three shards orbit and fire; the core can't be hurt, and damage to the shards goes to it). Below 10% its **last stand**: the horizon swells to 190 px, the pull doubles, a spiral and rings of big orbs |
@@ -552,6 +570,12 @@ green when it's easier. Hover a number for what it does.
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
+| Boss approach (the themed share of the wave before a boss) | 60% | **60%** | 60% | 60% | 0-100% |
+| Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
+
+The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
+make the difficulty Custom, and picking a preset keeps them. **Blend** and **Fully themed** buttons under them set
+both at once (60% with the ramp; 100% without).
 
 Easy is close to how the game played before difficulties (without the per-wave damage growth). Damage growth
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack
@@ -864,6 +888,8 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
   - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
   - `Stun.cs`: the Warden's legendaries: the Stun Gun ability and Warden's Guard companions
+  - `Approaches.cs` / `ApproachUi.cs`: boss approaches: each boss's faction, the themed share of a wave, building it into the wave; the chip and banner
+  - `WardenFaction.cs`: the Warden's faction: the Riot Shield (shield, bash and knockback) and the Gas Grenadier
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab

@@ -99,6 +99,7 @@ namespace Arena
         public int SwingCount, RapierTarget, RapierStreak;  // host: Knight weapon state
         public float BossContactT;  // host: a boss's body can only hurt you once a second
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
+        public float BashGraceT;    // host: until a Riot Shield can bash this player again (WardenFaction.cs)
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
         public float UltT;                     // Fortress / Bullet Storm time left
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
@@ -1212,10 +1213,12 @@ namespace Arena
                 shoveT -= dt;
                 me.Pos += shoveDir * BossShoveSpeed * dt;
             }
+            ApplyKnock(me, dt);  // a Riot Shield's bash (WardenFaction.cs)
             if (PinSwallowed(me))  // inside the Devourer you go where it goes (Devourer.cs)
             {
                 DashT = 0f;
                 shoveT = 0f;
+                knockLeft = 0f;
             }
 
             for (int slot = 0; slot < held.Length; slot++)
@@ -1367,6 +1370,7 @@ namespace Arena
             TickVines(dt);    // Minions.cs: the Treant Rod's vine
             TickSpearPickups();  // BloodMage.cs: Bone Spears walked over
             TickHealerKit(dt);   // Minions.cs: the Censer's incense, Ofuda wards, seeded enemies
+            TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
             TickEnemies(dt);

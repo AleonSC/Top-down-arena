@@ -285,6 +285,27 @@ class Shot {
       for (int k = 1; k < zap.Count && k < 4; k++) host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = zap[0].Pos, Pos2 = zap[k].Pos, Color = Defs.BulletColor(Defs.BoltShot), Dur = 0.15f, T = 0.03f });
       if (zap.Count > 0) host.Game.Effects.Add(new Effect { Kind = FxKind.Spark, Pos = zap[0].Pos, Color = Defs.BulletColor(Defs.HammerShot), Radius = zap[0].Radius + 14f, Dur = 0.3f, T = 0.12f });
     }
+    if (Environment.GetEnvironmentVariable("APPROACH") != null) {
+      // The Warden's faction (APPROACH=1): Riot Shields walking, winding up, lunging, held low, cracked and broken,
+      // Gas Grenadiers and a gas cloud, Rioters and a Guard; the approach chip shows above the wave panel.
+      var sep = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var spp = typeof(Game).GetMethod("SpawnPatchAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Patches.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(800f, 470f);
+      Func<EnemyType, V2, Enemy> put = (ty, at) => { var en = (Enemy)sep.Invoke(host.Game, new object[] { ty, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = (me.Pos - at).Angle; return en; };
+      Action<Enemy, byte, byte> riot = (en, st, crack) => en.Phase = (byte)(st << 3 | crack);
+      riot(put(EnemyType.RiotShield, new V2(690f, 470f)), Game.RiotWinding, 0);
+      riot(put(EnemyType.RiotShield, new V2(560f, 300f)), Game.RiotWalk, 0);
+      riot(put(EnemyType.RiotShield, new V2(980f, 330f)), Game.RiotLunging, 1);
+      riot(put(EnemyType.RiotShield, new V2(1040f, 600f)), Game.RiotLow, 2);
+      riot(put(EnemyType.RiotShield, new V2(560f, 640f)), Game.RiotWalk, 3);
+      riot(put(EnemyType.RiotShield, new V2(1230f, 470f)), Game.RiotFlail, Game.RiotCracked);
+      put(EnemyType.GasGrenadier, new V2(300f, 450f)); put(EnemyType.GasGrenadier, new V2(1350f, 220f));
+      spp.Invoke(host.Game, new object[] { PatchKind.Gas, new V2(880f, 560f), 0f, 4f, 70f, 70f });
+      foreach (var pt in host.Game.Patches.Values) pt.Age = 1.2f;
+      for (int k = 0; k < 4; k++) put(EnemyType.Rioter, new V2(260f + k * 34f, 160f + (k % 2) * 30f));
+      put(EnemyType.Guard, new V2(220f, 230f));
+    }
     if (Environment.GetEnvironmentVariable("PATTERNS") != null) {
       // The new shooting patterns: a Pauser with its shots hanging, a Leader aiming ahead, a Stitcher's orbs and threads.
       var sbp = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

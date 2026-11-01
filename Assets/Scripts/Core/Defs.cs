@@ -28,6 +28,8 @@ namespace Arena
         BeamSentry, Scorcher, Reaver, Warder,
         // new shooting patterns (Variety.cs)
         Pauser, Leader, Stitcher,
+        // boss approaches: the Warden's faction (WardenFaction.cs)
+        RiotShield, GasGrenadier,
     }
 
     public class RoleDef
@@ -217,6 +219,10 @@ namespace Arena
                 Picker = PickerGroup.Late, Blurb = "Aims where you're going, not where you are. Change direction when it fires." },
             new EnemyDef { Name = "Stitcher", Hp = 120f, Radius = 15f, Speed = 65f, Score = 30, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.82f, 0.45f),
                 Picker = PickerGroup.Late, Blurb = "Fires slow orbs; nearby orbs are tied by a harmful thread. Slip through the gaps." },
+            new EnemyDef { Name = "Riot Shield", Hp = 60f, Radius = 16f, Speed = 120f, Score = 10, Xp = 7, Sides = 6, Color = new Rgba(0.55f, 0.68f, 0.95f), Melee = true, Contact = 8f,
+                Picker = PickerGroup.Melee, Blurb = "A guard behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
+            new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 6, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
+                Picker = PickerGroup.Ranged, Blurb = "Lobs tear-gas canisters at you. Step out of the cloud." },
         };
 
         public const int WeaponsPerRole = 3;

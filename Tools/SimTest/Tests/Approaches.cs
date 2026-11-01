@@ -1,0 +1,222 @@
+using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Arena;
+
+// Boss approaches (Approaches.cs) and the Warden's faction (WardenFaction.cs): the themed share, waves built with it,
+// the Riot Shield (its shield, its bash and knockback on the friend's own game, the Warden's pair in the searchlight
+// turn) and the Gas Grenadier's tear gas with no Warden about.
+static partial class Program
+{
+    static readonly System.Reflection.BindingFlags NP = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+
+    /// A host and a friend (no bots), the match started at `wave`, with the difficulty given.
+    static Session[] StartPlain(float dt, int wave, Action<Session> setup = null)
+    {
+        int port = nextPort++;
+        var host = new Session { StartWave = wave };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Sync();
+        setup?.Invoke(host);
+        Sync();
+        client.RequestReady(true); host.RequestReady(true); Sync();
+        host.StartMatch();
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        return new[] { host, client };
+    }
+
+    static void ApproachesTest(float dt)
+    {
+        // --- The share, wave by wave --------------------------------------------------------------------------------
+        var g0 = new Session().Game;
+        Func<int, float> share = w => g0.ApproachShare(w);
+        bool normal = Math.Abs(share(1) - 0.15f) < 1e-4f && Math.Abs(share(2) - 0.3f) < 1e-4f && Math.Abs(share(3) - 0.45f) < 1e-4f && Math.Abs(share(4) - 0.6f) < 1e-4f && share(5) == 0f;
+        Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
+        Check(normal, "Blend (the default): the Warden's approach builds up 15%, 30%, 45%, 60%; nothing on his wave");
+        Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Boss,
+            "a boss with no faction yet has no approach; the waves after 50 lead to the bosses again");
+        g0.Diff.Set(DiffKnob.ApproachShare, 1f);
+        g0.Diff.Set(DiffKnob.ApproachRamp, 0f);
+        Check(Enumerable.Range(1, 4).All(w => share(w) == 1f) && share(56) == 0f && share(51) == 1f, "Fully themed (100%, no ramp): every approach wave is all faction");
+        g0.Diff.Set(DiffKnob.ApproachShare, 0f);
+        Check(Enumerable.Range(1, 60).All(w => share(w) == 0f), "0%: no approach at all");
+        var hard = Difficulty.Of(DifficultyLevel.Hard);
+        hard.Set(DiffKnob.ApproachShare, 1f);
+        hard.Set(DiffKnob.ApproachRamp, 0f);
+        var back = Difficulty.Parse(hard.ToText());
+        Console.WriteLine("  Hard, fully themed, as text: \"" + hard.ToText() + "\"");
+        Check(hard.Level == DifficultyLevel.Hard && back.Level == DifficultyLevel.Hard && back[DiffKnob.ApproachShare] == 1f && back[DiffKnob.ApproachRamp] == 0f
+            && Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ApproachShare] == 0.6f && Difficulty.Knobs[(int)DiffKnob.ApproachRamp].Format(1f) == "On",
+            "the approach settings don't make a preset Custom, and save and read back with the difficulty");
+        hard.SetLevel(DifficultyLevel.Normal);
+        Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Of(DifficultyLevel.Normal).ToText() == "Normal", "picking another preset keeps the approach setting");
+
+        // --- Waves built with it (host only, no fighting) --------------------------------------------------------------
+        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var build = typeof(Game).GetMethod("BuildWave", NP);
+        var queueF = typeof(Game).GetField("spawnQueue", NP);
+        var squadsF = typeof(Game).GetField("squadQueue", NP);
+        Func<Game, int, List<EnemyType>> wave = (gd, n) =>
+        {
+            Game.SeedForTests(4242 + n);
+            var g = new Session().Game;  // a fresh game, so its rolls start from the same seed
+            g.Diff = gd.Diff.Copy();
+            build.Invoke(g, new object[] { n });
+            var all = new List<EnemyType>((List<EnemyType>)queueF.GetValue(g));
+            foreach (var s in (List<SquadDef>)squadsF.GetValue(g))
+                all.AddRange(s.Members);
+            return all;
+        };
+        var gb = new Session().Game;
+        gb.Diff.Set(DiffKnob.ApproachShare, 0f);
+        var off6 = wave(gb, 6);
+        var off2 = wave(gb, 2);
+        gb.Diff.Set(DiffKnob.ApproachShare, 0.6f);
+        gb.Diff.Set(DiffKnob.ApproachRamp, 1f);
+        var on6 = wave(gb, 6);
+        var w4 = wave(gb, 4);
+        int themed4 = w4.Count(t => faction.Contains(t) && t != EnemyType.Rioter) + w4.Count(t => t == EnemyType.Rioter);
+        Console.WriteLine("  wave 4 at Blend: {0} enemies, {1} of the Warden's ({2})", w4.Count, themed4,
+            string.Join(" ", w4.Where(faction.Contains).GroupBy(t => t).Select(gr => gr.Key + "x" + gr.Count())));
+        Check(off6.SequenceEqual(on6) && !off2.Any(faction.Contains), "with no approach the waves are built as before (same roll, same wave)");
+        Check(themed4 >= w4.Count * 0.45f && themed4 <= w4.Count * 0.75f, "Blend: about 60% of the last wave before the Warden is his faction");
+        gb.Diff.Set(DiffKnob.ApproachShare, 1f);
+        gb.Diff.Set(DiffKnob.ApproachRamp, 0f);
+        var full1 = wave(gb, 1);
+        Console.WriteLine("  wave 1 fully themed: " + string.Join(" ", full1.GroupBy(t => t).Select(gr => gr.Key + "x" + gr.Count())));
+        Check(full1.Count > 0 && full1.All(faction.Contains) && !full1.Contains(EnemyType.RiotShield) && !full1.Contains(EnemyType.GasGrenadier),
+            "Fully themed: wave 1 is all prisoners and guards (Riot Shields and Grenadiers join from wave 2)");
+
+        // --- The Riot Shield --------------------------------------------------------------------------------------------
+        var s2 = StartPlain(dt, 2);
+        var host = s2[0]; var client = s2[1];
+        var g2 = host.Game; var c2 = client.Game;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", NP);
+        var hurt = typeof(Game).GetMethod("HurtEnemy", NP);
+        var blocks = typeof(Game).GetMethod("BlocksShot", NP);
+        var wear = typeof(Game).GetMethod("WearShield", NP);
+        Run(s2, dt, 6f, () => g2.State == MatchState.Fighting);
+        Action quiet = () =>
+        {
+            ((List<EnemyType>)queueF.GetValue(g2)).Clear(); ClearSquads(g2);
+            foreach (var e in g2.Enemies.Values.ToList()) if (e.ParentId != -7 && e.Hp > 0f) g2.Enemies.Remove(e.Id);
+            foreach (var b in g2.Bullets.Values) b.Life = 0f;
+            foreach (var pt in g2.Patches.Values.ToList()) g2.Patches.Remove(pt.Id);
+        };
+        // A frozen dummy in a corner keeps the wave going (spawned first, so the wave never empties).
+        var anchor = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.Grunt, new V2(60f, 60f), 0f, -7, false });
+        anchor.MaxHp = anchor.Hp = 1e6f;
+        Action hold = () => { anchor.FrozenT = 1f; anchor.FireT = 1e6f; };
+        Run(s2, dt, 0.3f, null, () => { quiet(); hold(); });
+        Run(s2, dt, 0.2f, null, () => { quiet(); hold(); });
+
+        var shield = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.RiotShield, new V2(400f, 450f), 0f, -7, false });
+        Check(Math.Abs(shield.ShieldMax - shield.MaxHp * Game.RiotShieldShare) < 0.01f, "a Riot Shield's shield holds 4x its health");
+        shield.Facing = 0f;
+        Check((bool)blocks.Invoke(g2, new object[] { shield, new V2(600f, 450f) }) && !(bool)blocks.Invoke(g2, new object[] { shield, new V2(200f, 450f) }),
+            "its shield stops shots from the front, not from behind");
+
+        // The bash: the friend stands in front of it; their own game moves them back about 160 px.
+        var friendH = g2.Players[2];
+        var friendC = c2.Me;
+        V2 stand = new V2(400f + shield.Radius + friendH.Def.BodyR + 20f, 450f);
+        friendC.Pos = friendC.Disp = stand;
+        Run(s2, dt, 0.3f, null, () => { hold(); friendC.Pos = stand; shield.TargetId = 2; shield.Pos = new V2(400f, 450f); shield.Facing = 0f; });
+        float hp0 = friendH.Hp;
+        bool wound = false, lunged = false;
+        V2 before = friendC.Pos;
+        Run(s2, dt, 1.2f, null, () =>
+        {
+            hold();
+            shield.TargetId = 2;
+            wound |= Game.RiotState(shield) == Game.RiotWinding;
+            lunged |= Game.RiotState(shield) == Game.RiotLunging;
+        });
+        float moved = friendC.Pos.X - before.X;
+        Console.WriteLine("  bash: wound up {0}, lunged {1}; the friend took {2:0.#} and was knocked {3:0} px on their own game", wound, lunged, hp0 - friendH.Hp, moved);
+        Check(wound && lunged && hp0 - friendH.Hp > 0f, "a Riot Shield winds up (its shield flashes), lunges and bashes the player in front of it");
+        Check(moved > Game.RiotKnock * 0.75f && moved < Game.RiotKnock * 1.35f, "the bash knocks the friend about 160 px back, on their own game");
+        Check(Game.RiotState(shield) == Game.RiotLow || Game.RiotState(shield) == Game.RiotWalk, "after a bash it holds its shield low for a moment");
+
+        // Two bashes in a row can't land: the grace.
+        friendH.BashGraceT = 0.5f;
+        var bash = typeof(Game).GetMethod("RiotBash", NP);
+        friendC.Pos = stand;
+        Run(s2, dt, 0.15f, null, () => { hold(); friendC.Pos = stand; });
+        float hp1 = friendH.Hp;
+        shield.Pos = new V2(400f, 450f); shield.Facing = 0f;
+        bash.Invoke(g2, new object[] { shield });
+        Check(friendH.Hp == hp1, "a player just bashed can't be bashed again straight away");
+
+        // Breaking it: the shield wears, cracks, shatters; the guard staggers, then flails and takes more damage.
+        wear.Invoke(g2, new object[] { shield, shield.ShieldMax * 0.6f });
+        byte crack = Game.RiotCrack(shield);
+        wear.Invoke(g2, new object[] { shield, shield.ShieldMax });
+        Check(crack == 2 && Game.RiotShieldBroken(shield) && Game.RiotState(shield) == Game.RiotStaggered && !(bool)blocks.Invoke(g2, new object[] { shield, new V2(600f, 450f) }),
+            "the shield cracks as it wears, then shatters; the guard staggers and blocks nothing");
+        Run(s2, dt, Game.RiotStagger + 0.2f, null, hold);
+        float h0 = shield.Hp;
+        hurt.Invoke(g2, new object[] { shield, 10f, 1 });
+        Check(Game.RiotState(shield) == Game.RiotFlail && Math.Abs(h0 - shield.Hp - 10f * Game.RiotBrokenMult) < 0.01f, "broken, it flails with its baton and takes 50% more damage");
+        Run(s2, dt, 0.2f, null, () => { hold(); });
+        Check(c2.Enemies.ContainsKey(shield.Id) && Game.RiotShieldBroken(c2.Enemies[shield.Id]), "the friend's game sees the shield broken");
+        shield.Hp = 0f;
+
+        // --- The Gas Grenadier: tear gas hurts with no Warden about --------------------------------------------------------
+        var gren = (Enemy)spawn.Invoke(g2, new object[] { EnemyType.GasGrenadier, new V2(900f, 450f), 0f, -7, false });
+        var hostMe = g2.Players[1];
+        V2 spot = new V2(600f, 300f);
+        g2.Me.Pos = g2.Me.Disp = spot;
+        gren.FireT = 0f;
+        Run(s2, dt, 0.1f, null, () => { hold(); g2.Me.Pos = spot; gren.TargetId = 1; });
+        int gas = g2.Patches.Values.Count(pt => pt.Kind == PatchKind.Gas);
+        float hpg = hostMe.Hp;
+        Run(s2, dt, 2.5f, null, () => { hold(); g2.Me.Pos = spot; gren.FireT = 99f; });
+        Console.WriteLine("  grenadier: {0} gas cloud(s); standing in it for 1.5 s took {1:0.#}", gas, hpg - hostMe.Hp);
+        Check(gas == 1 && hostMe.Hp < hpg && c2.Patches.Values.Any(pt => pt.Kind == PatchKind.Gas), "a Gas Grenadier lobs tear gas near you, and it hurts with no Warden about (the friend sees it too)");
+        gren.Hp = 0f;
+        host.Leave(""); client.Leave("");
+
+        // --- The Warden's pair in his searchlight turn ---------------------------------------------------------------------
+        var s5 = StartPlain(dt, 5);
+        var g5 = s5[0].Game;
+        Run(s5, dt, 8f, () => g5.State == MatchState.Fighting && Find(s5[0], EnemyType.Boss) != null && !Find(s5[0], EnemyType.Boss).Spawning);
+        var warden = Find(s5[0], EnemyType.Boss);
+        typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
+        typeof(Game).GetMethod("SendRiotShields", NP).Invoke(g5, new object[] { warden });
+        var pair = g5.Enemies.Values.Where(e => e.Type == EnemyType.RiotShield && e.ParentId == warden.Id).ToList();
+        Check(pair.Count == 2, "the Warden sends two Riot Shields into his searchlight turn (and no more while they're up)");
+        // While the light hunts, a shield heads for your far side from the light.
+        var ws = (WardenState)typeof(Game).GetMethod("WardenOf", NP).Invoke(g5, new object[] { warden });
+        ws.LightMode = WardenLight.Follow;
+        var target = g5.Players[1];
+        target.Pos = new V2(800f, 450f);
+        ws.Light = new V2(800f, 250f);
+        pair[0].TargetId = 1;
+        var herd = (V2)typeof(Game).GetMethod("HerdSpot", NP).Invoke(g5, new object[] { pair[0], target.Pos });
+        Console.WriteLine("  herding: player at ({0:0},{1:0}), light at ({2:0},{3:0}), the shield heads for ({4:0},{5:0})", target.Pos.X, target.Pos.Y, ws.Light.X, ws.Light.Y, herd.X, herd.Y);
+        Check(herd.Y > target.Pos.Y + 20f && Math.Abs(herd.X - target.Pos.X) < 5f, "while the searchlight hunts, a Riot Shield works round to your side away from the light");
+        warden.Hp = 0f;
+        Run(s5, dt, 0.3f);
+        Check(!g5.Enemies.Values.Any(e => e.Type == EnemyType.RiotShield), "the Warden's Riot Shields go with him");
+        s5[0].Leave(""); s5[1].Leave("");
+
+        // --- A fully themed approach wave plays out and clears with no Warden ------------------------------------------------
+        var sb = StartBuffed(dt, 3, 8);
+        var gq = sb[0].Game;
+        sb[0].Game.Diff.Set(DiffKnob.ApproachShare, 1f);  // the host builds the waves
+        sb[0].Game.Diff.Set(DiffKnob.ApproachRamp, 0f);
+        Run(sb, dt, 8f, () => gq.State == MatchState.Fighting);
+        int startWave = gq.Wave;
+        var seen = new HashSet<EnemyType>();
+        Run(sb, dt, 120f, () => gq.Wave > startWave + 1, () => { foreach (var e in gq.Enemies.Values) seen.Add(e.Type); });
+        Console.WriteLine("  bots played from wave {0} to {1}; enemies seen: {2}", startWave, gq.Wave, string.Join(", ", seen));
+        Check(gq.Wave > startWave && seen.Contains(EnemyType.RiotShield) && seen.Contains(EnemyType.Rioter), "a fully themed approach wave (Rioters, Guards, Riot Shields, Grenadiers) plays out and clears with no Warden");
+        sb[0].Leave(""); sb[1].Leave("");
+    }
+}

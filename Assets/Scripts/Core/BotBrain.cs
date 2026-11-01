@@ -389,8 +389,8 @@ namespace Arena
                     foreach (var h in Hazards.Values)
                         if (h.T < t + 0.2f && h.Pos.DistanceTo(p) < h.Radius + hitR + 8f)
                             d += w * 3f;
-                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile or a Scorcher's embers: burning now or about to (Paths.cs)
-                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
+                    foreach (var pt in Patches.Values)  // a path's fire, the Colossus's lava the Devourer's bile, a Scorcher's embers or tear gas: burning now or about to (Paths.cs)
+                        if ((pt.Kind == PatchKind.Fire || pt.Kind == PatchKind.Lava || pt.Kind == PatchKind.Bile || pt.Kind == PatchKind.Embers || pt.Kind == PatchKind.Gas) && pt.Age + t + 0.2f >= pt.Warn && pt.Pos.DistanceTo(p) < pt.Radius + hitR + 8f)
                             d += w * 3f;
                     foreach (var th in botThreads)
                         if (SegmentDistance(p, th.A, th.B) < StitchWidth / 2f + hitR + sk.Margin + 4f)
@@ -403,6 +403,14 @@ namespace Arena
                             float ang = (p - e.Pos).Angle, off = Math.Abs(MathX.Fmod(ang - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
                             if (p.DistanceTo(e.Pos) < SentryBeamLen && off < (e.Phase == 3 ? 0.35f : 0.6f))
                                 d += w * 2.5f;
+                        }
+                        else if (e.Type == EnemyType.RiotShield && (RiotState(e) == RiotWinding || RiotState(e) == RiotLunging))
+                        {
+                            // A Riot Shield about to bash: get out from in front of the shield (WardenFaction.cs).
+                            V2 rel = p - e.Pos;
+                            float off = Math.Abs(MathX.Fmod(rel.Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                            if (rel.Length < e.Radius + hitR + 110f && off < 1.2f)
+                                d += w * 3f;
                         }
                         else if (e.Type == EnemyType.Reaver && e.Phase == 1)
                         {

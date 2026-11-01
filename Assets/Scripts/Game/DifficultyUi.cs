@@ -72,6 +72,26 @@ namespace Arena
                     hoverDesc = k.Name + ": " + k.Desc + "  (Normal: " + k.Format(k.Normal) + ")";
                 DrawKnob(row, k, diff[k.Knob], canEdit);
             }
+            // Quick picks for the boss approach (Approaches.cs), in the slot after the last number.
+            {
+                int i = Difficulty.Knobs.Length;
+                var slot = new Rect(x + (i / rows) * (colW + colGap), y + (i % rows) * rowH + 4f, colW, 24f);
+                bool blend = Mathf.Abs(diff[DiffKnob.ApproachShare] - 0.6f) < 1e-4f && diff[DiffKnob.ApproachRamp] >= 0.5f;
+                bool full = diff[DiffKnob.ApproachShare] >= 0.999f && diff[DiffKnob.ApproachRamp] < 0.5f;
+                float bw = (colW - 8f) / 2f;
+                if (slot.Contains(Event.current.mousePosition))
+                    hoverDesc = "Boss approach: Blend is 60% building up over the four waves (15%, 30%, 45%, 60%); Fully themed makes all four waves the boss's own enemies.";
+                if (Ui.Choice(new Rect(slot.x, slot.y, bw, slot.height), "Blend", blend, ApproachColor, null, null, 12, glow: false) && canEdit && !blend)
+                {
+                    session.SetDifficultyKnob(DiffKnob.ApproachShare, 0.6f);
+                    session.SetDifficultyKnob(DiffKnob.ApproachRamp, 1f);
+                }
+                if (Ui.Choice(new Rect(slot.x + bw + 8f, slot.y, bw, slot.height), "Fully themed", full, ApproachColor, null, null, 12, glow: false) && canEdit && !full)
+                {
+                    session.SetDifficultyKnob(DiffKnob.ApproachShare, 1f);
+                    session.SetDifficultyKnob(DiffKnob.ApproachRamp, 0f);
+                }
+            }
             Ui.Label(lineRect, hoverDesc ?? line, 12, hoverDesc != null ? Ui.Text : Ui.Muted);
         }
 
@@ -103,8 +123,8 @@ namespace Arena
         void DrawKnob(Rect r, KnobDef k, float value, bool canEdit)
         {
             float normal = k.Normal;
-            bool harder = k.HarderUp ? value > normal + 1e-5f : value < normal - 1e-5f;
-            bool easier = k.HarderUp ? value < normal - 1e-5f : value > normal + 1e-5f;
+            bool harder = !k.Flavour && (k.HarderUp ? value > normal + 1e-5f : value < normal - 1e-5f);
+            bool easier = !k.Flavour && (k.HarderUp ? value < normal - 1e-5f : value > normal + 1e-5f);
             var vc = harder ? HarderColor : easier ? EasierColor : Ui.Text;
             const float boxW = 64f;
             Ui.Label(new Rect(r.x, r.y, r.width - boxW - 8f, 16f), k.Name, 12, Ui.Text, TextAnchor.MiddleLeft, true);

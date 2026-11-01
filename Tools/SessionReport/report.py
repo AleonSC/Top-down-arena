@@ -150,6 +150,27 @@ def main():
            "floor dmg to enemies / wave"],
           rows, "Paths (each wave counted on the path it was played on; boss waves apart)")
 
+    # --- Boss approaches (Approaches.cs): the waves before each boss, by how themed they were -----------------------
+    appr = defaultdict(list)
+    for r in runs:
+        for w in r["waves"]:
+            if w["boss"]:
+                continue
+            share = w.get("approachShare", 0) or 0
+            key = (w.get("approach") or "(no approach)", "off" if share <= 0 else "%d%%" % round(100 * share))
+            appr[key].append(w)
+    if any(k[0] != "(no approach)" for k in appr):
+        rows = []
+        for (boss, share), ws in sorted(appr.items()):
+            per_player = [p for w in ws for p in w["players"].values()]
+            rows.append([
+                boss, share, len(ws), mean(w["duration"] for w in ws if w["duration"] >= 0),
+                mean(100 * p["damageTaken"] / max(1, p["maxHp"]) for p in per_player),
+                sum(p["downs"] for p in per_player) / max(1, len(ws)),
+            ])
+        table(["approach", "themed share", "waves", "avg length (s)", "dmg taken % max HP / player", "downs / wave"],
+              rows, "Boss approaches (regular waves, by the boss they lead to and how themed they were)")
+
     # --- What downs people --------------------------------------------------------
     downs = defaultdict(int)
     for r in runs:

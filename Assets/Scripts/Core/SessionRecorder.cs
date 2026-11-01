@@ -38,6 +38,8 @@ namespace Arena
             public int Wave;
             public string Boss;
             public string Path;  // the divergent path this wave was played on (null on the plain arena)
+            public string Approach;  // the boss this wave leads up to, when its faction is in it (Approaches.cs)
+            public float ApproachShare;  // the themed share of the wave (0 to 1)
             public float Start, End = -1f;
             public int Elites;
             public float HazardDamage;  // damage the floor did to enemies (Burning Grounds' fire)
@@ -177,6 +179,8 @@ namespace Arena
         public void WaveStart(Game g, int wave, string boss)
         {
             var w = new WaveRec { Wave = wave, Boss = boss, Start = g.RunTime, Path = g.OnPath && wave % 5 != 0 ? Paths.Get(g.CurrentPath).Name : null };
+            w.ApproachShare = g.ApproachShare(wave);
+            w.Approach = w.ApproachShare > 0f ? Defs.Get(Game.ApproachBoss(wave)).Name : null;
             waves.Add(w);
             foreach (var p in g.Players.Values)
             {
@@ -500,6 +504,8 @@ namespace Arena
                 j.Field("wave", w.Wave);
                 j.Field("boss", w.Boss);
                 j.Field("path", w.Path);
+                j.Field("approach", w.Approach);
+                j.Field("approachShare", w.ApproachShare);
                 j.Field("start", w.Start);
                 j.Field("duration", w.End >= 0f ? w.End - w.Start : -1f);
                 j.Field("elites", w.Elites);

@@ -24,6 +24,7 @@ namespace Arena
         SeatRequest, // client -> host: the saved seat this player wants when continuing a run (Session.cs)
         CooldownCut, // host -> all: take a share off one player's ability cooldown (a caught Scythe Throw); only that player's own game applies it (ReaperLoot.cs)
         RunStatsLive, // host -> all: the run's tallies so far, about once a second (RunStats.cs; the Run stats screen)
+        Knock,       // host -> all: a player is knocked back (a Riot Shield's bash); only that player's own game moves them (WardenFaction.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -72,7 +73,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 108;
+        public const int ProtocolVersion = 109;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello

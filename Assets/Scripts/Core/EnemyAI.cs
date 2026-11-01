@@ -152,8 +152,12 @@ namespace Arena
             var melee = new List<EnemyType> { EnemyType.Swarmer };
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
+            BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
+            {
+                MixApproach();
                 return;
+            }
             count -= BuildSquads(n, count);  // about 70% of it comes as squads (Variety.cs); the rest as before
             float meleeShare = MeleeShare(n);
             for (int i = 0; i < count; i++)
@@ -168,6 +172,7 @@ namespace Arena
                 else
                     spawnQueue.Add(pool[rng.Next(pool.Count)]);
             }
+            MixApproach();
         }
 
         void SpawnEnemy(EnemyType type)
@@ -243,6 +248,8 @@ namespace Arena
                 RollTraits(e);  // Variety.cs
             if (type == EnemyType.Shielder)
                 e.ShieldHp = e.ShieldMax = e.MaxHp * ShieldShare;
+            if (type == EnemyType.RiotShield)
+                e.ShieldHp = e.ShieldMax = e.MaxHp * RiotShieldShare;  // WardenFaction.cs
             Recorder?.EnemySpawned(e);
             e.Pos = ClampToArena(pos, e.Radius);
             e.Disp = e.Pos;
@@ -479,6 +486,11 @@ namespace Arena
                 return;  // committed to the leap / flight line
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
+            if (e.Type == EnemyType.RiotShield)
+            {
+                RiotShieldFace(e, want, dt);  // WardenFaction.cs
+                return;
+            }
             if (e.Type == EnemyType.Shielder)
             {
                 // Turns slowly, so you can get around the shield.
@@ -492,6 +504,11 @@ namespace Arena
         /// A hit the shield stopped (or time) wears it down; it cracks in three steps, then shatters.
         void WearShield(Enemy e, float amount)
         {
+            if (e.Type == EnemyType.RiotShield)
+            {
+                WearRiotShield(e, amount);  // WardenFaction.cs
+                return;
+            }
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken || e.ShieldMax <= 0f)
                 return;
             e.ShieldHp -= amount;
@@ -531,6 +548,8 @@ namespace Arena
                 return true;  // the more-hurt Twin Reaper, until the other catches up
             if (LichImmune(e))
                 return true;  // its phylacteries stand, it's blinking between graves, or it's changing stage (Lich.cs)
+            if (e.Type == EnemyType.RiotShield)
+                return RiotShieldBlocks(e, from);  // WardenFaction.cs
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
@@ -669,8 +688,10 @@ namespace Arena
             }
             if (IsLateGame(e.Type))
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
-            if (e.Type >= EnemyType.BeamSentry)
+            if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
+            if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier)
+                v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
@@ -695,6 +716,9 @@ namespace Arena
             {
                 case EnemyType.Shielder:
                     WearShield(e, e.ShieldMax * ShieldDecay * dt);
+                    break;
+                case EnemyType.RiotShield:
+                    RiotShieldSpecial(e, tpos, dt);  // WardenFaction.cs
                     break;
                 case EnemyType.Boss:
                     WardenSpecial(e, tpos, dt);  // Warden.cs: its stages, turns, searchlight, gates and riot
@@ -816,6 +840,11 @@ namespace Arena
             }
             if (VarietyFire(e, aim))
                 return;  // Variety.cs
+            if (e.Type == EnemyType.GasGrenadier)
+            {
+                GrenadierFire(e, tpos);  // WardenFaction.cs
+                return;
+            }
             switch (e.Type)
             {
                 case EnemyType.Grunt:
@@ -925,6 +954,7 @@ namespace Arena
             {
                 ClearRioters();  // the riot's over (Warden.cs)
                 ClearGuards();
+                ClearWardenShields(e);  // WardenFaction.cs
             }
             if (e.Type == EnemyType.HiveQueen)
                 ClearQueenAdds(e);

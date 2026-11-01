@@ -1753,6 +1753,8 @@ namespace Arena
                 case EnemyType.Mortar:
                 case EnemyType.Shielder:
                 case EnemyType.HiveBomber:
+                case EnemyType.RiotShield:
+                case EnemyType.GasGrenadier:
                     return e.Facing;  // point where they're aiming
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
@@ -1814,6 +1816,12 @@ namespace Arena
                     break;
                 case EnemyType.Guard:
                     DrawGuardDetails(e, pos, r, t);  // WardenLook.cs
+                    break;
+                case EnemyType.RiotShield:
+                    DrawRiotShield(e, pos, r, t);  // WardenLook.cs
+                    break;
+                case EnemyType.GasGrenadier:
+                    DrawGrenadier(e, pos, r, t);  // WardenLook.cs
                     break;
                 case EnemyType.HiveEgg:
                     DrawEggDetails(e, pos, r, t);  // QueenLook.cs

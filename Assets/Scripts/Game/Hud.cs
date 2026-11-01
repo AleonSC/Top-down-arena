@@ -86,7 +86,7 @@ namespace Arena
                     string sub = choosing.Count > 0 ? "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…"
                         : game.AnyonePicking() ? ""
                         : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
-                        : "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);
+                        : ApproachLine(game.Wave + 1) + "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
@@ -923,6 +923,7 @@ namespace Arena
         {
             DrawWavePlate(new Rect(SideL, SideY, SideW, SideH));
             float y = SideY - 28f;
+            y -= DrawApproachChip(SideL, y);  // ApproachUi.cs
             if (game.CurrentPath != PathId.None)
             {
                 DrawPathChip(SideL, y);  // PathsUi.cs

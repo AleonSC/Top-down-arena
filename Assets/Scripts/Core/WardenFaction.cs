@@ -1,0 +1,298 @@
+using System;
+
+namespace Arena
+{
+    /// The Warden's faction (Docs/Approaches.md), beside the Rioters and Guards of Warden.cs:
+    ///   Riot Shield: a guard behind a tall shield. It blocks shots and swings from the front (it wears down in four crack
+    ///     stages, like a Shielder's, but much stronger: RiotShieldShare times its health). It walks up, flashes its
+    ///     shield (RiotWindup), lunges and bashes: RiotBashDamage and a knockback of RiotKnock px. After a bash it holds
+    ///     the shield low for RiotLowTime (hits from the front land). A player can't be bashed again for RiotKnockGrace s,
+    ///     so two shields bounce you without pinning you. Broken, it staggers (RiotStagger), then flails with its baton,
+    ///     taking RiotBrokenMult damage. In the Warden's searchlight turn he sends two (SendRiotShields), faster, and they
+    ///     work round to your side away from the light so their bash knocks you into it.
+    ///   Gas Grenadier: keeps its distance and lobs tear gas near you (the Warden's gas patch, smaller); with no Warden
+    ///     about, TickLooseGas makes the gas hurt.
+    /// The knockback happens on the player's own game (Msg.Knock, like Substitution's Msg.Teleport), the damage on the host.
+    public partial class Game
+    {
+        // --- Numbers -----------------------------------------------------------------------------------------------
+        public const float RiotShieldShare = 4f;     // the shield holds 4x the guard's health
+        public const float RiotBrokenMult = 1.5f;    // damage taken once the shield's broken
+        const float RiotShieldArc = 1.2f;            // blocks within ~70 degrees of where it faces
+        const float RiotTurn = 2.2f;                 // rad/s: slow enough to get round
+        const float RiotBashReach = 42f;             // starts its wind-up this far beyond touching you
+        public const float RiotWindup = 0.4f, RiotLunge = 0.18f, RiotLungeSpeed = 430f, RiotLowTime = 1f, RiotStagger = 1f;
+        public const float RiotBashDamage = 10f, RiotKnock = 160f, RiotKnockGrace = 0.8f;
+        const float RiotWardenSpeed = 1.25f;         // the Warden's own pair (searchlight turn) move faster
+        const int RiotWardenPair = 2;
+        const float GrenadierRange = 330f, GrenadierEvery = 3.6f, GrenadierGasRadius = 70f, GrenadierGasLife = 4f;
+        public const float KnockSpeed = 900f;        // px/s a knockback moves you at (160 px in about 0.18 s)
+
+        // A Riot Shield's Phase: the low three bits are the shield's cracks (0-3, RiotCracked = broken), the rest its state.
+        public const byte RiotWalk = 0, RiotWinding = 1, RiotLunging = 2, RiotLow = 3, RiotStaggered = 4, RiotFlail = 5;
+        public const byte RiotCracked = 4;
+        public static byte RiotCrack(Enemy e) => (byte)(e.Phase & 7);
+        public static byte RiotState(Enemy e) => (byte)(e.Phase >> 3);
+        static void SetRiot(Enemy e, byte state, byte crack) => e.Phase = (byte)(state << 3 | crack);
+        static void SetRiotState(Enemy e, byte state, float time)
+        {
+            SetRiot(e, state, RiotCrack(e));
+            e.PhaseT = time;
+        }
+
+        public static bool RiotShieldBroken(Enemy e) => e.Type == EnemyType.RiotShield && RiotCrack(e) >= RiotCracked;
+
+        /// Shots and swings from the front stop on an unbroken shield, unless it's held low after a bash.
+        bool RiotShieldBlocks(Enemy e, V2 from)
+        {
+            if (RiotCrack(e) >= RiotCracked || RiotState(e) == RiotLow)
+                return false;
+            float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+            return diff < RiotShieldArc;
+        }
+
+        /// A blocked hit wears the shield; it cracks in three steps, then shatters and the guard staggers.
+        void WearRiotShield(Enemy e, float amount)
+        {
+            if (RiotCrack(e) >= RiotCracked || e.ShieldMax <= 0f)
+                return;
+            e.ShieldHp -= amount;
+            float frac = e.ShieldHp / e.ShieldMax;
+            byte crack = (byte)(frac <= 0f ? RiotCracked : frac <= 0.25f ? 3 : frac <= 0.5f ? 2 : frac <= 0.75f ? 1 : 0);
+            if (crack == RiotCrack(e))
+                return;
+            V2 front = e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 6f);
+            if (crack == RiotCracked)
+            {
+                SetRiot(e, RiotStaggered, RiotCracked);
+                e.PhaseT = RiotStagger;
+                BroadcastFx(FxKind.Shatter, e.Pos, front, new Rgba(0.7f, 0.82f, 1f), RiotShieldArc, 0.6f, Sfx.Clang);
+            }
+            else
+            {
+                SetRiot(e, RiotState(e), crack);
+                BroadcastFx(FxKind.Spark, front, new Rgba(0.8f, 0.9f, 1f), 18f, 0.25f, Sfx.Hit);
+            }
+        }
+
+        /// Turns slowly while walking; locked in while winding up and lunging; a staggered guard stays put.
+        void RiotShieldFace(Enemy e, float want, float dt)
+        {
+            byte st = RiotState(e);
+            if (st == RiotWinding || st == RiotLunging || st == RiotStaggered)
+                return;
+            if (st == RiotFlail)
+            {
+                e.Facing = want;
+                return;
+            }
+            float diff = MathX.Fmod(want - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            e.Facing += Math.Max(-RiotTurn * dt, Math.Min(RiotTurn * dt, diff));
+        }
+
+        V2 WardenFactionMove(Enemy e, V2 tpos, V2 dir, float dist, ref float speed)
+        {
+            if (e.Type == EnemyType.GasGrenadier)
+                return KeepDistance(dir, dist, GrenadierRange) + dir.Orthogonal() * e.Strafe * 0.5f;
+            switch (RiotState(e))
+            {
+                case RiotWinding:
+                case RiotStaggered:
+                    return V2.Zero;
+                case RiotLunging:
+                    speed = RiotLungeSpeed;
+                    return V2.FromAngle(e.Facing);
+                case RiotLow:
+                    speed *= 0.3f;
+                    return dir;
+                case RiotFlail:
+                    return dir;
+            }
+            V2 goal = HerdSpot(e, tpos);
+            V2 to = goal - e.Pos;
+            if (to.Length < 8f)
+                return V2.Zero;
+            return to.Normalized();
+        }
+
+        /// Where a Riot Shield walks to: straight at you, or, sent by the Warden while his searchlight hunts, round to
+        /// your side away from the light, so a bash knocks you into it.
+        V2 HerdSpot(Enemy e, V2 tpos)
+        {
+            var warden = e.ParentId != 0 ? TheWarden() : null;
+            var w = warden != null && warden.Id == e.ParentId ? warden.Warden : null;
+            var p = PlayerOrNull(e.TargetId);
+            if (w == null || w.LightMode == WardenLight.Off || p == null || p.Downed)
+                return tpos;
+            V2 fromLight = p.Pos - w.Light;
+            if (fromLight.Length < 20f)
+                return tpos;  // you're in the light already: just go for you
+            return p.Pos + fromLight.Normalized() * (e.Radius + p.Def.BodyR + 24f);
+        }
+
+        void RiotShieldSpecial(Enemy e, V2 tpos, float dt)
+        {
+            e.PhaseT -= dt;
+            switch (RiotState(e))
+            {
+                case RiotWalk:
+                {
+                    if (RiotCrack(e) >= RiotCracked)
+                        break;
+                    var p = PlayerOrNull(e.TargetId);
+                    if (p == null || p.Downed || p.BashGraceT > 0f)
+                        break;
+                    float reach = e.Radius + p.Def.BodyR + RiotBashReach;
+                    float off = Math.Abs(MathX.Fmod((p.Pos - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    if (p.Pos.DistanceTo(e.Pos) < reach && off < 0.5f)
+                    {
+                        SetRiotState(e, RiotWinding, RiotWindup);
+                        BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 6f), new Rgba(1f, 0.95f, 0.7f), 20f, RiotWindup, Sfx.None);
+                    }
+                    break;
+                }
+                case RiotWinding:
+                    if (e.PhaseT <= 0f)
+                        SetRiotState(e, RiotLunging, RiotLunge);
+                    break;
+                case RiotLunging:
+                    RiotBash(e);
+                    if (e.PhaseT <= 0f)
+                        SetRiotState(e, RiotLow, RiotLowTime);
+                    break;
+                case RiotLow:
+                    if (e.PhaseT <= 0f)
+                        SetRiotState(e, RiotWalk, 0f);
+                    break;
+                case RiotStaggered:
+                    if (e.PhaseT <= 0f)
+                        SetRiotState(e, RiotFlail, 0f);
+                    break;
+            }
+        }
+
+        /// The lunge: anyone in front of the shield is hit and knocked back the way it faces (once per grace period).
+        void RiotBash(Enemy e)
+        {
+            V2 fwd = V2.FromAngle(e.Facing);
+            foreach (var p in Players.Values)
+            {
+                if (p.Downed || p.SwallowT > 0f || p.BashGraceT > 0f)
+                    continue;
+                V2 to = p.Pos - e.Pos;
+                if (to.Length > e.Radius + p.Def.BodyR + 14f || to.Normalized().Dot(fwd) < 0.45f)
+                    continue;
+                p.BashGraceT = RiotKnockGrace;
+                if (p.ParryActive && ParryContact(p, e, RiotBashDamage))
+                    continue;  // a raised guard takes it, and you keep your feet
+                if (p.InvulnT <= 0f)
+                    Damage(p, RiotBashDamage, e.Def.Name + " (bash)");
+                KnockPlayer(p, fwd, RiotKnock);
+                BroadcastFx(FxKind.Spark, p.Pos, new Rgba(0.85f, 0.9f, 1f), 24f, 0.25f, Sfx.Clang);
+            }
+        }
+
+        // --- Knockback ------------------------------------------------------------------------------------------------
+
+        V2 knockDir;
+        float knockLeft;  // px still to go (your own game)
+
+        /// Host: knock a player back. Players move on their own game, so it's sent to theirs (or done here for the host's own).
+        void KnockPlayer(Player p, V2 dir, float dist)
+        {
+            if (p.Id == MyId)
+                StartKnock(dir, dist);
+            var w = Proto.Begin(Msg.Knock);
+            w.Write(p.Id);
+            w.Write(dir);
+            w.Write(dist);
+            session.Broadcast(Proto.End(w));
+        }
+
+        void StartKnock(V2 dir, float dist)
+        {
+            knockDir = dir.IsZero ? V2.FromAngle(0f) : dir.Normalized();
+            knockLeft = dist;
+        }
+
+        /// Your own game, each frame (LocalControl): carry the knockback out.
+        void ApplyKnock(Player me, float dt)
+        {
+            if (knockLeft <= 0f)
+                return;
+            if (me.Downed)
+            {
+                knockLeft = 0f;
+                return;
+            }
+            float step = Math.Min(knockLeft, KnockSpeed * dt);
+            me.Pos += knockDir * step;
+            knockLeft -= step;
+        }
+
+        // --- The Warden's pair -----------------------------------------------------------------------------------------
+
+        /// The searchlight turn: two Riot Shields through the side doors (fewer if some are still up).
+        void SendRiotShields(Enemy warden)
+        {
+            int have = 0;
+            foreach (var o in Enemies.Values)
+                if (o.Type == EnemyType.RiotShield && o.ParentId == warden.Id && o.Hp > 0f)
+                    have++;
+            for (int i = have; i < RiotWardenPair; i++)
+            {
+                V2 door = RiotDoors[i % 2 == 0 ? 0 : 3];  // left top, right bottom
+                V2 inward = door.X < Width / 2f ? new V2(1f, 0f) : new V2(-1f, 0f);
+                var s = SpawnEnemyAt(EnemyType.RiotShield, door + inward * 50f, 0.6f, warden.Id);
+                s.Speed *= RiotWardenSpeed;
+                s.Facing = inward.Angle;
+                BroadcastFx(FxKind.Boom, door, new Rgba(0.45f, 0.6f, 1f), 70f, 0.4f, Sfx.None);
+            }
+        }
+
+        /// Gone with the Warden, or when he changes stage.
+        void ClearWardenShields(Enemy warden)
+        {
+            foreach (var o in Enemies.Values)
+                if (o.Type == EnemyType.RiotShield && o.ParentId == warden.Id)
+                {
+                    o.LastHitBy = 0;  // no kill credit
+                    o.Hp = 0f;
+                }
+        }
+
+        // --- Gas Grenadier ---------------------------------------------------------------------------------------------
+
+        void GrenadierFire(Enemy e, V2 tpos)
+        {
+            e.FireT = GrenadierEvery;
+            V2 at = ClampToArena(tpos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 50f), 60f);
+            SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GrenadierGasLife, GrenadierGasRadius, GrenadierGasRadius);
+            BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GrenadierGasRadius, GasFlight, Sfx.Throw);
+        }
+
+        float looseGasT;
+
+        /// Host, every tick: tear gas hurts with no Warden about (the Warden's fight ticks its own, TickWardenGas), and
+        /// the bash grace runs down.
+        void TickWardenFaction(float dt)
+        {
+            foreach (var p in Players.Values)
+                p.BashGraceT = Math.Max(0f, p.BashGraceT - dt);
+            looseGasT -= dt;
+            if (looseGasT > 0f)
+                return;
+            looseGasT = 0.25f;
+            if (TheWarden() != null)
+                return;
+            foreach (var pt in Patches.Values)
+            {
+                if (pt.Kind != PatchKind.Gas || !pt.Active)
+                    continue;
+                foreach (var p in Players.Values)
+                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
+                        Damage(p, GasDps * 0.25f, "Tear gas");
+            }
+        }
+    }
+}

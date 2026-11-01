@@ -1,6 +1,6 @@
 # Boss approaches: design plan
 
-Status: **planned, nothing built yet** (November 2026). Decisions below were made with the owner; numbers are first
+Status: **step 1 built** (the framework and the Warden's faction, November 2026); steps 2-6 planned. Decisions below were made with the owner; numbers are first
 guesses to tune in play-testing and the Boss Lab.
 
 ## The idea
@@ -18,7 +18,7 @@ waves in play and keep whichever feels better (or leave it to each lobby).
 | Question | Decision |
 |---|---|
 | Redo waves, or a separate mode? | **Neither, first:** approaches are a layer on the existing 50-wave run. A Chapters mode (below) may come later and reuse them. |
-| Blend or fully themed? | **Undecided: a setting.** The lobby's Difficulty tab gets a Boss approach setting that covers both. |
+| Blend or fully themed? | **Undecided: a setting.** The lobby's Difficulty tab has Boss approach and Approach ramp, with Blend / Fully themed buttons. They're flavour: the same on every preset, and changing them doesn't make the difficulty Custom. |
 | Does the approach change the boss fight? | **No.** A wave only ends when everything in it is dead, so there's nothing to reward; the approach just teaches the boss's enemies. |
 | The Warden's searchlight is too easy (it follows at 150 px/s, slower than every player) | **Riot Shield Guards** (below) come into its turn and bash you toward the light. The light does **not** get faster. A change to the Warden fight itself, not tied to the approach setting. |
 
@@ -135,7 +135,7 @@ Paths and approaches both live in the four waves before a boss, and they stack:
 
 ## Build order (each step playable on its own)
 
-1. **Framework + the Warden:** the two knobs, `Approaches.cs`, `BuildApproach`, the chip and banner, recordings and
+1. ✅ **Framework + the Warden:** the two knobs, `Approaches.cs`, `BuildApproach`, the chip and banner, recordings and
    `report.py`, tests. The Warden's faction with Rioters and Guards (both ready), the **Riot Shield Guard** (also sent
    into the Warden's searchlight turn) and the Gas Grenadier; the Breakout and Cell block squads. The owner plays waves 1-4 at Blend and Fully themed and picks a default.
 2. **Hive Queen:** the Bomber fix, Eggs that hatch on their own, the Nectar Spitter.

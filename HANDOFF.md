@@ -92,6 +92,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BotBrain.cs` | 0.4k | the "smart" bot (Boss Lab): dodging, positioning, aiming, ability use (`BotSense`; each ability's rule is its `AbilityDef.Bot`) |
 | `BossLab.cs` | 0.25k | Boss Lab sessions and stats |
 | `Classes.cs` | 0.08k | the class registry: `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks `Fire`, `Ability`, `Tick`, `TickEnemy`, `OnShotHit`, `OnKill`), `Classes.All` (Kit order, checked at start-up) and the gathered hook lists the game loop runs |
+| `Approaches.cs` | 0.15k | boss approaches: `FactionDef` per boss, `ApproachShare`, `BuildApproach`/`MixApproach` (see `Docs/Approaches.md`) |
+| `WardenFaction.cs` | 0.3k | the Warden's faction: Riot Shield (shield, bash, `Msg.Knock` knockback, the searchlight pair, `HerdSpot`) and Gas Grenadier |
 | `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (each class's `WeaponDef`s live in its own file; `Defs.Weapons` gathers them) (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
 | `BestiaryData.cs` | 0.1k | the in-game Bestiary's words (`BestiaryEntry`, `BestiaryAttack`); most come from `BestiaryData.Generated.cs`, built from the Bestiary page by `Docs/Bestiary/build_data.js` |
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
@@ -120,6 +122,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `ReferencePages.cs` | 0.03k | the published Bestiary / Armory URLs (`OpenReferencePage`, the guide's Web page button) and `FieldGuideColor` |
 | `FieldGuide.cs` | 0.8k | the in-game Bestiary and Armory: pages (`GuideBestiary`, `GuideClasses`...), lists built once from `BestiaryData` / `Defs` / `Upgrades` (`GuideItem`), search, the list with live models, one `Draw...Entry` per page, the scrolling body helpers (`GText`, `GHeading`, `GLink` jumps to another entry) |
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
+| `ApproachUi.cs` | 0.04k | the approach chip above the wave panel and the banner's line |
 | `ClassLooks.cs` | 0.05k | one `KitLook` per class (its body drawn over the player, and auras under them), in Kit order; the Elementalist's star and the Summoner's motes |
 | `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
@@ -131,7 +134,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 108) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 109) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -256,6 +259,30 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Boss approaches, step 1: the framework and the Warden (Nov 2026), protocol 109:** designed in `Docs/Approaches.md`.
+`Approaches.cs`: `FactionDef` per boss (members with weight and `From`, squads), `Game.ApproachShare(wave)` from two new
+flavour knobs (`DiffKnob.ApproachShare`, 60% on every preset; `ApproachRamp`, on: the four waves build up a quarter at a
+time), `BuildApproach` (in `BuildWave` before `BuildPathWave`/`BuildSquads`; takes the share off `count`, no random rolls at
+0%) and `MixApproach` (after them: singles at random places in `spawnQueue`, squads in `squadQueue`). `KnobDef.Flavour`:
+never red/green, doesn't make a preset Custom, presets leave it alone, `ToText` writes it after a preset name when changed
+("Hard ApproachShare=1"). The Warden's faction: Rioters and Guards (`GuardMove` goes straight for you when there's no
+Warden), and two new types in `WardenFaction.cs` (`EnemyType.RiotShield`, `GasGrenadier`, at the end of the enum; the
+variety dispatch in `MoveEnemy` is now an explicit range so new types don't fall into it). **Riot Shield:** its `Phase`
+packs the shield's cracks (low 3 bits, `RiotCrack`) and its state (`RiotState`: walk, winding, lunging, low, staggered,
+flail); shield `RiotShieldShare` (4x) of its health, worn through `WearShield`/`BlocksShot` like the Shielder's; broken it
+takes `RiotBrokenMult` in `HurtEnemy`. The bash (`RiotBash`) is checked on the host, which deals the damage and sends
+`Msg.Knock` (new) so the player's own game moves them (`StartKnock`/`ApplyKnock` in `LocalControl`, 900 px/s for 160 px);
+`Player.BashGraceT` (host) stops a second bash for 0.8 s. The Warden's searchlight turn calls `SendRiotShields` (two, parent
+the Warden, 1.25x speed); `HerdSpot` walks them round to the player's side away from the light; cleared on his stage change
+and death (`ClearWardenShields`). **Gas Grenadier:** keeps 330 px away, lobs the Warden's gas patch (70 px, 4 s) every 3.6 s;
+`TickWardenFaction` makes gas hurt when there's no Warden. Bots avoid gas (all of it, the Warden's included: a change in
+the Boss Lab) and step out of a winding shield's front. UI: `ApproachUi.cs` (chip above the wave panel, the banner's
+line), the Difficulty tab's two rows and Blend / Fully themed buttons, `WardenLook.cs` (`DrawRiotShield`, `DrawGrenadier`).
+Session JSON: each wave's `approach` and `approachShare`; `report.py` groups waves by them. Bestiary: in-game entries
+(`BestiaryData.Extra`) for both; Rioter and Guard now from wave 1; the page's Warden searchlight line mentions the pair.
+Tests: `approaches` (in the feature suite). Previews: `APPROACH=1 Tools/Preview/shot.sh <name> hud 4 6` (every Riot Shield
+state, Grenadiers, gas), `LOBBYTAB=3 ... lobby` (the settings).
 
 **Classes are registries (Oct 2026), no protocol change:** adding a class went from edits in ~15 files to two new files and
 three registry lines (see "Adding a class" in section 2). `KitDef` (`Classes.cs`: name, blurb, icon, health and speed
@@ -518,9 +545,8 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
-**Next planned feature (Nov 2026): boss approaches**, designed with the owner in [`Docs/Approaches.md`](Docs/Approaches.md): the four waves
-before each boss take part of their enemies from that boss's faction (a Difficulty setting: Blend or Fully themed).
-Start with its build order's step 1 (framework + the Warden) when the owner says so.
+**Boss approaches** ([`Docs/Approaches.md`](Docs/Approaches.md)): step 1 (framework + the Warden) is built. Next: the owner
+plays waves 1-4 at Blend and Fully themed and picks a default; then step 2 (the Hive Queen) when they say so.
 
 **Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-12 (networking and rendering notes). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's

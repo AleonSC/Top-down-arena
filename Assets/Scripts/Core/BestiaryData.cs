@@ -36,17 +36,35 @@ namespace Arena
         {
             new BestiaryEntry
             {
-                Type = EnemyType.Rioter, Name = "Rioter", Group = "Summons", Wave = 5,
-                Appears = "The Warden's Riot stage: cell doors burst open, 9 at a time",
+                Type = EnemyType.Rioter, Name = "Rioter", Group = "Summons", Wave = 1,
+                Appears = "The Warden's approach (waves 1-4, in pairs and Breakout squads), and his Riot stage: cell doors burst open, 9 at a time",
                 Lead = "A prisoner on the loose. Runs at whoever is nearest, the Warden included.",
                 Attacks = new[] { new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "10" } },
             },
             new BestiaryEntry
             {
-                Type = EnemyType.Guard, Name = "Guard", Group = "Summons", Wave = 5,
-                Appears = "The Warden's Riot stage, when rioters are still loose after 10 s",
-                Lead = "Blue riot guards with batons. They beat down the rioters left over, then come for the players.",
+                Type = EnemyType.Guard, Name = "Guard", Group = "Summons", Wave = 1,
+                Appears = "The Warden's approach (waves 1-4), and his Riot stage when rioters are still loose after 10 s",
+                Lead = "Blue riot guards with batons. In the Riot they beat down the rioters left over, then come for the players; on the approach they come straight for you.",
                 Attacks = new[] { new BestiaryAttack { Name = "Baton", Pattern = "Touch", Damage = "14 contact (25 a swing to rioters)" } },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.RiotShield, Name = "Riot Shield", Group = "Melee", Wave = 2,
+                Appears = "The Warden's approach (waves 2-4, alone or two in a Cell block squad), and two in each of his searchlight turns",
+                Lead = "A guard behind a tall shield that stops shots and swings from the front. Up close its shield flashes, then it lunges and bashes you 160 px back (once every 0.8 s at most). After a bash it holds the shield low for a second. The shield holds 4x its health and cracks as it wears; broken, the guard staggers, then flails and takes 50% more damage. In the Warden's searchlight turn his pair work round to your side away from the light, to bash you into it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Shield bash", Pattern = "0.4 s flash, then a short lunge", Damage = "10, and knocked back 160 px" },
+                    new BestiaryAttack { Name = "Contact", Pattern = "Touch", Damage = "8" },
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.GasGrenadier, Name = "Gas Grenadier", Group = "Shooters", Wave = 2,
+                Appears = "The Warden's approach (waves 2-4)",
+                Lead = "Keeps its distance and lobs a tear-gas canister near you every 3.6 s. The cloud (70 px) settles a second later and lasts 4 s: step out of it.",
+                Attacks = new[] { new BestiaryAttack { Name = "Tear gas", Pattern = "A canister lobbed near you", Damage = "8 a second in the cloud", Every = 3.6f, Fixed = true } },
             },
             new BestiaryEntry
             {
