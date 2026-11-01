@@ -11,7 +11,9 @@ namespace Arena
     ///   smashing crates and pots and setting off other barrels.
     /// Chest: rare treasure. Touch it to open it: every player gets their own item (an upgrade card or a legendary),
     ///   which only they can see. Walk onto it, then take it (G) or discard it (X). The wave waits for both.
-    public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest }
+    /// HealthBarrel: boss fights only. A green barrel with a white cross drops in now and then; shoot it or walk
+    ///   into it and it breaks into health orbs.
+    public enum PropKind : byte { Crate, HeavyCrate, Pot, Barrel, Chest, HealthBarrel }
 
     public class Prop
     {
@@ -66,7 +68,7 @@ namespace Arena
 
         // --- Shapes ---------------------------------------------------------------------------------
 
-        public static bool Round(Prop p) => p.Kind == PropKind.Pot || p.Kind == PropKind.Barrel;
+        public static bool Round(Prop p) => p.Kind == PropKind.Pot || p.Kind == PropKind.Barrel || p.Kind == PropKind.HealthBarrel;
         public static float PropRadius(Prop p) => p.Kind == PropKind.Pot ? PotR : BarrelR;
         public static float HalfW(PropKind k) => k == PropKind.Crate ? CrateSize / 2f : k == PropKind.HeavyCrate ? HeavyCrateSize / 2f : k == PropKind.Chest ? ChestW / 2f : k == PropKind.Pot ? PotR : BarrelR;
         public static float HalfH(PropKind k) => k == PropKind.Chest ? ChestH / 2f : HalfW(k);
@@ -74,7 +76,9 @@ namespace Arena
         public static float HalfH(Prop p) => HalfH(p.Kind);
         public static bool IsCrate(Prop p) => p.Kind == PropKind.Crate || p.Kind == PropKind.HeavyCrate;
         /// You can't walk through it (pots smash instead; an open chest is just treasure).
-        public static bool Solid(Prop p) => p.Kind != PropKind.Pot && !(p.Kind == PropKind.Chest && p.Open);
+        public static bool Solid(Prop p) => p.Kind != PropKind.Pot && p.Kind != PropKind.HealthBarrel && !(p.Kind == PropKind.Chest && p.Open);
+        /// Breaks when you walk into it or shoot it (your shots carry on).
+        static bool Smashable(Prop p) => p.Kind == PropKind.Pot || p.Kind == PropKind.HealthBarrel;
 
         public static bool PropCovers(Prop p, V2 pos, float pad)
         {
@@ -117,10 +121,10 @@ namespace Arena
                 ClearProps(true);
                 return;
             }
-            // Anything left outside the arena (Narrow Pass's walls closing in) goes.
+            // Anything left outside the arena (Narrow Pass's walls closing in) goes, and the boss fight's health barrels.
             var outside = new List<int>();
             foreach (var p in Props.Values)
-                if (ClampToArena(p.Pos, Math.Max(HalfW(p), HalfH(p))).DistanceTo(p.Pos) > 0.5f)
+                if (p.Kind == PropKind.HealthBarrel || ClampToArena(p.Pos, Math.Max(HalfW(p), HalfH(p))).DistanceTo(p.Pos) > 0.5f)
                     outside.Add(p.Id);
             foreach (int id in outside)
                 Props.Remove(id);
@@ -231,6 +235,48 @@ namespace Arena
             Loots.Clear();
             lootSent.Clear();
             nextPropId = nextLootId = 1;
+            bossBarrelT = BossBarrelFirst;
+        }
+
+        // --- Health barrels in boss fights (host) ---------------------------------------------------
+
+        const float BossBarrelFirst = 15f, BossBarrelMin = 18f, BossBarrelMax = 26f;
+        const int BossBarrelCap = 2, BossBarrelOrbs = 2;
+        float bossBarrelT = BossBarrelFirst;
+
+        /// While a boss is up, a health barrel drops in every 18-26 s (the first after 15 s), two at most at once,
+        /// somewhere clear of the players and the boss.
+        void TickBossBarrels(float dt)
+        {
+            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || Wave % 5 != 0)
+            {
+                bossBarrelT = BossBarrelFirst;
+                return;
+            }
+            Enemy boss = null;
+            foreach (var e in Enemies.Values)
+                if (e.Def.IsBoss && e.Hp > 0f)
+                {
+                    boss = e;
+                    break;
+                }
+            if (boss == null || (bossBarrelT -= dt) > 0f)
+                return;
+            bossBarrelT = Rand(BossBarrelMin, BossBarrelMax);
+            int up = 0;
+            foreach (var p in Props.Values)
+                if (p.Kind == PropKind.HealthBarrel)
+                    up++;
+            if (up >= BossBarrelCap)
+                return;
+            for (int i = 0; i < 30; i++)
+            {
+                V2 at = RandomInArena(120f);
+                if (at.DistanceTo(boss.Pos) < boss.Radius + 120f || !SpotClear(at, BarrelR, 120f))
+                    continue;
+                AddProp(PropKind.HealthBarrel, at);
+                return;
+            }
         }
 
         // --- Hits (host) ----------------------------------------------------------------------------
@@ -257,6 +303,7 @@ namespace Arena
                         LightBarrel(p, enemy ? 0 : b.Owner, BarrelFuse);
                         return true;
                     case PropKind.Pot:
+                    case PropKind.HealthBarrel:
                         if (!enemy)
                             p.Hp = 0f;  // smashed; the shot carries on
                         continue;
@@ -285,7 +332,7 @@ namespace Arena
                     continue;
                 if (p.Kind == PropKind.Barrel)
                     LightBarrel(p, owner, BarrelChainFuse);
-                else if (p.Kind == PropKind.Pot)
+                else if (Smashable(p))
                     p.Hp = 0f;
             }
         }
@@ -307,12 +354,12 @@ namespace Arena
                     propsGone.Add(p);
                     continue;
                 }
-                if (p.Hp > 0f && (p.Kind == PropKind.Pot || p.Kind == PropKind.Chest && !p.Open))
+                if (p.Hp > 0f && (Smashable(p) || p.Kind == PropKind.Chest && !p.Open))
                     foreach (var pl in Players.Values)
                     {
                         if (pl.Downed || !PropCovers(p, pl.Pos, pl.Def.HitR + PropPad + (p.Kind == PropKind.Chest ? ChestTouch : 0f)))
                             continue;
-                        if (p.Kind == PropKind.Pot)
+                        if (Smashable(p))
                             p.Hp = 0f;
                         else
                             OpenChest(p);
@@ -360,6 +407,11 @@ namespace Arena
                     break;
                 case PropKind.Barrel:
                     ExplodeBarrel(p);
+                    break;
+                case PropKind.HealthBarrel:
+                    BroadcastFx(FxKind.Debris, p.Pos, new Rgba(0.35f, 0.75f, 0.4f), 30f, 0.45f, Sfx.PickupBig);
+                    for (int i = 0; i < BossBarrelOrbs; i++)
+                        SpawnOrb(p.Pos + V2.FromAngle(rng.Next(360) * MathX.Pi / 180f) * 14f, false);
                     break;
                 case PropKind.Chest:
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.85f, 0.4f, 0.6f), 34f, 0.4f, Sfx.None);

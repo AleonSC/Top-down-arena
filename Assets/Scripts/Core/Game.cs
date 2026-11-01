@@ -1382,6 +1382,7 @@ namespace Arena
             TickMinions(dt);
             TickSearchlights(dt);  // Stun.cs
             TickOrbs(dt);
+            TickBossBarrels(dt);  // Props.cs: health barrels dropping into boss fights
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt);
             Collide();

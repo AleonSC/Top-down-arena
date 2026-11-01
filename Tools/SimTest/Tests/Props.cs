@@ -137,6 +137,27 @@ static partial class Program
         g.Wave = 10;
         waveProps.Invoke(g, null);
         Check(g.Props.Count == 0, "a boss wave clears the props away");
+
+        // In a boss fight, health barrels drop in now and then; walking into one breaks it into health orbs.
+        Quiet();
+        g.State = MatchState.Fighting;
+        var queen = (Enemy)spawnEnemy.Invoke(g, new object[] { EnemyType.HiveQueen, new V2(800f, 450f), 0f, 0, false });
+        queen.SpawnT = 0f;
+        me.Pos = new V2(200f, 200f); friend.Pos = new V2(1400f, 200f); cg.Players[2].Pos = friend.Pos;
+        var timer = typeof(Game).GetField("bossBarrelT", flags);
+        timer.SetValue(g, 0.05f);
+        Run(s, dt, 0.3f, null, () => { queen.FireT = 5f; });
+        var hb = g.Props.Values.FirstOrDefault(p => p.Kind == PropKind.HealthBarrel);
+        float next = (float)timer.GetValue(g);
+        Check(hb != null && cg.Props.Values.Any(p => p.Kind == PropKind.HealthBarrel) && hb.Pos.DistanceTo(queen.Pos) > queen.Radius + 100f && next >= 15f,
+            "during a boss fight a health barrel drops in away from the boss (seen on the client), the next one 18-26 s later");
+        int orbs0 = g.Orbs.Count;
+        me.Hp = me.MaxHp * 0.5f;
+        me.Pos = hb.Pos;
+        Run(s, dt, 0.2f, null, () => { queen.FireT = 5f; });
+        float healed = me.Hp - me.MaxHp * 0.5f;
+        Console.WriteLine("  health barrel: broke {0}; orbs {1} -> {2}, healed {3:0.0}", !g.Props.ContainsKey(hb.Id), orbs0, g.Orbs.Count, healed);
+        Check(!g.Props.ContainsKey(hb.Id) && healed >= Game.OrbHeal * 2f - 0.5f, "walking into it breaks it into health orbs (two, which you pick up)");
         host.Leave(""); client.Leave("");
 
         // Bots open the chest and take their items, so the wave can't stall.

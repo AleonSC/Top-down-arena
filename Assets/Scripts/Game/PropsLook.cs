@@ -41,6 +41,9 @@ namespace Arena
                     case PropKind.Barrel:
                         DrawBarrel(p, at, a, t);
                         break;
+                    case PropKind.HealthBarrel:
+                        DrawHealthBarrel(p, at, a, t);
+                        break;
                     case PropKind.Chest:
                         DrawChest(p, at, a, t);
                         break;
@@ -149,6 +152,22 @@ namespace Arena
                     Line(c + new V2(0f, -r) + d * 2f, c + new V2(0f, -r) + d * 7f, 1.5f, new Rgba(1f, 0.85f, 0.4f, 0.9f));
                 }
             }
+        }
+
+        /// A boss fight's health barrel: green with iron hoops and a white cross on the lid, glowing softly so it
+        /// shows through the bullets.
+        void DrawHealthBarrel(Prop p, V2 c, float a, float t)
+        {
+            float r = Game.BarrelR, pulse = 0.5f + 0.5f * Mathf.Sin(t * 3.5f + p.Id);
+            var green = new Rgba(0.25f, 0.68f, 0.35f);
+            Circle(c, r + 8f + 3f * pulse, new Rgba(0.4f, 1f, 0.5f, (0.08f + 0.07f * pulse) * a), 24);
+            Circle(c, r, green.Darkened(0.45f).WithAlpha(a), 22);
+            Circle(c, r - 2f, green.WithAlpha(a), 22);
+            Arc(c, r - 4f, 2f, PropIron.WithAlpha(a), 22);
+            Circle(c + new V2(-r * 0.35f, -r * 0.35f), r * 0.35f, new Rgba(0.6f, 0.95f, 0.65f, 0.25f * a), 12);  // a sheen
+            var white = new Rgba(1f, 1f, 1f, a);
+            FillRect(c.X - 2.5f, c.Y - 7.5f, 5f, 15f, white);
+            FillRect(c.X - 7.5f, c.Y - 2.5f, 15f, 5f, white);
         }
 
         void DrawChest(Prop p, V2 c, float a, float t)

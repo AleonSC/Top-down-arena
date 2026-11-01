@@ -135,7 +135,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 110) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 111) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -260,6 +260,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Health barrels in boss fights (Nov 2026), protocol 111:** `PropKind.HealthBarrel` (at the end of the enum). `TickBossBarrels` (Props.cs, from `HostTick`) drops one every `BossBarrelMin`-`BossBarrelMax` (18-26 s; the first after `BossBarrelFirst`, 15 s; `BossBarrelCap` 2 at once) while a boss is up, clear of the players and 120 px past the boss; like a pot it isn't solid and breaks under your shots or when walked into (`Smashable`), into `BossBarrelOrbs` (2) small health orbs. Regular waves' `WaveProps` clears any left over. Look: `DrawHealthBarrel` (PropsLook.cs); preview `PROPS=1` has one. Checked in `props`.
 
 **Shuriken on bosses (Nov 2026), no protocol change:** from a solo Ninja session (32 boss damage a second on the Warden). The fan was 0.22 rad between stars, so past about 240 px only the middle star hit a boss; now `Game.StarFan` 0.08 (all three hit out to about 650 px). Stuck stars no longer just drop after `StarStick` (5 s): `TickStuckStars` sends them back with `ReturnStar` (the recall's second hit and the cut on the way back), so the double-tap only brings them sooner. Measured damage a second 52 → 157 (`weapondps write`); Boss Lab, Good bot, wave 5 solo: average fight 150 s → 98 s, boss left at 39% → 24% on average (the bot still goes down in 2 of 3: the Ninja's 85% health). Armory text and demo updated (`Docs/Armory/out` rebuilt, not republished). Checks in `fourmore` (run last in it: their 5 s wait would otherwise move the wave's end, and its +30% heal, into the Lightbringer checks).
 

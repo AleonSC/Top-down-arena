@@ -185,6 +185,7 @@ class Shot {
       g.AddProp(PropKind.Barrel, new V2(1100f, 260f));
       var lit = g.AddProp(PropKind.Barrel, new V2(1160f, 330f)); lit.Fuse = 0.2f;
       g.AddProp(PropKind.Chest, new V2(1150f, 600f));
+      g.AddProp(PropKind.HealthBarrel, new V2(1000f, 430f));
       var open = g.AddProp(PropKind.Chest, new V2(820f, 560f)); open.Open = true; open.OpenT = 0.8f;
       foreach (var p in g.Props.Values) p.Age = 3f + p.Id;
       int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Second Charge");
