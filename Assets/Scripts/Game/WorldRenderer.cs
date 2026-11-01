@@ -154,6 +154,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
                     DrawEnemy(e, t);
+            DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);

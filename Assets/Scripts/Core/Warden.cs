@@ -38,12 +38,15 @@ namespace Arena
         public float LightT;             // seconds in the current light mode
         public float Aux;                // the riot shield's facing, or the baton charge's direction
         public bool Dashing;             // the cross: moving to its next plant (not firing)
+        public float ExposedT;           // > 0: caught in its own searchlight: blinded, not firing, taking more damage
+        public float StunT;              // > 0: hit by its own stun shot, parried back: frozen
+        public float FanAim, FanWarn;    // the aimed fan: where the next volley goes, and its warning time left
         public readonly List<WardenGate> Gates = new List<WardenGate>();
 
         // Host only.
         public int Step, Plant = -1, GatesSent, DoorsOpened;
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
-        public float TurnLen, Caught, RingT, GasTickT, ChargeLeft;
+        public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
 
@@ -52,6 +55,16 @@ namespace Arena
         // Health at which each stage starts.
         const float LockdownAt = 0.65f, RiotAt = 0.3f, LastStandAt = 0.1f;
         const float WardenTransTime = 2f;
+        // Its own light: led across the Warden for ExposeHold seconds, it's blinded for ExposeTime (stops firing,
+        // takes ExposedMult damage); then the light has to be on it afresh, after ExposeCooldown.
+        public const float ExposeTime = 3f, ExposedMult = 1.5f;
+        const float ExposeCatch = 0.3f, ExposeCooldown = 2f;
+        // A perfect parry sends a stun shot back at it: hit, it's frozen for WardenStunTime.
+        public const float WardenStunTime = 1.5f;
+        // The aimed fan: red lines show where a volley will go FanWarnTime before it fires (aimed then, not when it
+        // fires, so stepping aside dodges it); a volley every FanEvery seconds.
+        public const float FanWarnTime = 0.35f;
+        const float FanEvery = 0.8f;
         // The searchlight (Count): follows its target at 150 px/s (slower than every class), the Warden fires a stun
         // shot every 0.75 s; standing in the bright middle for 0.25 s gets you caught: 0.6 s lock-on, then a shackle
         // ring of 28 big orbs 420 px out closes in at 110 px/s, with a 4-orb gap facing away from the Warden.
@@ -131,6 +144,8 @@ namespace Arena
         {
             var w = WardenOf(e);
             V2 middle = new V2(Width / 2f, Height / 2f);
+            if (w.StunT > 0f)
+                return V2.Zero;  // stunned by its own shot
             if (w.TransT > 0f || w.Turn == WardenTurn.LastStand)
             {
                 speed = 420f;
@@ -170,6 +185,15 @@ namespace Arena
 
             TickWardenGates(w, dt);
             TickWardenGas(w, dt);
+            w.ExposedT = Math.Max(0f, w.ExposedT - dt);
+            w.ExposeCd = Math.Max(0f, w.ExposeCd - dt);
+            w.FanWarn = Math.Max(0f, w.FanWarn - dt);
+            if (w.StunT > 0f)
+            {
+                w.StunT = Math.Max(0f, w.StunT - dt);  // frozen: no turns, no light, no guns
+                e.Phase = (byte)w.Turn;
+                return;
+            }
 
             if (w.TransT > 0f)
             {
@@ -259,8 +283,13 @@ namespace Arena
                     break;
                 case WardenTurn.LastStand:
                     w.RingT -= dt;
+                    // The alarm: its searchlight hunts you through the dark (it can't catch you now), and can still
+                    // be led across it.
+                    if (target != null && !target.Downed)
+                        w.Light += (target.Pos - w.Light).LimitLength(LightSpeed * dt);
                     break;
             }
+            CheckExposed(e, w, dt);
             e.Phase = (byte)w.Turn;
             if (w.Turn == WardenTurn.Rioters || w.Turn == WardenTurn.Charge)
                 e.Facing = w.Aux;
@@ -303,6 +332,13 @@ namespace Arena
             if (stage == WardenStage.LastStand)
                 ClearRioters();
             NextWardenTurn(e, w, null);
+            if (stage == WardenStage.LastStand)
+            {
+                w.LightMode = WardenLight.Follow;  // the alarm: lights out, the searchlight comes on (WardenLook.cs)
+                w.LightT = 0f;
+                w.Light = w.LightDisp = new V2(Width / 2f, 110f);
+                BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.15f, 0.1f), 1200f, 1f, Sfx.BossCharge);
+            }
             DoLog("the Warden: " + stage);
         }
 
@@ -312,6 +348,7 @@ namespace Arena
             w.TransT = WardenTransTime;
             w.TransTo = to;
             w.LightMode = WardenLight.Off;
+            w.ExposedT = w.StunT = w.FanWarn = 0f;
             w.Gates.Clear();
             w.Shackle.Clear();
             ClearRioters();
@@ -340,6 +377,8 @@ namespace Arena
             w.DoorsOpened = 0;
             w.GuardsCalled = false;
             w.LightMode = WardenLight.Off;
+            w.FanWarn = 0f;
+            fanPending = false;
             e.FireT = 0.3f;
             switch (w.Turn)
             {
@@ -374,9 +413,10 @@ namespace Arena
         {
             var w = WardenOf(e);
             float aim = (tpos - e.Pos).Angle;
-            if (w.TransT > 0f)
+            if (w.TransT > 0f || w.StunT > 0f || w.ExposedT > 0f)
             {
-                e.FireT = 0.2f;
+                e.FireT = 0.2f;  // changing stage, stunned, or blinded by its own light
+                w.FanWarn = 0f;
                 return;
             }
             switch (w.Turn)
@@ -393,10 +433,19 @@ namespace Arena
                     for (int k = 0; k < 4; k++)
                         EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
                     break;
-                case WardenTurn.Fan:  // aimed fan
-                    e.FireT = 0.45f;
+                case WardenTurn.Fan:  // aimed fan: red lines first (aimed then), the volley FanWarnTime later
+                    if (!fanPending)
+                    {
+                        w.FanAim = aim;
+                        w.FanWarn = FanWarnTime;
+                        e.FireT = FanWarnTime;
+                        fanPending = true;
+                        break;
+                    }
+                    e.FireT = FanEvery - FanWarnTime;
+                    fanPending = false;
                     for (int i = 0; i < 9; i++)
-                        EnemyShot(e, aim + (i - 4) * 0.12f, 210f, Defs.PierceShot);
+                        EnemyShot(e, w.FanAim + (i - 4) * 0.12f, 210f, Defs.PierceShot);
                     break;
                 case WardenTurn.Light:  // stun shots, one at a time, while the light is still hunting
                     e.FireT = StunEvery;
@@ -443,7 +492,41 @@ namespace Arena
             }
         }
 
+        bool fanPending;  // host: a fan volley has been warned of and fires next
+
         // --- The searchlight ------------------------------------------------------------------------
+
+        /// Its own searchlight held on it (the pool's middle over its body) for ExposeCatch seconds blinds it.
+        void CheckExposed(Enemy e, WardenState w, float dt)
+        {
+            bool lit = (w.LightMode == WardenLight.Follow || w.LightMode == WardenLight.Lock) && w.ExposedT <= 0f && w.ExposeCd <= 0f
+                && w.Light.DistanceTo(e.Pos) < LightRadius * 0.5f + e.Radius * 0.5f;
+            w.ExposeHold = lit ? w.ExposeHold + dt : 0f;
+            if (w.ExposeHold < ExposeCatch)
+                return;
+            w.ExposeHold = 0f;
+            w.ExposedT = ExposeTime;
+            w.ExposeCd = ExposeTime + ExposeCooldown;
+            w.FanWarn = 0f;
+            fanPending = false;
+            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.97f, 0.8f), e.Radius + 60f, 0.5f, Sfx.BossShift);
+            DoLog("the Warden is caught in its own light");
+        }
+
+        public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
+
+        /// A stun shot parried back at the Warden (Combat.cs): frozen for WardenStunTime.
+        void StunWarden(Enemy e)
+        {
+            var w = WardenOf(e);
+            if (w.TransT > 0f)
+                return;
+            w.StunT = WardenStunTime;
+            w.FanWarn = 0f;
+            fanPending = false;
+            BroadcastFx(FxKind.Spark, e.Pos, Defs.BulletColor(Defs.StunShot), e.Radius + 30f, 0.5f, Sfx.SpellZap);
+            DoLog("the Warden is stunned by its own shot");
+        }
 
         void TickSearchlight(Enemy e, WardenState w, Player target, float dt)
         {
@@ -821,6 +904,10 @@ namespace Arena
             s.Float(ref w.LightT);
             s.Float(ref w.Aux);
             s.Bool(ref w.Dashing);
+            s.Float(ref w.ExposedT);
+            s.Float(ref w.StunT);
+            s.Float(ref w.FanAim);
+            s.Float(ref w.FanWarn);
             int n = w.Gates.Count;
             s.Byte(ref n);
             if (s.Reading)
@@ -853,6 +940,9 @@ namespace Arena
                 AdvanceGates(w, dt);
                 w.TurnT += dt;
                 w.LightT += dt;
+                w.ExposedT = Math.Max(0f, w.ExposedT - dt);
+                w.StunT = Math.Max(0f, w.StunT - dt);
+                w.FanWarn = Math.Max(0f, w.FanWarn - dt);
             }
             w.LightDisp = V2.Lerp(w.LightDisp, w.Light, 1f - (float)Math.Exp(-14.0 * dt));
         }

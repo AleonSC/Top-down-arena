@@ -332,6 +332,70 @@ static partial class Program
         Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
         Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
 
+        // A perfect parry sends a stun shot straight back at the Warden: it's frozen for 1.5 s.
+        {
+            me.Pos = new V2(300f, 300f);
+            g.HoldParry = true;
+            Run(s, dt, 0.05f, null, () => { Clear(); me.Pos = new V2(300f, 300f); });  // the shield's up
+            var spawnBullet = typeof(Game).GetMethod("SpawnBullet", flags);
+            V2 toward = V2.FromAngle(me.Aim);  // a stun shot coming straight at the shield
+            spawnBullet.Invoke(g, new object[] { Defs.StunShot, me.Pos + toward * (me.Def.BodyR + 20f), -toward * 280f, 0f, 2f, 9f, 0, true, 0f });
+            bool stunnedW = false, clientSawStun = false; V2 frozenAt = V2.Zero; bool movedWhileStunned = false;
+            Run(s, dt, 3f, () => stunnedW && w.Warden.StunT < 1f, () =>
+            {
+                Clear(); me.Pos = new V2(300f, 300f);
+                if (w.Warden.StunT > 0f && !stunnedW) { stunnedW = true; frozenAt = w.Pos; }
+                if (stunnedW && w.Warden.StunT > 0.05f && w.Pos.DistanceTo(frozenAt) > 1f) movedWhileStunned = true;
+                clientSawStun |= cg.Enemies[w.Id].Warden.StunT > 0f;
+            });
+            g.HoldParry = false;
+            Console.WriteLine("  warden parry: stunned {0} (client saw it {1}), moved while stunned {2}", stunnedW, clientSawStun, movedWhileStunned);
+            Check(stunnedW && clientSawStun && !movedWhileStunned, "a perfectly parried stun shot flies back and stuns the Warden (it stands frozen; everyone sees it)");
+            Run(s, dt, 2f, () => w.Warden.StunT <= 0f, Clear);
+        }
+
+        // The aimed fan: red lanes show where a volley goes before it fires, aimed when they show.
+        {
+            Run(s, dt, 30f, () => w.Warden.Turn == WardenTurn.Fan && w.Warden.FanWarn > 0f, () => { Clear(); me.Pos = new V2(200f, 800f); });
+            float warnAim = w.Warden.FanAim;
+            bool clientWarn = false;
+            var had = new HashSet<int>(g.Bullets.Keys);
+            float fired = -1f; float firedAt = 0f;
+            Run(s, dt, 1f, () => fired >= 0f, () =>
+            {
+                Clear();
+                me.Pos = new V2(1400f, 200f);  // dodge after the warning: the volley still goes where it showed
+                clientWarn |= cg.Enemies[w.Id].Warden.FanWarn > 0f;
+                firedAt += dt;
+                foreach (var b in g.Bullets.Values)
+                    if (!had.Contains(b.Id) && b.Kind == Defs.PierceShot && fired < 0f) fired = firedAt;
+            });
+            var volley = g.Bullets.Values.Where(b => !had.Contains(b.Id) && b.Kind == Defs.PierceShot).ToList();
+            float off = volley.Count == 0 ? 9f : volley.Min(b => Math.Abs(MathX.Fmod(b.Vel.Angle - warnAim + MathX.Pi, MathX.Tau) - MathX.Pi));
+            Console.WriteLine("  warden fan: warned {0:0.00} s ahead (client saw it {1}); {2} shots, the middle {3:0.000} rad off the warned aim", fired, clientWarn, volley.Count, off);
+            Check(clientWarn && fired >= Game.FanWarnTime - 0.1f && volley.Count == 9 && off < 0.01f, "the aimed fan shows red lanes before each volley, which goes where they showed");
+        }
+
+        // Its own searchlight held on it blinds it: exposed for 3 s, taking 50% more damage and not firing.
+        {
+            Run(s, dt, 40f, () => w.Warden.Turn == WardenTurn.Light && w.Warden.LightMode == WardenLight.Follow && w.Warden.TurnT > 1f, () => { Clear(); me.Pos = new V2(200f, 800f); });
+            Run(s, dt, 1f, () => w.Warden.ExposedT > 0f, () => { Clear(); w.Warden.Light = w.Pos; });
+            bool exposed = w.Warden.ExposedT > 0f;
+            Run(s, dt, 0.2f, null, Clear);
+            var hurtE = typeof(Game).GetMethod("HurtEnemy", flags);
+            float h0 = w.Hp;
+            hurtE.Invoke(g, new object[] { w, 100f, 1 });
+            float took = h0 - w.Hp;
+            var had = new HashSet<int>(g.Bullets.Keys);
+            bool clientExposed = cg.Enemies[w.Id].Warden.ExposedT > 0f;
+            Run(s, dt, 2f, null, () => { Clear(); me.Pos = new V2(200f, 800f); });
+            int shots = g.Bullets.Values.Count(b => !had.Contains(b.Id) && Defs.IsEnemyShot(b.Kind) && b.Source == EnemyType.Boss);
+            Console.WriteLine("  warden exposed: {0} (client saw it {1}); a 100 hit took {2:0}; boss shots while blinded {3}", exposed, clientExposed, took, shots);
+            Check(exposed && clientExposed && Math.Abs(took - 100f * Game.ExposedMult) < 1f && shots == 0,
+                "led across the Warden, its own searchlight blinds it: it takes 50% more damage and holds its fire (everyone sees it)");
+            Run(s, dt, 2f, () => w.Warden.ExposedT <= 0f, Clear);
+        }
+
         // Every boss's stage change (StageStartBurst) knocks a few small health orbs loose round it.
         {
             var burst = typeof(Game).GetMethod("StageStartBurst", flags);
@@ -429,6 +493,9 @@ static partial class Program
         w.Hp = w.MaxHp * 0.09f;
         Run(s, dt, 3f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);
         Check(w.Warden.Stage == WardenStage.LastStand && g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter) == 0, "below 10%: the last stand, and the rioters scatter");
+        Run(s, dt, 0.5f, null, Clear);
+        Check(w.Warden.LightMode == WardenLight.Follow && cg.Enemies[w.Id].Warden.LightMode == WardenLight.Follow && cg.Enemies[w.Id].Warden.Stage == WardenStage.LastStand,
+            "the last stand sounds the alarm: the lights go out and its searchlight hunts you (everyone sees it)");
         s[0].Leave(""); s[1].Leave("");
     }
 

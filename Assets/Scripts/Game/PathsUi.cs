@@ -385,6 +385,7 @@ namespace Arena
         void DrawArenaRules(float t)
         {
             DrawEclipseSky(t);  // the Umbra's dark and Last Light's burning edge (EclipseLook.cs)
+            DrawWardenAlarm(t);  // the Warden's last stand: lights out, a red siren (WardenLook.cs)
             if (game.NarrowF > 0f)
                 DrawNarrowWalls(0f, 0f, AW, AH, game.ArenaMin, game.ArenaMax, game.NarrowF, Paths.Get(PathId.NarrowPass).Accent, t);
             else if (game.TinyInset.X > 0.5f)
