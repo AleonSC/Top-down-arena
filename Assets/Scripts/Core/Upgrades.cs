@@ -512,6 +512,23 @@ namespace Arena
             return true;
         }
 
+        /// One upgrade of this rarity this player could take (falling back to lower rarities), or -1. (Chests, Props.cs.)
+        public static int RandomOfRarity(Random rng, Rarity want, Role role, AbilityId roleAbility, List<int> taken)
+        {
+            var candidates = new List<int>();
+            for (int r = (int)want; r >= 0; r--)
+            {
+                candidates.Clear();
+                for (int id = 0; id < All.Length; id++)
+                    if ((int)All[id].Rarity == r && Available(id, role, roleAbility, taken))
+                        for (int k = 0; k < All[id].Weight; k++)
+                            candidates.Add(id);
+                if (candidates.Count > 0)
+                    return candidates[rng.Next(candidates.Count)];
+            }
+            return -1;
+        }
+
         /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level)
         {

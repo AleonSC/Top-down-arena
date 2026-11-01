@@ -365,6 +365,7 @@ namespace Arena
             else
                 foreach (var o in Orbs.Values)
                     SyncOrb(s, o);
+            SyncProps(s);  // crates, pots, barrels, chests and chest items (Props.cs)
         }
 
         /// Drop what the last snapshot didn't mention (snapSeen holds what it did).

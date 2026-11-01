@@ -86,7 +86,7 @@ Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix 
 |---|---|---|---|
 | **Tank** | **Kusarigama** (throw the chain-sickle 280 px to hook the first enemy it hits; fire again to reel yourself in to it with a heavy, stunning slash), **Bo Staff** (spun all the way round you, 90 px, cutting small bullets; click while moving to vault 150 px, striking everything you pass), **Fuma Shuriken** (a giant star thrown in an oval loop 380 px out in front of you and back, cutting through everything both ways) | **Shadow Clone** (a decoy for 5 s that every enemy aims at; bursts for 60), **Smoke Bomb** (a 140 px cloud for 5 s: enemy bullets inside slow to half speed, allies inside take 30% less damage), **Iron Body** (2 s of 80% less damage, then a 50-damage shockwave) | **Thousand Clones** (70 s): five clones surround you for 8 s, drawing every enemy's fire, then burst |
 | **Healer** | **Medicine Darts** (fast needles that dose what they hit: stacking poison on enemies, stacking healing over time on allies), **Spirit Fan** (alternates blowing enemies away and drawing them in; a short gust that heals allies in it and blows small enemy bullets back), **Ofuda** (charms lie at your cursor as wards that burst under enemies, healing allies near; slow homing paper charms that burst for 25 and heal allies near the burst for 8) | **Healing Mist** (a mist follows you for 6 s, shedding dew around you, two drops a second that heal 10 each, for you and your allies to pick up), **Substitution** (swap places with the ally nearest your cursor and shield them for 60; alone, slip toward your cursor and shield yourself), **Spirit Ward** (a talisman at your cursor for 8 s that takes the damage allies near it would take, up to 150; when it breaks or ends, a quarter of what it took heals them) | **Blossom Storm** (80 s): for 5 s the whole party heals 20 HP/s and enemy bullets near every ally are erased |
-| **DPS** | **Shuriken** (fans of 3 stars that stick in what they hit; double-tap fire to recall them for another hit), **Katana** (fast 110° slashes; hold off 0.6 s to sheathe it, and the next cut is a 220 px quick-draw through everything in its line for 2.5×), **Kunai** (every 4th leaves a mark: double-tap fire to blink there for a double hit; rapid knives, +50% damage to enemies that aren't targeting you) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80), **Vanish** (for 3 s enemies lose track of you; your next hit deals double), **Blade Fan** (12 kunai in a ring, 18 each) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each |
+| **DPS** | **Shuriken** (tight fans of 3 stars that stick in what they hit and come back after 5 s for another hit; double-tap fire to recall them sooner), **Katana** (fast 110° slashes; hold off 0.6 s to sheathe it, and the next cut is a 220 px quick-draw through everything in its line for 2.5×), **Kunai** (every 4th leaves a mark: double-tap fire to blink there for a double hit; rapid knives, +50% damage to enemies that aren't targeting you) | **Shadow Step** (teleport behind the enemy nearest your cursor, up to 450 px away, and strike it for 80), **Vanish** (for 3 s enemies lose track of you; your next hit deals double), **Blade Fan** (12 kunai in a ring, 18 each) | **Death Lotus** (65 s): strike up to 8 enemies near your cursor in a flurry of cuts, 100 each |
 
 ### The Hemomancer
 
@@ -170,7 +170,7 @@ your weapon. Per extra projectile:
 | Healer · Ninja | **Medicine Darts** | Fast needles (7) that dose what they hit: a stack of poison on enemies, a stack of healing on hurt allies (2 a second for 3 s each, up to 5 stacks) | +1 dart, fanned out |
 | | **Spirit Fan** | A short gust (6) that heals allies in it for 3 and blows small bullets back; shots alternate blowing enemies in front 60 px away and drawing them 60 px in | +25% reach and +1 HP healed |
 | | **Ofuda** | Charms fly to your cursor (up to 460 px) and lie as wards (up to 5, 10 s); an enemy stepping on one sets it off: 25 within 70 px and 12 healing to allies within 110 px | +1 charm, fanned out |
-| DPS · Ninja | **Shuriken** | Fans of 3 stars (9) that stick in what they hit for 5 s; double-tap fire to recall them: each rips out for another hit and flies back to you, cutting what it passes (50%) | +1 star in the fan |
+| DPS · Ninja | **Shuriken** | Tight fans of 3 stars (9, 0.08 rad apart: all three hit a boss out to about 650 px) that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting what it passes (50%); double-tap fire to recall them sooner | +1 star in the fan |
 | | **Katana** | 110° slashes (20); stop firing for 0.6 s and it's sheathed (a glint runs along it): the next cut is a quick-draw, 220 px through everything in its line, for 2.5× (50) | +1 cut: each slash strikes once more (60% damage) |
 | | **Kunai** | Rapid knives (8), +50% on enemies that aren't targeting you; every 4th is a shadow kunai that leaves a mark where it lands (3 s): double-tap fire to blink there, and your next hit lands double | +1 knife, fanned out (half damage) |
 | Tank · Hemomancer | **Blood Lash** | 110° whip (24) with 130 px reach: the tip cracks for double and taunts; hits build Clot (4% less damage taken each, up to 5); full Clot makes the next lash a burst all round you | +20 px reach and +1 max Clot |
@@ -471,6 +471,20 @@ The card's fold-down button shrinks it to a slim tab with a tiny live thumbnail,
 fades away after a few seconds; hover where it was to bring it back, and click it to open the full card again
 (remembered on your computer).
 
+## Arena props
+
+Regular waves (not bosses, not the Practice Range) put things in the arena; boss fights only get health barrels. What's left at the end of a wave stays for
+the next, and each wave tops it up; a boss wave clears it all away.
+
+| Prop | What it does |
+|---|---|
+| **Crate** | Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
+| **Iron-bound crate** | From wave 12, about a third of the crates: twice as tough |
+| **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
+| **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |
+| **Health barrel** | Boss fights only: a green barrel with a white cross drops in every 18-26 s (the first after 15 s; two at most), away from the boss. Shoot it or walk into it and it breaks into 2 health orbs |
+| **Treasure chest** | Rare (8% of regular waves from wave 2). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
+
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
@@ -620,6 +634,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Role ability | Space |
 | Parry | Hold right click |
 | Ultimate | F |
+| Take / discard your chest item (standing on it) | G / X |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |

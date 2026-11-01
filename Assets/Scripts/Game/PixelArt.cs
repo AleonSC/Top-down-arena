@@ -1921,6 +1921,27 @@ namespace Arena
 
         static readonly Dictionary<string, Texture2D> cache = new Dictionary<string, Texture2D>();
 
+        /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
+        public static string[] RowsFor(string upgradeName)
+        {
+            string key;
+            string[] rows;
+            return ByUpgrade.TryGetValue(upgradeName, out key) && Icons.TryGetValue(key, out rows) ? rows : null;
+        }
+
+        /// A palette character's colour; false for '.' (transparent).
+        public static bool PixelColor(char ch, out Rgba c)
+        {
+            Color32 k;
+            if (Palette.TryGetValue(ch, out k))
+            {
+                c = new Rgba(k.r / 255f, k.g / 255f, k.b / 255f);
+                return true;
+            }
+            c = default(Rgba);
+            return false;
+        }
+
         /// The icon for an upgrade, or null if it has none.
         public static Texture2D ForUpgrade(string upgradeName)
         {

@@ -702,6 +702,8 @@ namespace Arena
                 speed *= e.SlowMult;
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
+            if (Props.Count > 0 && !e.Def.IsBoss)
+                e.Pos = PushOutOfProps(e.Pos, e.Radius * 0.8f);  // they walk round crates and barrels (Props.cs)
         }
 
         /// Behaviour that isn't just "shoot when the timer runs out".

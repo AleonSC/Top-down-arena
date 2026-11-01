@@ -126,6 +126,7 @@ namespace Arena
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
+            DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerLinks(p, t);
             foreach (var minion in game.Minions.Values)
@@ -145,6 +146,7 @@ namespace Arena
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
+            DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
             {
                 if (p.SwallowT > 0f && !p.Downed)
@@ -685,6 +687,9 @@ namespace Arena
                 case FxKind.Boom:
                     Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
                     Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
+                    break;
+                case FxKind.Debris:
+                    DrawDebrisFx(fx, f);  // PropsLook.cs
                     break;
                 case FxKind.Spark:
                     Arc(fx.Pos, Mathf.Max(1f, fx.Radius * f), 2f, fx.Color.WithAlpha(1f - f), 12);

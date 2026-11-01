@@ -56,6 +56,7 @@ namespace Arena
             HudGroup(2, new Vector2(150f, 30f), new Rect(SideR, SideY, SideW, SideH), DrawPlayerCorner);
             if (me != null)
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
+            DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 
             switch (game.State)
             {

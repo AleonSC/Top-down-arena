@@ -106,7 +106,7 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * 0.22f * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (double-tap fire to recall them)
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (double-tap fire to recall them)
                     break;
                 }
                 case WeaponId.Katana:
@@ -200,7 +200,7 @@ namespace Arena
                 AreaDesc = "bursts 25% wider, for damage and healing" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes." },
+                Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; double-tap fire to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
@@ -598,7 +598,9 @@ namespace Arena
 
         // --- Shuriken: stars that stick, recalled -------------------------------------------------
 
-        public const float StarStick = 5f, RecallSpeed = 700f, RecallBack = 0.5f;  // stuck this long; recalled stars fly back this fast, hitting what they pass for this share
+        public const float StarStick = 5f, RecallSpeed = 700f, RecallBack = 0.5f;  // stuck this long (then it comes back on its own); recalled stars fly back this fast, hitting what they pass for this share
+        /// The angle between stars in a fan (was 0.22, when the side stars missed a boss past about 240 px; now all three hit one out to about 650).
+        public const float StarFan = 0.08f;
         public const int StarCap = 15;
 
         class StuckStar
@@ -630,9 +632,18 @@ namespace Arena
             {
                 var st = stuckStars[i];
                 Enemy e;
-                if ((st.T -= dt) <= 0f || !Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
                 {
                     stuckStars.RemoveAt(i);
+                    continue;
+                }
+                if ((st.T -= dt) <= 0f)
+                {
+                    // Its time's up: it comes back by itself, for the same second hit as a recall.
+                    stuckStars.RemoveAt(i);
+                    Player owner;
+                    if (Players.TryGetValue(st.Owner, out owner) && !owner.Downed)
+                        ReturnStar(st, e, owner);
                     continue;
                 }
                 e.StarsStuck++;
@@ -653,17 +664,23 @@ namespace Arena
                 Enemy e;
                 if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
                     continue;
-                HurtEnemy(e, st.Dmg, p.Id);
-                OnBulletHit(new Bullet { Pos = e.Pos, Owner = p.Id, Dmg = st.Dmg, Kind = Defs.StarShot }, e);
-                V2 to = p.Pos - e.Pos;
-                float dist = Math.Max(1f, to.Length);
-                var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);
-                b.Pierce += 99;
-                b.LastHit = e.Id;
+                ReturnStar(st, e, p);
                 n++;
             }
             if (n > 0)
                 BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.StarShot), 30f, 0.25f, Sfx.SwingLight);
+        }
+
+        /// A stuck star rips out of its enemy (another full hit) and flies back to its thrower, cutting what it passes.
+        void ReturnStar(StuckStar st, Enemy e, Player p)
+        {
+            HurtEnemy(e, st.Dmg, p.Id);
+            OnBulletHit(new Bullet { Pos = e.Pos, Owner = p.Id, Dmg = st.Dmg, Kind = Defs.StarShot }, e);
+            V2 to = p.Pos - e.Pos;
+            float dist = Math.Max(1f, to.Length);
+            var b = SpawnBullet(Defs.StarShot, e.Pos, to / dist * RecallSpeed / p.Stats.ShotSpeedMult, 0f, dist / RecallSpeed, st.Dmg * RecallBack, p.Id);
+            b.Pierce += 99;
+            b.LastHit = e.Id;
         }
 
         // --- Medicine Darts: stacking doses --------------------------------------------------------

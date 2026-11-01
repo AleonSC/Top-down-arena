@@ -189,6 +189,7 @@ namespace Arena
                 SpawnBullet(Defs.DpsShot, b.Pos, dir * 520f, 0f, 0.45f, b.Dmg * 0.12f, b.Owner);
             }
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
+            PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
         }
 
         void MoveBullets(float dt)
@@ -265,6 +266,7 @@ namespace Arena
                         if (e.SpawnT <= 0f && e.Pos.DistanceTo(b.Pos) < b.Splash + e.Radius && !BlocksShot(e, b.Pos))
                             HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
+                    PropBlast(b.Pos, b.Splash, b.Owner);
                     continue;
                 }
                 if (b.Owner != 0)
@@ -377,6 +379,11 @@ namespace Arena
             {
                 if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
                     continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
+                if (Props.Count > 0 && PropStops(b))
+                {
+                    scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+                    continue;
+                }
                 if (colCover != null && ColossusCoverStops(b))
                 {
                     scratchIds.Add(b.Id);  // cover stops shots both ways
@@ -627,6 +634,7 @@ namespace Arena
                     HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 }
                 BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
+                PropBlast(b.Pos, b.Splash, b.Owner);
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)
             }

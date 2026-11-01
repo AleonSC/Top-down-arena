@@ -86,6 +86,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Parry.cs`, `Pause.cs`, `DevTools.cs`, `StatSheet.cs`, `RunStats.cs`, `Kits.cs` | small | as named |
 | `BossSounds.cs` | 0.1k | soft audio cues when bosses start attacks |
 | `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |
+| `Props.cs` | 0.5k | the arena's props: crates (cover), pots, barrels, the treasure chest and each player's private item; spawning by wave, bullet stops, blasts, push-out, the wave waiting for treasure, `Msg.Loot`, sync (look: `Game/PropsLook.cs`) |
 | `Shop.cs` | 0.3k | the Bazaar: gold per kill (`GrantGold`, `GoldPerXp`), `OpenShop` / per-player shelf (`RollShelf`), `ShopAction`s (`Shop` → `Msg.Shop` → `HostShop`), giving gold (`Msg.ShopGift`, notices), `CloseShop` (leftover gold → XP), revive token, `BotShop`, snapshot fields |
 | `Modifiers.cs` | 0.07k | `RunMod` flags and `ModDef`s; `Game.Mods` / `Has()`; sent in the lobby message |
 | `Practice.cs` | 0.2k | Practice Range plan (`PracticePlan`/`PracticeWave`), text format, the picker list (`Choices`, built from each `EnemyDef.Picker`), building a practice wave |
@@ -134,7 +135,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 109) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 111) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
@@ -259,6 +260,12 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Health barrels in boss fights (Nov 2026), protocol 111:** `PropKind.HealthBarrel` (at the end of the enum). `TickBossBarrels` (Props.cs, from `HostTick`) drops one every `BossBarrelMin`-`BossBarrelMax` (18-26 s; the first after `BossBarrelFirst`, 15 s; `BossBarrelCap` 2 at once) while a boss is up, clear of the players and 120 px past the boss; like a pot it isn't solid and breaks under your shots or when walked into (`Smashable`), into `BossBarrelOrbs` (2) small health orbs. Regular waves' `WaveProps` clears any left over. Look: `DrawHealthBarrel` (PropsLook.cs); preview `PROPS=1` has one. Checked in `props`.
+
+**Shuriken on bosses (Nov 2026), no protocol change:** from a solo Ninja session (32 boss damage a second on the Warden). The fan was 0.22 rad between stars, so past about 240 px only the middle star hit a boss; now `Game.StarFan` 0.08 (all three hit out to about 650 px). Stuck stars no longer just drop after `StarStick` (5 s): `TickStuckStars` sends them back with `ReturnStar` (the recall's second hit and the cut on the way back), so the double-tap only brings them sooner. Measured damage a second 52 → 157 (`weapondps write`); Boss Lab, Good bot, wave 5 solo: average fight 150 s → 98 s, boss left at 39% → 24% on average (the bot still goes down in 2 of 3: the Ninja's 85% health). Armory text and demo updated (`Docs/Armory/out` rebuilt, not republished). Checks in `fourmore` (run last in it: their 5 s wait would otherwise move the wave's end, and its +30% heal, into the Lightbringer checks).
+
+**Arena props (Nov 2026), protocol 110:** `Props.cs` (logic) and `Game/PropsLook.cs` (look, the item card, the HUD line). `PropKind` Crate / HeavyCrate / Pot / Barrel / Chest on `Game.Props`; chest items are `Loot` on `Game.Loots` (every game has all of them, only the owner's draws them). `WaveProps` (after `BuildWave`) tops props up by `CrateTarget`/`PotTarget`/`BarrelChance`/`ChestChance`, or clears them for a boss; `PropStops` in `Collide` (crates stop enemy shots, barrels any shot, pots break under yours), `PropBlast` from grenades/flak/splashes, `TickProps` (fuses, touches, breaks, `ExplodeBarrel`, `OpenChest`), `PushOutOfProps` for your own movement (`LocalControl`) and enemies (`TickEnemies`). The wave waits while `PropsHoldWave()` (`HoldForTreasure` revives the downed). Items: `RollChestLoot` (`Upgrades.RandomOfRarity`, `LegendaryOffer`), `ResolveLoot` → `Msg.Loot` → `HostLoot` (G / X in `ArenaApp`), recorded as `"chest"` picks; bots collect in `BotTreasure`. New `FxKind.Debris`; `PixelArt.RowsFor`/`PixelColor` draw icons in GL. The test runner turns props off by default (`Game.PropsByDefault = false` in `Seeded`) so a crate or pot can't throw a mechanic test; the core match and `props` tests turn them on. Test `props` (in the feature suite); preview `PROPS=1` (`PROPS=2`: a legendary item) `Tools/Preview/shot.sh <name> hud 6 4`.
 
 **Boss approaches, step 1: the framework and the Warden (Nov 2026), protocol 109:** designed in `Docs/Approaches.md`.
 `Approaches.cs`: `FactionDef` per boss (members with weight and `From`, squads), `Game.ApproachShare(wave)` from two new

@@ -692,7 +692,7 @@ const W = [
       s.swing(a, 130, 36, 18, { targets: 1 + x, rapier: true, thrust: true }); },
     tick: (R, dt) => foeShots(R, dt), under: (ctx, R) => drawFoes(ctx, R),
     paint: (ctx, R) => { const p = R.player; for (let i = 0; i < 6; i++) { ctx.fillStyle = i < R.streak ? "rgba(255,215,110,1)" : "rgba(230,240,255,0.15)"; ctx.beginPath(); ctx.arc(p.x - 12.5 + i * 5, p.y + 30, 2, 0, TAU); ctx.fill(); } } },
-  { id: "Shuriken", role: "DPS", kit: "Ninja", every: 0.35, desc: "Fans of 3 spinning stars that stick in what they hit (for 5 s). Double-tap fire to recall them: each rips out for another hit and flies back to you, cutting through what it passes.", shot: "Star", xtra: "+1 star in the fan",
+  { id: "Shuriken", role: "DPS", kit: "Ninja", every: 0.35, desc: "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; double-tap fire to recall them sooner.", shot: "Star", xtra: "+1 star in the fan",
     rows: [["Stars", "3 across 25°, 9 each; each sticks in the enemy it hits for 5 s (up to 15 stuck at once)"], ["Recall", "Double-tap fire: every stuck star rips out for another 9, then flies back to you at 700 px/s, cutting what it passes for 4.5 (50%). On the range, every 5th throw is a recall"], ["Speed / range", "700 px/s · 525 px"]], dmgPerVolley: 27,
     setup: R => { R.stuck = []; R.throws = 0; },
     fire: (s, a, x) => { const R = range, p = R.player;
@@ -700,8 +700,10 @@ const W = [
         for (const st of R.stuck) { const d = st.d; hitDummy(d, st.dmg); s.bullet("Star", Math.atan2(p.y - d.y, p.x - d.x), 700, Math.hypot(p.x - d.x, p.y - d.y) / 700, st.dmg * 0.5, { raw: true, pierce: 99, hit: [d] }, { x: d.x, y: d.y }); }
         R.floats.push({ x: p.x, y: p.y - 34, text: "RECALL", col: [0.85, 0.9, 1], t: 0, dur: 0.7, size: 12 }); R.stuck = []; return;
       }
-      const n = 3 + x; for (let i = 0; i < n; i++) s.bullet("Star", a + (i / (n - 1) - 0.5) * 0.22 * (n - 1), 700, 0.75, 9, { on: (d, b, hd) => { R.stuck.push({ d, dmg: hd, a: Math.atan2(b.y - d.y, b.x - d.x), t: 0 }); if (R.stuck.length > 15) R.stuck.shift(); return "stop"; } }); },
-    tick: (R, dt) => { R.stuck.forEach(st => st.t += dt); R.stuck = R.stuck.filter(st => st.t < 5); },
+      const n = 3 + x; for (let i = 0; i < n; i++) s.bullet("Star", a + (i / (n - 1) - 0.5) * 0.08 * (n - 1), 700, 0.75, 9, { on: (d, b, hd) => { R.stuck.push({ d, dmg: hd, a: Math.atan2(b.y - d.y, b.x - d.x), t: 0 }); if (R.stuck.length > 15) R.stuck.shift(); return "stop"; } }); },
+    tick: (R, dt) => { R.stuck.forEach(st => st.t += dt);  // after 5 s a star comes back on its own, for its second hit
+      const p = R.player; if (p && R.stuck.some(st => st.t >= 5)) for (const st of R.stuck.filter(st => st.t >= 5)) { const d = st.d; hitDummy(d, st.dmg); rangeApi.bullet("Star", Math.atan2(p.y - d.y, p.x - d.x), 700, Math.hypot(p.x - d.x, p.y - d.y) / 700, st.dmg * 0.5, { raw: true, pierce: 99, hit: [d] }, { x: d.x, y: d.y }); }
+      R.stuck = R.stuck.filter(st => st.t < 5); },
     paint: (ctx, R) => { for (const st of R.stuck) { const d = st.d, x = d.x + Math.cos(st.a) * d.r, y = d.y + Math.sin(st.a) * d.r;  // stars stuck in the dummies
       ctx.save(); ctx.translate(x, y); ctx.rotate(st.a); ctx.fillStyle = css(SHOT.Star.col); for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(0, 1.8); ctx.lineTo(0, -1.8); ctx.fill(); ctx.rotate(Math.PI / 2); } ctx.restore(); } } },
   { id: "Katana", role: "DPS", kit: "Ninja", melee: true, reach: 95, every: 0.3, desc: "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage.", shot: "Knight", xtra: "+1 cut: each slash strikes once more (60% damage)",

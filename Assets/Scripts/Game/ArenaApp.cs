@@ -297,6 +297,14 @@ namespace Arena
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
                 else if (Input.GetKeyDown(KeyCode.R) && !RerollLocked) game.RerollOffer();
             }
+            // Standing on your chest item: G takes it, X throws it away (Props.cs).
+            if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
+            {
+                if (Input.GetKeyDown(KeyCode.G))
+                    game.ResolveLoot(true);
+                else if (Input.GetKeyDown(KeyCode.X))
+                    game.ResolveLoot(false);
+            }
 
             if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
             {
