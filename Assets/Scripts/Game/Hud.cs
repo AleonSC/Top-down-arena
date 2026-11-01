@@ -220,11 +220,20 @@ namespace Arena
             Ui.Label(new Rect(x + 4f, y, w, 16f), "WEAPON", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
             y += 20f;
             Ui.Label(new Rect(x + 4f, y, w, 22f), me.Weapon.Name, 17, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(x + 4f, y + 22f, w - 8f, 18f), me.Weapon.Desc, 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            y += 54f;
+            float wdh = Mathf.Min(44f, Ui.TextHeight(me.Weapon.Desc, 11, w - 8f));  // at most three lines
+            GUI.BeginGroup(new Rect(x + 4f, y + 22f, w - 8f, wdh));
+            Ui.Label(new Rect(0f, 0f, w - 8f, Ui.TextHeight(me.Weapon.Desc, 11, w - 8f)), me.Weapon.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+            GUI.EndGroup();
+            y += 30f + wdh;
             Ui.Label(new Rect(x + 4f, y, w, 16f), "ABILITIES", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x + 4f, y, w - 8f, 16f), "click a key to move an ability", 10, Ui.Muted, TextAnchor.MiddleRight);
             y += 22f;
+            // Tiles grow to fit each ability's description and what mastering it adds, when there's room.
+            int filled = 0;
+            foreach (var sl in me.Slots)
+                if (sl.Id != AbilityId.None)
+                    filled++;
+            float tileH = Mathf.Clamp((box.yMax - 10f - y) / Mathf.Max(1, filled) - 4f, 80f, 118f);
             for (int i = 0; i < me.Slots.Length; i++)
             {
                 var slot = me.Slots[i];
@@ -232,7 +241,7 @@ namespace Arena
                     continue;
                 var a = Upgrades.Ability(slot.Id);
                 bool ult = i == Upgrades.UltSlot;
-                var tile = new Rect(x, y, w, 80f);
+                var tile = new Rect(x, y, w, tileH);
                 Ui.Fill(tile, new Color(1f, 1f, 1f, 0.04f));
                 DrawKeyCap(new Rect(tile.x + 8f, tile.y + 8f, 0f, 18f), ult ? "ULT · F" : SlotKeys[i], ult ? Ui.Gold : ToColor(me.Def.Color));
                 Ui.Label(new Rect(tile.x + 8f, tile.y + 28f, tile.width - 16f, 20f), a.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
@@ -250,8 +259,15 @@ namespace Arena
                 Ui.Label(new Rect(tile.x + 18f + capW + 68f, tile.y + 8f, 70f, 18f), level >= Game.MasteryMax ? "MASTERED" : "Lv " + level, 10,
                     level >= Game.MasteryMax ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                 bool hover = tile.Contains(Event.current.mousePosition);
-                var descR = new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), 30f);
-                if (hover || level >= Game.MasteryMax)
+                var descR = new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), tile.height - 50f);
+                float dh = Ui.TextHeight(a.Desc, 11, descR.width), ch = Ui.TextHeight("Mastered (Lv 5): " + Game.Capstone(slot.Id), 10, descR.width - 14f);
+                if (dh + 2f + ch <= descR.height)
+                {
+                    // Room for both: what it does, then what Lv 5 adds (gold once it's mastered).
+                    Ui.Label(new Rect(descR.x, descR.y, descR.width, dh), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                    DrawMasteryLine(new Rect(descR.x, descR.y + dh + 2f, descR.width, ch), slot.Id, 10);
+                }
+                else if (hover || level >= Game.MasteryMax)  // tight: hover the tile to see what Lv 5 adds
                     Ui.Label(descR, (level >= Game.MasteryMax ? "" : "At Lv 5: ") + Game.Capstone(slot.Id), 11, level >= Game.MasteryMax ? Ui.Gold : new Color(0.75f, 0.85f, 1f), TextAnchor.UpperLeft, false, true);
                 else
                     Ui.Label(descR, a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
@@ -271,7 +287,7 @@ namespace Arena
                             game.SetAbilityKey(slot.Id, k);
                     }
                 }
-                y += 84f;
+                y += tileH + 4f;
             }
         }
 
@@ -1304,7 +1320,21 @@ namespace Arena
             Ui.Label(new Rect(r.x + 10f, r.y + 144f, r.width - 20f, 28f), u.Name, 21, Color.white, TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
             string desc = Upgrades.DescFor(u, me.Weapon);
-            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), desc, desc.Length > 110 ? 12 : 14, Ui.Text, TextAnchor.UpperCenter, false, true);
+            int ds = desc.Length > 110 ? 12 : 14;
+            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), desc, ds, Ui.Text, TextAnchor.UpperCenter, false, true);
+            if (u.Grants != AbilityId.None && !string.IsNullOrEmpty(Game.Capstone(u.Grants)))
+            {
+                // A card that gives an ability also says what mastering it adds, when there's room under the text.
+                float my = r.y + 188f + Mathf.Min(66f, Ui.TextHeight(desc, ds, r.width - 36f));
+                string cap = "Mastered (Lv 5): " + Game.Capstone(u.Grants);
+                float mh = Ui.TextHeight(cap, 10, r.width - 36f);
+                if (my + mh <= r.yMax - 34f)  // only when it fits whole (it may take the note's line: the key chooser below says the same)
+                {
+                    Ui.Label(new Rect(r.x + 18f, my, r.width - 36f, mh), cap, 10, new Color(0.85f, 0.75f, 0.48f), TextAnchor.UpperCenter, false, true);
+                    if (my + mh > r.yMax - 52f)
+                        note = "";
+                }
+            }
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
             var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);

@@ -492,6 +492,21 @@ namespace Arena
                 "..wwwwwwww..",
                 "............",
             },
+            ["ui_star"] = new[]
+            {
+                "............",
+                ".....ww.....",
+                ".....ww.....",
+                "....wwww....",
+                "wwwwwwwwwwww",
+                ".wwwwwwwwww.",
+                "..wwwwwwww..",
+                "..wwwwwwww..",
+                ".wwww..wwww.",
+                ".www....www.",
+                ".ww......ww.",
+                "............",
+            },
             ["ui_play"] = new[]
             {
                 "............",
