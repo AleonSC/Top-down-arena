@@ -1,0 +1,516 @@
+<title>Projectile Sketchbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an ideas board in the game's field-manual look (sibling of the other mockups): a test range on top that
+   fires whichever projectile is picked at moving dummies, then a wall of live cards, one per projectile, grouped by
+   family. Single dark look by choice: it mirrors the arena. Field-guide teal with hazard amber. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+#range { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 5 / 2; background: #05060a; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.now { font: 700 16px var(--font-display); letter-spacing: 0.03em; color: var(--teal); min-width: 0; }
+.now small { font: 500 12px var(--font-data); color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.spacer { flex: 1 1 auto; }
+
+.fam { display: grid; gap: 12px; }
+.fam .hd { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+.fam .hd p { color: var(--muted); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; cursor: pointer; text-align: left; padding: 0; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); }
+.card.on { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 300 / 118; background: #05060a; }
+.card .tx { padding: 9px 12px 12px; display: grid; gap: 5px; align-content: start; min-width: 0; }
+.card b { font: 700 15px var(--font-display); letter-spacing: 0.03em; }
+.card .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.card .tags span { font: 500 10.5px var(--font-data); padding: 1px 6px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.card .idea { font-size: 13px; color: var(--soft); line-height: 1.4; }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Top-Down Arena · ideas board · projectiles</div>
+    <h1>Projectile <span>sketchbook</span></h1>
+    <p class="lead">Thirty-four ways a shot could look and behave: trails, glows, wobbles, splits, homing, and how each one ends.
+      Click any card to load it into the range, where it fires at moving dummies. Each card says where it might fit:
+      a weapon, an upgrade, or an enemy for a boss's approach. Nothing here is in the game yet.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="range" width="1100" height="440" aria-label="The test range: a turret fires the picked projectile at three moving dummies"></canvas>
+    <div class="bar">
+      <span class="lbl">Firing</span>
+      <span class="now" id="now">Tracer round</span>
+      <span class="spacer"></span>
+      <span class="lbl">Colour</span>
+      <div class="seg" id="palette">
+        <button type="button" data-p="own" class="on">Its own</button>
+        <button type="button" data-p="mine">As yours</button>
+        <button type="button" data-p="enemy">As an enemy's</button>
+      </div>
+      <span class="lbl">Rate</span>
+      <div class="seg" id="rate">
+        <button type="button" data-r="0.7">Slow</button>
+        <button type="button" data-r="0.3" class="on">Normal</button>
+        <button type="button" data-r="0.1">Storm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="families"></div>
+</div>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------------------------------------------------------
+  // Shared drawing: colours as [r,g,b] 0-1, a glow sprite per colour, particles.
+  const rgb = (c, a = 1) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`;
+  const mix = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+  const WHITE = [1, 1, 1];
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const TAU = Math.PI * 2;
+  const sprites = {};
+  function sprite(c) {
+    const k = c.map(v => Math.round(v * 20)).join(",");
+    if (sprites[k]) return sprites[k];
+    const s = document.createElement("canvas"); s.width = s.height = 64;
+    const x = s.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, rgb(c, 0.9)); g.addColorStop(0.28, rgb(c, 0.32)); g.addColorStop(1, rgb(c, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return sprites[k] = s;
+  }
+  function glow(ctx, x, y, r, c, a = 1) {
+    if (a <= 0.01) return;
+    const op = ctx.globalCompositeOperation; ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = Math.min(1, a); ctx.drawImage(sprite(c), x - r, y - r, r * 2, r * 2);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = op;
+  }
+  function circle(ctx, x, y, r, c, a = 1) { ctx.fillStyle = rgb(c, a); ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, TAU); ctx.fill(); }
+  function line(ctx, x0, y0, x1, y1, w, c, a = 1) { ctx.strokeStyle = rgb(c, a); ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+  function poly(ctx, x, y, r, n, rot, c, a = 1) {
+    ctx.fillStyle = rgb(c, a); ctx.beginPath();
+    for (let k = 0; k <= n; k++) { const t = rot + TAU * k / n; k ? ctx.lineTo(x + Math.cos(t) * r, y + Math.sin(t) * r) : ctx.moveTo(x + Math.cos(t) * r, y + Math.sin(t) * r); }
+    ctx.fill();
+  }
+  // Trails from a projectile's recent positions.
+  function taper(ctx, p, c, w, a = 0.55) {
+    const t = p.trail;
+    for (let i = 0; i < t.length - 1; i++) { const f = 1 - i / t.length; line(ctx, t[i].x, t[i].y, t[i + 1].x, t[i + 1].y, Math.max(0.6, w * f), c, a * f); }
+  }
+  function dots(ctx, p, c, r, every = 2) {
+    const t = p.trail;
+    for (let i = 0; i < t.length; i += every) { const f = 1 - i / t.length; circle(ctx, t[i].x, t[i].y, r * f, c, 0.6 * f); }
+  }
+
+  // A tiny world: projectiles, particles and targets, drawn on one canvas.
+  class World {
+    constructor(canvas) { this.cv = canvas; this.ctx = canvas.getContext("2d"); this.shots = []; this.parts = []; this.targets = []; this.t = 0; }
+    burst(x, y, c, n, speed, life = 0.4, size = 2, opts = {}) {
+      for (let i = 0; i < n; i++) {
+        const a = opts.dir !== undefined ? opts.dir + rand(-(opts.spread || 0.6), opts.spread || 0.6) : rand(0, TAU), s = speed * rand(0.3, 1);
+        this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s + (opts.up || 0), life: life * rand(0.6, 1), max: life, size, c, kind: opts.kind || "spark", g: opts.g || 0, drag: opts.drag ?? 3 });
+      }
+    }
+    ring(x, y, r, c, dur = 0.3, w = 3) { this.parts.push({ x, y, vx: 0, vy: 0, life: dur, max: dur, size: r, c, kind: "ring", w }); }
+    step(dt) {
+      this.t += dt;
+      for (const p of this.parts) {
+        p.life -= dt; p.vy += (p.g || 0) * dt;
+        const d = Math.exp(-(p.drag ?? 3) * dt); p.vx *= d; p.vy *= d;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+      }
+      this.parts = this.parts.filter(p => p.life > 0);
+    }
+    drawParts() {
+      const ctx = this.ctx;
+      for (const p of this.parts) {
+        const f = p.life / p.max;
+        if (p.kind === "ring") { ctx.strokeStyle = rgb(p.c, f); ctx.lineWidth = p.w * f + 0.5; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (1 - f) + 2, 0, TAU); ctx.stroke(); glow(ctx, p.x, p.y, p.size * (1.3 - f), p.c, 0.35 * f); }
+        else if (p.kind === "smoke") circle(ctx, p.x, p.y, p.size * (2 - f), [0.55, 0.55, 0.62], 0.28 * f);
+        else if (p.kind === "puddle") { ctx.fillStyle = rgb(p.c, 0.45 * Math.min(1, f * 2)); ctx.beginPath(); ctx.ellipse(p.x, p.y, p.size * 1.6, p.size * 0.9, 0, 0, TAU); ctx.fill(); }
+        else { circle(ctx, p.x, p.y, p.size * (0.4 + 0.6 * f), p.c, f); glow(ctx, p.x, p.y, p.size * 5, p.c, 0.5 * f); }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The projectiles. Each: how it moves (fly), how it looks (draw), how it ends (end). c is its colour.
+  // p: x, y, vx, vy, age, life, trail[], and anything the type keeps.
+  const straight = (p, dt) => { p.x += p.vx * dt; p.y += p.vy * dt; };
+  const angleOf = p => Math.atan2(p.vy, p.vx);
+  const speedOf = p => Math.hypot(p.vx, p.vy);
+  const T = [];
+  const def = o => { T.push(Object.assign({ speed: 520, life: 1.6, trail: 8, fly: straight }, o)); };
+
+  // --- Kinetic ---
+  def({ id: "tracer", fam: "Kinetic", name: "Tracer round", c: [1, 0.85, 0.45], speed: 1100, trail: 10, tags: ["streak", "fast"],
+    idea: "A bright head and a long thin streak. Reads well at any speed: a Twin Rifle or SMG upgrade.",
+    draw(ctx, p, c) { taper(ctx, p, c, 3, 0.8); circle(ctx, p.x, p.y, 3, WHITE); glow(ctx, p.x, p.y, 14, c, 0.8); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 6, 240, 0.25, 1.6, { dir: angleOf(p) + Math.PI, spread: 0.7 }); } });
+  def({ id: "slug", fam: "Kinetic", name: "Heavy slug", c: [0.85, 0.88, 0.95], speed: 650, trail: 0, tags: ["shockwave"],
+    idea: "A blunt round pushing a ring of air ahead of it. A charged shot, or a Juggernaut-style enemy cannon.",
+    draw(ctx, p, c) { const a = angleOf(p); for (let k = 0; k < 3; k++) { const f = ((p.age * 6 + k / 3) % 1); ctx.strokeStyle = rgb(c, 0.5 * (1 - f)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x - Math.cos(a) * f * 30, p.y - Math.sin(a) * f * 30, 8 + f * 10, a + Math.PI - 1, a + Math.PI + 1); ctx.stroke(); }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(a); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.ellipse(0, 0, 9, 5, 0, 0, TAU); ctx.fill(); ctx.restore(); glow(ctx, p.x, p.y, 16, c, 0.4); },
+    end(w, p, c) { w.ring(p.x, p.y, 34, c, 0.3, 4); w.burst(p.x, p.y, c, 10, 300, 0.3, 2); } });
+  def({ id: "flechette", fam: "Kinetic", name: "Flechettes", c: [0.75, 0.95, 1], speed: 900, trail: 4, tags: ["spread", "needles"], multi: 5, spread: 0.16,
+    idea: "A fan of hair-thin needles that stick in what they hit. A Scattergun variant, or a Leader-style enemy.",
+    draw(ctx, p, c) { const a = angleOf(p); line(ctx, p.x - Math.cos(a) * 12, p.y - Math.sin(a) * 12, p.x, p.y, 1.6, c); glow(ctx, p.x, p.y, 7, c, 0.6); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 2, 120, 0.2, 1.2); } });
+  def({ id: "disc", fam: "Kinetic", name: "Ricochet disc", c: [1, 0.6, 0.3], speed: 520, life: 2.4, trail: 6, tags: ["bounces", "spin"], bounce: 3,
+    idea: "A spinning disc that bounces off walls (and enemies) a few times. A Ninja or Soldier weapon.",
+    draw(ctx, p, c) { taper(ctx, p, c, 5, 0.35); ctx.strokeStyle = rgb(c); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(p.x, p.y, 8, p.age * 20, p.age * 20 + 4.6); ctx.stroke(); circle(ctx, p.x, p.y, 3, WHITE); glow(ctx, p.x, p.y, 16, c, 0.5); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 8, 260, 0.3, 1.8); } });
+  def({ id: "blade", fam: "Kinetic", name: "Spinning blade", c: [0.85, 0.9, 1], speed: 420, trail: 0, tags: ["spin", "blur"],
+    idea: "A four-pointed star with motion-blur arcs. The Shuriken, bigger and slower: a Fuma variant.",
+    draw(ctx, p, c) { const r = p.age * 18; for (let k = 0; k < 4; k++) { const a = r + k * TAU / 4; ctx.strokeStyle = rgb(c, 0.25); ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(p.x, p.y, 12, a - 0.9, a); ctx.stroke(); }
+      for (let k = 0; k < 4; k++) { const a = r + k * TAU / 4; ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.moveTo(p.x + Math.cos(a) * 14, p.y + Math.sin(a) * 14); ctx.lineTo(p.x + Math.cos(a + 0.5) * 4, p.y + Math.sin(a + 0.5) * 4); ctx.lineTo(p.x + Math.cos(a - 0.5) * 4, p.y + Math.sin(a - 0.5) * 4); ctx.fill(); } circle(ctx, p.x, p.y, 2.5, [0.2, 0.25, 0.35]); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 10, 300, 0.25, 1.5); } });
+  def({ id: "boomerang", fam: "Kinetic", name: "Boomerang", c: [0.95, 0.75, 0.45], speed: 560, life: 2.2, trail: 7, tags: ["returns", "curve"],
+    idea: "Curves out and swings back to the thrower, hitting twice. A Bear Totem-ish summoner weapon, or a boss attack.",
+    fly(p, dt) { const k = p.age / p.life; const ang = p.a0 + Math.sin(k * Math.PI) * 1.4; const sp = p.sp * Math.cos(k * Math.PI); p.vx = Math.cos(ang) * sp; p.vy = Math.sin(ang) * sp; straight(p, dt); },
+    init(p) { p.a0 = angleOf(p); p.sp = speedOf(p); },
+    draw(ctx, p, c) { taper(ctx, p, c, 4, 0.3); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.age * 14); ctx.strokeStyle = rgb(c); ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(-10, -6); ctx.lineTo(0, 4); ctx.lineTo(10, -6); ctx.stroke(); ctx.restore(); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 6, 160, 0.3, 1.6); } });
+  def({ id: "chakram", fam: "Kinetic", name: "Chakram", c: [1, 0.85, 0.35], speed: 480, trail: 0, tags: ["ring", "pierces"], pierce: true,
+    idea: "A spinning ring that carves through a line of enemies. A Knight thrown-weapon, or a Duelist approach enemy.",
+    draw(ctx, p, c) { ctx.strokeStyle = rgb(c); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, TAU); ctx.stroke();
+      for (let k = 0; k < 6; k++) { const a = p.age * 12 + k * TAU / 6; line(ctx, p.x + Math.cos(a) * 11, p.y + Math.sin(a) * 11, p.x + Math.cos(a + 0.35) * 16, p.y + Math.sin(a + 0.35) * 16, 2, c); } glow(ctx, p.x, p.y, 22, c, 0.4); },
+    end(w, p, c) { w.ring(p.x, p.y, 26, c, 0.25, 3); } });
+
+  // --- Energy ---
+  def({ id: "plasma", fam: "Energy", name: "Plasma bolt", c: [0.45, 1, 0.85], speed: 600, trail: 12, tags: ["wobble", "sparkle"],
+    idea: "A wobbling blob with a hot core and a sparkly tail. A Healer gun, or the Storm Herald's approach.",
+    draw(ctx, p, c) { dots(ctx, p, c, 4, 2); const wob = 1 + 0.15 * Math.sin(p.age * 30); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.fillStyle = rgb(c, 0.85); ctx.beginPath(); ctx.ellipse(0, 0, 9 * wob, 6 / wob, 0, 0, TAU); ctx.fill(); ctx.restore(); circle(ctx, p.x, p.y, 3, WHITE); glow(ctx, p.x, p.y, 24, c, 0.8); },
+    tick(w, p, c, dt) { if (Math.random() < dt * 30) w.burst(p.x, p.y, c, 1, 50, 0.3, 1.4); },
+    end(w, p, c) { w.ring(p.x, p.y, 30, c, 0.3, 3); w.burst(p.x, p.y, c, 12, 260, 0.4, 2); } });
+  def({ id: "laser", fam: "Energy", name: "Laser dart", c: [1, 0.3, 0.45], speed: 1500, trail: 0, tags: ["beam", "fast"],
+    idea: "A short bar of light, very fast. Enemy snipers could telegraph with a thin line, then fire this.",
+    draw(ctx, p, c) { const a = angleOf(p); line(ctx, p.x - Math.cos(a) * 34, p.y - Math.sin(a) * 34, p.x, p.y, 4, c); line(ctx, p.x - Math.cos(a) * 30, p.y - Math.sin(a) * 30, p.x, p.y, 1.5, WHITE); glow(ctx, p.x - Math.cos(a) * 17, p.y - Math.sin(a) * 17, 26, c, 0.7); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 6, 200, 0.2, 1.6); } });
+  def({ id: "sine", fam: "Energy", name: "Sine snake", c: [0.75, 0.5, 1], speed: 430, trail: 18, tags: ["wave path"],
+    idea: "Weaves along a sine wave, so it's dodged by timing, not by stepping aside. A Hexer-like enemy pattern.",
+    fly(p, dt) { p.base.x += p.vx * dt; p.base.y += p.vy * dt; const a = angleOf(p), off = Math.sin(p.age * 9) * 22; p.x = p.base.x - Math.sin(a) * off; p.y = p.base.y + Math.cos(a) * off; },
+    init(p) { p.base = { x: p.x, y: p.y }; },
+    draw(ctx, p, c) { taper(ctx, p, c, 5, 0.6); circle(ctx, p.x, p.y, 5, c); circle(ctx, p.x, p.y, 2, WHITE); glow(ctx, p.x, p.y, 18, c, 0.7); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 8, 200, 0.3, 1.6); } });
+  def({ id: "helix", fam: "Energy", name: "Helix pair", c: [0.4, 0.8, 1], c2: [1, 0.5, 0.8], speed: 460, trail: 0, tags: ["twin", "twist"],
+    idea: "Two orbs twisting round one path. A Twin Reapers approach enemy, or a two-player combo shot.",
+    init(p) { p.hist = []; },
+    tick(w, p) { p.hist.unshift({ x: p.x, y: p.y, age: p.age }); if (p.hist.length > 16) p.hist.pop(); },
+    draw(ctx, p, c, def) { const a = angleOf(p), nx = -Math.sin(a), ny = Math.cos(a);
+      for (const s of [1, -1]) { const col = s > 0 ? c : (def.c2 || c);
+        for (let i = 0; i < p.hist.length; i += 2) { const h = p.hist[i], o = Math.sin(h.age * 12) * 12 * s, f = 1 - i / p.hist.length; circle(ctx, h.x + nx * o, h.y + ny * o, 3 * f, col, 0.5 * f); }
+        const o = Math.sin(p.age * 12) * 12 * s; circle(ctx, p.x + nx * o, p.y + ny * o, 5, col); glow(ctx, p.x + nx * o, p.y + ny * o, 16, col, 0.7); } },
+    end(w, p, c, def) { w.burst(p.x, p.y, c, 6, 220, 0.3, 1.8); w.burst(p.x, p.y, def.c2, 6, 220, 0.3, 1.8); } });
+  def({ id: "orb", fam: "Energy", name: "Charged orb", c: [0.6, 0.75, 1], speed: 300, life: 2.6, trail: 0, tags: ["slow", "crackles"],
+    idea: "A slow orb crackling with little arcs that zap anything nearby. Ball Lightning's cousin for regular waves.",
+    draw(ctx, p, c) { circle(ctx, p.x, p.y, 10, c, 0.8); circle(ctx, p.x, p.y, 5, WHITE);
+      for (let k = 0; k < 3; k++) { let a = rand(0, TAU), x = p.x + Math.cos(a) * 10, y = p.y + Math.sin(a) * 10; ctx.strokeStyle = rgb(c, 0.8); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y); for (let s = 0; s < 3; s++) { x += Math.cos(a) * 7 + rand(-5, 5); y += Math.sin(a) * 7 + rand(-5, 5); ctx.lineTo(x, y); } ctx.stroke(); }
+      glow(ctx, p.x, p.y, 34, c, 0.8); },
+    end(w, p, c) { w.ring(p.x, p.y, 50, c, 0.35, 3); w.burst(p.x, p.y, c, 18, 320, 0.4, 2); } });
+  def({ id: "bolt", fam: "Energy", name: "Lightning bolt", c: [0.85, 0.9, 1], speed: 0, life: 0.18, trail: 0, tags: ["instant", "jagged"], instant: true,
+    idea: "No travel time: a jagged bolt flashes to the target. Arc Lightning's look for a single-target weapon.",
+    draw(ctx, p, c) { const f = 1 - p.age / p.life; ctx.strokeStyle = rgb(c, f); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x0, p.y0);
+      const n = 9; for (let i = 1; i < n; i++) { const k = i / n; ctx.lineTo(p.x0 + (p.tx - p.x0) * k + rand(-12, 12), p.y0 + (p.ty - p.y0) * k + rand(-12, 12)); } ctx.lineTo(p.tx, p.ty); ctx.stroke();
+      glow(ctx, p.tx, p.ty, 30, c, f); glow(ctx, (p.x0 + p.tx) / 2, (p.y0 + p.ty) / 2, 50, c, 0.3 * f); },
+    end(w, p, c) { w.burst(p.tx, p.ty, c, 10, 280, 0.25, 1.6); } });
+  def({ id: "prism", fam: "Energy", name: "Prism shard", c: [0.95, 0.95, 1], speed: 640, trail: 6, tags: ["splits"], split: 3,
+    idea: "A clear shard that splits into red, green and blue on impact. The Prism Beam as a projectile.",
+    draw(ctx, p, c) { taper(ctx, p, c, 3, 0.4); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.fillStyle = rgb(c, 0.9); ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-4, 5); ctx.lineTo(-4, -5); ctx.fill(); ctx.restore(); glow(ctx, p.x, p.y, 16, c, 0.6); },
+    end(w, p) { [[1, 0.3, 0.3], [0.3, 1, 0.4], [0.35, 0.5, 1]].forEach((cc, i) => w.burst(p.x, p.y, cc, 4, 340, 0.4, 2.2, { dir: angleOf(p) + (i - 1) * 0.6, spread: 0.12, drag: 1 })); } });
+  def({ id: "pulse", fam: "Energy", name: "Pulse wave", c: [0.5, 1, 0.65], speed: 360, trail: 0, tags: ["arc", "wide"],
+    idea: "A widening arc of light, easier to land than to dodge. The Repulsion Cannon as a travelling wave.",
+    draw(ctx, p, c) { const a = angleOf(p), r = 14 + p.age * 40; ctx.strokeStyle = rgb(c, 0.9); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x - Math.cos(a) * r, p.y - Math.sin(a) * r, r, a - 0.6, a + 0.6); ctx.stroke(); glow(ctx, p.x, p.y, r * 0.8, c, 0.4); },
+    end(w, p, c) { w.ring(p.x, p.y, 40, c, 0.3, 3); } });
+
+  // --- Elemental ---
+  def({ id: "fireball", fam: "Elemental", name: "Fireball", c: [1, 0.5, 0.15], speed: 480, trail: 0, tags: ["flames", "smoke"],
+    idea: "Licking flames and a smoke trail; bursts into embers. The Fireball, more alive.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 40) w.parts.push({ x: p.x + rand(-4, 4), y: p.y + rand(-4, 4), vx: -p.vx * 0.15 + rand(-20, 20), vy: -p.vy * 0.15 + rand(-30, 0), life: 0.35, max: 0.35, size: 4, c: mix(c, [1, 0.9, 0.4], Math.random()), kind: "spark", drag: 2 });
+      if (Math.random() < dt * 14) w.parts.push({ x: p.x, y: p.y, vx: rand(-10, 10), vy: rand(-25, -5), life: 0.7, max: 0.7, size: 5, c, kind: "smoke", drag: 1 }); },
+    draw(ctx, p, c) { circle(ctx, p.x, p.y, 9, c); circle(ctx, p.x, p.y, 5, [1, 0.9, 0.5]); glow(ctx, p.x, p.y, 30, c, 0.9); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 22, 300, 0.6, 2.4, { up: -40 }); w.ring(p.x, p.y, 40, [1, 0.8, 0.4], 0.3, 4); } });
+  def({ id: "ice", fam: "Elemental", name: "Ice shard", c: [0.65, 0.92, 1], speed: 700, trail: 6, tags: ["glint", "shatters"],
+    idea: "A glinting spike shedding frost; shatters into tumbling crystals. The Frost Lance as a thrown shard.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 20) w.burst(p.x, p.y, [0.9, 0.97, 1], 1, 30, 0.5, 1.2, { drag: 1 }); },
+    draw(ctx, p, c) { taper(ctx, p, c, 3, 0.3); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.moveTo(13, 0); ctx.lineTo(-7, 5); ctx.lineTo(-3, 0); ctx.lineTo(-7, -5); ctx.fill(); if ((p.age * 3) % 1 < 0.15) { ctx.fillStyle = "#fff"; ctx.fillRect(2, -1, 5, 2); } ctx.restore(); glow(ctx, p.x, p.y, 14, c, 0.5); },
+    end(w, p, c) { for (let i = 0; i < 7; i++) { const a = rand(0, TAU); w.parts.push({ x: p.x, y: p.y, vx: Math.cos(a) * rand(80, 220), vy: Math.sin(a) * rand(80, 220), life: 0.5, max: 0.5, size: 2.6, c: [0.85, 0.96, 1], kind: "spark", drag: 3 }); } } });
+  def({ id: "acid", fam: "Elemental", name: "Acid glob", c: [0.6, 1, 0.3], speed: 380, trail: 0, tags: ["lobbed", "puddle"], lob: true,
+    idea: "Lobbed in an arc, drips on the way, splats into a puddle that lingers. The Devourer's bile, as an approach enemy.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 10) w.parts.push({ x: p.x, y: p.y + 4, vx: 0, vy: 60, life: 0.4, max: 0.4, size: 2, c, kind: "spark", g: 300, drag: 0.5 }); },
+    draw(ctx, p, c) { const h = p.hgt || 0; circle(ctx, p.x, p.y + h + 10, 6, [0, 0, 0], 0.35); const wob = 1 + 0.18 * Math.sin(p.age * 18); ctx.fillStyle = rgb(c, 0.9); ctx.beginPath(); ctx.ellipse(p.x, p.y, 8 * wob, 8 / wob, 0, 0, TAU); ctx.fill(); circle(ctx, p.x - 2, p.y - 3, 2.5, [0.9, 1, 0.8]); glow(ctx, p.x, p.y, 18, c, 0.5); },
+    end(w, p, c) { w.parts.push({ x: p.x, y: p.y + (p.hgt || 0) + 8, vx: 0, vy: 0, life: 2.4, max: 2.4, size: 16, c, kind: "puddle" }); w.burst(p.x, p.y, c, 10, 160, 0.4, 2, { g: 400, up: -120 }); } });
+  def({ id: "bubble", fam: "Elemental", name: "Bubble", c: [0.6, 0.85, 1], speed: 220, life: 3, trail: 0, tags: ["slow", "pops"],
+    idea: "A wobbling, see-through bubble that pops with a ring. A Healer weapon that heals allies it floats through.",
+    draw(ctx, p, c) { const wob = Math.sin(p.age * 7) * 1.5; ctx.strokeStyle = rgb(c, 0.85); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(p.x, p.y, 13 + wob, 13 - wob, 0, 0, TAU); ctx.stroke(); circle(ctx, p.x, p.y, 13, c, 0.12); circle(ctx, p.x - 5, p.y - 5, 2.5, WHITE, 0.9); },
+    end(w, p, c) { w.ring(p.x, p.y, 22, c, 0.25, 2); w.burst(p.x, p.y, WHITE, 8, 140, 0.25, 1.2); } });
+  def({ id: "leaf", fam: "Elemental", name: "Leaf blade", c: [0.5, 0.95, 0.45], speed: 420, trail: 5, tags: ["flutter"],
+    idea: "Leaves that flutter side to side as they fly. A Treant Rod or Sanctuary-themed enemy.",
+    fly(p, dt) { p.base.x += p.vx * dt; p.base.y += p.vy * dt; const a = angleOf(p), off = Math.sin(p.age * 6 + p.seed) * 10; p.x = p.base.x - Math.sin(a) * off; p.y = p.base.y + Math.cos(a) * off; },
+    init(p) { p.base = { x: p.x, y: p.y }; p.seed = rand(0, 6); }, multi: 3, spread: 0.12,
+    draw(ctx, p, c) { taper(ctx, p, c, 2, 0.3); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p) + Math.sin(p.age * 6 + p.seed) * 0.6); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.ellipse(0, 0, 9, 4, 0, 0, TAU); ctx.fill(); line(ctx, -8, 0, 8, 0, 1, [0.2, 0.5, 0.2]); ctx.restore(); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 5, 120, 0.5, 1.8, { g: 60 }); } });
+  def({ id: "rock", fam: "Elemental", name: "Tumbling rock", c: [0.7, 0.6, 0.5], speed: 400, trail: 0, tags: ["heavy", "dust"],
+    idea: "A chunky rock tumbling end over end, kicking up dust. The Golem Staff's boulder, or a Colossus approach enemy.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 12) w.parts.push({ x: p.x, y: p.y, vx: rand(-15, 15), vy: rand(-10, 10), life: 0.6, max: 0.6, size: 4, c, kind: "smoke", drag: 1 }); },
+    draw(ctx, p, c) { poly(ctx, p.x, p.y, 11, 6, p.age * 8, mix(c, [0, 0, 0], 0.3)); poly(ctx, p.x - 1, p.y - 1, 9, 5, p.age * 8 + 0.3, c); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 10, 240, 0.5, 3, { g: 300 }); for (let i = 0; i < 4; i++) w.parts.push({ x: p.x, y: p.y, vx: rand(-40, 40), vy: rand(-40, 40), life: 0.8, max: 0.8, size: 6, c, kind: "smoke", drag: 2 }); } });
+  def({ id: "water", fam: "Elemental", name: "Water jet", c: [0.35, 0.65, 1], speed: 650, trail: 0, tags: ["stream", "droplets"], stream: true,
+    idea: "A stream of droplets that beads and splashes. A close-range Healer spray, or a push-back weapon.",
+    draw(ctx, p, c) { circle(ctx, p.x, p.y, 4 + Math.sin(p.age * 30 + p.seed) * 1.2, c, 0.85); circle(ctx, p.x - 1, p.y - 1, 1.5, WHITE, 0.8); },
+    init(p) { p.seed = rand(0, 6); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 3, 150, 0.3, 1.6, { g: 300, up: -60 }); } });
+
+  // --- Arcane and dark ---
+  def({ id: "missile", fam: "Arcane and dark", name: "Homing missile", c: [1, 0.55, 0.3], speed: 380, life: 3, trail: 0, tags: ["homing", "smoke trail"], homing: 3.2,
+    idea: "Turns toward the nearest target, leaving a curling smoke trail. Arcane Missiles with weight, or a boss volley.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 40) w.parts.push({ x: p.x, y: p.y, vx: rand(-8, 8), vy: rand(-8, 8), life: 0.7, max: 0.7, size: 3, c, kind: "smoke", drag: 2 }); },
+    draw(ctx, p, c) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.fillStyle = "#cfd6e0"; ctx.fillRect(-8, -3, 14, 6); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(6, -3); ctx.lineTo(6, 3); ctx.fill(); ctx.restore(); const a = angleOf(p); glow(ctx, p.x - Math.cos(a) * 10, p.y - Math.sin(a) * 10, 12, [1, 0.7, 0.3], 0.9); },
+    end(w, p, c) { w.ring(p.x, p.y, 36, c, 0.3, 4); w.burst(p.x, p.y, c, 16, 280, 0.45, 2.2); } });
+  def({ id: "swarm", fam: "Arcane and dark", name: "Seeker swarm", c: [0.85, 0.6, 1], speed: 330, life: 3, trail: 6, tags: ["homing", "weaving"], homing: 2.4, multi: 4, spread: 0.6,
+    idea: "A handful of motes that weave as they home in. Wisp Lantern's wisps, or the Hive Queen's approach (bees).",
+    fly(p, dt) { const a = angleOf(p) + Math.sin(p.age * 10 + p.seed) * 2.5 * dt; const s = speedOf(p); p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s; straight(p, dt); },
+    init(p) { p.seed = rand(0, 6); },
+    draw(ctx, p, c) { dots(ctx, p, c, 2.5, 1); circle(ctx, p.x, p.y, 3.5, c); glow(ctx, p.x, p.y, 12, c, 0.8); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 5, 160, 0.3, 1.4); } });
+  def({ id: "skull", fam: "Arcane and dark", name: "Spirit skull", c: [0.6, 1, 0.8], speed: 340, life: 2.6, trail: 0, tags: ["ghost trail", "homing"], homing: 1.6,
+    idea: "A grinning skull trailing ghostly wisps. The Lich's approach: a Grave Priest's shot.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 25) w.parts.push({ x: p.x + rand(-5, 5), y: p.y + rand(-5, 5), vx: -p.vx * 0.2, vy: -p.vy * 0.2 + rand(-15, 15), life: 0.5, max: 0.5, size: 4, c, kind: "spark", drag: 2 }); },
+    draw(ctx, p, c) { circle(ctx, p.x, p.y, 9, c, 0.9); ctx.fillStyle = rgb(c, 0.9); ctx.fillRect(p.x - 5, p.y + 4, 10, 6); circle(ctx, p.x - 3.5, p.y - 1, 2.5, [0.05, 0.1, 0.08]); circle(ctx, p.x + 3.5, p.y - 1, 2.5, [0.05, 0.1, 0.08]); glow(ctx, p.x, p.y, 22, c, 0.6); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 14, 200, 0.5, 2.2, { up: -60 }); } });
+  def({ id: "void", fam: "Arcane and dark", name: "Void orb", c: [0.55, 0.35, 0.9], speed: 260, life: 3, trail: 0, tags: ["pulls in", "dark"],
+    idea: "A black core with light being sucked into it; collapses with a pop. A Singularity approach enemy, or an ultimate.",
+    tick(w, p, c, dt) { if (Math.random() < dt * 30) { const a = rand(0, TAU), r = rand(26, 40); w.parts.push({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 3 + p.vx, vy: -Math.sin(a) * r * 3 + p.vy, life: 0.3, max: 0.3, size: 1.8, c, kind: "spark", drag: 0 }); } },
+    draw(ctx, p, c) { glow(ctx, p.x, p.y, 34, c, 0.6); circle(ctx, p.x, p.y, 11, [0.02, 0.01, 0.04]); ctx.strokeStyle = rgb(c, 0.9); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, 12, p.age * 6, p.age * 6 + 4); ctx.stroke(); },
+    end(w, p, c) { w.ring(p.x, p.y, 60, c, 0.4, 5); w.burst(p.x, p.y, c, 20, 360, 0.5, 2); } });
+  def({ id: "comet", fam: "Arcane and dark", name: "Comet", c: [0.8, 0.9, 1], speed: 560, trail: 22, tags: ["long tail"],
+    idea: "A bright head with a long, fading tail, falling from above. A Meteor Storm look, or the Eclipse's flares.",
+    draw(ctx, p, c) { const t = p.trail; for (let i = 0; i < t.length; i++) { const f = 1 - i / t.length; circle(ctx, t[i].x, t[i].y, 7 * f, mix(c, [0.4, 0.6, 1], 1 - f), 0.35 * f); } circle(ctx, p.x, p.y, 6, WHITE); glow(ctx, p.x, p.y, 28, c, 0.9); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 14, 280, 0.5, 2); w.ring(p.x, p.y, 34, c, 0.3, 3); } });
+  def({ id: "cluster", fam: "Arcane and dark", name: "Cluster star", c: [1, 0.85, 0.35], speed: 440, life: 0.9, trail: 6, tags: ["splits in 6"], burst: 6,
+    idea: "Flies a short way, then bursts into a ring of six small stars. A Bomblet-style upgrade, or a Burster variant.",
+    draw(ctx, p, c) { taper(ctx, p, c, 4, 0.4); poly(ctx, p.x, p.y, 9, 5, p.age * 5, c); circle(ctx, p.x, p.y, 3, WHITE); glow(ctx, p.x, p.y, 20, c, 0.7); },
+    end(w, p, c) { w.ring(p.x, p.y, 24, c, 0.2, 3); } });
+  def({ id: "arrow", fam: "Arcane and dark", name: "Fletched arrow", c: [0.95, 0.9, 0.75], speed: 900, trail: 3, tags: ["sticks"],
+    idea: "An arrow with fletching that sticks where it lands, quivering. The Mender's Bow, readable at a glance.",
+    draw(ctx, p, c) { const a = angleOf(p); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(a); line(ctx, -18, 0, 4, 0, 2, [0.75, 0.6, 0.4]); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(2, -3); ctx.lineTo(2, 3); ctx.fill(); ctx.fillStyle = rgb([1, 0.4, 0.4]); ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-12, -4); ctx.lineTo(-10, 0); ctx.lineTo(-12, 4); ctx.fill(); ctx.restore(); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 4, 120, 0.25, 1.4); } });
+  def({ id: "blood", fam: "Arcane and dark", name: "Blood drop", c: [0.85, 0.1, 0.2], speed: 520, trail: 8, tags: ["drips", "splatter"],
+    idea: "A teardrop that leaves a dotted trail and splatters. Blood Bolts, or a Blood Moon path enemy.",
+    draw(ctx, p, c) { dots(ctx, p, c, 2.2, 2); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.arc(2, 0, 5, -Math.PI / 2, Math.PI / 2); ctx.lineTo(-9, 0); ctx.fill(); ctx.restore(); circle(ctx, p.x + 1, p.y - 2, 1.5, [1, 0.6, 0.6]); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 12, 220, 0.5, 2.2, { g: 200 }); w.parts.push({ x: p.x, y: p.y, vx: 0, vy: 0, life: 1.5, max: 1.5, size: 8, c, kind: "puddle" }); } });
+
+  // --- Patterns (how enemy shots could behave) ---
+  def({ id: "mine", fam: "Patterns", name: "Delay mine", c: [1, 0.4, 0.5], speed: 380, life: 2.2, trail: 4, tags: ["stops", "blinks", "bursts"], burst: 8,
+    idea: "Flies, stops, blinks faster and faster, then bursts into eight. A Pauser cousin for the Warden's approach.",
+    fly(p, dt) { const f = Math.max(0, 1 - p.age / 0.6); p.x += p.vx * f * dt; p.y += p.vy * f * dt; },
+    draw(ctx, p, c) { taper(ctx, p, c, 3, 0.3); const blink = p.age > 0.7 && Math.sin(p.age * (8 + p.age * 14)) > 0; circle(ctx, p.x, p.y, 7, blink ? WHITE : c); ctx.strokeStyle = rgb(c, 0.6); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 12 + 30 * Math.max(0, 1 - (p.age - 0.6) / 1.6), 0, TAU); ctx.stroke(); glow(ctx, p.x, p.y, 18, c, blink ? 1 : 0.5); },
+    end(w, p, c) { w.ring(p.x, p.y, 30, c, 0.25, 3); } });
+  def({ id: "crescent", fam: "Patterns", name: "Crescent", c: [0.95, 0.75, 1], speed: 360, trail: 0, tags: ["curves", "wide"], curve: 1.2,
+    idea: "A moon-shaped slice that curves as it flies. The Eclipse's crescents, as a regular enemy's shot.",
+    draw(ctx, p, c) { const a = angleOf(p); ctx.fillStyle = rgb(c, 0.95); ctx.beginPath(); ctx.arc(p.x, p.y, 14, a - 1.3, a + 1.3); ctx.arc(p.x - Math.cos(a) * 6, p.y - Math.sin(a) * 6, 12, a + 1.2, a - 1.2, true); ctx.fill(); glow(ctx, p.x, p.y, 22, c, 0.5); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 8, 200, 0.3, 1.6); } });
+  def({ id: "snake", fam: "Patterns", name: "Bullet snake", c: [1, 0.55, 0.3], speed: 300, life: 3, trail: 0, tags: ["chain", "homing"], homing: 1.4,
+    idea: "A head that homes slowly with a chain of segments following its path. A Devourer approach enemy, or a Burrower's shot.",
+    init(p) { p.hist = []; },
+    tick(w, p) { p.hist.unshift({ x: p.x, y: p.y }); if (p.hist.length > 40) p.hist.pop(); },
+    draw(ctx, p, c) { for (let i = 36; i >= 6; i -= 6) { const h = p.hist[i]; if (h) circle(ctx, h.x, h.y, 6 - i / 12, mix(c, [0.6, 0.2, 0.1], i / 40)); } circle(ctx, p.x, p.y, 8, c); circle(ctx, p.x + 2, p.y - 2, 2, WHITE); glow(ctx, p.x, p.y, 18, c, 0.5); },
+    end(w, p, c) { w.burst(p.x, p.y, c, 12, 240, 0.4, 2); } });
+  def({ id: "charm", fam: "Patterns", name: "Paper charm", c: [1, 0.92, 0.75], speed: 360, trail: 0, tags: ["flips", "lands"],
+    idea: "A paper slip that flips end over end and sticks to the floor as a trap. The Ofuda, or a ward-placing enemy.",
+    draw(ctx, p, c) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(angleOf(p)); ctx.scale(1, Math.cos(p.age * 14)); ctx.fillStyle = rgb(c); ctx.fillRect(-7, -10, 14, 20); ctx.fillStyle = rgb([0.85, 0.15, 0.2]); ctx.fillRect(-3, -6, 6, 12); ctx.restore(); },
+    end(w, p, c) { w.ring(p.x, p.y, 26, [1, 0.4, 0.3], 0.4, 2); } });
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // Firing and running one projectile type in a world.
+  function fire(w, d, x, y, aim, palette) {
+    const col = colourFor(d, palette);
+    const n = d.multi || 1, spread = d.spread || 0;
+    for (let i = 0; i < n; i++) {
+      const a = aim + (n > 1 ? (i - (n - 1) / 2) * spread : 0) + rand(-0.02, 0.02);
+      const p = { d, x, y, vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, age: 0, life: d.life, trail: [], col, x0: x, y0: y, hgt: 0, bounces: 0, hit: new Set() };
+      if (d.lob) { p.lobT = 0; p.lobDur = 1.1; p.tx0 = x; p.ty0 = y; }
+      if (d.instant) { const t = nearest(w, x, y); p.tx = t ? t.x : x + Math.cos(a) * 500; p.ty = t ? t.y : y + Math.sin(a) * 500; }
+      if (d.stream) { p.vx *= rand(0.9, 1.1); p.vy += rand(-30, 30); }
+      d.init && d.init(p);
+      w.shots.push(p);
+    }
+  }
+  function colourFor(d, palette) {
+    if (palette === "mine") return [0.5, 0.75, 1];
+    if (palette === "enemy") return d.fam === "Arcane and dark" || d.id === "orb" || d.id === "void" ? [0.85, 0.35, 1] : [1, 0.3, 0.45];
+    return d.c;
+  }
+  function nearest(w, x, y) { let best = null, bd = 1e9; for (const t of w.targets) { const dd = Math.hypot(t.x - x, t.y - y); if (dd < bd) { bd = dd; best = t; } } return best; }
+  function endShot(w, p) {
+    const d = p.d;
+    d.end && d.end(w, p, p.col, d);
+    if (d.burst) for (let i = 0; i < d.burst; i++) {
+      const a = TAU * i / d.burst, cd = { ...d, burst: 0, multi: 1, speed: 300, life: 0.6, end: (ww, pp, cc) => ww.burst(pp.x, pp.y, cc, 3, 100, 0.2, 1.4), draw: (ctx, pp, cc) => { circle(ctx, pp.x, pp.y, 4, cc); glow(ctx, pp.x, pp.y, 10, cc, 0.7); }, fly: straight, init: null, tick: null, homing: 0 };
+      w.shots.push({ d: cd, x: p.x, y: p.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, age: 0, life: 0.6, trail: [], col: p.col, hit: new Set() });
+    }
+  }
+  function stepShots(w, dt, bounds) {
+    for (const p of w.shots) {
+      const d = p.d;
+      p.age += dt;
+      if (d.homing) { const t = nearest(w, p.x, p.y); if (t) { const want = Math.atan2(t.y - p.y, t.x - p.x), a = angleOf(p); let diff = ((want - a + Math.PI * 3) % TAU) - Math.PI; const turn = Math.max(-d.homing * dt, Math.min(d.homing * dt, diff)); const s = speedOf(p); p.vx = Math.cos(a + turn) * s; p.vy = Math.sin(a + turn) * s; } }
+      if (d.curve) { const a = angleOf(p) + d.curve * dt, s = speedOf(p); p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s; }
+      if (d.lob) { p.lobT += dt; const k = Math.min(1, p.lobT / p.lobDur); p.hgt = -Math.sin(k * Math.PI) * 70; p.x += p.vx * dt * 0.8; p.ybase = (p.ybase ?? p.y) + p.vy * dt * 0.8; p.y = p.ybase + p.hgt; if (k >= 1) p.age = p.life; }
+      else if (!d.instant) d.fly(p, dt);
+      d.tick && d.tick(w, p, p.col, dt);
+      if (d.trail) { p.trail.unshift({ x: p.x, y: p.y }); if (p.trail.length > d.trail) p.trail.pop(); }
+      // Walls: bounce discs, otherwise gone.
+      if (p.x < bounds.x0 || p.x > bounds.x1 || p.y < bounds.y0 || p.y > bounds.y1) {
+        if (d.bounce && p.bounces < d.bounce) { p.bounces++; if (p.x < bounds.x0 || p.x > bounds.x1) p.vx = -p.vx; else p.vy = -p.vy; p.x = Math.max(bounds.x0, Math.min(bounds.x1, p.x)); p.y = Math.max(bounds.y0, Math.min(bounds.y1, p.y)); w.burst(p.x, p.y, p.col, 4, 150, 0.2, 1.4); }
+        else p.dead = true;
+      }
+      // Targets
+      if (!d.instant) for (const t of w.targets) {
+        if (p.hit.has(t)) continue;
+        if (Math.hypot(t.x - p.x, t.y - p.y) < t.r + 8 && !(d.lob && p.lobT < p.lobDur * 0.85)) {
+          t.flash = 0.08; t.squash = 1;
+          if (d.pierce) { p.hit.add(t); w.burst(p.x, p.y, p.col, 5, 200, 0.25, 1.6); }
+          else if (d.bounce && p.bounces < d.bounce) { p.bounces++; p.hit.add(t); const a = Math.atan2(p.y - t.y, p.x - t.x); const s = speedOf(p); p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s; w.burst(p.x, p.y, p.col, 5, 200, 0.25, 1.6); }
+          else { endShot(w, p); p.dead = true; p.ended = true; }
+          break;
+        }
+      }
+      if (p.age >= p.life && !p.dead) { if (d.instant) { const t = nearest(w, p.tx, p.ty); if (t) { t.flash = 0.08; t.squash = 1; } } endShot(w, p); p.dead = true; }
+    }
+    w.shots = w.shots.filter(p => !p.dead);
+  }
+  function drawTarget(ctx, t) {
+    const s = 1 + 0.18 * Math.sin((t.squash || 0) * Math.PI);
+    ctx.fillStyle = t.flash > 0 ? "#fff" : "rgba(255,90,90,1)"; ctx.beginPath();
+    for (let k = 0; k <= 3; k++) { const a = t.rot + TAU * k / 3; k ? ctx.lineTo(t.x + Math.cos(a) * t.r * s, t.y + Math.sin(a) * t.r * s) : ctx.moveTo(t.x + Math.cos(a) * t.r * s, t.y + Math.sin(a) * t.r * s); }
+    ctx.fill();
+  }
+  function stepTargets(w, dt) { for (const t of w.targets) { t.flash = Math.max(0, (t.flash || 0) - dt); t.squash = Math.max(0, (t.squash || 0) - dt * 6); t.update && t.update(t, w.t); } }
+  function grid(ctx, W, H, step) {
+    ctx.fillStyle = "#0d0f17"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(255,255,255,0.04)"; ctx.lineWidth = 1;
+    for (let x = 0; x <= W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  }
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The range
+  const range = new World(document.getElementById("range"));
+  const RW = 1100, RH = 440;
+  range.targets = [
+    { x: 860, y: 120, r: 18, rot: 0, update: (t, time) => { t.y = 120 + Math.sin(time * 0.9) * 60; t.rot = time; } },
+    { x: 960, y: 230, r: 22, rot: 1, update: (t, time) => { t.y = 230 + Math.sin(time * 0.7 + 2) * 80; t.x = 960 + Math.cos(time * 0.5) * 50; t.rot = -time; } },
+    { x: 830, y: 340, r: 16, rot: 2, update: (t, time) => { t.y = 340 + Math.sin(time * 1.2 + 4) * 50; t.rot = time * 1.5; } },
+  ];
+  let picked = T[0], palette = "own", rate = 0.3, fireT = 0, turretAim = 0;
+  const gun = { x: 110, y: RH / 2 };
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The cards
+  const fams = [
+    ["Kinetic", "Solid things: rounds, needles, blades, discs. They read by shape and spin."],
+    ["Energy", "Light and charge: wobbling blobs, beams, arcs, waves. They read by glow."],
+    ["Elemental", "Fire, ice, acid, water, leaves and rock, each with its own way of ending."],
+    ["Arcane and dark", "Homing, ghostly and heavy shots: missiles, skulls, void, comets, blood."],
+    ["Patterns", "Behaviours more than looks: shots that stop, curve, chain or trap. Mostly enemy ideas."],
+  ];
+  const host = document.getElementById("families");
+  const cards = [];
+  for (const [fam, blurb] of fams) {
+    const sec = document.createElement("section"); sec.className = "fam";
+    sec.innerHTML = `<div class="hd"><h2>${fam}</h2><p>${blurb}</p></div><div class="grid"></div>`;
+    const g = sec.querySelector(".grid");
+    for (const d of T.filter(t => t.fam === fam)) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "card"; b.setAttribute("aria-pressed", "false");
+      b.innerHTML = `<canvas width="300" height="118" aria-hidden="true"></canvas><div class="tx"><b>${d.name}</b><div class="tags">${d.tags.map(t => `<span>${t}</span>`).join("")}</div><div class="idea">${d.idea}</div></div>`;
+      const w = new World(b.querySelector("canvas"));
+      w.targets = [{ x: 262, y: 59, r: 12, rot: 0, update: (t, time) => { t.y = 59 + Math.sin(time * 1.1 + d.speed) * 22; t.rot = time; } }];
+      const card = { d, el: b, w, fireT: rand(0, 0.5), visible: true };
+      b.addEventListener("click", () => pick(d));
+      g.appendChild(b); cards.push(card);
+    }
+    host.appendChild(sec);
+  }
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { const c = cards.find(k => k.el === e.target); if (c) c.visible = e.isIntersecting; }), { rootMargin: "100px" }) : null;
+  if (io) cards.forEach(c => io.observe(c.el));
+
+  function pick(d) {
+    picked = d; range.shots = []; fireT = 0;
+    document.getElementById("now").innerHTML = `${d.name}<small>${d.tags.join(" · ")}</small>`;
+    cards.forEach(c => { const on = c.d === d; c.el.classList.toggle("on", on); c.el.setAttribute("aria-pressed", on ? "true" : "false"); });
+  }
+  document.querySelectorAll("#palette button").forEach(b => b.addEventListener("click", () => {
+    palette = b.dataset.p; document.querySelectorAll("#palette button").forEach(o => o.classList.toggle("on", o === b));
+  }));
+  document.querySelectorAll("#rate button").forEach(b => b.addEventListener("click", () => {
+    rate = parseFloat(b.dataset.r); document.querySelectorAll("#rate button").forEach(o => o.classList.toggle("on", o === b));
+  }));
+
+  // ---------------------------------------------------------------------------------------------------------------
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)) * (reduce ? 0.5 : 1); last = now;  // (the first frame can be stamped before load)
+    // Range
+    range.step(dt); stepTargets(range, dt);
+    const tgt = range.targets[Math.floor(range.t / 1.5) % range.targets.length];
+    const want = Math.atan2(tgt.y - gun.y, tgt.x - gun.x); turretAim += (want - turretAim) * Math.min(1, dt * 6);
+    fireT -= dt;
+    if (fireT <= 0) { fireT = picked.stream ? 0.03 : rate * (picked.speed < 350 ? 1.6 : 1); fire(range, picked, gun.x + Math.cos(turretAim) * 30, gun.y + Math.sin(turretAim) * 30, turretAim, palette); }
+    stepShots(range, dt, { x0: 0, x1: RW, y0: 0, y1: RH });
+    const rc = range.ctx; rc.setTransform(range.cv.width / RW, 0, 0, range.cv.height / RH, 0, 0);
+    grid(rc, RW, RH, 64);
+    range.targets.forEach(t => drawTarget(rc, t));
+    for (const p of range.shots) p.d.draw(rc, p, p.col, p.d);
+    range.drawParts();
+    rc.fillStyle = "#1c2733"; rc.beginPath(); rc.arc(gun.x, gun.y, 26, 0, TAU); rc.fill();
+    rc.strokeStyle = "#6fe3c4"; rc.lineWidth = 3; rc.stroke();
+    line(rc, gun.x, gun.y, gun.x + Math.cos(turretAim) * 34, gun.y + Math.sin(turretAim) * 34, 8, [0.44, 0.89, 0.77]);
+    // Cards
+    for (const c of cards) {
+      if (!c.visible) continue;
+      const w = c.w, d = c.d;
+      w.step(dt); stepTargets(w, dt);
+      c.fireT -= dt;
+      if (c.fireT <= 0) { c.fireT = d.stream ? 0.04 : d.instant ? 0.7 : Math.max(0.55, Math.min(1.2, 240 / Math.max(200, d.speed) + 0.35)); fire(w, d, 26, 59, Math.atan2(w.targets[0].y - 59, 236), "own"); }
+      stepShots(w, dt, { x0: 0, x1: 300, y0: 0, y1: 118 });
+      const ctx = w.ctx; ctx.setTransform(1, 0, 0, 1, 0, 0);
+      grid(ctx, 300, 118, 30);
+      w.targets.forEach(t => drawTarget(ctx, t));
+      for (const p of w.shots) p.d.draw(ctx, p, p.col, p.d);
+      w.drawParts();
+    }
+    requestAnimationFrame(frame);
+  }
+  pick(T[0]);
+  requestAnimationFrame(frame);
+})();
+</script>

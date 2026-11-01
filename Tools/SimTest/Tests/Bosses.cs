@@ -446,13 +446,16 @@ static partial class Program
         var seenGas = new HashSet<int>();
         float friendStart = 0f; bool startSet = false, pushed = false;
         float heldHost = 0f; int holdFrames = 0; bool heldClient = false;
+        var inLane = typeof(Game).GetMethod("InDoorLane", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        int gasInLane = 0; var gateDirs = new HashSet<float>();
         Run(s, dt, 11.5f, null, () =>
         {
             Clear();
             me.Pos = new V2(60f, 60f);
             gates = Math.Max(gates, w.Warden.Gates.Count);
             clientGate |= cg.Enemies[w.Id].Warden.Gates.Count > 0;
-            foreach (var pt in g.Patches.Values) if (pt.Kind == PatchKind.Gas) seenGas.Add(pt.Id);
+            foreach (var pt in g.Patches.Values) if (pt.Kind == PatchKind.Gas && seenGas.Add(pt.Id) && (bool)inLane.Invoke(null, new object[] { w.Warden, pt.Pos.X })) gasInLane++;
+            foreach (var gt in w.Warden.Gates) gateDirs.Add(gt.Dir);
             if (!startSet && w.Warden.Gates.Count > 0) { cg.Players[2].Pos = new V2(800f, 700f); friendStart = 700f; startSet = true; }
             if (startSet && cg.Players[2].Pos.Y > friendStart + 30f) pushed = true;
             foreach (var gt in w.Warden.Gates)
@@ -467,6 +470,46 @@ static partial class Program
         Console.WriteLine("  warden gate stop: {0:0.0} px in, {1:0.00} s per gate, client saw it {2}", heldHost, holdFrames * dt / 3f, heldClient);
         Check(Math.Abs(heldHost - Game.GateHoldIn) < 1f && holdFrames * dt >= Game.GateHold * 2f && heldClient,
             "each gate stops just inside the arena for a moment before it carries on (seen on client)");
+        Console.WriteLine("  warden gates: from {0} edge(s); gas clouds over a door's lane {1}", gateDirs.Count, gasInLane);
+        Check(gateDirs.Count == 1, "a cross turn's gates all come from the same edge, so two never close in on you");
+        Check(gasInLane == 0, "tear gas never lands across the doors (or the lock) of the gate it comes with");
+
+        // The tear gas barrage: two volleys of canisters in patterns, slow aimed bursts between.
+        {
+            Run(s, dt, 6f, () => w.Warden.Turn == WardenTurn.Gas, () => { Clear(); me.Pos = new V2(60f, 60f); });
+            var cloudsBefore = new HashSet<int>(g.Patches.Keys);
+            var hadShots = new HashSet<int>(g.Bullets.Keys);
+            int bursts = 0;
+            Run(s, dt, 6f, null, () =>
+            {
+                Clear(); me.Pos = new V2(60f, 60f);
+                foreach (var b in g.Bullets.Values) if (hadShots.Add(b.Id) && b.Source == EnemyType.Boss) bursts++;
+            });
+            var clouds = g.Patches.Values.Where(pt => pt.Kind == PatchKind.Gas && !cloudsBefore.Contains(pt.Id)).ToList();
+            int clientClouds = cg.Patches.Values.Count(pt => pt.Kind == PatchKind.Gas);
+            Console.WriteLine("  warden gas barrage: {0} clouds (client sees {1}), {2} boss shots", clouds.Count, clientClouds, bursts);
+            Check(w.Warden.Stage == WardenStage.Lockdown && clouds.Count >= 8 && clientClouds > 0 && bursts >= 6,
+                "Lockdown's tear gas barrage: two volleys of canisters in patterns (everyone sees them), with aimed bursts between");
+        }
+
+        // Each gate has a gold lock: six of your shots break it, opening a third door in the middle.
+        {
+            Run(s, dt, 12f, () => w.Warden.Turn == WardenTurn.Cross && w.Warden.Gates.Any(gt => gt.Warn <= 0f), () => { Clear(); me.Pos = new V2(60f, 60f); });
+            var gate = w.Warden.Gates.First(gt => gt.Warn <= 0f);
+            var spawnShot = typeof(Game).GetMethod("SpawnBullet", flags);
+            bool blockedBefore = !Game.InGateGap(gate, gate.LockX);
+            for (int k = 0; k < Game.LockHits; k++)
+            {
+                V2 at = new V2(gate.LockX, (gate.Front + Game.GateBack(gate)) / 2f);
+                spawnShot.Invoke(g, new object[] { Defs.DpsShot, at, new V2(0f, 10f), 0f, 0.5f, 5f, 1, false, 0f });
+                Run(s, dt, 0.05f, null, Clear);
+            }
+            Run(s, dt, 0.3f, null, Clear);
+            var cgate = cg.Enemies[w.Id].Warden.Gates.FirstOrDefault(gt => Math.Abs(gt.LockX - gate.LockX) < 1f);
+            Console.WriteLine("  warden gate lock: open {0} (client sees it {1}); hits left {2}", gate.LockOpen, cgate != null && cgate.LockOpen, gate.LockHp);
+            Check(blockedBefore && gate.LockOpen && Game.InGateGap(gate, gate.LockX) && cgate != null && cgate.LockOpen,
+                "six shots break a gate's gold lock, opening a third door in the middle (everyone sees it)");
+        }
 
         // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.
         w.Hp = w.MaxHp * 0.29f;

@@ -133,6 +133,7 @@ namespace Arena
                 FillRect(0f, edge, Game.Width, 14f, new Rgba(0.45f, 0.65f, 1f, 0.22f * blink));
                 FillRect(g.Gap1, g.Dir > 0f ? 0f : Game.Height - 18f, Game.GateDoor, 18f, new Rgba(0.5f, 1f, 0.65f, 0.8f));
                 FillRect(g.Gap2, g.Dir > 0f ? 0f : Game.Height - 18f, Game.GateDoor, 18f, new Rgba(0.5f, 1f, 0.65f, 0.8f));
+                FillRect(g.LockX - Game.LockW / 2f, g.Dir > 0f ? 0f : Game.Height - 18f, Game.LockW, 18f, new Rgba(1f, 0.8f, 0.3f, 0.85f));  // where its lock will be
                 return;
             }
             if (Game.GateHolding(g))  // stopped just inside: the doors light up for a moment
@@ -151,8 +152,34 @@ namespace Arena
                 {
                     if ((x > g.Gap1 - 6f && x < g.Gap1 + Game.GateDoor + 6f) || (x > g.Gap2 - 6f && x < g.Gap2 + Game.GateDoor + 6f))
                         continue;
+                    if (Mathf.Abs(x - g.LockX) < (g.LockOpen ? Game.LockDoor / 2f : Game.LockW / 2f) + 6f)
+                        continue;  // the lock, or the door it left
                     DrawPushBullet(new V2(x, y), g.Dir, row == 0);
                 }
+            }
+            if (!g.LockOpen)
+                DrawGateLock(g, t);
+        }
+
+        /// A gate's gold lock: a padlock block across both rows, cracking as it's shot. Shot out, it leaves a door.
+        void DrawGateLock(WardenGate g, float t)
+        {
+            float back = Game.GateBack(g), top = Mathf.Min(g.Front, back) - Game.GateBulletR - 3f, bottom = Mathf.Max(g.Front, back) + Game.GateBulletR + 3f;
+            float x = g.LockX - Game.LockW / 2f, w = Game.LockW, h = bottom - top;
+            float glow = 0.5f + 0.5f * Mathf.Sin(t * 5f);
+            FillRect(x - 4f, top - 4f, w + 8f, h + 8f, new Rgba(1f, 0.8f, 0.3f, 0.15f + 0.1f * glow));
+            FillRect(x, top, w, h, new Rgba(0.6f, 0.42f, 0.1f));
+            FillRect(x + 2f, top + 2f, w - 4f, h - 4f, new Rgba(1f, 0.8f, 0.3f));
+            Arc(new V2(g.LockX, top + 1f), 6f, 2.5f, new Rgba(0.75f, 0.55f, 0.15f), 10, MathX.Pi, MathX.Pi);  // the shackle
+            V2 c = new V2(g.LockX, (top + bottom) / 2f);
+            Circle(c - new V2(0f, 2f), 2.6f, new Rgba(0.2f, 0.12f, 0.03f), 8);  // the keyhole
+            FillRect(c.X - 1f, c.Y - 1f, 2f, 6f, new Rgba(0.2f, 0.12f, 0.03f));
+            int lost = Game.LockHits - g.LockHp;  // cracks as it's shot
+            var crack = new Rgba(0.35f, 0.2f, 0.05f);
+            for (int i = 0; i < lost && i < 5; i++)
+            {
+                float sx = x + 4f + (i * 7 % 16), sy = top + 4f + (i * 11 % (int)Mathf.Max(6f, h - 8f));
+                Line(new V2(sx, sy), new V2(sx + 5f, sy + 4f), 1.2f, crack);
             }
         }
 

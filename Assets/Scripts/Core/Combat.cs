@@ -398,6 +398,11 @@ namespace Arena
                 }
                 if (!Defs.IsEnemyShot(b.Kind))
                 {
+                    if (GateLockHit(b))
+                    {
+                        scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
+                        continue;
+                    }
                     if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);

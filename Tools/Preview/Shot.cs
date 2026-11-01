@@ -316,6 +316,21 @@ class Shot {
       for (int k = 1; k < zap.Count && k < 4; k++) host.Game.Effects.Add(new Effect { Kind = FxKind.Bolt, Pos = zap[0].Pos, Pos2 = zap[k].Pos, Color = Defs.BulletColor(Defs.BoltShot), Dur = 0.15f, T = 0.03f });
       if (zap.Count > 0) host.Game.Effects.Add(new Effect { Kind = FxKind.Spark, Pos = zap[0].Pos, Color = Defs.BulletColor(Defs.HammerShot), Radius = zap[0].Radius + 14f, Dur = 0.3f, T = 0.12f });
     }
+    if (Environment.GetEnvironmentVariable("SHOTLOOKS") != null) {
+      // Each weapon's new shot look (ShotLooks.cs), one row per weapon, the player's weapon switched for each.
+      var sbs = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      var rows = new[] { WeaponId.TwinRifle, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.PrismBeam, WeaponId.ArcaneMissiles };
+      var kinds = new[] { Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
+      int pid = 100;
+      for (int i = 0; i < rows.Length; i++) {
+        // A stand-in player per row so each shot knows its weapon.
+        var stand = new Player { Id = pid + i, Name = "", Role = Role.Dps, Def = Defs.Get(Role.Dps), Weapon = Defs.WeaponOf(rows[i]), Pos = new V2(-500f, -500f), Disp = new V2(-500f, -500f) };
+        host.Game.Players[stand.Id] = stand;
+        for (int k = 0; k < 4; k++)
+          sbs.Invoke(host.Game, new object[] { kinds[i], new V2(380f + k * 230f, 110f + i * 120f), new V2(900f, k % 2 == 0 ? 0f : -150f), 0f, 1f, 10f, stand.Id, false, 0f });
+      }
+    }
     if (Environment.GetEnvironmentVariable("APPROACH") != null) {
       // The Warden's faction (APPROACH=1): Riot Shields walking, winding up, lunging, held low, cracked and broken,
       // Gas Grenadiers and a gas cloud, Rioters and a Guard; the approach chip shows above the wave panel.
