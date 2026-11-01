@@ -37,7 +37,7 @@ namespace Arena
         public int Dives;                // dives done this turn
 
         // Host only.
-        public int Step, Wave, Globs;
+        public int Step, Wave, Globs, FlankSide = 1;
         public float TurnLen, WaveT, SprayDir = 1f, BombT;
         public V2 DiveFrom;
         public bool Landed;
@@ -56,6 +56,9 @@ namespace Arena
         const int QueenSwarmCap = 8;
         const float DroneHeal = 0.02f;      // a drone that makes it back into her heals her this much
         const float BomberBlast = 60f, BomberDamage = 22f;
+        // Swarm's bombers come at you from the side: out to a flank point FlankOut px beside you (left and right in turn),
+        // swooping round (FlankTurn rad/s), then they lock onto where you are (a target marker) and dive in at FlankDive x speed.
+        public const float FlankOut = 300f, FlankTurn = 4.5f, FlankDiveTurn = 7f, FlankDive = 1.15f, FlankArrive = 70f, FlankMaxOut = 3f;  // turns in after FlankMaxOut s whatever
         // Honeycomb: eggs, sealing cells, nectar spray.
         const int EggCount = 4, DronesPerEgg = 2;
         const float EggFlight = 0.6f, EggHatch = 6f;
@@ -422,12 +425,13 @@ namespace Arena
             }
             switch (q.Turn)
             {
-                case QueenTurn.Bombers:  // one explosive drone per player, at where they are right now
+                case QueenTurn.Bombers:  // one explosive drone per player, swooping round to come at them from the side
                     e.FireT = 0.9f;
                     BroadcastSound(Sfx.BossBuzz);
+                    q.FlankSide = -q.FlankSide;
                     foreach (var p in Players.Values)
                         if (!p.Downed)
-                            LaunchBomber(e, p.Pos);
+                            LaunchFlanker(e, p, q.FlankSide);
                     break;
                 case QueenTurn.Fan:  // aimed fan, with gaps wide enough to slip through even up close
                     e.FireT = 0.9f;
@@ -525,7 +529,8 @@ namespace Arena
                     done.Add(id);
                     continue;
                 }
-                if (d.Pos.DistanceTo(e.Pos) < e.Radius + d.Radius)
+                // Touching her, give or take: enemies are kept from overlapping, which can hold a drone right at her edge.
+                if (d.Pos.DistanceTo(e.Pos) < e.Radius + d.Radius + 6f)
                 {
                     e.Hp = Math.Min(e.MaxHp, e.Hp + e.MaxHp * DroneHeal);
                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(0.55f, 1f, 0.55f), e.Radius + 30f, 0.5f, Sfx.Pick);
@@ -572,6 +577,71 @@ namespace Arena
                     SpawnDrone(queen, egg.Pos + V2.FromAngle(MathX.Tau * i / DronesPerEgg) * 16f);
                 BroadcastFx(FxKind.Ring, egg.Pos, new Rgba(0.8f, 1f, 0.55f), 50f, 0.5f, Sfx.BossSplat);
             }
+        }
+
+        /// Swarm's bomber: it heads out to one side (Phase 1) for a flank point beside its target, then (Phase 2) locks
+        /// onto where they stand and dives in from the side, so shooting at the Queen doesn't catch it on the way.
+        void LaunchFlanker(Enemy queen, Player p, float side)
+        {
+            V2 u = (p.Pos - queen.Pos).Normalized();
+            if (u.IsZero)
+                u = new V2(0f, 1f);
+            // The flank point: FlankOut from the player, square to their side of the Queen (90 degrees round from her); near
+            // an edge it tries 75, 105, 60 and 120 degrees, then the other side, before settling for the nearest that fits.
+            V2 flank = default(V2);
+            bool found = false;
+            foreach (float s2 in new[] { side, -side })
+            {
+                foreach (float deg in new[] { 90f, 75f, 105f, 60f, 120f })
+                {
+                    V2 at = p.Pos + (-u).Rotated(s2 * deg * MathX.Pi / 180f) * FlankOut;
+                    if (ClampToArena(at, 40f).DistanceTo(at) < 1f)
+                    {
+                        flank = at;
+                        side = s2;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    break;
+            }
+            if (!found)
+                flank = ClampToArena(p.Pos + u.Orthogonal() * (side * FlankOut), 40f);
+            float heading = u.Angle + side * 1.2f;  // out to that side first
+            var b = SpawnEnemyAt(EnemyType.HiveBomber, queen.Pos + V2.FromAngle(heading) * (queen.Radius + 8f), 0.15f, queen.Id);
+            b.Phase = 1;
+            b.Waypoint = flank;
+            b.Facing = heading;
+            b.TargetId = p.Id;
+            b.RetargetT = 99f;  // it keeps to the player it was sent at (unless they go down)
+        }
+
+        /// A flanking bomber's flight (EnemyAI's movement): it steers at a limited turn rate, so it swoops round.
+        V2 FlankerMove(Enemy b, float dt)
+        {
+            V2 to = b.Waypoint - b.Pos;
+            float want = to.Angle, turn = (b.Phase == 1 ? FlankTurn : FlankDiveTurn) * dt;
+            float diff = MathX.Fmod(want - b.Facing + MathX.Pi, MathX.Tau) - MathX.Pi;
+            b.Facing = to.Length < 40f ? want : b.Facing + Math.Max(-turn, Math.Min(turn, diff));
+            return V2.FromAngle(b.Facing);
+        }
+
+        /// A flanker at its flank point turns in: it locks onto where its target stands now.
+        void FlankerTurnIn(Enemy b)
+        {
+            Player p;
+            if (!Players.TryGetValue(b.TargetId, out p) || p.Downed)
+            {
+                p = null;
+                foreach (var o in Players.Values)
+                    if (!o.Downed && (p == null || o.Pos.DistanceTo(b.Pos) < p.Pos.DistanceTo(b.Pos)))
+                        p = o;
+            }
+            b.Phase = 2;
+            b.Waypoint = p != null ? p.Pos : b.Pos + V2.FromAngle(b.Facing) * 200f;
+            float flight = Math.Max(0.2f, b.Waypoint.DistanceTo(b.Pos) / (b.Def.Speed * FlankDive));
+            BroadcastFx(FxKind.Target, b.Waypoint, b.Def.Color, BomberBlast, flight, Sfx.BossBuzz);
         }
 
         /// About a quarter of the cells start glowing; your own cell often does, and one cell next to each player is

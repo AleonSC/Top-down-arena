@@ -409,7 +409,7 @@ namespace Arena
                 Attacks = new[]
                 {
                     new BestiaryAttack { Name = "Drones (≤10 s)", Pattern = "3 + 1 per player Shards with 3× health (max 8). She's shielded and fires nothing while any live; any left after 10 s fly back into her and heal her 2% each", Damage = "15 per shot" },
-                    new BestiaryAttack { Name = "Bombers (4.5 s)", Pattern = "1 Hive Bomber per player, flies at 330 px/s to your spot at launch, 60 px blast", Damage = "22", Every = 0.9f, Notes = "30 HP each, can be shot down" },
+                    new BestiaryAttack { Name = "Bombers (4.5 s)", Pattern = "1 Hive Bomber per player, a wasp: it swoops out to a point 300 px beside you (left and right in turn), then locks onto your spot (a marker) and dives in from the side at 380 px/s; 60 px blast", Damage = "22", Every = 0.9f, Notes = "30 HP each, can be shot down. They don't fly the line between you and her, so shooting her won't catch them: watch your sides" },
                     new BestiaryAttack { Name = "Fan (5 s)", Pattern = "5 aimed shots, 12.6° apart", Shot = "Aimed shot", ShotColor = new Rgba(1f, 0.12f, 0.12f), Count = "5", Speed = "200 px/s", Damage = "18.4 each", Every = 0.9f },
                     new BestiaryAttack { Name = "Rings (5 s)", Pattern = "Ring of big orbs, +8.6° per volley", Shot = "Big orb", ShotColor = new Rgba(0.85f, 0.35f, 1f), Count = "20", Speed = "100 px/s", Damage = "23 each", Every = 1.6f },
                     new BestiaryAttack { Name = "Eggs (Honeycomb)", Pattern = "4 eggs (60 HP, scaled like other enemies) spread across the arena; each one left after 6 s hatches 2 drones that fight on", Damage = "—" },

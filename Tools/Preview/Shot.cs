@@ -337,6 +337,16 @@ class Shot {
       for (int k = 0; k < 4; k++) put(EnemyType.Rioter, new V2(260f + k * 34f, 160f + (k % 2) * 30f));
       put(EnemyType.Guard, new V2(220f, 230f));
     }
+    if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
+      // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).
+      var sef = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(800f, 560f);
+      Func<V2, float, byte, Enemy> fl = (at, face, ph) => { var en = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveBomber, at, 0f, 0, false }); en.SpawnT = 0f; en.Disp = en.Pos; en.Facing = face; en.Phase = ph; return en; };
+      fl(new V2(560f, 330f), 2.6f, 1); fl(new V2(1060f, 360f), 0.6f, 1);
+      fl(new V2(470f, 560f), 0f, 2); fl(new V2(1150f, 520f), MathX.Pi, 2);
+      var qn = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveQueen, new V2(800f, 160f), 0f, 0, false }); qn.SpawnT = 0f; qn.Disp = qn.Pos;
+    }
     if (Environment.GetEnvironmentVariable("PATTERNS") != null) {
       // The new shooting patterns: a Pauser with its shots hanging, a Leader aiming ahead, a Stitcher's orbs and threads.
       var sbp = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);

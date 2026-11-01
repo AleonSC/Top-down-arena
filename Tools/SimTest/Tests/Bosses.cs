@@ -157,15 +157,36 @@ static partial class Program
         Action Park = () => { me.Pos = new V2(60f, 840f); };
         Action<V2> PutFriend = pos => { friend.Pos = pos; cg.Players[2].Pos = pos; };  // the friend's own game moves them
 
-        // Swarm: one turn at a time.
+        // Swarm: one turn at a time. Its bombers swoop out and come at you from the side (Phase 1, then 2 when they turn in).
         var seen = new List<QueenTurn>();
+        var flankAngles = new List<float>();
+        var turnedIn = new HashSet<int>();
+        bool clientFlanker = false, straightInSwarm = false;
+        float friendHit = 0f;
         Run(s, dt, 22f, null, () =>
         {
             KillDrones(); Park();
-            PutFriend(new V2(1400f, 800f)); friend.Hp = friend.MaxHp;
+            PutFriend(new V2(1400f, 800f)); friend.Hp = friend.MaxHp; friend.InvulnT = 0f;
             var t = q.Queen.Turn;
             if (seen.Count == 0 || seen[seen.Count - 1] != t) seen.Add(t);
+            foreach (var e in g.Enemies.Values)
+            {
+                if (e.Type != EnemyType.HiveBomber) continue;
+                straightInSwarm |= e.Phase == 0;
+                if (e.Phase == 2 && turnedIn.Add(e.Id) && e.TargetId == friend.Id)
+                {
+                    // How far round from the Queen's side it comes in: the angle at the friend between the Queen and it.
+                    V2 a = q.Pos - friend.Pos, b = e.Pos - friend.Pos;
+                    flankAngles.Add(Math.Abs(MathX.Fmod(a.Angle - b.Angle + MathX.Pi, MathX.Tau) - MathX.Pi) * 180f / MathX.Pi);
+                }
+            }
+            clientFlanker |= cg.Enemies.Values.Any(e => e.Type == EnemyType.HiveBomber && e.Phase >= 1);
         });
+        friendHit = friend.Run.DamageTaken;
+        Console.WriteLine("  queen swarm bombers: {0} turned in on the friend, from {1} degrees off the Queen's side; client saw them {2}; friend took {3:0}",
+            flankAngles.Count, string.Join(", ", flankAngles.Select(x => x.ToString("0"))), clientFlanker, friendHit);
+        Check(flankAngles.Count >= 2 && flankAngles.All(x => x > 50f) && !straightInSwarm && clientFlanker,
+            "Swarm's bombers swoop out and come at you from the side, not straight from the Queen (and clients see them)");
         Console.WriteLine("  queen swarm turns: " + string.Join(", ", seen));
         Check(seen.Count >= 8 && seen[0] == QueenTurn.Drones && seen[1] == QueenTurn.Rest && seen[2] == QueenTurn.Bombers && seen[4] == QueenTurn.Fan && seen[6] == QueenTurn.Rings,
             "Swarm: drones, bombers, aimed fan, orb rings, with a breather between each");
@@ -1626,8 +1647,8 @@ static partial class Program
             Check(home && q.Hp > hpBefore + q.MaxHp * 0.05f && q.Phase == 0, "drones left after 10 s fly back into her and heal her");
             s[0].Leave(""); s[1].Leave("");
         }
-        // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones
-        // aimed at where each player was when they launched, then her bullet patterns, then again.
+        // Hive Queen's loop: shooting drones (shielded until they're all dead), then explosive drones that swoop out to
+        // a player's side and lock onto where they are as they turn in, then her bullet patterns, then again.
         {
             var s = StartBuffed(dt, 10, 0);
             Run(s, dt, 10, () => { var qq = Find(s[0], EnemyType.HiveQueen); return qq != null && qq.SpawnT <= 0f; });
@@ -1668,10 +1689,10 @@ static partial class Program
                 foreach (var e in s[0].Game.Enemies.Values)
                 {
                     if (e.Type != EnemyType.HiveBomber) continue;
-                    if (!aimedAt.ContainsKey(e.Id))
+                    if (e.Phase == 1 && !lastPos.ContainsKey(e.Id)) launched++;
+                    if (e.Phase != 1 && !aimedAt.ContainsKey(e.Id))
                     {
-                        launched++;
-                        aimedAt[e.Id] = e.Waypoint;
+                        aimedAt[e.Id] = e.Waypoint;  // the spot it locked onto as it turned in
                         foreach (var p in s[0].Game.Players.Values)
                             if (p.Pos.DistanceTo(e.Waypoint) < 15f) { aimedRight++; break; }  // within a frame or two of running
                     }
@@ -1680,7 +1701,8 @@ static partial class Program
                 foreach (var id in new List<int>(lastPos.Keys))
                     if (!s[0].Game.Enemies.ContainsKey(id))
                     {
-                        if (lastPos[id].DistanceTo(aimedAt[id]) < 25f) onTarget++; else offTarget++;
+                        V2 spot;
+                        if (aimedAt.TryGetValue(id, out spot) && lastPos[id].DistanceTo(spot) < 25f) onTarget++; else offTarget++;
                         lastPos.Remove(id);
                     }
                 foreach (var b in s[0].Game.Bullets.Values)
@@ -1688,13 +1710,14 @@ static partial class Program
                 clientBomber |= Find(s[1], EnemyType.HiveBomber) != null;
                 foreach (var fx in s[1].Game.Effects) clientMarker |= fx.Kind == FxKind.Target;
             });
-            Console.WriteLine("  queen loop: stages {0}; {1} bombers launched ({2} aimed at a player's spot), {3} blew up on their spot, {4} elsewhere; running players lost {5:0} HP to them; fans {6}",
+            Console.WriteLine("  queen loop: stages {0}; {1} bombers launched ({2} locked onto a player's spot), {3} blew up on their spot, {4} elsewhere (on a player on the way); running players lost {5:0} HP to them; fans {6}",
                 string.Join(">", stages), launched, aimedRight, onTarget, offTarget, hpBefore - hpAfter, fans);
             Check(shieldUp && !bombersEarly, "the Hive Queen opens with shooting drones and is shielded while they live");
             Check(stages.Count >= 5 && stages[0] == 1 && stages[1] == 2 && stages[2] == 3 && stages[3] == 4 && resummoned, "the Hive Queen loops, one turn at a time: drones, bombers, fan, rings, then drones again");
-            Check(launched >= 8 && aimedRight == launched && onTarget >= launched - 2 && clientBomber && clientMarker,
-                "Hive bombers fly to where a player was when they launched and blow up there (seen on client, with a marker)");
-            Check(hpBefore - hpAfter < 45f && fans > 0, "keeping on the move dodges the bombers; her bullet patterns follow");
+            // (one that runs into a player while it's still swooping out blows up there, before it locks on)
+            Check(launched >= 8 && aimedAt.Count >= launched / 2 && aimedRight == aimedAt.Count && onTarget >= aimedAt.Count / 2 && clientBomber && clientMarker,
+                "Hive bombers swoop to a player's side, lock onto where they are and blow up there (seen on client, with a marker)");
+            Check(hpBefore - hpAfter < launched * 22f * 0.5f && fans > 0, "keeping on the move dodges most of the bombers; her bullet patterns follow");
             // ...but standing still gets you blown up.
             {
                 foreach (var e in s[0].Game.Enemies.Values) if (e.Type != EnemyType.HiveQueen) e.Hp = 0f;

@@ -151,5 +151,56 @@ namespace Arena
             Circle(b.Pos, r, new Rgba(1f, 0.67f, 0.16f), 12);
             Circle(b.Pos + new V2(-2f, -2f), r * 0.4f, new Rgba(1f, 0.94f, 0.7f, 0.8f), 8);
         }
+
+        /// Swarm's flanking bomber (Queen.cs): a wasp. A fading trail behind it, beating glassy wings, a striped amber
+        /// body with a glowing sting. Swooping out to your side it glows gold; once it turns in (Phase 2) it burns red-hot,
+        /// with a dashed line ahead of it, and its wings blur faster.
+        void DrawFlankBomber(Enemy e, V2 pos, float r, bool flash, bool spawning, float t)
+        {
+            bool diving = e.Phase == 2;
+            V2 dir = V2.FromAngle(e.Facing), side = dir.Orthogonal();
+            var amber = new Rgba(1f, 0.72f, 0.18f);
+            var hot = diving ? new Rgba(1f, 0.28f, 0.12f) : new Rgba(1f, 0.82f, 0.3f);
+            float a = spawning ? 0.4f : 1f;
+            // The trail: fading puffs behind it.
+            for (int k = 1; k <= 5; k++)
+                Circle(pos - dir * (k * 7f), r * (0.75f - k * 0.1f), hot.WithAlpha(a * (0.32f - k * 0.055f)), 10);
+            // A glow round it: gold while it swoops out, a hot pulsing red once it dives.
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * (diving ? 34f : 14f) + e.Id);
+            Circle(pos, r + 7f + 3f * pulse, hot.WithAlpha(a * (diving ? 0.32f : 0.18f)), 16);
+            if (diving)
+            {
+                DashedLine(pos + dir * (r + 4f), pos + dir * 130f, 2f, new Rgba(1f, 0.4f, 0.25f, 0.55f * a));
+                Arc(pos, r + 11f + 4f * (1f - pulse), 1.6f, new Rgba(1f, 0.55f, 0.35f, 0.7f * a), 16);
+            }
+            // Wings: two glassy blades either side of its thorax, beating (faster when diving).
+            float beat = Mathf.Sin(t * (diving ? 70f : 45f) + e.Id);
+            for (int s = -1; s <= 1; s += 2)
+            {
+                V2 root = pos + dir * 1f;
+                V2 tip = root + side * (s * (r + 7f)) - dir * (5f + 4f * beat);
+                V2 back = root + side * (s * (r + 1f)) - dir * (10f + 3f * beat);
+                SetColor(new Rgba(0.88f, 0.96f, 1f, a * (0.35f + 0.15f * beat)));
+                Tri(root, tip, back);
+                Line(root, tip, 1.2f, new Rgba(1f, 1f, 1f, 0.55f * a));
+            }
+            // Body: abdomen, thorax, head, front to back along its heading, with black stripes and a glowing sting.
+            var body = flash ? Rgba.White : amber;
+            Circle(pos - dir * (r * 0.55f), r * 0.78f, body.WithAlpha(a), 12);   // abdomen
+            Circle(pos + dir * (r * 0.25f), r * 0.55f, body.Mix(new Rgba(0.6f, 0.35f, 0.05f), 0.35f).WithAlpha(a), 10);  // thorax
+            Circle(pos + dir * (r * 0.85f), r * 0.38f, new Rgba(0.25f, 0.13f, 0.03f, a), 8);   // head
+            for (int k = 0; k < 2; k++)
+            {
+                V2 at = pos - dir * (r * (0.35f + 0.4f * k));
+                float w = r * (0.72f - 0.12f * k);
+                Line(at + side * w, at - side * w, 2.2f, new Rgba(0.12f, 0.07f, 0.02f, a));
+            }
+            V2 tail = pos - dir * (r * 1.3f);
+            Line(tail, tail - dir * 5f, 2f, new Rgba(0.15f, 0.08f, 0.02f, a));
+            Circle(tail - dir * 5f, 2.2f + 1.2f * pulse, hot.Mix(Rgba.White, 0.35f).WithAlpha(a), 8);  // the sting, burning
+            // Eyes glint.
+            Circle(pos + dir * (r * 1.05f) + side * 2.2f, 1.2f, new Rgba(1f, 0.9f, 0.6f, a), 5);
+            Circle(pos + dir * (r * 1.05f) - side * 2.2f, 1.2f, new Rgba(1f, 0.9f, 0.6f, a), 5);
+        }
     }
 }

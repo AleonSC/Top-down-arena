@@ -1530,6 +1530,11 @@ namespace Arena
                 Arc(pos, r + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
                 col = col.WithAlpha(0.35f);
             }
+            if (e.Type == EnemyType.HiveBomber && e.Phase >= 1)
+            {
+                DrawFlankBomber(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // Swarm's flanking bombers (QueenLook.cs)
+                return;
+            }
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
             if (e.Def.Melee && !spawning && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar)
                 DrawMeleeSpikes(e, pos, r, col, t);

@@ -657,8 +657,15 @@ namespace Arena
                         speed = 560f;
                     }
                     break;
-                case EnemyType.HiveBomber:  // a straight line to the spot it was launched at
-                    v = e.Waypoint - e.Pos;
+                case EnemyType.HiveBomber:  // a straight line to the spot it was launched at; Swarm's flankers swoop round (Queen.cs)
+                    if (e.Phase >= 1)
+                    {
+                        v = FlankerMove(e, dt);
+                        if (e.Phase == 2)
+                            speed *= FlankDive;
+                    }
+                    else
+                        v = e.Waypoint - e.Pos;
                     break;
                 case EnemyType.Swarmer:  // straight at you, weaving a little
                     v = dir + dir.Orthogonal() * (float)Math.Sin(e.T * 5f + e.Id) * 0.45f;
@@ -822,8 +829,11 @@ namespace Arena
                     break;
                 case EnemyType.HiveBomber:
                 {
+                    // A flanker at its flank point turns in toward its target (Queen.cs).
+                    if (e.Phase == 1 && (e.Pos.DistanceTo(e.Waypoint) < FlankArrive || e.T > FlankMaxOut))
+                        FlankerTurnIn(e);
                     // Blows up when it reaches the spot it was launched at, or on touching anyone on the way.
-                    bool hit = e.Pos.DistanceTo(e.Waypoint) < 12f;
+                    bool hit = e.Phase != 1 && e.Pos.DistanceTo(e.Waypoint) < 12f;
                     foreach (var p in Players.Values)
                         hit |= !p.Downed && p.Pos.DistanceTo(e.Pos) < e.Radius + p.Def.HitR;
                     if (hit)

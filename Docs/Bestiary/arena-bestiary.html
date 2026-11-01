@@ -340,7 +340,7 @@ const E = [
     locks: ["Cycle", "Drones", "Bombers", "Bullets"],
     attacks: [
       { name: "Drones (≤10 s)", pattern: "3 + 1 per player Shards with 3× health (max 8). She's shielded and fires nothing while any live; any left after 10 s fly back into her and heal her 2% each", dmg: "15 per shot", every: null },
-      { name: "Bombers (4.5 s)", pattern: "1 Hive Bomber per player, flies at 330 px/s to your spot at launch, 60 px blast", dmg: "22", every: 0.9, notes: "30 HP each, can be shot down" },
+      { name: "Bombers (4.5 s)", pattern: "1 Hive Bomber per player, a wasp: it swoops out to a point 300 px beside you (left and right in turn), then locks onto your spot (a marker) and dives in from the side at 380 px/s; 60 px blast", dmg: "22", every: 0.9, notes: "30 HP each, can be shot down. They don't fly the line between you and her, so shooting her won't catch them: watch your sides" },
       { name: "Fan (5 s)", pattern: "5 aimed shots, 12.6° apart", kind: "pierce", n: 5, speed: 200, every: 0.9 },
       { name: "Rings (5 s)", pattern: "Ring of big orbs, +8.6° per volley", kind: "big", n: 20, speed: 100, every: 1.6 },
       { name: "Eggs (Honeycomb)", pattern: "4 eggs (60 HP, scaled like other enemies) spread across the arena; each one left after 6 s hatches 2 drones that fight on", dmg: "—", every: null },
@@ -1654,7 +1654,12 @@ function move(e, dt) {
       if (e.phase === 0) v = kd(300, 0.5);
       else if (e.phase === 2) { v = [Math.cos(e.facing), Math.sin(e.facing)]; speed = 560; }
       break;
-    case "HiveBomber": { const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) || 1; v = [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l]; if (l < speed * dt) v = [(e.wp.x - e.x) / (speed * dt), (e.wp.y - e.y) / (speed * dt)]; break; }
+    case "HiveBomber": if (e.flank) {  // a flanker steers at a limited turn rate, so it swoops round
+        const want = Math.atan2(e.wp.y - e.y, e.wp.x - e.x), turn = (e.flank === 1 ? 4.5 : 7) * dt, diff = ((want - e.facing + Math.PI) % TAU + TAU) % TAU - Math.PI;
+        e.facing = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 40 ? want : e.facing + clamp(diff, -turn, turn);
+        if (e.flank === 2) speed *= 1.15;
+        v = [Math.cos(e.facing), Math.sin(e.facing)]; break;
+      } else { const l = Math.hypot(e.wp.x - e.x, e.wp.y - e.y) || 1; v = [(e.wp.x - e.x) / l, (e.wp.y - e.y) / l]; if (l < speed * dt) v = [(e.wp.x - e.x) / (speed * dt), (e.wp.y - e.y) / (speed * dt)]; break; }
     case "Swarmer": { const s = Math.sin(e.t * 5 + e.id) * 0.45; v = [dx + ox * s, dy + oy * s]; break; }
     case "Brute": v = [dx, dy]; break;
     case "Lunger":
@@ -1786,6 +1791,19 @@ function launchBomber(q, at) {
   const flight = 0.15 + Math.max(0, Math.hypot(at.x - b.x, at.y - b.y) - 12) / 330;
   addFx("target", at.x, at.y, BY.HiveBomber.col, 60, flight);
 }
+// Swarm's bombers (Queen.cs): out to a flank point 300 px square beside you (left and right in turn), swooping round,
+// then they lock onto where you are (a marker) and dive in from the side, 15% faster.
+function launchFlanker(q, p, side) {
+  const u = Math.atan2(p.y - q.y, p.x - q.x), back = u + Math.PI;
+  let fx = p.x, fy = p.y;
+  for (const s of [side, -side]) { let ok = false;
+    for (const deg of [90, 75, 105, 60, 120]) { const a = back + s * deg * Math.PI / 180, x = p.x + Math.cos(a) * 300, y = p.y + Math.sin(a) * 300;
+      if (x > 40 && x < W - 40 && y > 40 && y < H - 40) { fx = x; fy = y; side = s; ok = true; break; } }
+    if (ok) break; }
+  const heading = u + side * 1.2;
+  const b = spawn("HiveBomber", q.x + Math.cos(heading) * (q.r + 8), q.y + Math.sin(heading) * (q.r + 8), q.id, 0.15);
+  b.wp = { x: fx, y: fy }; b.facing = heading; b.flank = 1;
+}
 function bomberExplode(e) {
   const p = world.player;
   if (dist(p, e) <= 60 + p.hitR) hurt(22);
@@ -1860,7 +1878,11 @@ function special(e, dt) {
       break;
     }
     case "HiveBomber": {
-      if (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 12 || dist(p, e) < e.r + p.hitR) bomberExplode(e);
+      if (e.flank === 1 && (Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 70 || e.t > 3)) {  // at its flank point: lock on and dive
+        e.flank = 2; e.wp = { x: p.x, y: p.y };
+        addFx("target", p.x, p.y, BY.HiveBomber.col, 60, Math.max(0.2, dist(p, e) / (330 * 1.15)));
+      }
+      if ((e.flank !== 1 && Math.hypot(e.wp.x - e.x, e.wp.y - e.y) < 12) || dist(p, e) < e.r + p.hitR) bomberExplode(e);
       break;
     }
     case "Singularity": if (!e.g) singInit(e); singTick(e, dt); break;
@@ -1976,7 +1998,7 @@ function fire(e) {
     }
     case "HiveQueen":
       if (e.t2 === 1) e.fireT = 0.3;
-      else if (e.t2 === 2) { e.fireT = 0.9; launchBomber(e, p); }
+      else if (e.t2 === 2) { e.fireT = 0.9; e.flankSide = -(e.flankSide || 1); launchFlanker(e, p, e.flankSide); }
       else if (e.phaseT < 5) { e.fireT = 0.9; for (let i = 0; i < 5; i++) shot(e, aim + (i - 2) * 0.22, 200, "pierce"); }
       else { e.fireT = 1.6; e.ang += 0.15; for (let i = 0; i < 20; i++) shot(e, e.ang + TAU * i / 20, 100, "big"); }
       break;
@@ -2197,6 +2219,27 @@ function colorOf(e) {
   return e.d ? e.d.col : rgb(1, 1, 1);
 }
 
+/** Swarm's flanking bomber (QueenLook.cs): a trail, glassy beating wings, a striped amber body and a glowing sting; gold
+ *  while it swoops out, red-hot with a dashed line ahead once it dives. */
+function drawWasp(ctx, e, x, y, r, tt) {
+  const dive = e.flank === 2, dx = Math.cos(e.facing), dy = Math.sin(e.facing), sx = -dy, sy = dx;
+  const hot = dive ? "255,72,30" : "255,210,80", pulse = 0.5 + 0.5 * Math.sin(tt * (dive ? 34 : 14) + e.id);
+  for (let k = 1; k <= 5; k++) { ctx.fillStyle = `rgba(${hot},${0.32 - k * 0.055})`; ctx.beginPath(); ctx.arc(x - dx * k * 7, y - dy * k * 7, r * (0.75 - k * 0.1), 0, TAU); ctx.fill(); }
+  ctx.fillStyle = `rgba(${hot},${dive ? 0.32 : 0.18})`; ctx.beginPath(); ctx.arc(x, y, r + 7 + 3 * pulse, 0, TAU); ctx.fill();
+  if (dive) { ctx.setLineDash([8, 6]); ctx.strokeStyle = "rgba(255,100,64,0.55)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + dx * (r + 4), y + dy * (r + 4)); ctx.lineTo(x + dx * 130, y + dy * 130); ctx.stroke(); ctx.setLineDash([]); }
+  const beat = Math.sin(tt * (dive ? 70 : 45) + e.id);
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = `rgba(224,245,255,${0.35 + 0.15 * beat})`; ctx.beginPath(); ctx.moveTo(x + dx, y + dy);
+    ctx.lineTo(x + sx * s * (r + 7) - dx * (5 + 4 * beat), y + sy * s * (r + 7) - dy * (5 + 4 * beat));
+    ctx.lineTo(x + sx * s * (r + 1) - dx * (10 + 3 * beat), y + sy * s * (r + 1) - dy * (10 + 3 * beat)); ctx.closePath(); ctx.fill();
+  }
+  const blob = (ox, rr, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx * ox, y + dy * ox, rr, 0, TAU); ctx.fill(); };
+  blob(-r * 0.55, r * 0.78, "#ffb82e"); blob(r * 0.25, r * 0.55, "#d9901c"); blob(r * 0.85, r * 0.38, "#402108");
+  ctx.strokeStyle = "#1f1205"; ctx.lineWidth = 2.2;
+  for (let k = 0; k < 2; k++) { const o = -r * (0.35 + 0.4 * k), w = r * (0.72 - 0.12 * k); ctx.beginPath(); ctx.moveTo(x + dx * o + sx * w, y + dy * o + sy * w); ctx.lineTo(x + dx * o - sx * w, y + dy * o - sy * w); ctx.stroke(); }
+  ctx.fillStyle = `rgba(${hot},1)`; ctx.beginPath(); ctx.arc(x - dx * (r * 1.3 + 5), y - dy * (r * 1.3 + 5), 2.2 + 1.2 * pulse, 0, TAU); ctx.fill();
+}
+
 /** Draw one enemy body (shared by the arena and the roster thumbnails). */
 function drawBody(ctx, e, x, y, r, t, anim) {
   const col = colorOf(e);
@@ -2205,6 +2248,7 @@ function drawBody(ctx, e, x, y, r, t, anim) {
   const sides = e.d ? e.d.sides : 4;
   // Glows and auras behind the body
   if (e.type === "Spinner" && e.phase === 1) { ctx.fillStyle = css(rgb(1, 0.6, 0.2), 0.25); ctx.beginPath(); ctx.arc(x, y, r + 8 + 3 * Math.sin(tt * 20), 0, TAU); ctx.fill(); }
+  if (e.type === "HiveBomber" && e.flank) { drawWasp(ctx, e, x, y, r, tt); return; }  // Swarm's flankers: a wasp
   if (e.type === "HiveBomber") { ctx.fillStyle = css(rgb(1, 0.5, 0.15), 0.3); ctx.beginPath(); ctx.arc(x, y, r + 5 + 2 * Math.sin(tt * 30), 0, TAU); ctx.fill(); }
   if (e.type === "Devourer" && e.phase === 1) { ctx.fillStyle = css(col, 0.22 + 0.08 * Math.sin(tt * 10)); ctx.beginPath(); ctx.arc(x, y, r + 14, 0, TAU); ctx.fill(); }
   if (e.enraged) { ctx.fillStyle = css(rgb(1, 0.2, 0.2), 0.25); ctx.beginPath(); ctx.arc(x, y, r + 10 + 4 * Math.sin(tt * 14), 0, TAU); ctx.fill(); }
