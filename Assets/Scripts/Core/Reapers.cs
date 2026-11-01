@@ -382,7 +382,7 @@ namespace Arena
                 if (along < a.Radius || along > len - b.Radius)
                     continue;
                 if (p.Pos.DistanceTo(a.Pos + dir * along) < TetherWidth / 2f + p.Def.HitR)
-                    Damage(p, 18f + Wave * 0.4f, "Twin Reapers (tether)");
+                    Damage(p, 18f, "Twin Reapers (tether)");  // the difficulty's per-wave damage growth scales it
             }
         }
 

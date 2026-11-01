@@ -729,17 +729,25 @@ namespace Arena
 
         /// Chain Light: a great cone of light in front of you. Its damage is shared out between every enemy in it,
         /// so one enemy alone takes all of it; light arcs from you to each.
-        public const float LightConeReach = 320f, LightConeHalf = 0.6f, LightConeGrow = 0.25f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
+        public const float LightConeReach = 320f, LightConeHalf = 0.6f, LightConeGrow = 0.25f;
+        // Never a ring round you: one cone is at most 100 degrees across however much Homing and Magnum widen it, and
+        // Barrage's cones together cover at most 200 degrees (they narrow to fit). Barrage's extra cones deal
+        // BarrageCopyDamage (60%) like every other weapon's copies. (A run had three 150-degree cones: a full ring.)
+        public const float LightConeMaxHalf = 0.87f, LightConeMaxSpread = 3.5f;  // reach from your centre; half its angle (about 70 degrees across); +damage per extra projectile
         public static float LightConeLength(Player p, int extra) => LightConeReach * (1f + 0.15f * extra) * PierceReach(p);  // Piercing Rounds reach farther
 
-        /// Barrage adds cones edge to edge beside the first, alternating sides (evenly round you if they'd go all the
-        /// way round). Each enemy belongs to one cone only, the one it's nearest the middle of, and each cone shares
-        /// its own damage out, so Barrage reaches more enemies but a lone one still takes one cone's worth.
+        /// Barrage adds cones edge to edge beside the first, alternating sides, all within LightConeMaxSpread. Each
+        /// enemy belongs to one cone only, the one it's nearest the middle of, and each cone shares its own damage out
+        /// (the extra cones at BarrageCopyDamage), so Barrage reaches more enemies but a lone one takes one cone's worth.
+        /// Half of one cone's angle with n cones: widened by Homing and Magnum Rounds up to LightConeMaxHalf, then
+        /// narrowed so all n fit in LightConeMaxSpread.
+        public static float LightConeHalfFor(Player p, int n) => Math.Min(Math.Min(LightConeHalf * AreaMult(p), LightConeMaxHalf), LightConeMaxSpread / (2f * n));
+
         void LightCone(Player p, float aim, float total, int extra)
         {
-            float reach = LightConeLength(p, extra), half = LightConeHalf * AreaMult(p);  // Homing Rounds widen it
             int n = 1 + p.Stats.Fan;
-            float step = Math.Min(2f * half, MathX.Tau / n);
+            float reach = LightConeLength(p, extra), half = LightConeHalfFor(p, n);  // Homing and Magnum Rounds widen it, up to a cap
+            float step = 2f * half;
             var aims = new float[n];
             for (int v = 0; v < n; v++)
                 aims[v] = aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * step * ((v + 1) / 2));
@@ -782,7 +790,7 @@ namespace Arena
                 if (hits[v].Count == 0)
                     continue;
                 any = true;
-                float share = total / hits[v].Count;
+                float share = total * (v == 0 ? 1f : BarrageCopyDamage) / hits[v].Count;
                 V2 dir = V2.FromAngle(aims[v]), from = p.Pos + dir * p.Def.BodyR;
                 foreach (var e in hits[v])
                 {

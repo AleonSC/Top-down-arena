@@ -77,7 +77,7 @@ namespace Arena
         public static bool HeraldImmune(Enemy e) => e.Type == EnemyType.StormHerald && e.Herald != null && e.Herald.TransT > 0f;
 
         /// Arcs, spokes and the Conductor's discharge: a little more each wave (30 at wave 40).
-        float ArcDamage => 18f + Wave * 0.3f;
+        float ArcDamage => 18f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
 
         /// The Gale's wind as a velocity (px/s across the arena) at full strength `strength`, or zero.
         public V2 HeraldWind(float strength)

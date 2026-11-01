@@ -51,6 +51,7 @@ Tools/SessionReport/   report.py: summarises recorded session JSON
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/RenderCheck/     proves a refactor left the arena's drawing byte-identical      [added Oct 2026]
+Tools/SoundCheck/      renders the synthesized sounds to WAV to listen without Unity  [added Nov 2026]
 Docs/                  sources of the Armory and Bestiary reference pages            [added in the audit]
 ```
 
@@ -229,6 +230,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     `T/K/1` (Tank Knight, second weapon; `M` = Elementalist, `U` = Summoner, `N` = Ninja, `B` = Hemomancer, or the start of
     any class's name, e.g. `D/Hemo/0`).
 - **Visual effects check:** `Tools/RenderCheck/juice.sh` drives the effects (`Game/Juice.cs`) through real frames and checks each one fires; the render check below runs with effects off.
+- **Sound check:** `Tools/SoundCheck/render.sh [prefix]` renders the synthesized sound effects whose names start with prefix (default `Boss`) from `SoundBank.cs` to `Tools/SoundCheck/out/*.wav`, so they can be heard (and their levels checked) without Unity.
 - **Render check:** `Tools/RenderCheck/check.sh [git-ref]` renders 16 fixed, seeded scenes (every enemy and minion
   type, each class's abilities and ultimate; four Ninja and three Hemomancer scenes, so every class's own shots are drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default `HEAD`),
   and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering refactor.
@@ -264,6 +266,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - For visual choices they like **mockups to choose from** (e.g. the button styles A-F; they picked F).
 
 ## 5. Recent history (newest first)
+
+**Balance from a duo run to wave 25 (Nov 2026), protocol 116:** (1) Boss health: the build-strength boost and the late-boss boost no longer multiply: `SpawnHp` applies `LateBossBoost(wave)`, and `SpawnEnemyAt` sets `PowerScale = max(late, BossPowerScale())` and multiplies by `PowerScale / late`; `BossPowerCurve` 0.75 -> 0.6 (the run's Colossus would have had ~119k health instead of 201k). (2) Damage to players that grew with the wave on top of the difficulty's 3% a wave lost its own per-wave term (boss contact, Beam Sentry, Colossus stomp, Singularity cage, Reaper tether, Lich, Herald, Devourer bite, Eclipse, LateGame hazards, Burning Grounds); the Bestiary shows these as "X, +3% a wave" via `dmgGrow`. (3) Beam Sentry: 16 a sweep, and at most `MaxSentries` 3 a wave (`CapSentries` after `BuildWave`: squads that would bring more break up, spare Sentries become Snipers or Grunts). (4) Healer 140 HP (was 120). (5) Warden and Hive Queen `BossHpMult` 2.5 (were 4 and 3.5). Also Chain Light: Barrage's extra cones deal `BarrageCopyDamage` 60%, one cone is at most `LightConeMaxHalf` (100 degrees across) and all cones fit in `LightConeMaxSpread` 200 degrees (`LightConeHalfFor`), so Homing + Magnum + Barrage can't make a ring round you any more (the run had three 150-degree cones).
 
 **Colossus stomp rings reworked (Nov 2026), protocol 114:** gaps are placed by `GapBeside` (a short step, `StompStep` 130 px, to one side of a player, alternating via `ColossusState.StompSide`; two-gap rings put the second by the other player via `SecondGap`), never narrower than `RingGapMinArc` 100 px (`RingGapHalfAt`, also used to draw the gap). Lava Stomps used to put the gaps 90 degrees round from you, which needs about your top speed to reach. Caught, a ring passes over you: `ColossusPush` always puts you just behind it (no carrying you out to the wall, no roll-over teleport); the host hurts you once when it sees you cross (`StompRing.Outside`, replacing `Rolled`), for `StompDamage` 20 (no per-wave term; the difficulty's growth scales it). Boss Lab, wave 25 Good bots T/B/2 + H/M/1, 3 runs: before 1 win and 2 time-outs, stomps 1,078 damage, 0.7 downs a fight; after 3 wins, 174 s average, stomps 433, no downs.
 

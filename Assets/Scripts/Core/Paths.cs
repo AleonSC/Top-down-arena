@@ -109,7 +109,7 @@ namespace Arena
         public const float PoolWarn = 0.6f, PoolLife = 10f, PoolRadius = 80f, PoolEvery = 5f, PoolHeal = 10f;
         public const int PoolMax = 3;
         public const float PatchTick = 0.5f;
-        public static float FirePlayerDps(int wave) => 10f + 0.4f * wave;
+        public static float FirePlayerDps(int wave) => 10f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
         public static float FireEnemyDps(int wave) => 20f + 1.5f * wave;
 
         public const int Length = 4;  // regular waves per path (the ones before the next boss)

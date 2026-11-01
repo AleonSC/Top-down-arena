@@ -99,7 +99,7 @@ namespace Arena
         }
 
         /// Bites, the eruption and the teeth: a little more each wave (40 at wave 45).
-        float BiteDamage => 13f + Wave * 0.6f;
+        float BiteDamage => 13f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
 
         /// Is `from` inside the Maw, the 90-degree cone its mouth faces?
         public static bool InMaw(Enemy e, V2 from) => Math.Abs(MathX.Fmod((from - e.Pos).Angle - e.Facing + MathX.Pi, MathX.Tau) - MathX.Pi) < MawHalf;

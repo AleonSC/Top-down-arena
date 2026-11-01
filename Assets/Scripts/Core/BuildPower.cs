@@ -12,7 +12,7 @@ namespace Arena
     {
         public const float BossPowerCap = 3f;       // a boss gets at most this much more health
         public const float TypicalPercentile = 0.75f;  // "typical": this far up the random builds (a player who picks sensibly)
-        public const float BossPowerCurve = 0.75f;     // boss health grows as (how far above typical) to this power: a strong build still kills faster
+        public const float BossPowerCurve = 0.6f;     // boss health grows as (how far above typical) to this power: a strong build still kills faster
 
         /// How much harder this build hits a boss than its bare weapon (rough).
         public static float BuildPower(Stats s)

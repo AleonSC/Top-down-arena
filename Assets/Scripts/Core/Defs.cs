@@ -122,7 +122,7 @@ namespace Arena
             new RoleDef
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
-                Hp = 120f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,
+                Hp = 140f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,  // 140 (was 120): healers took 7 of 9 downs in a recorded run
                 Desc = "Your aura slowly heals an ally standing near you, and you a little.",
             },
             new RoleDef

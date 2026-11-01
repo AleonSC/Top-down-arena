@@ -308,7 +308,7 @@ const anim = () => $("animAll").checked;
 // ---------------------------------------------------------------------------------------------
 const ROLES = [
   { id: "Tank", col: [0.35, 0.6, 1], hp: 240, speed: 185, hitR: 9, bodyR: 18, desc: "Big health pool. Enemies prefer to target you (70% of target picks go to a Tank)." },
-  { id: "Healer", col: [0.35, 1, 0.55], hp: 120, speed: 215, hitR: 7, bodyR: 14, desc: "Your aura heals an ally standing near you: 9 HP/s within 170 px." },
+  { id: "Healer", col: [0.35, 1, 0.55], hp: 140, speed: 215, hitR: 7, bodyR: 14, desc: "Your aura heals an ally standing near you: 9 HP/s within 170 px." },
   { id: "DPS", col: [1, 0.55, 0.25], hp: 95, speed: 240, hitR: 6, bodyR: 12, desc: "Fragile, but deals the most damage." },
 ];
 const KITS = [
@@ -1275,10 +1275,10 @@ const rangeApi = {
     for (const d of range.dummies) { const dx = d.x - p.x, dy = d.y - p.y, along = dx * c + dy * sn, across = Math.abs(-dx * sn + dy * c);
       if (along < 0 || along > len + d.r || across > half + d.r || along >= bestAt) continue; best = d; bestAt = along; }
     return best; },
-  // Chain Light: a cone whose damage is shared between every dummy in it. Barrage cones sit edge to edge, and each
-  // dummy belongs only to the cone whose middle it's nearest.
+  // Chain Light: a cone whose damage is shared between every dummy in it. Barrage cones sit edge to edge (60% damage
+  // each), all within 200 degrees, and each dummy belongs only to the cone whose middle it's nearest.
   cones(a, reach, half, total, fan) {
-    const p = range.player, n = 1 + fan, step = Math.min(2 * half, TAU / n), dirs = [];
+    const p = range.player, n = 1 + fan; half = Math.min(half, 0.87, 3.5 / (2 * n)); const step = 2 * half, dirs = [];
     for (let v = 0; v < n; v++) dirs.push(a + (v === 0 ? 0 : (v % 2 ? 1 : -1) * step * Math.ceil(v / 2)));
     const groups = dirs.map(() => []);
     for (const d of range.dummies) {
@@ -1291,7 +1291,7 @@ const rangeApi = {
     }
     dirs.forEach((da, v) => {
       for (const d of groups[v]) {
-        hitDummy(d, total / groups[v].length * WS.dmg);
+        hitDummy(d, total * (v === 0 ? 1 : 0.6) / groups[v].length * WS.dmg);
         const ta = Math.atan2(d.y - p.y, d.x - p.x);
         range.bolts.push({ a: { x: p.x + Math.cos(ta) * 16, y: p.y + Math.sin(ta) * 16 }, b: { x: d.x, y: d.y }, t: 0, dur: 0.2, col: SHOT.Holy.col });
       }

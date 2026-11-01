@@ -502,7 +502,7 @@ namespace Arena
                     ClearCages();
                 return;
             }
-            float dmg = 14f + Wave * 0.4f;
+            float dmg = 14f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             int lasers = SingLaserCount(sing);
             if (sing.Phase == SingLasers)
                 foreach (var p in Players.Values)

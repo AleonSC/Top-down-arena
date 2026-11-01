@@ -31,8 +31,8 @@ namespace Arena
         {
             switch (t)
             {
-                case EnemyType.Boss: return 4f;           // the Warden
-                case EnemyType.HiveQueen: return 3.5f;
+                case EnemyType.Boss: return 2.5f;         // the Warden (was 4: 273 s for a duo in a recorded run)
+                case EnemyType.HiveQueen: return 2.5f;    // (was 3.5: also 273 s)
                 case EnemyType.TwinA:
                 case EnemyType.TwinB:
                 case EnemyType.DualReaper: return 1.2f;   // their stages already stretch the fight

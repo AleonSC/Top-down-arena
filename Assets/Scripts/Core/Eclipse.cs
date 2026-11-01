@@ -120,10 +120,10 @@ namespace Arena
         /// Totality: it takes +50% damage while the nova builds.
         public static bool EclipseExposed(Enemy e) => e.Type == EnemyType.Eclipse && e.Eclipse != null && e.Eclipse.Stage == EclipseStage.Totality && e.Eclipse.TransT <= 0f;
 
-        float FlareDamage => 25f + Wave * 0.3f;        // 40 at wave 50
-        float EclipseFlashDamage => 40f + Wave * 0.3f; // 55
-        float UmbraRingDamage => 20f + Wave * 0.3f;    // 35
-        float EchoDamage => 15f + Wave * 0.3f;         // 30
+        float FlareDamage => 25f;         // the difficulty's per-wave damage growth scales these (Difficulty.cs)
+        float EclipseFlashDamage => 40f;
+        float UmbraRingDamage => 20f;
+        float EchoDamage => 15f;
 
         /// The Eclipse on the field (its fight state set up), or null.
         public Enemy TheEclipse()

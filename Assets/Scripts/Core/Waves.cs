@@ -72,6 +72,7 @@ namespace Arena
                         {
                             Wave++;
                             BuildWave(Wave);
+                            CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null;
                         }
