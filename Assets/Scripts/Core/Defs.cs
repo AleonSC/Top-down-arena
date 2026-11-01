@@ -97,7 +97,7 @@ namespace Arena
     }
 
     /// Stats for roles, enemies and bullets. Tweak numbers here to rebalance.
-    public static class Defs
+    public static partial class Defs
     {
         public static readonly RoleDef[] Roles =
         {
@@ -335,6 +335,10 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BoneSpear, Speed = 1000f, Life = 0.9f, Damage = 60f, ExtraDesc = "+1 spear, fanned out (costs no more health)", Name = "Bone Spear", FireInterval = 0.8f,
                 Desc = "A heavy spear (60) that pierces 3 enemies. Each throw costs 2 health; the spear stays stuck where it stops (8 s), and walking over it gives the 2 back." },
         };
+
+        /// A weapon's damage a second with no upgrades (companions and burning included), measured in the sim
+        /// (Tools/SimTest/run.sh 1 1 weapondps write, which writes WeaponDps.Generated.cs); 0 if not measured.
+        public static float WeaponDps(WeaponId id) => MeasuredDps.TryGetValue(id, out float v) ? v : 0f;
 
         public static WeaponDef Weapon(Role role, Kit kit, int index) => Weapons[((int)role * KitCount + (int)kit) * WeaponsPerRole + index];
 

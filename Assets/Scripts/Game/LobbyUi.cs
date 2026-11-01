@@ -335,8 +335,10 @@ namespace Arena
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
             HeroStat(hero, ref hy, "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.45f, 0.75f, 1f));
             HeroStat(hero, ref hy, wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), Ui.Gold);
-            // The weapon's damage a hit (or swing), against the hardest-hitting weapon in the game.
-            HeroStat(hero, ref hy, "Damage", Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"), Mathf.Clamp01(wdef.Damage / MaxWeaponDamage), new Color(1f, 0.45f, 0.4f));
+            // The weapon's damage a second with no upgrades (measured in the sim: Defs.WeaponDps), against the strongest weapon.
+            float dps = Defs.WeaponDps(wdef.Id);
+            HeroStat(hero, ref hy, "Damage", dps > 0f ? Mathf.RoundToInt(dps) + " / s" : Mathf.RoundToInt(wdef.Damage) + (wdef.Melee ? " a swing" : " a hit"),
+                dps > 0f ? Mathf.Clamp01(dps / MaxWeaponDps) : Mathf.Clamp01(wdef.Damage / 80f), new Color(1f, 0.45f, 0.4f));
             hy += 8f;
             var ult = Upgrades.Ability(Upgrades.Ultimate(me.Role, me.Kit));
             Ui.Fill(new Rect(hero.x + 14f, hy, hero.width - 28f, 1f), new Color(1f, 1f, 1f, 0.08f));
@@ -635,15 +637,15 @@ namespace Arena
             showcase.Step(dt);
         }
 
-        static float maxWeaponDamage;
-        static float MaxWeaponDamage
+        static float maxWeaponDps;
+        static float MaxWeaponDps
         {
             get
             {
-                if (maxWeaponDamage <= 0f)
+                if (maxWeaponDps <= 0f)
                     foreach (var w in Defs.Weapons)
-                        maxWeaponDamage = Mathf.Max(maxWeaponDamage, w.Damage);
-                return Mathf.Max(1f, maxWeaponDamage);
+                        maxWeaponDps = Mathf.Max(maxWeaponDps, Defs.WeaponDps(w.Id));
+                return Mathf.Max(1f, maxWeaponDps);
             }
         }
 
