@@ -29,6 +29,7 @@ namespace Arena
         void DrawLobby()
         {
             float t = Time.unscaledTime;
+            lockedTipOn = false;
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
             bool practice = session.PracticeMode;
@@ -94,6 +95,7 @@ namespace Arena
                 DrawLoadout(me, body, t);
 
             DrawLobbyBottom(me, practice);
+            DrawLockedTip();  // on top of the loadout
             if (connInfoOpen)
                 DrawConnInfo(infoPanel);
         }
@@ -348,13 +350,20 @@ namespace Arena
             // side, then a spec sheet for the picked weapon and ability.
             float x = hero.xMax + 20f, w = r.xMax - 18f - x, y = r.y + 16f;
             const float gap = 8f;
-            float third = (w - gap * 2f) / 3f;
 
+            // Every row shows a few locked slots for content still to come (hover one: "Coming soon").
+            float quarter = (w - gap * 3f) / 4f;  // roles and classes: 4 per row
             HeadingWithBlurb(x, y, w, "Role", Defs.Get(me.Role).Desc);
-            for (int i = 0; i < Defs.Roles.Length; i++)
+            int roleSlots = Mathf.Max(RoleSlots, Defs.Roles.Length);
+            for (int i = 0; i < roleSlots; i++)
             {
+                var b = new Rect(x + i * (quarter + gap), y + 28f, quarter, 52f);
+                if (i >= Defs.Roles.Length)
+                {
+                    LockedSlot(b);
+                    continue;
+                }
                 var rc = ToColor(Defs.Roles[i].Color);
-                var b = new Rect(x + i * (third + gap), y + 28f, third, 66f);
                 if (Ui.Choice(b, Defs.Roles[i].Name, (int)me.Role == i, rc, PixelArt.Get(RoleIcons[i]), (int)(Defs.Roles[i].Hp * Defs.KitHpMult(me.Kit)) + " HP", glow: false, iconLeft: true))
                 {
                     session.RequestRole((Role)i);
@@ -364,38 +373,59 @@ namespace Arena
                     abilityChoice = 0;
                 }
             }
-            y += 106f;
+            y += 92f;
 
+            // Classes: rows of 4, the icon beside the name.
             HeadingWithBlurb(x, y, w, "Class", KitBlurb(me.Kit));
-            float quarter = (w - gap * (Defs.KitCount - 1)) / Defs.KitCount;
-            int kitSize = 14;  // one size for the whole row, small enough for the longest name
+            int classSlots = Mathf.Max(ClassSlots, Defs.KitCount);
+            int kitSize = 14;  // one size for every class name, small enough for the longest beside its icon
             for (int i = 0; i < Defs.KitCount; i++)
-                while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 14f)
+                while (kitSize > 10 && Ui.TextWidth(Defs.KitName((Kit)i), kitSize, true) > quarter - 16f - 20f)
                     kitSize--;
-            for (int i = 0; i < Defs.KitCount; i++)
-                if (Ui.Choice(new Rect(x + i * (quarter + gap), y + 28f, quarter, 48f), Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(Classes.Get((Kit)i).Icon), null, kitSize, glow: false))
+            for (int i = 0; i < classSlots; i++)
+            {
+                var b = new Rect(x + (i % 4) * (quarter + gap), y + 28f + (i / 4) * 40f, quarter, 34f);
+                if (i >= Defs.KitCount)
+                {
+                    LockedSlot(b);
+                    continue;
+                }
+                if (Ui.Choice(b, Defs.KitName((Kit)i), me.Kit == (Kit)i, roleColor, PixelArt.Get(Classes.Get((Kit)i).Icon), null, kitSize, glow: false, iconLeft: true))
                 {
                     session.RequestKit((Kit)i);
                     kitChoice = (Kit)i;
                     weaponChoice = 0;
                     abilityChoice = 0;
                 }
-            y += 88f;  // the class cards are 48 px: icon above the name
+            }
+            y += 28f + ((classSlots + 3) / 4) * 40f + 8f;
 
-            // Weapon and ability: two columns of stacked buttons.
-            float col = (w - 16f) / 2f, ax = x + col + 16f;
+            // Weapon and ability: side by side, each a 2 x 2 grid.
+            float col = (w - 16f) / 2f, ax = x + col + 16f, cell = (col - 6f) / 2f;
             Ui.Heading(x, y, col, "Weapon");
             Ui.Heading(ax, y, col, "Ability  ·  Space");
-            for (int i = 0; i < Defs.WeaponsPerRole; i++)
-                if (Ui.Choice(new Rect(x, y + 28f + i * 38f, col, 32f), Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
+            int weaponSlots = Mathf.Max(WeaponSlots, Defs.WeaponsPerRole);
+            for (int i = 0; i < weaponSlots; i++)
+            {
+                var b = new Rect(x + (i % 2) * (cell + 6f), y + 28f + (i / 2) * 36f, cell, 30f);
+                if (i >= Defs.WeaponsPerRole)
+                    LockedSlot(b);
+                else if (Ui.Choice(b, Defs.Weapon(me.Role, me.Kit, i).Name, me.Weapon == i, roleColor, glow: false))
                 {
                     session.RequestWeapon(i);
                     weaponChoice = i;
                 }
+            }
             int hovered = -1;
-            for (int i = 0; i < Upgrades.RoleAbilityChoices; i++)
+            int abilitySlots = Mathf.Max(AbilitySlots, Upgrades.RoleAbilityChoices);
+            for (int i = 0; i < abilitySlots; i++)
             {
-                var b = new Rect(ax, y + 28f + i * 38f, col, 32f);
+                var b = new Rect(ax + (i % 2) * (cell + 6f), y + 28f + (i / 2) * 36f, cell, 30f);
+                if (i >= Upgrades.RoleAbilityChoices)
+                {
+                    LockedSlot(b);
+                    continue;
+                }
                 if (b.Contains(Event.current.mousePosition))
                     hovered = i;
                 if (Ui.Choice(b, Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, i)).Name, me.Ability == i, roleColor, glow: false))
@@ -408,10 +438,63 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 abilityHover = hovered;
-            y += 28f + 3f * 38f + 10f;
+            y += 28f + ((Mathf.Max(weaponSlots, abilitySlots) + 1) / 2) * 36f + 8f;
 
             var ability = Upgrades.Ability(Upgrades.RoleAbility(me.Role, me.Kit, me.Ability));
             DrawSpecSheet(new Rect(x, y, w, r.yMax - 16f - y), wdef, ability, roleColor, t);
+        }
+
+        // How many slots each loadout row shows; the ones past the real content are locked ("Coming soon").
+        const int RoleSlots = 4, ClassSlots = 8, WeaponSlots = 4, AbilitySlots = 4;
+
+        Rect lockedTip;          // the locked slot under the mouse, if any (its tooltip is drawn last, on top)
+        bool lockedTipOn;
+
+        /// A slot for content still to come: dark, a dashed rim, a padlock and "Locked". Hovering shows "Coming soon".
+        void LockedSlot(Rect r)
+        {
+            Ui.Pill(r, new Color(0.05f, 0.06f, 0.1f, 0.85f));
+            var dash = new Color(1f, 1f, 1f, 0.14f);
+            for (float dx = r.x + 6f; dx < r.xMax - 6f; dx += 8f)
+            {
+                float len = Mathf.Min(4f, r.xMax - 6f - dx);
+                Ui.Fill(new Rect(dx, r.y, len, 1f), dash);
+                Ui.Fill(new Rect(dx, r.yMax - 1f, len, 1f), dash);
+            }
+            for (float dy = r.y + 6f; dy < r.yMax - 6f; dy += 8f)
+            {
+                float len = Mathf.Min(4f, r.yMax - 6f - dy);
+                Ui.Fill(new Rect(r.x, dy, 1f, len), dash);
+                Ui.Fill(new Rect(r.xMax - 1f, dy, 1f, len), dash);
+            }
+            bool hover = r.Contains(Event.current.mousePosition);
+            var ink = new Color(0.55f, 0.6f, 0.72f, hover ? 0.95f : 0.7f);
+            float isz = Mathf.Min(14f, r.height - 12f), tw = Ui.TextWidth("Locked", 12, true) - 6f;
+            float gx = r.center.x - (isz + 6f + tw) / 2f;
+            Ui.Icon(new Rect(gx, r.center.y - isz / 2f, isz, isz), PixelArt.Get("ui_lock"), ink);
+            Ui.Label(new Rect(gx + isz + 6f, r.y, tw + 10f, r.height), "Locked", 12, ink, TextAnchor.MiddleLeft, true);
+            if (hover)
+            {
+                lockedTip = r;
+                lockedTipOn = true;
+            }
+        }
+
+        /// The "Coming soon" tooltip over the hovered locked slot (call after everything else is drawn).
+        void DrawLockedTip()
+        {
+            if (!lockedTipOn)
+                return;
+            const string text = "Coming soon";
+            float w = Ui.TextWidth(text, 12, true) + 14f, h = 26f;
+            var tip = new Rect(lockedTip.center.x - w / 2f, lockedTip.y - h - 6f, w, h);
+            if (tip.y < 4f)
+                tip.y = lockedTip.yMax + 6f;
+            tip.x = Mathf.Clamp(tip.x, 4f, W - w - 4f);
+            Ui.Fill(new Rect(tip.x + 2f, tip.y + 3f, tip.width, tip.height), new Color(0f, 0f, 0f, 0.35f));  // a soft drop shadow
+            Ui.Pill(tip, new Color(0.11f, 0.13f, 0.21f, 0.98f));
+            Ui.Fill(new Rect(tip.x + 8f, tip.y + 1f, tip.width - 16f, 1f), new Color(1f, 0.8f, 0.35f, 0.6f));
+            Ui.Label(tip, text, 12, Ui.Gold, TextAnchor.MiddleCenter, true);
         }
 
         /// A section heading with a short blurb right-aligned in the same line (shrunk to fit).

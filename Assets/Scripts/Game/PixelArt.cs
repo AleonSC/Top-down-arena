@@ -327,6 +327,21 @@ namespace Arena
                 "..kRRRRRRk..",
                 "...kkkkkk...",
             },
+            ["ui_lock"] = new[]  // a padlock (the lobby's locked slots)
+            {
+                "............",
+                "....kkkk....",
+                "...kwwwwk...",
+                "...kwkkwk...",
+                "...kwkkwk...",
+                "..kkkkkkkk..",
+                "..kwwwwwwk..",
+                "..kwwkkwwk..",
+                "..kwwkkwwk..",
+                "..kwwwwwwk..",
+                "..kkkkkkkk..",
+                "............",
+            },
             ["ui_check"] = new[]
             {
                 "............",
