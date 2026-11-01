@@ -518,6 +518,10 @@ main menu and How to play, Practice Range editor redesign, dev menu tabs, Field 
 Lance spear, stat pixel arrow, minimizable background picker, run modifiers. `Tools/CompileCheck/check.sh` fails
 loudly when mono is missing.
 
+**Next planned feature (Nov 2026): boss approaches**, designed with the owner in [`Docs/Approaches.md`](Docs/Approaches.md): the four waves
+before each boss take part of their enemies from that boss's faction (a Difficulty setting: Blend or Fully themed).
+Start with its build order's step 1 (framework + the Warden) when the owner says so.
+
 **Where to pick up:** the October 2026 audit plan is done (steps 1-9). Still open from the audit: item 4 (generate README/Armory/Bestiary tables from the definitions), 10-12 (networking and rendering notes). Paths are feature-complete
 but untuned: ask the owner for play-test feedback (Frozen Lake's grip, Fogbound's sight 350 px, Narrow Pass's
 1120 × 720, fire damage) and session JSONs, which record each wave's path. Open questions in `Docs/Paths.md`:
