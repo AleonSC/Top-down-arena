@@ -203,6 +203,7 @@ namespace Arena
             game.Sounds.Clear();
             UpdateMusic();
             UpdateLayout();
+            StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (PauseGlitch.cs)
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
             if (wasPaused && !game.Paused)
@@ -502,14 +503,14 @@ namespace Arena
                     DrawPickOutro();  // an upgrade just taken: shards and the card flying into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((pauseMenuOpen || (game.Paused && !tabPaused)) && !devMenuOpen && !labSetupOpen)
+                    if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen)
                     {
-                        if (fieldGuideOpen)
+                        if (fieldGuideOpen && PauseMenuWanted)
                             DrawFieldGuideScreen();  // FieldGuide.cs
-                        else if (runStatsOpen)
+                        else if (runStatsOpen && PauseMenuWanted)
                             DrawRunStatsScreen(game.Me, true);  // RunStatsUi.cs
                         else
-                            DrawPauseMenu();
+                            DrawPauseMenu();  // with its opening and closing (PauseGlitch.cs)
                     }
                     break;
             }

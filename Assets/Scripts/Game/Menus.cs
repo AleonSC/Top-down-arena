@@ -346,13 +346,8 @@ namespace Arena
                 game.RequestPause(false);
         }
 
-        /// The pause menu is the Settings panel (DrawSettings) with the match's buttons: Resume, Run stats, Field guide,
-        /// Leave game.
-        void DrawPauseMenu()
-        {
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.7f));
-            DrawSettingsPanel(true);
-        }
+        // The pause menu is the Settings panel (DrawSettings) with the match's buttons: Resume, Run stats, Field guide,
+        // Leave game. DrawPauseMenu (PauseGlitch.cs) draws it with its signal-glitch opening.
 
         static readonly Color RunStatsColor = new Color(0.62f, 0.5f, 0.2f);  // the pause menu's Run stats button
 
@@ -366,7 +361,7 @@ namespace Arena
             float colW = 360f, x = panel.x + 50f, x2 = panel.xMax - 50f - colW;
             float t = Time.unscaledTime, mid = panel.x + panel.width / 2f;
             Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), paused ? "PAUSED" : "SETTINGS", 34, Color.white);
+            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), paused ? pausedTitle : "SETTINGS", 34, Color.white);
             if (paused)
             {
                 Player by;

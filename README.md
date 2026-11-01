@@ -743,7 +743,7 @@ everyone the run's numbers about once a second, and again the moment the game pa
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The pause menu is the same panel as **Settings** (main menu, and the
+sees who paused) and either player can resume. The menu arrives with a **signal glitch**: the frozen screen tears for a moment, scanlines roll in, the panel flickers on and PAUSED types itself out (with Reduced effects or Visual effects off, a quick fade). The pause menu is the same panel as **Settings** (main menu, and the
 lobby's cog): volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and
 spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI), mute and aim line on the left, the
 visual effects on the right; in a match its buttons are **Run stats** (the Tab screen, so a paused party can look at

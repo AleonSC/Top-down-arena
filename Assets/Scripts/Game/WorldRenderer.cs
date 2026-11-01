@@ -34,6 +34,8 @@ namespace Arena
                 DrawMenuBackground(Time.time);
             GL.End();
             GL.PopMatrix();
+            if (game.Running)
+                GrabPauseFrame();  // the frozen frame for the pause menu's glitch (PauseGlitch.cs)
         }
 
         void DrawWorld()

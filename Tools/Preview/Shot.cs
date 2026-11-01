@@ -536,6 +536,10 @@ class Shot {
     {
       set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      // PAUSEANIM=0..1: how far the menu has opened (PauseGlitch.cs; default fully open). The torn slices need the
+      // grabbed frame, so the preview shows the rest: the dim, scanlines, the flickering panel and the typed title.
+      set("pauseMenuOpen", true);
+      set("pauseAnim", float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1"));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
       GL.ToUi = false;
