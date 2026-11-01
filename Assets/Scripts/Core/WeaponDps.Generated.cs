@@ -50,7 +50,7 @@ namespace Arena
             { WeaponId.MedicineDarts, 38f },
             { WeaponId.SpiritFan, 75f },
             { WeaponId.Ofuda, 50f },
-            { WeaponId.Shuriken, 52f },
+            { WeaponId.Shuriken, 157f },
             { WeaponId.Katana, 66f },
             { WeaponId.Kunai, 90f },
             { WeaponId.BloodLash, 96f },

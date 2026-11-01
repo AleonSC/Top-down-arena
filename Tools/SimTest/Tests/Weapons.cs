@@ -1474,6 +1474,7 @@ static partial class Program
             "Shuriken stars stick in what they hit; double-tapping fire recalls them, ripping them out for another hit");
         reset();
 
+
         // Bone Spear.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoneSpear);
         me.Kit = Kit.Hemomancer;
@@ -1538,6 +1539,26 @@ static partial class Program
             stayed, vineHeal, vineHurt, slow, followed);
         Check(treant != null && stayed < 2f && vineHeal >= Game.VineHeal * 0.9f && vineHurt > 0f && slow <= 1f - Game.VineSlow + 0.01f && followed > 200f,
             "the Treant roots where it is; a vine to you heals allies and slows enemies crossing it, and the Treant follows if you go too far");
+        // Shuriken again, last (it takes a while, which would shift the wave's end into the healing checks above).
+        reset();
+        from = new V2(300f, 450f);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Shuriken);
+        me.Kit = Kit.Ninja;
+        play(0.1f, new PlayerInput());  // (back to the start spot)
+        // The fan is tight enough that a boss-sized target 400 px away takes all three stars.
+        var far = dummy(from + new V2(400f, 0f));
+        far.Radius = Defs.Get(EnemyType.Boss).Radius;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(0.8f, new PlayerInput());
+        int farStuck = far.StarsStuck;
+        // Left alone, stuck stars come back by themselves after StarStick seconds, for their second hit.
+        float beforeBack = far.Hp;
+        play(Game.StarStick + 0.3f, new PlayerInput());
+        float back = beforeBack - far.Hp;
+        Console.WriteLine("  shuriken: {0} of 3 stars stuck in a boss-sized target 400 px off; left alone they came back for {1:0.0} (stuck now {2})", farStuck, back, far.StarsStuck);
+        Check(farStuck == 3, "a Shuriken fan lands all three stars on a boss 400 px away");
+        Check(far.StarsStuck == 0 && back >= 3 * me.Weapon.Damage * me.Stats.DmgMult * 0.99f, "stuck stars come back on their own after 5 s, hitting again");
+        reset();
         host.Leave(""); client.Leave("");
     }
 
