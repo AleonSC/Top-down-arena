@@ -603,6 +603,8 @@ class Shot {
         host.Game.GrantUpgrade(1, U(n));
       if (Environment.GetEnvironmentVariable("MASTERY") != null) { float[] xs = { 900f, 420f, 130f, 0f, 20f }; for (int k = 0; k < 5; k++) if (me.Slots[k].Id != AbilityId.None) me.MasteryXp[me.Slots[k].Id] = xs[k]; }
       me.Level = 31; me.Slots[2].Charges = 0; me.Slots[2].Timer = 6.3f;
+      var tm = Environment.GetEnvironmentVariable("MOUSE");
+      if (tm != null) { var xy = tm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       if (Environment.GetEnvironmentVariable("STATSTAB") == null)
         typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
       else

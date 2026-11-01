@@ -174,7 +174,10 @@ namespace Arena
             Ui.Label(new Rect(r.x + 6f, r.y + 118f, r.width - 12f, 24f), u.Name, u.Name.Length > 15 ? 13 : 16, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 32f, r.y + 146f, r.width - 64f, 1f), new Color(rc.r, rc.g, rc.b, 0.4f));
             string desc = Upgrades.DescFor(u, me.Weapon);
-            Ui.Label(new Rect(r.x + 10f, r.y + 152f, r.width - 20f, 74f), desc, desc.Length > 70 ? 10 : 12, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), TextAnchor.UpperCenter, false, true);
+            if (u.Grants != AbilityId.None)  // an ability: what mastering it adds too (LobbyUi.cs)
+                DrawDescAndMastery(new Rect(r.x + 10f, r.y + 152f, r.width - 20f, 74f), desc, u.Grants, desc.Length > 70 ? 10 : 12, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), true);
+            else
+                Ui.Label(new Rect(r.x + 10f, r.y + 152f, r.width - 20f, 74f), desc, desc.Length > 70 ? 10 : 12, new Color(Ui.Text.r, Ui.Text.g, Ui.Text.b, dim), TextAnchor.UpperCenter, false, true);
             if (sold)
             {
                 var stamp = new Rect(r.center.x - 56f, r.center.y - 18f, 112f, 34f);

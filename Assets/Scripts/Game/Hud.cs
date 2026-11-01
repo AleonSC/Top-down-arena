@@ -174,6 +174,7 @@ namespace Arena
             var upBox = new Rect(abilBox.xMax + gap, top, panel.xMax - pad - abilBox.xMax - gap, bottom - top);
             DrawTabAbilities(me, abilBox);
             DrawTabUpgrades(me, upBox);
+            DrawAbilityHover(abilBox);
         }
 
         /// Stats, grouped so they're quick to scan (in the stats sidebar).
@@ -213,8 +214,32 @@ namespace Arena
         }
 
         /// The weapon and each ability on its own tile.
+        /// The hovered Tab ability tile's full text, beside the abilities box (drawn after the upgrades so it's on top).
+        void DrawAbilityHover(Rect box)
+        {
+            if (hoverAbility == null)
+                return;
+            {
+                // The hovered ability in full: what it does and what Lv 5 adds.
+                const float pw = 320f;
+                string cap = "Mastered (Lv 5): " + Game.Capstone(hoverAbility.Id);
+                float dh = Ui.TextHeight(hoverAbility.Desc, 12, pw - 28f), ch = Ui.TextHeight(cap, 11, pw - 42f);
+                var pop = new Rect(box.xMax + 10f, hoverTile.y, pw, 44f + dh + 6f + ch + 12f);
+                pop.y = Mathf.Min(pop.y, H - 12f - pop.height);
+                Ui.Panel(pop, true);
+                Ui.Label(new Rect(pop.x + 14f, pop.y + 10f, pw - 28f, 24f), hoverAbility.Name, 16, Color.white, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(pop.x + 14f, pop.y + 40f, pw - 28f, dh), hoverAbility.Desc, 12, Ui.Text, TextAnchor.UpperLeft, false, true);
+                Ui.Icon(new Rect(pop.x + 14f, pop.y + 47f + dh, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
+                Ui.Label(new Rect(pop.x + 28f, pop.y + 46f + dh, pw - 42f, ch), cap, 11, new Color(0.85f, 0.75f, 0.48f), TextAnchor.UpperLeft, false, true);
+            }
+        }
+
+        AbilityDef hoverAbility;
+        Rect hoverTile;
+
         void DrawTabAbilities(Player me, Rect box)
         {
+            hoverAbility = null;
             Ui.HudPanel(box);
             float x = box.x + 12f, w = box.width - 24f, y = box.y + 12f;
             Ui.Label(new Rect(x + 4f, y, w, 16f), "WEAPON", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
@@ -260,17 +285,12 @@ namespace Arena
                     level >= Game.MasteryMax ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
                 bool hover = tile.Contains(Event.current.mousePosition);
                 var descR = new Rect(tile.x + 8f, tile.y + 47f, tile.width - 16f - (bonus ? 118f : 0f), tile.height - 50f);
-                float dh = Ui.TextHeight(a.Desc, 11, descR.width), ch = Ui.TextHeight("Mastered (Lv 5): " + Game.Capstone(slot.Id), 10, descR.width - 14f);
-                if (dh + 2f + ch <= descR.height)
+                DrawDescAndMastery(descR, a.Desc, slot.Id, 11, Ui.Muted);  // what it does, then what Lv 5 adds (LobbyUi.cs)
+                if (tile.Contains(Event.current.mousePosition))
                 {
-                    // Room for both: what it does, then what Lv 5 adds (gold once it's mastered).
-                    Ui.Label(new Rect(descR.x, descR.y, descR.width, dh), a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
-                    DrawMasteryLine(new Rect(descR.x, descR.y + dh + 2f, descR.width, ch), slot.Id, 10);
+                    hoverAbility = a;  // the full text, beside the box, when the tile has had to cut it short
+                    hoverTile = tile;
                 }
-                else if (hover || level >= Game.MasteryMax)  // tight: hover the tile to see what Lv 5 adds
-                    Ui.Label(descR, (level >= Game.MasteryMax ? "" : "At Lv 5: ") + Game.Capstone(slot.Id), 11, level >= Game.MasteryMax ? Ui.Gold : new Color(0.75f, 0.85f, 1f), TextAnchor.UpperLeft, false, true);
-                else
-                    Ui.Label(descR, a.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
                 if (bonus)  // move it to another key (swaps with whatever is there)
                 {
                     Ui.Label(new Rect(tile.xMax - 122f, tile.y + 30f, 114f, 14f), "MOVE TO", 9, Ui.Muted, TextAnchor.MiddleRight, true);
@@ -1321,20 +1341,15 @@ namespace Arena
             Ui.Fill(new Rect(r.x + 40f, r.y + 176f, r.width - 80f, 1f), new Color(rc.r, rc.g, rc.b, 0.35f));
             string desc = Upgrades.DescFor(u, me.Weapon);
             int ds = desc.Length > 110 ? 12 : 14;
-            Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), desc, ds, Ui.Text, TextAnchor.UpperCenter, false, true);
-            if (u.Grants != AbilityId.None && !string.IsNullOrEmpty(Game.Capstone(u.Grants)))
+            if (u.Grants != AbilityId.None)
             {
-                // A card that gives an ability also says what mastering it adds, when there's room under the text.
-                float my = r.y + 188f + Mathf.Min(66f, Ui.TextHeight(desc, ds, r.width - 36f));
-                string cap = "Mastered (Lv 5): " + Game.Capstone(u.Grants);
-                float mh = Ui.TextHeight(cap, 10, r.width - 36f);
-                if (my + mh <= r.yMax - 34f)  // only when it fits whole (it may take the note's line: the key chooser below says the same)
-                {
-                    Ui.Label(new Rect(r.x + 18f, my, r.width - 36f, mh), cap, 10, new Color(0.85f, 0.75f, 0.48f), TextAnchor.UpperCenter, false, true);
-                    if (my + mh > r.yMax - 52f)
-                        note = "";
-                }
+                // A card that gives an ability also says what mastering it adds (it may take the note's line: the key
+                // chooser below the cards says the same).
+                DrawDescAndMastery(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, r.height - 184f - 36f), desc, u.Grants, ds, Ui.Text, true);
+                note = "";
             }
+            else
+                Ui.Label(new Rect(r.x + 18f, r.y + 184f, r.width - 36f, 66f), desc, ds, Ui.Text, TextAnchor.UpperCenter, false, true);
             if (note.Length > 0)
                 Ui.Label(new Rect(r.x, r.yMax - 50f, r.width, 16f), note, 11, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleCenter, true);
             var key = new Rect(r.x + r.width / 2f - 50f, r.yMax - 30f, 100f, 20f);

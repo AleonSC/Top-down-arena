@@ -448,17 +448,13 @@ namespace Arena
                 wTiles.Add(new[] { Mathf.RoundToInt(wdef.Damage).ToString(), wdef.Melee ? "PER SWING" : "PER HIT" });
             if (wdef.FireInterval > 0f)
                 wTiles.Add(new[] { (1f / wdef.FireInterval).ToString(wdef.FireInterval >= 0.5f ? "0.0" : "0"), wdef.Melee ? "SWINGS / S" : "SHOTS / S" });
-            float descH = left.yMax - tileH - 8f - (left.y + 46f);
-            Ui.Label(new Rect(left.x, left.y + 46f, left.width, descH), wdef.Desc, 12, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
+            FitText(new Rect(left.x, left.y + 46f, left.width, left.yMax - tileH - 4f - (left.y + 46f)), wdef.Desc, 12, new Color(0.82f, 0.85f, 0.93f));
             SpecTiles(new Rect(left.x, left.yMax - tileH, left.width, tileH), wTiles, 0);
 
             // Ability: a cooldown ring tile (it fills over the cooldown, on a loop), then charges or a health cost.
             SpecHeader(right, "ABILITY  ·  SPACE", ability.Name, accent);
-            // What it does, then what Lv 5 adds (a size smaller than the weapon's text, to make room for both).
-            float adh = Mathf.Min(descH, Ui.TextHeight(ability.Desc, 11, right.width));
-            Ui.Label(new Rect(right.x, right.y + 46f, right.width, adh), ability.Desc, 11, new Color(0.82f, 0.85f, 0.93f), TextAnchor.UpperLeft, false, true);
-            float my = right.y + 48f + adh;
-            DrawMasteryLine(new Rect(right.x, my, right.width, right.yMax - tileH - 3f - my), ability.Id, 10);
+            // What it does, then what Lv 5 adds.
+            DrawDescAndMastery(new Rect(right.x, right.y + 46f, right.width, right.yMax - tileH - 4f - (right.y + 46f)), ability.Desc, ability.Id, 12, new Color(0.82f, 0.85f, 0.93f));
             var aTiles = new System.Collections.Generic.List<string[]>();
             aTiles.Add(new[] { ability.Cooldown.ToString("0.#") + " s", "COOLDOWN" });
             if (ability.ExtraCharges > 0)
@@ -515,26 +511,84 @@ namespace Arena
             y += rr * 2f + 14f;
             // What it does, then what mastering it adds; the click hint stays at the bottom.
             float bottom = area.yMax - 20f;
-            float dh = Mathf.Min(bottom - y, Ui.TextHeight(ult.Desc, 11, w));
-            Ui.Label(new Rect(x, y, w, dh), ult.Desc, 11, new Color(0.79f, 0.82f, 0.91f), TextAnchor.UpperLeft, false, true);
-            y += dh + 6f;
-            DrawMasteryLine(new Rect(x, y, w, bottom - y), ult.Id, 10);
+            DrawDescAndMastery(new Rect(x, y, w, bottom - y), ult.Desc, ult.Id, 11, new Color(0.79f, 0.82f, 0.91f));
             Ui.Label(new Rect(area.x, area.yMax - 18f, area.width, 14f), on ? "PREVIEWING  ·  CLICK TO STOP" : "CLICK THE RING TO PREVIEW", 9,
                 on || hover ? Ui.Gold : new Color(0.44f, 0.47f, 0.58f), TextAnchor.MiddleCenter, true);
         }
 
-        /// "★ Mastered: …": what an ability's level 5 adds, in gold, if it fits in r.
-        void DrawMasteryLine(Rect r, AbilityId id, int size)
+        /// An ability's description with what mastering it (level 5) adds under it in gold, both always shown in r: when
+        /// they don't fit, the text gets smaller (down to 9), then the description is shortened with "…" (the mastery
+        /// line comes first: it's the part people look for). centre: centred, without the star (upgrade cards).
+        void DrawDescAndMastery(Rect r, string desc, AbilityId id, int size, Color descColor, bool centre = false)
         {
+            var align = centre ? TextAnchor.UpperCenter : TextAnchor.UpperLeft;
             string cap = Game.Capstone(id);
-            if (string.IsNullOrEmpty(cap) || r.height < size + 4f)
+            GUI.BeginGroup(r);
+            if (string.IsNullOrEmpty(cap))
+            {
+                Ui.Label(new Rect(0f, 0f, r.width, Ui.TextHeight(desc, size, r.width)), desc, size, descColor, align, false, true);
+                GUI.EndGroup();
                 return;
-            string text = "Mastered (Lv 5): " + cap;
-            float h = Ui.TextHeight(text, size, r.width - 14f);
-            if (h > r.height + 2f)
-                return;  // only whole: never cut off part-way
-            Ui.Icon(new Rect(r.x, r.y + 1f, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
-            Ui.Label(new Rect(r.x + 14f, r.y, r.width - 14f, h), text, size, new Color(0.85f, 0.75f, 0.48f), TextAnchor.UpperLeft, false, true);
+            }
+            string mastery = "Mastered (Lv 5): " + cap, descFull = desc;
+            float starW = centre ? 0f : 14f;
+            int s = size, ms = Mathf.Max(9, size - 1);
+            float dh = Ui.TextHeight(desc, s, r.width), mh = Ui.TextHeight(mastery, ms, r.width - starW);
+            while (dh + 3f + mh > r.height && s > 9)
+            {
+                s--;
+                ms = Mathf.Max(9, s - 1);
+                dh = Ui.TextHeight(desc, s, r.width);
+                mh = Ui.TextHeight(mastery, ms, r.width - starW);
+            }
+            if (dh + 3f + mh > r.height)
+            {
+                desc = Shorten(desc, s, r.width, r.height - 3f - mh);
+                float line = Ui.TextHeight("A", ms, 999f);  // one line, as the label measures it (with its padding)
+                if (desc.Length == 0 && r.height >= 2f * line - 6f)
+                {
+                    // Very tight: a line each, both cut short, rather than losing the description altogether.
+                    mastery = Shorten(mastery, ms, r.width - starW, line);
+                    mh = line;
+                    desc = Shorten(descFull, s, r.width, Mathf.Max(line, r.height - mh));
+                    if (desc.Length > 0)
+                        dh = Ui.TextHeight(desc, s, r.width);
+                }
+                dh = desc.Length > 0 ? Ui.TextHeight(desc, s, r.width) : 0f;
+            }
+            if (desc.Length > 0)
+                Ui.Label(new Rect(0f, 0f, r.width, dh), desc, s, descColor, align, false, true);
+            float my = desc.Length > 0 ? Mathf.Min(dh + 3f, r.height - mh) : 0f;
+            if (!centre)
+                Ui.Icon(new Rect(0f, my + 1f, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
+            Ui.Label(new Rect(starW, my, r.width - starW, mh), mastery, ms, new Color(0.85f, 0.75f, 0.48f), align, false, true);
+            GUI.EndGroup();
+        }
+
+        /// Wrapped text that always stays inside r: smaller text first (down to 10), then cut short with "…".
+        void FitText(Rect r, string text, int size, Color color)
+        {
+            int s = size;
+            while (s > 10 && Ui.TextHeight(text, s, r.width) > r.height)
+                s--;
+            if (Ui.TextHeight(text, s, r.width) > r.height)
+                text = Shorten(text, s, r.width, r.height);
+            GUI.BeginGroup(r);
+            Ui.Label(new Rect(0f, 0f, r.width, r.height), text, s, color, TextAnchor.UpperLeft, false, true);
+            GUI.EndGroup();
+        }
+
+        /// The text cut at a word and ended with "…" so it fits in height h (empty if not even a line does).
+        static string Shorten(string text, int size, float width, float h)
+        {
+            var words = text.Split(' ');
+            for (int n = words.Length - 1; n > 0; n--)
+            {
+                string t = string.Join(" ", words, 0, n).TrimEnd(',', '.', ';', ':') + "…";
+                if (Ui.TextHeight(t, size, width) <= h)
+                    return t;
+            }
+            return "";
         }
 
         void SpecHeader(Rect col, string eyebrow, string name, Color accent)
