@@ -471,6 +471,19 @@ The card's fold-down button shrinks it to a slim tab with a tiny live thumbnail,
 fades away after a few seconds; hover where it was to bring it back, and click it to open the full card again
 (remembered on your computer).
 
+## Arena props
+
+Regular waves (not bosses, not the Practice Range) put things in the arena. What's left at the end of a wave stays for
+the next, and each wave tops it up; a boss wave clears it all away.
+
+| Prop | What it does |
+|---|---|
+| **Crate** | Cover. Enemy shots stop at it, red aimed shots included, and each one wears it down (8 hits + 1 per 3 waves); your shots fly over it. You and enemies can't walk through it. Two often stand side by side as a little wall. 2 crates at wave 1, one more about every 3 waves, up to 10 |
+| **Iron-bound crate** | From wave 12, about a third of the crates: twice as tough |
+| **Pot** | Shoot it or walk through it: it smashes into a health orb (35%) or a little XP for everyone. 1 at first, up to 5 |
+| **Barrel** | Rare (from wave 3, a 25-45% chance of one a wave, sometimes two from wave 20). Any shot or blast sets it fizzing; 0.4 s later it blows up 120 px round: 40 + 10 per wave damage to enemies, 16 to players caught in it (scaled like enemy damage), smashing crates and pots and setting off other barrels |
+| **Treasure chest** | Rare (8% of regular waves from wave 2). Touch it to open it: **each player gets their own item**, a card spinning in a beam of its rarity's colour that **only they can see** (uncommon to very rare from their own pool, or a 20% chance of a legendary from a boss met so far or the next one). Walk onto it to see its card, then **G** takes it or **X** throws it away. Items never despawn, and **the wave waits** until the chest is open and every item is dealt with (anyone down gets back up to go and collect) |
+
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
@@ -620,6 +633,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Role ability | Space |
 | Parry | Hold right click |
 | Ultimate | F |
+| Take / discard your chest item (standing on it) | G / X |
 | Bonus abilities | Q, E and Shift (once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R |

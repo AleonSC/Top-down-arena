@@ -72,6 +72,7 @@ namespace Arena
                         {
                             Wave++;
                             BuildWave(Wave);
+                            WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
                             bossName = Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null;
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
@@ -96,6 +97,8 @@ namespace Arena
                             }
                         }
                     }
+                    else if (Enemies.Count == 0 && PropsHoldWave())
+                        HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
                     else if (Enemies.Count == 0)
                     {
                         if (Practice != null)

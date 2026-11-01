@@ -14,6 +14,7 @@ static partial class Program
     // and the core sweeps.
     static void CoreMatchTest(int startWave, int seconds)
     {
+        Game.PropsByDefault = true;  // the full game, crates and all
         int port = 7790;
         const float dt = 1f / 60f;
 
@@ -80,9 +81,13 @@ static partial class Program
         var hostOrbIds = new HashSet<int>();
         var clientOrbIds = new HashSet<int>();
         int orbsHost = 0, orbsClient = 0;
+        var recentEnemies = new Queue<int>();  // the host's enemy count over the last few ticks (a snapshot goes every 3)
         for (int i = 0; i < seconds * 60; i++)
         {
             Step(host, dt);
+            recentEnemies.Enqueue(host.Game.Enemies.Count);
+            if (recentEnemies.Count > 4)
+                recentEnemies.Dequeue();
             Step(client, dt);
             if (i % 2 == 0)
                 Thread.Sleep(1);
@@ -122,7 +127,7 @@ static partial class Program
                     }
                 maxError = Math.Max(maxError, worst);
                 bool off = ghosts > 2 || missing > 2 || worst > 30f
-                    || Math.Abs(host.Game.Enemies.Count - client.Game.Enemies.Count) > 1 || Math.Abs(host.Game.Wave - client.Game.Wave) > 1;
+                    || recentEnemies.All(n => Math.Abs(n - client.Game.Enemies.Count) > 1) || Math.Abs(host.Game.Wave - client.Game.Wave) > 1;  // (one area hit can kill several between snapshots)
                 if (off)
                 {
                     mismatches++;

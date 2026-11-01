@@ -172,6 +172,27 @@ class Shot {
       }
       foreach (var e in host.Game.Enemies.Values) Console.WriteLine("flame: {0} burning {1} hp lost {2:0}", e.Type, e.Burning, e.MaxHp - e.Hp);
     }
+    if (Environment.GetEnvironmentVariable("PROPS") != null) {
+      // The arena's props: a crate wall (one worn), an iron-bound crate, pots, a lit barrel, a closed chest, an opened one,
+      // and your chest item (PROPS=2: a legendary) with you standing on it, so its card shows.
+      System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);
+      var g = host.Game;
+      g.Props.Clear(); g.Loots.Clear();
+      foreach (var e in g.Enemies.Values) { e.Pos = e.Disp = new V2(1450f, 150f + 60f * (e.Id % 10)); e.FireT = 9f; }
+      g.AddProp(PropKind.Crate, new V2(520f, 300f)); g.AddProp(PropKind.Crate, new V2(566f, 300f)).Hp = 3f;
+      g.AddProp(PropKind.HeavyCrate, new V2(520f, 560f));
+      g.AddProp(PropKind.Pot, new V2(700f, 230f)); g.AddProp(PropKind.Pot, new V2(735f, 255f));
+      g.AddProp(PropKind.Barrel, new V2(1100f, 260f));
+      var lit = g.AddProp(PropKind.Barrel, new V2(1160f, 330f)); lit.Fuse = 0.2f;
+      g.AddProp(PropKind.Chest, new V2(1150f, 600f));
+      var open = g.AddProp(PropKind.Chest, new V2(820f, 560f)); open.Open = true; open.OpenT = 0.8f;
+      foreach (var p in g.Props.Values) p.Age = 3f + p.Id;
+      int item = Environment.GetEnvironmentVariable("PROPS") == "2" ? UL("Warden's Guard") : UL("Second Charge");
+      if (item < 0) item = 0;
+      g.Loots[99] = new Loot { Id = 99, Owner = 1, Upgrade = item, Pos = new V2(820f, 690f), Age = 2.95f };
+      g.Bot = false; me.Pos = me.Disp = new V2(822f, 695f); me.Aim = -1.2f;
+      for (int i = 0; i < 6; i++) g.Bullets.Remove(i);
+    }
     if (Environment.GetEnvironmentVariable("WARDENLOOT") != null) {
       // The Warden's legendaries: two Warden's Guards at your side and the Stun Gun out with 4 of its 6 shots left.
       System.Func<string, int> UL = n => System.Array.FindIndex(Upgrades.All, u => u.Name == n);
