@@ -271,9 +271,10 @@ once mastered); the Tab menu shows the level.
 | **Blade Tempest** | Five sword beams a swing instead of three. |  |  |
 
 A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next
-one fills as it earns XP). What level 5 unlocks is written in gold under each ability's description: in the lobby
-(your Space ability and your ultimate), on the Tab screen (when the tiles have room; otherwise hover one), and on
-the very rare cards that give an ability.
+one fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
+(your Space ability and your ultimate), on the Tab screen's ability tiles, on the cards that give an ability (in the
+level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened with
+"…"; hover a Tab tile to read it in full.
 
 In the lobby, your **ultimate** sits at the bottom of your character card: a gold charge ring (half full, as every
 ultimate starts a match half charged) with its key, its charge time, what it does and what mastering it adds. Click
