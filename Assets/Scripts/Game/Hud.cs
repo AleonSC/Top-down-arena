@@ -23,6 +23,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawMiniBossBars(1f - hudT);  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
             if (aimDebug && me != null)
@@ -891,7 +892,7 @@ namespace Arena
                 Ui.Label(new Rect(panel.x + 26f, panel.y + 5f, panelW - 120f, 20f), e.Def.Name.ToUpperInvariant(), 14, Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(panel.xMax - 90f, panel.y + 5f, 76f, 20f), Mathf.CeilToInt(frac * 100f) + "%", 13, Ui.Muted, TextAnchor.MiddleRight, true);
                 var bar = new Rect(panel.x + 14f, panel.y + 27f, panelW - 28f, 12f);
-                Ui.Bar(bar, frac, col);
+                GhostBar(bar, frac, col, EnemyKey(e.Id) | 1L << 40);  // with its damage ghost (HealthBars.cs)
                 for (int k = 1; k < 10; k++)  // tick marks every 10%
                     Ui.Fill(new Rect(bar.x + bar.width * k / 10f, bar.y + 2f, 1f, bar.height - 4f), new Color(0f, 0f, 0f, 0.35f));
                 if (note != null)
@@ -971,7 +972,7 @@ namespace Arena
                 Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), "DOWNED", 9, new Color(1f, 0.6f, 0.6f), TextAnchor.MiddleLeft, true);
                 return;
             }
-            Ui.Bar(hp, frac, HealthColor(frac));
+            GhostBar(hp, frac, HealthColor(frac), PlayerKey(p.Id, true));
             if (p.ShieldHp > 0f)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
             Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -1042,7 +1043,7 @@ namespace Arena
             }
             else
             {
-                Ui.Bar(hpBar, frac, hpCol);
+                GhostBar(hpBar, frac, hpCol, PlayerKey(p.Id, true));
                 if (p.ShieldHp > 0f)  // Arcane Ward: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);

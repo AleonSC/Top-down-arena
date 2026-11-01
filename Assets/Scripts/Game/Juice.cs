@@ -804,8 +804,11 @@ namespace Arena
                     Ui.Fill(new Rect(0f, 0f, W, H), new Color(0f, 0f, 0f, 0.4f * k));
                 Ui.Fill(new Rect(0f, 0f, W, 64f * k), new Color(0f, 0f, 0f, 1f));
                 Ui.Fill(new Rect(0f, H - 64f * k, W, 64f * k), new Color(0f, 0f, 0f, 1f));
-                Ui.Title(new Rect(0f, H / 2f - 64f, W, 72f), introName, 58, new Color(1f, 0.42f, 0.55f, k));
-                Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.Wave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f * k), TextAnchor.MiddleCenter, true);
+                var old = GUI.color;
+                GUI.color = new Color(old.r, old.g, old.b, old.a * k);  // fades the title's shadow too
+                Ui.Title(new Rect(0f, H / 2f - 64f, W, 72f), introName, 58, new Color(1f, 0.42f, 0.55f, 1f));
+                Ui.Label(new Rect(0f, H / 2f + 12f, W, 26f), "WAVE " + game.Wave, 17, new Color(0.9f, 0.93f, 0.97f, 0.9f), TextAnchor.MiddleCenter, true);
+                GUI.color = old;
             }
         }
     }

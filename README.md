@@ -650,7 +650,7 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 | Pause menu | Esc |
 | Developer tools | F1 (see below) |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
-| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden) |
+| Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
@@ -749,7 +749,7 @@ so they never change the fight or what your friend sees):
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
 What it adds: an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
-when hit; **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
+when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
 0.4 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
 **scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
 shots; the **grid ripples** out from big blasts; a **vignette** and a tint for the path you're on or the boss you're

@@ -104,6 +104,15 @@ class JuiceCheck {
     boss.Hp = 0f; g.Enemies.Remove(boss.Id); frame();
     Check(((System.Collections.IList)get("bursts")).Count == 4 && (float)get("trauma") > 0.5f, "a boss's death shakes hard and bursts in waves");
 
+    // The damage ghost: a bar that drops keeps a pale chunk for a moment, then drains to it; healing pulls it up.
+    var ghost = typeof(ArenaApp).GetMethod("Ghost", f2);
+    Func<float, float, float> G = (now, frac) => { UnityEngine.Time.unscaledTime = now; return (float)ghost.Invoke(app, new object[] { 77L, frac }); };
+    G(10f, 1f);
+    float held = G(10.05f, 0.6f), still = G(10.3f, 0.6f), draining = G(10.7f, 0.6f), done = G(12f, 0.6f), healed = G(12.1f, 0.9f);
+    Console.WriteLine("  ghost: {0:0.00} held, {1:0.00} still, {2:0.00} draining, {3:0.00} done, {4:0.00} healed", held, still, draining, done, healed);
+    Check(held == 1f && still == 1f && draining < 1f && draining > 0.6f && Math.Abs(done - 0.6f) < 1e-4f && Math.Abs(healed - 0.9f) < 1e-4f,
+      "a health bar's damage ghost holds where health was, then drains to it; healing pulls it up");
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);
