@@ -1,0 +1,451 @@
+<title>Run Stats Tab Transitions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a proposal page in the field-manual look of the other mockups. On top, a copy of the in-game Run stats
+   screen (Tab) at the game's own 1280 x 720 canvas, scaled to fit; switch its tabs to see each transition. Below,
+   the transition styles to pick from, each with how it would be built in the game's IMGUI. Single dark look by
+   choice: it mirrors the game. The screen copy uses the game's own blues; the page around it, teal and amber. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  /* the game's Run stats screen */
+  --g-bg: #05060b; --g-panel: #141a2b; --g-card: #18203a; --g-row: #1b2236; --g-edge: #5b7fff; --g-text: #eef2fb; --g-muted: #8f9bb8;
+  --g-gold: #ffcc4d; --g-blue: #5f8cff; --g-orange: #ff8a3d; --g-green: #4fe07a; --g-red: #ff6b8a; --g-cyan: #9fe8ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --game: "Barlow", "Liberation Sans", Arial, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 24px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+/* The stage: the game's 1280 x 720 canvas scaled to the page width */
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.viewport { position: relative; width: 100%; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; background: var(--g-bg); }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; font-family: var(--game); color: var(--g-text); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.tog { display: inline-flex; align-items: center; gap: 7px; color: var(--soft); font-size: 13.5px; cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 16px; height: 16px; }
+.hint { font: 12px var(--font-data); color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.spacer { flex: 1 1 auto; }
+
+/* --- The game screen copy (sizes in the game's canvas pixels) --- */
+.dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(20,26,48,0.35), rgba(2,3,8,0.92)); }
+.tabs { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+.tabs .tab { position: relative; width: 150px; height: 34px; border-radius: 9px; border: 1px solid #2c3550; background: linear-gradient(#1f2638, #161b2a); color: #7fa2ff; font: 700 14px var(--game); cursor: pointer; }
+.tabs .tab.on { color: #fff; background: linear-gradient(#2a3a66, #1c2747); border-color: #6d8dff; }
+.tabs .tab::after { content: ""; position: absolute; left: 18px; right: 18px; bottom: 3px; height: 2px; border-radius: 2px; background: rgba(110,140,255,0.45); }
+.tabs .tab.on::after { background: #7fa2ff; box-shadow: 0 0 8px #7fa2ff; }
+.tabs .glider { position: absolute; top: -3px; height: 40px; border-radius: 11px; border: 1px solid rgba(127,162,255,0.65); box-shadow: 0 0 14px rgba(95,140,255,0.45), inset 0 0 12px rgba(95,140,255,0.2); pointer-events: none; opacity: 0; }
+.closehint { position: absolute; right: 26px; top: 20px; font: 11px var(--game); color: var(--g-muted); }
+.frame { position: absolute; left: 24px; top: 56px; width: 1232px; height: 644px; border-radius: 12px; border: 1px solid var(--g-edge); background: rgba(20,26,43,0.96); overflow: hidden; }
+.pane { position: absolute; inset: 0; padding: 18px 20px; }
+.pane[hidden] { display: none !important; }
+.piece { will-change: transform, opacity; }
+.card { background: var(--g-card); border-radius: 8px; padding: 14px 16px; }
+.lab { font: 700 10px var(--game); letter-spacing: 0.06em; text-transform: uppercase; color: var(--g-muted); }
+.gold { color: var(--g-gold); }
+.row { display: flex; justify-content: space-between; align-items: center; background: var(--g-row); border-radius: 5px; padding: 8px 10px; font-size: 13px; color: var(--g-muted); }
+.row b { color: var(--g-text); font-size: 14px; }
+.chip { padding: 5px 14px; border-radius: 5px; background: #1e2740; font: 700 12px var(--game); }
+
+/* Run so far */
+.p0 .top { display: flex; align-items: center; gap: 22px; height: 50px; }
+.p0 .wave { font: 800 30px var(--game); letter-spacing: 0.02em; text-shadow: 0 2px 0 #2b3a7a; }
+.p0 .wave small { font: 500 14px var(--game); color: var(--g-muted); margin-left: 6px; }
+.p0 .where b { color: var(--g-cyan); font-size: 13px; } .p0 .where div { color: var(--g-muted); font-size: 12px; }
+.p0 .chips { margin-left: auto; display: flex; gap: 8px; }
+.p0 .boss { background: #3a1a26; color: #ff9db4; }
+.p0 .totals { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-top: 10px; }
+.p0 .totals .card { padding: 10px 14px; } .p0 .totals b { display: block; font-size: 19px; margin-top: 2px; }
+.p0 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+.route { display: grid; gap: 4px; margin-top: 10px; }
+.route .r { display: grid; grid-template-columns: 22px 1fr 110px 120px; align-items: center; font-size: 13px; padding: 7px 8px; border-radius: 6px; }
+.route .r span:last-child { text-align: right; color: var(--g-muted); font-size: 12px; } .route .r span:nth-child(3) { color: var(--g-muted); font-size: 12px; }
+.route .dot { width: 9px; height: 9px; border-radius: 50%; } .route .b { color: var(--g-red); }
+.route .now { background: #1d3446; } .route .next { opacity: 0.5; }
+.fight { display: grid; gap: 6px; margin-top: 10px; }
+.share { display: grid; gap: 12px; margin-top: 12px; }
+.share .who { display: flex; gap: 10px; align-items: baseline; font-size: 13px; } .share .who b { font-size: 14px; } .share .who span:last-child { margin-left: auto; color: var(--g-muted); font-size: 11px; }
+.meter { position: relative; height: 7px; border-radius: 4px; background: #0c111e; margin-top: 5px; } .meter i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+/* Your build */
+.p1 .cols { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 14px; height: 100%; }
+.stats .row { margin-top: 5px; } .stats h4, .ups h4 { margin: 12px 0 4px; font: 700 10.5px var(--game); letter-spacing: 0.06em; }
+.ab { background: var(--g-row); border-radius: 6px; padding: 8px 10px; margin-top: 6px; }
+.ab .k { display: inline-block; background: #2b3760; border-radius: 4px; padding: 1px 7px; font: 700 10px var(--game); margin-right: 8px; }
+.ab b { display: block; margin-top: 4px; font-size: 15px; } .ab small { color: var(--g-muted); font-size: 11px; }
+.ups .u { font-size: 13px; padding: 3px 0; display: flex; gap: 8px; align-items: center; } .ups .u i { width: 12px; height: 12px; border-radius: 3px; }
+/* Team */
+.p2 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 100%; }
+.mate .hd { display: flex; gap: 14px; } .mate .av { width: 96px; height: 96px; border-radius: 8px; display: grid; place-items: center; }
+.mate .av div { width: 44px; height: 44px; border-radius: 50%; border: 6px solid currentColor; }
+.mate h3 { margin: 0; font: 800 20px var(--game); } .mate .sub { font-size: 13px; font-weight: 700; } .mate .hp { height: 7px; border-radius: 4px; background: var(--g-green); margin: 6px 0; }
+.mate .ln { font-size: 12px; color: var(--g-text); }
+
+/* Cards under the stage */
+.styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.sty { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px 15px; display: grid; gap: 6px; align-content: start; text-align: left; color: inherit; font: inherit; cursor: pointer; min-width: 0; }
+.sty:hover { border-color: var(--edge); }
+.sty.on { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal); }
+.sty b { font: 700 16px var(--font-display); letter-spacing: 0.03em; }
+.sty .feel { font-size: 14px; color: var(--soft); }
+.sty .imgui { font-size: 12.5px; color: var(--muted); }
+.sty .t { font: 500 11px var(--font-data); color: var(--amber); }
+@media (prefers-reduced-motion: reduce) { .sty { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Top-Down Arena · design proposal · Run stats screen</div>
+    <h1>Tab <span>transitions</span></h1>
+    <p class="lead">A copy of the Run stats screen you get by holding Tab, at the game's own 1280 × 720. Click its tabs (or press
+      1, 2, 3 or ← →) to switch, with the style picked below. Today the pages swap instantly. Every style finishes within about a
+      third of a second, so it never slows down a look mid-fight. Slow-mo plays them at a third of the speed to study them.</p>
+  </header>
+
+  <div class="stage">
+    <div class="viewport" id="viewport">
+      <div class="screen" id="screen">
+        <div class="dim"></div>
+        <div class="tabs" id="tabs">
+          <div class="glider" id="glider"></div>
+          <button type="button" class="tab" data-i="0">Run so far</button>
+          <button type="button" class="tab" data-i="1">Your build</button>
+          <button type="button" class="tab" data-i="2">Team (2)</button>
+        </div>
+        <div class="closehint">Let go of Tab to close</div>
+        <div class="frame" id="frame">
+
+          <!-- Run so far -->
+          <div class="pane p0" data-pane="0">
+            <div class="top piece">
+              <div class="wave">WAVE 23<small>/ 50</small></div>
+              <div class="where"><b>Frozen Lake path · wave 3 of 4</b><div>25 enemies left</div></div>
+              <div class="chips"><span class="chip">31:42 played</span><span class="chip">Score <span class="count" data-v="18450">18,450</span></span><span class="chip boss">Next boss: The Colossus · wave 25</span></div>
+            </div>
+            <div class="totals">
+              <div class="card piece"><span class="lab">Damage dealt</span><b class="count" data-v="306307">306,307</b></div>
+              <div class="card piece"><span class="lab">Kills</span><b class="count" data-v="781">781</b></div>
+              <div class="card piece"><span class="lab">Healing done</span><b class="count" data-v="2227">2,227</b></div>
+              <div class="card piece"><span class="lab">Accuracy</span><b class="count" data-v="64" data-s="%">64%</b></div>
+              <div class="card piece"><span class="lab">Biggest hit</span><b class="count" data-v="1240">1,240</b></div>
+              <div class="card piece"><span class="lab">Level</span><b class="count" data-v="31">31</b></div>
+              <div class="card piece"><span class="lab">Downed</span><b class="count" data-v="2">2</b></div>
+              <div class="card piece"><span class="lab">Allies revived</span><b class="count" data-v="1">1</b></div>
+            </div>
+            <div class="cols">
+              <div class="card piece" style="height: 452px">
+                <div style="display:flex;justify-content:space-between"><span class="lab">Route</span><span style="font-size:12px;color:var(--g-muted)">4 of 10 bosses beaten</span></div>
+                <div class="route">
+                  <div class="r piece"><i class="dot" style="background:#8f9bb8"></i><span>Standard</span><span>waves 1–4</span><span>cleared</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ff6b8a"></i><span class="b">The Warden</span><span>wave 5</span><span>beaten</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ffcc4d"></i><span>Sniper Ridge</span><span>waves 6–9</span><span>cleared</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ff6b8a"></i><span class="b">Hive Queen</span><span>wave 10</span><span>beaten</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ffcc4d"></i><span>Bazaar</span><span>waves 11–14</span><span>cleared</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ff6b8a"></i><span class="b">Twin Reapers</span><span>wave 15</span><span>beaten</span></div>
+                  <div class="r piece"><i class="dot" style="background:#4fe07a"></i><span>Swarm Fields</span><span>waves 16–19</span><span>cleared</span></div>
+                  <div class="r piece"><i class="dot" style="background:#ff6b8a"></i><span class="b">The Singularity</span><span>wave 20</span><span>beaten</span></div>
+                  <div class="r now piece"><i class="dot" style="background:#9fe8ff"></i><span>Frozen Lake</span><span>waves 21–24</span><span style="color:#9fe8ff">now · wave 3 of 4</span></div>
+                  <div class="r next piece"><i class="dot" style="background:#ff6b8a"></i><span class="b">The Colossus</span><span>wave 25</span><span>next · in 2 waves</span></div>
+                </div>
+              </div>
+              <div style="display:grid;gap:14px;align-content:start">
+                <div class="card piece">
+                  <span class="lab">Your fight</span>
+                  <div class="fight">
+                    <div class="row piece">Damage taken<b class="count" data-v="4210">4,210</b></div>
+                    <div class="row piece">Elite kills<b class="count" data-v="31">31</b></div>
+                    <div class="row piece">Boss kills<b class="count" data-v="4">4</b></div>
+                    <div class="row piece">Shots that hit<b>5,800 of 9,000</b></div>
+                    <div class="row piece">Abilities used<b class="count" data-v="212">212</b></div>
+                  </div>
+                </div>
+                <div class="card piece">
+                  <span class="lab">Party share of damage</span>
+                  <div class="share">
+                    <div class="piece"><div class="who"><b>Anthony</b><span style="color:var(--g-blue)">Elementalist Tank</span><span>Down 2 · revived 1 · 64% accuracy</span></div><div class="meter"><i class="fill" data-w="46" style="width:46%;background:var(--g-blue)"></i></div></div>
+                    <div class="piece"><div class="who"><b>Aleon</b><span style="color:var(--g-orange)">Soldier DPS</span><span>Down 1 · revived 0 · 70% accuracy</span></div><div class="meter"><i class="fill" data-w="38" style="width:38%;background:var(--g-orange)"></i></div></div>
+                    <div class="piece"><div class="who"><b>Sam</b><span style="color:var(--g-green)">Summoner Healer</span><span>Down 0 · revived 3 · 76% accuracy</span></div><div class="meter"><i class="fill" data-w="16" style="width:16%;background:var(--g-green)"></i></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Your build -->
+          <div class="pane p1" data-pane="1" hidden>
+            <div class="cols">
+              <div class="card stats piece">
+                <span class="lab" style="font-size:14px;color:var(--g-text)">YOUR STATS</span>
+                <div style="font-size:12px;color:var(--g-blue)">Flamethrower · Arcane Aegis</div>
+                <h4 class="gold">OFFENSE</h4>
+                <div class="row piece">Damage<b class="count" data-v="158" data-s="%">158%</b></div>
+                <div class="row piece">Fire rate<b class="count" data-v="130" data-s="%">130%</b></div>
+                <div class="row piece">Extra projectiles<b>+2</b></div>
+                <h4 class="gold">DEFENSE</h4>
+                <div class="row piece">Health<b>197 / 274</b></div>
+                <div class="row piece">Damage taken<b class="count" data-v="90" data-s="%">90%</b></div>
+                <div class="row piece">Regeneration<b>4.25 HP/s</b></div>
+                <h4 class="gold">UTILITY</h4>
+                <div class="row piece">Move speed<b class="count" data-v="118" data-s="%">118%</b></div>
+                <div class="row piece">Ability cooldowns<b class="count" data-v="80" data-s="%">80%</b></div>
+              </div>
+              <div class="card piece">
+                <span class="lab gold">Weapon</span>
+                <div style="font-size:17px;font-weight:700;margin-top:4px">Flamethrower</div>
+                <div style="font-size:12px;color:var(--g-muted)">A short-range stream of fire: each flame hits the first enemy for 3 and carries on through the rest for 1, setting them burning.</div>
+                <div class="lab gold" style="margin-top:12px">Abilities</div>
+                <div class="ab piece"><span class="k">SPACE</span><span style="color:var(--g-green);font-size:12px">1/2 charges · 3s</span><b>Arcane Aegis</b><small>For 3 s, enemy bullets that touch you are reflected back.</small></div>
+                <div class="ab piece"><span class="k">Q</span><span style="color:var(--g-green);font-size:12px">2/2 charges</span><b>Shockwave</b><small>Erase enemy bullets around you and knock enemies back.</small></div>
+                <div class="ab piece"><span class="k">E</span><span style="color:var(--g-muted);font-size:12px">0/2 charges · 7s</span><b>Blink</b><small>Teleport toward your cursor.</small></div>
+                <div class="ab piece"><span class="k">SHIFT</span><span style="color:var(--g-green);font-size:12px">2/2 charges</span><b>Nova</b><small>Fire a ring of 24 heavy shots.</small></div>
+                <div class="ab piece"><span class="k" style="background:#5a4a24">ULT · F</span><span style="color:var(--g-muted);font-size:12px">30s</span><b>Glacial Tomb</b><small>Erase every enemy bullet and freeze every enemy for 4 s.</small></div>
+              </div>
+              <div class="card ups piece">
+                <div style="display:flex;justify-content:space-between"><span class="lab gold">Upgrades</span><span style="font-size:12px;color:var(--g-muted)">35 picks</span></div>
+                <h4 style="color:#5ff0c8">WEAPON MOD</h4>
+                <div class="u piece"><i style="background:#ff5f7a"></i>Homing Rounds ×2</div><div class="u piece"><i style="background:#ff9a3d"></i>Incendiary Rounds</div><div class="u piece"><i style="background:#ffd74d"></i>Shock Rounds</div>
+                <h4 style="color:#ff9a3d">LEGENDARY</h4>
+                <div class="u piece"><i style="background:#b38bff"></i>Collapse Rounds</div><div class="u piece"><i style="background:#c9c9c9"></i>Executioner</div><div class="u piece"><i style="background:#ffd74d"></i>Royal Jelly</div><div class="u piece"><i style="background:#9fe8ff"></i>Stun Gun</div><div class="u piece"><i style="background:#ffcc4d"></i>Twin Fang</div>
+                <h4 style="color:#c88bff">VERY RARE</h4>
+                <div class="u piece"><i style="background:#b38bff"></i>Blink</div><div class="u piece"><i style="background:#ff8be0"></i>Nova</div><div class="u piece"><i style="background:#ffcc4d"></i>Shockwave</div>
+                <h4 style="color:#5f8cff">RARE</h4>
+                <div class="u piece"><i style="background:#ffd74d"></i>Multishot ×2</div><div class="u piece"><i style="background:#ffe9a6"></i>Overcharge</div><div class="u piece"><i style="background:#ff5f7a"></i>Piercing Rounds</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team -->
+          <div class="pane p2" data-pane="2" hidden>
+            <div class="cols">
+              <div class="card mate piece">
+                <div class="hd"><div class="av" style="background:#0f2a1a;color:#5fff9a"><div></div></div><div style="flex:1">
+                  <h3 style="color:#c8ffd9">Sam</h3><div class="sub" style="color:var(--g-green)">Summoner Healer · Level 1</div>
+                  <div style="font-size:11px;color:var(--g-muted);margin-top:4px">196 / 196 HP</div><div class="hp piece"></div>
+                  <div class="ln">251,172 damage · 640 kills · down 1</div></div></div>
+                <div class="lab gold" style="margin-top:14px">Weapon</div><div style="font-size:15px;font-weight:700">Sprite Staff</div>
+                <div style="font-size:12px;color:var(--g-muted)">Seed shots that stick in enemies. Two sprites fly to whoever is hurt and heal them.</div>
+                <div class="lab gold" style="margin-top:12px">Abilities</div>
+                <div class="ab piece"><span class="k">SPACE</span><b style="display:inline">Spirit Swarm</b></div>
+                <div class="ab piece"><span class="k" style="background:#5a4a24">F</span><b style="display:inline">World Tree</b></div>
+                <div class="lab gold" style="margin-top:12px">Upgrades · 9</div>
+                <div class="ups"><div class="u piece"><i style="background:#c9c9c9"></i>Executioner</div><div class="u piece"><i style="background:#ffd74d"></i>Multishot</div><div class="u piece"><i style="background:#ff5f7a"></i>Piercing Rounds</div><div class="u piece"><i style="background:#ffe9a6"></i>Hollow Points</div></div>
+              </div>
+              <div class="card mate piece">
+                <div class="hd"><div class="av" style="background:#2a1608;color:#ff8a3d"><div></div></div><div style="flex:1">
+                  <h3 style="color:#ffd2b0">Aleon</h3><div class="sub" style="color:var(--g-orange)">Soldier DPS · Level 1</div>
+                  <div style="font-size:11px;color:var(--g-muted);margin-top:4px">165 / 165 HP</div><div class="hp piece"></div>
+                  <div class="ln">107,207 damage · 273 kills · down 0</div></div></div>
+                <div class="lab gold" style="margin-top:14px">Weapon</div><div style="font-size:15px;font-weight:700">Twin Rifle</div>
+                <div style="font-size:12px;color:var(--g-muted)">Twin streams angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.</div>
+                <div class="lab gold" style="margin-top:12px">Abilities</div>
+                <div class="ab piece"><span class="k">SPACE</span><b style="display:inline">Dash</b></div>
+                <div class="ab piece"><span class="k" style="background:#5a4a24">F</span><b style="display:inline">Bullet Storm</b></div>
+                <div class="lab gold" style="margin-top:12px">Upgrades · 9</div>
+                <div class="ups"><div class="u piece"><i style="background:#c9c9c9"></i>Executioner</div><div class="u piece"><i style="background:#ffd74d"></i>Multishot</div><div class="u piece"><i style="background:#ff5f7a"></i>Piercing Rounds</div><div class="u piece"><i style="background:#ffe9a6"></i>Hollow Points</div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="bar">
+      <span class="lbl">Speed</span>
+      <div class="seg" id="speed">
+        <button type="button" data-s="0.35">Slow-mo</button>
+        <button type="button" data-s="1" class="on">Real</button>
+      </div>
+      <label class="tog"><input type="checkbox" id="glide" checked> Sliding tab highlight</label>
+      <label class="tog"><input type="checkbox" id="counts" checked> Numbers count up</label>
+      <span class="spacer"></span>
+      <button type="button" class="seg" id="auto" style="padding:0 12px;height:34px;color:var(--soft);font:600 12.5px var(--font-body);cursor:pointer">Play through the tabs</button>
+    </div>
+  </div>
+
+  <section style="display:grid;gap:12px">
+    <h2>Pick a style</h2>
+    <div class="styles" id="styles"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const STYLES = [
+    { id: "none", name: "Today", t: "0 ms",
+      feel: "The page swaps instantly. Clear, but abrupt: nothing says which way you moved.",
+      imgui: "What the game does now." },
+    { id: "slide", name: "Slide", t: "180 ms",
+      feel: "The old page slides out and the new one in from the side you're heading to (right for the next tab, left for the one before).",
+      imgui: "Draw both pages for the length of the switch, each offset in x with GUI.matrix (the HUD's HudGroup already does this), clipped to the frame." },
+    { id: "lift", name: "Lift and fade", t: "200 ms",
+      feel: "The old page fades and sinks a little; the new one rises into place. Soft, and calm enough for mid-fight.",
+      imgui: "Ui.Alpha and a small y offset per page. The cheapest of the lot." },
+    { id: "cascade", name: "Cascade", t: "340 ms",
+      feel: "The new page's cards and rows arrive one after another, top to bottom, each rising and fading in.",
+      imgui: "Each card gets its own delay (its order, spread over 130 ms) on the same rise-and-fade; the cards are already drawn one by one." },
+    { id: "wipe", name: "Accent wipe", t: "220 ms",
+      feel: "A bar in the tab's blue sweeps across the frame; the new page is revealed behind it.",
+      imgui: "A clip rect (GUI.BeginGroup) that grows from one side over the new page, the old page drawn outside it, and a thin glowing bar on its edge." },
+    { id: "scan", name: "Scanline", t: "240 ms",
+      feel: "The new page loads in from top to bottom behind a bright scanline, like a readout booting. Fits the arena's tech look.",
+      imgui: "A clip rect growing downward, with a 2 px bright line and a faint glow band at its edge." },
+    { id: "flip", name: "Card flip", t: "260 ms",
+      feel: "The frame turns edge-on like a card and comes back round showing the new page.",
+      imgui: "GUI.matrix scaled to 0 and back in x around the frame's centre (no real 3D in IMGUI, but a flat flip reads the same)." },
+    { id: "zoom", name: "Zoom through", t: "200 ms",
+      feel: "The old page grows and fades as if you pass through it; the new one settles from just behind.",
+      imgui: "GUI.matrix scale about the frame's centre plus Ui.Alpha, as the HUD's show / hide already does." },
+  ];
+  let style = "slide", speed = 1, current = 0, busy = null;
+
+  // Fit the 1280 x 720 screen to the page.
+  const vp = document.getElementById("viewport"), screen = document.getElementById("screen");
+  const fit = () => { screen.style.transform = `scale(${vp.clientWidth / 1280})`; };
+  new ResizeObserver(fit).observe(vp); fit();
+
+  // Style cards
+  const host = document.getElementById("styles");
+  STYLES.forEach(s => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sty"; b.dataset.id = s.id;
+    b.innerHTML = `<b>${s.name}</b><span class="t">${s.t}</span><span class="feel">${s.feel}</span><span class="imgui">In the game: ${s.imgui}</span>`;
+    b.addEventListener("click", () => { style = s.id; mark(); go((current + 1) % 3); });
+    host.appendChild(b);
+  });
+  const mark = () => host.querySelectorAll(".sty").forEach(b => { const on = b.dataset.id === style; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  mark();
+
+  document.querySelectorAll("#speed button").forEach(b => b.addEventListener("click", () => {
+    speed = parseFloat(b.dataset.s); document.querySelectorAll("#speed button").forEach(o => o.classList.toggle("on", o === b));
+  }));
+
+  const panes = [...document.querySelectorAll(".pane")], tabs = [...document.querySelectorAll(".tab")];
+  const glider = document.getElementById("glider"), frame = document.getElementById("frame");
+  const ms = v => v / speed;
+  const E = "cubic-bezier(.2,.8,.2,1)", EIN = "cubic-bezier(.5,0,.75,0)";
+
+  function placeGlider(i, animate) {
+    const on = document.getElementById("glide").checked;
+    tabs.forEach((t, k) => t.classList.toggle("on", k === i));
+    if (!on) { glider.style.opacity = 0; return; }
+    const t = tabs[i], x = t.offsetLeft - 3, w = t.offsetWidth + 6;
+    glider.style.opacity = 1;
+    if (animate) glider.animate([{ left: glider.style.left || x + "px", width: glider.style.width || w + "px" }, { left: x + "px", width: w + "px" }], { duration: ms(220), easing: E, fill: "forwards" });
+    glider.style.left = x + "px"; glider.style.width = w + "px";
+  }
+
+  function countUp(pane) {
+    if (!document.getElementById("counts").checked) return;
+    pane.querySelectorAll(".count").forEach(el => {
+      const v = +el.dataset.v, suf = el.dataset.s || "", t0 = performance.now(), dur = ms(420);
+      const tick = now => { const f = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - f, 3);
+        el.textContent = Math.round(v * e).toLocaleString("en-US") + suf; if (f < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+    pane.querySelectorAll(".fill").forEach(el => el.animate([{ width: "0%" }, { width: el.dataset.w + "%" }], { duration: ms(450), easing: E }));
+  }
+
+  function go(next) {
+    if (next === current && busy === null) { placeGlider(next, false); return; }
+    if (busy) busy.forEach(a => a.finish());
+    const from = panes[current], to = panes[next], dir = next > current ? 1 : -1;
+    current = next;
+    placeGlider(next, true);
+    const anims = [];
+    const done = () => { from.hidden = from !== to; to.hidden = false; to.style.clipPath = ""; from.style.clipPath = ""; busy = null; };
+    to.hidden = false;
+    switch (style) {
+      case "none": from.hidden = true; break;
+      case "slide":
+        anims.push(from.animate([{ transform: "translateX(0)", opacity: 1 }, { transform: `translateX(${-dir * 90}px)`, opacity: 0 }], { duration: ms(150), easing: EIN, fill: "forwards" }));
+        anims.push(to.animate([{ transform: `translateX(${dir * 120}px)`, opacity: 0 }, { transform: "translateX(0)", opacity: 1 }], { duration: ms(180), easing: E }));
+        break;
+      case "lift":
+        anims.push(from.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(10px)", opacity: 0 }], { duration: ms(110), easing: EIN, fill: "forwards" }));
+        anims.push(to.animate([{ transform: "translateY(16px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: ms(200), delay: ms(60), easing: E, fill: "backwards" }));
+        break;
+      case "cascade": {
+        anims.push(from.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms(90), fill: "forwards" }));
+        const pieces = [...to.querySelectorAll(":scope > .piece, :scope .cols > .piece, :scope .totals > .piece, :scope .cols > div > .piece, .route .piece, .fight .piece")];
+        const list = pieces.length ? pieces : [...to.querySelectorAll(".piece")];
+        // However many pieces, the last one starts 130 ms in: the whole page is in by about a third of a second.
+        const pcs = list.slice(0, 40), step = Math.min(15, 130 / Math.max(1, pcs.length - 1));
+        pcs.forEach((p, k) => anims.push(p.animate([{ transform: "translateY(14px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: ms(180), delay: ms(30 + k * step), easing: E, fill: "backwards" })));
+        break;
+      }
+      case "wipe": {
+        const bar = document.createElement("div");
+        bar.style.cssText = `position:absolute;top:0;bottom:0;width:4px;background:#7fa2ff;box-shadow:0 0 18px 6px rgba(95,140,255,.55);z-index:3;pointer-events:none`;
+        frame.appendChild(bar);
+        const L = dir > 0 ? "left" : "right";
+        to.style.zIndex = 2;
+        anims.push(to.animate([{ clipPath: dir > 0 ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)" }, { clipPath: "inset(0 0 0 0)" }], { duration: ms(220), easing: E }));
+        anims.push(bar.animate([{ [L]: "0px" }, { [L]: "1232px" }], { duration: ms(220), easing: E, fill: "forwards" }));
+        anims[anims.length - 1].finished.then(() => bar.remove(), () => bar.remove());
+        anims.push(from.animate([{ opacity: 1 }, { opacity: 1 }], { duration: ms(220), fill: "forwards" }));
+        break;
+      }
+      case "scan": {
+        const line = document.createElement("div");
+        line.style.cssText = `position:absolute;left:0;right:0;height:2px;background:#cfe0ff;box-shadow:0 0 14px 4px rgba(120,160,255,.6),0 -26px 30px rgba(95,140,255,.18);z-index:3;pointer-events:none`;
+        frame.appendChild(line);
+        to.style.zIndex = 2;
+        anims.push(to.animate([{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: ms(240), easing: "linear" }));
+        anims.push(line.animate([{ top: "0px", opacity: 1 }, { top: "640px", opacity: 0.6 }], { duration: ms(240), easing: "linear", fill: "forwards" }));
+        anims[anims.length - 1].finished.then(() => line.remove(), () => line.remove());
+        anims.push(from.animate([{ opacity: 1 }, { opacity: 0.25 }], { duration: ms(240), fill: "forwards" }));
+        break;
+      }
+      case "flip":
+        to.hidden = true;
+        anims.push(frame.animate([{ transform: "scaleX(1)" }, { transform: "scaleX(0.02)" }], { duration: ms(120), easing: EIN }));
+        anims[0].finished.then(() => { from.hidden = true; to.hidden = false; const back = frame.animate([{ transform: "scaleX(0.02)" }, { transform: "scaleX(1)" }], { duration: ms(140), easing: E }); busy = [back]; back.finished.then(done, () => {}); }, () => {});
+        busy = anims; countUp(to); return;
+      case "zoom":
+        anims.push(from.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(1.06)", opacity: 0 }], { duration: ms(140), easing: EIN, fill: "forwards" }));
+        anims.push(to.animate([{ transform: "scale(0.94)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], { duration: ms(200), delay: ms(40), easing: E, fill: "backwards" }));
+        break;
+    }
+    countUp(to);
+    if (!anims.length) { done(); return; }
+    busy = anims;
+    Promise.all(anims.map(a => a.finished)).then(() => { anims.forEach(a => { try { a.cancel(); } catch (e) {} }); done(); }, () => {});
+  }
+
+  tabs.forEach((t, i) => t.addEventListener("click", () => go(i)));
+  document.addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input")) return;
+    if (e.key >= "1" && e.key <= "3") go(+e.key - 1);
+    if (e.key === "ArrowRight") go((current + 1) % 3);
+    if (e.key === "ArrowLeft") go((current + 2) % 3);
+  });
+  document.getElementById("glide").addEventListener("change", () => placeGlider(current, false));
+  let autoT = null;
+  const autoBtn = document.getElementById("auto");
+  autoBtn.addEventListener("click", () => {
+    if (autoT) { clearInterval(autoT); autoT = null; autoBtn.textContent = "Play through the tabs"; return; }
+    autoBtn.textContent = "Stop";
+    go((current + 1) % 3);
+    autoT = setInterval(() => go((current + 1) % 3), 1400);
+  });
+  placeGlider(0, false);
+  window.addEventListener("load", () => placeGlider(current, false));
+})();
+</script>
