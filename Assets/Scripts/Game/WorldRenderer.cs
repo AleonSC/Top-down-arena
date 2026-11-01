@@ -345,6 +345,8 @@ namespace Arena
         void DrawBigShot(Bullet b, float t)
         {
             DrawShotMods(b, t);
+            if (DrawWeaponShot(b, t))
+                return;  // its weapon's new look (ShotLooks.cs)
             if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
             {
                 Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
@@ -546,6 +548,8 @@ namespace Arena
             if (!Defs.IsEnemyShot(b.Kind))
                 DrawShotMods(b, t);
             Rgba c = Defs.BulletColor(b.Kind);
+            if (DrawWeaponShot(b, t))
+                return;  // its weapon's new look (ShotLooks.cs)
             foreach (var look in KitLooks)  // a class's own shots (KitLook.Shot in ClassLooks.cs: the Ninja's, the Hemomancer's)
                 if (look.Shot != null && look.Shot(this, b, c, t))
                     return;
@@ -665,6 +669,12 @@ namespace Arena
             switch (b.Kind)
             {
                 case Defs.StarShot:
+                    if (Juicy)  // motion-blur arcs as it spins (ShotLooks.cs)
+                        for (int k = 0; k < 4; k++)
+                        {
+                            float a = t * 20f + b.Id + k * MathX.Tau / 4f;
+                            Arc(b.Pos, b.Radius + 2f, 3.5f, c.WithAlpha(0.22f), 6, a - 0.9f, 0.9f);
+                        }
                     DrawStar(b.Pos, b.Radius + 2f, t * 20f + b.Id, c);
                     break;
                 case Defs.FumaStar:  // big, with a blur ring as it spins
@@ -1195,6 +1205,8 @@ namespace Arena
         /// Jagged lightning between two points.
         void DrawBoltFx(Effect fx, float f)
         {
+            if (DrawJuicyBolt(fx, f))
+                return;  // flickering, with a white-hot core (ShotLooks.cs)
             V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
             V2 prev = a;
             for (int k = 1; k <= 6; k++)

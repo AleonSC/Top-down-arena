@@ -181,6 +181,28 @@ class JuiceCheck {
     me.Parrying = false;
     Check(countParts(7, -1f) >= 1, "a parried shot ricochets off, tumbling");
 
+    // New shot looks: each weapon's own shot draws its new way with effects on; an enemy's shot of the same kind doesn't.
+    var dws = typeof(ArenaApp).GetMethod("DrawWeaponShot", f2);
+    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.PrismBeam, WeaponId.ArcaneMissiles };
+    var lookKinds = new[] { Defs.DpsShot, Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
+    bool allLooks = true, offPlain = true;
+    var keepWeapon = me.Weapon;
+    for (int li = 0; li < lookWeapons.Length; li++) {
+      var kind = lookKinds[li];
+      me.Weapon = Defs.WeaponOf(lookWeapons[li]);
+      var bl = new Bullet { Id = 7000, Kind = kind, Owner = me.Id, Pos = new V2(600f, 300f), Vel = new V2(900f, 0f), Radius = 4f, Life = 1f };
+      allLooks &= (bool)dws.Invoke(app, new object[] { bl, 1f });
+      set("fxOn", false); offPlain &= !(bool)dws.Invoke(app, new object[] { bl, 1f }); set("fxOn", true);
+    }
+    me.Weapon = Defs.WeaponOf(WeaponId.Railgun);
+    var enemyShot = new Bullet { Id = 7001, Kind = Defs.RailShot, Owner = 0, Pos = new V2(600f, 300f), Vel = new V2(900f, 0f), Radius = 4f, Life = 1f };
+    bool enemyPlain = !(bool)dws.Invoke(app, new object[] { enemyShot, 1f });
+    me.Weapon = Defs.WeaponOf(WeaponId.Flamethrower);
+    var other = new Bullet { Id = 7002, Kind = Defs.DpsShot, Owner = me.Id, Pos = new V2(600f, 300f), Vel = new V2(900f, 0f), Radius = 4f, Life = 1f };
+    bool otherPlain = !(bool)dws.Invoke(app, new object[] { other, 1f });
+    me.Weapon = keepWeapon;
+    Check(allLooks && offPlain && enemyPlain && otherPlain, "seven weapons' shots have their new look with effects on (and their old one off); an enemy's shot, or another source's, keeps the old one");
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);

@@ -318,6 +318,7 @@ namespace Arena
                     s.N = Math.Min(s.N + 1, s.Trail.Length);
                 }
                 s.Pos = b.Pos; s.Vel = b.Vel; s.Life = b.Life; s.Radius = b.Radius; s.Owner = b.Owner; s.Kind = b.Kind;
+                EmitFromShot(b, dt);  // smoke, embers, dust, drips (ShotLooks.cs)
                 s.Frame = juiceFrame;
             }
             goneIds.Clear();
@@ -411,6 +412,8 @@ namespace Arena
 
         public enum Ending : byte { None, RanOut, HitEnemy, Blocked, HitPlayer }
 
+        static readonly Rgba[] PrismColors = { new Rgba(1f, 0.3f, 0.3f), new Rgba(0.3f, 1f, 0.4f), new Rgba(0.35f, 0.5f, 1f) };
+
         /// Why a shot that's just gone went, from where it was, how fast, how much life it had left and what was near it.
         public Ending WhyGone(V2 pos, V2 vel, float life, float radius, int owner)
         {
@@ -465,6 +468,13 @@ namespace Arena
                     AddPart(new Part { Kind = PDust, Pos = s.Pos + dir * 3f, Vel = dir * 20f, Life = 0.35f, Max = 0.35f, Size = r * 0.9f, Col = c.Mix(DustColor, 0.5f) });
                     break;
                 case Ending.HitEnemy:
+                    if (ShotSplitsPrism(s.Owner, s.Kind))  // a Prism Beam shard splits into red, green and blue (ShotLooks.cs)
+                    {
+                        for (int k = 0; k < 3; k++)
+                            for (int i = 0; i < 3; i++)
+                                AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(dir.Angle + (k - 1) * 0.55f + Rnd(-0.1f, 0.1f)) * Rnd(200f, 340f), Life = 0.35f, Max = 0.35f, Size = 2f, Col = PrismColors[k] });
+                        break;
+                    }
                     // A splash flattened against the enemy, and sparks bouncing back the way it came.
                     AddPart(new Part { Kind = PSplash, Pos = s.Pos, Rot = dir.Angle, Life = 0.14f, Max = 0.14f, Size = r * 2.6f, Col = c });
                     for (int i = 0; i < 5; i++)
