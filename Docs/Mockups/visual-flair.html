@@ -147,14 +147,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
       how: "Each fast bullet keeps its last few positions and draws a tapering streak; dashes and lunges leave an afterimage. Makes speed and direction readable in a crowded screen." },
     { id: "floor", tier: 2, c: "#ffb547", name: "Living floor", line: "Scorch marks, and the grid ripples",
       how: "Kills leave scorch marks that fade over 8 s (a small render texture under the arena). Big blasts send a ripple through the grid lines. The floor shows the fight's history." },
-    { id: "mood", tier: 2, c: "#ffb547", name: "Mood lighting", line: "Vignette, colour grade, red pulse when hurt",
-      how: "A soft vignette and a tint per path and per boss (warm on Burning Grounds, cold on Frozen Lake, dark around the Warden's searchlight), and a red pulse at the screen's edge when you take a hit." },
+    { id: "mood", tier: 2, c: "#ffb547", name: "Mood lighting", line: "Vignette, colour grade, a red tint in the corners when hurt",
+      how: "A soft vignette and a tint per path and per boss (warm on Burning Grounds, cold on Frozen Lake, dark around the Warden's searchlight), and a brief, faint red tint in the four corners when you take a hit. Nothing crosses the middle of the screen." },
     { id: "levelup", tier: 3, c: "#ffd75a", name: "Level-up burst", line: "A ring of light and rising sparks",
       how: "A golden ring and a column of sparks from your character, and LEVEL UP rising off it. The same treatment, bigger, when you pick a legendary card." },
     { id: "intro", tier: 3, c: "#ffd75a", name: "Boss entrance", line: "Title card, letterbox, the arena dims",
       how: "As a boss spawns: bars slide in, the arena dims for a second, and its name and wave stamp across the middle (THE WARDEN · WAVE 5). Under 2 s, and the boss can't attack until it's gone." },
-    { id: "lowhp", tier: 3, c: "#ffd75a", name: "Low-health warning", line: "A heartbeat at the screen's edge below 30%",
-      how: "Below 30% health the screen's edge pulses red like a heartbeat, faster the lower you are. Easier to notice than the health bar in a busy fight." },
+    { id: "lowhp", tier: 3, c: "#ffd75a", name: "Low-health warning", line: "A faint red tint in the corners below 30%",
+      how: "Below 30% health the four corners hold a faint red tint that breathes slowly. Easy to catch out of the corner of your eye, and it never covers the fight." },
   ];
   const PRESETS = {
     today: [],
@@ -600,12 +600,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outl
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "rgba(60,40,120,0.06)"; ctx.fillRect(0, 0, W, H);
     }
-    let red = E("mood") ? S.hurtPulse * 0.55 : 0;
-    if (E("lowhp") && p.hp / p.max < 0.3) { const beat = Math.pow(Math.max(0, Math.sin(S.t * (5 + (0.3 - p.hp / p.max) * 20))), 6); red = Math.max(red, 0.25 + 0.4 * beat); }
+    // Hurt or low: just a faint red tint in the four corners, never across the arena.
+    let red = E("mood") ? S.hurtPulse * 0.28 : 0;
+    if (E("lowhp") && p.hp / p.max < 0.3) { const beat = Math.pow(Math.max(0, Math.sin(S.t * 4)), 4); red = Math.max(red, 0.12 + 0.08 * beat); }
     if (red > 0) {
-      const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.9);
-      g.addColorStop(0, "rgba(255,40,60,0)"); g.addColorStop(1, `rgba(255,40,60,${red})`);
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const R = H * 0.32;
+      for (const [cx, cy] of [[0, 0], [W, 0], [0, H], [W, H]]) {
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+        g.addColorStop(0, `rgba(220,30,50,${red})`); g.addColorStop(1, "rgba(220,30,50,0)");
+        ctx.fillStyle = g; ctx.fillRect(cx ? W - R : 0, cy ? H - R : 0, R, R);
+      }
     }
     // Boss entrance: letterbox bars, the arena dims, the name stamps across the middle.
     if (S.intro > 0) {
