@@ -1,0 +1,668 @@
+<title>Arena Visual Flair</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a design proposal in the game's field-manual look (sibling of the boss and enemy mockups): one live arena
+   that plays itself, a panel of effect switches grouped by tier beside it, then a card per effect saying how it would
+   be built. Single dark look by choice: it mirrors the arena. Field-guide teal with hazard amber. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b; --gold: #ffd75a;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+
+/* The arena and its switches */
+.lab { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 960px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #05060a; touch-action: manipulation; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.act.hold { border-color: var(--teal); }
+.act.hold:active, .act.hold.down { background: #133a33; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 14px; min-width: 0; }
+.tier { display: grid; gap: 6px; }
+.tier h3 { display: flex; justify-content: space-between; align-items: baseline; }
+.tier h3 b { color: var(--amber); font-weight: 600; }
+.sw { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 10px; align-items: center; padding: 6px 8px; border-radius: 8px; cursor: pointer; }
+.sw:hover { background: #18202a; }
+.sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sw .knob { grid-row: span 2; width: 34px; height: 18px; border-radius: 99px; background: #26303a; position: relative; transition: background 0.15s; }
+.sw .knob::after { content: ""; position: absolute; left: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: transform 0.15s, background 0.15s; }
+.sw input:checked + .knob { background: #135a4b; }
+.sw input:checked + .knob::after { transform: translateX(16px); background: var(--teal); }
+.sw input:focus-visible + .knob { outline: 2px solid var(--teal); outline-offset: 2px; }
+.sw .nm { font-weight: 600; font-size: 14.5px; line-height: 1.2; }
+.sw .ds { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+
+/* The cards */
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 16px; }
+.card { border-top: 2px solid var(--c, var(--line)); padding-top: 10px; display: grid; gap: 6px; min-width: 0; align-content: start; }
+.card b.n { font: 700 16px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card p { font-size: 14px; color: var(--soft); }
+.card p.how { font-size: 13px; color: var(--muted); }
+.card code, p code { font: 12.5px var(--font-data); color: var(--fg); }
+.tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+@media (prefers-reduced-motion: reduce) { .sw .knob, .sw .knob::after { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Top-Down Arena · design proposal · visual flair</div>
+    <h1>More <span>flair</span>, same fight</h1>
+    <p class="lead">A live mock of the arena with every proposed effect on its own switch. Start from <b>Today</b>, which draws the
+      way the game does now, then turn effects on one at a time or pick a tier. Hold <b>Compare</b> to flip back to today for
+      a moment. Everything here would be drawn on each player's own screen: no network change, no balance change.</p>
+  </header>
+
+  <div class="lab">
+    <div class="stage">
+      <canvas id="arena" width="1280" height="720" aria-label="A live mock of the arena: a Tank player fights waves of enemies while the selected effects play"></canvas>
+      <div class="bar">
+        <span class="lbl">Preset</span>
+        <div class="seg" id="presets">
+          <button type="button" data-p="today">Today</button>
+          <button type="button" data-p="t1">Tier 1</button>
+          <button type="button" data-p="t2">Tiers 1+2</button>
+          <button type="button" data-p="all">Everything</button>
+        </div>
+        <span class="spacer"></span>
+        <button type="button" class="act hold" id="compare">Hold: compare with today</button>
+      </div>
+      <div class="bar">
+        <span class="lbl">Trigger</span>
+        <button type="button" class="act" id="tBoss">Boss arrives</button>
+        <button type="button" class="act" id="tKill">Boss dies</button>
+        <button type="button" class="act" id="tBlast">Big explosion</button>
+        <button type="button" class="act" id="tHit">Take a hit</button>
+        <button type="button" class="act" id="tLevel">Level up</button>
+      </div>
+    </div>
+
+    <div class="panel" id="switches" aria-label="Effects"></div>
+  </div>
+
+  <section class="sec">
+    <div><h2>How each one would be built</h2></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All of it lives in the front end (<code>WorldRenderer.cs</code> and a new <code>Juice.cs</code>): particles, shake, hit-pause and numbers are local to each screen, so there's no protocol bump and the host's simulation never waits on them.</li>
+      <li>Hit-pause freezes only what you see (the drawing and your screen's interpolation), never the host's simulation, so co-op stays in sync. The sim keeps running; the picture catches up over the next frames.</li>
+      <li>A <b>Visual effects</b> section in Settings: screen shake (off / low / full), damage numbers on/off, and one "reduced effects" switch that turns off shake, hit-pause and flashes for anyone sensitive to them.</li>
+      <li>The render check (<code>Tools/RenderCheck</code>) would prove that with every effect off, the arena draws exactly as today.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------------------------------------------------------
+  // The effects: id, tier, name, one line. The cards below the arena use `how`.
+  const FX = [
+    { id: "glow", tier: 1, c: "#6fe3c4", name: "Additive glow", line: "Shots, blasts and sparks add light",
+      how: "A second GL pass with an additive material (Blend One One) after the normal one: a soft halo sprite under every bullet, explosion and spark. Overlapping light brightens instead of covering. The biggest single step toward the neon bullet-hell look." },
+    { id: "shake", tier: 1, c: "#6fe3c4", name: "Screen shake", line: "Kicks for blasts, hits and boss stomps",
+      how: "A trauma value that big events add to and that decays each frame; the camera is offset by trauma² × noise. Small for your own heavy hits, bigger when you're hurt, a long rumble for a boss's death. Settings: off / low / full." },
+    { id: "hitstop", tier: 1, c: "#6fe3c4", name: "Hit-pause", line: "A 2-4 frame freeze on kills and big hits",
+      how: "The picture holds for 30-70 ms on a kill or heavy hit (a charged Warhammer, a Railgun kill), and a boss's death plays in slow motion for a moment. On your screen only: the host's simulation never stops." },
+    { id: "deaths", tier: 1, c: "#6fe3c4", name: "Shatter deaths", line: "Enemies break into shards of their shape",
+      how: "Today a kill is one ring. Instead: the polygon splits into its triangles, which spin outward and fade, plus a white flash ring and a scorch on the floor. Bosses burst in waves. Uses the enemy's own sides and colour." },
+    { id: "flash", tier: 1, c: "#6fe3c4", name: "Hit flash and squash", line: "Hit enemies flash white and bulge",
+      how: "The existing white flash (Enemy.Flash) made a little longer, plus a quick 15% bulge that settles back. Makes it obvious which enemy your stream is landing on." },
+    { id: "numbers", tier: 1, c: "#6fe3c4", name: "Damage numbers", line: "Small numbers pop off what you hit",
+      how: "Your hits only, merged per enemy every 0.15 s so a fast weapon shows one rising total instead of a cloud. Big hits are larger and gold. A switch in Settings (some players find them busy)." },
+    { id: "sparks", tier: 2, c: "#ffb547", name: "Impact sparks", line: "Sparks where shots land, muzzle flashes",
+      how: "One pooled particle system (position, velocity, life, colour, size; a few thousand at most), drawn in the glow pass. Sparks on impact in the shot's colour, a muzzle flash on each volley, embers off fire, dust from rushers." },
+    { id: "trails", tier: 2, c: "#ffb547", name: "Trails", line: "Fast shots and dashes leave streaks",
+      how: "Each fast bullet keeps its last few positions and draws a tapering streak; dashes and lunges leave an afterimage. Makes speed and direction readable in a crowded screen." },
+    { id: "floor", tier: 2, c: "#ffb547", name: "Living floor", line: "Scorch marks, and the grid ripples",
+      how: "Kills leave scorch marks that fade over 8 s (a small render texture under the arena). Big blasts send a ripple through the grid lines. The floor shows the fight's history." },
+    { id: "mood", tier: 2, c: "#ffb547", name: "Mood lighting", line: "Vignette, colour grade, red pulse when hurt",
+      how: "A soft vignette and a tint per path and per boss (warm on Burning Grounds, cold on Frozen Lake, dark around the Warden's searchlight), and a red pulse at the screen's edge when you take a hit." },
+    { id: "levelup", tier: 3, c: "#ffd75a", name: "Level-up burst", line: "A ring of light and rising sparks",
+      how: "A golden ring and a column of sparks from your character, and LEVEL UP rising off it. The same treatment, bigger, when you pick a legendary card." },
+    { id: "intro", tier: 3, c: "#ffd75a", name: "Boss entrance", line: "Title card, letterbox, the arena dims",
+      how: "As a boss spawns: bars slide in, the arena dims for a second, and its name and wave stamp across the middle (THE WARDEN · WAVE 5). Under 2 s, and the boss can't attack until it's gone." },
+    { id: "lowhp", tier: 3, c: "#ffd75a", name: "Low-health warning", line: "A heartbeat at the screen's edge below 30%",
+      how: "Below 30% health the screen's edge pulses red like a heartbeat, faster the lower you are. Easier to notice than the health bar in a busy fight." },
+  ];
+  const PRESETS = {
+    today: [],
+    t1: FX.filter(f => f.tier === 1).map(f => f.id),
+    t2: FX.filter(f => f.tier <= 2).map(f => f.id),
+    all: FX.map(f => f.id),
+  };
+  const on = {};
+  FX.forEach(f => on[f.id] = false);
+  let comparing = false;
+  const E = id => on[id] && !comparing;
+
+  // Switch panel and cards
+  const panel = document.getElementById("switches");
+  const tierNames = { 1: ["Tier 1", "the big wins"], 2: ["Tier 2", "atmosphere"], 3: ["Tier 3", "polish"] };
+  [1, 2, 3].forEach(t => {
+    const box = document.createElement("div");
+    box.className = "tier";
+    box.innerHTML = `<h3><span>${tierNames[t][0]}</span><b>${tierNames[t][1]}</b></h3>`;
+    FX.filter(f => f.tier === t).forEach(f => {
+      const lab = document.createElement("label");
+      lab.className = "sw";
+      lab.innerHTML = `<input type="checkbox" id="sw-${f.id}"><span class="knob"></span><span class="nm">${f.name}</span><span class="ds">${f.line}</span>`;
+      lab.querySelector("input").addEventListener("change", e => { on[f.id] = e.target.checked; markPreset(); });
+      box.appendChild(lab);
+    });
+    panel.appendChild(box);
+  });
+  const cards = document.getElementById("cards");
+  FX.forEach(f => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.style.setProperty("--c", f.c);
+    d.innerHTML = `<b class="n">${f.name}</b><span class="tag">Tier ${f.tier}</span><p>${f.line}.</p><p class="how">${f.how}</p>`;
+    cards.appendChild(d);
+  });
+  const presetBtns = [...document.querySelectorAll("#presets button")];
+  function setPreset(p) {
+    FX.forEach(f => { on[f.id] = PRESETS[p].includes(f.id); document.getElementById("sw-" + f.id).checked = on[f.id]; });
+    markPreset();
+  }
+  function markPreset() {
+    presetBtns.forEach(b => {
+      const want = PRESETS[b.dataset.p];
+      b.classList.toggle("on", FX.every(f => on[f.id] === want.includes(f.id)));
+    });
+  }
+  presetBtns.forEach(b => b.addEventListener("click", () => setPreset(b.dataset.p)));
+  const cmp = document.getElementById("compare");
+  const down = () => { comparing = true; cmp.classList.add("down"); }, up = () => { comparing = false; cmp.classList.remove("down"); };
+  cmp.addEventListener("pointerdown", down); cmp.addEventListener("pointerup", up); cmp.addEventListener("pointerleave", up);
+  cmp.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); down(); } });
+  cmp.addEventListener("keyup", up);
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The arena: the game's own 1600 x 900, colours from Defs.cs.
+  const W = 1600, H = 900;
+  const cv = document.getElementById("arena"), ctx = cv.getContext("2d");
+  const rgb = (r, g, b, a = 1) => `rgba(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)},${a})`;
+  const COL = {
+    tank: [0.35, 0.6, 1], tankShot: [0.5, 0.75, 1], enemyShot: [1, 0.3, 0.45], bigShot: [0.85, 0.35, 1], fastShot: [1, 0.95, 0.4],
+    grunt: [1, 0.35, 0.35], burster: [0.8, 0.4, 1], sniper: [1, 0.9, 0.3], swarmer: [1, 0.45, 0.62], warden: [1, 0.25, 0.5],
+  };
+  const TYPES = {
+    grunt: { sides: 3, r: 14, hp: 60, speed: 85, keep: 230, col: COL.grunt },
+    burster: { sides: 6, r: 17, hp: 110, speed: 55, keep: 170, col: COL.burster },
+    sniper: { sides: 4, r: 12, hp: 50, speed: 95, keep: 420, col: COL.sniper },
+    swarmer: { sides: 3, r: 9, hp: 22, speed: 150, keep: 0, col: COL.swarmer, melee: true },
+    warden: { sides: 8, r: 46, hp: 900, speed: 40, keep: 260, col: COL.warden, boss: true },
+  };
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const S = {
+    t: 0, player: { x: 800, y: 470, hp: 240, max: 240, aim: 0, fireT: 0, hurtT: 0, kills: 0, lvl: 4 },
+    enemies: [], shots: [], foes: [], particles: [], rings: [], numbers: [], ripples: [], texts: [],
+    trauma: 0, freeze: 0, slow: 0, slowT: 0, hurtPulse: 0, intro: 0, introName: "", nextId: 1, spawnT: 0,
+  };
+  // Scorch marks live on their own canvas under the arena, fading slowly.
+  const floor = document.createElement("canvas"); floor.width = W / 2; floor.height = H / 2;
+  const fctx = floor.getContext("2d");
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+  function spawn(type, x, y) {
+    const d = TYPES[type];
+    if (x === undefined) {
+      const side = Math.floor(Math.random() * 4);
+      x = side === 0 ? rand(80, W - 80) : side === 1 ? rand(80, W - 80) : side === 2 ? 60 : W - 60;
+      y = side === 0 ? 60 : side === 1 ? H - 60 : rand(80, H - 80);
+    }
+    const e = { id: S.nextId++, type, d, x, y, hp: d.hp, max: d.hp, rot: Math.random() * 6, fireT: rand(0.6, 2), flash: 0, squash: 0, spawnT: 0.6, strafe: Math.random() < 0.5 ? 1 : -1, ang: 0, dmgAcc: 0, dmgT: 0 };
+    S.enemies.push(e);
+    return e;
+  }
+
+  function enemyFire(e) {
+    const p = S.player, aim = Math.atan2(p.y - e.y, p.x - e.x);
+    const shot = (a, sp, kind) => S.foes.push({ x: e.x + Math.cos(a) * e.d.r, y: e.y + Math.sin(a) * e.d.r, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, kind, life: 7, trail: [] });
+    if (e.type === "grunt") { e.fireT = 1.8; for (let i = -1; i <= 1; i++) shot(aim + i * 0.22, 175, "enemyShot"); }
+    else if (e.type === "burster") { e.fireT = 2.4; e.ang += 0.2; for (let i = 0; i < 14; i++) shot(e.ang + Math.PI * 2 * i / 14, 135, "enemyShot"); }
+    else if (e.type === "sniper") { e.fireT = 2.6; shot(aim, 400, "fastShot"); }
+    else if (e.type === "warden") { e.fireT = 1.1; e.ang += 0.12; for (let i = 0; i < 22; i++) shot(e.ang + Math.PI * 2 * i / 22, 110, "bigShot"); }
+    else e.fireT = 99;
+  }
+
+  // --- Effects: each checks its switch -----------------------------------------------------------------------------
+  function addTrauma(a) { if (E("shake") && !reduce) S.trauma = Math.min(1, S.trauma + a); }
+  function hitPause(s) { if (E("hitstop")) S.freeze = Math.max(S.freeze, s); }
+  function sparks(x, y, col, n, speed, life = 0.35, size = 2.2) {
+    if (!E("sparks")) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = speed * rand(0.3, 1);
+      S.particles.push({ kind: "spark", x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: life * rand(0.6, 1), max: life, col, size });
+    }
+  }
+  function scorch(x, y, r) {
+    if (!E("floor")) return;
+    const g = fctx.createRadialGradient(x / 2, y / 2, 0, x / 2, y / 2, r / 2);
+    g.addColorStop(0, "rgba(0,0,0,0.55)"); g.addColorStop(0.6, "rgba(8,6,10,0.25)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    fctx.fillStyle = g; fctx.beginPath(); fctx.arc(x / 2, y / 2, r / 2, 0, Math.PI * 2); fctx.fill();
+  }
+  function ripple(x, y, power) { if (E("floor")) S.ripples.push({ x, y, t: 0, power }); }
+
+  function kill(e, big) {
+    const c = e.d.col;
+    // Today: one ring (FxKind.Boom: a fading disc and an expanding arc).
+    S.rings.push({ x: e.x, y: e.y, r: e.d.r * 2.2, t: 0, dur: 0.4, col: c, kind: "boom" });
+    if (E("deaths")) {
+      const n = e.d.sides, rr = e.d.r * (e.squash ? 1 : 1);
+      for (let k = 0; k < n; k++) {
+        const a0 = e.rot + Math.PI * 2 * k / n, a1 = e.rot + Math.PI * 2 * (k + 1) / n, mid = (a0 + a1) / 2;
+        const sp = rand(140, 320) * (e.d.boss ? 1.6 : 1);
+        S.particles.push({ kind: "shard", x: e.x, y: e.y, vx: Math.cos(mid) * sp, vy: Math.sin(mid) * sp, a0: a0 - mid, a1: a1 - mid, r: rr, rot: mid, spin: rand(-8, 8), life: 0.7, max: 0.7, col: c });
+      }
+      S.rings.push({ x: e.x, y: e.y, r: e.d.r * 3.2, t: 0, dur: 0.22, col: [1, 1, 1], kind: "flash" });
+      scorch(e.x, e.y, e.d.r * 3.4);
+    }
+    sparks(e.x, e.y, c, e.d.boss ? 90 : 16, e.d.boss ? 520 : 320, e.d.boss ? 1.1 : 0.5, e.d.boss ? 3.2 : 2.4);
+    ripple(e.x, e.y, e.d.boss ? 2.2 : 0.5);
+    addTrauma(e.d.boss ? 0.9 : 0.12);
+    hitPause(e.d.boss ? 0.12 : 0.045);
+    if (e.d.boss && E("hitstop")) { S.slow = 0.25; S.slowT = 1.6; }
+    if (e.d.boss && E("deaths")) {
+      for (let k = 1; k <= 4; k++) setTimeout(() => {
+        S.rings.push({ x: e.x + rand(-40, 40), y: e.y + rand(-40, 40), r: 120 + k * 40, t: 0, dur: 0.5, col: c, kind: "boom" });
+        sparks(e.x, e.y, [1, 0.85, 0.6], 30, 420, 0.8, 2.6); addTrauma(0.3);
+      }, k * 160);
+    }
+    S.player.kills++;
+    if (S.player.kills % 14 === 0) levelUp();
+  }
+
+  function levelUp() {
+    const p = S.player;
+    p.lvl++;
+    S.texts.push({ x: p.x, y: p.y - 30, t: 0, dur: 1.4, text: "LEVEL UP!", big: E("levelup") });
+    if (!E("levelup")) return;
+    S.rings.push({ x: p.x, y: p.y, r: 140, t: 0, dur: 0.7, col: [1, 0.84, 0.35], kind: "gold" });
+    for (let i = 0; i < 40; i++) S.particles.push({ kind: "spark", x: p.x + rand(-18, 18), y: p.y + rand(-10, 10), vx: rand(-40, 40), vy: rand(-260, -90), life: rand(0.6, 1.1), max: 1.1, col: [1, 0.85, 0.4], size: 2.6 });
+  }
+
+  function hurtPlayer(amount) {
+    const p = S.player;
+    if (p.hurtT > 0) return;
+    p.hurtT = 0.5;
+    p.hp = Math.max(20, p.hp - amount);
+    S.hurtPulse = 1;
+    addTrauma(0.35);
+  }
+
+  function bossArrives() {
+    if (S.enemies.some(e => e.d.boss)) return;
+    const b = spawn("warden", W / 2, 200);
+    b.spawnT = 1.5;
+    if (E("intro")) { S.intro = 1; S.introName = "THE WARDEN"; }
+    addTrauma(0.25);
+  }
+
+  // --- Simulation ------------------------------------------------------------------------------------------------
+  function step(dt) {
+    S.t += dt;
+    const p = S.player;
+    // The player strolls a figure of eight round the middle and aims at the nearest enemy.
+    const tx = 800 + Math.sin(S.t * 0.35) * 250, ty = 470 + Math.sin(S.t * 0.7) * 150;
+    p.x += (tx - p.x) * Math.min(1, dt * 2); p.y += (ty - p.y) * Math.min(1, dt * 2);
+    p.hurtT = Math.max(0, p.hurtT - dt);
+    p.hp = Math.min(p.max, p.hp + dt * 4);
+    let near = null, nd = 1e9;
+    for (const e of S.enemies) { const d = dist(e, p); if (e.spawnT <= 0 && d < nd) { nd = d; near = e; } }
+    if (near) p.aim = Math.atan2(near.y - p.y, near.x - p.x);
+    p.fireT -= dt;
+    if (near && p.fireT <= 0) {
+      p.fireT = 0.11;
+      const a = p.aim + rand(-0.04, 0.04), mx = p.x + Math.cos(a) * 20, my = p.y + Math.sin(a) * 20;
+      S.shots.push({ x: mx, y: my, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, life: 0.9, trail: [] });
+      if (E("sparks")) S.particles.push({ kind: "spark", x: mx, y: my, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, life: 0.08, max: 0.08, col: [0.8, 0.9, 1], size: 5 });
+    }
+    // Keep the arena busy.
+    S.spawnT -= dt;
+    const regular = S.enemies.filter(e => !e.d.boss).length;
+    if (S.spawnT <= 0 && regular < 10) {
+      S.spawnT = 0.7;
+      const r = Math.random();
+      if (r < 0.3) { const e = spawn("swarmer"); spawn("swarmer", e.x + 20, e.y + 20); }
+      else spawn(r < 0.6 ? "grunt" : r < 0.82 ? "burster" : "sniper");
+    }
+    // Enemies
+    for (const e of S.enemies) {
+      e.flash = Math.max(0, e.flash - dt); e.squash = Math.max(0, e.squash - dt * 6);
+      if (e.spawnT > 0) { e.spawnT -= dt; continue; }
+      const dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy) || 1;
+      let vx = 0, vy = 0;
+      if (e.d.melee) { vx = dx / d + (-dy / d) * Math.sin(S.t * 5 + e.id) * 0.45; vy = dy / d + (dx / d) * Math.sin(S.t * 5 + e.id) * 0.45; }
+      else { const k = d > e.d.keep + 40 ? 1 : d < e.d.keep - 40 ? -1 : 0; vx = dx / d * k + (-dy / d) * e.strafe * 0.5; vy = dy / d * k + (dx / d) * e.strafe * 0.5; }
+      const l = Math.hypot(vx, vy) || 1, s = Math.min(1, l);
+      e.x += vx / l * s * e.d.speed * dt; e.y += vy / l * s * e.d.speed * dt;
+      e.x = Math.max(e.d.r, Math.min(W - e.d.r, e.x)); e.y = Math.max(e.d.r, Math.min(H - e.d.r, e.y));
+      e.rot = e.d.melee || e.type === "sniper" ? Math.atan2(dy, dx) : e.rot + dt * 0.4;
+      e.fireT -= dt;
+      if (e.fireT <= 0) enemyFire(e);
+      if (e.d.melee && d < e.d.r + 18) hurtPlayer(12);
+      // Damage numbers merge per enemy for 0.15 s.
+      if (e.dmgT > 0) { e.dmgT -= dt; if (e.dmgT <= 0 && e.dmgAcc > 0) { flushNumber(e); } }
+    }
+    // Player shots
+    for (const b of S.shots) {
+      b.trail.unshift({ x: b.x, y: b.y }); if (b.trail.length > 6) b.trail.pop();
+      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      for (const e of S.enemies) {
+        if (e.spawnT > 0 || e.hp <= 0) continue;
+        if (Math.hypot(b.x - e.x, b.y - e.y) < e.d.r + 5) {
+          const dmg = Math.random() < 0.12 ? 26 : 11;
+          e.hp -= dmg; e.flash = E("flash") ? 0.09 : 0.06; if (E("flash")) e.squash = 1;
+          b.life = 0;
+          sparks(b.x, b.y, COL.tankShot, 5, 220, 0.25, 1.8);
+          if (E("numbers")) { e.dmgAcc += dmg; if (e.dmgT <= 0) e.dmgT = 0.15; e.crit = e.crit || dmg > 20; }
+          if (dmg > 20) addTrauma(0.04);
+          break;
+        }
+      }
+    }
+    S.shots = S.shots.filter(b => b.life > 0 && b.x > -40 && b.x < W + 40 && b.y > -40 && b.y < H + 40);
+    // Deaths
+    for (const e of S.enemies) if (e.hp <= 0 && !e.dead) { e.dead = true; if (e.dmgAcc > 0) flushNumber(e); kill(e); }
+    S.enemies = S.enemies.filter(e => !e.dead);
+    // Enemy shots
+    for (const b of S.foes) {
+      b.trail.unshift({ x: b.x, y: b.y }); if (b.trail.length > 5) b.trail.pop();
+      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      if (Math.hypot(b.x - p.x, b.y - p.y) < 9) { b.life = 0; hurtPlayer(9); sparks(b.x, b.y, COL[b.kind], 8, 200, 0.3, 2); }
+    }
+    S.foes = S.foes.filter(b => b.life > 0 && b.x > -40 && b.x < W + 40 && b.y > -40 && b.y < H + 40);
+    // Effects age
+    for (const q of S.particles) {
+      q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+      const drag = q.kind === "shard" ? 2.2 : 3.5; q.vx *= Math.exp(-drag * dt); q.vy *= Math.exp(-drag * dt);
+      if (q.kind === "shard") q.rot += q.spin * dt;
+    }
+    S.particles = S.particles.filter(q => q.life > 0);
+    if (S.particles.length > 2500) S.particles.splice(0, S.particles.length - 2500);
+    for (const r of S.rings) r.t += dt;
+    S.rings = S.rings.filter(r => r.t < r.dur);
+    for (const n of S.numbers) { n.t += dt; n.y -= dt * 38; }
+    S.numbers = S.numbers.filter(n => n.t < n.dur);
+    for (const r of S.ripples) r.t += dt;
+    S.ripples = S.ripples.filter(r => r.t < 1.2);
+    for (const x of S.texts) x.t += dt;
+    S.texts = S.texts.filter(x => x.t < x.dur);
+    S.hurtPulse = Math.max(0, S.hurtPulse - dt * 2.2);
+    S.intro = Math.max(0, S.intro - dt / 2.2);
+  }
+
+  function flushNumber(e) {
+    S.numbers.push({ x: e.x + rand(-8, 8), y: e.y - e.d.r - 6, t: 0, dur: 0.75, v: Math.round(e.dmgAcc), crit: e.crit });
+    e.dmgAcc = 0; e.crit = false; e.dmgT = 0;
+  }
+
+  // --- Drawing ---------------------------------------------------------------------------------------------------
+  const glowCache = {};
+  function glowSprite(c) {
+    const key = c.join(",");
+    if (glowCache[key]) return glowCache[key];
+    const g = document.createElement("canvas"); g.width = g.height = 64;
+    const x = g.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, rgb(c[0], c[1], c[2], 0.9)); gr.addColorStop(0.25, rgb(c[0], c[1], c[2], 0.35)); gr.addColorStop(1, rgb(c[0], c[1], c[2], 0));
+    x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    return glowCache[key] = g;
+  }
+  const glow = (x, y, r, c, a = 1) => { ctx.globalAlpha = a; ctx.drawImage(glowSprite(c), x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1; };
+  function poly(x, y, r, sides, rot) {
+    ctx.beginPath();
+    for (let k = 0; k <= sides; k++) { const a = rot + Math.PI * 2 * k / sides; const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; k ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+  }
+
+  function drawGrid() {
+    ctx.strokeStyle = "rgba(255,255,255,0.035)"; ctx.lineWidth = 1;
+    const warp = (x, y) => {
+      let ox = 0, oy = 0;
+      for (const r of S.ripples) {
+        const d = Math.hypot(x - r.x, y - r.y), front = r.t * 700, w = 70;
+        const k = Math.abs(d - front) < w ? Math.cos((d - front) / w * Math.PI / 2) * (1 - r.t / 1.2) * 10 * r.power : 0;
+        if (d > 1) { ox += (x - r.x) / d * k; oy += (y - r.y) / d * k; }
+      }
+      return [x + ox, y + oy];
+    };
+    const rippling = S.ripples.length > 0;
+    for (let x = 0; x <= W; x += 64) {
+      ctx.beginPath();
+      for (let y = 0; y <= H; y += rippling ? 16 : H) { const [px, py] = warp(x, y); y ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+      ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += 64) {
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += rippling ? 16 : W) { const [px, py] = warp(x, y); x ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "rgba(77,89,128,0.6)"; ctx.lineWidth = 3; ctx.strokeRect(2, 2, W - 4, H - 4);
+  }
+
+  function drawEnemy(e) {
+    const c = e.d.col;
+    if (e.spawnT > 0) {
+      ctx.strokeStyle = rgb(c[0], c[1], c[2], 0.6); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.d.r + 6 + 4 * Math.sin(S.t * 12), 0, Math.PI * 2); ctx.stroke();
+    }
+    const alpha = e.spawnT > 0 ? 0.35 : 1;
+    const bulge = E("flash") ? 1 + 0.15 * Math.sin(e.squash * Math.PI) : 1, r = e.d.r * bulge;
+    if (e.d.melee && e.spawnT <= 0) {  // melee enemies are spiky
+      ctx.fillStyle = rgb(c[0], c[1], c[2], 0.85);
+      for (let k = 0; k < 8; k++) { const a = e.rot + k * Math.PI / 4; poly(e.x + Math.cos(a) * r * 0.9, e.y + Math.sin(a) * r * 0.9, r * 0.35, 3, a); ctx.fill(); }
+    }
+    ctx.fillStyle = e.flash > 0 ? "#fff" : rgb(c[0], c[1], c[2], alpha);
+    poly(e.x, e.y, r, e.d.sides, e.rot); ctx.fill();
+    if (e.d.boss) {
+      ctx.fillStyle = "rgba(0,0,0,0.35)"; poly(e.x, e.y, r * 0.55, 8, e.rot + 0.4); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(e.x, e.y, 6, 0, Math.PI * 2); ctx.fill();
+    }
+    if (e.hp < e.max && !e.d.boss && e.spawnT <= 0) {
+      const w = Math.max(30, e.d.r * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(e.x - w / 2, e.y - e.d.r - 10, w, 4);
+      ctx.fillStyle = rgb(1, 0.3, 0.3); ctx.fillRect(e.x - w / 2, e.y - e.d.r - 10, w * Math.max(0, e.hp / e.max), 4);
+    }
+  }
+
+  function drawPlayer() {
+    const p = S.player, c = COL.tank, r = 18;
+    ctx.fillStyle = rgb(c[0] * 0.45, c[1] * 0.45, c[2] * 0.45); ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = p.hurtT > 0.35 ? "#fff" : rgb(c[0], c[1], c[2]); ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = rgb(c[0], c[1], c[2]); ctx.lineWidth = 5; ctx.beginPath();
+    ctx.moveTo(p.x + Math.cos(p.aim) * r * 0.5, p.y + Math.sin(p.aim) * r * 0.5); ctx.lineTo(p.x + Math.cos(p.aim) * (r + 10), p.y + Math.sin(p.aim) * (r + 10)); ctx.stroke();
+    const h = r * 0.55; ctx.strokeStyle = rgb(c[0], c[1], c[2], 0.5); ctx.lineWidth = 2; ctx.strokeRect(p.x - h, p.y - h, h * 2, h * 2);  // the Tank's square
+    ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.beginPath(); ctx.arc(p.x, p.y, 9 * 0.5 + 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(p.x - 20, p.y - r - 12, 40, 4);
+    ctx.fillStyle = rgb(0.3, 1, 0.4); ctx.fillRect(p.x - 20, p.y - r - 12, 40 * p.hp / p.max, 4);
+  }
+
+  function drawShot(b, c, rad) {
+    if (E("trails") && b.trail.length > 1) {
+      for (let i = 0; i < b.trail.length - 1; i++) {
+        const a = 1 - i / b.trail.length;
+        ctx.strokeStyle = rgb(c[0], c[1], c[2], 0.45 * a); ctx.lineWidth = rad * 1.6 * a;
+        ctx.beginPath(); ctx.moveTo(i ? b.trail[i].x : b.x, i ? b.trail[i].y : b.y); ctx.lineTo(b.trail[i + 1].x, b.trail[i + 1].y); ctx.stroke();
+      }
+    }
+    ctx.fillStyle = rgb(c[0], c[1], c[2]); ctx.beginPath(); ctx.arc(b.x, b.y, rad, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.beginPath(); ctx.arc(b.x, b.y, rad * 0.45, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function draw() {
+    const scale = cv.width / W;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#05060a"; ctx.fillRect(0, 0, cv.width, cv.height);
+    // Screen shake: trauma squared times smooth noise.
+    let sx = 0, sy = 0, sr = 0;
+    if (E("shake") && S.trauma > 0) {
+      const k = S.trauma * S.trauma, t = performance.now() / 1000;
+      sx = k * 22 * Math.sin(t * 61.3) * Math.cos(t * 17.1); sy = k * 22 * Math.sin(t * 53.7 + 1.3); sr = k * 0.025 * Math.sin(t * 41.9);
+    }
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.translate(W / 2 + sx, H / 2 + sy); ctx.rotate(sr); ctx.translate(-W / 2, -H / 2);
+    ctx.fillStyle = "#0d0f17"; ctx.fillRect(-40, -40, W + 80, H + 80);
+    if (E("floor")) ctx.drawImage(floor, 0, 0, W, H);
+    drawGrid();
+    // Today's death ring, and the flash rings.
+    for (const r of S.rings) {
+      const f = r.t / r.dur, c = r.col;
+      if (r.kind === "boom") {
+        ctx.fillStyle = rgb(c[0], c[1], c[2], 0.35 * (1 - f)); ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.4 + 0.6 * f), 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = rgb(c[0], c[1], c[2], 1 - f); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.5 + f), 0, Math.PI * 2); ctx.stroke();
+      } else if (r.kind === "flash") {
+        ctx.strokeStyle = `rgba(255,255,255,${(1 - f) * 0.9})`; ctx.lineWidth = 6 * (1 - f) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.3 + 0.7 * f), 0, Math.PI * 2); ctx.stroke();
+      } else {
+        ctx.strokeStyle = rgb(c[0], c[1], c[2], 1 - f); ctx.lineWidth = 8 * (1 - f) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r * f, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+    for (const e of S.enemies) drawEnemy(e);
+    drawPlayer();
+    for (const b of S.shots) drawShot(b, COL.tankShot, 4.5);
+    for (const b of S.foes) drawShot(b, COL[b.kind], b.kind === "bigShot" ? 8 : 5.5);
+    // Shards (shatter deaths) and sparks.
+    for (const q of S.particles) {
+      const f = q.life / q.max, c = q.col;
+      if (q.kind === "shard") {
+        ctx.fillStyle = rgb(c[0], c[1], c[2], Math.min(1, f * 1.6));
+        ctx.beginPath(); ctx.moveTo(q.x, q.y);
+        ctx.lineTo(q.x + Math.cos(q.rot + q.a0) * q.r * f, q.y + Math.sin(q.rot + q.a0) * q.r * f);
+        ctx.lineTo(q.x + Math.cos(q.rot + q.a1) * q.r * f, q.y + Math.sin(q.rot + q.a1) * q.r * f); ctx.fill();
+      } else {
+        ctx.fillStyle = rgb(c[0], c[1], c[2], f);
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.size * (0.5 + 0.5 * f), 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    // The additive glow pass.
+    if (E("glow")) {
+      ctx.globalCompositeOperation = "lighter";
+      for (const b of S.shots) glow(b.x, b.y, 22, COL.tankShot, 0.75);
+      for (const b of S.foes) glow(b.x, b.y, b.kind === "bigShot" ? 34 : 24, COL[b.kind], 0.8);
+      for (const q of S.particles) glow(q.x, q.y, q.kind === "shard" ? q.r * 1.4 : q.size * 6, q.col, (q.life / q.max) * (q.kind === "shard" ? 0.5 : 0.9));
+      for (const r of S.rings) { const f = r.t / r.dur; glow(r.x, r.y, r.r * (1 + f), r.kind === "flash" ? [1, 1, 1] : r.col, (1 - f) * 0.9); }
+      for (const e of S.enemies) if (e.d.boss) glow(e.x, e.y, e.d.r * 2.6, e.d.col, 0.45 + 0.1 * Math.sin(S.t * 3));
+      glow(S.player.x, S.player.y, 46, COL.tank, 0.35);
+      ctx.globalCompositeOperation = "source-over";
+    }
+    // Numbers and words float above.
+    for (const n of S.numbers) {
+      const f = n.t / n.dur, pop = Math.min(1, n.t * 12);
+      ctx.font = `700 ${(n.crit ? 22 : 15) * (0.6 + 0.4 * pop)}px Oxanium, sans-serif`; ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillText(n.v, n.x + 1.5, n.y + 1.5);
+      ctx.fillStyle = n.crit ? `rgba(255,215,90,${1 - f * f})` : `rgba(235,240,255,${1 - f * f})`; ctx.fillText(n.v, n.x, n.y);
+    }
+    for (const x of S.texts) {
+      const f = x.t / x.dur;
+      ctx.font = `800 ${x.big ? 30 : 18}px Oxanium, sans-serif`; ctx.textAlign = "center";
+      ctx.fillStyle = `rgba(255,214,90,${1 - f})`; ctx.fillText(x.text, x.x, x.y - f * (x.big ? 70 : 30));
+    }
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    // Mood: vignette and the red edge when hurt or low.
+    const p = S.player;
+    if (E("mood")) {
+      const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
+      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(4,2,10,0.62)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(60,40,120,0.06)"; ctx.fillRect(0, 0, W, H);
+    }
+    let red = E("mood") ? S.hurtPulse * 0.55 : 0;
+    if (E("lowhp") && p.hp / p.max < 0.3) { const beat = Math.pow(Math.max(0, Math.sin(S.t * (5 + (0.3 - p.hp / p.max) * 20))), 6); red = Math.max(red, 0.25 + 0.4 * beat); }
+    if (red > 0) {
+      const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.9);
+      g.addColorStop(0, "rgba(255,40,60,0)"); g.addColorStop(1, `rgba(255,40,60,${red})`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+    // Boss entrance: letterbox bars, the arena dims, the name stamps across the middle.
+    if (S.intro > 0) {
+      const f = 1 - S.intro, inn = Math.min(1, f * 5), out = Math.min(1, S.intro * 4), k = Math.min(inn, out);
+      ctx.fillStyle = `rgba(0,0,0,${0.45 * k})`; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, 90 * k); ctx.fillRect(0, H - 90 * k, W, 90 * k);
+      ctx.textAlign = "center"; ctx.font = `800 ${86 + 8 * (1 - inn)}px Oxanium, sans-serif`;
+      ctx.fillStyle = `rgba(255,70,120,${k})`; ctx.fillText(S.introName, W / 2, H / 2 + 20);
+      ctx.font = "600 22px Oxanium, sans-serif"; ctx.fillStyle = `rgba(230,236,245,${k * 0.9})`; ctx.fillText("WAVE 5  ·  A PRISON RIOT IN THREE STAGES", W / 2, H / 2 + 62);
+    }
+    // The wave chip, as in the game.
+    const today = comparing || FX.every(f => !on[f.id]);
+    const label = `WAVE 4   ·   LV ${p.lvl}   ·   ${today ? "AS TODAY" : "WITH EFFECTS"}`;
+    ctx.textAlign = "left"; ctx.font = "600 22px Barlow, sans-serif";
+    ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(16, H - 54, ctx.measureText(label).width + 24, 38);
+    ctx.fillStyle = today ? "#e7eef3" : "#6fe3c4"; ctx.fillText(label, 28, H - 27);
+  }
+
+  // --- The loop: hit-pause holds the picture, slow motion stretches time ------------------------------------------
+  let last = performance.now();
+  function frame(now) {
+    let dt = Math.min(0.05, (now - last) / 1000); last = now;
+    S.trauma = Math.max(0, S.trauma - dt * 1.3);
+    if (S.freeze > 0 && E("hitstop")) S.freeze -= dt;
+    else {
+      S.freeze = 0;
+      if (S.slowT > 0) { S.slowT -= dt; dt *= S.slow + (1 - S.slow) * Math.max(0, 1 - S.slowT / 1.6) ** 2; }
+      // Fixed steps, like the game.
+      let left = dt;
+      while (left > 1e-4) { const s = Math.min(1 / 60, left); step(s); left -= s; }
+    }
+    // Scorch marks fade over about 8 s.
+    fctx.globalCompositeOperation = "destination-out"; fctx.fillStyle = `rgba(0,0,0,${dt / 8})`; fctx.fillRect(0, 0, floor.width, floor.height); fctx.globalCompositeOperation = "source-over";
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  // Triggers
+  document.getElementById("tBoss").addEventListener("click", bossArrives);
+  document.getElementById("tKill").addEventListener("click", () => {
+    let b = S.enemies.find(e => e.d.boss);
+    if (!b) { b = spawn("warden", W / 2, 220); b.spawnT = 0; }
+    b.spawnT = 0; b.hp = 0;
+  });
+  document.getElementById("tBlast").addEventListener("click", () => {
+    const x = rand(400, 1200), y = rand(250, 650);
+    S.rings.push({ x, y, r: 110, t: 0, dur: 0.45, col: [1, 0.6, 0.25], kind: "boom" });
+    if (E("deaths")) S.rings.push({ x, y, r: 160, t: 0, dur: 0.25, col: [1, 1, 1], kind: "flash" });
+    sparks(x, y, [1, 0.7, 0.3], 60, 480, 0.7, 2.8); scorch(x, y, 220); ripple(x, y, 1.6); addTrauma(0.55); hitPause(0.06);
+    for (const e of S.enemies) if (!e.d.boss && Math.hypot(e.x - x, e.y - y) < 150) e.hp = 0;
+  });
+  document.getElementById("tHit").addEventListener("click", () => { S.player.hurtT = 0; hurtPlayer(70); });
+  document.getElementById("tLevel").addEventListener("click", levelUp);
+
+  // Start at Tier 1 so the first look shows the proposal; Today is one click away.
+  setPreset("t1");
+  for (let i = 0; i < 4; i++) spawn(["grunt", "burster", "sniper", "grunt"][i]);
+  requestAnimationFrame(frame);
+})();
+</script>
