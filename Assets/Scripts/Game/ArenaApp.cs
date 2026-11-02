@@ -216,8 +216,10 @@ namespace Arena
             // match, or from Settings.
             if (session.Screen == AppScreen.Game)
                 settingsOpen = false;
-            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : !settingsOpen)
-                fieldGuideOpen = false;
+            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : !settingsOpen && !lobbyMenuOpen)
+                fieldGuideOpen = false;  // (the Field guide opens from the pause menu, or the lobby's menu)
+            if (session.Screen != AppScreen.Lobby)
+                lobbyMenuOpen = false;
             if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
                 runStatsOpen = false;  // the pause menu's Run stats closes with it (RunStatsUi.cs)
             else if (fieldGuideOpen && !devMenuOpen && !labSetupOpen)
@@ -346,7 +348,13 @@ namespace Arena
             if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
             {
                 if (fieldGuideOpen)
-                    CloseFieldGuide();  // back to Settings
+                    CloseFieldGuide();  // back to the lobby's menu
+                else if (lobbyMenuOpen && pauseSettings)
+                    pauseSettings = false;  // the lobby menu's Settings: back to its list
+                else if (lobbyMenuOpen)
+                    CloseLobbyMenu();
+                else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && GUIUtility.keyboardControl == 0)
+                    OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
                     CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
                 else if (howToOpen)
@@ -525,9 +533,16 @@ namespace Arena
                         DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
                     else if (LobbyEntering)
                         DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
-                    else if (!settingsOpen || Event.current.type == EventType.Repaint)
+                    else if (!settingsOpen && !lobbyMenuOpen || Event.current.type == EventType.Repaint)
                         DrawLobby();
-                    if (settingsOpen)
+                    if (lobbyMenuOpen)
+                    {
+                        if (fieldGuideOpen)
+                            DrawFieldGuideScreen();  // FieldGuide.cs
+                        else
+                            DrawLobbyMenu();  // Esc: back, Settings, Field guide, leave, quit (MenuDrawer.cs)
+                    }
+                    else if (settingsOpen)
                     {
                         Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f * (fieldGuideOpen ? 1f : WindowVis)));  // (fading with the drawer, WindowAnim.cs)
                         if (fieldGuideOpen)

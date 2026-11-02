@@ -861,15 +861,10 @@ namespace Arena
             Ui.Fill(new Rect(0f, H - 88f, W, 88f), new Color(0.02f, 0.025f, 0.04f, 0.55f));
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
-            if (Ui.FancyButton(new Rect(40f, H - 70f, 150f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), t))
-                StartLobbyLeave();  // the way in, backwards, then leave (LobbyEnter.cs)
-            // Settings (audio, button style, the Field guide), over the lobby.
-            var cog = new Rect(200f, H - 70f, 48f, 48f);
-            if (Ui.FancyButton(cog, "", Ui.Neutral, null, t))
-                settingsOpen = true;
-            Ui.Icon(new Rect(cog.center.x - 11f, cog.center.y - 11f, 22f, 22f), PixelArt.Get("ui_gear"));
+            // Leaving, Settings and the Field guide are in the menu Esc opens (MenuDrawer.cs); Ready and Start sit in the middle.
+            Ui.Label(new Rect(40f, H - 56f, 260f, 26f), "Esc  ·  menu", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             bool ready = me != null && me.Ready;
-            float readyX = session.IsHost ? W - 560f : W - 300f;
+            float readyX = session.IsHost ? W / 2f - 260f : W / 2f - 120f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
             if (Ui.FancyButton(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, ready ? 15 : 0))
                 session.RequestReady(!ready);
@@ -881,13 +876,13 @@ namespace Arena
             string note = session.Lobby.Count < 2 ? ""
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
                 : !ready ? "" : session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
-            Ui.Label(new Rect(262f, H - 56f, readyX - 282f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
+            Ui.Label(new Rect(140f, H - 56f, readyX - 160f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
             if (session.IsHost)
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0);
                 string start = practice ? "Start practice" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
-                if (Ui.FancyButton(new Rect(W - 300f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
+                if (Ui.FancyButton(new Rect(readyX + 260f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }

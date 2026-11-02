@@ -177,6 +177,93 @@ namespace Arena
                 Ui.Label(new Rect(DrawerPanel.x + 28f, DrawerPanel.y + 64f, DrawerPanel.width - 56f, 34f), sub, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
         }
 
+        // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
+
+        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "Leave to main menu", "Quit game" };
+        bool lobbyMenuOpen;
+        int lobbySel;
+
+        /// Esc in the lobby: the menu slides in (its own clock starts here).
+        void OpenLobbyMenu()
+        {
+            lobbyMenuOpen = true;
+            lobbySel = 0;
+            pauseSettings = false;
+            drawerKey = null;
+            winOpenAt = Time.unscaledTime;
+            GUIUtility.keyboardControl = 0;
+        }
+
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = false; });
+
+        /// The lobby's menu: back to the lobby, Settings (in the drawer, like the pause menu's), the Field guide, leaving
+        /// for the main menu, or quitting. The lobby stays behind it, dimmed.
+        void DrawLobbyMenu()
+        {
+            if (SkipWhileClosing)
+                return;
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.6f * WindowVis));
+            if (pauseSettings)
+            {
+                DrawSettingsWindow(true);  // its Back returns to this list
+                return;
+            }
+            DrawerIn("pause", false);
+            LobbyMenuKeys();
+            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
+            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_back", "ui_power" };
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line, how to play", "Every enemy, boss, class, weapon, ability and upgrade",
+                session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
+            float y = 128f;
+            for (int i = 0; i < LobbyChoices.Length; i++)
+            {
+                bool on = i == lobbySel;
+                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
+                if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
+                    lobbySel = i;
+                if (DrawerRow(r, PixelArt.Get(icons[i]), LobbyChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
+                    LobbyChoose(i);
+                y += r.height + 4f;
+            }
+            if (Event.current.type == EventType.Repaint)
+                pauseMouse = Event.current.mousePosition;
+            Ui.Label(new Rect(42f, H - 22f, DrawerW - 60f, 16f), "↑ ↓  Enter  ·  Esc to go back", 11, Ui.Muted);
+            EndDrawer();
+        }
+
+        void LobbyMenuKeys()
+        {
+            var e = Event.current;
+            if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
+                return;
+            if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
+                lobbySel = (lobbySel + LobbyChoices.Length - 1) % LobbyChoices.Length;
+            else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
+                lobbySel = (lobbySel + 1) % LobbyChoices.Length;
+            else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
+                LobbyChoose(lobbySel);
+            else
+                return;
+            e.Use();
+        }
+
+        void LobbyChoose(int i)
+        {
+            switch (i)
+            {
+                case 0: CloseLobbyMenu(); break;
+                case 1: pauseSettings = true; break;
+                case 2: OpenFieldGuide(); break;
+                case 3:
+                    lobbyMenuOpen = false;
+                    pauseSettings = false;
+                    StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
+                    break;
+                default: Application.Quit(); break;
+            }
+        }
+
         // --- The pause menu -------------------------------------------------------------------------------------------
 
         static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "Settings", "Leave game" };
@@ -392,7 +479,7 @@ namespace Arena
         // --- Settings ---------------------------------------------------------------------------------------------------
 
         static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay", "How to play" };
-        const int SettingsHowTo = 3;  // How to play: the drawer turns into its topics (and the Field guide), Back returns to the groups
+        const int SettingsHowTo = 3;  // How to play: the drawer turns into its topics, Back returns to the groups
 
         /// Settings (main menu, lobby, and the pause menu's Settings): the groups and quick switches in the drawer, the
         /// open group on the right. Visual effects shows a live preview of what they do.
@@ -408,7 +495,7 @@ namespace Arena
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
             string[] icons = { "pulse", "nova", "crosshair", "ui_help" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(0.7f, 0.8f, 1f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD", "Controls, tips, and the Field guide" };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD", "Controls and tips" };
             float y = 128f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -777,7 +864,7 @@ namespace Arena
             DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => CloseWindow(() => howToOpen = false));
         }
 
-        /// How to play (in Settings, or on its own): its topics in the drawer with the Field guide under them, the open
+        /// How to play (in Settings, or on its own): its topics in the drawer, the open
         /// topic on the right. `back` is what its Back button does.
         void DrawHowToContent(float k, float t, string backLabel, System.Action back)
         {
@@ -792,10 +879,6 @@ namespace Arena
                     howToTopic = i;
                 y += 56f;
             }
-            // The Field guide: every enemy, boss, class, weapon, ability and upgrade, in full.
-            y += 10f;
-            if (DrawerRow(new Rect(28f, y, DrawerW - 56f, 52f), PixelArt.Get("ui_book"), "Field guide", "Every enemy, boss, class, weapon, ability and upgrade", null, null, FieldGuideColor, false))
-                OpenFieldGuide();
             if (Ui.FancyButton(new Rect(40f, H - 100f, 260f, 48f), backLabel, Ui.Primary, PixelArt.Get("ui_back"), t))
                 back();
             EndDrawer();

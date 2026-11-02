@@ -794,7 +794,11 @@ window really close. That goes for the pause menu and for Settings from the lobb
   trophy cards under them. The frozen arena stays in view on the right with a **this run** card: the wave, time and
   score, chips for the path (and waves left), the run's modifiers and the difficulty, the next boss (moving), and this
   stretch's challenge room (won, lost, or when the next portal can open).
-- **Settings** (main menu, the lobby's cog, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
+- **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
+  pause menu's), the **Field guide**, **Leave to main menu** (the host leaving closes the lobby for everyone) and
+  **Quit game**. The lobby has no Leave button or settings cog any more; its bottom bar is just **Ready** and
+  **Start** (host), side by side in the middle, with who you're waiting on to their left.
+- **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
   **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
   **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots
   and a hit, its number, an ability's name, a blast and its shake) **Gameplay** (aim line, show the HUD) and
