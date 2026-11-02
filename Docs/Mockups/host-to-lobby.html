@@ -1,0 +1,335 @@
+<title>Host to Lobby Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a column of animated 1280x720 game screens (canvas), each with replay, half speed and notes.
+   Single dark look on purpose: these are mockups of the game's own screens, like the other files in Docs/Mockups. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 76ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.bar .ctl { margin-left: auto; display: flex; gap: 8px; }
+.bar button { font: 700 14px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+.bar button.slow { background: linear-gradient(#3a4258, #2a3044); }
+.bar button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 6ch; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Host to Lobby Mockups</h1>
+    <p>Three ways to go from pressing Host game on the main menu to the lobby, each a little over a second. Today the screen just swaps. The menu's animated background keeps running underneath in all three, since both screens share it. Each loop shows the menu, the press, the move, and the lobby settling.</p>
+  </header>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option A</span>The card becomes your loadout</h2><span class="time" id="tA"></span><span class="ctl"><button class="slow" id="sA">Half speed</button><button id="rA">Replay</button></span></div>
+    <canvas class="screen" id="A" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The menu card empties and grows into the loadout panel, its plot corners riding out with it to the panel's corners.</li>
+      <li>The title shrinks and flies to the top left, turning into LOBBY on the way, with its x-axis underneath.</li>
+      <li>The party column, tabs and bottom bar slide in around the panel; your party card lands last with a ring and its HOST badge pops.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option B</span>The axis opens</h2><span class="time" id="tB"></span><span class="ctl"><button class="slow" id="sB">Half speed</button><button id="rB">Replay</button></span></div>
+    <canvas class="screen" id="B" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The x-axis under the title brightens and stretches across the whole screen.</li>
+      <li>It splits into two lines, one sweeping up and one down, with sparks and tick marks. Between them the lobby is already there; outside them the menu is still showing.</li>
+      <li>The most "Cartesian" of the three: the axis the menu is built on opens the way into the lobby.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option C</span>The launch in reverse</h2><span class="time" id="tC"></span><span class="ctl"><button class="slow" id="sC">Half speed</button><button id="rC">Replay</button></span></div>
+    <canvas class="screen" id="C" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The menu card drops away and the title lifts off the top; a ripple runs out across the grid from the Host button.</li>
+      <li>The lobby's panels slide in from their nearest edges with a small overshoot: the party column from the left, the loadout from the right, the tabs from above, the bottom bar from below.</li>
+      <li>The mirror image of the run launch, where these same panels slide out to the sides, so going into the lobby and leaving it feel like one pair.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal":{"k":"#14141e","w":"#ffffff","g":"#bec6d7","G":"#6e768a","y":"#ffd750","Y":"#e18c28","o":"#ff8c28","r":"#f04040","R":"#961e28","p":"#ff80b4","b":"#5a96ff","B":"#284bb4","c":"#8ce6ff","n":"#64e664","N":"#288c41","v":"#b473ff","V":"#6432a5","m":"#9b6441","M":"#5a371e",".":null},"icons":{"ui_play":["............","..ww........","..www.......","..wwww......","..wwwww.....","..wwwwww....","..wwwwww....","..wwwww.....","..wwww......","..www.......","..ww........","............"],"ui_arrow":["............","............","......w.....","......ww....","......www...",".wwwwwwwww..",".wwwwwwwww..","......www...","......ww....","......w.....","............","............"],"ui_trophy":["............","..yyyyyyyy..","yyywyyyyyyyy","y.ywyyyyyY.y","y.ywyyyyyY.y",".yyyyyyyyYy.","...yyyyyY...",".....yY.....",".....yY.....","....yyyY....","...YYYYYY...","............"],"ui_help":["............","....wwww....","...ww..ww...","...ww..ww...",".......ww...","......ww....",".....ww.....",".....ww.....","............",".....ww.....",".....ww.....","............"],"ui_gear":["............",".....ww.....","..ww.ww.ww..","..wwwwwwww..","...ww..ww...",".www....www.",".www....www.","...ww..ww...","..wwwwwwww..","..ww.ww.ww..",".....ww.....","............"],"ui_power":["............",".....ww.....","..w..ww..w..",".ww..ww..ww.",".w...ww...w.",".w........w.",".w........w.",".ww......ww.","..ww....ww..","...wwwwww...","............","............"],"ui_check":["............","..........ww",".........www","........www.",".......www..","ww....www...","www..www....",".wwwwww.....","..wwww......","...ww.......","............","............"],"role_tank":["..kkkkkkkk..",".kbbbbbbbbk.",".kbwbbbbbbk.",".kbwbbbbbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kBbbbbbbBk.","..kBbbbbBk..","..kBbbbbBk..","...kBbbBk...","....kBBk....",".....kk....."],"class_knight":["...kkkkkk...","..kggggggk..",".kgwggggggk.",".kgwggggggk.",".kkkkkkkkkk.",".kgwgkkggGk.",".kgggkkggGk.",".kgggkkggGk.",".kgggggggGk.",".kGgggggGGk.","..kGGGGGGk..","...kkkkkk..."]}};
+const W = 1280, H = 720;
+
+// --- helpers (as in run-launch.html) ---------------------------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = x => 1 - Math.pow(1 - x, 3);
+const easeIn = x => x * x * x;
+const easeIO = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+const lerpR = (a, b, k) => a.map((v, i) => lerp(v, b[i], k));
+const iconCache = {};
+function icon(name) {
+  if (iconCache[name]) return iconCache[name];
+  const g = ICONS.icons[name], c = document.createElement("canvas");
+  c.width = g[0].length; c.height = g.length;
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return iconCache[name] = c;
+}
+function drawIcon(ctx, name, x, y, size, alpha = 1) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false; ctx.drawImage(icon(name), x - size / 2, y - size / 2, size, size); ctx.restore(); }
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function panel(ctx, x, y, w, h, rim, fill = "#151a26") { rr(ctx, x, y, w, h, 12); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = rim || "rgba(255,255,255,0.08)"; ctx.lineWidth = rim ? 2 : 1; ctx.stroke(); }
+function fancy(ctx, text, x, y, size, low, alpha = 1, align = "center", glow = true) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `900 ${size}px Arial, sans-serif`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (glow) { ctx.shadowColor = low; ctx.shadowBlur = size * 0.35; }
+  ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size * 0.11); ctx.strokeStyle = "#0b1020"; ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0;
+  const g = ctx.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); g.addColorStop(0.3, "#fff"); g.addColorStop(1, low);
+  ctx.fillStyle = g; ctx.fillText(text, x, y); ctx.restore();
+}
+function label(ctx, text, x, y, size, col, align = "left", weight = 700, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `${weight} ${size}px Arial, sans-serif`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(text, x, y); ctx.restore();
+}
+function fbtn(ctx, x, y, w, h, text, c1, c2, ic, press = 0, size = 18) {
+  const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  rr(ctx, x, y + press * 2, w, h, 10); ctx.fillStyle = g; ctx.fill(); ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 12, y + 2 + press * 2, w - 24, 1);
+  if (ic) { rr(ctx, x + 14, y + h / 2 - 13 + press * 2, 26, 26, 5); ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.fill(); drawIcon(ctx, ic, x + 27, y + h / 2 + press * 2, 16); }
+  fancy(ctx, text, x + w / 2 + (ic ? 14 : 0), y + h / 2 + press * 2, size, "#e0ebff", 1, "center", false);
+}
+function ring(ctx, x, y, r, col, alpha, w = 3) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.restore(); }
+/** Draw something moved and faded: o = { dx, dy, a, s (scale about cx, cy) }. */
+function part(ctx, o, draw) {
+  const a = o.a ?? 1; if (a <= 0) return;
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(o.dx || 0, o.dy || 0);
+  if (o.s !== undefined && o.s !== 1) { ctx.translate(o.cx, o.cy); ctx.scale(o.s, o.s); ctx.translate(-o.cx, -o.cy); }
+  draw(); ctx.restore();
+}
+
+// --- the shared background: the menu's animated "Spiral", dim, behind both screens --------------------
+function background(ctx, t, lit = 0) {
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = `rgba(110,140,220,${0.06 + 0.06 * lit})`; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+  [[180, 260, 230, "rgba(60,90,200,0.10)"], [1040, 480, 300, "rgba(120,60,160,0.08)"]].forEach(([x, y, r, c]) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = c; ctx.fill(); });
+  for (let i = 0; i < 44; i++) { const a = i * 2.4 + t * 0.15, d = 40 + i * 14, x = 640 + Math.cos(a) * d, y = 360 + Math.sin(a) * d * 0.62;
+    ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fillStyle = i % 3 ? "rgba(255,90,140,0.45)" : "rgba(110,150,255,0.45)"; ctx.fill(); }
+}
+/** The bright ring of a grid ripple. */
+function ripple(ctx, k, cx, cy) {
+  if (k <= 0 || k >= 1) return;
+  const r = ease(k) * 1400; ctx.save();
+  const g = ctx.createRadialGradient(cx, cy, Math.max(0, r - 70), cx, cy, r + 8);
+  g.addColorStop(0, "rgba(90,150,255,0)"); g.addColorStop(0.85, `rgba(140,185,255,${0.6 * (1 - k)})`); g.addColorStop(1, "rgba(120,170,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+
+// --- the main menu ----------------------------------------------------------------------------------------
+const CARD = [390, 200, 500, 316], HOSTB = [422, 402, 210, 50];
+/** The title's x-axis: a glowing line with ticks and a pulsing origin (half: half its length). */
+function axis(ctx, x, y, half, t, a = 1, bright = 0) {
+  if (a <= 0) return; ctx.save(); ctx.globalAlpha *= a;
+  const g = ctx.createLinearGradient(x - half, 0, x + half, 0); g.addColorStop(0, "rgba(115,165,255,0.15)"); g.addColorStop(0.5, `rgba(150,190,255,${0.75 + 0.25 * bright})`); g.addColorStop(1, "rgba(115,165,255,0.15)");
+  ctx.fillStyle = g; ctx.fillRect(x - half, y - 0.75 - bright * 1.5, half * 2, 1.5 + bright * 3);
+  ctx.fillStyle = "rgba(140,180,255,0.5)"; for (let k = 24; k < half - 10; k += 24) { const l = (k / 24) % 4 === 0 ? 6 : 3; ctx.fillRect(x - k - 0.6, y - l, 1.2, l * 2); ctx.fillRect(x + k - 0.6, y - l, 1.2, l * 2); }
+  ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fillStyle = "#d9e8ff"; ctx.fill();
+  const p = (t * 0.8) % 1; ring(ctx, x, y, 5 + 14 * p, "#73a5ff", 0.7 * (1 - p), 1.5);
+  ctx.restore();
+}
+function corners(ctx, r, col = "rgba(115,165,255,0.7)", gap = 7, len = 22) {
+  const [x, y, w, h] = r, x0 = x - gap, x1 = x + w + gap, y0 = y - gap, y1 = y + h + gap;
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath();
+  [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]].forEach(([cx, cy, sx, sy]) => { ctx.moveTo(cx + sx * len, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * len); });
+  ctx.stroke();
+}
+function field(ctx, x, y, w, text) { rr(ctx, x, y, w, 38, 8); ctx.fillStyle = "#0d1018"; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 1; ctx.stroke(); label(ctx, text, x + 12, y + 19, 15, "#e9edf8", "left", 400); }
+/** The menu card's contents (fields and the two buttons). */
+function menuCardInside(ctx, press = 0) {
+  const [cx, cy] = CARD, x = cx + 32, w = 436;
+  label(ctx, "YOUR NAME", x, cy + 34, 11, "#9ea9c4"); field(ctx, x, cy + 54, w, "Anthony");
+  label(ctx, "HOST ADDRESS (TO JOIN)", x, cy + 116, 11, "#9ea9c4"); label(ctx, "PORT", x + w - 110, cy + 116, 11, "#9ea9c4");
+  field(ctx, x, cy + 136, w - 130, "100.64.12.7"); field(ctx, x + w - 110, cy + 136, 110, "7777");
+  fbtn(ctx, HOSTB[0], HOSTB[1], HOSTB[2], HOSTB[3], "Host game", "#5a97ff", "#3a6fe0", "ui_play", press);
+  fbtn(ctx, 648, 402, 210, 50, "Join game", "#4a5372", "#323a55", "ui_arrow");
+}
+function menuTitle(ctx, t, o = {}) { fancy(ctx, "CARTESIAN COLOSSEUM", 640, 102, 58, "#b8ccff", o.a ?? 1); axis(ctx, 640, 158, 380, t, o.axisA ?? o.a ?? 1, o.bright || 0); }
+function menuSecondary(ctx) {
+  fbtn(ctx, 390, 540, 245, 42, "Continue a run  (2)", "#3e8a5c", "#2b6643", "ui_play", 0, 15); fbtn(ctx, 645, 540, 245, 42, "Records", "#a07e30", "#7a5e1e", "ui_trophy", 0, 15);
+  fbtn(ctx, 390, 594, 160, 42, "How to play", "#4a5372", "#323a55", "ui_help", 0, 14); fbtn(ctx, 560, 594, 160, 42, "Settings", "#4a5372", "#323a55", "ui_gear", 0, 14); fbtn(ctx, 730, 594, 160, 42, "Quit", "#c85a63", "#a43d48", "ui_power", 0, 14);
+}
+function menu(ctx, t, press = 0) {
+  menuTitle(ctx, t);
+  panel(ctx, ...CARD, "rgba(115,165,255,0.25)"); corners(ctx, CARD); menuCardInside(ctx, press); menuSecondary(ctx);
+}
+
+// --- the lobby (the host alone, just in) ------------------------------------------------------------------
+const LOAD = [440, 68, 800, 556];
+function lobbyTitle(ctx, a = 1) { fancy(ctx, "LOBBY", 40, 44, 42, "#9cc0ff", a, "left"); rr(ctx, 196, 30, 28, 28, 8); ctx.fillStyle = "#3a4258"; ctx.fill(); label(ctx, "!", 210, 44, 15, "#fff", "center", 800); }
+function lobbyMode(ctx) {
+  rr(ctx, 40, 76, 376, 56, 10); ctx.fillStyle = "#0d1018"; ctx.fill(); rr(ctx, 44, 80, 184, 48, 8); ctx.fillStyle = "#3a6fe0"; ctx.fill();
+  fancy(ctx, "RUN", 136, 97, 17, "#cfe0ff", 1, "center", false); label(ctx, "50 waves, a boss every 5", 136, 116, 11, "#dbe6ff", "center", 400);
+  fancy(ctx, "PRACTICE RANGE", 320, 97, 17, "#8ff0cf", 1, "center", false); label(ctx, "Build your own waves", 320, 116, 11, "#9ea9c4", "center", 400);
+}
+function partyCard(ctx, host = 1) {
+  panel(ctx, 40, 184, 376, 88, "#5a96ff");
+  rr(ctx, 48, 192, 72, 72, 8); ctx.fillStyle = "#101626"; ctx.fill(); drawIcon(ctx, "class_knight", 84, 228, 48);
+  label(ctx, "Anthony", 136, 204, 19, "#fff", "left", 800); label(ctx, "Knight Tank", 136, 226, 14, "#5a96ff"); label(ctx, "Lance  ·  Unbreakable", 136, 249, 12, "#9ea9c4", "left", 400);
+  ctx.save(); ctx.translate(331, 204); ctx.scale(host, host); rr(ctx, -25, -10, 50, 20, 10); ctx.fillStyle = "#5c4a1f"; ctx.fill(); label(ctx, "HOST", 0, 0, 11, "#ffd77a", "center", 800); ctx.restore();
+  rr(ctx, 360, 194, 44, 20, 10); ctx.fillStyle = "#2a3e6a"; ctx.fill(); label(ctx, "YOU", 382, 204, 11, "#cfe0ff", "center", 800);
+}
+function openSlot(ctx, y) { ctx.save(); ctx.setLineDash([6, 5]); rr(ctx, 40, y, 376, 88, 12); ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
+  label(ctx, "Open slot", 228, y + 34, 15, "#9ea9c4", "center", 800); label(ctx, "Waiting for someone to join", 228, y + 56, 11, "#7f89a3", "center", 400); }
+function bgCard(ctx) { panel(ctx, 40, 540, 376, 84); rr(ctx, 50, 550, 114, 64, 6); ctx.fillStyle = "#0b0d14"; ctx.fill(); ctx.strokeStyle = "#5a96ff88"; ctx.stroke();
+  label(ctx, "BACKGROUND", 180, 556, 10, "#9ea9c4"); fancy(ctx, "Spiral", 290, 584, 17, "#cfe0ff", 1, "center", false); }
+function tabs(ctx) { [[440, 128, "YOUR LOADOUT", "#4d8cff"], [576, 104, "MODIFIERS", "#1b2131"], [688, 200, "DIFFICULTY  ·  NORMAL", "#1b2131"]].forEach(([x, w, s, c]) => { rr(ctx, x, 24, w, 34, 8); ctx.fillStyle = c; ctx.fill(); label(ctx, s, x + w / 2, 41, 12, c === "#1b2131" ? "#9ea9c4" : "#fff", "center", 800); }); }
+/** The loadout panel at rect r; inside (0..1) fades its contents in, row by row. */
+function loadout(ctx, r, inside = 1, t = 0) {
+  const [x, y, w, h] = r; panel(ctx, x, y, w, h);
+  if (inside <= 0) return;
+  const row = (i, draw) => { const a = seg(inside, i * 0.12, i * 0.12 + 0.5); if (a > 0) part(ctx, { a, dy: (1 - ease(a)) * 10 }, draw); };
+  row(0, () => { rr(ctx, 454, 82, 232, 528, 8); ctx.fillStyle = "#0b0d14"; ctx.fill(); ctx.save(); rr(ctx, 462, 90, 216, 180, 4); ctx.clip(); ctx.strokeStyle = "rgba(110,140,220,0.25)";
+    for (let gx = 462; gx < 678; gx += 24) { ctx.beginPath(); ctx.moveTo(gx + 0.5, 90); ctx.lineTo(gx + 0.5, 270); ctx.stroke(); } for (let gy = 90; gy < 270; gy += 24) { ctx.beginPath(); ctx.moveTo(462, gy + 0.5); ctx.lineTo(678, gy + 0.5); ctx.stroke(); } ctx.restore();
+    ctx.strokeStyle = "#5a96ff"; ctx.lineWidth = 1.5; ctx.strokeRect(462, 90, 216, 180);
+    ctx.beginPath(); ctx.arc(570, 230, 9, 0, Math.PI * 2); ctx.fillStyle = "#121827"; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = "#5a96ff"; ctx.stroke();
+    fancy(ctx, "Knight Tank", 570, 290, 18, "#9cc0ff", 1, "center", false);
+    ["HEALTH", "SPEED", "REACH", "DAMAGE"].forEach((s, i) => { label(ctx, s, 470, 318 + i * 27, 10, "#9ea9c4"); rr(ctx, 470, 328 + i * 27, 200, 4, 2); ctx.fillStyle = "#222838"; ctx.fill(); rr(ctx, 470, 328 + i * 27, [160, 120, 30, 70][i], 4, 2); ctx.fillStyle = ["#4fd166", "#6ea0e0", "#e7b43a", "#e06060"][i]; ctx.fill(); }); });
+  row(1, () => { label(ctx, "ROLE", 708, 94, 12, "#9ea9c4"); for (let i = 0; i < 4; i++) { rr(ctx, 706 + i * 131, 112, 123, 46, 8); ctx.fillStyle = i === 0 ? "#22305a" : "#1b2131"; ctx.fill(); if (i === 0) { ctx.strokeStyle = "#5a96ff"; ctx.stroke(); } label(ctx, ["Tank", "Healer", "DPS", "Locked"][i], 760 + i * 131, 135, 15, ["#fff", "#7ee08f", "#ff9a4a", "#5b6378"][i], "center", 800); } });
+  row(2, () => { label(ctx, "CLASS", 708, 178, 12, "#9ea9c4"); for (let i = 0; i < 8; i++) { rr(ctx, 706 + (i % 4) * 131, 196 + Math.floor(i / 4) * 38, 123, 30, 8); ctx.fillStyle = i === 3 ? "#22305a" : "#1b2131"; ctx.fill(); label(ctx, ["Soldier", "Elementalist", "Summoner", "Knight", "Ninja", "Hemomancer", "Locked", "Locked"][i], 767 + (i % 4) * 131, 211 + Math.floor(i / 4) * 38, 11, i > 5 ? "#5b6378" : "#a9c3ff", "center", 800); } });
+  row(3, () => { label(ctx, "WEAPON", 708, 286, 12, "#9ea9c4"); label(ctx, "ABILITY  ·  SPACE", 974, 286, 12, "#9ea9c4"); for (let i = 0; i < 4; i++) { rr(ctx, 706 + (i % 2) * 128, 304 + Math.floor(i / 2) * 36, 122, 30, 8); ctx.fillStyle = i === 1 ? "#22305a" : "#1b2131"; ctx.fill(); rr(ctx, 972 + (i % 2) * 128, 304 + Math.floor(i / 2) * 36, 122, 30, 8); ctx.fillStyle = i === 2 ? "#22305a" : "#1b2131"; ctx.fill(); } });
+  row(4, () => { const d = [706, 422, 516, 186]; rr(ctx, ...d, 8); ctx.fillStyle = "#121827"; ctx.fill(); corners(ctx, d, "#5a96ff", 0, 18);
+    label(ctx, "WEAPON", 722, 440, 10, "#9ea9c4"); fancy(ctx, "Lance", 722, 463, 20, "#cfe0ff", 1, "left", false); label(ctx, "A heavy jab in front of you that shoves", 722, 492, 12, "#c7d0e6", "left", 400);
+    label(ctx, "ABILITY  ·  SPACE", 980, 440, 10, "#9ea9c4"); fancy(ctx, "Unbreakable", 980, 463, 20, "#cfe0ff", 1, "left", false); label(ctx, "For 5 s you take 50% less damage", 980, 492, 12, "#c7d0e6", "left", 400); });
+}
+function bottomLeft(ctx) { fbtn(ctx, 40, 650, 150, 48, "Leave", "#c85a63", "#a43d48", "ui_power"); rr(ctx, 200, 650, 48, 48, 10); ctx.fillStyle = "#3a4258"; ctx.fill(); drawIcon(ctx, "ui_gear", 224, 674, 20); }
+function bottomRight(ctx) { label(ctx, "Waiting for players to join", 700, 674, 14, "#9ea9c4", "right", 400); fbtn(ctx, 720, 650, 240, 48, "Ready!", "#e6ad3a", "#b47e14", "ui_check"); fbtn(ctx, 980, 650, 260, 48, "Start game (1 player)", "#5a97ff", "#3a6fe0", "ui_play", 0, 16); }
+/** The whole lobby; o gives each piece's { dx, dy, a } (and the HOST badge's pop). */
+function lobby(ctx, t, o = {}) {
+  part(ctx, o.title || {}, () => lobbyTitle(ctx));
+  part(ctx, o.mode || {}, () => lobbyMode(ctx));
+  part(ctx, o.label || {}, () => label(ctx, "PARTY  (1/3)", 42, 160, 12, "#9ea9c4"));
+  part(ctx, o.card || {}, () => partyCard(ctx, o.host ?? 1));
+  part(ctx, o.slot1 || {}, () => openSlot(ctx, 282)); part(ctx, o.slot2 || {}, () => openSlot(ctx, 380));
+  part(ctx, o.bg || {}, () => bgCard(ctx));
+  part(ctx, o.tabs || {}, () => tabs(ctx));
+  part(ctx, o.load || {}, () => loadout(ctx, o.loadRect || LOAD, o.inside ?? 1, t));
+  part(ctx, o.bl || {}, () => bottomLeft(ctx)); part(ctx, o.br || {}, () => bottomRight(ctx));
+}
+/** Your party card arriving: a ring off it and the HOST badge popping (k: 0..1). */
+function hostLand(ctx, k) { if (k <= 0 || k >= 1) return; ctx.save(); rr(ctx, 40 - 10 * k, 184 - 10 * k, 376 + 20 * k, 88 + 20 * k, 14); ctx.strokeStyle = `rgba(90,150,255,${1 - k})`; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); }
+
+// --- the timeline every option shares ------------------------------------------------------------------
+const PRESS = 0.7, GO = 0.95, LEN = 3.6;  // the press, the move starting, the loop's length
+const pressK = t => seg(t, PRESS, PRESS + 0.12) * (1 - seg(t, PRESS + 0.12, PRESS + 0.25));
+
+// --- A: the card becomes your loadout ------------------------------------------------------------------
+const A = { draw(ctx, t) {
+  background(ctx, t);
+  const k = easeIO(seg(t, GO, GO + 0.7)), empty = seg(t, GO - 0.05, GO + 0.15);
+  if (k <= 0) { menu(ctx, t, pressK(t)); if (pressK(t) > 0) ring(ctx, HOSTB[0] + HOSTB[2] / 2, HOSTB[1] + 25, 40 + 60 * seg(t, PRESS, PRESS + 0.4), "#9cc0ff", 1 - seg(t, PRESS, PRESS + 0.4)); return; }
+  // the title flies to the top left, turning into LOBBY on the way; its axis comes along under it
+  const tk = easeIO(seg(t, GO, GO + 0.6)), tx = lerp(640, 135, tk), ty = lerp(102, 44, tk), size = lerp(58, 42, tk);
+  fancy(ctx, "CARTESIAN COLOSSEUM", tx, ty, size, "#b8ccff", 1 - seg(tk, 0.2, 0.42));
+  axis(ctx, lerp(640, 135, tk), lerp(158, 70, tk), lerp(380, 100, tk), t, 1 - seg(t, GO + 0.5, GO + 0.8));
+  if (tk > 0.38) part(ctx, { a: seg(tk, 0.38, 0.6), dx: (tx - 135) }, () => lobbyTitle(ctx));
+  // the other menu buttons drop away
+  part(ctx, { a: 1 - seg(t, GO, GO + 0.3), dy: easeIn(seg(t, GO, GO + 0.35)) * 160 }, () => menuSecondary(ctx));
+  // the card: its insides fade, it grows into the loadout panel, corners riding along
+  const r = lerpR(CARD, LOAD, k);
+  ctx.save(); rr(ctx, ...r, 12); ctx.fillStyle = "#151a26"; ctx.fill(); ctx.strokeStyle = `rgba(115,165,255,${0.25 * (1 - k)})`; ctx.stroke(); ctx.restore();
+  part(ctx, { a: 1 - empty }, () => menuCardInside(ctx, pressK(t)));
+  corners(ctx, r, `rgba(115,165,255,${0.7 * (1 - seg(t, GO + 0.75, GO + 1.1))})`);
+  // everything else slides in around it
+  const L = (a, b) => ease(seg(t, GO + a, GO + b));
+  const kin = (a, b, dx, dy) => { const e = L(a, b); return { a: e, dx: (1 - e) * dx, dy: (1 - e) * dy }; };
+  lobby(ctx, t, {
+    title: { a: 0 }, load: { a: 0 },
+    mode: kin(0.45, 0.85, -60, 0), label: kin(0.5, 0.9, -60, 0), slot1: kin(0.6, 1.0, -60, 0), slot2: kin(0.65, 1.05, -60, 0), bg: kin(0.7, 1.1, -60, 0),
+    card: kin(0.8, 1.15, -60, 0), tabs: kin(0.55, 0.9, 0, -30), bl: kin(0.6, 1.0, 0, 60), br: kin(0.65, 1.05, 0, 60),
+    host: back(seg(t, GO + 1.05, GO + 1.35)),
+  });
+  if (k >= 1) loadout(ctx, LOAD, seg(t, GO + 0.6, GO + 1.4), t); else { ctx.save(); ctx.globalAlpha = seg(k, 0.85, 1); loadout(ctx, r, 0, t); ctx.restore(); }
+  hostLand(ctx, seg(t, GO + 1.1, GO + 1.6));
+} };
+
+// --- B: the axis opens ----------------------------------------------------------------------------------
+const B = { draw(ctx, t) {
+  background(ctx, t);
+  const stretch = ease(seg(t, GO - 0.15, GO + 0.2)), open = easeIO(seg(t, GO + 0.2, GO + 1.0));
+  const AX = 158, up = lerp(AX, -6, open), down = lerp(AX, H + 6, open);
+  // outside the lines: the menu; between them: the lobby
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, up); ctx.rect(0, down, W, H - down); ctx.clip();
+  menuTitle(ctx, t, { axisA: 0 }); panel(ctx, ...CARD, "rgba(115,165,255,0.25)"); corners(ctx, CARD); menuCardInside(ctx, pressK(t)); menuSecondary(ctx);
+  ctx.restore();
+  if (open > 0) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, up, W, down - up); ctx.clip();
+    ctx.fillStyle = `rgba(90,150,255,${0.06 * (1 - open)})`; ctx.fillRect(0, up, W, down - up);
+    lobby(ctx, t, { host: back(seg(t, GO + 1.0, GO + 1.3)) });
+    ctx.restore();
+    hostLand(ctx, seg(t, GO + 1.05, GO + 1.55));
+  }
+  // the axis: grows to the screen's width, then two lines run apart with sparks and ticks
+  if (open <= 0) axis(ctx, 640, AX, lerp(380, 700, stretch), t, 1, stretch);
+  else if (open < 1) [up, down].forEach((y, s) => {
+    const fade = 1 - seg(open, 0.75, 1);
+    ctx.save(); ctx.globalAlpha = fade; ctx.shadowColor = "#73a5ff"; ctx.shadowBlur = 16; ctx.fillStyle = "#cfe0ff"; ctx.fillRect(0, y - 1.5, W, 3); ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(140,180,255,0.7)"; for (let x = 16; x < W; x += 24) { const l = (x / 24) % 4 < 1 ? 7 : 3.5; ctx.fillRect(x - 0.6, y - l, 1.2, l * 2); }
+    for (let i = 0; i < 14; i++) { const x = (i * 97 + t * 900 * (s ? 1 : -1)) % W, xx = x < 0 ? x + W : x; ctx.beginPath(); ctx.arc(xx, y + (s ? -4 : 4) * ((i % 3) - 1), 2, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); }
+    ctx.restore();
+  });
+  if (pressK(t) > 0 || (t > PRESS && t < PRESS + 0.4)) ring(ctx, HOSTB[0] + HOSTB[2] / 2, HOSTB[1] + 25, 40 + 60 * seg(t, PRESS, PRESS + 0.4), "#9cc0ff", 1 - seg(t, PRESS, PRESS + 0.4));
+} };
+
+// --- C: the launch in reverse ----------------------------------------------------------------------------
+const C = { draw(ctx, t) {
+  const rip = seg(t, GO - 0.1, GO + 1.1);
+  background(ctx, t, 1 - rip); ripple(ctx, rip, HOSTB[0] + HOSTB[2] / 2, HOSTB[1] + 25);
+  const out = seg(t, GO - 0.05, GO + 0.35);
+  if (out < 1) {
+    part(ctx, { a: 1 - out, dy: -easeIn(out) * 160 }, () => menuTitle(ctx, t));
+    part(ctx, { a: 1 - out, s: lerp(1, 0.86, ease(out)), cx: 640, cy: 358, dy: easeIn(out) * 60 }, () => { panel(ctx, ...CARD, "rgba(115,165,255,0.25)"); corners(ctx, CARD); menuCardInside(ctx, pressK(t)); });
+    part(ctx, { a: 1 - out, dy: easeIn(out) * 200 }, () => menuSecondary(ctx));
+  }
+  const slide = (a, b, dx, dy) => { const k = seg(t, GO + a, GO + b), e = back(k); return { a: Math.min(1, k * 3), dx: (1 - e) * dx, dy: (1 - e) * dy }; };
+  if (t > GO + 0.2) lobby(ctx, t, {
+    title: slide(0.25, 0.7, -480, 0), mode: slide(0.3, 0.75, -480, 0), label: slide(0.34, 0.79, -480, 0), card: slide(0.38, 0.83, -480, 0),
+    slot1: slide(0.42, 0.87, -480, 0), slot2: slide(0.46, 0.91, -480, 0), bg: slide(0.5, 0.95, -480, 0),
+    tabs: slide(0.3, 0.72, 0, -90), load: slide(0.32, 0.82, 880, 0), bl: slide(0.45, 0.88, 0, 110), br: slide(0.5, 0.93, 0, 110),
+    host: back(seg(t, GO + 1.0, GO + 1.3)),
+  });
+  hostLand(ctx, seg(t, GO + 1.05, GO + 1.55));
+  if (t > PRESS && t < PRESS + 0.4) ring(ctx, HOSTB[0] + HOSTB[2] / 2, HOSTB[1] + 25, 40 + 60 * seg(t, PRESS, PRESS + 0.4), "#9cc0ff", 1 - seg(t, PRESS, PRESS + 0.4));
+} };
+
+// --- players: loop, replay, half speed, a still frame when motion is reduced ------------------------------
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function run(id, opt, stillAt) {
+  const cv = document.getElementById(id), ctx = cv.getContext("2d"), tl = document.getElementById("t" + id), sb = document.getElementById("s" + id);
+  let playing = !reduce, speed = 1, last = performance.now(), t = 0;
+  const frame = now => {
+    t += (now - last) / 1000 * speed; last = now;
+    if (t > LEN) { if (reduce) playing = false; else t = 0; }
+    const tt = playing ? Math.min(t, LEN) : stillAt;
+    ctx.clearRect(0, 0, W, H); opt.draw(ctx, tt); tl.textContent = tt.toFixed(1) + " s";
+    if (playing) requestAnimationFrame(frame);
+  };
+  document.getElementById("r" + id).addEventListener("click", () => { t = 0; last = performance.now(); if (!playing) { playing = true; requestAnimationFrame(frame); } });
+  sb.addEventListener("click", () => { speed = speed === 1 ? 0.5 : 1; sb.textContent = speed === 1 ? "Half speed" : "Full speed"; });
+  requestAnimationFrame(frame);
+}
+run("A", A, GO + 0.45); run("B", B, GO + 0.55); run("C", C, GO + 0.5);
+</script>

@@ -678,7 +678,10 @@ class Shot {
         GL.ToUi = true; beginTe.Invoke(app, null);
       }
       else GL.ToUi = true;
-      typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
+      // LOBBYIN=<seconds>: that far into coming in from the main menu (LobbyEnter.cs), instead of the settled lobby.
+      var lobbyIn = Environment.GetEnvironmentVariable("LOBBYIN");
+      if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2).Invoke(app, null); }
+      else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
@@ -818,7 +821,15 @@ class Shot {
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
       typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);
       int pickMark = GUI.Log.Count;
+      // INTRO=<seconds>: the picker that long into its opening (PickIntro.cs); INTROREROLL=1 for a reroll's (cards only).
+      var intro = Environment.GetEnvironmentVariable("INTRO");
+      if (intro != null) {
+        set("offerShownAt", Time.unscaledTime - float.Parse(intro, System.Globalization.CultureInfo.InvariantCulture));
+        set("introFull", Environment.GetEnvironmentVariable("INTROREROLL") == null);
+        GL.ToUi = true; Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
+      }
       typeof(ArenaApp).GetMethod("DrawUpgradePicker", f2).Invoke(app, new object[] { me });
+      GL.ToUi = false;
       // OUTRO=<seconds>: the moment that long after taking the middle card (PickOutro.cs), instead of the picker.
       var outro = Environment.GetEnvironmentVariable("OUTRO");
       if (outro != null) {

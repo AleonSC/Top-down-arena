@@ -1,0 +1,194 @@
+<title>Pillar Foot Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a grid of small animated canvases, each the gold pillar rising out of a character, zoomed in on its foot.
+   Single dark look on purpose: these are mockups of the game's own screen, like the other files in Docs/Mockups. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 78ch; line-height: 1.5; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.controls button { font: 700 14px var(--font-game); color: #fff; background: #2a3044; border: 0; border-radius: 8px; padding: 9px 14px; cursor: pointer; }
+.controls button[aria-pressed="true"] { background: linear-gradient(#5a97ff, #3a6fe0); }
+.controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.controls .time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; margin-left: 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 24px; }
+.opt { display: grid; gap: 8px; min-width: 0; }
+.opt h2 { margin: 0; font-size: 17px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 11px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.tag.now { color: #ff8a8a; }
+canvas { width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 12px 36px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.opt p { color: var(--muted); margin: 0; line-height: 1.5; font-size: 14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Pillar Foot Mockups</h1>
+    <p>The gold pillar that rises out of your character when the picker opens (and lands back on you when you pick) ends in a flat, square edge across the character. Each panel shows a different foot, zoomed in 2.5 times, looping. Every one is built from the same pieces the game already draws (circles, arcs, quads with alpha), so any of them can go straight in.</p>
+  </header>
+  <div class="controls" role="group" aria-label="Playback">
+    <button id="open" aria-pressed="true">Opening pillar (44 px)</button>
+    <button id="close" aria-pressed="false">Close pillar (30 px)</button>
+    <button id="slow" aria-pressed="false">Half speed</button>
+    <button id="pause" aria-pressed="false">Pause</button>
+    <span class="time" id="time"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const OPTS = [
+  { key: "now", tag: "Today", title: "Flat edge", note: "The pillar's bands stop in a straight line across the middle of the character, and the beam is drawn over the body." },
+  { key: "pool", tag: "Option 1", title: "Pool of light", note: "The beam stops behind the character, and its foot spreads into a soft round glow on the floor, with a bright rim. The body is drawn on top, so it stands in the light." },
+  { key: "fade", tag: "Option 2", title: "Soft fade", note: "The last stretch of the beam fades out before it reaches the character, and a halo ring sits around them. No edge at all; the quietest fix." },
+  { key: "ellipse", tag: "Option 3", title: "Splash on the floor", note: "The beam meets the floor in a flattened ellipse, like light hitting the ground at an angle, with a second ring rippling out. Reads as the beam landing on the arena." },
+  { key: "taper", tag: "Option 4", title: "Tapered tip", note: "The beam narrows to a point as it reaches the character, like a spear of light, and a small star flares where it touches." },
+  { key: "round", tag: "Option 5", title: "Rounded cap", note: "The smallest change: the same beam, with a half circle closing its foot and the body drawn over it, so the end is round instead of square." },
+];
+
+const CW = 480, CH = 360, Z = 2.5;              // canvas size; zoom on the character
+const ME = { x: CW / 2, y: CH * 0.68 };           // the character, in canvas pixels
+const BODY = 16;                                  // the body's radius in game pixels
+const LEN = 1.6;                                  // loop: the pillar (0..1 s), then a pause
+let wide = 44, speed = 1, paused = false, t = 0;
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = x => 1 - Math.pow(1 - x, 3);
+const lerp = (a, b, k) => a + (b - a) * k;
+const GOLD = [255, 204, 89];
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${clamp(a, 0, 1)})`;
+
+function floor(ctx) {
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(0, 0, CW, CH);
+  ctx.strokeStyle = "rgba(110,140,220,0.12)"; ctx.lineWidth = 1;
+  const step = 40 * Z, ox = (ME.x % step), oy = (ME.y % step);
+  for (let x = ox; x < CW; x += step) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, CH); ctx.stroke(); }
+  for (let y = oy; y < CH; y += step) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(CW, y + 0.5); ctx.stroke(); }
+}
+/** The character as the game draws a player: dark body, blue rim, aim stub, white dot. */
+function body(ctx) {
+  const r = BODY * Z;
+  ctx.save(); ctx.translate(ME.x, ME.y);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = "#121827"; ctx.fill();
+  ctx.lineWidth = 3 * Z; ctx.strokeStyle = "#5a96ff"; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(Math.cos(-0.6) * 8 * Z, Math.sin(-0.6) * 8 * Z); ctx.lineTo(Math.cos(-0.6) * 26 * Z, Math.sin(-0.6) * 26 * Z); ctx.lineWidth = 5 * Z; ctx.lineCap = "round"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 3 * Z, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+  ctx.restore();
+}
+/** The beam as PickPillar draws it: ten bands, brightest at the foot, a white core. footY: where it stops; taper: 0..1 narrowing at the foot; fadeFoot: px over which the foot fades out. */
+function beam(ctx, k, footY, o = {}) {
+  if (k <= 0 || k >= 1) return;
+  const a = Math.sin(Math.PI * k), w = wide * Z * (1 - k * 0.6), top = lerp(footY, -20, ease(Math.min(1, k * 2.5)));
+  const bands = 10;
+  for (let b = 0; b < bands; b++) {
+    const y0 = lerp(footY, top, b / bands), y1 = lerp(footY, top, (b + 1) / bands), fade = 1 - b / bands;
+    const sub = 6;  // each band split, so a taper or fade can follow the foot smoothly
+    for (let s = 0; s < sub; s++) {
+      const ya = lerp(y0, y1, s / sub), yb = lerp(y0, y1, (s + 1) / sub), dy = footY - (ya + yb) / 2;
+      let ww = w, alpha = 1;
+      if (o.taper) ww = w * clamp(dy / (o.taper * Z), 0, 1);
+      if (o.fadeFoot) alpha = clamp(dy / (o.fadeFoot * Z), 0, 1);
+      if (ww <= 0.2) continue;
+      ctx.fillStyle = rgba(GOLD, 0.6 * a * fade * alpha); ctx.fillRect(ME.x - ww / 2, yb, ww, ya - yb + 0.5);
+      ctx.fillStyle = `rgba(255,255,255,${a * fade * alpha})`; ctx.fillRect(ME.x - ww * 0.12, yb, ww * 0.24, ya - yb + 0.5);
+    }
+  }
+  return { a, w };
+}
+function circle(ctx, x, y, r, fill) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); }
+function ring(ctx, x, y, r, col, lw) { ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke(); }
+/** The soft-edged disc the game draws as a few stacked circles of falling alpha (no gradients in GL). */
+function softDisc(ctx, x, y, r, c, a, sx = 1, sy = 1) {
+  const steps = 6; ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy);
+  for (let i = steps; i >= 1; i--) circle(ctx, 0, 0, r * i / steps, rgba(c, a * 0.28));
+  ctx.restore();
+}
+/** The burst ring the opening already has at your feet. */
+function burst(ctx, k) {
+  const g = clamp((k - 0.05) / 0.95, 0, 1); if (g <= 0 || g >= 1) return;
+  ring(ctx, ME.x, ME.y, (20 + 110 * ease(g)) * Z * (wide / 44), rgba(GOLD, 1 - g), 4 * Z * 0.6);
+}
+
+const DRAW = {
+  now(ctx, k) { floor(ctx); body(ctx); beam(ctx, k, ME.y); burst(ctx, k); },
+  pool(ctx, k) {
+    floor(ctx);
+    const a = Math.sin(Math.PI * clamp(k, 0, 1)), w = wide * Z * (1 - k * 0.6);
+    if (k > 0 && k < 1) { softDisc(ctx, ME.x, ME.y, w * 1.25, GOLD, a * 0.55); ring(ctx, ME.x, ME.y, w * 0.95, rgba([255, 240, 200], a * 0.8), 1.5 * Z); }
+    beam(ctx, k, ME.y);
+    if (k > 0 && k < 1) { circle(ctx, ME.x, ME.y, w * 0.5, rgba(GOLD, 0.5 * a)); circle(ctx, ME.x, ME.y, w * 0.14, `rgba(255,255,255,${a})`); }
+    body(ctx); burst(ctx, k);
+  },
+  fade(ctx, k) {
+    floor(ctx); body(ctx);
+    const s = beam(ctx, k, ME.y - BODY * Z * 0.2, { fadeFoot: 34 });
+    if (s) { ring(ctx, ME.x, ME.y, (BODY + 7) * Z, rgba(GOLD, s.a * 0.85), 2.2 * Z); ring(ctx, ME.x, ME.y, (BODY + 12) * Z, rgba(GOLD, s.a * 0.3), 1.2 * Z); }
+    burst(ctx, k);
+  },
+  ellipse(ctx, k) {
+    floor(ctx);
+    const a = Math.sin(Math.PI * clamp(k, 0, 1)), w = wide * Z * (1 - k * 0.6), fy = ME.y + BODY * Z * 0.55;
+    if (k > 0 && k < 1) {
+      softDisc(ctx, ME.x, fy, w * 1.1, GOLD, a * 0.6, 1, 0.36);
+      ctx.save(); ctx.translate(ME.x, fy); ctx.scale(1, 0.36); ring(ctx, 0, 0, w * 0.75, `rgba(255,245,215,${a})`, 2 * Z); ctx.restore();
+      const g = (k * 2.2) % 1; ctx.save(); ctx.translate(ME.x, fy); ctx.scale(1, 0.36); ring(ctx, 0, 0, w * (0.8 + 1.6 * g), rgba(GOLD, a * (1 - g)), 1.6 * Z); ctx.restore();
+    }
+    beam(ctx, k, fy);
+    if (k > 0 && k < 1) { ctx.save(); ctx.translate(ME.x, fy); ctx.scale(1, 0.36); circle(ctx, 0, 0, w * 0.5, rgba(GOLD, a * 0.85)); circle(ctx, 0, 0, w * 0.13, `rgba(255,255,255,${a})`); ctx.restore(); }
+    body(ctx); burst(ctx, k);
+  },
+  taper(ctx, k) {
+    floor(ctx); body(ctx);
+    const s = beam(ctx, k, ME.y, { taper: 46 });
+    if (s) { const r = 9 * Z * (0.6 + 0.4 * s.a); ctx.save(); ctx.globalAlpha = s.a; ctx.fillStyle = "#fff";
+      ctx.beginPath(); for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4 + k * 2, rr = i % 2 ? r * 0.28 : r; ctx.lineTo(ME.x + Math.cos(an) * rr, ME.y + Math.sin(an) * rr); } ctx.closePath(); ctx.fill();
+      circle(ctx, ME.x, ME.y, r * 0.9, rgba(GOLD, 0.35)); ctx.restore(); }
+    burst(ctx, k);
+  },
+  round(ctx, k) {
+    floor(ctx);
+    const s = beam(ctx, k, ME.y);
+    if (s) {  // a half circle closing the foot, in the same two layers as the beam
+      ctx.save(); ctx.beginPath(); ctx.arc(ME.x, ME.y, s.w / 2, 0, Math.PI); ctx.fillStyle = rgba(GOLD, 0.6 * s.a); ctx.fill();
+      ctx.beginPath(); ctx.arc(ME.x, ME.y, s.w * 0.12, 0, Math.PI); ctx.fillStyle = `rgba(255,255,255,${s.a})`; ctx.fill(); ctx.restore();
+    }
+    body(ctx); burst(ctx, k);
+  },
+};
+
+const grid = document.getElementById("grid"), ctxs = [];
+OPTS.forEach(o => {
+  const el = document.createElement("section"); el.className = "opt";
+  el.innerHTML = `<h2><span class="tag ${o.key === "now" ? "now" : ""}">${o.tag}</span>${o.title}</h2><canvas width="${CW}" height="${CH}" aria-label="${o.title}: the pillar's foot on the character"></canvas><p>${o.note}</p>`;
+  grid.appendChild(el); ctxs.push([el.querySelector("canvas").getContext("2d"), DRAW[o.key]]);
+});
+
+const btn = id => document.getElementById(id);
+function press(on, off) { btn(on).setAttribute("aria-pressed", "true"); btn(off).setAttribute("aria-pressed", "false"); }
+btn("open").onclick = () => { wide = 44; press("open", "close"); };
+btn("close").onclick = () => { wide = 30; press("close", "open"); };
+btn("slow").onclick = () => { speed = speed === 1 ? 0.5 : 1; btn("slow").setAttribute("aria-pressed", String(speed !== 1)); };
+btn("pause").onclick = () => { paused = !paused; btn("pause").setAttribute("aria-pressed", String(paused)); btn("pause").textContent = paused ? "Play" : "Pause"; };
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduce) { paused = true; t = 0.35; btn("pause").setAttribute("aria-pressed", "true"); btn("pause").textContent = "Play"; }
+let last = performance.now();
+function frame(now) {
+  if (!paused) t = (t + (now - last) / 1000 * speed) % LEN;
+  last = now;
+  const k = clamp(t / 1.0, 0, 1);
+  ctxs.forEach(([ctx, draw]) => draw(ctx, k));
+  btn("time").textContent = t.toFixed(2) + " s";
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>

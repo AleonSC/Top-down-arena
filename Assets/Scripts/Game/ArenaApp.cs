@@ -299,6 +299,7 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
             hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
@@ -307,9 +308,12 @@ namespace Arena
                 SaveAudioSettings();
             }
 
-            if (choosing && !tabHeld)
+            if (choosing && !tabHeld && !PickOutroPlaying)
             {
                 SyncSelection(me);
+            }
+            if (choosing && !tabHeld && !PickOutroPlaying && !PickIntroPlaying(me))  // the cards are still flying out (PickIntro.cs)
+            {
                 for (int k = 0; k < CardKeys.Length; k++)
                     if (Input.GetKeyDown(CardKeys[k]) && k < me.Offer.Length && selectedCard != k)
                     {
@@ -426,7 +430,10 @@ namespace Arena
             string key = me.Offer == null ? "" : string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count;
             if (key != shownOffer)
             {
+                // The same picks taken and different cards: a reroll (the opening skips its fanfare; PickIntro.cs).
+                bool reroll = shownOffer.Length > 0 && key.Length > 0 && shownOffer.Substring(shownOffer.LastIndexOf('/')) == key.Substring(key.LastIndexOf('/'));
                 shownOffer = key;
+                StartPickIntro(reroll);
                 selectedCard = -1;
                 offerShownAt = Time.unscaledTime;
             }
@@ -434,10 +441,10 @@ namespace Arena
 
         void ConfirmPick()
         {
-            if (selectedCard < 0 || game.RerollPending || PickOutroPlaying)
-                return;
             var me = game.Me;
-            StartPickOutro(me, selectedCard);  // the unpicked cards shatter, the picked one flies into you (PickOutro.cs)
+            if (selectedCard < 0 || game.RerollPending || PickOutroPlaying || PickIntroPlaying(me))
+                return;
+            StartPickOutro(me, selectedCard);  // the cards fly back into you, yours last (PickOutro.cs)
             int key = 0;
             if (me != null && me.Offer != null && selectedCard < me.Offer.Length && Upgrades.All[me.Offer[selectedCard]].Grants != AbilityId.None)
                 key = pickKey;
@@ -502,7 +509,9 @@ namespace Arena
                     break;
                 case AppScreen.Lobby:
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
-                    if (!settingsOpen || Event.current.type == EventType.Repaint)
+                    if (LobbyEntering)
+                        DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
+                    else if (!settingsOpen || Event.current.type == EventType.Repaint)
                         DrawLobby();
                     if (settingsOpen)
                     {
@@ -517,7 +526,7 @@ namespace Arena
                     DrawHud();
                     DrawLaunchWave();    // WAVE 1 popping in as a launched run's fight starts (LaunchIntro.cs)
                     DrawLobbyLeaving();  // the lobby sliding away as the run launches (LaunchIntro.cs)
-                    DrawPickOutro();  // an upgrade just taken: shards and the card flying into you (PickOutro.cs)
+                    DrawPickOutro();  // an upgrade just taken: the cards flying back into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();
                     if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen)
