@@ -213,7 +213,7 @@ namespace Arena
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
             Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_back", "ui_power" };
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line, how to play", "Every enemy, boss, class, weapon, ability and upgrade",
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade",
                 session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
             float y = 128f;
             for (int i = 0; i < LobbyChoices.Length; i++)
@@ -478,24 +478,19 @@ namespace Arena
 
         // --- Settings ---------------------------------------------------------------------------------------------------
 
-        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay", "How to play" };
-        const int SettingsHowTo = 3;  // How to play: the drawer turns into its topics, Back returns to the groups
+        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay" };
 
         /// Settings (main menu, lobby, and the pause menu's Settings): the groups and quick switches in the drawer, the
         /// open group on the right. Visual effects shows a live preview of what they do.
         void DrawSettingsWindow(bool paused)
         {
             float t = Time.unscaledTime;
-            float k = DrawerIn(paused ? "pause-settings" : "settings", !paused);
-            if (settingsGroup == SettingsHowTo)
-            {
-                DrawHowToContent(k, t, "Back to settings", () => settingsGroup = 0);
-                return;
-            }
+            float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
+            settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
-            string[] icons = { "pulse", "nova", "crosshair", "ui_help" };
-            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(0.7f, 0.8f, 1f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD", "Controls and tips" };
+            string[] icons = { "pulse", "nova", "crosshair" };
+            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f) };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD" };
             float y = 128f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -864,7 +859,7 @@ namespace Arena
             DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => CloseWindow(() => howToOpen = false));
         }
 
-        /// How to play (in Settings, or on its own): its topics in the drawer, the open
+        /// How to play (from the main menu): its topics in the drawer, the open
         /// topic on the right. `back` is what its Back button does.
         void DrawHowToContent(float k, float t, string backLabel, System.Action back)
         {

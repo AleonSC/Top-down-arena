@@ -216,8 +216,8 @@ namespace Arena
             // match, or from Settings.
             if (session.Screen == AppScreen.Game)
                 settingsOpen = false;
-            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : !settingsOpen && !lobbyMenuOpen)
-                fieldGuideOpen = false;  // (the Field guide opens from the pause menu, or the lobby's menu)
+            if (session.Screen == AppScreen.Game ? !pauseMenuOpen && !game.Paused : session.Screen == AppScreen.Lobby && !lobbyMenuOpen)
+                fieldGuideOpen = false;  // (the Field guide opens from the pause menu, the lobby's menu, or the main menu)
             if (session.Screen != AppScreen.Lobby)
                 lobbyMenuOpen = false;
             if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
@@ -514,8 +514,8 @@ namespace Arena
             switch (session.Screen)
             {
                 case AppScreen.Menu:
-                    if (settingsOpen && fieldGuideOpen)
-                        DrawFieldGuideScreen();  // FieldGuide.cs
+                    if (fieldGuideOpen)
+                        DrawFieldGuideScreen();  // FieldGuide.cs (the main menu's button)
                     else if (settingsOpen)
                         DrawSettings();
                     else if (howToOpen)

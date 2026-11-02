@@ -798,11 +798,13 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **Field guide**, **Leave to main menu** (the host leaving closes the lobby for everyone) and
   **Quit game**. The lobby has no Leave button or settings cog any more; its bottom bar is just **Ready** and
   **Start** (host), side by side in the middle, with who you're waiting on to their left.
+- **The main menu** has **Field guide** with **How to play** under it, and **Settings** with **Quit** under it (below
+  Continue a run and Records).
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
   **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
   **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots
-  and a hit, its number, an ability's name, a blast and its shake) **Gameplay** (aim line, show the HUD) and
-  **How to play** (below). Mute and Aim line are also quick switches under the groups.
+  and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the HUD). Mute
+  and Aim line are also quick switches under the groups.
 - **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
   won) and Unlocks.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The

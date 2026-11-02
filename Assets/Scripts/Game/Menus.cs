@@ -76,8 +76,14 @@ namespace Arena
             if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t) && live)
                 recordsOpen = true;
             by += 54f;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
-                settingsOpen = true;  // (How to play and the Field guide are in Settings: MenuDrawer.cs)
+            // The Field guide (FieldGuide.cs) with How to play under it; Settings with Quit under it.
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t) && live)
+                OpenFieldGuide();
+            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
+                settingsOpen = true;
+            by += 54f;
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "How to play", new Color(0.3f, 0.45f, 0.75f), PixelArt.Get("ui_help"), t) && live)
+                howToOpen = true;  // (MenuDrawer.cs)
             if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
                 Application.Quit();
         }

@@ -862,7 +862,6 @@ namespace Arena
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
             // Leaving, Settings and the Field guide are in the menu Esc opens (MenuDrawer.cs); Ready and Start sit in the middle.
-            Ui.Label(new Rect(40f, H - 56f, 260f, 26f), "Esc  ·  menu", 12, Ui.Muted, TextAnchor.MiddleLeft, true);
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W / 2f - 260f : W / 2f - 120f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
