@@ -11,9 +11,8 @@ namespace Arena
         void DrawMenu()
         {
             float t = Time.unscaledTime;
-            Ui.Fancy(new Rect(0, 64f, W, 76f), "CARTESIAN COLOSSEUM", 58, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
-
-            var card = new Rect(W / 2f - 250f, 200f, 500f, 316f);
+            DrawMenuTitle();
+            var card = MenuCard;
             Ui.Panel(card, true);
             if (BeginUiGl())
             {
@@ -21,6 +20,23 @@ namespace Arena
                 DrawPlotCorners(card, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f));
                 EndUiGl();
             }
+            DrawMenuCardInside(t, true);
+            DrawMenuSecondary(t, true);
+        }
+
+        static readonly Rect MenuCard = new Rect(W / 2f - 250f, 200f, 500f, 316f);
+
+        void DrawMenuTitle()
+        {
+            Ui.Fancy(new Rect(0, 64f, W, 76f), "CARTESIAN COLOSSEUM", 58, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
+        }
+
+        /// The menu card's fields and buttons. live = false draws them only (Repaint), for the move into the lobby (LobbyEnter.cs).
+        void DrawMenuCardInside(float t, bool live)
+        {
+            if (!live && Event.current.type != EventType.Repaint)
+                return;
+            var card = MenuCard;
             float x = card.x + 32f, w = card.width - 64f, y = card.y + 26f;
             Ui.Heading(x, y, w, "Your name");
             nameText = Ui.Field(new Rect(x, y + 28f, w, 38f), nameText, 16);
@@ -30,7 +46,7 @@ namespace Arena
             addressText = Ui.Field(new Rect(x, y + 28f, w - 130f, 38f), addressText, 64);
             portText = Ui.Field(new Rect(x + w - 110f, y + 28f, 110f, 38f), portText, 5);
             y += 94f;
-            if (session.Connecting)
+            if (session.Connecting && live)
             {
                 Ui.Label(new Rect(x, y, w, 44f), session.Status, 15, Ui.Muted, TextAnchor.MiddleCenter);
                 if (Ui.FancyButton(new Rect(x + w / 2f - 90f, y + 52f, 180f, 44f), "Cancel", Ui.Danger, PixelArt.Get("ui_back"), t))
@@ -38,33 +54,39 @@ namespace Arena
             }
             else
             {
-                if (Ui.FancyButton(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary, PixelArt.Get("ui_play"), t))
+                if (Ui.FancyButton(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary, PixelArt.Get("ui_play"), t) && live)
                     HostGame();
-                if (Ui.FancyButton(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t))
+                if (Ui.FancyButton(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t) && live)
                     session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
-                if (session.Status.Length > 0)
+                if (session.Status.Length > 0 && live)
                     Ui.Label(new Rect(x - 10f, y + 58f, w + 20f, 50f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
             }
+        }
 
-            float by = card.yMax + 24f;
+        /// The buttons under the menu card. live = false draws them only (Repaint), for the move into the lobby.
+        void DrawMenuSecondary(float t, bool live)
+        {
+            if (!live && Event.current.type != EventType.Repaint)
+                return;
+            float by = MenuCard.yMax + 24f;
             // Saved runs and records (SavesUi.cs).
             int saved = savedRunsCount;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t))
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t) && live)
                 OpenContinue();
-            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t))
+            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t) && live)
                 recordsOpen = true;
             by += 54f;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 160f, 42f), "How to play", Ui.Neutral, PixelArt.Get("ui_help"), t))
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 160f, 42f), "How to play", Ui.Neutral, PixelArt.Get("ui_help"), t) && live)
                 howToOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f - 80f, by, 160f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t))
+            if (Ui.FancyButton(new Rect(W / 2f - 80f, by, 160f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
                 settingsOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f + 90f, by, 160f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t))
+            if (Ui.FancyButton(new Rect(W / 2f + 90f, by, 160f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
                 Application.Quit();
         }
 
         /// A glowing x-axis under a title: ticks (a long one every fourth), arrowheads, a pulsing origin and
         /// sparks running outward. Call between BeginUiGl and EndUiGl (UI canvas coordinates).
-        void DrawAxis(V2 o, float half, float t)
+        void DrawAxis(V2 o, float half, float t, float alpha = 1f)
         {
             UiModelAt(V2.Zero, 1f);
             var c = new Rgba(0.45f, 0.65f, 1f);
@@ -75,8 +97,8 @@ namespace Arena
                 for (int side = -1; side <= 1; side += 2)
                 {
                     V2 p0 = o + new V2(side * half * a, 0f), p1 = o + new V2(side * half * b, 0f);
-                    Line(p0, p1, 6f, c.WithAlpha(0.06f * fade));
-                    Line(p0, p1, 1.5f, c.WithAlpha(0.6f * fade));
+                    Line(p0, p1, 6f, c.WithAlpha((0.06f * fade) * alpha));
+                    Line(p0, p1, 1.5f, c.WithAlpha((0.6f * fade) * alpha));
                 }
             }
             for (int k = 1; k * 24f < half - 10f; k++)
@@ -85,21 +107,21 @@ namespace Arena
                 for (int side = -1; side <= 1; side += 2)
                 {
                     V2 p = o + new V2(side * k * 24f, 0f);
-                    Line(p - new V2(0f, len), p + new V2(0f, len), 1.2f, c.WithAlpha(0.55f * fade));
+                    Line(p - new V2(0f, len), p + new V2(0f, len), 1.2f, c.WithAlpha((0.55f * fade) * alpha));
                 }
             }
             for (int side = -1; side <= 1; side += 2)  // arrowheads
             {
                 V2 tip = o + new V2(side * (half + 10f), 0f);
-                SetColor(c.WithAlpha(0.5f));
+                SetColor(c.WithAlpha((0.5f) * alpha));
                 Tri(tip, tip - new V2(side * 10f, 5f), tip - new V2(side * 10f, -5f));
                 float f = MathX.Fmod(t * 0.45f, 1f);  // a spark running out along the axis
-                Circle(o + new V2(side * half * f, 0f), 2.2f, Rgba.White.WithAlpha(0.8f * (1f - f)), 10);
+                Circle(o + new V2(side * half * f, 0f), 2.2f, Rgba.White.WithAlpha((0.8f * (1f - f)) * alpha), 10);
             }
             float pulse = MathX.Fmod(t * 0.8f, 1f);
-            Arc(o, 5f + 14f * pulse, 1.5f, c.WithAlpha(0.7f * (1f - pulse)), 24);
-            Circle(o, 8f, c.WithAlpha(0.18f), 20);
-            Circle(o, 3.5f, new Rgba(0.85f, 0.92f, 1f), 14);
+            Arc(o, 5f + 14f * pulse, 1.5f, c.WithAlpha((0.7f * (1f - pulse)) * alpha), 24);
+            Circle(o, 8f, c.WithAlpha((0.18f) * alpha), 20);
+            Circle(o, 3.5f, new Rgba(0.85f, 0.92f, 1f, alpha), 14);
         }
 
         /// Corner brackets just outside a panel, like the frame of a plot.

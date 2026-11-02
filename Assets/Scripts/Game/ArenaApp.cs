@@ -299,6 +299,7 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
             hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
@@ -508,7 +509,9 @@ namespace Arena
                     break;
                 case AppScreen.Lobby:
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
-                    if (!settingsOpen || Event.current.type == EventType.Repaint)
+                    if (LobbyEntering)
+                        DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
+                    else if (!settingsOpen || Event.current.type == EventType.Repaint)
                         DrawLobby();
                     if (settingsOpen)
                     {
