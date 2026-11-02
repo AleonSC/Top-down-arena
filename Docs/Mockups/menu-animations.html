@@ -1,0 +1,459 @@
+<title>Menu Drawer Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+
+/* Layout: per option, a switch (Pause / Records / How to play) over one 1280x720 game screen scaled to the page width,
+   notes beneath. Single dark look on purpose: these are mockups of the game's own screens. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --panel: #151a26;
+  --panel-hi: #1c2232;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --red: #ff6470;
+  --violet: #a77bff;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 76ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.seg { display: inline-flex; background: #141926; border-radius: 9px; padding: 3px; gap: 3px; box-shadow: inset 0 0 0 1px var(--line); margin-left: auto; }
+.seg button { font: 700 13px var(--font-game); color: var(--muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #3a6fe0; color: #fff; }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+
+.screen-box { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); max-width: 100%; }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; color: var(--ink); overflow: hidden; }
+.screen[hidden] { display: none !important; }
+.screen > * { position: absolute; z-index: 1; }
+/* Behind a pause menu: the frozen arena, its HUD faintly there. */
+.bg-game { background:
+    radial-gradient(circle at 30% 60%, rgba(255,120,60,0.10), transparent 25%),
+    radial-gradient(circle at 72% 30%, rgba(120,90,255,0.12), transparent 28%),
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 51px 51px,
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 51px 51px, #0b0d14; }
+.bg-game::before { content: ""; position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(circle at 26% 58%, #5a96ff 0 7px, transparent 8px), radial-gradient(circle at 36% 60%, #ff9a4a 0 7px, transparent 8px),
+    radial-gradient(circle at 60% 34%, #ff5a5a 0 9px, transparent 10px), radial-gradient(circle at 80% 70%, #b473ff 0 9px, transparent 10px),
+    radial-gradient(circle at 50% 22%, #ff6a9a 0 3px, transparent 4px), radial-gradient(circle at 54% 28%, #ff6a9a 0 3px, transparent 4px), radial-gradient(circle at 58% 20%, #ff6a9a 0 3px, transparent 4px); }
+.bg-game::after { content: ""; position: absolute; inset: 0; z-index: 0; background: rgba(3,4,9,0.72); }
+/* Behind Records and How to play: the menu background (a starfield). */
+#C-pause.bg-game::after { background: rgba(3,4,9,0.38); }
+.bg-menu { background:
+    radial-gradient(ellipse at 50% 40%, rgba(60,80,150,0.28), transparent 62%),
+    radial-gradient(1.5px 1.5px at 12% 20%, #c9d6ff, transparent), radial-gradient(1.5px 1.5px at 82% 14%, #c9d6ff, transparent),
+    radial-gradient(1.5px 1.5px at 66% 76%, #c9d6ff, transparent), radial-gradient(1.5px 1.5px at 30% 86%, #c9d6ff, transparent),
+    radial-gradient(1px 1px at 46% 32%, #c9d6ff, transparent), radial-gradient(1px 1px at 92% 52%, #c9d6ff, transparent), #090b12; }
+.bg-menu::after { content: ""; position: absolute; inset: 0; z-index: 0; background: rgba(3,4,9,0.35); }
+
+/* Game pieces */
+.fancy { position: relative; font-weight: 900; color: transparent; white-space: nowrap; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c, #9cc0ff) 45%, transparent)) drop-shadow(0 2px 0 rgba(0,0,0,0.6)); }
+.fancy::before, .fancy::after { content: attr(data-text); position: absolute; inset: 0; }
+.fancy::before { color: #0b1020; -webkit-text-stroke: 5px #0b1020; }
+.fancy::after { background: linear-gradient(#ffffff 35%, var(--c, #9cc0ff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-sizing: border-box; }
+.win { background: linear-gradient(#171c2a, #121621); border: 1px solid rgba(120,150,255,0.28); border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); box-sizing: border-box; }
+.sec { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; border-radius: 6px; padding: 4px 9px; }
+.key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; background: #2a3146; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.45); font-size: 11px; font-weight: 800; color: #c9d3ea; box-sizing: border-box; }
+canvas.px { image-rendering: pixelated; display: block; }
+.fbtn { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 18px 0 8px; border-radius: 10px; font-size: 18px; font-weight: 800; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,0.5); background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.35); box-sizing: border-box; }
+.fbtn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,0.18); display: grid; place-items: center; flex: none; }
+.fbtn small { font-size: 12px; opacity: 0.75; font-weight: 700; margin-left: auto; }
+.blue { --b1: #5a97ff; --b2: #3a6fe0; } .gray { --b1: #4a5470; --b2: #343c54; } .gold { --b1: #e6ad3a; --b2: #b47e14; }
+.red { --b1: #d0606a; --b2: #a43d48; } .violet { --b1: #8f6be8; --b2: #6440c0; } .teal { --b1: #3fb7a6; --b2: #2a8476; }
+.bar4 { height: 5px; border-radius: 3px; background: #0b0f1a; position: relative; overflow: hidden; }
+.bar4 > i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.hatch { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 9px); }
+.brk { --bc: var(--blue); }
+.brk::before { content: ""; position: absolute; inset: -6px; pointer-events: none;
+  background: linear-gradient(var(--bc), var(--bc)) top left / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top left / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top right / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top right / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom left / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom right / 3px 20px no-repeat; }
+.selbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--sc), transparent); }
+.row { display: flex; align-items: center; }
+/* Settings controls: a slider (track, fill, knob), a switch, and Off / Low / Full. */
+.sl { position: relative; height: 8px; border-radius: 4px; background: #0b0f1a; box-shadow: inset 0 0 0 1px var(--line); }
+.sl > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: linear-gradient(90deg, #3a6fe0, #7fb0ff); }
+.sl > b { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #e9efff; box-shadow: 0 0 0 3px #3a6fe0, 0 2px 6px rgba(0,0,0,0.5); }
+.sw { flex: none; width: 44px; height: 24px; border-radius: 12px; background: #2a3146; position: relative; box-shadow: inset 0 0 0 1px var(--line); }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #8d97b2; transition: left .2s; }
+.sw.on { background: linear-gradient(#5a97ff, #3a6fe0); } .sw.on::after { left: 23px; background: #fff; }
+.tri { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: #0f131d; box-shadow: inset 0 0 0 1px var(--line); }
+.tri span { flex: 1; text-align: center; font-size: 13px; font-weight: 800; color: #8d97b2; padding: 6px 0; border-radius: 7px; }
+.tri span.on { background: linear-gradient(#5a97ff, #3a6fe0); color: #fff; }
+.col { display: flex; flex-direction: column; }
+@media (prefers-reduced-motion: no-preference) {
+  .shine { position: relative; overflow: hidden; }
+  .shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.13) 50%, transparent 60%); background-size: 260% 100%; animation: shine 3.4s linear infinite; pointer-events: none; }
+  @keyframes shine { from { background-position: 130% 0; } to { background-position: -130% 0; } }
+  .float { animation: float 3s ease-in-out infinite; } @keyframes float { 50% { transform: translateY(-4px); } }
+  .screen:not([hidden]) .in { animation: rise 0.45s cubic-bezier(.2,.9,.3,1.15) both; animation-delay: calc(var(--i, 0) * 60ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+}
+
+/* This page: each screen is a looping clip, with a time readout and replay. */
+.time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 9ch; }
+.ctl { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.ctl button { font: 700 13px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+.ctl button.slow[aria-pressed="true"] { background: linear-gradient(#e6ad3a, #b47e14); }
+.ctl button.slow { background: #2a3146; }
+.screen > .layer { position: absolute; inset: 0; }
+.drawer { position: absolute; left: 0; top: 0; width: 420px; height: 720px; transform-origin: 0 50%; }
+.drawer-bg { position: absolute; inset: 0; background: linear-gradient(90deg, #121726 80%, #121726ee); border-right: 1px solid rgba(120,150,255,0.3); box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
+.drawer > * { position: absolute; }
+.drow { position: absolute; left: 28px; width: 364px; height: 54px; display: flex; align-items: center; gap: 14px; padding: 0 14px; box-sizing: border-box; border-radius: 10px; }
+.drow .ic { width: 36px; display: grid; place-items: center; }
+.drow .nm { font-size: 18px; font-weight: 800; color: #c9d3ea; }
+.drow .ln { font-size: 12px; color: var(--muted); display: none; }
+.drow.on { background: linear-gradient(90deg, var(--rc, #5a97ff)40, transparent); box-shadow: inset 3px 0 0 var(--rc, #5a97ff); }
+.drow.on .nm { color: #fff; font-size: 20px; text-shadow: 0 0 10px var(--rc); }
+.drow.on .ln { display: block; }
+.selbar2 { position: absolute; left: 28px; width: 364px; height: 54px; border-radius: 10px; background: linear-gradient(90deg, #5a97ff44, transparent); box-shadow: inset 3px 0 0 #8fb6ff; }
+.scan { position: absolute; inset: 0; background: repeating-linear-gradient(transparent 0 2px, rgba(255,255,255,0.05) 2px 3px); pointer-events: none; }
+.edge { position: absolute; top: 0; width: 4px; height: 720px; background: #bcd6ff; box-shadow: 0 0 30px 10px rgba(140,180,255,0.7); }
+.brk4 { position: absolute; width: 20px; height: 20px; border-color: #ffcc59; border-style: solid; border-width: 0; }
+.cursor { position: absolute; width: 16px; height: 22px; z-index: 30; pointer-events: none; }
+.cursor::before { content: ""; position: absolute; inset: 0; background: #fff; clip-path: polygon(0 0, 0 100%, 28% 76%, 48% 100%, 62% 94%, 44% 70%, 80% 70%); filter: drop-shadow(0 1px 1px #000); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Menu Drawer Animations</h1>
+    <p>Four ways to animate the new side-drawer menus. Each clip runs the same story on a loop: the pause menu opens, the highlight moves down to Settings, Settings opens in the drawer, it goes back, and the menu closes. The opening style also applies to Settings, Records and How to play from the main menu, and the section change to every window. Use 0.5× to slow a clip down.</p>
+  </header>
+    <section class="option">
+    <div class="bar"><h2><span class="tag">Option A</span>Slide and stagger</h2>
+      <div class="ctl"><span class="time" id="tA"></span><button class="slow" id="sA" aria-pressed="false">0.5×</button><button id="rA">Replay</button></div></div>
+    <div class="screen-box" id="boxA"><div class="screen"></div></div>
+    <ul class="notes"><li>The drawer slides in from the left; its rows follow one after another, the underline draws across, the party rises and the run card drops in with a small bounce.</li><li>A section change slides the old rows out to the left and the new ones in from the right; the right-hand panel swaps with a short slide.</li><li>Closing slides the drawer back out. The plainest and quickest to read; the same opening suits Settings, Records and How to play from the main menu.</li></ul>
+  </section>
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option B</span>Glitch in</h2>
+      <div class="ctl"><span class="time" id="tB"></span><button class="slow" id="sB" aria-pressed="false">0.5×</button><button id="rB">Replay</button></div></div>
+    <div class="screen-box" id="boxB"><div class="screen"></div></div>
+    <ul class="notes"><li>Builds on today's signal-glitch opening: the drawer flickers on with red and cyan fringes and a little shake, scanlines roll in, PAUSED types itself out, and the run card is revealed top to bottom.</li><li>A section change glitches across: the panels jitter sideways with a colour split for a moment as they swap.</li><li>Closing squashes the whole thing to a thin line and off, like an old screen switching off.</li></ul>
+  </section>
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option C</span>Unfold</h2>
+      <div class="ctl"><span class="time" id="tC"></span><button class="slow" id="sC" aria-pressed="false">0.5×</button><button id="rC">Replay</button></div></div>
+    <div class="screen-box" id="boxC"><div class="screen"></div></div>
+    <ul class="notes"><li>A line of light sweeps across from the left edge and the drawer unfolds behind it; the contents fade in once it's open. The run card's corner brackets fly out from its middle to its corners, then the card fills in.</li><li>The highlight glides smoothly from row to row instead of jumping. A section change folds the run card shut and the next panel unfolds in its place.</li><li>Closing folds the drawer back into the line at the edge.</li></ul>
+  </section>
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option D</span>Camera push</h2>
+      <div class="ctl"><span class="time" id="tD"></span><button class="slow" id="sD" aria-pressed="false">0.5×</button><button id="rD">Replay</button></div></div>
+    <div class="screen-box" id="boxD"><div class="screen"></div></div>
+    <ul class="notes"><li>The arena pulls back a little, blurs and loses some colour while the drawer swings in from the side in 3D; the run card pops in.</li><li>A section change flips the right-hand panel over like a card, with Settings on its back.</li><li>Closing runs it backwards: the camera pushes back in. The most cinematic, and it makes clear the game is on hold behind the menu.</li></ul>
+  </section>
+
+</div>
+
+<script>
+const ICONS = {"pal":{"k":"#14141e","w":"#ffffff","g":"#bec6d7","G":"#6e768a","y":"#ffd750","Y":"#e18c28","o":"#ff8c28","r":"#f04040","R":"#961e28","p":"#ff80b4","b":"#5a96ff","B":"#284bb4","c":"#8ce6ff","n":"#64e664","N":"#288c41","v":"#b473ff","V":"#6432a5","m":"#9b6441","M":"#5a371e",".":null},"icons":{"ui_play":["............","..ww........","..www.......","..wwww......","..wwwww.....","..wwwwww....","..wwwwww....","..wwwww.....","..wwww......","..www.......","..ww........","............"],"ui_trophy":["............","..yyyyyyyy..","yyywyyyyyyyy","y.ywyyyyyY.y","y.ywyyyyyY.y",".yyyyyyyyYy.","...yyyyyY...",".....yY.....",".....yY.....","....yyyY....","...YYYYYY...","............"],"ui_book":["............","............",".bbbb..bbbb.","bwwwwbbwwwwb","bwGGwbbwGGwb","bwwwwbbwwwwb","bwGGwbbwGGwb","bwwwwbbwwwwb","bbbbbbbbbbbb",".....bb.....","............","............"],"ui_gear":["............",".....ww.....","..ww.ww.ww..","..wwwwwwww..","...ww..ww...",".www....www.",".www....www.","...ww..ww...","..wwwwwwww..","..ww.ww.ww..",".....ww.....","............"],"ui_power":["............",".....ww.....","..w..ww..w..",".ww..ww..ww.",".w...ww...w.",".w........w.",".w........w.",".ww......ww.","..ww....ww..","...wwwwww...","............","............"],"ui_back":["............","............",".....w......","....ww......","...www......","..wwwwwwwww.","..wwwwwwwww.","...www......","....ww......",".....w......","............","............"],"ui_help":["............","....wwww....","...ww..ww...","...ww..ww...",".......ww...","......ww....",".....ww.....",".....ww.....","............",".....ww.....",".....ww.....","............"],"ui_star":["............",".....ww.....",".....ww.....","....wwww....","wwwwwwwwwwww",".wwwwwwwwww.","..wwwwwwww..","..wwwwwwww..",".wwww..wwww.",".www....www.",".ww......ww.","............"],"ui_skull":["............","...wwwwww...","..wwwwwwww..",".wwwwwwwwww.",".ww..ww..ww.",".ww..ww..ww.",".wwwwwwwwww.","..wwww.www..","...wwwwww...","...w.ww.w...","...wwwwww...","............"],"ui_check":["............","..........ww",".........www","........www.",".......www..","ww....www...","www..www....",".wwwwww.....","..wwww......","...ww.......","............","............"],"ui_lock":["............","....kkkk....","...kwwwwk...","...kwkkwk...","...kwkkwk...","..kkkkkkkk..","..kwwwwwwk..","..kwwkkwwk..","..kwwkkwwk..","..kwwwwwwk..","..kkkkkkkk..","............"],"ui_coin":["............","...kkkkkk...","..kyyyyyyk..",".kyywyyyyYk.",".kywyyyyyYk.",".kyyyYYyyYk.",".kyyyYYyyYk.",".kyyyyyyyYk.",".kYyyyyyYYk.","..kYYYYYYk..","...kkkkkk...","............"],"ui_arrow":["............","............","......w.....","......ww....","......www...",".wwwwwwwww..",".wwwwwwwww..","......www...","......ww....","......w.....","............","............"],"class_soldier":["............","............","....kkkk....","..kkNNNNkk..",".kNnNNNNNNk.",".kNnNNNNNNk.","kNNNNNNNNNNk","kkkkkkkkkkkk",".k.k....k.k.","..kMk..kMk..","...kMMMMk...","....kkkk...."],"class_elementalist":[".....k......","....kok.....","....kok..k..","...koyok.kk.","..koyyok.kok","..koyyyokkok",".koyywyyokok",".koywwyyyok.",".koywwwyyok.","..koyyyyok..","...kooook...","....kkkk...."],"class_summoner":["....kkkk....","..kkcccckk..",".kwccccccck.",".kcckcckcck.",".kcckcckcck.",".kcccccccck.",".kcccccccck.",".kcccccccck.",".kcccccccck.",".kckkcckkck.",".kk..kk..kk.","............"],"class_knight":["...kkkkkk...","..kggggggk..",".kgwggggggk.",".kgwggggggk.",".kkkkkkkkkk.",".kgwgkkggGk.",".kgggkkggGk.",".kgggkkggGk.",".kgggggggGk.",".kGgggggGGk.","..kGGGGGGk..","...kkkkkk..."],"class_ninja":["...kkkkkk...","..kGGGGGGk..",".kGGGGGGGGk.",".krrrrrrrrkr",".kGGGGGGGGrk",".kkwkGGkwkk.",".kGGGGGGGGk.",".kGGGGGGGGk.",".kGGGGGGGGk.","..kGGGGGGk..","...kkkkkk...","............"],"class_hemomancer":[".....kk.....",".....kk.....","....krrk....","....krrk....","...krrrrk...","..krwrrrrk..","..krwrrrrk..",".krwrrrrrRk.",".krrrrrrrRk.",".kRrrrrrRRk.","..kRRRRRRk..","...kkkkkk..."],"role_tank":["..kkkkkkkk..",".kbbbbbbbbk.",".kbwbbbbbbk.",".kbwbbbbbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kBbbbbbbBk.","..kBbbbbBk..","..kBbbbbBk..","...kBbbBk...","....kBBk....",".....kk....."],"role_healer":["....kkkk....","....knnk....","....kwnk....","....knnk....","kkkkknnkkkkk","knwnnnnnnnnk","knnnnnnnnnNk","kkkkknNkkkkk","....knNk....","....knNk....","....kNNk....","....kkkk...."],"role_dps":["..........kk",".........kwk","........kwgk",".......kwgk.","......kwgk..",".....kwgk...","..k..kgk....","..kkkgk.....","...kok......","..kok.kk....",".kok........","kk.........."],"heart":["............","..kkk..kkk..",".krrrkkrrrk.","krrwrrrrrrrk","krwrrrrrrrrk","krrrrrrrrrrk",".krrrrrrrrk.","..krrrrrrk..","...krrrrk...","....krrk....",".....kk.....","............"],"shield":[".kkkkkkkkkk.",".kggggggggk.",".kgwwggggGk.",".kgwggggGGk.",".kgggggGGGk.",".kggggGGGGk.","..kgggGGGk..","..kgggGGGk..","...kggGGk...","....kgGk....",".....kk.....","............"],"crosshair":[".....rr.....","...rrrrrr...","..rr.rr.rr..",".rr..rr..rr.",".r.......r..","rrrr.ww.rrrr","rrrr.ww.rrrr",".r.......r..",".rr..rr..rr.","..rr.rr.rr..","...rrrrrr...",".....rr....."],"blink":[".v.......v..","..v..vv..v..",".....vv.....","..kkk..v..v.",".kvvvk......","kvvwvvk.vv..","kvvvvvk.vv..",".kvvvk......","..kkk...v...",".v.....v..v.","....v.......","..v...v...v."],"dash":["............","......kkkk..","..cc..kbbk..","......kbwk..",".ccc..kbbk..","......kbbk..","..cc..kbbkkk","......kbbbbk",".ccc.kbbbbbk",".....kBBBBBk",".....kkkkkkk","............"],"pulse":["....nnnn....","..nn....nn..",".n...kk...n.",".n..knnk..n.","n..kknnkk..n","n.knnwwnnk.n","n.knnwwnnk.n","n..kknnkk..n",".n..knnk..n.",".n...kk...n.","..nn....nn..","....nnnn...."],"mirror":[".kkkkkkkkkk.",".kgggggggGk.",".kgwcggggGk.",".kgcwcgggGk.",".kggcwcggGk.",".kgggcwcgGk.","..kgggcwGk..","..kggggcGk..","...kgggGk...","....kgGk....",".....kk.....","............"],"hourglass":["..kkkkkkkk..","..kGGGGGGk..","...kyyyyk...","...kyyyyk...","....kyyk....",".....kk.....",".....kk.....","....k..k....","...k.yy.k...","...kyyyyk...","..kGGGGGGk..","..kkkkkkkk.."],"link":[".kk.kk......","krrkrrk.....","krwrrrk.....",".krrrk......","..krk.g.....","...k...g....","........g...","......kk.kk.",".....krrkrrk",".....krwrrrk","......krrrk.",".......krk.."],"guard_reinforced":[".kkkkkkkkkk.",".kbbbbbbbbk.",".kbcbbbbbBk.",".kwggggggwk.",".kbbbbbbbBk.",".kbcbbbbbBk.","..kwggggwk..","..kbbbbbBk..","...kbbbBk...","....kbBk....",".....kk.....","............"],"snow":[".....cc.....","..c..cc..c..","...c.cc.c...",".c..cccc..c.","..ccwccwcc..","ccccwwwwcccc","ccccwwwwcccc","..ccwccwcc..",".c..cccc..c.","...c.cc.c...","..c..cc..c..",".....cc....."],"flame":[".....r......","....rr...r..","....ror..rr.","...roorr.ro.","..rooyorroo.","..royyyoroo.",".roooyyyoor.",".royyyyyyor.",".royywwyyor.","..royyyyor..","...roooor...","....rrrr...."],"bolt":["......kkkk..",".....krrrk..","....krrrk...","...krrrk....","..krrrrkkk..","..kkkkrrrk..",".....krrk...","....krrk....","...krrk.....","...krk......","..kkk.......","............"],"nova":[".....ww.....",".v...ww...v.","..v..vv..v..","...v.vv.v...","....vwwv....","wwvvwwwwvvww","wwvvwwwwvvww","....vwwv....","...v.vv.v...","..v..vv..v..",".v...ww...v.",".....ww....."],"regen":["............","..kkk..kkk..",".krrrkkrrrk.","krrrrwwrrrrk","krrrrwwrrrrk","krrwwwwwwrrk",".krwwwwwwrk.","..krrwwrrk..","...krwwrk...","....krrk....",".....kk.....","............"],"boot":["............","...kkkkk....","...kmmmk....","...kmwmk....","...kmmmk....","...kmmmk....","...kmmmkkk..","...kmmmmmmk.","..kmmmmmmmmk","..kMMMMMMMMk","..kkkkkkkkkk","............"]}};
+const RUN = { wave: 12, time: "14:08", score: "8,420", diff: "Normal", path: "Frozen Lake", pathLeft: 2, pathCol: "#a6ebff", mods: ["Frenzy", "Hunted"], boss: "Hive Queen", bossWave: 15, room: "Defend the Crystal", roomWon: true };
+const PARTY = [
+  { name: "Anthony", cls: "Knight Tank", weapon: "Lance", icon: "class_knight", role: "role_tank", col: "#5a96ff", lvl: 9, hp: 0.62, you: true },
+  { name: "Aleon", cls: "Elementalist DPS", weapon: "Fireball", icon: "class_elementalist", role: "role_dps", col: "#ff9a4a", lvl: 10, hp: 0.88 },
+];
+const MENU = [
+  { icon: "ui_play", name: "Resume", key: "Esc", line: "Back into wave 12", c: "blue", col: "#5a97ff" },
+  { icon: "ui_trophy", name: "Run stats", key: "Tab", line: "Your build, damage and kills so far", c: "gold", col: "#e6ad3a" },
+  { icon: "ui_book", name: "Field guide", key: "G", line: "Every enemy, weapon and upgrade", c: "violet", col: "#8f6be8" },
+  { icon: "ui_gear", name: "Settings", key: "O", line: "Audio, visual effects, aim line", c: "gray", col: "#6a7696" },
+  { icon: "ui_power", name: "Leave game", key: "", line: "Saved at wave 12: continue from the menu", c: "red", col: "#d0606a" },
+];
+const BOSSES = [["The Warden", 2], ["Hive Queen", 1], ["Twin Reapers", 1], ["The Singularity", 1], ["The Colossus", 1], ["The Duelist", 1], ["The Lich", 1], ["Storm Herald", 1], ["The Devourer", 1], ["The Eclipse", 1]];
+const CLASSES = [["class_knight", "Knight Tank", 1, 6], ["class_elementalist", "Elementalist DPS", 0, 3], ["class_ninja", "Ninja Healer", 0, 1], ["class_soldier", "Soldier DPS", 0, 2], ["class_summoner", "Summoner Healer", 0, 1], ["class_hemomancer", "Hemomancer DPS", 0, 1]];
+const ROOMS = [["Defend the Crystal", 4, 5, "#73e6ff"], ["The Gatekeeper", 2, 3, "#ff9e4d"], ["Kill Rush", 3, 3, "#ff616b"], ["Hold the Zones", 2, 4, "#8cff8c"], ["Mirror Match", 1, 2, "#b880ff"]];
+const OVERVIEW = [["Runs", "14"], ["Won", "1"], ["Best wave", "50"], ["Best score", "41,200"], ["Time played", "11 h 23 m"], ["Enemies killed", "6,812"]];
+const TOPICS = [
+  { name: "Controls", icon: "ui_help" },
+  { name: "The basics", icon: "crosshair" },
+  { name: "Fighting", icon: "guard_reinforced" },
+  { name: "Between waves", icon: "ui_star" },
+  { name: "Challenge rooms", icon: "blink", open: true, isNew: true },
+  { name: "Paths and modifiers", icon: "snow" },
+  { name: "Playing together", icon: "link" },
+];
+const ROOM_TIPS = [
+  { icon: "blink", t: "The portal", d: "Once every five waves a portal opens in the break. Everyone alive stands in it to go through; ignore it and it closes." },
+  { icon: "shield", t: "Defend the Crystal", d: "Keep it alive for 40 s. Most enemies go for it." },
+  { icon: "ui_skull", t: "The Gatekeeper", d: "A mini-boss: slip the ring's gap, step off its charge line." },
+  { icon: "bolt", t: "Kill Rush", d: "40 kills in 40 s, weak enemies from every side." },
+  { icon: "pulse", t: "Hold the Zones", d: "Stand in each zone until it fills. An enemy in it slows you." },
+  { icon: "mirror", t: "Mirror Match", d: "A shadow of each of you, fighting your way. Beat your own." },
+  { icon: "ui_star", t: "The prize", d: "Win: touch the altar for a rare-or-better pick, sometimes a legendary. Lose: no harm done." },
+];
+const KEYS = [["WASD", "Move"], ["LMB", "Shoot"], ["RMB", "Parry"], ["Space", "Role ability"], ["Q E Shift", "Bonus abilities"], ["F", "Ultimate"], ["Tab", "Run stats"], ["Esc", "Pause"]];
+
+function iconCanvas(name, scale) {
+  const g = ICONS.icons[name]; if (!g) return document.createElement("span");
+  const h = g.length, w = g[0].length, c = document.createElement("canvas");
+  c.width = w; c.height = h; c.className = "px"; c.style.width = (w * scale) + "px"; c.style.height = (h * scale) + "px";
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+const ic = (name, s = 2) => `<span data-icon="${name}" data-s="${s}"></span>`;
+const fancy = (text, size, c, extra = "") => `<div class="fancy" style="--c:${c}; font-size:${size}px; ${extra}">${text}</div>`;
+const put = (id, html) => { document.getElementById(id).innerHTML = html; };
+const fbtn = (m, w, extra = "") => `<div class="fbtn ${m.c} shine" style="width:${w}px; ${extra}"><span class="ichip">${ic(m.icon, 2)}</span>${m.name}${m.key ? `<small>[${m.key}]</small>` : ""}</div>`;
+const keycap = k => k.split(" ").map(x => `<span class="key">${x}</span>`).join(" ");
+
+/** The run's chips: path, modifiers, difficulty. */
+function runChips(gap = 6) {
+  return `<div class="row" style="gap:${gap}px; flex-wrap:wrap;">
+    <span class="chip" style="background:rgba(166,235,255,0.14); color:${RUN.pathCol};">${ic("snow", 1)} ${RUN.path.toUpperCase()} · ${RUN.pathLeft} WAVES LEFT</span>
+    ${RUN.mods.map(m => `<span class="chip" style="background:rgba(255,120,120,0.14); color:#ff9a9a;">${m.toUpperCase()}</span>`).join("")}
+    <span class="chip" style="background:rgba(255,255,255,0.08); color:#c9d3ea;">${RUN.diff.toUpperCase()}</span></div>`;
+}
+/** A party member as a small trophy card. */
+function partyCard(p, w) {
+  return `<div class="panel" style="position:relative; width:${w}px; height:78px; display:flex; overflow:hidden; border-color:${p.col}66;">
+    <div class="hatch" style="width:72px; background-color:${p.col}22; display:grid; place-items:center;">${ic(p.icon, 4)}</div>
+    <div class="col" style="padding:10px 12px; gap:4px; flex:1;">
+      <div class="row" style="gap:8px;">${fancy(p.name, 18, p.col)}${p.you ? `<span class="chip" style="background:${p.col}33; color:#dfe8ff; padding:2px 6px;">YOU</span>` : ""}<span class="chip" style="margin-left:auto; background:#e3b04d; color:#2a1d05; padding:2px 7px;">LV ${p.lvl}</span></div>
+      <div style="font-size:12px; font-weight:700; color:${p.col};">${p.cls} · ${p.weapon}</div>
+      <div class="bar4"><i style="width:${p.hp * 100}%; background:#4fd166;"></i></div>
+    </div></div>`;
+}
+
+
+
+const W = 1280, H = 720, LEN = 7.4;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = x => 1 - Math.pow(1 - x, 3);
+const easeIn = x => x * x * x;
+const inOut = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+
+const PAUSE_ROWS = [["ui_play", "Resume", "Back into wave 12", "#5a97ff", "Esc"], ["ui_trophy", "Run stats", "Your build, damage and kills so far", "#e6ad3a"], ["ui_book", "Field guide", "Every enemy, weapon and upgrade", "#8f6be8"], ["ui_gear", "Settings", "Audio, visual effects, aim line", "#8d97b2"], ["ui_power", "Leave game", "Saved at wave 12: continue from the menu", "#ff6470"]];
+const SET_ROWS = [["pulse", "Audio", "Volume for each kind of sound", "#7fb0ff"], ["nova", "Visual effects", "What the fight looks like", "#ffcc59"], ["crosshair", "Gameplay", "Aim line, the HUD, the Field guide", "#8cff8c"]];
+
+/** The story's beats, shared by every option. */
+function story(t) {
+  const open = seg(t, 0, 0.9), close = seg(t, 6.2, 6.75);
+  // The highlight walks Resume → Settings, one row every 0.3 s.
+  const walk = seg(t, 1.5, 2.4) * 3;
+  const sel = t < 1.5 ? 0 : Math.min(3, walk);
+  const toSet = seg(t, 2.9, 3.35), toBack = seg(t, 5.0, 5.45);
+  const view = toSet * (1 - toBack);   // 0 the pause choices, 1 Settings
+  const press = t > 2.75 && t < 2.95;  // clicking Settings
+  return { open, close, sel, view, press, toSet, toBack };
+}
+
+/** One screen: arena, dim, drawer (pause rows + settings rows), run card, settings panel, cursor. */
+function build(host) {
+  const rows = (list, cls) => list.map((r, i) => `<div class="drow ${cls}" data-i="${i}" style="top:${128 + i * 58}px; --rc:${r[3]};"><span class="ic">${ic(r[0], 2)}</span><div class="col" style="gap:2px;"><span class="nm">${r[1]}</span><span class="ln">${r[2]}</span></div>${r[4] ? `<span class="key" style="margin-left:auto;">${r[4]}</span>` : ""}</div>`).join("");
+  host.innerHTML = `
+    <div class="layer bg-game arena"></div>
+    <div class="layer dim" style="background:rgba(3,4,9,0.45);"></div>
+    <div class="layer scan" style="opacity:0;"></div>
+    <div class="runcard panel" style="position:absolute; left:760px; top:60px; width:470px; padding:18px 20px; box-sizing:border-box;">
+      <div class="sec">This run</div>
+      <div class="row" style="gap:16px; margin:8px 0 12px;">${fancy("WAVE 12", 40, "#ffcc59")}<div class="col" style="font-size:13px; color:#c9d3ea; gap:3px;"><span>14:08</span><span>Score 8,420</span></div></div>
+      ${runChips()}
+      <div style="height:1px; background:var(--line); margin:14px 0;"></div>
+      <div class="row" style="gap:12px;"><div class="hatch" style="width:64px; height:64px; border-radius:10px; background-color:rgba(255,204,89,0.12); display:grid; place-items:center;">${ic("ui_skull", 3)}</div>
+        <div class="col" style="gap:3px;"><span class="sec" style="font-size:10px;">Next boss · wave 15</span>${fancy("Hive Queen", 22, "#ffd98a")}<span style="font-size:12px; color:var(--muted);">2 waves before it</span></div></div>
+      <div class="row" style="gap:12px; margin-top:12px;"><div class="hatch" style="width:64px; height:64px; border-radius:10px; background-color:rgba(115,230,255,0.12); display:grid; place-items:center;">${ic("blink", 3)}</div>
+        <div class="col" style="gap:3px;"><span class="sec" style="font-size:10px;">Challenge room · this stretch</span>${fancy("Defend the Crystal ✓", 20, "#a6ebff")}<span style="font-size:12px; color:var(--muted);">Next portal after wave 16, 17 or 18</span></div></div>
+      <i class="brk4" style="left:-6px; top:-6px; border-left-width:3px; border-top-width:3px;"></i><i class="brk4" style="right:-6px; top:-6px; border-right-width:3px; border-top-width:3px;"></i>
+      <i class="brk4" style="left:-6px; bottom:-6px; border-left-width:3px; border-bottom-width:3px;"></i><i class="brk4" style="right:-6px; bottom:-6px; border-right-width:3px; border-bottom-width:3px;"></i>
+    </div>
+    <div class="setpanel panel" style="position:absolute; left:470px; top:40px; width:770px; height:640px; padding:22px 26px; box-sizing:border-box;">
+      ${fancy("VISUAL EFFECTS", 30, "#ffcc59")}
+      <div style="height:170px; margin-top:12px; border-radius:10px; background:#0b0d14; box-shadow:inset 0 0 0 1px var(--line); position:relative;">
+        <span style="position:absolute; left:120px; top:84px; width:28px; height:28px; border-radius:50%; border:3px solid #5a96ff; background:#121827;"></span>
+        <span style="position:absolute; left:500px; top:70px; width:0; height:0; border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:34px solid #ff5a5a;"></span>
+        <span style="position:absolute; left:528px; top:40px; color:#ffe08a; font-weight:900;">15</span></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px 28px; margin-top:16px;">
+        ${["Visual effects", "Damage numbers", "Ability names", "Reduced effects"].map((n, i) => `<div class="row"><b style="font-size:15px;">${n}</b><span style="margin-left:auto; width:44px; height:24px; border-radius:12px; background:${i < 2 ? "linear-gradient(#5a97ff,#3a6fe0)" : "#2a3146"};"></span></div>`).join("")}
+      </div>
+      <div style="margin-top:18px; display:flex; gap:3px; padding:3px; border-radius:9px; background:#0f131d;">${["Off", "Low", "Full"].map((n, i) => `<span style="flex:1; text-align:center; font-size:13px; font-weight:800; padding:7px 0; border-radius:7px; ${i === 1 ? "background:linear-gradient(#5a97ff,#3a6fe0); color:#fff;" : "color:#8d97b2;"}">${n}</span>`).join("")}</div>
+    </div>
+    <div class="drawer">
+      <div class="drawer-bg"></div>
+      <div class="edgeglow" style="right:-2px; top:0; width:4px; height:720px; background:#bcd6ff; box-shadow:0 0 30px 10px rgba(140,180,255,0.7); opacity:0;"></div>
+      <div class="ttl" style="left:40px; top:40px;"><div class="t-pause">${fancy("PAUSED", 44, "#9cc0ff")}</div><div class="t-set" style="position:absolute; left:0; top:0; opacity:0;">${fancy("SETTINGS", 44, "#9cc0ff")}</div></div>
+      <div class="uline" style="left:42px; top:94px; width:340px; height:2px; background:linear-gradient(90deg, #9cc0ff, transparent); transform-origin:0 0;"></div>
+      <div class="selbar2" style="opacity:0;"></div>
+      <div class="rows-p">${rows(PAUSE_ROWS, "p")}</div>
+      <div class="rows-s" style="opacity:0;">${rows(SET_ROWS, "s")}</div>
+      <div class="party" style="left:40px; top:470px; width:340px;"><div class="sec">Players</div><div style="display:grid; gap:8px; margin-top:8px;">${PARTY.map(p => partyCard(p, 340)).join("")}</div></div>
+      <div class="foot" style="left:40px; top:676px; font-size:12px; color:var(--muted);">↑ ↓ Enter · Esc to resume</div>
+    </div>
+    <div class="cursor"></div>`;
+  host.querySelectorAll(".fancy").forEach(n => { n.dataset.text = n.textContent; });
+  host.querySelectorAll("[data-icon]").forEach(n => n.appendChild(iconCanvas(n.dataset.icon, +n.dataset.s)));
+  const q = s => host.querySelector(s), qa = s => [...host.querySelectorAll(s)];
+  return { arena: q(".arena"), dim: q(".dim"), scan: q(".scan"), card: q(".runcard"), set: q(".setpanel"), drawer: q(".drawer"), bg: q(".drawer-bg"), edge: q(".edgeglow"),
+    tPause: q(".t-pause"), tSet: q(".t-set"), uline: q(".uline"), bar: q(".selbar2"), rowsP: qa(".drow.p"), rowsS: qa(".drow.s"), boxP: q(".rows-p"), boxS: q(".rows-s"),
+    party: q(".party"), foot: q(".foot"), cursor: q(".cursor"), brk: qa(".brk4"), ttl: q(".ttl") };
+}
+
+/** Puts the highlight on row `sel` (whole rows) and the cursor over it. */
+function highlight(e, s, slide) {
+  const i = Math.round(s.sel);
+  e.rowsP.forEach((r, k) => r.classList.toggle("on", !slide && k === i));
+  e.rowsS.forEach((r, k) => r.classList.toggle("on", k === 1));
+  const cy = 128 + s.sel * 58 + 26;
+  e.cursor.style.left = (300 - (s.sel > 0 ? 0 : 40)) + "px";
+  e.cursor.style.top = cy + "px";
+  e.cursor.style.transform = s.press ? "scale(0.85)" : "";
+  e.cursor.style.opacity = s.open >= 1 && s.close <= 0 && s.view < 0.5 ? 1 : 0;
+}
+/** A section change: the old title and list leave in the first half, the new ones arrive in the second. */
+function swapTitles(e, v, lists = true) {
+  const out = seg(v, 0, 0.5), inn = seg(v, 0.5, 1);
+  e.tPause.style.opacity = 1 - out; e.tPause.style.transform = `translateY(${-14 * out}px)`;
+  e.tSet.style.opacity = inn; e.tSet.style.transform = `translateY(${14 * (1 - inn)}px)`;
+  if (lists) { e.boxP.style.opacity = 1 - out; e.boxS.style.opacity = inn; }
+}
+function reset(e) {
+  [e.arena, e.dim, e.card, e.set, e.drawer, e.bg, e.boxP, e.boxS, e.party, e.foot, e.ttl, e.uline, e.tPause, e.tSet].forEach(n => { n.style.transform = ""; n.style.opacity = ""; n.style.filter = ""; n.style.clipPath = ""; });
+  e.rowsP.concat(e.rowsS).forEach(r => { r.style.transform = ""; r.style.opacity = ""; r.style.textShadow = ""; });
+}
+
+// --- A: slide and stagger ---------------------------------------------------------------------------------
+function animA(e, t) {
+  const s = story(t); reset(e); highlight(e, s, false);
+  const vis = s.open * (1 - s.close);
+  e.dim.style.opacity = vis;
+  const dx = -(1 - ease(s.open)) * 460 - easeIn(s.close) * 460;
+  e.drawer.style.transform = `translateX(${dx}px)`;
+  const gone = seg(s.view, 0, 0.5);
+  e.rowsP.forEach((r, i) => { const k = ease(seg(t, 0.18 + i * 0.06, 0.5 + i * 0.06)); r.style.opacity = k * (1 - gone); r.style.transform = `translateX(${-50 * (1 - k) - 40 * gone}px)`; });
+  e.rowsS.forEach((r, i) => { const k = ease(seg(t, 3.12 + i * 0.06, 3.42 + i * 0.06)) * (1 - ease(seg(s.toBack, 0, 0.5))); r.style.opacity = k; r.style.transform = `translateX(${40 * (1 - k)}px)`; });
+  e.boxS.style.opacity = 1;
+  e.party.style.opacity = ease(seg(t, 0.5, 0.85)); e.party.style.transform = `translateY(${30 * (1 - ease(seg(t, 0.5, 0.85)))}px)`;
+  swapTitles(e, s.view, false);
+  e.uline.style.transform = `scaleX(${ease(seg(t, 0.3, 0.8))})`;
+  const ck = back(seg(t, 0.35, 0.8));
+  e.card.style.opacity = seg(t, 0.35, 0.6) * (1 - seg(s.view, 0, 0.45)) * (1 - seg(t, 6.2, 6.45));
+  e.card.style.transform = `translate(${s.view * 120}px, ${-40 * (1 - ck)}px)`;
+  const sv = seg(s.view, 0.4, 1);
+  e.set.style.opacity = sv; e.set.style.transform = `translateX(${(1 - ease(sv)) * 80}px)`;
+}
+
+// --- B: glitch in -------------------------------------------------------------------------------------------
+function animB(e, t) {
+  const s = story(t); reset(e); highlight(e, s, false);
+  const vis = s.open * (1 - s.close);
+  e.dim.style.opacity = ease(seg(t, 0.1, 0.5)) * (1 - s.close);
+  e.scan.style.opacity = vis;
+  const pk = seg(t, 0.25, 0.6), flick = pk >= 1 ? 1 : (Math.sin(t * 160) > 0 ? pk : pk * 0.3);
+  const jitter = pk < 1 ? Math.sin(t * 220) * 6 * (1 - pk) : 0;
+  // Closing: the whole UI squashes to a line, like a screen switching off.
+  const off = ease(s.close), sy = 1 - off * 0.98, sx = off > 0.6 ? 1 - (off - 0.6) / 0.4 : 1;
+  const crt = `scale(${sx}, ${sy})`;
+  e.drawer.style.opacity = flick * (s.close > 0 ? 1 - seg(t, 6.6, 6.75) : 1);
+  e.drawer.style.transform = `translateX(${jitter}px) ${crt}`;
+  e.drawer.style.transformOrigin = "640px 360px";
+  e.drawer.style.filter = pk < 1 ? `drop-shadow(${3 * (1 - pk)}px 0 0 rgba(255,60,80,0.8)) drop-shadow(${-3 * (1 - pk)}px 0 0 rgba(60,220,255,0.8))` : "";
+  // The title types itself out.
+  const typed = Math.round(seg(t, 0.45, 0.8) * 6);
+  const tp = e.tPause.querySelector(".fancy"); const txt = "PAUSED".slice(0, typed) + (typed < 6 ? "▌" : "");
+  tp.textContent = txt; tp.dataset.text = txt;
+  // The run card reveals top to bottom behind a scan line; a section change glitches the panels across.
+  const reveal = seg(t, 0.55, 0.95);
+  e.card.style.clipPath = `inset(0 0 ${(1 - reveal) * 100}% 0)`;
+  const g = Math.max(Math.sin(Math.PI * seg(t, 2.9, 3.2)), Math.sin(Math.PI * seg(t, 5.0, 5.3)));
+  e.card.style.opacity = (1 - s.view) * (reveal > 0 ? 1 : 0); e.set.style.opacity = s.view;
+  e.card.style.transform = e.set.style.transform = `translateX(${Math.sin(t * 300) * 10 * g}px) ${crt}`;
+  e.card.style.transformOrigin = "-120px 300px"; e.set.style.transformOrigin = "170px 320px";
+  e.set.style.filter = g > 0.05 ? `drop-shadow(4px 0 0 rgba(255,60,80,${g})) drop-shadow(-4px 0 0 rgba(60,220,255,${g}))` : "";
+  e.boxP.style.opacity = s.view < 0.5 ? 1 : 0; e.boxS.style.opacity = s.view >= 0.5 ? 1 : 0;
+  e.tPause.style.opacity = s.view < 0.5 ? 1 : 0; e.tSet.style.opacity = s.view >= 0.5 ? 1 : 0;
+  e.ttl.style.transform = `translateX(${Math.sin(t * 260) * 8 * g}px)`;
+}
+
+// --- C: unfold from a line of light -------------------------------------------------------------------------
+function animC(e, t) {
+  const s = story(t); reset(e); highlight(e, s, true);
+  const grow = inOut(seg(t, 0.05, 0.55)), shrink = inOut(seg(t, 6.35, 6.75));
+  const w = grow * (1 - shrink);
+  e.dim.style.opacity = seg(t, 0, 0.5) * (1 - s.close);
+  e.drawer.style.transform = `scaleX(${Math.max(0.004, w)})`;
+  e.edge.style.opacity = (grow > 0 && grow < 1) || (shrink > 0 && shrink < 1) ? 1 : 0;
+  const inside = seg(t, 0.5, 0.85) * (1 - seg(t, 6.15, 6.35));
+  [e.ttl, e.party, e.foot].forEach(n => n.style.opacity = inside);
+  e.uline.style.transform = `scaleX(${ease(seg(t, 0.55, 0.95)) * (1 - seg(t, 6.15, 6.35))})`;
+  e.rowsP.forEach((r, i) => { const k = seg(t, 0.55 + i * 0.05, 0.85 + i * 0.05); r.style.opacity = k * (1 - seg(t, 6.15, 6.35)); });
+  swapTitles(e, s.view);
+  // The highlight glides from row to row.
+  e.bar.style.opacity = inside * (1 - s.view);
+  e.bar.style.transform = `translateY(${128 + s.sel * 58}px)`;
+  e.bar.style.top = "0px";
+  // The run card: its corner brackets fly out from the middle, then it fills in; a section change folds it away.
+  const b = ease(seg(t, 0.45, 0.85)) * (1 - seg(t, 6.15, 6.4));
+  const cw = 470, ch = e.card.offsetHeight || 330;
+  e.brk.forEach((n, i) => { const fx = (i % 2 ? -1 : 1) * (cw / 2 - 10) * (1 - b), fy = (i < 2 ? 1 : -1) * (ch / 2 - 10) * (1 - b); n.style.transform = `translate(${fx}px, ${fy}px)`; n.style.opacity = b > 0 ? 1 : 0; });
+  const fill = seg(t, 0.75, 1.05) * (1 - seg(t, 6.15, 6.35));
+  const fold = 1 - inOut(seg(t, 2.9, 3.15)) + inOut(seg(t, 5.2, 5.45));
+  e.card.style.background = `rgba(21,26,38,${fill})`; e.card.style.borderColor = `rgba(255,255,255,${0.08 * fill})`;
+  [...e.card.children].forEach(n => { if (!n.classList.contains("brk4")) n.style.opacity = fill; });
+  e.card.style.transform = `scaleY(${Math.min(1, Math.max(0.01, fold))})`;
+  e.card.style.opacity = fold <= 0.02 ? 0 : 1;
+  const unfold = inOut(seg(t, 3.1, 3.4)) * (1 - inOut(seg(t, 5.0, 5.25)));
+  e.set.style.transform = `scaleY(${Math.max(0.01, unfold)})`; e.set.style.opacity = unfold > 0.01 ? 1 : 0;
+}
+
+// --- D: camera push ------------------------------------------------------------------------------------------
+function animD(e, t) {
+  const s = story(t); reset(e); highlight(e, s, false);
+  const k = ease(s.open) * (1 - inOut(s.close));
+  e.arena.style.transform = `scale(${1 - 0.07 * k})`;
+  e.arena.style.filter = `blur(${3 * k}px) saturate(${1 - 0.5 * k})`;
+  e.dim.style.opacity = k;
+  e.drawer.style.transform = `perspective(900px) translateX(${-(1 - k) * 380}px) rotateY(${(1 - k) * 35}deg)`;
+  e.drawer.style.opacity = Math.min(1, k * 1.6);
+  const pop = back(seg(t, 0.3, 0.75)) * (1 - inOut(seg(t, 6.15, 6.6)));
+  // A section change flips the right-hand panel over.
+  const flipA = inOut(seg(t, 2.9, 3.4)), flipB = inOut(seg(t, 5.0, 5.5));
+  const ang = (flipA - flipB) * 180;
+  const front = ang < 90;
+  e.card.style.transform = `perspective(1200px) scale(${0.85 + 0.15 * pop}) rotateY(${ang}deg)`;
+  e.card.style.opacity = front ? Math.min(1, pop) : 0;
+  e.set.style.transform = `perspective(1400px) rotateY(${ang - 180}deg)`;
+  e.set.style.opacity = front ? 0 : 1 - inOut(seg(t, 6.15, 6.5));
+  swapTitles(e, s.view);
+}
+
+const OPTS = { A: animA, B: animB, C: animC, D: animD };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+for (const [id, fn] of Object.entries(OPTS)) {
+  const box = document.getElementById("box" + id), sc = box.querySelector(".screen");
+  const els = build(sc);
+  let start = performance.now(), slow = false, last = performance.now(), clock = 0;
+  document.getElementById("r" + id).onclick = () => { clock = 0; };
+  const sb = document.getElementById("s" + id);
+  sb.onclick = () => { slow = !slow; sb.setAttribute("aria-pressed", String(slow)); };
+  const tl = document.getElementById("t" + id);
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    clock += dt * (slow ? 0.5 : 1); if (clock > LEN) clock = 0;
+    const t = window.__t != null ? window.__t : reduce ? 1.4 : clock;  // (__t: a fixed time, for screenshots)
+    fn(els, t);
+    tl.textContent = t.toFixed(1) + " s";
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+function fit() { document.querySelectorAll(".screen-box").forEach(b => b.querySelectorAll(".screen").forEach(s => { s.style.transform = `scale(${b.clientWidth / 1280})`; })); }
+addEventListener("resize", fit); fit();
+</script>
