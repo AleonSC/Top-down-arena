@@ -1,0 +1,653 @@
+<title>Ability Tile Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the bottom strip of the game's 1280 px wide screen,
+   scaled to fit: a bit of arena, you, and the real ability bar (tile sizes, colours and text copied from
+   Hud.DrawAbilityBar). It plays itself; the strip below picks the style, slows it down or fires one moment on cue.
+   Under that, one card per style listing what it does at each moment, then notes for building it.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+kbd { font: 500 12px var(--font-data); padding: 1px 6px; border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 5px; background: var(--panel-2); color: var(--fg); }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 1280 / 330; background: #070910; cursor: pointer; }
+canvas:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--panel-2); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); border-top-color: var(--c); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 5px 10px; font-size: 13px; }
+.card dt { font: 600 10.5px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+.card dd { margin: 0; color: var(--soft); }
+.card p.how { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+code { font: 12.5px var(--font-data); color: var(--fg); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+@media (max-width: 520px) { .card dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .card dd { margin-bottom: 4px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Top-Down Arena · mockup · HUD</div>
+    <h1>Ability tiles that <span>answer back</span></h1>
+    <p class="lead">The ability bar at the bottom of the screen, as the game draws it now, with four ways to animate it. Each style covers
+      the same five moments: a cooldown finishing, a second charge coming back, using an ability, pressing one too early, and the
+      ultimate filling up. It plays by itself; use the buttons to fire one moment, or press <kbd>Space</kbd> <kbd>Q</kbd> <kbd>E</kbd> <kbd>F</kbd>
+      (or click a tile) to play it yourself.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="hud" width="1280" height="330" tabindex="0" aria-label="The bottom of the game screen: your Knight above the ability bar, whose tiles animate in the selected style"></canvas>
+    <div class="bar">
+      <span class="lbl">Style</span>
+      <div class="seg" id="styles"></div>
+      <span class="spacer"></span>
+      <span class="lbl">Speed</span>
+      <div class="seg" id="speeds">
+        <button type="button" data-v="1" class="on">1x</button>
+        <button type="button" data-v="0.5">½x</button>
+        <button type="button" data-v="0.2">⅕x</button>
+      </div>
+    </div>
+    <div class="bar">
+      <span class="lbl">Play</span>
+      <button type="button" class="act" data-t="ready">Cooldown finishes</button>
+      <button type="button" class="act" data-t="charge">Charge comes back</button>
+      <button type="button" class="act" data-t="use">Use</button>
+      <button type="button" class="act" data-t="deny">Press too early</button>
+      <button type="button" class="act" data-t="ult">Ultimate full</button>
+      <span class="spacer"></span>
+      <label class="tog"><input type="checkbox" id="auto" checked> Plays itself</label>
+      <label class="tog"><input type="checkbox" id="reduced"> Reduced effects</label>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div style="display:grid;gap:6px">
+      <h2>The styles</h2>
+      <p class="hint">Click a card to show it above. Cooldowns are shortened here so the moments come round quickly.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All of it lives in the HUD on your own screen (<code>Hud.DrawAbilityBar</code> plus a small <code>HudTiles.cs</code>): no simulation or network change, no protocol bump.</li>
+      <li><b>Cooldown finishes</b> and <b>charge comes back</b> are found by comparing each slot's <code>Charges</code> with last frame's. <b>Use</b> and <b>too early</b> come from the key press: today a press while recharging does nothing at all, so the tile just has to notice it.</li>
+      <li>Pops, presses and shakes are a <code>GUI.matrix</code> scale, offset or turn around the tile's centre, the way the pause menu's flicker nudges its panel. Rings, sparks and shards are GL, like the upgrade pick's shards (<code>PickOutro.cs</code>).</li>
+      <li><b>Reduced effects</b> (Settings) keeps the colour changes and drops shaking, wobbling, flashes and flying sparks. Visual effects off draws the bar exactly as today.</li>
+      <li>Each moment could carry a quiet sound from <code>SoundBank.cs</code>: a soft tick when a cooldown finishes, a dull click when you press too early.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const STYLES = [
+    { id: "today", name: "Today", c: "#92a1ad", tag: "as the game draws it",
+      sum: "The bar as it is now: tiles light up when ready, the ultimate's rim pulses, and nothing reacts to a press.",
+      m: { ready: "The tile lights up and shows READY.", charge: "The second pip fills in.", use: "The shade appears over the tile.",
+           deny: "Nothing happens.", ult: "READY! and a slow pulse on the rim." },
+      how: "Hud.DrawAbilityBar, unchanged." },
+    { id: "snap", name: "A · Snap", c: "#6fe3c4", tag: "crisp, small",
+      sum: "Quick, tidy pops. Every moment gets a reaction, but nothing leaves the tile.",
+      m: { ready: "The tile pops up 8% and settles, its rim flashes white, READY slides in from the right.",
+           charge: "The new pip pops with a ring round it; the tile nods.",
+           use: "The tile presses in to 93% and springs back.",
+           deny: "A short side-to-side shake, the rim and timer flash red.",
+           ult: "A bigger gold pop and rim flash, READY! slides in." },
+      how: "Only GUI.matrix scale and offset per tile, plus the rim drawn again brighter. The cheapest of the four." },
+    { id: "sweep", name: "B · Sweep", c: "#7fb6ff", tag: "light, calm",
+      sum: "Light moves across the tile instead of the tile moving. Nothing shakes, so it fits Reduced effects as it is.",
+      m: { ready: "A shine sweeps across the tile and the recharge line flares; a soft glow outside it fades.",
+           charge: "A small shine runs over the pips and the line.",
+           use: "The light drains away and the shade wipes down from the top.",
+           deny: "The shade flushes red and the timer throbs once. No shake.",
+           ult: "Two gold shines, then a gold halo that breathes while it's ready." },
+      how: "In the last second the shade's edge glows, so you can see it coming. The shine is a clipped slanted quad in GL." },
+    { id: "burst", name: "C · Burst", c: "#ffb547", tag: "arcade, loud",
+      sum: "The loudest one. A ring and sparks burst out of the tile, and using an ability sends a streak up to you.",
+      m: { ready: "A ring bursts out of the tile, sparks fly up, the key cap hops, READY stamps in.",
+           charge: "Sparks pop off the new pip.",
+           use: "The tile flashes and a streak flies up from it to your character, ending in a ring.",
+           deny: "The tile wobbles, a red cross flashes over the key cap, and the timer bounces.",
+           ult: "A big gold ring and sparks, READY! stamps in, and the tile hovers while it's ready." },
+      how: "Rings and sparks reuse Juice's particles in screen space. Might be busy with three players' effects going off." },
+    { id: "shutter", name: "D · Shutter", c: "#ff8fa8", tag: "mechanical",
+      sum: "The cooldown is a shutter: it slams down when you use an ability and breaks into shards when it's done, like the upgrade cards.",
+      m: { ready: "The glass over the tile cracks and breaks into shards that fall away; the tile flashes its colour.",
+           charge: "One shard pops off the pip.",
+           use: "A shutter slams down from the top and bounces at the bottom.",
+           deny: "The shutter rattles and the timer flashes red.",
+           ult: "Gold shards and a ring." },
+      how: "In the last 3 s the timer ticks at each whole second. The shards are the same as PickOutro's card shards." },
+  ];
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The game's ability bar (Hud.DrawAbilityBar): five 150 x 58 tiles, 8 px apart, centred, 12 px from the bottom.
+  const W = 1280, H = 330, TW = 150, TH = 58, GAP = 8;
+  const X0 = (W - (TW * 5 + GAP * 4)) / 2, TY = H - TH - 12;
+  const ACC = [255, 140, 64];      // DPS orange (Defs: 1, 0.55, 0.25)
+  const GOLD = [255, 204, 89];     // Ui.Gold
+  const GOOD = [115, 255, 140];    // Ui.Good
+  const PLAYER = { x: 640, y: 128 };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const mix = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k].map(Math.round);
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const easeOutBack = k => { const c = 1.70158; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+  const easeOut = k => 1 - Math.pow(1 - k, 3);
+  const bounce = k => { const n = 7.5625, d = 2.75; if (k < 1 / d) return n * k * k; if (k < 2 / d) return n * (k -= 1.5 / d) * k + 0.75; if (k < 2.5 / d) return n * (k -= 2.25 / d) * k + 0.9375; return n * (k -= 2.625 / d) * k + 0.984375; };
+
+  const slots = [
+    { key: "SPACE", name: "Lunge", cd: 4, max: 2, charges: 2, timer: 0, mxp: 0.62 },
+    { key: "Q", name: "Battle Fury", cd: 7, max: 1, charges: 0, timer: 3.2, mxp: 0.3 },
+    { key: "E", name: "Whirlwind", cd: 5.5, max: 1, charges: 1, timer: 0, mxp: 0.85 },
+    { key: "SHIFT", empty: true },
+    { key: "ULT · F", name: "Blade Tempest", cd: 14, max: 1, charges: 0, timer: 5, mxp: 0.15, ult: true },
+  ];
+  slots.forEach(s => { s.ev = { ready: -9, charge: -9, use: -9, deny: -9 }; s.shade = 0; s.useFill = 0; });
+
+  let style = "snap", speed = 1, auto = true, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let simT = 0, holdAuto = 0, nextAuto = 1.2;
+  const parts = [];
+  const age = (s, k) => simT - s.ev[k];
+
+  // --- The simulation: the same charge and timer rules as the game's ability slots --------------------------------
+  function step(dt) {
+    for (const s of slots) {
+      if (s.empty || s.charges >= s.max) continue;
+      s.timer -= dt;
+      if (s.timer <= 0) {
+        const was = s.charges;
+        s.charges++;
+        s.ev[was === 0 ? "ready" : "charge"] = simT;
+        if (style === "shutter" && was === 0) shatter(slots.indexOf(s));
+        if (style === "burst") burstFx(slots.indexOf(s), was === 0 ? "ready" : "charge");
+        if (style === "shutter" && was > 0) pipShard(slots.indexOf(s));
+        s.timer = s.charges < s.max ? s.cd : 0;
+      }
+    }
+  }
+
+  function press(i) {
+    const s = slots[i];
+    if (s.empty) return;
+    if (s.charges > 0) {
+      if (s.charges >= s.max) s.timer = s.cd;
+      s.charges--;
+      s.ev.use = simT;
+      if (style === "burst") streak(i);
+      ringAt(PLAYER.x, PLAYER.y, s.ult ? GOLD : ACC, s.ult ? 70 : 44);
+    } else {
+      s.ev.deny = simT;
+    }
+  }
+
+  // --- Particles (screen space, like Juice's) ----------------------------------------------------------------------
+  const rect = i => ({ x: X0 + i * (TW + GAP), y: TY, w: TW, h: TH });
+  function ringAt(x, y, col, r) { parts.push({ k: "ring", x, y, r0: 6, r1: r, life: 0, max: 0.45, col }); }
+  function burstFx(i, kind) {
+    if (reduced) return;
+    const r = rect(i), s = slots[i], col = s.ult ? GOLD : ACC;
+    if (kind === "ready") {
+      parts.push({ k: "rrect", i, life: 0, max: 0.5, col, grow: s.ult ? 30 : 18 });
+      const n = s.ult ? 22 : 12;
+      for (let k = 0; k < n; k++) {
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+        const sp = 120 + Math.random() * 200;
+        parts.push({ k: "spark", x: r.x + 20 + Math.random() * (r.w - 40), y: r.y + 4, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: 0.5 + Math.random() * 0.3, col: mix(col, [255, 255, 255], Math.random() * 0.5), size: 2 + Math.random() * 2 });
+      }
+    } else {
+      const px = r.x + r.w - 12 - (s.charges - 1) * 9 + 3, py = r.y + 33;
+      for (let k = 0; k < 7; k++) {
+        const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 90;
+        parts.push({ k: "spark", x: px, y: py, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40, life: 0, max: 0.4, col, size: 1.6 + Math.random() });
+      }
+    }
+  }
+  function streak(i) {
+    if (reduced) return;
+    const r = rect(i);
+    parts.push({ k: "streak", x0: r.x + r.w / 2, y0: r.y, x1: PLAYER.x, y1: PLAYER.y + 18, life: 0, max: 0.28, col: slots[i].ult ? GOLD : ACC });
+  }
+  function shatter(i) {
+    const r = rect(i), s = slots[i], col = s.ult ? GOLD : [200, 214, 255];
+    // The glass over the tile breaks along jagged lines into shards that fall and spin.
+    const cols = 4, rows = 2, cw = r.w / cols, rh = r.h / rows;
+    const jx = [], jy = [];
+    for (let a = 0; a <= cols; a++) { jx[a] = []; for (let b = 0; b <= rows; b++) jx[a][b] = (a === 0 || a === cols) ? 0 : (Math.random() - 0.5) * cw * 0.5; }
+    for (let a = 0; a <= cols; a++) { jy[a] = []; for (let b = 0; b <= rows; b++) jy[a][b] = (b === 0 || b === rows) ? 0 : (Math.random() - 0.5) * rh * 0.6; }
+    const P = (a, b) => [r.x + a * cw + jx[a][b], r.y + b * rh + jy[a][b]];
+    for (let a = 0; a < cols; a++) for (let b = 0; b < rows; b++) {
+      const q = [P(a, b), P(a + 1, b), P(a + 1, b + 1), P(a, b + 1)];
+      const tris = Math.random() < 0.5 ? [[q[0], q[1], q[2]], [q[0], q[2], q[3]]] : [[q[0], q[1], q[3]], [q[1], q[2], q[3]]];
+      for (const t of tris) {
+        const cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
+        const dx = (cx - (r.x + r.w / 2)) / r.w;
+        parts.push({ k: "shard", cx, cy, pts: t.map(p => [p[0] - cx, p[1] - cy]), vx: dx * 260 + (Math.random() - 0.5) * 40, vy: -60 - Math.random() * 90,
+          rot: 0, spin: (Math.random() - 0.5) * 9, life: 0, max: reduced ? 0.35 : 0.7, col, still: reduced });
+      }
+    }
+  }
+  function pipShard(i) {
+    const r = rect(i), s = slots[i];
+    const px = r.x + r.w - 12 - (s.charges - 1) * 9 + 3, py = r.y + 33;
+    parts.push({ k: "shard", cx: px, cy: py, pts: [[-4, -3], [4, -2], [0, 4]], vx: 30, vy: -80, rot: 0, spin: 8, life: 0, max: 0.5, col: [200, 214, 255], still: reduced });
+  }
+
+  function stepParts(dt) {
+    for (let k = parts.length - 1; k >= 0; k--) {
+      const p = parts[k];
+      p.life += dt;
+      if (p.life >= p.max) { parts.splice(k, 1); if (p.k === "streak") ringAt(p.x1, p.y1 - 18, p.col, 40); continue; }
+      if (p.k === "spark") { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; p.vx *= 1 - 2 * dt; }
+      if (p.k === "shard" && !p.still) { p.cx += p.vx * dt; p.cy += p.vy * dt; p.vy += 900 * dt; p.rot += p.spin * dt; }
+    }
+  }
+
+  // --- Drawing -------------------------------------------------------------------------------------------------------
+  const cv = document.getElementById("hud"), g = cv.getContext("2d");
+
+  function rr(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    g.beginPath();
+    g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+
+  /// Ui.Fancy: outlined lettering with a top-to-bottom gradient and an optional glow.
+  function fancy(text, x, y, w, h, size, top, bottom, align, glow, scale = 1) {
+    g.save();
+    g.font = `700 ${size}px Barlow, "Segoe UI", Arial, sans-serif`;
+    g.textBaseline = "middle";
+    g.textAlign = align;
+    const tx = align === "left" ? x : align === "right" ? x + w : x + w / 2, ty = y + h / 2;
+    g.translate(tx, ty); g.scale(scale, scale);
+    const grad = g.createLinearGradient(0, -size / 2, 0, size / 2);
+    grad.addColorStop(0, top); grad.addColorStop(1, bottom);
+    g.lineJoin = "round"; g.lineWidth = 3; g.strokeStyle = "rgba(0,0,0,0.7)";
+    g.strokeText(text, 0, 0);
+    if (glow) { g.shadowColor = glow; g.shadowBlur = 9; }
+    g.fillStyle = grad;
+    g.fillText(text, 0, 0);
+    g.restore();
+  }
+
+  function drawArena(t) {
+    g.fillStyle = "#070910"; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(90,110,160,0.10)"; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 40) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 8; y <= H; y += 40) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+    const vg = g.createLinearGradient(0, H - 120, 0, H);
+    vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.55)");
+    g.fillStyle = vg; g.fillRect(0, H - 120, W, 120);
+    // You: a Knight DPS (the game's circle, rim, aim line and hitbox core, and a steel visor).
+    const aim = -0.4 + Math.sin(t * 0.7) * 0.9, r = 16, px = PLAYER.x, py = PLAYER.y;
+    g.fillStyle = rgba(ACC.map(v => v * 0.45), 1); g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(ACC, 1); g.lineWidth = 3; g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = "rgba(209,224,255,0.75)"; g.lineWidth = 2.5; g.beginPath(); g.arc(px, py, r * 0.62, aim - 0.9, aim + 0.9); g.stroke();
+    g.strokeStyle = rgba(ACC, 1); g.lineWidth = 5; g.lineCap = "round";
+    g.beginPath(); g.moveTo(px + Math.cos(aim) * r * 0.5, py + Math.sin(aim) * r * 0.5); g.lineTo(px + Math.cos(aim) * (r + 10), py + Math.sin(aim) * (r + 10)); g.stroke();
+    g.lineCap = "butt";
+    g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.arc(px, py, 4, 0, Math.PI * 2); g.fill();
+    g.fillStyle = rgba(ACC, 1); g.beginPath(); g.arc(px, py, 2, 0, Math.PI * 2); g.fill();
+    // A health bar above you, as in the game.
+    g.fillStyle = "rgba(0,0,0,0.5)"; g.fillRect(px - 20, py - r - 12, 40, 4);
+    g.fillStyle = "rgb(77,255,102)"; g.fillRect(px - 20, py - r - 12, 32, 4);
+  }
+
+  function drawXp() {
+    const total = TW * 5 + GAP * 4;
+    rr(X0, TY - 22, 52, 16, 8); g.fillStyle = "rgba(255,204,89,0.25)"; g.fill();
+    fancy("LV 14", X0, TY - 22, 52, 16, 10, "#fff6d8", rgba(GOLD, 1), "center");
+    rr(X0 + 58, TY - 17, total - 58, 6, 3); g.fillStyle = "rgba(0,0,0,0.5)"; g.fill();
+    rr(X0 + 58, TY - 17, (total - 58) * 0.58, 6, 3); g.fillStyle = "rgb(255,209,77)"; g.fill();
+  }
+
+  /// One tile, as Hud.DrawAbilityBar draws it, with the style's overrides in `o`.
+  function drawTile(i, o) {
+    const s = slots[i], r = rect(i), x = r.x, y = r.y;
+    // Panel (Ui.HudPanel).
+    rr(x, y, TW, TH, 9);
+    const pg = g.createLinearGradient(0, y, 0, y + TH);
+    pg.addColorStop(0, "rgba(20,23,36,0.9)"); pg.addColorStop(1, "rgba(10,13,20,0.9)");
+    g.fillStyle = pg; g.fill();
+    g.strokeStyle = "rgba(255,255,255,0.14)"; g.lineWidth = 1.5; g.stroke();
+    if (s.empty) {
+      keyCap(x + 8, y + 7, s.key, [255, 255, 255], 0.45);
+      fancy("Empty", x + 8, y + 26, TW - 16, 18, 12, "rgba(255,255,255,0.45)", "rgba(255,255,255,0.45)", "left");
+      g.font = "500 9px Barlow, Arial, sans-serif"; g.fillStyle = "rgba(255,255,255,0.35)"; g.textAlign = "left"; g.textBaseline = "middle";
+      g.fillText("from a very rare upgrade", x + 8, y + 47);
+      return;
+    }
+    const ready = s.charges > 0;
+    const fill = s.charges >= s.max ? 1 : 1 - s.timer / s.cd;
+    const accent = s.ult ? GOLD : ACC;
+    const pulse = 0.5 + 0.5 * Math.sin(simT * 4);
+    if (ready) {
+      const a = s.ult ? 0.6 + 0.4 * pulse : 1;
+      rr(x, y, TW, TH, 9);
+      g.fillStyle = rgba(accent, 0.2 * a); g.fill();
+      g.strokeStyle = rgba(accent, 0.6 * a * (o.rimDim ?? 1)); g.lineWidth = 2; g.stroke();
+    }
+    // Cooldown shade, draining toward the top as it recharges (styles may replace its height).
+    let shadeH = ready ? 0 : TH * (1 - fill);
+    if (o.shadeH !== undefined) shadeH = o.shadeH;
+    if (shadeH > 0) {
+      g.save(); g.beginPath(); g.rect(x - 2, y - 2, TW + 4, shadeH + 2); g.clip();
+      rr(x, y, TW, TH, 9); g.fillStyle = rgba(o.shadeCol || [0, 0, 0], o.shadeA ?? 0.35); g.fill();
+      g.restore();
+      if (o.shadeEdge) {
+        g.fillStyle = rgba(accent, o.shadeEdge);
+        g.fillRect(x + 6, y + shadeH - 1, TW - 12, 2);
+      }
+    }
+    if (o.glaze) { rr(x, y, TW, TH, 9); g.fillStyle = `rgba(150,170,220,${o.glaze})`; g.fill(); }
+    keyCap(x + 8, y + 7 + (o.keyDy || 0), s.key, ready ? accent : [255, 255, 255], ready ? 1 : 0.6);
+    if (o.keyCross) {
+      const a = o.keyCross, kw = 12 + s.key.length * 6.5;
+      g.strokeStyle = `rgba(255,90,90,${a})`; g.lineWidth = 2.5;
+      g.beginPath(); g.moveTo(x + 10, y + 9); g.lineTo(x + 6 + kw, y + 21); g.moveTo(x + 6 + kw, y + 9); g.lineTo(x + 10, y + 21); g.stroke();
+    }
+    const nameBottom = ready ? rgba(mix(accent, [255, 255, 255], 0.25), 1) : "rgba(158,168,199,0.9)";
+    fancy(s.name, x + 8, y + 24, TW - 16, 22, 15, ready ? "#fff" : "rgba(230,235,255,0.9)", nameBottom, "left", ready ? rgba(accent, 0.55) : null);
+    // Right-hand text: READY, the timer, or the ultimate's percentage.
+    if (ready) {
+      const lo = s.ult ? GOLD : GOOD, hi = s.ult ? "#fff2b3" : "#ccffd9";
+      const ra = o.readyA ?? 1;
+      if (ra > 0) {
+        g.save(); g.globalAlpha = ra;
+        fancy(s.ult ? "READY!" : "READY", x + 8 + (o.readyDx || 0), y + 5, TW - 16, 20, 11, hi, rgba(lo, 1), "right", rgba(lo, s.ult ? 0.6 + 0.4 * pulse : 0.8), o.readyScale || 1);
+        g.restore();
+      }
+    } else {
+      const txt = s.ult ? Math.floor(fill * 100) + "%" : (s.timer < 10 ? s.timer.toFixed(1) : Math.ceil(s.timer)) + "s";
+      const red = o.timerRed || 0;
+      fancy(txt, x + 8, y + 4, TW - 16, 20, 14, red ? `rgb(255,${Math.round(255 - 120 * red)},${Math.round(255 - 120 * red)})` : "#fff",
+        red ? rgba(mix([179, 204, 255], [255, 80, 80], red), 1) : "rgb(179,204,255)", "right", red ? `rgba(255,80,80,${0.7 * red})` : null, o.timerScale || 1);
+    }
+    // Bottom strip: mastery XP (green) on top of the recharge line.
+    const sx = x + 8, sy = y + TH - 13, sw = TW - 16;
+    rr(sx, sy, sw, 7, 3.5); g.fillStyle = "rgba(0,0,0,0.45)"; g.fill();
+    g.save(); g.beginPath(); g.rect(sx, sy, sw * s.mxp, 3); g.clip(); rr(sx, sy, sw, 7, 3.5); g.fillStyle = "rgb(89,230,115)"; g.fill(); g.restore();
+    g.save(); g.beginPath(); g.rect(sx, sy + 3, sw * clamp01(fill), 4); g.clip(); rr(sx, sy, sw, 7, 3.5);
+    g.fillStyle = ready ? rgba(mix(accent, [255, 255, 255], o.lineFlare || 0), 1) : "rgb(128,153,204)"; g.fill(); g.restore();
+    if (o.lineFlare) { g.save(); g.globalCompositeOperation = "lighter"; g.shadowColor = rgba(accent, 1); g.shadowBlur = 12 * o.lineFlare; rr(sx, sy + 3, sw, 4, 2); g.fillStyle = rgba(accent, 0.5 * o.lineFlare); g.fill(); g.restore(); }
+    // Charge pips.
+    if (s.max > 1) for (let k = 0; k < s.max; k++) {
+      const pxl = x + TW - 12 - k * 9, pyl = y + 30, on = k < s.charges;
+      const sc = (o.pipScale && o.pipScale[k]) || 1;
+      g.save(); g.translate(pxl + 3, pyl + 3); g.scale(sc, sc);
+      rr(-3, -3, 6, 6, 3); g.fillStyle = on ? rgba(accent, 1) : "rgba(255,255,255,0.15)"; g.fill();
+      g.restore();
+      if (o.pipRing && o.pipRing[k]) {
+        const k2 = o.pipRing[k];
+        g.strokeStyle = `rgba(255,255,255,${1 - k2})`; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(pxl + 3, pyl + 3, 3 + 9 * k2, 0, Math.PI * 2); g.stroke();
+      }
+    }
+  }
+
+  function keyCap(x, y, key, col, a) {
+    const w = 12 + key.length * 6.5;
+    rr(x, y, w, 16, 8); g.fillStyle = rgba(col, 0.2 * a + 0.05); g.fill();
+    fancy(key, x, y, w, 16, 9, `rgba(255,255,255,${0.55 + 0.45 * a})`, rgba(col.map(v => (v + 255) / 2), 0.5 + 0.5 * a), "center");
+  }
+
+  // --- The styles: a transform for each tile and what's drawn over it ------------------------------------------------
+  const shakeX = (k, amp, cycles) => Math.sin(k * Math.PI * 2 * cycles) * amp * (1 - k);
+
+  function look(i) {
+    const s = slots[i], o = {}, xf = { dx: 0, dy: 0, s: 1, rot: 0 }, over = [];
+    if (s.empty || style === "today") return { o, xf, over };
+    const r = rect(i), accent = s.ult ? GOLD : ACC;
+    const aR = age(s, "ready"), aC = age(s, "charge"), aU = age(s, "use"), aD = age(s, "deny");
+
+    if (style === "snap") {
+      const dur = s.ult ? 0.4 : 0.3;
+      if (aR < dur) { const k = aR / dur; xf.s = 1 + (s.ult ? 0.12 : 0.08) * Math.sin(Math.PI * easeOut(k)) * (reduced ? 0.5 : 1); }
+      if (aR < 0.3) { o.readyDx = 14 * (1 - easeOut(aR / 0.3)); o.readyA = easeOut(aR / 0.3); }
+      if (aR < 0.25 && !reduced) over.push(() => { rr(r.x, r.y, TW, TH, 9); g.strokeStyle = `rgba(255,255,255,${0.9 * (1 - aR / 0.25)})`; g.lineWidth = 2.5; g.stroke(); });
+      if (aC < 0.35) { const k = aC / 0.35; o.pipScale = []; o.pipScale[s.charges - 1] = 1 + 1.2 * (1 - easeOut(k)); o.pipRing = []; o.pipRing[s.charges - 1] = k; xf.s = Math.max(xf.s, 1 + 0.03 * Math.sin(Math.PI * k)); }
+      if (aU < 0.2) { const k = aU / 0.2; xf.s = k < 0.35 ? 1 - 0.07 * (k / 0.35) : 0.93 + 0.07 * easeOutBack((k - 0.35) / 0.65); }
+      if (aD < 0.32) {
+        const k = aD / 0.32;
+        if (!reduced) xf.dx = shakeX(k, 5, 3);
+        o.timerRed = 1 - k;
+        over.push(() => { rr(r.x, r.y, TW, TH, 9); g.strokeStyle = `rgba(255,90,90,${0.85 * (1 - k)})`; g.lineWidth = 2; g.stroke(); });
+      }
+    }
+
+    if (style === "sweep") {
+      const shine = (k, a, col) => over.push(() => {
+        g.save(); rr(r.x, r.y, TW, TH, 9); g.clip(); g.globalCompositeOperation = "lighter";
+        const cx = r.x - 40 + (TW + 80) * easeOut(k);
+        const gr = g.createLinearGradient(cx - 30, 0, cx + 30, 0);
+        gr.addColorStop(0, rgba(col, 0)); gr.addColorStop(0.5, rgba(col, a)); gr.addColorStop(1, rgba(col, 0));
+        g.fillStyle = gr; g.beginPath(); g.moveTo(cx - 30 + 14, r.y); g.lineTo(cx + 30 + 14, r.y); g.lineTo(cx + 30 - 14, r.y + TH); g.lineTo(cx - 30 - 14, r.y + TH); g.fill();
+        g.restore();
+      });
+      if (aR < 0.5) shine(aR / 0.5, 0.55, [255, 255, 255]);
+      if (s.ult && aR > 0.18 && aR < 0.68) shine((aR - 0.18) / 0.5, 0.6, [255, 236, 170]);
+      if (aR < 0.7) { const k = aR / 0.7; o.lineFlare = 1 - k;
+        over.push(() => { g.save(); g.shadowColor = rgba(accent, 0.9 * (1 - k)); g.shadowBlur = 22 * (1 - k); rr(r.x, r.y, TW, TH, 9); g.strokeStyle = rgba(accent, 0.6 * (1 - k)); g.lineWidth = 2; g.stroke(); g.restore(); }); }
+      if (s.ult && s.charges > 0 && aR > 0.6) {
+        const b = 0.5 + 0.5 * Math.sin(simT * 3);
+        over.push(() => { g.save(); g.shadowColor = rgba(GOLD, 0.8); g.shadowBlur = 10 + 10 * b; rr(r.x, r.y, TW, TH, 9); g.strokeStyle = rgba(GOLD, 0.35 + 0.25 * b); g.lineWidth = 2; g.stroke(); g.restore(); });
+      }
+      if (aC < 0.4) { const k = aC / 0.4; o.lineFlare = Math.max(o.lineFlare || 0, 1 - k);
+        over.push(() => { g.save(); g.globalCompositeOperation = "lighter"; const cx = r.x + TW - 40 + 40 * k;
+          const gr = g.createRadialGradient(cx, r.y + 33, 0, cx, r.y + 33, 18); gr.addColorStop(0, `rgba(255,255,255,${0.6 * (1 - k)})`); gr.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = gr; g.fillRect(cx - 18, r.y + 15, 36, 36); g.restore(); }); }
+      if (aU < 0.18) { o.shadeH = TH * easeOut(aU / 0.18); }
+      if (aU < 0.3) { const k = aU / 0.3; over.push(() => { rr(r.x, r.y, TW, TH, 9); g.fillStyle = rgba(accent, 0.3 * (1 - k)); g.fill(); }); }
+      if (!s.charges && s.timer < 1) o.shadeEdge = 0.35 + 0.65 * (1 - s.timer);
+      if (aD < 0.45) { const k = aD / 0.45; o.shadeCol = mix([0, 0, 0], [150, 20, 30], 1 - k); o.shadeA = 0.35 + 0.25 * (1 - k); o.timerRed = 1 - k; o.timerScale = 1 + 0.25 * Math.sin(Math.PI * Math.min(1, k * 1.6)); }
+    }
+
+    if (style === "burst") {
+      if (aR < 0.35) { const k = aR / 0.35; xf.s = 1 + (s.ult ? 0.1 : 0.06) * Math.sin(Math.PI * k) * (reduced ? 0.5 : 1); o.readyScale = 1 + 0.7 * (1 - easeOutBack(Math.min(1, k * 1.4))); o.readyA = Math.min(1, k * 3); }
+      if (aR < 0.4 && !reduced) { o.keyDy = -6 * Math.sin(Math.PI * aR / 0.4); }
+      if (aR < 0.18 && !reduced) over.push(() => { rr(r.x, r.y, TW, TH, 9); g.fillStyle = `rgba(255,255,255,${0.35 * (1 - aR / 0.18)})`; g.fill(); });
+      if (s.ult && s.charges > 0) xf.dy = -3 - 2 * Math.sin(simT * 3.2);
+      if (aC < 0.3) { const k = aC / 0.3; o.pipScale = []; o.pipScale[s.charges - 1] = 1 + 1.4 * (1 - easeOut(k)); }
+      if (aU < 0.22) { const k = aU / 0.22; xf.s = Math.min(xf.s, 1 - 0.05 * Math.sin(Math.PI * k));
+        if (!reduced) over.push(() => { rr(r.x, r.y, TW, TH, 9); g.fillStyle = rgba(mix(accent, [255, 255, 255], 0.5), 0.45 * (1 - k)); g.fill(); }); }
+      if (aD < 0.4) {
+        const k = aD / 0.4;
+        if (!reduced) { xf.rot = Math.sin(k * Math.PI * 5) * 0.045 * (1 - k); xf.dx = shakeX(k, 3, 4); }
+        o.keyCross = 1 - k; o.timerRed = 1 - k; o.timerScale = 1 + 0.35 * Math.abs(Math.sin(Math.PI * 2 * k)) * (1 - k);
+      }
+    }
+
+    if (style === "shutter") {
+      if (!s.charges) o.glaze = 0.07;
+      if (aU < 0.32) { const k = aU / 0.32; o.shadeH = TH * (reduced ? easeOut(k) : bounce(k)); o.shadeA = 0.5 - 0.15 * k; }
+      if (!s.charges && s.timer < 3 && !s.ult) {
+        const frac = s.timer - Math.floor(s.timer);
+        o.timerScale = 1 + 0.18 * Math.pow(frac, 6);
+      }
+      if (aR < 0.3) { const k = aR / 0.3; over.push(() => { rr(r.x, r.y, TW, TH, 9); g.fillStyle = rgba(accent, 0.35 * (1 - k)); g.fill(); }); }
+      if (s.ult && aR < 0.5) { const k = aR / 0.5; over.push(() => { rr(r.x - 14 * k, r.y - 14 * k, TW + 28 * k, TH + 28 * k, 9 + 6 * k); g.strokeStyle = rgba(GOLD, 0.8 * (1 - k)); g.lineWidth = 2; g.stroke(); }); }
+      if (aD < 0.3) { const k = aD / 0.3; if (!reduced) xf.dy = Math.sin(k * Math.PI * 8) * 2 * (1 - k); o.timerRed = 1 - k; o.shadeA = 0.35 + 0.2 * (1 - k); }
+    }
+    return { o, xf, over };
+  }
+
+  function drawParts() {
+    g.save();
+    for (const p of parts) {
+      const k = p.life / p.max;
+      if (p.k === "ring") {
+        g.strokeStyle = rgba(p.col, 0.8 * (1 - k)); g.lineWidth = 2.5;
+        g.beginPath(); g.arc(p.x, p.y, p.r0 + (p.r1 - p.r0) * easeOut(k), 0, Math.PI * 2); g.stroke();
+      } else if (p.k === "rrect") {
+        const r = rect(p.i), e = p.grow * easeOut(k);
+        rr(r.x - e, r.y - e, TW + 2 * e, TH + 2 * e, 9 + e * 0.5);
+        g.strokeStyle = rgba(p.col, 0.9 * (1 - k)); g.lineWidth = 2.5 * (1 - k) + 0.5; g.stroke();
+      } else if (p.k === "spark") {
+        g.globalCompositeOperation = "lighter";
+        g.fillStyle = rgba(p.col, 1 - k);
+        g.beginPath(); g.arc(p.x, p.y, p.size * (1 - 0.5 * k), 0, Math.PI * 2); g.fill();
+        g.globalCompositeOperation = "source-over";
+      } else if (p.k === "streak") {
+        const e = easeOut(k), hx = p.x0 + (p.x1 - p.x0) * e, hy = p.y0 + (p.y1 - p.y0) * e;
+        const t0 = Math.max(0, e - 0.35), tx = p.x0 + (p.x1 - p.x0) * t0, ty = p.y0 + (p.y1 - p.y0) * t0;
+        g.globalCompositeOperation = "lighter";
+        const gr = g.createLinearGradient(tx, ty, hx, hy); gr.addColorStop(0, rgba(p.col, 0)); gr.addColorStop(1, rgba(p.col, 0.95));
+        g.strokeStyle = gr; g.lineWidth = 4; g.lineCap = "round"; g.beginPath(); g.moveTo(tx, ty); g.lineTo(hx, hy); g.stroke();
+        g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.arc(hx, hy, 3, 0, Math.PI * 2); g.fill();
+        g.globalCompositeOperation = "source-over"; g.lineCap = "butt";
+      } else if (p.k === "shard") {
+        g.save(); g.translate(p.cx, p.cy); g.rotate(p.rot);
+        g.beginPath(); g.moveTo(p.pts[0][0], p.pts[0][1]); g.lineTo(p.pts[1][0], p.pts[1][1]); g.lineTo(p.pts[2][0], p.pts[2][1]); g.closePath();
+        g.fillStyle = rgba(p.col, 0.28 * (1 - k)); g.fill();
+        g.strokeStyle = rgba(p.col, 0.9 * (1 - k)); g.lineWidth = 1.2; g.stroke();
+        g.restore();
+      }
+    }
+    g.restore();
+  }
+
+  function frame() {
+    drawArena(simT);
+    drawXp();
+    for (let i = 0; i < 5; i++) {
+      const { o, xf, over } = look(i), r = rect(i);
+      g.save();
+      g.translate(r.x + TW / 2 + xf.dx, r.y + TH / 2 + xf.dy);
+      if (xf.rot) g.rotate(xf.rot);
+      if (xf.s !== 1) g.scale(xf.s, xf.s);
+      g.translate(-(r.x + TW / 2), -(r.y + TH / 2));
+      drawTile(i, o);
+      for (const f of over) f();
+      g.restore();
+    }
+    drawParts();
+    // Which style is showing, in the corner.
+    const st = STYLES.find(s => s.id === style);
+    g.font = "600 13px Oxanium, 'Segoe UI', sans-serif"; g.textAlign = "left"; g.textBaseline = "top";
+    g.fillStyle = "rgba(146,161,173,0.9)"; g.fillText((st.name + (reduced ? "  ·  reduced effects" : "")).toUpperCase(), 18, 16);
+  }
+
+  // --- The demo: presses abilities by itself, sometimes too early ----------------------------------------------------
+  function autoStep(dt) {
+    if (!auto) return;
+    if (holdAuto > 0) { holdAuto -= dt; return; }
+    nextAuto -= dt;
+    const ult = slots[4];
+    if (ult.charges > 0 && age(ult, "ready") > 1.6) { press(4); nextAuto = 1; return; }
+    if (nextAuto > 0) return;
+    nextAuto = 0.9 + Math.random() * 0.8;
+    const live = [0, 1, 2];
+    const ready = live.filter(i => slots[i].charges > 0), waiting = live.filter(i => slots[i].charges === 0);
+    if (waiting.length && (Math.random() < 0.3 || !ready.length)) press(waiting[Math.floor(Math.random() * waiting.length)]);
+    else if (ready.length && Math.random() < 0.75) press(ready[Math.floor(Math.random() * ready.length)]);
+  }
+
+  function trigger(t) {
+    holdAuto = 2.6;
+    if (t === "ready") { const s = slots[1]; s.charges = 0; s.timer = 0.6; }
+    if (t === "charge") { const s = slots[0]; s.charges = 1; s.timer = 0.6; }
+    if (t === "use") { const s = slots[2]; if (!s.charges) { s.charges = 1; s.timer = 0; } press(2); }
+    if (t === "deny") { const s = slots[1]; if (s.charges) { s.charges = 0; s.timer = s.cd * 0.6; } press(1); }
+    if (t === "ult") { const s = slots[4]; s.charges = 0; s.timer = 0.6; holdAuto = 3.2; }
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const real = Math.min(0.05, (now - last) / 1000); last = now;
+    const dt = real * speed;
+    simT += dt;
+    step(dt); autoStep(dt); stepParts(dt);
+    frame();
+    requestAnimationFrame(loop);
+  }
+
+  // --- Controls ----------------------------------------------------------------------------------------------------
+  const segS = document.getElementById("styles"), cards = document.getElementById("cards");
+  function setStyle(id) {
+    style = id; parts.length = 0;
+    segS.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === id));
+    cards.querySelectorAll(".card").forEach(c => c.classList.toggle("on", c.dataset.v === id));
+    try { localStorage.setItem("tiles-style", id); } catch (e) {}
+  }
+  for (const s of STYLES) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = s.id; b.textContent = s.name;
+    b.onclick = () => setStyle(s.id); segS.appendChild(b);
+    const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.v = s.id; c.style.setProperty("--c", s.c);
+    const rows = [["Ready", s.m.ready], ["Charge back", s.m.charge], ["Use", s.m.use], ["Too early", s.m.deny], ["Ultimate", s.m.ult]];
+    c.innerHTML = `<div class="hd"><b class="n"></b><span class="tag"></span></div><p class="sum"></p><dl></dl><p class="how"></p>`;
+    c.querySelector(".n").textContent = s.name; c.querySelector(".tag").textContent = s.tag;
+    c.querySelector(".sum").textContent = s.sum; c.querySelector(".how").textContent = s.how;
+    const dl = c.querySelector("dl");
+    for (const [k, v] of rows) { const dt = document.createElement("dt"), dd = document.createElement("dd"); dt.textContent = k; dd.textContent = v; dl.append(dt, dd); }
+    c.onclick = () => { setStyle(s.id); window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); };
+    cards.appendChild(c);
+  }
+  document.querySelectorAll("#speeds button").forEach(b => b.onclick = () => {
+    speed = +b.dataset.v; document.querySelectorAll("#speeds button").forEach(x => x.classList.toggle("on", x === b));
+  });
+  document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => trigger(b.dataset.t));
+  const autoBox = document.getElementById("auto"), redBox = document.getElementById("reduced");
+  autoBox.onchange = () => { auto = autoBox.checked; };
+  redBox.checked = reduced;
+  redBox.onchange = () => { reduced = redBox.checked; };
+
+  const KEYS = { " ": 0, q: 1, e: 2, shift: 3, f: 4 };
+  window.addEventListener("keydown", ev => {
+    const tag = ev.target.tagName;
+    if (tag === "INPUT" || tag === "BUTTON" || ev.repeat || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const i = KEYS[ev.key.toLowerCase()];
+    if (i === undefined) return;
+    ev.preventDefault(); holdAuto = 2.6; press(i);
+  });
+  cv.addEventListener("click", ev => {
+    const b = cv.getBoundingClientRect(), x = (ev.clientX - b.left) * W / b.width, y = (ev.clientY - b.top) * H / b.height;
+    for (let i = 0; i < 5; i++) { const r = rect(i); if (x >= r.x && x <= r.x + TW && y >= r.y && y <= r.y + TH) { holdAuto = 2.6; press(i); } }
+  });
+
+  let saved = null;
+  try { saved = localStorage.getItem("tiles-style"); } catch (e) {}
+  setStyle(STYLES.some(s => s.id === saved) ? saved : "snap");
+  requestAnimationFrame(loop);
+})();
+</script>
