@@ -132,6 +132,48 @@ namespace Arena
             return Ui.HitArea(r) ? !value : value;
         }
 
+        /// The pause menu's players, in the run card: compact cards stacked up from its bottom (the Tab screen has more).
+        void DrawPartyStack(Rect card)
+        {
+            var players = new List<Player>(game.Players.Values);
+            var rise = PartyAnim;  // they rise in after the card (WindowAnim.cs)
+            var pc = GUI.color;
+            float oldAlpha = Ui.Alpha;
+            GUI.color = new Color(pc.r, pc.g, pc.b, pc.a * rise.y);
+            Ui.Alpha = oldAlpha * rise.y;
+            const float h = 46f, gap = 6f;
+            float x = card.x + 20f, w = card.width - 40f, y = card.yMax - 16f - h + rise.x;
+            foreach (var p in players)  // the first at the bottom, each next one above it
+            {
+                PartyCompact(new Rect(x, y, w, h), p);
+                y -= h + gap;
+            }
+            Ui.Label(new Rect(x + 2f, y + h - 16f, 200f, 14f), "PLAYERS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Fill(new Rect(x, y + h - 26f, w, 1f), new Color(1f, 1f, 1f, 0.08f));
+            Ui.Alpha = oldAlpha;
+            GUI.color = pc;
+        }
+
+        /// A one-line player card: class icon, name, class and weapon, level, and a thin health bar along the bottom.
+        void PartyCompact(Rect r, Player p)
+        {
+            var col = ToColor(p.Def.Color);
+            Ui.Card(r, col, p.Id == game.MyId ? 0.4f : 0.15f);
+            var art = new Rect(r.x + 2f, r.y + 2f, r.height - 4f, r.height - 4f);
+            Ui.Pill(art, new Color(col.r * 0.15f, col.g * 0.15f, col.b * 0.15f, 0.95f));
+            Ui.Icon(new Rect(art.center.x - 15f, art.center.y - 15f, 30f, 30f), PixelArt.Get("class_" + Defs.KitName(p.Kit).ToLowerInvariant()));
+            float x = art.xMax + 10f;
+            string name = p.Name + (p.Id == game.MyId ? "  (you)" : "");
+            Ui.Label(new Rect(x, r.y + 4f, 200f, 22f), name, 15, Color.white, TextAnchor.MiddleLeft, true);
+            float cx = x + Ui.TextWidth(name, 15, true) + 10f, room = r.xMax - 64f - cx;
+            string cls = Defs.KitName(p.Kit) + " " + p.Def.Name, full = cls + "  ·  " + p.Weapon.Name;
+            Ui.Label(new Rect(cx, r.y + 4f, room, 22f), Ui.TextWidth(full, 12, true) <= room ? full : cls, 12, col, TextAnchor.MiddleLeft, true);  // the weapon only when it fits
+            var lvl = new Rect(r.xMax - 54f, r.y + 7f, 44f, 17f);
+            Ui.Pill(lvl, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f));
+            Ui.Label(lvl, "LV " + p.Level, 10, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
+            Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? Ui.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
+        }
+
         /// A small trophy card for a player: their class icon on a hatched tile, name, class and weapon, level, health.
         void PartyMini(Rect r, Player p)
         {
@@ -305,25 +347,9 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
-            // The party.
-            var players = new List<Player>(game.Players.Values);
-            var rise = PartyAnim;  // the party rises in (WindowAnim.cs)
-            var pc = GUI.color;
-            GUI.color = new Color(pc.r, pc.g, pc.b, pc.a * rise.y);
-            Ui.Alpha = rise.y;
-            float cardH = players.Count > 2 ? 62f : 72f, py = H - 26f - players.Count * (cardH + 8f) + rise.x;
-            Ui.Label(new Rect(42f, py - 22f, 200f, 16f), "PLAYERS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            foreach (var p in players)
-            {
-                PartyMini(new Rect(40f, py, DrawerW - 80f, cardH), p);
-                py += cardH + 8f;
-            }
-            Ui.Label(new Rect(42f, H - 22f, DrawerW - 60f, 16f), "↑ ↓  Enter  ·  Esc to resume", 11, Ui.Muted);
-            Ui.Alpha = 1f;
-            GUI.color = pc;
             EndDrawer();
             BeginPanelAnim("runcard", true);  // it drops in with a bounce (WindowAnim.cs)
-            DrawRunCard(new Rect(W - 500f, 54f, 450f, 0f), t);
+            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t);  // down to near the bottom, the players in it
             EndPanelAnim();
         }
 
@@ -363,7 +389,7 @@ namespace Arena
         /// (moving) and this stretch's challenge room.
         void DrawRunCard(Rect at, float t)
         {
-            // The chips first, to know how many rows they take (and so how tall the card is).
+            // The chips: the path, the modifiers, the difficulty.
             var chips = new List<KeyValuePair<string, Color>>();
             if (game.CurrentPath != PathId.None)
             {
@@ -375,20 +401,9 @@ namespace Arena
                 if (game.Has(m.Mod))
                     chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
             chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
-            int chipRows = 1;
-            float probe = 0f;
-            foreach (var c in chips)
-            {
-                float cw = Ui.TextWidth(c.Key, 11, true) + 24f;
-                if (probe + cw > at.width - 40f && probe > 0f)
-                {
-                    chipRows++;
-                    probe = 0f;
-                }
-                probe += cw;
-            }
-            var r = new Rect(at.x, at.y, at.width, 290f + (chipRows - 1) * 26f);
+            var r = at;
             Ui.Panel(r, false);
+            DrawPartyStack(r);  // the players, stacked up from its bottom
             DrawCorners(r, Ui.Gold);
             float x = r.x + 20f, y = r.y + 16f;
             Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
