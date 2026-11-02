@@ -83,6 +83,16 @@ canvas.px { image-rendering: pixelated; display: block; }
     linear-gradient(var(--bc), var(--bc)) bottom right / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom right / 3px 20px no-repeat; }
 .selbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--sc), transparent); }
 .row { display: flex; align-items: center; }
+/* Settings controls: a slider (track, fill, knob), a switch, and Off / Low / Full. */
+.sl { position: relative; height: 8px; border-radius: 4px; background: #0b0f1a; box-shadow: inset 0 0 0 1px var(--line); }
+.sl > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: linear-gradient(90deg, #3a6fe0, #7fb0ff); }
+.sl > b { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: #e9efff; box-shadow: 0 0 0 3px #3a6fe0, 0 2px 6px rgba(0,0,0,0.5); }
+.sw { flex: none; width: 44px; height: 24px; border-radius: 12px; background: #2a3146; position: relative; box-shadow: inset 0 0 0 1px var(--line); }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #8d97b2; transition: left .2s; }
+.sw.on { background: linear-gradient(#5a97ff, #3a6fe0); } .sw.on::after { left: 23px; background: #fff; }
+.tri { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: #0f131d; box-shadow: inset 0 0 0 1px var(--line); }
+.tri span { flex: 1; text-align: center; font-size: 13px; font-weight: 800; color: #8d97b2; padding: 6px 0; border-radius: 7px; }
+.tri span.on { background: linear-gradient(#5a97ff, #3a6fe0); color: #fff; }
 .col { display: flex; flex-direction: column; }
 @media (prefers-reduced-motion: no-preference) {
   .shine { position: relative; overflow: hidden; }
@@ -97,39 +107,42 @@ canvas.px { image-rendering: pixelated; display: block; }
 <div class="wrap">
   <header>
     <h1>Menu Window Mockups</h1>
-    <p>Three directions for one window style shared by the pause menu, Records and How to play. They're built from the newer pieces: the trophy cards of the upgrade picker and results, the lobby's icon-chip buttons and corner brackets, and the run's new parts (paths, modifiers, difficulty, challenge rooms). In every option, Settings moves out of the pause menu into its own window of the same style. Use the switch above each screen to see the three windows.</p>
+    <p>Three directions for one window style shared by the pause menu, Settings, Records and How to play. They're built from the newer pieces: the trophy cards of the upgrade picker and results, the lobby's icon-chip buttons and corner brackets, and the run's new parts (paths, modifiers, difficulty, challenge rooms). In every option, Settings moves out of the pause menu into its own window of the same style. Use the switch above each screen to see the four windows. Settings keeps today's options (audio, visual effects, aim line, the Field guide) and sorts them into Audio, Visual effects and Gameplay.</p>
   </header>
 
   <section class="option" data-opt="A">
     <div class="bar"><h2><span class="tag">Option A</span>Run dossier</h2>
-      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
-    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="A-pause"></div><div class="screen bg-menu" data-s="records" id="A-records" hidden></div><div class="screen bg-menu" data-s="howto" id="A-howto" hidden></div></div>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button><button aria-pressed="false" data-s="settings">Settings</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="A-pause"></div><div class="screen bg-menu" data-s="records" id="A-records" hidden></div><div class="screen bg-menu" data-s="howto" id="A-howto" hidden></div><div class="screen bg-game" data-s="settings" id="A-settings" hidden></div></div>
     <ul class="notes">
       <li>One wide window with a left column that sums things up and a right side to act or read. Paused: the left is your run (wave, path, modifiers, difficulty, the next boss, this stretch's challenge room) and your party as small trophy cards; the right is five big buttons, each with a line saying what it does.</li>
       <li>Records: the left is your profile at a glance, the right shows trophy rows for bosses, classes and challenge rooms. How to play: the left lists topics (Challenge rooms is one of them), the right shows the open topic as icon cards.</li>
       <li>The closest to today's layout, so every window keeps its current content and just gets the frame.</li>
+      <li>Settings: the left lists the groups (Audio, Visual effects, Gameplay) with quick switches for Mute and Aim line, and the right shows the open group as rows, each with a line saying what it does.</li>
     </ul>
   </section>
 
   <section class="option" data-opt="B">
     <div class="bar"><h2><span class="tag">Option B</span>Card deck</h2>
-      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
-    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="B-pause"></div><div class="screen bg-menu" data-s="records" id="B-records" hidden></div><div class="screen bg-menu" data-s="howto" id="B-howto" hidden></div></div>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button><button aria-pressed="false" data-s="settings">Settings</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="B-pause"></div><div class="screen bg-menu" data-s="records" id="B-records" hidden></div><div class="screen bg-menu" data-s="howto" id="B-howto" hidden></div><div class="screen bg-game" data-s="settings" id="B-settings" hidden></div></div>
     <ul class="notes">
       <li>The upgrade picker's trophy cards, used for everything. Paused: a run strip of chips under the title, then one tall card per choice with a hatched art panel and a big pixel icon. The highlighted card gets the brackets and the fading bar, and 1–5 picks one, like the picker.</li>
       <li>Records: one card per category (Runs, Bosses, Classes, Challenge rooms), each with a big number at the top and its list below. How to play: topic cards three at a time with page dots, and a keycap strip of the controls along the bottom.</li>
       <li>The boldest look, and the most consistent with the level-up screen and the results.</li>
+      <li>Settings: one tall card per group, with every setting of that group on its card, so everything fits on one screen with no tabs.</li>
     </ul>
   </section>
 
   <section class="option" data-opt="C">
     <div class="bar"><h2><span class="tag">Option C</span>Side drawer</h2>
-      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
-    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="C-pause"></div><div class="screen bg-menu" data-s="records" id="C-records" hidden></div><div class="screen bg-menu" data-s="howto" id="C-howto" hidden></div></div>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button><button aria-pressed="false" data-s="settings">Settings</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="C-pause"></div><div class="screen bg-menu" data-s="records" id="C-records" hidden></div><div class="screen bg-menu" data-s="howto" id="C-howto" hidden></div><div class="screen bg-game" data-s="settings" id="C-settings" hidden></div></div>
     <ul class="notes">
       <li>A tall drawer slides in from the left with a vertical menu (keys on the right of each row). The frozen arena stays visible on the right, with a floating "this run" card and your party over it. It works with the signal-glitch opening: the glitch tears in, then the drawer.</li>
       <li>Records and How to play reuse the drawer for their sections. The open section fills the right as one large panel, and How to play gets a small live diagram per topic (here, the portal and the five rooms).</li>
       <li>The lightest. It hides the least of the game and reads like a console menu.</li>
+      <li>Settings: the groups in the drawer and the open one on the right, with a live preview so you can see what a visual setting does as you change it (here: screen shake, damage numbers and ability names).</li>
     </ul>
   </section>
 </div>
@@ -370,6 +383,89 @@ put("C-howto", drawer("HOW TO PLAY", "#9cc0ff", TOPICS.map((t, i) => drawerRow({
     <canvas id="C-diagram" width="718" height="250" style="border-radius:10px; background:#0b0d14; box-shadow:inset 0 0 0 1px var(--line);"></canvas>
     <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px;">${ROOM_TIPS.slice(1, 6).map((t, i) => `<div class="panel" style="padding:10px; background:#11151f; height:120px; box-sizing:border-box;"><div class="row" style="gap:6px;">${ic(t.icon, 2)}<b style="font-size:12.5px; color:${ROOMS[i][3]};">${t.t}</b></div><div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.35;">${t.d}</div></div>`).join("")}</div>
   </div>`);
+
+// ===================== Settings, in each style =====================
+const AUDIO = [["Master", 0.8], ["Music", 0.55], ["Weapons", 0.7, "Your shots and spells"], ["Enemies", 0.6], ["Effects", 0.65, "Explosions, abilities, the menus"]];
+const FX = [["Visual effects", true, "Glow, sparks, shattering enemies, lighting"], ["Damage numbers", true, "Small numbers rising off what's hit"], ["Ability names", false, "Each ability's name over whoever casts it"], ["Reduced effects", false, "No screen shake, hit-pause or white flashes"]];
+const PLAY = [["Aim line", true, "A line from you toward the cursor", "V"], ["Mute all sound", false, "", "M"], ["Show the HUD", true, "Hide it for a clean screen", "H"]];
+const slider = (v, w = "100%") => `<div class="sl" style="width:${w};"><i style="width:${v * 100}%"></i><b style="left:${v * 100}%"></b></div>`;
+const audioRow = ([n, v, d]) => `<div class="col" style="gap:8px;"><div class="row"><span style="font-size:15px; font-weight:700;">${n}</span>${d ? `<span style="font-size:12px; color:var(--muted); margin-left:8px;">${d}</span>` : ""}<b style="margin-left:auto; font-size:14px; color:#bcd2ff;">${Math.round(v * 100)}%</b></div>${slider(v)}</div>`;
+const swRow = ([n, on, d, k]) => `<div class="row" style="gap:12px; min-height:46px;"><div class="col" style="gap:2px;"><span style="font-size:15px; font-weight:700;">${n}${k ? ` <span class="key" style="margin-left:6px;">${k}</span>` : ""}</span>${d ? `<span style="font-size:12px; color:var(--muted);">${d}</span>` : ""}</div><span class="sw ${on ? "on" : ""}" style="margin-left:auto;"></span></div>`;
+const shakeRow = `<div class="col" style="gap:8px;"><span style="font-size:15px; font-weight:700;">Screen shake</span><div class="tri"><span>Off</span><span class="on">Low</span><span>Full</span></div></div>`;
+const GROUPS = [{ name: "Audio", icon: "pulse", col: "#7fb0ff" }, { name: "Visual effects", icon: "nova", col: "#ffcc59" }, { name: "Gameplay", icon: "crosshair", col: "#8cff8c" }];
+
+put("A-settings", `
+  <div class="win" style="left:70px; top:40px; width:1140px; height:640px;"></div>
+  <div style="left:100px; top:66px;">${fancy("SETTINGS", 46, "#9cc0ff")}</div>
+  <div style="left:102px; top:120px; color:var(--muted); font-size:13px; font-weight:700;">Saved on this computer · changes apply at once</div>
+  <div class="in" style="--i:1; left:100px; top:160px; width:300px; display:grid; gap:6px;">
+    ${GROUPS.map((g, i) => `<div class="row panel ${i === 1 ? "brk" : ""}" style="position:relative; height:56px; gap:12px; padding:0 14px; ${i === 1 ? `--bc:${g.col}; border-color:${g.col}; background:#2a2416;` : ""}">${ic(g.icon, 2)}<span style="font-size:16px; font-weight:800; color:${i === 1 ? "#fff" : "#c9d3ea"};">${g.name}</span></div>`).join("")}
+    <div class="sec" style="margin-top:18px;">Quick</div>
+    <div class="panel" style="padding:6px 14px;">${swRow(["Mute all sound", false, "", "M"])}${swRow(["Aim line", true, "", "V"])}</div>
+  </div>
+  <div style="left:430px; top:160px;">${fancy("VISUAL EFFECTS", 28, "#ffcc59")}</div>
+  <div class="panel in" style="--i:2; left:430px; top:206px; width:750px; padding:10px 22px; display:grid; gap:4px;">
+    ${swRow(FX[0])}<div style="height:1px; background:var(--line);"></div>
+    <div style="padding:8px 0;">${shakeRow}</div><div style="height:1px; background:var(--line);"></div>
+    ${FX.slice(1).map(swRow).join('<div style="height:1px; background:var(--line);"></div>')}
+  </div>
+  <div style="left:100px; top:604px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>
+  <div style="left:430px; top:612px;">${fbtn({ icon: "ui_book", name: "Field guide", key: "", c: "violet" }, 220)}</div>`);
+
+function settingsCard(i, g, body) {
+  return `<div class="panel in" style="--i:${i}; width:370px; height:500px; overflow:hidden; border-color:${g.col}55;">
+    <div class="hatch" style="height:92px; background-color:${g.col}1c; display:flex; align-items:center; justify-content:center; gap:14px;">${ic(g.icon, 4)}${fancy(g.name.toUpperCase(), 26, g.col)}</div>
+    <div style="padding:16px 20px; display:grid; gap:14px;">${body}</div></div>`;
+}
+put("B-settings", `
+  <div style="left:0; right:0; top:30px; display:flex; flex-direction:column; align-items:center; gap:6px;">${fancy("SETTINGS", 56, "#9cc0ff")}<span style="color:var(--muted); font-size:13px; font-weight:700;">Saved on this computer · changes apply at once</span></div>
+  <div style="left:0; right:0; top:132px; display:flex; justify-content:center; gap:16px;">
+    ${settingsCard(1, GROUPS[0], AUDIO.map(audioRow).join("") + swRow(PLAY[1]))}
+    ${settingsCard(2, GROUPS[1], swRow(FX[0]) + shakeRow + FX.slice(1).map(swRow).join(""))}
+    ${settingsCard(3, GROUPS[2], swRow(PLAY[0]) + swRow(PLAY[2]) + `<div class="col" style="gap:8px; margin-top:6px;"><span class="sec">More</span>${fbtn({ icon: "ui_book", name: "Field guide", c: "violet" }, 330, "height:44px;")}<span style="font-size:12px; color:var(--muted);">F1: developer tools (recording, aim debug, waves)</span></div>`)}
+  </div>
+  <div style="left:0; right:0; top:652px; display:flex; justify-content:center;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`);
+
+put("C-settings", drawer("SETTINGS", "#9cc0ff", GROUPS.map((g, i) => drawerRow({ icon: g.icon, name: g.name, col: g.col, line: i === 1 ? "What the fight looks like" : "" }, i, i === 1)).join(""),
+  `<div style="left:40px; top:330px; width:340px;" class="col"><div class="sec">Quick</div><div class="panel" style="padding:6px 14px; margin-top:8px;">${swRow(["Mute all sound", false, "", "M"])}${swRow(["Aim line", true, "", "V"])}</div></div>
+   <div style="left:40px; top:620px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`) + `
+  <div class="panel in" style="--i:2; left:470px; top:40px; width:770px; height:640px; padding:22px 26px;">
+    ${fancy("VISUAL EFFECTS", 30, "#ffcc59")}
+    <canvas id="C-fxprev" width="718" height="190" style="margin-top:12px; border-radius:10px; background:#0b0d14; box-shadow:inset 0 0 0 1px var(--line);"></canvas>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 28px; margin-top:12px;">
+      ${swRow(FX[0])}${swRow(FX[1])}
+      <div style="grid-column:1/3; padding:4px 0;">${shakeRow}</div>
+      ${swRow(FX[2])}${swRow(FX[3])}
+    </div>
+    <div class="row" style="gap:8px; margin-top:12px; font-size:12px; color:var(--muted);">${ic("ui_help", 1)} The preview shows what's on: a hit, its number, a blast and its shake.</div>
+  </div>`);
+
+// The settings drawer's preview: a player shooting a target; hits pop numbers, a blast every few seconds shakes it.
+(function () {
+  const cv = document.getElementById("C-fxprev"), x = cv.getContext("2d"), W = cv.width, H = cv.height;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function frame(now) {
+    const t = reduce ? 1.3 : now / 1000, cyc = t % 3, boom = Math.max(0, 1 - Math.abs(cyc - 2.2) * 4);
+    const sx = boom > 0 && !reduce ? Math.sin(t * 80) * 4 * boom : 0, sy = boom > 0 && !reduce ? Math.cos(t * 70) * 3 * boom : 0;
+    x.setTransform(1, 0, 0, 1, sx, sy); x.clearRect(-10, -10, W + 20, H + 20);
+    x.strokeStyle = "rgba(110,140,220,0.1)";
+    for (let i = 0; i < W; i += 30) { x.beginPath(); x.moveTo(i + 0.5, 0); x.lineTo(i + 0.5, H); x.stroke(); }
+    for (let j = 0; j < H; j += 30) { x.beginPath(); x.moveTo(0, j + 0.5); x.lineTo(W, j + 0.5); x.stroke(); }
+    const px = 140, py = 110, ex = 520, ey = 95;
+    for (let k = 0; k < 4; k++) { const f = (t * 2.2 + k / 4) % 1; x.beginPath(); x.arc(px + (ex - px) * f, py + (ey - py) * f, 5, 0, Math.PI * 2); x.fillStyle = "#8cc0ff"; x.shadowColor = "#8cc0ff"; x.shadowBlur = 12; x.fill(); }
+    x.shadowBlur = 0;
+    x.beginPath(); x.arc(px, py, 16, 0, Math.PI * 2); x.fillStyle = "#121827"; x.fill(); x.lineWidth = 3; x.strokeStyle = "#5a96ff"; x.stroke();
+    const flash = ((t * 2.2) % 1) < 0.12;
+    x.beginPath(); for (let s = 0; s < 3; s++) { const a = -Math.PI / 2 + s * Math.PI * 2 / 3; x[s ? "lineTo" : "moveTo"](ex + Math.cos(a) * 20, ey + Math.sin(a) * 20); } x.closePath(); x.fillStyle = flash ? "#fff" : "#ff5a5a"; x.fill();
+    x.font = "900 16px Arial"; x.textAlign = "center";
+    for (let k = 0; k < 3; k++) { const f = ((t * 2.2) % 1 + k) / 3; x.globalAlpha = 1 - f; x.fillStyle = "#ffe08a"; x.fillText(String(12 + k * 3), ex + 18 + k * 8, ey - 26 - f * 40); }
+    x.globalAlpha = 1;
+    if (boom > 0) { x.beginPath(); x.arc(600, 140, 60 * (1.2 - boom), 0, Math.PI * 2); x.strokeStyle = `rgba(255,170,80,${boom})`; x.lineWidth = 4; x.stroke(); }
+    x.font = "800 12px Arial"; x.fillStyle = "#c9d3ea"; x.textAlign = "left"; x.fillText("Hit flash · damage numbers · screen shake (Low)", 16, H - 14);
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
 
 // The drawer's live diagram: the portal filling as two players walk in.
 (function () {
