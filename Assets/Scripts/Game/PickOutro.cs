@@ -123,7 +123,7 @@ namespace Arena
                 if (BeginUiGl())
                 {
                     UiModelAt(V2.Zero, 1f);
-                    PickPillar(outroTarget, g, 30f);
+                    PickPillar(outroTarget, g, 30f, PickHomeR(me));
                     var col = outroColors[outroPicked];
                     Arc(outroTarget, 20f + 70f * EaseOut(g), 4f, col.WithAlpha(1f - g), 40);
                     Arc(outroTarget, 8f + 40f * g, 2f, new Rgba(1f, 1f, 1f, 0.8f * (1f - g)), 32);

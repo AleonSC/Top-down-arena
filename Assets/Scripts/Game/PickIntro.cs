@@ -83,22 +83,37 @@ namespace Arena
             }
         }
 
-        /// A pillar of gold light rising out of a point (k: 0..1, it shoots up, then thins and fades).
-        void PickPillar(V2 foot, float k, float wide)
+        /// Your character's body radius on the HUD canvas, for the pillar's foot and halo.
+        float PickHomeR(Player me) => (me != null ? me.Def.BodyR : 16f) * WorldToUi;
+
+        /// A pillar of gold light rising out of a character (k: 0..1, it shoots up, then thins and fades). Its foot
+        /// ("soft fade", Docs/Mockups/pillar-foot.html option 2) stops just above their middle and fades out over the
+        /// last two body radii, so it has no edge, and a gold halo rings them while it's up. bodyR: their radius.
+        void PickPillar(V2 foot, float k, float wide, float bodyR)
         {
             if (k <= 0f || k >= 1f)
                 return;
-            float a = Mathf.Sin(Mathf.PI * k), w = wide * (1f - k * 0.6f), top = Lerp(foot.Y, -20f, EaseOut(Mathf.Min(1f, k * 2.5f)));
+            float a = Mathf.Sin(Mathf.PI * k), w = wide * (1f - k * 0.6f), footY = foot.Y - bodyR * 0.2f, fadeLen = bodyR * 2.1f;
+            float top = Lerp(footY, -20f, EaseOut(Mathf.Min(1f, k * 2.5f)));
             var gold = new Rgba(1f, 0.8f, 0.35f);
-            const int bands = 10;
-            for (int b = 0; b < bands; b++)  // brightest at the foot, fading toward the top
+            const int bands = 10, sub = 4;  // each band split, so the foot's fade is smooth
+            for (int b = 0; b < bands; b++)  // brightest near the foot, fading toward the top
             {
-                float y0 = Lerp(foot.Y, top, b / (float)bands), y1 = Lerp(foot.Y, top, (b + 1f) / bands), fade = 1f - b / (float)bands;
-                SetColor(gold.WithAlpha(0.6f * a * fade));
-                Quad(new V2(foot.X - w / 2f, y0), new V2(foot.X + w / 2f, y0), new V2(foot.X + w / 2f, y1), new V2(foot.X - w / 2f, y1));
-                SetColor(new Rgba(1f, 1f, 1f, a * fade));
-                Quad(new V2(foot.X - w * 0.12f, y0), new V2(foot.X + w * 0.12f, y0), new V2(foot.X + w * 0.12f, y1), new V2(foot.X - w * 0.12f, y1));
+                float fade = 1f - b / (float)bands;
+                for (int s = 0; s < sub; s++)
+                {
+                    float y0 = Lerp(footY, top, (b + s / (float)sub) / bands), y1 = Lerp(footY, top, (b + (s + 1f) / sub) / bands);
+                    float soft = Mathf.Clamp01((footY - (y0 + y1) / 2f) / fadeLen);
+                    if (soft <= 0f)
+                        continue;
+                    SetColor(gold.WithAlpha(0.6f * a * fade * soft));
+                    Quad(new V2(foot.X - w / 2f, y0), new V2(foot.X + w / 2f, y0), new V2(foot.X + w / 2f, y1), new V2(foot.X - w / 2f, y1));
+                    SetColor(new Rgba(1f, 1f, 1f, a * fade * soft));
+                    Quad(new V2(foot.X - w * 0.12f, y0), new V2(foot.X + w * 0.12f, y0), new V2(foot.X + w * 0.12f, y1), new V2(foot.X - w * 0.12f, y1));
+                }
             }
+            Arc(foot, bodyR + 5.5f, 1.8f, gold.WithAlpha(0.85f * a), 32);  // the halo
+            Arc(foot, bodyR + 9.5f, 1f, gold.WithAlpha(0.3f * a), 32);
         }
 
         /// GL under the opening cards (call before them, on the HUD canvas): the pillar and ring at your feet, and a
@@ -112,7 +127,7 @@ namespace Arena
             V2 home = PickHome(me);
             if (introFull)
             {
-                PickPillar(home, Seg(e, 0f, IntroPillarEnd), 44f);
+                PickPillar(home, Seg(e, 0f, IntroPillarEnd), 44f, PickHomeR(me));
                 float g = Seg(e, 0.05f, IntroPillarEnd);
                 if (g > 0f && g < 1f)
                     Arc(home, 20f + 110f * EaseOut(g), 4f, new Rgba(1f, 0.8f, 0.35f, 1f - g), 40);
