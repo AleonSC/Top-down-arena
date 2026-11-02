@@ -1,0 +1,368 @@
+<title>Level-Up Drop-In Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a column of animated 1280x720 game screens (canvas), each with a replay button and notes.
+   Single dark look on purpose: these are mockups of the game's own screen, matching run-launch.html. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 76ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.bar button { margin-left: auto; font: 700 14px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+.bar button.slow { background: linear-gradient(#3a4258, #2a3044); }
+.bar button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 6ch; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+.common { color: var(--muted); line-height: 1.55; max-width: 92ch; margin: 0; }
+.common b { color: var(--ink); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Level-Up Drop-In Mockups</h1>
+    <p>Three ways for the upgrade picker to open, built from the run launch's "drop in": the grid ripple, pillars of light, landing rings, the gold banner that overshoots, and panels that slide in like the HUD. Each loop plays a moment of the fight, the level-up, a few seconds of choosing, then today's pick animation (the other cards shatter and yours flies into you) and back to the fight.</p>
+  </header>
+
+  <p class="common"><b>Shared by all three:</b> the HUD slides down out of the way as the picker opens and back up when you've picked, like it does when a run launches. The Reroll and Take buttons rise from the bottom the same way. Keys and clicks work as soon as the cards have landed (about 0.9 s in), and a pick made earlier skips the rest of the intro.</p>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option A</span>Cards drop in</h2><span class="time" id="tA"></span><button class="slow" id="sA">Half speed</button><button id="rA">Replay</button></div>
+    <canvas class="screen" id="A" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The closest to the run launch. A gold ring runs out from you across the grid and the screen dims.</li>
+      <li>One pillar of light per card, in its rarity colour, beams down left to right. Each card lands with a small overshoot and a ring, and its icon flashes above it before settling into the card.</li>
+      <li>LEVEL UP! pops in first on a dark band like GET READY, then slides up to its place at the top as the pillars start.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option B</span>Out of you</h2><span class="time" id="tB"></span><button class="slow" id="sB">Half speed</button><button id="rB">Replay</button></div>
+    <canvas class="screen" id="B" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>A gold pillar shoots up out of your character and a ring bursts off you.</li>
+      <li>The three cards fly out of you along arcs, small and turning, and open out as they land, each with a ring in its rarity colour.</li>
+      <li>The mirror image of the pick: the card you take flies back into you the way it came, so the whole level-up starts and ends on your character.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option C</span>Built from the floor</h2><span class="time" id="tC"></span><button class="slow" id="sC">Half speed</button><button id="rC">Replay</button></div>
+    <canvas class="screen" id="C" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The ripple runs out from you across the grid. Where it passes under a card's spot, the arena's grid squares light up in the card's rarity colour, row by row from the bottom.</li>
+      <li>Once the squares fill the card's shape, they flash and the card appears in their place, with its rarity tag and name typing on.</li>
+      <li>The most "part of the arena" of the three: the cards come out of the same grid the launch lights up.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal":{"k":"#14141e","w":"#ffffff","g":"#bec6d7","G":"#6e768a","y":"#ffd750","Y":"#e18c28","o":"#ff8c28","r":"#f04040","R":"#961e28","p":"#ff80b4","b":"#5a96ff","B":"#284bb4","c":"#8ce6ff","n":"#64e664","N":"#288c41","v":"#b473ff","V":"#6432a5","m":"#9b6441","M":"#5a371e",".":null},"icons":{"hollow":["...kkkkkk...","...kokkok...","...kooook...","...kYYYYk...","...kggggk...","...kgwggk...","...kgwggk...","...kgwggk...","...kggggk...","...kggggk...","...kGGGGk...","...kkkkkk..."],"multishot":[".....kk.....","....kyyk....",".kk.kywk.kk.","kyykkyykkyyk","kywkkYYkkywk","kyykkggkkyyk","kYYkkgwkkYYk","kggkkggkkggk","kgwkkGGkkgwk","kggkkkkkkggk","kGGk....kGGk","kkkk....kkkk"],"blink":[".v.......v..","..v..vv..v..",".....vv.....","..kkk..v..v.",".kvvvk......","kvvwvvk.vv..","kvvvvvk.vv..",".kvvvk......","..kkk...v...",".v.....v..v.","....v.......","..v...v...v."],"role_tank":["..kkkkkkkk..",".kbbbbbbbbk.",".kbwbbbbbbk.",".kbwbbbbbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kBbbbbbbBk.","..kBbbbbBk..","..kBbbbbBk..","...kBbbBk...","....kBBk....",".....kk....."],"ui_check":["............","..........ww",".........www","........www.",".......www..","ww....www...","www..www....",".wwwwww.....","..wwww......","...ww.......","............","............"],"ui_play":["............","..ww........","..www.......","..wwww......","..wwwww.....","..wwwwww....","..wwwwww....","..wwwww.....","..wwww......","..www.......","..ww........","............"]}};
+const W = 1280, H = 720;
+const ME = { x: 250, y: 590, col: "#5a96ff" };
+const RAR = { u: { name: "UNCOMMON", col: "#4fd166", dark: "#173a22" }, r: { name: "RARE", col: "#4f86f0", dark: "#16284d" }, v: { name: "VERY RARE", col: "#a55be0", dark: "#2f1846" } };
+const CARDS = [
+  { name: "Hollow Points", rar: "u", icon: "hollow", desc: ["+20% damage"] },
+  { name: "Multishot", rar: "r", icon: "multishot", desc: ["+1 projectile, fanned out"] },
+  { name: "Blink", rar: "v", icon: "blink", desc: ["New ability: teleport toward", "your cursor"], extra: ["Mastered (Lv 5): erases enemy bullets", "where you leave and where you land."] },
+];
+const CW = 270, CH = 384, CY = 158, CX = [205, 505, 805];   // where the game draws the three cards
+const PICK = 1;                                             // the card taken in every loop
+
+// --- small helpers (the same as run-launch.html) ----------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = x => 1 - Math.pow(1 - x, 3);
+const easeIn = x => x * x * x;
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+const iconCache = {};
+function icon(name) {
+  if (iconCache[name]) return iconCache[name];
+  const g = ICONS.icons[name], c = document.createElement("canvas");
+  c.width = g[0].length; c.height = g.length;
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return iconCache[name] = c;
+}
+function drawIcon(ctx, name, x, y, size, alpha = 1) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false; ctx.drawImage(icon(name), x - size / 2, y - size / 2, size, size); ctx.restore(); }
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function panel(ctx, x, y, w, h, alpha = 1, rim) {
+  ctx.save(); ctx.globalAlpha *= alpha; rr(ctx, x, y, w, h, 12); ctx.fillStyle = "#151a26"; ctx.fill();
+  ctx.strokeStyle = rim || "rgba(255,255,255,0.08)"; ctx.lineWidth = rim ? 2 : 1; ctx.stroke(); ctx.restore();
+}
+function fancy(ctx, text, x, y, size, low, alpha = 1, align = "center", glow = true) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `900 ${size}px Arial, sans-serif`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (glow) { ctx.shadowColor = low; ctx.shadowBlur = size * 0.35; }
+  ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size * 0.11); ctx.strokeStyle = "#0b1020"; ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0;
+  const g = ctx.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); g.addColorStop(0.3, "#fff"); g.addColorStop(1, low);
+  ctx.fillStyle = g; ctx.fillText(text, x, y); ctx.restore();
+}
+function label(ctx, text, x, y, size, col, align = "left", weight = 700, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `${weight} ${size}px Arial, sans-serif`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(text, x, y); ctx.restore();
+}
+function fbtn(ctx, x, y, w, h, text, c1, c2, ic, alpha = 1, press = 0) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  rr(ctx, x, y + press * 2, w, h, 10); ctx.fillStyle = g; ctx.fill(); ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 12, y + 2 + press * 2, w - 24, 1);
+  if (ic) { rr(ctx, x + 22, y + h / 2 - 13 + press * 2, 26, 26, 5); ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fill(); drawIcon(ctx, ic, x + 35, y + h / 2 + press * 2, 18); }
+  fancy(ctx, text, x + w / 2 + (ic ? 16 : 0), y + h / 2 + press * 2, 19, "#e0ebff", 1, "center", false); ctx.restore();
+}
+function arena(ctx, lit = 1) {
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = `rgba(110,140,220,${0.05 + 0.07 * lit})`; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+}
+function ripple(ctx, k, cx, cy, rgb = "255,204,89") {
+  if (k <= 0 || k >= 1) return;
+  const r = ease(k) * 1300; ctx.save();
+  const g = ctx.createRadialGradient(cx, cy, Math.max(0, r - 70), cx, cy, r + 8);
+  g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(0.85, `rgba(${rgb},${0.6 * (1 - k)})`); g.addColorStop(1, `rgba(${rgb},0)`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+function player(ctx, x, y, col, s = 1, alpha = 1, aim = -0.6) {
+  if (s <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.scale(s, s);
+  ctx.shadowColor = col; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fillStyle = "#121827"; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.stroke(); ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.moveTo(Math.cos(aim) * 8, Math.sin(aim) * 8); ctx.lineTo(Math.cos(aim) * 26, Math.sin(aim) * 26); ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore();
+}
+function ring(ctx, x, y, r, col, alpha, w = 3) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.restore(); }
+/** A light pillar from the top of the screen down to a spot (k: 0 none, 0.5 full, 1 gone); up = from the spot up instead. */
+function pillar(ctx, x, y, col, k, wide = 34, up = false) {
+  if (k <= 0 || k >= 1) return; const a = Math.sin(Math.PI * k), w = wide * (1 - k * 0.6);
+  ctx.save(); const g = ctx.createLinearGradient(0, 0, 0, y); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, col);
+  const top = up ? lerp(y, 0, ease(Math.min(1, k * 2.5))) : 0;
+  ctx.globalAlpha = a * 0.75; ctx.fillStyle = g; ctx.fillRect(x - w / 2, top, w, y - top); ctx.globalAlpha = a; ctx.fillStyle = "#fff"; ctx.fillRect(x - w * 0.12, top, w * 0.24, y - top); ctx.restore();
+}
+
+// --- the fight underneath ---------------------------------------------------------------------------
+const FOES = [[520, 250, 0], [880, 120, 1], [1080, 420, 2], [700, 520, 0], [380, 360, 1], [1150, 240, 2], [960, 600, 1]];
+function foe(ctx, x, y, kind, alpha = 1) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.translate(x, y); ctx.beginPath();
+  const n = [3, 5, 4][kind], r = [14, 16, 13][kind];
+  for (let s = 0; s < n; s++) { const an = -Math.PI / 2 + s * Math.PI * 2 / n; ctx[s ? "lineTo" : "moveTo"](Math.cos(an) * r, Math.sin(an) * r); }
+  ctx.closePath(); ctx.fillStyle = ["#ff5a5a", "#ff9a4a", "#e05ab4"][kind]; ctx.fill(); ctx.restore();
+}
+/** The fight, frozen while picking (the game pauses solo, and slows in co-op). */
+function fight(ctx, ft) {
+  FOES.forEach(([x, y, k], i) => { const a = ft * 0.6 + i; foe(ctx, x + Math.sin(a) * 18, y + Math.cos(a * 0.8) * 14, k); });
+  for (let i = 0; i < 4; i++) { const f = (ft * 2.2 + i / 4) % 1, d = 30 + f * 480; ctx.save(); ctx.globalAlpha = 1 - f;
+    ctx.beginPath(); ctx.arc(ME.x + Math.cos(-0.6) * d, ME.y + Math.sin(-0.6) * d, 4, 0, Math.PI * 2); ctx.fillStyle = "#9cc0ff"; ctx.fill(); ctx.restore(); }
+}
+/** The in-match HUD: wave plate, ability bar with the XP bar above it, your card. down: 0 in place .. 1 slid off. */
+function hud(ctx, down, xp, flash = 0) {
+  if (down >= 1) return; const dy = ease(down) * 130;
+  ctx.save(); ctx.globalAlpha = 1 - down * 0.6; ctx.translate(0, dy);
+  panel(ctx, 12, 636, 228, 72); label(ctx, "WAVE", 30, 652, 11, "#9ea9c4"); label(ctx, "7", 30, 684, 34, "#fff", "left", 800); label(ctx, "/ 50", 52, 690, 14, "#9ea9c4");
+  rr(ctx, 252, 628, 40, 16, 6); ctx.fillStyle = "#3d3423"; ctx.fill(); label(ctx, "LV 6", 272, 636, 10, "#ffcc59", "center", 800);
+  rr(ctx, 300, 633, 720, 6, 3); ctx.fillStyle = "#1a1f2c"; ctx.fill(); rr(ctx, 300, 633, 720 * xp, 6, 3); ctx.fillStyle = flash > 0 ? `rgba(255,240,180,${0.6 + 0.4 * flash})` : "#e7b43a"; ctx.fill();
+  for (let i = 0; i < 5; i++) panel(ctx, 252 + i * 160, 652, 150, 56); label(ctx, "SPACE", 266, 666, 10, "#9ea9c4"); label(ctx, "Unbreakable", 266, 690, 15, "#fff");
+  label(ctx, "ULT · F", 906, 666, 10, "#9ea9c4"); label(ctx, "Last Stand", 906, 690, 15, "#fff");
+  panel(ctx, 1072, 636, 196, 72, 1, "#5a96ff55"); label(ctx, "Anthony", 1086, 656, 15, "#fff"); label(ctx, "Knight Tank", 1086, 674, 11, "#5a96ff");
+  rr(ctx, 1086, 688, 168, 8, 4); ctx.fillStyle = "#4fd166"; ctx.fill();
+  ctx.restore();
+}
+
+// --- the picker -------------------------------------------------------------------------------------
+/** One upgrade card as the game draws it. o: { alpha, scale, sel, hover, type (0..1 words typed), noIcon } */
+function card(ctx, i, x, y, o = {}) {
+  const c = CARDS[i], R = RAR[c.rar], a = o.alpha ?? 1; if (a <= 0) return;
+  const sel = o.sel ?? 0, s = (o.scale ?? 1) * (1 + 0.04 * sel), lift = 24 * sel;
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(x + CW / 2, y + CH / 2 - lift); ctx.scale(o.sx ?? s, s); ctx.translate(-CW / 2, -CH / 2);
+  if (sel > 0) { ctx.save(); ctx.shadowColor = R.col; ctx.shadowBlur = 30 * sel; rr(ctx, 0, 0, CW, CH, 14); ctx.fillStyle = "#151a26"; ctx.fill(); ctx.restore(); }
+  rr(ctx, 0, 0, CW, CH, 14); ctx.fillStyle = "#121722"; ctx.fill();
+  ctx.save(); rr(ctx, 0, 0, CW, CH, 14); ctx.clip();
+  ctx.fillStyle = R.dark; ctx.fillRect(0, 0, CW, 184);
+  for (let k = 0; k < 4; k++) { const m = 18 + k * 22; rr(ctx, m, m, CW - m * 2, 184 - m * 2 + 10, 6); ctx.fillStyle = `rgba(255,255,255,${0.025 + k * 0.012})`; ctx.fill(); }
+  ctx.restore();
+  rr(ctx, 0, 0, CW, CH, 14); ctx.strokeStyle = sel > 0 ? R.col : R.col + "66"; ctx.lineWidth = sel > 0 ? 2 : 1.2; ctx.stroke();
+  const ty = o.type ?? 1;
+  rr(ctx, 12, 12, R.name.length * 7 + 22, 20, 5); ctx.fillStyle = R.col; ctx.fill(); label(ctx, R.name, 23, 22, 10, "#0b1020", "left", 800);
+  rr(ctx, CW - 32, 12, 20, 20, 5); ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fill(); label(ctx, String(i + 1), CW - 22, 22, 11, "#c7d0e6", "center", 800);
+  if (!o.noIcon) drawIcon(ctx, c.icon, CW / 2, 98, 120);
+  const name = c.name.slice(0, Math.ceil(c.name.length * ty));
+  fancy(ctx, name, CW / 2, 216, 26, sel > 0 ? R.col : "#c7d0e6", 1, "center", sel > 0);
+  c.desc.forEach((l, k) => label(ctx, l, CW / 2, 250 + k * 18, 14, "#dfe5f2", "center", 400, ty));
+  (c.extra || []).forEach((l, k) => label(ctx, l, CW / 2, 300 + k * 17, 12, "#b8a26a", "center", 400, ty));
+  ctx.fillStyle = R.col; ctx.globalAlpha *= 0.6; ctx.fillRect(16, CH - 12, CW - 32, 3);
+  ctx.restore();
+}
+function backdrop(ctx, k) { if (k <= 0) return; ctx.fillStyle = `rgba(4,6,12,${0.62 * k})`; ctx.fillRect(0, 0, W, H); }
+/** LEVEL UP!: k pops it in on a dark band in the middle (like GET READY), up moves it to the top. */
+function levelBanner(ctx, k, up, alpha = 1) {
+  if (k <= 0 || alpha <= 0) return;
+  const y = lerp(320, 72, ease(up)), s = lerp(1.7, 1, back(k)) * lerp(1.15, 1, ease(up));
+  ctx.save(); ctx.globalAlpha = k * 0.6 * (1 - up) * alpha; const g = ctx.createLinearGradient(0, y - 70, 0, y + 70); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(0.5, "rgba(0,0,0,0.9)"); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fillRect(0, y - 70, W, 140); ctx.restore();
+  ctx.save(); ctx.translate(W / 2, y); ctx.scale(s, s); fancy(ctx, "LEVEL UP!", 0, 0, 58, "#ffcc59", Math.min(1, k * 1.5) * alpha); ctx.restore();
+  label(ctx, "LEVEL 7  ·  PICK ONE  ·  1 MORE AFTER THIS", W / 2, y + 40, 14, "#a7b2cc", "center", 800, seg(up, 0.5, 1) * alpha);
+}
+/** The bottom row: what this pick changes, Reroll and Take (k slides it up from below, like the HUD). */
+function buttons(ctx, k, sel, press = 0, alpha = 1) {
+  if (k <= 0 || alpha <= 0) return; const dy = (1 - ease(k)) * 140;
+  ctx.save(); ctx.translate(0, dy); ctx.globalAlpha = k * alpha;
+  const line = ["THIS PICK   Damage  +0% → +20%", "THIS PICK   Extra projectiles  +0 → +1", "THIS PICK   New ability on Q"][sel];
+  label(ctx, line, W / 2, 556, 14, "#7ee08f", "center", 800);
+  fbtn(ctx, 351, 576, 240, 48, "Reroll  2  [R]", "#4a5372", "#323a55", "ui_play");
+  fbtn(ctx, 609, 576, 320, 48, "Take " + CARDS[sel].name, "#e6ad3a", "#b47e14", "ui_check", 1, press);
+  label(ctx, "1 / 2 / 3 or click a card, Enter to take it  ·  Rerolls: 2 to start, +2 a boss  ·  Hold Tab for your build", W / 2, 638, 12, "#7f89a3", "center", 400);
+  ctx.restore();
+}
+
+// --- choosing, picking and back to the fight (the same in every option) -------------------------------
+/** Which card is highlighted at time u after the cards have landed: the middle one, a look at Blink, back. */
+function selAt(u) { return u < 0.55 ? 1 : u < 1.05 ? 2 : 1; }
+function selK(u, i) { const s = selAt(u), prev = u < 0.55 ? 1 : u < 1.05 ? 1 : 2, at = u < 0.55 ? 0 : u < 1.05 ? 0.55 : 1.05, k = ease(seg(u, at, at + 0.15)); return i === s ? (s === prev ? 1 : k) : i === prev ? 1 - k : 0; }
+/** Today's pick animation (PickOutro.cs): the others shatter, the picked card flashes, shrinks and flies into you. */
+function outro(ctx, o) {
+  const flash = seg(o, 0, 0.12), fly = ease(seg(o, 0.12, 0.55)), land = seg(o, 0.55, 0.95);
+  CARDS.forEach((c, i) => {
+    if (i === PICK) return;
+    const pieces = 14, rnd = k => (Math.sin(k * 91.7 + i * 13.3) * 0.5 + 0.5);
+    for (let p = 0; p < pieces; p++) {
+      const px = CX[i] + (p % 2 ? 0.25 : 0.75) * CW * rnd(p) + CW * 0.1 * (p % 3), py = CY + CH * (p / pieces);
+      const vx = (rnd(p + 3) - 0.5) * 420, vy = -160 + rnd(p + 7) * 120, tt = seg(o, 0, 0.7);
+      const x = px + vx * tt, y = py + vy * tt + 900 * tt * tt;
+      ctx.save(); ctx.globalAlpha = 1 - tt; ctx.translate(x, y); ctx.rotate(tt * (rnd(p + 1) - 0.5) * 9);
+      ctx.beginPath(); ctx.moveTo(-18, -14); ctx.lineTo(20, -10); ctx.lineTo(-4, 18); ctx.closePath(); ctx.fillStyle = RAR[c.rar].col + "aa"; ctx.fill(); ctx.restore();
+    }
+  });
+  const R = RAR[CARDS[PICK].rar];
+  if (fly < 1) {
+    const sx = CX[PICK] + CW / 2, sy = CY + CH / 2 - 24, x = lerp(sx, ME.x, fly), y = lerp(sy, ME.y, fly) - Math.sin(Math.PI * fly) * 80;
+    ctx.save(); ctx.translate(x - CX[PICK] - CW / 2, y - CY - CH / 2 + 24); card(ctx, PICK, CX[PICK], CY, { sel: 1, scale: lerp(1, 0.08, fly) }); ctx.restore();
+    if (flash < 1) { ctx.save(); ctx.globalAlpha = 0.8 * (1 - flash); rr(ctx, CX[PICK] - 8, CY - 32, CW + 16, CH + 16, 16); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore(); }
+  }
+  if (land > 0 && land < 1) { ring(ctx, ME.x, ME.y, 20 + 70 * ease(land), R.col, 1 - land, 4); drawIcon(ctx, CARDS[PICK].icon, ME.x, ME.y - 46 - 16 * land, 30, Math.sin(Math.PI * land)); }
+}
+
+/** One full loop. intro(ctx, t) draws an option's opening between OPEN and OPEN + IN, and returns the cards' state. */
+const OPEN = 1.0, IN = 1.6, CHOOSE = 1.6, OUT = 0.95, AFTER = 1.0;
+function loop(ctx, t, intro) {
+  const ft = Math.min(t, OPEN + 0.2);                         // the fight freezes as the picker opens
+  const pickAt = OPEN + IN + CHOOSE, endAt = pickAt + OUT;
+  const xp = Math.min(1, 0.55 + t * 0.5), flash = seg(t, OPEN - 0.15, OPEN) * (1 - seg(t, OPEN, OPEN + 0.3));
+  arena(ctx, 1);
+  const st = intro.pre ? intro.pre(ctx, t) : null;
+  fight(ctx, t > endAt ? t : ft);
+  player(ctx, ME.x, ME.y, ME.col);
+  const open = seg(t, OPEN, OPEN + 0.35), close = seg(t, pickAt + 0.3, endAt);
+  backdrop(ctx, open * (1 - close));
+  hud(ctx, t < endAt ? seg(t, OPEN, OPEN + 0.4) : 1 - seg(t, endAt, endAt + 0.45), t < endAt ? xp : 0.04, flash);
+  if (t < pickAt) {
+    const u = t - (OPEN + IN), sel = u > 0 ? selAt(u) : 1, press = seg(t, pickAt - 0.2, pickAt - 0.1) * (1 - seg(t, pickAt - 0.1, pickAt));
+    intro.draw(ctx, t - OPEN, i => u > 0 ? selK(u, i) : (i === 1 ? seg(u, -0.2, 0) : 0));
+    buttons(ctx, seg(t, OPEN + intro.btnAt, OPEN + intro.btnAt + 0.4), sel, press);
+  } else {
+    levelBanner(ctx, 1, 1, 1 - seg(t, pickAt, pickAt + 0.3));
+    buttons(ctx, 1, PICK, 0, 1 - seg(t, pickAt, pickAt + 0.25));
+    outro(ctx, t - pickAt);
+  }
+  if (t > endAt) label(ctx, "+1 projectile", ME.x, ME.y - 60 - 20 * seg(t, endAt, endAt + 1), 14, "#9cc0ff", "center", 800, 1 - seg(t, endAt + 0.4, endAt + 1));
+}
+
+// --- A: cards drop in -----------------------------------------------------------------------------------
+const A = { btnAt: 0.95, draw(ctx, t, sel) {
+  ripple(ctx, seg(t, 0, 1.0), ME.x, ME.y);
+  ring(ctx, ME.x, ME.y, 20 + 90 * ease(seg(t, 0, 0.5)), "#ffcc59", 1 - seg(t, 0, 0.5), 4);
+  levelBanner(ctx, seg(t, 0.0, 0.3), seg(t, 0.35, 0.7));
+  CARDS.forEach((c, i) => {
+    const a = 0.45 + i * 0.16, cx = CX[i] + CW / 2, R = RAR[c.rar];
+    pillar(ctx, cx, CY + CH, R.col, seg(t, a, a + 0.55), 120);
+    const land = seg(t, a + 0.2, a + 0.45);
+    if (land > 0) {
+      card(ctx, i, CX[i], CY, { scale: lerp(0.6, 1, back(land)), alpha: land, sel: sel(i), noIcon: seg(t, a + 0.45, a + 0.75) < 1 });
+      ring(ctx, cx, CY + CH / 2, 60 + 160 * seg(t, a + 0.2, a + 0.75), R.col, 1 - seg(t, a + 0.2, a + 0.75), 4);
+      const ic = seg(t, a + 0.25, a + 0.75);   // the icon flashes above the card, then drops into it
+      if (ic < 1) drawIcon(ctx, c.icon, cx, lerp(CY - 30, CY + 98, easeIn(ic)), lerp(64, 120, ic), Math.min(1, ic * 4));
+    }
+  });
+} };
+
+// --- B: out of you ------------------------------------------------------------------------------------
+const B = { btnAt: 1.0, draw(ctx, t, sel) {
+  pillar(ctx, ME.x, ME.y, "#ffcc59", seg(t, 0, 0.6), 44, true);
+  ring(ctx, ME.x, ME.y, 20 + 110 * ease(seg(t, 0.05, 0.6)), "#ffcc59", 1 - seg(t, 0.05, 0.6), 4);
+  ripple(ctx, seg(t, 0.05, 1.1), ME.x, ME.y);
+  levelBanner(ctx, seg(t, 0.05, 0.35), seg(t, 0.4, 0.75));
+  CARDS.forEach((c, i) => {
+    const a = 0.45 + i * 0.12, f = ease(seg(t, a, a + 0.55)), R = RAR[c.rar];
+    if (f <= 0) return;
+    const tx = CX[i] + CW / 2, ty = CY + CH / 2, x = lerp(ME.x, tx, f), y = lerp(ME.y, ty, f) - Math.sin(Math.PI * f) * (160 + 60 * i);
+    if (f < 1) {
+      ctx.save(); ctx.globalAlpha = 0.45;   // a streak behind it
+      ctx.strokeStyle = R.col; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.beginPath();
+      for (let s = 0; s <= 14; s++) { const k = Math.max(0, f - 0.3 + s * 0.3 / 14), px = lerp(ME.x, tx, k), py = lerp(ME.y, ty, k) - Math.sin(Math.PI * k) * (160 + 60 * i); ctx[s ? "lineTo" : "moveTo"](px, py); }
+      ctx.stroke(); ctx.restore();
+    }
+    ctx.save(); ctx.translate(x - tx, y - ty);
+    card(ctx, i, CX[i], CY, { scale: lerp(0.12, 1, f), sx: lerp(0.12, 1, f) * Math.abs(Math.cos((1 - f) * Math.PI * 1.5)) + 0.02, sel: f >= 1 ? sel(i) : 0, alpha: Math.min(1, f * 3) });
+    ctx.restore();
+    if (f >= 1) ring(ctx, tx, ty, 80 + 150 * seg(t, a + 0.55, a + 1.0), R.col, 1 - seg(t, a + 0.55, a + 1.0), 4);
+  });
+} };
+
+// --- C: built from the floor ---------------------------------------------------------------------------
+const C = { btnAt: 1.05, draw(ctx, t, sel) {
+  ripple(ctx, seg(t, 0.3, 1.2), ME.x, ME.y);
+  levelBanner(ctx, seg(t, 0.0, 0.3), seg(t, 0.35, 0.7));
+  CARDS.forEach((c, i) => {
+    const R = RAR[c.rar], reach = Math.hypot(CX[i] + CW / 2 - ME.x, CY + CH / 2 - ME.y) / 1300, a = 0.35 + reach * 0.8;  // when the ripple gets there
+    const build = seg(t, a, a + 0.55), done = seg(t, a + 0.55, a + 0.7);
+    if (build <= 0) return;
+    // the grid squares under the card's spot, lighting up row by row from the bottom
+    const cols = Math.ceil(CW / 40) + 1, rows = Math.ceil(CH / 40) + 1, gx = Math.floor(CX[i] / 40) * 40, gy = Math.floor(CY / 40) * 40;
+    ctx.save(); rr(ctx, CX[i], CY, CW, CH, 14); ctx.clip();
+    for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+      const on = seg(build * (rows + 3) - (rows - 1 - r) - Math.abs(q - cols / 2) * 0.25, 0, 1);
+      if (on <= 0) continue;
+      ctx.globalAlpha = on * (1 - done) * 0.85; ctx.fillStyle = R.col; ctx.fillRect(gx + q * 40 + 2, gy + r * 40 + 2, 36, 36);
+      ctx.globalAlpha = on * (1 - done); ctx.fillStyle = "#fff"; ctx.fillRect(gx + q * 40 + 2, gy + r * 40 + 2, 36, 2);
+    }
+    ctx.restore();
+    if (done > 0) {
+      card(ctx, i, CX[i], CY, { alpha: done, sel: sel(i), type: seg(t, a + 0.6, a + 1.0) });
+      if (done < 1) { ctx.save(); ctx.globalAlpha = 0.7 * (1 - done); rr(ctx, CX[i], CY, CW, CH, 14); ctx.fillStyle = "#fff"; ctx.fill(); ctx.restore(); }
+      ring(ctx, CX[i] + CW / 2, CY + CH / 2, 120 + 120 * seg(t, a + 0.55, a + 1.0), R.col, 1 - seg(t, a + 0.55, a + 1.0), 3);
+    }
+  });
+} };
+
+// --- players: loop each one, replay or slow it down, a still frame when motion is reduced --------------
+const LEN = OPEN + IN + CHOOSE + OUT + AFTER;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function run(id, opt, stillAt) {
+  const cv = document.getElementById(id), ctx = cv.getContext("2d"), tl = document.getElementById("t" + id), sb = document.getElementById("s" + id);
+  let start = performance.now(), playing = !reduce, speed = 1, last = performance.now(), t = 0;
+  const frame = now => {
+    t += (now - last) / 1000 * speed; last = now;
+    if (t > LEN + 0.6) { if (reduce) playing = false; else t = 0; }
+    const tt = playing ? Math.min(t, LEN) : stillAt;
+    ctx.clearRect(0, 0, W, H); loop(ctx, tt, opt); tl.textContent = tt.toFixed(1) + " s";
+    if (playing) requestAnimationFrame(frame);
+  };
+  document.getElementById("r" + id).addEventListener("click", () => { t = 0; last = performance.now(); if (!playing) { playing = true; requestAnimationFrame(frame); } });
+  sb.addEventListener("click", () => { speed = speed === 1 ? 0.5 : 1; sb.textContent = speed === 1 ? "Half speed" : "Full speed"; });
+  requestAnimationFrame(frame);
+}
+run("A", A, OPEN + 0.75); run("B", B, OPEN + 0.55); run("C", C, OPEN + 0.6);
+</script>
