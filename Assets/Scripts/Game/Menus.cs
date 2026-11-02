@@ -305,7 +305,7 @@ namespace Arena
         {
             pauseMenuOpen = true;
             pauseSel = 0;
-            pauseSettings = pauseHowTo = false;
+            pauseSettings = pauseHowTo = pauseConfirmLobby = false;
             if (game.State != MatchState.GameOver)
                 game.RequestPause(true);  // pauses the match for both players
         }
@@ -313,7 +313,7 @@ namespace Arena
         void ResumeGame()
         {
             pauseMenuOpen = false;
-            pauseSettings = pauseHowTo = false;
+            pauseSettings = pauseHowTo = pauseConfirmLobby = false;
             runStatsOpen = false;
             if (game.Paused)
                 game.RequestPause(false);

@@ -163,7 +163,7 @@ namespace Arena
         float pauseAnim;  // 0 closed .. 1 fully open; opening takes WinOpenLen, closing WinCloseLen
 
         /// Is the pause menu (or a screen opened from it) wanted?
-        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused)) && !devMenuOpen && !labSetupOpen;
+        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused)) && !devMenuOpen && !labSetupOpen && !RecallActive;
 
         /// Each frame: run the pause menu's opening or closing, and its sounds.
         void StepPauseAnim(float dt)

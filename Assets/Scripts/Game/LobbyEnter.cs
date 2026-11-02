@@ -134,15 +134,19 @@ namespace Arena
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));
                 float ring = Seg(e, 1.1f, 1.6f);
                 if (ring > 0f && ring < 1f && !leaving)
-                {
-                    UiModelAt(V2.Zero, 1f);
-                    var c = new Rgba(0.35f, 0.59f, 1f, 1f - ring);
-                    float g = 10f * ring;
-                    V2 a0 = new V2(40f - g, PartyTop - g), a1 = new V2(416f + g, PartyTop - g), a2 = new V2(416f + g, PartyTop + 88f + g), a3 = new V2(40f - g, PartyTop + 88f + g);
-                    Line(a0, a1, 3f, c); Line(a1, a2, 3f, c); Line(a2, a3, 3f, c); Line(a3, a0, 3f, c);
-                }
+                    DrawPartyCardRing(ring);
                 EndUiGl();
             }
+        }
+
+        /// GL (inside BeginUiGl): a ring growing off your party card and fading, `ring` 0 to 1 (also Recall.cs).
+        void DrawPartyCardRing(float ring)
+        {
+            UiModelAt(V2.Zero, 1f);
+            var c = new Rgba(0.35f, 0.59f, 1f, 1f - ring);
+            float g = 10f * ring;
+            V2 a0 = new V2(40f - g, PartyTop - g), a1 = new V2(416f + g, PartyTop - g), a2 = new V2(416f + g, PartyTop + 88f + g), a3 = new V2(40f - g, PartyTop + 88f + g);
+            Line(a0, a1, 3f, c); Line(a1, a2, 3f, c); Line(a2, a3, 3f, c); Line(a3, a0, 3f, c);
         }
 
         /// One piece of the lobby: DrawLobby clipped to `clip`, sliding in from (dx, dy) and fading up between a and b seconds.

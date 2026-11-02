@@ -560,6 +560,9 @@ class Shot {
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); foreach (var pl in host.Game.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
       float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("hudT", hk);
     }
+    // RECALL=<seconds>: everyone beaming out back to the lobby, that far in (Recall.cs).
+    float recallAt = Environment.GetEnvironmentVariable("RECALL") != null ? float.Parse(Environment.GetEnvironmentVariable("RECALL"), System.Globalization.CultureInfo.InvariantCulture) : -1f;
+    if (recallAt >= 0f) { host.Screen = AppScreen.Game; set("recallT", recallAt); set("hudT", Math.Max(0f, 1f - recallAt / 0.3f)); }
     // ENDING=<seconds>: a run ending, that far in (RunEnding.cs); with mode gameover or victory.
     float endingAt = Environment.GetEnvironmentVariable("ENDING") != null ? float.Parse(Environment.GetEnvironmentVariable("ENDING")) : -1f;
     if (endingAt >= 0f) {
@@ -597,6 +600,7 @@ class Shot {
         typeof(ArenaApp).GetMethod("PreviewTileMoment", f2).Invoke(app, new object[] { tp[0], tp.Length > 1 ? float.Parse(tp[1]) : 0.05f });
       }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
+      if (recallAt >= 0f) typeof(ArenaApp).GetMethod("DrawRecallFade", f2).Invoke(app, null);
       if (launchAt >= 0f) { typeof(ArenaApp).GetMethod("DrawLaunchWave", f2).Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobbyLeaving", f2).Invoke(app, null); }
     }
     else if (mode == "gameover" || mode == "victory")
@@ -631,6 +635,7 @@ class Shot {
       // PAUSEANIM=0..1: how far the menu has opened (PauseGlitch.cs; default fully open). The torn slices need the
       // grabbed frame, so the preview shows the rest: the dim, scanlines, the flickering panel and the typed title.
       set("pauseMenuOpen", true);
+      if (Environment.GetEnvironmentVariable("PAUSECONFIRM") != null) set("pauseConfirmLobby", true);  // Leave to lobby's "are you sure" (MenuDrawer.cs)
       if (Environment.GetEnvironmentVariable("PAUSESET") != null) { set("pauseSettings", true); set("settingsGroup", int.Parse(Environment.GetEnvironmentVariable("PAUSESET"))); set("drawerKey", "pause-settings"); }
       set("pauseAnim", float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1"));
       host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a match (PAUSECLOSE: closing, at PAUSEANIM)
@@ -731,7 +736,10 @@ class Shot {
       var lobbyIn = Environment.GetEnvironmentVariable("LOBBYIN");
       // LOBBYOUT=<seconds>: that far into leaving for the menu (the entrance backwards).
       var lobbyOut = Environment.GetEnvironmentVariable("LOBBYOUT");
-      if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
+      // RETURN=<seconds>: that far into coming back from a run (Recall.cs).
+      var lobbyBack = Environment.GetEnvironmentVariable("RETURN");
+      if (lobbyBack != null) { set("returnT", float.Parse(lobbyBack, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyReturning", f2).Invoke(app, null); }
+      else if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
       else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2).Invoke(app, null); }
       else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("winOpenAt", -10f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") set("pauseHowTo", true); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)

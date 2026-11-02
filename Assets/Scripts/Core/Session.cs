@@ -26,6 +26,7 @@ namespace Arena
         RunStatsLive, // host -> all: the run's tallies so far, about once a second (RunStats.cs; the Run stats screen)
         Knock,       // host -> all: a player is knocked back (a Riot Shield's bash); only that player's own game moves them (WardenFaction.cs)
         Loot,         // client -> host: take or discard the chest item you're standing on (Props.cs)
+        Recall,       // host -> all: everyone's beamed out (the Game screen's Recall.cs), then ToLobby follows
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -74,7 +75,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 123;
+        public const int ProtocolVersion = 124;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -765,6 +766,19 @@ namespace Arena
                 e.Seat = -1;
         }
 
+        /// Counts the host's "back to the lobby" calls this game has heard (its own or over the network). The screen notices
+        /// it going up and plays the beam-out (Recall.cs), and the host calls ReturnToLobby once that's done.
+        public int Recalls;
+
+        /// The host taking everyone back to the lobby, the long way: the beam-out first on every screen.
+        public void StartRecall()
+        {
+            if (!IsHost)
+                return;
+            Broadcast(Proto.End(Proto.Begin(Msg.Recall)));
+            Recalls++;
+        }
+
         public void ReturnToLobby()
         {
             if (!IsHost)
@@ -917,6 +931,9 @@ namespace Arena
                         Screen = AppScreen.Lobby;
                     break;
                 }
+                case Msg.Recall:
+                    Recalls++;
+                    break;
                 case Msg.ToLobby:
                     Game.Stop();
                     Game.Practice = null;

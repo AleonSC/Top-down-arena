@@ -324,6 +324,11 @@ namespace Arena
                 return;
             }
             float t = Time.unscaledTime;
+            if (pauseConfirmLobby)
+            {
+                DrawLobbyConfirm(t);
+                return;
+            }
             DrawerIn("pause", false);
             PauseKeys();
             Player by;
@@ -363,6 +368,65 @@ namespace Arena
             EndPanelAnim();
         }
 
+        static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
+
+        /// The pause menu's Leave to lobby, asking first: back to the lobby (everyone beams out, Recall.cs) or keep
+        /// playing. ↑ ↓ and Enter, or Esc for no. The run's card stays on the right.
+        void DrawLobbyConfirm(float t)
+        {
+            DrawerIn("pause-confirm", false);
+            var e = Event.current;
+            if (e.type == EventType.KeyDown && GUIUtility.keyboardControl == 0)
+            {
+                if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W || e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
+                {
+                    confirmSel = 1 - confirmSel;
+                    e.Use();
+                }
+                else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
+                {
+                    ConfirmLobby(confirmSel == 0);
+                    e.Use();
+                }
+            }
+            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
+            BeginDrawer("TO LOBBY?", LobbyConfirmColor, 1f, many ? "Ends the run for everyone" : "Ends the run");
+            string[] names = { "Back to the lobby", "Keep playing" };
+            string[] lines = { many ? "Everyone beams out to the lobby" : "Beam out to the lobby", "Back to the pause menu" };
+            string[] icons = { "ui_back", "ui_play" };
+            Color[] cols = { LobbyConfirmColor, Ui.Primary };
+            float y = 128f;
+            for (int i = 0; i < 2; i++)
+            {
+                bool on = i == confirmSel;
+                var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
+                if (r.Contains(e.mousePosition) && e.type == EventType.Repaint && e.mousePosition != pauseMouse)
+                    confirmSel = i;
+                if (DrawerRow(r, PixelArt.Get(icons[i]), names[i], lines[i], i == 1 ? "Esc" : "Enter", null, cols[i], on))
+                    ConfirmLobby(i == 0);
+                y += r.height + 4f;
+            }
+            if (e.type == EventType.Repaint)
+                pauseMouse = e.mousePosition;
+            y += 14f;
+            string note = saved ? "The run is saved from the last break between waves: pick it up again with Continue a run on the main menu."
+                : "This run isn't saved: it can't be continued.";
+            float nh = Ui.TextHeight(note, 13, DrawerW - 84f);
+            Ui.Fill(new Rect(28f, y, 3f, nh + 4f), new Color(LobbyConfirmColor.r, LobbyConfirmColor.g, LobbyConfirmColor.b, 0.7f));
+            Ui.Label(new Rect(42f, y, DrawerW - 84f, nh + 4f), note, 13, new Color(0.79f, 0.83f, 0.92f), TextAnchor.UpperLeft, false, true);
+            EndDrawer();
+            BeginPanelAnim("runcard", true);
+            DrawRunCard(new Rect(W - 500f, 54f, 450f, H - 54f - 40f), t);
+            EndPanelAnim();
+        }
+
+        void ConfirmLobby(bool yes)
+        {
+            pauseConfirmLobby = false;
+            if (yes)
+                RecallToLobby();  // everyone beams out, then the host takes them back (Recall.cs)
+        }
+
         /// ↑ ↓ to move through the pause menu, Enter to choose.
         void PauseKeys()
         {
@@ -393,9 +457,8 @@ namespace Arena
                 case PauseToLobby:
                     if (!session.IsHost)
                         break;
-                    pauseMenuOpen = false;
-                    pauseSettings = pauseHowTo = false;
-                    session.ReturnToLobby();  // everyone back to the lobby; the run's save stays (it's kept at each wave's start)
+                    pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)
+                    confirmSel = 1;            // on "keep playing", so a stray Enter doesn't end the run
                     break;
                 default:
                     pauseMenuOpen = false;

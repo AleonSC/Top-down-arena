@@ -107,7 +107,7 @@ namespace Arena
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
-                    if (!pauseMenuOpen && !tabHeld)
+                    if (!pauseMenuOpen && !tabHeld && !RecallActive)
                         DrawRunSummary();
                     break;
             }
@@ -123,7 +123,7 @@ namespace Arena
                 });
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
                 float back = Mathf.Clamp01((0.35f - hudT) / 0.35f);
-                if (back > 0f && !LaunchActive)  // (not while a run launches: the HUD's on its way in)
+                if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
                 {
                     float breathe = 0.8f + 0.2f * Mathf.Sin(Time.unscaledTime * 2f);
                     Ui.Shadowed(new Rect(0f, H - 30f + 8f * (1f - back), W, 18f), "Press H to show the HUD", 12, new Color(1f, 1f, 1f, 0.38f * back * breathe));
@@ -513,7 +513,7 @@ namespace Arena
                     }
                     bx -= 230f;
                     if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now))
-                        session.ReturnToLobby();
+                        RecallToLobby();  // everyone beams out first (Recall.cs)
                     bx -= 244f;
                     if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now))
                         session.StartMatch();

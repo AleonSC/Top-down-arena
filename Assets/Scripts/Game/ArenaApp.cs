@@ -302,9 +302,10 @@ namespace Arena
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
+            TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
-            hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud && !BossIntroHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);  // (a boss's entrance card hides it: Juice.cs)
+            hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud && !BossIntroHoldsHud && !RecallActive ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);  // (a boss's entrance card hides it: Juice.cs)
             if (BossIntroHoldsHud)
                 introHidHud = true;
             else if (hudT >= 1f || !hudShown)
@@ -353,7 +354,7 @@ namespace Arena
                     pauseSettings = pauseHowTo = false;  // the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
-                else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && GUIUtility.keyboardControl == 0)
+                else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)
                     CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
@@ -362,7 +363,7 @@ namespace Arena
                 else if (recordsOpen)
                     CloseWindow(() => recordsOpen = false);
             }
-            if (session.Screen == AppScreen.Game)
+            if (session.Screen == AppScreen.Game && !RecallActive)  // (nothing to open while everyone's beaming out: Recall.cs)
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
@@ -372,6 +373,8 @@ namespace Arena
                     CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape) && pauseConfirmLobby && menuUp)
+                    pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && (pauseSettings || pauseHowTo) && menuUp)
                     pauseSettings = pauseHowTo = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape))
@@ -386,7 +389,7 @@ namespace Arena
                     if (Input.GetKeyDown(KeyCode.R))
                         session.StartMatch();
                     else if (Input.GetKeyDown(KeyCode.L))
-                        session.ReturnToLobby();
+                        RecallToLobby();  // everyone beams out first (Recall.cs)
                     else if (Input.GetKeyDown(KeyCode.C))
                         game.ContinueEndless();
                 }
@@ -529,7 +532,9 @@ namespace Arena
                     break;
                 case AppScreen.Lobby:
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
-                    if (LobbyLeaving)
+                    if (LobbyReturning)
+                        DrawLobbyReturning();  // back from a run: the dark lifting, the sides sliding in (Recall.cs)
+                    else if (LobbyLeaving)
                         DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
                     else if (LobbyEntering)
                         DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
@@ -567,6 +572,7 @@ namespace Arena
                         else
                             DrawPauseMenu();  // with its opening and closing (WindowAnim.cs)
                     }
+                    DrawRecallFade();  // back to the lobby: the screen going dark (Recall.cs)
                     break;
             }
             if (!textEditOpen || Event.current.type == EventType.Repaint)

@@ -791,7 +791,9 @@ window really close. That goes for the pause menu and for Settings from the lobb
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together),
   **Field guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Leave to lobby**
-  (the host only: everyone goes back to the lobby, and the run stays saved to continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the right with a **this run** card: the wave, time and
+  (the host only: it asks first, "TO LOBBY?" with Back to the lobby or Keep playing, Keep playing picked to start with;
+  then everyone beams out up a pillar of light, the screen goes dark and the lobby slides back in; the run stays saved to
+  continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the right with a **this run** card: the wave, time and
   score, chips for the path (and waves left), the run's modifiers and the difficulty, the next boss (moving), and this
   stretch's challenge room (won, lost, or when the next portal can open). The card runs down to near the bottom of the
   screen, with the players at its foot as compact cards (class, level, health; the Tab screen has the rest), stacked

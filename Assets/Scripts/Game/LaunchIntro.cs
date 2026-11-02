@@ -88,7 +88,7 @@ namespace Arena
         bool LaunchHoldsHud => LaunchActive && launchT < LaunchHudAt;
 
         /// The GET READY banner waits until the players have landed.
-        bool LaunchHoldsBanner => LaunchActive && launchT < LaunchBannerAt;
+        bool LaunchHoldsBanner => LaunchActive && launchT < LaunchBannerAt || RecallActive;  // (and gone while everyone beams out: Recall.cs)
 
         /// When this player's pillar lands (players in id order, a quarter second apart).
         float LandTime(Player p)
@@ -104,7 +104,7 @@ namespace Arena
         }
 
         /// Not drawn yet: their pillar hasn't landed (the real match only, not the lobby's preview).
-        bool LaunchHides(Player p) => LaunchActive && ReferenceEquals(game, session.Game) && launchT < LandTime(p);
+        bool LaunchHides(Player p) => LaunchActive && ReferenceEquals(game, session.Game) && launchT < LandTime(p) || RecallHides(p);  // (or gone up theirs: Recall.cs)
 
         static float Seg(float t, float a, float b) => Mathf.Clamp01((t - a) / (b - a));
 
@@ -128,22 +128,7 @@ namespace Arena
                 if (k > 0f && k < 1f)
                 {
                     float a = Mathf.Sin(MathX.Pi * k), w = 40f * (1f - 0.6f * k), r = p.Def.BodyR;
-                    // The beam's foot fades out just above the player's middle over two body radii, so it has no flat
-                    // edge (the picker's pillar does the same; Docs/Mockups/pillar-foot.html option 2).
-                    V2 top = new V2(p.Disp.X, -20f), foot = p.Disp - new V2(0f, r * 0.2f), soft = foot - new V2(0f, r * 2.1f);
-                    Line(top, soft, w * 1.8f, col.WithAlpha(0.18f * a));
-                    Line(top, soft, w, col.WithAlpha(0.55f * a));
-                    Line(top, soft, w * 0.25f, Rgba.White.WithAlpha(0.95f * a));
-                    const int steps = 16;
-                    for (int s = 0; s < steps; s++)
-                    {
-                        V2 s0 = V2.Lerp(soft, foot, s / (float)steps), s1 = V2.Lerp(soft, foot, (s + 1f) / steps);
-                        float fade = 1f - (s + 0.5f) / steps;
-                        Line(s0, s1, w * 1.8f, col.WithAlpha(0.18f * a * fade));
-                        Line(s0, s1, w, col.WithAlpha(0.55f * a * fade));
-                        Line(s0, s1, w * 0.25f, Rgba.White.WithAlpha(0.95f * a * fade));
-                    }
-                    Circle(p.Disp, 26f * a + 6f, col.WithAlpha(0.35f * a), 24);  // the spot it hits
+                    DrawPlayerBeam(p, a, w);
                     if (launchT >= land)  // landed: a halo round them while the beam fades
                     {
                         Arc(p.Disp, r + 7f, 2.2f, col.Mix(Rgba.White, 0.3f).WithAlpha(0.85f * a), 32);
@@ -157,6 +142,29 @@ namespace Arena
                     Circle(p.Disp, 30f * (1f - lk), Rgba.White.WithAlpha(0.5f * (1f - lk)), 20);
                 }
             }
+        }
+
+        /// A pillar of light in the player's colour from the top of the arena down onto them, `a` bright and `w` wide.
+        /// Its foot fades out just above the player's middle over two body radii, so it has no flat edge (the picker's
+        /// pillar does the same; Docs/Mockups/pillar-foot.html option 2). Also the beam-out back to the lobby (Recall.cs).
+        void DrawPlayerBeam(Player p, float a, float w)
+        {
+            var col = p.Def.Color;
+            float r = p.Def.BodyR;
+            V2 top = new V2(p.Disp.X, -20f), foot = p.Disp - new V2(0f, r * 0.2f), soft = foot - new V2(0f, r * 2.1f);
+            Line(top, soft, w * 1.8f, col.WithAlpha(0.18f * a));
+            Line(top, soft, w, col.WithAlpha(0.55f * a));
+            Line(top, soft, w * 0.25f, Rgba.White.WithAlpha(0.95f * a));
+            const int steps = 16;
+            for (int s = 0; s < steps; s++)
+            {
+                V2 s0 = V2.Lerp(soft, foot, s / (float)steps), s1 = V2.Lerp(soft, foot, (s + 1f) / steps);
+                float fade = 1f - (s + 0.5f) / steps;
+                Line(s0, s1, w * 1.8f, col.WithAlpha(0.18f * a * fade));
+                Line(s0, s1, w, col.WithAlpha(0.55f * a * fade));
+                Line(s0, s1, w * 0.25f, Rgba.White.WithAlpha(0.95f * a * fade));
+            }
+            Circle(p.Disp, 26f * a + 6f, col.WithAlpha(0.35f * a), 24);  // the spot it hits
         }
 
         /// Over a landed player (HUD space): their class icon flashing up above them.

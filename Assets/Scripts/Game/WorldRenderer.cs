@@ -140,6 +140,7 @@ namespace Arena
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
+            DrawRecallWorld(t);      // back to the lobby: everyone beamed out (Recall.cs)
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
