@@ -10,6 +10,8 @@ namespace Arena
     ///   1.7 s      the HUD slides in (its own show animation);
     ///   2.0 s      GET READY counts down (the usual between-waves banner), then a gold WAVE 1 pops in as the fight starts.
     /// Everything is on your own screen only. Play again (from the results screen) runs it too, without the lobby part.
+    /// Sounds (LaunchSounds, SoundBank.cs): the sweep as the lobby leaves, the ripple, each pillar's beam and landing,
+    /// the HUD's swish; the fight's WaveStart as WAVE 1 pops in.
     public partial class ArenaApp
     {
         const float LaunchLen = 4.6f, LobbyOutTime = 0.8f, LaunchRippleAt = 0.35f, PillarAt = 1.0f, PillarStep = 0.25f, PillarLife = 0.7f,
@@ -44,7 +46,9 @@ namespace Arena
                 launchT = -1f;
                 return;
             }
+            float before = launchT;
             launchT += dt;
+            LaunchSounds(before, launchT);
             if (!launchRippled && launchT >= LaunchRippleAt)
             {
                 launchRippled = true;
@@ -52,6 +56,26 @@ namespace Arena
             }
             if (launchT >= LaunchLen)
                 launchT = -1f;
+        }
+
+        /// The launch's sounds, each as the clock passes its moment (Update, your own screen).
+        void LaunchSounds(float before, float now)
+        {
+            float clock = Time.unscaledTime;
+            if (launchFromLobby && Passed(before, now, 0.02f))
+                sounds.Play(Sfx.LaunchSweep, 0.8f, clock);
+            if (Passed(before, now, LaunchRippleAt))
+                sounds.Play(Sfx.LaunchRipple, 0.9f, clock);
+            foreach (var p in session.Game.Players.Values)
+            {
+                float land = LandTime(p);
+                if (Passed(before, now, land - PillarLand))
+                    sounds.Play(Sfx.LaunchBeam, 0.7f, clock);
+                if (Passed(before, now, land))
+                    sounds.Play(Sfx.LaunchLand, 0.85f, clock);
+            }
+            if (Passed(before, now, LaunchHudAt))
+                sounds.Play(Sfx.LaunchHud, 0.6f, clock);
         }
 
         /// The HUD waits off screen until LaunchHudAt.

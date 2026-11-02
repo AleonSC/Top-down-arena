@@ -25,6 +25,8 @@ namespace Arena
         BossScythe, BossThunder, BossWarp, BossRumble, BossCrack, BossCage, BossChomp,
         // The upgrade picker opening and closing (PickIntro.cs, PickOutro.cs): played on your own screen only, never sent.
         PickRise, PickCardOut, PickCardLand, PickRare, PickReturn, PickAbsorb,
+        // A run launching (LaunchIntro.cs): your own screen only, never sent.
+        LaunchSweep, LaunchRipple, LaunchBeam, LaunchLand, LaunchHud,
     }
 
     public struct SoundCue
