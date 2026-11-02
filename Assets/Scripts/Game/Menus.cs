@@ -68,23 +68,21 @@ namespace Arena
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            float by = MenuCard.yMax + 24f;
-            // Saved runs and records (SavesUi.cs).
-            int saved = savedRunsCount;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t) && live)
+            // Four buttons stacked, as wide as the card (the Field guide and How to play are in the lobby's and the pause
+            // menu's drawer).
+            const float bh = 34f, gap = 8f;
+            float bx = MenuCard.x, bw = MenuCard.width, by = MenuCard.yMax + 22f;
+            int saved = savedRunsCount;  // saved runs and records (SavesUi.cs)
+            if (Ui.FancyButton(new Rect(bx, by, bw, bh), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t, 16) && live)
                 OpenContinue();
-            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t) && live)
+            by += bh + gap;
+            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t, 16) && live)
                 recordsOpen = true;
-            by += 54f;
-            // The Field guide (FieldGuide.cs) with How to play under it; Settings with Quit under it.
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t) && live)
-                OpenFieldGuide();
-            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
+            by += bh + gap;
+            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 16) && live)
                 settingsOpen = true;
-            by += 54f;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "How to play", HowToColor, PixelArt.Get("ui_help"), t) && live)
-                howToOpen = true;  // (MenuDrawer.cs)
-            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
+            by += bh + gap;
+            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t, 16) && live)
                 Application.Quit();
         }
 

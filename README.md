@@ -800,8 +800,8 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving closes the lobby for everyone) and
   **Quit game**. The lobby has no Leave button or settings cog any more; its bottom bar is just **Ready** and
   **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu** has **Field guide** with **How to play** under it, and **Settings** with **Quit** under it (below
-  Continue a run and Records).
+- **The main menu** has four buttons stacked under the card, as wide as it: **Continue a run**, **Records**,
+  **Settings** and **Quit** (the Field guide and How to play are in the lobby's and the pause menu's drawer).
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
   **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
   **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots

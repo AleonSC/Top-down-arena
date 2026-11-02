@@ -276,6 +276,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 
 ## 5. Recent history (newest first)
 
+**Main menu: four stacked buttons (Nov 2026), no protocol change:** owner's ask. `DrawMenuSecondary` drops Field guide and How to play (both stay in the lobby's and pause menu's drawers) and stacks Continue a run, Records, Settings and Quit, each the card's width (500) and 34 px tall, 8 px apart. LobbyEnter's drop of these buttons is unchanged (it calls the same function).
+
 **Pause menu: Leave to lobby (Nov 2026), no protocol change:** owner's ask. `PauseChoices` gains "Leave to lobby" (`PauseToLobby`), shown to the host only (not in the Boss Lab) through `PauseRows()`, which the drawer and ↑ ↓ / Enter now walk (`pauseSel` is a row, not a choice). It calls `session.ReturnToLobby()` (Msg.ToLobby for everyone); `Game.Stop` saves the run first, so it can be continued from the main menu.
 
 **Pause menu: the players move into the run card (Nov 2026), no protocol change:** owner's ask. The drawer no longer has the party or the "↑ ↓ Enter · Esc to resume" line; `DrawRunCard` takes its full rect (`W - 500, 54, 450, H - 94`) and `DrawPartyStack` puts the players at its foot as `PartyCompact` cards (46 px: class icon, name, class and weapon (the weapon only when it fits), level, a thin health bar), the first at the bottom and each next above it, under a PLAYERS heading; they rise in with `PartyAnim`.
