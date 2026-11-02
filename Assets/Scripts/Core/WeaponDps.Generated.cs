@@ -14,7 +14,7 @@ namespace Arena
             { WeaponId.LightBolt, 9f },
             { WeaponId.Pistol, 103f },
             { WeaponId.MendersBow, 40f },
-            { WeaponId.TwinRifle, 172f },
+            { WeaponId.TwinRifle, 155f },
             { WeaponId.Railgun, 63f },
             { WeaponId.BurstSmg, 120f },
             { WeaponId.Flamethrower, 90f },

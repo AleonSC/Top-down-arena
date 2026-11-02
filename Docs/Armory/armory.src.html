@@ -591,9 +591,9 @@ const W = [
     rows: [["Damage", "4 every 0.08 s (50/s) to the first enemy on your aim line; Pierce lets it pass through more"], ["Heals", "40% of its damage, half to you and half to the nearest ally within 300 px (all yours if alone)"], ["Speed / range", "instant beam · 350 px"]], dmgPerVolley: 4,
     fire: (s, a, x) => s.beam("Vein", a, 350 * (1 + 0.25 * x), 4 * (1 + 0.25 * x)) },
   // DPS
-  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.", shot: "Dps", xtra: "+1 barrel",
+  { id: "Twin Rifle", role: "DPS", kit: "Soldier", every: 0.1, desc: "Twin streams (4.7 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.", shot: "Dps", xtra: "+1 barrel",
     volley: "10 · 20 in crossfire",
-    rows: [["Damage", "5 per barrel (2 barrels, 28 px apart)"], ["Crossing", "The streams angle in to cross at your cursor's distance (120 px up to their full range); your aim line marks it with an X"], ["Crossfire", "A hit within 45 px of the crossing does double (10)"], ["Spread", "±2° per volley"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 10,
+    rows: [["Damage", "4.7 per barrel (2 barrels, 28 px apart)"], ["Crossing", "The streams angle in to cross at your cursor's distance (120 px up to their full range); your aim line marks it with an X"], ["Crossfire", "A hit within 45 px of the crossing does double (9.4)"], ["Spread", "±2° per volley"], ["Speed / range", "820 px/s · 820 px"]], dmgPerVolley: 9.4,
     fire: (s, a, x) => { const p = range.player; a += rnd(-1, 1) * Math.PI / 90; const n = 2 + x, c = Math.cos(a), sn = Math.sin(a), dist = clamp(s.cursor().dist, 120, 820), cx = p.x + c * dist, cy = p.y + sn * dist;
       for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 28, fx = p.x + c * 16 - sn * o, fy = p.y + sn * 16 + c * o, ba = Math.atan2(cy - fy, cx - fx);
         s.bullet("Dps", ba, 820, 1, 5, { ox: fx - p.x - Math.cos(ba) * 16, oy: fy - p.y - Math.sin(ba) * 16, mult: d => Math.hypot(d.x - cx, d.y - cy) <= 45 + d.r ? 2 : 1 }); } },

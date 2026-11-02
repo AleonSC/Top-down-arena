@@ -36,8 +36,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%).",
                 Sound = Sfx.ShotBow },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 1f, Damage = 5f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
-                Desc = "Twin streams (5 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.",
+            new WeaponDef { Id = WeaponId.TwinRifle, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0, Speed = 820f, Life = 1f, Damage = 4.7f, ExtraDesc = "+1 barrel", Name = "Twin Rifle", FireInterval = 0.1f,
+                Desc = "Twin streams (4.7 per barrel) angled in to cross at your cursor's distance: hits where they cross are crossfire, for double.",
                 Sound = Sfx.ShotAssault },
             new WeaponDef { Id = WeaponId.Railgun, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1, Speed = 1600f, Life = 0.7f, Damage = 45f, BotRange = 460f, ExtraDesc = "Throws 2 shrapnel shards sideways at every enemy it pierces", Name = "Railgun", FireInterval = 0.7f,
                 Desc = "Slow, devastating shots that pierce 3 enemies. The round's path stays charged for 1 s behind it, hurting anything in it (25 a second).",
