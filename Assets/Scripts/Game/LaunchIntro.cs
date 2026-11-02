@@ -97,12 +97,28 @@ namespace Arena
                 var col = p.Def.Color;
                 if (k > 0f && k < 1f)
                 {
-                    float a = Mathf.Sin(MathX.Pi * k), w = 40f * (1f - 0.6f * k);
-                    V2 top = new V2(p.Disp.X, -20f), at = p.Disp;
-                    Line(top, at, w * 1.8f, col.WithAlpha(0.18f * a));
-                    Line(top, at, w, col.WithAlpha(0.55f * a));
-                    Line(top, at, w * 0.25f, Rgba.White.WithAlpha(0.95f * a));
-                    Circle(at, 26f * a + 6f, col.WithAlpha(0.35f * a), 24);  // the spot it hits
+                    float a = Mathf.Sin(MathX.Pi * k), w = 40f * (1f - 0.6f * k), r = p.Def.BodyR;
+                    // The beam's foot fades out just above the player's middle over two body radii, so it has no flat
+                    // edge (the picker's pillar does the same; Docs/Mockups/pillar-foot.html option 2).
+                    V2 top = new V2(p.Disp.X, -20f), foot = p.Disp - new V2(0f, r * 0.2f), soft = foot - new V2(0f, r * 2.1f);
+                    Line(top, soft, w * 1.8f, col.WithAlpha(0.18f * a));
+                    Line(top, soft, w, col.WithAlpha(0.55f * a));
+                    Line(top, soft, w * 0.25f, Rgba.White.WithAlpha(0.95f * a));
+                    const int steps = 16;
+                    for (int s = 0; s < steps; s++)
+                    {
+                        V2 s0 = V2.Lerp(soft, foot, s / (float)steps), s1 = V2.Lerp(soft, foot, (s + 1f) / steps);
+                        float fade = 1f - (s + 0.5f) / steps;
+                        Line(s0, s1, w * 1.8f, col.WithAlpha(0.18f * a * fade));
+                        Line(s0, s1, w, col.WithAlpha(0.55f * a * fade));
+                        Line(s0, s1, w * 0.25f, Rgba.White.WithAlpha(0.95f * a * fade));
+                    }
+                    Circle(p.Disp, 26f * a + 6f, col.WithAlpha(0.35f * a), 24);  // the spot it hits
+                    if (launchT >= land)  // landed: a halo round them while the beam fades
+                    {
+                        Arc(p.Disp, r + 7f, 2.2f, col.Mix(Rgba.White, 0.3f).WithAlpha(0.85f * a), 32);
+                        Arc(p.Disp, r + 12f, 1.2f, col.WithAlpha(0.3f * a), 32);
+                    }
                 }
                 float lk = Seg(launchT, land, land + 0.6f);
                 if (lk > 0f && lk < 1f)  // the landing: a ring out, and a flash
