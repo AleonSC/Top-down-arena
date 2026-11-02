@@ -1,0 +1,417 @@
+<title>Run Ending Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a column of animated 1280x720 game screens (canvas), each with an ending switch, a replay button and notes.
+   Single dark look on purpose: these are mockups of the game's own screen. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --red: #ff6470;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 72ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.seg { display: inline-flex; background: #141926; border-radius: 9px; padding: 3px; gap: 3px; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button { font: 700 13px var(--font-game); color: var(--muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"].lose { background: #8c2f3a; color: #fff; }
+.seg button[aria-pressed="true"].win { background: #9a7417; color: #fff; }
+.replay { margin-left: auto; font: 700 14px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.time { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 6ch; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Run Ending Mockups</h1>
+    <p>Three ways to get from the moment a run ends to the results screen. Each one has a Game over version (the last player goes down) and a Victory version (The Eclipse dies at wave 50); switch between them above each screen. They play on a loop, and Replay starts one again. All three end on the current results screen.</p>
+  </header>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option A</span>Last breath</h2>
+      <div class="seg" role="group" aria-label="Ending"><button class="lose" data-o="A" data-m="lose" aria-pressed="true">Game over</button><button class="win" data-o="A" data-m="win" aria-pressed="false">Victory</button></div>
+      <span class="time" id="tA"></span><button class="replay" id="rA">Replay</button></div>
+    <canvas class="screen" id="A" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Time slows almost to a stop on the killing blow, and the camera eases in on it.</li>
+      <li>Game over: the colour drains out and a red vignette closes in, then GAME OVER slams down with a shake. Victory: a white flash, the boss bursts into light rays, every enemy shot turns into a gold spark, then VICTORY.</li>
+      <li>The title glides up to the top of the results; the stat tiles drop in one by one and the player cards rise.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option B</span>Shatter</h2>
+      <div class="seg" role="group" aria-label="Ending"><button class="lose" data-o="B" data-m="lose" aria-pressed="true">Game over</button><button class="win" data-o="B" data-m="win" aria-pressed="false">Victory</button></div>
+      <span class="time" id="tB"></span><button class="replay" id="rB">Replay</button></div>
+    <canvas class="screen" id="B" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The frame freezes on the killing blow and cracks spread out from it, like glass.</li>
+      <li>Game over: the frozen screen breaks into shards that fall away. Victory: the shards blow outward from the boss with gold edges.</li>
+      <li>Behind them is the results screen. The title lands with an impact ring, and then the tiles and cards come in. It echoes the shatter you see when you pick an upgrade.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Option C</span>The tally</h2>
+      <div class="seg" role="group" aria-label="Ending"><button class="lose" data-o="C" data-m="lose" aria-pressed="true">Game over</button><button class="win" data-o="C" data-m="win" aria-pressed="false">Victory</button></div>
+      <span class="time" id="tC"></span><button class="replay" id="rC">Replay</button></div>
+    <canvas class="screen" id="C" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Slow motion into a freeze, then letterbox bars close in to a band across the middle with the title in it.</li>
+      <li>A big wave counter ticks up to the wave you reached and lands with a thud (WAVE 11, or WAVE 50 with a burst of gold confetti).</li>
+      <li>The bars open onto the results: each stat tile counts up in turn, then the player cards flip over and their trophies pop in one at a time.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal":{".":null,"k":"#14141e","w":"#ffffff","g":"#bec6d7","G":"#6e768a","y":"#ffd750","Y":"#e18c28","o":"#ff8c28","r":"#f04040","R":"#961e28","p":"#ff80b4","b":"#5a96ff","B":"#284bb4","c":"#8ce6ff","n":"#64e664","N":"#288c41","v":"#b473ff","V":"#6432a5","m":"#9b6441","M":"#5a371e"},"icons":{"role_tank":["..kkkkkkkk..",".kbbbbbbbbk.",".kbwbbbbbbk.",".kbwbbbbbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kBbbbbbbBk.","..kBbbbbBk..","..kBbbbbBk..","...kBbbBk...","....kBBk....",".....kk....."],"role_dps":["..........kk",".........kwk","........kwgk",".......kwgk.","......kwgk..",".....kwgk...","..k..kgk....","..kkkgk.....","...kok......","..kok.kk....",".kok........","kk.........."],"role_healer":["....kkkk....","....knnk....","....kwnk....","....knnk....","kkkkknnkkkkk","knwnnnnnnnnk","knnnnnnnnnNk","kkkkknNkkkkk","....knNk....","....knNk....","....kNNk....","....kkkk...."],"ui_play":["............","..ww........","..www.......","..wwww......","..wwwww.....","..wwwwww....","..wwwwww....","..wwwww.....","..wwww......","..www.......","..ww........","............"],"ui_power":["............",".....ww.....","..w..ww..w..",".ww..ww..ww.",".w...ww...w.",".w........w.",".w........w.",".ww......ww.","..ww....ww..","...wwwwww...","............","............"],"ui_check":["............","..........ww",".........www","........www.",".......www..","ww....www...","www..www....",".wwwwww.....","..wwww......","...ww.......","............","............"],"ui_skull":["............","...wwwwww...","..wwwwwwww..",".wwwwwwwwww.",".ww..ww..ww.",".ww..ww..ww.",".wwwwwwwwww.","..wwww.www..","...wwwwww...","...w.ww.w...","...wwwwww...","............"],"class_knight":["...kkkkkk...","..kggggggk..",".kgwggggggk.",".kgwggggggk.",".kkkkkkkkkk.",".kgwgkkggGk.",".kgggkkggGk.",".kgggkkggGk.",".kgggggggGk.",".kGgggggGGk.","..kGGGGGGk..","...kkkkkk..."],"class_elementalist":[".....k......","....kok.....","....kok..k..","...koyok.kk.","..koyyok.kok","..koyyyokkok",".koyywyyokok",".koywwyyyok.",".koywwwyyok.","..koyyyyok..","...kooook...","....kkkk...."],"class_soldier":["............","............","....kkkk....","..kkNNNNkk..",".kNnNNNNNNk.",".kNnNNNNNNk.","kNNNNNNNNNNk","kkkkkkkkkkkk",".k.k....k.k.","..kMk..kMk..","...kMMMMk...","....kkkk...."],"ui_trophy":["............","..yyyyyyyy..","yyywyyyyyyyy","y.ywyyyyyY.y","y.ywyyyyyY.y",".yyyyyyyyYy.","...yyyyyY...",".....yY.....",".....yY.....","....yyyY....","...YYYYYY...","............"],"ui_arrow":["............","............","......w.....","......ww....","......www...",".wwwwwwwww..",".wwwwwwwww..","......www...","......ww....","......w.....","............","............"]}};
+const W = 1280, H = 720;
+const PARTY = [
+  { name: "Anthony", sub: "Knight Tank  ·  Lance", col: "#5a96ff", icon: "class_knight", role: "role_tank", roleName: "TANK", level: 9, trophies: ["MOST DAMAGE", "MOST KILLS", "DAMAGE SPONGE"] },
+  { name: "Aleon", sub: "Elementalist DPS  ·  Fireball", col: "#ff9a4a", icon: "class_elementalist", role: "role_dps", roleName: "DPS", level: 10, trophies: ["HEAVY HITTER", "SHARPSHOOTER", "LIFESAVER"] },
+];
+const RUN = {
+  lose: { wave: 11, tiles: [["11", "WAVE"], ["4:46", "TIME"], ["546", "SCORE"], ["164", "KILLS"]], nums: [11, 286, 546, 164], title: "GAME OVER", sub: "YOU MADE IT TO WAVE 11", col: "#ff6470", hi: "#ffd0d4" },
+  win: { wave: 50, tiles: [["50", "WAVE"], ["31:12", "TIME"], ["4,980", "SCORE"], ["1,402", "KILLS"]], nums: [50, 1872, 4980, 1402], title: "VICTORY", sub: "ALL 50 WAVES CLEARED", col: "#ffcc59", hi: "#fff2c4" },
+};
+const STATS = [["Damage dealt", "11.9k", "8,400"], ["Kills", "100", "64"], ["Biggest hit", "15", "42"], ["Accuracy", "41%", "52%"], ["Healing done", "0", "640"], ["Allies revived", "0", "1"], ["Damage taken", "246", "180"]];
+
+// --- small helpers -------------------------------------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = x => 1 - Math.pow(1 - x, 3);
+const back = x => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+function rand(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+const iconCache = {};
+function icon(name) {
+  if (iconCache[name]) return iconCache[name];
+  const g = ICONS.icons[name], c = document.createElement("canvas");
+  c.width = g[0].length; c.height = g.length;
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return iconCache[name] = c;
+}
+function drawIcon(ctx, name, x, y, size, alpha = 1) { if (alpha <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.imageSmoothingEnabled = false; ctx.drawImage(icon(name), x - size / 2, y - size / 2, size, size); ctx.restore(); }
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function fancy(ctx, text, x, y, size, low, alpha = 1, align = "center", glow = true) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `900 ${size}px Arial, sans-serif`; ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (glow) { ctx.shadowColor = low; ctx.shadowBlur = size * 0.35; }
+  ctx.lineJoin = "round"; ctx.lineWidth = Math.max(3, size * 0.11); ctx.strokeStyle = "#0b1020"; ctx.strokeText(text, x, y);
+  ctx.shadowBlur = 0;
+  const g = ctx.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); g.addColorStop(0.3, "#fff"); g.addColorStop(1, low);
+  ctx.fillStyle = g; ctx.fillText(text, x, y); ctx.restore();
+}
+function label(ctx, text, x, y, size, col, align = "left", weight = 700, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.font = `${weight} ${size}px Arial, sans-serif`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = "middle"; ctx.fillText(text, x, y); ctx.restore();
+}
+function fbtn(ctx, x, y, w, h, text, c1, c2, ic, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha *= alpha; const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  rr(ctx, x, y, w, h, 10); ctx.fillStyle = g; ctx.fill(); ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 12, y + 2, w - 24, 1);
+  if (ic) { rr(ctx, x + 12, y + h / 2 - 13, 26, 26, 6); ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fill(); drawIcon(ctx, ic, x + 25, y + h / 2, 16); }
+  fancy(ctx, text, x + w / 2 + (ic ? 14 : 0), y + h / 2, 18, "#e0ebff", 1, "center", false); ctx.restore();
+}
+function ring(ctx, x, y, r, col, alpha, w = 3) { if (alpha <= 0 || r <= 0) return; ctx.save(); ctx.globalAlpha *= alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); ctx.restore(); }
+function dot(ctx, x, y, r, col, glow = 0) { ctx.save(); if (glow) { ctx.shadowColor = col; ctx.shadowBlur = glow; } ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.restore(); }
+
+// --- the arena and the fight -----------------------------------------------------------------------
+function arena(ctx) {
+  ctx.fillStyle = "#0b0d14"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "rgba(110,140,220,0.1)"; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+}
+function player(ctx, x, y, col, aim, downed = 0) {
+  ctx.save(); ctx.translate(x, y);
+  const c = downed > 0 ? "#6b7280" : col;
+  ctx.shadowColor = c; ctx.shadowBlur = downed ? 0 : 18; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fillStyle = "#121827"; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = c; ctx.stroke(); ctx.shadowBlur = 0;
+  if (!downed) { ctx.beginPath(); ctx.moveTo(Math.cos(aim) * 8, Math.sin(aim) * 8); ctx.lineTo(Math.cos(aim) * 26, Math.sin(aim) * 26); ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.stroke(); dot(ctx, 0, 0, 3, "#fff"); }
+  else { ctx.strokeStyle = "#ff6470"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(-6, -6); ctx.lineTo(6, 6); ctx.moveTo(6, -6); ctx.lineTo(-6, 6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 26, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * downed); ctx.strokeStyle = "rgba(255,100,112,0.7)"; ctx.lineWidth = 3; ctx.stroke(); }
+  ctx.restore();
+}
+function enemy(ctx, x, y, kind, a) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+  if (kind === 0) { ctx.beginPath(); for (let s = 0; s < 3; s++) { const an = s * Math.PI * 2 / 3; ctx[s ? "lineTo" : "moveTo"](Math.cos(an) * 15, Math.sin(an) * 15); } ctx.closePath(); ctx.fillStyle = "#ff5a5a"; ctx.shadowColor = "#ff5a5a"; ctx.shadowBlur = 10; ctx.fill(); }
+  else if (kind === 1) { rr(ctx, -13, -13, 26, 26, 5); ctx.fillStyle = "#b473ff"; ctx.shadowColor = "#b473ff"; ctx.shadowBlur = 10; ctx.fill(); }
+  else { ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fillStyle = "#42c8a0"; ctx.shadowColor = "#42c8a0"; ctx.shadowBlur = 10; ctx.fill(); dot(ctx, 0, 0, 5, "#0b0d14"); }
+  ctx.restore();
+}
+const LOSE_HIT = 1.0, ALEON_DIE = [760, 420];
+/** Where Aleon is at game time g (dodging, then down where the shot caught them). */
+function aleonAt(g) { if (g >= LOSE_HIT) return ALEON_DIE; const k = g - LOSE_HIT; return [ALEON_DIE[0] + Math.sin(k * 2.6) * 70 - k * 30, ALEON_DIE[1] + Math.sin(k * 1.7) * 30]; }
+const ENEMIES = Array.from({ length: 12 }, (_, i) => ({ a: i / 12 * Math.PI * 2 + rand(i) * 0.3, r: 300 + rand(i + 9) * 120, kind: i % 3, spin: 0.15 + rand(i + 3) * 0.2 }));
+/** The losing fight at game time g. */
+function fightLose(ctx, g, fx = {}) {
+  arena(ctx);
+  // Anthony already down, his revive clock running out
+  player(ctx, 520, 450, PARTY[0].col, 0, clamp(0.35 - g * 0.12, 0.02, 1));
+  const [ax, ay] = aleonAt(g);
+  // enemies closing in around the middle
+  ENEMIES.forEach((e, i) => { const an = e.a + g * e.spin, r = e.r - g * 18; enemy(ctx, 640 + Math.cos(an) * r * 1.35, 380 + Math.sin(an) * r * 0.8, e.kind, g * 2 + i); });
+  // rings of shots from three shooters
+  [[260, 200], [1020, 230], [640, 640]].forEach(([sx, sy], s) => {
+    for (let w = -3; w < 3; w++) { const born = Math.floor(g / 0.9) * 0.9 + w * 0.9 + s * 0.3, age = g - born; if (age < 0 || age > 3) continue;
+      for (let k = 0; k < 14; k++) { const an = k / 14 * Math.PI * 2 + w * 0.2, r = 20 + age * 170, x = sx + Math.cos(an) * r, y = sy + Math.sin(an) * r;
+        if (x < -10 || x > W + 10 || y < -10 || y > H + 10) continue; drawShot(ctx, x, y, fx); } } });
+  // the shot that gets Aleon
+  if (g < LOSE_HIT) { const k = g / LOSE_HIT; drawShot(ctx, lerp(1000, ax, k), lerp(160, ay, k), fx, 7); }
+  // Aleon's fireballs, until they go down
+  if (g < LOSE_HIT) for (let i = 0; i < 4; i++) { const k = ((g * 3 + i / 4) % 1); dot(ctx, ax + k * 260, ay - k * 200, 6, "#ffb060", 14); }
+  player(ctx, ax, ay, PARTY[1].col, -0.7, g >= LOSE_HIT ? clamp(1 - (g - LOSE_HIT) * 0.4, 0, 1) : 0);
+}
+function drawShot(ctx, x, y, fx, r = 5) {
+  if (fx.gold) { const k = fx.gold; dot(ctx, x, y, r * (1 - k * 0.3), "#ffd76a", 10); return; }
+  dot(ctx, x, y, r + 2, "rgba(255,90,140,0.35)"); dot(ctx, x, y, r, "#ff6a9a"); dot(ctx, x, y, r * 0.45, "#fff");
+}
+const BOSS = [640, 250], WIN_HIT = 1.0;
+/** The winning fight at game time g: The Eclipse going down (gone = 0..1 after it dies). */
+function fightWin(ctx, g, fx = {}) {
+  arena(ctx);
+  const alive = g < WIN_HIT;
+  // boss shots: a double spiral
+  for (let i = 0; i < 70; i++) { const born = g - i * 0.05; if (born < -2) continue; const age = i * 0.05;
+    for (let arm = 0; arm < 2; arm++) { const an = born * 2.2 + arm * Math.PI, r = 80 + age * 190, x = BOSS[0] + Math.cos(an) * r, y = BOSS[1] + Math.sin(an) * r;
+      if (x < -10 || x > W + 10 || y < -10 || y > H + 10) continue;
+      if (!alive && !fx.gold) continue; drawShot(ctx, x, y, fx); } }
+  if (alive) {
+    // The Eclipse: a black disc with a turning gold and violet corona
+    ctx.save(); ctx.translate(BOSS[0], BOSS[1]);
+    for (let k = 0; k < 18; k++) { const an = k / 18 * Math.PI * 2 + g * 0.8, l = 100 + Math.sin(g * 5 + k) * 14; ctx.beginPath(); ctx.moveTo(Math.cos(an) * 66, Math.sin(an) * 66); ctx.lineTo(Math.cos(an + 0.08) * l, Math.sin(an + 0.08) * l);
+      ctx.strokeStyle = k % 2 ? "rgba(255,200,90,0.8)" : "rgba(180,115,255,0.8)"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.stroke(); }
+    ctx.shadowColor = "#ffcc59"; ctx.shadowBlur = 40; ctx.beginPath(); ctx.arc(0, 0, 66, 0, Math.PI * 2); ctx.fillStyle = "#05060a"; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = "#ffcc59"; ctx.stroke();
+    ctx.restore();
+  }
+  // the players, strafing and firing up at it
+  const ps = [[520 + Math.sin(g * 2) * 40, 520], [770 + Math.sin(g * 1.6 + 1) * 50, 500]];
+  ps.forEach(([x, y], i) => { if (alive) for (let s = 0; s < 4; s++) { const k = (g * 3.2 + s / 4 + i * 0.13) % 1; const tx = lerp(x, BOSS[0], k), ty = lerp(y, BOSS[1] + 40, k); dot(ctx, tx, ty, 5, i ? "#ffb060" : "#8cc0ff", 12); }
+    player(ctx, x, y, PARTY[i].col, Math.atan2(BOSS[1] - y, BOSS[0] - x)); });
+  // the boss bar, draining to nothing
+  if (alive || fx.keepBar) { const hp = clamp(0.06 * (1 - g / WIN_HIT), 0, 1);
+    ctx.save(); rr(ctx, 340, 24, 600, 14, 7); ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fill(); rr(ctx, 340, 24, 600 * hp, 14, 7); ctx.fillStyle = "#ffcc59"; ctx.fill(); ctx.restore();
+    label(ctx, "THE ECLIPSE", 640, 54, 13, "#ffe3a0", "center", 800); }
+}
+const fight = (mode, ctx, g, fx) => mode === "lose" ? fightLose(ctx, g, fx) : fightWin(ctx, g, fx);
+const HIT_AT = mode => mode === "lose" ? ALEON_DIE : BOSS;
+/** Game time at real time t for a speed curve (integrates it in small steps). */
+function gameTime(t, speed) { let g = 0; const dt = 1 / 120; for (let s = 0; s < t; s += dt) g += speed(s) * Math.min(dt, t - s); return g; }
+
+// --- the results screen (as it is now), with each part's entrance controllable --------------------
+/** o: bg (0..1 dark layer), tiles [k x4] (0..1 in), count (0..1 numbers counted up; undefined = shown), cards [k x2],
+ *  flip (cards flip in instead of rising), trophies (0..1 popping in), buttons (0..1). */
+function results(ctx, mode, o) {
+  const R = RUN[mode];
+  if (o.bg > 0) { ctx.save(); ctx.fillStyle = `rgba(3,4,8,${0.86 * o.bg})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  R.tiles.forEach(([v, l], i) => { const k = o.tiles[i]; if (k <= 0) return; const x = 286 + i * 180, y = 120 - (1 - ease(k)) * 40;
+    ctx.save(); ctx.globalAlpha = k; rr(ctx, x, y, 168, 64, 10); ctx.fillStyle = "#171b28"; ctx.fill(); ctx.strokeStyle = mode === "lose" ? "rgba(255,100,112,0.3)" : "rgba(255,204,89,0.35)"; ctx.stroke();
+    let txt = v; if (o.count !== undefined) txt = countText(mode, i, seg(o.count * 4, i, i + 1));
+    fancy(ctx, txt, x + 84, y + 24, 26, R.col, 1, "center", false); label(ctx, l, x + 84, y + 48, 10, "#9ea9c4", "center", 800); ctx.restore(); });
+  PARTY.forEach((p, i) => { const k = o.cards[i]; if (k <= 0) return; card(ctx, p, i, i ? 652 : 70, 200, k, o.flip, o.trophies ?? 1, mode); });
+  const b = o.buttons ?? 0; if (b > 0) { const dy = (1 - ease(b)) * 30;
+    fbtn(ctx, 70, 638 + dy, 170, 48, "Leave", "#c85a63", "#a43d48", "ui_power", b);
+    fbtn(ctx, 736, 638 + dy, 230, 48, "Play again  [R]", "#5a97ff", "#3a6fe0", "ui_play", b);
+    fbtn(ctx, 980, 638 + dy, 230, 48, "Back to lobby  [L]", "#4a5578", "#353e5c", "ui_arrow", b); }
+}
+function countText(mode, i, k) {
+  const n = Math.round(RUN[mode].nums[i] * ease(k));
+  if (k >= 1) return RUN[mode].tiles[i][0];
+  if (i === 1) return Math.floor(n / 60) + ":" + String(n % 60).padStart(2, "0");
+  return n.toLocaleString("en-US");
+}
+function card(ctx, p, i, x, y, k, flip, trophies, mode) {
+  const w = 558, h = 428;
+  ctx.save();
+  if (flip) { ctx.translate(x + w / 2, 0); ctx.scale(Math.max(0.02, ease(k)), 1); ctx.translate(-(x + w / 2), 0); ctx.globalAlpha = Math.min(1, k * 3); }
+  else { ctx.translate(0, (1 - ease(k)) * 80); ctx.globalAlpha = k; }
+  rr(ctx, x, y, w, h, 12); ctx.fillStyle = "#181c29"; ctx.fill(); ctx.strokeStyle = p.col; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.save(); rr(ctx, x, y, 170, h, [12, 0, 0, 12]); ctx.fillStyle = p.col + "22"; ctx.fill(); ctx.restore();
+  rr(ctx, x + 20, y + 36, 130, 116, 8); ctx.fillStyle = p.col + "22"; ctx.fill(); drawIcon(ctx, p.icon, x + 85, y + 94, 96);
+  rr(ctx, x + 14, y + 156, 142, 24, 5); ctx.fillStyle = p.col + "33"; ctx.fill(); drawIcon(ctx, p.role, x + 30, y + 168, 14); label(ctx, p.roleName, x + 44, y + 168, 11, "#dfe6ff", "left", 800);
+  rr(ctx, x + 14, y + 188, 142, 24, 5); ctx.fillStyle = "#e3b04d"; ctx.fill(); label(ctx, "LEVEL " + p.level, x + 85, y + 200, 12, "#2a1d05", "center", 800);
+  p.trophies.forEach((tr, j) => { const tk = flip ? seg(trophies * 3, j, j + 1) : 1; if (tk <= 0) return; const s = flip ? back(tk) : 1;
+    ctx.save(); ctx.translate(x + 85, y + 234 + j * 27); ctx.scale(s, s); ctx.globalAlpha *= Math.min(1, tk * 2);
+    rr(ctx, -71, -11, 142, 22, 5); ctx.fillStyle = "rgba(227,176,77,0.22)"; ctx.fill(); drawIcon(ctx, "ui_trophy", -56, 0, 13); label(ctx, tr, -44, 0, 10, "#f2c968", "left", 800); ctx.restore(); });
+  fancy(ctx, p.name, x + 190, y + 28, 26, p.col, 1, "left", false);
+  label(ctx, p.sub, x + 190, y + 56, 13, p.col, "left", 700);
+  ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(x + 188, y + 72, 350, 1);
+  STATS.forEach(([n, a, b], j) => { const yy = y + 92 + j * 30, v = i ? b : a, best = (i === 0) === [1, 1, 0, 0, 0, 0, 1][j];
+    label(ctx, n, x + 190, yy, 14, "#b5bdd2", "left", 400); label(ctx, v, x + 538, yy + 2, 15, best ? "#ffcc59" : "#fff", "right", 800);
+    ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(x + 188, yy + 13, 350, 3); ctx.fillStyle = best ? "#ffcc59" : p.col; ctx.fillRect(x + 188, yy + 13, 350 * (best ? 1 : 0.35 + rand(j + i * 7) * 0.4), 3); });
+  label(ctx, "UPGRADES", x + 190, y + 320, 11, "#9ea9c4", "left", 800);
+  for (let u = 0; u < 7; u++) { rr(ctx, x + 190 + u * 48, y + 336, 40, 40, 7); ctx.fillStyle = "#222839"; ctx.fill(); ctx.strokeStyle = u < 2 ? "#ffcc5988" : "rgba(255,255,255,0.08)"; ctx.stroke(); }
+  ctx.restore();
+}
+/** The title at its place on the results screen (or anywhere along the way). */
+function title(ctx, mode, x, y, s, a, subA = 0) {
+  const R = RUN[mode];
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); fancy(ctx, R.title, 0, 0, 64, R.col, a); ctx.restore();
+  label(ctx, R.sub, x, y + 42 * s, 14, "#b9c2db", "center", 800, a * subA);
+}
+/** Desaturate what's been drawn so far (k 0..1), with the saturation blend mode. */
+function desaturate(ctx, k) { if (k <= 0) return; ctx.save(); ctx.globalCompositeOperation = "saturation"; ctx.globalAlpha = k; ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+function vignette(ctx, col, k) { if (k <= 0) return; ctx.save(); const g = ctx.createRadialGradient(W / 2, H / 2, lerp(700, 260, k), W / 2, H / 2, 820); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, col); ctx.globalAlpha = k; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+function flash(ctx, k, col = "255,255,255") { if (k <= 0) return; ctx.save(); ctx.fillStyle = `rgba(${col},${k})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+function rays(ctx, x, y, k, rot, col = "255,214,120") {
+  if (k <= 0) return; ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 16; i++) { const an = i / 16 * Math.PI * 2, l = 900 * ease(Math.min(1, k * 1.5)), w = 0.07 + (i % 2) * 0.05;
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, l); g.addColorStop(0, `rgba(${col},${0.5 * Math.min(1, k * 3) * (1 - k * 0.6)})`); g.addColorStop(1, `rgba(${col},0)`);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, l, an - w, an + w); ctx.closePath(); ctx.fillStyle = g; ctx.fill(); }
+  ctx.restore();
+}
+function sparks(ctx, x, y, k, n, col, spread = 520, seed = 0) {
+  if (k <= 0 || k >= 1) return;
+  for (let i = 0; i < n; i++) { const an = rand(i + seed) * Math.PI * 2, sp = (0.3 + rand(i + 50 + seed) * 0.7) * spread, e = ease(k);
+    dot(ctx, x + Math.cos(an) * sp * e, y + Math.sin(an) * sp * e + k * k * 120, 3 * (1 - k) + 1, col, 8); }
+}
+function confetti(ctx, t0, t) {
+  const k = t - t0; if (k <= 0 || k > 3.5) return;
+  const cols = ["#ffcc59", "#ffe9a8", "#5a96ff", "#ff9a4a", "#ffffff"];
+  for (let i = 0; i < 90; i++) { const side = i % 2 ? 1 : -1, vx = side * -(120 + rand(i) * 380), vy = -(380 + rand(i + 7) * 420), x = (side > 0 ? W + 10 : -10) + vx * k, y = 560 + vy * k + 520 * k * k;
+    if (y > H + 20) continue; ctx.save(); ctx.translate(x, y); ctx.rotate(k * (4 + rand(i + 3) * 8)); ctx.globalAlpha = Math.min(1, (3.5 - k) * 2); ctx.fillStyle = cols[i % cols.length]; ctx.fillRect(-5, -3, 10, 6); ctx.restore(); }
+}
+/** The usual results entrance after the title has arrived (tiles drop, cards rise, buttons). */
+function resultsIn(ctx, mode, t, a, extra = {}) {
+  results(ctx, mode, Object.assign({ bg: 1, tiles: [0, 1, 2, 3].map(i => seg(t, a + i * 0.09, a + i * 0.09 + 0.35)), cards: [seg(t, a + 0.35, a + 0.85), seg(t, a + 0.45, a + 0.95)], buttons: seg(t, a + 0.9, a + 1.3) }, extra));
+}
+
+// --- A: last breath --------------------------------------------------------------------------------
+const A = { len: 6.4, draw(ctx, t, mode) {
+  const speed = s => s < 1.0 ? 1 : s < 1.35 ? lerp(1, 0.07, ease(seg(s, 1.0, 1.35))) : s < 2.6 ? 0.07 : lerp(0.07, 0, seg(s, 2.6, 2.9));
+  const g = gameTime(t, speed), [hx, hy] = HIT_AT(mode), z = 1 + 0.32 * ease(seg(t, 1.0, 2.2)) * (1 - ease(seg(t, 2.9, 3.4)));
+  const stamp = seg(t, 2.05, 2.3), shake = stamp >= 1 ? Math.max(0, 1 - (t - 2.3) * 4) * 10 : 0;
+  ctx.save(); ctx.translate(Math.sin(t * 90) * shake, Math.cos(t * 77) * shake);
+  ctx.translate(hx, hy); ctx.scale(z, z); ctx.translate(-hx, -hy);
+  const gold = mode === "win" ? seg(t, 1.05, 1.5) : 0;
+  fight(mode, ctx, g, { gold });
+  if (mode === "win") { rays(ctx, hx, hy, seg(t, 1.0, 3.0), t * 0.2); sparks(ctx, hx, hy, seg(t, 1.0, 2.4), 60, "#ffe9a8", 600); ring(ctx, hx, hy, 60 + 700 * ease(seg(t, 1.0, 1.8)), "#fff3c8", 1 - seg(t, 1.0, 1.8), 6); }
+  else { ring(ctx, hx, hy, 20 + 160 * ease(seg(t, 1.0, 1.6)), "#ff6470", 1 - seg(t, 1.0, 1.6), 4); }
+  ctx.restore();
+  if (mode === "lose") { desaturate(ctx, ease(seg(t, 1.1, 2.2))); vignette(ctx, "rgba(120,0,12,0.85)", ease(seg(t, 1.2, 2.4))); }
+  else { vignette(ctx, "rgba(90,60,0,0.6)", ease(seg(t, 1.2, 2.4)) * 0.6); flash(ctx, Math.max(0, 1 - seg(t, 1.0, 1.45)) * (t >= 1 ? 0.9 : 0)); }
+  // dark layer, then results
+  const lift = ease(seg(t, 3.0, 3.6));
+  if (t >= 3.0) resultsIn(ctx, mode, t, 3.45, { bg: seg(t, 2.9, 3.4) });
+  if (stamp > 0) { const s = lerp(2.4, 1.5, ease(stamp)) * lerp(1, 0.667, lift); title(ctx, mode, W / 2, lerp(H / 2, 64, lift), s, stamp, seg(t, 3.5, 3.9)); }
+} };
+
+// --- B: shatter ------------------------------------------------------------------------------------
+const SHARDS = (() => { const cols = 9, rows = 6, pts = []; for (let j = 0; j <= rows; j++) for (let i = 0; i <= cols; i++) { const e = i === 0 || j === 0 || i === cols || j === rows;
+  pts.push([i * W / cols + (e ? 0 : (rand(i * 31 + j) - 0.5) * 90), j * H / rows + (e ? 0 : (rand(i * 17 + j * 3) - 0.5) * 70)]); }
+  const tris = []; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const a = pts[j * (cols + 1) + i], b = pts[j * (cols + 1) + i + 1], c = pts[(j + 1) * (cols + 1) + i], d = pts[(j + 1) * (cols + 1) + i + 1];
+    if ((i + j) % 2) { tris.push([a, b, d]); tris.push([a, d, c]); } else { tris.push([a, b, c]); tris.push([b, d, c]); } }
+  return tris; })();
+const frozen = {};
+function frozenFrame(mode, g) {
+  const key = mode; if (frozen[key]) return frozen[key];
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); fight(mode, x, g, {}); if (mode === "lose") desaturate(x, 0.35); return frozen[key] = c;
+}
+const B = { len: 6.4, draw(ctx, t, mode) {
+  const FREEZE = 1.25, speed = s => s < 1.0 ? 1 : lerp(1, 0, seg(s, 1.0, FREEZE)), g = gameTime(t, speed), [hx, hy] = HIT_AT(mode);
+  const breakAt = 2.15, br = t - breakAt;
+  // behind the glass: the results screen
+  if (br > 0) {
+    ctx.fillStyle = "#06070c"; ctx.fillRect(0, 0, W, H);
+    const tk = seg(t, 2.45, 2.65);
+    if (tk > 0) { title(ctx, mode, W / 2, 64, lerp(1.9, 1, ease(tk)), tk, seg(t, 2.7, 3.0)); ring(ctx, W / 2, 64, 40 + 400 * ease(seg(t, 2.65, 3.2)), RUN[mode].col, 1 - seg(t, 2.65, 3.2), 3); }
+    resultsIn(ctx, mode, t, 2.8, { bg: 0 });
+  }
+  if (t < FREEZE + 0.01 || br <= 0) {
+    if (t < FREEZE) fight(mode, ctx, g, {}); else ctx.drawImage(frozenFrame(mode, gameTime(FREEZE, speed)), 0, 0);
+    if (t >= 1.0) { flash(ctx, (1 - seg(t, 1.0, 1.25)) * 0.7, mode === "lose" ? "255,120,130" : "255,240,200"); }
+    // cracks spreading from the hit
+    const ck = ease(seg(t, 1.35, 2.0)); if (ck > 0) cracks(ctx, hx, hy, ck, mode);
+  }
+  if (br > 0) {
+    const src = frozenFrame(mode, gameTime(FREEZE, speed));
+    SHARDS.forEach((tri, i) => {
+      const cx = (tri[0][0] + tri[1][0] + tri[2][0]) / 3, cy = (tri[0][1] + tri[1][1] + tri[2][1]) / 3, d = Math.hypot(cx - hx, cy - hy), delay = d / 2400, k = Math.max(0, br - delay);
+      let dx, dy, rot; if (mode === "lose") { dx = (cx - hx) * 0.15 * k + (rand(i) - 0.5) * 60 * k; dy = 900 * k * k + (rand(i + 4) - 0.5) * 30 * k; rot = (rand(i + 9) - 0.5) * 4 * k; }
+      else { const an = Math.atan2(cy - hy, cx - hx), sp = 900 + rand(i) * 700; dx = Math.cos(an) * sp * k * (1 + k); dy = Math.sin(an) * sp * k * (1 + k); rot = (rand(i + 9) - 0.5) * 7 * k; }
+      if (k > 1.6) return;
+      ctx.save(); ctx.translate(cx + dx, cy + dy); ctx.rotate(rot); const s = 1 - 0.25 * Math.min(1, k); ctx.scale(s, s); ctx.translate(-cx, -cy);
+      ctx.beginPath(); ctx.moveTo(...tri[0]); ctx.lineTo(...tri[1]); ctx.lineTo(...tri[2]); ctx.closePath();
+      ctx.save(); ctx.clip(); ctx.drawImage(src, 0, 0); ctx.restore();
+      ctx.strokeStyle = mode === "lose" ? "rgba(255,190,195,0.55)" : "rgba(255,214,120,0.9)"; ctx.lineWidth = mode === "lose" ? 1.5 : 2.5; ctx.stroke(); ctx.restore(); });
+  }
+} };
+function cracks(ctx, x, y, k, mode) {
+  ctx.save(); ctx.strokeStyle = mode === "lose" ? "rgba(255,225,228,0.9)" : "rgba(255,238,190,0.95)"; ctx.lineWidth = 2; ctx.shadowColor = mode === "lose" ? "#ff6470" : "#ffcc59"; ctx.shadowBlur = 8; ctx.lineCap = "round";
+  for (let i = 0; i < 11; i++) { let an = i / 11 * Math.PI * 2 + rand(i) * 0.4, px = x, py = y, len = (500 + rand(i + 2) * 600) * k; ctx.beginPath(); ctx.moveTo(px, py);
+    for (let s = 0; s < 8 && len > 0; s++) { const l = Math.min(len, 60 + rand(i * 8 + s) * 90); an += (rand(i * 13 + s) - 0.5) * 0.7; px += Math.cos(an) * l; py += Math.sin(an) * l; ctx.lineTo(px, py); len -= l;
+      if (s === 2 && len > 0) { ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(an + 0.9) * 50 * k, py + Math.sin(an + 0.9) * 50 * k); ctx.moveTo(px, py); } }
+    ctx.stroke(); }
+  ctx.restore();
+}
+
+// --- C: the tally ----------------------------------------------------------------------------------
+const C = { len: 7.4, draw(ctx, t, mode) {
+  const speed = s => s < 1.0 ? 1 : lerp(1, 0, ease(seg(s, 1.0, 1.7))), g = gameTime(t, speed), R = RUN[mode];
+  fight(mode, ctx, g, { gold: mode === "win" ? seg(t, 1.0, 1.4) : 0 });
+  if (t >= 1.0) flash(ctx, (1 - seg(t, 1.0, 1.3)) * 0.6, mode === "lose" ? "255,120,130" : "255,240,200");
+  if (mode === "lose") desaturate(ctx, seg(t, 1.0, 1.8)); else sparks(ctx, BOSS[0], BOSS[1], seg(t, 1.0, 2.2), 50, "#ffe9a8", 500);
+  // letterbox bars closing to a band, then opening onto the results
+  const close = ease(seg(t, 1.5, 2.0)), open = ease(seg(t, 4.2, 4.7)), band = 170, barH = (H - band) / 2 * close;
+  if (open > 0) { ctx.fillStyle = "#06070c"; ctx.fillRect(0, 0, W, H); }
+  if (t >= 4.2) {
+    results(ctx, mode, { bg: 0, tiles: [0, 1, 2, 3].map(i => seg(t, 4.5 + i * 0.05, 4.7 + i * 0.05)), count: seg(t, 4.7, 5.9), cards: [seg(t, 5.7, 6.1), seg(t, 5.85, 6.25)], flip: true, trophies: seg(t, 6.1, 6.9), buttons: seg(t, 6.6, 7.0) });
+  }
+  if (open < 1) {
+    ctx.save(); ctx.fillStyle = "#06070c";
+    if (open > 0) { const hgap = band / 2 + (H / 2 - band / 2) * open; ctx.fillRect(0, 0, W, H / 2 - hgap); ctx.fillRect(0, H / 2 + hgap, W, H / 2 - hgap); }
+    else { ctx.fillRect(0, 0, W, barH); ctx.fillRect(0, H - barH, W, barH); if (close > 0) { ctx.fillStyle = "rgba(4,5,9,0.65)"; ctx.fillRect(0, barH, W, H - 2 * barH); } }
+    ctx.restore();
+    if (close > 0 && open === 0) { ctx.save(); ctx.globalAlpha = close; ctx.fillStyle = R.col; ctx.fillRect(0, barH - 2, W, 2); ctx.fillRect(0, H - barH, W, 2); ctx.restore(); }
+  }
+  // the title in the band, and the wave counter
+  const tIn = seg(t, 1.9, 2.25);
+  if (tIn > 0 && open < 1) {
+    const a = 1 - open;
+    title(ctx, mode, 410, H / 2, lerp(1.4, 1, back(tIn)) * 0.9, tIn * a);
+    const ck = seg(t, 2.4, 3.6), n = Math.max(1, Math.round(R.wave * ease(ck))), land = seg(t, 3.6, 3.85);
+    const s = 1 + 0.35 * Math.sin(Math.PI * land);
+    label(ctx, "WAVE", 860, H / 2 - 44, 14, "#9ea9c4", "center", 800, a * seg(t, 2.3, 2.5));
+    ctx.save(); ctx.translate(860, H / 2 + 10); ctx.scale(s, s); fancy(ctx, String(n), 0, 0, 96, R.col, a * seg(t, 2.3, 2.5)); ctx.restore();
+    if (land > 0) ring(ctx, 860, H / 2 + 10, 50 + 180 * ease(land), R.col, (1 - land) * a, 4);
+    // ticks under the counter, one per wave
+    for (let i = 0; i < Math.min(n, 50); i++) { const per = mode === "lose" ? 11 : 50, x = 860 - 160 + (i + 0.5) * 320 / per; ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = (i + 1) % 5 === 0 ? R.col : "rgba(255,255,255,0.55)"; ctx.fillRect(x - 1, H / 2 + 70, 2, (i + 1) % 5 === 0 ? 10 : 6); ctx.restore(); }
+  }
+  if (mode === "win") confetti(ctx, 3.65, t);
+} };
+
+// --- running them ------------------------------------------------------------------------------------
+const OPTS = { A, B, C };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+Object.entries(OPTS).forEach(([id, o]) => {
+  const cv = document.getElementById(id), ctx = cv.getContext("2d"), tl = document.getElementById("t" + id); let start = performance.now(), mode = "lose";
+  document.getElementById("r" + id).onclick = () => start = performance.now();
+  document.querySelectorAll(`.seg button[data-o="${id}"]`).forEach(b => b.onclick = () => { mode = b.dataset.m; start = performance.now();
+    document.querySelectorAll(`.seg button[data-o="${id}"]`).forEach(x => x.setAttribute("aria-pressed", String(x === b))); });
+  const hold = 1.4;
+  function frame(now) {
+    let t = (now - start) / 1000; if (t > o.len + hold) { start = now; t = 0; }
+    if (reduce) t = o.len;
+    t = Math.min(t, o.len);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; o.draw(ctx, t, mode);
+    tl.textContent = t.toFixed(1) + " s"; requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+});
+</script>
