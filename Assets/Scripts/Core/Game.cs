@@ -23,6 +23,8 @@ namespace Arena
         // Bosses' own mechanics (SoundBank.cs recipes; wired in each boss's file). Kept at the end so values don't shift.
         BossLaserWarn, BossLaser, BossSlam, BossWhoosh, BossSiren, BossBuzz, BossSplat, BossGong,
         BossScythe, BossThunder, BossWarp, BossRumble, BossCrack, BossCage, BossChomp,
+        // The upgrade picker opening and closing (PickIntro.cs, PickOutro.cs): played on your own screen only, never sent.
+        PickRise, PickCardOut, PickCardLand, PickRare, PickReturn, PickAbsorb,
     }
 
     public struct SoundCue

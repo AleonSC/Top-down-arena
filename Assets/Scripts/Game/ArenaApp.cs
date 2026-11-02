@@ -312,6 +312,7 @@ namespace Arena
             {
                 SyncSelection(me);
             }
+            TickPickSounds(me, choosing && session.Screen == AppScreen.Game);  // the picker opening and closing (PickSounds.cs)
             if (choosing && !tabHeld && !PickOutroPlaying && !PickIntroPlaying(me))  // the cards are still flying out (PickIntro.cs)
             {
                 for (int k = 0; k < CardKeys.Length; k++)

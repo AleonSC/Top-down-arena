@@ -337,6 +337,30 @@ namespace Arena
             Set(Sfx.BossCage, Finish(Concat(Tone(0.12f, Osc.Square, 720f, 690f, 0.3f, noise: 0.1f, lowpass: 0.6f, decay: 4f), Tone(0.4f, Osc.Square, 540f, 520f, 0.3f, noise: 0.1f, lowpass: 0.6f, decay: 3.5f)), 0.3f), 0.3f);  // bars slamming shut
             Set(Sfx.BossChomp, Finish(Concat(Tone(0.08f, Osc.Sine, 160f, 80f, 0.6f, noise: 0.6f, lowpass: 0.2f, decay: 3f), Tone(0.16f, Osc.Sine, 140f, 60f, 0.8f, noise: 0.5f, lowpass: 0.18f, decay: 3f)), 0.45f), 0.12f);  // jaws snapping shut
 
+            // The upgrade picker (PickSounds.cs): the gold pillar rising out of you, each card flying out (a little higher
+            // each time: the takes play in turn) and landing with a bell ping (rising across the three cards), a sparkle for
+            // a very rare or better, the cards flying back in, and yours landing in you with a warm chord.
+            Set(Sfx.PickRise, Finish(Reverb(Mix(Tone(0.75f, Osc.Sine, 220f, 880f, 0.3f, attack: 0.03f, decay: 1.3f),
+                Tremolo(Tone(0.75f, Osc.Triangle, 880f, 1760f, 0.1f, attack: 0.15f, decay: 1.6f), 14f, 0.5f),
+                Tone(0.55f, Osc.Sine, 300f, 90f, 0.25f, noise: 0.8f, lowpass: 0.25f, attack: 0.15f, decay: 1.4f))), 0.38f), 0.3f);
+            var cardOut = new float[3][];
+            var cardLand = new float[3][];
+            float[] pings = { 1047f, 1175f, 1319f };  // C6, D6, E6
+            for (int k = 0; k < 3; k++)
+            {
+                float f0 = 500f * (1f + 0.18f * k);
+                cardOut[k] = Finish(Tone(0.17f, Osc.Sine, f0, f0 * 1.6f, 0.14f, noise: 0.7f, lowpass: 0.4f, attack: 0.03f, decay: 2f), 0.22f);
+                cardLand[k] = Finish(Mix(Tone(0.05f, Osc.Sine, 260f, 140f, 0.35f, noise: 0.5f, lowpass: 0.3f, decay: 4f),
+                    Tone(0.3f, Osc.Sine, pings[k], pings[k], 0.14f, attack: 0.002f, decay: 3f)), 0.26f);
+            }
+            Set(Sfx.PickCardOut, cardOut, 0.04f);
+            Set(Sfx.PickCardLand, cardLand, 0.04f);
+            Set(Sfx.PickRare, Finish(Notes(new[] { 1568f, 2093f, 2637f }, 0.045f, Osc.Sine, 0.12f, 1f), 0.2f), 0.1f);
+            Set(Sfx.PickReturn, Finish(Reverse(Tone(0.3f, Osc.Sine, 900f, 300f, 0.14f, noise: 0.7f, lowpass: 0.35f, decay: 2f)), 0.22f), 0.05f);
+            Set(Sfx.PickAbsorb, Finish(Reverb(Mix(Tone(0.5f, Osc.Sine, 110f, 70f, 0.4f, noise: 0.2f, lowpass: 0.15f, attack: 0.005f, decay: 2f),
+                Tone(0.65f, Osc.Sine, 523f, 523f, 0.12f, attack: 0.01f, decay: 1.6f), Tone(0.65f, Osc.Sine, 659f, 659f, 0.1f, attack: 0.01f, decay: 1.6f),
+                Tone(0.65f, Osc.Sine, 784f, 784f, 0.1f, attack: 0.01f, decay: 1.6f), Tone(0.4f, Osc.Sine, 1568f, 1568f, 0.05f, attack: 0.02f, decay: 2.5f))), 0.4f), 0.2f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));
