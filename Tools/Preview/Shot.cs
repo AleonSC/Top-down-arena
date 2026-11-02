@@ -540,6 +540,15 @@ class Shot {
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("hudT", ht); set("hudShown", ht > 0.5f); }
     if (mode == "hud") {
+      // TILEFX=moment,seconds: every ability tile that long into a reaction (HudTiles.cs): ready, charge, use or deny
+      // (deny also puts Space on cooldown, so its timer shows). The stub ignores GUI.matrix: no pop or shake, the rest shows.
+      var tilefx = Environment.GetEnvironmentVariable("TILEFX");
+      if (tilefx != null)
+      {
+        var tp = tilefx.Split(',');
+        if (tp[0] == "deny") { var sl = host.Game.Me.Slots[0]; sl.Charges = 0; sl.Timer = 2.4f; }
+        typeof(ArenaApp).GetMethod("PreviewTileMoment", f2).Invoke(app, new object[] { tp[0], tp.Length > 1 ? float.Parse(tp[1]) : 0.05f });
+      }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       if (launchAt >= 0f) { typeof(ArenaApp).GetMethod("DrawLaunchWave", f2).Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobbyLeaving", f2).Invoke(app, null); }
     }

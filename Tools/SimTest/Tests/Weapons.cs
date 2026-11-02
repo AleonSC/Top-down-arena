@@ -905,6 +905,21 @@ static partial class Program
         Check(ball != null && ball.Kind == Defs.FireballShot && ball.Radius >= 15f && row.All(e => e.Hp < e.MaxHp) && row.All(e => e.BurnDps > 0f),
             "the Fireball is big, rolls on through every enemy in its path and sets each burning");
 
+        // It passes through everything already, so Piercing Rounds roll it 15% farther a stack instead.
+        g.Bullets.Clear();
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float life0 = g.Bullets.Values.First(b => b.Owner == 1).Life;
+        float reach0 = g.WeaponRange(me);
+        me.Stats.Pierce += 2;
+        g.Bullets.Clear();
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float life1 = g.Bullets.Values.First(b => b.Owner == 1).Life;
+        float reach1 = g.WeaponRange(me);
+        me.Stats.Pierce -= 2;
+        g.Bullets.Clear();
+        Console.WriteLine("  fireball with Piercing Rounds: lives {0:0.00} s (was {1:0.00}), reach {2:0} px (was {3:0})", life1, life0, reach1, reach0);
+        Check(Math.Abs(life1 / life0 - 1.15f) < 0.01f && reach1 > reach0, "Piercing Rounds roll the Fireball 15% farther a stack (it passes through everything already)");
+
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.ArcLightning);
         Check(Game.ChargeWeapon(WeaponId.ArcLightning), "Arc Lightning charges like a bow");
         float far = Game.ArcLength(me, 1f), near = Game.ArcLength(me, 0f);

@@ -265,15 +265,30 @@ namespace Arena
             {
                 // Remember ability presses between fixed steps so quick taps aren't lost.
                 if (Input.GetKeyDown(KeyCode.Space))
+                {
                     wantAbility[0] = true;
+                    TileKeyPressed(0);  // still recharging: the tile shakes (HudTiles.cs)
+                }
                 if (Input.GetKeyDown(KeyCode.F))
+                {
                     wantAbility[Upgrades.UltSlot] = true;
+                    TileKeyPressed(Upgrades.UltSlot);  // still recharging: the tile shakes (HudTiles.cs)
+                }
                 if (Input.GetKeyDown(KeyCode.Q))
+                {
                     wantAbility[1] = true;
+                    TileKeyPressed(1);  // still recharging: the tile shakes (HudTiles.cs)
+                }
                 if (Input.GetKeyDown(KeyCode.E))
+                {
                     wantAbility[2] = true;
+                    TileKeyPressed(2);  // still recharging: the tile shakes (HudTiles.cs)
+                }
                 if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+                {
                     wantAbility[3] = true;
+                    TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
+                }
             }
             // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
             if (Input.GetKeyDown(KeyCode.V) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
@@ -284,6 +299,7 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
             hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
