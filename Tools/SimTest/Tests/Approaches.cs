@@ -35,9 +35,9 @@ static partial class Program
         // --- The share, wave by wave --------------------------------------------------------------------------------
         var g0 = new Session().Game;
         Func<int, float> share = w => g0.ApproachShare(w);
-        bool normal = Math.Abs(share(1) - 0.15f) < 1e-4f && Math.Abs(share(2) - 0.3f) < 1e-4f && Math.Abs(share(3) - 0.45f) < 1e-4f && Math.Abs(share(4) - 0.6f) < 1e-4f && share(5) == 0f;
+        bool normal = Math.Abs(share(1) - 0.34f) < 1e-4f && Math.Abs(share(2) - 0.51f) < 1e-4f && Math.Abs(share(3) - 0.68f) < 1e-4f && Math.Abs(share(4) - 0.85f) < 1e-4f && share(5) == 0f;
         Console.WriteLine("  Blend (Normal): waves 1-5 = {0}", string.Join(", ", Enumerable.Range(1, 5).Select(w => share(w).ToString("0.00"))));
-        Check(normal, "Blend (the default): the Warden's approach builds up 15%, 30%, 45%, 60%; nothing on his wave");
+        Check(normal, "Blend (the default): the Warden's approach builds up 34%, 51%, 68%, 85%; nothing on his wave");
         Check(share(6) == 0f && share(9) == 0f && Game.ApproachBoss(9) == EnemyType.HiveQueen && Game.ApproachBoss(51) == EnemyType.Boss,
             "a boss with no faction yet has no approach; the waves after 50 lead to the bosses again");
         g0.Diff.Set(DiffKnob.ApproachShare, 1f);
@@ -51,7 +51,7 @@ static partial class Program
         var back = Difficulty.Parse(hard.ToText());
         Console.WriteLine("  Hard, fully themed, as text: \"" + hard.ToText() + "\"");
         Check(hard.Level == DifficultyLevel.Hard && back.Level == DifficultyLevel.Hard && back[DiffKnob.ApproachShare] == 1f && back[DiffKnob.ApproachRamp] == 0f
-            && Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ApproachShare] == 0.6f && Difficulty.Knobs[(int)DiffKnob.ApproachRamp].Format(1f) == "On",
+            && Difficulty.Of(DifficultyLevel.Nightmare)[DiffKnob.ApproachShare] == 0.85f && Difficulty.Knobs[(int)DiffKnob.ApproachRamp].Format(1f) == "On",
             "the approach settings don't make a preset Custom, and save and read back with the difficulty");
         hard.SetLevel(DifficultyLevel.Normal);
         Check(hard[DiffKnob.ApproachShare] == 1f && Difficulty.Of(DifficultyLevel.Normal).ToText() == "Normal", "picking another preset keeps the approach setting");
@@ -173,6 +173,8 @@ static partial class Program
         V2 spot = new V2(600f, 300f);
         g2.Me.Pos = g2.Me.Disp = spot;
         gren.FireT = 0f;
+        gren.TargetId = 1;  // at you from its first throw (it fires on the first step, before the hold below runs)
+        gren.RetargetT = 99f;
         Run(s2, dt, 0.1f, null, () => { hold(); g2.Me.Pos = spot; gren.TargetId = 1; });
         int gas = g2.Patches.Values.Count(pt => pt.Kind == PatchKind.Gas);
         float hpg = hostMe.Hp;
@@ -180,6 +182,29 @@ static partial class Program
         Console.WriteLine("  grenadier: {0} gas cloud(s); standing in it for 1.5 s took {1:0.#}", gas, hpg - hostMe.Hp);
         Check(gas == 1 && hostMe.Hp < hpg && c2.Patches.Values.Any(pt => pt.Kind == PatchKind.Gas), "a Gas Grenadier lobs tear gas near you, and it hurts with no Warden about (the friend sees it too)");
         gren.Hp = 0f;
+
+        // --- The Riot Line (the last wave before the Warden): shields march in a wall, guards behind, then charge --------
+        var finale = Approaches.For(EnemyType.Boss).Finale;
+        Check(finale != null && w4.Count(t => t == EnemyType.RiotShield) >= 4 && w4.Count(t => t == EnemyType.Guard) >= 5,
+            "the last wave before the Warden always brings the Riot Line (four Riot Shields, five Guards)");
+        foreach (var e in g2.Enemies.Values) e.Hp = 0f;
+        Run(s2, dt, 0.3f, null, () => { hold(); g2.Me.Pos = spot; });
+        typeof(Game).GetMethod("SpawnSquad", NP).Invoke(g2, new object[] { finale });
+        var lineIds = g2.Enemies.Values.Where(e => e.SquadId != 0 && (e.Type == EnemyType.RiotShield || e.Type == EnemyType.Guard)).Select(e => e.Id).ToList();
+        Action still = () => { hold(); g2.Me.Pos = spot; foreach (var p in g2.Players.Values) p.InvulnT = 1f; };
+        Run(s2, dt, 2.5f, null, still);
+        Func<EnemyType, float> avgDist = t => lineIds.Where(g2.Enemies.ContainsKey).Select(id => g2.Enemies[id]).Where(e => e.Type == t).Select(e => e.Pos.DistanceTo(spot)).DefaultIfEmpty(0f).Average();
+        float dShield = avgDist(EnemyType.RiotShield), dGuard = avgDist(EnemyType.Guard);
+        var broke = (System.Collections.Generic.HashSet<int>)typeof(Game).GetField("riotLineBroke", NP).GetValue(g2);
+        bool marching = broke.Count == 0;
+        Run(s2, dt, 20f, () => broke.Count > 0, still);
+        float dGuardAfter = avgDist(EnemyType.Guard);
+        Run(s2, dt, 1.5f, null, still);
+        Console.WriteLine("  riot line: shields {0:0} px from you, guards {1:0} px (marching {2}); broke {3}, guards then {4:0} -> {5:0} px",
+            dShield, dGuard, marching, broke.Count > 0, dGuardAfter, avgDist(EnemyType.Guard));
+        Check(marching && dShield > 0f && dGuard > dShield + 40f, "the Riot Line marches as a wall of shields with the guards close behind");
+        Check(broke.Count > 0 && avgDist(EnemyType.Guard) < dGuardAfter, "as the wall closes in, the guards break out and rush you");
+        foreach (var id in lineIds) if (g2.Enemies.ContainsKey(id)) g2.Enemies[id].Hp = 0f;
         host.Leave(""); client.Leave("");
 
         // --- The Warden's pair in his searchlight turn ---------------------------------------------------------------------

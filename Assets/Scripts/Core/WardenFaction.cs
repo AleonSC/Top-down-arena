@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Arena
 {
@@ -113,6 +114,75 @@ namespace Arena
             if (to.Length < 8f)
                 return V2.Zero;
             return to.Normalized();
+        }
+
+        // --- The Riot Line (the Warden's approach, its last wave: Approaches.cs) --------------------------------------
+
+        // Riot Shields march at you shoulder to shoulder (RiotLineGap apart, at RiotLineSpeed of their pace), Guards
+        // close behind (RiotGuardBehind back, RiotGuardGap apart). The Guards break out and rush you once the wall is
+        // within RiotLineRelease of its target, half its shields are down, or it's been marching RiotLineMaxMarch s.
+        public const float RiotLineGap = 58f, RiotGuardGap = 48f, RiotGuardBehind = 80f, RiotLineSpeed = 0.55f, RiotLineRelease = 190f, RiotLineMaxMarch = 18f;
+        readonly Dictionary<int, int> riotLines = new Dictionary<int, int>();   // host: a marching Riot Line's squad id -> its shields at the start
+        readonly HashSet<int> riotLineBroke = new HashSet<int>();                // host: lines whose guards have broken out
+
+        /// Each member's place in its own row (shields counted among shields, guards among guards).
+        static int RiotLineSlot(SquadDef s, int i)
+        {
+            int k = 0;
+            for (int j = 0; j < i; j++)
+                if ((s.Members[j] == EnemyType.RiotShield) == (s.Members[i] == EnemyType.RiotShield))
+                    k++;
+            return k;
+        }
+
+        static int RiotLineCount(SquadDef s, EnemyType type)
+        {
+            int n = 0;
+            foreach (var t in s.Members)
+                if ((t == EnemyType.RiotShield) == (type == EnemyType.RiotShield))
+                    n++;
+            return n;
+        }
+
+        /// How a Riot Line's members move (from SquadMove): the shields keep their wall and advance on you; the guards
+        /// keep behind it until it breaks, then they're ordinary chasers (`v`). A shield winding up, bashing or broken
+        /// does its own thing.
+        V2 RiotLineMove(Enemy e, List<Enemy> mates, V2 tpos, V2 v)
+        {
+            int start;
+            if (!riotLines.TryGetValue(e.SquadId, out start) || riotLineBroke.Contains(e.SquadId))
+                return v;
+            var shields = new List<Enemy>();
+            foreach (var m in mates)
+                if (m.Type == EnemyType.RiotShield && RiotCrack(m) < RiotCracked)
+                    shields.Add(m);
+            shields.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
+            V2 c = V2.Zero;
+            foreach (var m in shields)
+                c = c + m.Pos;
+            if (shields.Count > 0)
+                c = c / shields.Count;
+            if (shields.Count * 2 < start || shields.Count == 0 || c.DistanceTo(tpos) < RiotLineRelease || e.T > RiotLineMaxMarch)
+            {
+                riotLineBroke.Add(e.SquadId);  // the wall's done: the guards charge
+                BroadcastFx(FxKind.Ring, shields.Count > 0 ? c : e.Pos, Defs.Get(EnemyType.Guard).Color, 160f, 0.5f, Sfx.BossWhoosh);
+                DoLog("a riot line breaks: the guards charge");
+                return v;
+            }
+            V2 fwd = (tpos - c).Normalized(), across = fwd.Orthogonal();
+            if (e.Type == EnemyType.RiotShield)
+            {
+                if (RiotState(e) != RiotWalk || RiotCrack(e) >= RiotCracked)
+                    return v;
+                int k = shields.IndexOf(e);
+                V2 goal = c + fwd * 40f + across * ((k - (shields.Count - 1) / 2f) * RiotLineGap);
+                return ((goal - e.Pos) / 40f).LimitLength(RiotLineSpeed);
+            }
+            var guards = mates.FindAll(m => m.Type != EnemyType.RiotShield);
+            guards.Sort((a, b) => a.SquadSlot.CompareTo(b.SquadSlot));
+            int g = guards.IndexOf(e);
+            V2 spot = c - fwd * RiotGuardBehind + across * ((g - (guards.Count - 1) / 2f) * RiotGuardGap);
+            return ((spot - e.Pos) / 40f).LimitLength(1f);
         }
 
         /// Where a Riot Shield walks to: straight at you, or, sent by the Warden while his searchlight hunts, round to

@@ -39,10 +39,10 @@ Two new knobs in `Difficulty.cs` (shown together as one row in the Difficulty ta
 
 | Knob | What it sets | Range | Presets (Easy / Normal / Hard / Nightmare) |
 |---|---|---|---|
-| **Approach share** | the themed share of the **last** wave before the boss | 0-100% (0 = off, today's waves) | 60% on all four |
+| **Approach share** | the themed share of the **last** wave before the boss | 0-100% (0 = off, today's waves) | 85% on all four (was 60%: the owner wanted more prison enemies) |
 | **Approach ramp** | on: the four waves rise to it (25%, 50%, 75%, 100% of the share); off: every wave uses the full share | on / off | on |
 
-So **Blend** = 60% with the ramp (15%, 30%, 45%, 60%) and **Fully themed** = 100% without it (every approach wave is
+So **Blend** = 85% with the ramp (40%, 60%, 80%, 100% of it: 34%, 51%, 68%, 85%) and **Fully themed** = 100% without it (every approach wave is
 all faction). The presets don't differ by difficulty: this is flavour, not challenge. The tab could offer the two as
 quick buttons ("Blend" / "Fully themed") beside the sliders.
 
@@ -161,3 +161,12 @@ and legendaries, so a chapter would start you at the level, picks and legendarie
 - Should the ramp be on by default, or the whole stretch even? (Decide after playing step 1.)
 - Waves 1-4 now have a theme: does that settle `Docs/Paths.md`'s question about a path choice for them?
 - Do faction enemies stay out of regular waves entirely, or show up rarely elsewhere once you've met them?
+
+## The Riot Line (built, November 2026)
+
+The owner's set piece for the last wave before the Warden: `FactionDef.Finale` is a squad that always comes in the
+fourth approach wave (whenever the approach is on), counting toward its share. The Warden's is the **Riot Line**
+(`SquadForm.RiotLine`, `RiotLineMove` in WardenFaction.cs): four Riot Shields march at you shoulder to shoulder
+(58 px apart, a little over half their pace) with five Guards 80 px behind; the Guards break out and rush you once the
+wall is within 190 px, half its shields are down, or it's been marching 18 s. Tested in `approaches`; preview
+`RIOTLINE=<seconds> Tools/Preview/shot.sh <name> hud 3 4 1`.

@@ -403,12 +403,14 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 
 The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
 its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting (Difficulty
-tab, below): **Blend** (the default) builds up over the four waves, 15%, 30%, 45% then 60% of each wave; **Fully
+tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave; **Fully
 themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix, paths
 still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the boss
 fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before the
 first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
-(waves 1-4); the other bosses' come next.
+(waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall,
+five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down.
+The other bosses' factions come next.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
@@ -602,7 +604,7 @@ green when it's easier. Hover a number for what it does.
 | Health orb drops (small) | 18% | **12%** | 9% | 6% | 0-50% |
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
-| Boss approach (the themed share of the wave before a boss) | 60% | **60%** | 60% | 60% | 0-100% |
+| Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four waves) | On | **On** | On | On | On / Off |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't

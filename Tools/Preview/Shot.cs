@@ -275,6 +275,20 @@ class Shot {
         if (++k == 3) break;
       }
     }
+    if (Environment.GetEnvironmentVariable("RIOTLINE") != null) {
+      // The Riot Line (the last wave before the Warden), RIOTLINE=<seconds> after it arrives, with you standing in the middle.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear();
+      me.Pos = me.Disp = new V2(800f, 450f);
+      for (int f = 0; f < 3; f++) { gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
+      typeof(Game).GetMethod("SpawnSquad", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { Approaches.For(EnemyType.Boss).Finale });
+      float rt = float.Parse(Environment.GetEnvironmentVariable("RIOTLINE"));
+      for (int f = 0; f < 60 * rt; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(100f, 0f) }); gm.Update(1f / 60f); }
+      foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+      me.Disp = me.Pos;
+      gm.Bullets.Clear();
+    }
     if (Environment.GetEnvironmentVariable("CAST") != null) {
       // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.

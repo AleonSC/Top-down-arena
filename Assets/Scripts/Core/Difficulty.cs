@@ -270,12 +270,12 @@ namespace Arena
                 Unit = KnobUnit.Seconds, Min = 0.05f, Max = 1f, Step = 0.05f, Presets = new[] { 0.35f, 0.25f, 0.2f, 0.15f } },
             new KnobDef { Knob = DiffKnob.Shooters, Name = "Shooters at once", Desc = "How many regular enemies take turns shooting at once (Normal: 4, up to 8 by wave 24; more with more players).",
                 Unit = KnobUnit.Times, Min = 0.25f, Max = 3f, Step = 0.05f, Presets = new[] { 0.75f, 1f, 1.25f, 1.5f } },
-            // Boss approaches (Approaches.cs): flavour, the same on every preset. Blend = 60% with the ramp; Fully themed = 100% without.
+            // Boss approaches (Approaches.cs): flavour, the same on every preset. Blend = 85% with the ramp; Fully themed = 100% without.
             new KnobDef { Knob = DiffKnob.ApproachShare, Name = "Boss approach", Flavour = true,
                 Desc = "How much of the last wave before each boss is that boss's own kind of enemy (0%: the usual random waves).",
-                Unit = KnobUnit.Percent, Min = 0f, Max = 1f, Step = 0.05f, Presets = new[] { 0.6f, 0.6f, 0.6f, 0.6f } },
+                Unit = KnobUnit.Percent, Min = 0f, Max = 1f, Step = 0.05f, Presets = new[] { 0.85f, 0.85f, 0.85f, 0.85f } },
             new KnobDef { Knob = DiffKnob.ApproachRamp, Name = "Approach ramp", Flavour = true,
-                Desc = "On: the four waves before a boss build up to that share (a quarter, half, three quarters, all). Off: every one of them uses it.",
+                Desc = "On: the four waves before a boss build up to that share (40%, 60%, 80%, all). Off: every one of them uses it.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 1f, 1f, 1f, 1f } },
         };
     }

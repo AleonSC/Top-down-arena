@@ -17,6 +17,7 @@ namespace Arena
         public EnemyType Boss;
         public FactionMember[] Members;
         public SquadDef[] Squads = new SquadDef[0];
+        public SquadDef Finale;  // always in the last wave before the boss (when the approach is on), counting toward its share
     }
 
     /// Boss approaches (Docs/Approaches.md): the four regular waves before each boss take part of their enemies from
@@ -43,6 +44,10 @@ namespace Arena
                     new SquadDef { Name = "Breakout", From = 1, Members = new[] { EnemyType.Guard, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
                     new SquadDef { Name = "Cell block", From = 3, Members = new[] { EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter, EnemyType.Rioter } },
                 },
+                // Wave 4: a wall of four Riot Shields marching at you, five Guards close behind it (WardenFaction.cs).
+                Finale = new SquadDef { Name = "Riot line", From = 4, Form = SquadForm.RiotLine, Members = new[] {
+                    EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield, EnemyType.RiotShield,
+                    EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard, EnemyType.Guard } },
             },
         };
 
@@ -68,8 +73,11 @@ namespace Arena
             float share = D(DiffKnob.ApproachShare);
             if (step == 0 || share <= 0f || Approaches.For(ApproachBoss(wave)) == null || Practice != null)
                 return 0f;
-            return D(DiffKnob.ApproachRamp) >= 0.5f ? share * step / 4f : share;
+            return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
         }
+
+        /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.
+        static readonly float[] RampSteps = { 0.4f, 0.6f, 0.8f, 1f };
 
         readonly List<EnemyType> approachSingles = new List<EnemyType>();
         readonly List<SquadDef> approachSquads = new List<SquadDef>();
@@ -89,13 +97,19 @@ namespace Arena
             int themed = Math.Min(count, (int)Math.Round(of * share));
             if (themed <= 0)
                 return;
-            count -= themed;
             var members = Array.FindAll(f.Members, m => m.From <= n);
             var squads = Array.FindAll(f.Squads, s => s.From <= n);
+            int spent = 0;
+            if (f.Finale != null && ApproachStep(n) == 4 && f.Finale.From <= n)
+            {
+                themed = Math.Max(themed, Math.Min(count, f.Finale.Members.Length));  // the set piece comes whatever the share
+                approachSquads.Add(f.Finale);
+                spent = f.Finale.Members.Length;
+            }
+            count -= themed;
             float total = 0f;
             foreach (var m in members)
                 total += m.Weight;
-            int spent = 0;
             while (spent < themed)
             {
                 // About half of it as squads, if one fits in what's left.

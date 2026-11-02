@@ -17,7 +17,7 @@ namespace Arena
     }
 
     /// How a squad arrives: in a line across its edge, split to opposite edges, or blinking in around a player.
-    public enum SquadForm : byte { Line, Pincer, Around }
+    public enum SquadForm : byte { Line, Pincer, Around, RiotLine }  // RiotLine: a wall of Riot Shields marching at you, Guards close behind (WardenFaction.cs)
 
     /// More variety between the bosses (built from Docs/Mockups/enemy-variety.html):
     ///   Four new enemies: the Beam Sentry (wave 18: plants itself, aims a line, sweeps a beam), the Scorcher (24:
@@ -84,6 +84,7 @@ namespace Arena
         int nextSquadId = 1, singlesSinceSquad;
         /// Host, rebuilt each tick: each squad's living members, and the living Commanders.
         readonly Dictionary<int, List<Enemy>> squadMembers = new Dictionary<int, List<Enemy>>();
+        readonly Dictionary<int, SquadForm> squadForms = new Dictionary<int, SquadForm>();  // host: each squad's form (by SquadId)
         readonly List<Enemy> commanders = new List<Enemy>();
         /// Host: Volatile elites' bursts waiting on their fuse, and Mirrored elites' bounced shots (fired next tick).
         readonly List<V2> volatilePos = new List<V2>();
@@ -180,6 +181,9 @@ namespace Arena
                 V2 pos;
                 if (s.Form == SquadForm.Around && target != null)
                     pos = ClampToArena(target.Pos + V2.FromAngle(MathX.Tau * i / n + Rand(0f, 1f)) * 280f, 40f);
+                else if (s.Form == SquadForm.RiotLine)
+                    pos = ClampToArena(basePos + across * ((RiotLineSlot(s, i) - (RiotLineCount(s, type) - 1) / 2f) * (type == EnemyType.RiotShield ? RiotLineGap : RiotGuardGap))
+                        - fwd * (type == EnemyType.RiotShield ? 0f : RiotGuardBehind), 40f);  // the wall in front, the guards behind
                 else if (s.Form == SquadForm.Pincer && i < 2)
                     pos = ClampToArena(new V2(i == 0 ? lo.X : hi.X, Rand(lo.Y + 150f, hi.Y - 150f)), 40f);
                 else
@@ -193,6 +197,9 @@ namespace Arena
                 e.SquadId = id;
                 e.SquadSlot = i;
             }
+            squadForms[id] = s.Form;
+            if (s.Form == SquadForm.RiotLine)
+                riotLines[id] = RiotLineCount(s, EnemyType.RiotShield);
             DoLog("squad: " + s.Name);
         }
 
@@ -255,6 +262,9 @@ namespace Arena
             mirrorAt.Clear();
             mirrorType.Clear();
             squadMembers.Clear();
+            squadForms.Clear();
+            riotLines.Clear();
+            riotLineBroke.Clear();
             if (newRun)
             {
                 nextSquadId = 1;
@@ -413,6 +423,9 @@ namespace Arena
             List<Enemy> mates;
             if (e.SquadId == 0 || !squadMembers.TryGetValue(e.SquadId, out mates) || mates.Count < 2)
                 return v;
+            SquadForm form;
+            if (squadForms.TryGetValue(e.SquadId, out form) && form == SquadForm.RiotLine)
+                return RiotLineMove(e, mates, tpos, v);  // WardenFaction.cs
             if (e.T < SquadFormTime + 0.9f && !e.Def.Melee && e.Type != EnemyType.Phantom && e.Type != EnemyType.Nest)
                 return dir * 0.6f;  // marching in together
             switch (e.Type)
