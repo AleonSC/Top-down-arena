@@ -101,12 +101,19 @@ namespace Arena
                     Arc(p.Disp, r + 3f, 3f, plate, 6, p.Aim + seg * k + 0.08f, seg - 0.16f);
             }
             // Abilities
-            if (p.PactT > 0f)  // Crimson Pact: a ring of thorns, pulsing as it stores damage
+            if (p.PactT > 0f)  // Crimson Pact: a ring of thorns growing longer as it stores damage, and the time left
+            {
+                float held = PactFill(p);
                 for (int k = 0; k < 10; k++)
                 {
                     V2 d = V2.FromAngle(MathX.Tau * k / 10f + t * 0.8f);
-                    Line(p.Disp + d * (r + 8f), p.Disp + d * (r + 14f + 2f * Mathf.Sin(t * 12f + k)), 2f, BloodRed.WithAlpha(0.8f * a));
+                    Line(p.Disp + d * (r + 8f), p.Disp + d * (r + 14f + 10f * held + 2f * Mathf.Sin(t * 12f + k)), 2f + 1.5f * held, BloodRed.WithAlpha(0.8f * a));
                 }
+                Circle(p.Disp, r * (0.25f + 0.45f * held), new Rgba(1f, 0.25f, 0.3f, (0.35f + 0.4f * held) * a), 16);  // the blood it holds, welling up in you
+                float left = MathX.Clamp01(p.PactT / Game.PactDuration);
+                Arc(p.Disp, r + 5f, 2f, BloodDark.WithAlpha(0.7f * a), 24, -MathX.Pi / 2f, MathX.Tau);
+                Arc(p.Disp, r + 5f, 2f, new Rgba(1f, 0.55f, 0.6f, 0.9f * a), 24, -MathX.Pi / 2f, MathX.Tau * left);  // the countdown
+            }
             if (p.RushT > 0f)  // Frenzy Pact: red streaks flickering off
                 for (int k = 0; k < 4; k++)
                 {
@@ -170,7 +177,21 @@ namespace Arena
         /// Under a blood mage: Blood Rite's great red moon and Sanguine Rain's falling drops (DrawPlayerAuras).
         void DrawBloodAuras(Player p, float t)
         {
-            if (p.UltT <= 0f || p.Downed)
+            if (p.Downed)
+                return;
+            if (p.PactT > 0f && p.PactRadius > 0f)  // Crimson Pact: where its burst will reach, closing in red as it nears
+            {
+                float left = MathX.Clamp01(p.PactT / Game.PactDuration), soon = 1f - left;
+                bool last = p.PactT < 1f;
+                Circle(p.Disp, p.PactRadius, BloodRed.WithAlpha(0.03f + 0.07f * soon * soon), 56);
+                Arc(p.Disp, p.PactRadius, last ? 3f : 2f, BloodRed.WithAlpha(last && MathX.Fmod(t, 0.2f) < 0.1f ? 0.9f : 0.35f + 0.3f * soon), 56);
+                for (int k = 0; k < 12; k++)  // thorns along the rim, pointing out
+                {
+                    V2 d = V2.FromAngle(MathX.Tau * k / 12f - t * 0.4f);
+                    Line(p.Disp + d * (p.PactRadius - 6f), p.Disp + d * (p.PactRadius + 6f + 6f * PactFill(p)), 2f, BloodRed.WithAlpha(0.45f + 0.3f * soon));
+                }
+            }
+            if (p.UltT <= 0f)
                 return;
             var ult = p.Slots[Upgrades.UltSlot].Id;
             if (ult == AbilityId.BloodRite)
@@ -178,6 +199,26 @@ namespace Arena
                 Circle(p.Disp, 120f, BloodRed.WithAlpha(0.08f + 0.03f * Mathf.Sin(t * 3f)), 48);
                 Arc(p.Disp, 120f, 3f, BloodRed.WithAlpha(0.6f), 48);
                 Circle(p.Disp, p.Def.BodyR + 14f, BloodDark.WithAlpha(0.45f), 24);
+                // Lifelines: what you take flows out to your allies as healing, drops riding each line to them.
+                foreach (var q in game.Players.Values)
+                {
+                    if (q == p || q.Downed)
+                        continue;
+                    V2 a0 = p.Disp, b0 = q.Disp, side = (b0 - a0).Normalized().Orthogonal();
+                    V2 prev = a0;
+                    for (int k = 1; k <= 14; k++)
+                    {
+                        float u = k / 14f;
+                        V2 pt = V2.Lerp(a0, b0, u) + side * (4f * Mathf.Sin(u * 10f - t * 6f) * Mathf.Sin(u * MathX.Pi));
+                        Line(prev, pt, 2f, BloodRed.WithAlpha(0.45f));
+                        prev = pt;
+                    }
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float u = MathX.Fmod(t * 0.8f + k / 3f + q.Id * 0.21f, 1f);
+                        DrawDrop(V2.Lerp(a0, b0, u), 2.6f, (b0 - a0).Normalized(), new Rgba(1f, 0.4f, 0.5f, 0.9f * Mathf.Sin(u * MathX.Pi)));
+                    }
+                }
             }
             else if (ult == AbilityId.SanguineRain)
                 foreach (var q in game.Players.Values)
@@ -385,6 +426,154 @@ namespace Arena
                     Line(pt, pt + side * (w * 0.5f + 3f) + (pt - prev) * 0.6f, 1.2f, Bone.WithAlpha(0.7f * alpha));
                 prev = pt;
             }
+        }
+
+        /// How full a Crimson Pact is, 0..1: the damage it holds against a third of its caster's max health.
+        static float PactFill(Player p) => p.MaxHp > 0f ? MathX.Clamp01(p.PactStore / (p.MaxHp * 0.33f)) : 0f;
+
+        /// Over the enemies: every one Crimson Pact or Blood Rite has turned on a Hemomancer gets a blood-red eye over it,
+        /// so it's plain they're all coming for the tank. (Enemies that turn up later aren't taunted; this draws them all.)
+        void DrawBloodTaunts(float t)
+        {
+            Player taunter = null;
+            foreach (var p in game.Players.Values)
+                if (!p.Downed && (p.PactT > 0f || p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BloodRite))
+                    taunter = p;
+            if (taunter == null)
+                return;
+            foreach (var e in game.Enemies.Values)
+            {
+                if (game.IsSpawning(e) || Game.DevourUnder(e))
+                    continue;
+                V2 at = e.Disp + new V2(0f, -e.Radius - 12f);
+                float blink = 0.75f + 0.25f * Mathf.Sin(t * 8f + e.Id);
+                V2 look = (taunter.Disp - at).Normalized();
+                Circle(at, 5.5f, BloodDark.WithAlpha(0.9f), 12);
+                Arc(at, 5.5f, 1.5f, BloodRed.WithAlpha(blink), 12);
+                Circle(at + look * 2f, 2.2f, new Rgba(1f, 0.3f, 0.35f, blink), 8);  // the pupil, watching the tank
+            }
+        }
+
+        /// A Hemomancer's shield (Blood Shell; Blood Gift cast alone): plates of clotted blood around them, fewer and
+        /// cracking as it's worn down, with a glossy sheen.
+        void DrawBloodShellOn(Player p, float t)
+        {
+            float r = p.Def.BodyR + 10f;
+            float left = MathX.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp * 0.45f));
+            int plates = 8, whole = Mathf.CeilToInt(plates * Mathf.Max(0.15f, left));
+            Circle(p.Disp, r + 6f, BloodRed.WithAlpha(0.07f + 0.1f * left), 28);
+            float seg = MathX.Tau / plates;
+            for (int k = 0; k < plates; k++)
+            {
+                float from = seg * k + t * 0.5f + 0.06f;
+                if (k < whole)
+                {
+                    Arc(p.Disp, r, 8f, BloodDark.WithAlpha(0.92f), 6, from, seg - 0.12f);
+                    Arc(p.Disp, r + 2.5f, 3f, BloodRed.WithAlpha(0.8f + 0.2f * Mathf.Sin(t * 5f + k)), 6, from, seg - 0.12f);
+                    Arc(p.Disp, r + 3.5f, 1.2f, new Rgba(1f, 0.65f, 0.7f, 0.7f), 4, from + 0.1f, (seg - 0.12f) * 0.45f);  // a glossy sheen
+                }
+                else  // broken off: a faint crack where it was
+                    Arc(p.Disp, r, 1.5f, BloodRed.WithAlpha(0.25f), 6, from + 0.15f, seg - 0.4f);
+            }
+        }
+
+        /// A Hemomancer paying health for an ability (FxKind.Bleed): blood spurts off them, more the more it cost.
+        void DrawBleedFx(Effect fx, float f)
+        {
+            Player p;
+            V2 at = game.Players.TryGetValue((int)fx.Pos2.X, out p) ? p.Disp : fx.Pos;
+            int n = Mathf.Clamp(4 + (int)(fx.Radius / 6f), 5, 12);
+            float r0 = p != null ? p.Def.BodyR : 12f;
+            for (int k = 0; k < n; k++)
+            {
+                float ang = k * 2.39996f + fx.Pos.X * 0.01f, speed = 40f + 25f * (k % 3);
+                V2 d = V2.FromAngle(ang);
+                V2 pos = at + d * (r0 + speed * f) + new V2(0f, 60f * f * f);  // flung out, then falling
+                DrawDrop(pos, 3f * (1f - 0.5f * f), (d + new V2(0f, 1.2f * f)).Normalized(), BloodRed.WithAlpha(1f - f));
+            }
+            Arc(at, r0 + 4f, 2.5f, new Rgba(1f, 0.3f, 0.35f, 0.8f * (1f - f)), 20);  // the cut
+        }
+
+        /// Blood Shell forming (FxKind.BloodShell): drops rush in from around the caster and set into the shell.
+        void DrawBloodShellFx(Effect fx, float f)
+        {
+            Player p;
+            V2 at = game.Players.TryGetValue((int)fx.Pos2.X, out p) ? p.Disp : fx.Pos;
+            float shell = fx.Radius + 7f, g = 1f - (1f - f) * (1f - f), ring = shell + 50f * (1f - g);
+            for (int k = 0; k < 12; k++)
+            {
+                V2 d = V2.FromAngle(k * MathX.Tau / 12f + 0.6f * g);
+                DrawDrop(at + d * ring, 3.2f, -d, BloodRed.WithAlpha(0.95f * (1f - f * f)));
+            }
+            Arc(at, shell, 2f + 5f * f, BloodRed.WithAlpha(0.9f * (1f - f)), 28);  // it sets: a flash of the full shell
+        }
+
+        /// Blood flowing from one place to another (FxKind.Drain): a stream of drops along a curving line, out of an
+        /// enemy into you (Exsanguinate, starting where it was pulled from) or out of you into an ally (Blood Gift,
+        /// Martyr). A burst where it leaves, a pulse where it lands.
+        void DrawDrainFx(Effect fx, float f)
+        {
+            V2 a0 = fx.Pos, b0 = fx.Pos2, along = b0 - a0;
+            float len = along.Length;
+            if (len < 1f)
+                return;
+            V2 dir = along / len, side = dir.Orthogonal();
+            float bow = Mathf.Min(18f, len * 0.08f) * (((int)(a0.X + a0.Y) & 1) == 0 ? 1f : -1f);
+            float w = Mathf.Clamp(fx.Radius * 0.3f, 3f, 6f), fade = f < 0.7f ? 1f : (1f - f) / 0.3f;
+            V2 prev = a0;
+            for (int k = 1; k <= 16; k++)  // the stream: thick at its source, thinning as it goes
+            {
+                float u = k / 16f;
+                V2 pt = a0 + along * u + side * (bow * Mathf.Sin(u * MathX.Pi));
+                if (u <= Mathf.Min(1f, f * 2.5f))
+                    Line(prev, pt, w * (1.2f - 0.6f * u), BloodRed.WithAlpha(0.55f * fade));
+                prev = pt;
+            }
+            for (int k = 0; k < 6; k++)  // drops riding it
+            {
+                float u = f * 1.6f - k * 0.12f;
+                if (u < 0f || u > 1f)
+                    continue;
+                V2 pt = a0 + along * u + side * (bow * Mathf.Sin(u * MathX.Pi));
+                DrawDrop(pt, 3.2f, dir, new Rgba(1f, 0.35f, 0.4f, fade));
+            }
+            Circle(a0, w + 6f * (1f - f), BloodDark.WithAlpha(0.6f * (1f - f)), 12);
+            if (f > 0.4f)
+                Arc(b0, 12f + 14f * (f - 0.4f), 2.5f, BloodRed.WithAlpha(1f - f), 20);
+        }
+
+        /// An enemy boiling before its Blood Boil bursts (FxKind.Boil): bubbles welling up over it, faster and bigger
+        /// as the burst nears, and a red swell closing round it.
+        void DrawBoilFx(Effect fx, float f, float t)
+        {
+            Enemy e;
+            V2 at = game.Enemies.TryGetValue((int)fx.Pos2.X, out e) ? e.Disp : fx.Pos;
+            float r = fx.Radius;
+            Circle(at, r + 3f, BloodRed.WithAlpha(0.12f + 0.25f * f), 20);
+            Arc(at, r + 4f + 10f * (1f - f), 2f + 2f * f, BloodRed.WithAlpha(0.5f + 0.5f * f), 24);  // closing in: when it bursts
+            for (int k = 0; k < 7; k++)
+            {
+                float life = MathX.Fmod(t * (1.5f + 2.5f * f) + k * 0.37f + fx.Pos2.X * 0.13f, 1f);
+                V2 pos = at + new V2(Mathf.Sin(k * 2.7f + fx.Pos2.X) * r * 0.7f, r * 0.4f - life * (r + 10f));
+                float br = (2f + 2.5f * f) * (0.5f + 0.5f * life);
+                Arc(pos, br, 1.5f, new Rgba(1f, 0.4f, 0.45f, 0.9f * (1f - life)), 10);
+            }
+        }
+
+        /// Crimson Pact bursting (FxKind.PactBurst): thorns of blood spike out to its reach, and a ring rides out with them.
+        void DrawPactBurstFx(Effect fx, float f)
+        {
+            float g = 1f - (1f - f) * (1f - f), reach = fx.Radius * g;
+            for (int k = 0; k < 18; k++)
+            {
+                V2 d = V2.FromAngle(k * MathX.Tau / 18f + 0.17f);
+                float len = k % 2 == 0 ? 1f : 0.75f;
+                V2 tip = fx.Pos + d * (reach * len), side = d.Orthogonal();
+                SetColor(BloodRed.WithAlpha(0.85f * (1f - f)));
+                Tri(fx.Pos + d * (reach * len * 0.3f) + side * 5f, fx.Pos + d * (reach * len * 0.3f) - side * 5f, tip);
+            }
+            Arc(fx.Pos, Mathf.Max(1f, reach), 4f, BloodRed.WithAlpha(1f - f), 48);
+            Circle(fx.Pos, fx.Radius * 0.3f * (1f - f), BloodDark.WithAlpha(0.7f * (1f - f)), 20);
         }
 
         /// A drop of blood: round, with a point trailing behind its direction of travel.

@@ -275,6 +275,26 @@ class Shot {
         if (++k == 3) break;
       }
     }
+    if (Environment.GetEnvironmentVariable("CAST") != null) {
+      // An ability going off: CAST=<ability name>, CASTT=<seconds after the cast> (default 0.2), CASTSTORE=<Crimson Pact's
+      // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
+      var gm = host.Game; gm.Bot = false;
+      var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
+      int slot = Upgrades.Ability(aid).Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;
+      me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f; me.ShieldHp = 0f; me.Hp = me.MaxHp;
+      gm.Bullets.Clear();
+      int k = 0;
+      foreach (var e in gm.Enemies.Values) { e.Pos = e.Disp = me.Pos + V2.FromAngle(k * 1.3f + 0.4f) * (130f + 45f * (k % 3)); k++; }
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-260f, 120f); q.Hp = q.MaxHp * 0.5f; }
+      me.Slots[slot].Id = aid; me.Slots[slot].Charges = 1;
+      typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { 1, slot, me.AimAt, false });
+      if (Environment.GetEnvironmentVariable("CASTSTORE") != null) me.PactStore = float.Parse(Environment.GetEnvironmentVariable("CASTSTORE"));
+      float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
+      for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
+      gm.Bullets.Clear(); me.Disp = me.Pos;
+      foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
     var app = new ArenaApp();
     var f2 = BindingFlags.NonPublic | BindingFlags.Instance;

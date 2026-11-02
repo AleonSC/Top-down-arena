@@ -165,6 +165,7 @@ namespace Arena
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
+            DrawBloodTaunts(t);  // enemies a Crimson Pact or Blood Rite has turned (BloodMageLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
@@ -295,7 +296,9 @@ namespace Arena
                          p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
             if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
                 Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
-            if (p.ShieldHp > 0f)  // Arcane Ward
+            if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Shell: plates of blood (BloodMageLook.cs)
+                DrawBloodShellOn(p, t);
+            else if (p.ShieldHp > 0f)  // Arcane Ward
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
             if (p.SurgeT > 0f)  // Arcane Surge
                 Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
@@ -761,6 +764,23 @@ namespace Arena
                 case FxKind.Implode:
                     DrawImplodeFx(fx, f);  // BloodMageLook.cs
                     break;
+                case FxKind.Bleed:
+                    DrawBleedFx(fx, f);  // BloodMageLook.cs, like the four below
+                    break;
+                case FxKind.BloodShell:
+                    DrawBloodShellFx(fx, f);
+                    break;
+                case FxKind.Drain:
+                    DrawDrainFx(fx, f);
+                    break;
+                case FxKind.Boil:
+                    DrawBoilFx(fx, f, t);
+                    break;
+                case FxKind.PactBurst:
+                    DrawPactBurstFx(fx, f);
+                    break;
+                case FxKind.Callout:
+                    break;  // a name over the caster, drawn on the HUD (AbilityLooks.cs)
                 case FxKind.Repulse:
                     DrawRepulseFx(fx, f);
                     break;

@@ -446,6 +446,8 @@ namespace Arena
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
             s.Float(ref p.PactT);
+            s.Float(ref p.PactStore);   // drawn: how much the Pact holds, and how far it bursts
+            s.Float(ref p.PactRadius);
             s.Float(ref p.RushT);
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);

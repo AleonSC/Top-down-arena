@@ -21,7 +21,11 @@ namespace Arena
             BeginCast(p, id0);
             CastAbility(p, slot, target);
             EndCast(p, slot, id0, hadTargets);
+            if (id0 != AbilityId.None)  // its name over you, so everyone can tell what you just did (AbilityLooks.cs)
+                BroadcastFx(FxKind.Callout, p.Pos, new V2(p.Id, (float)id0), new Rgba(1f, 1f, 1f), 0f, CalloutTime, Sfx.None);
         }
+
+        public const float CalloutTime = 1.1f;
 
         /// The Soldier's abilities, and the ones only very rare cards give (Shockwave, Overdrive, Blink, Nova, Turret). (Upgrades.Abilities gathers every class's list.)
         internal static readonly AbilityDef[] SoldierAbilities =
