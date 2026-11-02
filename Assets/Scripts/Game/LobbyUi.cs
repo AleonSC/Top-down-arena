@@ -862,7 +862,7 @@ namespace Arena
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
             if (Ui.FancyButton(new Rect(40f, H - 70f, 150f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), t))
-                session.Leave("");
+                StartLobbyLeave();  // the way in, backwards, then leave (LobbyEnter.cs)
             // Settings (audio, button style, the Field guide), over the lobby.
             var cog = new Rect(200f, H - 70f, 48f, 48f);
             if (Ui.FancyButton(cog, "", Ui.Neutral, null, t))

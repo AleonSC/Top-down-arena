@@ -514,7 +514,9 @@ namespace Arena
                     break;
                 case AppScreen.Lobby:
                     // Settings (and the Field guide from it) over the lobby: the lobby is only drawn, not used, underneath.
-                    if (LobbyEntering)
+                    if (LobbyLeaving)
+                        DrawLobbyLeavingToMenu();  // Leave: the way in, backwards (LobbyEnter.cs)
+                    else if (LobbyEntering)
                         DrawLobbyEntering();  // just in from the menu: the card becomes your loadout (LobbyEnter.cs)
                     else if (!settingsOpen || Event.current.type == EventType.Repaint)
                         DrawLobby();

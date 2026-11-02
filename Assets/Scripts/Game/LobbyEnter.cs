@@ -11,11 +11,27 @@ namespace Arena
     ///           left, the tabs from above, the bottom bar from below; the loadout fills in
     ///   1.1 s   your party card arrives last, with a ring
     /// The lobby isn't usable until it settles (it's drawn on Repaint only, so it takes no clicks; its live models wait).
+    /// Leave plays it backwards (1 s, without the party card's ring): your card goes first, the pieces slide out, the
+    /// panel shrinks back into the menu card and LOBBY flies back to the middle as the title. You actually leave as it
+    /// ends (StartLobbyLeave), so the lobby is still there to draw.
     public partial class ArenaApp
     {
-        const float EnterLen = 1.6f;
+        const float EnterLen = 1.6f, LeaveLen = 1f, LeaveFrom = 1.15f;  // leaving runs the entrance from 1.15 s back to 0
         float enterT = -1f;                       // seconds since the lobby opened from the menu; below 0 when not entering
+        float leaveT = -1f;                       // seconds since Leave was pressed; below 0 when not leaving
         AppScreen enterLastScreen = AppScreen.Menu;
+
+        /// Leaving the lobby for the menu, the entrance played backwards (LobbyUi's Leave button).
+        bool LobbyLeaving => leaveT >= 0f && session.Screen == AppScreen.Lobby;
+
+        void StartLobbyLeave()
+        {
+            if (leaveT >= 0f)
+                return;
+            leaveT = 0f;
+            enterT = -1f;
+            settingsOpen = false;
+        }
 
         /// Coming into the lobby from the menu right now, including the frame the Host click lands on (before Update ticks).
         bool LobbyEntering => session.Screen == AppScreen.Lobby && (enterT >= 0f || enterLastScreen == AppScreen.Menu);
@@ -23,6 +39,16 @@ namespace Arena
         /// Update: notice the lobby opening from the menu, and run the clock.
         void TickLobbyEnter(float dt)
         {
+            if (leaveT >= 0f)
+            {
+                if (session.Screen != AppScreen.Lobby)
+                    leaveT = -1f;  // gone some other way (the host closed it)
+                else if ((leaveT += dt) >= LeaveLen)
+                {
+                    leaveT = -1f;
+                    session.Leave("");  // the menu's last frame is where this ends
+                }
+            }
             if (session.Screen == AppScreen.Lobby && enterLastScreen == AppScreen.Menu)
                 enterT = 0f;
             enterLastScreen = session.Screen;
@@ -41,10 +67,15 @@ namespace Arena
         /// The loadout panel the menu card grows into (DrawLobby's body).
         static Rect LobbyBodyRect => new Rect(440f, LobbyBodyTop, W - 480f, H - 96f - LobbyBodyTop);
 
-        /// Instead of DrawLobby while entering.
-        void DrawLobbyEntering()
+        /// Instead of DrawLobby while leaving: the entrance, backwards.
+        void DrawLobbyLeavingToMenu() => DrawLobbyEntering(LeaveFrom * (1f - Mathf.Clamp01(leaveT / LeaveLen)), true);
+
+        /// Instead of DrawLobby while entering (or, run backwards, leaving).
+        void DrawLobbyEntering() => DrawLobbyEntering(Mathf.Max(0f, enterT), false);
+
+        void DrawLobbyEntering(float e, bool leaving)
         {
-            float e = Mathf.Max(0f, enterT), t = Time.unscaledTime;
+            float t = Time.unscaledTime;
             var oldColor = GUI.color;
 
             // The buttons under the card drop away.
@@ -102,7 +133,7 @@ namespace Arena
                 if (cornersA > 0f)
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));
                 float ring = Seg(e, 1.1f, 1.6f);
-                if (ring > 0f && ring < 1f)
+                if (ring > 0f && ring < 1f && !leaving)
                 {
                     UiModelAt(V2.Zero, 1f);
                     var c = new Rgba(0.35f, 0.59f, 1f, 1f - ring);

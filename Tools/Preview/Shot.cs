@@ -727,7 +727,10 @@ class Shot {
       else GL.ToUi = true;
       // LOBBYIN=<seconds>: that far into coming in from the main menu (LobbyEnter.cs), instead of the settled lobby.
       var lobbyIn = Environment.GetEnvironmentVariable("LOBBYIN");
-      if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2).Invoke(app, null); }
+      // LOBBYOUT=<seconds>: that far into leaving for the menu (the entrance backwards).
+      var lobbyOut = Environment.GetEnvironmentVariable("LOBBYOUT");
+      if (lobbyOut != null) { set("leaveT", float.Parse(lobbyOut, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyLeavingToMenu", f2).Invoke(app, null); }
+      else if (lobbyIn != null) { set("enterT", float.Parse(lobbyIn, System.Globalization.CultureInfo.InvariantCulture)); Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); typeof(ArenaApp).GetMethod("DrawLobbyEntering", f2).Invoke(app, null); }
       else typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null);
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
       if (te != null) endTe.Invoke(app, null);
