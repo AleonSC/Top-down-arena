@@ -250,10 +250,29 @@ namespace Arena
                     if (!w.Dashing)
                         DrawWardenCrossGuides(e, pos, r);
                     break;
-                case WardenTurn.Rioters:  // the riot shield, facing its target
-                    Arc(pos, r + 16f, 18f, new Rgba(0.78f, 0.86f, 1f, 0.2f), 20, w.Aux - 1.05f, 2.1f);
-                    Arc(pos, r + 16f, 7f, new Rgba(0.8f, 0.88f, 1f, 0.9f), 20, w.Aux - 1.05f, 2.1f);
+                case WardenTurn.Rioters:  // the riot shield, facing its target: cracking as it wears, gone once broken
+                {
+                    int crack = Game.WardenShieldCrack(w);
+                    if (crack >= 4)
+                    {
+                        // Broken: a red-hot ring of exposure, and a few shards still on its arm.
+                        Arc(pos, r + 8f, 3f, new Rgba(1f, 0.45f, 0.3f, 0.55f + 0.25f * Mathf.Sin(t * 10f)), 28);
+                        for (int k = 0; k < 3; k++)
+                            Arc(pos, r + 16f, 5f, new Rgba(0.6f, 0.66f, 0.78f, 0.6f), 4, w.Aux - 0.9f + k * 0.7f, 0.25f);
+                        break;
+                    }
+                    float dim = 1f - 0.15f * crack;
+                    Arc(pos, r + 16f, 18f, new Rgba(0.78f, 0.86f, 1f, 0.2f * dim), 20, w.Aux - 1.05f, 2.1f);
+                    Arc(pos, r + 16f, 7f, new Rgba(0.8f, 0.88f, 1f, 0.9f * dim), 20, w.Aux - 1.05f, 2.1f);
+                    for (int k = 0; k < crack * 2; k++)  // cracks across its face, more as it wears
+                    {
+                        float a = w.Aux - 0.9f + (k * 0.53f) % 1.8f;
+                        V2 o = pos + V2.FromAngle(a) * (r + 8f), m = pos + V2.FromAngle(a + 0.08f) * (r + 16f), q = pos + V2.FromAngle(a - 0.05f) * (r + 25f);
+                        Line(o, m, 1.6f, new Rgba(0.15f, 0.18f, 0.28f, 0.9f));
+                        Line(m, q, 1.6f, new Rgba(0.15f, 0.18f, 0.28f, 0.9f));
+                    }
                     break;
+                }
                 case WardenTurn.Charge:
                     if (w.TurnT < 0.9f)  // the line it's about to charge down
                     {

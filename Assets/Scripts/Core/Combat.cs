@@ -745,6 +745,8 @@ namespace Arena
                 dmg *= RiotBrokenMult;  // its shield's gone (WardenFaction.cs)
             if (WardenExposed(e))
                 dmg *= ExposedMult;  // blinded by its own searchlight (Warden.cs)
+            if (WardenShieldBroken(e))
+                dmg *= RiotBrokenMult;  // its riot shield's broken this riot turn (Warden.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             if (casting)

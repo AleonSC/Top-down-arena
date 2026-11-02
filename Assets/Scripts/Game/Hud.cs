@@ -846,6 +846,16 @@ namespace Arena
                     c = new Color(0.45f, 0.65f, 1f);
                     return WardenStageName(w.Stage) + " — THE GUARDS ARE COMING FOR YOU";
                 }
+            if (w.Turn == WardenTurn.Rioters && w.RiotShieldMax > 0f)  // its riot shield: break it (Warden.cs)
+            {
+                if (w.RiotShield <= 0f)
+                {
+                    c = new Color(1f, 0.6f, 0.35f);
+                    return "RIOT — SHIELD BROKEN: he takes 50% more";
+                }
+                c = new Color(0.8f, 0.88f, 1f);
+                return "RIOT — break his shield (" + Mathf.CeilToInt(100f * w.RiotShield / w.RiotShieldMax) + "%)";
+            }
             if (w.Turn == WardenTurn.Light && w.LightMode == WardenLight.Lock)
             {
                 c = new Color(1f, 0.4f, 0.35f);

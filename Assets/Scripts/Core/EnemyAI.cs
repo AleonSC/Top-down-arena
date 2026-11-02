@@ -525,6 +525,11 @@ namespace Arena
                 WearRiotShield(e, amount);  // WardenFaction.cs
                 return;
             }
+            if (e.Type == EnemyType.Boss && e.Warden != null)
+            {
+                WearWardenShield(e, amount);  // the Warden's riot shield (Warden.cs)
+                return;
+            }
             if (e.Type != EnemyType.Shielder || e.Phase >= ShieldBroken || e.ShieldMax <= 0f)
                 return;
             e.ShieldHp -= amount;

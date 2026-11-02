@@ -52,6 +52,8 @@ namespace Arena
         public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
         public float StunShotAt;         // the last stand: when its next stun round fires (TurnT)
         public float Armor, ArmorMax;    // replicated: the armor it puts on for its last stand, which takes hits before its health
+        public float RiotShield, RiotShieldMax;  // replicated: the riot shield's strength this riot turn (0 = broken: it's exposed)
+        public float RioterDealt;        // host: what rioters have taken off it this riot turn (capped at RioterCap)
         public float GateSide = -1f;     // which edge this cross turn's gates all come from (+1 the top, -1 the bottom; flipped as each starts, so the first is the top)
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
@@ -113,7 +115,11 @@ namespace Arena
         const float RiotTime = 10f, RiotOvertime = 10f;
         const float GuardHit = 25f, GuardSwing = 0.45f, GuardReach = 10f;
         const int GuardsMin = 3, GuardsMax = 8;
-        const float RioterHit = 0.006f;  // a rioter that reaches the Warden takes this much of its health
+        const float RioterHit = 0.006f;  // a rioter that reaches the Warden takes this much of its health...
+        const float RioterCap = 0.05f;   // ...up to this much a riot turn; past that it bats them away with its shield
+        // Its riot shield soaks this much of its max health from the front, cracking as it wears; broken, it's exposed for
+        // the rest of the riot turn, taking RiotBrokenMult (like a Riot Shield's guard). A fresh shield each riot turn.
+        const float WardenShieldFrac = 0.07f;
         const float ShieldHalfArc = 1.05f, ShieldTurn = 1.05f;
         const float ChargeWarn = 0.9f, ChargeSpeed = 700f, ChargeLength = 620f;
 
@@ -156,7 +162,7 @@ namespace Arena
         bool WardenShieldBlocks(Enemy e, V2 from)
         {
             var w = e.Warden;
-            if (w == null || w.Turn != WardenTurn.Rioters || w.TransT > 0f)
+            if (w == null || w.Turn != WardenTurn.Rioters || w.TransT > 0f || w.RiotShield <= 0f)
                 return false;
             float diff = Math.Abs(MathX.Fmod((from - e.Pos).Angle - w.Aux + MathX.Pi, MathX.Tau) - MathX.Pi);
             return diff < ShieldHalfArc;
@@ -459,6 +465,8 @@ namespace Arena
                 {
                     var t = target ?? PlayerOrNull(e.TargetId);
                     w.Aux = t != null ? (t.Pos - e.Pos).Angle : 0f;
+                    w.RiotShield = w.RiotShieldMax = e.MaxHp * WardenShieldFrac;  // a fresh shield
+                    w.RioterDealt = 0f;
                     break;
                 }
             }
@@ -585,6 +593,40 @@ namespace Arena
             BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.97f, 0.8f), e.Radius + 60f, 0.5f, Sfx.BossShift);
             DoLog("the Warden is caught in its own light");
         }
+
+        /// A hit its riot shield stopped (WearShield, EnemyAI.cs): the shield wears, cracking in three steps, then breaks.
+        void WearWardenShield(Enemy e, float amount)
+        {
+            var w = e.Warden;
+            if (w == null || w.Turn != WardenTurn.Rioters || w.RiotShield <= 0f || w.RiotShieldMax <= 0f)
+                return;
+            int before = WardenShieldCrack(w);
+            w.RiotShield = Math.Max(0f, w.RiotShield - amount);
+            int after = WardenShieldCrack(w);
+            if (after == before)
+                return;
+            V2 front = e.Pos + V2.FromAngle(w.Aux) * (e.Radius + 16f);
+            if (w.RiotShield <= 0f)
+            {
+                BroadcastFx(FxKind.Boom, front, new Rgba(0.8f, 0.88f, 1f), e.Radius + 50f, 0.45f, Sfx.BossCrack);  // shattered
+                DoLog("the Warden's riot shield breaks");
+            }
+            else
+                BroadcastFx(FxKind.Spark, front, new Rgba(0.8f, 0.88f, 1f), 30f, 0.3f, Sfx.Clang);  // a crack
+        }
+
+        /// How cracked its riot shield is: 0 whole, 1-3 cracking, 4 broken.
+        public static int WardenShieldCrack(WardenState w)
+        {
+            if (w.RiotShieldMax <= 0f)
+                return 0;
+            float f = w.RiotShield / w.RiotShieldMax;
+            return f <= 0f ? 4 : f <= 0.25f ? 3 : f <= 0.5f ? 2 : f <= 0.75f ? 1 : 0;
+        }
+
+        /// Its riot shield broken this riot turn: it takes RiotBrokenMult (HurtEnemy).
+        public static bool WardenShieldBroken(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Turn == WardenTurn.Rioters
+            && e.Warden.RiotShieldMax > 0f && e.Warden.RiotShield <= 0f && e.Warden.TransT <= 0f;
 
         /// Host, from HurtEnemy: the last stand's armor takes the hit first. True if it took all of it.
         bool WardenArmorTakes(Enemy e, ref float dmg)
@@ -1040,12 +1082,19 @@ namespace Arena
             foreach (var r in Enemies.Values)
                 if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f && r.Pos.DistanceTo(warden.Pos) < warden.Radius + r.Radius)
                     ids.Add(r.Id);
+            var w = WardenOf(warden);
             foreach (int id in ids)
             {
                 var r = Enemies[id];
-                if (!WardenImmune(warden))
-                    warden.Hp -= warden.MaxHp * RioterHit;
-                BroadcastFx(FxKind.Spark, r.Pos, new Rgba(1f, 0.7f, 0.3f), 18f, 0.3f, Sfx.Hit);
+                float hit = warden.MaxHp * RioterHit;
+                if (!WardenImmune(warden) && w.RioterDealt + hit <= warden.MaxHp * RioterCap)
+                {
+                    warden.Hp -= hit;
+                    w.RioterDealt += hit;
+                    BroadcastFx(FxKind.Spark, r.Pos, new Rgba(1f, 0.7f, 0.3f), 18f, 0.3f, Sfx.Hit);
+                }
+                else  // it's had enough of them: batted away with the shield, no harm done
+                    BroadcastFx(FxKind.Ring, r.Pos, new Rgba(0.8f, 0.88f, 1f), 30f, 0.3f, Sfx.Clang);
                 Enemies.Remove(id);
             }
         }
@@ -1081,6 +1130,8 @@ namespace Arena
             s.Byte(ref mode);
             s.Float(ref w.Armor);
             s.Float(ref w.ArmorMax);
+            s.Float(ref w.RiotShield);
+            s.Float(ref w.RiotShieldMax);
             if (s.Reading)
             {
                 w.Stage = (WardenStage)stage;

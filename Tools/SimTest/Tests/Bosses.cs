@@ -526,6 +526,31 @@ static partial class Program
         Run(s, dt, 1f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); });
         Check(w.Hp < hpR, "rioters that reach the Warden hurt it");
 
+        // ...but only up to RioterCap a riot turn: past that, it bats them away unharmed.
+        var spawnR = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var reach = typeof(Game).GetMethod("RiotersReachWarden", flags);
+        w.Warden.RioterDealt = w.MaxHp * 0.05f;
+        var late = (Enemy)spawnR.Invoke(g, new object[] { EnemyType.Rioter, w.Pos, 0f, 0, false });
+        late.SpawnT = 0f;
+        float hpCap = w.Hp;
+        reach.Invoke(g, new object[] { w });
+        Check(w.Hp == hpCap && !g.Enemies.ContainsKey(late.Id), "past the rioters' cap, one that reaches the Warden is batted away and doesn't hurt it");
+
+        // Its riot shield wears from the front, then breaks: no more blocking, and it takes 50% more for the rest of the turn.
+        var wear = typeof(Game).GetMethod("WearShield", flags);
+        var hurtW = typeof(Game).GetMethod("HurtEnemy", flags);
+        float shieldMax = w.Warden.RiotShieldMax;
+        wear.Invoke(g, new object[] { w, shieldMax * 0.6f });
+        bool cracked = Game.WardenShieldCrack(w.Warden) == 2 && (bool)blocks.Invoke(g, new object[] { w, front });
+        wear.Invoke(g, new object[] { w, shieldMax });
+        float hpB = w.Hp;
+        hurtW.Invoke(g, new object[] { w, 10f, 0 });
+        Run(s, dt, 0.2f, null, () => { me.Pos = new V2(60f, 60f); friend.Pos = new V2(1540f, 60f); });
+        var cw = cg.Enemies[w.Id].Warden;
+        Console.WriteLine("  warden riot shield: {0:0} strong, cracked at 60% {1}, broken {2} (client {3}), a 10 hit took {4:0.0}", shieldMax, cracked, w.Warden.RiotShield <= 0f, cw.RiotShield <= 0f, hpB - w.Hp);
+        Check(shieldMax > 0f && cracked && w.Warden.RiotShield <= 0f && !(bool)blocks.Invoke(g, new object[] { w, front }) && Math.Abs(hpB - w.Hp - 15f) < 0.01f && cw.RiotShield <= 0f,
+            "the riot shield cracks as it wears, then breaks: it stops blocking and the Warden takes 50% more (everyone sees it)");
+
         // Rioters still standing at 10 s bring the guards: they beat the rioters down, then come for the players.
         int before = 0;
         Run(s, dt, 12f, () => g.Enemies.Values.Any(e => e.Type == EnemyType.Guard), () =>
