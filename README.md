@@ -793,12 +793,13 @@ on the right (the drawer slides in when a window opens; the pause menu has its g
 - **Settings** (main menu, the lobby's cog, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
   **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
   **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots
-  and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the HUD, the Field
-  guide). Mute and Aim line are also quick switches under the groups.
+  and a hit, its number, an ability's name, a blast and its shake) **Gameplay** (aim line, show the HUD) and
+  **How to play** (below). Mute and Aim line are also quick switches under the groups.
 - **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
   won) and Unlocks.
-- **How to play:** Controls, The basics, Fighting, Between waves, Challenge rooms (with a little animated portal),
-  Paths and modifiers, Playing together.
+- **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
+  basics, Fighting, Between waves, Challenge rooms (with a little animated portal), Paths and modifiers, Playing
+  together, and the **Field guide** under them.
 
 Esc goes back (from the pause menu's Settings, to its list). The **Field guide** opens two in-game databases:
 

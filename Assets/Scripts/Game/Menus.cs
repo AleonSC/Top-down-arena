@@ -76,11 +76,9 @@ namespace Arena
             if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t) && live)
                 recordsOpen = true;
             by += 54f;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 160f, 42f), "How to play", Ui.Neutral, PixelArt.Get("ui_help"), t) && live)
-                howToOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f - 80f, by, 160f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
-                settingsOpen = true;
-            if (Ui.FancyButton(new Rect(W / 2f + 90f, by, 160f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
+                settingsOpen = true;  // (How to play and the Field guide are in Settings: MenuDrawer.cs)
+            if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
                 Application.Quit();
         }
 

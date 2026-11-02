@@ -355,7 +355,8 @@ namespace Arena
 
         // --- Settings ---------------------------------------------------------------------------------------------------
 
-        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay" };
+        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay", "How to play" };
+        const int SettingsHowTo = 3;  // How to play: the drawer turns into its topics (and the Field guide), Back returns to the groups
 
         /// Settings (main menu, lobby, and the pause menu's Settings): the groups and quick switches in the drawer, the
         /// open group on the right. Visual effects shows a live preview of what they do.
@@ -363,10 +364,15 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             float k = DrawerIn(paused ? "pause-settings" : "settings", !paused);
+            if (settingsGroup == SettingsHowTo)
+            {
+                DrawHowToContent(k, t, "Back to settings", () => settingsGroup = 0);
+                return;
+            }
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
-            string[] icons = { "pulse", "nova", "crosshair" };
-            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the Field guide" };
+            string[] icons = { "pulse", "nova", "crosshair", "ui_help" };
+            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(0.7f, 0.8f, 1f) };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD", "Controls, tips, and the Field guide" };
             float y = 128f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -437,12 +443,6 @@ namespace Arena
                     bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", "H");
                     if (hud != hudShown)
                         hudShown = hud;
-                    y += 76f;
-                    Ui.Label(new Rect(x, y, w, 16f), "MORE", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-                    if (Ui.FancyButton(new Rect(x, y + 22f, 300f, 46f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
-                        OpenFieldGuide();
-                    Ui.Label(new Rect(x + 316f, y + 22f, w - 316f, 46f), "Every enemy, boss, class, weapon, ability and upgrade", 12, Ui.Muted, TextAnchor.MiddleLeft, false, true);
-                    Ui.Label(new Rect(x, y + 84f, w, 18f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted);
                     break;
                 }
             }
@@ -728,7 +728,13 @@ namespace Arena
         void DrawHowToWindow()
         {
             float t = Time.unscaledTime;
-            float k = DrawerIn("howto", true);
+            DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => howToOpen = false);
+        }
+
+        /// How to play (in Settings, or on its own): its topics in the drawer with the Field guide under them, the open
+        /// topic on the right. `back` is what its Back button does.
+        void DrawHowToContent(float k, float t, string backLabel, System.Action back)
+        {
             BeginDrawer("HOW TO PLAY", Ui.Accent, k);
             float y = 120f;
             for (int i = 0; i < HowToTopics.Length; i++)
@@ -740,8 +746,12 @@ namespace Arena
                     howToTopic = i;
                 y += 56f;
             }
-            if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
-                howToOpen = false;
+            // The Field guide: every enemy, boss, class, weapon, ability and upgrade, in full.
+            y += 10f;
+            if (DrawerRow(new Rect(28f, y, DrawerW - 56f, 52f), PixelArt.Get("ui_book"), "Field guide", "Every enemy, boss, class, weapon, ability and upgrade", null, null, FieldGuideColor, false))
+                OpenFieldGuide();
+            if (Ui.FancyButton(new Rect(40f, H - 100f, 260f, 48f), backLabel, Ui.Primary, PixelArt.Get("ui_back"), t))
+                back();
             EndDrawer();
 
             var topic = HowToTopics[howToTopic];
