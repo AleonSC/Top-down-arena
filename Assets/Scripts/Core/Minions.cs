@@ -117,9 +117,10 @@ namespace Arena
                 case WeaponId.Fireball:
                 {
                     // A big fireball that rolls on through everything, setting it all burning; extras fan out beside it.
+                    // It already passes through everything, so Piercing Rounds send it farther instead (15% a stack).
                     for (int i = 0; i <= extra; i++)
                     {
-                        var b = SpawnBullet(Defs.FireballShot, muzzle, V2.FromAngle(Fanned(aim, i, extra + 1, 0.22f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                        var b = SpawnBullet(Defs.FireballShot, muzzle, V2.FromAngle(Fanned(aim, i, extra + 1, 0.22f)) * w.Speed, 0f, w.Life * PierceReach(p), w.Damage * dmg, p.Id);
                         b.Pierce += 99;
                         b.Ignite = FireballBurn * dmg;
                     }

@@ -327,7 +327,8 @@ sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (
 
 **Piercing Rounds** let shots pass through two more enemies per stack. Weapons without bullets that run out of
 pierce (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit
-Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller) reach 15% farther per stack instead.
+Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls through everything) reach 15%
+farther per stack instead.
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
