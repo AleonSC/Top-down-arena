@@ -809,7 +809,15 @@ class Shot {
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
       typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count);
       int pickMark = GUI.Log.Count;
+      // INTRO=<seconds>: the picker that long into its opening (PickIntro.cs); INTROREROLL=1 for a reroll's (cards only).
+      var intro = Environment.GetEnvironmentVariable("INTRO");
+      if (intro != null) {
+        set("offerShownAt", Time.unscaledTime - float.Parse(intro, System.Globalization.CultureInfo.InvariantCulture));
+        set("introFull", Environment.GetEnvironmentVariable("INTROREROLL") == null);
+        GL.ToUi = true; Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
+      }
       typeof(ArenaApp).GetMethod("DrawUpgradePicker", f2).Invoke(app, new object[] { me });
+      GL.ToUi = false;
       // OUTRO=<seconds>: the moment that long after taking the middle card (PickOutro.cs), instead of the picker.
       var outro = Environment.GetEnvironmentVariable("OUTRO");
       if (outro != null) {

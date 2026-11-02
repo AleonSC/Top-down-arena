@@ -1299,7 +1299,8 @@ namespace Arena
             Ui.Fancy(cap, key, 9, new Color(1f, 1f, 1f, 0.55f + 0.45f * color.a), new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
         }
 
-        /// The level-up picker ("trophy cards", Docs/Mockups/upgrade-picker.html option C): a gold LEVEL UP! title, three
+        /// The level-up picker ("trophy cards", Docs/Mockups/upgrade-picker.html option C), opening out of your character
+        /// (PickIntro.cs) and closing back into it (PickOutro.cs): a gold LEVEL UP! title, three
         /// tall cards with the icon big on a rarity backdrop (the picked one lifts and glows, the others step back; rare
         /// and better shine), one line saying what your pick changes, and the lobby's fancy buttons. Weapon mods (more than
         /// three cards) use a grid of smaller cards. Hold Tab for your full stats.
@@ -1307,7 +1308,8 @@ namespace Arena
         {
             SyncSelection(me);
             float now = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.82f));
+            bool opening = PickIntroPlaying(me);  // the cards are still flying out of you: nothing can be chosen yet
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.82f * (introFull ? Seg(IntroElapsed, 0f, 0.3f) : 1f)));
             const float cardW = 270f, cardH = 384f, gap = 30f;
             float mid = W / 2f;
 
@@ -1315,17 +1317,44 @@ namespace Arena
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
                 : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : Ui.Gold;
             string title = me.OfferLegendary ? "BOSS REWARD!" : me.OfferMod ? "WEAPON MOD" : "LEVEL UP!";
-            Ui.Fancy(new Rect(0f, 40f, W, 64f), title, 54, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
+            float titleY, band;
+            int titleSize;
+            PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
+            if (band > 0f)
+                for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
+                    Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
+            Ui.Fancy(new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f), title, titleSize, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods - 1;
             string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
-            Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
+            if (titleY <= 73f)
+                Ui.Label(new Rect(0f, 102f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
 
             bool grid = me.Offer.Length > 3;
             if (pickCardRects.Length != me.Offer.Length)
                 pickCardRects = new Rect[me.Offer.Length];  // where each card is, for the outro when one is taken
             float by;
+            V2 home = PickHome(me);
+            var slots = new Rect[me.Offer.Length];  // where each card goes (the opening flies them there from you)
+            if (grid)
+            {
+                const int perRow = 4;
+                float areaW = cardW * 3 + gap * 2, gw = 18f, cw = (areaW - gw * (perRow - 1)) / perRow, ch = 150f, top = 140f;
+                for (int i = 0; i < me.Offer.Length; i++)
+                {
+                    int row = i / perRow, col = i % perRow, inRow = Math.Min(perRow, me.Offer.Length - row * perRow);
+                    float rowX = mid - (inRow * cw + (inRow - 1) * gw) / 2f;
+                    slots[i] = new Rect(rowX + col * (cw + gw), top + row * (ch + gw), cw, ch);
+                }
+            }
+            else
+            {
+                float x0 = mid - (me.Offer.Length * cardW + (me.Offer.Length - 1) * gap) / 2f;
+                for (int i = 0; i < me.Offer.Length; i++)
+                    slots[i] = new Rect(x0 + i * (cardW + gap), 150f, cardW, cardH);
+            }
+            DrawPickIntroUnder(me, slots, me.Offer.Length);  // the pillar out of you, and streaks behind the cards (PickIntro.cs)
             if (grid)
             {
                 // Weapon mods: every one you can take, in a grid of smaller cards.
@@ -1337,11 +1366,13 @@ namespace Arena
                     var u = Upgrades.All[me.Offer[i]];
                     int row = i / perRow, col = i % perRow, inRow = Math.Min(perRow, me.Offer.Length - row * perRow);
                     float rowX = mid - (inRow * cw + (inRow - 1) * gw) / 2f;
-                    var slot = new Rect(rowX + col * (cw + gw), top + row * (ch + gw), cw, ch);
+                    var slot = slots[i];
                     pickCardRects[i] = slot;
-                    bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
-                    DrawUpgradeCard(me, i, u, new Rect(slot.x, slot.y - (selected ? 8f : hover ? 3f : 0f), slot.width, slot.height), true, selected, hover, now);
-                    if (Ui.HitArea(slot) && selectedCard != i)
+                    bool hover = !opening && slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
+                    float a = IntroCardsAt + Mathf.Min(i, 5) * IntroCardGap, f = EaseOut(Seg(IntroElapsed, a, a + IntroCardFly));
+                    if (f > 0f)
+                        DrawCardInFlight(home, slot, i, f, Mathf.Min(1f, f * 3f), () => DrawUpgradeCard(me, i, u, new Rect(slot.x, slot.y - (selected ? 8f : hover ? 3f : 0f), slot.width, slot.height), true, selected, hover, now));
+                    if (!opening && Ui.HitArea(slot) && selectedCard != i)
                     {
                         selectedCard = i;
                         pickKey = 0;
@@ -1356,17 +1387,33 @@ namespace Arena
                 for (int i = 0; i < me.Offer.Length; i++)
                 {
                     var u = Upgrades.All[me.Offer[i]];
-                    var slot = new Rect(x0 + i * (cardW + gap), top, cardW, cardH);
+                    var slot = slots[i];
                     pickCardRects[i] = slot;
-                    bool hover = slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
-                    DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now);
-                    if (Ui.HitArea(slot) && selectedCard != i)
+                    bool hover = !opening && slot.Contains(Event.current.mousePosition), selected = selectedCard == i;
+                    float a = IntroCardsAt + Mathf.Min(i, 5) * IntroCardGap, f = EaseOut(Seg(IntroElapsed, a, a + IntroCardFly));
+                    if (f > 0f)
+                        DrawCardInFlight(home, slot, i, f, Mathf.Min(1f, f * 3f), () => DrawTrophyCard(me, i, u, slot, selected, selectedCard >= 0 && !selected, hover, now));
+                    if (!opening && Ui.HitArea(slot) && selectedCard != i)
                     {
                         selectedCard = i;
                         pickKey = 0;
                     }
                 }
                 by = top + cardH + 14f;
+            }
+            DrawPickIntroOver(me, slots, me.Offer.Length);  // a ring as each card lands (PickIntro.cs)
+
+            // The bottom row rises from below as the last cards land, like the HUD does when a run launches.
+            float rowAlpha, rise = PickButtonsRise(me, out rowAlpha);
+            var oldRowColor = GUI.color;
+            Ui.Alpha = rowAlpha;
+            GUI.color = new Color(oldRowColor.r, oldRowColor.g, oldRowColor.b, oldRowColor.a * rowAlpha);
+            by += rise;
+            if (rowAlpha <= 0.01f)
+            {
+                Ui.Alpha = 1f;
+                GUI.color = oldRowColor;
+                return;  // not risen yet
             }
 
             // What the pick changes, in one line (Hold Tab for everything).
@@ -1407,10 +1454,10 @@ namespace Arena
             bool canReroll = !me.OfferLegendary && !me.OfferMod;  // boss rewards can't be rerolled: no button
             const float rerollW = 240f, takeW = 320f, bgap = 18f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
-            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;
+            GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked && !opening;
             if (canReroll && Ui.FancyButton(new Rect(bx, by, rerollW, 48f), "Reroll  " + me.Rerolls + "  [R]", Ui.Neutral, PixelArt.Get("ui_arrow"), now))
                 game.RerollOffer();
-            GUI.enabled = picked && !game.RerollPending;
+            GUI.enabled = picked && !game.RerollPending && !opening;
             string take = picked ? "Take " + Upgrades.All[me.Offer[selectedCard]].Name : "Pick a card";
             if (Ui.FancyButton(new Rect(bx + rerollW + bgap, by, takeW, 48f), take, picked ? Ui.GoldButton : Ui.Neutral, PixelArt.Get("ui_check"), now))
                 ConfirmPick();
@@ -1420,6 +1467,8 @@ namespace Arena
                 : me.OfferLegendary ? "Boss rewards can't be rerolled  ·  Hold Tab for your build"
                 : "1 / 2 / 3 or click a card, Enter to take it  ·  Rerolls: 2 to start, +2 a boss  ·  Hold Tab for your build";
             Ui.Label(new Rect(0f, by + 54f, W, 18f), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
+            Ui.Alpha = 1f;
+            GUI.color = oldRowColor;
         }
 
         /// "Regeneration 0.25 → 3.25 HP/s · Damage 100% → 110%": what the selected card changes (up to three stats),

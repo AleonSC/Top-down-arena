@@ -13,7 +13,7 @@ namespace UnityEngine {
   public struct Color { public static Color operator*(Color c, float f){return new Color(c.r*f,c.g*f,c.b*f,c.a*f);} public static Color operator*(Color a, Color b){return new Color(a.r*b.r,a.g*b.g,a.b*b.b,a.a*b.a);} public static Color Lerp(Color a, Color b, float t){t=t<0?0:t>1?1:t; return new Color(a.r+(b.r-a.r)*t,a.g+(b.g-a.g)*t,a.b+(b.b-a.b)*t,a.a+(b.a-a.a)*t);} public static Color white = new Color(1,1,1,1); public float r,g,b,a; public Color(float r,float g,float b){this.r=r;this.g=g;this.b=b;a=1;} public Color(float r,float g,float b,float a){this.r=r;this.g=g;this.b=b;this.a=a;} }
   public struct Vector3 { public float x,y,z; public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;} }
   public struct Quaternion { public static Quaternion identity; }
-  public struct Matrix4x4 { public static Matrix4x4 TRS(Vector3 p, Quaternion q, Vector3 s){return default(Matrix4x4);} }
+  public struct Matrix4x4 { public float tx, ty, sx, sy; public bool Set; public static Matrix4x4 TRS(Vector3 p, Quaternion q, Vector3 s){return new Matrix4x4 { tx = p.x, ty = p.y, sx = s.x, sy = s.y, Set = true };} }  // only translation and scale; GUI applies it to what it logs
   public struct Rect { public Rect(float x,float y,float w,float h){this.x=x;this.y=y;width=w;height=h;} public float x,y,width,height; public float xMax{get{return x+width;}} public float yMax{get{return y+height;}} public Vector2 center{get{return new Vector2(x+width/2f,y+height/2f);}} public bool Contains(Vector2 p){return p.x>=x&&p.x<x+width&&p.y>=y&&p.y<y+height;} }
   public struct Vector2 { public float x,y; public Vector2(float a,float b){x=a;y=b;} public static Vector2 zero => new Vector2(0f,0f); public static Vector2 operator *(Vector2 v,float k)=>new Vector2(v.x*k,v.y*k); public static bool operator ==(Vector2 a,Vector2 b)=>a.x==b.x&&a.y==b.y; public static bool operator !=(Vector2 a,Vector2 b)=>!(a==b); public override bool Equals(object o)=>o is Vector2 v&&v==this; public override int GetHashCode()=>x.GetHashCode()^y.GetHashCode(); }
   public static class Random { public static int Range(int a,int b){return a;} }
@@ -33,7 +33,8 @@ namespace UnityEngine {
     static System.Collections.Generic.List<Rect> groups = new System.Collections.Generic.List<Rect>();
     static float ox, oy; static Rect clip = new Rect(-10000,-10000,40000,40000);
     static string C(Color c){ return c.r+","+c.g+","+c.b+","+c.a; }
-    static string R(Rect r){ return (r.x+ox)+","+(r.y+oy)+","+r.width+","+r.height; }
+    static string R(Rect r){ if (matrix.Set && !(matrix.sx == 1f && matrix.sy == 1f && matrix.tx == 0f && matrix.ty == 0f)) return (matrix.tx+(r.x+ox)*matrix.sx)+","+(matrix.ty+(r.y+oy)*matrix.sy)+","+(r.width*matrix.sx)+","+(r.height*matrix.sy); return (r.x+ox)+","+(r.y+oy)+","+r.width+","+r.height; }
+    static int Fs(int size){ return matrix.Set && matrix.sy != 1f ? System.Math.Max(1, (int)System.Math.Round(size * matrix.sy)) : size; }
     static string Clip(){ return clip.x+","+clip.y+","+clip.width+","+clip.height; }
     public static void BeginGroup(Rect r){ groups.Add(clip); var a = new Rect(r.x+ox, r.y+oy, r.width, r.height); float x0=System.Math.Max(a.x,clip.x), y0=System.Math.Max(a.y,clip.y), x1=System.Math.Min(a.xMax,clip.xMax), y1=System.Math.Min(a.yMax,clip.yMax); clip=new Rect(x0,y0,System.Math.Max(0,x1-x0),System.Math.Max(0,y1-y0)); ox=a.x; oy=a.y; offs.Add(new float[]{r.x, r.y}); }
     static System.Collections.Generic.List<float[]> offs = new System.Collections.Generic.List<float[]>();
@@ -45,7 +46,7 @@ namespace UnityEngine {
     public static bool enabled = true;
     public static bool Button(Rect r, string t, GUIStyle s){ Styled(r, s, backgroundColor); if (t != null) Label(r, t, s); return false;} public static bool Button(Rect r, GUIContent c, GUIStyle s){return false;}
     public static GUISkin skin = new GUISkin(); public static Matrix4x4 matrix; public static Color color = new Color(1,1,1,1);
-    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+s.fontSize+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+t.Replace("\n","\\n")); }
+    public static void Label(Rect r, string t, GUIStyle s){ Log.Add("label\t"+R(r)+"\t"+Clip()+"\t"+C(s.normal.textColor)+"\t"+Fs(s.fontSize)+"\t"+(int)s.alignment+"\t"+(s.fontStyle==FontStyle.Bold?1:0)+"\t"+(s.wordWrap?1:0)+"\t"+t.Replace("\n","\\n")); }
     public static void DrawTexture(Rect r, Texture t){ var t2 = t as Texture2D; if (t2 != null && t2.px32 != null) { var sb = new System.Text.StringBuilder(); foreach (var c in t2.px32) sb.Append(c.r.ToString("x2")+c.g.ToString("x2")+c.b.ToString("x2")+c.a.ToString("x2")); Log.Add("img\t"+R(r)+"\t"+Clip()+"\t"+t2.w+"\t"+sb+"\t"+C(color)); return; } Log.Add("fill\t"+R(r)+"\t"+Clip()+"\t"+C(color)); } }
   public class GUILayout {
     public static void BeginArea(Rect r, GUIStyle s){} public static void EndArea(){} public static void Space(float p){} public static void FlexibleSpace(){}
