@@ -378,6 +378,30 @@ namespace Arena
             Set(Sfx.LaunchLand, lands, 0.08f);
             Set(Sfx.LaunchHud, Finish(Tone(0.25f, Osc.Sine, 380f, 760f, 0.12f, noise: 0.6f, lowpass: 0.35f, attack: 0.05f, decay: 2f), 0.2f), 0.3f);
 
+            // The pause menu's signal glitch (PauseGlitch.cs): a stuttering digital tear (chopped square chirps and static),
+            // a key tick for each letter of PAUSED (three pitches, played in turn), a low CRT thunk as the panel settles,
+            // and the tear backwards, short, as it closes.
+            float[] silence = Tone(0.012f, Osc.Sine, 100f, 100f, 0f);
+            var tear = Concat(Tone(0.03f, Osc.Square, 1800f, 1700f, 0.22f, lowpass: 0.6f, attack: 0.001f, decay: 1f), silence,
+                Tone(0.028f, Osc.Saw, 420f, 380f, 0.28f, noise: 0.6f, lowpass: 0.5f, attack: 0.001f, decay: 1f),
+                Tone(0.04f, Osc.Square, 3200f, 2600f, 0.16f, lowpass: 0.7f, attack: 0.001f, decay: 1f), silence, silence,
+                Tone(0.05f, Osc.Sine, 600f, 600f, 0.3f, noise: 1f, lowpass: 0.8f, attack: 0.001f, decay: 1f),
+                Tone(0.03f, Osc.Square, 900f, 950f, 0.22f, lowpass: 0.6f, attack: 0.001f, decay: 1f), silence,
+                Tone(0.025f, Osc.Square, 2400f, 2400f, 0.14f, lowpass: 0.7f, attack: 0.001f, decay: 1f),
+                Tone(0.08f, Osc.Saw, 240f, 110f, 0.28f, noise: 0.5f, lowpass: 0.35f, attack: 0.001f, decay: 2.5f));
+            Set(Sfx.PauseTear, Finish(tear, 0.32f), 0.2f);
+            var ticks = new float[3][];
+            for (int k = 0; k < 3; k++)
+                ticks[k] = Finish(Mix(Tone(0.03f, Osc.Square, 2000f + 300f * k, 1900f + 300f * k, 0.1f, lowpass: 0.5f, attack: 0.001f, decay: 6f),
+                    Tone(0.012f, Osc.Sine, 500f, 500f, 0.12f, noise: 1f, lowpass: 0.6f, attack: 0.001f, decay: 5f)), 0.16f);
+            Set(Sfx.PauseType, ticks, 0.03f);
+            Set(Sfx.PauseSettle, Finish(Mix(Tone(0.35f, Osc.Sine, 140f, 62f, 0.4f, noise: 0.1f, lowpass: 0.15f, attack: 0.003f, decay: 2.5f),
+                Tremolo(Tone(0.3f, Osc.Saw, 60f, 60f, 0.05f, lowpass: 0.08f, attack: 0.01f, decay: 2.5f), 50f, 0.6f),
+                Tone(0.15f, Osc.Sine, 1600f, 1600f, 0.03f, attack: 0.002f, decay: 4f)), 0.3f), 0.2f);
+            Set(Sfx.PauseClose, Finish(Reverse(Concat(Tone(0.03f, Osc.Square, 1500f, 1300f, 0.2f, lowpass: 0.6f, attack: 0.001f, decay: 1f), silence,
+                Tone(0.04f, Osc.Sine, 600f, 600f, 0.25f, noise: 1f, lowpass: 0.7f, attack: 0.001f, decay: 1f),
+                Tone(0.07f, Osc.Saw, 300f, 120f, 0.25f, noise: 0.4f, lowpass: 0.35f, attack: 0.001f, decay: 2f))), 0.26f), 0.15f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

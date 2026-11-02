@@ -27,6 +27,8 @@ namespace Arena
         PickRise, PickCardOut, PickCardLand, PickRare, PickReturn, PickAbsorb,
         // A run launching (LaunchIntro.cs): your own screen only, never sent.
         LaunchSweep, LaunchRipple, LaunchBeam, LaunchLand, LaunchHud,
+        // The pause menu's signal-glitch opening and closing (PauseGlitch.cs): your own screen only, never sent.
+        PauseTear, PauseType, PauseSettle, PauseClose,
     }
 
     public struct SoundCue
