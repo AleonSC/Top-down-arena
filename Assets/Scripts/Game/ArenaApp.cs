@@ -349,8 +349,8 @@ namespace Arena
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
-                else if (lobbyMenuOpen && pauseSettings)
-                    pauseSettings = false;  // the lobby menu's Settings: back to its list
+                else if (lobbyMenuOpen && (pauseSettings || pauseHowTo))
+                    pauseSettings = pauseHowTo = false;  // the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && GUIUtility.keyboardControl == 0)
@@ -372,8 +372,8 @@ namespace Arena
                     CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
-                else if (Input.GetKeyDown(KeyCode.Escape) && pauseSettings && menuUp)
-                    pauseSettings = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                else if (Input.GetKeyDown(KeyCode.Escape) && (pauseSettings || pauseHowTo) && menuUp)
+                    pauseSettings = pauseHowTo = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     if (menuUp)

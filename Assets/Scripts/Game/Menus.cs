@@ -82,7 +82,7 @@ namespace Arena
             if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t) && live)
                 settingsOpen = true;
             by += 54f;
-            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "How to play", new Color(0.3f, 0.45f, 0.75f), PixelArt.Get("ui_help"), t) && live)
+            if (Ui.FancyButton(new Rect(W / 2f - 250f, by, 245f, 42f), "How to play", HowToColor, PixelArt.Get("ui_help"), t) && live)
                 howToOpen = true;  // (MenuDrawer.cs)
             if (Ui.FancyButton(new Rect(W / 2f + 5f, by, 245f, 42f), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t) && live)
                 Application.Quit();
@@ -307,7 +307,7 @@ namespace Arena
         {
             pauseMenuOpen = true;
             pauseSel = 0;
-            pauseSettings = false;
+            pauseSettings = pauseHowTo = false;
             if (game.State != MatchState.GameOver)
                 game.RequestPause(true);  // pauses the match for both players
         }
@@ -315,7 +315,7 @@ namespace Arena
         void ResumeGame()
         {
             pauseMenuOpen = false;
-            pauseSettings = false;
+            pauseSettings = pauseHowTo = false;
             runStatsOpen = false;
             if (game.Paused)
                 game.RequestPause(false);

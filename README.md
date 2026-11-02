@@ -790,14 +790,14 @@ right, and a new section's panel slides in; closing slides the drawer back out (
 window really close. That goes for the pause menu and for Settings from the lobby or the main menu alike.
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together),
-  **Field guide**, **Settings**, **Leave to lobby** (the host only: everyone goes back to the lobby, and the run stays
-  saved to continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the right with a **this run** card: the wave, time and
+  **Field guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Leave to lobby**
+  (the host only: everyone goes back to the lobby, and the run stays saved to continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the right with a **this run** card: the wave, time and
   score, chips for the path (and waves left), the run's modifiers and the difficulty, the next boss (moving), and this
   stretch's challenge room (won, lost, or when the next portal can open). The card runs down to near the bottom of the
   screen, with the players at its foot as compact cards (class, level, health; the Tab screen has the rest), stacked
   from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
-  pause menu's), the **Field guide**, **Leave to main menu** (the host leaving closes the lobby for everyone) and
+  pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving closes the lobby for everyone) and
   **Quit game**. The lobby has no Leave button or settings cog any more; its bottom bar is just **Ready** and
   **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu** has **Field guide** with **How to play** under it, and **Settings** with **Quit** under it (below

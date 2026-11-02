@@ -16,6 +16,7 @@ namespace Arena
 
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)
         bool pauseSettings;      // the pause menu showing Settings
+        bool pauseHowTo;         // the pause (or lobby) menu showing How to play
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay
         int recordsSection;      // 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Unlocks
@@ -203,7 +204,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "Leave to main menu", "Quit game" };
+        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "How to play", "Leave to main menu", "Quit game" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -212,13 +213,13 @@ namespace Arena
         {
             lobbyMenuOpen = true;
             lobbySel = 0;
-            pauseSettings = false;
+            pauseSettings = pauseHowTo = false;
             drawerKey = null;
             winOpenAt = Time.unscaledTime;
             GUIUtility.keyboardControl = 0;
         }
 
-        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = false; });
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = false; });
 
         /// The lobby's menu: back to the lobby, Settings (in the drawer, like the pause menu's), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
@@ -232,12 +233,17 @@ namespace Arena
                 DrawSettingsWindow(true);  // its Back returns to this list
                 return;
             }
+            if (pauseHowTo)
+            {
+                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
+                return;
+            }
             DrawerIn("pause", false);
             LobbyMenuKeys();
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
-            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_back", "ui_power" };
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade",
+            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_help", "ui_back", "ui_power" };
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Controls and tips",
                 session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
             float y = 128f;
             for (int i = 0; i < LobbyChoices.Length; i++)
@@ -279,9 +285,10 @@ namespace Arena
                 case 0: CloseLobbyMenu(); break;
                 case 1: pauseSettings = true; break;
                 case 2: OpenFieldGuide(); break;
-                case 3:
+                case 3: pauseHowTo = true; break;
+                case 4:
                     lobbyMenuOpen = false;
-                    pauseSettings = false;
+                    pauseSettings = pauseHowTo = false;
                     StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
                     break;
                 default: Application.Quit(); break;
@@ -290,8 +297,8 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "Settings", "Leave to lobby", "Leave game" };
-        const int PauseToLobby = 4;  // the host only: everyone back to the lobby
+        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "How to play", "Settings", "Leave to lobby", "Leave game" };
+        const int PauseToLobby = 5;  // the host only: everyone back to the lobby
 
         /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).
         List<int> PauseRows()
@@ -311,6 +318,11 @@ namespace Arena
                 DrawSettingsWindow(true);
                 return;
             }
+            if (pauseHowTo)
+            {
+                DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
+                return;
+            }
             float t = Time.unscaledTime;
             DrawerIn("pause", false);
             PauseKeys();
@@ -323,10 +335,10 @@ namespace Arena
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_gear", "ui_back", "ui_power" };
+            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_help", "ui_gear", "ui_back", "ui_power" };
             bool saved = session.IsHost && game.RunId != null;
-            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade",
+            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Controls and tips",
                 "Audio, visual effects, aim line", (game.Players.Count > 1 ? "Everyone back to the lobby" : "Back to the lobby") + (saved ? ": the run stays saved" : ""),
                 saved ? "Saved as each wave starts: continue from the menu" : "Back to the main menu" };
             var rows = PauseRows();
@@ -376,12 +388,13 @@ namespace Arena
                 case 0: ResumeGame(); break;
                 case 1: runStatsOpen = true; break;
                 case 2: OpenFieldGuide(); break;
-                case 3: pauseSettings = true; break;
+                case 3: pauseHowTo = true; break;
+                case 4: pauseSettings = true; break;
                 case PauseToLobby:
                     if (!session.IsHost)
                         break;
                     pauseMenuOpen = false;
-                    pauseSettings = false;
+                    pauseSettings = pauseHowTo = false;
                     session.ReturnToLobby();  // everyone back to the lobby; the run's save stays (it's kept at each wave's start)
                     break;
                 default:
@@ -873,6 +886,8 @@ namespace Arena
                 Tips = new[,] { { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", "6" }, { "Reviving", "Stand by a downed ally to bring them back. Healers and some upgrades do it faster.", "3" },
                     { "Pausing", "Anyone can pause: it pauses the match for everyone until someone resumes.", "icon:ui_play" } } },
         };
+
+        static readonly Color HowToColor = new Color(0.3f, 0.45f, 0.75f);  // the How to play button, as on the main menu
 
         void DrawHowToWindow()
         {
