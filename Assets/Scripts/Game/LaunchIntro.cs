@@ -9,6 +9,7 @@ namespace Arena
     ///              it lands, with a ring and their class icon flashing above them (hidden until then);
     ///   1.7 s      the HUD slides in (its own show animation);
     ///   2.0 s      GET READY counts down (the usual between-waves banner), then a gold WAVE 1 pops in as the fight starts.
+    /// Your controls are held (Game.HoldControls: no moving, dashing, shooting, parrying or abilities) until the fight starts.
     /// Everything is on your own screen only. Play again (from the results screen) runs it too, without the lobby part.
     /// Sounds (LaunchSounds, SoundBank.cs): the sweep as the lobby leaves, the ripple, each pillar's beam and landing,
     /// the HUD's swish; the fight's WaveStart as WAVE 1 pops in.
@@ -44,10 +45,12 @@ namespace Arena
             if (!inGame)
             {
                 launchT = -1f;
+                game.HoldControls = false;
                 return;
             }
             float before = launchT;
             launchT += dt;
+            game.HoldControls = game.State != MatchState.Fighting;  // no moving or shooting until WAVE 1 pops in
             LaunchSounds(before, launchT);
             if (!launchRippled && launchT >= LaunchRippleAt)
             {
@@ -55,7 +58,10 @@ namespace Arena
                 ripples.Add(new Ripple { Pos = new V2(Game.Width / 2f, Game.Height / 2f), Power = 2.2f });  // Juice.cs
             }
             if (launchT >= LaunchLen)
+            {
                 launchT = -1f;
+                game.HoldControls = false;
+            }
         }
 
         /// The launch's sounds, each as the clock passes its moment (Update, your own screen).

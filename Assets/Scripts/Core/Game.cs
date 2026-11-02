@@ -1120,6 +1120,10 @@ namespace Arena
             }
         }
 
+        /// Set by the front end each frame: your controls are held (a run launching: you can't move, dash, shoot, parry or
+        /// use abilities until the fight starts; LaunchIntro.cs). Your own game only.
+        public bool HoldControls;
+
         void LocalControl(float dt, PlayerInput input)
         {
             var me = Me;
@@ -1175,6 +1179,16 @@ namespace Arena
                 BotTreasure(me, ref move);  // open the chest and take your item (Props.cs)
             }
 
+            if (HoldControls)
+            {
+                move = V2.Zero;
+                firing = false;
+                me.Parrying = false;
+                for (int i = 0; i < held.Length; i++)
+                    held[i] = false;
+                DashT = 0f;
+                iceVel = V2.Zero;
+            }
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
