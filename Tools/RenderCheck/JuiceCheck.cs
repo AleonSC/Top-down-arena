@@ -203,6 +203,29 @@ class JuiceCheck {
     me.Weapon = keepWeapon;
     Check(allLooks && offPlain && enemyPlain && otherPlain, "seven weapons' shots have their new look with effects on (and their old one off); an enemy's shot, or another source's, keeps the old one");
 
+    // The run ending (RunEnding.cs): slow motion from the blow, focused on the last player down, then the results in.
+    {
+      var tickEnd = typeof(ArenaApp).GetMethod("TickEnding", f2);
+      Func<string, float> prop = n => (float)typeof(ArenaApp).GetProperty(n, f2).GetValue(app);
+      Action endStep = () => tickEnd.Invoke(app, new object[] { 1f / 60f });
+      endStep();
+      bool fullSpeed = prop("EndSpeed") == 1f && prop("EndBg") == 1f;
+      foreach (var pl in g.Players.Values) { g.DevSetGod(pl.Id, false); pl.Downed = true; pl.ReviveToken = false; pl.SecondWind = false; }
+      g.Minions.Clear();
+      endStep(); tick(); endStep();
+      bool over = g.State == MatchState.GameOver;
+      for (int i = 0; i < 30; i++) endStep();
+      float slow = prop("EndSpeed"), bgEarly = prop("EndBg");
+      int zoomed = frame();
+      for (int i = 0; i < 60 * 4; i++) endStep();
+      float late = prop("EndSpeed"), bg = prop("EndBg"), buttons = prop("EndButtonsIn");
+      bool stamped = (bool)get("endStamped");
+      g.State = MatchState.Intermission;  // Play again
+      endStep();
+      Check(fullSpeed && over && slow < 0.1f && bgEarly == 0f && zoomed > 0 && late > 0f && late < 0.05f && bg == 1f && buttons == 1f && stamped && prop("EndSpeed") == 1f,
+        "a run ending slows to a crawl, stamps the title and brings the results in, and a new run plays at full speed (" + slow + ", " + late + ")");
+    }
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);

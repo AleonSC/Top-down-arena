@@ -417,15 +417,34 @@ namespace Arena
         {
             bool won = game.State == MatchState.Victory;
             float now = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.84f));
+            // Everything comes in as the run's ending plays out (RunEnding.cs): the dark layer, the title stamped in the
+            // middle and gliding up, then the tiles, the cards and the buttons.
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.84f * EndBg));
             Color theme = won ? Ui.Gold : new Color(1f, 0.36f, 0.38f);
             string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : won ? "VICTORY!" : "GAME OVER";
-            Ui.Fancy(new Rect(0f, 22f, W, 66f), title, game.Practice != null ? 46 : 56, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
+            float titleIn = EndTitleIn;
+            if (titleIn > 0f)
+            {
+                float ts = EndTitleScale, ty = Mathf.Lerp(H / 2f - 33f, 22f, EndLift);
+                int baseSize = game.Practice != null ? 46 : 56;
+                var shake = EndTitleShake();
+                var tr = new Rect(shake.x - W * (ts - 1f) / 2f, ty + shake.y - 33f * (ts - 1f), W * ts, 66f * ts);
+                EndPart(titleIn, Vector2.zero, () =>
+                    Ui.Fancy(tr, title, Mathf.RoundToInt(baseSize * ts), Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f)));
+            }
+            var oldAlpha = Ui.Alpha;
+            var oldColor = GUI.color;
+            float subIn = EndSubIn;
+            Ui.Alpha = oldAlpha * subIn;
+            GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * subIn);
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
                 : won ? "YOU BEAT ALL " + Game.MaxWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.Wave;
             if (!won && game.Practice == null && game.Wave % 5 == 0 && game.Wave > 0)
                 sub += "  ·  " + Defs.Get(Game.BossForWave(game.Wave)).Name.ToUpperInvariant();
-            Ui.Label(new Rect(0f, 88f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
+            if (subIn > 0f)
+                Ui.Label(new Rect(0f, 88f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
+            Ui.Alpha = oldAlpha;
+            GUI.color = oldColor;
 
             // Run totals, as tiles.
             int kills = 0;
@@ -438,9 +457,14 @@ namespace Arena
             for (int i = 0; i < 4; i++)
             {
                 var c = new Rect(tx + i * (tw + tgap), 120f, tw, 64f);
-                Ui.Card(c, theme, 0.25f);
-                Ui.Fancy(new Rect(c.x, c.y + 6f, c.width, 34f), tiles[i, 1], 26, Color.white, Color.Lerp(theme, Color.white, 0.55f), TextAnchor.MiddleCenter);
-                Ui.Label(new Rect(c.x, c.y + 40f, c.width, 16f), tiles[i, 0], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
+                float k = EndTileIn(i);
+                int ti = i;
+                EndPart(k, new Vector2(0f, -40f * (1f - Ease(k))), () =>  // each drops in (RunEnding.cs)
+                {
+                    Ui.Card(c, theme, 0.25f);
+                    Ui.Fancy(new Rect(c.x, c.y + 6f, c.width, 34f), tiles[ti, 1], 26, Color.white, Color.Lerp(theme, Color.white, 0.55f), TextAnchor.MiddleCenter);
+                    Ui.Label(new Rect(c.x, c.y + 40f, c.width, 16f), tiles[ti, 0], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
+                });
             }
 
             // A trophy card for each player.
@@ -454,32 +478,41 @@ namespace Arena
                 float cgap = 24f, cw = n == 1 ? 760f : (W - 140f - cgap * (n - 1)) / n;
                 float cx = W / 2f - (cw * n + cgap * (n - 1)) / 2f;
                 for (int i = 0; i < players.Count; i++)
-                    DrawPlayerSummary(players[i], players, new Rect(cx + i * (cw + cgap), cardTop, cw, cardH), now);
+                {
+                    float k = EndCardIn(i);
+                    int pi = i;
+                    EndPart(k, new Vector2(0f, 80f * (1f - Ease(k))), () =>  // each rises in (RunEnding.cs)
+                        DrawPlayerSummary(players[pi], players, new Rect(cx + pi * (cw + cgap), cardTop, cw, cardH), now));
+                }
             }
 
             // Buttons, laid out like the lobby's: Leave on the left, the host's choices on the right.
-            float by = H - 82f;
-            if (Ui.FancyButton(new Rect(70f, by, 170f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), now))
-                session.Leave("");
-            if (session.IsHost)
+            float buttonsIn = EndButtonsIn;
+            EndPart(buttonsIn, new Vector2(0f, 30f * (1f - Ease(buttonsIn))), () =>  // they come up last (RunEnding.cs)
             {
-                float bx = W - 70f;
-                if (won)
+                float by = H - 82f;
+                if (Ui.FancyButton(new Rect(70f, by, 170f, 48f), "Leave", Ui.Danger, PixelArt.Get("ui_power"), now))
+                    session.Leave("");
+                if (session.IsHost)
                 {
-                    bx -= 300f;
-                    if (Ui.FancyButton(new Rect(bx, by, 300f, 48f), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now))
-                        game.ContinueEndless();
-                    bx -= 14f;
+                    float bx = W - 70f;
+                    if (won)
+                    {
+                        bx -= 300f;
+                        if (Ui.FancyButton(new Rect(bx, by, 300f, 48f), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now))
+                            game.ContinueEndless();
+                        bx -= 14f;
+                    }
+                    bx -= 230f;
+                    if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now))
+                        session.ReturnToLobby();
+                    bx -= 244f;
+                    if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now))
+                        session.StartMatch();
                 }
-                bx -= 230f;
-                if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Back to lobby  [L]", Ui.Neutral, PixelArt.Get("ui_back"), now))
-                    session.ReturnToLobby();
-                bx -= 244f;
-                if (Ui.FancyButton(new Rect(bx, by, 230f, 48f), "Play again  [R]", Ui.Primary, PixelArt.Get("ui_play"), now))
-                    session.StartMatch();
-            }
-            else
-                Ui.Label(new Rect(W - 470f, by, 400f, 48f), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
+                else
+                    Ui.Label(new Rect(W - 470f, by, 400f, 48f), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
+            });
             if (game.Recorder != null)
                 Ui.Label(new Rect(70f, H - 26f, W - 140f, 16f), "Session recorded: " + game.Recorder.Path, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
         }

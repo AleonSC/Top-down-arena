@@ -487,6 +487,16 @@ class Shot {
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); foreach (var pl in host.Game.Players.Values) { pl.Offer = null; pl.PendingPicks = 0; }
       float hk = Math.Max(0f, Math.Min(1f, (launchAt - 1.7f) / 0.35f)); set("hudT", hk);
     }
+    // ENDING=<seconds>: a run ending, that far in (RunEnding.cs); with mode gameover or victory.
+    float endingAt = Environment.GetEnvironmentVariable("ENDING") != null ? float.Parse(Environment.GetEnvironmentVariable("ENDING")) : -1f;
+    if (endingAt >= 0f) {
+      bool win = args.Length > 4 && args[4] == "victory";
+      host.Game.State = win ? MatchState.Victory : MatchState.GameOver;
+      V2 focus = me.Disp;
+      if (win) { foreach (var en in host.Game.Enemies.Values) if (en.Def.IsBoss) focus = en.Disp; var shots = (System.Collections.Generic.List<V2>)typeof(ArenaApp).GetField("endShots", f2).GetValue(app); foreach (var b in host.Game.Bullets.Values) if (Defs.IsEnemyShot(b.Kind)) shots.Add(b.Pos); }
+      else foreach (var pl in host.Game.Players.Values) pl.Downed = true;
+      set("endT", endingAt); set("endWin", win); set("endFocus", focus); set("endWasOver", true); set("endStamped", endingAt > 1.3f);
+    }
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
     typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();

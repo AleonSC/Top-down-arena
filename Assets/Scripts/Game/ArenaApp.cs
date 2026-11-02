@@ -196,13 +196,14 @@ namespace Arena
         void Update()
         {
             session.Poll();
-            game.Update(Time.deltaTime);
+            game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
             UpdateMusic();
             UpdateLayout();
+            TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
             StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (PauseGlitch.cs)
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
@@ -398,7 +399,7 @@ namespace Arena
                 wantAbility[i] = false;
             if (pauseMenuOpen || game.Paused)
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
-            game.FixedStep(Time.fixedDeltaTime, input);
+            game.FixedStep(Time.fixedDeltaTime * EndSpeed, input);
             LabFixedStep(Time.fixedDeltaTime);
             ShowcaseFixedStep(Time.fixedDeltaTime);  // the lobby's loadout preview (LobbyUi.cs)
         }

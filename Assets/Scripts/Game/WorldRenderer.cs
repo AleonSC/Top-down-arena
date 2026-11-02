@@ -50,6 +50,7 @@ namespace Arena
             drawScale = worldScale / WorldToUi;  // the backgrounds draw in UI canvas coordinates
             DrawMenuBackground(Time.time);
             drawScale = worldScale;
+            BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
             FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
@@ -70,11 +71,13 @@ namespace Arena
             DrawArenaContents(t);
             DrawJuiceParts();  // shards, rings and sparks
             GlowPass();        // the additive glow
+            DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
             DrawMood(AW, AH);  // vignette, tint, red corners when hurt or low
 
+            EndEndingWorld();  // the camera and colours back; the ending's vignette and flash (RunEnding.cs)
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)
-                FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f));
+                FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f * EndBg));
 
             if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me))
                 DrawAimLine(game.Me, MouseArena(), t);
@@ -2351,6 +2354,11 @@ namespace Arena
         static void SetColor(Rgba c)
         {
             glCur = new Color(c.R, c.G, c.B, c.A);  // remembered for a held frame's replay (Juice.cs)
+            if (glDesat > 0f)  // a run ending in a game over: the colour drains out (RunEnding.cs)
+            {
+                float l = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
+                glCur = new Color(c.R + (l - c.R) * glDesat, c.G + (l - c.G) * glDesat, c.B + (l - c.B) * glDesat, c.A);
+            }
             GL.Color(glCur);
         }
 

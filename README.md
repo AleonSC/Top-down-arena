@@ -673,6 +673,14 @@ beams down as a pillar of light in their colour, a quarter second apart, landing
 flashing above them; the HUD slides in; GET READY counts down; and a gold **WAVE 1** pops in as the fight starts.
 **Play again** from the results screen does the same without the lobby part.
 
+## Ending a run
+
+When the run ends, time slows almost to a stop on the killing blow and the camera eases in on it. On a game over the
+colour drains out and a red vignette closes in; on a victory the screen flashes white, The Eclipse bursts into gold rays
+and its shots turn into gold sparks. GAME OVER or VICTORY! slams down with a shake and a thud, then glides up as the
+results come in: the stat tiles drop in one by one, the player cards rise and the buttons come up last. The slow
+motion is the game's own clock, so everyone sees it; the rest is on your own screen.
+
 ## The HUD
 
 Everything sits along the bottom, so the top of the arena stays clear: the **ability bar** (with your XP strip)

@@ -179,7 +179,7 @@ namespace Arena
                 ClearJuice();
                 juiceGame = game;
             }
-            float dt = game.Paused ? 0f : Mathf.Min(0.05f, Time.unscaledDeltaTime);
+            float realDt = game.Paused ? 0f : Mathf.Min(0.05f, Time.unscaledDeltaTime), dt = realDt * EndSpeed;  // (slow motion as a run ends)
             holdGap = Mathf.Max(0f, holdGap - dt);
             if (holdT > 0f)
             {
@@ -403,9 +403,9 @@ namespace Arena
                 nb.Pos += new V2(0f, -38f * dt);
                 if (nb.T >= NumberLife) numbers.RemoveAt(i); else numbers[i] = nb;
             }
-            trauma = Mathf.Max(0f, trauma - dt * 1.8f);
-            hurtTint = Mathf.Max(0f, hurtTint - dt * 2.2f);
-            introT = Mathf.Max(0f, introT - dt);
+            trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
+            hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
+            introT = Mathf.Max(0f, introT - realDt);
         }
 
         // --- Bullet endings: what a shot does as it goes, by why it went ---------------------------------------------------
