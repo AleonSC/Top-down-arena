@@ -280,7 +280,13 @@ class Shot {
       // stored damage>. The caster stands in the middle with the enemies brought in around them; its name pops up over them.
       var gm = host.Game; gm.Bot = false;
       var aid = System.Array.Find(Upgrades.Abilities, a => a != null && a.Name == Environment.GetEnvironmentVariable("CAST")).Id;
-      int slot = Upgrades.Ability(aid).Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;
+      var adef = Upgrades.Ability(aid);
+      int slot = adef.Choice == AbilityDef.Ult ? Upgrades.UltSlot : 0;
+      if (adef.Choice != AbilityDef.CardOnly) {  // play the class and role it belongs to (CASTW=<n> picks the weapon)
+        me.Kit = adef.Kit; me.Role = adef.Role; me.Def = Defs.Get(adef.Role);
+        me.Weapon = Defs.Weapon(adef.Role, adef.Kit, int.Parse(Environment.GetEnvironmentVariable("CASTW") ?? "0"));
+        me.MaxHp = me.Def.Hp * Defs.KitHpMult(adef.Kit);
+      }
       me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f; me.ShieldHp = 0f; me.Hp = me.MaxHp;
       gm.Bullets.Clear();
       int k = 0;
@@ -291,7 +297,7 @@ class Shot {
       if (Environment.GetEnvironmentVariable("CASTSTORE") != null) me.PactStore = float.Parse(Environment.GetEnvironmentVariable("CASTSTORE"));
       float ct = float.Parse(Environment.GetEnvironmentVariable("CASTT") ?? "0.2");
       for (int f = 0; f < 60 * ct; f++) { me.Pos = new V2(800f, 450f); me.InvulnT = 1f; gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); gm.Update(1f / 60f); }
-      gm.Bullets.Clear(); me.Disp = me.Pos;
+      me.Disp = me.Pos;
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }

@@ -716,6 +716,8 @@ namespace Arena
                         q.ShieldHp = Math.Max(q.ShieldHp, amount);
                         q.ShieldT = 6f;
                         castHits++;
+                        if (q != p)  // a beam of light to whoever it shields
+                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(1f, 0.9f, 0.5f), 0f, 0.45f, Sfx.None);
                         BroadcastFx(FxKind.Ring, q.Pos, new Rgba(1f, 0.9f, 0.5f), 45f, 0.4f, Sfx.None);
                     }
                     Sounds.Add(Sfx.SpellHoly);
@@ -739,6 +741,8 @@ namespace Arena
                         else
                             Heal(best, 70f * s.LayMult, p);
                         castHits++;
+                        if (best != p)
+                            BroadcastFx(FxKind.Link, p.Pos, best.Pos, new Rgba(1f, 0.95f, 0.6f), 0f, 0.5f, Sfx.None);
                         BroadcastFx(FxKind.Ring, best.Pos, new Rgba(1f, 0.95f, 0.6f), 70f, 0.5f, Sfx.SpellHoly);
                         if (cap)
                             foreach (var q in Players.Values)

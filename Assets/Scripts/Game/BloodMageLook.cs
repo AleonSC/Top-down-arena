@@ -431,29 +431,6 @@ namespace Arena
         /// How full a Crimson Pact is, 0..1: the damage it holds against a third of its caster's max health.
         static float PactFill(Player p) => p.MaxHp > 0f ? MathX.Clamp01(p.PactStore / (p.MaxHp * 0.33f)) : 0f;
 
-        /// Over the enemies: every one Crimson Pact or Blood Rite has turned on a Hemomancer gets a blood-red eye over it,
-        /// so it's plain they're all coming for the tank. (Enemies that turn up later aren't taunted; this draws them all.)
-        void DrawBloodTaunts(float t)
-        {
-            Player taunter = null;
-            foreach (var p in game.Players.Values)
-                if (!p.Downed && (p.PactT > 0f || p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BloodRite))
-                    taunter = p;
-            if (taunter == null)
-                return;
-            foreach (var e in game.Enemies.Values)
-            {
-                if (game.IsSpawning(e) || Game.DevourUnder(e))
-                    continue;
-                V2 at = e.Disp + new V2(0f, -e.Radius - 12f);
-                float blink = 0.75f + 0.25f * Mathf.Sin(t * 8f + e.Id);
-                V2 look = (taunter.Disp - at).Normalized();
-                Circle(at, 5.5f, BloodDark.WithAlpha(0.9f), 12);
-                Arc(at, 5.5f, 1.5f, BloodRed.WithAlpha(blink), 12);
-                Circle(at + look * 2f, 2.2f, new Rgba(1f, 0.3f, 0.35f, blink), 8);  // the pupil, watching the tank
-            }
-        }
-
         /// A Hemomancer's shield (Blood Shell; Blood Gift cast alone): plates of clotted blood around them, fewer and
         /// cracking as it's worn down, with a glossy sheen.
         void DrawBloodShellOn(Player p, float t)

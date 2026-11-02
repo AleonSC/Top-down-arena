@@ -1197,7 +1197,9 @@ namespace Arena
                             castHits++;
                         if (cap)
                             EraseEnemyBullets(q.Pos, 200f);
-                        BroadcastFx(FxKind.Ring, q.Pos, Defs.BulletColor(Defs.ArcaneShot), 60f, 0.6f, Sfx.None);
+                        BroadcastFx(FxKind.Rewind, q.Pos, new V2(q.Id, 0f), Defs.BulletColor(Defs.ArcaneShot), q.Def.BodyR + 16f, 0.8f, Sfx.None);  // its clock turned back
+                        if (q != p)
+                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, Defs.BulletColor(Defs.ArcaneShot), 0f, 0.5f, Sfx.None);
                     }
                     Sounds.Add(Sfx.Ability);
                     break;
@@ -1213,6 +1215,8 @@ namespace Arena
                             q.ArcaneStore = 0f;
                             q.ArcaneBy = p.Id;
                             castHits++;
+                            if (q != p)
+                                BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.5f, 0.7f, 1f), 0f, 0.45f, Sfx.None);
                         }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
                     break;
@@ -1221,7 +1225,11 @@ namespace Arena
                     EraseEnemyBullets(p.Pos, 280f);
                     foreach (var q in Players.Values)
                         if (q.Pos.DistanceTo(p.Pos) < 280f)
+                        {
                             Heal(q, 25f, p);
+                            if (q != p && !q.Downed)
+                                BroadcastFx(FxKind.Link, p.Pos, q.Pos, Defs.BulletColor(Defs.HolyShot), 0f, 0.4f, Sfx.None);
+                        }
                     if (cap)
                         Freeze(p.Pos, 280f, 1.5f);
                     BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.HolyShot), 280f, 0.5f, Sfx.SpellHoly);
