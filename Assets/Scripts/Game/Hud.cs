@@ -24,7 +24,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
-            DrawMiniBossBars(1f - hudT);  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
+            DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
             if (aimDebug && me != null)
