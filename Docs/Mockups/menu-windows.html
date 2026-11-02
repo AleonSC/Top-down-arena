@@ -1,0 +1,407 @@
+<title>Menu Window Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: per option, a switch (Pause / Records / How to play) over one 1280x720 game screen scaled to the page width,
+   notes beneath. Single dark look on purpose: these are mockups of the game's own screens. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --panel: #151a26;
+  --panel-hi: #1c2232;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --red: #ff6470;
+  --violet: #a77bff;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0; max-width: 76ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.seg { display: inline-flex; background: #141926; border-radius: 9px; padding: 3px; gap: 3px; box-shadow: inset 0 0 0 1px var(--line); margin-left: auto; }
+.seg button { font: 700 13px var(--font-game); color: var(--muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #3a6fe0; color: #fff; }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+
+.screen-box { width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); max-width: 100%; }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; color: var(--ink); overflow: hidden; }
+.screen[hidden] { display: none !important; }
+.screen > * { position: absolute; z-index: 1; }
+/* Behind a pause menu: the frozen arena, its HUD faintly there. */
+.bg-game { background:
+    radial-gradient(circle at 30% 60%, rgba(255,120,60,0.10), transparent 25%),
+    radial-gradient(circle at 72% 30%, rgba(120,90,255,0.12), transparent 28%),
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 51px 51px,
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 51px 51px, #0b0d14; }
+.bg-game::before { content: ""; position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(circle at 26% 58%, #5a96ff 0 7px, transparent 8px), radial-gradient(circle at 36% 60%, #ff9a4a 0 7px, transparent 8px),
+    radial-gradient(circle at 60% 34%, #ff5a5a 0 9px, transparent 10px), radial-gradient(circle at 80% 70%, #b473ff 0 9px, transparent 10px),
+    radial-gradient(circle at 50% 22%, #ff6a9a 0 3px, transparent 4px), radial-gradient(circle at 54% 28%, #ff6a9a 0 3px, transparent 4px), radial-gradient(circle at 58% 20%, #ff6a9a 0 3px, transparent 4px); }
+.bg-game::after { content: ""; position: absolute; inset: 0; z-index: 0; background: rgba(3,4,9,0.72); }
+/* Behind Records and How to play: the menu background (a starfield). */
+#C-pause.bg-game::after { background: rgba(3,4,9,0.38); }
+.bg-menu { background:
+    radial-gradient(ellipse at 50% 40%, rgba(60,80,150,0.28), transparent 62%),
+    radial-gradient(1.5px 1.5px at 12% 20%, #c9d6ff, transparent), radial-gradient(1.5px 1.5px at 82% 14%, #c9d6ff, transparent),
+    radial-gradient(1.5px 1.5px at 66% 76%, #c9d6ff, transparent), radial-gradient(1.5px 1.5px at 30% 86%, #c9d6ff, transparent),
+    radial-gradient(1px 1px at 46% 32%, #c9d6ff, transparent), radial-gradient(1px 1px at 92% 52%, #c9d6ff, transparent), #090b12; }
+.bg-menu::after { content: ""; position: absolute; inset: 0; z-index: 0; background: rgba(3,4,9,0.35); }
+
+/* Game pieces */
+.fancy { position: relative; font-weight: 900; color: transparent; white-space: nowrap; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c, #9cc0ff) 45%, transparent)) drop-shadow(0 2px 0 rgba(0,0,0,0.6)); }
+.fancy::before, .fancy::after { content: attr(data-text); position: absolute; inset: 0; }
+.fancy::before { color: #0b1020; -webkit-text-stroke: 5px #0b1020; }
+.fancy::after { background: linear-gradient(#ffffff 35%, var(--c, #9cc0ff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-sizing: border-box; }
+.win { background: linear-gradient(#171c2a, #121621); border: 1px solid rgba(120,150,255,0.28); border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05); box-sizing: border-box; }
+.sec { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; border-radius: 6px; padding: 4px 9px; }
+.key { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; background: #2a3146; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.45); font-size: 11px; font-weight: 800; color: #c9d3ea; box-sizing: border-box; }
+canvas.px { image-rendering: pixelated; display: block; }
+.fbtn { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 18px 0 8px; border-radius: 10px; font-size: 18px; font-weight: 800; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,0.5); background: linear-gradient(var(--b1), var(--b2)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(0,0,0,0.35); box-sizing: border-box; }
+.fbtn .ichip { width: 32px; height: 32px; border-radius: 7px; background: rgba(255,255,255,0.18); display: grid; place-items: center; flex: none; }
+.fbtn small { font-size: 12px; opacity: 0.75; font-weight: 700; margin-left: auto; }
+.blue { --b1: #5a97ff; --b2: #3a6fe0; } .gray { --b1: #4a5470; --b2: #343c54; } .gold { --b1: #e6ad3a; --b2: #b47e14; }
+.red { --b1: #d0606a; --b2: #a43d48; } .violet { --b1: #8f6be8; --b2: #6440c0; } .teal { --b1: #3fb7a6; --b2: #2a8476; }
+.bar4 { height: 5px; border-radius: 3px; background: #0b0f1a; position: relative; overflow: hidden; }
+.bar4 > i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.hatch { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 9px); }
+.brk { --bc: var(--blue); }
+.brk::before { content: ""; position: absolute; inset: -6px; pointer-events: none;
+  background: linear-gradient(var(--bc), var(--bc)) top left / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top left / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) top right / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) top right / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom left / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom left / 3px 20px no-repeat,
+    linear-gradient(var(--bc), var(--bc)) bottom right / 20px 3px no-repeat, linear-gradient(var(--bc), var(--bc)) bottom right / 3px 20px no-repeat; }
+.selbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--sc), transparent); }
+.row { display: flex; align-items: center; }
+.col { display: flex; flex-direction: column; }
+@media (prefers-reduced-motion: no-preference) {
+  .shine { position: relative; overflow: hidden; }
+  .shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.13) 50%, transparent 60%); background-size: 260% 100%; animation: shine 3.4s linear infinite; pointer-events: none; }
+  @keyframes shine { from { background-position: 130% 0; } to { background-position: -130% 0; } }
+  .float { animation: float 3s ease-in-out infinite; } @keyframes float { 50% { transform: translateY(-4px); } }
+  .screen:not([hidden]) .in { animation: rise 0.45s cubic-bezier(.2,.9,.3,1.15) both; animation-delay: calc(var(--i, 0) * 60ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Menu Window Mockups</h1>
+    <p>Three directions for one window style shared by the pause menu, Records and How to play. They're built from the newer pieces: the trophy cards of the upgrade picker and results, the lobby's icon-chip buttons and corner brackets, and the run's new parts (paths, modifiers, difficulty, challenge rooms). In every option, Settings moves out of the pause menu into its own window of the same style. Use the switch above each screen to see the three windows.</p>
+  </header>
+
+  <section class="option" data-opt="A">
+    <div class="bar"><h2><span class="tag">Option A</span>Run dossier</h2>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="A-pause"></div><div class="screen bg-menu" data-s="records" id="A-records" hidden></div><div class="screen bg-menu" data-s="howto" id="A-howto" hidden></div></div>
+    <ul class="notes">
+      <li>One wide window with a left column that sums things up and a right side to act or read. Paused: the left is your run (wave, path, modifiers, difficulty, the next boss, this stretch's challenge room) and your party as small trophy cards; the right is five big buttons, each with a line saying what it does.</li>
+      <li>Records: the left is your profile at a glance, the right shows trophy rows for bosses, classes and challenge rooms. How to play: the left lists topics (Challenge rooms is one of them), the right shows the open topic as icon cards.</li>
+      <li>The closest to today's layout, so every window keeps its current content and just gets the frame.</li>
+    </ul>
+  </section>
+
+  <section class="option" data-opt="B">
+    <div class="bar"><h2><span class="tag">Option B</span>Card deck</h2>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="B-pause"></div><div class="screen bg-menu" data-s="records" id="B-records" hidden></div><div class="screen bg-menu" data-s="howto" id="B-howto" hidden></div></div>
+    <ul class="notes">
+      <li>The upgrade picker's trophy cards, used for everything. Paused: a run strip of chips under the title, then one tall card per choice with a hatched art panel and a big pixel icon. The highlighted card gets the brackets and the fading bar, and 1–5 picks one, like the picker.</li>
+      <li>Records: one card per category (Runs, Bosses, Classes, Challenge rooms), each with a big number at the top and its list below. How to play: topic cards three at a time with page dots, and a keycap strip of the controls along the bottom.</li>
+      <li>The boldest look, and the most consistent with the level-up screen and the results.</li>
+    </ul>
+  </section>
+
+  <section class="option" data-opt="C">
+    <div class="bar"><h2><span class="tag">Option C</span>Side drawer</h2>
+      <div class="seg" role="group" aria-label="Window"><button aria-pressed="true" data-s="pause">Pause</button><button aria-pressed="false" data-s="records">Records</button><button aria-pressed="false" data-s="howto">How to play</button></div></div>
+    <div class="screen-box"><div class="screen bg-game" data-s="pause" id="C-pause"></div><div class="screen bg-menu" data-s="records" id="C-records" hidden></div><div class="screen bg-menu" data-s="howto" id="C-howto" hidden></div></div>
+    <ul class="notes">
+      <li>A tall drawer slides in from the left with a vertical menu (keys on the right of each row). The frozen arena stays visible on the right, with a floating "this run" card and your party over it. It works with the signal-glitch opening: the glitch tears in, then the drawer.</li>
+      <li>Records and How to play reuse the drawer for their sections. The open section fills the right as one large panel, and How to play gets a small live diagram per topic (here, the portal and the five rooms).</li>
+      <li>The lightest. It hides the least of the game and reads like a console menu.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const ICONS = {"pal":{"k":"#14141e","w":"#ffffff","g":"#bec6d7","G":"#6e768a","y":"#ffd750","Y":"#e18c28","o":"#ff8c28","r":"#f04040","R":"#961e28","p":"#ff80b4","b":"#5a96ff","B":"#284bb4","c":"#8ce6ff","n":"#64e664","N":"#288c41","v":"#b473ff","V":"#6432a5","m":"#9b6441","M":"#5a371e",".":null},"icons":{"ui_play":["............","..ww........","..www.......","..wwww......","..wwwww.....","..wwwwww....","..wwwwww....","..wwwww.....","..wwww......","..www.......","..ww........","............"],"ui_trophy":["............","..yyyyyyyy..","yyywyyyyyyyy","y.ywyyyyyY.y","y.ywyyyyyY.y",".yyyyyyyyYy.","...yyyyyY...",".....yY.....",".....yY.....","....yyyY....","...YYYYYY...","............"],"ui_book":["............","............",".bbbb..bbbb.","bwwwwbbwwwwb","bwGGwbbwGGwb","bwwwwbbwwwwb","bwGGwbbwGGwb","bwwwwbbwwwwb","bbbbbbbbbbbb",".....bb.....","............","............"],"ui_gear":["............",".....ww.....","..ww.ww.ww..","..wwwwwwww..","...ww..ww...",".www....www.",".www....www.","...ww..ww...","..wwwwwwww..","..ww.ww.ww..",".....ww.....","............"],"ui_power":["............",".....ww.....","..w..ww..w..",".ww..ww..ww.",".w...ww...w.",".w........w.",".w........w.",".ww......ww.","..ww....ww..","...wwwwww...","............","............"],"ui_back":["............","............",".....w......","....ww......","...www......","..wwwwwwwww.","..wwwwwwwww.","...www......","....ww......",".....w......","............","............"],"ui_help":["............","....wwww....","...ww..ww...","...ww..ww...",".......ww...","......ww....",".....ww.....",".....ww.....","............",".....ww.....",".....ww.....","............"],"ui_star":["............",".....ww.....",".....ww.....","....wwww....","wwwwwwwwwwww",".wwwwwwwwww.","..wwwwwwww..","..wwwwwwww..",".wwww..wwww.",".www....www.",".ww......ww.","............"],"ui_skull":["............","...wwwwww...","..wwwwwwww..",".wwwwwwwwww.",".ww..ww..ww.",".ww..ww..ww.",".wwwwwwwwww.","..wwww.www..","...wwwwww...","...w.ww.w...","...wwwwww...","............"],"ui_check":["............","..........ww",".........www","........www.",".......www..","ww....www...","www..www....",".wwwwww.....","..wwww......","...ww.......","............","............"],"ui_lock":["............","....kkkk....","...kwwwwk...","...kwkkwk...","...kwkkwk...","..kkkkkkkk..","..kwwwwwwk..","..kwwkkwwk..","..kwwkkwwk..","..kwwwwwwk..","..kkkkkkkk..","............"],"ui_coin":["............","...kkkkkk...","..kyyyyyyk..",".kyywyyyyYk.",".kywyyyyyYk.",".kyyyYYyyYk.",".kyyyYYyyYk.",".kyyyyyyyYk.",".kYyyyyyYYk.","..kYYYYYYk..","...kkkkkk...","............"],"ui_arrow":["............","............","......w.....","......ww....","......www...",".wwwwwwwww..",".wwwwwwwww..","......www...","......ww....","......w.....","............","............"],"class_soldier":["............","............","....kkkk....","..kkNNNNkk..",".kNnNNNNNNk.",".kNnNNNNNNk.","kNNNNNNNNNNk","kkkkkkkkkkkk",".k.k....k.k.","..kMk..kMk..","...kMMMMk...","....kkkk...."],"class_elementalist":[".....k......","....kok.....","....kok..k..","...koyok.kk.","..koyyok.kok","..koyyyokkok",".koyywyyokok",".koywwyyyok.",".koywwwyyok.","..koyyyyok..","...kooook...","....kkkk...."],"class_summoner":["....kkkk....","..kkcccckk..",".kwccccccck.",".kcckcckcck.",".kcckcckcck.",".kcccccccck.",".kcccccccck.",".kcccccccck.",".kcccccccck.",".kckkcckkck.",".kk..kk..kk.","............"],"class_knight":["...kkkkkk...","..kggggggk..",".kgwggggggk.",".kgwggggggk.",".kkkkkkkkkk.",".kgwgkkggGk.",".kgggkkggGk.",".kgggkkggGk.",".kgggggggGk.",".kGgggggGGk.","..kGGGGGGk..","...kkkkkk..."],"class_ninja":["...kkkkkk...","..kGGGGGGk..",".kGGGGGGGGk.",".krrrrrrrrkr",".kGGGGGGGGrk",".kkwkGGkwkk.",".kGGGGGGGGk.",".kGGGGGGGGk.",".kGGGGGGGGk.","..kGGGGGGk..","...kkkkkk...","............"],"class_hemomancer":[".....kk.....",".....kk.....","....krrk....","....krrk....","...krrrrk...","..krwrrrrk..","..krwrrrrk..",".krwrrrrrRk.",".krrrrrrrRk.",".kRrrrrrRRk.","..kRRRRRRk..","...kkkkkk..."],"role_tank":["..kkkkkkkk..",".kbbbbbbbbk.",".kbwbbbbbbk.",".kbwbbbbbbk.",".kbbbbbbbbk.",".kbbbbbbbbk.",".kBbbbbbbBk.","..kBbbbbBk..","..kBbbbbBk..","...kBbbBk...","....kBBk....",".....kk....."],"role_healer":["....kkkk....","....knnk....","....kwnk....","....knnk....","kkkkknnkkkkk","knwnnnnnnnnk","knnnnnnnnnNk","kkkkknNkkkkk","....knNk....","....knNk....","....kNNk....","....kkkk...."],"role_dps":["..........kk",".........kwk","........kwgk",".......kwgk.","......kwgk..",".....kwgk...","..k..kgk....","..kkkgk.....","...kok......","..kok.kk....",".kok........","kk.........."],"heart":["............","..kkk..kkk..",".krrrkkrrrk.","krrwrrrrrrrk","krwrrrrrrrrk","krrrrrrrrrrk",".krrrrrrrrk.","..krrrrrrk..","...krrrrk...","....krrk....",".....kk.....","............"],"shield":[".kkkkkkkkkk.",".kggggggggk.",".kgwwggggGk.",".kgwggggGGk.",".kgggggGGGk.",".kggggGGGGk.","..kgggGGGk..","..kgggGGGk..","...kggGGk...","....kgGk....",".....kk.....","............"],"crosshair":[".....rr.....","...rrrrrr...","..rr.rr.rr..",".rr..rr..rr.",".r.......r..","rrrr.ww.rrrr","rrrr.ww.rrrr",".r.......r..",".rr..rr..rr.","..rr.rr.rr..","...rrrrrr...",".....rr....."],"blink":[".v.......v..","..v..vv..v..",".....vv.....","..kkk..v..v.",".kvvvk......","kvvwvvk.vv..","kvvvvvk.vv..",".kvvvk......","..kkk...v...",".v.....v..v.","....v.......","..v...v...v."],"dash":["............","......kkkk..","..cc..kbbk..","......kbwk..",".ccc..kbbk..","......kbbk..","..cc..kbbkkk","......kbbbbk",".ccc.kbbbbbk",".....kBBBBBk",".....kkkkkkk","............"],"pulse":["....nnnn....","..nn....nn..",".n...kk...n.",".n..knnk..n.","n..kknnkk..n","n.knnwwnnk.n","n.knnwwnnk.n","n..kknnkk..n",".n..knnk..n.",".n...kk...n.","..nn....nn..","....nnnn...."],"mirror":[".kkkkkkkkkk.",".kgggggggGk.",".kgwcggggGk.",".kgcwcgggGk.",".kggcwcggGk.",".kgggcwcgGk.","..kgggcwGk..","..kggggcGk..","...kgggGk...","....kgGk....",".....kk.....","............"],"hourglass":["..kkkkkkkk..","..kGGGGGGk..","...kyyyyk...","...kyyyyk...","....kyyk....",".....kk.....",".....kk.....","....k..k....","...k.yy.k...","...kyyyyk...","..kGGGGGGk..","..kkkkkkkk.."],"link":[".kk.kk......","krrkrrk.....","krwrrrk.....",".krrrk......","..krk.g.....","...k...g....","........g...","......kk.kk.",".....krrkrrk",".....krwrrrk","......krrrk.",".......krk.."],"guard_reinforced":[".kkkkkkkkkk.",".kbbbbbbbbk.",".kbcbbbbbBk.",".kwggggggwk.",".kbbbbbbbBk.",".kbcbbbbbBk.","..kwggggwk..","..kbbbbbBk..","...kbbbBk...","....kbBk....",".....kk.....","............"],"snow":[".....cc.....","..c..cc..c..","...c.cc.c...",".c..cccc..c.","..ccwccwcc..","ccccwwwwcccc","ccccwwwwcccc","..ccwccwcc..",".c..cccc..c.","...c.cc.c...","..c..cc..c..",".....cc....."],"flame":[".....r......","....rr...r..","....ror..rr.","...roorr.ro.","..rooyorroo.","..royyyoroo.",".roooyyyoor.",".royyyyyyor.",".royywwyyor.","..royyyyor..","...roooor...","....rrrr...."],"bolt":["......kkkk..",".....krrrk..","....krrrk...","...krrrk....","..krrrrkkk..","..kkkkrrrk..",".....krrk...","....krrk....","...krrk.....","...krk......","..kkk.......","............"],"nova":[".....ww.....",".v...ww...v.","..v..vv..v..","...v.vv.v...","....vwwv....","wwvvwwwwvvww","wwvvwwwwvvww","....vwwv....","...v.vv.v...","..v..vv..v..",".v...ww...v.",".....ww....."],"regen":["............","..kkk..kkk..",".krrrkkrrrk.","krrrrwwrrrrk","krrrrwwrrrrk","krrwwwwwwrrk",".krwwwwwwrk.","..krrwwrrk..","...krwwrk...","....krrk....",".....kk.....","............"],"boot":["............","...kkkkk....","...kmmmk....","...kmwmk....","...kmmmk....","...kmmmk....","...kmmmkkk..","...kmmmmmmk.","..kmmmmmmmmk","..kMMMMMMMMk","..kkkkkkkkkk","............"]}};
+const RUN = { wave: 12, time: "14:08", score: "8,420", diff: "Normal", path: "Frozen Lake", pathLeft: 2, pathCol: "#a6ebff", mods: ["Frenzy", "Hunted"], boss: "Hive Queen", bossWave: 15, room: "Defend the Crystal", roomWon: true };
+const PARTY = [
+  { name: "Anthony", cls: "Knight Tank", weapon: "Lance", icon: "class_knight", role: "role_tank", col: "#5a96ff", lvl: 9, hp: 0.62, you: true },
+  { name: "Aleon", cls: "Elementalist DPS", weapon: "Fireball", icon: "class_elementalist", role: "role_dps", col: "#ff9a4a", lvl: 10, hp: 0.88 },
+];
+const MENU = [
+  { icon: "ui_play", name: "Resume", key: "Esc", line: "Back into wave 12", c: "blue", col: "#5a97ff" },
+  { icon: "ui_trophy", name: "Run stats", key: "Tab", line: "Your build, damage and kills so far", c: "gold", col: "#e6ad3a" },
+  { icon: "ui_book", name: "Field guide", key: "G", line: "Every enemy, weapon and upgrade", c: "violet", col: "#8f6be8" },
+  { icon: "ui_gear", name: "Settings", key: "O", line: "Audio, visual effects, aim line", c: "gray", col: "#6a7696" },
+  { icon: "ui_power", name: "Leave game", key: "", line: "Saved at wave 12: continue from the menu", c: "red", col: "#d0606a" },
+];
+const BOSSES = [["The Warden", 2], ["Hive Queen", 1], ["Twin Reapers", 1], ["The Singularity", 1], ["The Colossus", 1], ["The Duelist", 1], ["The Lich", 1], ["Storm Herald", 1], ["The Devourer", 1], ["The Eclipse", 1]];
+const CLASSES = [["class_knight", "Knight Tank", 1, 6], ["class_elementalist", "Elementalist DPS", 0, 3], ["class_ninja", "Ninja Healer", 0, 1], ["class_soldier", "Soldier DPS", 0, 2], ["class_summoner", "Summoner Healer", 0, 1], ["class_hemomancer", "Hemomancer DPS", 0, 1]];
+const ROOMS = [["Defend the Crystal", 4, 5, "#73e6ff"], ["The Gatekeeper", 2, 3, "#ff9e4d"], ["Kill Rush", 3, 3, "#ff616b"], ["Hold the Zones", 2, 4, "#8cff8c"], ["Mirror Match", 1, 2, "#b880ff"]];
+const OVERVIEW = [["Runs", "14"], ["Won", "1"], ["Best wave", "50"], ["Best score", "41,200"], ["Time played", "11 h 23 m"], ["Enemies killed", "6,812"]];
+const TOPICS = [
+  { name: "Controls", icon: "ui_help" },
+  { name: "The basics", icon: "crosshair" },
+  { name: "Fighting", icon: "guard_reinforced" },
+  { name: "Between waves", icon: "ui_star" },
+  { name: "Challenge rooms", icon: "blink", open: true, isNew: true },
+  { name: "Paths and modifiers", icon: "snow" },
+  { name: "Playing together", icon: "link" },
+];
+const ROOM_TIPS = [
+  { icon: "blink", t: "The portal", d: "Once every five waves a portal opens in the break. Everyone alive stands in it to go through; ignore it and it closes." },
+  { icon: "shield", t: "Defend the Crystal", d: "Keep it alive for 40 s. Most enemies go for it." },
+  { icon: "ui_skull", t: "The Gatekeeper", d: "A mini-boss: slip the ring's gap, step off its charge line." },
+  { icon: "bolt", t: "Kill Rush", d: "40 kills in 40 s, weak enemies from every side." },
+  { icon: "pulse", t: "Hold the Zones", d: "Stand in each zone until it fills. An enemy in it slows you." },
+  { icon: "mirror", t: "Mirror Match", d: "A shadow of each of you, fighting your way. Beat your own." },
+  { icon: "ui_star", t: "The prize", d: "Win: touch the altar for a rare-or-better pick, sometimes a legendary. Lose: no harm done." },
+];
+const KEYS = [["WASD", "Move"], ["LMB", "Shoot"], ["RMB", "Parry"], ["Space", "Role ability"], ["Q E Shift", "Bonus abilities"], ["F", "Ultimate"], ["Tab", "Run stats"], ["Esc", "Pause"]];
+
+function iconCanvas(name, scale) {
+  const g = ICONS.icons[name]; if (!g) return document.createElement("span");
+  const h = g.length, w = g[0].length, c = document.createElement("canvas");
+  c.width = w; c.height = h; c.className = "px"; c.style.width = (w * scale) + "px"; c.style.height = (h * scale) + "px";
+  const x = c.getContext("2d");
+  g.forEach((row, j) => [...row].forEach((ch, i) => { const col = ICONS.pal[ch]; if (col) { x.fillStyle = col; x.fillRect(i, j, 1, 1); } }));
+  return c;
+}
+const ic = (name, s = 2) => `<span data-icon="${name}" data-s="${s}"></span>`;
+const fancy = (text, size, c, extra = "") => `<div class="fancy" style="--c:${c}; font-size:${size}px; ${extra}">${text}</div>`;
+const put = (id, html) => { document.getElementById(id).innerHTML = html; };
+const fbtn = (m, w, extra = "") => `<div class="fbtn ${m.c} shine" style="width:${w}px; ${extra}"><span class="ichip">${ic(m.icon, 2)}</span>${m.name}${m.key ? `<small>[${m.key}]</small>` : ""}</div>`;
+const keycap = k => k.split(" ").map(x => `<span class="key">${x}</span>`).join(" ");
+
+/** The run's chips: path, modifiers, difficulty. */
+function runChips(gap = 6) {
+  return `<div class="row" style="gap:${gap}px; flex-wrap:wrap;">
+    <span class="chip" style="background:rgba(166,235,255,0.14); color:${RUN.pathCol};">${ic("snow", 1)} ${RUN.path.toUpperCase()} · ${RUN.pathLeft} WAVES LEFT</span>
+    ${RUN.mods.map(m => `<span class="chip" style="background:rgba(255,120,120,0.14); color:#ff9a9a;">${m.toUpperCase()}</span>`).join("")}
+    <span class="chip" style="background:rgba(255,255,255,0.08); color:#c9d3ea;">${RUN.diff.toUpperCase()}</span></div>`;
+}
+/** A party member as a small trophy card. */
+function partyCard(p, w) {
+  return `<div class="panel" style="position:relative; width:${w}px; height:78px; display:flex; overflow:hidden; border-color:${p.col}66;">
+    <div class="hatch" style="width:72px; background-color:${p.col}22; display:grid; place-items:center;">${ic(p.icon, 4)}</div>
+    <div class="col" style="padding:10px 12px; gap:4px; flex:1;">
+      <div class="row" style="gap:8px;">${fancy(p.name, 18, p.col)}${p.you ? `<span class="chip" style="background:${p.col}33; color:#dfe8ff; padding:2px 6px;">YOU</span>` : ""}<span class="chip" style="margin-left:auto; background:#e3b04d; color:#2a1d05; padding:2px 7px;">LV ${p.lvl}</span></div>
+      <div style="font-size:12px; font-weight:700; color:${p.col};">${p.cls} · ${p.weapon}</div>
+      <div class="bar4"><i style="width:${p.hp * 100}%; background:#4fd166;"></i></div>
+    </div></div>`;
+}
+
+// ===================== A: Run dossier =====================
+put("A-pause", `
+  <div class="win" style="left:70px; top:52px; width:1140px; height:616px;"></div>
+  <div style="left:100px; top:78px;">${fancy("PAUSED", 46, "#9cc0ff")}</div>
+  <div style="left:102px; top:132px; color:var(--muted); font-size:13px; font-weight:700;">Anthony paused · nobody can move until someone resumes</div>
+  <div class="panel in" style="--i:1; left:100px; top:172px; width:440px; height:250px; padding:16px 18px;">
+    <div class="sec">This run</div>
+    <div class="row" style="gap:18px; margin:10px 0 12px;">
+      <div class="col"><div class="row" style="gap:6px; align-items:baseline;">${fancy(String(RUN.wave), 44, "#ffcc59")}<span style="font-size:18px; font-weight:800; color:var(--muted);">/ 50</span></div><span class="sec" style="font-size:10px;">Wave</span></div>
+      <div class="col" style="gap:4px; font-size:13px; color:#c9d3ea;"><span>Time <b style="color:#fff">${RUN.time}</b></span><span>Score <b style="color:#fff">${RUN.score}</b></span></div>
+      <div class="col" style="margin-left:auto; align-items:center; gap:4px;"><div class="hatch" style="width:58px; height:58px; border-radius:10px; background-color:rgba(255,204,89,0.12); display:grid; place-items:center;">${ic("ui_skull", 3)}</div><span style="font-size:11px; color:var(--muted); font-weight:700;">${RUN.boss} · W${RUN.bossWave}</span></div>
+    </div>
+    ${runChips()}
+    <div class="row" style="gap:10px; margin-top:14px; padding:10px 12px; border-radius:9px; background:rgba(115,230,255,0.08); border:1px solid rgba(115,230,255,0.25);">${ic("blink", 2)}<div class="col" style="gap:2px;"><span style="font-size:13px; font-weight:800; color:#a6ebff;">Challenge room: ${RUN.room} — won</span><span style="font-size:11px; color:var(--muted);">The next portal opens after wave 16, 17 or 18</span></div></div>
+  </div>
+  <div class="in" style="--i:2; left:100px; top:438px; display:grid; gap:10px;">${PARTY.map(p => partyCard(p, 440)).join("")}</div>
+  <div style="left:580px; top:172px; width:600px; display:grid; gap:12px;">
+    ${MENU.map((m, i) => `<div class="in ${i === 0 ? "brk" : ""}" style="--i:${i + 1}; position:relative; ${i === 0 ? "--bc:#8fb6ff;" : ""}">
+      <div class="row panel" style="height:78px; gap:16px; padding:0 18px 0 12px; ${i === 0 ? "border-color:#5a97ff; background:#1a2340;" : ""}">
+        <div class="fbtn ${m.c}" style="width:58px; height:54px; padding:0; justify-content:center;">${ic(m.icon, 3)}</div>
+        <div class="col" style="gap:3px;">${fancy(m.name, 22, i === 4 ? "#ff9aa2" : "#cfe0ff")}<span style="font-size:13px; color:var(--muted);">${m.line}</span></div>
+        ${m.key ? `<span class="key" style="margin-left:auto; font-size:13px; height:26px; min-width:34px;">${m.key}</span>` : ""}
+      </div>${i === 0 ? `<div class="selbar" style="--sc:#8fb6ff;"></div>` : ""}</div>`).join("")}
+  </div>
+  <div style="left:580px; top:628px; width:600px; text-align:center; font-size:12px; color:var(--muted);">↑ ↓ to choose · Enter to open · your run is saved as each wave starts</div>`);
+
+put("A-records", `
+  <div class="win" style="left:70px; top:40px; width:1140px; height:640px;"></div>
+  <div style="left:100px; top:66px;">${fancy("RECORDS", 46, "#ffcc59")}</div>
+  <div style="left:102px; top:120px; color:var(--muted); font-size:13px; font-weight:700;">Kept on this computer</div>
+  <div class="panel in" style="--i:1; left:100px; top:160px; width:360px; height:420px; padding:18px;">
+    <div class="sec">Your profile</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
+      ${OVERVIEW.map(([k, v]) => `<div class="panel" style="padding:10px 12px; background:#11151f;">${fancy(v, 24, "#ffd98a")}<div class="sec" style="font-size:10px; margin-top:4px;">${k}</div></div>`).join("")}
+    </div>
+    <div class="sec" style="margin-top:18px;">Unlocks</div>
+    <div class="row" style="gap:8px; margin-top:8px;">${["class_ninja", "class_hemomancer", "ui_lock", "ui_lock"].map(n => `<div class="hatch" style="width:58px; height:58px; border-radius:9px; background-color:#1b2131; display:grid; place-items:center;">${ic(n, 3)}</div>`).join("")}</div>
+  </div>
+  <div style="left:490px; top:160px; width:690px; display:grid; gap:14px;">
+    <div class="row" style="gap:6px;">${["Bosses", "Classes", "Challenge rooms"].map((t, i) => `<span class="chip" style="font-size:13px; padding:8px 14px; ${i === 0 ? "background:#3a6fe0; color:#fff;" : "background:#1b2131; color:#9ea9c4;"}">${t}${i === 2 ? ` <span class="chip" style="background:#73e6ff; color:#06202a; padding:1px 6px;">NEW</span>` : ""}</span>`).join("")}</div>
+    <div class="panel in" style="--i:2; padding:14px 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px 24px;">
+      ${BOSSES.map(([n, c]) => `<div class="row" style="gap:10px; height:34px; border-bottom:1px solid var(--line);">${ic("ui_trophy", 2)}<span style="font-size:14px; font-weight:700;">${n}</span><span style="margin-left:auto; color:#4fd166; font-weight:800;">× ${c}</span></div>`).join("")}
+    </div>
+    <div class="panel in" style="--i:3; padding:12px 16px;">
+      <div class="sec">Challenge rooms won</div>
+      <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:10px;">${ROOMS.map(([n, w, p, c]) => `<div class="col" style="gap:5px;"><span style="font-size:12px; font-weight:800; color:${c};">${n}</span><div class="bar4"><i style="width:${w / p * 100}%; background:${c};"></i></div><span style="font-size:11px; color:var(--muted);">${w} of ${p}</span></div>`).join("")}</div>
+    </div>
+  </div>
+  <div style="left:100px; top:604px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`);
+
+put("A-howto", `
+  <div class="win" style="left:70px; top:40px; width:1140px; height:640px;"></div>
+  <div style="left:100px; top:66px;">${fancy("HOW TO PLAY", 42, "#9cc0ff")}</div>
+  <div class="in" style="--i:1; left:100px; top:136px; width:300px; display:grid; gap:6px;">
+    ${TOPICS.map(t => `<div class="row panel ${t.open ? "brk" : ""}" style="position:relative; height:52px; gap:12px; padding:0 14px; ${t.open ? "--bc:#73e6ff; border-color:#73e6ff; background:#132a33;" : ""}">${ic(t.icon, 2)}<span style="font-size:15px; font-weight:800; color:${t.open ? "#fff" : "#c9d3ea"};">${t.name}</span>${t.isNew ? `<span class="chip" style="margin-left:auto; background:#73e6ff; color:#06202a; padding:2px 7px;">NEW</span>` : ""}</div>`).join("")}
+  </div>
+  <div style="left:430px; top:136px;">${fancy("CHALLENGE ROOMS", 28, "#73e6ff")}</div>
+  <div style="left:432px; top:176px; width:740px; color:#c9d3ea; font-size:14px;">A side room once every five waves: win it for a prize pick, lose it for nothing.</div>
+  <div style="left:430px; top:210px; width:750px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    ${ROOM_TIPS.map((t, i) => `<div class="panel in row" style="--i:${i + 2}; gap:12px; padding:12px; align-items:flex-start; ${i === 0 ? "grid-column:1/3;" : ""}"><div class="hatch" style="flex:none; width:44px; height:44px; border-radius:8px; background-color:#1b2131; display:grid; place-items:center;">${ic(t.icon, 3)}</div><div class="col" style="gap:3px;"><b style="font-size:14px;">${t.t}</b><span style="font-size:12.5px; color:var(--muted); line-height:1.35;">${t.d}</span></div></div>`).join("")}
+  </div>
+  <div style="left:100px; top:604px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`);
+
+// ===================== B: Card deck =====================
+function deckCard(o, i, w, h, picked) {
+  return `<div class="in ${picked ? "brk" : ""}" style="--i:${i}; position:relative; ${picked ? `--bc:${o.col}; transform:translateY(-12px);` : ""}">
+    <div class="panel" style="width:${w}px; height:${h}px; overflow:hidden; border-color:${o.col}${picked ? "" : "55"}; ${picked ? `background:#1a2032; box-shadow:0 0 40px ${o.col}44;` : ""}">
+      <div class="hatch" style="height:${Math.round(h * 0.46)}px; background-color:${o.col}22; display:grid; place-items:center; position:relative;">
+        <div class="${picked ? "float" : ""}">${ic(o.icon, 8)}</div>
+        <span class="key" style="position:absolute; top:10px; right:10px;">${i}</span>
+      </div>
+      <div style="text-align:center; padding:14px 10px 0;">${fancy(o.name, 24, picked ? o.col : "#c7d4f0", "display:inline-block;")}</div>
+      <div style="font-size:13px; line-height:1.4; text-align:center; color:#c9d3ea; padding:8px 14px 0;">${o.line}</div>
+    </div>${picked ? `<div class="selbar" style="--sc:${o.col};"></div>` : ""}</div>`;
+}
+put("B-pause", `
+  <div style="left:0; right:0; top:40px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+    ${fancy("PAUSED", 58, "#9cc0ff")}
+    <div class="row" style="gap:8px;"><span class="chip" style="background:#ffcc59; color:#2a1d05; font-size:13px;">WAVE 12 / 50</span><span class="chip" style="background:rgba(255,255,255,0.08); color:#c9d3ea;">${RUN.time} · SCORE ${RUN.score}</span>${runChips(8).replace('<div class="row" style="gap:8px; flex-wrap:wrap;">', "").replace(/<\/div>$/, "")}</div>
+    <div class="row" style="gap:10px;"><span class="chip" style="background:rgba(115,230,255,0.12); color:#a6ebff;">${ic("blink", 1)} CHALLENGE ROOM WON: ${RUN.room.toUpperCase()}</span><span class="chip" style="background:rgba(255,204,89,0.12); color:#ffd98a;">${ic("ui_skull", 1)} NEXT BOSS: ${RUN.boss.toUpperCase()} · WAVE ${RUN.bossWave}</span></div>
+  </div>
+  <div style="left:0; right:0; top:216px; display:flex; justify-content:center; gap:16px;">${MENU.map((m, i) => deckCard(m, i + 1, 214, 290, i === 0)).join("")}</div>
+  <div style="left:0; right:0; top:560px; display:flex; justify-content:center; gap:14px;">${PARTY.map(p => partyCard(p, 380)).join("")}</div>
+  <div style="left:0; right:0; top:684px; text-align:center; font-size:12px; color:var(--muted);">1–5 or click a card · Enter to open · Esc to resume</div>`);
+
+function recordCard(i, title, big, bigLabel, col, body) {
+  return `<div class="panel in" style="--i:${i}; width:270px; height:470px; overflow:hidden; border-color:${col}55;">
+    <div class="hatch" style="height:120px; background-color:${col}1c; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+      <span class="sec" style="color:${col};">${title}</span>${fancy(big, 46, col)}<span style="font-size:11px; color:var(--muted); font-weight:700;">${bigLabel}</span></div>
+    <div style="padding:12px 16px; display:grid; gap:6px;">${body}</div></div>`;
+}
+const line2 = (a, b, c = "#fff") => `<div class="row" style="height:24px; font-size:13px; border-bottom:1px solid var(--line);"><span style="color:#c9d3ea;">${a}</span><b style="margin-left:auto; color:${c};">${b}</b></div>`;
+put("B-records", `
+  <div style="left:0; right:0; top:34px; display:flex; flex-direction:column; align-items:center; gap:6px;">${fancy("RECORDS", 56, "#ffcc59")}<span style="color:var(--muted); font-size:13px; font-weight:700;">Kept on this computer · practice and dev-tool runs don't count</span></div>
+  <div style="left:0; right:0; top:150px; display:flex; justify-content:center; gap:14px;">
+    ${recordCard(1, "Runs", "14", "1 won · 9 lost", "#9cc0ff", [["Best wave", "50"], ["Best score", "41,200"], ["Time played", "11 h 23 m"], ["Enemies killed", "6,812"], ["Damage dealt", "2.3 M"], ["Allies revived", "21"]].map(r => line2(...r)).join(""))}
+    ${recordCard(2, "Bosses", "11", "bosses beaten", "#ffcc59", BOSSES.map(([n, c]) => line2(n, "× " + c, "#4fd166")).join(""))}
+    ${recordCard(3, "Classes", "1", "class won with", "#ff9a4a", CLASSES.map(([icn, n, w, p]) => `<div class="row" style="gap:8px; height:30px; border-bottom:1px solid var(--line);">${ic(icn, 2)}<span style="font-size:13px; color:#c9d3ea;">${n}</span><b style="margin-left:auto; color:${w ? "#ffcc59" : "#fff"}; font-size:13px;">${w} of ${p}</b></div>`).join(""))}
+    ${recordCard(4, "Challenge rooms", "12", "of 17 won", "#73e6ff", ROOMS.map(([n, w, p, c]) => `<div class="col" style="gap:4px; padding:3px 0;"><div class="row" style="font-size:13px;"><span style="color:${c}; font-weight:800;">${n}</span><b style="margin-left:auto;">${w}/${p}</b></div><div class="bar4"><i style="width:${w / p * 100}%; background:${c};"></i></div></div>`).join(""))}
+  </div>
+  <div style="left:0; right:0; top:644px; display:flex; justify-content:center;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`);
+
+put("B-howto", `
+  <div style="left:0; right:0; top:30px; display:flex; flex-direction:column; align-items:center; gap:8px;">${fancy("HOW TO PLAY", 50, "#9cc0ff")}
+    <div class="row" style="gap:6px;">${TOPICS.map(t => `<span class="chip" style="font-size:12px; padding:6px 11px; ${t.open ? "background:#73e6ff; color:#06202a;" : "background:#1b2131; color:#9ea9c4;"}">${t.name}</span>`).join("")}</div></div>
+  <div style="left:0; right:0; top:150px; display:flex; justify-content:center; align-items:center; gap:18px;">
+    <div class="fbtn gray" style="width:48px; padding:0; justify-content:center; transform:scaleX(-1);">${ic("ui_arrow", 2)}</div>
+    ${[ROOM_TIPS[0], ROOM_TIPS[2], ROOM_TIPS[6]].map((t, i) => deckCard({ icon: t.icon, name: t.t, line: t.d, col: i === 1 ? "#ff9e4d" : i === 2 ? "#ffcc59" : "#73e6ff" }, i + 1, 290, 380, i === 0).replace(/<span class="key"[^>]*>\d<\/span>/, "")).join("")}
+    <div class="fbtn gray" style="width:48px; padding:0; justify-content:center;">${ic("ui_arrow", 2)}</div>
+  </div>
+  <div style="left:0; right:0; top:550px; display:flex; justify-content:center; gap:8px;">${[0, 1, 2].map(i => `<span style="width:${i === 0 ? 22 : 8}px; height:8px; border-radius:4px; background:${i === 0 ? "#73e6ff" : "#3a4258"};"></span>`).join("")}</div>
+  <div class="panel" style="left:90px; top:580px; width:1100px; height:56px; display:flex; align-items:center; justify-content:space-around; padding:0 10px;">${KEYS.map(([k, d]) => `<div class="row" style="gap:7px;">${keycap(k)}<span style="font-size:12px; color:#c9d3ea; font-weight:700;">${d}</span></div>`).join("")}</div>
+  <div style="left:0; right:0; top:652px; display:flex; justify-content:center;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 200, "height:44px;")}</div>`);
+
+// ===================== C: Side drawer =====================
+function drawer(title, c, rows, foot) {
+  return `<div class="in" style="--i:0; left:0; top:0; width:420px; height:720px; background:linear-gradient(90deg, #121726 80%, #121726ee); border-right:1px solid rgba(120,150,255,0.3); box-shadow:20px 0 60px rgba(0,0,0,0.5);"></div>
+    <div style="left:40px; top:40px;">${fancy(title, 44, c)}</div>
+    <div style="left:42px; top:94px; width:340px; height:2px; background:linear-gradient(90deg, ${c}, transparent);"></div>
+    <div style="left:28px; top:120px; width:364px; display:grid; gap:4px;">${rows}</div>${foot || ""}`;
+}
+function drawerRow(o, i, on) {
+  return `<div class="in row" style="--i:${i + 1}; position:relative; height:${o.tall ? 62 : 54}px; gap:14px; padding:0 14px; border-radius:10px; ${on ? `background:linear-gradient(90deg, ${o.col}40, transparent); box-shadow:inset 3px 0 0 ${o.col};` : ""}">
+    <div style="width:36px; display:grid; place-items:center;">${ic(o.icon, 2)}</div>
+    <div class="col" style="gap:2px;">${on ? fancy(o.name, 21, o.col) : `<span style="font-size:18px; font-weight:800; color:#c9d3ea;">${o.name}</span>`}${o.line && on ? `<span style="font-size:12px; color:var(--muted);">${o.line}</span>` : ""}</div>
+    ${o.badge || (o.key ? `<span class="key" style="margin-left:auto;">${o.key}</span>` : "")}</div>`;
+}
+put("C-pause", drawer("PAUSED", "#9cc0ff", MENU.map((m, i) => drawerRow({ ...m, tall: i === 0 }, i, i === 0)).join(""),
+  `<div style="left:40px; top:470px; width:340px;" class="col"><div class="sec">Players</div><div style="display:grid; gap:8px; margin-top:8px;">${PARTY.map(p => partyCard(p, 340)).join("")}</div></div>
+   <div style="left:40px; top:676px; font-size:12px; color:var(--muted);">↑ ↓ Enter · Esc to resume</div>`) + `
+  <div class="panel in brk" style="--i:3; --bc:#ffcc59; left:760px; top:60px; width:470px; padding:18px 20px;">
+    <div class="sec">This run</div>
+    <div class="row" style="gap:16px; margin:8px 0 12px;">${fancy("WAVE 12", 40, "#ffcc59")}<div class="col" style="font-size:13px; color:#c9d3ea; gap:3px;"><span>${RUN.time}</span><span>Score ${RUN.score}</span></div></div>
+    ${runChips()}
+    <div style="height:1px; background:var(--line); margin:14px 0;"></div>
+    <div class="row" style="gap:12px;">
+      <div class="hatch" style="width:64px; height:64px; border-radius:10px; background-color:rgba(255,204,89,0.12); display:grid; place-items:center;">${ic("ui_skull", 3)}</div>
+      <div class="col" style="gap:3px;"><span class="sec" style="font-size:10px;">Next boss · wave ${RUN.bossWave}</span>${fancy(RUN.boss, 22, "#ffd98a")}<span style="font-size:12px; color:var(--muted);">3 waves to go on the Frozen Lake</span></div></div>
+    <div class="row" style="gap:12px; margin-top:12px;">
+      <div class="hatch" style="width:64px; height:64px; border-radius:10px; background-color:rgba(115,230,255,0.12); display:grid; place-items:center;">${ic("blink", 3)}</div>
+      <div class="col" style="gap:3px;"><span class="sec" style="font-size:10px;">Challenge room · this stretch</span>${fancy(RUN.room + " ✓", 20, "#a6ebff")}<span style="font-size:12px; color:var(--muted);">Next portal after wave 16, 17 or 18</span></div></div>
+  </div>`);
+
+put("C-records", drawer("RECORDS", "#ffcc59", [
+  { icon: "ui_star", name: "Overview", col: "#ffcc59" }, { icon: "ui_skull", name: "Bosses", col: "#ffcc59", badge: `<b style="margin-left:auto; color:#4fd166;">11</b>` },
+  { icon: "class_knight", name: "Classes", col: "#ffcc59", badge: `<b style="margin-left:auto; color:#c9d3ea;">1 won</b>` },
+  { icon: "blink", name: "Challenge rooms", col: "#73e6ff", badge: `<span class="chip" style="margin-left:auto; background:#73e6ff; color:#06202a; padding:2px 7px;">NEW</span>` },
+  { icon: "ui_lock", name: "Unlocks", col: "#ffcc59" }].map((o, i) => drawerRow(o, i, i === 3)).join(""),
+  `<div style="left:40px; top:620px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`) + `
+  <div class="panel in" style="--i:2; left:470px; top:60px; width:770px; height:600px; padding:24px 26px;">
+    ${fancy("CHALLENGE ROOMS", 32, "#73e6ff")}
+    <div style="color:var(--muted); font-size:13px; margin:6px 0 18px;">12 of 17 won · 5 prizes taken as legendaries</div>
+    <div style="display:grid; gap:12px;">${ROOMS.map(([n, w, p, c]) => `<div class="row panel" style="height:74px; gap:16px; padding:0 16px; background:#11151f;">
+      <div class="hatch" style="width:52px; height:52px; border-radius:9px; background-color:${c}1f; display:grid; place-items:center;">${ic(ROOM_TIPS.find(t => t.t === n).icon, 3)}</div>
+      <div class="col" style="gap:6px; flex:1;"><div class="row">${fancy(n, 19, c)}<b style="margin-left:auto; font-size:18px;">${w} <span style="color:var(--muted); font-size:13px;">of ${p}</span></b></div>
+      <div class="bar4" style="height:7px;"><i style="width:${w / p * 100}%; background:linear-gradient(90deg, ${c}88, ${c});"></i></div></div></div>`).join("")}</div>
+  </div>`);
+
+put("C-howto", drawer("HOW TO PLAY", "#9cc0ff", TOPICS.map((t, i) => drawerRow({ icon: t.icon, name: t.name, col: "#73e6ff", badge: t.isNew ? `<span class="chip" style="margin-left:auto; background:#73e6ff; color:#06202a; padding:2px 7px;">NEW</span>` : "" }, i, t.open)).join(""),
+  `<div style="left:40px; top:620px;">${fbtn({ icon: "ui_back", name: "Back", key: "Esc", c: "blue" }, 220)}</div>`) + `
+  <div class="panel in" style="--i:2; left:470px; top:60px; width:770px; height:600px; padding:24px 26px;">
+    ${fancy("CHALLENGE ROOMS", 32, "#73e6ff")}
+    <div style="color:#c9d3ea; font-size:14px; margin:6px 0 14px; max-width:60ch; line-height:1.45;">Once every five waves a portal opens in the break. Everyone alive stands in it to go through. Win the room for a prize pick; lose it and you're simply sent back.</div>
+    <canvas id="C-diagram" width="718" height="250" style="border-radius:10px; background:#0b0d14; box-shadow:inset 0 0 0 1px var(--line);"></canvas>
+    <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px;">${ROOM_TIPS.slice(1, 6).map((t, i) => `<div class="panel" style="padding:10px; background:#11151f; height:120px; box-sizing:border-box;"><div class="row" style="gap:6px;">${ic(t.icon, 2)}<b style="font-size:12.5px; color:${ROOMS[i][3]};">${t.t}</b></div><div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.35;">${t.d}</div></div>`).join("")}</div>
+  </div>`);
+
+// The drawer's live diagram: the portal filling as two players walk in.
+(function () {
+  const cv = document.getElementById("C-diagram"), x = cv.getContext("2d"), W = cv.width, H = cv.height;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function frame(now) {
+    const t = reduce ? 2.2 : now / 1000, k = (t % 5) / 5;
+    x.clearRect(0, 0, W, H);
+    x.strokeStyle = "rgba(110,140,220,0.1)";
+    for (let i = 0; i < W; i += 30) { x.beginPath(); x.moveTo(i + 0.5, 0); x.lineTo(i + 0.5, H); x.stroke(); }
+    for (let j = 0; j < H; j += 30) { x.beginPath(); x.moveTo(0, j + 0.5); x.lineTo(W, j + 0.5); x.stroke(); }
+    const px = 470, py = 125, fill = Math.min(1, Math.max(0, (k - 0.35) / 0.45));
+    for (let i = 0; i < 6; i++) { x.beginPath(); x.arc(px, py, 12 + i * 8, t * (2.4 - 0.25 * i) + i, t * (2.4 - 0.25 * i) + i + 2.2); x.strokeStyle = `rgba(140,255,140,${0.85 - i * 0.1})`; x.lineWidth = 3 - i * 0.3; x.stroke(); }
+    x.beginPath(); x.arc(px, py, 64, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill); x.strokeStyle = "#8cff8c"; x.lineWidth = 5; x.stroke();
+    const walk = Math.min(1, k / 0.35);
+    [[150, 80, "#5a96ff"], [170, 180, "#ff9a4a"]].forEach(([sx, sy, c], i) => {
+      const ax = sx + (px - 20 + i * 40 - sx) * walk, ay = sy + (py - 10 + i * 20 - sy) * walk;
+      x.beginPath(); x.arc(ax, ay, 12, 0, Math.PI * 2); x.fillStyle = "#121827"; x.fill(); x.lineWidth = 3; x.strokeStyle = c; x.stroke();
+    });
+    x.font = "800 13px Arial"; x.fillStyle = "#c9d3ea"; x.fillText(fill >= 1 ? "Through you go!" : walk < 1 ? "A portal opens in the break" : "Everyone in: it fills", 24, 30);
+    if (!reduce) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+// Fancy lettering's outline copies, icons, switches, scaling.
+document.querySelectorAll(".fancy").forEach(n => { n.dataset.text = n.textContent; });
+document.querySelectorAll("[data-icon]").forEach(n => n.appendChild(iconCanvas(n.dataset.icon, +n.dataset.s)));
+document.querySelectorAll(".option").forEach(o => o.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  o.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  o.querySelectorAll(".screen").forEach(s => { s.hidden = s.dataset.s !== b.dataset.s; });
+})));
+function fit() { document.querySelectorAll(".screen-box").forEach(b => b.querySelectorAll(".screen").forEach(s => { s.style.transform = `scale(${b.clientWidth / 1280})`; })); }
+addEventListener("resize", fit); fit();
+</script>
