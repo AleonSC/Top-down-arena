@@ -141,7 +141,7 @@ namespace Arena
         static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
 
         /// Records, as the side drawer (MenuDrawer.cs).
-        void DrawRecords() => DrawRecordsWindow();
+        void DrawRecords() { if (!SkipWhileClosing) DrawRecordsWindow(); }
 
         // --- The lobby, continuing a run --------------------------------------------------------------
 

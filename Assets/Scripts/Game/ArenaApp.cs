@@ -204,7 +204,7 @@ namespace Arena
             UpdateMusic();
             UpdateLayout();
             TickEnding(Time.unscaledDeltaTime);  // the run ending: slow motion, then the results come in (RunEnding.cs)
-            StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (PauseGlitch.cs)
+            StepPauseAnim(Time.unscaledDeltaTime);  // the pause menu opening or closing (WindowAnim.cs)
             var me = game.Me;
             // If someone else resumes while our menu is open, close it.
             if (wasPaused && !game.Paused)
@@ -300,6 +300,7 @@ namespace Arena
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
+            TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
             hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud && !BossIntroHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);  // (a boss's entrance card hides it: Juice.cs)
             if (BossIntroHoldsHud)
@@ -347,11 +348,11 @@ namespace Arena
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to Settings
                 else if (settingsOpen)
-                    settingsOpen = false;  // back to the lobby or the main menu
+                    CloseWindow(() => settingsOpen = false);  // back to the lobby or the main menu, sliding out (WindowAnim.cs)
                 else if (howToOpen)
-                    howToOpen = false;
+                    CloseWindow(() => howToOpen = false);
                 else if (recordsOpen)
-                    recordsOpen = false;
+                    CloseWindow(() => recordsOpen = false);
             }
             if (session.Screen == AppScreen.Game)
             {
@@ -528,7 +529,7 @@ namespace Arena
                         DrawLobby();
                     if (settingsOpen)
                     {
-                        Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f));
+                        Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.75f * (fieldGuideOpen ? 1f : WindowVis)));  // (fading with the drawer, WindowAnim.cs)
                         if (fieldGuideOpen)
                             DrawFieldGuideScreen();  // FieldGuide.cs
                         else
@@ -549,7 +550,7 @@ namespace Arena
                         else if (runStatsOpen && PauseMenuWanted)
                             DrawRunStatsScreen(game.Me, true);  // RunStatsUi.cs
                         else
-                            DrawPauseMenu();  // with its opening and closing (PauseGlitch.cs)
+                            DrawPauseMenu();  // with its opening and closing (WindowAnim.cs)
                     }
                     break;
             }

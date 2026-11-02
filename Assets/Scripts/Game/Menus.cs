@@ -177,7 +177,7 @@ namespace Arena
         };
 
         /// How to play, as the side drawer (MenuDrawer.cs).
-        void DrawHowToPlay() => DrawHowToWindow();
+        void DrawHowToPlay() { if (!SkipWhileClosing) DrawHowToWindow(); }  // (a closing window takes no clicks, WindowAnim.cs)
 
         /// A keyboard key: a raised cap with its label. Returns its width.
         float KeyCap(float x, float y, string key)
@@ -316,10 +316,10 @@ namespace Arena
         }
 
         // The pause menu is the side drawer (DrawPauseWindow, MenuDrawer.cs): Resume, Run stats, Field guide, Settings,
-        // Leave game, the party, and the run's card. DrawPauseMenu (PauseGlitch.cs) draws it with its signal-glitch opening.
+        // Leave game, the party, and the run's card. DrawPauseMenu (WindowAnim.cs) slides it in and out.
 
         /// Settings (main menu, lobby; the pause menu's opens from its drawer), as the side drawer (MenuDrawer.cs).
-        void DrawSettings() => DrawSettingsWindow(false);
+        void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(false); }
 
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
         {

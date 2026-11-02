@@ -378,7 +378,7 @@ namespace Arena
             Set(Sfx.LaunchLand, lands, 0.08f);
             Set(Sfx.LaunchHud, Finish(Tone(0.25f, Osc.Sine, 380f, 760f, 0.12f, noise: 0.6f, lowpass: 0.35f, attack: 0.05f, decay: 2f), 0.2f), 0.3f);
 
-            // The pause menu's signal glitch (PauseGlitch.cs): a stuttering digital tear (chopped square chirps and static),
+            // The pause menu (WindowAnim.cs; it now uses the settle and the close; the tear and ticks were its old glitch opening's): a stuttering digital tear (chopped square chirps and static),
             // a key tick for each letter of PAUSED (three pitches, played in turn), a low CRT thunk as the panel settles,
             // and the tear backwards, short, as it closes.
             float[] silence = Tone(0.012f, Osc.Sine, 100f, 100f, 0f);

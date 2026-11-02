@@ -633,6 +633,7 @@ class Shot {
       set("pauseMenuOpen", true);
       if (Environment.GetEnvironmentVariable("PAUSESET") != null) { set("pauseSettings", true); set("settingsGroup", int.Parse(Environment.GetEnvironmentVariable("PAUSESET"))); set("drawerKey", "pause-settings"); }
       set("pauseAnim", float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1"));
+      host.Screen = Environment.GetEnvironmentVariable("PAUSECLOSE") != null ? AppScreen.Menu : AppScreen.Game;  // in a match (PAUSECLOSE: closing, at PAUSEANIM)
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
       GL.ToUi = false;
@@ -754,6 +755,9 @@ class Shot {
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
       if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("howToTopic", sec); }
       set("drawerKey", mode == "howto" ? "howto" : mode); set("drawerAt", -10f);
+      // WINT=<s>: that far into the window's opening; WINCLOSE=0..1: that far through closing (WindowAnim.cs).
+      if (Environment.GetEnvironmentVariable("WINT") != null) set("winOpenAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("WINT"), System.Globalization.CultureInfo.InvariantCulture));
+      if (Environment.GetEnvironmentVariable("WINCLOSE") != null) { set("winClosingAt", 0f); set("winCloseK", float.Parse(Environment.GetEnvironmentVariable("WINCLOSE"), System.Globalization.CultureInfo.InvariantCulture)); }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }

@@ -34,8 +34,6 @@ namespace Arena
                 DrawMenuBackground(Time.time);
             GL.End();
             GL.PopMatrix();
-            if (game.Running)
-                GrabPauseFrame();  // the frozen frame for the pause menu's glitch (PauseGlitch.cs)
         }
 
         void DrawWorld()
@@ -2350,7 +2348,7 @@ namespace Arena
         }
 
         /// A point on the UI canvas (or, while the world is drawn, in the arena) in screen pixels.
-        Vector3 CanvasPx(V2 u) => new Vector3(offX + u.X * drawScale, UnityEngine.Screen.height - (offY + u.Y * drawScale), 0f);
+        Vector3 CanvasPx(V2 u) => new Vector3(offX + (u.X + uiShift.X) * drawScale, UnityEngine.Screen.height - (offY + (u.Y + uiShift.Y) * drawScale), 0f);  // (uiShift: a menu panel sliding, WindowAnim.cs)
 
         /// Start drawing game models (GL) on top of the menus, in UI canvas coordinates. IMGUI draws in order
         /// on Repaint, so models land above the panels drawn before and below those drawn after. Returns

@@ -8,7 +8,7 @@ namespace Arena
     /// and How to play. A tall drawer on the left holds the title and a vertical list (the pause menu's choices, or the
     /// window's sections) with your party or quick switches under it; the open section fills a panel on the right.
     /// The pause menu leaves the frozen arena in view, with a "this run" card over it. Opening a window slides the
-    /// drawer in (the pause menu keeps its signal-glitch opening instead, PauseGlitch.cs).
+    /// drawer in, its rows following one after another, and closing slides it out (WindowAnim.cs).
     public partial class ArenaApp
     {
         const float DrawerW = 420f;
@@ -23,32 +23,45 @@ namespace Arena
         string drawerKey;        // which window the drawer last slid in for
         float drawerAt = -10f;
 
-        /// 0..1: the drawer sliding in, each time a different window opens.
-        float DrawerIn(string key, bool slide)
+        /// A window is drawn: when it's a different one, it opens (its clock starts; the pause menu runs its own,
+        /// WindowAnim.cs). Returns 1 (kept for the callers' panel fades, which WindowAnim now does).
+        float DrawerIn(string key, bool opens)
         {
             if (key != drawerKey)
             {
                 drawerKey = key;
                 drawerAt = Time.unscaledTime;
+                if (opens)
+                    winOpenAt = drawerAt;
+                listKey = panelKey = null;
             }
-            return slide ? EaseOut(Mathf.Clamp01((Time.unscaledTime - drawerAt) / 0.28f)) : 1f;
+            return 1f;
         }
 
         /// The drawer's box and title; what follows is drawn in drawer coordinates until EndDrawer.
         void BeginDrawer(string title, Color accent, float k, string sub = null)
         {
-            float dx = -(1f - k) * (DrawerW + 30f);
+            float dx = DrawerSlide;  // in from the left as the window opens, out as it closes (WindowAnim.cs)
+            NoteList(title);
+            rowIndex = 0;
             GUI.BeginGroup(new Rect(dx, 0f, DrawerW + 30f, H));
             for (int i = 0; i < 6; i++)  // its shadow on the arena
                 Ui.Fill(new Rect(DrawerW + i * 4f, 0f, 4f, H), new Color(0f, 0f, 0f, 0.22f * (1f - i / 6f)));
             Ui.Fill(new Rect(0f, 0f, DrawerW, H), new Color(0.07f, 0.085f, 0.14f, 0.97f));
             Ui.Fill(new Rect(DrawerW - 1f, 0f, 1f, H), new Color(0.47f, 0.59f, 1f, 0.3f));
-            Ui.Fancy(new Rect(40f, 30f, DrawerW - 60f, 60f), title, 44, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft,
+            float ti = TitleIn;  // a new list's title rises in
+            var oc = GUI.color;
+            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * ti);
+            Ui.Alpha = ti;
+            Ui.Fancy(new Rect(40f, 30f + 14f * (1f - ti), DrawerW - 60f, 60f), title, 44, Color.white, Color.Lerp(accent, Color.white, 0.35f), TextAnchor.MiddleLeft,
                 new Color(accent.r, accent.g, accent.b, 0.5f));
-            for (int i = 0; i < 12; i++)  // the line under it, fading out to the right
-                Ui.Fill(new Rect(42f + i * 28f, 92f, 28f, 2f), new Color(accent.r, accent.g, accent.b, 0.9f * (1f - i / 12f)));
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(new Rect(42f, 98f, DrawerW - 60f, 18f), sub, 12, Ui.Muted);
+            Ui.Alpha = 1f;
+            GUI.color = oc;
+            int segs = Mathf.RoundToInt(12f * UnderlineIn);  // the line under it, drawing across and fading out to the right
+            for (int i = 0; i < segs; i++)
+                Ui.Fill(new Rect(42f + i * 28f, 92f, 28f, 2f), new Color(accent.r, accent.g, accent.b, 0.9f * (1f - i / 12f)));
         }
 
         void EndDrawer() => GUI.EndGroup();
@@ -56,6 +69,21 @@ namespace Arena
         /// A row in the drawer: an icon, the name (big and lit when it's the open one, with a line under it), and a key
         /// or a tag on the right. Returns true when clicked.
         bool DrawerRow(Rect r, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor = null)
+        {
+            var anim = NextRowAnim();  // one after another as the list arrives (WindowAnim.cs)
+            if (anim.y <= 0.001f)
+                return false;
+            var oc = GUI.color;
+            GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * anim.y);
+            Ui.Alpha = anim.y;
+            r.x += anim.x;
+            bool clicked = DrawRowBody(r, icon, name, line, key, tag, col, on, tagColor);
+            Ui.Alpha = 1f;
+            GUI.color = oc;
+            return clicked;
+        }
+
+        bool DrawRowBody(Rect r, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor)
         {
             bool hover = r.Contains(Event.current.mousePosition);
             if (on)
@@ -172,7 +200,7 @@ namespace Arena
                 sub = "Pausing…";
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
-            BeginDrawer(pausedTitle, Ui.Accent, 1f, sub);
+            BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
             Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.45f, 0.5f) };
             string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_gear", "ui_power" };
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade",
@@ -192,7 +220,11 @@ namespace Arena
                 pauseMouse = Event.current.mousePosition;
             // The party.
             var players = new List<Player>(game.Players.Values);
-            float cardH = players.Count > 2 ? 62f : 72f, py = H - 26f - players.Count * (cardH + 8f);
+            var rise = PartyAnim;  // the party rises in (WindowAnim.cs)
+            var pc = GUI.color;
+            GUI.color = new Color(pc.r, pc.g, pc.b, pc.a * rise.y);
+            Ui.Alpha = rise.y;
+            float cardH = players.Count > 2 ? 62f : 72f, py = H - 26f - players.Count * (cardH + 8f) + rise.x;
             Ui.Label(new Rect(42f, py - 22f, 200f, 16f), "PLAYERS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             foreach (var p in players)
             {
@@ -200,8 +232,12 @@ namespace Arena
                 py += cardH + 8f;
             }
             Ui.Label(new Rect(42f, H - 22f, DrawerW - 60f, 16f), "↑ ↓  Enter  ·  Esc to resume", 11, Ui.Muted);
+            Ui.Alpha = 1f;
+            GUI.color = pc;
             EndDrawer();
+            BeginPanelAnim("runcard", true);  // it drops in with a bounce (WindowAnim.cs)
             DrawRunCard(new Rect(W - 500f, 54f, 450f, 0f), t);
+            EndPanelAnim();
         }
 
         /// ↑ ↓ to move through the pause menu, Enter to choose.
@@ -400,11 +436,12 @@ namespace Arena
                 if (paused)
                     pauseSettings = false;
                 else
-                    settingsOpen = false;
+                    CloseWindow(() => settingsOpen = false);  // it slides out first (WindowAnim.cs)
             }
             EndDrawer();
 
             var col = cols[settingsGroup];
+            BeginPanelAnim("settings" + settingsGroup);
             switch (settingsGroup)
             {
                 case 0:
@@ -446,6 +483,7 @@ namespace Arena
                     break;
                 }
             }
+            EndPanelAnim();
         }
 
         /// Visual effects: a live preview, then the switches and the screen shake choice.
@@ -570,8 +608,16 @@ namespace Arena
                 y += r.height + 4f;
             }
             if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
-                recordsOpen = false;
+                CloseWindow(() => recordsOpen = false);
             EndDrawer();
+            BeginPanelAnim("records" + recordsSection);
+            DrawRecordsSection(p, t, bossesBeaten, roomsWon, cols);
+            EndPanelAnim();
+        }
+
+        void DrawRecordsSection(Profile p, float t, int bossesBeaten, int roomsWon, Color[] cols)
+        {
+            float k = 1f;
 
             var col = cols[recordsSection];
             float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f;
@@ -728,7 +774,7 @@ namespace Arena
         void DrawHowToWindow()
         {
             float t = Time.unscaledTime;
-            DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => howToOpen = false);
+            DrawHowToContent(DrawerIn("howto", true), t, "Back  [Esc]", () => CloseWindow(() => howToOpen = false));
         }
 
         /// How to play (in Settings, or on its own): its topics in the drawer with the Field guide under them, the open
@@ -755,6 +801,13 @@ namespace Arena
             EndDrawer();
 
             var topic = HowToTopics[howToTopic];
+            BeginPanelAnim("howto" + howToTopic);  // (WindowAnim.cs)
+            DrawHowToTopic(topic, t, k);
+            EndPanelAnim();
+        }
+
+        void DrawHowToTopic(HowTo topic, float t, float k)
+        {
             OpenSectionPanel(topic.Name.ToUpperInvariant(), topic.Color, topic.Intro, k);
             float x = DrawerPanel.x + 26f, w = DrawerPanel.width - 52f, top = DrawerPanel.y + 110f;
             if (topic.Keys)

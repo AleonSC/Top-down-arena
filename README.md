@@ -781,9 +781,13 @@ everyone the run's numbers about once a second, and again the moment the game pa
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The menu arrives with a **signal glitch**: the frozen screen tears for a moment, scanlines roll in, the panel flickers on and PAUSED types itself out (with Reduced effects or Visual effects off, a quick fade). The pause menu, **Settings**, **Records** and **How to play**
+sees who paused) and either player can resume. The pause menu, **Settings**, **Records** and **How to play**
 share one look, a **side drawer**: a tall panel on the left with the title and a list, and the open section in a panel
-on the right (the drawer slides in when a window opens; the pause menu has its glitch instead).
+on the right. Every one of them moves the same way: opening, the drawer **slides in** from the left, its rows follow
+one after another, the line under the title draws across, your party rises and the run card (or the open section)
+drops in with a small bounce; a new list in the drawer (the pause menu's Settings, How to play) comes in from the
+right, and a new section's panel slides in; closing slides the drawer back out (Back or Esc), and only then does the
+window really close. That goes for the pause menu and for Settings from the lobby or the main menu alike.
 
 - **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together),
   **Field guide**, **Settings** and **Leave game**, chosen with the mouse or ↑ ↓ and Enter, with your party as small
