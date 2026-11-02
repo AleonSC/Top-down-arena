@@ -50,6 +50,7 @@ namespace Arena
         public int Step, Plant = -1, GatesSent, DoorsOpened;
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
         public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
+        public float StunShotAt;         // the last stand: when its next stun round fires (TurnT)
         public float GateSide = -1f;     // which edge this cross turn's gates all come from (+1 the top, -1 the bottom; flipped as each starts, so the first is the top)
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
@@ -58,6 +59,14 @@ namespace Arena
     {
         // Health at which each stage starts.
         const float LockdownAt = 0.65f, RiotAt = 0.3f, LastStandAt = 0.1f;
+
+        // The last stand, in the middle: a pause (red lanes show where the next burst goes, and an orb ring goes out as it
+        // starts), then a long "+" burst of straight streams; each burst turns 45 degrees from the last (+, x, +, ...).
+        // Every LastStandStunEvery seconds, a stun round at you (much slower than the searchlight turn's StunEvery).
+        public const float LastStandGap = 1f, LastStandBurst = 2.2f, LastStandCycle = LastStandGap + LastStandBurst, LastStandStunEvery = 3f;
+
+        /// Which way the last stand's current (or next) burst faces: 0 for "+", 45 degrees for "x".
+        public static float LastStandFacing(float turnT) => ((int)(turnT / LastStandCycle) % 2) * MathX.Pi / 4f;
         const float WardenTransTime = 2f;
         // Its own light: led across the Warden for ExposeHold seconds, it's blinded for ExposeTime (stops firing,
         // takes ExposedMult damage); then the light has to be on it afresh, after ExposeCooldown.
@@ -310,7 +319,6 @@ namespace Arena
                     }
                     break;
                 case WardenTurn.LastStand:
-                    w.RingT -= dt;
                     // The alarm: its searchlight hunts you through the dark (it can't catch you now), and can still
                     // be led across it.
                     if (target != null && !target.Downed)
@@ -401,6 +409,7 @@ namespace Arena
             w.TurnT = 0f;
             w.Dashing = false;
             w.Plant = -1;
+            w.StunShotAt = 1.5f;  // the last stand's first stun round
             w.GatesSent = 0;
             w.DoorsOpened = 0;
             w.GuardsCalled = false;
@@ -509,20 +518,29 @@ namespace Arena
                         SpawnBullet(Defs.SmallShot, e.Pos, V2.FromAngle(w.Aux - MathX.Pi / 2f) * 90f, 0f, 8f, Defs.BulletDamage(Defs.SmallShot), 0, true).Source = e.Type;
                     }
                     break;
-                case WardenTurn.LastStand:  // in the middle: the spiral, plus an orb ring every 1.2 s
-                    e.FireT = 0.08f;
+                case WardenTurn.LastStand:  // in the middle: long "+" bursts turning 45 degrees each time, a ring per pause, stun rounds
+                {
+                    e.FireT = 0.075f;
                     if (e.Pos.DistanceTo(new V2(Width / 2f, Height / 2f)) > 8f)
                         break;
-                    e.Ang += 0.19f;
-                    for (int k = 0; k < 4; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
-                    if (w.RingT <= 0f)
+                    int cycle = (int)(w.TurnT / LastStandCycle);
+                    float into = w.TurnT - cycle * LastStandCycle, facing = LastStandFacing(w.TurnT);
+                    if (cycle != w.Plant)  // a pause begins: one orb ring
                     {
-                        w.RingT = 1.2f;
+                        w.Plant = cycle;
                         for (int i = 0; i < 26; i++)
-                            EnemyShot(e, e.Ang * 0.5f + MathX.Tau * i / 26f, 110f, Defs.BigShot);
+                            EnemyShot(e, facing + MathX.Pi / 4f + MathX.Tau * i / 26f, 110f, Defs.BigShot);
+                    }
+                    if (into >= LastStandGap)  // the burst: straight streams along its four faces
+                        for (int k = 0; k < 4; k++)
+                            EnemyShot(e, facing + MathX.Pi / 2f * k, 240f, Defs.SmallShot);
+                    if (w.TurnT >= w.StunShotAt)  // a stun round at you (parry it perfectly to stun it back)
+                    {
+                        w.StunShotAt = w.TurnT + LastStandStunEvery;
+                        EnemyShot(e, aim, StunShotSpeed, Defs.StunShot);
                     }
                     break;
+                }
                 default:  // a breather
                     e.FireT = 0.1f;
                     break;

@@ -263,8 +263,22 @@ namespace Arena
                     }
                     break;
                 case WardenTurn.LastStand:
+                {
                     Arc(pos, r + 10f + 3f * Mathf.Sin(t * 14f), 3f, new Rgba(1f, 0.4f, 0.2f, 0.8f), 32);
+                    // The pause before each burst: four red lanes where its streams will go, brightening until they fire.
+                    float into = MathX.Fmod(w.TurnT, Game.LastStandCycle), facing = Game.LastStandFacing(w.TurnT);
+                    if (into < Game.LastStandGap && w.StunT <= 0f && w.ExposedT <= 0f)
+                    {
+                        float k = into / Game.LastStandGap;
+                        for (int i = 0; i < 4; i++)
+                        {
+                            V2 d = V2.FromAngle(facing + MathX.Pi / 2f * i);
+                            Line(pos + d * (r + 4f), pos + d * (r + 520f), 14f, new Rgba(1f, 0.15f, 0.12f, 0.06f + 0.12f * k));
+                            Line(pos + d * (r + 4f), pos + d * (r + 520f), 2f + 2f * k, new Rgba(1f, 0.2f, 0.15f, 0.2f + 0.5f * k));
+                        }
+                    }
                     break;
+                }
             }
         }
 
