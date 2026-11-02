@@ -290,7 +290,18 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "Settings", "Leave game" };
+        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "Settings", "Leave to lobby", "Leave game" };
+        const int PauseToLobby = 4;  // the host only: everyone back to the lobby
+
+        /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).
+        List<int> PauseRows()
+        {
+            var rows = new List<int>();
+            for (int i = 0; i < PauseChoices.Length; i++)
+                if (i != PauseToLobby || session.IsHost && !LabRunning)
+                    rows.Add(i);
+            return rows;
+        }
 
         /// The pause menu (DrawPauseMenu applies its opening): the drawer of choices and your party, and the run's card.
         void DrawPauseWindow()
@@ -312,17 +323,22 @@ namespace Arena
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_gear", "ui_power" };
+            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_gear", "ui_back", "ui_power" };
+            bool saved = session.IsHost && game.RunId != null;
             string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade",
-                "Audio, visual effects, aim line", session.IsHost && game.RunId != null ? "Saved as each wave starts: continue from the menu" : "Back to the main menu" };
+                "Audio, visual effects, aim line", (game.Players.Count > 1 ? "Everyone back to the lobby" : "Back to the lobby") + (saved ? ": the run stays saved" : ""),
+                saved ? "Saved as each wave starts: continue from the menu" : "Back to the main menu" };
+            var rows = PauseRows();
+            pauseSel = Mathf.Clamp(pauseSel, 0, rows.Count - 1);
             float y = 128f;
-            for (int i = 0; i < PauseChoices.Length; i++)
+            for (int k = 0; k < rows.Count; k++)
             {
-                bool on = i == pauseSel;
+                int i = rows[k];
+                bool on = k == pauseSel;
                 var r = new Rect(28f, y, DrawerW - 56f, on ? 62f : 52f);
                 if (r.Contains(Event.current.mousePosition) && Event.current.type == EventType.Repaint && Event.current.mousePosition != pauseMouse)
-                    pauseSel = i;  // the mouse moved onto it (the keys move it otherwise)
+                    pauseSel = k;  // the mouse moved onto it (the keys move it otherwise)
                 if (DrawerRow(r, PixelArt.Get(icons[i]), PauseChoices[i], lines[i], i == 0 ? "Esc" : null, null, cols[i], on))
                     PauseChoose(i);
                 y += r.height + 4f;
@@ -341,12 +357,13 @@ namespace Arena
             var e = Event.current;
             if (e.type != EventType.KeyDown || GUIUtility.keyboardControl != 0)
                 return;
+            int n = PauseRows().Count;
             if (e.keyCode == KeyCode.UpArrow || e.keyCode == KeyCode.W)
-                pauseSel = (pauseSel + PauseChoices.Length - 1) % PauseChoices.Length;
+                pauseSel = (pauseSel + n - 1) % n;
             else if (e.keyCode == KeyCode.DownArrow || e.keyCode == KeyCode.S)
-                pauseSel = (pauseSel + 1) % PauseChoices.Length;
+                pauseSel = (pauseSel + 1) % n;
             else if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                PauseChoose(pauseSel);
+                PauseChoose(PauseRows()[Mathf.Clamp(pauseSel, 0, n - 1)]);
             else
                 return;
             e.Use();
@@ -360,6 +377,13 @@ namespace Arena
                 case 1: runStatsOpen = true; break;
                 case 2: OpenFieldGuide(); break;
                 case 3: pauseSettings = true; break;
+                case PauseToLobby:
+                    if (!session.IsHost)
+                        break;
+                    pauseMenuOpen = false;
+                    pauseSettings = false;
+                    session.ReturnToLobby();  // everyone back to the lobby; the run's save stays (it's kept at each wave's start)
+                    break;
                 default:
                     pauseMenuOpen = false;
                     session.Leave("");
