@@ -552,6 +552,33 @@ wave, everyone gets a shop before the boss:
   last player is done). After a minute the host can close it for everyone. When it closes, each player's leftover
   gold becomes their own XP (1 gold = 1 XP).
 
+## Challenge rooms
+
+Once in every five waves a **portal** swirls open during the break: after the 1st, 2nd or 3rd wave of each stretch
+(in the first stretch after wave 2 or 3), so never right before a boss. A card over it names the challenge on the
+other side. Everyone alive stands in it to go through: it fills faster the more of you are in it, but only goes
+when you all are. The break's countdown waits while it's open; ignore it for 15 s (counting only while nobody's
+choosing cards) and it closes, and the run carries on as usual.
+
+Through the portal is a **challenge room**: the same arena with its own ground (a tint in the challenge's colour, a
+rune circle, glyphs round the walls). A title card names the challenge and what it takes, and 3 s later it starts,
+with an objective plate at the top of the screen:
+
+| Challenge | Goal |
+|---|---|
+| **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Two in three enemies go for it (their shots and bodies wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
+| **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has half the Warden's health at your wave. |
+| **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
+| **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |
+| **Mirror Match** | A shadow of each player: their class and weapon in dark violet. Each hunts its own player, keeps the distance their weapon wants, sidesteps every few seconds and fires their way (a fan as wide as their extra shots, or a slash up close). Each has 30% of the Warden's health. |
+
+**Win** and the room's enemies vanish and an **altar** rises in the middle: touch it (or wait 12 s) and everyone gets
+a **Challenge prize** pick: three cards, each rare or very rare (no rerolls), and a 1 in 4 chance of a legendary
+pick too. **Lose** (the crystal breaks, the clock runs out, or everyone goes down) and you're simply sent back:
+it's safe to fail, the downed get back up at 30% health and nothing else is lost. Either way the break then starts
+over. The room's two enemies are in the Field guide under **Challenge rooms**. Developer tools (F1, Match) can take
+everyone straight into any of the five.
+
 ## Run modifiers
 
 The lobby's **Modifiers** tab lists 16 switches (four to a row) that change the whole run, for everyone (Practice Range too). The
@@ -854,6 +881,7 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   the field, bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and
   immunity. It doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while
   you're standing on one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once.
+  **Challenge rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
@@ -975,6 +1003,7 @@ that level up and pick upgrades at random, and prints how long each boss survive
   - `Approaches.cs` / `ApproachUi.cs`: boss approaches: each boss's faction, the themed share of a wave, building it into the wave; the chip and banner
   - `WardenFaction.cs`: the Warden's faction: the Riot Shield (shield, bash and knockback) and the Gas Grenadier
   - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
+  - `Challenges.cs` / `ChallengeLook.cs`: challenge rooms (the portal, the five challenges, the Gatekeeper and shadows, the altar's prize; their looks and HUD)
   - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
   - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
   - `Variety.cs` / `VarietyLook.cs`: the second half's enemies (Beam Sentry, Scorcher, Reaver, Warder), the shooting-pattern enemies (Pauser, Leader, Stitcher), elite traits and squads, and how they look

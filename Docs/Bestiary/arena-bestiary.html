@@ -518,6 +518,21 @@ const E = [
   { id: "CageWell", label: "Cage Well", cat: "Summons", summon: true, hp: 40, r: 11, speed: 0, sides: 6, col: rgb(0.85, 0.4, 1), xp: 2, score: 5, wave: 20, melee: true,
     appears: "The Singularity's Cage attack, in Accretion (3 per player)", lead: "Three of these orbit each player on a shrinking ring. The ring hurts to touch; shooting all three breaks it.",
     attacks: [{ name: "Cage wall", pattern: "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", dmg: w => (14 * dmgGrow(w)).toFixed(1), dmgLabel: "14, +3% a wave (Normal)", every: null }] },
+
+  // Challenge rooms (a portal opens once every five waves)
+  { id: "Gatekeeper", label: "The Gatekeeper", cat: "Challenge rooms", share: 0.5, hp: 3000, r: 34, speed: 55, sides: 8, col: rgb(1, 0.62, 0.3), xp: 80, score: 150, wave: 2,
+    appears: "Challenge rooms: The Gatekeeper, a mini-boss duel", lead: "A bronze mini-boss in turning gate bars, with a boss bar of its own. It keeps about 260 px from you, strafing, and takes its three attacks in turn about every 2.3 s. Its health is half the Warden's at your wave (so it grows like a boss's, more against a strong party). Below half health it attacks a third faster.",
+    attacks: [
+      { name: "Gate ring", pattern: "A ring of 24 big orbs with a gap of 4, somewhere new each time; below half health a second ring follows 0.55 s later", kind: "big", n: 20, speed: 150, every: 7 },
+      { name: "Fans", pattern: "3 aimed fans of 5 shots, 9° apart, 0.32 s between fans (4 fans below half health)", kind: "fast", n: 5, speed: 260, every: 7 },
+      { name: "Charge", pattern: "A red line shows for 0.9 s, then it charges 324 px along it and bursts into a ring of 14 (18 below half health)", kind: "small", n: 14, speed: 190, every: 7 }],
+    notes: ["Step off the charge's line while it shows; slip through the ring's gap."] },
+  { id: "Shadow", cat: "Challenge rooms", share: 0.3, hp: 1800, r: 16, speed: 190, sides: 6, col: rgb(0.62, 0.4, 1), xp: 40, score: 60, wave: 2,
+    appears: "Challenge rooms: Mirror Match, one for each player", lead: "A dark violet copy of one player, drawn with their class and weapon. It hunts its own player, keeping the distance their weapon wants (in close with a melee weapon, about 300 px otherwise), and sidesteps 130 px every 2–4 s. Each has 30% of the Warden's health at your wave (growing like a boss's, more against a strong party).",
+    attacks: [
+      { name: "Volley", pattern: "With a ranged weapon: 1 aimed shot, +1 for each extra-shot or Barrage upgrade its player has (up to 5), 8° apart, every 2.5× its player's fire interval (0.6–1.6 s)", kind: "fast", n: 1, speed: 300, every: 1 },
+      { name: "Slash", pattern: "With a melee weapon: 7 short-lived shots across 69°, only within 130 px", kind: "small", n: 7, speed: 380, every: 0.95 }],
+    notes: ["Beat your own shadow, or help a friend with theirs: a shadow only goes for someone else when its player is down."] },
 ];
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
@@ -528,6 +543,7 @@ const dmgGrow = w => 1 + 0.03 * (Math.max(1, w) - 1);
 const BOSS_HP = { Warden: 2.5, HiveQueen: 2.5, Twins: 1.2, Singularity: 3, Colossus: 2.3, Duelist: 2.8, Lich: 3.2, StormHerald: 3.5, Devourer: 2, Eclipse: 5.5 };  // BossHpMult (Balance.cs)
 const partyScale = (n, boss) => n <= 1 ? 0.85 : n === 2 ? 1 : boss ? 1.5 : 1.2;
 const maxHp = (d, wave, party, elite) => {
+  if (d.share) return maxHp(BY.Warden, wave, party, false) * d.share;  // a challenge room's: a share of the Warden's (Challenges.cs)
   let hp = d.hp * (1 + 0.15 * (wave - 1)) * partyScale(party, !!d.boss);
   if (d.boss) hp *= BOSS_HP[d.id] || 2.5;  // BossHpMult (Balance.cs)
   if (d.boss && wave > 20) hp *= 1 + 0.1 * (wave - 20);
@@ -1651,6 +1667,11 @@ function move(e, dt) {
     case "Shielder": v = kd(200, 0); break;
     case "Medic": v = kd(360, 0.5); break;
     case "Splitter": v = kd(220, 0); break;
+    case "Gatekeeper":
+      if (e.phase === 0) v = kd(260, 0.5);
+      else if (e.phase === 2) { v = [Math.cos(e.facing), Math.sin(e.facing)]; speed = 720; }
+      break;
+    case "Shadow": v = kd(300, 0.8); break;
     case "Charger":
       if (e.phase === 0) v = kd(300, 0.5);
       else if (e.phase === 2) { v = [Math.cos(e.facing), Math.sin(e.facing)]; speed = 560; }
@@ -1767,7 +1788,7 @@ function move(e, dt) {
 
 function face(e, dt) {
   const want = ang(e, world.player);
-  if (e.type === "Charger" && e.phase !== 0) return;
+  if ((e.type === "Charger" || e.type === "Gatekeeper") && e.phase !== 0) return;
   if (e.type === "Lunger" && e.phase >= 2) return;
   if (e.type === "HiveBomber" || e.type === "Singularity") return;  // its facing is the laser sweep
   if (e.type === "Devourer" && e.dv) return;  // devourTick turns it (the Maw slowly)
@@ -1843,6 +1864,22 @@ function special(e, dt) {
       else if (e.phase === 3 && e.phaseT <= 0) { e.phase = 0; e.phaseT = rnd(0.8, 1.6); }
       break;
     }
+    case "Gatekeeper":  // its charge, its fans, as in Challenges.cs
+      if (e.phase === 0) break;
+      e.phaseT -= dt; if (e.phaseT > 0) break;
+      if (e.phase === 1) { e.phase = 2; e.phaseT = 0.45; }
+      else if (e.phase === 2) { e.phase = 0; e.fireT = 2.1; for (let i = 0; i < 14; i++) shot(e, e.facing + TAU * i / 14, 190, "small"); addFx("ring", e.x, e.y, e.d.col, 120, 0.4); }
+      else { shotFan(e); if (--e.fans > 0) e.phaseT = 0.32; else { e.phase = 0; e.fireT = 2.2; } }
+      break;
+    case "Shadow":
+      e.phaseT -= dt;
+      if (e.phaseT <= 0) {  // a sidestep
+        e.phaseT = rnd(2.2, 3.8);
+        const a = ang(e, p) + (Math.random() < 0.5 ? -1 : 1) * Math.PI / 2;
+        addFx("ring", e.x, e.y, e.d.col, 30, 0.3);
+        e.x = clamp(e.x + Math.cos(a) * 130, e.r, W - e.r); e.y = clamp(e.y + Math.sin(a) * 130, e.r, H - e.r);
+      }
+      break;
     case "Charger":
       if (e.phase === 0) break;
       e.phaseT -= dt; if (e.phaseT > 0) break;
@@ -1944,6 +1981,8 @@ function special(e, dt) {
 
 function decoy(x, y) { const d = spawn("Decoy", x, y, 0, 0); d.phaseT = 5; d.fireT = 99; }
 
+function shotFan(e) { const a = ang(e, world.player); for (let i = 0; i < 5; i++) shot(e, a + (i - 2) * 0.16, 260, "fast"); }
+
 function fire(e) {
   const p = world.player, aim = ang(e, p);
   const d = e.d;
@@ -2028,6 +2067,14 @@ function fire(e) {
       break;
     }
     case "Phantom": e.fireT = 1.5; shot(e, aim - 0.05, 200, "small"); shot(e, aim + 0.05, 200, "small"); break;
+    case "Gatekeeper": {  // its three attacks in turn: the gate ring, three fans, the charge
+      const k = (e.cycle = (e.cycle || 0) + 1) % 3;
+      if (k === 1) { const n = 24, gap = Math.floor(Math.random() * n); for (let i = 0; i < n; i++) if ((i - gap + n) % n >= 4) shot(e, TAU * i / n, 150, "big"); e.fireT = 2.4; }
+      else if (k === 2) { e.phase = 3; e.fans = 3; e.phaseT = 0; e.fireT = 99; }
+      else { e.phase = 1; e.phaseT = 0.9; e.facing = aim; e.fireT = 99; }
+      break;
+    }
+    case "Shadow": e.fireT = 1; shot(e, aim, 300, "fast"); break;
     case "BeamSentry": case "Reaver": e.fireT = 99; break;  // their beam and rake come from varietyTick
     case "Scorcher": e.fireT = 2.5; shot(e, aim - 0.1, 170, "small"); shot(e, aim + 0.1, 170, "small"); break;
     case "Warder": e.fireT = 3; shot(e, aim - 0.2, 120, "big"); shot(e, aim + 0.2, 120, "big"); break;
@@ -2362,6 +2409,7 @@ function drawArena() {
   if (S.tele) for (const e of world.enemies) {
     if (e.spawnT > 0) continue;
     if (e.type === "Charger" && e.phase === 1) line(e.x, e.y, e.facing, 260, rgb(0.3, 0.9, 0.9), 0.5);
+    if (e.type === "Gatekeeper" && e.phase === 1) line(e.x, e.y, e.facing, 360, rgb(1, 0.35, 0.25), 0.7);
     if (e.type === "Lunger" && e.phase === 1) line(e.x, e.y, e.facing, 205, rgb(0.95, 0.35, 0.65), 0.55);
     if (e.type === "Warden" && e.w && e.w.trans <= 0 && e.w.turn === "Cross" && !e.w.dashing) for (let k = 0; k < 4; k++) {
       const a = Math.PI / 2 * k;
@@ -2582,6 +2630,7 @@ function statusLine() {
     }
     case "Spinner": return e.phase === 1 ? "Bursting" : "Resting";
     case "Charger": return ["Circling", "Winding up", "Dashing"][e.phase];
+    case "Gatekeeper": return ["Circling", "Winding up the charge", "Charging", "Fans"][e.phase];
     case "Lunger": return ["Approaching", "Winding up", "Leaping", "Recovering"][e.phase];
     case "Devourer": {
       const s = e.dv;
@@ -2614,7 +2663,7 @@ function statusLine() {
 // Roster
 // ---------------------------------------------------------------------------------------------
 const groupsEl = document.getElementById("groups");
-const cats = ["Melee", "Shooters", "Late game", "Bosses", "Summons"];
+const cats = ["Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms"];
 const thumbs = [];
 function buildRoster() {
   groupsEl.innerHTML = "";
@@ -2670,7 +2719,7 @@ function renderSheet() {
   const d = BY[S.sel];
   document.getElementById("name").textContent = nameOf(d);
   const chips = [];
-  chips.push(`<span class="chip ${d.boss ? "boss" : d.summon ? "summon" : d.melee ? "melee" : ""}">${d.boss ? "Boss" : d.summon ? "Summon" : d.melee ? "Melee" : d.cat === "Late game" ? "Late-game shooter" : "Shooter"}</span>`);
+  chips.push(`<span class="chip ${d.boss ? "boss" : d.summon ? "summon" : d.melee ? "melee" : ""}">${d.boss ? "Boss" : d.summon ? "Summon" : d.melee ? "Melee" : d.id === "Gatekeeper" ? "Mini-boss" : d.cat === "Challenge rooms" ? "Room enemy" : d.cat === "Late game" ? "Late-game shooter" : "Shooter"}</span>`);
   chips.push(`<span class="chip">${d.appears}</span>`);
   document.getElementById("chips").innerHTML = chips.join("");
   document.getElementById("lead").textContent = d.lead;

@@ -86,7 +86,7 @@ namespace Arena
             float y = 10f, w = 360f, x = W / 2f - w / 2f;
             foreach (var e in game.Enemies.Values)
             {
-                if (!e.Def.IsBoss)
+                if (!e.Def.IsBoss && !e.Def.Mini)
                     continue;
                 var col = ToColor(e.Def.Color);
                 float frac = Mathf.Clamp01(e.Hp / Mathf.Max(1f, e.MaxHp));

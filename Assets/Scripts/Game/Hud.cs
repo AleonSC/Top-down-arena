@@ -24,6 +24,7 @@ namespace Arena
                 DrawBossBars();
             });
             DrawStageBanner();  // a boss changing stage (StageShiftLook.cs)
+            DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
             DrawMiniBossBars(1f - hudT);  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
@@ -87,7 +88,7 @@ namespace Arena
                     }
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
-                        if (p.PendingPicks + p.PendingLegendary + p.PendingMods > 0 && p.Id != game.MyId)
+                        if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PrizePicks > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
                     var pr = game.Practice;
                     int pNext = pr == null ? 0 : (game.PracticeIndex + 1) % Math.Max(1, pr.Waves.Count);
@@ -97,6 +98,8 @@ namespace Arena
                         : ApproachLine(game.Wave + 1) + "Wave " + (game.Wave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
                     if (LaunchHoldsBanner)
                         break;  // a run launching: GET READY waits until the players have landed (LaunchIntro.cs)
+                    if (game.Room == RoomPhase.Portal)
+                        break;  // a portal is open: its own call instead (ChallengeLook.cs)
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
@@ -925,7 +928,7 @@ namespace Arena
             float panelW = 640f, y = 12f, x0 = W / 2f - panelW / 2f;
             foreach (var e in game.Enemies.Values)
             {
-                if (!e.Def.IsBoss)
+                if (!e.Def.IsBoss && !e.Def.Mini)  // (a challenge room's mini-boss gets one too)
                     continue;
                 var col = ToColor(e.Def.Color);
                 string note = null;
@@ -1001,6 +1004,8 @@ namespace Arena
                     note = WardenNote(e.Warden, ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
                     note = ReaperNote(e, game.Reapers, ref noteColor);
+                else if (e.Type == EnemyType.Gatekeeper)
+                    note = GatekeeperNote(e, ref noteColor);  // ChallengeLook.cs
                 // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
                 bool armored = e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
                 float armorH = armored ? 9f : 0f;
@@ -1378,8 +1383,8 @@ namespace Arena
 
             // Heading: a big outlined title in the offer's colour, and a line under it.
             Color theme = me.OfferLegendary ? ToColor(Upgrades.RarityColor(Rarity.Legendary))
-                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : Ui.Gold;
-            string title = me.OfferLegendary ? "BOSS REWARD!" : me.OfferMod ? "WEAPON MOD" : "LEVEL UP!";
+                : me.OfferMod ? ToColor(Upgrades.RarityColor(Rarity.Mod)) : me.OfferPrize ? ToColor(Upgrades.RarityColor(Rarity.VeryRare)) : Ui.Gold;
+            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
             PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
@@ -1387,8 +1392,8 @@ namespace Arena
                 for (int k = 0; k < 7; k++)  // a dark band behind it, soft at the edges
                     Ui.Fill(new Rect(0f, titleY - 70f + k * 20f, W, 20f), new Color(0f, 0f, 0f, 0.55f * band * Mathf.Sin((k + 0.5f) / 7f * Mathf.PI)));
             Ui.Fancy(new Rect(0f, titleY - 32f - (titleSize - 54) * 0.6f, W, 64f + (titleSize - 54) * 1.2f), title, titleSize, Color.white, theme, TextAnchor.MiddleCenter, new Color(theme.r, theme.g, theme.b, 0.55f));
-            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods - 1;
-            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : "LEVEL " + me.Level + "  ·  PICK ONE";
+            int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PrizePicks - 1;
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)
@@ -1514,7 +1519,7 @@ namespace Arena
             by = Mathf.Min(by, H - 70f);
             bool wasEnabled = GUI.enabled;
             bool picked = selectedCard >= 0 && selectedCard < me.Offer.Length;
-            bool canReroll = !me.OfferLegendary && !me.OfferMod;  // boss rewards can't be rerolled: no button
+            bool canReroll = !me.OfferLegendary && !me.OfferMod && !me.OfferPrize;  // (nor a challenge room's prize)  // boss rewards can't be rerolled: no button
             const float rerollW = 240f, takeW = 320f, bgap = 18f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;  // (not off while opening: GUI.enabled draws at half opacity)
@@ -1527,7 +1532,7 @@ namespace Arena
             SyncSelection(me);  // notes when these cards appeared, for the reroll lock (ArenaApp.cs)
             GUI.enabled = wasEnabled;
             string hint = me.OfferMod ? "Every weapon mod you can still take is shown. Each stacks up to 3 times."
-                : me.OfferLegendary ? "Boss rewards can't be rerolled  ·  Hold Tab for your build"
+                : me.OfferLegendary || me.OfferPrize ? (me.OfferPrize || game.PrizeLegendary(me) ? "Challenge prizes" : "Boss rewards") + " can't be rerolled  ·  Hold Tab for your build"
                 : "1 / 2 / 3 or click a card, Enter to take it  ·  Rerolls: 2 to start, +2 a boss  ·  Hold Tab for your build";
             Ui.Label(new Rect(0f, by + 54f, W, 18f), hint, 12, new Color(1, 1, 1, 0.45f), TextAnchor.MiddleCenter);
             Ui.Alpha = 1f;

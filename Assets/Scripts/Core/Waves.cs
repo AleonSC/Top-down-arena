@@ -10,6 +10,14 @@ namespace Arena
         {
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
+            if (InRoom)
+            {
+                foreach (var p in Players.Values)
+                    if (!p.Downed)
+                        return;
+                RoomCatchesWipe();  // a challenge room: everyone down just loses the challenge (Challenges.cs)
+                return;
+            }
             foreach (var p in Players.Values)
                 if (!p.Downed || p.ReviveToken || p.SecondWind)
                     return;  // someone's standing, or will get up on their own
@@ -40,14 +48,22 @@ namespace Arena
                 TickShowcase(dt);  // the loadout preview's target dummies instead of waves (Showcase.cs)
                 return;
             }
+            if (InRoom)
+            {
+                TickRoom(dt);  // a challenge room instead of a wave (Challenges.cs)
+                Remaining = Enemies.Count;
+                return;
+            }
             switch (State)
             {
                 case MatchState.Intermission:
+                    if (Room == RoomPhase.Portal)
+                        TickPortal(dt);  // a challenge room's portal is open (Challenges.cs)
                     // The countdown waits while anyone is still choosing upgrades, for the host to pick a path, and for the shop.
                     if (PathOffer != null && Bot)
                         ChoosePath(rng.Next(2));  // a bot host picks for itself
                     TickShop(dt);  // the Bazaar's shop closes when everyone is done (Shop.cs)
-                    if (!AnyonePicking() && PathOffer == null && !ShopOpen)
+                    if (!AnyonePicking() && PathOffer == null && !ShopOpen && Room == RoomPhase.None)  // (and while a portal is open)
                         StateTimer -= dt;
                     if (StateTimer <= 0f)
                     {
@@ -147,6 +163,7 @@ namespace Arena
             if (Wave % 5 == 0)
                 OfferPaths();  // after a boss: two paths for the next stretch
             RemoveTemporaryMinions();
+            MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)
             ClearEnemyBullets();
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
             DoLog("wave " + Wave + " cleared");

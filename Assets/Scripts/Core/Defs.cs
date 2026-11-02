@@ -30,6 +30,8 @@ namespace Arena
         Pauser, Leader, Stitcher,
         // boss approaches: the Warden's faction (WardenFaction.cs)
         RiotShield, GasGrenadier,
+        // challenge rooms (Challenges.cs): the mini-boss, and a Mirror Match's shadows of the players
+        Gatekeeper, Shadow,
     }
 
     public class RoleDef
@@ -104,6 +106,7 @@ namespace Arena
         public bool Melee;
         public bool Late;      // its AI is in LateGame.cs (LateMove, LateSpecial, LateFire)
         public bool Heavy;     // too heavy to slow down, shove around or knock back (bosses always are)
+        public bool Mini;      // a challenge room's mini-boss: a boss bar, but none of a boss's rules (Challenges.cs)
         public PickerGroup Picker;  // where the Practice Range's picker lists it (Hidden: only comes with its boss)
         public string Blurb;   // one line on what it does (the Practice Range shows it on hover)
     }
@@ -223,6 +226,10 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A guard behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast." },
             new EnemyDef { Name = "Gas Grenadier", Hp = 50f, Radius = 14f, Speed = 75f, Score = 8, Xp = 6, Sides = 5, Color = new Rgba(0.62f, 0.92f, 0.42f),
                 Picker = PickerGroup.Ranged, Blurb = "Lobs tear-gas canisters at you. Step out of the cloud." },
+            new EnemyDef { Name = "The Gatekeeper", Hp = 3000f, Radius = 34f, Speed = 55f, Score = 150, Xp = 80, Sides = 8, Color = new Rgba(1f, 0.62f, 0.3f), Heavy = true, Contact = 25f, Mini = true,
+                Blurb = "Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst." },
+            new EnemyDef { Name = "Shadow", Hp = 1800f, Radius = 16f, Speed = 190f, Score = 60, Xp = 40, Sides = 0, Color = new Rgba(0.62f, 0.4f, 1f),
+                Blurb = "Mirror Match: a dark copy of a player, with their class and their way of fighting. It sidesteps every few seconds." },
         };
 
         public const int WeaponsPerRole = 3;

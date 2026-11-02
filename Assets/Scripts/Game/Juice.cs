@@ -227,7 +227,7 @@ namespace Arena
                     s = enemyPool.Count > 0 ? enemyPool.Pop() : new EnemySeen();
                     s.Hp = e.Hp; s.Squash = s.Flash = s.Dmg = s.DmgT = 0f;
                     seenEnemies[e.Id] = s;
-                    if (e.Def.IsBoss && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && introWave != game.Wave && game.State == MatchState.Fighting)
+                    if ((e.Def.IsBoss || e.Def.Mini) && e.Type != EnemyType.TwinB && e.Type != EnemyType.DualReaper && (introWave != game.Wave || e.Def.Mini) && game.State == MatchState.Fighting)
                     {
                         introWave = game.Wave;
                         introT = IntroTime;
@@ -253,7 +253,7 @@ namespace Arena
                 }
                 s.Pos = e.Disp; s.Hp = e.Hp; s.Max = e.MaxHp; s.Rot = EnemyRotation(e, t);
                 s.R = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;
-                s.Sides = e.Def.Sides; s.Col = e.Def.Color; s.Boss = e.Def.IsBoss;
+                s.Sides = e.Def.Sides; s.Col = e.Def.Color; s.Boss = e.Def.IsBoss || e.Def.Mini;
                 s.Big = e.Elite || e.Def.Heavy || e.MaxHp >= 400f;
                 s.Spawning = spawning;
                 s.Frame = juiceFrame;
@@ -275,7 +275,7 @@ namespace Arena
             // Twin Reapers fusing into the Dual Reaper isn't a death).
             bool bossLeft = false;
             foreach (var e in game.Enemies.Values)
-                bossLeft |= e.Def.IsBoss;
+                bossLeft |= e.Def.IsBoss || e.Def.Mini;
             foreach (int id in goneIds)
             {
                 var s = seenEnemies[id];

@@ -141,7 +141,7 @@ namespace Arena
         PathId lastPath;
 
         /// The current wave is being played (or about to be) on a path.
-        public bool OnPath => CurrentPath != PathId.None && Wave >= PathFrom && Wave <= PathTo;
+        public bool OnPath => CurrentPath != PathId.None && Wave >= PathFrom && Wave <= PathTo && !InRoom;  // (a challenge room has its own ground)
 
         /// Waves of the chosen path still to come, counting the current one.
         public int PathWavesLeft

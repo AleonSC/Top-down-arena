@@ -208,6 +208,8 @@ namespace Arena
         public float SpawnHp(EnemyType type, int wave)
         {
             var d = Defs.Get(type);
+            if (type == EnemyType.Gatekeeper || type == EnemyType.Shadow)  // a challenge room's: a share of a boss's (Challenges.cs)
+                return BossEquivalentHp(wave) * (type == EnemyType.Gatekeeper ? Challenges.MiniBossShare : Challenges.ShadowShare);
             float hp = d.Hp * (1f + 0.15f * (wave - 1)) * PartyHpScale(d.IsBoss);
             if (d.IsBoss)
                 hp *= BossHpMult(type) * BossHpBonus;  // Balance.cs
@@ -388,7 +390,8 @@ namespace Arena
                 }
                 V2 tpos = target != null ? target.Pos : new V2(Width / 2f, Height / 2f);
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
-                if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
+                tpos = RoomTarget(e, tpos);  // a challenge room: the crystal, or the zone (Challenges.cs)
+                if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
                 MoveEnemy(e, tpos, dt);
                 if (State == MatchState.Fighting)
@@ -405,7 +408,7 @@ namespace Arena
                     {
                         if (!HasTurn(e))
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
-                        else if (!e.Def.IsBoss && enemyShots >= RegularShotBudget())
+                        else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
                         else
                             EnemyFire(e, tpos);
@@ -718,6 +721,8 @@ namespace Arena
                 v = LateMove(e, tpos, dir, dist, dt, ref speed);
             if (e.Type >= EnemyType.BeamSentry && e.Type <= EnemyType.Stitcher)
                 v = VarietyMove(e, tpos, dir, dist, ref speed);  // Variety.cs
+            if (Challenges.Own(e.Type))
+                v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier)
                 v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
@@ -737,6 +742,11 @@ namespace Arena
         /// Behaviour that isn't just "shoot when the timer runs out".
         void Special(Enemy e, V2 tpos, float dt)
         {
+            if (Challenges.Own(e.Type))
+            {
+                RoomSpecial(e, tpos, dt);  // Challenges.cs
+                return;
+            }
             if (IsLateGame(e.Type))
             {
                 LateSpecial(e, tpos, dt);
@@ -861,6 +871,8 @@ namespace Arena
         void EnemyFire(Enemy e, V2 tpos)
         {
             float aim = (tpos - e.Pos).Angle;
+            if (Challenges.Own(e.Type) && RoomFire(e, tpos, aim))
+                return;  // Challenges.cs
             if (IsLateGame(e.Type))
             {
                 LateFire(e, tpos, aim);
@@ -985,6 +997,8 @@ namespace Arena
         /// (rerolls and the big orb drop).
         bool OnEnemyKilled(Enemy e)
         {
+            if (InRoom)
+                RoomKilled(e);  // the kill rush's count, a shadow gone (Challenges.cs)
             VarietyKilled(e);  // Volatile, Splitting, a Warder's bubbles (Variety.cs)
             if (e.Type == EnemyType.Boss)
             {

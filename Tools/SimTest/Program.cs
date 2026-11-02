@@ -141,6 +141,7 @@ static partial class Program
             Game.SeedForTests((int)(h & 0x7fffffff) ^ salt);
         }
         Game.PropsByDefault = false;  // props only where a test asks for them (the core match, the props test)
+        Game.ChallengesByDefault = false;  // challenge rooms too (the challenges test)
         test();
     }
 
@@ -160,7 +161,7 @@ static partial class Program
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => ColossusTest(Dt), () => LichTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
         () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
-        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => SoulGhostTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => FieldGuideTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => PropsTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt),
+        () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => SoulGhostTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => FieldGuideTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt),
     };
 
     static void RunFeatures()
@@ -251,6 +252,7 @@ static partial class Program
         Test("paths", "divergent paths", () => PathsTest(Dt), () => PathHazardsTest(Dt), () => PathTwistsTest(Dt), () => PathArenaRulesTest(Dt)),
         Test("bazaar", "the Bazaar", () => BazaarTest(Dt)),
         Test("props", "the arena's props: crates as cover, pots, barrels, the treasure chest and its items", () => PropsTest(Dt)),
+        Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("three", "three players", () => ThreePlayerTest(Dt)),
         Test("wrap", "wrapping round the arena's edges", () => WrapTest(Dt)),
         Test("ready", "ready-up in the lobby", () => ReadyTest(Dt)),
@@ -267,6 +269,7 @@ static partial class Program
         Report("lab", "Boss Lab batch (run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat])",
             args => LabRun(int.Parse(args[3]), (BotSkill)int.Parse(args[4]), int.Parse(args[5]), args.Skip(6).ToArray())),
         Report("levels", "the level a team of Good bots has at each boss", args => LevelReport(Dt)),
+        Report("rooms", "a duo of Good bots plays with challenge rooms on: how each room went (run.sh 1 1 rooms [last wave] [seed])", args => RoomsReport(Dt, Arg(args, 3, 30), Arg(args, 4, 1))),
         Report("bulletcount", "enemy bullets on screen through a wave", args => BulletCountReport(Dt)),
         Report("dps", "every weapon's damage per second", args => WeaponDpsReport(Dt)),
         Report("weapondps", "every weapon's damage a second as the lobby shows it; \"write\" saves Defs.WeaponDps's table", args => MeasuredWeaponDps(Dt, args.Contains("write"))),

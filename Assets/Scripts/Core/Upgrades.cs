@@ -530,11 +530,19 @@ namespace Arena
         }
 
         /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
+        /// A challenge room's prize: three cards, each rare or very rare (Challenges.cs).
+        public static int[] PrizeOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken) =>
+            RollWeighted(rng, role, roleAbility, taken, new[] { 0f, 0f, 55f, 45f });
+
         public static int[] RollOffer(Random rng, Role role, AbilityId roleAbility, List<int> taken, int level)
         {
             float veryRare = Math.Min(10f, 3f + level * 0.5f);
             float rare = Math.Min(22f, 11f + level * 0.8f);
-            float[] weights = { 55f, 28f, rare, veryRare };
+            return RollWeighted(rng, role, roleAbility, taken, new[] { 55f, 28f, rare, veryRare });
+        }
+
+        static int[] RollWeighted(Random rng, Role role, AbilityId roleAbility, List<int> taken, float[] weights)
+        {
             var offer = new int[3];
             var used = new List<int>();
             for (int i = 0; i < offer.Length; i++)

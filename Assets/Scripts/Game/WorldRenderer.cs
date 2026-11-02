@@ -53,6 +53,7 @@ namespace Arena
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
             FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
+            DrawRoomFloor(t);  // a challenge room's ground (ChallengeLook.cs)
             var grid = new Rgba(1f, 1f, 1f, 0.035f);
             if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
             {
@@ -141,6 +142,7 @@ namespace Arena
             DrawDevourerFloor(t);  // the Devourer's cones, lunge lines, ripple, jaws and teeth (DevourerLook.cs)
             DrawStageShiftFloor(t);  // a boss changing stage: sirens or wax, and the arena pulsing (StageShiftLook.cs)
             DrawLaunchWorld(t);      // a run launching: the ripple's ring, the players' pillars of light (LaunchIntro.cs)
+            DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             foreach (var h in game.Hazards.Values)
@@ -1582,6 +1584,15 @@ namespace Arena
                 Arc(pos, r + 6f + 4f * Mathf.Sin(t * 12f), 2f, col.WithAlpha(0.6f), 32);
                 col = col.WithAlpha(0.35f);
             }
+            if (e.Type == EnemyType.Gatekeeper || e.Type == EnemyType.Shadow)
+            {
+                bool hit = e.Flash > 0f || JuiceFlash(e);
+                if (e.Type == EnemyType.Gatekeeper)
+                    DrawGatekeeper(e, pos, r, hit, spawning, t);  // ChallengeLook.cs
+                else
+                    DrawShadow(e, pos, r, hit, spawning, t);
+                return;
+            }
             if (e.Type == EnemyType.HiveBomber && e.Phase >= 1)
             {
                 DrawFlankBomber(e, pos, r, e.Flash > 0f || JuiceFlash(e), spawning, t);  // Swarm's flanking bombers (QueenLook.cs)
@@ -2389,6 +2400,8 @@ namespace Arena
         static void SetColor(Rgba c)
         {
             glCur = new Color(c.R, c.G, c.B, c.A);  // remembered for a held frame's replay (Juice.cs)
+            if (glShadow)  // a Mirror Match's shadow: its player's look in dark violet (ChallengeLook.cs)
+                glCur = ShadowTint(glCur);
             if (glDesat > 0f)  // a run ending in a game over: the colour drains out (RunEnding.cs)
             {
                 float l = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;

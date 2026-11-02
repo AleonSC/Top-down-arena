@@ -1,0 +1,263 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Arena;
+
+// Challenge rooms (Challenges.cs): a portal once every five waves, the five challenges, the prize, and failing safely.
+static partial class Program
+{
+    static void ChallengesTest(float dt)
+    {
+        Game.ChallengesByDefault = true;
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+
+        // The schedule: exactly one portal in every stretch of five waves, after one of its first three regular waves
+        // (never wave 1), each one turning up.
+        {
+            var maybe = typeof(Game).GetMethod("MaybeOpenPortal", flags);
+            var seen = new HashSet<int>();
+            bool oncePerBlock = true, neverWave1 = true, regularAfter = true;
+            for (int seed = 0; seed < 40; seed++)
+            {
+                Game.SeedForTests(seed + 1000);
+                var solo = new Session { StartWave = 1 };
+                solo.HostOffline(Role.Tank, Kit.Soldier, 0, 0);
+                var sg = solo.Game;
+                var perBlock = new int[10];
+                for (int w = 1; w < Game.MaxWave; w++)
+                {
+                    sg.Wave = w;
+                    sg.State = MatchState.Intermission;
+                    maybe.Invoke(sg, null);
+                    if (sg.Room == RoomPhase.Portal)
+                    {
+                        perBlock[(w - 1) / 5]++;
+                        seen.Add(w % 5);
+                        neverWave1 &= w != 1;
+                        regularAfter &= (w + 1) % 5 != 0 && w % 5 != 0;
+                        sg.Room = RoomPhase.None;
+                    }
+                }
+                oncePerBlock &= perBlock.All(c => c == 1);
+            }
+            Check(oncePerBlock && neverWave1 && regularAfter && seen.SetEquals(new[] { 1, 2, 3 }),
+                "a portal opens exactly once in every five waves, after the 1st, 2nd or 3rd wave of the stretch (never wave 1, never before a boss)");
+        }
+
+        int port = nextPort++;
+        var host = new Session { AutoStart = 2, StartWave = 7 };
+        host.Host(port, "Host", Role.Tank);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        var cg = client.Game;
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+        Action noPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
+        // Players stand where they're told (the client moves its own player).
+        V2 hostAt = new V2(200f, 200f), friendAt = new V2(1400f, 200f);
+        Action hold = () => { g.Players[1].Pos = hostAt; cg.Players[2].Pos = friendAt; };
+        Action quiet = () =>
+        {
+            ((System.Collections.IList)typeof(Game).GetField("spawnQueue", flags).GetValue(g)).Clear();
+            ((System.Collections.IList)typeof(Game).GetField("squadQueue", flags).GetValue(g)).Clear();
+        };
+        // Get to a break.
+        Run(s, dt, 3f, null, () => { noPicks(); hold(); });
+        Run(s, dt, 60f, () => g.State == MatchState.Intermission && g.Room == RoomPhase.None, () => { noPicks(); hold(); quiet(); foreach (var e in g.Enemies.Values) e.Hp = 0f; });
+        Run(s, dt, 0.3f, null, () => { noPicks(); hold(); });
+        Func<ChallengeKind, bool> enter = kind =>
+        {
+            g.State = MatchState.Intermission;
+            g.StateTimer = 5f;
+            g.DevOpenPortal(kind);
+            hostAt = friendAt = g.PortalPos;
+            Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); hold(); });
+            hostAt = new V2(700f, 650f); friendAt = new V2(900f, 650f);
+            Run(s, dt, 0.3f, null, hold);
+            return g.InRoom && cg.InRoom && cg.RoomKind == kind;
+        };
+
+        // The portal: one player in it isn't enough; it waits (and so does the break's countdown); both in, through you go.
+        g.State = MatchState.Intermission;
+        g.StateTimer = 5f;
+        g.DevOpenPortal(ChallengeKind.HoldZones);
+        Run(s, dt, 0.3f, null, () => { noPicks(); hold(); });
+        bool clientSeesPortal = cg.Room == RoomPhase.Portal && cg.PortalPos.DistanceTo(g.PortalPos) < 1f;
+        hostAt = g.PortalPos;
+        float timer0 = g.StateTimer;
+        Run(s, dt, 3f, null, () => { noPicks(); hold(); });
+        bool halfOnly = g.Room == RoomPhase.Portal && g.PortalFill <= 0.951f && g.PortalFill > 0.5f && g.StateTimer == timer0;
+        friendAt = g.PortalPos;
+        Run(s, dt, 3f, () => g.InRoom, () => { noPicks(); hold(); });
+        Check(clientSeesPortal && halfOnly && g.InRoom && g.State == MatchState.Fighting,
+            "a portal waits (and holds the break) until everyone alive stands in it, then takes the party into the room (seen on the client)");
+
+        // Hold the zones: standing in each fills it, three in turn.
+        Run(s, dt, 3.5f, () => g.RoomActive, hold);
+        int z0 = g.ZoneIndex;
+        Run(s, dt, 40f, () => g.Room != RoomPhase.Active, () =>
+        {
+            if (g.ZoneIndex < Challenges.ZoneCount) hostAt = friendAt = g.RoomZones[g.ZoneIndex];
+            hold();
+            foreach (var e in g.Enemies.Values) e.Hp = 0f;
+        });
+        Check(z0 == 0 && g.Room == RoomPhase.Won && g.ZoneIndex == Challenges.ZoneCount && cg.Room == RoomPhase.Won, "Hold the Zones: standing in each zone fills it, and three won is the challenge");
+
+        // The altar: touch it for the prize, picked from rare or better.
+        hostAt = g.AltarPos;
+        Run(s, dt, 4f, () => !g.InRoom, () => { hold(); });
+        var me = g.Players[1];
+        var friend = g.Players[2];
+        bool prize = me.OfferPrize && me.Offer != null && me.Offer.All(u => Upgrades.All[u].Rarity >= Rarity.Rare)
+            || me.OfferLegendary && me.PrizePicks == 1;
+        bool friendPrize = friend.OfferPrize || friend.OfferLegendary && friend.PrizePicks == 1;
+        Check(!g.InRoom && g.State == MatchState.Intermission && prize && friendPrize,
+            "touching the altar gives everyone a prize pick of rare or better cards, and the break carries on");
+        bool prizeOnly = true;
+        var rng = new Random(5);
+        foreach (Role r in new[] { Role.Tank, Role.Dps, Role.Healer })
+            for (int i = 0; i < 30; i++)
+                prizeOnly &= Upgrades.PrizeOffer(rng, r, AbilityId.None, new List<int>()).All(u => u >= 0 && Upgrades.All[u].Rarity >= Rarity.Rare && Upgrades.All[u].Rarity <= Rarity.VeryRare);
+        Check(prizeOnly, "a prize offer only has rare and very rare cards");
+        noPicks();
+        foreach (var p in g.Players.Values) p.PrizePicks = 0;
+        Run(s, dt, 0.3f, null, hold);
+
+        // Defend the crystal: enemies go for it; enough hits break it and the challenge is lost, safely.
+        Check(enter(ChallengeKind.Defend), "Defend the Crystal: in the room (seen on the client)");
+        Run(s, dt, 6f, null, hold);
+        int forCrystal = g.Enemies.Values.Count(e => e.Id % 3 != 0);
+        float hp0 = g.CrystalMax;
+        Run(s, dt, 15f, () => g.CrystalHp < hp0 - 1f, hold);
+        Check(forCrystal > 0 && g.CrystalHp < hp0 && cg.CrystalHp < hp0 + 0.01f, "the room's enemies go for the crystal and wear it down (its health on the client too)");
+        g.CrystalHp = 0.5f;
+        Run(s, dt, 6f, () => !g.InRoom, hold);
+        Check(!g.InRoom && g.State == MatchState.Intermission && g.Players.Values.All(p => !p.Downed), "a broken crystal loses the challenge: back to the break, no prize");
+        noPicks();
+
+        // Kill rush: the kills count, the goal wins it.
+        Check(enter(ChallengeKind.KillRush), "Kill Rush: in the room");
+        Run(s, dt, 3.5f, () => g.RoomActive, hold);
+        int goal = g.RoomGoal;
+        Run(s, dt, 40f, () => g.Room != RoomPhase.Active, () => { hold(); foreach (var e in g.Enemies.Values) if (e.SpawnT <= 0f) e.Hp = 0f; });
+        Check(goal == Challenges.RushGoal(2) && g.RoomKills >= goal && g.Room == RoomPhase.Won && cg.RoomKills >= goal - 2,
+            "Kill Rush: " + goal + " kills before the clock runs out wins it (" + g.RoomKills + ")");
+        Run(s, dt, 16f, () => !g.InRoom, hold);  // nobody touches the altar: it gives the prize by itself
+        Check(!g.InRoom && g.Players.Values.All(p => p.PrizePicks > 0 || p.OfferPrize || p.LegendaryQueue.Count > 0), "an altar nobody touches still gives the prize in the end");
+        noPicks();
+        foreach (var p in g.Players.Values) p.PrizePicks = 0;
+
+        // The Gatekeeper: it fights (shots, and its charge), it can be beaten.
+        Check(enter(ChallengeKind.MiniBoss), "The Gatekeeper: in the room");
+        Run(s, dt, 3.5f, () => g.RoomActive, hold);
+        Run(s, dt, 10f, null, hold);
+        var gate = g.Enemies.Values.FirstOrDefault(e => e.Type == EnemyType.Gatekeeper);
+        bool shooting = g.Bullets.Values.Any(b => b.Source == EnemyType.Gatekeeper);
+        bool tough = gate != null && gate.MaxHp > g.SpawnHp(EnemyType.Brute, g.Wave) * 5f;
+        bool clientSees = cg.Enemies.Values.Any(e => e.Type == EnemyType.Gatekeeper);
+        if (gate != null) gate.Hp = 0f;
+        Run(s, dt, 2f, () => g.Room == RoomPhase.Won, hold);
+        Check(gate != null && shooting && tough && clientSees && g.Room == RoomPhase.Won, "The Gatekeeper: a tough mini-boss that fights back, and beating it wins the challenge");
+        hostAt = g.AltarPos;
+        Run(s, dt, 4f, () => !g.InRoom, hold);
+        noPicks();
+        foreach (var p in g.Players.Values) p.PrizePicks = 0;
+
+        // Mirror match: a shadow for each player, hunting its own player, firing; the client knows whose is whose.
+        Check(enter(ChallengeKind.Mirror), "Mirror Match: in the room");
+        Run(s, dt, 3.5f, () => g.RoomActive, hold);
+        Run(s, dt, 4f, null, hold);
+        var shadows = g.Enemies.Values.Where(e => e.Type == EnemyType.Shadow).ToList();
+        bool ownPlayers = shadows.Count == 2 && shadows.Select(e => g.ShadowOf[e.Id]).OrderBy(x => x).SequenceEqual(new[] { 1, 2 });
+        bool clientKnows = cg.ShadowOf.Count == 2 && shadows.All(e => cg.ShadowOf.ContainsKey(e.Id) && cg.ShadowOf[e.Id] == g.ShadowOf[e.Id]);
+        bool fired = g.Bullets.Values.Any(b => b.Source == EnemyType.Shadow);
+        bool hardy = shadows.All(e => e.MaxHp >= g.Players[g.ShadowOf[e.Id]].MaxHp * 2f);
+        Check(ownPlayers && clientKnows && fired && hardy, "Mirror Match: a shadow of each player, fighting back, and every screen knows whose is whose");
+
+        // Everyone down in the room: the challenge is lost, not the run; the downed get back up.
+        g.DevSetGod(1, false); g.DevSetGod(2, false);
+        foreach (var p in g.Players.Values) { p.Hp = 0f; p.Downed = true; }
+        Run(s, dt, 0.5f, null, hold);
+        bool lostNotOver = g.Room == RoomPhase.Lost && g.State != MatchState.GameOver;
+        Run(s, dt, 5f, () => !g.InRoom, hold);
+        Check(lostNotOver && !g.InRoom && g.State == MatchState.Intermission && g.Players.Values.All(p => !p.Downed && p.Hp > 0f && p.Hp <= p.MaxHp * 0.31f),
+            "everyone going down in a room loses the challenge, not the run: back to the break, the downed up at low health");
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+
+        // A portal nobody enters closes, and the next wave comes as usual.
+        g.State = MatchState.Intermission;
+        g.StateTimer = 3f;
+        int wave = g.Wave;
+        g.DevOpenPortal(ChallengeKind.KillRush);
+        hostAt = new V2(100f, 100f); friendAt = new V2(1500f, 800f);
+        Run(s, dt, Challenges.PortalLife + 1f, () => g.Room == RoomPhase.None, () => { noPicks(); hold(); });
+        bool closed = g.Room == RoomPhase.None && g.State == MatchState.Intermission;
+        Run(s, dt, 6f, () => g.State == MatchState.Fighting, () => { noPicks(); hold(); });
+        Check(closed && g.State == MatchState.Fighting && g.Wave == wave + 1, "a portal nobody enters closes after a while, and the next wave comes as usual");
+
+        host.Leave(""); client.Leave("");
+        Game.ChallengesByDefault = false;
+    }
+}
+
+// Balance: a duo of Good bots plays a run with the challenge rooms on and reports how each room went
+// (run.sh 1 1 rooms [last wave] [seed]).
+static partial class Program
+{
+    static void RoomsReport(float dt, int lastWave, int seed)
+    {
+        Game.ChallengesByDefault = true;
+        Game.SeedForTests(seed);
+        var host = new Session { AutoStart = 2, StartWave = 1 };
+        host.Game.Bot = true; host.Game.BotLevel = BotSkill.Good; host.Game.BotRerolls = false;
+        int port = nextPort++;
+        host.Host(port, "A", Role.Tank, 0);
+        var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
+        c.Join("127.0.0.1", port, "B", Role.Dps, 0);
+        for (int i = 0; i < 300 && c.Screen != AppScreen.Game; i++) { Step(host, dt); Step(c, dt); Thread.Sleep(2); }
+        var g = host.Game;
+        var last = RoomPhase.None;
+        float enteredAt = 0f, clock = 0f, crystal = 0f;
+        int kills = 0, zone = 0;
+        ChallengeKind kind = ChallengeKind.None;
+        float bossStart = -1f, bossHp = 0f, roomHp = 0f;
+        for (int f = 0; f < 60 * 60 * 60 && g.State != MatchState.GameOver && g.Wave <= lastWave; f++)
+        {
+            Step(host, dt); Step(c, dt);
+            var boss = g.Enemies.Values.FirstOrDefault(e => e.Def.IsBoss);
+            if (boss != null && bossStart < 0f) { bossStart = g.RunTime; bossHp = boss.MaxHp; }
+            if (boss == null && bossStart >= 0f && g.State == MatchState.Intermission && g.Wave % 5 == 0)
+            {
+                Console.WriteLine("  wave {0,2}: boss, {1:0} hp, {2:0} s", g.Wave, bossHp, g.RunTime - bossStart);
+                bossStart = -1f;
+            }
+            foreach (var e in g.Enemies.Values)
+                if (Challenges.Own(e.Type) && e.MaxHp > roomHp) roomHp = e.MaxHp;
+            if (g.Room == last)
+            {
+                if (g.RoomActive) { clock = g.RoomClock; crystal = g.CrystalHp / Math.Max(1f, g.CrystalMax); kills = g.RoomKills; zone = g.ZoneIndex; }
+                continue;
+            }
+            if (g.Room == RoomPhase.Intro) { enteredAt = g.RunTime; kind = g.RoomKind; }
+            if (last == RoomPhase.Portal && g.Room == RoomPhase.None)
+                Console.WriteLine("  wave {0,2}: the portal closed unused", g.Wave);
+            if (g.Room == RoomPhase.Won || g.Room == RoomPhase.Lost)
+            {
+                string detail = kind == ChallengeKind.Defend ? "crystal " + (crystal * 100f).ToString("0") + "% left"
+                    : kind == ChallengeKind.KillRush ? kills + "/" + g.RoomGoal + " kills, " + clock.ToString("0") + " s left"
+                    : kind == ChallengeKind.HoldZones ? zone + "/3 zones, " + clock.ToString("0") + " s left"
+                    : clock.ToString("0") + " s, " + roomHp.ToString("0") + " hp each";
+                roomHp = 0f;
+                Console.WriteLine("  wave {0,2}: {1,-18} {2,-4} {3}; downs so far {4}", g.Wave, Challenges.Name(kind), g.Room == RoomPhase.Won ? "WON" : "lost", detail,
+                    string.Join("/", g.Players.Values.Select(p => p.Run.Downs)));
+            }
+            last = g.Room;
+        }
+        Console.WriteLine("  ended: {0} at wave {1}; rooms won {2} of {3}", g.State, g.Wave, g.RoomsWon, g.RoomsPlayed);
+        host.Leave(""); c.Leave("");
+        Game.ChallengesByDefault = false;
+    }
+}

@@ -182,6 +182,15 @@ namespace Arena
                         else if (i == 2) game.DevMasterAll(p.Id);
                         else game.DevSetGod(p.Id, !p.DevGod);
                     }
+            // Challenge rooms: straight into one (Challenges.cs).
+            var rooms = new Rect(body.x, quick.yMax + 14f, body.width, 110f);
+            y = DevCard(rooms, "Challenge rooms", "Between waves: takes everyone straight into that room.", DevTabColors[0]);
+            bool canRoom = host && game.State == MatchState.Intermission && game.Room == RoomPhase.None;
+            GUI.enabled = canRoom;
+            float rw = (rooms.width - 32f - 32f) / 5f;
+            for (int i = 0; i < Challenges.All.Length; i++)
+                if (Ui.Button(new Rect(rooms.x + 16f + i * (rw + 8f), y, rw, 34f), new[] { "Crystal", "Gatekeeper", "Kill Rush", "Zones", "Mirror" }[i], Color.Lerp(ToColor(Challenges.Accent(Challenges.All[i])), new Color(0f, 0f, 0f, 1f), 0.3f)))
+                    game.DevOpenPortal(Challenges.All[i], true);
             GUI.enabled = wasEnabled;
         }
 

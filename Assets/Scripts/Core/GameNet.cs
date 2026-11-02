@@ -294,6 +294,7 @@ namespace Arena
             SyncReapers(s);  // Reapers.cs
             s.Bool(ref ShopOpen);
             s.Float(ref ShopT);
+            SyncRoom(s);  // a challenge room's portal and room (Challenges.cs)
 
             int count = Players.Count;
             s.Byte(ref count);
@@ -473,6 +474,8 @@ namespace Arena
             s.Bool(ref p.OfferLegendary);
             s.Byte(ref p.PendingMods);
             s.Bool(ref p.OfferMod);
+            s.Byte(ref p.PrizePicks);
+            s.Bool(ref p.OfferPrize);
             int offers = p.Offer != null ? p.Offer.Length : 0;
             s.Byte(ref offers);
             var offer = s.Reading ? (offers > 0 ? new int[offers] : null) : p.Offer;

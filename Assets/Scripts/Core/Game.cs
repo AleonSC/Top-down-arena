@@ -157,6 +157,8 @@ namespace Arena
         public readonly List<EnemyType> LegendaryQueue = new List<EnemyType>();
         public int PendingMods;      // weapon mods still to pick (one per boss, after its legendary)
         public bool OfferMod;        // the current offer is the weapon mod list
+        public int PrizePicks;       // challenge room prizes still to pick: rare or better (Challenges.cs)
+        public bool OfferPrize;      // the current offer is a challenge room's prize
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
         public float DroneCd, DroneBossCd, BomberCd;  // host: Hive Drones (next one back; next sting while hitting a boss) and Bomber Escort (QueenLoot.cs)
@@ -540,6 +542,7 @@ namespace Arena
             Stop();
             PracticeIndex = -1;
             ResetPaths();
+            ResetRoom();  // Challenges.cs
             int startWave = r.ReadInt32();
             int n = r.ReadByte();
             var entries = new List<Player>();
@@ -829,7 +832,7 @@ namespace Arena
         public void RerollOffer()
         {
             var me = Me;
-            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.Rerolls <= 0 || RerollPending)
+            if (me == null || me.Offer == null || me.OfferLegendary || me.OfferMod || me.OfferPrize || me.Rerolls <= 0 || RerollPending)
                 return;
             Sounds.Add(Sfx.Pick);
             if (IsHost)
@@ -846,7 +849,7 @@ namespace Arena
         public void HostReroll(int id)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.Rerolls <= 0 || State != MatchState.Intermission)
+            if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferPrize || p.Rerolls <= 0 || State != MatchState.Intermission)
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
@@ -868,11 +871,13 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Offer == null || index < 0 || index >= p.Offer.Length || State != MatchState.Intermission)
                 return;
             int upgrade = p.Offer[index];
-            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : "level");
+            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferPrize ? "prize" : "level");
             if (p.OfferLegendary)
                 p.LegendaryQueue.RemoveAt(0);
             else if (p.OfferMod)
                 p.PendingMods = Math.Max(0, p.PendingMods - 1);
+            else if (p.OfferPrize)
+                p.PrizePicks = Math.Max(0, p.PrizePicks - 1);
             else
                 p.PendingPicks = Math.Max(0, p.PendingPicks - 1);
             PlaceOnKey(p.BonusKeys, Upgrades.All[upgrade].Grants, key);
@@ -888,6 +893,7 @@ namespace Arena
             p.PendingLegendary = p.LegendaryQueue.Count;
             p.OfferLegendary = p.LegendaryQueue.Count > 0;
             p.OfferMod = false;
+            p.OfferPrize = false;
             int[] mods = null;
             if (!p.OfferLegendary && p.PendingMods > 0)
             {
@@ -901,6 +907,11 @@ namespace Arena
             {
                 p.Offer = mods;
                 p.OfferMod = true;
+            }
+            else if (p.PrizePicks > 0)
+            {
+                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken);  // a challenge room's prize (Challenges.cs)
+                p.OfferPrize = true;
             }
             else if (p.PendingPicks > 0)
                 p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level);
@@ -1169,6 +1180,7 @@ namespace Arena
                 else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
                     BotShop(me);  // Shop.cs
                 BotTreasure(me, ref move);  // open the chest and take your item (Props.cs)
+                BotRoom(me, ref move);      // a portal, a zone, the crystal, the altar (Challenges.cs)
             }
 
             float bowRelease = LocalBow(me, firing, dt);

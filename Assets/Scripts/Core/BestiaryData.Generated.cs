@@ -752,6 +752,43 @@ namespace Arena
                     new BestiaryAttack { Name = "Cage wall", Pattern = "Ring through the 3 wells, 180 px → 0 at 22 px/s, spinning 80°/s", Damage = "14, +3% a wave (Normal)" },
                 },
             },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Gatekeeper,
+                Name = "The Gatekeeper",
+                Group = "Challenge rooms",
+                Wave = 2,
+                Appears = "Challenge rooms: The Gatekeeper, a mini-boss duel",
+                Lead = "A bronze mini-boss in turning gate bars, with a boss bar of its own. It keeps about 260 px from you, strafing, and takes its three attacks in turn about every 2.3 s. Its health is half the Warden's at your wave (so it grows like a boss's, more against a strong party). Below half health it attacks a third faster.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Gate ring", Pattern = "A ring of 24 big orbs with a gap of 4, somewhere new each time; below half health a second ring follows 0.55 s later", Shot = "Big orb", ShotColor = new Rgba(0.85f, 0.35f, 1f), Count = "20", Speed = "150 px/s", Damage = "23 each", Every = 7f },
+                    new BestiaryAttack { Name = "Fans", Pattern = "3 aimed fans of 5 shots, 9° apart, 0.32 s between fans (4 fans below half health)", Shot = "Fast shot", ShotColor = new Rgba(1f, 0.95f, 0.4f), Count = "5", Speed = "260 px/s", Damage = "17.2 each", Every = 7f },
+                    new BestiaryAttack { Name = "Charge", Pattern = "A red line shows for 0.9 s, then it charges 324 px along it and bursts into a ring of 14 (18 below half health)", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "14", Speed = "190 px/s", Damage = "13.8 each", Every = 7f },
+                },
+                Notes = new[]
+                {
+                    "Step off the charge's line while it shows; slip through the ring's gap.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Shadow,
+                Name = "Shadow",
+                Group = "Challenge rooms",
+                Wave = 2,
+                Appears = "Challenge rooms: Mirror Match, one for each player",
+                Lead = "A dark violet copy of one player, drawn with their class and weapon. It hunts its own player, keeping the distance their weapon wants (in close with a melee weapon, about 300 px otherwise), and sidesteps 130 px every 2–4 s. Each has 30% of the Warden's health at your wave (growing like a boss's, more against a strong party).",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Volley", Pattern = "With a ranged weapon: 1 aimed shot, +1 for each extra-shot or Barrage upgrade its player has (up to 5), 8° apart, every 2.5× its player's fire interval (0.6–1.6 s)", Shot = "Fast shot", ShotColor = new Rgba(1f, 0.95f, 0.4f), Count = "1", Speed = "300 px/s", Damage = "17.2 each", Every = 1f },
+                    new BestiaryAttack { Name = "Slash", Pattern = "With a melee weapon: 7 short-lived shots across 69°, only within 130 px", Shot = "Small shot", ShotColor = new Rgba(1f, 0.3f, 0.45f), Count = "7", Speed = "380 px/s", Damage = "13.8 each", Every = 0.95f },
+                },
+                Notes = new[]
+                {
+                    "Beat your own shadow, or help a friend with theirs: a shadow only goes for someone else when its player is down.",
+                },
+            },
         };
     }
 }
