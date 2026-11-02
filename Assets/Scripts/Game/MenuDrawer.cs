@@ -174,24 +174,6 @@ namespace Arena
             Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? Ui.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
         }
 
-        /// A small trophy card for a player: their class icon on a hatched tile, name, class and weapon, level, health.
-        void PartyMini(Rect r, Player p)
-        {
-            var col = ToColor(p.Def.Color);
-            Ui.Card(r, col, p.Id == game.MyId ? 0.5f : 0.2f);
-            var art = new Rect(r.x + 2f, r.y + 2f, 66f, r.height - 4f);
-            Ui.Pill(art, new Color(col.r * 0.15f, col.g * 0.15f, col.b * 0.15f, 0.95f));
-            Ui.Icon(art, Hatch(), new Color(col.r, col.g, col.b, 0.08f));
-            Ui.Icon(new Rect(art.center.x - 22f, art.center.y - 22f, 44f, 44f), PixelArt.Get("class_" + Defs.KitName(p.Kit).ToLowerInvariant()));
-            float x = art.xMax + 12f, w = r.xMax - 12f - x;
-            Ui.Fancy(new Rect(x, r.y + 6f, w - 60f, 24f), p.Name + (p.Id == game.MyId ? "  (you)" : ""), 17, Color.white, Color.Lerp(col, Color.white, 0.35f), TextAnchor.MiddleLeft);
-            var lvl = new Rect(r.xMax - 60f, r.y + 9f, 48f, 18f);
-            Ui.Pill(lvl, new Color(Ui.Gold.r, Ui.Gold.g, Ui.Gold.b, 0.9f));
-            Ui.Label(lvl, "LV " + p.Level, 11, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(x, r.y + 30f, w, 16f), Defs.KitName(p.Kit) + " " + p.Def.Name + "  ·  " + p.Weapon.Name, 12, col, TextAnchor.MiddleLeft, true);
-            Ui.Bar(new Rect(x, r.yMax - 16f, w, 6f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? Ui.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
-        }
-
         /// A coloured chip with a label (path, modifiers, difficulty).
         float Chip(float x, float y, string text, Color col)
         {
