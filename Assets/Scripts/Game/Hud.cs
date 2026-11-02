@@ -819,10 +819,20 @@ namespace Arena
         /// The Warden's stage under its health bar, and what to watch for.
         string WardenNote(WardenState w, ref Color c)
         {
+            if (w.TransT > 0f && w.TransTo == WardenStage.LastStand)
+            {
+                c = new Color(0.7f, 0.82f, 1f);
+                return "CAN'T BE HURT — he's putting on his armor";
+            }
             if (w.TransT > 0f)
             {
                 c = new Color(0.9f, 0.92f, 1f);
                 return "CAN'T BE HURT — " + WardenStageName(w.TransTo) + " is coming";
+            }
+            if (w.Stage == WardenStage.LastStand && w.Armor > 0f)
+            {
+                c = new Color(0.7f, 0.82f, 1f);
+                return "LAST STAND — ARMORED: break it to reach his health";
             }
             var me = game.Me;
             if (me != null && me.StunT > 0f)
@@ -981,7 +991,10 @@ namespace Arena
                     note = WardenNote(e.Warden, ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
                     note = ReaperNote(e, game.Reapers, ref noteColor);
-                float h = note != null ? 62f : 46f;
+                // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
+                bool armored = e.Type == EnemyType.Boss && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
+                float armorH = armored ? 9f : 0f;
+                float h = (note != null ? 62f : 46f) + armorH;
                 var panel = new Rect(x0, y, panelW, h);
                 Ui.HudPanel(panel, col);
                 float frac = Mathf.Clamp01(e.Hp / e.MaxHp);
@@ -989,12 +1002,15 @@ namespace Arena
                 Ui.Pill(new Rect(panel.x + 14f, panel.y + 12f, 6f, 6f), col);
                 Ui.Label(new Rect(panel.x + 26f, panel.y + 5f, panelW - 120f, 20f), e.Def.Name.ToUpperInvariant(), 14, Color.white, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(panel.xMax - 90f, panel.y + 5f, 76f, 20f), Mathf.CeilToInt(frac * 100f) + "%", 13, Ui.Muted, TextAnchor.MiddleRight, true);
-                var bar = new Rect(panel.x + 14f, panel.y + 27f, panelW - 28f, 12f);
+                if (armored)
+                    GhostBar(new Rect(panel.x + 14f, panel.y + 26f, panelW - 28f, 6f), Mathf.Clamp01(e.Warden.Armor / e.Warden.ArmorMax),
+                        new Color(0.45f, 0.65f, 1f), EnemyKey(e.Id) | 2L << 40);
+                var bar = new Rect(panel.x + 14f, panel.y + 27f + armorH, panelW - 28f, 12f);
                 GhostBar(bar, frac, col, EnemyKey(e.Id) | 1L << 40);  // with its damage ghost (HealthBars.cs)
                 for (int k = 1; k < 10; k++)  // tick marks every 10%
                     Ui.Fill(new Rect(bar.x + bar.width * k / 10f, bar.y + 2f, 1f, bar.height - 4f), new Color(0f, 0f, 0f, 0.35f));
                 if (note != null)
-                    Ui.Label(new Rect(panel.x, panel.y + 41f, panelW, 18f), note, 12, noteColor, TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(panel.x, panel.y + 41f + armorH, panelW, 18f), note, 12, noteColor, TextAnchor.MiddleCenter, true);
                 y += h + 6f;
             }
             string warning = null;

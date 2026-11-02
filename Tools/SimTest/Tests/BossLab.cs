@@ -51,11 +51,15 @@ static partial class Program
                 Thread.Sleep(2);
             }
             int frames = 0;
+            if (Environment.GetEnvironmentVariable("LABLOG") != null)  // LABLOG=1: the host's log, timed in seconds from the fight's start
+                host.Game.Log = m => Console.WriteLine("     {0,6:0.0}s  {1}", frames / 60f, m);
             while (lab.Outcome == LabOutcome.Running && frames < (BossLab.TimeLimit + 30f) * 60)
             {
                 Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); lab.Watch(dt);
                 frames++;
             }
+            if (Environment.GetEnvironmentVariable("LABLOG") != null)
+                Console.WriteLine("     {0,6:0.0}s  fight over: {1}", frames / 60f, lab.Outcome);
             outcomes.Add(lab.Outcome);
             timeSum += lab.FightTime;
             hpSum += lab.BossHpFrac;

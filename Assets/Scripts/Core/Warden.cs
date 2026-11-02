@@ -51,6 +51,7 @@ namespace Arena
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
         public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
         public float StunShotAt;         // the last stand: when its next stun round fires (TurnT)
+        public float Armor, ArmorMax;    // replicated: the armor it puts on for its last stand, which takes hits before its health
         public float GateSide = -1f;     // which edge this cross turn's gates all come from (+1 the top, -1 the bottom; flipped as each starts, so the first is the top)
         public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
     }
@@ -63,6 +64,12 @@ namespace Arena
         // The last stand, in the middle: a pause (red lanes show where the next burst goes, and an orb ring goes out as it
         // starts), then a long "+" burst of straight streams; each burst turns 45 degrees from the last (+, x, +, ...).
         // Every LastStandStunEvery seconds, a stun round at you (much slower than the searchlight turn's StunEvery).
+        // Going into the last stand it puts on armor (a 2 s stage change, plates locking on at these seconds in), worth
+        // WardenArmorFrac of its max health; hits wear the armor before its health. It makes the last stand last without
+        // touching the rest of the fight.
+        public const float WardenArmorFrac = 0.47f;  // Boss Lab (Good bots, Knight Tank + Elementalist DPS, LABLOG=1): the last stand runs about 30 s in all (armor 0.3: ~19 s, 0.42: ~24 s, 0.55: ~39 s; runs vary by +-8 s)
+        public static readonly float[] ArmorPlateAt = { 0.55f, 0.8f, 1.05f, 1.3f, 1.55f };
+
         public const float LastStandGap = 1f, LastStandBurst = 2.2f, LastStandCycle = LastStandGap + LastStandBurst, LastStandStunEvery = 3f;
 
         /// Which way the last stand's current (or next) burst faces: 0 for "+", 45 degrees for "x".
@@ -216,7 +223,12 @@ namespace Arena
 
             if (w.TransT > 0f)
             {
+                float was = WardenTransTime - w.TransT;
                 w.TransT -= dt;
+                if (w.TransTo == WardenStage.LastStand)
+                    foreach (float at in ArmorPlateAt)  // a clang as each armor plate locks on
+                        if (was < at && WardenTransTime - w.TransT >= at)
+                            BroadcastSound(Sfx.Clang);
                 if (w.TransT <= 0f)
                 {
                     w.TransT = 0f;
@@ -237,7 +249,10 @@ namespace Arena
                 return;
             }
             if (w.Stage == WardenStage.Riot && frac <= LastStandAt && w.Turn != WardenTurn.Charge)
-                EnterWardenStage(e, WardenStage.LastStand);  // straight away (a charge finishes first); the rioters scatter
+            {
+                StartWardenTransition(e, WardenStage.LastStand);  // it puts on its armor (a charge finishes first); the rioters scatter
+                return;
+            }
 
             w.TurnT += dt;
             switch (w.Turn)
@@ -366,7 +381,10 @@ namespace Arena
             w.Stage = stage;
             w.Step = -1;
             if (stage == WardenStage.LastStand)
+            {
                 ClearRioters();
+                w.Armor = w.ArmorMax = e.MaxHp * WardenArmorFrac;
+            }
             NextWardenTurn(e, w, null);
             if (stage == WardenStage.LastStand)
             {
@@ -391,7 +409,7 @@ namespace Arena
             ClearWardenShields(e);  // WardenFaction.cs
             ClearEnemyBullets();  // (and the gas)
             session.Broadcast(Proto.End(Proto.Begin(Msg.ClearEnemyBullets)));
-            BroadcastFx(FxKind.Ring, e.Pos, to == WardenStage.Riot ? new Rgba(1f, 0.5f, 0.2f) : new Rgba(0.35f, 0.65f, 1f), 900f, 0.8f, Sfx.BossChime);
+            BroadcastFx(FxKind.Ring, e.Pos, to == WardenStage.Riot ? new Rgba(1f, 0.5f, 0.2f) : to == WardenStage.LastStand ? new Rgba(0.6f, 0.75f, 0.95f) : new Rgba(0.35f, 0.65f, 1f), 900f, 0.8f, Sfx.BossChime);
             if (to == WardenStage.Riot)
                 foreach (var d in RiotDoors)
                     BroadcastFx(FxKind.Boom, d, new Rgba(1f, 0.55f, 0.2f), 90f, 0.6f, Sfx.None);
@@ -566,6 +584,24 @@ namespace Arena
             fanPending = false;
             BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.97f, 0.8f), e.Radius + 60f, 0.5f, Sfx.BossShift);
             DoLog("the Warden is caught in its own light");
+        }
+
+        /// Host, from HurtEnemy: the last stand's armor takes the hit first. True if it took all of it.
+        bool WardenArmorTakes(Enemy e, ref float dmg)
+        {
+            var w = e.Warden;
+            if (w == null || w.Armor <= 0f || dmg <= 0f)
+                return false;
+            float took = Math.Min(dmg, w.Armor);
+            w.Armor -= took;
+            dmg -= took;
+            if (w.Armor <= 0f)
+            {
+                w.Armor = 0f;
+                BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.6f, 0.75f, 0.95f), e.Radius + 80f, 0.5f, Sfx.BossCrack);  // the armor breaks
+                DoLog("the Warden's armor breaks");
+            }
+            return dmg <= 0f;
         }
 
         public static bool WardenExposed(Enemy e) => e.Type == EnemyType.Boss && e.Warden != null && e.Warden.ExposedT > 0f && e.Warden.TransT <= 0f;
@@ -1043,6 +1079,8 @@ namespace Arena
             s.Byte(ref transTo);
             s.Vec(ref light);
             s.Byte(ref mode);
+            s.Float(ref w.Armor);
+            s.Float(ref w.ArmorMax);
             if (s.Reading)
             {
                 w.Stage = (WardenStage)stage;

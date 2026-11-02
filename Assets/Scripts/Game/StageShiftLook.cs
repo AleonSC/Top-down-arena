@@ -16,6 +16,7 @@ namespace Arena
             public string Name, Line;
             public Rgba Color, Second;
             public bool Warden, Reapers, Duelist;
+            public bool Armor;         // the Warden armoring up for its last stand: calm (no pulse, no siren), plates lock on (WardenLook.cs)
         }
 
         static bool CurrentShift(Game g, out StageShift s)
@@ -47,6 +48,16 @@ namespace Arena
                 if (e.Type == EnemyType.Boss && e.Warden != null && e.Warden.TransT > 0f)
                 {
                     var to = e.Warden.TransTo;
+                    if (to == WardenStage.LastStand)
+                    {
+                        s = new StageShift
+                        {
+                            Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / 2f), Number = 0, Armor = true,
+                            Name = "ARMOR UP", Line = "Break his armor to reach what's left of him",
+                            Color = new Rgba(0.55f, 0.72f, 0.95f), Second = new Rgba(0.85f, 0.9f, 1f),
+                        };
+                        return true;
+                    }
                     s = new StageShift
                     {
                         Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / 2f), Number = (int)to + 1, Warden = true,
@@ -180,6 +191,8 @@ namespace Arena
             float p = s.Progress;
             // The whole arena pulses, faster as the change builds.
             float pulse = 0.5f + 0.5f * Mathf.Sin(t * (6f + 14f * p));
+            if (s.Armor)
+                return;  // armoring up for the last stand: no pulse or siren (no flashing in the last stand); the plates are WardenLook's
             FillRect(0f, 0f, Game.Width, Game.Height, s.Color.WithAlpha(0.04f + 0.05f * pulse * p));
             if (s.Warden)
             {
@@ -280,7 +293,7 @@ namespace Arena
             Ui.Fill(new Rect(W * (1f - Ease(tIn)), y + 55f + h / 2f - 3f, W * Ease(tIn), 3f), new Color(band.r, band.g, band.b, 0.9f * a));
             // The name slides in from the right and settles, the small lines slide in from the left.
             float slide = (1f - Ease(tIn)) * 260f;
-            Ui.Label(new Rect(-slide, y + 8f, W, 20f), "STAGE " + s.Number + " / " + (s.Of > 0 ? s.Of : 3), 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(-slide, y + 8f, W, 20f), s.Number == 0 ? "LAST STAND" : "STAGE " + s.Number + " / " + (s.Of > 0 ? s.Of : 3), 13, new Color(1f, 1f, 1f, 0.75f * a), TextAnchor.MiddleCenter, true);
             var top = ToColor(s.Second.Mix(Rgba.White, 0.5f));
             Ui.Fancy(new Rect(slide, y + 26f, W, 56f), s.Name, 46, new Color(top.r, top.g, top.b, a), new Color(band.r, band.g, band.b, a), TextAnchor.MiddleCenter,
                 new Color(band.r, band.g, band.b, a));

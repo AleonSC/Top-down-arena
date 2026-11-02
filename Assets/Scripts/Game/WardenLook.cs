@@ -229,6 +229,7 @@ namespace Arena
             }
             if (w.Stage >= WardenStage.Riot)  // red-hot
                 Circle(pos, r + 18f, new Rgba(1f, 0.47f, 0.16f, 0.12f + 0.06f * Mathf.Sin(t * 8f)), 32);
+            DrawWardenArmor(w, pos, r, t);  // the last stand's armor, or plates locking on as it armors up
             if (w.ExposedT > 0f)  // caught in its own light: a white glare round it
                 for (int k = 3; k >= 1; k--)
                     Circle(pos, r + 12f + k * 14f, new Rgba(1f, 0.97f, 0.85f, 0.08f * (4 - k)), 32);
@@ -481,6 +482,46 @@ namespace Arena
 
         const float AlarmSight = 190f, AlarmEdge = 80f, AlarmCell = 30f;
         float[] alarmAlpha;
+
+        static readonly Rgba ArmorSteel = new Rgba(0.55f, 0.68f, 0.88f), ArmorDark = new Rgba(0.18f, 0.22f, 0.32f);
+
+        /// The Warden's last-stand armor: five steel plates round it with a bright rim, falling away one by one as the
+        /// armor wears down. While it armors up (the 2 s stage change), each plate flies in from outside and locks on at
+        /// Game.ArmorPlateAt, with a small white flash (and a clang, from the host).
+        void DrawWardenArmor(WardenState w, V2 pos, float r, float t)
+        {
+            const int plates = 5;
+            float seg = MathX.Tau / plates, gapA = 0.1f, rr = r + 7f;
+            bool arming = w.TransT > 0f && w.TransTo == WardenStage.LastStand;
+            if (!arming && w.Armor <= 0f)
+                return;
+            float elapsed = 2f - w.TransT;
+            int whole = arming ? plates : Mathf.CeilToInt(plates * Mathf.Clamp01(w.Armor / Mathf.Max(1f, w.ArmorMax)));
+            for (int k = 0; k < plates; k++)
+            {
+                float from = -MathX.Pi / 2f + seg * k + gapA / 2f, span = seg - gapA, mid = from + span / 2f;
+                V2 at = pos;
+                float alpha = 1f;
+                if (arming)
+                {
+                    float land = Game.ArmorPlateAt[k], f = Mathf.Clamp01((elapsed - (land - 0.4f)) / 0.4f);
+                    if (f <= 0f)
+                        continue;
+                    at = pos + V2.FromAngle(mid) * (220f * (1f - f) * (1f - f));  // flying in, slowing as it arrives
+                    alpha = Mathf.Min(1f, f * 3f);
+                    float flash = Mathf.Clamp01(1f - (elapsed - land) / 0.25f);
+                    if (elapsed >= land && flash > 0f)
+                        Arc(pos, rr + 2f, 9f, new Rgba(1f, 1f, 1f, 0.6f * flash), 8, from, span);  // it locks on
+                }
+                else if (k >= whole)
+                    continue;  // that plate has broken off
+                Arc(at, rr, 9f, ArmorDark.WithAlpha(0.95f * alpha), 8, from, span);
+                Arc(at, rr + 2.5f, 3.5f, ArmorSteel.WithAlpha(alpha), 8, from, span);
+                Arc(at, rr + 4f, 1.2f, new Rgba(0.9f, 0.95f, 1f, 0.8f * alpha), 6, from + span * 0.15f, span * 0.4f);  // a sheen
+                V2 rivet = at + V2.FromAngle(mid) * (rr - 1f);
+                Circle(rivet, 1.8f, new Rgba(0.85f, 0.9f, 1f, alpha), 6);
+            }
+        }
 
         /// The last stand's alarm: the lights go out (lit round each player, the Warden and its searchlight's pool) and
         /// the dark has a steady red tint. Nothing flashes or pulses (the owner asked for no flashing lights here).

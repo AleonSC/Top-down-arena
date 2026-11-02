@@ -813,6 +813,11 @@ namespace Arena
                 BloodLifesteal(p, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
             Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
+            if (WardenArmorTakes(e, ref dmg))
+            {
+                e.Flash = 0.06f;
+                return;  // the Warden's last-stand armor took it all (Warden.cs)
+            }
             e.Hp -= dmg;
             e.Flash = 0.06f;
             if (p != null && p.Stats.ReapBelow > 0f)
