@@ -10,7 +10,7 @@ namespace Arena
     ///   0.45 s  the lobby's pieces slide in around the panel: the mode switch, party and background picker from the
     ///           left, the tabs from above, the bottom bar from below; the loadout fills in
     ///   1.1 s   your party card arrives last, with a ring
-    /// The lobby isn't usable until it settles (its buttons are off and its live models wait, like DrawLobbyLeaving).
+    /// The lobby isn't usable until it settles (it's drawn on Repaint only, so it takes no clicks; its live models wait).
     public partial class ArenaApp
     {
         const float EnterLen = 1.6f;
@@ -46,7 +46,6 @@ namespace Arena
         {
             float e = Mathf.Max(0f, enterT), t = Time.unscaledTime;
             var oldColor = GUI.color;
-            bool oldEnabled = GUI.enabled;
 
             // The buttons under the card drop away.
             float drop = Seg(e, 0f, 0.35f);
@@ -67,8 +66,9 @@ namespace Arena
             if (empty < 1f)
                 WithAlpha(1f - empty, () => DrawMenuCardInside(t, false));
 
-            // The lobby, in pieces: each slides in from its side and fades up (not usable yet; its live models wait).
-            GUI.enabled = false;
+            // The lobby, in pieces: each slides in from its side and fades up. Not usable yet: the pieces are drawn on
+            // Repaint only, so nothing in them takes a click (GUI.enabled = false would also draw them half see-through).
+            // Its live models wait.
             uiGlBlocked = true;
             const float split = 430f;
             LobbyPiece(new Rect(180f, 0f, split - 180f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
@@ -81,7 +81,6 @@ namespace Arena
             LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - 96f - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             LobbyPiece(new Rect(0f, H - 92f, W, 92f), e, 0.6f, 1.05f, 0f, 60f);                   // the bottom bar
             uiGlBlocked = false;
-            GUI.enabled = oldEnabled;
             GUI.color = oldColor;
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
@@ -119,7 +118,7 @@ namespace Arena
         void LobbyPiece(Rect clip, float e, float a, float b, float dx, float dy)
         {
             float k = Seg(e, a, b);
-            if (k <= 0f)
+            if (k <= 0f || Event.current.type != EventType.Repaint)
                 return;
             float s = EaseOut(k);
             var old = GUI.color;
