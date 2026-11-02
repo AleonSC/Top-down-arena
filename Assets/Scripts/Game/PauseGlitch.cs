@@ -6,6 +6,8 @@ namespace Arena
     /// a moment (slices of the last frame jump sideways with red and cyan fringes), scanlines roll in, the panel
     /// flickers on and PAUSED types itself out. Closing runs it backwards, faster. With Reduced effects on (or
     /// Visual effects off) it's a plain quick fade.
+    /// Sounds (PauseSounds, SoundBank.cs): a stuttering digital tear, a key tick per letter typed, a low thunk as the
+    /// panel settles, and a short reversed tear as it closes (the plain fade gets just the thunk and the close).
     public partial class ArenaApp
     {
         const float GlitchOpenTime = 0.65f, GlitchCloseTime = 0.3f, PlainPauseFade = 0.15f;
@@ -32,9 +34,33 @@ namespace Arena
                 pauseGrabbed = false;
             }
             float open = PlainPauseFx ? PlainPauseFade : GlitchOpenTime, close = PlainPauseFx ? PlainPauseFade : GlitchCloseTime;
+            float before = pauseAnim;
             pauseAnim = want ? Mathf.Min(1f, pauseAnim + dt / open) : Mathf.Max(0f, pauseAnim - dt / close);
             if (session.Screen != AppScreen.Game)
                 pauseAnim = 0f;
+            else
+                PauseSounds(before, pauseAnim, want);
+        }
+
+        bool pauseWasWanted;
+
+        /// The opening's and closing's sounds, each as the animation passes its moment.
+        void PauseSounds(float before, float now, bool want)
+        {
+            float clock = Time.unscaledTime;
+            if (want && before <= 0f && now > 0f)
+                sounds.Play(PlainPauseFx ? Sfx.PauseSettle : Sfx.PauseTear, 0.75f, clock);  // opening
+            if (want && !PlainPauseFx)
+            {
+                int typedBefore = Mathf.RoundToInt(Seg(before, 0.45f, 0.8f) * 6f), typedNow = Mathf.RoundToInt(Seg(now, 0.45f, 0.8f) * 6f);
+                if (typedNow > typedBefore)
+                    sounds.Play(Sfx.PauseType, 0.6f, clock);  // a letter of PAUSED
+                if (before < 1f && now >= 1f)
+                    sounds.Play(Sfx.PauseSettle, 0.7f, clock);  // the panel settles
+            }
+            if (!want && pauseWasWanted && before > 0f)
+                sounds.Play(Sfx.PauseClose, PlainPauseFx ? 0.4f : 0.7f, clock);  // closing
+            pauseWasWanted = want;
         }
 
         /// From OnPostRender, once the world is drawn: keep a copy of the frame for the glitch's slices.

@@ -104,9 +104,15 @@ namespace Arena
         int myLevel = -1, myLegendaries = -1, introWave = -1;
         float introT;
         string introName = "";
+
+        /// A boss's entrance card holds the HUD off screen (it slides away as the card comes in, and back as it fades).
+        bool BossIntroHoldsHud => introT > 0.35f;
+
+        /// The card has the HUD off, from when it comes in until the HUD is fully back (the slim boss bars stay away meanwhile).
+        bool introHidHud;
         float shakeX, shakeY;  // added to every world vertex (Px) while the world is drawn
 
-        public const float ScorchLife = 8f, RippleLife = 1.2f, NumberLife = 0.75f, IntroTime = 2.2f;
+        public const float ScorchLife = 8f, RippleLife = 1.2f, NumberLife = 0.75f, IntroTime = 3.2f;
 
         void ClearJuice()
         {

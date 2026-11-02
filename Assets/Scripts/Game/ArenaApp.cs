@@ -301,7 +301,11 @@ namespace Arena
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
-            hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);
+            hudT = MathX.MoveTowards(hudT, hudShown && !LaunchHoldsHud && !BossIntroHoldsHud ? 1f : 0f, Time.unscaledDeltaTime / HudFadeTime);  // (a boss's entrance card hides it: Juice.cs)
+            if (BossIntroHoldsHud)
+                introHidHud = true;
+            else if (hudT >= 1f || !hudShown)
+                introHidHud = false;
             if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
