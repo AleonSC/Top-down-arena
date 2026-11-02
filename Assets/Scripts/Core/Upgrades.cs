@@ -406,10 +406,10 @@ namespace Arena
                 return u.Desc;
             if (u.Name == "Multishot")
                 return weapon.Name + ": " + weapon.ExtraDesc;
-            if (u.Name == "Homing Rounds" && weapon.AreaDesc != null)
-                return weapon.Name + ": " + weapon.AreaDesc + " per stack, instead of bending shots. 5% less damage per stack";
             if (u.Name == "Homing Rounds" && weapon.HomingDesc != null)
                 return weapon.Name + ": " + weapon.HomingDesc;
+            if (u.Name == "Homing Rounds" && weapon.AreaDesc != null)
+                return weapon.Name + ": " + weapon.AreaDesc + " per stack, instead of bending shots. 5% less damage per stack";
             if (u.Name == "Barrage" && weapon.BarrageDesc != null)
                 return weapon.Name + ": " + weapon.BarrageDesc;
             string knight;

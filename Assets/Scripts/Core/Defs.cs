@@ -69,7 +69,7 @@ namespace Arena
         public string Name, Desc;
         public Sfx Sound = Sfx.Throw;  // the sound of its shots (summoner staffs, darts and rocks just throw)
         public string AreaDesc;    // set on weapons whose damage lands in an area (Game.AreaWeapon): what Homing Rounds grow instead of bending shots
-        public string HomingDesc;  // what Homing Rounds do for it instead, when that isn't an area (the card text after the weapon's name)
+        public string HomingDesc;  // what Homing Rounds do for it instead (the card text after the weapon's name; checked before AreaDesc, so cones say they condense)
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
         public string ExtraDesc;  // what each extra projectile (Multishot, Bullet Storm) does for this weapon
         public float FireInterval;

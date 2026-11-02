@@ -2278,12 +2278,39 @@ static partial class Program
         Console.WriteLine("  homing x3 on a Flak Cannon: blast {0:0} px ({1:0} normally), turn {2:0}, damage {3:0.0}", ball.Splash, Game.FlakBurst, ball.Homing, ball.Dmg / hp.Stats.DmgMult);
         Check(Math.Abs(ball.Splash - Game.FlakBurst * 1.75f) < 0.01f && ball.Homing == 0f && Math.Abs(ball.Dmg / hp.Stats.DmgMult - hp.Weapon.Damage * 0.85f) < 0.05f,
             "on area weapons Homing Rounds widen the blast (25% a stack) instead of bending shots, for the same damage cost");
-        // Leech Tendrils: the arc widens 70 -> 122.5 degrees, so an enemy 50 degrees off your aim can be grabbed.
+        // Cone weapons condense instead: Leech Tendrils, Chain Light and the Repulsion Cannon are 15% narrower and 10%
+        // stronger a stack, so 3 stacks give 55% of the width and 130% of the damage. Tendrils: 70 -> 38.5 degrees, so
+        // an enemy 30 degrees off your aim is grabbed normally but not with Homing.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 2);
-        V2 at = hp.Pos + V2.FromAngle(50f * MathX.Pi / 180f) * 100f;
-        Check(hp.Weapon.Name == "Leech Tendrils" && Math.Abs(Game.GraspArcFor(hp) - Game.GraspArc * 1.75f) < 0.001f
-            && Game.InGraspArc(hp.Pos, 0f, at, 5f, Game.GraspArcFor(hp)) && !Game.InGraspArc(hp.Pos, 0f, at, 5f),
-            "Leech Tendrils with Homing Rounds reach across a wider arc (75% at 3 stacks)");
+        V2 at = hp.Pos + V2.FromAngle(30f * MathX.Pi / 180f) * 100f;
+        Check(hp.Weapon.Name == "Leech Tendrils" && Math.Abs(Game.GraspArcFor(hp) - Game.GraspArc * 0.55f) < 0.001f
+            && !Game.InGraspArc(hp.Pos, 0f, at, 5f, Game.GraspArcFor(hp)) && Game.InGraspArc(hp.Pos, 0f, at, 5f),
+            "Leech Tendrils with Homing Rounds reach across a narrower arc (55% at 3 stacks)");
+        {
+            float crit0 = hp.Stats.CritChance; hp.Stats.CritChance = 0f;
+            float homing = hp.Stats.Homing;
+            V2 me0 = hp.Pos;
+            Func<WeaponId, float, float> blast = (id, stacks) =>
+            {
+                hp.Weapon = Defs.Weapons.First(w => w.Id == id); hp.Stats.Homing = stacks;
+                foreach (var e in g.Enemies.Values) e.Hp = 0f;
+                g.Enemies.Clear();
+                var t = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, me0 + new V2(150f, 0f), 0f, 0, false });
+                t.SpawnT = 0f; t.Hp = t.MaxHp = 1e6f; hp.Pos = me0;
+                volley.Invoke(g, new object[] { hp, 0f, 0 });
+                return t.MaxHp - t.Hp;
+            };
+            float cl0 = blast(WeaponId.ChainLight, 0f), cl3 = blast(WeaponId.ChainLight, homing);
+            float half3 = Game.LightConeHalfFor(hp, 1);
+            float rp0 = blast(WeaponId.LightBolt, 0f), rp3 = blast(WeaponId.LightBolt, homing);
+            hp.Stats.Homing = homing; hp.Stats.CritChance = crit0;
+            string card = Upgrades.DescFor(Upgrades.All[Array.FindIndex(Upgrades.All, u => u.Name == "Homing Rounds")], Defs.Weapons.First(w => w.Id == WeaponId.ChainLight));
+            Console.WriteLine("  homing x3, condensed cones: chain light {0:0.0} -> {1:0.0} ({2:0} degrees across), repulsion {3:0.0} -> {4:0.0}; card: {5}",
+                cl0, cl3, 2f * half3 * 180f / MathX.Pi, rp0, rp3, card);
+            Check(cl0 > 0f && Math.Abs(cl3 / cl0 - 1.3f) < 0.01f && Math.Abs(half3 - Game.LightConeHalf * 0.55f) < 0.001f && card.StartsWith("Chain Light: the cone of light 15% narrower"),
+                "Chain Light with Homing Rounds is a narrower cone that hits 30% harder at 3 stacks, and the card says so");
+            Check(rp0 > 0f && Math.Abs(rp3 / rp0 - 1.3f) < 0.01f, "the Repulsion Cannon with Homing Rounds is a narrower blast that hits 30% harder at 3 stacks");
+        }
         hp.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 1);
         var core = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f, 600f), 0f, 0, false });
         var far = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f + 2f * core.Radius + 80f, 600f), 0f, 0, false });

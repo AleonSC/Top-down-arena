@@ -103,7 +103,7 @@ namespace Arena
                 case WeaponId.RadiantOrb:
                     break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)
                 case WeaponId.ChainLight:
-                    LightCone(p, aim, w.Damage * (1f + LightConeGrow * extra) * HomingCost(p) * dmg, extra);
+                    LightCone(p, aim, w.Damage * (1f + LightConeGrow * extra) * ConeFocus(p) * dmg, extra);  // Homing Rounds condense it (AreaMult narrows it)
                     break;
                 case WeaponId.PrismBeam:
                 {
@@ -747,7 +747,7 @@ namespace Arena
         void LightCone(Player p, float aim, float total, int extra)
         {
             int n = 1 + p.Stats.Fan;
-            float reach = LightConeLength(p, extra), half = LightConeHalfFor(p, n);  // Homing and Magnum Rounds widen it, up to a cap
+            float reach = LightConeLength(p, extra), half = LightConeHalfFor(p, n);  // Magnum Rounds widen it, up to a cap; Homing Rounds narrow it
             float step = 2f * half;
             var aims = new float[n];
             for (int v = 0; v < n; v++)
@@ -957,7 +957,7 @@ namespace Arena
                 Sound = Sfx.SpellHoly, BarrageDesc = "+1 light orb per stack that circles your orb, hurting enemies and healing allies it touches" },
             new WeaponDef { Id = WeaponId.ChainLight, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
                 Desc = "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each.",
-                Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
+                Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", HomingDesc = "the cone of light 15% narrower and 10% stronger per stack, instead of bending shots: fewer enemies share its damage", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
             new WeaponDef { Id = WeaponId.PrismBeam, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f,
                 Desc = "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them.",
                 Sound = Sfx.SpellArcane },

@@ -193,7 +193,7 @@ namespace Arena
         /// How far Leech Tendrils reach from the player's edge.
         public float GraspReach(Player p) => (p.Weapon.Reach + p.Weapon.Grow * ExtraShots(p)) * p.Stats.ShotSpeedMult;  // Velocity Rounds stretch them
 
-        /// How wide the player's tendrils reach (Homing Rounds widen it 25% a stack).
+        /// How wide the player's tendrils reach (Homing Rounds narrow it 15% a stack, Magnum Rounds widen it).
         public static float GraspArcFor(Player p) => GraspArc * AreaMult(p);
 
         /// Is the enemy (its body) within the tendrils' arc (`arc` wide) in front of you?
@@ -242,7 +242,7 @@ namespace Arena
                     if (!e.Def.IsBoss)
                         e.GraspT = Math.Max(e.GraspT, GraspHold);  // stunned while held (bosses are too strong to hold still)
                     V2 dir = (e.Pos - p.Pos).Normalized();
-                    float hit = gr.Dmg * TendrilsOn(max, held, i) * HomingCost(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);  // one drain per tendril on it
+                    float hit = gr.Dmg * TendrilsOn(max, held, i) * ConeFocus(p) * NinjaHitMult(p.Id, Defs.LeechShot, e);  // one drain per tendril on it
                     HurtEnemy(e, hit, p.Id);
                     var pseudo = new Bullet { Pos = e.Pos, Vel = dir.IsZero ? V2.FromAngle(gr.Aim) : dir, Owner = p.Id, Dmg = hit, Kind = Defs.LeechShot };
                     BloodShotHit(pseudo, e, hit);  // the leech
@@ -738,7 +738,7 @@ namespace Arena
                 Sound = Sfx.SpellArcane, AreaDesc = "blood pools 25% wider" },
             new WeaponDef { Id = WeaponId.LeechBeam, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 1.2f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Hold to lash out blood tendrils in a 70° arc (160 px) that grasp up to 3 enemies while you hold on: they're stunned, take 12 damage a second per tendril, and 25% of it heals you. Spare tendrils join the ones already holding on.",
-                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc" },
+                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
             // Healer
             new WeaponDef { Id = WeaponId.TransfusionDarts, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0, Speed = 850f, Life = 0.85f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Transfusion Darts", FireInterval = 0.2f,
                 Desc = "Darts that transfuse your blood: one that reaches a hurt ally gives them 20 health for 4 of yours. Each enemy hit steals a sliver back (0.5)." },

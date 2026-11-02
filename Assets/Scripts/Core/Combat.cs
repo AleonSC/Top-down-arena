@@ -296,7 +296,15 @@ namespace Arena
         /// the same damage cost.
         public static bool AreaWeapon(WeaponId w) => Defs.WeaponOf(w).AreaDesc != null;  // WeaponDef.AreaDesc
         public const float HomingAreaPerStack = 0.25f;
-        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id) ? (1f + HomingAreaPerStack * p.Stats.Homing / 2f) * p.Stats.ShotSizeMult : 1f;  // Magnum Rounds widen areas too  // Homing Rounds give 2 turn a stack
+        public static float AreaMult(Player p) => AreaWeapon(p.Weapon.Id)
+            ? (ConeWeapon(p.Weapon.Id) ? ConeNarrow(p) : 1f + HomingAreaPerStack * p.Stats.Homing / 2f) * p.Stats.ShotSizeMult : 1f;  // Magnum Rounds widen areas too  // Homing Rounds give 2 turn a stack
+
+        /// Cone weapons (Chain Light, Leech Tendrils, the Repulsion Cannon): Homing Rounds condense the cone instead,
+        /// 15% narrower and 10% stronger a stack, so a wide cone for crowds or a focused one is a choice.
+        public const float HomingConeNarrow = 0.15f, HomingConeFocus = 0.1f;
+        public static bool ConeWeapon(WeaponId w) => w == WeaponId.ChainLight || w == WeaponId.LeechBeam || w == WeaponId.LightBolt;
+        public static float ConeNarrow(Player p) => 1f - HomingConeNarrow * p.Stats.Homing / 2f;  // how wide the cone is, against its usual width
+        public static float ConeFocus(Player p) => 1f + HomingConeFocus * p.Stats.Homing / 2f;    // how hard it hits, against usual
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;
         const float HomingRange = 260f, HomingCone = 0.7f;  // only enemies within 260 px and ~45 degrees of the shot's path
 

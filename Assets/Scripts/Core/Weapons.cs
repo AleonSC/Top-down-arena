@@ -30,7 +30,7 @@ namespace Arena
             // Healer
             new WeaponDef { Id = WeaponId.LightBolt, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Damage = 6f, Reach = 240f, ExtraDesc = "+20° wider blast, +2 damage and a harder push", Name = "Repulsion Cannon", FireInterval = 0.7f,
                 Desc = "Blasts enemies away in a cone. Light damage; enemies it hits shed tiny health orbs.",
-                Sound = Sfx.ShotSuppressed },
+                HomingDesc = "the blast 15% narrower, and 10% stronger (damage and push) per stack, instead of bending shots", Sound = Sfx.ShotSuppressed },
             new WeaponDef { Id = WeaponId.Pistol, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1, Speed = 700f, Life = 1.1f, Damage = 24f, ExtraDesc = "+2 rounds in the cylinder, loaded as heavy rounds (double damage)", Name = "Revolver", FireInterval = 0.45f, Desc = "Tap for aimed shots; hold to fan the hammer and empty the cylinder in a 10° arc. Six rounds, the last one heavy.",
                 Sound = Sfx.ShotPistol },
             new WeaponDef { Id = WeaponId.MendersBow, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2, BotRange = 390f, ExtraDesc = "+1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan", Name = "Mender's Bow", FireInterval = 0.9f, Desc = "Hold to draw, release to fire. A full draw (0.9 s) hits for 40, pierces 2 and heals an ally it passes for 20; let go right at full draw for a perfect shot (+25%).",
