@@ -16,7 +16,7 @@ class Shot {
     SaveStore.Write(a); SaveStore.Write(b);
     var pr = new Profile { RunsStarted = 14, RunsWon = 1, RunsLost = 9, BestWave = 50, BestScore = 41200, BestEndlessWave = 0, PlayTime = 41000f, Kills = 6812, BossKills = 52, Downs = 37, Revives = 21, DamageDealt = 2.3e6f, HealingDone = 81000f };
     foreach (var t in new[] { EnemyType.Boss, EnemyType.Boss, EnemyType.HiveQueen, EnemyType.TwinA, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse }) pr.BossBeaten(t, 10);
-    pr.RunsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 6; pr.RunsAs[Profile.ClassKey(Role.Dps, Kit.Elementalist)] = 3; pr.RunsAs[Profile.ClassKey(Role.Healer, Kit.Ninja)] = 1; pr.WinsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 1;
+    pr.RunsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 6; pr.RunsAs[Profile.ClassKey(Role.Dps, Kit.Elementalist)] = 3; pr.RunsAs[Profile.ClassKey(Role.Healer, Kit.Ninja)] = 1; pr.WinsAs[Profile.ClassKey(Role.Tank, Kit.Knight)] = 1; pr.RoomsPlayed["Defend"] = 5; pr.RoomsWon["Defend"] = 4; pr.RoomsPlayed["MiniBoss"] = 3; pr.RoomsWon["MiniBoss"] = 2; pr.RoomsPlayed["KillRush"] = 3; pr.RoomsWon["KillRush"] = 3; pr.RoomsPlayed["HoldZones"] = 4; pr.RoomsWon["HoldZones"] = 2; pr.RoomsPlayed["Mirror"] = 2; pr.RoomsWon["Mirror"] = 1;
     File.WriteAllText(Path.Combine(dir, "profile.txt"), pr.ToText()); Profile.Reload();
   }
   static void Main(string[] args) {
@@ -631,6 +631,7 @@ class Shot {
       // PAUSEANIM=0..1: how far the menu has opened (PauseGlitch.cs; default fully open). The torn slices need the
       // grabbed frame, so the preview shows the rest: the dim, scanlines, the flickering panel and the typed title.
       set("pauseMenuOpen", true);
+      if (Environment.GetEnvironmentVariable("PAUSESET") != null) { set("pauseSettings", true); set("settingsGroup", int.Parse(Environment.GetEnvironmentVariable("PAUSESET"))); set("drawerKey", "pause-settings"); }
       set("pauseAnim", float.Parse(Environment.GetEnvironmentVariable("PAUSEANIM") ?? "1"));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       typeof(ArenaApp).GetMethod("DrawPauseMenu", f2).Invoke(app, null);
@@ -750,6 +751,9 @@ class Shot {
       set("glMaterial", new Material(null));
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
+      // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
+      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("howToTopic", sec); }
+      set("drawerKey", mode == "howto" ? "howto" : mode); set("drawerAt", -10f);
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }

@@ -198,6 +198,15 @@ static partial class Program
         Run(s, dt, 6f, () => g.State == MatchState.Fighting, () => { noPicks(); hold(); });
         Check(closed && g.State == MatchState.Fighting && g.Wave == wave + 1, "a portal nobody enters closes after a while, and the next wave comes as usual");
 
+        // Records: each room played and won is kept in the profile, and survives saving.
+        var prof = new Profile();
+        prof.RoomEnded(ChallengeKind.Mirror, true);
+        prof.RoomEnded(ChallengeKind.Mirror, false);
+        prof.RoomEnded(ChallengeKind.Defend, false);
+        var back = Profile.Parse(prof.ToText());
+        Check(back.RoomPlayed(ChallengeKind.Mirror) == 2 && back.RoomWon(ChallengeKind.Mirror) == 1 && back.RoomPlayed(ChallengeKind.Defend) == 1 && back.RoomWon(ChallengeKind.Defend) == 0,
+            "the Records keep each challenge room played and won, through saving");
+
         host.Leave(""); client.Leave("");
         Game.ChallengesByDefault = false;
     }

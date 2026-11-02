@@ -26,7 +26,7 @@ namespace Arena
         public Profile Profile => ProfileOverride ?? Profile.Current;
         public readonly List<UnlockToast> UnlockToasts = new List<UnlockToast>();  // the front end draws and ages them
 
-        enum RecordKind : byte { Boss, End, Resume }
+        enum RecordKind : byte { Boss, End, Resume, Room }
 
         bool Saveable => IsHost && Practice == null && !ShowcaseMode && !Unrecorded && RunId != null;
 
@@ -198,6 +198,20 @@ namespace Arena
             ReadRecordFrom(msg);
         }
 
+        /// Host: a challenge room ended (Challenges.cs): everyone's profile counts it.
+        void RoomRecord(ChallengeKind kind, bool won)
+        {
+            if (!IsHost || !RecordsRuns)
+                return;
+            var w = BeginRecord(RecordKind.Room);
+            w.Write((byte)kind);
+            w.Write(won);
+            w.Write(devTouched);
+            var msg = Proto.End(w);
+            session.Broadcast(msg);
+            ReadRecordFrom(msg);
+        }
+
         static BinaryWriter BeginRecord(RecordKind kind)
         {
             var w = Proto.Begin(Msg.Record);
@@ -247,6 +261,16 @@ namespace Arena
                         return;
                     Profile.BossBeaten(boss, wave);
                     AddUnlockToasts(Profile.CheckUnlocks());
+                    Profile.Save();
+                    return;
+                }
+                case RecordKind.Room:
+                {
+                    var room = (ChallengeKind)r.ReadByte();
+                    bool won = r.ReadBoolean(), dev = r.ReadBoolean();
+                    if (me == null || dev || botTouched)
+                        return;
+                    Profile.RoomEnded(room, won);
                     Profile.Save();
                     return;
                 }

@@ -346,8 +346,12 @@ namespace Arena
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to Settings
-                else if (session.Screen == AppScreen.Lobby && settingsOpen)
-                    settingsOpen = false;  // back to the lobby
+                else if (settingsOpen)
+                    settingsOpen = false;  // back to the lobby or the main menu
+                else if (howToOpen)
+                    howToOpen = false;
+                else if (recordsOpen)
+                    recordsOpen = false;
             }
             if (session.Screen == AppScreen.Game)
             {
@@ -359,6 +363,8 @@ namespace Arena
                     CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
                     devMenuOpen = false;
+                else if (Input.GetKeyDown(KeyCode.Escape) && pauseSettings && menuUp)
+                    pauseSettings = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     if (menuUp)

@@ -781,12 +781,26 @@ everyone the run's numbers about once a second, and again the moment the game pa
 ## Pause menu and settings
 
 Press **Esc** in a match to open the pause menu. Pausing **freezes the match for everyone** (your friend
-sees who paused) and either player can resume. The menu arrives with a **signal glitch**: the frozen screen tears for a moment, scanlines roll in, the panel flickers on and PAUSED types itself out (with Reduced effects or Visual effects off, a quick fade). The pause menu is the same panel as **Settings** (main menu, and the
-lobby's cog): volume sliders for **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and
-spells), **Enemies** (enemy fire) and **Effects** (explosions, abilities, UI), mute and aim line on the left, the
-visual effects on the right; in a match its buttons are **Run stats** (the Tab screen, so a paused party can look at
-it together), **Field guide**, **Resume** and **Leave game**. The **Field guide** (also a button in **Settings** on the
-main menu) opens two in-game databases:
+sees who paused) and either player can resume. The menu arrives with a **signal glitch**: the frozen screen tears for a moment, scanlines roll in, the panel flickers on and PAUSED types itself out (with Reduced effects or Visual effects off, a quick fade). The pause menu, **Settings**, **Records** and **How to play**
+share one look, a **side drawer**: a tall panel on the left with the title and a list, and the open section in a panel
+on the right (the drawer slides in when a window opens; the pause menu has its glitch instead).
+
+- **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together),
+  **Field guide**, **Settings** and **Leave game**, chosen with the mouse or ↑ ↓ and Enter, with your party as small
+  trophy cards under them. The frozen arena stays in view on the right with a **this run** card: the wave, time and
+  score, chips for the path (and waves left), the run's modifiers and the difficulty, the next boss (moving), and this
+  stretch's challenge room (won, lost, or when the next portal can open).
+- **Settings** (main menu, the lobby's cog, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
+  **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
+  **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots
+  and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the HUD, the Field
+  guide). Mute and Aim line are also quick switches under the groups.
+- **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
+  won) and Unlocks.
+- **How to play:** Controls, The basics, Fighting, Between waves, Challenge rooms (with a little animated portal),
+  Paths and modifiers, Playing together.
+
+Esc goes back (from the pause menu's Settings, to its list). The **Field guide** opens two in-game databases:
 
 - **Bestiary:** every enemy, boss and boss add (44 entries), each with its live model, its stats, its health
   at your wave for your party (with the run's modifiers), what it does, when it appears, a staged boss's stages, and

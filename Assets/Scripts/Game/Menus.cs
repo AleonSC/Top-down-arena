@@ -178,62 +178,8 @@ namespace Arena
             { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself." },
         };
 
-        void DrawHowToPlay()
-        {
-            float t = Time.unscaledTime;
-            var panel = new Rect(W / 2f - 600f, 26f, 1200f, 668f);
-            Ui.Panel(panel, true);
-            Ui.Fancy(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "HOW TO PLAY", 36, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
-            float lx = panel.x + 36f, lw = 400f, rx = panel.x + 476f, rw = panel.width - 476f - 36f, top = panel.y + 84f;
-
-            // Controls: key caps, then what they do.
-            Ui.Heading(lx, top, lw, "Controls");
-            float y = top + 30f, rowH = 34f;
-            for (int i = 0; i < HowToKeys.Length; i++)
-            {
-                float kx = lx;
-                foreach (var key in HowToKeys[i])
-                    kx += KeyCap(kx, y + 3f, key) + 4f;
-                string note = HowToActions[i, 1];
-                Ui.Label(new Rect(lx + 132f, y, lw - 132f, note.Length > 0 ? 17f : 30f), HowToActions[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
-                if (note.Length > 0)
-                    Ui.Label(new Rect(lx + 132f, y + 15f, lw - 132f, 15f), note, 11, Ui.Muted);
-                y += rowH;
-            }
-
-            // Tips, in two columns, each with a little drawing.
-            Ui.Heading(rx, top, rw, "Tips");
-            Ui.Fill(new Rect(panel.x + 456f, top + 4f, 1f, HowToKeys.Length * rowH + 24f), new Color(1f, 1f, 1f, 0.06f));
-            float ty = top + 32f, tipH = 66f, colW = (rw - 12f) / 2f;
-            int rows = (HowToTips.GetLength(0) + 1) / 2;
-            for (int i = 0; i < HowToTips.GetLength(0); i++)
-            {
-                var row = TipRect(i, rows, rx, ty, colW, tipH);
-                Ui.Pill(row, new Color(1f, 1f, 1f, 0.03f));
-                Ui.Label(new Rect(row.x + 48f, row.y + 4f, row.width - 54f, 18f), HowToTips[i, 0], 14, Ui.Text, TextAnchor.MiddleLeft, true);
-                Ui.Label(new Rect(row.x + 48f, row.y + 21f, row.width - 54f, 38f), HowToTips[i, 1], 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            }
-            if (BeginUiGl())
-            {
-                DrawAxis(new V2(W / 2f, panel.y + 70f), 150f, t);
-                UiModelAt(V2.Zero, 1f);
-                for (int i = 0; i < HowToTips.GetLength(0); i++)
-                {
-                    var r = TipRect(i, rows, rx, ty, colW, tipH);
-                    DrawTipGlyph(i, new V2(r.x + 24f, r.y + r.height / 2f), t);
-                }
-                EndUiGl();
-            }
-            if (Ui.FancyButton(new Rect(rx + rw / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
-                howToOpen = false;
-        }
-
-        /// Where How to play tip i sits: down the first column, then the second.
-        static Rect TipRect(int i, int rows, float x, float y, float colW, float tipH)
-        {
-            int col = i / rows, row = i % rows;
-            return new Rect(x + col * (colW + 12f), y + row * tipH, colW, tipH - 8f);
-        }
+        /// How to play, as the side drawer (MenuDrawer.cs).
+        void DrawHowToPlay() => DrawHowToWindow();
 
         /// A keyboard key: a raised cap with its label. Returns its width.
         float KeyCap(float x, float y, string key)
@@ -356,6 +302,8 @@ namespace Arena
         void OpenPauseMenu()
         {
             pauseMenuOpen = true;
+            pauseSel = 0;
+            pauseSettings = false;
             if (game.State != MatchState.GameOver)
                 game.RequestPause(true);  // pauses the match for both players
         }
@@ -363,128 +311,17 @@ namespace Arena
         void ResumeGame()
         {
             pauseMenuOpen = false;
+            pauseSettings = false;
             runStatsOpen = false;
             if (game.Paused)
                 game.RequestPause(false);
         }
 
-        // The pause menu is the Settings panel (DrawSettings) with the match's buttons: Resume, Run stats, Field guide,
-        // Leave game. DrawPauseMenu (PauseGlitch.cs) draws it with its signal-glitch opening.
+        // The pause menu is the side drawer (DrawPauseWindow, MenuDrawer.cs): Resume, Run stats, Field guide, Settings,
+        // Leave game, the party, and the run's card. DrawPauseMenu (PauseGlitch.cs) draws it with its signal-glitch opening.
 
-        static readonly Color RunStatsColor = new Color(0.62f, 0.5f, 0.2f);  // the pause menu's Run stats button
-
-        void DrawSettings() => DrawSettingsPanel(false);
-
-        /// One panel for Settings (main menu, lobby) and the pause menu: Audio on the left, Visual effects on the right,
-        /// then the buttons across the bottom: Field guide and Back, or in a match Run stats, Field guide, Resume and Leave.
-        void DrawSettingsPanel(bool paused)
-        {
-            var panel = new Rect(W / 2f - 430f, 30f, 860f, 660f);
-            float colW = 360f, x = panel.x + 50f, x2 = panel.xMax - 50f - colW;
-            float t = Time.unscaledTime, mid = panel.x + panel.width / 2f;
-            Ui.Panel(panel, true);
-            Ui.Title(new Rect(panel.x, panel.y + 18f, panel.width, 44f), paused ? pausedTitle : "SETTINGS", 34, Color.white);
-            if (paused)
-            {
-                Player by;
-                string sub = "";
-                if (game.Paused && game.PausedBy != game.MyId && game.Players.TryGetValue(game.PausedBy, out by))
-                    sub = "Paused by " + by.Name;
-                else if (!game.Paused && game.State != MatchState.GameOver && game.State != MatchState.Victory)
-                    sub = "Pausing…";
-                Ui.Label(new Rect(panel.x, panel.y + 58f, panel.width, 18f), sub, 13, Ui.Muted, TextAnchor.MiddleCenter);
-            }
-            DrawAudioOptions(x, panel.y + 82f, colW);
-            DrawFxOptions(x2, panel.y + 82f, colW);
-
-            if (!paused)
-            {
-                // The Field guide: the in-game Bestiary and Armory (FieldGuide.cs).
-                if (Ui.FancyButton(new Rect(mid - 180f, panel.y + 486f, 360f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
-                    OpenFieldGuide();
-                Ui.Label(new Rect(mid - 300f, panel.y + 532f, 600f, 18f), "Every enemy, boss, class, weapon, ability and upgrade", 11, Ui.Muted, TextAnchor.MiddleCenter);
-                // The developer tools (session recording etc.) live in the F1 menu.
-                Ui.Label(new Rect(mid - 300f, panel.y + 562f, 600f, 20f), "F1: developer tools (session recording, aim debug, waves, stats).", 12, Ui.Muted, TextAnchor.MiddleCenter);
-                if (Ui.FancyButton(new Rect(mid - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
-                    settingsOpen = false;
-                return;
-            }
-
-            // In a match: Run stats (the Tab screen, so a paused party can look together) and the Field guide, then
-            // Resume and Leave game.
-            if (Ui.FancyButton(new Rect(mid - 270f, panel.y + 486f, 260f, 44f), "Run stats", RunStatsColor, PixelArt.Get("ui_trophy"), t))
-                runStatsOpen = true;
-            if (Ui.FancyButton(new Rect(mid + 10f, panel.y + 486f, 260f, 44f), "Field guide", FieldGuideColor, PixelArt.Get("ui_book"), t))
-                OpenFieldGuide();
-            if (session.IsHost && game.RunId != null && game.State != MatchState.GameOver && game.State != MatchState.Victory)
-                Ui.Label(new Rect(mid - 300f, panel.y + 540f, 600f, 18f), "Your run is saved as each wave starts: continue it from the main menu.", 11, Ui.Muted, TextAnchor.MiddleCenter);
-            if (Ui.FancyButton(new Rect(mid - 270f, panel.yMax - 66f, 260f, 48f), "Resume   [Esc]", Ui.Primary, PixelArt.Get("ui_play"), t))
-                ResumeGame();
-            if (Ui.FancyButton(new Rect(mid + 10f, panel.yMax - 66f, 260f, 48f), "Leave game", Ui.Danger, PixelArt.Get("ui_power"), t))
-            {
-                pauseMenuOpen = false;
-                session.Leave("");
-            }
-        }
-
-        /// Visual effects (Juice.cs): on/off, screen shake, damage numbers, reduced effects; saved right away.
-        void DrawFxOptions(float x, float y, float w)
-        {
-            Ui.Heading(x, y, w, "Visual effects");
-            y += 34f;
-            bool changed = false;
-            bool on = Ui.Toggle(new Rect(x, y, w, 26f), fxOn, "Visual effects");
-            if (on != fxOn) { fxOn = on; changed = true; }
-            Ui.Label(new Rect(x, y + 26f, w, 32f), "Glow, sparks, shattering enemies, lighting. Off: as before.", 11, Ui.Muted);
-            y += 66f;
-            Ui.Label(new Rect(x, y, w, 20f), "Screen shake", 14, fxOn ? Ui.Text : Ui.Muted);
-            string[] shakes = { "Off", "Low", "Full" };
-            float bw = (w - 8f) / 3f;
-            for (int i = 0; i < 3; i++)
-                if (Ui.Choice(new Rect(x + i * (bw + 4f), y + 24f, bw, 28f), shakes[i], fxShake == i, Ui.Accent, null, null, 12, glow: false) && fxShake != i)
-                {
-                    fxShake = i;
-                    changed = true;
-                }
-            y += 66f;
-            bool nums = Ui.Toggle(new Rect(x, y, w, 26f), fxNumbers, "Damage numbers");
-            if (nums != fxNumbers) { fxNumbers = nums; changed = true; }
-            Ui.Label(new Rect(x, y + 26f, w, 18f), "Small numbers rising off what's hit.", 11, Ui.Muted);
-            y += 54f;
-            bool names = Ui.Toggle(new Rect(x, y, w, 26f), fxCallouts, "Ability names");
-            if (names != fxCallouts) { fxCallouts = names; changed = true; }
-            Ui.Label(new Rect(x, y + 26f, w, 18f), "Each ability's name pops up over whoever casts it.", 11, Ui.Muted);
-            y += 54f;
-            bool calm = Ui.Toggle(new Rect(x, y, w, 26f), fxReduced, "Reduced effects");
-            if (calm != fxReduced) { fxReduced = calm; changed = true; }
-            Ui.Label(new Rect(x, y + 26f, w, 32f), "No screen shake, hit-pause or white flashes.", 11, Ui.Muted);
-            if (changed)
-                SaveFxSettings();
-        }
-
-        /// Volume sliders and mute; changes are saved right away.
-        void DrawAudioOptions(float x, float y, float w)
-        {
-            Ui.Heading(x, y, w, "Audio");
-            y += 34f;
-            bool changed = false;
-            changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
-            changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music);
-            changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
-            changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
-            changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, UI)", ref sounds.Effects);
-            bool muted = Ui.Toggle(new Rect(x, y + 2f, w, 26f), sounds.Muted, "Mute all sound   [M]");
-            if (muted != sounds.Muted)
-            {
-                sounds.Muted = muted;
-                changed = true;
-            }
-            if (changed)
-                SaveAudioSettings();
-            bool line = Ui.Toggle(new Rect(x, y + 34f, w, 26f), aimLine, "Aim line   [V]");
-            if (line != aimLine)
-                SetAimLine(line);
-        }
+        /// Settings (main menu, lobby; the pause menu's opens from its drawer), as the side drawer (MenuDrawer.cs).
+        void DrawSettings() => DrawSettingsWindow(false);
 
         bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
         {

@@ -140,87 +140,8 @@ namespace Arena
 
         static string BossName(EnemyType t) => t == EnemyType.TwinA ? "Twin Reapers" : t == EnemyType.Boss ? "The Warden" : Defs.Get(t).Name;
 
-        void DrawRecords()
-        {
-            var p = Profile.Current;
-            var panel = new Rect(W / 2f - 520f, 30f, 1040f, 660f);
-            Ui.Panel(panel, true);
-            Ui.Fancy(new Rect(panel.x, panel.y + 14f, panel.width, 50f), "RECORDS", 34, Color.white, new Color(1f, 0.9f, 0.6f), TextAnchor.MiddleCenter, Ui.Gold);
-            Ui.Label(new Rect(panel.x, panel.y + 60f, panel.width, 18f), "Kept on this computer. Practice Range matches, and runs where dev tools or the bot were used, don't count.", 12, Ui.Muted, TextAnchor.MiddleCenter);
-            float top = panel.y + 96f, colW = (panel.width - 90f) / 3f;
-
-            // Runs.
-            float x = panel.x + 30f, y = top;
-            Ui.Heading(x, y, colW, "Runs");
-            y += 30f;
-            RecordLine(x, ref y, colW, "Started", p.RunsStarted.ToString());
-            RecordLine(x, ref y, colW, "Won", p.RunsWon.ToString(), p.RunsWon > 0 ? Ui.Gold : Ui.Text);
-            RecordLine(x, ref y, colW, "Lost", p.RunsLost.ToString());
-            RecordLine(x, ref y, colW, "Best wave", p.BestWave > 0 ? p.BestWave.ToString() : "—");
-            RecordLine(x, ref y, colW, "Best endless wave", p.BestEndlessWave > 0 ? p.BestEndlessWave.ToString() : "—");
-            RecordLine(x, ref y, colW, "Best score", p.BestScore > 0 ? p.BestScore.ToString("N0") : "—");
-            RecordLine(x, ref y, colW, "Time played", TimeSpan.FromSeconds(p.PlayTime).TotalHours >= 1 ? (int)TimeSpan.FromSeconds(p.PlayTime).TotalHours + " h " + TimeSpan.FromSeconds(p.PlayTime).Minutes + " min" : (int)(p.PlayTime / 60f) + " min");
-            y += 12f;
-            Ui.Heading(x, y, colW, "Totals");
-            y += 30f;
-            RecordLine(x, ref y, colW, "Enemies killed", p.Kills.ToString("N0"));
-            RecordLine(x, ref y, colW, "Damage dealt", ((long)p.DamageDealt).ToString("N0"));
-            RecordLine(x, ref y, colW, "Healing done", ((long)p.HealingDone).ToString("N0"));
-            RecordLine(x, ref y, colW, "Times downed", p.Downs.ToString());
-            RecordLine(x, ref y, colW, "Allies revived", p.Revives.ToString());
-
-            // Bosses.
-            x += colW + 15f;
-            y = top;
-            Ui.Heading(x, y, colW, "Bosses beaten");
-            y += 30f;
-            foreach (var b in RecordBosses)
-            {
-                int n = p.Beaten(b);
-                RecordLine(x, ref y, colW, BossName(b), n > 0 ? "× " + n : "—", n > 0 ? Ui.Good : Ui.Muted);
-            }
-
-            // Classes and unlocks.
-            x += colW + 15f;
-            y = top;
-            Ui.Heading(x, y, colW, "Wins by class");
-            y += 30f;
-            var classes = new List<KeyValuePair<string, int>>(p.RunsAs);
-            classes.Sort((a, b) => b.Value.CompareTo(a.Value));
-            if (classes.Count == 0)
-                Ui.Label(new Rect(x, y, colW, 20f), "Finish a run to see your classes here.", 12, Ui.Muted);
-            for (int i = 0; i < classes.Count && i < 6; i++)
-            {
-                int wins;
-                p.WinsAs.TryGetValue(classes[i].Key, out wins);
-                RecordLine(x, ref y, colW, classes[i].Key, wins + " of " + classes[i].Value, wins > 0 ? Ui.Gold : Ui.Text);
-            }
-            y = Mathf.Max(y, top + 30f + 6 * 26f) + 12f;
-            Ui.Heading(x, y, colW, "Unlocks");
-            y += 30f;
-            if (Unlocks.All.Count == 0)
-                Ui.Label(new Rect(x, y, colW, 60f), "Unlocks are on their way. Your records are already being kept, so anything you've done will count.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            foreach (var u in Unlocks.All)
-            {
-                bool on = p.IsUnlocked(u.Id);
-                Ui.Pill(new Rect(x, y, colW, 40f), new Color(1f, 1f, 1f, on ? 0.07f : 0.03f));
-                Ui.Label(new Rect(x + 10f, y + 3f, colW - 100f, 18f), u.Name, 13, on ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-                if (on)
-                    Ui.Badge(new Rect(x + colW - 86f, y + 4f, 78f, 16f), "UNLOCKED", Ui.GoldButton);
-                Ui.Label(new Rect(x + 10f, y + 20f, colW - 20f, 16f), u.Desc, 11, Ui.Muted);
-                y += 46f;
-            }
-            if (Ui.FancyButton(new Rect(panel.x + panel.width / 2f - 100f, panel.yMax - 62f, 200f, 44f), "Back", Ui.Primary, PixelArt.Get("ui_back"), Time.unscaledTime))
-                recordsOpen = false;
-        }
-
-        void RecordLine(float x, ref float y, float w, string name, string value, Color? valueColor = null)
-        {
-            Ui.Fill(new Rect(x, y + 23f, w, 1f), new Color(1f, 1f, 1f, 0.05f));
-            Ui.Label(new Rect(x, y, w * 0.65f, 22f), name, 13, Ui.Muted);
-            Ui.Label(new Rect(x + w * 0.5f, y, w * 0.5f, 22f), value, 14, valueColor ?? Ui.Text, TextAnchor.MiddleRight, true);
-            y += 26f;
-        }
+        /// Records, as the side drawer (MenuDrawer.cs).
+        void DrawRecords() => DrawRecordsWindow();
 
         // --- The lobby, continuing a run --------------------------------------------------------------
 

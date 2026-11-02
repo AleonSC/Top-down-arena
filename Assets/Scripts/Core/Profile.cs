@@ -40,6 +40,8 @@ namespace Arena
         public readonly Dictionary<string, int> WinsAs = new Dictionary<string, int>();        // "Tank Knight" -> wins
         public readonly Dictionary<string, int> RunsAs = new Dictionary<string, int>();        // "Tank Knight" -> runs finished
         public readonly Dictionary<string, int> ModWins = new Dictionary<string, int>();       // RunMod name -> wins with it on
+        public readonly Dictionary<string, int> RoomsPlayed = new Dictionary<string, int>();   // ChallengeKind name -> rooms played
+        public readonly Dictionary<string, int> RoomsWon = new Dictionary<string, int>();      // ChallengeKind name -> rooms won
         public readonly HashSet<string> Unlocked = new HashSet<string>();
 
         public static string Folder;  // null: profiles aren't kept (tests set a temp folder)
@@ -59,6 +61,16 @@ namespace Arena
         static void Bump(Dictionary<string, int> d, string k) => d[k] = Get(d, k) + 1;
 
         public int Beaten(EnemyType boss) => Get(BossesBeaten, boss.ToString());
+        public int RoomPlayed(ChallengeKind k) => Get(RoomsPlayed, k.ToString());
+        public int RoomWon(ChallengeKind k) => Get(RoomsWon, k.ToString());
+
+        /// A challenge room ended (Challenges.cs).
+        public void RoomEnded(ChallengeKind k, bool won)
+        {
+            Bump(RoomsPlayed, k.ToString());
+            if (won)
+                Bump(RoomsWon, k.ToString());
+        }
 
         // --- What happened -------------------------------------------------------------------------
 
@@ -130,6 +142,7 @@ namespace Arena
             foreach (var kv in RunsAs) RunSave.Line(sb, "played", kv.Value + " " + kv.Key);
             foreach (var kv in WinsAs) RunSave.Line(sb, "won", kv.Value + " " + kv.Key);
             foreach (var kv in ModWins) RunSave.Line(sb, "modwin", kv.Key + " " + kv.Value);
+            foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             return sb.ToString();
         }
@@ -160,6 +173,7 @@ namespace Arena
                         case "played": p.RunsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "won": p.WinsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "modwin": p.ModWins[f[0]] = RunSave.I(f[1]); break;
+                        case "room": p.RoomsPlayed[f[0]] = RunSave.I(f[1]); p.RoomsWon[f[0]] = RunSave.I(f[2]); break;
                         case "unlocked": p.Unlocked.Add(val); break;
                     }
                 }

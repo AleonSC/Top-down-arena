@@ -11,7 +11,10 @@ namespace Arena
         float lookPhaseAt = -10f, warpAt = -10f, crystalFlash;
         float lastCrystalHp;
         bool wasInRoom;
-        static bool glShadow;  // SetColor turns everything into a shadow's dark violet (a Mirror Match's shadows)
+        static bool glShadow;
+        ChallengeKind lastRoomKind;  // the last room this screen saw end, how, and on which wave (the pause menu's run card)
+        bool lastRoomWon;
+        int lastRoomWave;  // SetColor turns everything into a shadow's dark violet (a Mirror Match's shadows)
 
         /// Each frame (from the HUD): notice the room's phase changing, for the animations.
         void TickChallengeLook()
@@ -21,6 +24,12 @@ namespace Arena
             {
                 lookPhase = game.Room;
                 lookPhaseAt = now;
+                if (game.Room == RoomPhase.Won || game.Room == RoomPhase.Lost)
+                {
+                    lastRoomKind = game.RoomKind;
+                    lastRoomWon = game.Room == RoomPhase.Won;
+                    lastRoomWave = game.Wave;
+                }
             }
             if (game.InRoom != wasInRoom)
             {

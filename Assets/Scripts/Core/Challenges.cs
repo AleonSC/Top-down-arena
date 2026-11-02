@@ -500,6 +500,7 @@ namespace Arena
             Room = RoomPhase.Won;
             RoomT = Challenges.AltarWait;
             RoomsWon++;
+            RoomRecord(RoomKind, true);  // everyone's Records (RunSaves.cs)
             ClearRoomEnemies();
             BroadcastFx(FxKind.Ring, AltarPos, new Rgba(1f, 0.85f, 0.4f), 500f, 0.8f, Sfx.WaveClear);
             DoLog("challenge complete: " + Challenges.Name(RoomKind));
@@ -509,6 +510,7 @@ namespace Arena
         {
             Room = RoomPhase.Lost;
             RoomT = Challenges.LostTime;
+            RoomRecord(RoomKind, false);
             ClearRoomEnemies();
             Sounds.Add(Sfx.BossGong);
             DoLog("challenge failed: " + Challenges.Name(RoomKind) + " (" + why + ")");

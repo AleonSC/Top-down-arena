@@ -95,7 +95,7 @@ namespace Arena
                 GUI.color = new Color(oc.r, oc.g, oc.b, oc.a * q);
                 Ui.Alpha = oldAlpha * q;
                 pausedTitle = "PAUSED";
-                DrawSettingsPanel(true);
+                DrawPauseWindow();  // MenuDrawer.cs
                 Ui.Alpha = oldAlpha;
                 GUI.color = oc;
                 GUI.enabled = oldEnabled;
@@ -124,7 +124,7 @@ namespace Arena
                 var oldColor = GUI.color;
                 GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * flick);  // the panel's box follows GUI.color,
                 Ui.Alpha = oldAlpha * flick;                                                   // its fills and text Ui.Alpha (like the HUD's fade)
-                DrawSettingsPanel(true);
+                DrawPauseWindow();  // MenuDrawer.cs
                 Ui.Alpha = oldAlpha;
                 GUI.color = oldColor;
                 GUI.matrix = oldMatrix;
