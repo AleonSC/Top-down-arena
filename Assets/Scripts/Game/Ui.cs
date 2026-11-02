@@ -21,7 +21,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static Texture2D chip;
         static Texture2D checkOn, checkOff;
@@ -36,6 +36,7 @@ namespace Arena
             // In-match HUD: translucent so the arena shows through, with a lighter rim.
             hud = Style(Rounded(9, new Color(0.08f, 0.09f, 0.14f, 0.88f), new Color(0.04f, 0.05f, 0.08f, 0.88f), new Color(1f, 1f, 1f, 0.14f), 1.5f), 9);
             hudLit = Style(Rounded(9, new Color(1f, 1f, 1f, 0.9f), new Color(0.85f, 0.85f, 0.9f, 0.9f), new Color(1f, 1f, 1f, 1f), 2f), 9);
+            hudRim = Style(Rounded(9, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 9);
             pill = Style(Rounded(4, Color.white, new Color(0.86f, 0.86f, 0.9f), new Color(1f, 1f, 1f, 0f), 0f), 4);
             rim = Style(Rounded(12, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 2.5f), 12);
 
@@ -510,6 +511,15 @@ namespace Arena
                 GUI.Box(r, GUIContent.none, hudLit);
                 GUI.backgroundColor = old;
             }
+        }
+
+        /// Just a HUD panel's rim, in a colour (an ability tile flashing; HudTiles.cs).
+        public static void HudRim(Rect r, Color c)
+        {
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = c;
+            GUI.Box(r, GUIContent.none, hudRim);
+            GUI.backgroundColor = old;
         }
 
         /// A solid card with a colored rim; glow (0..1) sets how strongly the rim shows.

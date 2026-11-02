@@ -226,6 +226,36 @@ class JuiceCheck {
         "a run ending slows to a crawl, stamps the title and brings the results in, and a new run plays at full speed (" + slow + ", " + late + ")");
     }
 
+    // The ability bar's tiles (HudTiles.cs): a used ability presses in, pressing it while it recharges flashes red,
+    // pressing a ready one doesn't, and its cooldown finishing pops it with a white rim.
+    {
+      set("fxOn", true); set("fxReduced", false);
+      s.Screen = AppScreen.Game;
+      g.Me.Downed = false; g.State = MatchState.Fighting;
+      var sl = g.Me.Slots[0];
+      if (sl.Id == AbilityId.None) sl.Id = AbilityId.Barrier;
+      Action tt = () => typeof(ArenaApp).GetMethod("TickTiles", f2).Invoke(app, new object[] { 1f / 60f });
+      Func<string, float> lk = n => { var l = typeof(ArenaApp).GetMethod("TileLookFor", f2).Invoke(app, new object[] { 0, false }); return Convert.ToSingle(l.GetType().GetField(n).GetValue(l)); };
+      Action<int> press = i => typeof(ArenaApp).GetMethod("TileKeyPressed", f2).Invoke(app, new object[] { i });
+      sl.Charges = sl.MaxCharges; tt(); for (int i = 0; i < 40; i++) tt();
+      bool tStill = lk("Scale") == 1f && lk("Red") == 0f && lk("White") == 0f;
+      press(0); tt();
+      bool readyPress = lk("Red") == 0f;
+      sl.Charges = 0; sl.Timer = 3f; tt(); tt();
+      bool pressedIn = lk("Scale") < 1f;
+      for (int i = 0; i < 30; i++) tt();
+      press(0); tt();
+      bool denied = lk("Red") > 0.5f;
+      for (int i = 0; i < 30; i++) tt();
+      sl.Charges = 1; tt(); tt();
+      bool popped = lk("Scale") > 1f && lk("White") > 0.5f && lk("ReadyIn") < 1f;
+      sl.Charges = 0; tt(); press(0); tt();
+      set("fxOn", false);
+      bool tOff = lk("Scale") == 1f && lk("Red") == 0f;
+      Check(tStill && readyPress && pressedIn && denied && popped && tOff,
+        "ability tiles press in when used, flash red when pressed too early, pop when ready, and stay still with effects off");
+    }
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);

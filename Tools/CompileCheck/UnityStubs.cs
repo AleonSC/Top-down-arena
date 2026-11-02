@@ -13,7 +13,7 @@ namespace UnityEngine {
   public struct Color { public static Color operator*(Color c, float f){return c;} public static Color Lerp(Color a, Color b, float t){return a;} public static Color white; public float r,g,b,a; public Color(float r,float g,float b){this.r=r;this.g=g;this.b=b;a=1;} public Color(float r,float g,float b,float a){this.r=r;this.g=g;this.b=b;this.a=a;} }
   public struct Vector3 { public float x,y,z; public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;} }
   public struct Quaternion { public static Quaternion identity; }
-  public struct Matrix4x4 { public static Matrix4x4 TRS(Vector3 p, Quaternion q, Vector3 s){return default(Matrix4x4);} }
+  public struct Matrix4x4 { public float m00, m03, m13; public static Matrix4x4 TRS(Vector3 p, Quaternion q, Vector3 s){return new Matrix4x4 { m00 = s.x, m03 = p.x, m13 = p.y };} }
   public struct Rect { public Rect(float x,float y,float w,float h){this.x=x;this.y=y;width=w;height=h;} public float x,y,width,height; public float xMax{get{return x+width;}} public float yMax{get{return y+height;}} public Vector2 center{get{return new Vector2(x+width/2f,y+height/2f);}} public bool Contains(Vector2 p){return false;} }
   public struct Vector2 { public float x,y; public Vector2(float a,float b){x=a;y=b;} public static Vector2 zero => new Vector2(0f,0f); public static Vector2 operator *(Vector2 v,float k)=>new Vector2(v.x*k,v.y*k); public static bool operator ==(Vector2 a,Vector2 b)=>a.x==b.x&&a.y==b.y; public static bool operator !=(Vector2 a,Vector2 b)=>!(a==b); public override bool Equals(object o)=>o is Vector2 v&&v==this; public override int GetHashCode()=>x.GetHashCode()^y.GetHashCode(); }
   public static class Random { public static int Range(int a,int b){return a;} }

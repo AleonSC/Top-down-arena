@@ -1191,66 +1191,99 @@ namespace Arena
 
             for (int i = 0; i < Upgrades.SlotCount; i++)
             {
-                var slot = me.Slots[i];
                 var r = new Rect(x0 + i * (tileW + gap), y, tileW, tileH);
-                bool ultimate = i == Upgrades.UltSlot;
-                if (slot.Id == AbilityId.None)
-                {
-                    Ui.HudPanel(r);
-                    DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], new Color(1f, 1f, 1f, 0.45f));
-                    Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), "Empty", 12, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(r.x + 8f, r.y + 40f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
-                    continue;
-                }
-                bool ready = slot.Charges > 0;
-                float cd = game.Cooldown(me, i);
-                float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
-                Color accent = ultimate ? Ui.Gold : ToColor(me.Def.Color);
-                float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
-                Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
-
-                // Cooldown: a dark shade over the tile that drains downward as it recharges.
-                if (!ready)
-                {
-                    GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * (1f - fill)));
-                    Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
-                    GUI.EndGroup();
-                }
-                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
-                // Name: bright with a sheen when ready, dimmer while recharging.
-                Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
-                Ui.Fancy(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, 15, ready ? Color.white : new Color(0.9f, 0.92f, 1f, 0.9f), nameBottom,
-                    TextAnchor.MiddleLeft, ready ? accent : (Color?)null);
-                if (ready)
-                {
-                    Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
-                    Ui.Fancy(new Rect(r.x + 8f, r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, hi, lo, TextAnchor.MiddleRight,
-                        new Color(lo.r, lo.g, lo.b, ultimate ? 0.6f + 0.4f * pulse : 0.8f));
-                }
-                else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
-                    Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 12, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
-                else
-                    Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
-                        14, Color.white, new Color(0.7f, 0.8f, 1f), TextAnchor.MiddleRight);
-                // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
-                // recharge line, the pair one strip.
-                float mxp;
-                me.MasteryXp.TryGetValue(slot.Id, out mxp);
-                var strip = new Rect(r.x + 8f, r.yMax - 13f, r.width - 16f, 7f);
-                const float xpH = 3f;
-                Ui.Pill(strip, new Color(0f, 0f, 0f, 0.45f));
-                GUI.BeginGroup(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH));
-                Ui.Pill(new Rect(0f, 0f, strip.width, strip.height), new Color(0.35f, 0.9f, 0.45f));
-                GUI.EndGroup();
-                GUI.BeginGroup(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH));
-                Ui.Pill(new Rect(0f, -xpH, strip.width, strip.height), ready ? accent : new Color(0.5f, 0.6f, 0.8f));
-                GUI.EndGroup();
-                if (slot.MaxCharges > 1)
-                    for (int k = 0; k < slot.MaxCharges; k++)
-                        Ui.Pill(new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f), k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
+                var look = TileLookFor(i, i == Upgrades.UltSlot);  // how the tile reacts this frame (HudTiles.cs)
+                int slotIndex = i;
+                TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
             DrawMasteryToasts(x0 + total / 2f, y - 64f);
         }
+
+        /// One ability tile: key, name, READY or the timer, mastery and recharge lines, charge pips; `look` adds the
+        /// tile's reactions (rim flashes, READY sliding in, a pip popping).
+        void DrawAbilityTile(Player me, int i, Rect r, TileLook look)
+        {
+            var slot = me.Slots[i];
+            bool ultimate = i == Upgrades.UltSlot;
+            if (slot.Id == AbilityId.None)
+            {
+                Ui.HudPanel(r);
+                DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), SlotKeys[i], new Color(1f, 1f, 1f, 0.45f));
+                Ui.Label(new Rect(r.x + 8f, r.y + 26f, r.width - 16f, 18f), "Empty", 12, new Color(1f, 1f, 1f, 0.45f), TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(r.x + 8f, r.y + 40f, r.width - 16f, 14f), "from a very rare upgrade", 9, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
+                return;
+            }
+            bool ready = slot.Charges > 0;
+            float cd = game.Cooldown(me, i);
+            float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
+            Color accent = ultimate ? Ui.Gold : ToColor(me.Def.Color);
+            float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
+            Ui.HudPanel(r, ready ? new Color(accent.r, accent.g, accent.b, ultimate ? 0.6f + 0.4f * pulse : 1f) : (Color?)null);
+            if (look.White > 0f)
+                Ui.HudRim(r, new Color(1f, 1f, 1f, 0.9f * look.White));
+
+            // Cooldown: a dark shade over the tile that drains downward as it recharges.
+            if (!ready)
+            {
+                GUI.BeginGroup(new Rect(r.x, r.y, r.width, r.height * (1f - fill)));
+                Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
+                GUI.EndGroup();
+            }
+            DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
+            // Name: bright with a sheen when ready, dimmer while recharging.
+            Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
+            Ui.Fancy(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, 15, ready ? Color.white : new Color(0.9f, 0.92f, 1f, 0.9f), nameBottom,
+                TextAnchor.MiddleLeft, ready ? accent : (Color?)null);
+            if (ready)
+            {
+                Color hi = ultimate ? new Color(1f, 0.95f, 0.7f) : new Color(0.8f, 1f, 0.85f), lo = ultimate ? Ui.Gold : Ui.Good;
+                float rin = look.ReadyIn;  // sliding in from the right as the tile pops
+                if (rin > 0f)
+                    Ui.Fancy(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 11, Fade(hi, rin), Fade(lo, rin), TextAnchor.MiddleRight,
+                        new Color(lo.r, lo.g, lo.b, (ultimate ? 0.6f + 0.4f * pulse : 0.8f) * rin));
+            }
+            else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 12, Color.white, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
+            else
+            {
+                // Pressed too early: the timer flashes red.
+                float red = look.Red;
+                Ui.Fancy(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s",
+                    14, Color.Lerp(Color.white, new Color(1f, 0.55f, 0.55f), red), Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight,
+                    red > 0f ? new Color(1f, 0.3f, 0.3f, 0.7f * red) : (Color?)null);
+            }
+            // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
+            // recharge line, the pair one strip.
+            float mxp;
+            me.MasteryXp.TryGetValue(slot.Id, out mxp);
+            var strip = new Rect(r.x + 8f, r.yMax - 13f, r.width - 16f, 7f);
+            const float xpH = 3f;
+            Ui.Pill(strip, new Color(0f, 0f, 0f, 0.45f));
+            GUI.BeginGroup(new Rect(strip.x, strip.y, strip.width * Game.MasteryProgress(mxp), xpH));
+            Ui.Pill(new Rect(0f, 0f, strip.width, strip.height), new Color(0.35f, 0.9f, 0.45f));
+            GUI.EndGroup();
+            GUI.BeginGroup(new Rect(strip.x, strip.y + xpH, strip.width * Mathf.Clamp01(fill), strip.height - xpH));
+            Ui.Pill(new Rect(0f, -xpH, strip.width, strip.height), ready ? accent : new Color(0.5f, 0.6f, 0.8f));
+            GUI.EndGroup();
+            if (slot.MaxCharges > 1)
+                for (int k = 0; k < slot.MaxCharges; k++)
+                {
+                    var pip = new Rect(r.xMax - 12f - k * 9f, r.y + 30f, 6f, 6f);
+                    if (k == look.Pip)
+                    {
+                        // The charge that just came back: a fading halo spreading round it, and the pip popping.
+                        float h = 3f + 6f * look.PipHalo;
+                        Ui.Pill(new Rect(pip.x - h, pip.y - h, pip.width + 2f * h, pip.height + 2f * h), new Color(1f, 1f, 1f, 0.35f * (1f - look.PipHalo)));
+                        float e = 3f * look.PipPop;
+                        pip = new Rect(pip.x - e, pip.y - e, pip.width + 2f * e, pip.height + 2f * e);
+                    }
+                    Ui.Pill(pip, k < slot.Charges ? accent : new Color(1f, 1f, 1f, 0.15f));
+                }
+            if (look.Red > 0f)
+                Ui.HudRim(r, new Color(1f, 0.35f, 0.35f, 0.85f * look.Red));
+        }
+
+        static Color Fade(Color c, float a) => new Color(c.r, c.g, c.b, c.a * a);
 
         /// Five small bars for an ability's mastery level; the next one fills as it earns XP.
         void DrawMasteryPips(Rect r, int level, float progress)
