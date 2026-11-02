@@ -170,6 +170,7 @@ namespace Arena
         /// other player and the game doesn't pause.
         void DrawTabMenu(Player me, bool dim = true)
         {
+            TipClear();  // hovering the weapon or an upgrade shows what it does (Tooltips.cs)
             if (dim)  // (the Run stats screen draws one backdrop itself while it switches pages: RunStatsUi.cs)
                 Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.6f));
             DrawTabStats(me, StatsSidebar(me));
@@ -186,6 +187,7 @@ namespace Arena
             DrawTabAbilities(me, abilBox);
             DrawTabUpgrades(me, upBox);
             DrawAbilityHover(abilBox);
+            DrawTip();
         }
 
         /// Stats, grouped so they're quick to scan (in the stats sidebar).
@@ -255,8 +257,9 @@ namespace Arena
             float x = box.x + 12f, w = box.width - 24f, y = box.y + 12f;
             Ui.Label(new Rect(x + 4f, y, w, 16f), "WEAPON", 11, Ui.Gold, TextAnchor.MiddleLeft, true);
             y += 20f;
+            float wdh = Mathf.Min(44f, Ui.TextHeight(me.Weapon.Desc, 11, w - 8f));  // at most three lines (hover for all of it)
+            TipWeapon(new Rect(x, y - 2f, w, 26f + wdh), me);
             Ui.Label(new Rect(x + 4f, y, w, 22f), me.Weapon.Name, 17, Color.white, TextAnchor.MiddleLeft, true);
-            float wdh = Mathf.Min(44f, Ui.TextHeight(me.Weapon.Desc, 11, w - 8f));  // at most three lines
             GUI.BeginGroup(new Rect(x + 4f, y + 22f, w - 8f, wdh));
             Ui.Label(new Rect(0f, 0f, w - 8f, Ui.TextHeight(me.Weapon.Desc, 11, w - 8f)), me.Weapon.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
             GUI.EndGroup();
@@ -376,6 +379,7 @@ namespace Arena
                     continue;
                 }
                 var u = Upgrades.All[item];
+                TipUpgrade(new Rect(cx - 2f, cy, colW + 4f, rowH), me, u, counts[item]);  // hover: what it does (Tooltips.cs)
                 Ui.Icon(new Rect(cx + 2f, cy + 3f, 18f, 18f), PixelArt.ForUpgrade(u.Name));
                 Ui.Label(new Rect(cx + 26f, cy, colW - 60f, rowH), u.Name, 13, Ui.Text, TextAnchor.MiddleLeft);
                 if (counts[item] > 1)

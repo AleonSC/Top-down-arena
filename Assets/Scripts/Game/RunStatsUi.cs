@@ -367,8 +367,10 @@ namespace Arena
             float x = panel.x + 20f, w = panel.width - 40f, gap = 16f;
             float cw = Mathf.Min(580f, (w - gap * (mates.Count - 1)) / mates.Count);
             float x0 = x + (w - (cw * mates.Count + gap * (mates.Count - 1))) / 2f;
+            TipClear();  // hovering their weapon, an ability or an upgrade shows what it does (Tooltips.cs)
             for (int i = 0; i < mates.Count; i++)
                 DrawMateCard(new Rect(x0 + i * (cw + gap), panel.y + 18f, cw, panel.height - 36f), mates[i], t + i * 1.3f);
+            DrawTip();
         }
 
         void DrawMateCard(Rect card, Player p, float t)
@@ -399,9 +401,10 @@ namespace Arena
 
             // Weapon.
             float y = stage.yMax + 14f, x = card.x + 16f, w = card.width - 32f;
+            float dh = Mathf.Min(48f, Ui.TextHeight(p.Weapon.Desc, 11, w));
+            TipWeapon(new Rect(x - 6f, y + 14f, w + 12f, 24f + dh), p);
             Ui.Label(new Rect(x, y, w, 16f), "WEAPON", 10, Ui.Gold, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(x, y + 16f, w, 20f), p.Weapon.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
-            float dh = Mathf.Min(48f, Ui.TextHeight(p.Weapon.Desc, 11, w));
             GUI.BeginGroup(new Rect(x, y + 37f, w, dh));
             Ui.Label(new Rect(0f, 0f, w, Ui.TextHeight(p.Weapon.Desc, 11, w)), p.Weapon.Desc, 11, Ui.Muted, TextAnchor.UpperLeft, false, true);
             GUI.EndGroup();
@@ -413,6 +416,7 @@ namespace Arena
             for (int k = 0; k < Upgrades.SlotCount; k++)
             {
                 var id = p.Slots[k].Id;
+                TipAbility(new Rect(x - 6f, y, w + 12f, 24f), p, k);
                 var key = new Rect(x, y + 3f, 46f, 18f);
                 Ui.Pill(key, k == Upgrades.UltSlot ? new Color(0.38f, 0.3f, 0.14f) : new Color(0.22f, 0.26f, 0.39f));
                 Ui.Label(key, SlotKeys[k], 9, Color.white, TextAnchor.MiddleCenter, true);
@@ -446,6 +450,7 @@ namespace Arena
             {
                 var u = Upgrades.All[ids[i]];
                 float ux = x + (i / perCol) * colW, uy = y + (i % perCol) * rowH;
+                TipUpgrade(new Rect(ux - 4f, uy, colW - 4f, rowH), p, u, counts[ids[i]]);
                 Ui.Icon(new Rect(ux, uy + 2f, 16f, 16f), PixelArt.ForUpgrade(u.Name));
                 Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(ToColor(Upgrades.RarityColor(u.Rarity)), Color.white, 0.45f));
                 if (counts[ids[i]] > 1)
@@ -454,6 +459,10 @@ namespace Arena
             if (shown < ids.Count)
             {
                 int i = shown;
+                var rest = new List<string>();
+                for (int j = shown; j < ids.Count; j++)
+                    rest.Add(Upgrades.All[ids[j]].Name + (counts[ids[j]] > 1 ? " ×" + counts[ids[j]] : ""));
+                TipMore(new Rect(x + (i / perCol) * colW - 4f, y + (i % perCol) * rowH, colW - 4f, rowH), rest);
                 Ui.Label(new Rect(x + (i / perCol) * colW + 22f, y + (i % perCol) * rowH, colW - 30f, rowH), "+ " + (ids.Count - shown) + " more", 12, Ui.Muted);
             }
         }

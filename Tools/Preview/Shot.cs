@@ -758,7 +758,7 @@ class Shot {
       var tm = Environment.GetEnvironmentVariable("MOUSE");
       if (tm != null) { var xy = tm.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
       if (Environment.GetEnvironmentVariable("STATSTAB") == null)
-        typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me });
+        typeof(ArenaApp).GetMethod("DrawTabMenu", f2).Invoke(app, new object[] { me, true });
       else
       {
         // The Run stats screen (RunStatsUi.cs): STATSTAB=0 Run so far, 1 Your build, 2 Team; PAUSE=1 as opened from the pause menu.
