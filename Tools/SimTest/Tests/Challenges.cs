@@ -122,6 +122,12 @@ static partial class Program
             for (int i = 0; i < 30; i++)
                 prizeOnly &= Upgrades.PrizeOffer(rng, r, AbilityId.None, new List<int>()).All(u => u >= 0 && Upgrades.All[u].Rarity >= Rarity.Rare && Upgrades.All[u].Rarity <= Rarity.VeryRare);
         Check(prizeOnly, "a prize offer only has rare and very rare cards");
+        // With nothing but the prize left to pick (the legendary taken first), the break still waits for it:
+        // a prize card left up into the next wave can't be taken and blocks shooting.
+        foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.PrizePicks = 1; }
+        g.StateTimer = 1f;
+        Run(s, dt, 2f, null, hold);
+        Check(g.State == MatchState.Intermission && g.StateTimer == 1f, "the break waits for prize picks too, not just level-ups and boss rewards");
         noPicks();
         foreach (var p in g.Players.Values) p.PrizePicks = 0;
         Run(s, dt, 0.3f, null, hold);
