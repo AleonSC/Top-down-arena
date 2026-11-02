@@ -153,6 +153,8 @@ namespace Arena
                         q.InvulnT = Math.Max(q.InvulnT, 3f);
                         if (cap)
                             q.OverdriveT = Math.Max(q.OverdriveT, 4f);
+                        if (q != p)
+                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, new Rgba(0.4f, 1f, 0.55f), 0f, 0.55f, Sfx.None);
                         BroadcastFx(FxKind.Ring, q.Pos, new Rgba(0.4f, 1f, 0.55f), 90f, 0.6f, Sfx.None);
                     }
                     Sounds.Add(Sfx.Ability);

@@ -429,6 +429,10 @@ namespace Arena
             if (nums != fxNumbers) { fxNumbers = nums; changed = true; }
             Ui.Label(new Rect(x, y + 26f, w, 18f), "Small numbers rising off what's hit.", 11, Ui.Muted);
             y += 54f;
+            bool names = Ui.Toggle(new Rect(x, y, w, 26f), fxCallouts, "Ability names");
+            if (names != fxCallouts) { fxCallouts = names; changed = true; }
+            Ui.Label(new Rect(x, y + 26f, w, 18f), "Each ability's name pops up over whoever casts it.", 11, Ui.Muted);
+            y += 54f;
             bool calm = Ui.Toggle(new Rect(x, y, w, 26f), fxReduced, "Reduced effects");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
             Ui.Label(new Rect(x, y + 26f, w, 32f), "No screen shake, hit-pause or white flashes.", 11, Ui.Muted);

@@ -17,7 +17,8 @@ namespace Arena
         const float GraspLetGo = 1.3f, GraspHold = 0.3f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
         public const float BoneSpearCost = 2f, TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
         const float ShellTime = 5f, ShellMult = 3f;
-        const float PactTime = 4f, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
+        public const float PactDuration = 4f;
+        const float PactTime = PactDuration, PactRadius = 220f, PactBurst = 1.5f, PactMasteredCut = 0.3f;
         const float DrainRadius = 220f, DrainAmount = 20f, DrainPull = 60f;
         const float GiftMult = 2f, GiftSplash = 200f, SiphonRadius = 140f, SiphonTime = 6f, MartyrRevive = 0.5f, MartyrWardTime = 12f;
         const float BoilRadius = 260f, BoilDelay = 1f, BoilMult = 3f, BoilSplash = 80f;
@@ -610,6 +611,8 @@ namespace Arena
             var d = Upgrades.Ability(id);
             if (d.HealthCost > 0f)
                 castPaid = PayHealth(p, (d.CostsCurrent ? p.Hp : p.MaxHp) * d.HealthCost);
+            if (castPaid >= 1f)  // blood spurts off you: you can see what it cost
+                BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
 
         /// Blood Price: a Blood Mage deals up to 40% more damage the more health it's missing (full bonus at 10%
@@ -859,8 +862,11 @@ namespace Arena
                     p.ShieldHp = Math.Max(p.ShieldHp, castPaid * (ShellMult + s.ShellBonus) * pw);
                     p.ShieldT = Math.Max(p.ShieldT, ShellTime + s.ShellBonusTime);
                     if (cap)
+                    {
                         EraseEnemyBullets(p.Pos, 160f);
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 60f, 0.4f, Sfx.Ability);
+                        BroadcastFx(FxKind.Ring, p.Pos, blood, 160f, 0.4f, Sfx.None);  // how far it cleared
+                    }
+                    BroadcastFx(FxKind.BloodShell, p.Pos, new V2(p.Id, 0f), blood, p.Def.BodyR, 0.45f, Sfx.Ability);
                     return true;
                 case AbilityId.CrimsonPact:
                     p.PactT = PactTime;
@@ -873,7 +879,7 @@ namespace Arena
                         e.TargetId = p.Id;
                         e.RetargetT = PactTime;
                     }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, 260f, 0.5f, Sfx.Roar);
+                    BroadcastFx(FxKind.Ring, p.Pos, blood, p.PactRadius, 0.5f, Sfx.Roar);
                     return true;
                 case AbilityId.Exsanguinate:
                 {
@@ -882,6 +888,7 @@ namespace Arena
                     {
                         if (e.SpawnT > 0f || e.Pos.DistanceTo(p.Pos) > r + e.Radius)
                             continue;
+                        V2 was = e.Pos;
                         if (!Heavy(e))
                         {
                             V2 away = (e.Pos - p.Pos).Normalized();
@@ -895,9 +902,9 @@ namespace Arena
                             e.SlowT = Math.Max(e.SlowT, 2f);
                             e.SlowMult = Math.Min(e.SlowMult, 0.5f);
                         }
-                        BroadcastFx(FxKind.Slash, e.Pos, p.Pos, blood, 0.1f, 0.3f, Sfx.None);
+                        BroadcastFx(FxKind.Drain, was, p.Pos, blood, e.Radius, 0.5f, Sfx.None);  // its blood flowing into you
                     }
-                    BroadcastFx(FxKind.Ring, p.Pos, blood, r, 0.4f, Sfx.Shockwave);
+                    BroadcastFx(FxKind.Implode, p.Pos, blood, r, 0.4f, Sfx.Shockwave);  // a ring closing in: the pull
                     return true;
                 }
                 case AbilityId.BloodGift:
@@ -912,7 +919,7 @@ namespace Arena
                         // Alone: it becomes a shield for you.
                         p.ShieldHp = Math.Max(p.ShieldHp, gift * pw);
                         p.ShieldT = Math.Max(p.ShieldT, ShellTime);
-                        BroadcastFx(FxKind.Ring, p.Pos, blood, 50f, 0.4f, Sfx.SpellHoly);
+                        BroadcastFx(FxKind.BloodShell, p.Pos, new V2(p.Id, 0f), blood, p.Def.BodyR, 0.45f, Sfx.SpellHoly);
                         return true;
                     }
                     Heal(ally, gift, p);
@@ -920,7 +927,7 @@ namespace Arena
                         foreach (var q in Players.Values)
                             if (q != ally && !q.Downed && q.Pos.DistanceTo(ally.Pos) < GiftSplash)
                                 Heal(q, gift * 0.5f, p);
-                    BroadcastFx(FxKind.Slash, p.Pos, ally.Pos, blood, 0.12f, 0.35f, Sfx.None);
+                    BroadcastFx(FxKind.Drain, p.Pos, ally.Pos, blood, 10f, 0.5f, Sfx.None);  // your blood flowing into them
                     BroadcastFx(FxKind.Ring, ally.Pos, blood, 50f, 0.4f, Sfx.SpellHoly);
                     return true;
                 }
@@ -948,7 +955,7 @@ namespace Arena
                         RevivePlayer(down, Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw), p);
                         down.InvulnT = Math.Max(down.InvulnT, 1.5f + s.MartyrInvuln);
                         castHits += 3;
-                        BroadcastFx(FxKind.Slash, p.Pos, down.Pos, blood, 0.14f, 0.4f, Sfx.None);
+                        BroadcastFx(FxKind.Drain, p.Pos, down.Pos, blood, 12f, 0.55f, Sfx.None);
                         BroadcastFx(FxKind.Ring, down.Pos, blood, 70f, 0.5f, Sfx.Revive);
                     }
                     else
@@ -959,6 +966,8 @@ namespace Arena
                         ward.WardFrac = Math.Min(1f, (MartyrRevive + s.MartyrBonus) * pw);
                         ward.WardInvuln = 1.5f + s.MartyrInvuln;
                         castHits += 2;
+                        if (ward != p)
+                            BroadcastFx(FxKind.Drain, p.Pos, ward.Pos, blood, 10f, 0.5f, Sfx.None);
                         BroadcastFx(FxKind.Ring, ward.Pos, blood, 60f, 0.5f, Sfx.SpellHoly);
                     }
                     if (cap)
@@ -974,7 +983,7 @@ namespace Arena
                             continue;
                         boils.Add(new Boil { Enemy = e.Id, Owner = p.Id, T = BoilDelay, Dmg = dmg, Splash = cap });
                         castHits++;
-                        BroadcastFx(FxKind.Ring, e.Pos, blood, e.Radius + 14f, BoilDelay, Sfx.None);
+                        BroadcastFx(FxKind.Boil, e.Pos, new V2(e.Id, 0f), blood, e.Radius, BoilDelay, Sfx.None);  // bubbling until it bursts
                     }
                     BroadcastFx(FxKind.Ring, p.Pos, blood, r, 0.45f, Sfx.Ability);
                     return true;
@@ -1063,7 +1072,9 @@ namespace Arena
                             foreach (var e in Enemies.Values)
                                 if (e.SpawnT <= 0f && e.Pos.DistanceTo(p.Pos) < p.PactRadius + e.Radius)
                                     HurtEnemy(e, dmg, p.Id);
-                        BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), p.PactRadius, 0.4f, Sfx.Explode);
+                        BroadcastFx(FxKind.PactBurst, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), p.PactRadius, 0.45f, Sfx.Explode);
+                        BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.85f, 0.12f, 0.2f), Math.Min(p.PactRadius, 40f + dmg * 0.5f), 0.35f, Sfx.None);  // bigger the more it held
+                        p.PactStore = 0f;
                     }
                 }
                 if (p.RushT > 0f)

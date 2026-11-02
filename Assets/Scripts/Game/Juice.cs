@@ -19,7 +19,7 @@ namespace Arena
     ///   mood        a vignette and a tint for the path or boss; a faint red tint in the corners when hurt or low
     ///   level up    a gold ring and rising sparks (bigger for a legendary); a boss's entrance card
     /// Settings (Menus.cs): Visual effects on/off (off draws exactly as before), Screen shake off/low/full, Damage numbers,
-    /// and Reduced effects (no shake, no hit-pause, no flashes).
+    /// Ability names (AbilityLooks.cs) and Reduced effects (no shake, no hit-pause, no flashes).
     public partial class ArenaApp
     {
         // --- Settings --------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ namespace Arena
             fxShake = Mathf.Clamp(PlayerPrefs.GetInt("fx_shake", 1), 0, 2);
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
+            fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
         }
 
         void SaveFxSettings()
@@ -40,6 +41,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_shake", fxShake);
             PlayerPrefs.SetInt("fx_numbers", fxNumbers ? 1 : 0);
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
+            PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
             PlayerPrefs.Save();
             if (!fxOn)
                 ClearJuice();

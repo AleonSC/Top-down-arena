@@ -150,6 +150,7 @@ namespace Arena
                 DrawPlayerLinks(p, t);
             foreach (var minion in game.Minions.Values)
                 DrawMinion(minion, t);
+            DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
             foreach (var o in game.Orbs.Values)
                 DrawOrb(o, t);
             DrawReaperTether(t);
@@ -165,6 +166,7 @@ namespace Arena
             DrawRadiantOrbs(t);
             DrawLeechTendrils(t);
             DrawImplodeMark(t);
+            DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawLoot(t);  // your chest item, spinning in its beam (PropsLook.cs)
             foreach (var p in game.Players.Values)
@@ -191,6 +193,7 @@ namespace Arena
             if (p.Downed)
                 return;
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
+            DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (BloodMageLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
@@ -295,10 +298,12 @@ namespace Arena
                          p.Disp + V2.FromAngle(t * 3f + MathX.Tau * (k + 1) / 6f) * (p.Def.BodyR + 22f), 3f, new Rgba(0.8f, 0.5f, 1f, 0.85f));
             if (p.WardT > 0f && !p.Downed)  // Martyr's ward: a blood-red ring, pulsing faster as it runs out
                 Arc(p.Disp, p.Def.BodyR + 13f, 2f, new Rgba(0.95f, 0.15f, 0.25f, 0.45f + 0.35f * Mathf.Sin(t * (4f + 8f * (1f - p.WardT / 12f)))), 24);
-            if (p.ShieldHp > 0f)  // Arcane Ward
+            if (p.ShieldHp > 0f && p.Kit == Kit.Hemomancer)  // Blood Shell: plates of blood (BloodMageLook.cs)
+                DrawBloodShellOn(p, t);
+            else if (p.ShieldHp > 0f)  // Arcane Ward
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
-            if (p.SurgeT > 0f)  // Arcane Surge
-                Circle(p.Disp, p.Def.BodyR + 10f + 3f * Mathf.Sin(t * 12f), new Rgba(0.75f, 0.45f, 1f, 0.18f), 32);
+            if (p.SurgeT > 0f)  // Arcane Surge: a violet glow with sparks crackling round it
+                DrawArcaneSurge(p, t);  // AbilityLooks.cs
             if (p.FrenzyT > 0f)  // Alpha Call
                 Arc(p.Disp, p.Def.BodyR + 9f, 2f, new Rgba(1f, 0.5f, 0.3f, 0.7f), 16, t * 6f, MathX.Pi);
             if (p.ParryActive)
@@ -761,6 +766,29 @@ namespace Arena
                 case FxKind.Implode:
                     DrawImplodeFx(fx, f);  // BloodMageLook.cs
                     break;
+                case FxKind.Bleed:
+                    DrawBleedFx(fx, f);  // BloodMageLook.cs, like the four below
+                    break;
+                case FxKind.BloodShell:
+                    DrawBloodShellFx(fx, f);
+                    break;
+                case FxKind.Drain:
+                    DrawDrainFx(fx, f);
+                    break;
+                case FxKind.Boil:
+                    DrawBoilFx(fx, f, t);
+                    break;
+                case FxKind.PactBurst:
+                    DrawPactBurstFx(fx, f);
+                    break;
+                case FxKind.Link:
+                    DrawLinkFx(fx, f);  // AbilityLooks.cs, like Rewind
+                    break;
+                case FxKind.Rewind:
+                    DrawRewindFx(fx, f);
+                    break;
+                case FxKind.Callout:
+                    break;  // a name over the caster, drawn on the HUD (AbilityLooks.cs)
                 case FxKind.Repulse:
                     DrawRepulseFx(fx, f);
                     break;
@@ -2177,8 +2205,15 @@ namespace Arena
                 }
             if (p.FuryT > 0f)
                 Arc(p.Disp, r + 6f, 3f, new Rgba(1f, 0.3f, 0.2f, 0.5f + 0.4f * Mathf.Sin(t * 12f)), 24);
-            if (p.UnbreakT > 0f)
-                Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.35f));
+            if (p.UnbreakT > 0f)  // Unbreakable: a golden octagon of plates, its edges bright
+            {
+                Polygon(p.Disp, r + 9f, 8, t * 0.5f, new Rgba(0.9f, 0.8f, 0.5f, 0.3f));
+                for (int k = 0; k < 8; k++)
+                    Line(p.Disp + V2.FromAngle(t * 0.5f + MathX.Tau * k / 8f) * (r + 11f), p.Disp + V2.FromAngle(t * 0.5f + MathX.Tau * (k + 1) / 8f) * (r + 11f), 2.5f,
+                         new Rgba(1f, 0.88f, 0.55f, 0.75f + 0.2f * Mathf.Sin(t * 6f + k)));
+            }
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BladeTempest)  // three spectral blades wheeling round
+                DrawBladeTempest(p, r, t);  // AbilityLooks.cs
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.LastStand)
                 for (int k = 0; k < 8; k++)  // flames licking up around them
                     Circle(p.Disp + V2.FromAngle(MathX.Tau * k / 8f + t) * (r + 10f), 4f + 2f * Mathf.Sin(t * 15f + k), new Rgba(1f, 0.5f, 0.2f, 0.7f), 6);

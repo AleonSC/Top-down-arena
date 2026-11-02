@@ -131,7 +131,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `HudTiles.cs` | 0.15k | the ability bar's tiles react ("Snap"): `TickTiles` (Update) finds ready / charge back / use from each slot's `Charges` against last frame's, `TileKeyPressed` (the key handlers) a press while recharging; `TileLookFor` gives `DrawAbilityTile` (Hud.cs) its pop, shake, rim flashes, READY slide and pip pop; `TileTransformed` scales a tile round its centre on top of the current `GUI.matrix` |
 | `ApproachUi.cs` | 0.04k | the approach chip above the wave panel and the banner's line |
 | `ClassLooks.cs` | 0.05k | one `KitLook` per class (its body drawn over the player, and auras under them), in Kit order; the Elementalist's star and the Summoner's motes |
-| `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras |
+| `AbilityLooks.cs` | 0.3k | telling what abilities do, for every class: callouts (each cast's name over its caster, `FxKind.Callout` from `HostAbility`; Settings > Ability names, `fx_callouts`), buff timers (`DrawBuffTimers`: a shrinking arc under the player per timed buff, the `Buffs` table; a new timed buff adds a line), taunt eyes over enemies (`DrawTauntMarks`, any taunt), beams to the allies an ability reached (`FxKind.Link`: Guardian's Oath, Lay on Hands, Lifeline, Arcane Ward, Sanctify, Time Rewind), Time Rewind's clock (`FxKind.Rewind`), Arcane Surge, Blade Tempest and Alpha Call's frenzied minions. Preview any ability: `CAST="Roar" CASTT=1.5 Tools/Preview/shot.sh roar hud 6 9 2` (plays the ability's own class) |
+| `BloodMageLook.cs` | 0.2k | the Blood Mage's look (hood, circling drops that glow brighter as health falls, weapon in hand, buffs), its shots, Siphon Field and Blood Pool zones, Blood Rite / Sanguine Rain auras; ability feedback: the health-cost spurt (`FxKind.Bleed`), Blood Shell's plates and forming, Crimson Pact's reach/countdown/stored blood (`PactStore`, `PactRadius` are replicated) and burst, taunted enemies' eyes (`DrawBloodTaunts`), Exsanguinate / Blood Gift / Martyr's blood streams (`FxKind.Drain`), Blood Boil's bubbling (`FxKind.Boil`), Blood Rite's lifelines. Preview any ability: `BLOOD=0 CAST="Crimson Pact" CASTT=2 Tools/Preview/shot.sh pact hud 6 9` |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
 
@@ -141,7 +142,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
   movement** (`LocalControl`), the host for everything else. The host sends a full **snapshot every 3 ticks**
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (now 117) must be bumped whenever any message format changes**; mismatched
+  **`Session.ProtocolVersion` (now 119) must be bumped whenever any message format changes**; mismatched
   players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
