@@ -258,7 +258,6 @@ namespace Arena
             }
             if (Event.current.type == EventType.Repaint)
                 pauseMouse = Event.current.mousePosition;
-            Ui.Label(new Rect(42f, H - 22f, DrawerW - 60f, 16f), "↑ ↓  Enter  ·  Esc to go back", 11, Ui.Muted);
             EndDrawer();
         }
 
