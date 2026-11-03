@@ -650,15 +650,53 @@ namespace Arena
             }
         }
 
+        /// The waves folder in the project (next to Assets), whose files Tools/WaveGen/build.sh builds into the game.
+        static string ProjectWavesFolder => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Data", "Waves"));
+
         void DrawEdFiles(Rect r)
         {
             Ui.Panel(r);
-            Ui.Label(new Rect(r.x + 12f, r.y + 8f, r.width - 24f, 16f), "SAVED WAVES  ·  click one to open it", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 12f, r.y + 8f, r.width - 24f, 16f), "OPEN WAVES  ·  click one to open it", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             if (Ui.SmallButton(new Rect(r.xMax - 104f, r.y + 6f, 92f, 22f), "Open folder", 10))
             {
                 Directory.CreateDirectory(WavesFolder);
                 Application.OpenURL("file:///" + WavesFolder.Replace('\\', '/'));
             }
+            float half = (r.width - 30f) / 2f;
+            bool inEditor = Application.isEditor;
+            if (Ui.SmallButton(new Rect(r.x + 12f, r.y + 34f, inEditor ? half : r.width - 24f, 28f), "New: a blank set", EdDark(EdColor, 0.7f)))
+            {
+                edSet = WaveSet.Starter();
+                EdSelectWave(0);
+                edLoadOpen = false;
+                edStatus = "New wave set";
+            }
+            if (inEditor && Ui.SmallButton(new Rect(r.x + 18f + half, r.y + 34f, half, 28f), "Save to project", Ui.Primary))
+                EdSaveToProject();
+
+            // Built into the game (Data/Waves, by Tools/WaveGen/build.sh): a copy to look at or change.
+            float y = r.y + 70f;
+            Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 14f), "BUILT INTO THE GAME", 9, EdColor, TextAnchor.MiddleLeft, true);
+            y += 16f;
+            for (int i = 0; i < DesignedWaves.Names.Length; i++)
+            {
+                var b = new Rect(r.x + 12f + (i % 2) * (half + 6f), y + (i / 2) * 30f, half, 26f);
+                if (Ui.SmallButton(b, DesignedWaves.Names[i], 12))
+                {
+                    edSet = DesignedWaves.Get(DesignedWaves.Names[i]);
+                    edSet.Name = DesignedWaves.Names[i];
+                    EdSelectWave(0);
+                    edLoadOpen = false;
+                    edStatus = "Opened the built-in " + DesignedWaves.Names[i] + " (save to keep your changes)";
+                }
+            }
+            if (DesignedWaves.Names.Length == 0)
+                Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 26f), "None yet.", 11, Ui.Muted);
+            y += Mathf.Max(1, (DesignedWaves.Names.Length + 1) / 2) * 30f + 6f;
+
+            // Your saved files (this computer's waves folder).
+            Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 14f), "YOUR SAVED FILES", 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+            y += 16f;
             string[] files;
             try
             {
@@ -668,21 +706,35 @@ namespace Arena
             {
                 files = new string[0];
             }
-            if (Ui.SmallButton(new Rect(r.x + 12f, r.y + 36f, r.width - 24f, 28f), "New: start from a blank set", EdDark(EdColor, 0.7f)))
-            {
-                edSet = WaveSet.Starter();
-                EdSelectWave(0);
-                edLoadOpen = false;
-                edStatus = "New wave set";
-            }
             if (files.Length == 0)
-                Ui.Label(new Rect(r.x + 12f, r.y + 72f, r.width - 24f, 40f), "Nothing saved yet. Name your set at the top and press Save.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
-            float bw = (r.width - 30f) / 2f;
+                Ui.Label(new Rect(r.x + 12f, y, r.width - 24f, 40f), "Nothing saved yet. Name your set at the top and press Save.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
             for (int i = 0; i < files.Length; i++)
             {
-                var b = new Rect(r.x + 12f + (i % 2) * (bw + 6f), r.y + 72f + (i / 2) * 32f, bw, 28f);
+                var b = new Rect(r.x + 12f + (i % 2) * (half + 6f), y + (i / 2) * 30f, half, 26f);
+                if (b.yMax > r.yMax - 8f)
+                    break;
                 if (Ui.SmallButton(b, Path.GetFileNameWithoutExtension(files[i]), 12))
                     EdLoad(files[i]);
+            }
+        }
+
+        /// In the Unity editor: save the set into the project's Data/Waves, ready for Tools/WaveGen/build.sh to build in.
+        void EdSaveToProject()
+        {
+            string clean = new string((edSet.Name ?? "").Where(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-' || c == '_').ToArray()).Trim().Replace(' ', '-').ToLowerInvariant();
+            if (clean.Length == 0)
+                clean = "untitled";
+            try
+            {
+                Directory.CreateDirectory(ProjectWavesFolder);
+                string path = Path.Combine(ProjectWavesFolder, clean + ".waves");
+                bool existed = File.Exists(path);
+                File.WriteAllText(path, edSet.ToText());
+                edStatus = (existed ? "Updated" : "Saved") + " Data/Waves/" + clean + ".waves: run Tools/WaveGen/build.sh to build it into the game";
+            }
+            catch (Exception ex)
+            {
+                edStatus = "Couldn't save to the project: " + ex.Message;
             }
         }
 

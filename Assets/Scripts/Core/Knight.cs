@@ -289,7 +289,7 @@ namespace Arena
         public const int LightMax = 12;
         public const float LightRadiant = 3f;
 
-        /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike:
+        /// Twin Blades: ComboMax slashes landed in a row (each within ComboWindow of the last) primes a dash-strike (the weapon-action key lunges):
         /// your next slash lunges you DashStrikeDist toward your aim, hitting everything you pass for DashStrikeMult.
         public const int ComboMax = 10;
         public const float ComboWindow = 1.2f, DashStrikeDist = 140f, DashStrikeSpeed = 1000f, DashStrikeMult = 3f, DashStrikeWidth = 30f;
@@ -571,7 +571,7 @@ namespace Arena
                 Desc = "A flail whirled all the way around you. Each spin heals allies near you for 3. As you move it leaves a trail of incense (3 s) that heals allies in it, and enemy shots fired from inside it stray." },
             // DPS
             new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 15f, Reach = 75f, Melee = true, ExtraDesc = "+1 cut: each swing strikes once more (60% damage)", Name = "Twin Blades", FireInterval = 0.16f,
-                Desc = "Very fast alternating slashes. Land 10 in a row and your next one is a dash-strike: you lunge 140 px through enemies for triple damage." },
+                Desc = "Very fast alternating slashes. Land 10 in a row to prime a dash-strike: press your weapon-action key (Left Alt by default) to lunge 140 px through enemies for triple damage." },
             new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 60f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword beam: each sweep launches a piercing crescent (40% damage)", Name = "Greatsword", FireInterval = 0.7f,
                 Desc = "Huge sweeping cuts with long reach. Each sweep's edge hangs in the air for 0.5 s, a crescent of steel that stops enemy bullets." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.28f,

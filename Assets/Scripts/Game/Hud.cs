@@ -9,7 +9,8 @@ namespace Arena
     /// HudTab.cs (Tab menu), HudBossBars.cs (boss bars), HudPicker.cs (upgrade picker), HudSummary.cs (end of run).
     public partial class ArenaApp
     {
-        static readonly string[] SlotKeys = { "SPACE", "Q", "E", "SHIFT", "F" };
+        /// The ability bar's key labels: your Keybinds (Settings), upper case.
+        static string[] SlotKeys => Keybinds.SlotLabels;
 
         void DrawHud()
         {
@@ -392,7 +393,7 @@ namespace Arena
                 Ui.Pill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
                 GUI.EndGroup();
             }
-            DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · F" : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
+            DrawKeyCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], ready ? accent : new Color(1f, 1f, 1f, 0.6f));
             // Name: bright with a sheen when ready, dimmer while recharging.
             Color nameBottom = ready ? Color.Lerp(accent, Color.white, 0.25f) : new Color(0.62f, 0.66f, 0.78f, 0.9f);
             Ui.Fancy(new Rect(r.x + 8f, r.y + 24f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, 15, ready ? Color.white : new Color(0.9f, 0.92f, 1f, 0.9f), nameBottom,

@@ -161,6 +161,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Ui.cs` | 0.5k | IMGUI style kit (panels, buttons, choices, bars, fancy text). Buttons are the owner's chosen style "F": icon cards (`Choice` with an icon tile, `Button` with an optional icon chip), `FancyButton` for menu showpieces, `PulseRing`, tinted `Icon` |
 | `Ambience.cs` | 0.25k | more local effects: orb trails and pickup pulses, dust puffs, each path's weather (`WeatherFor`) |
 | `ShotLooks.cs` | 0.2k | new looks for player weapons' shots with Visual effects on (`ShotWeapon` picks out a weapon's own shot; `DrawWeaponShot` from `DrawBigShot`/`DrawSmallShot`; `EmitFromShot` from `UpdateJuice`; `DrawJuicyBolt`; the Prism split in `BulletEnding`). Preview: `SHOTLOOKS=1 Tools/Preview/shot.sh <name> hud 3 4` |
+| `MeleeLooks.cs` | 0.4k | melee attacks with Visual effects on (style E of `Docs/Mockups/melee-attacks.html`): `DrawSlashE` / `DrawJabE` (called first by `DrawSlashFx` / `DrawJabFx`; false = the old look) find the player who swung (`MeleeOwnerOf`), then draw `DrawMeleeModel` (a model per melee weapon) over `EnergyBand`, sparks and embers; the Warhammer's overhead swing and slam (`DrawHammerSlamE`, raised while charging: `DrawHammerRaised`). Preview: `SWING=<s>` with `SWINGW=<WeaponId>` |
 | `HealthBars.cs` | 0.1k | the damage ghost on every health bar (`GhostBar`, `Ghost`), and the slim boss bars when the HUD is hidden (H) |
 | `Juice.cs` | 0.8k | visual effects, all local: glow pass, shake, hit-pause (frame replay), shatter, particles, trails, scorch, ripples, mood, damage numbers, level-up bursts, boss entrance card; their settings |
 | `HudTiles.cs` | 0.15k | the ability bar's tiles react ("Snap"): `TickTiles` (Update) finds ready / charge back / use from each slot's `Charges` against last frame's, `TileKeyPressed` (the key handlers) a press while recharging; `TileLookFor` gives `DrawAbilityTile` (Hud.cs) its pop, shake, rim flashes, READY slide and pip pop; `TileTransformed` scales a tile round its centre on top of the current `GUI.matrix` |
@@ -180,6 +181,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `QueenLootLook.cs`, `ReaperLootLook.cs` | <0.1k each | how the Queen's and Reapers' legendaries look |
 | `VarietyLook.cs` | 0.26k | the second half's enemies and elite trait markers |
 | `ChallengeLook.cs` | 0.5k | challenge rooms on screen: portal, room floor, crystal, zones, altar, HUD cards |
+| `Keybinds.cs`, `KeybindsUi.cs` | 0.2k, 0.1k | the rebindable keys: `KeyAction` enum, defaults (weapon secondary = Left Alt), PlayerPrefs save (`key_<Action>`), `Keybinds.Tick` captures the next key while rebinding (`Busy` swallows Esc and gameplay keys that frame), `Down`/`Held` for the game, `SlotLabels` for the ability bar; Settings → Keybinds draws the page. `PlayerInput.WeaponAction` is local (not networked, no protocol bump); `Ninja.cs` `LocalWeaponDash` uses it for the Kunai blink, Twin Blades dash-strike, Shuriken recall, Bo Staff vault and Kusarigama reel |
 | `MenuDrawer.cs`, `WindowAnim.cs` | 1.1k, 0.2k | the menu windows as a side drawer (pause menu, Settings, Records, How to play) and their slide-and-stagger animation |
 | `RunEnding.cs`, `Recall.cs` | 0.25k, 0.2k | the run ending ("last breath") and going back to the lobby ("beam out") |
 | `SavesUi.cs`, `HuntUi.cs` | 0.23k, 0.1k | Continue list, Records, unlock toasts; the lobby's Boss Hunt tab |
@@ -255,6 +257,10 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Setup:** the cloud container may not have mono. Install it with
   `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
   Without mono, `check.sh` now fails with a clear message (exit 2); it used to print "OK" anyway.
+- **Designed waves:** `Tools/WaveGen/build.sh` turns `Data/Waves/*.waves` (the F1 wave editor's files) into
+  `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
+  generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
+  `wavegen` suite fails if the generated file is out of date.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).

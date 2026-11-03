@@ -110,6 +110,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadBackgroundSettings();
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
@@ -197,6 +198,7 @@ namespace Arena
 
         void Update()
         {
+            Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
             game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
@@ -269,40 +271,40 @@ namespace Arena
             if (!menuUp)
             {
                 // Remember ability presses between fixed steps so quick taps aren't lost.
-                if (Input.GetKeyDown(KeyCode.Space))
+                if (Keybinds.Down(KeyAction.Ability))
                 {
                     wantAbility[0] = true;
                     TileKeyPressed(0);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Input.GetKeyDown(KeyCode.F))
+                if (Keybinds.Down(KeyAction.Ultimate))
                 {
                     wantAbility[Upgrades.UltSlot] = true;
                     TileKeyPressed(Upgrades.UltSlot);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Input.GetKeyDown(KeyCode.Q))
+                if (Keybinds.Down(KeyAction.AbilityQ))
                 {
                     wantAbility[1] = true;
                     TileKeyPressed(1);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Keybinds.Down(KeyAction.AbilityE))
                 {
                     wantAbility[2] = true;
                     TileKeyPressed(2);  // still recharging: the tile shakes (HudTiles.cs)
                 }
-                if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift))
+                if (Keybinds.Down(KeyAction.AbilityShift))
                 {
                     wantAbility[3] = true;
                     TileKeyPressed(3);  // still recharging: the tile shakes (HudTiles.cs)
                 }
             }
             // Ignore the mute key while typing in a text box (e.g. a name with an "m" in it).
-            if (Input.GetKeyDown(KeyCode.V) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
+            if (Keybinds.Down(KeyAction.AimLine) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
             DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
             TextEditKeys();  // F4: the dev text editor
-            if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
+            if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
@@ -315,7 +317,7 @@ namespace Arena
                 introHidHud = true;
             else if (hudT >= 1f || !hudShown)
                 introHidHud = false;
-            if (Input.GetKeyDown(KeyCode.M) && GUIUtility.keyboardControl == 0)
+            if (Keybinds.Down(KeyAction.Mute) && GUIUtility.keyboardControl == 0)
             {
                 sounds.Muted = !sounds.Muted;
                 SaveAudioSettings();
@@ -335,26 +337,26 @@ namespace Arena
                         pickKey = 0;
                     }
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) ConfirmPick();
-                else if (Input.GetKeyDown(KeyCode.R) && !RerollLocked) game.RerollOffer();
+                else if (Keybinds.Down(KeyAction.Reroll) && !RerollLocked) game.RerollOffer();
             }
             // Standing on your chest item: G takes it, X throws it away (Props.cs).
             if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.MyLootInReach != null)
             {
-                if (Input.GetKeyDown(KeyCode.G))
+                if (Keybinds.Down(KeyAction.TakeItem))
                     game.ResolveLoot(true);
-                else if (Input.GetKeyDown(KeyCode.X))
+                else if (Keybinds.Down(KeyAction.DiscardItem))
                     game.ResolveLoot(false);
             }
             // The F1 kill-all key (X), when it's on: every enemy on the field dies as your kill. Not while you're standing
             // on a chest item (X throws that away), and only the host can (DevTools.cs).
             else if (devKillAllKey && session.IsHost && session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0
-                     && Input.GetKeyDown(KeyCode.X))
+                     && Keybinds.Down(KeyAction.DiscardItem))
                 game.DevKillAll(game.MyId);
 
             bool edWasOpen = waveEdOpen;  // Esc closes the wave editor first, and nothing else that press (WaveEditorUi.cs)
-            if (edWasOpen && Input.GetKeyDown(KeyCode.Escape) && GUIUtility.keyboardControl == 0)
+            if (edWasOpen && EscPressed && GUIUtility.keyboardControl == 0)
                 waveEdOpen = false;
-            if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen && !edWasOpen)
+            if (session.Screen != AppScreen.Game && EscPressed && !devMenuOpen && !edWasOpen)
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
@@ -373,19 +375,19 @@ namespace Arena
             }
             if (session.Screen == AppScreen.Game && !RecallActive && !edWasOpen)  // (nothing to open while everyone's beaming out: Recall.cs)
             {
-                if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
+                if (EscPressed && labSetupOpen)
                     labSetupOpen = false;
-                else if (Input.GetKeyDown(KeyCode.Escape) && runStatsOpen && !devMenuOpen)
+                else if (EscPressed && runStatsOpen && !devMenuOpen)
                     runStatsOpen = false;  // back to the pause menu (RunStatsUi.cs)
-                else if (Input.GetKeyDown(KeyCode.Escape) && fieldGuideOpen && !devMenuOpen)
+                else if (EscPressed && fieldGuideOpen && !devMenuOpen)
                     CloseFieldGuide();  // back to the pause menu (FieldGuide.cs)
-                else if (Input.GetKeyDown(KeyCode.Escape) && devMenuOpen)
+                else if (EscPressed && devMenuOpen)
                     devMenuOpen = false;
-                else if (Input.GetKeyDown(KeyCode.Escape) && pauseConfirmLobby && menuUp)
+                else if (EscPressed && pauseConfirmLobby && menuUp)
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
-                else if (Input.GetKeyDown(KeyCode.Escape) && (pauseSettings || pauseHowTo) && menuUp)
+                else if (EscPressed && (pauseSettings || pauseHowTo) && menuUp)
                     pauseSettings = pauseHowTo = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
-                else if (Input.GetKeyDown(KeyCode.Escape))
+                else if (EscPressed)
                 {
                     if (menuUp)
                         ResumeGame();
@@ -435,16 +437,16 @@ namespace Arena
             session.Poll();
             var input = new PlayerInput
             {
-                Move = new V2(Axis(KeyCode.D, KeyCode.RightArrow) - Axis(KeyCode.A, KeyCode.LeftArrow),
-                              Axis(KeyCode.S, KeyCode.DownArrow) - Axis(KeyCode.W, KeyCode.UpArrow)).Normalized(),
+                Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
                 AimAt = MouseArena(),
                 Fire = Input.GetMouseButton(0) && !mouseBlocked,
-                Ability = wantAbility[0] || Input.GetKey(KeyCode.Space),
-                AbilityQ = wantAbility[1] || Input.GetKey(KeyCode.Q),
-                AbilityE = wantAbility[2] || Input.GetKey(KeyCode.E),
-                AbilityShift = wantAbility[3] || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift),
-                Ultimate = wantAbility[Upgrades.UltSlot] || Input.GetKey(KeyCode.F),
+                Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability),
+                AbilityQ = wantAbility[1] || Keybinds.Held(KeyAction.AbilityQ),
+                AbilityE = wantAbility[2] || Keybinds.Held(KeyAction.AbilityE),
+                AbilityShift = wantAbility[3] || Keybinds.Held(KeyAction.AbilityShift),
+                Ultimate = wantAbility[Upgrades.UltSlot] || Keybinds.Held(KeyAction.Ultimate),
                 Parry = Input.GetMouseButton(1) && !mouseBlocked,
+                WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
             };
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -483,7 +485,10 @@ namespace Arena
             selectedCard = -1;
         }
 
-        static float Axis(KeyCode a, KeyCode b) => Input.GetKey(a) || Input.GetKey(b) ? 1f : 0f;
+        static float Axis(KeyAction a) => Keybinds.MoveHeld(a) ? 1f : 0f;
+
+        /// Esc, unless it just cancelled a rebind (Keybinds.cs).
+        static bool EscPressed => Input.GetKeyDown(KeyCode.Escape) && !Keybinds.Busy;
 
         void UpdateLayout()
         {

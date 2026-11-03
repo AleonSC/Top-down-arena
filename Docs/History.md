@@ -3,6 +3,34 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Melee style E, weapon + energy (Nov 2026), protocol 127 (no change):** the owner's pick from
+`Docs/Mockups/melee-attacks.html`: the weapon models with the energy arc. `Game/MeleeLooks.cs`, drawing only and only with
+Visual effects on (with them off `DrawSlashFx` / `DrawJabFx` draw as before; render check IDENTICAL). A player's
+`FxKind.Slash` / `FxKind.Jab` is matched to the player standing where it started (`MeleeOwnerOf`, noted per effect; the
+effect's `Dur` is stretched on this screen so the energy and embers last 0.55 s). Sweeps: the weapon (a model per melee
+weapon in `DrawMeleeModel`) sweeps through a glowing band with a white core, sparks off its tip and embers after; Twin
+Blades and the Katana alternate sides. Thrusts stab out through a beam; the Halberd's six steps draw one halberd at a time
+(`NewerStepThan`); the Lance slides out through a glowing box. The Warhammer is raised over your shoulder while it charges
+(`DrawHammerRaised`), swings over in a burning arc in 0.08 s and slams: a glowing circle with turning ticks, a pillar of
+light, embers (aftershocks are just the impact). Hits and timing are unchanged: the hit lands as the effect starts.
+Bosses' and enemies' slashes keep the old look. Preview: `SWING=<seconds>` with `SWINGW=<WeaponId>` (and `KNIGHT=0`).
+Follow-up (owner: "not smooth, the line is too thick, the gradient is blocky"): the arc is one band coloured per vertex
+(`EnergyBand`: about 20 slices a radian, clear at both edges, brightest near the rim) instead of two stepped bands, the
+core is a 1.5 px line that brightens toward the blade (`CoreArc`), thrust beams are a soft line (`SoftLine`), the
+hammer's trail is one ribbon, and the blades and handles are slimmer. Then (owner: "the line is too thick, the halberd didn't get
+updated"): the arc is a thin glowing line at the tip's reach (12 px wide, 1 px core) instead of a band over 40% of the
+reach, and the Halberd's steps keep the new look on every frame (stretching a step's `Dur` had made later frames take
+it for a dash streak); `juice.sh` checks both.
+
+**Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
+Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);
+`Tools/WaveGen/build.sh` compiles `Gen.cs` with the core (leaving the generated file out, `Stub.cs` in its place),
+parses each file with `WaveSet.Parse` and writes `DesignedWaves.Generated.cs` (`Names`, `Build`, one `SetN()` building
+each set with object initialisers), stopping on any problem. `DesignedWaves.Get(name)` (`Core/DesignedWaves.cs`) hands
+out a fresh copy. The wave editor's Load panel lists them under "Built into the game"; in the Unity editor its "Save to
+project" writes to `Data/Waves` (`Application.dataPath/../Data/Waves`). First set: `warden-drills`. Test: `wavegen`
+(files and built-in sets match exactly, a stale build fails it). Not yet used by hunts, approaches or paths.
+
 **Twin Rifle toned down (Nov 2026), no protocol change:** owner, after a zombie run (solo DPS Soldier, waves 1-10,
 about 190 damage taken in 11 minutes): Twin Rifle too strong. It had the top Soldier DPS (155, tied for the game's best)
 with no range downside, and crossfire came almost free. Now 4 per barrel (was 4.7), shots last 0.7 s (about 575 px,

@@ -1,0 +1,22 @@
+# Top-Down Arena waves: warden drills
+loop: no
+point A 800,70
+point B 70,450
+point C 110,110
+point D 1490,790
+point E 1530,450
+
+wave 1 level 3
+  group Breakout | squad Breakout | from B | at 0
+  group Guards | Guard x3 | from E | at 4 | every 0.6 | one by one
+  prop crate 620,330
+  prop crate 980,570
+
+wave 2 level 6
+  group Breakout rush | Rioter x6, Guard | from B | at 0 | every 0.4 | one by one
+  group Gas pair | Gas Grenadier x2 | from CD | at 5 | every 0.4 | together
+  group Riot line | squad Riot line | from A | at 11
+  prop crate 610,330
+  prop crate 990,330
+  prop barrel 800,640
+  prop pot 300,200

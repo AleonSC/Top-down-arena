@@ -30,7 +30,7 @@ namespace Arena
             {
                 case WeaponId.Kusarigama:
                     if (!Hooked(p))
-                        ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: firing reels you in instead (LocalWeaponDash)
+                        ThrowKusarigama(p, aim, w.Reach + w.Grow * extra, w.Damage * dmg);  // hooked: the weapon-action key reels you in instead (LocalWeaponDash)
                     break;
                 case WeaponId.BoStaff:
                     pendingSwings.Add(NewSwing(p, aim, w.Reach + w.Grow * extra, 360f, w.Damage * dmg));
@@ -106,7 +106,7 @@ namespace Arena
                 {
                     int n = 3 + extra;
                     for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (double-tap fire to recall them)
+                        SpawnBullet(Defs.StarShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * StarFan * (n - 1)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Sticks = true;  // (the weapon-action key recalls them)
                     break;
                 }
                 case WeaponId.Katana:
@@ -200,11 +200,11 @@ namespace Arena
                 AreaDesc = "bursts 25% wider, for damage and healing" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
-                Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; double-tap fire to recall them sooner." },
+                Desc = "Tight fans of 3 spinning stars that stick in what they hit. After 5 s each rips out on its own for another hit and flies back to you, cutting through what it passes; press your weapon-action key (Left Alt by default) to recall them sooner." },
             new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 cut: each slash strikes once more (60% damage)", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Fast 110° slashes. Hold off for 0.6 s and the blade is sheathed: your next cut is a quick-draw, 220 px long, through every enemy in its line for 2.5× damage." },
             new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 850f, Life = 0.75f, Damage = 8f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.12f,
-                Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: double-tap fire to blink there, and your next hit lands double." },
+                Desc = "Rapid throwing knives, +50% damage to enemies that aren't targeting you. Every 4th is a shadow kunai that leaves a mark where it lands: press your weapon-action key (Left Alt by default) to blink there, and your next hit lands double." },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -729,7 +729,7 @@ namespace Arena
 
         public const int KunaiShadowEvery = 4;
         public const float KunaiAmbush = 1.5f;  // after a blink, your next hit within this long lands double
-        public const float KunaiMarkTime = 3f, BlinkTapGap = 0.3f;  // the mark lasts this long; two fire presses this close blink you
+        public const float KunaiMarkTime = 3f;  // the mark lasts this long; the weapon-action key blinks you to it
 
         /// A shadow kunai hit something or ran out: its mark is where you can blink to.
         void ShadowKunaiLanded(Bullet b, V2 at)
@@ -741,7 +741,6 @@ namespace Arena
             p.KunaiMarkT = KunaiMarkTime;
         }
 
-        float sinceTap = 99f;
 
         bool Hooked(Player p)
         {
@@ -788,25 +787,22 @@ namespace Arena
 
         // Local: this machine's player's weapon dashes.
         float vaultCd, reelCd;
-        bool wasFiring;
+        bool wasWeaponAction;
 
-        /// Your own game, every tick: the Bo Staff vaults when you click fire while moving; the Kusarigama reels you
-        /// in to the enemy it's hooked in when you fire. Returns the dash it started, if any.
-        void LocalWeaponDash(Player me, V2 move, bool firing, float dt)
+        /// Your own game, every tick: weapon secondaries go on the weapon-action key (Keybinds, Left Alt by default;
+        /// PlayerInput.WeaponAction). The Bo Staff vaults when you press it while moving; the Kusarigama reels you in to
+        /// the enemy it's hooked in; Twin Blades lunge when the combo is full; the Kunai blinks to its mark; the Shuriken
+        /// stars come back.
+        void LocalWeaponDash(Player me, V2 move, bool weaponAction, float dt)
         {
             vaultCd -= dt;
             reelCd -= dt;
-            sinceTap += dt;
-            bool pressed = firing && !wasFiring;
-            wasFiring = firing;
-            bool doubleTap = pressed && sinceTap < BlinkTapGap;
-            if (pressed)
-                sinceTap = 0f;
+            bool pressed = weaponAction && !wasWeaponAction;
+            wasWeaponAction = weaponAction;
             if (me.Downed || DashT > 0f || me.StunT > 0f)
                 return;
-            if (me.Weapon.Id == WeaponId.Shuriken && doubleTap)
+            if (me.Weapon.Id == WeaponId.Shuriken && pressed)
             {
-                sinceTap = 99f;
                 if (IsHost)
                     HostWeaponDash(MyId, DashRecall, me.Pos);  // no move: the stars come back to you
                 else
@@ -818,13 +814,12 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.Kunai && doubleTap && me.KunaiMarkT > 0f)
+            if (me.Weapon.Id == WeaponId.Kunai && pressed && me.KunaiMarkT > 0f)
             {
                 // Blink to the shadow kunai's mark (like Blink, at once); the host readies a double-damage hit.
                 V2 mark = me.KunaiMark;
                 AddFx(FxKind.Ring, me.Pos, new Rgba(0.45f, 0.4f, 0.65f), 26f, 0.3f);
                 me.Pos = mark;
-                sinceTap = 99f;
                 if (IsHost)
                     HostWeaponDash(MyId, DashBlink, mark);  // (it uses up the mark; on the host your player is the host's own)
                 else
@@ -847,15 +842,15 @@ namespace Arena
                 vaultCd = VaultCd;
                 kind = DashVault;
             }
-            else if (me.Weapon.Id == WeaponId.TwinBlades && firing && me.Combo >= ComboMax && reelCd <= 0f)
+            else if (me.Weapon.Id == WeaponId.TwinBlades && pressed && me.Combo >= ComboMax && reelCd <= 0f)
             {
                 DashDir = V2.FromAngle(me.Aim);
                 target = ClampToArena(me.Pos + DashDir * DashStrikeDist, me.Def.BodyR);
                 dashSpeed = DashStrikeSpeed;
-                reelCd = 0.4f;  // (the host resets the combo; don't fire twice before that arrives)
+                reelCd = 0.4f;  // (the host resets the combo; don't lunge twice before that arrives)
                 kind = DashStrike;
             }
-            else if (me.Weapon.Id == WeaponId.Kusarigama && firing && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
+            else if (me.Weapon.Id == WeaponId.Kusarigama && pressed && me.HookT > 0f && me.HookT < HookTime - ReelMinHook && reelCd <= 0f)
             {
                 Enemy e;
                 if (!Enemies.TryGetValue(me.HookId, out e))

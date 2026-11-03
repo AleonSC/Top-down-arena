@@ -330,7 +330,7 @@ static partial class Program
         for (int f = 0; f < 240; f++)
         {
             if (me.Combo < Game.ComboMax) { me.Pos = from; x0 = from.X; beyondBefore = beyond.Hp; }
-            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = me.Pos + new V2(400f, 0f) });
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, WeaponAction = me.Combo >= Game.ComboMax, AimAt = me.Pos + new V2(400f, 0f) });
             close.Pos = from + new V2(50f, 0f); beyond.Pos = from + new V2(180f, 0f);
             combo = Math.Max(combo, me.Combo);
             dashed = Math.Max(dashed, me.Pos.X - x0);
@@ -343,7 +343,7 @@ static partial class Program
         Console.WriteLine("  twin blades: combo reached {0}; the dash-strike lunged {1:0} px and hit the one beyond for {2:0.0}; combo now {3}",
             combo, dashed, beyondBefore - beyond.Hp, me.Combo);
         Check(combo == Game.ComboMax && dashed > Game.DashStrikeDist * 0.8f && beyondBefore - beyond.Hp >= me.Weapon.Damage * Game.DashStrikeMult * 0.99f && me.Combo == 0,
-            "10 Twin Blades hits in a row prime a dash-strike that lunges you through enemies for triple damage");
+            "10 Twin Blades hits in a row prime a dash-strike; the weapon-action key lunges you through enemies for triple damage");
         host.Leave("");
     }
 
@@ -426,11 +426,11 @@ static partial class Program
         V2 mark = me.KunaiMark;
         bool marked = me.KunaiMarkT > 0f && mark.X > from.X + 300f;
         bool clientMark = client.Game.Players[1].KunaiMarkT > 0f;
-        // Double-tap fire: blink.
-        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f == 0 || f == 2, AimAt = mark }); }
-        Console.WriteLine("  kunai: the shadow kunai marked {0} (at {1:0} px; client saw {2}); double-tap blinked to {3:0} px of it; next hit primed {4}",
+        // The weapon-action key: blink.
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = f == 0, AimAt = mark }); }
+        Console.WriteLine("  kunai: the shadow kunai marked {0} (at {1:0} px; client saw {2}); key blinked to {3:0} px of it; next hit primed {4}",
             marked, mark.X - from.X, clientMark, me.Pos.DistanceTo(mark), me.AmbushT > 0f);
-        Check(marked && clientMark && me.Pos.DistanceTo(mark) < 2f && me.AmbushT > 0f && me.KunaiMarkT == 0f, "every 4th kunai leaves a mark; double-tapping fire blinks you there and primes a double hit");
+        Check(marked && clientMark && me.Pos.DistanceTo(mark) < 2f && me.AmbushT > 0f && me.KunaiMarkT == 0f, "every 4th kunai leaves a mark; the weapon-action key blinks you there and primes a double hit");
         me.AmbushT = 0f;
         reset();
 
@@ -539,12 +539,12 @@ static partial class Program
         int stuck = star.StarsStuck;
         bool clientStars = client.Game.Enemies.ContainsKey(star.Id) && client.Game.Enemies[star.Id].StarsStuck == stuck;
         float before = star.Hp;
-        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f != 1, AimAt = star.Pos }); star.Pos = from + new V2(120f, 0f); }  // double-tap
+        for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = f == 0, AimAt = star.Pos }); star.Pos = from + new V2(120f, 0f); }  // the weapon-action key
         float recalled = before - star.Hp;
         play(0.4f, new PlayerInput());
         Console.WriteLine("  shuriken: {0} stars stuck (client saw them {1}); the recall ripped them out for {2:0.0}; stuck now {3}", stuck, clientStars, recalled, star.StarsStuck);
-        Check(stuck >= 2 && clientStars && recalled >= stuck * me.Weapon.Damage * me.Stats.DmgMult * 0.99f && star.StarsStuck < stuck,  // (the double-tap's own throws stick again)
-            "Shuriken stars stick in what they hit; double-tapping fire recalls them, ripping them out for another hit");
+        Check(stuck >= 2 && clientStars && recalled >= stuck * me.Weapon.Damage * me.Stats.DmgMult * 0.99f && star.StarsStuck < stuck,  // (the recall's own throws stick again)
+            "Shuriken stars stick in what they hit; the weapon-action key recalls them, ripping them out for another hit");
         reset();
 
 

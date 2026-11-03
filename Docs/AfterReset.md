@@ -9,8 +9,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 
 ## Visuals
-- [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
-      weapons' swings, thrusts and slams could look, to pick from before changing the game.
+- [x] **Melee attack animations.** Built (Nov 2026): style E, the weapon models with the energy arc
+      (`Game/MeleeLooks.cs`), from [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html).
 - [x] **Redesign the main menu buttons.** Built: design D with the pen plot intro (Nov 2026).
       Mockups done, waiting for a pick: four layouts in [`Mockups/menu-redesign.html`](Mockups/menu-redesign.html)
       (https://claude.ai/artifact/6T2r1GZSBsajVK8pxaAo8s), and three plotted intros for the menu in
@@ -103,8 +103,8 @@ So friends can play without Tailscale or port forwarding.
       that leave acid puddles), Crawler (trapezoid, grabs and roots the player), Bloater (swelling circle, bursts into a slowing cloud), Shrieker
       (diamond, screams to frenzy the horde), Mender (cross, heals and raises the dead faster). Waiting for the owner's go-ahead or
       changes; then build them as new EnemyTypes replacing the stand-ins.
-- [x] **Wave editor** (option B, timeline) in F1 → Tools. Next: a script that turns `.waves` files into generated code
-      for final builds, then let hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
+- [x] **Wave editor** (option B, timeline) in F1 → Tools. Generation script done (`Tools/WaveGen/build.sh`, `Data/Waves`). Next: let
+      hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
       co-op players: [`ZombieInfection.md`](ZombieInfection.md)
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:

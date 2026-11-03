@@ -334,24 +334,43 @@ namespace Arena
             }
         }
 
-        static readonly string[][] HowToKeys =
+        static string K(KeyAction a) => Keybinds.KeyName(Keybinds.Get(a));
+        static string[][] howToKeys;
+        static int howToKeysVersion = -1;
+
+        /// The keys shown beside each How to play action: yours (Settings → Keybinds).
+        static string[][] HowToKeys
         {
-            new[] { "W", "A", "S", "D" }, new[] { "LMB" }, new[] { "RMB" }, new[] { "Space" }, new[] { "F" }, new[] { "Q", "E", "Shift" },
-            new[] { "1", "2", "3" }, new[] { "R" }, new[] { "Tab" }, new[] { "V", "H" }, new[] { "Esc" }, new[] { "M" },
-            new[] { "R", "L", "C" }, new[] { "F1" },
-        };
+            get
+            {
+                if (howToKeys == null || howToKeysVersion != Keybinds.Version)
+                {
+                    howToKeysVersion = Keybinds.Version;
+                    howToKeys = new[]
+                    {
+                        new[] { K(KeyAction.MoveUp), K(KeyAction.MoveLeft), K(KeyAction.MoveDown), K(KeyAction.MoveRight) }, new[] { "LMB" }, new[] { "RMB" },
+                        new[] { K(KeyAction.Ability) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
+                        new[] { K(KeyAction.AbilityQ), K(KeyAction.AbilityE), K(KeyAction.AbilityShift) },
+                        new[] { "1", "2", "3" }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
+                        new[] { "Esc" }, new[] { K(KeyAction.Mute) }, new[] { "R", "L", "C" }, new[] { "F1" },
+                    };
+                }
+                return howToKeys;
+            }
+        }
         static readonly string[,] HowToActions =
         {
-            { "Move", "or the arrow keys" },
+            { "Move", "or the arrow keys; change keys in Settings" },
             { "Aim and shoot", "aim with the mouse, hold left click to fire" },
             { "Parry", "hold right click: a shield toward your cursor (no shooting)" },
             { "Role ability", "" },
+            { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel" },
             { "Ultimate", "one per role and class; starts each match half charged" },
             { "Bonus abilities", "from upgrade cards; move them between keys in Tab" },
             { "Pick an upgrade", "or click a card, then Confirm (Enter)" },
             { "Reroll upgrades", "" },
             { "Stats & upgrades", "hold: just for you, doesn't pause" },
-            { "Aim line, HUD", "V: aim line on / off · H: hide or show the HUD" },
+            { "Aim line, HUD", "aim line on / off · hide or show the HUD" },
             { "Pause menu", "with the Field guide: every enemy, weapon and upgrade" },
             { "Mute", "" },
             { "After a run (host)", "R: play again · L: back to lobby · C: keep going" },
