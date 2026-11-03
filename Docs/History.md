@@ -3,6 +3,16 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Arc Lightning, style A "Thunderhead" (Nov 2026), protocol 129 (no change):** the owner's pick from
+`Docs/Mockups/arc-lightning.html`, "make sure the lobby preview matches". `Game/ArcLightningLooks.cs`, with Visual effects
+on: `DrawArcFieldFx` and `DrawArcCharge` hand the strip and the charge to the glow pass (`DrawArcLightningGlow`): a halo
+and static off the staff growing with the charge, your own strip as a dashed outline with a pulse and a crackling marker
+(Barrage's strips too), and on release the spine bolt (80 ms out, re-rolled every 33 ms, the same on every screen),
+forks to the edges, a flash at the end and a crackle on each enemy in it for the stun. The lobby's preview ran the glow
+pass already, so it shows the release; it never drew this weapon's charge, so `DrawShowcase` now calls `DrawArcCharge`
+(which the glow pass covers with effects on). Preview: `SHOTW=ArcLightning` with `SHOTT=<s>` or `SHOTC=<0..1>`; `juice.sh`
+checks a real cast. Effects off: unchanged (render check IDENTICAL).
+
 **Chain Light, style A "Radiance" (Nov 2026), protocol 127 (no change):** the owner's pick from
 `Docs/Mockups/chain-light.html`, "make sure the lobby preview matches it". `Game/ChainLightLooks.cs`, with Visual effects
 on: `DrawLightConeFx` and `DrawBoltFx` hand Chain Light's cone (`FxKind.LightCone`, only Chain Light's) and its bolts (the

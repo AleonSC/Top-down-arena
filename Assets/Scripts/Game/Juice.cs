@@ -700,6 +700,7 @@ namespace Arena
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
+            DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));

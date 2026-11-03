@@ -207,6 +207,23 @@ static partial class Shot {
         float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.1", System.Globalization.CultureInfo.InvariantCulture);
         foreach (var fx in gm.Effects) fx.T = st2;
       }
+      else if (wd.Id == WeaponId.ArcLightning) {
+        // Arc Lightning: enemies where the mockup has them (arc-lightning.html). SHOTC=<0..1>: that far through the hold (the
+        // charge). Otherwise one full-charge release, the frame SHOTT s into it.
+        var spawnE = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var sp in new[] { new V2(170f, -10f), new V2(300f, 30f), new V2(420f, -35f), new V2(540f, 5f), new V2(650f, 38f), new V2(760f, -20f) }) {
+          var en = (Enemy)spawnE.Invoke(gm, new object[] { EnemyType.Grunt, me.Pos + new V2(sp.X, sp.Y), 0f, 0, false });
+          en.SpawnT = 0f; en.Disp = en.Pos; en.MaxHp = en.Hp = 1e5f;
+        }
+        string sc = Environment.GetEnvironmentVariable("SHOTC");
+        if (sc != null) me.DrawT = Game.BowMinDraw + (Game.BowFullDraw - Game.BowMinDraw) * float.Parse(sc, System.Globalization.CultureInfo.InvariantCulture);
+        else {
+          me.BowShotDraw = Game.BowFullDraw;
+          fireV.Invoke(gm, new object[] { me, 0f, 0 });
+          float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.06", System.Globalization.CultureInfo.InvariantCulture);
+          foreach (var fx in gm.Effects) fx.T = st2;
+        }
+      }
       else foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
         var before = new System.Collections.Generic.HashSet<int>(gm.Bullets.Keys);
         fireV.Invoke(gm, new object[] { me, 0f, 0 });

@@ -14,10 +14,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
       with the DPS meter and a target dummy (F1 → DPS) to about 26 a second, then re-run `weapondps write`.
 
 ## Visuals
-- [ ] **Arc Lightning looks: waiting for a pick.** Mockup: [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html):
-      today's look and four options, A Thunderhead, B Storm Front, C Tesla Rails, D Whip Arc, each across the charge,
-      the release and the aftermath, at the real 160-800 px reach and 0.9 s full draw, with a Barrage toggle. Drawing
-      only (`DrawArcCharge` / `DrawArcFieldFx`), no protocol change. Suggested: A for readability, B for spectacle.
+- [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
+      lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
