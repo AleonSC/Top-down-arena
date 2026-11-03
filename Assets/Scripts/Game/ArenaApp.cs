@@ -31,7 +31,7 @@ namespace Arena
         bool pauseMenuOpen, settingsOpen, howToOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the match (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
-        bool clickOnMenu, mouseBlocked;  // a mouse press that belongs to a menu, not the game
+        bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked, mouseBlocked;  // a mouse press that belongs to a menu, not the game
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
@@ -296,11 +296,18 @@ namespace Arena
             bool pathChoice = session.Screen == AppScreen.Game && game.PathOffer != null;
             bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
-            if (overlay && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
-                clickOnMenu = true;
-            if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1))
-                clickOnMenu = false;
-            mouseBlocked = overlay || clickOnMenu;
+            // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
+            if (overlay && Keybinds.Down(KeyAction.Fire))
+                fireOnMenu = true;
+            if (overlay && Keybinds.Down(KeyAction.Parry))
+                parryOnMenu = true;
+            if (!Keybinds.Held(KeyAction.Fire))
+                fireOnMenu = false;
+            if (!Keybinds.Held(KeyAction.Parry))
+                parryOnMenu = false;
+            fireBlocked = overlay || fireOnMenu;
+            parryBlocked = overlay || parryOnMenu;
+            mouseBlocked = fireBlocked || parryBlocked;
             Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab();
 
             if (!menuUp)
@@ -474,13 +481,13 @@ namespace Arena
             {
                 Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
                 AimAt = MouseArena(),
-                Fire = Input.GetMouseButton(0) && !mouseBlocked,
+                Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked,
                 Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability),
                 AbilityQ = wantAbility[1] || Keybinds.Held(KeyAction.AbilityQ),
                 AbilityE = wantAbility[2] || Keybinds.Held(KeyAction.AbilityE),
                 AbilityShift = wantAbility[3] || Keybinds.Held(KeyAction.AbilityShift),
                 Ultimate = wantAbility[Upgrades.UltSlot] || Keybinds.Held(KeyAction.Ultimate),
-                Parry = Input.GetMouseButton(1) && !mouseBlocked,
+                Parry = Keybinds.Held(KeyAction.Parry) && !parryBlocked,
                 WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
             };
             for (int i = 0; i < wantAbility.Length; i++)
