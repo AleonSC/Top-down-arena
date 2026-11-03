@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Every keyboard control you can change (Settings → Keybinds, KeybindsUi.cs). The arrow keys always move too; the
-    /// mouse buttons (fire, parry) and the menu keys (Esc, Tab, Enter, 1-8, F1-F4) are fixed. Saved in PlayerPrefs.
+    /// Every control you can change (Settings → Keybinds, KeybindsUi.cs). Fire and Parry may be a key or any mouse button
+    /// (left and right click by default); the rest are keys (or the middle and side mouse buttons). The arrow keys always
+    /// move too; the menu keys (Esc, Tab, Enter, 1-8, F1-F4) are fixed. Saved in PlayerPrefs by name, so the order here is
+    /// only the order on the page (each group is a run of this list).
     public enum KeyAction
     {
-        MoveUp, MoveDown, MoveLeft, MoveRight, Ability, WeaponAction, Ultimate, AbilityQ, AbilityE, AbilityShift,
+        MoveUp, MoveDown, MoveLeft, MoveRight, Ability, Ultimate, AbilityQ, AbilityE, AbilityShift, Fire, Parry, WeaponAction,
         TakeItem, DiscardItem, Reroll, AimLine, ToggleHud, Mute,
     }
 
@@ -18,24 +20,26 @@ namespace Arena
 
         static readonly KeyCode[] Defaults =
         {
-            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Space, KeyCode.LeftAlt, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
+            KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.Space, KeyCode.F, KeyCode.Q, KeyCode.E, KeyCode.LeftShift,
+            KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
             KeyCode.G, KeyCode.X, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.M,
         };
         static readonly string[] Titles =
         {
-            "Move up", "Move down", "Move left", "Move right", "Role ability", "Weapon secondary", "Ultimate", "Bonus ability 1", "Bonus ability 2",
-            "Bonus ability 3", "Take chest item", "Discard chest item", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound",
+            "Move up", "Move down", "Move left", "Move right", "Role ability", "Ultimate", "Bonus ability 1", "Bonus ability 2",
+            "Bonus ability 3", "Fire", "Parry", "Weapon secondary", "Take chest item", "Discard chest item", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound",
         };
         static readonly string[] Lines =
         {
             "Also the up arrow", "Also the down arrow", "Also the left arrow", "Also the right arrow",
-            "Your role's ability", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel",
-            "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot", "The third bonus ability slot",
+            "Your role's ability", "One per role and class", "The first bonus ability slot (the key it starts on)", "The second bonus ability slot",
+            "The third bonus ability slot", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
+            "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel",
             "While standing on it", "While standing on it", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once",
         };
         /// The groups on the Keybinds page: heading and the first action of each.
-        public static readonly string[] GroupNames = { "MOVEMENT", "COMBAT", "ITEMS AND PICKS", "TOGGLES" };
-        public static readonly KeyAction[] GroupStart = { KeyAction.MoveUp, KeyAction.Ability, KeyAction.TakeItem, KeyAction.AimLine };
+        public static readonly string[] GroupNames = { "MOVEMENT", "ABILITIES", "WEAPON", "ITEMS AND PICKS", "TOGGLES" };
+        public static readonly KeyAction[] GroupStart = { KeyAction.MoveUp, KeyAction.Ability, KeyAction.Fire, KeyAction.TakeItem, KeyAction.AimLine };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
 
@@ -77,11 +81,16 @@ namespace Arena
             return !Busy && (Either(keys[(int)a], Input.GetKey) || Input.GetKey(arrow));
         }
 
-        /// Keys that can't be given to an action: the menus and the dev tools use them, and the mouse buttons are fire and parry.
-        public static bool Allowed(KeyCode k)
+        static bool Mouse01(KeyCode k) => k == KeyCode.Mouse0 || k == KeyCode.Mouse1;
+
+        /// Keys that can't be given to an action: the menus and the dev tools use them, and left and right click are for
+        /// Fire and Parry only (they click everything else).
+        public static bool Allowed(KeyCode k, KeyAction a)
         {
+            if (Mouse01(k) && a != KeyAction.Fire && a != KeyAction.Parry)
+                return false;
             if (k == KeyCode.None || k == KeyCode.Escape || k == KeyCode.Tab || k == KeyCode.Return || k == KeyCode.KeypadEnter
-                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4 || k == KeyCode.Mouse0 || k == KeyCode.Mouse1
+                || k == KeyCode.F1 || k == KeyCode.F2 || k == KeyCode.F3 || k == KeyCode.F4
                 || k == KeyCode.UpArrow || k == KeyCode.DownArrow || k == KeyCode.LeftArrow || k == KeyCode.RightArrow)
                 return false;
             return !(k >= KeyCode.Alpha1 && k <= KeyCode.Alpha8);  // the upgrade picker's card keys
@@ -91,12 +100,18 @@ namespace Arena
         /// Returns the action that was swapped, or -1.
         public static int Set(KeyAction a, KeyCode k)
         {
-            if (!Allowed(k))
+            if (!Allowed(k, a))
                 return -1;
             int swapped = -1;
             for (int i = 0; i < keys.Length; i++)
                 if (i != (int)a && keys[i] == k)
                 {
+                    if (!Allowed(keys[(int)a], (KeyAction)i))  // it would be left holding a mouse button it can't use
+                    {
+                        Notice = KeyName(k) + " is " + Titles[i] + "'s, which can't use " + KeyName(keys[(int)a]) + ": give it another key first";
+                        NoticeAt = Time.unscaledTime;
+                        return -1;
+                    }
                     keys[i] = keys[(int)a];
                     swapped = i;
                 }
@@ -128,7 +143,7 @@ namespace Arena
             for (int i = 0; i < keys.Length; i++)
             {
                 int v = PlayerPrefs.GetInt("key_" + (KeyAction)i, (int)Defaults[i]);
-                keys[i] = Allowed((KeyCode)v) ? (KeyCode)v : Defaults[i];
+                keys[i] = Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];
             }
             for (int i = 0; i < keys.Length; i++)  // a hand-edited save with a key on two actions: the later one goes back
                 for (int j = 0; j < i; j++)
@@ -161,11 +176,11 @@ namespace Arena
             if (scan == null)
                 scan = (KeyCode[])Enum.GetValues(typeof(KeyCode));
             foreach (var k in scan)
-                if (k != KeyCode.None && k != KeyCode.Escape && Input.GetKeyDown(k))
+                if (k != KeyCode.None && k != KeyCode.Escape && !Mouse01(k) && Input.GetKeyDown(k))  // (left and right click are the page's own buttons)
                 {
-                    if (!Allowed(k))
+                    if (!Allowed(k, (KeyAction)Listening))
                     {
-                        Notice = k == KeyCode.Mouse0 || k == KeyCode.Mouse1 ? "The mouse buttons are fire and parry" : "That key is used by the menus";
+                        Notice = "That key is used by the menus";
                         NoticeAt = Time.unscaledTime;
                         return false;  // keep waiting
                     }
@@ -180,12 +195,18 @@ namespace Arena
             Listening = -1;
             swallowFrame = Time.frameCount;
             if (set)
-            {
-                int other = Set(a, k);
-                Notice = other >= 0 ? Titles[other] + " now uses " + KeyName(keys[other]) : null;
-                NoticeAt = Time.unscaledTime;
-            }
+                Assign(a, k);
             return true;
+        }
+
+        /// Set a key and say what swapped (the page's mouse-button choices use this too).
+        public static void Assign(KeyAction a, KeyCode k)
+        {
+            Notice = null;
+            int other = Set(a, k);  // (a refused swap leaves its own message)
+            if (other >= 0)
+                Notice = Titles[other] + " now uses " + KeyName(keys[other]);
+            NoticeAt = Time.unscaledTime;
         }
 
         // --- Names ----------------------------------------------------------------------------------------------------
@@ -203,6 +224,8 @@ namespace Arena
                 case KeyCode.RightControl: return "Right Ctrl";
                 case KeyCode.LeftCommand: return "Command";
                 case KeyCode.Space: return "Space";
+                case KeyCode.Mouse0: return "Left click";
+                case KeyCode.Mouse1: return "Right click";
                 case KeyCode.BackQuote: return "`";
                 case KeyCode.Minus: return "-";
                 case KeyCode.Equals: return "=";

@@ -197,7 +197,7 @@ round of ammo.
 
 ### Parry
 
-Hold **right click** to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
+Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
 (including the red aimed shots that barriers can't stop) and melee enemies that run into it, shoving them back. While
 it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and can't be raised for 3
 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**: for the first instant after
@@ -715,9 +715,9 @@ as usual.
 |---|---|
 | Move | WASD / arrow keys |
 | Aim | Mouse |
-| Shoot | Hold left click |
+| Shoot | Hold left click (changeable) |
 | Role ability | Space |
-| Parry | Hold right click |
+| Parry | Hold right click (changeable) |
 | Weapon secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel) | Left Alt |
 | Ultimate | F |
 | Take / discard your chest item (standing on it) | G / X |
@@ -738,12 +738,15 @@ as usual.
 
 ### Keybinds
 
-**Settings → Keybinds** (main menu, lobby and pause menu) lists every keyboard control: the four move keys, the role
-ability, the weapon secondary (Left Alt), the Ultimate, the three bonus ability keys, take and discard a chest item,
-reroll, and the aim line, HUD and mute toggles. Click a key, press the new one (a middle or side mouse button works too), and it
+**Settings → Keybinds** (main menu, lobby and pause menu) lists every control: the four move keys, the role
+ability, the Ultimate, the three bonus ability keys, **Fire** and **Parry** (left and right click by default; each can
+be any key or mouse button), the weapon secondary (Left Alt), take and discard a chest item, reroll, and the aim line,
+HUD and mute toggles. For Fire and Parry, a "Left click / Right click" pair of buttons appears while you're picking
+(the page can't take a click as a key press, since the click is how you chose the row). Left and right click can't go on
+any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
 changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. The
-arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The mouse
-buttons (fire, parry) and the menu keys (Esc, Tab, 1-3, Enter, F1-F4) can't be changed. The HUD, the Tab screen and the
+arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
+(Esc, Tab, 1-3, Enter, F1-F4) can't be changed, and menus are always clicked with the mouse. The HUD, the Tab screen and the
 How to play page show your own keys.
 
 ## Launching a run
