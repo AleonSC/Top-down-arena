@@ -835,6 +835,8 @@ class Shot {
         g.Wave = 23; g.State = MatchState.Fighting; g.RunTime = 1902f; g.Score = 18450;
         g.Route.Clear(); g.Route.AddRange(new[] { PathId.SniperRidge, PathId.Bazaar, PathId.SwarmFields, PathId.FrozenLake });
         g.CurrentPath = PathId.FrozenLake; g.PathFrom = 21; g.PathTo = 24;
+        // HUNT=1: during the Warden Hunt, on its sixth wave.
+        if (Environment.GetEnvironmentVariable("HUNT") != null) { g.Hunt = Hunts.All[0]; g.Wave = 6; g.Route.Clear(); g.CurrentPath = PathId.None; g.RunTime = 260f; }
         int k = 0;
         foreach (var pl in g.Players.Values)
         {

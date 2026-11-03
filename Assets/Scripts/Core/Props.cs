@@ -116,7 +116,7 @@ namespace Arena
         {
             if (!PropsOn || Practice != null || ShowcaseMode)
                 return;
-            if (Wave % 5 == 0)
+            if (IsBossWave(Wave))
             {
                 ClearProps(true);
                 return;
@@ -248,7 +248,7 @@ namespace Arena
         /// somewhere clear of the players and the boss.
         void TickBossBarrels(float dt)
         {
-            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || Wave % 5 != 0)
+            if (!PropsOn || Practice != null || ShowcaseMode || State != MatchState.Fighting || !IsBossWave(Wave))
             {
                 bossBarrelT = BossBarrelFirst;
                 return;

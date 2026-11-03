@@ -90,7 +90,7 @@ namespace Arena
                             BuildWave(Wave);
                             CapSentries();  // at most 3 Beam Sentries (Variety.cs)
                             WaveProps();  // crates, pots, barrels and now and then a chest (Props.cs)
-                            bossName = Wave % 5 == 0 ? Defs.Get(BossForWave(Wave)).Name : null;
+                            bossName = IsBossWave(Wave) ? Defs.Get(BossAt(Wave)).Name : null;
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         Recorder?.WaveStart(this, Wave, bossName);
@@ -127,7 +127,7 @@ namespace Arena
                             else
                                 WaveCleared();
                         }
-                        else if (Hunt != null && Wave >= Hunt.BossWave)
+                        else if (Hunt != null && Wave >= Hunts.Length)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
                         else if (Wave >= MaxWave && !Endless)
                             Win();
@@ -154,7 +154,7 @@ namespace Arena
             StateTimer = IntermissionTime;
             if (CurrentPath != PathId.None && Wave >= PathTo)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
-            if (Has(RunMod.GoldRush) && (Wave + 1) % 5 == 0 && !ShopOpen && Practice == null && (Wave < MaxWave || Endless))
+            if (Has(RunMod.GoldRush) && IsBossWave(Wave + 1) && !ShopOpen && Practice == null && (Wave < MaxWave || Endless))
                 OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
@@ -165,7 +165,7 @@ namespace Arena
                 if (p.Offer == null)
                     NextOffer(p);
             }
-            if (Wave % 5 == 0)
+            if (IsBossWave(Wave) && Hunt == null)
                 OfferPaths();  // after a boss: two paths for the next stretch
             RemoveTemporaryMinions();
             MaybeOpenPortal();  // once every five waves: a challenge room (Challenges.cs)

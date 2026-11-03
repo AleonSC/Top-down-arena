@@ -13,7 +13,8 @@ namespace Arena
         {
             if (game.State != MatchState.Fighting || game.ApproachShare(game.Wave) <= 0f)
                 return 0f;
-            string text = "APPROACH  ·  " + Defs.Get(Game.ApproachBoss(game.Wave)).Name.ToUpperInvariant() + "  ·  " + Game.ApproachStep(game.Wave) + "/4";
+            string text = game.Hunt != null ? "HUNT  ·  " + Defs.Get(game.Hunt.Boss).Name.ToUpperInvariant() + "'S OWN  ·  " + game.HuntWave + "/" + (Hunts.Length - 1)
+                : "APPROACH  ·  " + Defs.Get(Game.ApproachBoss(game.Wave)).Name.ToUpperInvariant() + "  ·  " + Game.ApproachStep(game.Wave) + "/4";
             float w = 26f + text.Length * 6.4f;
             var chip = new Rect(x, y, w, 20f);
             Ui.Pill(chip, new Color(0f, 0f, 0f, 0.55f));
@@ -27,8 +28,10 @@ namespace Arena
         {
             if (game.ApproachShare(next) <= 0f)
                 return "";
-            string boss = Defs.Get(Game.ApproachBoss(next)).Name;
-            int step = Game.ApproachStep(next);
+            string boss = Defs.Get(game.ApproachBossAt(next)).Name;
+            if (game.Hunt != null)
+                return next == Hunts.Length - 1 ? boss + " is near  ·  " : next == 1 ? "On the hunt for " + boss + "  ·  " : "";
+            int step = game.ApproachStepAt(next);
             return step == 4 ? boss + " is near  ·  " : step == 1 ? "On the road to " + boss + "  ·  " : "";
         }
     }

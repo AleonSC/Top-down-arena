@@ -75,7 +75,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 125;
+        public const int ProtocolVersion = 126;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -789,7 +789,7 @@ namespace Arena
             Game.Diff = Diff.Copy();
             int startWave = StartWave;
             if (Game.Hunt != null)
-                StartWave = Game.Hunt.FirstWave;  // the boss's stretch (put back below)
+                StartWave = 1;  // a hunt's own ten waves (put back below)
             if (Resume != null)
             {
                 // Continuing a saved run: from the next wave, each player in their seat (unclaimed seats stay out).

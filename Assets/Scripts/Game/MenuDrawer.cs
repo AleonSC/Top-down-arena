@@ -513,11 +513,11 @@ namespace Arena
             Ui.Fill(new Rect(x, y, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.08f));
             y += 14f;
             // The next boss, moving in its tile.
-            int next = game.Wave % 5 == 0 && game.State == MatchState.Fighting ? game.Wave : (game.Wave / 5 + 1) * 5;
-            var boss = Game.BossForWave(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
+            int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
+            var boss = game.BossAt(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
             var tile = new Rect(x, y, 64f, 64f);
             IconTile(tile, null, Ui.Gold, 0f);
-            bool fighting = game.Wave % 5 == 0 && game.State == MatchState.Fighting;
+            bool fighting = game.IsBossWave(game.Wave) && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · WAVE " + next), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Fancy(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.TwinB ? EnemyType.TwinA : boss), 20, Color.white, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
             if (!fighting && game.Practice == null)
@@ -546,9 +546,9 @@ namespace Arena
             }
             else
             {
-                int k = Mathf.Max(1, game.Wave) % 5;
+                int k = game.Hunt != null ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no portals in a Boss Hunt)
                 Ui.Fancy(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, Color.white, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.Hunt != null ? "No challenge rooms on a Boss Hunt" : k >= 1 && k <= 3 && game.Practice == null ? "A portal opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
             if (BeginUiGl())
             {

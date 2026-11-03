@@ -414,8 +414,8 @@ namespace Arena
                         wanted = SoundBank.BossTrackId(key);
                         break;
                     }
-                int next = game.Wave % 5 == 0 && game.State == MatchState.Fighting ? game.Wave : (game.Wave / 5 + 1) * 5;
-                var upcoming = Game.BossForWave(next);
+                int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
+                var upcoming = game.BossAt(next);
                 sounds.RequestBossTrack(upcoming);
                 keep = SoundBank.BossTrackId(upcoming);
             }

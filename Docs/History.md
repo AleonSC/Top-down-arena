@@ -3,6 +3,19 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Boss Hunt: ten waves of the boss's own enemies (Nov 2026), protocol 126:** owner's asks: the Tab screen still said
+"wave n / 50" in a hunt, and hunts should be 10 waves with the boss's own enemies building up. `Hunts.Length` 10, all
+hunts start at wave 1 and the boss comes on wave 10 (`HuntDef.BossWave`/`FirstWave` gone; `HomeWave` is only for
+text). Hunt-aware helpers in `Hunts.cs` replace the "every fifth wave" sums where a hunt can reach them: `IsBossWave`,
+`BossAt`, `NextBossWave`, `LastWave`, `ApproachBossAt`, `ApproachStepAt` (BuildWave, Waves.cs's boss name, Gold
+Rush's shop, paths (none in a hunt), props, Zombies, the HUD, Tab screen (header, chips, route: "waves 1-9" then the
+boss), pause menu, boss music, approach chip and banner line, session recordings). Build-up waves: `ApproachShare` is
+1 on waves 1-9, `BuildApproach` filters the faction by `Hunts.Step` (1-4 over the nine waves) and adds the Finale on
+waves 5 and 9 (`Hunts.FinaleWave`). The Warden is fought at wave-10 numbers (health, damage growth; the build boost
+compares with a typical wave-10 build). Protocol bumped though no message changed: an older game would disagree on
+where a hunt's boss is. Tests: `hunts` (only faction enemies on waves 1-9, every kind seen, boss on 10, client's
+`LastWave`). Preview: `HUNT=1 STATSTAB=0 Tools/Preview/shot.sh <name> tab 6 12 2`.
+
 **Ghost bullets after a clear; core suite green (Nov 2026), no protocol change:** `core` had 3 failures. Two were the
 test command, not the game: `run.sh 1 1 core` runs the core match for 1 s (args are start wave, seconds), too short to
 level up or reroll; run `Tools/SimTest/run.sh` (defaults) instead. The third was real: the wave-30 Duelist sweep found

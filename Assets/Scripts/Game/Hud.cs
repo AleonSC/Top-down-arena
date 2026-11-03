@@ -103,7 +103,7 @@ namespace Arena
                     if (pr != null)
                         DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
                     else
-                        DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.Wave > 0 && game.Wave % 5 == 0 ? Ui.Gold : Ui.Accent);
+                        DrawBanner(game.Wave == 0 ? "GET READY" : "WAVE " + game.Wave + " CLEARED", sub, game.IsBossWave(game.Wave) ? Ui.Gold : Ui.Accent);
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
@@ -448,8 +448,8 @@ namespace Arena
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
                 : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + Hunts.Length)
                 : won ? "YOU BEAT ALL " + Game.MaxWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.Wave;
-            if (!won && game.Practice == null && game.Wave % 5 == 0 && game.Wave > 0)
-                sub += "  ·  " + Defs.Get(Game.BossForWave(game.Wave)).Name.ToUpperInvariant();
+            if (!won && game.Practice == null && game.IsBossWave(game.Wave))
+                sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();
             if (subIn > 0f)
                 Ui.Label(new Rect(0f, 88f, W, 20f), sub, 14, Ui.Muted, TextAnchor.MiddleCenter, true);
             Ui.Alpha = oldAlpha;
@@ -1127,7 +1127,7 @@ namespace Arena
             }
             plateMax = Math.Max(plateMax, game.Remaining);
             var practice = game.Practice;
-            bool bossWave = practice != null ? BossUp() : game.Wave > 0 && game.Wave % 5 == 0;
+            bool bossWave = practice != null ? BossUp() : game.IsBossWave(game.Wave);
             Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
             string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS WAVE" : "WAVE";
             Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), head, 10, bossWave ? Ui.Gold : practice != null ? Ui.Accent : Ui.Muted, TextAnchor.MiddleLeft, true);

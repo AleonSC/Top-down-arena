@@ -83,9 +83,9 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             bossRewarded = false;
-            if (n % 5 == 0)
+            if (IsBossWave(n))
             {
-                switch (BossCycle[(n / 5 - 1) % BossCycle.Length])
+                switch (BossAt(n))  // (a hunt's boss on its last wave; Hunts.cs)
                 {
                     case EnemyType.Boss:
                         spawnQueue.Add(EnemyType.Boss);
@@ -115,7 +115,7 @@ namespace Arena
                             spawnQueue.Add(EnemyType.Sniper);
                         break;
                     default:  // Duelist, Lich, Devourer and the Eclipse fight alone (or bring their own help)
-                        spawnQueue.Add(BossCycle[(n / 5 - 1) % BossCycle.Length]);
+                        spawnQueue.Add(BossAt(n));
                         break;
                 }
                 return;

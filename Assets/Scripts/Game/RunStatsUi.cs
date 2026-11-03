@@ -128,20 +128,20 @@ namespace Arena
             int wave = Mathf.Max(0, game.Wave);
 
             // Header: the wave and where you are, then the chips.
-            string waveText = practice ? "PRACTICE" : "WAVE " + wave;
+            string waveText = practice ? "PRACTICE" : game.Hunt != null ? "HUNT WAVE " + wave : "WAVE " + wave;
             float ww = Ui.TextWidth(waveText, 30, true) - 4f;
             Ui.Fancy(new Rect(x, y, ww + 10f, 40f), waveText, 30, Color.white, new Color(0.75f, 0.85f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             float hx = x + ww + 8f;
             if (!practice)
             {
-                Ui.Label(new Rect(hx, y + 6f, 60f, 34f), "/ " + Game.MaxWave, 15, Ui.Muted);
+                Ui.Label(new Rect(hx, y + 6f, 60f, 34f), game.Endless ? "endless" : "/ " + game.LastWave, 15, Ui.Muted);
                 hx += 54f;
             }
             string where;
             Color whereC = new Color(0.5f, 0.89f, 1f);
             if (practice)
                 where = "Practice Range";
-            else if (wave > 0 && wave % 5 == 0)
+            else if (game.IsBossWave(wave))
             {
                 where = "Boss wave";
                 whereC = new Color(1f, 0.6f, 0.65f);
@@ -151,6 +151,8 @@ namespace Arena
                 where = Game.PathName(game.CurrentPath) + " path  ·  wave " + (wave - game.PathFrom + 1) + " of " + (game.PathTo - game.PathFrom + 1);
                 whereC = Color.Lerp(ToColor(Paths.Get(game.CurrentPath).Accent), Color.white, 0.3f);
             }
+            else if (game.Hunt != null)
+                where = wave == 0 ? "Getting ready" : game.Hunt.Name + "  ·  " + BossName(game.Hunt.Boss) + "'s own enemies";
             else
                 where = wave == 0 ? "Getting ready" : "Plain arena";
             Ui.Label(new Rect(hx, y + 2f, 320f, 18f), where, 13, whereC, TextAnchor.MiddleLeft, true);
@@ -164,8 +166,8 @@ namespace Arena
                     StatChip(ref right, cy, Modifiers.All[i].Name, modBg, modFg);
             if (!practice)
             {
-                int nextBoss = wave % 5 == 0 && wave > 0 && game.State == MatchState.Fighting ? wave : (wave / 5 + 1) * 5;
-                string boss = BossName(Game.BossForWave(nextBoss));
+                int nextBoss = game.NextBossWave(wave, game.State == MatchState.Fighting);
+                string boss = BossName(game.BossAt(nextBoss));
                 StatChip(ref right, cy, nextBoss == wave ? "Boss now: " + boss : "Next boss: " + boss + "  ·  wave " + nextBoss,
                     new Color(0.23f, 0.14f, 0.16f), new Color(1f, 0.7f, 0.73f));
             }
@@ -225,6 +227,26 @@ namespace Arena
             bool between = game.State == MatchState.Intermission && game.Wave > 0;
             int cur = between ? wave + 1 : wave;  // the wave being played, or the one coming up
             var plain = new Color(0.48f, 0.52f, 0.62f);
+            if (game.Hunt != null)
+            {
+                // A Boss Hunt: its nine build-up waves, then its boss.
+                int last = Hunts.Length;
+                int st0 = cur >= last ? 0 : 1;
+                rows.Add(new RouteRow
+                {
+                    Name = game.Hunt.Name, Waves = "waves 1–" + (last - 1),
+                    Note = st0 == 0 ? "cleared" : "now  ·  wave " + cur + " of " + (last - 1),
+                    Color = new Color(0.95f, 0.42f, 0.32f), State = st0,
+                });
+                int bs0 = cur > last ? 0 : cur == last ? 1 : 2;
+                rows.Add(new RouteRow
+                {
+                    Name = BossName(game.Hunt.Boss), Waves = "wave " + last, Boss = true, State = game.State == MatchState.Victory ? 0 : bs0,
+                    Note = game.State == MatchState.Victory ? "beaten" : bs0 == 1 ? "fighting now" : "next  ·  in " + (last - wave) + " wave" + (last - wave == 1 ? "" : "s"),
+                    Color = new Color(0.89f, 0.33f, 0.42f),
+                });
+                return rows;
+            }
             for (int k = 0; k < 40; k++)
             {
                 int from = k * 5 + 1, to = k * 5 + 4, bossWave = k * 5 + 5;
@@ -267,7 +289,7 @@ namespace Arena
             foreach (var r in rows)
                 if (r.Boss && r.State == 0)
                     beaten++;
-            CardHeading(card, "Route", beaten + " of " + Game.MaxWave / 5 + " bosses beaten");
+            CardHeading(card, "Route", game.Hunt != null ? (beaten > 0 ? "hunt won" : "the hunt") : beaten + " of " + Game.MaxWave / 5 + " bosses beaten");
             // Keep the newest rows when the run outgrows the card.
             float top = card.y + 40f, avail = card.yMax - 10f - top;
             int fit = Mathf.Max(1, Mathf.FloorToInt(avail / 30f));

@@ -1,10 +1,9 @@
 # Boss Hunts and Perks (design)
 
-Status: **the Warden Hunt is built** (Nov 2026: `Core/Hunts.cs`, `Game/HuntUi.cs`, `hunts` test suite). Change from
-this plan: a hunt is the boss's own **five waves** (the four before it, fully themed, then the boss at its usual wave)
-rather than ten, because "a boss every five waves" is built into ~40 places; it also keeps the boss at its real
-strength with no compressed build needed for the Warden. Later bosses' hunts need the party handed a fitting build
-first (levels, legendaries, mods). Perks aren't started. Two features that make one loop:
+Status: **the Warden Hunt is built** (Nov 2026: `Core/Hunts.cs`, `Game/HuntUi.cs`, `hunts` test suite): ten waves,
+nine of only the boss's own faction (tougher members and squads joining as it goes, its set piece on waves 5 and 9),
+then the boss on wave 10 at wave-10 strength. Later bosses need a faction first (only the Warden has one) and a
+starting build that fits their strength. Perks aren't started. Two features that make one loop:
 
 ```
 Full run ──beat a boss──▶ unlocks its Boss Hunt

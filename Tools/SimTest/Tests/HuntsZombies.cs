@@ -51,7 +51,9 @@ static partial class Program
         g.ChallengesOn = true;  // (on, to show a hunt opens no portal)
         Check(g.Hunt != null && c.Hunt != null && c.Hunt.Boss == EnemyType.Boss && hp.RunsStarted == 0 && cp.RunsStarted == 0,
             "the hunt starts on every game, and it doesn't count as a run started");
-        Check(g.ApproachShare(1) > 0.3f && Math.Abs(g.ApproachShare(4) - 1f) < 0.01f, "a hunt's waves are its boss's own enemies, building up to fully themed");
+        Check(Math.Abs(g.ApproachShare(1) - 1f) < 0.01f && Math.Abs(g.ApproachShare(9) - 1f) < 0.01f && g.ApproachShare(10) == 0f && !g.IsBossWave(5) && g.IsBossWave(10),
+            "a hunt's nine build-up waves are all its boss's own enemies, and only its tenth is a boss wave");
+        Check(c.LastWave == Hunts.Length && c.IsBossWave(10) && !c.IsBossWave(5), "the friend's game counts the hunt's ten waves too (the HUD and Tab screen show wave n / 10)");
 
         // Through the waves (enemies cleared as they come, picks skipped), to the Warden.
         Action keep = () =>
@@ -60,13 +62,22 @@ static partial class Program
             foreach (var e in g.Enemies.Values) if (!e.Def.IsBoss && g.Enemies.Count > 0) e.Hp = 0f;
         };
         bool portal = false, pathOffered = false;
-        Run(s, dt, 200f, () => g.Wave == 5 && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () =>
+        var faction = new HashSet<EnemyType>(Approaches.For(EnemyType.Boss).Members.Select(m => m.Type));
+        var seen = new HashSet<EnemyType>();
+        var others = new HashSet<EnemyType>();
+        Run(s, dt, 400f, () => g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () =>
         {
             keep();
             portal |= g.Room != RoomPhase.None;
+            if (g.Wave < Hunts.Length)
+                foreach (var e in g.Enemies.Values)
+                    (faction.Contains(e.Type) ? seen : others).Add(e.Type);
             pathOffered |= g.PathOffer != null;
         });
-        Check(g.Wave == 5 && Find(host, EnemyType.Boss) != null && c.HuntWave == 5 && !portal, "four waves, then the Warden on the hunt's fifth (and no challenge portal on the way)");
+        Console.WriteLine("  build-up waves: the Warden's own {0}; anything else: {1}", string.Join(", ", seen), others.Count == 0 ? "none" : string.Join(", ", others));
+        Check(others.Count == 0 && seen.Count == faction.Count, "the build-up waves bring only the Warden's own enemies, every kind of them by the end");
+        Check(g.Wave == Hunts.Length && Find(host, EnemyType.Boss) != null && c.HuntWave == Hunts.Length && !portal && !pathOffered,
+            "nine waves, then the Warden on the hunt's tenth (no challenge portal or path offer on the way)");
         var saveable = (bool)typeof(Game).GetProperty("Saveable", flags).GetValue(g, null);
         Check(!saveable, "a hunt isn't saved to continue later");
         Find(host, EnemyType.Boss).Hp = 0f;

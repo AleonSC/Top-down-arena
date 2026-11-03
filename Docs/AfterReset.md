@@ -107,5 +107,5 @@ So friends can play without Tailscale or port forwarding.
 ## Bigger features (design docs ready)
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
       co-op players: [`ZombieInfection.md`](ZombieInfection.md)
-- [x] Boss Hunt for the Warden. Next: hunts for later bosses (need a starting build), then Perks:
+- [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:
       [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)

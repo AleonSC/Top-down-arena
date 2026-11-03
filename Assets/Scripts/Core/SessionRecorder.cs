@@ -178,9 +178,9 @@ namespace Arena
 
         public void WaveStart(Game g, int wave, string boss)
         {
-            var w = new WaveRec { Wave = wave, Boss = boss, Start = g.RunTime, Path = g.OnPath && wave % 5 != 0 ? Paths.Get(g.CurrentPath).Name : null };
+            var w = new WaveRec { Wave = wave, Boss = boss, Start = g.RunTime, Path = g.OnPath && !g.IsBossWave(wave) ? Paths.Get(g.CurrentPath).Name : null };
             w.ApproachShare = g.ApproachShare(wave);
-            w.Approach = w.ApproachShare > 0f ? Defs.Get(Game.ApproachBoss(wave)).Name : null;
+            w.Approach = w.ApproachShare > 0f ? Defs.Get(g.ApproachBossAt(wave)).Name : null;
             waves.Add(w);
             foreach (var p in g.Players.Values)
             {

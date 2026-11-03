@@ -59,7 +59,7 @@ namespace Arena
         /// arena already holds the cap. Returns false to hold this spawn back.
         bool ZombieSpawnReady(ref float timer)
         {
-            if (!ZombiesOn || Wave % 5 == 0)
+            if (!ZombiesOn || IsBossWave(Wave))
                 return true;
             if (Enemies.Count >= Zombies.Cap)
                 return false;
@@ -74,13 +74,13 @@ namespace Arena
                 return 1f;
             if (e.Risen)
                 return 0f;
-            return Wave % 5 == 0 ? 1f : 1f / Zombies.CountMult(Wave);
+            return IsBossWave(Wave) ? 1f : 1f / Zombies.CountMult(Wave);
         }
 
         /// Host, as an enemy dies: a horde zombie may get back up, unless fire, a melee weapon or a boss wave ended it.
         void MaybeRise(Enemy e, Player killer)
         {
-            if (!ZombiesOn || State != MatchState.Fighting || InRoom || Wave % 5 == 0 || e.Risen || e.Def.IsBoss || !e.Def.Melee || e.Def.Xp <= 0)
+            if (!ZombiesOn || State != MatchState.Fighting || InRoom || IsBossWave(Wave) || e.Risen || e.Def.IsBoss || !e.Def.Melee || e.Def.Xp <= 0)
                 return;
             if (e.Burning || e.BurnT > 0f || e.BurnPool > 0f)
                 return;  // burned: it stays down

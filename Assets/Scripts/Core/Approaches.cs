@@ -69,12 +69,14 @@ namespace Arena
         /// The themed share of this wave (0 to 1): 0 on boss waves, for bosses without a faction, or when it's turned off.
         public float ApproachShare(int wave)
         {
-            int step = ApproachStep(wave);
+            int step = ApproachStepAt(wave);
             float share = D(DiffKnob.ApproachShare);
-            if (step == 0 || share <= 0f || Approaches.For(ApproachBoss(wave)) == null || Practice != null)
+            if (step == 0 || Approaches.For(ApproachBossAt(wave)) == null || Practice != null)
                 return 0f;
             if (Hunt != null)
-                return RampSteps[step - 1];  // a Boss Hunt is all about its boss: fully themed, building up (Hunts.cs)
+                return 1f;  // a Boss Hunt's build-up waves are only its boss's own enemies (Hunts.cs)
+            if (share <= 0f)
+                return 0f;
             return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
         }
 
@@ -94,15 +96,16 @@ namespace Arena
             float share = ApproachShare(n);
             if (share <= 0f)
                 return;
-            var f = Approaches.For(ApproachBoss(n));
+            var f = Approaches.For(ApproachBossAt(n));
             int of = OnPath && CurrentPath == PathId.EliteGauntlet ? count / 2 : count;  // Elite Gauntlet halves the whole wave
             int themed = Math.Min(count, (int)Math.Round(of * share));
             if (themed <= 0)
                 return;
-            var members = Array.FindAll(f.Members, m => m.From <= n);
-            var squads = Array.FindAll(f.Squads, s => s.From <= n);
+            int reach = Hunt != null ? Hunts.Step(n) : n;  // (a hunt's nine waves reach through the faction as a run's four do)
+            var members = Array.FindAll(f.Members, m => m.From <= reach);
+            var squads = Array.FindAll(f.Squads, s => s.From <= reach);
             int spent = 0;
-            if (f.Finale != null && ApproachStep(n) == 4 && f.Finale.From <= n)
+            if (f.Finale != null && (Hunt != null ? Hunts.FinaleWave(n) : ApproachStep(n) == 4) && f.Finale.From <= reach)
             {
                 themed = Math.Max(themed, Math.Min(count, f.Finale.Members.Length));  // the set piece comes whatever the share
                 approachSquads.Add(f.Finale);

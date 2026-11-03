@@ -661,15 +661,16 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 ## Boss Hunt
 
 In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends
-with one boss: its four waves (the boss's own faction, building up from 40% to fully themed), then the boss at its
-usual wave. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no path offer, no challenge portal,
-and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run, and so does the boss's health
-boost for strong builds. The HUD counts the hunt's waves (1-5).
+with one boss: **ten waves**. Waves 1-9 bring only the boss's own enemies (its faction: for the Warden, Rioters and
+Guards, then Riot Shields and Gas Grenadiers, its Breakout and Cell block squads, and its Riot line on waves 5 and
+9); wave 10 is the boss, at wave-10 strength. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
+path offer, no challenge portal, and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run,
+and so does the boss's health boost for strong builds. The HUD and the Tab screen count the hunt's waves (n / 10).
 
 The **Boss hunt** tab shows the ten bosses with their live models. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
-locked one. **Only the Warden has a hunt so far** (waves 1-5): later bosses' stretches start mid-run, so their hunts
-will first need the party handed a fitting build. Records keep each hunt's plays, wins and best time per player
+locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
+Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
 (not counted as runs). Plan: `Docs/BossHuntsAndPerks.md` (perks come next).
 
 ## Practice Range
