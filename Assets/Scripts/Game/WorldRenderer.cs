@@ -126,6 +126,7 @@ namespace Arena
         /// lobby's loadout preview (a Showcase game swapped in as `game`).
         void DrawArenaContents(float t)
         {
+            DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             foreach (var p in game.Players.Values)
                 DrawPlayerAuras(p, t);
             foreach (var b in game.Bullets.Values)

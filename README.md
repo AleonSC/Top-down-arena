@@ -500,9 +500,10 @@ the other players), so it always matches how weapons and abilities really behave
 ## Menu backgrounds
 
 **Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
-lobby. There are 20:
+lobby. There are 21:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
-Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood and Plotter. Each has its own
+Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood, Plotter and **Dusk Grid** (a
+rank-15 reward: greyed and skipped until you have it). Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
 **LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
@@ -785,8 +786,44 @@ player: their class icon big on a backdrop in their colour, their role, level an
 where they had the best number: **Most damage**, **Best healer**, **Sharpshooter**...), and beside it their
 damage dealt, kills (elite and boss), biggest hit, accuracy, healing done, allies revived, damage taken, times
 downed and abilities used, each with a bar against the party's best (gold where they lead), and the upgrades
-picked by rarity. **Leave** sits bottom-left as in the lobby; the host can play again, go back to the lobby, or
-keep going after a victory.
+picked by rarity. Under the cards a **rank strip** shows what the run earned towards your account rank (see **Rank**
+below), and each card carries that player's rank badge. **Leave** sits bottom-left as in the lobby; the host can play
+again, go back to the lobby, or keep going after a victory.
+
+## Rank
+
+A **cosmetic account rank**. Every finished run (and Boss Hunt) earns XP; XP raises your **Rank**; ranks unlock
+cosmetics only, never power. It is separate from the **Level** on the results cards, which is the in-run level.
+Design: [`Docs/Rank.md`](Docs/Rank.md); mockups: `Docs/Mockups/rank-screens.html`.
+
+**XP for a run:** 20 per wave cleared, 150 per boss defeated, 40 per ally revived and 500 for a win, times
+(1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
+step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
+win bonus. The Practice Range and runs where dev tools (F1) or the bot were used earn nothing, like Records.
+**Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). The tiers have titles: **Recruit** (1-4),
+**Challenger** (5-9), **Veteran** (10-19), **Champion** (20-29), **Legend** (30+), shown by the badge's colour (steel,
+blue, teal, violet, gold) and a chevron per step.
+
+**Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
+yours, the XP), on the main menu's name chip (with a thin XP bar along its bottom edge) and on each results card;
+the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
+what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
+with the modifiers they used and the multiplier).
+
+**Rewards** (equip them in **Records > Rank**; one of each kind at a time):
+
+| Rank | Reward |
+|---|---|
+| 5 / 10 / 20 / 30 | Titles: Challenger, Veteran, Champion, Legend (automatic) |
+| 8 | **Ember trail**: embers drift behind you as you move |
+| 12 | **Steel frame**: a lit rim on your lobby party card and name chip |
+| 15 | **Dusk Grid**: a 21st menu background (also pickable in Settings > Visual effects once unlocked) |
+| 25 | **Gold stardust trail** |
+| 30 | **Gold frame** |
+
+Everyone in the match sees your trail, and everyone in the lobby sees your rank and frame; the host clamps what
+players report, and only accepts a frame or trail your rank has. XP, what's equipped and the last six runs are kept in
+`profile.txt` (`xp`, `equip`, `rlog` lines).
 
 ## Saved runs and records
 
@@ -809,7 +846,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
-Kept in `profile.txt` in the game's data folder.
+Kept in `profile.txt` in the game's data folder. **Records > Rank** shows your account rank (see **Rank**).
 
 **Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
 moment the condition holds (an **Unlocked** toast in the match, listed in Records). So far: **Warden Hunt** (beat the

@@ -74,6 +74,7 @@ namespace Arena
             float lx = 40f, lw = 376f, y = 150f;
             Ui.Heading(lx, y, lw, "Party  (" + session.Lobby.Count + "/" + Session.MaxPlayers + ")");
             y = PartyTop;
+            TipClear();  // hovering a rank badge shows the title (RankUi.cs)
             int slot = 0;
             foreach (var e in session.Lobby.Values)
             {
@@ -109,6 +110,7 @@ namespace Arena
 
             DrawLobbyBottom(me, practice);
             DrawLockedTip();  // on top of the loadout
+            DrawTip();
             if (connInfoOpen)
                 DrawConnInfo(infoPanel);
         }
@@ -198,7 +200,15 @@ namespace Arena
         {
             var color = ToColor(Defs.Get(e.Role).Color);
             bool mine = e.Id == session.MyId;
-            Ui.Card(r, color, mine ? 0.85f : 0.3f);
+            if (e.Frame > 0)  // a frame they've earned (Rank.cs): a lit rim in its colour, in place of the role's
+            {
+                var fc = RankLook.Tint(Rank.FrameColor(e.Frame));
+                for (int k = 3; k >= 1; k--)
+                    Ui.Pill(new Rect(r.x - 3f * k, r.y - 3f * k, r.width + 6f * k, r.height + 6f * k), new Color(fc.r, fc.g, fc.b, 0.05f * (4 - k) / 3f));
+                Ui.Card(r, fc, 1f);
+            }
+            else
+                Ui.Card(r, color, mine ? 0.85f : 0.3f);
             // Portrait: their character, aiming around.
             var face = new Rect(r.x + 8f, r.y + 8f, 72f, 72f);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
@@ -208,6 +218,9 @@ namespace Arena
                 DrawPreviewPlayer(e.Role, e.Kit, e.Weapon, t + slot * 1.7f);
                 EndUiGl();
             }
+            var rankRect = new Rect(face.xMax - 22f, face.yMax - 22f, 30f, 30f);
+            RankLook.Draw(rankRect, e.Rank);
+            RankBadgeTip(rankRect, e.Rank, mine);
             float tx = face.xMax + 14f;
             // The badges sit at the top right; work out where they start so the name stops short of them.
             float bx = r.xMax - 12f;

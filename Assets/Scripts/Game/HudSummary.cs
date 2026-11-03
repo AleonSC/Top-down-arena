@@ -79,19 +79,19 @@ namespace Arena
             float tx = W / 2f - (tw * 4f + tgap * 3f) / 2f;
             for (int i = 0; i < 4; i++)
             {
-                var c = new Rect(tx + i * (tw + tgap), 120f, tw, 64f);
+                var c = new Rect(tx + i * (tw + tgap), 112f, tw, 56f);
                 float k = EndTileIn(i);
                 int ti = i;
                 EndPart(k, new Vector2(0f, -40f * (1f - Ease(k))), () =>  // each drops in (RunEnding.cs)
                 {
                     Ui.Card(c, theme, 0.25f);
-                    Ui.Fancy(new Rect(c.x, c.y + 6f, c.width, 34f), tiles[ti, 1], 26, Color.white, Color.Lerp(theme, Color.white, 0.55f), TextAnchor.MiddleCenter);
-                    Ui.Label(new Rect(c.x, c.y + 40f, c.width, 16f), tiles[ti, 0], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
+                    Ui.Fancy(new Rect(c.x, c.y + 3f, c.width, 32f), tiles[ti, 1], 24, Color.white, Color.Lerp(theme, Color.white, 0.55f), TextAnchor.MiddleCenter);
+                    Ui.Label(new Rect(c.x, c.y + 36f, c.width, 16f), tiles[ti, 0], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
                 });
             }
 
             // A trophy card for each player.
-            const float cardTop = 200f, cardH = 428f;
+            const float cardTop = 176f, cardH = 408f;
             if (!game.RunStatsReady)
                 Ui.Label(new Rect(0f, cardTop + 180f, W, 30f), "Collecting results…", 18, Ui.Muted, TextAnchor.MiddleCenter);
             else
@@ -107,6 +107,14 @@ namespace Arena
                     EndPart(k, new Vector2(0f, 80f * (1f - Ease(k))), () =>  // each rises in (RunEnding.cs)
                         DrawPlayerSummary(players[pi], players, new Rect(cx + pi * (cw + cgap), cardTop, cw, cardH), now));
                 }
+            }
+
+            // The rank strip: what the run earned towards your account rank (Rank.cs, RankUi.cs).
+            if (game.RunStatsReady && game.LastGain != null)
+            {
+                float sk = EndingOn ? Seg(endT, EndButtonsAt, EndButtonsAt + 1.8f) : 1f;
+                var strip = new Rect(70f, cardTop + cardH + 8f, W - 140f, 44f);
+                EndPart(EndCardIn(0), new Vector2(0f, 40f * (1f - Ease(EndCardIn(0)))), () => DrawRankStrip(strip, sk, now));
             }
 
             // Buttons, laid out like the lobby's: Leave on the left, the host's choices on the right.
@@ -162,6 +170,7 @@ namespace Arena
                 Ui.Pill(new Rect(art.center.x - art.width * s / 2f, art.y + 20f + 70f * (1f - s), art.width * s, 150f * s), new Color(color.r, color.g, color.b, 0.06f + 0.02f * k));
             }
             Ui.Icon(art, Hatch(), new Color(color.r, color.g, color.b, 0.06f));
+            RankLook.Draw(new Rect(art.xMax - 40f, art.y + 8f, 32f, 32f), RankOfPlayer(p));  // their account rank (RankUi.cs)
             float isz = Mathf.Min(108f, artW - 30f);
             Ui.Icon(new Rect(art.center.x - isz / 2f, art.y + 30f + 2f * Mathf.Sin(now * 2.2f + p.Id), isz, isz), PixelArt.Get("class_" + Defs.KitName(p.Kit).ToLowerInvariant()));
             float ay = art.y + 46f + isz;

@@ -14,6 +14,13 @@ namespace Arena
         public Func<Profile, bool> Earned;
     }
 
+    /// One finished run's XP, kept for the Records screen (Profile.Recent, newest first).
+    public class RankLog
+    {
+        public int Wave, Result, Xp, MultPct;   // Result: 0 lost, 1 won, 2 hunt lost, 3 hunt won
+        public string Mods = "";               // modifier names, '|' between
+    }
+
     public static class Unlocks
     {
         /// Every unlock in the game. Add entries here, e.g.
@@ -50,6 +57,12 @@ namespace Arena
         public readonly Dictionary<string, float> HuntBest = new Dictionary<string, float>();  // EnemyType name -> fastest win (seconds)
         public readonly HashSet<string> Unlocked = new HashSet<string>();
 
+        // Rank (Rank.cs, Docs/Rank.md): total XP, the cosmetics equipped (ids from Rank.Cosmetics; "" none) and the last few runs' XP.
+        public long Xp;
+        public string Frame = "", Trail = "", Background = "";
+        public readonly List<RankLog> Recent = new List<RankLog>();
+        public const int RecentKept = 6;
+
         public static string Folder;  // null: profiles aren't kept (tests set a temp folder)
         static Profile current;
 
@@ -60,6 +73,40 @@ namespace Arena
         public static void Reload() => current = null;
 
         public bool IsUnlocked(string id) => Unlocked.Contains(id);
+
+        public int RankNow => Rank.Of(Xp).Rank;
+
+        /// Adds a finished run's or hunt's XP, logs it, and says what it unlocked. result: 0 lost, 1 won, 2 hunt lost, 3 hunt won.
+        public RankGain AwardXp(XpAward a, int wave, int result)
+        {
+            var gain = new RankGain { Award = a, Before = Xp, RankBefore = Rank.Of(Xp).Rank };
+            Xp += a.Total;
+            gain.After = Xp;
+            gain.RankAfter = Rank.Of(Xp).Rank;
+            for (int r = gain.RankBefore + 1; r <= gain.RankAfter; r++)
+                gain.Unlocked.AddRange(Rank.RewardsAt(r));
+            Recent.Insert(0, new RankLog { Wave = wave, Result = result, Xp = a.Total, MultPct = (int)Math.Round(a.ModMult * a.DiffMult * 100f), Mods = a.Mods });
+            if (Recent.Count > RecentKept)
+                Recent.RemoveRange(RecentKept, Recent.Count - RecentKept);
+            return gain;
+        }
+
+        /// Equips a cosmetic you've reached the rank for (id "" takes the slot off). False: not yours yet, or not that kind.
+        public bool Equip(CosmeticKind kind, string id)
+        {
+            if (id != "")
+            {
+                var c = Rank.Cosmetic(id);
+                if (c == null || c.Kind != kind || !Rank.Owns(RankNow, id))
+                    return false;
+            }
+            if (kind == CosmeticKind.Frame) Frame = id;
+            else if (kind == CosmeticKind.Trail) Trail = id;
+            else Background = id;
+            return true;
+        }
+
+        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : Background;
 
         public static string ClassKey(Role role, Kit kit) => Defs.KitName(kit) + " " + Defs.Get(role).Name;  // "Knight Tank", as the lobby says it
 
@@ -170,8 +217,14 @@ namespace Arena
             foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
             foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
+            RunSave.Line(sb, "xp", Xp);
+            RunSave.Line(sb, "equip", Dash(Frame) + " " + Dash(Trail) + " " + Dash(Background));
+            foreach (var l in Recent) RunSave.Line(sb, "rlog", l.Wave + " " + l.Result + " " + l.Xp + " " + l.MultPct + " " + Dash(l.Mods.Replace(' ', '_')));
             return sb.ToString();
         }
+
+        static string Dash(string s) => string.IsNullOrEmpty(s) ? "-" : s;
+        static string UnDash(string s) => s == "-" ? "" : s;
 
         public static Profile Parse(string text)
         {
@@ -205,6 +258,12 @@ namespace Arena
                             if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
                             break;
                         case "unlocked": p.Unlocked.Add(val); break;
+                        case "xp": p.Xp = Math.Max(0, long.Parse(f[0], System.Globalization.CultureInfo.InvariantCulture)); break;
+                        case "equip": p.Frame = UnDash(f[0]); p.Trail = UnDash(f[1]); p.Background = UnDash(f[2]); break;
+                        case "rlog":
+                            if (p.Recent.Count < RecentKept)
+                                p.Recent.Add(new RankLog { Wave = RunSave.I(f[0]), Result = RunSave.I(f[1]), Xp = RunSave.I(f[2]), MultPct = RunSave.I(f[3]), Mods = f.Length > 4 ? UnDash(f[4]).Replace('_', ' ') : "" });
+                            break;
                     }
                 }
                 catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException || e is OverflowException)

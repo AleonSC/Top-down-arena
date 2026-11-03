@@ -10,7 +10,11 @@ namespace Arena
             {
                 "Spiral", "Warp", "Aurora", "Synthwave", "Bokeh", "Hex Pulse", "Orbits", "Digital Rain", "Nebula", "Tides",
                 "Ember Storm", "Constellations", "Radar", "Blueprint", "Bullet Curtain", "Frost Peaks", "Circuit", "Event Horizon", "Firefly Wood", "Plotter",
+                "Dusk Grid",  // a rank reward (Rank.cs: rank 15); locked until then
             };
+
+        const int DuskGridIndex = 20;
+        static bool BackgroundLocked(int i) => i == DuskGridIndex && !Rank.Owns(Profile.Current.RankNow, "bg-dusk");
 
         int menuBg;
         bool menuBgAnimate = true;
@@ -18,6 +22,8 @@ namespace Arena
         void LoadBackgroundSettings()
         {
             menuBg = Mathf.Clamp(PlayerPrefs.GetInt("menu_bg", 0), 0, BackgroundNames.Length - 1);
+            if (BackgroundLocked(menuBg))
+                menuBg = 0;
             menuBgAnimate = PlayerPrefs.GetInt("menu_bg_anim", 1) == 1;
         }
 
@@ -53,6 +59,7 @@ namespace Arena
                 case 17: BgEventHorizon(t); break;
                 case 18: BgFireflies(t); break;
                 case 19: BgPlotter(t); break;
+                case 20: BgDuskGrid(t); break;
                 default: BgSpiral(t); break;
             }
         }
@@ -80,6 +87,7 @@ namespace Arena
             new Color(1f, 0.68f, 0.35f),  // Event Horizon
             new Color(0.75f, 1f, 0.38f),  // Firefly Wood
             new Color(1f, 0.82f, 0.4f),   // Plotter
+            new Color(1f, 0.55f, 0.45f),  // Dusk Grid
         };
 
         float bgChangedAt = -100f;   // when the background last changed (the name slides in)
@@ -169,6 +177,8 @@ namespace Arena
                 if (hit.Contains(mouse))
                     swatchHover = i;
                 var c = BackgroundAccents[i];
+                if (BackgroundLocked(i))
+                    c = new Color(0.5f, 0.52f, 0.6f);
                 if (i == menuBg)
                 {
                     Ui.Pill(new Rect(x + i * (sw + gap) - 3f, sy - 5f, sw + 6f, 14f), new Color(c.r, c.g, c.b, 0.22f + 0.1f * Mathf.Sin(now * 3f)));
@@ -178,7 +188,7 @@ namespace Arena
                     Ui.Pill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
             }
             if (swatchHover >= 0 && swatchHover != menuBg)
-                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), BackgroundNames[swatchHover].ToUpperInvariant(), 10, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), BackgroundNames[swatchHover].ToUpperInvariant() + (BackgroundLocked(swatchHover) ? "  ·  LOCKED: RANK 15" : ""), 10, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
             else
                 Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), "MENU BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
 
@@ -214,7 +224,7 @@ namespace Arena
             if (clickNext || Ui.HitArea(thumb))
                 SetBackground(menuBg + 1, 1);
             for (int i = 0; i < BackgroundNames.Length; i++)
-                if (i != menuBg && Ui.HitArea(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f)))
+                if (i != menuBg && !BackgroundLocked(i) && Ui.HitArea(new Rect(x + i * (sw + gap), sy - 7f, sw + gap, 16f)))
                     SetBackground(i, i > menuBg ? 1 : -1);
         }
 
@@ -258,7 +268,14 @@ namespace Arena
 
         void SetBackground(int i, int dir = 1)
         {
-            menuBg = (i % BackgroundNames.Length + BackgroundNames.Length) % BackgroundNames.Length;
+            int n = BackgroundNames.Length;
+            i = (i % n + n) % n;
+            for (int guard = 0; guard < n && BackgroundLocked(i); guard++)  // a locked one (a rank reward) is skipped
+                i = ((i + dir) % n + n) % n;
+            menuBg = i;
+            var prof = Profile.Current;
+            prof.Background = menuBg == DuskGridIndex ? "bg-dusk" : "";  // what Records shows as equipped
+            prof.Save();
             bgChangedAt = Time.unscaledTime;
             bgChangeDir = dir;
             SaveBackgroundSettings();
@@ -633,6 +650,25 @@ namespace Arena
         }
 
         /// An arena drafted on blueprint paper: a circle, a hexagon and a measured wall draw themselves in, then clear.
+        /// Dusk Grid (a rank reward): an indigo sky going to orange at the foot, a big grid drifting over it and dust rising.
+        void BgDuskGrid(float t)
+        {
+            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, H), new V2(0, H), new Rgba(0.06f, 0.05f, 0.16f), new Rgba(0.4f, 0.16f, 0.26f));
+            SoftGlow(new V2(W * 0.5f, H * 1.05f), 760f, new Rgba(1f, 0.5f, 0.3f, 0.35f));
+            const float cell = 80f;
+            float ox = MathX.Fmod(t * 9f, cell), oy = MathX.Fmod(t * 5f, cell);
+            for (float x = -cell + ox; x <= W + cell; x += cell)
+                Line(new V2(x, 0), new V2(x, H), 1f, new Rgba(1f, 0.65f, 0.55f, 0.07f));
+            for (float y = -cell + oy; y <= H + cell; y += cell)
+                Line(new V2(0, y), new V2(W, y), 1f, new Rgba(1f, 0.65f, 0.55f, 0.07f + 0.06f * Mathf.Clamp01(y / H)));
+            for (int i = 0; i < 28; i++)
+            {
+                float speed = 8f + Hash(i * 5) * 14f, py = H - MathX.Fmod(t * speed + Hash(i * 5 + 1) * H, H + 40f) + 20f;
+                float px = Hash(i * 5 + 2) * W + Mathf.Sin(t * 0.4f + i) * 18f, a = Mathf.Clamp01(py / H) * (0.25f + 0.35f * Hash(i * 5 + 3));
+                Circle(new V2(px, py), 1.2f + Hash(i * 5 + 4) * 1.8f, new Rgba(1f, 0.78f, 0.6f, a), 6);
+            }
+        }
+
         void BgBlueprint(float t)
         {
             FillRect(0, 0, W, H, new Rgba(0.04f, 0.11f, 0.26f));

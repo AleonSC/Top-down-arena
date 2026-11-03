@@ -212,6 +212,8 @@ namespace Arena
             if (k <= 0f)
                 return;
             GUI.BeginGroup(new Rect(0f, 80f * (1f - EaseOut(k)), W, H));
+            if (live)
+                TipClear();  // the rank badge's hover card (RankUi.cs)
             Ui.Fill(new Rect(0f, MenuBarY, W, 70f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)
@@ -222,6 +224,8 @@ namespace Arena
                 settingsOpen = true;
             if (Ui.FancyButton(new Rect(W - 148f, MenuBarY + 16f, 120f, 38f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 14) && live)
                 Application.Quit();
+            if (live)
+                DrawTip();
             GUI.EndGroup();
         }
 
@@ -230,7 +234,12 @@ namespace Arena
         void DrawNameCard(Rect r, float k, bool editable, float t)
         {
             var color = ToColor(Defs.Get(hostRole).Color);
-            Ui.Card(r, color, 0.85f);
+            var prof = Profile.Current;
+            int myRank = prof.RankNow;
+            if (Rank.Owns(myRank, prof.Frame))  // your equipped frame (Rank.cs) lights the rim
+                Ui.Card(r, RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(prof.Frame))), 1f);
+            else
+                Ui.Card(r, color, 0.85f);
             float fs = Mathf.Lerp(r.height - 10f, 72f, k);
             var face = new Rect(r.x + Mathf.Lerp(5f, 8f, k), r.y + Mathf.Lerp((r.height - fs) / 2f, 8f, k), fs, fs);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
@@ -240,6 +249,13 @@ namespace Arena
                 DrawPreviewPlayer(hostRole, kitChoice, weaponChoice, t);
                 EndUiGl();
             }
+            float bsz = Mathf.Lerp(22f, 30f, k);
+            var rankRect = new Rect(face.xMax - bsz * 0.7f, face.yMax - bsz * 0.7f, bsz, bsz);
+            RankLook.Draw(rankRect, myRank);
+            if (k < 0.5f)  // the XP towards the next rank, thin along the bottom edge
+                Ui.Bar(new Rect(r.x + 14f, r.yMax - 6f, r.width - 28f, 3f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
+            if (editable)
+                RankBadgeTip(rankRect, myRank, true);
             float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - (editable ? 44f : 8f);
             var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(3f, 8f, k), tw, Mathf.Lerp(25f, 26f, k));
             int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));

@@ -27,6 +27,7 @@ namespace Arena
         Knock,       // host -> all: a player is knocked back (a Riot Shield's bash); only that player's own game moves them (WardenFaction.cs)
         Loot,         // client -> host: take or discard the chest item you're standing on (Props.cs)
         Recall,       // host -> all: everyone's beamed out (the Game screen's Recall.cs), then ToLobby follows
+        Cosmetics,    // client -> host: this player's rank and equipped frame, for the lobby (Rank.cs; the host answers with a Lobby)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -64,6 +65,9 @@ namespace Arena
         public byte Ability;  // index into Upgrades.RoleAbility(Role, Kit, i)
         public bool Ready;    // clicked Ready in the lobby; the match only starts once everyone has
         public int Seat = -1; // continuing a saved run: which of its seats this player takes (Session.Resume)
+        public int Rank = 1;  // the player's account rank (Rank.cs), cosmetic and client-reported (the host clamps it)
+        public byte Frame;    // their equipped frame: 0 none, else Rank.FrameIndex
+        public byte Trail;    // their equipped trail: 0 none, else Rank.TrailIndex (drawn behind them in the match)
     }
 
     public enum AppScreen { Menu, Lobby, Game }
@@ -75,7 +79,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 134;
+        public const int ProtocolVersion = 135;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -384,6 +388,20 @@ namespace Arena
                 case Msg.SeatRequest:
                     SetSeat(peer, r.ReadByte());
                     break;
+                case Msg.Cosmetics:
+                {
+                    int rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, r.ReadInt32()));
+                    int frame = r.ReadByte(), trail = r.ReadByte();
+                    LobbyEntry who;
+                    if (Lobby.TryGetValue(peer, out who))
+                    {
+                        who.Rank = rank;
+                        who.Frame = Arena.Rank.Owns(rank, Arena.Rank.FrameId(frame)) ? (byte)frame : (byte)0;  // only a frame or trail their rank has
+                        who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(trail)) ? (byte)trail : (byte)0;
+                        BroadcastLobby();
+                    }
+                    break;
+                }
                 case Msg.Reroll:
                     Game.HostReroll(peer);
                     break;
@@ -597,8 +615,40 @@ namespace Arena
             }
         }
 
+        /// Host: put this player's own rank and frame (from the profile) into their lobby entry.
+        void SyncOwnCosmetics()
+        {
+            LobbyEntry me;
+            if (!IsHost || !Lobby.TryGetValue(MyId, out me))
+                return;
+            var p = Game.Profile;
+            me.Rank = p.RankNow;
+            me.Frame = Arena.Rank.Owns(me.Rank, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0;
+            me.Trail = Arena.Rank.Owns(me.Rank, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0;
+        }
+
+        /// Tells the lobby this player's rank and equipped frame: the host refreshes its own entry, a client tells the
+        /// host. Call it when the profile changes (a run ended, a frame was equipped).
+        public void ShareCosmetics()
+        {
+            if (Net == null)
+                return;
+            if (IsHost)
+            {
+                BroadcastLobby();
+                return;
+            }
+            var p = Game.Profile;
+            var w = Proto.Begin(Msg.Cosmetics);
+            w.Write(p.RankNow);
+            w.Write(Arena.Rank.Owns(p.RankNow, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0);
+            w.Write(Arena.Rank.Owns(p.RankNow, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0);
+            SendToHost(Proto.End(w));
+        }
+
         void BroadcastLobby()
         {
+            SyncOwnCosmetics();
             var w = Proto.Begin(Msg.Lobby);
             w.Write((byte)Lobby.Count);
             foreach (var e in Lobby.Values)
@@ -611,6 +661,9 @@ namespace Arena
                 w.Write(e.Ability);
                 w.Write(e.Ready);
                 w.Write((sbyte)e.Seat);
+                w.Write((short)e.Rank);
+                w.Write(e.Frame);
+                w.Write(e.Trail);
             }
             w.Write((int)Modifiers);
             Diff.Write(w);
@@ -947,6 +1000,7 @@ namespace Arena
                 case Msg.Welcome:
                     MyId = r.ReadInt32();
                     awaitingWelcome = false;
+                    ShareCosmetics();
                     break;
                 case Msg.Reject:
                     Leave(r.ReadString());
@@ -960,6 +1014,9 @@ namespace Arena
                         var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
                         e.Ready = r.ReadBoolean();
                         e.Seat = r.ReadSByte();
+                        e.Rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, (int)r.ReadInt16()));
+                        e.Frame = r.ReadByte();
+                        e.Trail = r.ReadByte();
                         Lobby[e.Id] = e;
                     }
                     Modifiers = (RunMod)r.ReadInt32();
@@ -990,6 +1047,7 @@ namespace Arena
                     Game.Practice = null;
                     Game.Hunt = null;
                     Screen = AppScreen.Lobby;
+                    ShareCosmetics();  // the run may have raised the rank
                     break;
                 case Msg.Practice:
                 {

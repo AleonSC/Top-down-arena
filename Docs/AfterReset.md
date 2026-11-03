@@ -72,8 +72,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
 Design doc: [`Rank.md`](Rank.md); mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html)
 (https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9). **Badge style B (shield) picked.** XP from every run with a
 bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames, menu backgrounds).
-- [ ] **Build it**, in the doc's order: `Rank.cs` + profile XP + tests, the end-of-run panel, the lobby badge (protocol
-      bump), the menu chip and Records, then the cosmetics. Three open questions are at the end of the doc.
+- [x] **Built** (Nov 2026, protocol 135): `Rank.cs` + profile XP + `rank` tests, the results strip, the lobby badge and
+      frame, the menu chip, Records > Rank, the Ember and Gold stardust trails, the Steel and Gold frames, and the Dusk
+      Grid background. See "As built" in the doc. Left for later: tuning the XP numbers from real play.
 
 ## Unlocks & ascensions plan
 Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused

@@ -808,7 +808,7 @@ namespace Arena
 
         // --- Records -----------------------------------------------------------------------------------------------------
 
-        static readonly string[] RecordSections = { "Overview", "Bosses", "Classes", "Challenge rooms", "Unlocks" };
+        static readonly string[] RecordSections = { "Overview", "Bosses", "Classes", "Challenge rooms", "Unlocks", "Rank" };
 
         void DrawRecordsWindow(bool inMenu = false)
         {
@@ -826,9 +826,9 @@ namespace Arena
                     classWins++;
             foreach (var c in Challenges.All)
                 roomsWon += p.RoomWon(c);
-            string[] icons = { "ui_star", "ui_skull", "class_knight", "blink", "ui_lock" };
-            string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won", Unlocks.All.Count == 0 ? "soon" : null };
-            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold };
+            string[] icons = { "ui_star", "ui_skull", "class_knight", "blink", "ui_lock", "ui_trophy" };
+            string[] tags = { p.RunsStarted + " runs", bossesBeaten + " / " + RecordBosses.Length, classWins + " won", roomsWon + " won", Unlocks.All.Count == 0 ? "soon" : null, "Rank " + p.RankNow };
+            Color[] cols = { Ui.Gold, Ui.Gold, new Color(1f, 0.6f, 0.3f), new Color(0.45f, 0.9f, 1f), Ui.Gold, RankLook.TierColor(p.RankNow) };
             float y = 128f;
             for (int i = 0; i < RecordSections.Length; i++)
             {
@@ -945,7 +945,7 @@ namespace Arena
                     }
                     break;
                 }
-                default:
+                case 4:
                 {
                     OpenSectionPanel("UNLOCKS", col, null, k);
                     float uy = DrawerPanel.y + 84f;
@@ -965,6 +965,9 @@ namespace Arena
                     }
                     break;
                 }
+                default:
+                    DrawRankRecords(p, t, col, k);  // RankUi.cs
+                    break;
             }
         }
 

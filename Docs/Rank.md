@@ -1,8 +1,10 @@
 # Rank (design)
 
-Status: **designed, not built.** Mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html)
-(https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9). **Badge style B (the shield with tier chevrons) is chosen.**
-All numbers below are placeholders to tune once it's playable.
+Status: **built** (Nov 2026, protocol 135): `Core/Rank.cs`, the profile fields, the `rank` test suite, the results strip,
+the lobby badge and frame, the menu chip, Records > Rank, the Ember and Gold trails and the Dusk Grid background.
+Mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html) (https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9).
+**Badge style B (the shield with tier chevrons) is chosen.** All numbers below are placeholders to tune now that
+it's playable. What was built differently from the mockup is listed under "As built".
 
 ## What it is
 
@@ -118,17 +120,28 @@ From the mockup, in priority order:
   Practice Range or dev-tool runs, profile load/save with and without XP, and the lobby message round trip.
 - Reference pages (Bestiary, Armory) are not touched by this.
 
-## Open questions
+## As built
 
-- Does Rank-up ever show a toast mid-run? (Proposed: no; it only happens on the results screen.)
-- Are trails visible to the other players in co-op, or only to you? (Proposed: everyone; drawing only.)
-- Should the first few ranks come from a one-off "first time" bonus (first boss beaten, first win), so a new
-  player sees a rank-up in their first run? (Proposed: yes, a small bonus; a first run is ~400 XP and rank 2 needs 200.)
+- **Resolved questions:** a rank-up shows only on the results screen (no mid-run toast); trails are drawn for every
+  player (each game keeps its own short path history; the lobby entry says who has which trail); no first-run bonus,
+  since rank 2 costs 200 XP and a first run is worth about that much already.
+- **Hunts** earn XP for the waves cleared and the boss, with no win bonus. A boss beaten on the wave you then lose on
+  counts (the wave is treated as cleared).
+- **Results screen:** the rank strip sits under the cards (they're 408 px high now, the tiles 56) rather than in a
+  panel beside them: the screen had no room for one. It shows the bar filling, the total, the breakdown on one line
+  and the modifiers behind the multiplier, or on a rank up what it unlocked. Each card has its player's badge.
+- **No separate Cosmetics tab:** you equip in **Records > Rank** (the reward ladder has an Equip button on each
+  cosmetic you've earned). The Dusk Grid is equipped by picking it in Settings > Visual effects (or its Equip button),
+  and is skipped while locked.
+- **Menu chip:** the badge sits on the portrait and a thin XP bar runs along the bottom; the title is in the hover
+  card (the chip keeps its class line). The chip uses your equipped frame for its rim.
+- **Titles** come with the tier and aren't equipped separately.
+- **Network:** `LobbyEntry` gained `Rank` and `Frame` and `Trail` (in the `Lobby` message), and clients send
+  `Msg.Cosmetics` (rank, frame, trail) when they join, return to the lobby, or equip something. The host clamps the
+  rank and drops a frame or trail the rank doesn't have. Protocol 134 to 135.
 
-## Build order
+## Possible next steps
 
-1. `Rank.cs`, the `Profile` fields, the `rank` test suite. No visuals yet.
-2. The end-of-run panel (it's the reason for the whole feature).
-3. The lobby badge and the lobby message (the protocol bump).
-4. Menu chip and Records.
-5. Cosmetics: titles first (free), then frames, trails, backgrounds, and the Cosmetics tab.
+- More cosmetics in the ladder (each is a row in `Rank.Cosmetics` plus its drawing).
+- A frame on the results cards, and a trail preview in Records.
+- Tune the XP numbers and the 200 x rank curve from real play.

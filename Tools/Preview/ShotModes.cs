@@ -28,6 +28,10 @@ static partial class Shot {
         pl.Run.ShotsFired = 500; pl.Run.ShotsHit = k == 0 ? 205 : 260; pl.Run.HealingDone = k == 0 ? 0f : 640f; pl.Run.Revives = k; pl.Run.DamageTaken = k == 0 ? 246f : 180f;
         pl.Run.Downs = 1 - k; pl.Run.AbilitiesUsed = 9 + 4 * k; pl.Level = 5 + k; k++;
       }
+      // The rank strip: the profile that PreviewSaves makes is rank 8; the run's gain is worked out from where it started.
+      PreviewSaves();
+      var before = new Profile { Xp = Rank.XpAt(Environment.GetEnvironmentVariable("RANKUP") != null ? 7 : 8) + (Environment.GetEnvironmentVariable("RANKUP") != null ? 900 : 300) };
+      gg.LastGain = before.AwardXp(Rank.Award(mode == "victory", 10, 2, 1, RunMod.ToughCrowd | RunMod.Nightfall, DifficultyLevel.Normal), 11, mode == "victory" ? 1 : 0);
       typeof(ArenaApp).GetMethod("DrawRunSummary", f2).Invoke(app, null);
     }
     else if (mode == "dev")
@@ -91,8 +95,8 @@ static partial class Shot {
       set("drawScale", 1f);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
       host.Lobby.Clear();
-      host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true };
-      host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1 };
+      host.Lobby[1] = new LobbyEntry { Id = 1, Name = "Anthony", Role = Role.Tank, Kit = Kit.Knight, Weapon = 1, Ability = 2, Ready = true, Rank = 8, Frame = 1 };
+      host.Lobby[2] = new LobbyEntry { Id = 2, Name = "Aleon", Role = Role.Dps, Kit = Kit.Elementalist, Weapon = 0, Ability = 1, Rank = 27, Frame = 2 };
       if (Environment.GetEnvironmentVariable("SOLO") != null) host.Lobby.Remove(2);
       // RESUME=1: the lobby continuing a saved run (the host in its seat, Aleon's seat still free; SavesUi.cs).
       if (Environment.GetEnvironmentVariable("RESUME") != null) {
@@ -181,7 +185,7 @@ static partial class Shot {
       GL.ToUi = true;
       if (mode == "settings") set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank)));
       // The drawer windows (MenuDrawer.cs): SECTION=n opens that group / section / topic; the drawer's slide is skipped.
-      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("howToTopic", sec); }
+      if (Environment.GetEnvironmentVariable("SECTION") != null) { int sec = int.Parse(Environment.GetEnvironmentVariable("SECTION")); set("settingsGroup", sec); set("recordsSection", sec); set("howToTopic", sec); set("panelKey", (mode == "howto" ? "howto" : mode) + sec); set("panelAt", -10f); }
       set("drawerKey", mode == "howto" ? "howto" : mode); set("drawerAt", -10f);
       // WINT=<s>: that far into the window's opening; WINCLOSE=0..1: that far through closing (WindowAnim.cs).
       if (Environment.GetEnvironmentVariable("WINT") != null) set("winOpenAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("WINT"), System.Globalization.CultureInfo.InvariantCulture));

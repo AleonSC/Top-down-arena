@@ -21,6 +21,10 @@ namespace Arena
         bool devTouched;                  // host: a dev tool changed this run (its save says so; nobody's profile counts it)
         bool botTouched;                  // this game's bot played at some point (this player's profile doesn't count it)
         bool runRecorded;                 // this game has added the run's end to the profile
+
+        /// The rank XP this player's profile just earned from the run or hunt that ended (null until then; the results screen shows it).
+        public RankGain LastGain;
+        int runLastBossWave;              // the wave of the last boss this player's profile heard beaten this run (a boss down on wave 10 means wave 10 is cleared)
         public Profile ProfileOverride;   // tests: a profile per game instead of the computer's
         public bool Unrecorded;           // a Boss Lab fight: never saved, and not in anyone's records (BossLab.cs)
         public Profile Profile => ProfileOverride ?? Profile.Current;
@@ -151,6 +155,8 @@ namespace Arena
             Resumed = resumed;
             botTouched = Bot;
             runRecorded = false;
+            LastGain = null;
+            runLastBossWave = 0;
             if (IsHost)
             {
                 devTouched = false;
@@ -260,6 +266,7 @@ namespace Arena
                     if (me == null || dev || botTouched)
                         return;
                     Profile.BossBeaten(boss, wave);
+                    runLastBossWave = Math.Max(runLastBossWave, wave);
                     AddUnlockToasts(Profile.CheckUnlocks());
                     Profile.Save();
                     return;
@@ -286,10 +293,14 @@ namespace Arena
                     if (Hunt != null)
                     {
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time));  // Hunts.cs
+                        int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
+                        LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
                         Profile.Save();
                         return;
                     }
                     AddUnlockToasts(Profile.RunEnded(won, wave, score, endless, Mods, me.Role, me.Kit, me.Run, time));
+                    int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
+                    LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), wave, won ? 1 : 0);
                     Profile.Save();
                     return;
                 }
