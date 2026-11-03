@@ -256,27 +256,37 @@ class JuiceCheck {
         "ability tiles press in when used, flash red when pressed too early, pop when ready, and stay still with effects off");
     }
 
-    // Melee style E (MeleeLooks.cs): a player's swings draw the weapon + energy look on every frame of the effect,
-    // including the Halberd's steps (once the first frame stretched a step's life, it fell back to the old look).
+    // Melee style E (MeleeLooks.cs): real swings (fired by the game's own code, played out over real ticks) draw the
+    // weapon + energy look on every frame, and a Halberd sweep is one effect, not one per step.
     {
       set("fxOn", true);
-      var slashE = typeof(ArenaApp).GetMethod("DrawSlashE", f2);
+      var seenMap = (System.Collections.IDictionary)get("meleeSeen");
+      var fire = typeof(Game).GetMethod("FireKnightWeapon", f2);
       var pl = g.Players.Values.First();
       var keep = pl.Weapon;
-      Func<WeaponId, float, bool[]> swing = (id, half) => {
+      bool botWas = g.Bot;
+      g.Bot = false;  // (only the one swing fired below)
+      Func<WeaponId, int[]> swing = id => {
         pl.Weapon = Defs.Weapons.First(x => x.Id == id);
-        var fx = new Effect { Kind = FxKind.Slash, Pos = pl.Pos, Pos2 = pl.Pos + new V2(120f, 0f), Color = new Rgba(1f, 1f, 1f), Radius = half, Dur = 0.16f };
-        g.Effects.Add(fx);
-        var drawn = new List<bool>();
-        GL.Tris.Clear();
-        for (int i = 0; i < 6; i++) { drawn.Add((bool)slashE.Invoke(app, new object[] { fx, 0f })); fx.T += 0.03f; }
-        g.Effects.Remove(fx);
-        return drawn.ToArray();
+        g.Effects.Clear();
+        fire.Invoke(g, new object[] { pl, 0f, 1f, 0 });
+        int frames = 0, missed = 0, slashes = 0;
+        var all = new HashSet<Effect>();
+        for (int i = 0; i < 30; i++) {
+          tick(); frame(); frames++;
+          foreach (var fx in g.Effects) if (fx.Kind == FxKind.Slash) { all.Add(fx); if (!seenMap.Contains(fx)) missed++; }
+        }
+        slashes = all.Count;
+        return new[] { frames, missed, slashes };
       };
-      var halberd = swing(WeaponId.Halberd, 18f * MathX.Pi / 360f);
-      var sword = swing(WeaponId.Greatsword, 1.31f);
+      var halberd = swing(WeaponId.Halberd);
+      var sword = swing(WeaponId.Greatsword);
       pl.Weapon = keep;
-      Check(halberd.All(x => x) && sword.All(x => x), "melee swings (the Greatsword and each Halberd step) draw the weapon + energy look on every frame");
+      g.Bot = botWas;
+      Console.WriteLine("  melee: Halberd {0} effect(s), {1} frames missed; Greatsword {2} effect(s), {3} missed", halberd[2], halberd[1], sword[2], sword[1]);
+      Check(halberd[1] == 0 && sword[1] == 0 && halberd[2] >= 1 && sword[2] >= 1,
+        "real melee swings (the Greatsword, the Halberd) draw the weapon + energy look on every frame");
+      Check(halberd[2] == 1, "a Halberd sweep is one effect (its six steps share it)");
     }
 
     // Off again: exactly the plain drawing.

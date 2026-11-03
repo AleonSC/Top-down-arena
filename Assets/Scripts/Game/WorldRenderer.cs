@@ -628,6 +628,57 @@ namespace Arena
             }
         }
 
+        // A colour per vertex, clipped like Tri: the colours are blended along each cut edge.
+        readonly V2[] cvIn = new V2[9], cvOut = new V2[9];
+        readonly Rgba[] ccIn = new Rgba[9], ccOut = new Rgba[9];
+
+        void ClippedVTri(V2 a, Rgba ca, V2 b, Rgba cb, V2 c, Rgba cc)
+        {
+            V2 ua = glShift + a * glZoom, ub = glShift + b * glZoom, uc = glShift + c * glZoom;
+            float x0 = glClip.x, x1 = glClip.xMax, y0 = glClip.y, y1 = glClip.yMax;
+            if ((ua.X < x0 && ub.X < x0 && uc.X < x0) || (ua.X > x1 && ub.X > x1 && uc.X > x1) ||
+                (ua.Y < y0 && ub.Y < y0 && uc.Y < y0) || (ua.Y > y1 && ub.Y > y1 && uc.Y > y1))
+                return;  // all outside
+            cvIn[0] = ua; cvIn[1] = ub; cvIn[2] = uc;
+            ccIn[0] = ca; ccIn[1] = cb; ccIn[2] = cc;
+            int n = 3;
+            n = ClipEdgeC(cvIn, ccIn, n, cvOut, ccOut, 0, x0, false);
+            n = ClipEdgeC(cvOut, ccOut, n, cvIn, ccIn, 0, x1, true);
+            n = ClipEdgeC(cvIn, ccIn, n, cvOut, ccOut, 1, y0, false);
+            n = ClipEdgeC(cvOut, ccOut, n, cvIn, ccIn, 1, y1, true);
+            for (int i = 1; i + 1 < n; i++)
+            {
+                SetColor(ccIn[0]); Vtx(CanvasPx(cvIn[0]));
+                SetColor(ccIn[i]); Vtx(CanvasPx(cvIn[i]));
+                SetColor(ccIn[i + 1]); Vtx(CanvasPx(cvIn[i + 1]));
+            }
+        }
+
+        static int ClipEdgeC(V2[] src, Rgba[] srcC, int n, V2[] dst, Rgba[] dstC, int axis, float at, bool max)
+        {
+            int m = 0;
+            for (int i = 0; i < n; i++)
+            {
+                int j = (i + 1) % n;
+                V2 p = src[i], q = src[j];
+                float pv = axis == 0 ? p.X : p.Y, qv = axis == 0 ? q.X : q.Y;
+                bool pin = max ? pv <= at : pv >= at, qin = max ? qv <= at : qv >= at;
+                if (pin)
+                {
+                    dst[m] = p; dstC[m] = srcC[i]; m++;
+                }
+                if (pin != qin)
+                {
+                    float k = (at - pv) / (qv - pv);
+                    Rgba x = srcC[i], y = srcC[j];
+                    dst[m] = V2.Lerp(p, q, k);
+                    dstC[m] = new Rgba(x.R + (y.R - x.R) * k, x.G + (y.G - x.G) * k, x.B + (y.B - x.B) * k, x.A + (y.A - x.A) * k);
+                    m++;
+                }
+            }
+            return m;
+        }
+
         bool InClip(V2 u) => u.X >= glClip.x && u.X <= glClip.xMax && u.Y >= glClip.y && u.Y <= glClip.yMax;
 
         /// Keeps the part of polygon src on one side of the line axis = at (max: keep below it), into dst.

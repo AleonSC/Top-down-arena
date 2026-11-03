@@ -26,6 +26,8 @@ namespace Arena
         public bool Clots;            // hits build the swinger's Clot (Blood Lash; BloodMage.cs)
         public float Taunt;           // taunts what it hits for this long (a Clot Burst)
         public int Sweep;             // > 0: one step of a sweep (Halberd): each enemy is hit once per sweep, however many steps reach it
+        public bool NoFx;             // draws nothing itself (a Halberd step after the first: the first draws the whole sweep)
+        public float FxAim, FxHalf;   // FxHalf > 0: its effect is this arc instead of its own (the Halberd's whole sweep)
         public byte Ice;              // the Frost Lance (Minions.cs): 1 = its icicle, 2 = the splinters off its sides (drawn as ice, not a jab)
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
@@ -49,8 +51,9 @@ namespace Arena
         public const float HammerHalfWidth = 50f;
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
         // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
-        const int HalberdSteps = 6;
-        const float HalberdSweep = 0.7f, HalberdConeDeg = 18f, HalberdStepTime = 0.035f;
+        public const int HalberdSteps = 6;
+        const float HalberdSweep = 0.7f, HalberdConeDeg = 18f;
+        public const float HalberdStepTime = 0.035f;
         int sweepCount;
 
         // --- Weapons ------------------------------------------------------------------
@@ -125,6 +128,10 @@ namespace Arena
                             h.Sweep = group;
                             h.Delay = HalberdStepTime * i + pass * (HalberdStepTime * HalberdSteps + 0.08f);
                             h.Silent = i > 0;
+                            // One effect for the whole sweep (sent by its first step), not one per step.
+                            h.NoFx = i > 0;
+                            h.FxAim = aim;
+                            h.FxHalf = HalberdSweep + HalberdConeDeg * MathX.Pi / 360f;
                             pendingSwings.Add(h);
                         }
                     }
@@ -330,7 +337,12 @@ namespace Arena
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
             bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f;
-            if (s.ClawSide != 0f)
+            if (s.NoFx)
+                { }
+            else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
+                BroadcastFx(FxKind.Slash, origin, origin + V2.FromAngle(s.FxAim) * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.FxHalf, 0.3f,
+                    s.Silent ? Sfx.None : Sfx.SwingHeavy);
+            else if (s.ClawSide != 0f)
                 BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, new Rgba(1f, 0.86f, 0.78f), s.ClawSide * s.HalfArc, 0.2f,
                     s.Silent ? Sfx.None : Sfx.SwingLight);
             else if (s.Ice != 0)

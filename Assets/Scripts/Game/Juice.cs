@@ -742,6 +742,11 @@ namespace Arena
         /// A triangle with its own colour at each corner (world coordinates, no clipping).
         void VTri(V2 a, Rgba ca, V2 b, Rgba cb, V2 c, Rgba cc)
         {
+            if (glClipOn)
+            {
+                ClippedVTri(a, ca, b, cb, c, cc);  // (WorldRenderer.cs: inside a clipped preview, like Tri)
+                return;
+            }
             SetColor(ca); Vtx(Px(a));
             SetColor(cb); Vtx(Px(b));
             SetColor(cc); Vtx(Px(c));

@@ -19,7 +19,7 @@ namespace Arena
         const float MeleeTail = 0.55f;        // the energy fading after it (the mockup's `tail`)
         const float MeleeThrustTime = 0.066f; // a thrust's stab out to full reach (60% of the sweep, as in the mockup)
         const float HammerSwingTime = 0.08f;  // the Warhammer's arc from over your shoulder into the floor
-        const float HalberdStep = 0.035f;     // Knight.cs HalberdStepTime: one step of its sweep
+        const float HalberdSweepTime = Game.HalberdStepTime * Game.HalberdSteps;  // the Halberd's sweep: its six steps' 0.21 s
         const float MeleeBright = 0.6f;       // the energy band at its brightest (added light; the mockup's 0.45 plus its blur)
 
         static readonly Rgba MeleeSteel = new Rgba(0.9f, 0.93f, 0.99f), MeleeHandle = new Rgba(0.42f, 0.34f, 0.25f),
@@ -36,6 +36,7 @@ namespace Arena
 
         readonly Dictionary<Effect, MeleeSeen> meleeSeen = new Dictionary<Effect, MeleeSeen>();
         readonly Dictionary<int, float> meleeFlip = new Dictionary<int, float>();
+        readonly Dictionary<int, float> halberdLast = new Dictionary<int, float>();
         readonly HashSet<Effect> meleeLive = new HashSet<Effect>();
 
         /// The player who made this melee effect (the one standing where it started, holding a melee weapon), or null.
@@ -76,6 +77,15 @@ namespace Arena
             bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana;
             if (alternates)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
+            else if (best.Weapon.Id == WeaponId.Halberd)
+            {
+                // The Halberd sweeps left to right; an extra projectile's second pass (0.29 s later) sweeps back.
+                float last;
+                bool backPass = halberdLast.TryGetValue(best.Id, out last) && Time.unscaledTime - last < 0.4f && flip > 0f;
+                halberdLast[best.Id] = Time.unscaledTime;
+                meleeFlip[best.Id] = flip = backPass ? -1f : 1f;
+                alternates = true;
+            }
             seen = new MeleeSeen { Owner = best.Id, Weapon = best.Weapon.Id, Sign = alternates ? flip : 1f, BaseReach = Game.MeleeReach(best, best.Weapon.Reach) };
             meleeSeen[fx] = seen;
             if (fx.Dur < life)
@@ -148,11 +158,11 @@ namespace Arena
             float reach = to.Length, aim = to.Angle, half = fx.Radius;
             if (reach < 1f)
                 return false;
-            bool thrust = half < 0f, step = half >= 0f && half < 0.2f;
-            if (step && fx.Dur > 0.25f && !meleeSeen.ContainsKey(fx))
-                return false;  // a lunge or a dash streak, not a swing (a Halberd step's Dur is stretched once it's seen)
-            var seen = MeleeOwnerOf(fx, thrust ? MeleeThrustTime + MeleeTail : step ? HalberdStep * 6f + MeleeTail : MeleeSweepTime + MeleeTail);
-            if (seen == null || step && seen.Weapon != WeaponId.Halberd)
+            bool thrust = half < 0f;
+            if (half >= 0f && half < 0.2f)
+                return false;  // a lunge or a dash streak, not a swing: the old look
+            var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail);
+            if (seen == null)
                 return false;
             V2 o = MeleeOrigin(fx, seen);
             var col = MeleeColor(seen.Weapon, fx.Color);
@@ -179,88 +189,24 @@ namespace Arena
                 return true;
             }
 
-            if (step)
-            {
-                // One step of the Halberd's sweep (six in a row, 35 ms apart). Each draws its slice of the band, from the
-                // older step's brightness at its trailing edge to its own at its leading edge, so the six join into one
-                // smooth band that fades behind the blade; only the latest step holds the halberd.
-                float older, dirSign, olderAim;
-                StepNeighbours(fx, out older, out dirSign, out olderAim);
-                if (light)
-                {
-                    // Its slice runs from the older step's angle (or, for the first, half a cone back) to its own, so the
-                    // six slices tile the sweep exactly: no gaps, and no overlaps doubling up in the additive glow.
-                    float aLead = MeleeEnergy(T), aTrail = older >= 0f ? MeleeEnergy(older) : 0.05f * aLead / MeleeBright;
-                    float from = older >= 0f ? aim + MathX.Fmod(olderAim - aim + MathX.Pi, MathX.Tau) - MathX.Pi : aim - half * dirSign;
-                    GlowArcBand(o, reach, from, aim, col, aTrail, aLead);
-                }
-                else
-                {
-                    MeleeSparks(o, aim - half * dirSign, 2f * half * dirSign, reach, T, HalberdStep, col, seed, false, 5);
-                    if (!NewerStepThan(fx))
-                        DrawMeleeModel(seen.Weapon, o, aim, reach, T < 0.1f ? 1f : 1f - Mathf.Clamp01((T - 0.1f) / 0.18f), col, T < HalberdStep);
-                }
-                return true;
-            }
-
             // A sweep across its arc (a full circle spins).
-            bool full = half >= MathX.Pi - 0.01f;
-            float s = seen.Sign, e = EaseOut3(Mathf.Clamp01(T / MeleeSweepTime));
-            float fadeOut = T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / MeleeTail);
+            // The Halberd's sweep takes its six steps' 0.21 s at a steady speed, in step with its hits; the others ease out
+            // over 0.11 s (the hit has already landed).
+            bool full = half >= MathX.Pi - 0.01f, halberd = seen.Weapon == WeaponId.Halberd;
+            float sweepTime = halberd ? HalberdSweepTime : MeleeSweepTime;
+            float s = seen.Sign, e = halberd ? Mathf.Clamp01(T / sweepTime) : EaseOut3(Mathf.Clamp01(T / sweepTime));
+            float fadeOut = T < sweepTime ? 1f : 1f - Mathf.Clamp01((T - sweepTime) / MeleeTail);
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
             if (light)
                 GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
             else
             {
-                MeleeSparks(o, start, 2f * half * s, reach, T, MeleeSweepTime, col, seed, false);
-                float hold = T < MeleeSweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime - 0.1f) / 0.18f);
-                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < MeleeSweepTime);
+                MeleeSparks(o, start, 2f * half * s, reach, T, sweepTime, col, seed, false);
+                float hold = T < sweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - sweepTime - 0.1f) / 0.18f);
+                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < sweepTime);
             }
             return true;
-        }
-
-        /// The energy's brightness at `T` into a swing: full while it sweeps, then fading out over MeleeTail.
-        static float MeleeEnergy(float T) => MeleeBright * (T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / MeleeTail));
-
-        /// A Halberd step's neighbours: the next older step's T (or -1 for the first), and which way the sweep runs.
-        void StepNeighbours(Effect fx, out float olderT, out float dirSign, out float olderAim)
-        {
-            olderT = -1f;
-            dirSign = 1f;
-            olderAim = 0f;
-            float aim = (fx.Pos2 - fx.Pos).Angle, best = float.MaxValue, bestNewer = float.MaxValue;
-            float newerAim = 0f;
-            foreach (var e in game.Effects)
-            {
-                if (e == fx || e.Kind != FxKind.Slash || Mathf.Abs(e.Radius - fx.Radius) > 0.001f || e.Pos.DistanceTo(fx.Pos) > 40f)
-                    continue;
-                float dt = e.T - fx.T;
-                if (dt > 0.001f && dt < 0.06f && dt < best)
-                {
-                    best = dt;
-                    olderT = e.T;
-                    olderAim = (e.Pos2 - e.Pos).Angle;
-                }
-                else if (dt < -0.001f && dt > -0.06f && -dt < bestNewer)
-                {
-                    bestNewer = -dt;
-                    newerAim = (e.Pos2 - e.Pos).Angle;
-                }
-            }
-            if (olderT >= 0f)
-                dirSign = MathX.Fmod(aim - olderAim + MathX.Pi, MathX.Tau) - MathX.Pi >= 0f ? 1f : -1f;
-            else if (bestNewer < float.MaxValue)
-                dirSign = MathX.Fmod(newerAim - aim + MathX.Pi, MathX.Tau) - MathX.Pi >= 0f ? 1f : -1f;
-        }
-
-        /// Is there a later step of the same Halberd sweep than this one?
-        bool NewerStepThan(Effect fx)
-        {
-            foreach (var e in game.Effects)
-                if (e != fx && e.Kind == FxKind.Slash && e.T < fx.T && Mathf.Abs(e.Radius - fx.Radius) < 0.001f && e.Pos.DistanceTo(fx.Pos) < 40f)
-                    return true;  // a later step of the same sweep (same cone, from about the same spot)
-            return false;
         }
 
         // --- The Lance and the Warhammer ----------------------------------------------------------------------------

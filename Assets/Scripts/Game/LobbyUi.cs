@@ -821,7 +821,8 @@ namespace Arena
             try
             {
                 // Visual effects (Juice.cs) follow the preview while the lobby is up: the new shot looks, trails,
-                // sparks, bullet endings and hit flashes. (The glow and soft gradients can't be clipped to the window.)
+                // sparks, bullet endings and hit flashes, and the glow pass (melee energy, bullet and blast glows), all
+                // clipped to the window (soft gradients too: ClippedVTri).
                 bool fx = fxOn;  // (the preview only shows in the lobby, so no match is drawn alongside it)
                 if (fx)
                 {
@@ -830,7 +831,12 @@ namespace Arena
                 }
                 DrawArenaContents(sg.AnimT);
                 if (fx)
+                {
                     DrawJuiceParts();
+                    SwitchToGlow(true);  // the added light, as in the arena (Juice.GlowPass)
+                    DrawGlowPass();
+                    SwitchToGlow(false);
+                }
                 foreach (var p in sg.Players.Values)
                     if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                         DrawBowDraw(p, true, sg.AnimT);

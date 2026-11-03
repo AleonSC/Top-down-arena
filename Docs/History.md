@@ -3,6 +3,18 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Melee: one effect per Halberd sweep; glow in the lobby preview (Nov 2026), protocol 127 (no change):** owner: the
+Halberd looked like the old design again, and the lobby previews lost their gradients. The Halberd sent one Slash per
+step (six), which MeleeLooks stitched together with neighbour-matching code (`StepNeighbours`, `NewerStepThan`); fragile,
+and unlike every other weapon. Now its first step sends one Slash for the whole sweep (`Swing.FxAim`/`FxHalf`; the
+other steps have `NoFx`), and MeleeLooks plays it as an ordinary sweep over the steps' 0.21 s at a steady speed, in step
+with the hits (a second pass from an extra projectile sweeps back); the step code is gone. With effects off it's the old
+arc. The lobby's loadout preview never ran the glow pass (its comment said glows and gradients couldn't be clipped), so
+when the melee energy moved into the glow pass the preview lost it: `VTri` now clips like `Tri` (`ClippedVTri`, colours
+blended along each cut) and the preview runs `DrawGlowPass` (melee energy, bullet and blast glows) clipped to its window.
+The preview tool's UI layer (GL drawn in menus) now uses the GPU-like rasterizer too. `juice.sh` fires real Greatsword and
+Halberd swings through the game's code and checks every frame, and that a Halberd sweep is one effect.
+
 **Colour space and glows (Nov 2026), protocol 127 (no change):** owner: the game's glows and gradients don't match the
 mockups or the preview images (the lobby background previews, the bullet glow in Settings). Cause: ProjectSettings
 aren't in git, and a new Unity 6 project defaults to the Linear colour space; the game draws with raw `GL.Color` vertex

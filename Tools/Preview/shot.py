@@ -1,4 +1,5 @@
-import struct, sys
+import struct, sys, os
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 base=sys.argv[1]; out=sys.argv[2]
 W,H=1280,720
@@ -52,10 +53,15 @@ for line in open(base+'.ui',encoding='utf-8'):
         # GL models on top of the menus: blend each triangle over what's there, like the GPU does (drawing
         # into a transparent layer would let each translucent triangle replace the ones under it).
         tv=floats(p[3])
-        rgb=img.convert('RGB'); bd=ImageDraw.Draw(rgb,'RGBA')
-        for i in range(0,len(tv),18):
-            pts=[(tv[i+k*6], H-tv[i+k*6+1]) for k in range(3)]
-            bd.polygon(pts, fill=c8(*tv[i+2:i+6]))
+        rgb=img.convert('RGB')
+        if os.environ.get('FAST') == '1':
+            bd=ImageDraw.Draw(rgb,'RGBA')
+            for i in range(0,len(tv),18):
+                pts=[(tv[i+k*6], H-tv[i+k*6+1]) for k in range(3)]
+                bd.polygon(pts, fill=c8(*tv[i+2:i+6]))
+        else:  # like the GPU, over what's drawn so far (gradients, the glow pass, smooth edges)
+            from raster import raster
+            rgb=Image.fromarray(raster(tv, W, H, int(os.environ.get('SS', '2')), linear=os.environ.get('LINEAR') == '1', base=np.asarray(rgb)))
         img=rgb.convert('RGBA')
         continue
     elif kind=='img':

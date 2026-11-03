@@ -1,11 +1,13 @@
 import numpy as np
-def raster(v, W, H, ss=2, bg=(10,12,18), linear=False):
+def raster(v, W, H, ss=2, bg=(10,12,18), linear=False, base=None):
     """GL triangles (x, y, r, g, b, a per vertex; y up) drawn like the GPU: colour blended across each triangle,
     alpha blending, additive where alpha < 0 (-1 - a), supersampled ss x ss for smooth edges."""
     Ws, Hs = W*ss, H*ss
     buf = np.empty((Hs, Ws, 3), np.float32); buf[:] = np.array(bg, np.float32)/255.0
     # linear=True mimics a Unity project in Linear colour space: the clear colour is converted to linear, vertex colours
     # are used as they are (Unity doesn't convert GL.Color), blending happens in linear, and the result is shown as sRGB.
+    if base is not None:  # draw over an existing picture (H x W x 3, 0-255), e.g. the menus under a GL model
+        buf[:] = np.repeat(np.repeat(np.asarray(base, np.float32)[:, :, :3] / 255.0, ss, 0), ss, 1)
     if linear: buf[:] = buf ** 2.2
     a = np.asarray(v, np.float32).reshape(-1, 3, 6)
     for t in a:
