@@ -330,12 +330,11 @@ namespace Arena
         }
 
         /// A soft round glow: c.A at the centre fading smoothly to nothing at radius r. Drawn as bands of shaded
-        /// triangles (the colour blends across each), so there are no hard rings. `rings` is kept for the callers;
-        /// more rings follow the smooth falloff more closely.
+        /// triangles (the colour blends across each), so there are no hard rings. `rings` is unused (it was the old
+        /// stacked discs' count); kept so the callers read the same.
         void SoftGlow(V2 at, float r, Rgba c, int rings = 4)
         {
-            const int segs = 40;
-            int bands = Mathf.Max(6, rings * 2);
+            const int segs = 32, bands = 8;
             for (int b = 0; b < bands; b++)
             {
                 float f0 = b / (float)bands, f1 = (b + 1) / (float)bands;
@@ -573,8 +572,12 @@ namespace Arena
             for (int i = 0; i < 9; i++)
             {
                 var anchor = new V2(Hash(i + 1000) * W, Hash(i + 1100) * H);
-                var p = anchor + V2.FromAngle(t * 0.08f * (i % 2 == 0 ? 1f : -1f) + i) * 70f;
-                SoftGlow(p, 200f + Hash(i + 1200) * 160f, cols[i % cols.Length].WithAlpha(0.13f), 6);
+                // Soft clouds hide slow motion, so they drift a wide loop at a visible pace and swell and fade as they go.
+                float speed = 0.18f + Hash(i + 1300) * 0.12f;
+                var p = anchor + V2.FromAngle(t * speed * (i % 2 == 0 ? 1f : -1f) + i) * (120f + Hash(i + 1400) * 60f);
+                float breathe = Mathf.Sin(t * (0.35f + Hash(i + 1500) * 0.25f) + i * 1.9f);
+                float r = (200f + Hash(i + 1200) * 160f) * (1f + 0.15f * breathe);
+                SoftGlow(p, r, cols[i % cols.Length].WithAlpha(0.13f * (1f + 0.3f * breathe)), 6);
             }
             Stars(200, t, 0.8f, 1300);
         }

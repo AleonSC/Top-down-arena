@@ -12,6 +12,12 @@ shared glow (a column of blobs; now the mockup's 7 px pin of light); the **Prism
 the body; the **Golem Staff**'s boulder no longer glows (it's a rock); **Blood Bolts** are the mockup's teardrop with a
 dotted trail and a highlight, unglowing. `ShotGlow` holds each shot's glow. Effects off: unchanged (render check IDENTICAL).
 
+**Nebula moves visibly again (Nov 2026), protocol 128 (no change):** owner: the background is no longer animated.
+It was, but the Nebula's clouds drift ~6 px/s, which the old stacked discs' sweeping ring edges made easy to see and
+the smooth glows hide (two frames a second apart: 11% of pixels changed before, 0.2% after). The clouds now loop wider
+and faster and swell and fade (25%). SoftGlow also draws 8 bands of 32 instead of up to 12 of 40, about a third of the
+vertices.
+
 **Smooth menu-background glows; no arena vignette (Nov 2026), protocol 128 (no change):** owner: the backgrounds'
 gradients showed hard steps behind the lobby (the picker's small thumbnail hid them), and remove the vignette.
 `SoftGlow` (MenuBackgrounds.cs) stacked 3-6 flat discs, so every disc edge was a visible ring. It now draws bands of
