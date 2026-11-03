@@ -3,6 +3,14 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Modifier tiers line up and fold (Nov 2026), no protocol change:** owner's asks: the tier headings weren't aligned (a
+tier carried on along the previous one's row, so RISKY's heading sat mid-row), and they should collapse.
+`ModifiersUi.DrawModifiers`: each tier starts its own row under a full-width heading (fold marker, tag, blurb, line,
+and on the right "n on", or "n hidden · n on" when folded); clicking it folds the tier (`ModTierFolded`/`FoldModTier`,
+a bit per `ModLean` in PlayerPrefs `mods_folded`). Cards stay 84-104 tall; the list scrolls (`modsScroll`, mouse
+wheel, a thin bar) inside a `GUI.BeginGroup` when the open tiers don't fit. Preview: `LOBBYTAB=2 MODSFOLD=<bits>
+Tools/Preview/shot.sh <name> lobby 1 2 1`.
+
 **To-do items 1-5 (Nov 2026), protocol 127:** owner's list in `Docs/AfterReset.md`. (1) **Pause menu models came in
 before the menu:** GL ignored `Ui.Alpha`, so models in a fading panel (the run card's boss, the party) drew at full
 strength while the panel faded in. `BeginUiGl` now takes `Ui.Alpha` into `glAlpha`, which `SetColor` multiplies in

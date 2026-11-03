@@ -26,53 +26,97 @@ namespace Arena
                 : "The host picks these. They last the whole run, for everyone.", 12, Ui.Muted);
             y += 54f;
 
-            // Grouped by tier (Easier, Risky, Harder), in one grid four across: each group follows on from the last (on the
-            // same row if there's room) under a small heading over its first card. Rows where a group starts leave room
-            // for its heading. Cards are as tall as the panel allows.
+            // Grouped by tier (Easier, Risky, Harder): each group starts on its own row under a heading that spans the panel.
+            // Click a heading to fold its group away (remembered on this computer); folded, it says how many are on.
+            // Cards are as tall as the panel allows (84 to 104); when the open groups don't fit, the list scrolls.
             const int cols = 4;
-            const float gap = 8f, head = 20f;
-            var cells = new List<KeyValuePair<ModDef, int>>();  // each card and its place in the grid
+            const float gap = 8f, head = 22f;
+            int rows = 0;
             foreach (var lean in LeanOrder)
-                foreach (var d in Modifiers.All)
-                    if (d.Lean == lean)
-                        cells.Add(new KeyValuePair<ModDef, int>(d, cells.Count));
-            int rows = (cells.Count + cols - 1) / cols;
-            var starts = new bool[rows];  // does a group start on this row?
-            for (int i = 0; i < cells.Count; i++)
-                if (i == 0 || cells[i].Key.Lean != cells[i - 1].Key.Lean)
-                    starts[i / cols] = true;
-            int strips = 0;
-            foreach (bool st in starts) strips += st ? 1 : 0;
-            float ch = Mathf.Min(104f, (r.yMax - 12f - y - strips * head) / rows - gap);
+                if (!ModTierFolded(lean))
+                    rows += (ModsIn(lean).Count + cols - 1) / cols;
+            var area = new Rect(x - 4f, y, w + 8f, r.yMax - 10f - y);
+            float ch = rows == 0 ? 104f : Mathf.Clamp((area.height - LeanOrder.Length * head) / rows - gap, 84f, 104f);
             float cw = (w - gap * (cols - 1)) / cols;
-            var rowY = new float[rows];
-            for (int row = 0; row < rows; row++)
+            float content = LeanOrder.Length * head + rows * (ch + gap);
+            float maxScroll = Mathf.Max(0f, content - area.height);
+            var ev = Event.current;
+            if (ev.type == EventType.ScrollWheel && area.Contains(ev.mousePosition))
             {
-                rowY[row] = y + (starts[row] ? head : 0f);
-                y = rowY[row] + ch + gap;
+                modsScroll += ev.delta.y * 24f;
+                ev.Use();
             }
-            for (int i = 0; i < cells.Count; i++)
+            modsScroll = Mathf.Clamp(modsScroll, 0f, maxScroll);
+            if (maxScroll > 0f)
             {
-                var d = cells[i].Key;
-                int row = i / cols, col = i % cols;
-                var c = new Rect(x + col * (cw + gap), rowY[row], cw, ch);
-                if (i == 0 || d.Lean != cells[i - 1].Key.Lean)
+                // A thin bar on the right: how much is showing, and where.
+                float bh = area.height * area.height / content, by = area.y + (area.height - bh) * modsScroll / maxScroll;
+                Ui.Pill(new Rect(r.xMax - 9f, by, 4f, bh), new Color(1f, 1f, 1f, 0.18f));
+            }
+            GUI.BeginGroup(area);
+            x = 4f;
+            y = -modsScroll;
+            foreach (var lean in LeanOrder)
+            {
+                var mods = ModsIn(lean);
+                bool folded = ModTierFolded(lean);
+                // The heading: a fold marker, its tier, a few words, a line to the panel's edge; folded, how many are on.
+                var lc = LeanColor(lean);
+                var hr = new Rect(x, y, w, head - 4f);
+                bool hover = hr.Contains(Event.current.mousePosition);
+                if (hover)
+                    Ui.Pill(hr, new Color(lc.r, lc.g, lc.b, 0.08f));
+                Ui.Label(new Rect(x + 2f, y, 16f, head - 4f), folded ? "+" : "−", 14, lc, TextAnchor.MiddleCenter, true);
+                string tag = LeanTag(lean), blurb = LeanBlurb(lean);
+                float tx = x + 22f, tw = Ui.TextWidth(tag, 11, true) + 10f, bw = Ui.TextWidth(blurb, 11);
+                Ui.Label(new Rect(tx, y, tw, head - 4f), tag, 11, lc, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(tx + tw, y, bw + 4f, head - 4f), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
+                int onCount = mods.FindAll(d => (session.Modifiers & d.Mod) != 0).Count;
+                string count = folded ? mods.Count + " hidden" + (onCount > 0 ? "  ·  " + onCount + " on" : "") : onCount > 0 ? onCount + " on" : "";
+                float cwid = count.Length > 0 ? Ui.TextWidth(count, 11, true) + 8f : 0f;
+                if (count.Length > 0)
+                    Ui.Label(new Rect(x + w - cwid, y, cwid, head - 4f), count, 11, onCount > 0 ? ModColor : Ui.Muted, TextAnchor.MiddleRight, true);
+                float lx = tx + tw + bw + 12f, lend = x + w - cwid - 10f;
+                if (lend - lx > 10f)
+                    Ui.Fill(new Rect(lx, y + (head - 4f) / 2f, lend - lx, 1f), new Color(lc.r, lc.g, lc.b, 0.2f));
+                if (Ui.HitArea(hr))
+                    FoldModTier(lean, !folded);
+                y += head;
+                if (folded)
+                    continue;
+                for (int i = 0; i < mods.Count; i++)
                 {
-                    // The group's heading over its first card: its tier, a few words, and a line to the row's end.
-                    var lc = LeanColor(d.Lean);
-                    float hy = c.y - head + 2f;
-                    string tag = LeanTag(d.Lean), blurb = LeanBlurb(d.Lean);
-                    float tw = Ui.TextWidth(tag, 11, true) + 10f, bw = Ui.TextWidth(blurb, 11);
-                    Ui.Label(new Rect(c.x, hy, tw, 16f), tag, 11, lc, TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(c.x + tw, hy, bw + 4f, 16f), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
-                    float lx = c.x + tw + bw + 12f;
-                    if (x + w - lx > 10f)
-                        Ui.Fill(new Rect(lx, hy + 8f, x + w - lx, 1f), new Color(lc.r, lc.g, lc.b, 0.2f));
+                    var d = mods[i];
+                    var c = new Rect(x + (i % cols) * (cw + gap), y + (i / cols) * (ch + gap), cw, ch);
+                    bool on = (session.Modifiers & d.Mod) != 0;
+                    if (DrawModCard(c, d, on, host, t))
+                        session.SetModifier(d.Mod, !on);
                 }
-                bool on = (session.Modifiers & d.Mod) != 0;
-                if (DrawModCard(c, d, on, host, t))
-                    session.SetModifier(d.Mod, !on);
+                y += ((mods.Count + cols - 1) / cols) * (ch + gap);
             }
+            GUI.EndGroup();
+        }
+
+        float modsScroll;  // the Modifiers tab's list, scrolled this far down
+
+        static List<ModDef> ModsIn(ModLean lean) => new List<ModDef>(System.Array.FindAll(Modifiers.All, d => d.Lean == lean));
+
+        /// Which tiers are folded away in the Modifiers tab (a bit per ModLean, kept in PlayerPrefs "mods_folded").
+        int modsFolded = -1;
+
+        bool ModTierFolded(ModLean lean)
+        {
+            if (modsFolded < 0)
+                modsFolded = PlayerPrefs.GetInt("mods_folded", 0);
+            return (modsFolded & (1 << (int)lean)) != 0;
+        }
+
+        void FoldModTier(ModLean lean, bool folded)
+        {
+            ModTierFolded(lean);
+            modsFolded = folded ? modsFolded | (1 << (int)lean) : modsFolded & ~(1 << (int)lean);
+            PlayerPrefs.SetInt("mods_folded", modsFolded);
+            PlayerPrefs.Save();
         }
 
         static readonly ModLean[] LeanOrder = { ModLean.Easier, ModLean.Risky, ModLean.Harder };

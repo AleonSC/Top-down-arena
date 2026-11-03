@@ -100,6 +100,8 @@ static partial class Shot {
         host.Lobby.Remove(2); host.Lobby[1].Seat = 0; host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Knight; host.Lobby[1].Weapon = 1; host.Lobby[1].Ability = 2; host.Lobby[1].Ready = false;
       }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      // MODSFOLD=n: the Modifiers tab with those tiers folded (a bit per ModLean: 1 Harder, 2 Easier, 4 Risky).
+      set("modsFolded", int.Parse(Environment.GetEnvironmentVariable("MODSFOLD") ?? "0"));
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=1: Boss Hunt mode, its tab (the Warden's hunt open, won once).
