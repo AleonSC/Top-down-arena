@@ -42,7 +42,10 @@ namespace Arena
                     DrawJabFx(fx, f);
                     break;
                 case FxKind.Claw:
-                    DrawClawFx(fx, f);
+                    if (fxOn && IsBearClaw(fx))
+                        DrawBearClawFx(fx);  // BearLooks.cs
+                    else
+                        DrawClawFx(fx, f);
                     break;
                 case FxKind.Bolt:
                     DrawBoltFx(fx, f);
@@ -81,6 +84,9 @@ namespace Arena
                     break;
                 case FxKind.Knock:
                     DrawKnockFx(fx);
+                    break;
+                case FxKind.RootLash:
+                    DrawRootLashFx(fx, f);  // RootLook.cs
                     break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
@@ -162,6 +168,12 @@ namespace Arena
 
         void DrawRepulseFx(Effect fx, float f)
         {
+            if (fxOn)
+            {
+                DrawRepulseBlast(fx, f);  // the cannon blast (RepulseLook.cs); with Visual effects off, the plain cone below
+                return;
+            }
+            f = Mathf.Min(1f, f * (Game.RepulseFxTime / 0.35f));  // (the effect lives longer now, for the smoke; this look keeps its timing)
             V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;
             float aim = mid.Angle, reach = mid.Length, half = fx.Radius;
             var col = fx.Color;

@@ -6,6 +6,23 @@ static partial class Shot {
   static void PlayerScenes() {
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
+    if (Environment.GetEnvironmentVariable("TREANT") != null) {
+      // The Treant Rod: its Treant rooted with the root to you, and the root lash TREANT=<seconds> into its life (0.15 = fully out).
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.TreantRod); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(450f, 450f); me.Aim = -0.15f;
+      for (int i = 0; i < 150; i++) { me.Pos = me.Disp = new V2(450f, 450f); Step(host); }
+      float age = float.Parse(Environment.GetEnvironmentVariable("TREANT"), System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Effects.Add(new Effect { Kind = FxKind.RootLash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 250f, Color = new Rgba(0.55f, 0.36f, 0.17f), Radius = Game.RootHalfWidth, Dur = Game.RootFxTime, T = age });
+    }
+    if (Environment.GetEnvironmentVariable("FIREFLY") != null) {
+      // The Sprite Staff's fireflies in flight: one just left your staff, one is hopping between enemies.
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.SpriteStaff); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(450f, 450f); me.Aim = -0.15f;
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      shoot.Invoke(host.Game, new object[] { Defs.FireflyShot, me.Pos + V2.FromAngle(me.Aim) * 20f, V2.FromAngle(me.Aim) * 540f, 0f, 1f, 7f, 1, false, 0f });
+      shoot.Invoke(host.Game, new object[] { Defs.FireflyShot, me.Pos + new V2(260f, -150f), V2.FromAngle(0.6f) * 860f, 0f, 1f, 7f, 1, false, 0f });
+      for (int i = 0; i < 6; i++) Step(host);
+    }
     if (Environment.GetEnvironmentVariable("VEIN") != null) {
       // Vein Tether: one beam on an enemy (VEIN=1), or on nothing (VEIN=0).
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.VeinTether); me.Kit = Kit.Hemomancer; host.Game.Bot = false;
@@ -252,6 +269,16 @@ static partial class Shot {
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
         case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
         case WeaponId.Halberd: for (int i = 0; i < 6; i++) { float a = me.Aim + (i / 5f * 2f - 1f) * 0.7f; fx(FxKind.Slash, me.Pos + V2.FromAngle(a) * reach, 18f * MathX.Pi / 360f, 0.035f * i, 0.16f); } break;
+        case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
+        {
+          foreach (int sd in new[] { 1, -1 })
+            gm.Effects.Add(new Effect { Kind = FxKind.Claw, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim + sd * 0.12f) * reach, Color = Game.BearClawColor, Radius = sd * 55f * MathX.Pi / 180f, T = st - (sd > 0 ? 0f : 0.12f), Dur = 0.2f });
+          int hits = int.Parse(Environment.GetEnvironmentVariable("BLEEDHITS") ?? "3");
+          foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && (en.Pos - me.Pos).Length < 130f) { en.Bleeding = hits > 0; en.BleedHits = hits; }
+          var bearAt = me.Pos + new V2(-60f, 70f);
+          int bid = 9001; gm.Minions[bid] = new Minion { Id = bid, Owner = me.Id, Kind = MinionKind.Bear, Pos = bearAt, Disp = bearAt, Aim = me.Aim, T = -1f, Companion = true };
+          break;
+        }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         default: fx(FxKind.Slash, to, 1.31f, 0f, 0.24f); break;
@@ -306,6 +333,12 @@ static partial class Shot {
       host.Game.Effects.Add(new Effect { Kind = FxKind.Icicle, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.IcicleHalfWidth, Dur = Game.IcicleFxTime, T = it });
       if (st > 0f && st < Game.SplinterFxTime)
         host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = Game.SplinterFxTime, T = st });
+    }
+    if (Environment.GetEnvironmentVariable("REPULSE") != null) {
+      // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
+      float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
+      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.2f; host.Game.Bot = false;
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Repulse, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 253f, Color = new Rgba(0.55f, 0.95f, 1f), Radius = 0.61f, Dur = Game.RepulseFxTime, T = rt });
     }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
