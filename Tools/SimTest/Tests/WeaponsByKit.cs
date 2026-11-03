@@ -119,21 +119,28 @@ static partial class Program
         var me = g.Players[1];
         g.DevSetGod(1, true);
         V2 from = new V2(200f, 450f);
-        Func<V2, V2, float> Volley = (dummyAt, cursor) =>
+        Func<V2, V2, EnemyType, float> VolleyAt = (dummyAt, cursor, type) =>
         {
             g.Enemies.Clear(); g.Bullets.Clear();
-            var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, dummyAt, 0f, 0, false });
+            var e = (Enemy)spawn.Invoke(g, new object[] { type, dummyAt, 0f, 0, false });
             e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f;
             me.Pos = from; me.AimAt = cursor;
             volley.Invoke(g, new object[] { me, 0f, 0 });
             for (int f = 0; f < 50; f++) { e.Pos = dummyAt; e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = cursor }); }
             return e.MaxHp - e.Hp;
         };
+        Func<V2, V2, float> Volley = (dummyAt, cursor) => VolleyAt(dummyAt, cursor, EnemyType.Brute);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TwinRifle);
         float crossed = Volley(from + new V2(300f, 0f), from + new V2(300f, 0f));
         float before = Volley(from + new V2(200f, 0f), from + new V2(600f, 0f));
         Console.WriteLine("  twin rifle: a volley where the streams cross {0:0.0}; short of the crossing {1:0.0}", crossed, before);
         Check(before > 0f && Math.Abs(crossed - before * Game.TwinCrossMult) < 0.5f, "the Twin Rifle's streams cross at your cursor's distance, and hits there do double");
+        // Its barrels are set wide: up close, aiming past a small enemy, the streams go either side of it; and it reaches
+        // about 575 px, no further.
+        float close = VolleyAt(from + new V2(70f, 0f), from + new V2(500f, 0f), EnemyType.Swarmer);
+        float far = Volley(from + new V2(650f, 0f), from + new V2(650f, 0f));
+        Console.WriteLine("  twin rifle: a small enemy 70 px away, aiming past it {0:0.0}; a big one 650 px away {1:0.0}", close, far);
+        Check(close == 0f && far == 0f, "the Twin Rifle's wide barrels miss a small enemy up close unless you aim at it, and it reaches about 575 px");
 
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BurstSmg);
         g.Enemies.Clear(); g.Bullets.Clear();

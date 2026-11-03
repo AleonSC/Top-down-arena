@@ -3,6 +3,14 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Twin Rifle toned down (Nov 2026), no protocol change:** owner, after a zombie run (solo DPS Soldier, waves 1-10,
+about 190 damage taken in 11 minutes): Twin Rifle too strong. It had the top Soldier DPS (155, tied for the game's best)
+with no range downside, and crossfire came almost free. Now 4 per barrel (was 4.7), shots last 0.7 s (about 575 px,
+was 820), and the barrels sit 60 px apart (`TwinBarrelGap`, was 28), so up close the streams can pass either side of a
+small enemy unless you aim at it. Measured DPS 138 (`WeaponDps.Generated.cs` rewritten by `run.sh 1 1 weapondps
+write`). Test: `twinsmg` (a Swarmer 70 px away is missed when aiming past it, nothing at 650 px). The Armory page is
+now out of date for the Twin Rifle.
+
 **Smaller zombies (Nov 2026), no protocol change:** owner: "zombies are way too big". Radii cut about 35-40% to sit
 with the regular enemies (Shambler 22→14, Runner 15→10, Spitter 19→12, Crawler 17→11, Bloater 27→18, Shrieker
 17→11, Mender 18→12; Defs.cs and the Bestiary), the spore haze 2.1r→1.7r and drips a little smaller. Also: zombies
