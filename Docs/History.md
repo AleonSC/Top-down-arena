@@ -3,6 +3,15 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Colour space and glows (Nov 2026), protocol 127 (no change):** owner: the game's glows and gradients don't match the
+mockups or the preview images (the lobby background previews, the bullet glow in Settings). Cause: ProjectSettings
+aren't in git, and a new Unity 6 project defaults to the Linear colour space; the game draws with raw `GL.Color` vertex
+colours, which Unity doesn't convert there, so colours and see-through layers came out lighter and greyer (the owner's
+melee screenshot had a mauve-grey arena) and glows blended differently. `ArenaEditor.EnsureSetup` now sets
+`PlayerSettings.colorSpace = Gamma` (and logs it); `ArenaApp.Awake` turns on 4x MSAA and logs if the colour space is still
+Linear. The Settings effects preview draws real additive glows (`GlowDisc` in the glow material) instead of flat discs.
+Preview: `LINEAR=1` simulates a Linear project (`raster.py`), which reproduces the washed-out look.
+
 **Melee style E, weapon + energy (Nov 2026), protocol 127 (no change):** the owner's pick from
 `Docs/Mockups/melee-attacks.html`: the weapon models with the energy arc. `Game/MeleeLooks.cs`, drawing only and only with
 Visual effects on (with them off `DrawSlashFx` / `DrawJabFx` draw as before; render check IDENTICAL). A player's

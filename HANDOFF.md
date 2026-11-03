@@ -201,6 +201,10 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 - **Loadout preview:** `DrawShowcase` swaps the `Showcase` game into `ArenaApp.game` and calls `DrawArenaContents`
   (the part of `DrawWorld` between the floor and the overlays), clipped with `UiClip` (software clipping in `Tri`,
   so it works the same in Unity and the preview tool).
+- **Colour space: Gamma.** Everything is drawn with raw vertex colours (`GL.Color`), which Unity doesn't convert in a
+  Linear project, so there every colour and see-through layer comes out lighter and greyer and glows blend differently
+  from the mockups. `ArenaEditor` sets `PlayerSettings.colorSpace = Gamma` when the project opens (ProjectSettings
+  aren't in git), and the game logs a line at start if it's still Linear. It also turns on 4x MSAA.
 - **IMGUI gotcha:** with a modal open (F1 menu, Boss Lab setup) the screen underneath is drawn **only on
   Repaint**, otherwise its buttons steal clicks (see `modal` in `OnGUI`).
 - **Knight melee:** swings are queued (`pendingSwings`) and resolved in `Collide` via a pseudo-bullet
@@ -307,7 +311,8 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. The arena's
   triangles are drawn like the GPU (`Tools/Preview/raster.py`: colour blended across each triangle, alpha blending, the
   glow pass adding light, 2x supersampled; about 7 s); `FAST=1` gives the old quick look (each triangle flat in its
-  first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. Modes: `hud`,
+  first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. `LINEAR=1` shows
+  how a Linear-colour-space project would draw it (washed out); the game is meant for **Gamma** (see below). Modes: `hud`,
   `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `howto`, `bg` (with
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample

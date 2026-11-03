@@ -40,7 +40,7 @@ namespace UnityEngine {
   public sealed class GL { public const int TRIANGLES=4; public static void PushMatrix(){} public static void PopMatrix(){} public static void LoadPixelMatrix(){} public static void Begin(int m){} public static void End(){} public static void Vertex(Vector3 v){} public static void Color(Color c){} }
   public enum KeyCode { None, C, H, LeftShift, RightShift, Return, KeypadEnter, Q, E, M, Alpha0, Alpha1, Alpha2, Alpha3, Alpha4, Alpha5, Alpha6, Alpha7, Alpha8, Alpha9, Keypad0, Keypad1, Keypad2, Keypad3, Keypad4, Keypad5, Keypad6, Keypad7, Keypad8, Keypad9, Mouse0, Mouse1, Mouse2, Mouse3, Mouse4, Mouse5, Mouse6, Space, Escape, R, L, W, A, S, D, UpArrow, DownArrow, LeftArrow, RightArrow, Tab, F, F1, F2, F3, F4, V, P, G, X, Delete, LeftAlt, RightAlt, LeftControl, RightControl, LeftCommand, BackQuote, Minus, Equals, LeftBracket, RightBracket, Semicolon, Quote, Comma, Period, Slash, Backslash, Backspace, CapsLock }
   public class Input { public static bool anyKeyDown; public static bool GetKey(KeyCode k){return false;} public static bool GetKeyDown(KeyCode k){return false;} public static bool GetMouseButton(int b){return false;} public static bool GetMouseButtonDown(int b){return false;} public static Vector3 mousePosition; }
-  public sealed class Screen { public static int width, height; }
+  public enum ColorSpace { Uninitialized = -1, Gamma = 0, Linear = 1 } public sealed class QualitySettings { public static int antiAliasing; public static ColorSpace activeColorSpace; } public sealed class Screen { public static int width, height; }
   public class Time { public static float deltaTime, fixedDeltaTime, unscaledTime, unscaledDeltaTime, time, timeScale = 1f; public static int frameCount; }
   public class Application { public static string persistentDataPath = "/tmp"; public static string dataPath = "/tmp/Assets"; public static bool isEditor; public static void OpenURL(string u){} public static bool runInBackground; public static int targetFrameRate; public static void Quit(){} }
   public class Cursor { public static bool visible; }
@@ -63,7 +63,7 @@ namespace UnityEditor {
   public class EditorApplication { public delegate void CallbackFunction(); public static CallbackFunction delayCall; public static bool isPlayingOrWillChangePlaymode; }
   public class EditorBuildSettingsScene { public EditorBuildSettingsScene(string p, bool e){} }
   public class EditorBuildSettings { public static EditorBuildSettingsScene[] scenes; }
-  public class PlayerSettings { public static string productName; public static bool runInBackground, resizableWindow; public static UnityEngine.FullScreenMode fullScreenMode; public static int defaultScreenWidth, defaultScreenHeight; }
+  public class PlayerSettings { public static UnityEngine.ColorSpace colorSpace; public static string productName; public static bool runInBackground, resizableWindow; public static UnityEngine.FullScreenMode fullScreenMode; public static int defaultScreenWidth, defaultScreenHeight; }
   public enum BuildTarget { StandaloneWindows64 } [Flags] public enum BuildOptions { None=0 }
   public struct BuildPlayerOptions { public string[] scenes; public string locationPathName; public BuildTarget target; public BuildOptions options; }
   public class BuildPipeline { public static UnityEditor.Build.Reporting.BuildReport BuildPlayer(BuildPlayerOptions o){return null;} }

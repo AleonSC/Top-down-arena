@@ -739,8 +739,6 @@ namespace Arena
                 {
                     float f = MathX.Fmod(t * 2.2f + i / 4f, 1f);
                     V2 at = me + (foe - me) * f;
-                    if (fxOn)
-                        Circle(at, 9f, new Rgba(0.55f, 0.75f, 1f, 0.25f), 12);
                     Circle(at, 4.5f, new Rgba(0.55f, 0.75f, 1f), 10);
                 }
                 Circle(me, 16f, new Rgba(0.07f, 0.09f, 0.15f), 24);
@@ -750,10 +748,19 @@ namespace Arena
                     for (int s = 0; s < 6; s++)
                         Line(foe, foe + V2.FromAngle(s * 1.05f + t) * 22f, 2f, new Rgba(1f, 0.85f, 0.5f, 0.8f));
                 if (boom > 0f)
-                {
                     Arc(blast, 60f * (1.2f - boom), 4f, new Rgba(1f, 0.67f, 0.31f, boom), 32);
-                    if (fxOn)
-                        Circle(blast, 30f * boom, new Rgba(1f, 0.8f, 0.4f, 0.3f * boom), 20);
+                if (fxOn)
+                {
+                    // The real glow, as in the arena (Juice.DrawGlowPass): soft discs of added light, not flat circles.
+                    SwitchToGlow(true);
+                    for (int i = 0; i < 4; i++)
+                        GlowDisc(me + (foe - me) * MathX.Fmod(t * 2.2f + i / 4f, 1f), 14f, new Rgba(0.55f, 0.75f, 1f), 0.47f);
+                    GlowDisc(me, 16f * 2.6f, new Rgba(0.36f, 0.6f, 1f), 0.18f);
+                    if (hit)
+                        GlowDisc(foe, 40f, Rgba.White, 0.5f);
+                    if (boom > 0f)
+                        GlowDisc(blast, 40f, new Rgba(1f, 0.8f, 0.4f), 0.55f * boom);
+                    SwitchToGlow(false);
                 }
                 EndUiGl();
             }

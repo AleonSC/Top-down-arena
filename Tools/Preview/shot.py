@@ -15,7 +15,7 @@ if os.environ.get('FAST') == '1':  # the old quick look: each triangle flat in i
 else:  # like the GPU: colour blended across each triangle, alpha blending, the glow pass adding light, smooth edges
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from raster import raster
-    img=Image.fromarray(raster(v, W, H, int(os.environ.get('SS', '2'))))
+    img=Image.fromarray(raster(v, W, H, int(os.environ.get('SS', '2')), linear=os.environ.get('LINEAR') == '1'))  # LINEAR=1: as a Linear-colour-space Unity project shows it
     d=ImageDraw.Draw(img,'RGBA')
 img=img.convert('RGBA')
 fonts={}

@@ -39,6 +39,14 @@ namespace Arena.EditorTools
             PlayerSettings.defaultScreenWidth = 1280;
             PlayerSettings.defaultScreenHeight = 720;
             PlayerSettings.resizableWindow = true;
+            // Gamma, not Linear (a new Unity 6 project's default): the game draws with raw vertex colours, which Unity
+            // doesn't convert in Linear, so there every colour and see-through layer came out lighter and greyer and
+            // glows and fades blended differently from the mockups (which blend like any browser: in gamma).
+            if (PlayerSettings.colorSpace != ColorSpace.Gamma)
+            {
+                PlayerSettings.colorSpace = ColorSpace.Gamma;
+                Debug.Log("Arena: switched the colour space to Gamma so colours, glows and fades look as designed (it was " + "Linear).");
+            }
         }
 
         [MenuItem("Arena/Build Windows Game")]

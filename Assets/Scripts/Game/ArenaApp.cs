@@ -104,6 +104,11 @@ namespace Arena
         {
             Application.runInBackground = true;  // keep hosting while alt-tabbed
             Application.targetFrameRate = 144;
+            if (QualitySettings.antiAliasing < 4)
+                QualitySettings.antiAliasing = 4;  // smooth edges on everything drawn with GL (shapes, arcs, glows)
+            if (QualitySettings.activeColorSpace != ColorSpace.Gamma)
+                Debug.Log("Arena: the colour space is " + QualitySettings.activeColorSpace + "; colours and glows are designed for Gamma " +
+                    "(Edit > Project Settings > Player > Other Settings > Color Space; the Arena editor script sets it when the project opens).");
             Time.fixedDeltaTime = 1f / 60f;
 
             session = new Session();
