@@ -88,6 +88,9 @@ namespace Arena
                 case FxKind.RootLash:
                     DrawRootLashFx(fx, f);  // RootLook.cs
                     break;
+                case FxKind.Strike:
+                    DrawStrikeFx(fx, f);  // NimbusLook.cs
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;
@@ -409,6 +412,8 @@ namespace Arena
         /// come from a generator seeded by where it went off, so everyone sees the same crackle.
         void DrawArcFieldFx(Effect fx, float f)
         {
+            if (ArcLightningDrawnAsThunder(fx))
+                return;  // the Thunderhead bolt, drawn in the glow pass (ArcLightningLooks.cs)
             V2 to = fx.Pos2 - fx.Pos;
             float len = to.Length, w = fx.Radius;
             if (len < 1f)
@@ -439,6 +444,8 @@ namespace Arena
         /// shock, reaching out as you hold.
         void DrawArcCharge(Player p, bool mine, float t)
         {
+            if (fxOn)
+                return;  // the halo, sparks and dashed strip, drawn in the glow pass (ArcLightningLooks.cs)
             float c = game.BowCharge(p, p.DrawT);
             bool full = c >= 1f;
             var gold = new Rgba(1f, 0.82f, 0.3f);

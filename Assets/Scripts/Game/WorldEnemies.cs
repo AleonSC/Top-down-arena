@@ -84,6 +84,50 @@ namespace Arena
                         Circle(z.Pos + V2.FromAngle(a) * rr, 2.5f, Rgba.White.WithAlpha(0.8f), 6);
                     }
                     break;
+                case ZoneKind.HealingRain:  // Verdant Bloom: grass and flowers sprout as it rains; motes rise, drops splash (Docs/HealingRain.md)
+                {
+                    float age = z.Duration - z.T;
+                    float fade = MathX.Clamp01(z.T);                 // the last second
+                    float lush = MathX.Clamp01(age / 4f);
+                    float grow = MathX.Clamp01(age / 0.4f);
+                    float rad = z.Radius * (0.3f + 0.7f * grow);
+                    Circle(z.Pos, rad, c.WithAlpha(0.14f * fade), 40);
+                    Arc(z.Pos, rad - 1f, 2f, c.WithAlpha(0.7f * fade), 48);
+                    for (int k = 0; k < 36; k++)  // plants, each born at its own moment
+                    {
+                        float born = MathX.Fmod(k * 0.173f, 0.8f);
+                        if (lush < born)
+                            continue;
+                        float sp = MathX.Clamp01((lush - born) / 0.15f);
+                        float pa = MathX.Fmod(z.Id * 1.3f + k * 2.399f, MathX.Tau), pr = z.Radius * 0.92f * Mathf.Sqrt(MathX.Fmod(k * 0.381f + z.Id * 0.17f, 1f));
+                        V2 at = z.Pos + V2.FromAngle(pa) * pr;
+                        for (int b = -1; b <= 1; b++)
+                            Line(at, at + new V2(b * 3.5f, -8f * sp), 1.6f, new Rgba(0.35f, 0.9f, 0.43f, 0.9f * fade));
+                        if (k % 4 == 0 && sp > 0.7f)
+                            Circle(at + new V2(0f, -9f), 2.4f, (k % 8 == 0 ? new Rgba(1f, 0.94f, 0.6f) : Rgba.White).WithAlpha(fade), 6);
+                    }
+                    for (int k = 0; k < 12; k++)  // motes drifting up
+                    {
+                        float f = MathX.Fmod(t * 0.35f + k * 0.37f + z.Id * 0.11f, 1f);
+                        float ma = MathX.Fmod(k * 2.1f + z.Id, MathX.Tau), mr = z.Radius * 0.85f * Mathf.Sqrt(MathX.Fmod(k * 0.29f + z.Id * 0.13f, 1f));
+                        Circle(z.Pos + V2.FromAngle(ma) * mr + new V2(Mathf.Sin(t * 2f + k) * 3f, -26f * f), 2f, new Rgba(0.35f, 1f, 0.55f, 0.8f * (1f - f) * fade), 6);
+                    }
+                    int drops = (int)(20f * fade);
+                    for (int k = 0; k < drops; k++)  // falling drops, splashing at the end of the fall
+                    {
+                        float f = MathX.Fmod(t * 1.2f + k * 0.173f, 1f);
+                        float da = MathX.Fmod(k * 2.7f + z.Id, MathX.Tau), dr = z.Radius * 0.9f * Mathf.Sqrt(MathX.Fmod(k * 0.331f + z.Id * 0.19f, 1f));
+                        V2 ground = z.Pos + V2.FromAngle(da) * dr;
+                        if (f < 0.86f)
+                        {
+                            V2 top = ground + new V2(0f, -46f + 46f * f / 0.86f);
+                            Line(top + new V2(-3f, -8f), top, 1.6f, new Rgba(0.67f, 1f, 0.78f, 0.85f * fade));
+                        }
+                        else
+                            Arc(ground, 3f + 9f * (f - 0.86f) / 0.14f, 1.2f, new Rgba(0.67f, 1f, 0.78f, 0.6f * fade * (1f - (f - 0.86f) / 0.14f)), 12);
+                    }
+                    break;
+                }
                 case ZoneKind.Lantern:
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 40);
                     Polygon(z.Pos, 9f, 4, MathX.Pi / 4f, c);
@@ -213,6 +257,11 @@ namespace Arena
             if (m.Kind == MinionKind.Clone)
             {
                 DrawClone(m, t);
+                return;
+            }
+            if (m.Kind == MinionKind.Nimbus)
+            {
+                DrawNimbus(m, t);  // NimbusLook.cs
                 return;
             }
             if (m.Kind == MinionKind.WardenGuard)

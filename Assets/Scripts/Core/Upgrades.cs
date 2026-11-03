@@ -10,7 +10,7 @@ namespace Arena
         Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
         Roar, Bulldoze, Haven, SoulLink, Grenade, Mark,
         // Mage
-        ArcaneAegis, FrostNova, FlameWall, TimeRewind, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
+        ArcaneAegis, FrostNova, FlameWall, HealingRain, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
         // Summoner
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
         // Ultimates (F): one per role and class

@@ -148,6 +148,7 @@ namespace Arena
             DrawChallengeWorld(t);   // a challenge room's portal, crystal, zones and altar (ChallengeLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
+            DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawProps(t);  // crates, pots, barrels and the chest (PropsLook.cs)
@@ -166,6 +167,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e))  // the Devourer underground is just its ripple (DevourerLook.cs)
                     DrawEnemy(e, t);
+            DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawVeinBeams(t);  // BloodMageLook.cs
             DrawRadiantOrbs(t);

@@ -13,15 +13,15 @@ A running list of things to pick up next session. Tick off / delete as they're d
             nearest enemy that isn't seeded. 7 damage every 0.5 s: ~14 a second on one enemy, ~42 across three.
       - [x] **Treant Rod: Root Lash**, and the tether to the Treant is now a root too. Built: 250 px line, 15 damage every 0.55 s
             (~27 a second), heals allies it touches 10. Homing Rounds widen it. Code names (`Vine*`, `TickVines`) are unchanged.
-      - [ ] **Totem Staff: rework into something entirely different: waiting for a pick.** Mockup:
-            [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
-            Five whole-weapon concepts: **Nimbus** (a storm cloud over your cursor: click drops lightning under it, its rain heals
-            allies beneath it; suggested), **Stag of Dawn** (a spirit stag charges toward the cursor, leaving a healing, speeding
-            trail), **Tollbell** (hold to whirl a spirit bell; each full turn tolls damage and healing), **Rolly** (a spiky pet
-            launched like a pinball, healing each ally it bumps), **Spirit Chalk** (drag to paint a line of ink that burns
-            enemies, heals allies on it and destroys bullets crossing it).
+      - [x] **Totem Staff replaced by Spirit Chalk**, and **Prism Beam replaced by Nimbus** (Healer Elementalist). Built (Nov 2026, protocol 131)
+            from [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
+            Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
+            code that isn't tied to their ids is still in the tree and unused: `Bullet.Refract` with `SplitRefracted` and
+            `RefractThroughAlly` (Prism Beam), `ZoneKind.Totem`, `TotemCharge` and friends, `Player.TotemCd` (Totem Staff). Ask before removing.
 
 ## Visuals
+- [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
+      lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from

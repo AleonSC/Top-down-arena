@@ -504,6 +504,10 @@ namespace Arena
                     return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
                 case WeaponId.Lightbringer:  // its sword waves reach past the swing
                     return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);
+                case WeaponId.Nimbus:  // how far from you the cloud can drift (Nimbus.cs)
+                    return NimbusReach(p);
+                case WeaponId.SpiritChalk:  // how far from you you can draw (Chalk.cs)
+                    return ChalkReach(p);
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
                     return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.FrostLance:  // the icicle, out from you

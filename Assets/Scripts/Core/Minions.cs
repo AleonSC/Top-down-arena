@@ -39,9 +39,10 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ChainLight, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
                 Desc = "A great cone of light in front of you (320 px). Its 40 damage is shared between every enemy in it: one alone takes it all. Light arcs to each.",
                 Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", HomingDesc = "the cone of light 15% narrower and 10% stronger per stack, instead of bending shots: fewer enemies share its damage", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
-            new WeaponDef { Id = WeaponId.PrismBeam, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Speed = 1200f, Life = 0.35f, Damage = 4f, Grow = 0.3f, ExtraDesc = "+30% beam length, +25% damage and +50% healing", Name = "Prism Beam", FireInterval = 0.06f,
-                Desc = "A rapid short-range beam. Shoot through an ally: it heals them and splits into three beams beyond them.",
-                Sound = Sfx.SpellArcane },
+            new WeaponDef { Id = WeaponId.Nimbus, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Damage = 16f, Reach = 380f, BotRange = 300f, ExtraDesc = "+1 lightning strike on every click, landing in a ring round the cloud", Name = "Nimbus", FireInterval = 0.6f,
+                Desc = "A small storm cloud floats over your cursor (up to 380 px from you). Click to call lightning onto the spot beneath it (16 to each enemy in a 40 px blast). Rain falls in a 70 px circle under it and heals every ally standing in it, 8 a second, with no clicking.",
+                Sound = Sfx.SpellZap, AreaDesc = "the strike and the rain are 25% wider",
+                Companion = MinionKind.Nimbus, CompanionCount = 1 },
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 22f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "A big, slow fireball that rolls on through every enemy in its path, hitting each (22) and setting it burning (8 a second for 3 s).",
@@ -79,9 +80,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.TimeRewind, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0, Instant = true,
-                Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
-                Capstone = "Also erases enemy bullets around every player.",
+                Id = AbilityId.HealingRain, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0,
+                Name = "Healing Rain", Cooldown = 16f, Desc = "A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%.",
+                Capstone = "Lasts 10 s, and downed allies inside revive twice as fast.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
@@ -148,8 +149,9 @@ namespace Arena
                 Desc = "A thorny root whips out from you along your aim (250 px) and snaps back, hitting everything on the line and healing allies it touches. Your Treant roots where it stands and blocks bullets; a root runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).",
                 Sound = Sfx.SwingLight, AreaDesc = "the lash is 25% wider",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.TotemStaff, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Speed = 600f, Life = 1f, Damage = 9f, ExtraDesc = "Plants totems 60% more often", Name = "Totem Staff", FireInterval = 0.35f,
-                Desc = "Seed shots. Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Seed hits on enemies near your totems charge them: at 6, a totem pulses 25 healing to allies near it." },
+            new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line (and the line is 25% wider with Homing Rounds)", Name = "Spirit Chalk", FireInterval = 0.1f,
+                Desc = "Hold and drag to draw a line of spirit ink (up to 450 px from you, 600 px of line at a time; each stroke fades after 4 s and gives its ink back). It burns enemies touching it (26 a second, and slows them), heals allies standing on it (10 a second) and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside for 3.5 s (not bosses).",
+                Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
                 Desc = "Darts mark the enemy they hit as prey, and your two wolves hunt it. When every wolf bites it within a second: a takedown (20 per wolf and a 0.6 s stun).",
@@ -261,30 +263,9 @@ namespace Arena
                     AddZone(ZoneKind.FlameWall, p, target, 90f, 5f).ExtraSlow = cap ? 0.4f : 0f;
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.FlameWall).Color, 90f, 0.4f, Sfx.SpellFire);
                     break;
-                case AbilityId.TimeRewind:
-                    foreach (var q in Players.Values)
-                    {
-                        // The oldest entry in the ring buffer is from 4 seconds ago.
-                        float hpThen = q.HpHistory[q.HistoryIdx];
-                        bool downThen = q.DownHistory[q.HistoryIdx];
-                        if (q.Downed && !downThen)
-                        {
-                            q.Downed = false;
-                            q.Revive = 0f;
-                            q.InvulnT = 1.5f;
-                            q.Hp = Math.Max(1f, hpThen);
-                        }
-                        else if (!q.Downed)
-                            q.Hp = Math.Max(q.Hp, Math.Min(q.MaxHp, hpThen));
-                        if (!q.Downed)
-                            castHits++;
-                        if (cap)
-                            EraseEnemyBullets(q.Pos, 200f);
-                        BroadcastFx(FxKind.Rewind, q.Pos, new V2(q.Id, 0f), Defs.BulletColor(Defs.ArcaneShot), q.Def.BodyR + 16f, 0.8f, Sfx.None);  // its clock turned back
-                        if (q != p)
-                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, Defs.BulletColor(Defs.ArcaneShot), 0f, 0.5f, Sfx.None);
-                    }
-                    Sounds.Add(Sfx.Ability);
+                case AbilityId.HealingRain:
+                    AddZone(ZoneKind.HealingRain, p, target, 130f, cap ? 10f : 6f).ExtraRevive = cap ? 1f : 0f;
+                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, 130f, 0.4f, Sfx.SpellHoly);
                     break;
                 case AbilityId.ArcaneWard:
                     foreach (var q in Players.Values)
@@ -517,15 +498,6 @@ namespace Arena
                         p.CompanionCd = kind == MinionKind.Imp ? w.CompanionRespawn / (1f + 0.5f * extra) : 0.3f;
                     }
                 }
-                if (w.Id == WeaponId.TotemStaff && !p.Downed && State == MatchState.Fighting)
-                {
-                    p.TotemCd -= dt;
-                    if (p.TotemCd <= 0f && p.Firing)  // ready: the next shot throws it to your cursor
-                    {
-                        p.TotemCd = 10f / (1f + 0.6f * extra);
-                        AddZone(ZoneKind.Totem, p, ClampToArena(p.Pos + (p.AimAt - p.Pos).LimitLength(TotemThrow), 20f), 90f, 8f);
-                    }
-                }
             }
 
             var expired = scratchMinionsExpired;
@@ -639,6 +611,7 @@ namespace Arena
                     {
                         // The treant stands in front of you; the guardian spirit hovers on you.
                         V2 goal = m.Kind == MinionKind.Treant ? TreantGoal(m, owner)
+                            : m.Kind == MinionKind.Nimbus ? NimbusGoal(owner)  // the cloud drifts after your cursor (Nimbus.cs)
                             : m.Kind == MinionKind.SoulGhost ? owner.Pos + V2.FromAngle(owner.Aim + 2f) * 60f  // a Soul Ghost keeps beside you, a little back
                             : owner.Pos;
                         m.Pos += (goal - m.Pos).LimitLength(speed * dt);
@@ -846,9 +819,9 @@ namespace Arena
                 {
                     if (q.Pos.DistanceTo(z.Pos) > z.Radius)
                         continue;
-                    if (q.Downed && d.ReviveBoost > 0f)
+                    if (q.Downed && d.ReviveBoost + z.ExtraRevive > 0f)
                     {
-                        q.Revive += dt / D(DiffKnob.ReviveTime) * d.ReviveBoost;  // on top of the normal revive
+                        q.Revive += dt / D(DiffKnob.ReviveTime) * (d.ReviveBoost + z.ExtraRevive);  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)
