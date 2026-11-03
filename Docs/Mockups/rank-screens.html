@@ -36,14 +36,14 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 <div class="wrap">
   <header>
     <h1>Rank Screens</h1>
-    <p>Where a cosmetic account Rank would show up: a badge in three styles, then the end-of-run screen, the lobby, the main menu chip and Records. Pick a badge style with the switch below and every screen redraws with it. All numbers are placeholders (a rank costs 200 x rank XP; a run is worth roughly 400 to 1,200 XP).</p>
+    <p>Where a cosmetic account Rank would show up: a badge in three styles, then the end-of-run screen, the lobby, the main menu chip and Records. Style B (Shield) is the chosen one; the switch below still shows the others and every screen redraws with it. All numbers are placeholders (a rank costs 200 x rank XP; a run is worth roughly 400 to 1,200 XP).</p>
     <p>Rank is separate from the <b>Level</b> on the results cards, which is the in-run level you earn during a match. That is why the badge is a different shape and says RANK.</p>
   </header>
 
   <section class="option picker">
     <div class="bar"><h2><span class="tag">Badge</span>Style</h2>
       <div class="seg" role="group" aria-label="Badge style" id="styleSeg">
-        <button data-s="0" aria-pressed="true">A  Hex</button><button data-s="1" aria-pressed="false">B  Shield</button><button data-s="2" aria-pressed="false">C  Ring</button>
+        <button data-s="0" aria-pressed="false">A  Hex</button><button data-s="1" aria-pressed="true">B  Shield</button><button data-s="2" aria-pressed="false">C  Ring</button>
       </div></div>
   </section>
 
@@ -101,7 +101,7 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 <script>
 const W = 1280, H = 720;
-let STYLE = 0;
+let STYLE = 1;   // B (Shield) is the chosen style
 
 // --- helpers --------------------------------------------------------------------------------------
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));

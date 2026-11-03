@@ -64,6 +64,13 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Load-in animations for the How to Play and Field guide windows.** Done (Nov 2026): How to play slides in;
       the Field guide rises in.
 
+## Rank (cosmetic account rank)
+Design doc: [`Rank.md`](Rank.md); mockups: [`Mockups/rank-screens.html`](Mockups/rank-screens.html)
+(https://claude.ai/artifact/6jPzqJeT4sFbfWhm1Ewkf9). **Badge style B (shield) picked.** XP from every run with a
+bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames, menu backgrounds).
+- [ ] **Build it**, in the doc's order: `Rank.cs` + profile XP + tests, the end-of-run panel, the lobby badge (protocol
+      bump), the menu chip and Records, then the cosmetics. Three open questions are at the end of the doc.
+
 ## Unlocks & ascensions plan
 Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused
 unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep.
