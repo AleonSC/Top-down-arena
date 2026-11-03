@@ -1,0 +1,122 @@
+# CODEMAP
+
+Quick index of the source. Paths are under `Assets/Scripts/` (`Core/` = plain C# logic, namespace `Arena`, no Unity;
+`Game/` = Unity front end). `Game` (Core) is one big `partial class` split by feature; `ArenaApp` (Game/) is the
+front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-facing reference: `README.md`.
+
+## Engine and match flow (Core)
+- `Game.cs`: match state, lifecycle, frame loop (`FixedStep`, `HostTick`), picks, local movement/dash
+- `Entities.cs`: data types (`Player`, `Enemy`, `Bullet`, `Orb`, `Zone`, `Minion`, `Effect`, `PlayerInput`)
+- `Waves.cs`: wave ticking, wave cleared, game over
+- `WaveDesign.cs`: wave editor designs, `.waves` format, playing them in Practice
+- `Practice.cs`: Practice Range plan and picker list
+- `Hunts.cs`: Boss Hunt mode (ten waves ending in a boss)
+- `Challenges.cs`: challenge rooms (portal, crystal, gatekeeper, kill rush, altar)
+- `Paths.cs`: choose-your-path offers, path enemy mixes, hazards, arena rules
+- `Props.cs`: crates, pots, barrels, treasure chests
+- `Shop.cs`: the Bazaar (gold, shelves, shop actions)
+- `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
+- `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game
+- `MathTypes.cs`: `V2`, `Rgba`, `MathX`
+
+## Combat (Core)
+- `Combat.cs`: bullets, collisions, damage to players/enemies, on-hit/on-kill, burn, orbs
+- `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
+- `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates, ability XP/levels
+- `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
+- `Upgrades.cs`, `StatSheet.cs`, `BuildPower.cs`: upgrade cards and ability registry, stat panel numbers, boss health scaling
+
+## Classes (Core)
+- `Classes.cs`, `Kits.cs`, `Defs.cs`: class registry and hooks, minion/zone defs, weapon/enemy/bullet defs
+- `Knight.cs`: melee swings, sword waves, Knight abilities
+- `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish
+- `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
+- `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
+- `RadiantOrb.cs`, `SoulGhost.cs`: Healer's Radiant Orb, Soul Link ghost
+
+## Enemies and bosses (Core)
+- `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
+- `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
+- `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
+- `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
+- Bosses by wave: `Warden.cs` (5), `Queen.cs` (10), `Reapers.cs` (15), `Singularity.cs` (20), `Colossus.cs` (25),
+  `Duelist.cs` (30), `Lich.cs` (35), `Herald.cs` (40), `Devourer.cs` (45), `Eclipse.cs` (50); `LateGame.cs` is the shared
+  late-boss logic
+- `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot
+- Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
+
+## Networking (Core)
+- `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
+- `Net.cs`: `NetPeer`, length-prefixed TCP
+- `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
+- `SessionRecorder.cs`: session JSON recorder
+
+## Saving, stats and text data (Core)
+- `SaveData.cs`, `RunSaves.cs`, `Profile.cs`: saved runs, profile, records, unlocks
+- `RunStats.cs`: per-player run stats for the end screen
+- `BestiaryData.cs`: Bestiary entry types (`BestiaryData.Generated.cs` is generated, don't edit)
+- `TextOverrides.cs`: dev text-editor edits
+- `WeaponDps.Generated.cs`: generated weapon DPS table, don't edit
+- `BossSounds.cs`: audio cues for boss attacks
+
+## World rendering (Game)
+- `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
+- `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
+- `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: class bodies, ability feedback, Blood Mage visuals
+- `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
+- `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
+- Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
+  `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
+  `QueenLootLook.cs`, `ReaperLootLook.cs`
+- `PixelArt.cs`: 16x16 icons as text grids
+
+## HUD and in-run UI (Game)
+- `Hud.cs`: wave plate, player cards, ability bar, banners
+- `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary, Tab menu, ability tile animations
+- `HealthBars.cs`, `Tooltips.cs`, `ApproachUi.cs`: damage-ghost bars, hover tooltips, approach chip
+- `PickIntro.cs`, `PickOutro.cs`, `RunEnding.cs`, `Recall.cs`, `LaunchIntro.cs`: picker open/close, run end, beam-out, run launch
+- `PathsUi.cs`, `ShopUi.cs`, `RunStatsUi.cs`, `HuntUi.cs`: path cards, shop screen, run stats screen, hunt tab
+
+## Menus and lobby (Game)
+- `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
+- `Ui.cs`: IMGUI style kit (panels, buttons, bars)
+- `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
+- `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds
+- `SavesUi.cs`: Continue list, Records, unlock toasts
+- `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
+
+## Dev tools and editors (Game)
+- `DevMenu.cs`, `DevTextEdit.cs`, `BossLabUi.cs`, `PracticeUi.cs`, `WaveEditorUi.cs`: F1 tools, F4 text edit, Boss Lab, Practice Range, F1 wave editor
+- `../Editor/ArenaEditor.cs`: scene setup and Windows build menu item
+
+## Audio (Game)
+- `SoundBank.cs`: every synthesised sound effect
+- `GameMusic.cs`, `MenuMusic.cs`: in-run and menu music
+- `PickSounds.cs`, `PauseGlitch.cs`: upgrade picker and pause-menu sounds
+
+## Tools and docs (repo root)
+- `Tools/CompileCheck`, `Tools/SimTest` (tests in `Tools/SimTest/Tests`), `Tools/RenderCheck`, `Tools/Preview`, `Tools/SoundCheck`, `Tools/SessionReport`, `Tools/TextEdits`: see `HANDOFF.md` §3
+- `Docs/AfterReset.md` (owner to-do), `Docs/History.md` (changelog), `Docs/Bestiary/` and `Docs/Armory/` (reference pages), `Docs/Mockups/`
+
+## Where to look for...
+| Task | Files |
+|---|---|
+| Add or change a weapon | `Defs.cs` (weapon def) or the class's file (`Knight.cs`, `Ninja.cs`, `KitWeapons.cs`...), `Weapons.cs`, `Combat.cs`, look in `ShotLooks.cs`/`WorldShots.cs` |
+| Add or change an ability | the class's file; registry in `Upgrades.cs` (`AbilityDef`); `Abilities.cs` for Soldier; feedback in `AbilityLooks.cs` |
+| Add a new class | `HANDOFF.md` "Adding a class", `Defs.cs` (`Kit` enum, at the end), `Classes.cs`, `ClassLooks.cs`, `Docs/ClassTemplate` |
+| Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |
+| Add or change an enemy | `Defs.cs` (`EnemyType`, def), `EnemyAI.cs` or `Variety.cs`, look in `WorldEnemies.cs`/`VarietyLook.cs`, Bestiary entry then `node Docs/Bestiary/build_data.js` |
+| Edit a boss fight | the boss's Core file plus its `*Look.cs`; bars in `HudBossBars.cs`; snapshot sync in the boss file |
+| Upgrade cards and picker | `Upgrades.cs` (cards), `Game.cs` (`HostPick`, `NextOffer`), `HudPicker.cs`, `PickIntro.cs` |
+| Damage numbers, hit effects, shake | `Juice.cs`, `WorldEffects.cs`, `Combat.cs` (`HurtEnemy`, `Damage`) |
+| HUD layout | `Hud.cs`, `HudTiles.cs`, `HealthBars.cs` |
+| Menus, lobby, settings | `Menus.cs`, `MenuDrawer.cs`, `LobbyUi.cs`, `Ui.cs` |
+| Multiplayer, new network message | `Session.cs` (`Msg`, `ProtocolVersion`), `GameNet.cs`, `NetSync.cs`; bump the protocol version |
+| Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
+| Shop and gold | `Shop.cs`, `ShopUi.cs` |
+| Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |
+| Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
+| Pixel icons | `PixelArt.cs` |
+| Bots, Boss Lab | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs` |
+| Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs` |
+| A change doesn't compile or a test fails | `Tools/CompileCheck/check.sh`, `Tools/SimTest/run.sh`; Unity stubs in `Tools/CompileCheck/UnityStubs.cs` and `Tools/Preview/Stubs.cs` |
