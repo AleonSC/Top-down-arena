@@ -428,8 +428,8 @@ namespace Arena
                     devMenuOpen = false;
                 else if (EscPressed && pauseConfirmLobby && menuUp)
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
-                else if (EscPressed && (pauseSettings || pauseHowTo) && menuUp)
-                    pauseSettings = pauseHowTo = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
+                    pauseSettings = pauseHowTo = pauseRecords = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)

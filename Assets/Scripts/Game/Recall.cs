@@ -49,7 +49,7 @@ namespace Arena
                     recallT = 0f;
                     recallSent = false;
                     pauseMenuOpen = false;  // everything over the arena gets out of the way
-                    pauseSettings = pauseHowTo = pauseConfirmLobby = false;
+                    pauseSettings = pauseHowTo = pauseRecords = pauseConfirmLobby = false;
                     runStatsOpen = false;
                     fieldGuideOpen = false;
                 }
