@@ -427,7 +427,7 @@ namespace Arena
                 if (s.Knock > 0f && !Heavy(e))
                 {
                     V2 away = (e.Pos - origin).Normalized();
-                    e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir : away) * s.Knock, e.Radius);
+                    KnockEnemy(e, (away.IsZero ? dir : away) * s.Knock);  // slides (Knock.cs)
                 }
                 else if (s.Knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
                 {

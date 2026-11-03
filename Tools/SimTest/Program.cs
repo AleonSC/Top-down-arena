@@ -78,6 +78,14 @@ static partial class Program
         for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
     }
 
+    // Finish every push still sliding (Knock.cs: pushes travel over Game.KnockTime), for checks made right after one.
+    static void SettleKnocks(Game g)
+    {
+        var tick = typeof(Game).GetMethod("TickKnock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var e in g.Enemies.Values)
+            tick.Invoke(g, new object[] { e, 1f });
+    }
+
     // Poll both sessions `times` times, letting messages cross.
     static void PollBoth(Session host, Session client, int times = 40)
     {

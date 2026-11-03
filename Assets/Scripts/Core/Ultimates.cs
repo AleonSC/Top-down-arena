@@ -106,7 +106,7 @@ namespace Arena
                         e.TargetId = p.Id;
                         e.RetargetT = time;
                         if (e.SpawnT <= 0f && !Heavy(e) && e.Pos.DistanceTo(p.Pos) < 200f + e.Radius)
-                            e.Pos = ClampToArena(e.Pos + (e.Pos - p.Pos).Normalized() * 120f, e.Radius);
+                            KnockEnemy(e, (e.Pos - p.Pos).Normalized() * 120f);  // slides (Knock.cs)
                     }
                     EraseEnemyBullets(p.Pos, 220f);
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 220f, 0.6f, Sfx.Roar);

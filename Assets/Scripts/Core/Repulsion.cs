@@ -43,7 +43,7 @@ namespace Arena
                 if (!Heavy(e))
                 {
                     V2 away = d > 1f ? rel / d : V2.FromAngle(aim);
-                    e.Pos = ClampToArena(e.Pos + away * push, e.Radius);
+                    KnockEnemy(e, away * push);  // slides (Knock.cs)
                 }
                 // Knock a tiny health orb loose now and then.
                 if (e.T >= e.ShedT && rng.NextDouble() < ShedChance)

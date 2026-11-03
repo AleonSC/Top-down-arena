@@ -3,6 +3,23 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**To-do items 1-5 (Nov 2026), protocol 127:** owner's list in `Docs/AfterReset.md`. (1) **Pause menu models came in
+before the menu:** GL ignored `Ui.Alpha`, so models in a fading panel (the run card's boss, the party) drew at full
+strength while the panel faded in. `BeginUiGl` now takes `Ui.Alpha` into `glAlpha`, which `SetColor` multiplies in
+(`EndUiGl` puts it back to 1; the arena's own drawing never goes through it, so the render check is unchanged). (2)
+**Defend the Crystal** spawns melee (Swarmer, Lunger, Brute) with a Grunt or Sniper only `Challenges.DefendRanged`
+(15%) of the time; the `challenges` test checks the mix is mostly melee. (3) **Modifiers tab** grouped by tier in one
+grid (Easier, Risky, Harder; a group starts under its own heading, on the same row if there's room), the per-card tier
+badge replaced by a colour bar on the card's left edge. (4) **Window opening animations:** a drawer list opened from
+another (the pause or lobby menu's How to play, Settings, Records) showed its panel at once, because `BeginPanelAnim`
+counted from the window's opening whenever the list changed; it now slides in once the window is open. The **Field
+guide** rises in (0.4 s, a small bounce, fading up; `guideOpenAt`; preview flag `GUIDEOPEN`). (5) **Knockback slides**
+(`Core/Knock.cs`): `KnockEnemy` adds a push to `Enemy.KnockLeft`, `TickKnock` travels it over `KnockTime` 0.18 s;
+pushes 24 px or more broadcast `FxKind.Knock` (from, to; at most every 0.25 s per enemy) for the streak, dust and
+impact puff (`DrawKnockFx`; preview flag `KNOCK=<seconds>`). Used by the Repulsion Cannon, `Knockback` (Roar,
+Shockwave), the Scattergun's shove, Knight swings, Bulldoze, Fortress and the Fuma fan; pulls (Kusarigama, Drain, the
+hook) still jump. With the old jump the render check stays IDENTICAL, so the slide is the only change on screen.
+
 **Wave editor (Nov 2026), protocol 126 (no change):** owner's pick, option B (timeline) of
 `Docs/Mockups/wave-editor.html`, in the F1 dev tools. `Core/WaveDesign.cs`: `WaveSet` (spawn points A-E, waves, loop)
 of `DesignWave` (level, `DesignGroup`s, `DesignProp`s); a group is members or a named squad (`WaveSet.AllSquads`:

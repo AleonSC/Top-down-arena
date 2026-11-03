@@ -68,6 +68,8 @@ static partial class Shot {
       set("guidePage", page); set("guideScrollToSel", true);
       if (Environment.GetEnvironmentVariable("GUIDESEL") != null) ((string[])typeof(ArenaApp).GetField("guideSel", f2).GetValue(app))[page] = Environment.GetEnvironmentVariable("GUIDESEL");
       if (Environment.GetEnvironmentVariable("GUIDESEARCH") != null) set("guideSearch", Environment.GetEnvironmentVariable("GUIDESEARCH"));
+      // GUIDEOPEN=<seconds>: the guide that far into its opening (it rises in over 0.4 s).
+      if (Environment.GetEnvironmentVariable("GUIDEOPEN") != null) set("guideOpenAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("GUIDEOPEN"), System.Globalization.CultureInfo.InvariantCulture));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true;
       int mark = GUI.Log.Count;
       typeof(ArenaApp).GetMethod("DrawFieldGuideScreen", f2).Invoke(app, null);  // a first pass measures the entry's height

@@ -106,7 +106,7 @@ namespace Arena
                 if (e.SpawnT > 0f || Heavy(e) || e.Pos.DistanceTo(center) > range + e.Radius)
                     continue;
                 V2 away = (e.Pos - center).Normalized();
-                e.Pos = ClampToArena(e.Pos + (away.IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : away) * push, e.Radius);
+                KnockEnemy(e, (away.IsZero ? V2.FromAngle(Rand(0f, MathX.Tau)) : away) * push);  // slides (Knock.cs)
                 if (slowTime > 0f)
                 {
                     e.SlowT = Math.Max(e.SlowT, slowTime);

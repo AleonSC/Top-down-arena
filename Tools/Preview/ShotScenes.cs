@@ -189,6 +189,21 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    // KNOCK=<seconds>: the first few regular enemies that far into being knocked back 120 px (Knock.cs), with their
+    // dust streak and impact puff.
+    if (Environment.GetEnvironmentVariable("KNOCK") != null) {
+      float kt = float.Parse(Environment.GetEnvironmentVariable("KNOCK"), System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Bot = false;
+      int n = 0;
+      foreach (var en in host.Game.Enemies.Values) {
+        if (en.Def.IsBoss || n >= 4) continue;
+        V2 dir = (en.Pos - me.Pos).Length > 1f ? (en.Pos - me.Pos).Normalized() : new V2(1f, 0f);
+        V2 from = en.Pos, to = en.Pos + dir * 120f;
+        en.Disp = en.Pos = from + (to - from) * Math.Min(1f, kt / Game.KnockTime);
+        host.Game.Effects.Add(new Effect { Kind = FxKind.Knock, Pos = from, Pos2 = to, Color = en.Def.Color, Radius = en.Radius, T = kt, Dur = Game.KnockFxDur });
+        n++;
+      }
+    }
     if (Environment.GetEnvironmentVariable("AIMLINE") != null)
     {
       // Point the mouse up and to the right of the player: AIMLINE=<distance> (1 = 380 px; screen y is flipped).

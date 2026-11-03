@@ -349,6 +349,7 @@ namespace Arena
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
                 e.T += dt;
+                TickKnock(e, dt);  // a push sliding (Knock.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)

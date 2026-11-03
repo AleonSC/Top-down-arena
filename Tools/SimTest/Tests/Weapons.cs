@@ -74,7 +74,12 @@ static partial class Program
         V2 f0 = front.Pos, b0 = boss.Pos;
         me.Pos = from;
         foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true } : new PlayerInput()); }
+        float pushedNow = front.Pos.X - f0.X;
+        bool knockFx = g.Effects.Any(fx => fx.Kind == FxKind.Knock);
+        SettleKnocks(g);  // the push slides (Knock.cs)
         float pushed = front.Pos.X - f0.X;
+        Console.WriteLine("  knockback: {0:0} px on the blast's tick, {1:0} px once it has slid; streak effect {2}", pushedNow, pushed, knockFx);
+        Check(pushedNow < pushed - 20f && knockFx, "the blast slides enemies back over a moment (with a streak) instead of jumping them there");
         Console.WriteLine("  repulsion: front pushed {0:0} px, took {1:0}; side took {2:0}; boss moved {3:0} px, took {4:0}", pushed, front.MaxHp - front.Hp, side.MaxHp - side.Hp, boss.Pos.DistanceTo(b0), boss.MaxHp - boss.Hp);
         Check(pushed > 60f && front.Hp < front.MaxHp && side.Hp == side.MaxHp, "it blasts enemies in its cone away and hurts them a little (not ones outside it)");
         Check(boss.Pos.DistanceTo(b0) < 1f && boss.Hp < boss.MaxHp, "bosses take the damage but don't budge");

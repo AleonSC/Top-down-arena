@@ -170,7 +170,7 @@ namespace Arena
                         if (!Heavy(e))
                         {
                             V2 away = (e.Pos - closest).Normalized();
-                            e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir.Orthogonal() : away) * 70f, e.Radius);
+                            KnockEnemy(e, (away.IsZero ? dir.Orthogonal() : away) * 70f);  // slides (Knock.cs)
                         }
                     }
                     if (cap)

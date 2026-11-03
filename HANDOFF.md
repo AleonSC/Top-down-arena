@@ -93,6 +93,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Knight.cs` | 0.6k | Knight melee: swings (`Swing`, `LandSwing`, Lance box), sword waves, Knight abilities |
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
 | `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
+| `Knock.cs` | 0.05k | pushes slide: `KnockEnemy(e, delta)` (every shove goes through it), `TickKnock` (from `TickEnemies`); a `FxKind.Knock` draws the streak and dust (`WorldEffects.DrawKnockFx`) |
 | `Parry.cs`, `Pause.cs`, `DevTools.cs`, `StatSheet.cs`, `RunStats.cs`, `Kits.cs` | small | as named |
 | `BossSounds.cs` | 0.1k | soft audio cues when bosses start attacks |
 | `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |

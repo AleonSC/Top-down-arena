@@ -29,6 +29,7 @@ namespace Arena
 
         // Defend the crystal.
         public const float DefendTime = 40f, CrystalR = 34f, CrystalHpBase = 600f, CrystalHpPerPlayer = 0.3f, CrystalContact = 18f;
+        public const float DefendRanged = 0.15f;  // the share of the Defend room's enemies that shoot (the rest are melee)
         // Kill rush.
         public const float RushTime = 40f, RushHp = 0.5f;
         public static int RushGoal(int players) => 40 + 14 * (players - 1);
@@ -378,6 +379,14 @@ namespace Arena
             {
                 var weak = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Grunt, EnemyType.Lunger, EnemyType.Sniper };
                 type = weak[rng.Next(weak.Length)];
+            }
+            else if (RoomKind == ChallengeKind.Defend)
+            {
+                // Bodies rushing the crystal, for the party to cut off: melee enemies, with a gun only now and then
+                // (DefendRanged), so the crystal isn't simply shot down from across the room.
+                var melee = new[] { EnemyType.Swarmer, EnemyType.Swarmer, EnemyType.Lunger, EnemyType.Brute };
+                type = rng.NextDouble() < Challenges.DefendRanged ? (Wave >= 3 && rng.Next(2) == 0 ? EnemyType.Sniper : EnemyType.Grunt)
+                    : melee[rng.Next(melee.Length)];
             }
             else
             {

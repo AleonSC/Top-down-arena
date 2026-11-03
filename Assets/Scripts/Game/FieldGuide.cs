@@ -15,6 +15,8 @@ namespace Arena
         static readonly Color BestiaryColor = new Color(1f, 0.45f, 0.5f), ArmoryColor = new Color(0.45f, 0.75f, 1f);
 
         bool fieldGuideOpen;
+        float guideOpenAt = -10f;              // when it opened (its rise-in)
+        const float GuideOpenLen = 0.4f;
         int guidePage;
         int guideArmoryPage = GuideClasses;     // the Armory tab to come back to
         string guideSearch = "";
@@ -45,6 +47,7 @@ namespace Arena
         void OpenFieldGuide()
         {
             fieldGuideOpen = true;
+            guideOpenAt = Time.unscaledTime;
             guideDetailScroll = 0f;
             guideScrollToSel = true;
             GUIUtility.keyboardControl = 0;
@@ -266,10 +269,27 @@ namespace Arena
 
         // --- The screen ------------------------------------------------------------------
 
+        /// The guide over whatever opened it. Opening, the dark deepens and the guide rises in with a small bounce,
+        /// fading up (its live models with it), like the drawer windows' panels (WindowAnim.cs).
         void DrawFieldGuideScreen()
         {
+            float k = Mathf.Clamp01((Time.unscaledTime - guideOpenAt) / GuideOpenLen);
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.82f * (0.5f + 0.5f * EaseOut(k))));
+            if (k < 1f)
+                PushShift(0f, 36f * (1f - BackOut(k)), Mathf.Clamp01(k * 1.8f));
+            try
+            {
+                DrawFieldGuideBody();
+            }
+            finally
+            {
+                PopShift();
+            }
+        }
+
+        void DrawFieldGuideBody()
+        {
             float t = Time.unscaledTime;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.82f));
             var panel = new Rect(28f, 18f, W - 56f, H - 36f);
             Ui.Panel(panel, true);
             bool armory = guidePage != GuideBestiary;

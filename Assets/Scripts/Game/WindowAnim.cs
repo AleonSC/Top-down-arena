@@ -144,7 +144,10 @@ namespace Arena
         {
             if (key != panelKey)
             {
-                panelAt = WinT < 0.15f || panelKey == null ? winOpenAt + PanelAt : WinNow;  // the first panel comes with the window
+                // The first panel comes with the window while it's opening; one shown later (a new section, or a list
+                // opened from another, like the pause menu's How to play) slides in now. (It used to count from the
+                // window's opening whenever the list changed, so those appeared all at once.)
+                panelAt = WinT < PanelAt ? winOpenAt + PanelAt : WinNow;
                 panelKey = key;
             }
             float k = Mathf.Clamp01((WinNow - panelAt) / (drop && WinNow - winOpenAt < 1.2f ? 0.45f : PanelTime));

@@ -350,6 +350,9 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
+- **Knockback slides:** anything that shoves enemies (the Repulsion Cannon, Roar, Shockwave, the Scattergun up close,
+  Knight swings, Bulldoze, Fortress, the Fuma Shuriken's fan) slides them the distance over 0.18 s instead of jumping
+  them there, with a streak behind them, dust kicked up along the way and a puff where they were hit.
 - **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% a wave) and shoves you about 100 px back
   out; it can't hurt you again for 1 s.
 - **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra
@@ -581,7 +584,7 @@ with an objective plate at the top of the screen:
 
 | Challenge | Goal |
 |---|---|
-| **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Two in three enemies go for it (their shots and bodies wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
+| **Defend the Crystal** | Keep the crystal in the middle alive for 40 s. Its enemies are mostly melee (Swarmers, Lungers, Brutes; about 1 in 7 is a Grunt or Sniper), so it's about cutting off the bodies rushing it: two in three go for it (their hits and shots wear it down); its health shows as a ring round it. 600 health, +30% for each extra player. |
 | **The Gatekeeper** | Beat a mini-boss with its own boss bar: a ring of big orbs with a gap, three aimed fans, and a charge along a red line that ends in a burst. Below half health it attacks a third faster and rings twice. It has half the Warden's health at your wave. |
 | **Kill Rush** | Kill 40 enemies in 40 s (+14 for each extra player). Weak enemies (half health) pour in from every side. |
 | **Hold the Zones** | Stand in each of three zones in turn until it fills (8 s; half as fast with an enemy in it, and it drains slowly if you leave) within 60 s. Half the enemies crowd the zone. |
@@ -596,7 +599,8 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 17 switches (four to a row) that change the whole run, for everyone (Practice
+The lobby's **Modifiers** tab lists 17 switches (four to a row, grouped under **Easier**, **Risky** and **Harder**
+headings, each card marked with its tier's colour) that change the whole run, for everyone (Practice
 Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the match, and session recordings list them.
 

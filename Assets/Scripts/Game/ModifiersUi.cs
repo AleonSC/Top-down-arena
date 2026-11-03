@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -25,21 +26,60 @@ namespace Arena
                 : "The host picks these. They last the whole run, for everyone.", 12, Ui.Muted);
             y += 54f;
 
-            // Four across (three while there were 12 or fewer), as tall as the panel allows.
-            int cols = Modifiers.All.Length > 12 ? 4 : 3;
-            int rows = (Modifiers.All.Length + cols - 1) / cols;
-            const float gap = 8f;
-            float ch = Mathf.Min(104f, (r.yMax - 12f - y) / rows - gap);
+            // Grouped by tier (Easier, Risky, Harder), in one grid four across: each group follows on from the last (on the
+            // same row if there's room) under a small heading over its first card. Rows where a group starts leave room
+            // for its heading. Cards are as tall as the panel allows.
+            const int cols = 4;
+            const float gap = 8f, head = 20f;
+            var cells = new List<KeyValuePair<ModDef, int>>();  // each card and its place in the grid
+            foreach (var lean in LeanOrder)
+                foreach (var d in Modifiers.All)
+                    if (d.Lean == lean)
+                        cells.Add(new KeyValuePair<ModDef, int>(d, cells.Count));
+            int rows = (cells.Count + cols - 1) / cols;
+            var starts = new bool[rows];  // does a group start on this row?
+            for (int i = 0; i < cells.Count; i++)
+                if (i == 0 || cells[i].Key.Lean != cells[i - 1].Key.Lean)
+                    starts[i / cols] = true;
+            int strips = 0;
+            foreach (bool st in starts) strips += st ? 1 : 0;
+            float ch = Mathf.Min(104f, (r.yMax - 12f - y - strips * head) / rows - gap);
             float cw = (w - gap * (cols - 1)) / cols;
-            for (int i = 0; i < Modifiers.All.Length; i++)
+            var rowY = new float[rows];
+            for (int row = 0; row < rows; row++)
             {
-                var d = Modifiers.All[i];
-                var c = new Rect(x + (i % cols) * (cw + gap), y + (i / cols) * (ch + gap), cw, ch);
+                rowY[row] = y + (starts[row] ? head : 0f);
+                y = rowY[row] + ch + gap;
+            }
+            for (int i = 0; i < cells.Count; i++)
+            {
+                var d = cells[i].Key;
+                int row = i / cols, col = i % cols;
+                var c = new Rect(x + col * (cw + gap), rowY[row], cw, ch);
+                if (i == 0 || d.Lean != cells[i - 1].Key.Lean)
+                {
+                    // The group's heading over its first card: its tier, a few words, and a line to the row's end.
+                    var lc = LeanColor(d.Lean);
+                    float hy = c.y - head + 2f;
+                    string tag = LeanTag(d.Lean), blurb = LeanBlurb(d.Lean);
+                    float tw = Ui.TextWidth(tag, 11, true) + 10f, bw = Ui.TextWidth(blurb, 11);
+                    Ui.Label(new Rect(c.x, hy, tw, 16f), tag, 11, lc, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(c.x + tw, hy, bw + 4f, 16f), blurb, 11, Ui.Muted, TextAnchor.MiddleLeft);
+                    float lx = c.x + tw + bw + 12f;
+                    if (x + w - lx > 10f)
+                        Ui.Fill(new Rect(lx, hy + 8f, x + w - lx, 1f), new Color(lc.r, lc.g, lc.b, 0.2f));
+                }
                 bool on = (session.Modifiers & d.Mod) != 0;
                 if (DrawModCard(c, d, on, host, t))
                     session.SetModifier(d.Mod, !on);
             }
         }
+
+        static readonly ModLean[] LeanOrder = { ModLean.Easier, ModLean.Risky, ModLean.Harder };
+
+        static string LeanTag(ModLean l) => l == ModLean.Harder ? "HARDER" : l == ModLean.Easier ? "EASIER" : "RISKY";
+
+        static string LeanBlurb(ModLean l) => l == ModLean.Harder ? "a tougher run" : l == ModLean.Easier ? "a helping hand" : "a trade: something gained, something lost";
 
         bool DrawModCard(Rect c, ModDef d, bool on, bool canClick, float t)
         {
@@ -48,14 +88,13 @@ namespace Arena
             Ui.Card(c, on ? ModColor : lean, on ? 0.9f : hover ? 0.5f : 0.2f);
             if (on)
                 Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(ModColor.r, ModColor.g, ModColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
+            Ui.Fill(new Rect(c.x + 3f, c.y + 8f, 3f, c.height - 16f), new Color(lean.r, lean.g, lean.b, on ? 0.9f : 0.6f));  // its tier
             // Name and the switch, then what it does.
             bool narrow = c.width < 220f;
             float swW = narrow ? 40f : 50f;
             Ui.Fancy(new Rect(c.x + 12f, c.y + 8f, c.width - swW - 30f, 24f), d.Name, narrow ? 14 : 16, Color.white, on ? Color.Lerp(ModColor, Color.white, 0.5f) : new Color(0.82f, 0.86f, 0.96f), TextAnchor.MiddleLeft);
-            Ui.Label(new Rect(c.x + 12f, c.y + 32f, c.width - 22f, c.height - 56f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
-            // Harder / easier / risky tag, and the switch (ON / OFF beside it when there's room).
-            string tag = d.Lean == ModLean.Harder ? "HARDER" : d.Lean == ModLean.Easier ? "EASIER" : "RISKY";
-            Ui.Badge(new Rect(c.x + 12f, c.yMax - 21f, 64f, 16f), tag, new Color(lean.r * 0.7f, lean.g * 0.7f, lean.b * 0.7f));
+            Ui.Label(new Rect(c.x + 12f, c.y + 32f, c.width - 22f, c.height - 38f), d.Desc, 11, on ? Ui.Text : Ui.Muted, TextAnchor.UpperLeft, false, true);
+            // The switch (ON / OFF beside it when there's room). The tier is the group's heading and the card's colour.
             var sw = new Rect(c.xMax - swW - 12f, c.y + 10f, swW, narrow ? 20f : 22f);
             Ui.Pill(sw, on ? new Color(ModColor.r * 0.85f, ModColor.g * 0.85f, ModColor.b * 0.85f) : new Color(1f, 1f, 1f, 0.1f));
             float kn = sw.height - 4f;

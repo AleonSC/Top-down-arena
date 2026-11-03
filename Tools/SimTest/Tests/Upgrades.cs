@@ -362,6 +362,7 @@ static partial class Program
         Run(s, dt, 0.3f, null, Hold);
         V2 was = pushed.Pos;
         cast.Invoke(host, new object[] { 1, slot, dummy.Pos, true });
+        SettleKnocks(host);  // the push slides (Knock.cs)
         float shove = pushed.Pos.DistanceTo(was);
         host.GrantUpgrade(1, U("Nova"));
         Run(s, dt, 0.2f, null, Hold);

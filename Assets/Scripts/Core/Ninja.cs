@@ -549,7 +549,7 @@ namespace Arena
                     continue;
                 V2 away = d > 1f ? (e.Pos - p.Pos) / d : V2.FromAngle(aim);
                 float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
-                e.Pos = ClampToArena(p.Pos + away * to, e.Radius);
+                KnockEnemy(e, ClampToArena(p.Pos + away * to, e.Radius) - e.Pos);  // slides (Knock.cs)
             }
         }
 

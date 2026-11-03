@@ -705,8 +705,10 @@ static partial class Program
         me.Pos = from;
         float d0 = blown.Pos.DistanceTo(from);
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        SettleKnocks(g);  // the push slides (Knock.cs)
         float d1 = blown.Pos.DistanceTo(from);
         volley.Invoke(g, new object[] { me, 0f, 0 });
+        SettleKnocks(g);
         float d2 = blown.Pos.DistanceTo(from);
         Console.WriteLine("  spirit fan: an enemy {0:0} px away, then {1:0}, then {2:0}", d0, d1, d2);
         Check(Math.Abs(Math.Abs(d1 - d0) - Game.FanShove) < 1f && Math.Abs(d2 - d1 + (d1 - d0)) < 1f, "Spirit Fan shots alternate blowing enemies away and drawing them in");

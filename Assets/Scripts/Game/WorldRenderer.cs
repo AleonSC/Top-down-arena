@@ -536,6 +536,7 @@ namespace Arena
             GL.LoadPixelMatrix();
             GL.Begin(GL.TRIANGLES);
             drawScale = scale;
+            glAlpha = Ui.Alpha;  // models in a fading panel fade with it (the pause menu's run card, a window opening)
             return true;
         }
 
@@ -544,6 +545,7 @@ namespace Arena
             GL.End();
             GL.PopMatrix();
             glZoom = 1f;
+            glAlpha = 1f;
             glShift = V2.Zero;
             glClipOn = false;
         }
@@ -579,8 +581,13 @@ namespace Arena
                 float l = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
                 glCur = new Color(c.R + (l - c.R) * glDesat, c.G + (l - c.G) * glDesat, c.B + (l - c.B) * glDesat, c.A);
             }
+            if (glAlpha < 1f)
+                glCur.a *= glAlpha;
             GL.Color(glCur);
         }
+
+        /// UI GL's opacity (BeginUiGl takes Ui.Alpha, EndUiGl puts it back to 1); the arena's own drawing is always 1.
+        static float glAlpha = 1f;
 
         void Tri(V2 a, V2 b, V2 c)
         {

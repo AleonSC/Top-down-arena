@@ -115,7 +115,7 @@ namespace Arena
             if (!Heavy(e))
             {
                 V2 away = (e.Pos - p.Pos).Normalized();
-                e.Pos = ClampToArena(e.Pos + (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove, e.Radius);
+                KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove);  // slides (Knock.cs)
             }
             return ScatterPointBlank;
         }

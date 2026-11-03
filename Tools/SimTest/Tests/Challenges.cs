@@ -140,10 +140,16 @@ static partial class Program
 
         // Defend the crystal: enemies go for it; enough hits break it and the challenge is lost, safely.
         Check(enter(ChallengeKind.Defend), "Defend the Crystal: in the room (seen on the client)");
-        Run(s, dt, 6f, null, hold);
+        var defendSeen = new Dictionary<int, EnemyType>();
+        Action holdSee = () => { hold(); foreach (var e in g.Enemies.Values) defendSeen[e.Id] = e.Type; };
+        Run(s, dt, 6f, null, holdSee);
         int forCrystal = g.Enemies.Values.Count(e => e.Id % 3 != 0);
         float hp0 = g.CrystalMax;
-        Run(s, dt, 15f, () => g.CrystalHp < hp0 - 1f, hold);
+        Run(s, dt, 15f, () => g.CrystalHp < hp0 - 1f, holdSee);
+        int meleeSeen = defendSeen.Values.Count(ty => Defs.Get(ty).Melee);
+        Console.WriteLine("  Defend the Crystal's enemies: {0} melee of {1} ({2})", meleeSeen, defendSeen.Count,
+            string.Join(", ", defendSeen.Values.GroupBy(ty => ty).Select(gr => gr.Key + " " + gr.Count())));
+        Check(defendSeen.Count >= 4 && meleeSeen >= defendSeen.Count * 0.7f, "Defend the Crystal's enemies are mostly melee (bodies to intercept, not guns)");
         Check(forCrystal > 0 && g.CrystalHp < hp0 && cg.CrystalHp < hp0 + 0.01f, "the room's enemies go for the crystal and wear it down (its health on the client too)");
         g.CrystalHp = 0.5f;
         Run(s, dt, 6f, () => !g.InRoom, hold);

@@ -77,6 +77,9 @@ namespace Arena
                 case FxKind.Repulse:
                     DrawRepulseFx(fx, f);
                     break;
+                case FxKind.Knock:
+                    DrawKnockFx(fx);
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;
@@ -108,6 +111,53 @@ namespace Arena
         /// The pieces come from a generator seeded by where it broke, so everyone sees the same burst.
         /// The Repulsion Cannon's blast: a cone of air that flashes, then pressure waves rolling out to its reach,
         /// with streaks flying along it. Pos is the gun, Pos2 the reach along the aim, Radius half the cone.
+        static readonly Rgba KnockDust = new Rgba(0.78f, 0.72f, 0.62f);
+
+        /// A push sliding (Knock.cs): Pos where it was hit, Pos2 where it ends up, Radius the enemy's size. An impact
+        /// puff where it was hit, a motion streak behind the enemy as it slides (following the same path and timing as
+        /// the host's TickKnock), and puffs of dust kicked up along the way that linger and fade.
+        void DrawKnockFx(Effect fx)
+        {
+            V2 path = fx.Pos2 - fx.Pos;
+            float len = path.Length;
+            if (len < 1f)
+                return;
+            V2 dir = path / len, side = dir.Orthogonal();
+            float r = Mathf.Max(6f, fx.Radius), slide = Game.KnockTime;
+            float head = Mathf.Clamp01(fx.T / slide), tail = Mathf.Clamp01((fx.T - 0.1f) / slide);
+            float fade = 1f - Mathf.Clamp01((fx.T - slide) / (fx.Dur - slide));
+            // Impact: a quick ring and a flash on the side it was hit from.
+            if (fx.T < 0.18f)
+            {
+                float k = fx.T / 0.18f;
+                Arc(fx.Pos, r + 4f + 16f * k, 3f * (1f - k) + 1f, Rgba.White.WithAlpha(0.7f * (1f - k)), 18);
+                Circle(fx.Pos - dir * r * 0.6f, r * 0.55f * (1f - k), Rgba.White.WithAlpha(0.45f * (1f - k)), 10);
+            }
+            // The streak: a band from tail to head, wide at the head, in the enemy's colour going pale.
+            V2 h = fx.Pos + path * head, tl = fx.Pos + path * tail;
+            if ((h - tl).Length > 1f && fade > 0f)
+            {
+                var col = fx.Color.Mix(Rgba.White, 0.5f);
+                SetColor(col.WithAlpha(0.32f * fade));
+                Tri(tl, h + side * r * 0.8f, h - side * r * 0.8f);
+                for (int i = -1; i <= 1; i += 2)  // two thin speed lines at its edges
+                    Line(tl + side * (i * r * 0.35f), h + side * (i * r * 0.7f), 1.5f, Rgba.White.WithAlpha(0.35f * fade));
+            }
+            // Dust kicked up behind it: each puff starts when the enemy passes, grows and fades.
+            for (int i = 0; i < 4; i++)
+            {
+                float at = 0.15f + 0.22f * i;
+                if (head < at)
+                    break;
+                float age = fx.T - at * slide, life = fx.Dur - at * slide;
+                float k = Mathf.Clamp01(age / life);
+                if (k >= 1f)
+                    continue;
+                V2 c = fx.Pos + path * at + side * ((i % 2 == 0 ? 1f : -1f) * r * 0.5f) - dir * (4f * k);
+                Circle(c, r * (0.35f + 0.5f * k), KnockDust.WithAlpha(0.3f * (1f - k)), 10);
+            }
+        }
+
         void DrawRepulseFx(Effect fx, float f)
         {
             V2 c = fx.Pos, mid = fx.Pos2 - fx.Pos;

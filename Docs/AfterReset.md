@@ -3,16 +3,10 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
-- [ ] **Pause menu: models show up before the rest of the menu.** When you press pause, the player and enemy
-      models (e.g. the next boss's model where the pause menu shows the next boss) appear first, ahead of the
-      rest of the menu. They should come in with the panel (same fade/slide timing), not pop in early.
-      Check how the live models are drawn in the pause menu vs. the panel's open animation.
+- [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
-- [ ] **Defend the Crystal should use mostly melee enemies.** Ranged enemies make the challenge about shooting the
-      crystal from afar; it should be about bodies rushing it that you have to intercept. Change the room's enemy
-      mix (`Assets/Scripts/Core/Challenges.cs`) to mostly melee (Swarmer, Brute, Lunger) with a few ranged at most,
-      and update the `challenges` SimTest check if it depends on the mix.
+- [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 
 ## Visuals
 - [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
@@ -24,13 +18,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
       Owner likes **D (Big play)**: its intros and the Host game → lobby move are in
       [`Mockups/menu-d.html`](Mockups/menu-d.html) (https://claude.ai/artifact/VskdxmJhgTzmpeUnjjM2R5). With D the
       port moves to Settings (Network, 7777 by default) and the name is edited on the bottom-left chip.
-- [ ] **Knockback visual effect.** Pushes are instant jumps today, which is disorienting: the Repulsion Cannon
-      (`Repulsion.cs`, `e.Pos = ... + away * push`) and the shared `Knockback()` in `Mastery.cs` (Roar and the
-      shockwave use it) move the enemy the whole distance in one frame. Make it a quick slide instead (a short knock
-      velocity over ~0.15-0.25 s, like the players' `ApplyKnock`), with a visual: a motion streak or dust trail
-      behind the enemy and a small impact puff. Check other instant pushes too (Scattergun point-blank shove).
-- [ ] **Load-in animations for the How to Play and Field guide windows.** They should open with an animation (like
-      the other panels' open transitions, e.g. `Docs/Mockups/tab-transitions.html`) instead of just appearing.
+- [x] **Knockback visual effect.** Done (Nov 2026): pushes slide (0.18 s) with a streak, dust and an impact puff.
+- [x] **Load-in animations for the How to Play and Field guide windows.** Done (Nov 2026): How to play slides in;
+      the Field guide rises in.
 
 ## Unlocks & ascensions plan
 Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused
@@ -69,8 +59,7 @@ unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep
 - Locked modifiers show their condition in the Modifiers tab.
 - **Badges:** a Records badge for each modifier you've won a run with, so the open ones also get tried.
 
-**Sort modifiers by tier.** In the lobby's Modifiers tab, group the switches by their tag (Easier / Risky /
-Harder), with a small heading per group, instead of the current order.
+- [x] **Sort modifiers by tier.** Done (Nov 2026): Easier / Risky / Harder headings in one grid.
 
 ## Difficulty with twists
 Today the presets only change numbers (README "Difficulty"), so Nightmare plays like Normal, just harder. Keep the
