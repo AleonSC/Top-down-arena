@@ -6,6 +6,7 @@ no Unity in the cloud container: check changes with the tools below.
 
 ## Where to look (read only what the task needs)
 
+- `CODEMAP.md`: **start here**. One line per source file grouped by system, plus a "Where to look for..." table.
 - `HANDOFF.md` §2: **code map**, one table row per source file, plus key mechanisms and "Adding a class".
   §3: every test and preview tool. §4: how the owner works. §6: audit notes and the work plan.
 - `README.md`: player-facing reference for every weapon, ability, enemy, boss, mode and control. Use `grep -n '^## '
