@@ -122,6 +122,20 @@ static partial class Program
             for (int i = 0; i < 30; i++)
                 prizeOnly &= Upgrades.PrizeOffer(rng, r, AbilityId.None, new List<int>()).All(u => u >= 0 && Upgrades.All[u].Rarity >= Rarity.Rare && Upgrades.All[u].Rarity <= Rarity.VeryRare);
         Check(prizeOnly, "a prize offer only has rare and very rare cards");
+        // Nobody picks for a while: the break waits for the prize (it used to run out after 4 s, start the next wave
+        // with the cards still up, and then refuse the pick, leaving the player unable to fire), and the pick still works.
+        // (Only the prize left to pick: level-ups from the room's kills would hold the break by themselves.)
+        foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.PrizePicks = 1; }
+        typeof(Game).GetMethod("NextOffer", flags).Invoke(g, new object[] { me });
+        typeof(Game).GetMethod("NextOffer", flags).Invoke(g, new object[] { friend });
+        g.StateTimer = 4f;
+        Run(s, dt, 6f, null, hold);
+        bool waited = g.State == MatchState.Intermission && !g.InRoom && me.Offer != null;
+        int before = me.Taken.Count;
+        for (int k = 0; k < 10 && me.Offer != null; k++) { g.PickUpgrade(0); Run(s, dt, 0.05f, null, hold); }
+        Console.WriteLine("  prize left unpicked for 6 s: still the break {0}, cards up {1}; picked {2}, cards now {3}",
+            g.State == MatchState.Intermission, waited, me.Taken.Count - before, me.Offer == null ? "gone" : "up");
+        Check(waited && me.Taken.Count > before && me.Offer == null, "the break waits while anyone still has a prize to pick, and the pick goes through");
         noPicks();
         foreach (var p in g.Players.Values) p.PrizePicks = 0;
         Run(s, dt, 0.3f, null, hold);

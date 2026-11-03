@@ -1000,7 +1000,7 @@ namespace Arena
         public bool AnyonePicking()
         {
             foreach (var p in Players.Values)
-                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0)
+                if (p.PendingPicks > 0 || p.PendingLegendary > 0 || p.PendingMods > 0 || p.PrizePicks > 0)  // (a challenge room's prize too: the break used to run out under it)
                     return true;
             return false;
         }
