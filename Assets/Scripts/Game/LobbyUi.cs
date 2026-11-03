@@ -83,10 +83,8 @@ namespace Arena
                 DrawOpenSlot(new Rect(lx, y, lw, 88f), slot, t);
                 y += 96f;
             }
-            var picker = new Rect(lx, H - 96f - 84f, lw, 84f);
             if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, y + 4f, lw, picker.y - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
-            DrawBackgroundPicker(picker);  // MenuBackgrounds.cs
+                Ui.Label(new Rect(lx, y + 4f, lw, H - 96f - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: tabs level with the title, then your loadout or the practice waves.
             var area = new Rect(440f, 24f, W - 480f, H - 120f);
