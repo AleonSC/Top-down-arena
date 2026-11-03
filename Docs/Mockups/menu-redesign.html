@@ -1,0 +1,536 @@
+<title>Main Menu Redesigns</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the game's 1280 x 720 screen scaled to fit, showing one
+   redesign of the main menu, live: hover and click it (Join opens its address fields). The strips below pick the
+   design and whether you have saved runs. Under that, one card per design, then notes for building it.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #07080d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #133a33; box-shadow: inset 0 0 0 1px var(--teal); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--teal); width: 15px; height: 15px; margin: 0; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--panel-2); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); border-top-color: var(--c); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card dl { margin: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 10px; font-size: 13px; }
+.card dt { font: 600 10.5px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+.card dd { margin: 0; color: var(--soft); }
+code { font: 12.5px var(--font-data); color: var(--fg); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cartesian Colosseum · mockup · main menu</div>
+    <h1>Main menu <span>redesigns</span></h1>
+    <p class="lead">Four directions for the main menu, each live: hover the buttons, and click <b>Join game</b> to open its
+      address fields. Every design keeps the same choices (your name, Host, Join, Continue, Records, Settings, Quit) and
+      the graph theme. The biggest common change: the host address and port only show when you join, so the menu leads
+      with playing instead of a form.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="scr" width="1280" height="720" aria-label="A redesign of the main menu, live: hover and click its buttons"></canvas>
+    <div class="bar">
+      <span class="lbl">Design</span>
+      <div class="seg" id="designs"></div>
+      <span class="spacer"></span>
+      <label class="tog"><input type="checkbox" id="saves" checked> Saved runs</label>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div style="display:grid;gap:6px">
+      <h2>The designs</h2>
+      <p class="hint">Click a card to show it above. "Today" is the menu as it is now, for comparison.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All in <code>Menus.cs</code> (<code>DrawMenu</code>, <code>DrawMenuCardInside</code>, <code>DrawMenuSecondary</code>); the axis, plot corners and lines are the GL helpers already there (<code>DrawAxis</code>, <code>DrawPlotCorners</code>).</li>
+      <li>The Continue line reads the newest save (<code>savedRunsCount</code> and the save list in <code>SavesUi.cs</code>): wave, classes, time played. With no saves it's hidden.</li>
+      <li>Your character (B and D) is the lobby's model drawing (<code>DrawPlayer</code> through <code>UiModelAt</code>) with your last class from the profile.</li>
+      <li>The move into the lobby (<code>LobbyEnter.cs</code>) slides the current card into the loadout; whichever design is picked needs that animation updated to start from its layout.</li>
+      <li>Any of these can sit after the plotted intro (the other mockup): the intro draws the title and axis, then the menu's pieces arrive in their own places.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const DESIGNS = [
+    { id: "today", name: "Today", c: "#92a1ad", tag: "for comparison",
+      sum: "The menu as it is: a form card (name, address, port, Host, Join) and four full-width coloured buttons.",
+      good: "Everything visible at once.", cost: "Leads with a form; the four coloured bars shout as loud as Host." },
+    { id: "card", name: "A · Tidy card", c: "#6fe3c4", tag: "closest to today",
+      sum: "Same centred card, cleaned up. Host and Join are the two big choices; Join opens the address row inside the card. Your last run sits under it as a Continue line, and Records, Settings and Quit become one quiet row.",
+      good: "Least change; clear what matters most.", cost: "Still a card in the middle: tidy, not much personality." },
+    { id: "rail", name: "B · Y-axis", c: "#7fb6ff", tag: "a menu on an axis",
+      sum: "The title sits top left on its axis, and the menu is a y-axis down the left: each choice is a point on it. Hover draws a line out to it. On the right, your character stands in a plot window, aiming at your cursor.",
+      good: "The most on theme; your character gives it life.", cost: "Asymmetric layout; Join's fields open beside the axis." },
+    { id: "hub", name: "C · Origin", c: "#ff8fa8", tag: "four quadrants",
+      sum: "The axes cross in the middle of the screen with your name at the origin. Host, Join, Continue and Records each take a quadrant; hovering one draws a vector to it. Settings and Quit sit at the ends of the x-axis.",
+      good: "Memorable and very graph-like.", cost: "Four equal cards make Host less obviously first." },
+    { id: "play", name: "D · Big play", c: "#ffb547", tag: "arcade",
+      sum: "A big title with a shot arcing over it, one large pulsing Host game button, Join and Continue beside each other under it, and a slim bar at the bottom for your name, Records, Settings and Quit. A line under the title changes each visit.",
+      good: "Most energy; the first choice is obvious.", cost: "Least graph-like of the new ones; busier." },
+  ];
+
+  const W = 1280, H = 720;
+  const BLUE = [115, 166, 255];
+  const GF = `"Liberation Sans", Arial, Helvetica, sans-serif`;
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const ease = k => 1 - Math.pow(1 - k, 3);
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const cv = document.getElementById("scr"), g = cv.getContext("2d");
+
+  let design = "card", saves = true, joinOpen = false, mouse = { x: -1, y: -1 }, hits = [], hoverId = null, toast = null;
+  const hoverT = {};  // eased hover per id, 0..1
+  const SAVE = { wave: 14, who: "Knight DPS + Elementalist Healer", time: "22:41", path: "Frozen Lake" };
+
+  // --- Shared drawing -----------------------------------------------------------------------------------------------
+  function rr(x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  function hit(id, x, y, w, h) { hits.push({ id, x, y, w, h }); }
+  const hv = id => hoverT[id] || 0;
+  const sparks = Array.from({ length: 30 }, (_, i) => ({ x: (i * 397) % W, y: (i * 233 + 40) % H, ph: i * 1.7, pink: i % 3 !== 0 }));
+  function background(t) {
+    g.fillStyle = "#07080d"; g.fillRect(0, 0, W, H);
+    let gr = g.createRadialGradient(330, 250, 0, 330, 250, 270); gr.addColorStop(0, "rgba(40,70,160,0.15)"); gr.addColorStop(1, "rgba(40,70,160,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    gr = g.createRadialGradient(1050, 480, 0, 1050, 480, 330); gr.addColorStop(0, "rgba(120,50,150,0.11)"); gr.addColorStop(1, "rgba(120,50,150,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(90,110,180,0.09)"; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 48) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 14; y <= H; y += 48) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+    for (const s of sparks) { const a = 0.2 + 0.3 * (0.5 + 0.5 * Math.sin(t * 1.3 + s.ph)); g.fillStyle = s.pink ? `rgba(255,90,120,${a})` : `rgba(120,160,255,${a})`; g.beginPath(); g.arc(s.x, s.y, 2, 0, Math.PI * 2); g.fill(); }
+  }
+  function title(x, y, size, align = "center", text = "CARTESIAN COLOSSEUM") {
+    g.save(); g.font = `bold ${size}px Arial, "Liberation Sans", sans-serif`; g.textBaseline = "middle"; g.textAlign = align;
+    g.shadowColor = "rgba(92,153,255,0.8)"; g.shadowBlur = 14; g.lineJoin = "round"; g.lineWidth = size / 11; g.strokeStyle = "rgba(14,22,52,0.9)";
+    g.strokeText(text, x, y); g.shadowBlur = 0;
+    const gr = g.createLinearGradient(0, y - size * 0.4, 0, y + size * 0.4);
+    gr.addColorStop(0, "#fff"); gr.addColorStop(0.5, "#fff"); gr.addColorStop(0.52, "#b8ccff"); gr.addColorStop(1, "#b8ccff");
+    g.fillStyle = gr; g.fillText(text, x, y); g.restore();
+  }
+  function axisH(x0, x1, y, ox, t, ticks = true) {
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.75); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
+    if (ticks) for (let x = ox + 24, i = 1; x < x1 - 8; x += 24, i++) for (const xx of [x, ox - (x - ox)]) if (xx > x0 + 8) { const l = i % 4 === 0 ? 6 : 3; g.lineWidth = 1.2; g.strokeStyle = rgba(BLUE, 0.6); g.beginPath(); g.moveTo(xx, y - l); g.lineTo(xx, y + l); g.stroke(); }
+    g.fillStyle = rgba(BLUE, 0.9);
+    g.beginPath(); g.moveTo(x1 + 8, y); g.lineTo(x1 - 3, y - 5); g.lineTo(x1 - 3, y + 5); g.fill();
+    if (x0 < ox - 10) { g.beginPath(); g.moveTo(x0 - 8, y); g.lineTo(x0 + 3, y - 5); g.lineTo(x0 + 3, y + 5); g.fill(); }
+    const p = 0.5 + 0.5 * Math.sin(t * 3);
+    g.fillStyle = "rgba(200,220,255,0.9)"; g.beginPath(); g.arc(ox, y, 3.5, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(BLUE, 0.5 + 0.3 * p); g.beginPath(); g.arc(ox, y, 6 + 2 * p, 0, Math.PI * 2); g.stroke();
+  }
+  function plotCorners(x, y, w, h, a = 0.75, len = 20, off = 7) {
+    g.strokeStyle = rgba(BLUE, a); g.lineWidth = 3; g.lineCap = "square";
+    for (const [cx, cy, sx, sy] of [[x - off, y - off, 1, 1], [x + w + off, y - off, -1, 1], [x + w + off, y + h + off, -1, -1], [x - off, y + h + off, 1, -1]]) {
+      g.beginPath(); g.moveTo(cx, cy + sy * len); g.lineTo(cx, cy); g.lineTo(cx + sx * len, cy); g.stroke();
+    }
+    g.lineCap = "butt";
+  }
+  function panel(x, y, w, h, edge = "rgba(107,153,255,0.9)") {
+    rr(x, y, w, h, 10);
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "rgba(31,36,54,0.96)"); gr.addColorStop(1, "rgba(23,26,38,0.96)");
+    g.fillStyle = gr; g.fill(); g.strokeStyle = edge; g.lineWidth = 1.5; g.stroke();
+  }
+  function text(s, x, y, size, col, align = "left", bold = true, font = GF) {
+    g.font = `${bold ? "bold " : ""}${size}px ${font}`; g.fillStyle = col; g.textAlign = align; g.textBaseline = "middle"; g.fillText(s, x, y);
+  }
+  function shadowText(s, x, y, size, col, align = "left") {
+    g.font = `bold ${size}px ${GF}`; g.textAlign = align; g.textBaseline = "middle";
+    g.fillStyle = "rgba(0,0,0,0.6)"; g.fillText(s, x + 1, y + 1.5); g.fillStyle = col; g.fillText(s, x, y);
+  }
+  function labelLine(s, x, y, w) { text(s, x + 2, y + 10, 12, "rgba(170,182,210,0.95)"); g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(x, y + 21, w, 1); }
+  function field(x, y, w, s, h = 38) {
+    rr(x, y, w, h, 7); g.fillStyle = "rgba(8,10,18,0.85)"; g.fill(); g.strokeStyle = "rgba(255,255,255,0.12)"; g.lineWidth = 1; g.stroke();
+    text(s, x + 12, y + h / 2, 16, "#e9eefc", "left", false);
+  }
+  function icon(kind, x, y, s, col = "#fff", box = true) {
+    g.save(); g.translate(x, y);
+    if (box) { g.fillStyle = "rgba(255,255,255,0.18)"; rr(0, 0, s, s, 3); g.fill(); }
+    g.fillStyle = col; g.strokeStyle = col; g.lineWidth = Math.max(1.5, s / 13); const c = s / 2, u = s / 26;
+    if (kind === "play") { g.beginPath(); g.moveTo(c - 4 * u, c - 6 * u); g.lineTo(c + 6 * u, c); g.lineTo(c - 4 * u, c + 6 * u); g.fill(); }
+    if (kind === "arrow") { g.beginPath(); g.moveTo(c - 6 * u, c); g.lineTo(c + 5 * u, c); g.moveTo(c + 1 * u, c - 4 * u); g.lineTo(c + 5 * u, c); g.lineTo(c + 1 * u, c + 4 * u); g.stroke(); }
+    if (kind === "resume") { g.fillRect(c - 6 * u, c - 6 * u, 3 * u, 12 * u); g.beginPath(); g.moveTo(c - 1 * u, c - 6 * u); g.lineTo(c + 7 * u, c); g.lineTo(c - 1 * u, c + 6 * u); g.fill(); }
+    if (kind === "trophy") { g.fillRect(c - 5 * u, c - 6 * u, 10 * u, 7 * u); g.fillRect(c - 1.5 * u, c + 1 * u, 3 * u, 4 * u); g.fillRect(c - 4 * u, c + 5 * u, 8 * u, 2 * u); }
+    if (kind === "gear") { g.beginPath(); g.arc(c, c, 5 * u, 0, Math.PI * 2); g.stroke(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; g.fillRect(c + Math.cos(a) * 6.5 * u - 1.5 * u, c + Math.sin(a) * 6.5 * u - 1.5 * u, 3 * u, 3 * u); } }
+    if (kind === "power") { g.beginPath(); g.arc(c, c + 1 * u, 5.5 * u, -Math.PI / 2 + 0.6, Math.PI * 1.5 - 0.6); g.stroke(); g.beginPath(); g.moveTo(c, c - 7 * u); g.lineTo(c, c); g.stroke(); }
+    if (kind === "pen") { g.beginPath(); g.moveTo(c - 5 * u, c + 5 * u); g.lineTo(c + 4 * u, c - 4 * u); g.stroke(); g.fillRect(c - 6 * u, c + 4 * u, 2 * u, 2 * u); }
+    g.restore();
+  }
+  /// The game's FancyButton: a shaded bar in its colour with an icon and outlined text; hover brightens and lifts.
+  function fancyButton(id, x, y, w, h, s, col, ic, size = 19) {
+    const k = hv(id); y -= 2 * k;
+    if (k > 0) { g.save(); g.shadowColor = rgba(col, 0.8 * k); g.shadowBlur = 18 * k; rr(x, y, w, h, 8); g.fillStyle = rgba(col, 0.6); g.fill(); g.restore(); }
+    rr(x, y, w, h, 8);
+    const c1 = mix(col, [255, 255, 255], 0.12 + 0.12 * k), c2 = col.map(v => v * 0.72);
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, rgba(c1, 1)); gr.addColorStop(1, rgba(c2, 1));
+    g.fillStyle = gr; g.fill(); g.strokeStyle = `rgba(255,255,255,${0.18 + 0.25 * k})`; g.lineWidth = 1; g.stroke();
+    g.font = `bold ${size}px ${GF}`;
+    const tw = g.measureText(s).width, is = Math.min(26, h - 10), total = (ic ? is + 12 : 0) + tw, sx = x + w / 2 - total / 2;
+    if (ic) icon(ic, sx, y + h / 2 - is / 2, is);
+    shadowText(s, sx + (ic ? is + 12 : 0), y + h / 2, size, "#fff");
+    hit(id, x, y, w, h);
+  }
+  /// A quiet button: dark, a hairline edge, the icon in its colour; hover fills it with that colour's glow.
+  function quietButton(id, x, y, w, h, s, col, ic, size = 15) {
+    const k = hv(id);
+    rr(x, y, w, h, 7); g.fillStyle = rgba(mix([18, 22, 34], col, 0.18 * k), 0.92); g.fill();
+    g.strokeStyle = rgba(mix([255, 255, 255], col, k), 0.14 + 0.5 * k); g.lineWidth = 1; g.stroke();
+    if (k > 0) { g.fillStyle = rgba(col, 0.9 * k); g.fillRect(x + 12, y + h - 2, (w - 24) * ease(k), 2); }
+    g.font = `bold ${size}px ${GF}`;
+    const tw = g.measureText(s).width, is = 18, sx = x + w / 2 - (is + 9 + tw) / 2;
+    icon(ic, sx, y + h / 2 - is / 2, is, rgba(col, 1), false);
+    text(s, sx + is + 9, y + h / 2, size, `rgba(235,240,252,${0.82 + 0.18 * k})`);
+    hit(id, x, y, w, h);
+  }
+  /// The address and port row Join opens, and its Connect button.
+  function joinRow(x, y, w, open) {
+    if (open <= 0) return 0;
+    const h = 38;
+    g.save(); g.globalAlpha = open; g.beginPath(); g.rect(x - 4, y - 4, w + 8, (h + 30) * ease(open) + 8); g.clip();
+    labelLine("HOST ADDRESS", x, y, w - 250); labelLine("PORT", x + w - 236, y, 90);
+    field(x, y + 26, w - 250, "100.88.12.4"); field(x + w - 236, y + 26, 90, "7777");
+    fancyButton("connect", x + w - 134, y + 26, 134, h, "Connect", [74, 130, 245], "arrow", 16);
+    g.restore();
+    return (h + 34) * ease(open);
+  }
+  const SAVE_COL = [70, 150, 105];
+
+  // --- Today -------------------------------------------------------------------------------------------------------
+  function dToday(t) {
+    title(640, 102, 58); axisH(260, 1020, 158, 640, t);
+    const C = { x: 390, y: 200, w: 500, h: 316 };
+    panel(C.x, C.y, C.w, C.h); plotCorners(C.x, C.y, C.w, C.h);
+    const x = C.x + 32, w = C.w - 64; let y = C.y + 26;
+    labelLine("YOUR NAME", x, y, w); field(x, y + 28, w, "Anthony"); y += 82;
+    labelLine("HOST ADDRESS (TO JOIN)", x, y, w - 130); labelLine("PORT", x + w - 110, y, 110);
+    field(x, y + 28, w - 130, "100.88.12.4"); field(x + w - 110, y + 28, 110, "7777"); y += 94;
+    fancyButton("host", x, y, w / 2 - 8, 50, "Host game", [74, 130, 245], "play");
+    fancyButton("join", x + w / 2 + 8, y, w / 2 - 8, 50, "Join game", [76, 84, 112], "arrow");
+    let by = C.y + C.h + 22;
+    fancyButton("continue", C.x, by, C.w, 34, saves ? "Continue a run  (2)" : "Continue a run", saves ? SAVE_COL : [76, 84, 112], "play", 16); by += 42;
+    fancyButton("records", C.x, by, C.w, 34, "Records", [158, 128, 51], "trophy", 16); by += 42;
+    fancyButton("settings", C.x, by, C.w, 34, "Settings", [76, 84, 112], "gear", 16); by += 42;
+    fancyButton("quit", C.x, by, C.w, 34, "Quit", [190, 70, 80], "power", 16);
+  }
+
+  // --- A: Tidy card ------------------------------------------------------------------------------------------------
+  let joinK = 0;
+  function dCard(t) {
+    title(640, 102, 58); axisH(260, 1020, 158, 640, t);
+    const C = { x: 380, y: 204, w: 520 };
+    const jh = 72 * ease(joinK);
+    const ch = 196 + jh;
+    panel(C.x, C.y, C.w, ch); plotCorners(C.x, C.y, C.w, ch);
+    const x = C.x + 28, w = C.w - 56; let y = C.y + 24;
+    // Who you are: a name chip you can click to edit, and your last class.
+    text("PLAYING AS", x + 2, y + 8, 12, "rgba(170,182,210,0.95)");
+    const nk = hv("name");
+    rr(x, y + 22, 230, 36, 18); g.fillStyle = rgba(mix([10, 13, 22], BLUE, 0.15 * nk), 0.9); g.fill(); g.strokeStyle = rgba(BLUE, 0.3 + 0.4 * nk); g.lineWidth = 1; g.stroke();
+    text("Anthony", x + 16, y + 40, 17, "#fff"); icon("pen", x + 196, y + 29, 22, rgba(BLUE, 0.6 + 0.4 * nk), false); hit("name", x, y + 22, 230, 36);
+    rr(x + w - 176, y + 26, 176, 28, 14); g.fillStyle = "rgba(255,140,64,0.14)"; g.fill();
+    g.fillStyle = "rgb(255,140,64)"; g.beginPath(); g.arc(x + w - 160, y + 40, 6, 0, Math.PI * 2); g.fill();
+    text("Last: Knight · DPS", x + w - 146, y + 40, 13, "rgba(255,200,160,0.95)");
+    y += 82;
+    fancyButton("host", x, y, w / 2 - 8, 60, "Host game", [74, 130, 245], "play", 21);
+    fancyButton("join", x + w / 2 + 8, y, w / 2 - 8, 60, joinOpen ? "Join game  ▴" : "Join game", [76, 84, 112], "arrow", 21);
+    y += 76;
+    joinRow(x, y, w, joinK);
+    let by = C.y + ch + 26;
+    if (saves) {
+      // The newest save, as a line you can resume.
+      const k = hv("continue");
+      rr(C.x, by, C.w, 58, 9); g.fillStyle = rgba(mix([16, 30, 26], SAVE_COL, 0.15 + 0.2 * k), 0.95); g.fill();
+      g.strokeStyle = rgba(SAVE_COL, 0.55 + 0.4 * k); g.lineWidth = 1.5; g.stroke();
+      icon("resume", C.x + 16, by + 15, 28, "rgb(150,230,180)", false);
+      text("Continue · Wave " + SAVE.wave, C.x + 56, by + 20, 17, "#fff");
+      text(SAVE.who + " · " + SAVE.path + " · " + SAVE.time, C.x + 56, by + 40, 12.5, "rgba(190,225,205,0.85)", "left", false);
+      text("+1 more", C.x + C.w - 16, by + 29, 12.5, "rgba(190,225,205,0.7)", "right", false);
+      hit("continue", C.x, by, C.w, 58);
+      by += 72;
+    }
+    const bw = (C.w - 20) / 3;
+    quietButton("records", C.x, by, bw, 40, "Records", [255, 200, 90], "trophy");
+    quietButton("settings", C.x + bw + 10, by, bw, 40, "Settings", [150, 180, 255], "gear");
+    quietButton("quit", C.x + 2 * (bw + 10), by, bw, 40, "Quit", [255, 100, 110], "power");
+  }
+
+  // --- B: Y-axis rail ----------------------------------------------------------------------------------------------
+  function dRail(t) {
+    title(80, 92, 50, "left"); axisH(80, 690, 140, 80, t);
+    // The y-axis: an arrow up, ticks every 24 px, the menu as points on it.
+    const ax = 120, y0 = 640, y1 = 196;
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6; g.beginPath(); g.moveTo(ax, y0); g.lineTo(ax, y1); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.75); g.lineWidth = 1.5; g.beginPath(); g.moveTo(ax, y0); g.lineTo(ax, y1); g.stroke();
+    g.fillStyle = rgba(BLUE, 0.9); g.beginPath(); g.moveTo(ax, y1 - 8); g.lineTo(ax - 5, y1 + 3); g.lineTo(ax + 5, y1 + 3); g.fill();
+    for (let y = y0 - 24; y > y1 + 10; y -= 24) { g.strokeStyle = rgba(BLUE, 0.5); g.lineWidth = 1.2; g.beginPath(); g.moveTo(ax - 3, y); g.lineTo(ax + 3, y); g.stroke(); }
+    text("y", ax + 12, y1 - 2, 14, rgba(BLUE, 0.8), "left", false, "'IBM Plex Mono', monospace");
+    const items = [
+      { id: "host", s: "Host game", size: 34, col: [120, 170, 255], y: 250 },
+      { id: "join", s: joinOpen ? "Join game  ▸" : "Join game", size: 34, col: [190, 200, 225], y: 306 },
+    ];
+    if (saves) items.push({ id: "continue", s: "Continue  ·  wave " + SAVE.wave, size: 26, col: [130, 220, 170], y: 362, sub: SAVE.who });
+    items.push({ id: "records", s: "Records", size: 20, col: [255, 205, 100], y: saves ? 448 : 400 },
+      { id: "settings", s: "Settings", size: 20, col: [170, 190, 230], y: saves ? 488 : 440 },
+      { id: "quit", s: "Quit", size: 20, col: [255, 120, 130], y: saves ? 528 : 480 });
+    let n = items.length;
+    for (const it of items) {
+      const k = hv(it.id), lx = ax + 40 + 14 * ease(k);
+      const r = 4 + 4 * k;
+      g.fillStyle = rgba(it.col, 0.55 + 0.45 * k); g.beginPath(); g.arc(ax, it.y, r, 0, Math.PI * 2); g.fill();
+      if (k > 0) { g.strokeStyle = rgba(it.col, 0.4 * k); g.lineWidth = 1.5; g.beginPath(); g.arc(ax, it.y, r + 6 * k, 0, Math.PI * 2); g.stroke(); }
+      g.save(); g.strokeStyle = rgba(it.col, 0.25 + 0.5 * k); g.lineWidth = 1.2; g.setLineDash([4, 5]);
+      g.beginPath(); g.moveTo(ax + r + 3, it.y); g.lineTo(lx - 10, it.y); g.stroke(); g.restore();
+      shadowText(it.s, lx, it.y, it.size, rgba(mix(it.col, [255, 255, 255], 0.35 + 0.5 * k), 1));
+      g.font = `bold ${it.size}px ${GF}`; const tw = g.measureText(it.s).width;
+      if (it.sub) text(it.sub + " · " + SAVE.time, lx, it.y + 22, 12.5, "rgba(170,215,190,0.75)", "left", false);
+      text(`(0, ${n})`, lx + tw + 14, it.y + 2, 12, rgba(it.col, 0.25 + 0.6 * k), "left", false, "'IBM Plex Mono', monospace");
+      hit(it.id, ax - 12, it.y - it.size * 0.7, tw + (lx - ax) + 70, it.size * 1.4);
+      n--;
+    }
+    if (joinK > 0) {
+      const py = 306 - 54;
+      g.save(); g.globalAlpha = ease(joinK); g.translate(-20 * (1 - ease(joinK)), 0);
+      panel(430, py, 330, 112, "rgba(107,153,255,0.6)");
+      labelLine("HOST ADDRESS", 448, py + 10, 190); labelLine("PORT", 650, py + 10, 92);
+      field(448, py + 36, 190, "100.88.12.4"); field(650, py + 36, 92, "7777");
+      text("Enter to connect", 448, py + 94, 12, "rgba(170,182,210,0.8)", "left", false);
+      g.restore();
+    }
+    // The plot window: your character, aiming at the cursor.
+    const P = { x: 760, y: 196, w: 430, h: 400 };
+    rr(P.x, P.y, P.w, P.h, 12); g.fillStyle = "rgba(10,12,20,0.75)"; g.fill(); g.strokeStyle = "rgba(107,153,255,0.35)"; g.lineWidth = 1; g.stroke();
+    plotCorners(P.x, P.y, P.w, P.h, 0.6, 18, 6);
+    g.save(); rr(P.x, P.y, P.w, P.h, 12); g.clip();
+    g.strokeStyle = "rgba(90,110,180,0.16)"; g.lineWidth = 1;
+    for (let x = P.x + 20; x < P.x + P.w; x += 30) { g.beginPath(); g.moveTo(x, P.y); g.lineTo(x, P.y + P.h); g.stroke(); }
+    for (let y = P.y + 20; y < P.y + P.h; y += 30) { g.beginPath(); g.moveTo(P.x, y); g.lineTo(P.x + P.w, y); g.stroke(); }
+    const cx = P.x + P.w / 2, cy = P.y + P.h / 2 + 20;
+    character(cx, cy, t, 26);
+    g.restore();
+    // Name tag over the window.
+    const nk = hv("name");
+    rr(P.x + P.w / 2 - 95, P.y - 18, 190, 36, 18); g.fillStyle = rgba(mix([14, 18, 30], BLUE, 0.15 * nk), 0.97); g.fill(); g.strokeStyle = rgba(BLUE, 0.4 + 0.4 * nk); g.lineWidth = 1.2; g.stroke();
+    text("Anthony", P.x + P.w / 2 - 12, P.y, 17, "#fff", "center"); icon("pen", P.x + P.w / 2 + 50, P.y - 11, 22, rgba(BLUE, 0.6 + 0.4 * nk), false);
+    hit("name", P.x + P.w / 2 - 95, P.y - 18, 190, 36);
+    text("Knight · DPS  ·  last played", P.x + P.w / 2, P.y + P.h - 22, 13, "rgba(255,200,160,0.85)", "center");
+  }
+  /// Your character, the game's look: a circle, a rim, a visor and the weapon line, aiming at the mouse.
+  function character(cx, cy, t, r) {
+    const aim = mouse.x >= 0 ? Math.atan2(mouse.y - cy, mouse.x - cx) : -0.5 + Math.sin(t) * 0.6;
+    const bob = Math.sin(t * 2.2) * 1.5;
+    g.save(); g.translate(cx, cy + bob);
+    g.fillStyle = "rgba(0,0,0,0.35)"; g.beginPath(); g.ellipse(0, r * 0.9 - bob, r * 0.9, r * 0.3, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgb(115,63,29)"; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "rgb(255,140,64)"; g.lineWidth = 4; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = "rgba(209,224,255,0.8)"; g.lineWidth = 3.5; g.beginPath(); g.arc(0, 0, r * 0.62, aim - 0.9, aim + 0.9); g.stroke();
+    // A blade held out to the side.
+    const sx = Math.cos(aim + 1.2) * r * 0.75, sy = Math.sin(aim + 1.2) * r * 0.75;
+    g.strokeStyle = "rgba(209,224,255,0.95)"; g.lineWidth = 4; g.lineCap = "round";
+    g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx + Math.cos(aim) * r * 1.7, sy + Math.sin(aim) * r * 1.7); g.stroke(); g.lineCap = "butt";
+    g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgb(255,140,64)"; g.beginPath(); g.arc(0, 0, 2.5, 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+
+  // --- C: Origin hub -----------------------------------------------------------------------------------------------
+  function dHub(t) {
+    title(640, 72, 48);
+    const O = { x: 640, y: 392 };
+    axisH(70, 1210, O.y, O.x, t);
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6; g.beginPath(); g.moveTo(O.x, 130); g.lineTo(O.x, 670); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.6); g.lineWidth = 1.5; g.beginPath(); g.moveTo(O.x, 130); g.lineTo(O.x, 670); g.stroke();
+    g.fillStyle = rgba(BLUE, 0.9); g.beginPath(); g.moveTo(O.x, 122); g.lineTo(O.x - 5, 133); g.lineTo(O.x + 5, 133); g.fill();
+    for (let y = O.y - 24, i = 1; y > 140; y -= 24, i++) for (const yy of [y, O.y + (O.y - y)]) if (yy < 664) { g.strokeStyle = rgba(BLUE, 0.5); g.lineWidth = 1.2; const l = i % 4 === 0 ? 6 : 3; g.beginPath(); g.moveTo(O.x - l, yy); g.lineTo(O.x + l, yy); g.stroke(); }
+    const quads = [
+      { id: "host", s: "Host game", sub: "Start a run, friends join you", col: [74, 130, 245], ic: "play", q: [1, 1], lbl: "(+, +)" },
+      { id: "join", s: joinOpen ? "Join game" : "Join game", sub: joinOpen ? "" : "Play in a friend's run", col: [130, 140, 175], ic: "arrow", q: [-1, 1], lbl: "(−, +)" },
+      { id: "records", s: "Records", sub: "Best wave 23 · 41 runs", col: [200, 160, 60], ic: "trophy", q: [-1, -1], lbl: "(−, −)" },
+      saves ? { id: "continue", s: "Continue", sub: "Wave " + SAVE.wave + " · " + SAVE.time + " · +1 more", col: SAVE_COL, ic: "resume", q: [1, -1], lbl: "(+, −)" }
+            : { id: "continue", s: "Continue", sub: "No saved runs yet", col: [80, 90, 110], ic: "resume", q: [1, -1], lbl: "(+, −)", off: true },
+    ];
+    const CW = 300, CH = 130, GAP = 46;
+    for (const qd of quads) {
+      const k = hv(qd.id) * (qd.off ? 0.3 : 1);
+      const x = qd.q[0] > 0 ? O.x + GAP : O.x - GAP - CW, y = qd.q[1] > 0 ? O.y - GAP - CH : O.y + GAP;
+      const nearX = qd.q[0] > 0 ? x : x + CW, nearY = qd.q[1] > 0 ? y + CH : y;
+      if (k > 0) {
+        // The vector from the origin to the card.
+        const ex = O.x + (nearX - O.x) * ease(k), ey = O.y + (nearY - O.y) * ease(k);
+        g.strokeStyle = rgba(qd.col, 0.9); g.lineWidth = 2.5; g.beginPath(); g.moveTo(O.x, O.y); g.lineTo(ex, ey); g.stroke();
+        const a = Math.atan2(ey - O.y, ex - O.x);
+        g.fillStyle = rgba(qd.col, 1); g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex - Math.cos(a - 0.4) * 11, ey - Math.sin(a - 0.4) * 11); g.lineTo(ex - Math.cos(a + 0.4) * 11, ey - Math.sin(a + 0.4) * 11); g.fill();
+      }
+      g.save(); g.translate(qd.q[0] * 6 * k, -qd.q[1] * 6 * k);
+      rr(x, y, CW, CH, 12);
+      const gr = g.createLinearGradient(0, y, 0, y + CH); gr.addColorStop(0, rgba(mix([28, 33, 50], qd.col, 0.18 + 0.22 * k), 0.95)); gr.addColorStop(1, rgba(mix([20, 23, 35], qd.col, 0.08 + 0.12 * k), 0.95));
+      g.fillStyle = gr; g.fill(); g.strokeStyle = rgba(qd.col, qd.off ? 0.3 : 0.5 + 0.45 * k); g.lineWidth = 1.5; g.stroke();
+      icon(qd.ic, x + 22, y + 24, 40, rgba(mix(qd.col, [255, 255, 255], 0.35), qd.off ? 0.4 : 1), false);
+      shadowText(qd.s, x + 76, y + 44, 24, qd.off ? "rgba(255,255,255,0.4)" : "#fff");
+      if (qd.sub) text(qd.sub, x + 76, y + 72, 13, `rgba(205,215,235,${qd.off ? 0.4 : 0.8})`, "left", false);
+      text(qd.lbl, qd.q[0] > 0 ? x + CW - 14 : x + 14, y + CH - 18, 12, rgba(qd.col, 0.45 + 0.5 * k), qd.q[0] > 0 ? "right" : "left", false, "'IBM Plex Mono', monospace");
+      if (qd.id === "join" && joinK > 0) {
+        g.globalAlpha = ease(joinK);
+        field(x + 76, y + 62, 140, "100.88.12.4", 32); field(x + 222, y + 62, 62, "7777", 32);
+        text("Enter to connect", x + 76, y + 108, 11.5, "rgba(190,200,225,0.75)", "left", false);
+      }
+      g.restore();
+      if (!qd.off) hit(qd.id, x, y, CW, CH);
+    }
+    // Your name at the origin.
+    const nk = hv("name"), p = 0.5 + 0.5 * Math.sin(t * 2.4);
+    g.strokeStyle = rgba(BLUE, 0.25 + 0.2 * p); g.lineWidth = 1.5; g.beginPath(); g.arc(O.x, O.y, 26 + 4 * p, 0, Math.PI * 2); g.stroke();
+    rr(O.x - 64, O.y - 17, 128, 34, 17); g.fillStyle = rgba(mix([14, 18, 30], BLUE, 0.2 * nk), 0.97); g.fill(); g.strokeStyle = rgba(BLUE, 0.5 + 0.4 * nk); g.lineWidth = 1.2; g.stroke();
+    text("Anthony", O.x - 8, O.y + 1, 15, "#fff", "center"); icon("pen", O.x + 34, O.y - 9, 18, rgba(BLUE, 0.6 + 0.4 * nk), false);
+    hit("name", O.x - 64, O.y - 17, 128, 34);
+    text("(0, 0)", O.x + 10, O.y + 32, 11, "rgba(170,200,255,0.6)", "left", false, "'IBM Plex Mono', monospace");
+    quietButton("quit", 70, O.y + 18, 120, 36, "Quit", [255, 100, 110], "power", 14);
+    quietButton("settings", 1090, O.y + 18, 130, 36, "Settings", [150, 180, 255], "gear", 14);
+  }
+
+  // --- D: Big play -------------------------------------------------------------------------------------------------
+  const LINES = ["Best run: wave 23 · downed by the Lich", "The Warden's searchlight blinds it too. Use that.", "Bosses have 10% more health. Sorry.", "2 saved runs waiting · newest at wave 14"];
+  function dPlay(t) {
+    // A shot's arc over the title, with the shot travelling along it.
+    const ax0 = 250, ax1 = 1030, top = 70, base = 210;
+    g.save(); g.strokeStyle = rgba(BLUE, 0.35); g.lineWidth = 1.5; g.setLineDash([6, 7]); g.beginPath();
+    for (let i = 0; i <= 60; i++) { const u = i / 60, x = ax0 + (ax1 - ax0) * u, y = base - (base - top) * 4 * u * (1 - u); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke(); g.restore();
+    const u = (t * 0.22) % 1, bx = ax0 + (ax1 - ax0) * u, by = base - (base - top) * 4 * u * (1 - u);
+    g.save(); g.globalCompositeOperation = "lighter";
+    for (let i = 6; i >= 0; i--) { const uu = Math.max(0, u - i * 0.008), xx = ax0 + (ax1 - ax0) * uu, yy = base - (base - top) * 4 * uu * (1 - uu); g.fillStyle = `rgba(255,120,150,${0.12 + 0.5 * (1 - i / 6)})`; g.beginPath(); g.arc(xx, yy, 5 - i * 0.5, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    text("y = −x² + 1", ax1 + 14, base + 2, 12, "rgba(170,200,255,0.5)", "left", false, "'IBM Plex Mono', monospace");
+    title(640, 174, 74);
+    axisH(250, 1030, 236, 640, t, true);
+    const li = Math.floor(t / 4) % LINES.length, la = clamp01(Math.min((t % 4) / 0.4, (4 - (t % 4)) / 0.4));
+    text(LINES[li], 640, 268, 15, `rgba(190,205,235,${0.85 * la})`, "center", false);
+    // The big button.
+    const pk = hv("host"), pulse = 0.5 + 0.5 * Math.sin(t * 2.5);
+    g.save(); g.shadowColor = `rgba(92,153,255,${0.45 + 0.3 * pulse + 0.3 * pk})`; g.shadowBlur = 26 + 14 * pulse;
+    rr(450, 314, 380, 82, 14); g.fillStyle = "rgba(74,130,245,0.9)"; g.fill(); g.restore();
+    fancyButton("host", 450, 314, 380, 82, "HOST GAME", [74, 130, 245], "play", 30);
+    fancyButton("join", 450, 414, 186, 52, joinOpen ? "Join  ▴" : "Join game", [76, 84, 112], "arrow", 18);
+    fancyButton("continue", 644, 414, 186, 52, saves ? "Continue" : "No saves", saves ? SAVE_COL : [56, 62, 80], "resume", 18);
+    if (saves) text("wave " + SAVE.wave + " · " + SAVE.time, 737, 480, 12, "rgba(170,215,190,0.8)", "center", false);
+    if (joinK > 0) {
+      g.save(); g.globalAlpha = ease(joinK);
+      panel(450, 494, 380, 64, "rgba(107,153,255,0.5)");
+      field(464, 507, 230, "100.88.12.4"); field(702, 507, 112, "7777");
+      g.restore();
+    }
+    // The bottom bar.
+    g.fillStyle = "rgba(8,10,16,0.82)"; g.fillRect(0, 650, W, 70); g.fillStyle = "rgba(107,153,255,0.3)"; g.fillRect(0, 650, W, 1);
+    const nk = hv("name");
+    rr(28, 666, 186, 38, 19); g.fillStyle = rgba(mix([14, 18, 30], BLUE, 0.2 * nk), 1); g.fill(); g.strokeStyle = rgba(BLUE, 0.4 + 0.4 * nk); g.lineWidth = 1.2; g.stroke();
+    g.save(); g.beginPath(); g.arc(50, 685, 15, 0, Math.PI * 2); g.clip(); character(50, 685, t * 0.6, 8); g.restore();
+    text("Anthony", 80, 685, 15, "#fff"); icon("pen", 178, 675, 20, rgba(BLUE, 0.6 + 0.4 * nk), false);
+    hit("name", 28, 666, 186, 38);
+    quietButton("records", 520, 666, 120, 38, "Records", [255, 200, 90], "trophy", 14);
+    quietButton("settings", 650, 666, 120, 38, "Settings", [150, 180, 255], "gear", 14);
+    quietButton("quit", 1132, 666, 120, 38, "Quit", [255, 100, 110], "power", 14);
+  }
+
+  const DRAW = { today: dToday, card: dCard, rail: dRail, hub: dHub, play: dPlay };
+  const ACTION = { host: "Host game: opens the lobby", connect: "Connect: joins the host", continue: "Continue: the saved runs", records: "Records", settings: "Settings", quit: "Quit the game", name: "Edit your name" };
+
+  // --- Loop and input -----------------------------------------------------------------------------------------------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const t = now / 1000;
+    joinK = Math.max(0, Math.min(1, joinK + (joinOpen ? dt : -dt) / 0.22));
+    for (const id of new Set([...Object.keys(hoverT), ...(hoverId ? [hoverId] : [])])) hoverT[id] = Math.max(0, Math.min(1, (hoverT[id] || 0) + (id === hoverId ? dt : -dt) / 0.14));
+    hits = [];
+    background(t);
+    DRAW[design](t);
+    if (toast && t - toast.t < 1.6) {
+      const a = clamp01(Math.min((t - toast.t) / 0.15, (1.6 - (t - toast.t)) / 0.3));
+      g.save(); g.globalAlpha = a; g.font = `600 15px Barlow, ${GF}`;
+      const tw = g.measureText(toast.s).width + 36;
+      rr(W / 2 - tw / 2, 600 - 8 * (1 - a), tw, 36, 18); g.fillStyle = "rgba(18,24,38,0.96)"; g.fill(); g.strokeStyle = "rgba(111,227,196,0.6)"; g.lineWidth = 1; g.stroke();
+      g.fillStyle = "#e7eef3"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(toast.s, W / 2, 618 - 8 * (1 - a)); g.restore();
+    }
+    const d = DESIGNS.find(x => x.id === design);
+    g.font = "600 13px Oxanium, 'Segoe UI', sans-serif"; g.textAlign = "left"; g.textBaseline = "top"; g.fillStyle = "rgba(146,161,173,0.85)";
+    g.fillText(d.name.toUpperCase(), 18, design === "play" ? 16 : 16);
+    // Hover: the topmost hit region under the mouse.
+    let h = null; for (const r of hits) if (mouse.x >= r.x && mouse.x <= r.x + r.w && mouse.y >= r.y && mouse.y <= r.y + r.h) h = r.id;
+    hoverId = h; cv.style.cursor = h ? "pointer" : "default";
+    requestAnimationFrame(frame);
+  }
+  const toCanvas = e => { const b = cv.getBoundingClientRect(); return { x: (e.clientX - b.left) * W / b.width, y: (e.clientY - b.top) * H / b.height }; };
+  cv.addEventListener("mousemove", e => { mouse = toCanvas(e); });
+  cv.addEventListener("mouseleave", () => { mouse = { x: -1, y: -1 }; });
+  cv.addEventListener("click", e => {
+    mouse = toCanvas(e);
+    let h = null; for (const r of hits) if (mouse.x >= r.x && mouse.x <= r.x + r.w && mouse.y >= r.y && mouse.y <= r.y + r.h) h = r.id;
+    if (!h) return;
+    if (h === "join") { joinOpen = design === "today" ? false : !joinOpen; if (design === "today") toast = { s: "Join game: connects to the address above", t: performance.now() / 1000 }; return; }
+    toast = { s: ACTION[h] || h, t: performance.now() / 1000 };
+  });
+
+  function setDesign(id) {
+    design = id; joinOpen = false; joinK = 0;
+    document.querySelectorAll("#designs button").forEach(b => b.classList.toggle("on", b.dataset.v === id));
+    document.querySelectorAll(".card").forEach(c => c.classList.toggle("on", c.dataset.v === id));
+    try { localStorage.setItem("menu-redesign", id); } catch (e) {}
+  }
+  const segD = document.getElementById("designs"), cards = document.getElementById("cards");
+  for (const d of DESIGNS) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = d.id; b.textContent = d.name; b.onclick = () => setDesign(d.id); segD.appendChild(b);
+    const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.v = d.id; c.style.setProperty("--c", d.c);
+    c.innerHTML = `<div class="hd"><b class="n"></b><span class="tag"></span></div><p class="sum"></p><dl><dt>Good</dt><dd class="g"></dd><dt>Cost</dt><dd class="k"></dd></dl>`;
+    c.querySelector(".n").textContent = d.name; c.querySelector(".tag").textContent = d.tag; c.querySelector(".sum").textContent = d.sum;
+    c.querySelector(".g").textContent = d.good; c.querySelector(".k").textContent = d.cost;
+    c.onclick = () => { setDesign(d.id); window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
+    cards.appendChild(c);
+  }
+  const sv = document.getElementById("saves"); sv.onchange = () => { saves = sv.checked; };
+  let saved = null; try { saved = localStorage.getItem("menu-redesign"); } catch (e) {}
+  setDesign(DESIGNS.some(d => d.id === saved) ? saved : "card");
+  requestAnimationFrame(frame);
+})();
+</script>
