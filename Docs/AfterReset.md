@@ -97,6 +97,11 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
+- [ ] **Zombie enemies for Zombie Infection.** Mockup: `Docs/Mockups/zombie-enemies.html` (published:
+      https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
+      (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs
+      that leave acid puddles), Crawler (trapezoid, grabs and roots the player). Waiting for the owner's go-ahead or
+      changes; then build them as new EnemyTypes replacing the stand-ins.
 - [x] **Wave editor** (option B, timeline) in F1 → Tools. Next: a script that turns `.waves` files into generated code
       for final builds, then let hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
