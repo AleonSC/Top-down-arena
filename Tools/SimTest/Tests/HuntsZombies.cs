@@ -175,3 +175,24 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 }
+
+static partial class Program
+{
+    /// A shot fired in the same tick as the enemy bullets are cleared (a wave won, a boss changing stage) must not
+    /// reach the clients after the clear: it would stay on their screens and never go (it did, from the Duelist's blades).
+    static void ClearGhostsTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var s = StartBuffed(dt, 3, 0);
+        var g = s[0].Game;
+        Run(s, dt, 8f, () => g.State == MatchState.Fighting, () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
+        var spawn = typeof(Game).GetMethod("SpawnBullet", flags);
+        var b = (Bullet)spawn.Invoke(g, new object[] { Defs.SmallShot, new V2(800f, 450f), new V2(50f, 0f), 0f, 8f, 5f, 0, true, 0f });
+        typeof(Game).GetMethod("WaveCleared", flags).Invoke(g, null);  // clears the enemy bullets and tells everyone, before the tick's spawns go out
+        Run(s, dt, 1f);
+        bool hostGone = !g.Bullets.ContainsKey(b.Id), clientGone = !s[1].Game.Bullets.ContainsKey(b.Id);
+        Console.WriteLine("  shot fired then cleared in one tick: gone on the host {0}, on the client {1}; ghosts {2}", hostGone, clientGone, Ghosts(s));
+        Check(hostGone && clientGone && Ghosts(s) == 0, "a shot fired in the same tick enemy bullets are cleared doesn't linger on the client");
+        s[0].Leave(""); s[1].Leave("");
+    }
+}

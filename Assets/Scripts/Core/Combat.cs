@@ -1109,6 +1109,10 @@ namespace Arena
                 }
             foreach (int id in scratchIds)
                 Bullets.Remove(id);
+            // Host: shots fired earlier this tick haven't gone out yet, and their Msg.Spawn is sent at the end of the tick,
+            // after the clear message. Sent, they'd turn up on the clients after the clear and never go (ghost bullets),
+            // so they're dropped from the queue too.
+            pendingSpawns.RemoveAll(b => !Bullets.ContainsKey(b.Id));
         }
     }
 }
