@@ -250,7 +250,6 @@ static partial class Program
             me.Stats.ExtraShots = extra;
             me.AmmoUsed = 0;
             me.ReloadT = 0f;
-            me.TotemCd = 0f;
             me.CompanionCd = 0f;
             int spawned = 0, totems = 0;  // totems: now the most ink dots down at once (Spirit Chalk's extra projectiles are more ink)
             var seen = new HashSet<int>();

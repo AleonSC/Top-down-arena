@@ -232,12 +232,12 @@ namespace Arena
             }
         }
 
-        // --- Healer kit: the Censer's incense, Sprite Staff seeds, Totem Staff charge, Ofuda wards ---------
+        // --- Healer kit: the Censer's incense, Sprite Staff seeds, Ofuda wards ---------
 
         public const float IncenseStep = 45f, IncenseRadius = 45f, IncenseTime = 3f, IncenseStray = 0.35f;  // dropped every IncenseStep you move; enemy shots fired inside stray this far either side
         public const int FireflyHops = 2;  // a firefly hops this many times: three enemies seeded from one shot
         public const float FireflyReach = 300f, FireflySpeed = 860f;
-        public const float SeedTime = 4f, SpriteFreed = 6f, TotemThrow = 400f, TotemCharge = 6f, TotemPulse = 25f, TotemReach = 150f;
+        public const float SeedTime = 4f, SpriteFreed = 6f;
         public const int FreedCap = 4;
 
         bool InIncense(V2 pos)
@@ -248,7 +248,7 @@ namespace Arena
             return false;
         }
 
-        /// A seed hit something: a Sprite Staff seed sticks in it; a Totem Staff seed charges your totems near it.
+        /// A seed (or firefly) hit something: it sticks in the enemy, which a kill then turns into a freed sprite.
         void SeedHit(Bullet b, Enemy e)
         {
             Player p;
@@ -553,47 +553,6 @@ namespace Arena
                 p.Orbiters--;
                 p.LaunchCd = LaunchEvery / (1f + 0.35f * ExtraShots(p));  // more missiles a cast: they launch faster too
             }
-        }
-
-        // --- Prism Beam: refraction --------------------------------------------------------------
-
-        public const float RefractFan = 0.28f, RefractLife = 0.3f;  // the split beams fan this far either side; they fly at least this long
-
-        readonly List<Bullet> refracts = new List<Bullet>();
-
-        /// After Collide's pass: each refracted Prism Beam becomes three, fanned out.
-        void SplitRefracted()
-        {
-            foreach (var b in refracts)
-            {
-                Player owner = PlayerOrNull(b.Owner);
-                float a = b.Vel.Angle, speed = b.Vel.Length / (owner != null ? owner.Stats.ShotSpeedMult : 1f);  // SpawnBullet adds Velocity Rounds back
-                for (int k = -1; k <= 1; k++)
-                {
-                    var s = SpawnBullet(b.Kind, b.Pos, V2.FromAngle(a + k * RefractFan) * speed, 0f, b.Life, b.Dmg, b.Owner);
-                    s.Dmg = b.Dmg;  // the same beam, split: no upgrade applies twice
-                    s.LastHit = b.LastHit;
-                }
-                AddFx(FxKind.Spark, b.Pos, new Rgba(0.9f, 0.85f, 1f), 14f, 0.2f);
-            }
-            refracts.Clear();
-        }
-
-        /// A Prism Beam passing through an ally: it heals them (if hurt) and splits into three beams carrying on
-        /// beyond them. The split beams don't split again.
-        bool RefractThroughAlly(Bullet b)
-        {
-            foreach (var q in Players.Values)
-            {
-                float r = q.Def.BodyR + b.Radius;
-                if (q.Id == b.Owner || q.Downed || b.Pos.DistanceSq(q.Pos) >= r * r)
-                    continue;
-                if (q.Hp < q.MaxHp)
-                    Heal(q, b.HealAlly * (b.Dmg / 9f), PlayerOrNull(b.Owner));
-                refracts.Add(new Bullet { Kind = b.Kind, Pos = q.Pos + b.Vel.Normalized() * r, Vel = b.Vel, Life = Math.Max(b.Life, RefractLife), Dmg = b.Dmg, Owner = b.Owner, LastHit = b.LastHit });
-                return true;
-            }
-            return false;
         }
 
         // --- Railgun: the ion trail --------------------------------------------------------------

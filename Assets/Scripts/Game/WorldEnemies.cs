@@ -132,12 +132,6 @@ namespace Arena
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 40);
                     Polygon(z.Pos, 9f, 4, MathX.Pi / 4f, c);
                     break;
-                case ZoneKind.Totem:
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.08f), 40);
-                    Polygon(z.Pos, 8f, 6, t, c);
-                    if (z.GuardFrac > 0f)  // a thrown Totem charging from seed hits near it
-                        Arc(z.Pos, 14f, 3f, new Rgba(1f, 1f, 0.7f, 0.85f), 20, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(z.GuardFrac));
-                    break;
                 case ZoneKind.Incense:  // the Censer's trail: soft puffs of smoke drifting up and thinning
                 {
                     for (int k = 0; k < 3; k++)

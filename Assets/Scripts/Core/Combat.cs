@@ -412,7 +412,7 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
                         continue;
                     }
-                    if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
+                    if (b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -599,7 +599,6 @@ namespace Arena
             foreach (var hb in hops)
                 FireflyHop(hb);  // KitWeapons.cs
 
-            SplitRefracted();  // Prism Beams that went through an ally (KitWeapons.cs)
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
             foreach (var f in frags)
             {
@@ -852,7 +851,7 @@ namespace Arena
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
-            SeedHit(b, e);      // Sprite Staff seeds stick; Totem Staff seeds charge totems (KitWeapons.cs)
+            SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
             if (b.Shock > 0)
                 Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (KitWeapons.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
