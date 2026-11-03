@@ -697,7 +697,7 @@ as usual.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
   they're working on (players who can't edit follow along to it). The host can tick **Let others edit** so
   friends can change the waves too.
-- Everyone keeps their own loadout (the **Your loadout** tab).
+- Everyone keeps their own loadout (the **Loadout** tab).
 - **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
   sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
 

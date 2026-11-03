@@ -154,12 +154,14 @@ namespace Arena
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
-            var hunt = session.HuntMode && !practice && session.Resume == null ? Hunts.Get(session.HuntBoss) : null;
-            string[] names = { session.Resume != null ? "Seats" : "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty  ·  " + session.Diff.Name, session.HuntMode && !practice && session.Resume == null ? "Boss hunt  ·  " + (hunt != null ? BossName(hunt.Boss) : "pick one") : null,
-                practice ? null : "Perks" };
+            bool hunt = session.HuntMode && !practice && session.Resume == null;
+            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks); null = not shown.
+            string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks" };
+            // The same order in every mode: the shared tabs, then the mode's own tab at the end.
+            int[] order = { 0, PerkTab, 3, 2, 1, 4 };
             float x = r.x;
-            for (int i = 0; i < names.Length; i++)
+            foreach (int i in order)
             {
                 if (names[i] == null)
                     continue;
