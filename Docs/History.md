@@ -10,6 +10,12 @@ shaded triangles with a smoothstep falloff (`GlowFalloff`), blending continuousl
 Spiral, Synthwave, Orbits, Ember Storm, Frost Peaks, Event Horizon and the rest that use it are affected. `DrawMood`
 (Juice.cs) no longer draws the dark band round the arena's edges (or the Warden searchlight's darker one); the path/boss
 tint and the red hurt corners stay, and so does the game-over/victory vignette in RunEnding.cs.
+**Tracer rounds as in the mockup (Nov 2026), protocol 127 (no change):** owner: not sure the Twin Rifle's tracers glow
+properly. Compared with `Docs/Mockups/projectiles.html` at the same scale: the game drew a 25 px streak of two flat-ended,
+flat-coloured lines and the general bullet glow (0.47), where the mockup has a streak as long as the shot's last 10
+frames, tapering 3 -> 0.6 px and fading 0.8 -> 0, a white 3 px head and a 14 px glow at 0.8. `ShotLooks` now draws the
+mockup's streak (colour per vertex, never longer than the shot has flown: `Life0 - Life`) and `ShotGlow` gives tracers
+(Twin Rifle, Burst SMG) the mockup's glow in the glow pass. Effects off: unchanged (render check IDENTICAL).
 
 **Melee: one effect per Halberd sweep; glow in the lobby preview (Nov 2026), protocol 127 (no change):** owner: the
 Halberd looked like the old design again, and the lobby previews lost their gradients. The Halberd sent one Slash per

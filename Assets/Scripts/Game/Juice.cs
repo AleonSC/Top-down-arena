@@ -672,10 +672,7 @@ namespace Arena
         void DrawGlowPass()
         {
             foreach (var b in game.Bullets.Values)
-            {
-                bool mine = b.Owner != 0;
-                GlowDisc(b.Pos, Mathf.Max(14f, b.Radius * 4.5f), Defs.BulletColor(b.Kind), mine ? 0.47f : 0.5f);
-            }
+                ShotGlow(b);  // ShotLooks.cs
             for (int i = 0; i < partN; i++)
             {
                 var p = parts[i];
