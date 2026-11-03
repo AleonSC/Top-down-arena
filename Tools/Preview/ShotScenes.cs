@@ -6,6 +6,23 @@ static partial class Shot {
   static void PlayerScenes() {
     if (Environment.GetEnvironmentVariable("POSE") != null) { host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; }
     if (Environment.GetEnvironmentVariable("BOW") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 2); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.DrawT = float.Parse(Environment.GetEnvironmentVariable("BOW")); }
+    if (Environment.GetEnvironmentVariable("TREANT") != null) {
+      // The Treant Rod: its Treant rooted with the root to you, and the root lash TREANT=<seconds> into its life (0.15 = fully out).
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.TreantRod); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(450f, 450f); me.Aim = -0.15f;
+      for (int i = 0; i < 150; i++) { me.Pos = me.Disp = new V2(450f, 450f); Step(host); }
+      float age = float.Parse(Environment.GetEnvironmentVariable("TREANT"), System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Effects.Add(new Effect { Kind = FxKind.RootLash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 250f, Color = new Rgba(0.55f, 0.36f, 0.17f), Radius = Game.RootHalfWidth, Dur = Game.RootFxTime, T = age });
+    }
+    if (Environment.GetEnvironmentVariable("FIREFLY") != null) {
+      // The Sprite Staff's fireflies in flight: one just left your staff, one is hopping between enemies.
+      me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.SpriteStaff); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(450f, 450f); me.Aim = -0.15f;
+      var shoot = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
+      shoot.Invoke(host.Game, new object[] { Defs.FireflyShot, me.Pos + V2.FromAngle(me.Aim) * 20f, V2.FromAngle(me.Aim) * 540f, 0f, 1f, 7f, 1, false, 0f });
+      shoot.Invoke(host.Game, new object[] { Defs.FireflyShot, me.Pos + new V2(260f, -150f), V2.FromAngle(0.6f) * 860f, 0f, 1f, 7f, 1, false, 0f });
+      for (int i = 0; i < 6; i++) Step(host);
+    }
     if (Environment.GetEnvironmentVariable("VEIN") != null) {
       // Vein Tether: one beam on an enemy (VEIN=1), or on nothing (VEIN=0).
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.VeinTether); me.Kit = Kit.Hemomancer; host.Game.Bot = false;

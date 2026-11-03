@@ -379,6 +379,7 @@ namespace Arena
             frags.Clear();
             reflects.Clear();
             ricochets.Clear();
+            hops.Clear();
             ResolveSwings();  // Knight melee hits land first, through the same on-hit effects as bullets
             ResolveBeams();   // then Vein Tether's beam ticks (BloodMage.cs)
             ResolveGrasps();  // Leech Tendrils' holds
@@ -469,6 +470,8 @@ namespace Arena
                                     DropSpear(b);  // a Bone Spear drops where it's spent (BloodMage.cs)
                                 if (b.Bounces > 0 && !b.Bolts)  // a piercing shot flung bounce bolts instead
                                     ricochets.Add(b);
+                                if (b.Hops > 0)
+                                    hops.Add(b);
                             }
                             break;
                         }
@@ -592,6 +595,9 @@ namespace Arena
                 nb.Shock = rb.Shock;
                 nb.SlowAmt = rb.SlowAmt;
             }
+
+            foreach (var hb in hops)
+                FireflyHop(hb);  // KitWeapons.cs
 
             SplitRefracted();  // Prism Beams that went through an ally (KitWeapons.cs)
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
@@ -832,6 +838,7 @@ namespace Arena
         readonly List<Bullet> frags = new List<Bullet>();
         readonly List<Bullet> reflects = new List<Bullet>();
         readonly List<Bullet> ricochets = new List<Bullet>();
+        readonly List<Bullet> hops = new List<Bullet>();  // Sprite Staff fireflies that landed and may hop on (KitWeapons.cs)
 
         /// Legendary on-hit effects that spawn things (run after the collision loop).
         void OnBulletHit(Bullet b, Enemy e)

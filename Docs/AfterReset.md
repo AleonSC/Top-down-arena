@@ -7,11 +7,13 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Balance / design
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
-- [ ] **Healer Summoner left-click attacks: waiting for a pick.** The Sprite Staff, Treant Rod and Totem Staff all fire
-      the same seed bolt. Mockup: [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
-      (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8): three new attacks for each, utility kept. Suggested: Sprite
-      Staff B (Firefly Hop), Treant Rod A (Root Lash), Totem Staff B (Drumbeat). Numbers are starting points, to tune
-      with the DPS meter and a target dummy (F1 → DPS) to about 26 a second, then re-run `weapondps write`.
+- [ ] **Healer Summoner left-click attacks.** Picks (Nov 2026), mockup [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
+      (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8):
+      - [x] **Sprite Staff: Firefly Hop.** Built (protocol 130): a firefly seeds what it hits, then hops (up to 2, 300 px) to the
+            nearest enemy that isn't seeded. 7 damage every 0.5 s: ~14 a second on one enemy, ~42 across three.
+      - [x] **Treant Rod: Root Lash**, and the tether to the Treant is now a root too. Built: 250 px line, 15 damage every 0.55 s
+            (~27 a second), heals allies it touches 10. Homing Rounds widen it. Code names (`Vine*`, `TickVines`) are unchanged.
+      - [ ] **Totem Staff: rework into something entirely different.** Mockups of five whole-weapon concepts are being drawn.
 
 ## Visuals
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the

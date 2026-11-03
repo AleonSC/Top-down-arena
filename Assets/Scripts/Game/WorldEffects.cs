@@ -82,6 +82,9 @@ namespace Arena
                 case FxKind.Knock:
                     DrawKnockFx(fx);
                     break;
+                case FxKind.RootLash:
+                    DrawRootLashFx(fx, f);  // RootLook.cs
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;

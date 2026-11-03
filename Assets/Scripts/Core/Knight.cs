@@ -33,6 +33,8 @@ namespace Arena
         public float Hollow;          // a box that skips enemies centred within this distance of the aim line (the splinters miss the icicle's own line)
         public float Slow;            // slows what it hits by this much (as frost shots do)
         public bool DrawCut;          // the Katana's quick-draw cut: a box (HalfWidth) drawn as a long thin slash, not a jab
+        public bool Root;             // the Treant Rod's root lash: a box drawn as a thorny root (FxKind.RootLash) that heals allies inside it
+        public float RootHeal;        // what an ally touched by the lash is healed
     }
 
     /// The Knight: a melee class for every role. Its weapons swing instead of shooting, cutting small
@@ -46,6 +48,7 @@ namespace Arena
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
         public const float LanceHalfWidth = 44f, LanceStun = 1f;
+        public const float RootHalfWidth = 22f, RootHeal = 10f, RootFxTime = 0.5f;  // the Treant Rod's root lash (KitWeapons.cs)
         public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f, SplinterFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a slam on a fixed circle in front of you. Holding charges its damage and stun, never its area.
@@ -358,6 +361,8 @@ namespace Arena
             else if (s.Ice != 0)
                 BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
                     s.Ice == 1 ? IcicleFxTime : SplinterFxTime, Sfx.None);
+            else if (s.Root)
+                BroadcastFx(FxKind.RootLash, origin, origin + dir * s.Reach, new Rgba(0.55f, 0.36f, 0.17f), s.HalfWidth, RootFxTime, Sfx.None);
             else if (s.DrawCut)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
@@ -487,6 +492,16 @@ namespace Arena
                 foreach (var q in Players.Values)
                     if (q.Pos.DistanceTo(origin) < s.HealRange)
                         Heal(q, s.HealSpin, p);
+            if (s.RootHeal > 0f)  // the root lash mends the allies it touches (not you)
+                foreach (var q in Players.Values)
+                {
+                    if (q.Id == p.Id || q.Downed)
+                        continue;
+                    V2 rel = q.Pos - origin;
+                    float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
+                    if (along > -q.Def.BodyR && along < s.Reach + q.Def.BodyR && across < s.HalfWidth + q.Def.BodyR)
+                        Heal(q, s.RootHeal, p);
+                }
 
             if (s.Deflect)
                 DeflectBullets(p, origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, s.HalfArc);

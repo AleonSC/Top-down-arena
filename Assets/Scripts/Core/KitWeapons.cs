@@ -164,12 +164,25 @@ namespace Arena
                     SendImps(p, BowCharge(p, p.BowShotDraw));  // a tap sends them; held to full, they merge into one big imp
                     break;
                 case WeaponId.SpriteStaff:
+                    // A firefly: seeds the enemy it hits, then hops on to the nearest enemy that isn't seeded (FireflyHop).
+                    SpawnBullet(Defs.FireflyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Hops = FireflyHops;
+                    break;
                 case WeaponId.TotemStaff:
                     SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     break;
                 case WeaponId.TreantRod:
-                    SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).HealAlly = 7f;
+                {
+                    // A thorny root whips out along your aim, hits everything on the line and mends the allies it touches.
+                    // (Extra projectiles grow the Treant instead, below.) Homing Rounds widen it rather than cost damage.
+                    dmg *= HomingCost(p);
+                    var root = NewSwing(p, aim, w.Reach, 0f, w.Damage * dmg);
+                    root.HalfWidth = RootHalfWidth * AreaMult(p);
+                    root.Root = true;
+                    root.RootHeal = RootHeal;
+                    root.NoCut = true;
+                    pendingSwings.Add(root);
                     break;
+                }
                 case WeaponId.WispLantern:
                     for (int i = 0; i <= extra; i++)
                         SendWisp(p);  // your wisps are your shots: one a shot, plus one per extra projectile
@@ -223,6 +236,8 @@ namespace Arena
         // --- Healer kit: the Censer's incense, Sprite Staff seeds, Totem Staff charge, Ofuda wards ---------
 
         public const float IncenseStep = 45f, IncenseRadius = 45f, IncenseTime = 3f, IncenseStray = 0.35f;  // dropped every IncenseStep you move; enemy shots fired inside stray this far either side
+        public const int FireflyHops = 2;  // a firefly hops this many times: three enemies seeded from one shot
+        public const float FireflyReach = 300f, FireflySpeed = 860f;
         public const float SeedTime = 4f, SpriteFreed = 6f, TotemThrow = 400f, TotemCharge = 6f, TotemPulse = 25f, TotemReach = 150f;
         public const int FreedCap = 4;
 
@@ -238,7 +253,7 @@ namespace Arena
         void SeedHit(Bullet b, Enemy e)
         {
             Player p;
-            if (b.Kind != Defs.SeedShot || !Players.TryGetValue(b.Owner, out p))
+            if (b.Kind != Defs.SeedShot && b.Kind != Defs.FireflyShot || !Players.TryGetValue(b.Owner, out p))
                 return;
             if (p.Weapon.Id == WeaponId.SpriteStaff)
             {
@@ -259,6 +274,38 @@ namespace Arena
                             BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, TotemReach, 0.5f, Sfx.SpellHoly);
                         }
                     }
+        }
+
+        /// A firefly landed: it carries on to the nearest enemy that isn't seeded yet (hops left in b.Hops), so one shot can
+        /// seed three. Nothing to hop to (everything near is seeded, or dead): it ends there.
+        void FireflyHop(Bullet b)
+        {
+            Player owner;
+            if (!Players.TryGetValue(b.Owner, out owner))
+                return;
+            Enemy next = null;
+            float bestD = FireflyReach * FireflyReach;
+            foreach (var e in Enemies.Values)
+            {
+                if (e.Id == b.LastHit || e.Hp <= 0f || e.SpawnT > 0f || e.Def.Xp == 0 || e.SeededT > 0f && e.SeededBy == b.Owner)
+                    continue;
+                float d = e.Pos.DistanceSq(b.Pos);
+                if (d < bestD)
+                {
+                    next = e;
+                    bestD = d;
+                }
+            }
+            if (next == null)
+                return;
+            V2 to = next.Pos - b.Pos;
+            float dist = to.Length;
+            if (dist < 1f)
+                return;
+            // SpawnBullet applies Velocity Rounds and Homing Rounds' cost again, so hand it the base speed and the uncosted damage.
+            var hop = SpawnBullet(Defs.FireflyShot, b.Pos, to / dist * (FireflySpeed / owner.Stats.ShotSpeedMult), 0f, dist / FireflySpeed + 0.15f, b.Dmg / Math.Max(0.01f, HomingCost(owner)), b.Owner);
+            hop.LastHit = b.LastHit;
+            hop.Hops = b.Hops - 1;
         }
 
         /// A seeded enemy died: a sprite springs from it, healing whoever is hurt for a while.

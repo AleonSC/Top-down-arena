@@ -238,7 +238,7 @@ namespace Arena
                 if (full)
                     Arc(p.Disp, r + 5f, 2f, c.WithAlpha(0.5f), 24);
             }
-            if (p.Weapon.Id == WeaponId.TreantRod)  // the vine from you to your Treant
+            if (p.Weapon.Id == WeaponId.TreantRod)  // the root from you to your Treant (RootLook.cs: the same bark as the lash)
                 foreach (var m in game.Minions.Values)
                     if (m.Owner == p.Id && m.Kind == MinionKind.Treant && m.Companion)
                     {
@@ -246,20 +246,8 @@ namespace Arena
                         float len = to.Length;
                         if (len < 4f)
                             break;
-                        V2 dir = to / len, side = dir.Orthogonal();
-                        int n = Math.Max(3, (int)(len / 16f));
-                        V2 prev = p.Disp;
-                        var vine = new Rgba(0.35f, 0.75f, 0.3f);
-                        for (int i = 1; i <= n; i++)
-                        {
-                            float f = (float)i / n;
-                            V2 at = p.Disp + to * f + side * (Mathf.Sin(f * 12f + t * 2f) * 4f);
-                            Line(prev, at, 3f, vine.WithAlpha(0.85f));
-                            if (i % 3 == 0)  // leaves
-                                Circle(at + side * 4f, 2.5f, new Rgba(0.5f, 0.9f, 0.4f, 0.85f), 6);
-                            prev = at;
-                        }
-                        Line(p.Disp, m.Disp, Game.VineWidth * 2f, vine.WithAlpha(0.06f));
+                        DrawRoot(p.Disp, to / len, len, 5f, 4f, -t * 2f, 0.95f, true, false);
+                        Line(p.Disp, m.Disp, Game.VineWidth * 2f, RootBark.WithAlpha(0.07f));  // how wide it mends and stings
                         break;
                     }
             if (p.Weapon.Id == WeaponId.TwinBlades && p.Combo > 0)  // the Twin Blades' combo: pips round you, glowing once the dash-strike is ready
