@@ -300,6 +300,7 @@ namespace Arena
                 SetAimLine(!aimLine);
             if (Input.GetKeyDown(KeyCode.F3))
                 aimDebug = !aimDebug;  // aim debug overlay
+            DpsMeterKeys();  // F2: the DPS meter (DpsMeterUi.cs)
             TextEditKeys();  // F4: the dev text editor
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)

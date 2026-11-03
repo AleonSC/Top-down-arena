@@ -227,6 +227,9 @@ namespace Arena
         public float BoneDartT, CageT, CageImmuneT;  // host: until the darts fall out; caged (can't move or shoot); until darts count again
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
+        public bool Dummy;                  // host: a target dummy for balancing (DpsTools.cs): never dies, shoots or hurts
+        public float DummyTaken;            // host: damage a dummy has taken since the meter was reset
+        public V2 DummyHome;                // host: where a dummy stands (or patrols about)
         public bool Marked;
         public bool Risen;
         public float FrenzyT;   // host: a Shrieker's scream: 30% faster and set on you (Zombies.cs)

@@ -989,6 +989,7 @@ namespace Arena
             {
                 Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
+                DpsDot(p.Id, Math.Min(dmg, Math.Max(0f, e.Hp)));  // the DPS meter's over-time share (DpsTools.cs)
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
                 e.LastHitBy = by;

@@ -115,7 +115,7 @@ namespace Arena
             int n = 0;
             foreach (var e in Enemies.Values)
             {
-                if (e.Hp <= 0f)
+                if (e.Hp <= 0f || e.Dummy)
                     continue;
                 if (p != null)
                 {
@@ -130,6 +130,7 @@ namespace Arena
                 e.Hp = 0f;
                 n++;
             }
+            DpsSkip();  // (not damage the DPS meter should count)
             if (n > 0)
                 DevUsed((p != null ? p.Name : "Host") + ": killed all " + n + " enemies");
             return n;

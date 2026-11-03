@@ -20,9 +20,9 @@ namespace Arena
 
         static readonly Rect DevPanel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
 
-        static readonly string[] DevTabNames = { "Match", "Players", "Tools" };
-        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves" };
-        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f) };
+        static readonly string[] DevTabNames = { "Match", "Players", "Tools", "DPS" };
+        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves", "Meter and target dummy" };
+        static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f), new Color(1f, 0.62f, 0.3f) };
 
         void DrawDevMenu()
         {
@@ -71,6 +71,9 @@ namespace Arena
                     break;
                 case 1:
                     if (inMatch) DrawDevPlayers(body.x, body.y, body.width, body.yMax); else DevNotInMatch(body, "edit players' stats");
+                    break;
+                case 3:
+                    if (inMatch) DrawDevDps(body); else DevNotInMatch(body, "use the DPS meter and dummies");
                     break;
                 default:
                     DrawDevTools(body);

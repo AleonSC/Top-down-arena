@@ -359,7 +359,7 @@ namespace Arena
                     break;
                 case ChallengeKind.MiniBoss:
                 case ChallengeKind.Mirror:
-                    if (Enemies.Count == 0)
+                    if (Foes() == 0)
                         WinRoom();
                     else if (RoomClock > Challenges.SafetyTime)
                         LoseRoom("took too long");
