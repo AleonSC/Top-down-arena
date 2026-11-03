@@ -28,6 +28,7 @@ namespace Arena
     {
         public const float ChalkSpeed = 700f, ChalkStep = 10f, ChalkLife = 4f, ChalkInk = 600f, ChalkDotR = 11f;
         public const float ChalkBurn = 26f, ChalkSlow = 0.3f, ChalkHeal = 10f, ChalkWear = 0.3f;
+        public const float ChalkErase = 0.3f;  // a dot with less life than this is fading out (erased, or about to expire) and no longer counts as ink down
         public const float ChalkSeal = 3.5f, ChalkCloseDist = 20f, ChalkMinLoopArea = 3600f;  // a loop closes within this of where it began; it holds this long; it must enclose at least about 60 x 60 px
         public const int ChalkMinLoopDots = 12;  // a loop is at least 120 px of line (so a scribble in place doesn't count)
 
@@ -48,7 +49,7 @@ namespace Arena
         class ChalkHand
         {
             public V2 Tip;
-            public bool Down, Broken;  // Broken: out of ink, so the line resumes as a new stroke (not a chord back to where it stopped)
+            public bool Down;
             public int Stroke, LoopFrom;
             public readonly List<InkDot> Dots = new List<InkDot>();
         }
@@ -113,17 +114,7 @@ namespace Arena
             V2 to = target - h.Tip;
             float len = to.Length, move = Math.Min(len, ChalkSpeed * dt);
             V2 end = len > 0.001f ? h.Tip + to / len * move : h.Tip;
-            if (InkCount(p.Id) >= InkCap(p))
-                h.Broken = true;  // out of ink: the chalk keeps following the cursor, but leaves nothing
-            else if (h.Broken)
-            {
-                h.Broken = false;  // the ink is back (a line faded): start again where the chalk is now, held still or not
-                h.Tip = end;
-                BeginStroke(p, h);
-                InkTip[p.Id] = h.Tip;
-                return;
-            }
-            else if (move > 0f)
+            if (move > 0f)
             {
                 V2 last = h.Dots.Count > 0 ? h.Dots[h.Dots.Count - 1].Pos : h.Tip;
                 float gap = last.DistanceTo(end);
@@ -148,19 +139,42 @@ namespace Arena
 
         int InkCap(Player p) => (int)(ChalkInk * (1f + 0.2f * ExtraShots(p)) / ChalkStep);
 
+        /// How much of your ink is down (a dot being erased, or about to fade anyway, no longer counts).
         int InkCount(int owner)
         {
             int n = 0;
             foreach (var d in Ink)
-                if (d.Owner == owner)
+                if (d.Owner == owner && d.T > ChalkErase)
                     n++;
             return n;
         }
 
+        /// At the cap, drawing more rubs out the start of your line: the oldest of your dots fades away to make room. If it was
+        /// part of a sealed loop, that ring is broken and what it held goes free.
+        void EraseOldest(Player p)
+        {
+            int cap = InkCap(p);
+            while (InkCount(p.Id) >= cap)
+            {
+                InkDot oldest = null;
+                foreach (var d in Ink)
+                    if (d.Owner == p.Id && d.T > ChalkErase)
+                    {
+                        oldest = d;
+                        break;
+                    }
+                if (oldest == null)
+                    return;
+                oldest.T = ChalkErase * 0.8f;
+                InkPen pen;
+                if (oldest.Pen != 0 && pens.TryGetValue(oldest.Pen, out pen))
+                    pen.T = 0f;
+            }
+        }
+
         void LayDot(Player p, ChalkHand h, V2 at)
         {
-            if (InkCount(p.Id) >= InkCap(p))
-                return;  // out of ink: it comes back as the line fades
+            EraseOldest(p);
             var dot = new InkDot { Pos = at, T = ChalkLife, Owner = p.Id, Stroke = h.Stroke };
             Ink.Add(dot);
             h.Dots.Add(dot);
@@ -175,7 +189,7 @@ namespace Arena
             for (int j = h.LoopFrom; j <= last - ChalkMinLoopDots; j++)
             {
                 var head = h.Dots[j];
-                if (head.T <= 0f || head.Pos.DistanceTo(tail.Pos) > ChalkCloseDist)
+                if (head.T <= ChalkErase || head.Pos.DistanceTo(tail.Pos) > ChalkCloseDist)
                     continue;
                 var pen = new InkPen { Id = nextPen++, Owner = p.Id, T = ChalkSeal, Dots = last - j + 1 };
                 for (int k = j; k <= last; k++)

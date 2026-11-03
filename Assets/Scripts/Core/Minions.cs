@@ -149,8 +149,8 @@ namespace Arena
                 Desc = "A thorny root whips out from you along your aim (250 px) and snaps back, hitting everything on the line and healing allies it touches. Your Treant roots where it stands and blocks bullets; a root runs from you to it, healing allies who cross it and slowing enemies (it walks after you if you go too far).",
                 Sound = Sfx.SwingLight, AreaDesc = "the lash is 25% wider",
                 Companion = MinionKind.Treant, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line (and the line is 25% wider with Homing Rounds)", Name = "Spirit Chalk", FireInterval = 0.1f,
-                Desc = "Hold and drag to draw a line of spirit ink (up to 450 px from you, 600 px of line at a time; each stroke fades after 4 s and gives its ink back). It burns enemies touching it (26 a second, and slows them), heals allies standing on it (10 a second) and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside for 3.5 s (not bosses).",
+            new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line before the start rubs out", Name = "Spirit Chalk", FireInterval = 0.1f,
+                Desc = "Hold and drag to draw a line of spirit ink (up to 450 px from you; 600 px of line at a time, and draw more and the start of the line rubs out as you go; a line fades after 4 s). It burns enemies touching it (26 a second, and slows them), heals allies standing on it (10 a second) and destroys enemy bullets that cross it. Draw a circle round enemies to trap them inside for 3.5 s (not bosses).",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 Wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
