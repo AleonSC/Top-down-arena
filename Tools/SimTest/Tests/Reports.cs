@@ -472,16 +472,17 @@ static partial class Program
                             if (!weapon.Melee || f % 30 == 0) me.Pos = new V2(800f - range, 450f);
                             foreach (var b in g.Bullets.Values.Where(b => Defs.IsEnemyShot(b.Kind)).ToList()) g.Bullets.Remove(b.Id);
                             foreach (var e in g.Enemies.Values) if (e != target) e.Hp = 0f;
-                            bool fire = true;
+                            bool fire = true, recall = false;
                             if (hold > 0f) { held += dt; if (held > hold) { fire = false; if (held > hold + 0.05f) held = 0f; } }
                             if (weapon.Id == WeaponId.Shuriken)
                             {
-                                // Throw for a while, then double-tap to recall the stuck stars for their second hit.
+                                // Throw for a while, then press the weapon-action key to recall the stuck stars for their second hit.
                                 int c = f % 72;
-                                fire = c < 54 || c == 58 || c == 59 || c == 62 || c == 63;
+                                fire = c < 54;
+                                recall = c >= 58 && c < 62;
                             }
                             host.Poll();
-                            g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = target.Pos });
+                            g.FixedStep(dt, new PlayerInput { Fire = fire, WeaponAction = recall, AimAt = target.Pos });
                             if (f >= 60 * 2) measured += dt;
                         }
                         best = Math.Max(best, (startHp - target.Hp) / measured);

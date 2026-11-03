@@ -48,7 +48,7 @@ static partial class Program
         Action<int, float> place = (id, x) => { var q = (id == 1 ? host : client).Game.Me; q.Pos = q.Disp = new V2(x, 450f); };
         clear(); run(0.3f);
 
-        // Kusarigama: the throw hooks the first enemy in its path; holding fire reels you in to it for a heavy, stunning slash.
+        // Kusarigama: the throw hooks the first enemy in its path; the weapon-action key reels you in to it for a heavy, stunning slash.
         place(1, 400f); run(0.2f);
         var front = dummy(new V2(600f, 450f));
         var behind = dummy(new V2(650f, 450f));
@@ -58,7 +58,7 @@ static partial class Program
         bool clientSawHook = false;
         for (int f = 0; f < 70; f++)
         {
-            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = frontAt }); g.Update(dt);
+            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, WeaponAction = f % 10 < 5, AimAt = frontAt }); g.Update(dt);
             client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
             clear(); pinBoth();
             if (hookedAt < 0f && hp.HookId == front.Id) { hookedAt = f / 60f; hitOnHook = front.MaxHp - front.Hp; behindOnHook = behind.MaxHp - behind.Hp; }
@@ -69,11 +69,11 @@ static partial class Program
         Console.WriteLine("  kusarigama: hooked after {0:0.00} s ({1:0.0}), behind it {2:0.0}; reeled in to {3:0} px of it; slash brought it to {4:0.0}; stunned {5:0.00} s; client saw the hook {6}",
             hookedAt, hitOnHook, behindOnHook, reeled, total, maxStun, clientSawHook);
         Check(hookedAt >= 0f && hitOnHook > 0f && behindOnHook == 0f && clientSawHook, "the Kusarigama's throw hooks the first enemy in its path (not the one behind it), and everyone sees the chain");
-        Check(reeled < front.Radius + hp.Def.BodyR + 20f && total >= hitOnHook * 2.5f && maxStun > 0.3f, "firing while hooked reels you in to it and lands a heavy, stunning slash");
+        Check(reeled < front.Radius + hp.Def.BodyR + 20f && total >= hitOnHook * 2.5f && maxStun > 0.3f, "the weapon-action key while hooked reels you in to it and lands a heavy, stunning slash");
         front.Hp = behind.Hp = 0f; keep.Remove(front); keep.Remove(behind);
         var d1 = dummy(new V2(770f, 450f));
 
-        // Bo Staff: click while moving to vault, striking what you pass; holding or standing still doesn't.
+        // Bo Staff: press the weapon-action key while moving to vault, striking what you pass; holding or standing still doesn't.
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
         place(1, 300f); run(0.3f);
         d1.Pos = new V2(380f, 450f);
@@ -84,7 +84,7 @@ static partial class Program
             float x0 = hp.Pos.X;
             for (int f = 0; f < frames; f++)
             {
-                host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
+                host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = fire, Move = mv, AimAt = hp.Pos + new V2(100f, 0f) }); g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); client.Game.Update(dt);
                 clear(); d1.Pos = new V2(380f, 450f); aside.Pos = new V2(380f, 600f); d1.FireT = aside.FireT = 99f;
             }
@@ -98,8 +98,8 @@ static partial class Program
         Console.WriteLine("  bo staff: vaulted {0:0} px in 11 ticks (walking pace {1:0}), struck the one in its path for {2:0.0}, the one aside {3:0.0}; standing still moved {4:0}",
             vaulted, held, vaultHit, aside.MaxHp - aside.Hp, still);
         Check(vaulted > Game.VaultDist * 0.9f && vaultHit >= hp.Weapon.Damage * Game.VaultMult && aside.Hp == aside.MaxHp,
-            "clicking fire while moving vaults the Bo Staff 150 px, striking everything it passes");
-        Check(held < vaulted * 0.6f && Math.Abs(still) < 2f, "holding fire or standing still doesn't vault");
+            "the weapon-action key while moving vaults the Bo Staff 150 px, striking everything it passes");
+        Check(held < vaulted * 0.6f && Math.Abs(still) < 2f, "holding the key or standing still doesn't vault");
         // The same vault by a joined player: their game moves them and tells the host, which lands the strike.
         var cme = client.Game.Me;
         cp.Weapon = cme.Weapon = Defs.Weapon(Role.Tank, Kit.Ninja, 1);
@@ -109,7 +109,7 @@ static partial class Program
         for (int f = 0; f < 15; f++)
         {
             host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
-            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { Fire = true, Move = new V2(1f, 0f), AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
+            client.Poll(); client.Game.FixedStep(dt, new PlayerInput { WeaponAction = true, Move = new V2(1f, 0f), AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
             Thread.Sleep(1);
             clear(); aside.Pos = new V2(980f, 450f); aside.FireT = 99f;
         }

@@ -411,9 +411,9 @@ namespace Arena
             var take = new Rect(r.x + 16f, r.yMax - 36f, r.width / 2f - 22f, 26f);
             var drop = new Rect(r.x + r.width / 2f + 6f, r.yMax - 36f, r.width / 2f - 22f, 26f);
             Ui.Pill(take, new Color(rc.r, rc.g, rc.b, 0.85f));
-            Ui.Label(take, "G   TAKE", 12, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
+            Ui.Label(take, Keybinds.KeyName(Keybinds.Get(KeyAction.TakeItem)).ToUpperInvariant() + "   TAKE", 12, new Color(0.06f, 0.06f, 0.1f), TextAnchor.MiddleCenter, true);
             Ui.Pill(drop, new Color(1f, 1f, 1f, 0.1f));
-            Ui.Label(drop, "X   DISCARD", 12, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleCenter, true);
+            Ui.Label(drop, Keybinds.KeyName(Keybinds.Get(KeyAction.DiscardItem)).ToUpperInvariant() + "   DISCARD", 12, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleCenter, true);
         }
     }
 }

@@ -867,11 +867,11 @@ namespace Arena
             var stage = GuideIconStage(r, it.Accent, it.Icon, t);
             var chips = new List<KeyValuePair<string, Color>>();
             if (a.Choice == AbilityDef.Ult)
-                chips.Add(Chip("Ultimate · F", it.Accent));
+                chips.Add(Chip("Ultimate · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)), it.Accent));
             else if (a.Choice == AbilityDef.CardOnly)
-                chips.Add(Chip("Bonus · Q / E / Shift", it.Accent));
+                chips.Add(Chip("Bonus · " + Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityQ)) + " / " + Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityE)) + " / " + Keybinds.KeyName(Keybinds.Get(KeyAction.AbilityShift)), it.Accent));
             else
-                chips.Add(Chip("Space", it.Accent));
+                chips.Add(Chip(Keybinds.KeyName(Keybinds.Get(KeyAction.Ability)), it.Accent));
             if (a.Choice != AbilityDef.CardOnly)
                 chips.Add(Chip(Defs.KitName(a.Kit) + " " + Defs.Get(a.Role).Name, ToColor(Defs.Get(a.Role).Color)));
             if (a.Instant)

@@ -18,7 +18,7 @@ namespace Arena
         bool pauseSettings;      // the pause menu showing Settings
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
-        int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay
+        int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int recordsSection;      // 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Unlocks
         int howToTopic;          // HowToTopics
         string drawerKey;        // which window the drawer last slid in for
@@ -575,7 +575,7 @@ namespace Arena
 
         // --- Settings ---------------------------------------------------------------------------------------------------
 
-        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay" };
+        static readonly string[] SettingsGroups = { "Audio", "Visual effects", "Gameplay", "Keybinds" };
 
         /// Settings (main menu, lobby, and the pause menu's Settings): the groups and quick switches in the drawer, the
         /// open group on the right. Visual effects shows a live preview of what they do.
@@ -585,9 +585,11 @@ namespace Arena
             float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
-            string[] icons = { "pulse", "nova", "crosshair" };
-            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port" };
+            string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
+            Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change any key, Left Alt for weapon secondaries" };
+            if (settingsGroup != 3)
+                Keybinds.Listening = -1;  // (leaving the page ends a rebind)
             float y = 128f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -601,17 +603,18 @@ namespace Arena
             Ui.Label(new Rect(42f, y, 200f, 16f), "QUICK", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             var quick = new Rect(40f, y + 22f, DrawerW - 80f, 104f);
             Ui.Pill(quick, new Color(1f, 1f, 1f, 0.03f));
-            bool mute = SwitchRow(new Rect(quick.x + 14f, quick.y + 8f, quick.width - 28f, 40f), sounds.Muted, "Mute all sound", null, "M");
+            bool mute = SwitchRow(new Rect(quick.x + 14f, quick.y + 8f, quick.width - 28f, 40f), sounds.Muted, "Mute all sound", null, Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
             if (mute != sounds.Muted)
             {
                 sounds.Muted = mute;
                 SaveAudioSettings();
             }
-            bool line = SwitchRow(new Rect(quick.x + 14f, quick.y + 56f, quick.width - 28f, 40f), aimLine, "Aim line", null, "V");
+            bool line = SwitchRow(new Rect(quick.x + 14f, quick.y + 56f, quick.width - 28f, 40f), aimLine, "Aim line", null, Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
             if (line != aimLine)
                 SetAimLine(line);
             if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
             {
+                Keybinds.Listening = -1;
                 if (paused)
                     pauseSettings = false;
                 else
@@ -634,7 +637,7 @@ namespace Arena
                     changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
                     changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
                     changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects);
-                    bool m2 = SwitchRow(new Rect(x, y + 6f, w, 44f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", "M");
+                    bool m2 = SwitchRow(new Rect(x, y + 6f, w, 44f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
                     if (m2 != sounds.Muted)
                     {
                         sounds.Muted = m2;
@@ -647,16 +650,19 @@ namespace Arena
                 case 1:
                     DrawFxSection(col, t, k);
                     break;
+                case 3:
+                    DrawKeybindsSection(col, t, k);
+                    break;
                 default:
                 {
                     OpenSectionPanel("GAMEPLAY", col, null, k);
                     float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
                     y = DrawerPanel.y + 84f;
-                    bool l2 = SwitchRow(new Rect(x, y, w, 48f), aimLine, "Aim line", "A line from you toward the cursor, as long as your weapon reaches", "V");
+                    bool l2 = SwitchRow(new Rect(x, y, w, 48f), aimLine, "Aim line", "A line from you toward the cursor, as long as your weapon reaches", Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
                     if (l2 != aimLine)
                         SetAimLine(l2);
                     y += 58f;
-                    bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", "H");
+                    bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", Keybinds.KeyName(Keybinds.Get(KeyAction.ToggleHud)));
                     if (hud != hudShown)
                         hudShown = hud;
                     y += 70f;

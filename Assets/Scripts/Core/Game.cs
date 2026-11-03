@@ -978,7 +978,7 @@ namespace Arena
                 }
             }
 
-            LocalWeaponDash(me, move, firing, dt);  // the Bo Staff's vault and the Kusarigama's reel (Ninja.cs)
+            LocalWeaponDash(me, move, input.WeaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
             me.Pos = KeepInArena(me.Pos, me.Def.BodyR);
             me.FiringSeen = firing;
             me.AimAt = aimAt;
