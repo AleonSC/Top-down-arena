@@ -30,6 +30,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
       a first pass: redraw any of them in `DrawHeld`.
 - [x] **Melee attack animations.** Built (Nov 2026): style E, the weapon models with the energy arc
       (`Game/MeleeLooks.cs`), from [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html).
+- [x] **Repulsion Cannon visuals.** Built: look D, the cannon blast (`RepulseLook.cs`), Nov 2026. Mockup: [`Mockups/repulsion-cannon.html`](Mockups/repulsion-cannon.html)
+      (https://claude.ai/artifact/QutT2bQZmuigHQpx9cX5h3): today's look and four options, A Shockwave, B Light
+      burst, C Force ripples (bends the floor grid), D Cannon blast (smoke, sparks, small kick), at the real 70° / 240 px
+      cone, with optional hit feedback (flash, slide streak, orb). Drawing only (`DrawRepulseFx`), no protocol change.
+      Not built from D: the dust puffs behind hit enemies (needs hit positions in the effect).
 - [x] **Frost Lance visuals.** Built: look A, the crystal spear (`FrostLook.cs`), Nov 2026. Mockup: [`Mockups/frost-lance.html`](Mockups/frost-lance.html)
       (https://claude.ai/artifact/3iseS4yjtmVDriXUxqJoxF): today's look and four options, A Crystal spear, B Frost
       growth, C Glacier, D Aurora lance, at the real 230 px reach and 0.15 s splinter delay, with optional frost on

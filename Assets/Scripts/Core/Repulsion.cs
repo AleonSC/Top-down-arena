@@ -6,6 +6,7 @@ namespace Arena
     /// away, does a little damage, and knocks tiny health orbs loose from what it hits.
     public partial class Game
     {
+        public const float RepulseFxTime = 0.6f;  // how long the blast's effect lives (the smoke); the cone itself is instant
         const float RepelHalfArc = 0.61f;      // 70 degrees across...
         const float RepelArcPerExtra = 0.175f; // ...20 degrees wider per extra projectile
         const float RepelPush = 90f, RepelPushPerExtra = 30f, RepelDmgPerExtra = 2f;
@@ -18,7 +19,7 @@ namespace Arena
             float reach = w.Reach * AreaMult(p) * PierceReach(p), half = (RepelHalfArc + RepelArcPerExtra * extra) * ConeNarrow(p);
             float hit = (w.Damage + RepelDmgPerExtra * extra) * dmg * ConeFocus(p), push = (RepelPush + RepelPushPerExtra * extra) * ConeFocus(p);
             V2 origin = p.Pos;
-            BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, 0.35f, Sfx.Shockwave);
+            BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, RepulseFxTime, Sfx.Shockwave);
             bool any = false;
             foreach (var e in new System.Collections.Generic.List<Enemy>(Enemies.Values))
             {
