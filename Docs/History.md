@@ -3,6 +3,15 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
+Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);
+`Tools/WaveGen/build.sh` compiles `Gen.cs` with the core (leaving the generated file out, `Stub.cs` in its place),
+parses each file with `WaveSet.Parse` and writes `DesignedWaves.Generated.cs` (`Names`, `Build`, one `SetN()` building
+each set with object initialisers), stopping on any problem. `DesignedWaves.Get(name)` (`Core/DesignedWaves.cs`) hands
+out a fresh copy. The wave editor's Load panel lists them under "Built into the game"; in the Unity editor its "Save to
+project" writes to `Data/Waves` (`Application.dataPath/../Data/Waves`). First set: `warden-drills`. Test: `wavegen`
+(files and built-in sets match exactly, a stale build fails it). Not yet used by hunts, approaches or paths.
+
 **Twin Rifle toned down (Nov 2026), no protocol change:** owner, after a zombie run (solo DPS Soldier, waves 1-10,
 about 190 damage taken in 11 minutes): Twin Rifle too strong. It had the top Soldier DPS (155, tied for the game's best)
 with no range downside, and crossfire came almost free. Now 4 per barrel (was 4.7), shots last 0.7 s (about 575 px,

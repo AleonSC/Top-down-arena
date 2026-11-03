@@ -103,8 +103,8 @@ So friends can play without Tailscale or port forwarding.
       that leave acid puddles), Crawler (trapezoid, grabs and roots the player), Bloater (swelling circle, bursts into a slowing cloud), Shrieker
       (diamond, screams to frenzy the horde), Mender (cross, heals and raises the dead faster). Waiting for the owner's go-ahead or
       changes; then build them as new EnemyTypes replacing the stand-ins.
-- [x] **Wave editor** (option B, timeline) in F1 → Tools. Next: a script that turns `.waves` files into generated code
-      for final builds, then let hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
+- [x] **Wave editor** (option B, timeline) in F1 → Tools. Generation script done (`Tools/WaveGen/build.sh`, `Data/Waves`). Next: let
+      hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
       co-op players: [`ZombieInfection.md`](ZombieInfection.md)
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:

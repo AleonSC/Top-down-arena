@@ -255,6 +255,10 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Setup:** the cloud container may not have mono. Install it with
   `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
   Without mono, `check.sh` now fails with a clear message (exit 2); it used to print "OK" anyway.
+- **Designed waves:** `Tools/WaveGen/build.sh` turns `Data/Waves/*.waves` (the F1 wave editor's files) into
+  `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
+  generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
+  `wavegen` suite fails if the generated file is out of date.
 - **Compile check:** `Tools/CompileCheck/check.sh` (mono `mcs` + Unity stubs). If the game starts using a
   Unity member the stubs lack, add it to `Tools/CompileCheck/UnityStubs.cs` **and** `Tools/Preview/Stubs.cs`.
   Missing so far and avoided: `Mathf.Lerp`, `Mathf.Tan` (use `System.Math`).

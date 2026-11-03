@@ -1087,8 +1087,18 @@ wave 6 level 6
   prop crate 610,330
 ```
 
-Plan for final builds: designed waves are turned into generated code by a script (like the Bestiary data), so
-hunts, approaches and paths can use them with no loose files (`Docs/AfterReset.md`).
+**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder (in the Unity
+editor, the Load panel's **Save to project** writes it there), then run
+
+```bash
+Tools/WaveGen/build.sh
+```
+
+It reads every file with the game's own parser and writes `Assets/Scripts/Core/DesignedWaves.Generated.cs`, code that
+builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
+problem stops it with the file, the line and what's wrong, and nothing is written. The Load panel lists the built-in
+sets under **Built into the game** (open one to look at or change a copy). The `wavegen` sim test fails if a file
+was added or changed without running the script. Next: hunts, approaches and paths using them (`Docs/AfterReset.md`).
 
 ### Session recording (for balancing)
 

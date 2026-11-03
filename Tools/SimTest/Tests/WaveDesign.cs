@@ -102,3 +102,33 @@ static partial class Program
         Check(host.DesignTest == null && host.Game.Design == null, "leaving drops the design under test");
     }
 }
+
+static partial class Program
+{
+    /// The designed wave sets built into the game (Tools/WaveGen/build.sh) match their files in Data/Waves exactly:
+    /// fails if a file was added, changed or removed without running the script.
+    static void WaveGenTest()
+    {
+        string dir = System.IO.Path.Combine("..", "..", "Data", "Waves");
+        var files = System.IO.Directory.Exists(dir) ? System.IO.Directory.GetFiles(dir, "*.waves").Select(System.IO.Path.GetFileNameWithoutExtension).OrderBy(n => n, StringComparer.Ordinal).ToArray() : new string[0];
+        var built = DesignedWaves.Names.OrderBy(n => n, StringComparer.Ordinal).ToArray();
+        Console.WriteLine("  Data/Waves: {0}; built in: {1}", string.Join(", ", files), string.Join(", ", built));
+        Check(files.SequenceEqual(built), "every .waves file in Data/Waves is built into the game, and nothing else (run Tools/WaveGen/build.sh)");
+        var stale = new List<string>();
+        foreach (var name in built.Intersect(files))
+        {
+            List<string> problems;
+            var fromFile = WaveSet.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(dir, name + ".waves")), out problems);
+            var inGame = DesignedWaves.Get(name);
+            if (problems.Count > 0 || inGame == null || inGame.ToText() != fromFile.ToText())
+                stale.Add(name);
+        }
+        Check(stale.Count == 0, "each built-in wave set matches its file exactly" + (stale.Count > 0 ? " (out of date: " + string.Join(", ", stale) + "; run Tools/WaveGen/build.sh)" : ""));
+        var a = DesignedWaves.Get(built.FirstOrDefault() ?? "");
+        if (a != null)
+        {
+            a.Waves.Clear();
+            Check(DesignedWaves.Get(built[0]).Waves.Count > 0 && DesignedWaves.Get("no such set") == null, "Get hands out a fresh copy each time (and null for an unknown name)");
+        }
+    }
+}
