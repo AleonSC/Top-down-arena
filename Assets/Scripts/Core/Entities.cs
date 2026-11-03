@@ -141,7 +141,7 @@ namespace Arena
         public int ArcaneBy;                     // host: who cast it
         public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
         public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
-        public readonly float[] HpHistory = new float[16];   // host: Time Rewind (every 0.25 s)
+        public readonly float[] HpHistory = new float[16];   // host: unused since Time Rewind was replaced by Healing Rain (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
         public int HistoryIdx;
         public float LinkT;   // Soul Link: protecting LinkTo
@@ -333,6 +333,7 @@ namespace Arena
         public float DmgMult = 1f;  // host: owner's damage multiplier when cast
         public float HealMult = 1f; // host: the casting ability's mastery
         public float ExtraSlow;     // host: mastered Flame Wall also slows
+        public float ExtraRevive;   // host: mastered Healing Rain revives downed allies inside this much faster (1 = twice as fast)
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
         public float DamageCut;     // host: mastered Haven: allies inside take less damage
         public bool Embers;         // host: a mastered Meteor leaves burning ground

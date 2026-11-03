@@ -1,6 +1,6 @@
 # Healing Rain: design note
 
-Status: **design only, nothing built yet.** It replaces **Time Rewind**, the Healer Elementalist's first ability
+Status: **built** (protocol 130). Decisions below were taken as recommended; the old Time Rewind code listed under "Dead code" is still in place. It replaces **Time Rewind**, the Healer Elementalist's first ability
 (Healer · Choice 0). Look chosen by the owner: **Verdant Bloom** (`Docs/Mockups/healing-rain.html`, option B).
 Numbers below are first guesses to tune in play-testing.
 

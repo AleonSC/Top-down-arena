@@ -79,9 +79,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.TimeRewind, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0, Instant = true,
-                Name = "Time Rewind", Cooldown = 22f, Desc = "Set everyone's health back to where it was 4 s ago, even undoing a downing.",
-                Capstone = "Also erases enemy bullets around every player.",
+                Id = AbilityId.HealingRain, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0,
+                Name = "Healing Rain", Cooldown = 16f, Desc = "A rain at your cursor for 6 s: heals allies inside 8 HP/s and slows enemies by 30%.",
+                Capstone = "Lasts 10 s, and downed allies inside revive twice as fast.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
@@ -260,30 +260,9 @@ namespace Arena
                     AddZone(ZoneKind.FlameWall, p, target, 90f, 5f).ExtraSlow = cap ? 0.4f : 0f;
                     BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.FlameWall).Color, 90f, 0.4f, Sfx.SpellFire);
                     break;
-                case AbilityId.TimeRewind:
-                    foreach (var q in Players.Values)
-                    {
-                        // The oldest entry in the ring buffer is from 4 seconds ago.
-                        float hpThen = q.HpHistory[q.HistoryIdx];
-                        bool downThen = q.DownHistory[q.HistoryIdx];
-                        if (q.Downed && !downThen)
-                        {
-                            q.Downed = false;
-                            q.Revive = 0f;
-                            q.InvulnT = 1.5f;
-                            q.Hp = Math.Max(1f, hpThen);
-                        }
-                        else if (!q.Downed)
-                            q.Hp = Math.Max(q.Hp, Math.Min(q.MaxHp, hpThen));
-                        if (!q.Downed)
-                            castHits++;
-                        if (cap)
-                            EraseEnemyBullets(q.Pos, 200f);
-                        BroadcastFx(FxKind.Rewind, q.Pos, new V2(q.Id, 0f), Defs.BulletColor(Defs.ArcaneShot), q.Def.BodyR + 16f, 0.8f, Sfx.None);  // its clock turned back
-                        if (q != p)
-                            BroadcastFx(FxKind.Link, p.Pos, q.Pos, Defs.BulletColor(Defs.ArcaneShot), 0f, 0.5f, Sfx.None);
-                    }
-                    Sounds.Add(Sfx.Ability);
+                case AbilityId.HealingRain:
+                    AddZone(ZoneKind.HealingRain, p, target, 130f, cap ? 10f : 6f).ExtraRevive = cap ? 1f : 0f;
+                    BroadcastFx(FxKind.Ring, target, Kits.Get(ZoneKind.HealingRain).Color, 130f, 0.4f, Sfx.SpellHoly);
                     break;
                 case AbilityId.ArcaneWard:
                     foreach (var q in Players.Values)
@@ -845,9 +824,9 @@ namespace Arena
                 {
                     if (q.Pos.DistanceTo(z.Pos) > z.Radius)
                         continue;
-                    if (q.Downed && d.ReviveBoost > 0f)
+                    if (q.Downed && d.ReviveBoost + z.ExtraRevive > 0f)
                     {
-                        q.Revive += dt / D(DiffKnob.ReviveTime) * d.ReviveBoost;  // on top of the normal revive
+                        q.Revive += dt / D(DiffKnob.ReviveTime) * (d.ReviveBoost + z.ExtraRevive);  // on top of the normal revive
                         q.ReviveBy = z.Owner;
                     }
                     else if (d.HealRate > 0f)
