@@ -22,13 +22,16 @@ no Unity in the cloud container: check changes with the tools below.
 
 - Work on and push to **`main`** (`git push -u origin main`). Commit messages end with the session's attribution
   lines; no model ids in commits.
-- Do the whole job: code, tests, README (and Armory/Bestiary if relevant), then commit and push. End with a short report
+- Do the whole job: code, tests, README, then commit and push. End with a short report
   that names the protocol version and what's next.
 - **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask with a question box before deleting code. For visual choices, offer mockups (`Docs/Mockups/`). For big
   features, plan first in a design doc.
-- After editing a Bestiary entry run `node Docs/Bestiary/build_data.js`; never edit `*.Generated.cs` by hand.
+- **Never update the reference pages unless the owner asks in that prompt**: the Bestiary (`Docs/Bestiary/`), the Armory
+  (`Docs/Armory/`, its icons and `build.sh`), `BestiaryData.Generated.cs`, and the published artifacts. Code changes
+  don't carry them along; at most, say in the report that they are now out of date. When asked to edit a Bestiary
+  entry, run `node Docs/Bestiary/build_data.js` after; never edit `*.Generated.cs` by hand.
 
 ## Checking changes
 

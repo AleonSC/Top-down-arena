@@ -319,7 +319,8 @@ The lobby fits about 8 class cards in a row before they get too small.
   Docs/Bestiary/build_data.js` so the in-game Field guide says the same. `Docs/Armory/build.sh` rebuilds the Armory
   (its icons come straight from `PixelArt.cs`) and `Docs/checks/*.js` are Playwright scripts that screenshot the pages
   and report page errors. See `Docs/README.md` for where they're published and how to update them; their numbers and
-  descriptions are hand-copied from the code, so update them with balance changes.
+  descriptions are hand-copied from the code, so they go stale with balance changes. **Don't update them (or the
+  Bestiary/Armory data and published pages) unless the owner asks for it** (see `CLAUDE.md`).
 
 ## 4. How the owner works (preferences learned over many sessions)
 
