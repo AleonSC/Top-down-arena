@@ -393,5 +393,6 @@ namespace Arena
         public bool AbilityShift;
         public bool Ultimate;
         public bool Parry;     // held: raise the parry shield toward the cursor
+        public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel); this machine only
     }
 }

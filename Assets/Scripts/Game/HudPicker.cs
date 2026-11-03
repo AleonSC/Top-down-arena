@@ -164,7 +164,7 @@ namespace Arena
             const float rerollW = 240f, takeW = 320f, bgap = 18f;
             float bx = canReroll ? mid - (rerollW + bgap + takeW) / 2f : mid - takeW / 2f - rerollW - bgap;
             GUI.enabled = me.Rerolls > 0 && !game.RerollPending && !RerollLocked;  // (not off while opening: GUI.enabled draws at half opacity)
-            if (canReroll && Ui.FancyButton(new Rect(bx, by, rerollW, 48f), "Reroll  " + me.Rerolls + "  [R]", Ui.Neutral, PixelArt.Get("ui_arrow"), now) && !opening)
+            if (canReroll && Ui.FancyButton(new Rect(bx, by, rerollW, 48f), "Reroll  " + me.Rerolls + "  [" + Keybinds.KeyName(Keybinds.Get(KeyAction.Reroll)) + "]", Ui.Neutral, PixelArt.Get("ui_arrow"), now) && !opening)
                 game.RerollOffer();
             GUI.enabled = picked && !game.RerollPending;
             string take = picked ? "Take " + Upgrades.All[me.Offer[selectedCard]].Name : "Pick a card";

@@ -126,7 +126,7 @@ namespace Arena
                 bool ult = i == Upgrades.UltSlot;
                 var tile = new Rect(x, y, w, tileH);
                 Ui.Fill(tile, new Color(1f, 1f, 1f, 0.04f));
-                DrawKeyCap(new Rect(tile.x + 8f, tile.y + 8f, 0f, 18f), ult ? "ULT · F" : SlotKeys[i], ult ? Ui.Gold : ToColor(me.Def.Color));
+                DrawKeyCap(new Rect(tile.x + 8f, tile.y + 8f, 0f, 18f), ult ? "ULT · " + SlotKeys[4] : SlotKeys[i], ult ? Ui.Gold : ToColor(me.Def.Color));
                 Ui.Label(new Rect(tile.x + 8f, tile.y + 28f, tile.width - 16f, 20f), a.Name, 15, Color.white, TextAnchor.MiddleLeft, true);
                 string state = slot.Charges > 0 ? "Ready" : Mathf.CeilToInt(slot.Timer) + "s";
                 if (slot.MaxCharges > 1)
@@ -137,7 +137,7 @@ namespace Arena
                 int level = Game.MasteryLevel(me, slot.Id);
                 float xp;
                 me.MasteryXp.TryGetValue(slot.Id, out xp);
-                float capW = 12f + (ult ? "ULT · F" : SlotKeys[i]).Length * 6.5f;  // same width DrawKeyCap uses
+                float capW = 12f + (ult ? "ULT · " + SlotKeys[4] : SlotKeys[i]).Length * 6.5f;  // same width DrawKeyCap uses
                 DrawMasteryPips(new Rect(tile.x + 18f + capW, tile.y + 14f, 0f, 6f), level, Game.MasteryProgress(xp));
                 Ui.Label(new Rect(tile.x + 18f + capW + 68f, tile.y + 8f, 70f, 18f), level >= Game.MasteryMax ? "MASTERED" : "Lv " + level, 10,
                     level >= Game.MasteryMax ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);

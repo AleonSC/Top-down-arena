@@ -84,6 +84,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
+- `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds
 - `SavesUi.cs`: Continue list, Records, unlock toasts
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages

@@ -261,7 +261,7 @@ static partial class Program
                 {
                     x.Poll();
                     // The bow fires when you let go: draw past full (1.25 s), release, repeat.
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75 } : new PlayerInput());
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75, WeaponAction = w.Id == WeaponId.Kusarigama && f % 20 < 10 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
