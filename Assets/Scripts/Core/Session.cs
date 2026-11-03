@@ -97,6 +97,7 @@ namespace Arena
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
         public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
+        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (the F1 wave editor's Test)
         public EnemyType HuntBoss = EnemyType.Boss;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
@@ -191,6 +192,8 @@ namespace Arena
             Game.Hunt = null;
             PracticeMode = false;
             HuntMode = false;
+            DesignTest = null;
+            Game.Design = null;
             OthersCanEdit = false;
             Modifiers = RunMod.None;
             Diff = new Difficulty();
@@ -643,6 +646,8 @@ namespace Arena
         {
             if (!IsHost || Game.Running)
                 return;
+            if (!practice)
+                DesignTest = null;
             PracticeMode = practice;
             HuntMode = hunt && !practice;
             foreach (var e in Lobby.Values)
@@ -750,6 +755,7 @@ namespace Arena
         {
             if (!IsHost)
                 return;
+            DesignTest = null;  // the practice waves were edited: they're what plays now, not a wave editor design
             Plan = plan;
             PlanEditor = editor;
             PlanEditorSel = sel;
@@ -785,6 +791,7 @@ namespace Arena
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
             Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
+            Game.Design = PracticeMode ? DesignTest : null;  // the F1 wave editor's waves being tested (WaveDesign.cs)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
             int startWave = StartWave;

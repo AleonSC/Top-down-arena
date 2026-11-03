@@ -163,12 +163,16 @@ namespace Arena
             return true;
         }
 
-        void SpawnSquad(SquadDef s)
+        void SpawnSquad(SquadDef s) => SpawnSquadAt(s, null);
+
+        /// at: where it comes in (a designed wave's spawn point, WaveDesign.cs); null: a random spot on an edge.
+        void SpawnSquadAt(SquadDef s, V2? at)
         {
             int id = nextSquadId++, n = s.Members.Length;
             V2 lo = ArenaMin + new V2(50f, 50f), hi = ArenaMax - new V2(50f, 50f);
-            int side = rng.Next(4);
-            V2 basePos = side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
+            int side = at.HasValue ? 0 : rng.Next(4);
+            V2 basePos = at.HasValue ? ClampToArena(at.Value, 50f)
+                : side == 0 ? new V2(Rand(lo.X + 150f, hi.X - 150f), lo.Y) : side == 1 ? new V2(Rand(lo.X + 150f, hi.X - 150f), hi.Y)
                 : side == 2 ? new V2(lo.X, Rand(lo.Y + 120f, hi.Y - 120f)) : new V2(hi.X, Rand(lo.Y + 120f, hi.Y - 120f));
             V2 fwd = (new V2(Width / 2f, Height / 2f) - basePos).Normalized(), across = fwd.Orthogonal();
             Player target = null;

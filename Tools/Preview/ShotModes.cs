@@ -233,6 +233,46 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawLabPanel", f2).Invoke(app, null);
       if (Environment.GetEnvironmentVariable("RESULT") != null) { lab.Outcome = LabOutcome.Won; typeof(ArenaApp).GetMethod("DrawLabResult", f2).Invoke(app, null); }
     }
+    else if (mode == "waveeditor")
+    {
+      // The F1 wave editor (WaveEditorUi.cs) on a Warden drill: EDT=<seconds> puts the playhead there; EDPROPS=1 the
+      // map in Props mode; EDGROUP=n selects a group; EDLOAD=1 shows the saved files.
+      GL.Tris.Clear();
+      set("drawScale", 1f);
+      set("glMaterial", new Material(null));
+      Event.current.type = EventType.Repaint;
+      var ws = new WaveSet { Name = "warden drills" };
+      var dw = new DesignWave { Level = 6 };
+      var r1 = new DesignGroup { Name = "Breakout rush", From = "B", At = 0f, Every = 0.4f };
+      for (int i = 0; i < 6; i++) r1.Members.Add(EnemyType.Rioter);
+      r1.Members.Add(EnemyType.Guard);
+      dw.Groups.Add(r1);
+      var r2 = new DesignGroup { Name = "Gas pair", From = "CD", At = 5f, Arrive = ArriveMode.Together };
+      r2.Members.Add(EnemyType.GasGrenadier); r2.Members.Add(EnemyType.GasGrenadier);
+      dw.Groups.Add(r2);
+      var r3 = new DesignGroup { Name = "Guards", From = "E", At = 8f, Every = 0.6f };
+      for (int i = 0; i < 3; i++) r3.Members.Add(EnemyType.Guard);
+      dw.Groups.Add(r3);
+      dw.Groups.Add(new DesignGroup { Name = "Riot line", Squad = "Riot line", From = "A", At = 11f });
+      foreach (var pp in new[] { new V2(610f, 330f), new V2(990f, 330f) }) dw.Props.Add(new DesignProp { Kind = PropKind.Crate, Pos = pp });
+      dw.Props.Add(new DesignProp { Kind = PropKind.Barrel, Pos = new V2(800f, 640f) });
+      dw.Props.Add(new DesignProp { Kind = PropKind.Pot, Pos = new V2(300f, 200f) });
+      ws.Waves.Add(new DesignWave { Level = 5 });
+      ws.Waves.Add(dw);
+      set("edSet", ws);
+      set("edWave", 1);
+      set("edGroup", int.Parse(Environment.GetEnvironmentVariable("EDGROUP") ?? "1"));
+      set("edT", float.Parse(Environment.GetEnvironmentVariable("EDT") ?? "6.7"));
+      set("waveEdOpen", true);
+      if (Environment.GetEnvironmentVariable("EDPROPS") != null) set("edPropsMode", true);
+      if (Environment.GetEnvironmentVariable("EDLOAD") != null) set("edLoadOpen", true);
+      var hv2 = Environment.GetEnvironmentVariable("MOUSE");
+      if (hv2 != null) { var xy = hv2.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
+      GL.ToUi = true;  // its models (the palette) over the panels
+      typeof(ArenaApp).GetMethod("DrawWaveEditor", f2).Invoke(app, null);
+      GL.ToUi = false;
+    }
     else if (mode == "tab")
     {
       var rng = new System.Random(4);

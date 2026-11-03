@@ -21,7 +21,7 @@ namespace Arena
         static readonly Rect DevPanel = new Rect(W / 2f - 470f, 40f, 940f, 640f);
 
         static readonly string[] DevTabNames = { "Match", "Players", "Tools" };
-        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, bots, Boss Lab" };
+        static readonly string[] DevTabBlurbs = { "Waves and bosses", "Stats, god mode, levels", "Recording, Boss Lab, waves" };
         static readonly Color[] DevTabColors = { new Color(1f, 0.55f, 0.4f), new Color(0.45f, 0.75f, 1f), new Color(1f, 0.8f, 0.35f) };
 
         void DrawDevMenu()
@@ -246,6 +246,13 @@ namespace Arena
                 labSetupOpen = true;
             }
             Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+
+            // The wave editor (WaveEditorUi.cs).
+            var wed = new Rect(body.x, body.y + 378f, body.width, 140f);
+            y = DevCard(wed, "Wave editor", "Design waves on a timeline: enemies, squads, spawn points, timing and props. Test them in the Practice Range.", EdColor);
+            if (Ui.Button(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
+                OpenWaveEditor();
+            Ui.Label(new Rect(wed.x + 292f, y + 6f, wed.width - 308f, 44f), "Saves .waves files to the waves folder. Test hosts a Practice Range match (it replaces any match you host).", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
         }
 
         static void OpenFolder(string path)

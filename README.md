@@ -1031,6 +1031,41 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
+### Wave editor (F1)
+
+**F1 → Tools → Wave editor** designs waves on a timeline. A design is a set of waves; each wave has a **level** (how
+strong its enemies are, as that wave of a run), **groups** and **props**.
+
+- **Arena map** (top left): the five **spawn points A-E** (drag a letter to move it, for every wave) and the wave's
+  props. **Props** mode: click to place the picked prop (crate, big crate, pot, barrel, chest), drag to move,
+  right-click to remove. The map also shows the wave at the playhead: who has arrived and where they're heading.
+- **Palette** (top middle): **Enemies** (the bosses' factions first, then everyone else), **Squads** (the regular
+  squads and the bosses' own, like the Riot line) and **Bosses**. Click one to add a new group at the playhead;
+  Shift-click an enemy to add one more to the selected group.
+- **Selected group** (top right): its name, which spawn points it comes from (several take turns), when it starts,
+  how it arrives (**one by one** every so many seconds, **together**, side by side in a **line**, or in a **ring**
+  round a player) and how many of each enemy. A squad keeps its own members and formation.
+- **Timeline** (bottom): one track per group. Drag a clip to change when it starts, drag its right edge to spread
+  its enemies out; click or drag on the tracks to move the playhead; **Play** (or Space) runs the wave on the map.
+  Delete removes the selected group. A wave ends once every group has arrived and everyone is down.
+- **Waves:** `<` `>` step through them, `+` adds one, **Copy** duplicates it, `X` removes it; **Level** and **Loop**.
+- **Save** writes `<name>.waves` to the `waves` folder next to the practice folder; **Load** opens one (or starts a
+  new set). **Test** plays the waves in the Practice Range, hosted by you, starting on the wave you're editing (from
+  the main menu, the lobby, or a match you host; it replaces that match). Esc closes the editor.
+
+The `.waves` file is plain text, e.g.
+
+```
+point B 70,450
+wave 6 level 6
+  group Breakout rush | Rioter x6, Guard | from B | at 0 | every 0.4 | one by one
+  group Riot line | squad Riot line | from A | at 11
+  prop crate 610,330
+```
+
+Plan for final builds: designed waves are turned into generated code by a script (like the Bestiary data), so
+hunts, approaches and paths can use them with no loose files (`Docs/AfterReset.md`).
+
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red **● REC** in

@@ -3,6 +3,20 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Wave editor (Nov 2026), protocol 126 (no change):** owner's pick, option B (timeline) of
+`Docs/Mockups/wave-editor.html`, in the F1 dev tools. `Core/WaveDesign.cs`: `WaveSet` (spawn points A-E, waves, loop)
+of `DesignWave` (level, `DesignGroup`s, `DesignProp`s); a group is members or a named squad (`WaveSet.AllSquads`:
+the factions' squads and finales, then `Game.Squads`), `From` letters, `At`, `Every`, `ArriveMode` (one by one,
+together, line, ring). Text format `.waves` (`ToText`/`Parse`, skips and names bad lines). Playback in the Practice
+Range: `Session.DesignTest` → `Game.Design` at `StartMatch` (cleared by editing practice waves, leaving practice
+mode, or leaving); `TickWaves` builds `BuildDesignWave` instead of `BuildPracticeWave` (props laid out with
+`AddProp`, arrivals sorted into `designQueue`), `TickDesign` spawns on the clock (`SpawnSquadAt` takes a
+position, so squads keep their formation at their point), and the wave waits for `DesignPending`. `Game/WaveEditorUi.cs`:
+the editor (modal like the Boss Lab setup: `waveEdOpen` in `menuUp`, `modal`, the draw order and Esc), opened from
+DevMenu's Tools tab. Stubs gained `Event.shift`, `Vector2.Distance`, `EventType.MouseDrag`, `KeyCode.Delete`,
+`Mathf.Ceil`. Test: `wavedesign` (in features). Preview: `Tools/Preview/shot.sh <name> waveeditor` (`EDT`, `EDGROUP`,
+`EDPROPS=1`, `EDLOAD=1`, `MOUSE`).
+
 **Main menu "Big play" with the pen plot intro (Nov 2026), no protocol change:** owner's pick: design D of
 `Docs/Mockups/menu-redesign.html` with intro B and the box of `Docs/Mockups/menu-d.html`. `Menus.cs`: the title at
 y 174 (size 74) on its axis (y 236), the shot's dashed arc over it (`DrawMenuArc`, `ArcAt`) and a line under it

@@ -257,6 +257,7 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             ClearRisers();
+            designQueue.Clear();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
             lastDowned.Clear();

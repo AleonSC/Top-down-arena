@@ -108,9 +108,8 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
-- [ ] **Wave editor.** Mockups: `Docs/Mockups/wave-editor.html` (published: https://claude.ai/artifact/C7SkLmfmXQmqvEFbzJd7NV),
-      options A map first, B timeline, C live test bench. Waiting for the owner's pick. Plan: in-game editor saves
-      `.waves` text files; for final builds a script turns them into generated code (like the Bestiary data).
+- [x] **Wave editor** (option B, timeline) in F1 → Tools. Next: a script that turns `.waves` files into generated code
+      for final builds, then let hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
       co-op players: [`ZombieInfection.md`](ZombieInfection.md)
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:

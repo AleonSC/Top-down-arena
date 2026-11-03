@@ -200,6 +200,7 @@ namespace Arena
             session.Poll();
             game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
+            WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)
                 sounds.Play(sfx.Sfx, sfx.Ally ? 0.45f : 1f, Time.unscaledTime);
             game.Sounds.Clear();
@@ -234,7 +235,7 @@ namespace Arena
             // Solo, holding Tab pauses the match while the Run stats screen is up (RunStatsUi.cs); in multiplayer
             // it doesn't (the pause menu's Run stats button is for looking together).
             bool tabKey = session.Screen == AppScreen.Game && me != null && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
-            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !devMenuOpen && !labSetupOpen
+            bool soloTab = tabKey && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !devMenuOpen && !labSetupOpen && !waveEdOpen
                 && (game.State == MatchState.Fighting || game.State == MatchState.Intermission);
             if (soloTab && !game.Paused)
             {
@@ -247,7 +248,7 @@ namespace Arena
                     game.RequestPause(false);
                 tabPaused = false;
             }
-            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || devMenuOpen || labSetupOpen;
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || devMenuOpen || labSetupOpen || waveEdOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
@@ -349,7 +350,10 @@ namespace Arena
                      && Input.GetKeyDown(KeyCode.X))
                 game.DevKillAll(game.MyId);
 
-            if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen)
+            bool edWasOpen = waveEdOpen;  // Esc closes the wave editor first, and nothing else that press (WaveEditorUi.cs)
+            if (edWasOpen && Input.GetKeyDown(KeyCode.Escape) && GUIUtility.keyboardControl == 0)
+                waveEdOpen = false;
+            if (session.Screen != AppScreen.Game && Input.GetKeyDown(KeyCode.Escape) && !devMenuOpen && !edWasOpen)
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
@@ -366,7 +370,7 @@ namespace Arena
                 else if (recordsOpen)
                     CloseWindow(() => recordsOpen = false);
             }
-            if (session.Screen == AppScreen.Game && !RecallActive)  // (nothing to open while everyone's beaming out: Recall.cs)
+            if (session.Screen == AppScreen.Game && !RecallActive && !edWasOpen)  // (nothing to open while everyone's beaming out: Recall.cs)
             {
                 if (Input.GetKeyDown(KeyCode.Escape) && labSetupOpen)
                     labSetupOpen = false;
@@ -515,7 +519,7 @@ namespace Arena
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
             TextEditBeginGui();
             Ui.BeginHoverFrame();
-            bool modal = labSetupOpen || devMenuOpen || textEditOpen;
+            bool modal = labSetupOpen || devMenuOpen || textEditOpen || waveEdOpen;
             if (!modal || Event.current.type == EventType.Repaint)
             switch (session.Screen)
             {
@@ -566,7 +570,7 @@ namespace Arena
                     DrawPickOutro();  // an upgrade just taken: the cards flying back into you (PickOutro.cs)
                     if (LabRunning)
                         DrawLabPanel();
-                    if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen)
+                    if ((PauseMenuWanted || pauseAnim > 0f) && !devMenuOpen && !labSetupOpen && !waveEdOpen)
                     {
                         if (fieldGuideOpen && PauseMenuWanted)
                             DrawFieldGuideScreen();  // FieldGuide.cs
@@ -580,7 +584,9 @@ namespace Arena
             }
             if (!textEditOpen || Event.current.type == EventType.Repaint)
             {
-                if (labSetupOpen)
+                if (waveEdOpen)
+                    DrawWaveEditor();  // WaveEditorUi.cs
+                else if (labSetupOpen)
                     DrawLabSetup();
                 else if (devMenuOpen)
                     DrawDevMenu();

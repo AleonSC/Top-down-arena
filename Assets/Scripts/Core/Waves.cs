@@ -77,7 +77,10 @@ namespace Arena
                             PracticeIndex = (PracticeIndex + 1) % Practice.Waves.Count;
                             var pw = Practice.Waves[PracticeIndex];
                             Wave = Math.Max(1, pw.Level);
-                            BuildPracticeWave(pw);
+                            if (Design != null && PracticeIndex < Design.Waves.Count)
+                                BuildDesignWave(Design.Waves[PracticeIndex]);  // the F1 wave editor's design (WaveDesign.cs)
+                            else
+                                BuildPracticeWave(pw);
                             var pm = Proto.Begin(Msg.PracticeWave);  // so everyone's HUD shows which practice wave this is
                             pm.Write(PracticeIndex);
                             session.Broadcast(Proto.End(pm));
@@ -99,6 +102,7 @@ namespace Arena
                     break;
                 case MatchState.Fighting:
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
+                    TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
                     if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
@@ -118,7 +122,7 @@ namespace Arena
                     }
                     else if (Enemies.Count == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (Enemies.Count == 0 && !ZombiesRising)
+                    else if (Enemies.Count == 0 && !ZombiesRising && DesignPending == 0)
                     {
                         if (Practice != null)
                         {
@@ -136,7 +140,7 @@ namespace Arena
                     }
                     break;
             }
-            Remaining = spawnQueue.Count + Enemies.Count + risers.Count;
+            Remaining = spawnQueue.Count + Enemies.Count + risers.Count + DesignPending;
             foreach (var sq in squadQueue)
                 Remaining += sq.Members.Length;
         }
