@@ -71,10 +71,11 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
     <div class="eyebrow">Mockup · Summoner · Tank · Bear Totem · pick a style</div>
     <h1>Bear Totem <span>attacks</span></h1>
     <p class="lead">Today the Bear Totem is two quick claw swipes that make enemies bleed, plus a Bear companion that mauls
-      what's nearby. In the game the claws are three pale arcs, the Bear is a plain brown seven-sided shape, the bleed is a
-      red tint with drops, and the totem in your hand is a small brown block. Below are three other ways it could look,
-      beside today's, with the same moves: two raking swipes (85 px reach, 110° arc), the Bear running out to bite every
-      0.6 s, and bleed stacking up to five hits. Pick one, or mix parts of several (the claws from one, the Bear from another).</p>
+      what's nearby. In the game both swipes come from one totem rod held in both hands, the claws are three pale arcs, the Bear is a
+      plain brown seven-sided shape, and the bleed is a red tint with drops. Styles A, B and C below put a claw on each hand
+      instead: the left hand rakes across, then the right rakes back, and the totem itself rides on your back and flares on each rake.
+      The moves are the same: two swipes (85 px reach, 110° arc), the Bear running out to bite every 0.6 s, and bleed stacking up to
+      five hits. Pick one, or mix parts of several (the claws from one, the Bear from another).</p>
   </header>
 
   <section class="stage" aria-label="Live preview">
@@ -89,7 +90,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
       <span class="now" id="now"></span>
     </div>
     <div class="strips">
-      <div><h3>One claw swipe, frame by frame</h3><div class="strip" id="stripClaw"></div></div>
+      <div><h3>Two swipes, one claw on each hand, frame by frame</h3><div class="strip" id="stripClaw"></div></div>
       <div><h3>One bear bite, frame by frame</h3><div class="strip" id="stripBear"></div></div>
       <div><h3>Bleed stacking, one to five claw hits</h3><div class="strip five" id="stripBleed"></div></div>
     </div>
@@ -103,8 +104,8 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   <section class="notes">
     <h2>Notes for building it</h2>
     <ul>
-      <li><b>Claws:</b> the swipes are <code>FxKind.Claw</code>, drawn by <code>DrawClawFx</code> in <code>Game/WorldEffects.cs</code> (reach, arc and rake direction already arrive with the effect). Every style here is a replacement for that one function, so the claws need no protocol change. Hits, bleed and timing stay in <code>Core/KitWeapons.cs</code> (<code>FireBearClaws</code>).</li>
-      <li><b>The totem in your hand</b> is the <code>WeaponId.BearTotem</code> case in <code>Game/CharacterModels.cs</code>. Turning it with the swipe is local: the swipe's angle comes from the same effect.</li>
+      <li><b>Claws:</b> the swipes are <code>FxKind.Claw</code>, drawn by <code>DrawClawFx</code> in <code>Game/WorldEffects.cs</code> (reach, arc and rake direction already arrive with the effect). Every style here replaces that one function (the hands are drawn with your character), so the claws need no protocol change. Hits, bleed and timing stay in <code>Core/KitWeapons.cs</code> (<code>FireBearClaws</code>).</li>
+      <li><b>The hands</b> (A, B and C) replace the held totem rod, which is the <code>WeaponId.BearTotem</code> case in <code>Game/CharacterModels.cs</code>. Which hand is out, and how far along its rake, comes from the same <code>FxKind.Claw</code> effect the claws use: its rake direction (the sign of the radius) says which hand, and its age says how far. The first swipe is the left hand and the second the right, so no network change. The claws would stay centred on you, as the hit arc is; only the drawn arm and claw reach out from the hand. The totem moves to your back as a charm.</li>
       <li><b>The Bear</b> is drawn today by the generic polygon at the end of <code>DrawMinion</code> (<code>Game/WorldEnemies.cs</code>). A new <code>DrawBear</code> would be called for <code>MinionKind.Bear</code> the way <code>DrawHiveDrone</code> is. Legs and trail come from how far it has moved since last frame (kept per minion on your own game), so a walk cycle needs nothing from the host.</li>
       <li><b>The bite wind-up and chomp</b> (A, B and C) need to know when a bite lands. The bite timer (<code>Minion.Cd</code>) is host only, so there are two ways: guess it on each game (the Bear is next to an enemy, so open the jaw), or send a small effect when it bites. A new effect kind goes at the end of <code>FxKind</code> and bumps <code>Session.ProtocolVersion</code> (now 128).</li>
       <li><b>Bleed stacks:</b> the five-notch counter (C) and the scar count (A) need the stack count on every game. Today only <code>BleedT</code> and <code>BleedDps</code> exist, on the host, and the enemy just has a bleeding flag. Showing stacks means adding one value to the enemy snapshot, which is also a protocol bump. The tint, drops and drip (all styles) work with the flag we have.</li>
@@ -142,14 +143,14 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   };
   const ORDER = ["now", "A", "B", "C"];
   const CARDS = {
-    now: { pitch: "What's in the game now. Readable and cheap, but the Bear looks like any other minion and the totem isn't visible in use.",
-      claws: "Three thin arcs with a red core over a faint crescent", bear: "Brown seven-sided shape, no legs or face", bleed: "Red tint, flying drops, and a blood-drop status icon", totem: "A small brown block with three claw ticks", cost: "Nothing to build" },
-    A: { pitch: "Natural and fierce. Claws are tapered gouges that tear through and leave a red line; the Bear is a real brown bear that runs on four legs and snaps.",
-      claws: "Three comet-shaped gouges with a hot ivory core, a red scar behind them, and a few flicked drops", bear: "Brown bear from above: ears, snout, shoulder hump, four striding paws; the jaw opens before each bite and the head lunges", bleed: "Red claw scars across the enemy (one set per two hits), drips running down, drops on each hit", totem: "A carved bear-paw on a shaft that swings with each rake", cost: "Medium: one new function for the Bear, richer claw drawing, no network change for the look" },
-    B: { pitch: "The Summoner's own flavour: a spirit bear, made of the same pale green as its other summons. Less gore, more magic, and it stays readable against the red enemy bullets.",
-      claws: "A glowing spirit paw sweeps through the arc, three light claws ahead of it and fading trails behind", bear: "The bear drawn as a translucent spirit with glowing runes along its back and afterimages trailing it when it runs; the bite is a closing pair of fangs", bleed: "Dark red motes spiral up off the enemy, thicker with each stack, and a thin red ring", totem: "A floating spirit-bear emblem on a thin staff, brighter on each swipe", cost: "Medium: glow-heavy, so it leans on the existing glow pass" },
-    C: { pitch: "Matches the game's faceted polygons: a carved wooden totem and a low-poly painted bear. The most 'totem'; it also has the clearest bleed counter.",
-      claws: "Angular cream wedges in a row along each arc, wood chips flying, and a ring on the second swipe", bear: "A faceted bear with a red and cream war stripe across its back; its jaw is two wedges that snap", bleed: "Five carved notches over the enemy light up red, one per stacked hit, plus square drops", totem: "A little totem pole whose eyes flare amber on each swipe", cost: "Medium: all straight edges, cheap to draw; the stack counter needs the count replicated" },
+    now: { pitch: "What's in the game now. Readable and cheap, but both swipes come from one rod, so the second swipe doesn't look like a different move. The Bear looks like any other minion.",
+      claws: "Three thin arcs with a red core over a faint crescent", hands: "Both hands hold the totem rod, which turns with each swipe", bear: "Brown seven-sided shape, no legs or face", bleed: "Red tint, flying drops, and a blood-drop status icon", totem: "The small brown rod in your hands", cost: "Nothing to build" },
+    A: { pitch: "Natural and fierce. Fur-cuffed gauntlets with ivory claws: the left tears across, the right tears back, and each leaves a red scar. The Bear is a real brown bear that runs on four legs and snaps.",
+      claws: "Three comet-shaped gouges that follow each claw tip, a red scar behind them, and a few flicked drops", hands: "A fur-cuffed gauntlet on each hand with three curved ivory claws that stretch out as the arm swings and draw back in after", bear: "Brown bear from above: ears, snout, shoulder hump, four striding paws; the jaw opens before each bite and the head lunges", bleed: "Red claw scars across the enemy (one set per two hits), drips running down, drops on each hit", totem: "A carved bear-head medallion on your back, glowing warm on each rake", cost: "Medium: a hand and a bear function, richer claw drawing, no network change for the look" },
+    B: { pitch: "The Summoner's own flavour: spirit claws on each hand and a spirit bear, made of the same pale green as its other summons. Less gore, more magic, and it stays readable against red enemy bullets.",
+      claws: "Light trails fade behind each claw tip and a thin ring opens on each rake", hands: "A glowing spirit palm on each hand with three light claws that flare as they rake", bear: "The bear drawn as a translucent spirit with glowing runes along its back and afterimages trailing it when it runs; the bite is a closing pair of fangs", bleed: "Dark red motes spiral up off the enemy, thicker with each stack, and a thin red ring", totem: "A floating spirit-bear emblem behind you, brighter on each rake", cost: "Medium: glow-heavy, so it leans on the existing glow pass" },
+    C: { pitch: "Matches the game's faceted polygons: wooden claw-gloves, a totem slung on your back, and a low-poly painted bear. The most 'totem'; it also has the clearest bleed counter.",
+      claws: "Angular cream wedges in a row along each claw's path, wood chips flying, and a ring on the second swipe", hands: "A carved wooden glove on each hand with three cream wedge claws, outlined like the rest of the faceted style", bear: "A faceted bear with a red and cream war stripe across its back; its jaw is two wedges that snap", bleed: "Five carved notches over the enemy light up red, one per stacked hit, plus square drops", totem: "A little totem pole slung across your back, its eyes flaring amber on each rake", cost: "Medium: all straight edges, cheap to draw; the stack counter needs the count replicated" },
   };
 
   // ------------------------------------------------------------------ tiny drawing helpers
@@ -241,34 +242,116 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   }
 
   // ------------------------------------------------------------------ the Tank Summoner
-  function player(c, S, T, swipes) {
-    const sw = swipes.length ? swipes[swipes.length - 1] : null;
-    let tAng = 0.06 * Math.sin(T * 1.8), glow = 0;
-    if (sw) {
-      const g = ease(clamp(sw.f * 3.2)), from = sw.side > 0 ? -HALF : HALF, to = sw.side > 0 ? HALF : -HALF;
-      tAng = lerp(from, to, g) * 0.9; glow = 1 - sw.f;
+  function playerBody(c, T, mid) {                  // the Tank Summoner's body in the local frame (+x is the way they aim)
+    poly(c, [[-13, 0], [-13, -6], [-30 - 3 * Math.sin(T * 3), 0], [-13, 6]], "#1d3b25");                       // the hood's trailing point
+    for (let i = 0; i < 7; i++) { const a = PI * 0.62 + i * (PI * 0.76 / 6); ell(c, Math.cos(a) * 19 * 0.85 - 2, Math.sin(a) * 19 * 0.95, 6.5, 3.4, a + 1.57, i % 2 ? "#3f7a4a" : "#52965c"); }
+    circ(c, 0, 0, 18, "#3f7a4a", "#1d3b25", 2);
+    ell(c, -2, -13, 9, 6, 0.15, "#3b6fcb", "#1e3d7a", 1.4); ell(c, -2, 13, 9, 6, -0.15, "#3b6fcb", "#1e3d7a", 1.4);   // Tank plate pauldrons
+    c.beginPath(); c.arc(0, 0, 14, -0.9, 0.9); c.strokeStyle = "#59b6ff"; c.lineWidth = 2; c.stroke();            // chest plate
+    if (mid) mid();
+    circ(c, 3, 0, 9.5, "#1d3b25"); circ(c, 3, 0, 8.2, "#3f7a4a");
+    c.beginPath(); c.arc(3, 0, 6.2, -0.9, 0.9); c.strokeStyle = "#8fdc98"; c.lineWidth = 1.2; c.stroke();
+    circ(c, 8.2, -2.8, 1.3, "#c8ffd0"); circ(c, 8.2, 2.8, 1.3, "#c8ffd0");
+  }
+
+  // Which way each hand is pointing and how far its claws are out. Hand 0 is the left (upper on screen) and rakes first,
+  // from wide left across to the right; hand 1 is the right and rakes back. At rest both hold a wide guard.
+  function handPose(h, swipes) {
+    const guard = h === 0 ? -0.9 : 0.9, s = swipes.find(x => x.k === h);
+    if (!s) return { phi: guard, ext: 0, swing: false, side: h === 0 ? 1 : -1, f: 1 };
+    const from = s.side > 0 ? -HALF : HALF, to = -from, f = s.f;
+    if (f < 1 / 3) return { phi: lerp(from, to, headAt(f)), ext: 1, swing: true, side: s.side, f };
+    const u = ease(clamp((f - 1 / 3) / (2 / 3)));
+    return { phi: lerp(to, guard, u), ext: 1 - 0.75 * u, swing: false, side: s.side, f };
+  }
+  function blade(c, bx, by, tx, ty, cx, cy, w, fill, stroke, lw) {   // a curved claw, thick at its base and sharp at the tip
+    const n = 9, L = [], R = [];
+    for (let i = 0; i <= n; i++) {
+      const u = i / n, x = (1 - u) * (1 - u) * bx + 2 * u * (1 - u) * cx + u * u * tx, y = (1 - u) * (1 - u) * by + 2 * u * (1 - u) * cy + u * u * ty;
+      const dx = 2 * (1 - u) * (cx - bx) + 2 * u * (tx - cx), dy = 2 * (1 - u) * (cy - by) + 2 * u * (ty - cy), d = Math.hypot(dx, dy) || 1, ww = w * (1 - u) / 2;
+      L.push([x - dy / d * ww, y + dx / d * ww]); R.push([x + dy / d * ww, y - dx / d * ww]);
     }
+    poly(c, L.concat(R.reverse()), fill, stroke, lw);
+  }
+  function hand(c, S, h, pose, T) {
+    const sgn = h === 0 ? -1 : 1, phi = pose.phi, hx = Math.cos(phi) * 30, hy = Math.sin(phi) * 30;
+    const ds = pose.side > 0 ? 1 : -1, px = -Math.sin(phi), py = Math.cos(phi);       // px,py: across the hand; the claws curve back against the raking direction
+    const tips = [-1, 0, 1].map(k => {
+      const a = pose.swing ? clawTip(pose.side, pose.f, k).a : phi + k * 0.1, r = lerp(40, REACH * (0.77 + 0.14 * k), pose.ext);
+      return [Math.cos(a) * r, Math.sin(a) * r];
+    });
+    const bend = -ds * 6 * pose.ext, glow = pose.swing ? 1 : Math.max(0, pose.ext);
+    line(c, 0, sgn * 12, hx, hy, 5, "#2f6039");                                                                  // the arm
+    if (S === "A") {
+      if (glow > 0.2) c.save(), c.globalCompositeOperation = "lighter", circ(c, hx, hy, 12 + 8 * glow, rgba(255, 190, 110, 0.18 * glow)), c.restore();
+      tips.forEach((t, i) => blade(c, hx + px * (i - 1) * 3, hy + py * (i - 1) * 3, t[0], t[1], (hx + t[0]) / 2 + px * bend, (hy + t[1]) / 2 + py * bend, 4.2, "#f6ecd6", "#7a6a50", 0.8));
+      ell(c, hx, hy, 7.5, 6.4, phi, "#7a5230", "#3d2917", 1.3);                                                  // a fur-cuffed gauntlet
+      for (let i = -1; i <= 1; i++) circ(c, hx + Math.cos(phi) * 5 + px * i * 3.2, hy + Math.sin(phi) * 5 + py * i * 3.2, 1.9, "#a26a40", "#3d2917", 0.7);
+    } else if (S === "B") {
+      c.save(); c.globalCompositeOperation = "lighter";
+      circ(c, hx, hy, 14 + 8 * glow, rgba(110, 255, 225, 0.14 + 0.1 * glow));
+      tips.forEach((t, i) => {
+        blade(c, hx + px * (i - 1) * 3, hy + py * (i - 1) * 3, t[0], t[1], (hx + t[0]) / 2 + px * bend, (hy + t[1]) / 2 + py * bend, 5 + 2 * glow, rgba(200, 255, 245, 0.55 + 0.4 * glow));
+      });
+      c.restore();
+      ell(c, hx, hy, 7.5, 6.4, phi, rgba(110, 240, 215, 0.4), rgba(170, 255, 236, 0.95), 1.4);
+      circ(c, hx, hy, 2.4, rgba(235, 255, 250, 0.9));
+    } else {
+      tips.forEach((t, i) => blade(c, hx + px * (i - 1) * 3, hy + py * (i - 1) * 3, t[0], t[1], (hx + t[0]) / 2 + px * bend * 0.4, (hy + t[1]) / 2 + py * bend * 0.4, 5, "#f0e6c8", "#3a2614", 1));
+      xf(c, hx, hy, phi, () => { poly(c, [[-7, -6.5], [4, -7.5], [8, -4], [8, 4], [4, 7.5], [-7, 6.5]], "#9a6b3a", "#3a2614", 1.3); line(c, -3, -4, -3, 4, 1.2, "#3a2614"); line(c, 1, -4.4, 1, 4.4, 1.2, "#3a2614"); });
+    }
+  }
+  function backTotem(c, S, glow, T) {                // the Bear Totem itself, worn on the back; it flares on each rake
+    if (S === "A") {
+      circ(c, -7, 0, 7.4, "#8a5a36", "#3d2917", 1.4); circ(c, -10, -6, 2.4, "#6b4a2e", "#3d2917", 1); circ(c, -10, 6, 2.4, "#6b4a2e", "#3d2917", 1);
+      circ(c, -4.4, -2.6, 1.1, "#1b1209"); circ(c, -4.4, 2.6, 1.1, "#1b1209"); ell(c, -2.4, 0, 2.2, 1.8, 0, "#b88a5a");
+      if (glow > 0.02) c.save(), c.globalCompositeOperation = "lighter", circ(c, -7, 0, 11 + 5 * glow, rgba(255, 190, 110, 0.3 * glow)), c.restore();
+    } else if (S === "B") {
+      const p = 0.7 + 0.3 * Math.sin(T * 5) + glow * 0.5;
+      c.save(); c.globalCompositeOperation = "lighter";
+      circ(c, -9, 0, 12 + 4 * glow, rgba(120, 255, 225, 0.14 * p));
+      c.beginPath(); c.arc(-9, 0, 6.4, 0, TAU); c.strokeStyle = rgba(150, 255, 232, 0.8 * p); c.lineWidth = 1.4; c.stroke();
+      circ(c, -9, 0, 3.4, rgba(200, 255, 245, 0.9 * p)); circ(c, -12, -4.4, 1.9, rgba(200, 255, 245, 0.9 * p)); circ(c, -12, 4.4, 1.9, rgba(200, 255, 245, 0.9 * p));
+      c.restore();
+    } else {
+      xf(c, -8, 0, -0.35, () => {
+        poly(c, [[-11, -4.6], [11, -4.6], [11, 4.6], [-11, 4.6]], "#9a6b3a", "#3a2614", 1.3);
+        poly(c, [[-9, -4.6], [-7, -8], [-4, -4.6]], "#9a6b3a", "#3a2614", 1); poly(c, [[4, -4.6], [6, -8], [9, -4.6]], "#9a6b3a", "#3a2614", 1);
+        const eye = glow > 0.05 ? rgba(255, 190 + 30 * glow, 60, 0.8 + 0.2 * glow) : "#1b1209";
+        if (glow > 0.05) { c.save(); c.globalCompositeOperation = "lighter"; circ(c, -3, 0, 7 + 4 * glow, rgba(255, 190, 60, 0.22 * glow)); circ(c, 4, 0, 7 + 4 * glow, rgba(255, 190, 60, 0.22 * glow)); c.restore(); }
+        rect(c, -5, -1.4, 3, 3, eye); rect(c, 2, -1.4, 3, 3, eye);
+      });
+    }
+  }
+  function player(c, S, T, swipes) {
+    if (S === "now") {                               // today: the totem rod in both hands, turning with each swipe
+      const sw = swipes.length ? swipes[swipes.length - 1] : null;
+      let tAng = 0.06 * Math.sin(T * 1.8), glow = 0;
+      if (sw) { const g = ease(clamp(sw.f * 3.2)), from = sw.side > 0 ? -HALF : HALF, to = sw.side > 0 ? HALF : -HALF; tAng = lerp(from, to, g) * 0.9; glow = 1 - sw.f; }
+      xf(c, PL.x, PL.y, 0, () => {
+        playerBody(c, T);
+        const hx = Math.cos(tAng) * 24, hy = Math.sin(tAng) * 24;
+        for (const sgn of [-1, 1]) {
+          const px = hx - Math.sin(tAng) * 5 * sgn, py = hy + Math.cos(tAng) * 5 * sgn;
+          line(c, 0, sgn * 13, px, py, 4.4, "#2f6039"); circ(c, px, py, 3.1, "#cfe9b8", "#20242a", 0.8);
+        }
+        xf(c, hx, hy, tAng, () => totem(c, S, glow, T));
+      });
+      return;
+    }
+    let glow = 0; for (const s of swipes) glow = Math.max(glow, 1 - s.f);
     xf(c, PL.x, PL.y, 0, () => {
-      c.shadowColor = "rgba(0,0,0,0)";
-      poly(c, [[-13, 0], [-13, -6], [-30 - 3 * Math.sin(T * 3), 0], [-13, 6]], "#1d3b25");                       // the hood's trailing point
-      for (let i = 0; i < 7; i++) { const a = PI * 0.62 + i * (PI * 0.76 / 6); ell(c, Math.cos(a) * 19 * 0.85 - 2, Math.sin(a) * 19 * 0.95, 6.5, 3.4, a + 1.57, i % 2 ? "#3f7a4a" : "#52965c"); }
-      circ(c, 0, 0, 18, "#3f7a4a", "#1d3b25", 2);
-      ell(c, -2, -13, 9, 6, 0.15, "#3b6fcb", "#1e3d7a", 1.4); ell(c, -2, 13, 9, 6, -0.15, "#3b6fcb", "#1e3d7a", 1.4);   // Tank plate pauldrons
-      c.beginPath(); c.arc(0, 0, 14, -0.9, 0.9); c.strokeStyle = "#59b6ff"; c.lineWidth = 2; c.stroke();            // chest plate
-      circ(c, 3, 0, 9.5, "#1d3b25"); circ(c, 3, 0, 8.2, "#3f7a4a");
-      c.beginPath(); c.arc(3, 0, 6.2, -0.9, 0.9); c.strokeStyle = "#8fdc98"; c.lineWidth = 1.2; c.stroke();
-      circ(c, 8.2, -2.8, 1.3, "#c8ffd0"); circ(c, 8.2, 2.8, 1.3, "#c8ffd0");
-      // arms to the totem, which turns with the swipe
-      const hx = Math.cos(tAng) * 24, hy = Math.sin(tAng) * 24;
-      for (const sgn of [-1, 1]) {
-        const px = hx - Math.sin(tAng) * 5 * sgn, py = hy + Math.cos(tAng) * 5 * sgn;
-        line(c, 0, sgn * 13, px, py, 4.4, "#2f6039"); circ(c, px, py, 3.1, "#cfe9b8", "#20242a", 0.8);
-      }
-      xf(c, hx, hy, tAng, () => totem(c, S, glow, T));
+      playerBody(c, T, () => backTotem(c, S, glow, T));
+      hand(c, S, 0, handPose(0, swipes), T); hand(c, S, 1, handPose(1, swipes), T);
     });
   }
 
   // ------------------------------------------------------------------ claws, per style. aim 0 = to the right
+  const headAt = f => clamp(f * 3);                                   // how far along its arc a raking claw tip has got
+  function clawTip(side, f, k) {                                       // where claw k (-1, 0, 1) is: its angle and its distance from you
+    const from = side > 0 ? -HALF : HALF, to = -from, lag = (1 - k * side) * 0.035, h = clamp(headAt(f) - lag);
+    return { a: lerp(from, to, h), r: REACH * (0.77 + 0.14 * k), h };
+  }
   function clawNow(c, x, y, f, side) {
     const R = REACH, half = HALF, g = Math.min(1, f * 4), fade = 1 - f, sweep = 2 * half * g;
     const from = side > 0 ? -half : half - sweep;
@@ -287,7 +370,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   }
   function clawA(c, x, y, f, side, ph) {
     const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, fade = 1 - f * f;
-    const head = clamp(f * 3.2), tail = clamp((f - 0.12) * 1.7, 0, head);
+    const head = headAt(f), tail = clamp((f - 0.12) * 1.7, 0, head);
     for (let k = -1; k <= 1; k++) {
       const r = R * (0.77 + 0.14 * k), lag = (1 - k * side) * 0.035, h = clamp(head - lag), t = Math.min(clamp(tail - lag * 0.5), h);
       const a0 = lerp(from, to, t), a1 = lerp(from, to, h);
@@ -314,7 +397,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
     });
   }
   function clawB(c, x, y, f, side) {
-    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = clamp(f * 2.8), fade = Math.pow(1 - f, 0.7);
+    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = headAt(f), fade = Math.pow(1 - f, 0.7);
     for (let k = -1; k <= 1; k++) {                                                                                 // fading trails behind the paw
       const r = R * (0.77 + 0.14 * k), n = 14;
       for (let i = 0; i < n; i++) {
@@ -322,15 +405,10 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
         arcStroke(c, x, y, r, lerp(from, to, u0), lerp(from, to, u1) - lerp(from, to, u0), 1 + 2.4 * (i / n), rgba(140, 255, 230, 0.55 * (i / n) * fade));
       }
     }
-    const a = lerp(from, to, head), px = x + Math.cos(a) * R * 0.68, py = y + Math.sin(a) * R * 0.68;
-    c.save(); c.globalCompositeOperation = "lighter";
-    circ(c, px, py, 26, rgba(100, 255, 220, 0.12 * fade));
-    paw(c, px, py, a + (side > 0 ? 0.25 : -0.25), 1.15, [120, 255, 225], [210, 255, 245], fade);
-    c.restore();
     c.beginPath(); c.arc(x, y, R * (0.55 + 0.5 * f), from, to, side < 0); c.strokeStyle = rgba(140, 255, 230, 0.18 * (1 - f)); c.lineWidth = 2; c.stroke();
   }
   function clawC(c, x, y, f, side, ph) {
-    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = clamp(f * 3), fade = 1 - f * f;
+    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = headAt(f), fade = 1 - f * f;
     for (let k = -1; k <= 1; k++) {
       const r = R * (0.77 + 0.14 * k), n = 7;
       for (let i = 0; i < n; i++) {
@@ -536,7 +614,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
 
   function buildStrips() {
     const sets = [
-      { el: "#stripClaw", times: [0.27, 0.33, 0.39, 0.46, 0.56, 0.72], labels: ["wind-up", "first rake", "mid-rake", "second rake", "follow-through", "fade"], view: { cx: 248, cy: 192, span: 150 }, opt: {} },
+      { el: "#stripClaw", times: [0.27, 0.33, 0.37, 0.46, 0.5, 0.68], labels: ["ready", "left rakes", "left lands", "right rakes", "right lands", "recover"], view: { cx: 248, cy: 192, span: 150 }, opt: {} },
       { el: "#stripBear", times: [1.68, 1.76, 1.83, 1.91, 2.0, 2.25], labels: ["arrives", "jaw opens", "wide", "chomp", "recover", "settle"], view: { cx: 470, cy: 248, span: 120 }, opt: { noPlayer: true } },
     ];
     for (const s of sets) {
@@ -590,7 +668,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
     ORDER.forEach(k => {
       const c = CARDS[k], el = document.createElement("article"); el.className = "card"; el.dataset.k = k;
       el.innerHTML = `<div class="tag">${k === "now" ? "NOW" : "STYLE " + k}</div><h3>${STYLES[k].name}</h3><p>${c.pitch}</p>
-        <dl><dt>Claws</dt><dd>${c.claws}</dd><dt>Bear</dt><dd>${c.bear}</dd><dt>Bleed</dt><dd>${c.bleed}</dd><dt>Totem</dt><dd>${c.totem}</dd><dt>Cost</dt><dd>${c.cost}</dd></dl>`;
+        <dl><dt>Hands</dt><dd>${c.hands}</dd><dt>Claws</dt><dd>${c.claws}</dd><dt>Bear</dt><dd>${c.bear}</dd><dt>Bleed</dt><dd>${c.bleed}</dd><dt>Totem</dt><dd>${c.totem}</dd><dt>Cost</dt><dd>${c.cost}</dd></dl>`;
       el.onclick = () => setStyle(k); cards.append(el);
     });
   }
