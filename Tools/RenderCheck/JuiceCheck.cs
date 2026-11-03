@@ -183,7 +183,7 @@ class JuiceCheck {
 
     // New shot looks: each weapon's own shot draws its new way with effects on; an enemy's shot of the same kind doesn't.
     var dws = typeof(ArenaApp).GetMethod("DrawWeaponShot", f2);
-    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.PrismBeam, WeaponId.ArcaneMissiles };
+    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.ArcaneMissiles };
     var lookKinds = new[] { Defs.DpsShot, Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
     bool allLooks = true, offPlain = true;
     var keepWeapon = me.Weapon;

@@ -462,7 +462,7 @@ static partial class Program
                         foreach (var e in g.Enemies.Values) e.Hp = 0f;
                         for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); }
                         var target = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Juggernaut, new V2(800f, 450f), 0f, 0, false });
-                        target.Hp = target.MaxHp = 1e7f;
+                        target.Hp = target.MaxHp = 1e6f;
                         float range = weapon.Melee ? Game.MeleeRange(weapon.Id) * 0.7f + target.Radius : Math.Max(60f, Math.Min(440f, g.WeaponRange(me) * dist));
                         float held = 0f, measured = 0f, startHp = 0f;
                         for (int f = 0; f < 60 * 12; f++)
@@ -482,7 +482,8 @@ static partial class Program
                                 recall = c >= 58 && c < 62;
                             }
                             host.Poll();
-                            g.FixedStep(dt, new PlayerInput { Fire = fire, WeaponAction = recall, AimAt = target.Pos });
+                            // Spirit Chalk draws as you move the cursor (ink fades after 4 s), so it scribbles in a small circle on the target.
+                            g.FixedStep(dt, new PlayerInput { Fire = fire, WeaponAction = recall, AimAt = weapon.Id == WeaponId.SpiritChalk ? target.Pos + V2.FromAngle(f * 0.1f) * 8f : target.Pos });
                             if (f >= 60 * 2) measured += dt;
                         }
                         best = Math.Max(best, (startHp - target.Hp) / measured);

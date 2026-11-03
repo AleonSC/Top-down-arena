@@ -8,7 +8,6 @@ namespace Arena
     ///   Railgun                 a heavy slug pushing rings of air ahead of it
     ///   Pistol                  a heavier round with one ring of air
     ///   Scattergun              flechettes: hair-thin needles
-    ///   Prism Beam              prism shards that split red, green and blue when they hit (ShotSplitsPrism)
     ///   Arcane Missiles         little missiles with a smoke trail (EmitFromShot)
     ///   lightning               flickering, re-forking bolts with a white-hot core (DrawJuicyBolt)
     ///   Shuriken                motion-blur arcs while it spins
@@ -31,7 +30,7 @@ namespace Arena
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun ? w : (WeaponId?)null;
-                case Defs.ArcaneShot: return w == WeaponId.PrismBeam || w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
+                case Defs.ArcaneShot: return w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
                 case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
                 case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
                 case Defs.FireflyShot: return w == WeaponId.SpriteStaff ? w : (WeaponId?)null;
@@ -66,9 +65,6 @@ namespace Arena
                     return;
                 case WeaponId.Scattergun:
                     GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
-                    return;
-                case WeaponId.PrismBeam:
-                    GlowDisc(b.Pos, 16f, c, 0.6f);
                     return;
                 case WeaponId.ArcaneMissiles:
                     GlowDisc(b.Pos - (b.Vel.IsZero ? V2.Zero : b.Vel.Normalized()) * 10f, 12f, new Rgba(1f, 0.7f, 0.3f), 0.9f);  // its exhaust
@@ -128,18 +124,6 @@ namespace Arena
                     Line(b.Pos - dir * 11f, b.Pos - dir * 7f, 3f, c.WithAlpha(0.5f));
                     Circle(b.Pos + dir * 3f, 1.5f, Rgba.White, 6);
                     return true;
-                case WeaponId.PrismBeam:
-                {
-                    // A clear shard with a rainbow edge, over the mockup's fading trail.
-                    TaperTrail(b, 6, 3f, c, 0.4f);
-                    V2 tip = b.Pos + dir * (r + 6f), back = b.Pos - dir * (r + 2f);
-                    SetColor(new Rgba(0.95f, 0.97f, 1f, 0.9f));
-                    Tri(tip, back + side * (r + 1f), back - side * (r + 1f));
-                    Line(tip, back + side * (r + 1f), 1.2f, new Rgba(1f, 0.35f, 0.35f, 0.9f));
-                    Line(tip, back - side * (r + 1f), 1.2f, new Rgba(0.35f, 0.55f, 1f, 0.9f));
-                    Line(back + side * (r + 1f), back - side * (r + 1f), 1.2f, new Rgba(0.35f, 1f, 0.45f, 0.9f));
-                    return true;
-                }
                 case WeaponId.BloodBolts:
                 {
                     // The mockup's blood drop: a dotted trail (every other frame of the last 8, shrinking and fading),
@@ -225,13 +209,6 @@ namespace Arena
                 if (Rnd(0f, 1f) < dt * 10f)
                     AddPart(new Part { Kind = PSpark, Pos = b.Pos + back * 4f, Vel = back * 20f + new V2(0f, 50f), Life = 0.35f, Max = 0.35f, Size = 1.6f, Col = new Rgba(0.8f, 0.08f, 0.15f) });
             }
-        }
-
-        /// BulletEnding: a Prism Beam shard that hits splits into red, green and blue.
-        bool ShotSplitsPrism(int owner, byte kind)
-        {
-            Player p;
-            return kind == Defs.ArcaneShot && owner > 0 && game.Players.TryGetValue(owner, out p) && p.Weapon.Id == WeaponId.PrismBeam;
         }
 
         /// DrawBoltFx with Visual effects on: the bolt re-forks every few frames, with a white-hot core and a side branch.
