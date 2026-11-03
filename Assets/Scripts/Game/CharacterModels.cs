@@ -121,6 +121,13 @@ namespace Arena
             MEll(-1f, 0f, rx, ry, K.Dark); MEll(-1f, 0f, rx - 1.6f, ry - 1.6f, K.Base);
             ModelRoleTrim(role, K, RC, rx, ry, t);
 
+            if (p.Weapon.Id == WeaponId.BearTotem)  // a claw on each hand and the totem on the back, not a held weapon (BearLooks.cs)
+            {
+                DrawBearModel(p, K, ry);
+                ModelHead(p, kit, role, K, RC, r, sh, t);
+                return;
+            }
+
             // Arms and the weapon.
             float sway = Mathf.Sin(t * 2.4f) * 1.2f, u = mU, wk = (0.8f + 0.2f * u) / u;
             int hold; float offX;

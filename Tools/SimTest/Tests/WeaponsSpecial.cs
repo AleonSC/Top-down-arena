@@ -262,6 +262,7 @@ static partial class Program
         Check(front.BleedT > 2.5f && front.BleedDps > 0f, "a claw hit makes the enemy bleed");
         Play(0.2f, false);
         Check(client.Game.Enemies.ContainsKey(front.Id) && client.Game.Enemies[front.Id].Bleeding, "other players see the bleeding");
+        Check(front.BleedHits == 2 && client.Game.Enemies[front.Id].BleedHits == 2, "each claw hit is a stack, and other players see how many (" + front.BleedHits + " here, " + client.Game.Enemies[front.Id].BleedHits + " there)");
         float hp1 = front.Hp;
         Play(1f, false);
         float bled = hp1 - front.Hp;
@@ -269,9 +270,11 @@ static partial class Program
         float hp2 = front.Hp;
         Play(1f, false);
         Check(bled > 1f && front.Hp == hp2 && front.BleedT <= 0f && !client.Game.Enemies[front.Id].Bleeding, "bleeding hurts over time (" + bled.ToString("0.0") + " in a second), then stops after 3 s");
+        Check(front.BleedHits == 0 && client.Game.Enemies[front.Id].BleedHits == 0, "the stacks clear when the bleeding stops");
         Play(4f, true);
         float perHit = 11f * me.Stats.DmgMult * 0.3f;
         Check(front.BleedDps > perHit * 3f && front.BleedDps <= perHit * 5f + 0.01f, "bleed stacks with each hit, up to five hits' worth (" + front.BleedDps.ToString("0.0") + "/s)");
+        Check(front.BleedHits >= 3 && front.BleedHits <= 5 && client.Game.Enemies[front.Id].BleedHits == front.BleedHits, "the stack count tops out at five and is the same on every screen (" + front.BleedHits + ")");
         host.Leave(""); client.Leave("");
     }
 

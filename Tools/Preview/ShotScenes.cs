@@ -252,6 +252,16 @@ static partial class Shot {
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
         case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
         case WeaponId.Halberd: for (int i = 0; i < 6; i++) { float a = me.Aim + (i / 5f * 2f - 1f) * 0.7f; fx(FxKind.Slash, me.Pos + V2.FromAngle(a) * reach, 18f * MathX.Pi / 360f, 0.035f * i, 0.16f); } break;
+        case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
+        {
+          foreach (int sd in new[] { 1, -1 })
+            gm.Effects.Add(new Effect { Kind = FxKind.Claw, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim + sd * 0.12f) * reach, Color = Game.BearClawColor, Radius = sd * 55f * MathX.Pi / 180f, T = st - (sd > 0 ? 0f : 0.12f), Dur = 0.2f });
+          int hits = int.Parse(Environment.GetEnvironmentVariable("BLEEDHITS") ?? "3");
+          foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && (en.Pos - me.Pos).Length < 130f) { en.Bleeding = hits > 0; en.BleedHits = hits; }
+          var bearAt = me.Pos + new V2(-60f, 70f);
+          int bid = 9001; gm.Minions[bid] = new Minion { Id = bid, Owner = me.Id, Kind = MinionKind.Bear, Pos = bearAt, Disp = bearAt, Aim = me.Aim, T = -1f, Companion = true };
+          break;
+        }
         case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
         case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
         default: fx(FxKind.Slash, to, 1.31f, 0f, 0.24f); break;
