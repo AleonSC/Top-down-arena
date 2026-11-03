@@ -166,12 +166,15 @@ static partial class Program
             }
         };
 
-        // The Warhammer: tap or charge, then slam a strip in front of you.
+        // The Warhammer: tap or charge, then slam a fixed circle in front of you.
         me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 0);
         Check(me.Weapon.Name == "Warhammer" && Game.ChargeWeapon(me.Weapon.Id), "the Warhammer charges up like a bow");
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
         var front = Dummy(new V2(610f, 450f));
-        var side = Dummy(new V2(560f, 560f));  // off to the side: inside a wide arc, outside the strip
+        var side = Dummy(new V2(560f, 560f));  // off to the side: inside a wide arc, outside the circle
+        var edge = Dummy(new V2(500f + Game.HammerCentre(me.Weapon.Reach) + Game.HammerRadius - 6f, 450f));  // on the circle's far rim: still hit
+        var beyond = Dummy(new V2(500f + Game.HammerCentre(me.Weapon.Reach) + Game.HammerRadius + 60f, 450f));  // past it: safe
+        var behind = Dummy(new V2(420f, 450f));  // behind you: safe
         float stunTap = 0f, stunFull = 0f;
         Attack(3, new V2(800f, 450f));
         float tap = front.MaxHp - front.Hp;
@@ -194,7 +197,8 @@ static partial class Program
             tap, stunTap, full, stunFull, side.MaxHp - side.Hp);
         Check(tap > 0f && full > tap * 2.5f, "the slam's damage grows with the charge");
         Check(stunTap > 0f && stunFull > stunTap + 0.3f, "the slam stuns what it hits, longer at full charge");
-        Check(side.Hp == side.MaxHp, "the slam hits a strip in front, not the sides");
+        Check(side.Hp == side.MaxHp, "the slam hits a circle in front, not the sides");
+        Check(edge.Hp < edge.MaxHp && beyond.Hp == beyond.MaxHp && behind.Hp == behind.MaxHp, "the slam's circle is a fixed size: its far rim is hit, past it and behind you are safe");
 
         // The Halberd: a thin cone swept across; each enemy hit once a sweep.
         me.Weapon = Defs.Weapon(Role.Tank, Kit.Knight, 2);

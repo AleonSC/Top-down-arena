@@ -226,7 +226,7 @@ namespace Arena
             var col = MeleeColor(seen.Weapon, fx.Color);
             if (seen.Weapon == WeaponId.Warhammer)
             {
-                DrawHammerSlamE(seen, o, aim, reach, T, seed, light);
+                DrawHammerSlamE(seen, o, aim, reach, w, fx.Color.A, T, seed, light);
                 return true;
             }
             // The Lance: the box glows from your body to its sliding front edge, the lance riding out at its front.
@@ -252,11 +252,11 @@ namespace Arena
         /// The Warhammer: from over your shoulder, a burning arc into the floor in front of you, then the impact (a
         /// glow, a ring with turning ticks, a pillar of light, embers). An aftershock (a later slam, further out) is just
         /// the impact.
-        void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float T, int seed, bool light)
+        void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float radius, float power01, float T, int seed, bool light)
         {
             var col = HammerGlow;
-            bool aftershock = reach > seen.BaseReach + 1f;
-            float d = 16f + seen.BaseReach * 0.65f + (reach - seen.BaseReach);
+            bool aftershock = reach > Game.HammerCentre(seen.BaseReach) + 1f;  // `reach`: how far out the slam's circle is centred
+            float d = reach, R = radius, power = Mathf.Clamp01((power01 - 0.2f) / 0.8f);
             V2 c = o + V2.FromAngle(aim) * d;
             float after = aftershock ? T : T - HammerSwingTime;
             if (!aftershock && T < HammerSwingTime)
@@ -285,17 +285,16 @@ namespace Arena
             float k2 = Mathf.Clamp01(after / life);
             if (light)
             {
-                GlowDisc(c, 50f, Rgba.White, 0.25f * (1f - k2));
-                GlowDisc(c, 60f, col, 0.6f * (1f - k2));
-                Arc(c, 46f, 2f, col.WithAlpha(0.9f * (1f - k2)), 40);
-                for (int i = 0; i < 12; i++)
-                {
-                    float a = i / 12f * MathX.Tau + after * 2f;
-                    Arc(c, 38f, 2f, col.WithAlpha(0.8f * (1f - k2)), 3, a, 0.22f);
-                }
+                // The area it hit, always the same circle: a faint glow and outline, brighter the harder the slam.
+                float pw = 0.45f + 0.55f * power, fade = 1f - k2;
+                GlowDisc(c, R * 1.1f, col, 0.35f * pw * fade);
+                GlowDisc(c, R * 0.6f, Rgba.White, 0.18f * pw * fade);
+                Arc(c, R, 2f, col.WithAlpha(0.7f * pw * fade), 48);
+                float wave = Mathf.Clamp01(after / 0.18f);  // a shockwave racing out to the edge
+                Arc(c, R * wave, 3f, Rgba.White.WithAlpha(0.6f * pw * (1f - wave)), 48);
                 if (after < 0.22f)
                 {
-                    float pk = 1f - after / 0.22f;  // a pillar of light, fading upward (the arena's up is -y)
+                    float pk = (1f - after / 0.22f) * power;  // a pillar of light, only for a charged slam (the arena's up is -y)
                     SoftLineFade(c, c + new V2(0f, -130f), 24f * pk + 6f, Rgba.White.WithAlpha(0.7f * pk), col.WithAlpha(0f));
                 }
             }
@@ -307,7 +306,7 @@ namespace Arena
                     float a = Rand01(ref r) * MathX.Tau, v = 30f + 50f * Rand01(ref r), age = after - 0.05f * Rand01(ref r);
                     if (age < 0f)
                         continue;
-                    V2 p = c + V2.FromAngle(a) * (20f + v * age) + new V2(0f, -40f * age);
+                    V2 p = c + V2.FromAngle(a) * (R * 0.3f * Rand01(ref r) + v * age) + new V2(0f, -40f * age);
                     Square(p, 3f, (i % 2 == 0 ? col : new Rgba(1f, 0.89f, 0.69f)).WithAlpha(0.9f * (1f - k2)));
                 }
                 Player owner;

@@ -220,7 +220,7 @@ static partial class Shot {
       V2 to = me.Pos + V2.FromAngle(me.Aim) * reach;
       Action<FxKind, V2, float, float, float> fx = (kind, p2, rad, t0, dur) => gm.Effects.Add(new Effect { Kind = kind, Pos = me.Pos, Pos2 = p2, Color = col, Radius = rad, T = st - t0, Dur = dur });
       switch (me.Weapon.Id) {
-        case WeaponId.Warhammer: fx(FxKind.Jab, to, Game.HammerHalfWidth, 0f, 0.26f); break;
+        case WeaponId.Warhammer: gm.Effects.Add(new Effect { Kind = FxKind.Jab, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.HammerCentre(reach), Color = Game.HammerBoomColor.WithAlpha(float.Parse(Environment.GetEnvironmentVariable("HAMMERPOW") ?? "1", System.Globalization.CultureInfo.InvariantCulture)), Radius = Game.HammerRadius, T = st, Dur = 0.26f }); break;
         case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
         case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
         case WeaponId.Halberd: for (int i = 0; i < 6; i++) { float a = me.Aim + (i / 5f * 2f - 1f) * 0.7f; fx(FxKind.Slash, me.Pos + V2.FromAngle(a) * reach, 18f * MathX.Pi / 360f, 0.035f * i, 0.16f); } break;

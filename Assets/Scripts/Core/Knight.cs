@@ -17,6 +17,7 @@ namespace Arena
         public bool Rapier, Heavy, Silent;
         public bool Thrust;           // a forward jab (Lance, Halberd, Rapier): drawn as a thrust, not a sweep
         public float Stun;            // freezes what it hits for this long (not bosses)
+        public float Circle, CircleAt, Power;  // Circle > 0: hits everything within this radius of the point CircleAt px along the aim (the Warhammer's slam); Power 0..1 is how charged it was (its look)
         public float HalfWidth;       // > 0: hits a rectangle this wide either side of the aim line, out to Reach (Lance), not an arc
         public bool NoCut;            // doesn't cut bullets (the Ninja's Kusarigama: a chain, not a blade)
         public bool Deflect;          // bats enemy bullets in the arc back as your own (the Quarterstaff: it parries as it swings)
@@ -47,8 +48,10 @@ namespace Arena
         public const float LanceHalfWidth = 44f, LanceStun = 1f;
         public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
-        // The Warhammer: a charged slam on a 100 px wide box in front of you.
-        public const float HammerHalfWidth = 50f;
+        // The Warhammer: a slam on a fixed circle in front of you. Holding charges its damage and stun, never its area.
+        public const float HammerRadius = 80f, HammerCentreBase = 16f;
+        /// How far in front of you the Warhammer's circle is centred, for a weapon reach (Reach upgrades push it out and, through the radius, widen it).
+        public static float HammerCentre(float reach) => HammerCentreBase + 0.65f * reach;
         /// The Warhammer's blast colour: it also marks the blast as the hammer's, so the screen's melee look (MeleeLooks.cs),
         /// which draws the whole slam itself, can leave it out.
         public static readonly Rgba HammerBoomColor = new Rgba(0.85f, 0.8f, 0.7f);
@@ -86,22 +89,25 @@ namespace Arena
             {
                 case WeaponId.Warhammer:
                 {
-                    // Hold to charge, let go to slam: a rectangle in front of you. The charge sets the damage (a quarter
+                    // Hold to charge, let go to slam a fixed circle in front of you. The charge sets the damage (a quarter
                     // for a tap, all of it at full) and how long what it hits is stunned.
                     float c = BowCharge(p, p.BowShotDraw);
                     float stun = HammerStunMin + (HammerStunMax - HammerStunMin) * c, power = HammerTap + (1f - HammerTap) * c;
+                    float reachMult = MeleeReach(p, w.Reach) / w.Reach;  // Reach upgrades widen the circle too
                     for (int k = 0; k <= extra; k++)  // each extra projectile: an aftershock slam, further out
                     {
                         var s = NewSwing(p, aim, w.Reach + w.Grow * k, 0f, w.Damage * dmg * power * (k == 0 ? 1f : 0.6f));
-                        s.HalfWidth = HammerHalfWidth;
+                        s.Circle = HammerRadius * reachMult;
+                        s.CircleAt = HammerCentre(s.Reach);
+                        s.Power = c;
                         s.Stun = stun;
                         s.Heavy = true;
                         s.Thrust = true;
                         s.Delay = 0.2f * k;
                         pendingSwings.Add(s);
                     }
-                    V2 hitAt = p.Pos + V2.FromAngle(aim) * (p.Def.BodyR + w.Reach * 0.65f);
-                    BroadcastFx(FxKind.Boom, hitAt, HammerBoomColor, 40f + 50f * c, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
+                    // The blast's old ring (drawn when the screen's melee look is off; with it on, the slam draws its own impact).
+                    BroadcastFx(FxKind.Boom, p.Pos + V2.FromAngle(aim) * HammerCentre(MeleeReach(p, w.Reach)), HammerBoomColor, HammerRadius * reachMult * (0.5f + 0.5f * c), 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
                     break;
                 }
                 case WeaponId.Lance:
@@ -339,7 +345,8 @@ namespace Arena
         void LandSwing(Player p, Swing s)
         {
             V2 origin = p.Pos, dir = V2.FromAngle(s.Aim);
-            bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f;
+            bool full = s.HalfArc >= MathX.Pi - 0.01f, box = s.HalfWidth > 0f, circle = s.Circle > 0f;
+            V2 circleAt = origin + dir * s.CircleAt;
             if (s.NoFx)
                 { }
             else if (s.FxHalf > 0f)  // the Halberd's whole sweep, from its first step (MeleeLooks.cs plays it over HalberdSweepTime)
@@ -353,6 +360,8 @@ namespace Arena
                     s.Ice == 1 ? IcicleFxTime : 0.3f, Sfx.None);
             else if (s.DrawCut)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
+            else if (circle)  // the Warhammer's slam: its power rides in the colour's alpha, its radius in the effect's
+                BroadcastFx(FxKind.Jab, origin, circleAt, HammerBoomColor.WithAlpha(0.2f + 0.8f * s.Power), s.Circle, 0.26f, s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (box)
                 BroadcastFx(FxKind.Jab, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.HalfWidth, 0.26f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
@@ -368,6 +377,16 @@ namespace Arena
                 if (e.SpawnT > 0f || e.Hp <= 0f)
                     continue;
                 float d = e.Pos.DistanceTo(origin);
+                if (circle)
+                {
+                    if (e.Pos.DistanceTo(circleAt) > s.Circle + e.Radius)
+                        continue;
+                    if (!BlocksShot(e, origin))
+                        hits.Add(e);
+                    else
+                        WearShield(e, s.Dmg);
+                    continue;
+                }
                 if (box)
                 {
                     // The Lance's box: from your body out to its reach, HalfWidth either side of the aim line.
@@ -481,6 +500,8 @@ namespace Arena
                     BroadcastFx(FxKind.Spark, origin + dir * (s.Reach * 0.6f), new Rgba(1f, 1f, 1f), 14f, 0.2f, Sfx.None);
                 }
             }
+            else if (!s.NoCut && circle)
+                CutBulletsInCircle(circleAt, s.Circle, s.CutAll);  // the slam clears small bullets over its whole circle
             else if (!s.NoCut)
                 CutBullets(origin, s.Aim, s.Reach + p.Def.BodyR * 0.5f, full ? MathX.Pi : s.HalfArc, s.CutAll, s.HalfWidth);
         }
@@ -519,6 +540,24 @@ namespace Arena
         /// Bosses' red aimed shots always get through.
         public const float RapierSkewerWidth = 14f;
         public const int RapierSkewerMax = 3;
+
+        void CutBulletsInCircle(V2 at, float radius, bool all)
+        {
+            var cut = swingCut;
+            cut.Clear();
+            foreach (var b in Bullets.Values)
+            {
+                if (!Defs.IsEnemyShot(b.Kind) || Defs.Unblockable(b.Kind) || !all && b.Kind != Defs.SmallShot && b.Kind != Defs.FastShot)
+                    continue;
+                if (b.Pos.DistanceTo(at) <= radius + b.Radius)
+                    cut.Add(b.Id);
+            }
+            foreach (int id in cut)
+            {
+                Bullets.Remove(id);
+                pendingRemoved.Add(id);
+            }
+        }
 
         int CutBullets(V2 origin, float aim, float reach, float halfArc, bool all, float halfWidth = 0f, int max = int.MaxValue)
         {
@@ -572,7 +611,7 @@ namespace Arena
         {
             // Tank
             new WeaponDef { Id = WeaponId.Warhammer, Kit = Kit.Knight, Role = Role.Tank, Choice = 0, Damage = 80f, Reach = 130f, Grow = 40f, Melee = true, ExtraDesc = "+1 aftershock: another slam 0.2 s later, 40 px further out, at 60% damage", Name = "Warhammer", FireInterval = 0.75f,
-                Desc = "Hold to charge, let go to slam the ground in front of you (a 100 px wide strip). The longer the charge, the harder it hits (up to 80) and the longer it stuns (up to 0.9 s)." },
+                Desc = "Hold to charge, let go to slam the ground in front of you (a circle 160 px across, always the same size). The longer the charge, the harder it hits (up to 80) and the longer it stuns (up to 0.9 s)." },
             new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 36f, Reach = 180f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.6f,
                 Desc = "A heavy jab in front of you that shoves enemies far back and stuns them for 1 s." },
             new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
