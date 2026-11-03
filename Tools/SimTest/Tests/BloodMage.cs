@@ -15,12 +15,10 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Healer", Role.Healer, 2, 0, Kit.Hemomancer);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Healer", Role.Healer, 2, 0, Kit.Hemomancer);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         g.Bot = client.Game.Bot = false;
         Run(s, dt, 8, () => g.State == MatchState.Fighting);
@@ -75,12 +73,10 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 2, 0, Kit.Hemomancer);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 2, 0, Kit.Hemomancer);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         g.Bot = client.Game.Bot = false;
         Run(s, dt, 8, () => g.State == MatchState.Fighting);
@@ -181,12 +177,10 @@ static partial class Program
             "Blood Mage abilities and ultimates map to the right role and class");
 
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 0, 0, Kit.Hemomancer);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Healer", Role.Healer, 0, 0, Kit.Hemomancer);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Hemomancer);
+        var client = JoinAs(port, false, "Healer", Role.Healer, 0, 0, Kit.Hemomancer);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var hp = g.Players[1];

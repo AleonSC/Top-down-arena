@@ -28,12 +28,10 @@ static partial class Program
             && Upgrades.Ultimate(Role.Tank, Kit.Ninja) == AbilityId.ThousandClones, "Ninja abilities and ultimates map to the right role and class");
 
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 0, 0, Kit.Ninja);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Healer", Role.Healer, 0, 0, Kit.Ninja);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Ninja);
+        var client = JoinAs(port, false, "Healer", Role.Healer, 0, 0, Kit.Ninja);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var hp = g.Players[1];

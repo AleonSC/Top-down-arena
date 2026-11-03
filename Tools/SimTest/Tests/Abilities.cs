@@ -16,14 +16,10 @@ static partial class Program
             for (int choice = 0; choice < Upgrades.RoleAbilityChoices; choice++)
             {
                 int port = nextPort++;
-                var host = new Session { AutoStart = 2, StartWave = 3 };
-                host.Game.Bot = true;
-                host.Host(port, "Host", roles[0], 0, choice);
-                var client = new Session();
-                client.Game.Bot = true;
-                client.Join("127.0.0.1", port, "Friend", roles[1], 0, choice);
+                var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, true, "Host", roles[0], 0, choice);
+                var client = JoinAs(port, true, "Friend", roles[1], 0, choice);
                 var s = new[] { host, client };
-                for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+                WaitForGame(host, client, dt);
                 bool taunt = false, zone = false, link = false, grenade = false, marked = false;
                 int ghosts = 0, frame = 0;
                 // Mark needs an enemy on screen when the bot presses it, so give it longer.
@@ -79,14 +75,10 @@ static partial class Program
         for (int choice = 0; choice < 3; choice++)
         {
             int port = nextPort++;
-            var host = new Session { AutoStart = 2, StartWave = 3 };
-            host.Game.Bot = true;
-            host.Host(port, "Host", roles[0], choice, choice, kit);
-            var client = new Session();
-            client.Game.Bot = true;
-            client.Join("127.0.0.1", port, "Friend", roles[1], choice, choice, kit);
+            var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, true, "Host", roles[0], choice, choice, kit);
+            var client = JoinAs(port, true, "Friend", roles[1], choice, choice, kit);
             var s = new[] { host, client };
-            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            WaitForGame(host, client, dt);
             var minions = new HashSet<MinionKind>();
             var zones = new HashSet<ZoneKind>();
             bool aegis = false, shield = false, surge = false, frenzy = false, bolt = false, boltShot = false;
@@ -170,11 +162,9 @@ static partial class Program
             var host = new Session { AutoStart = 2, StartWave = 9 };  // enemies tough enough to survive Glacial Tomb's hit
             host.Game.Bot = true;
             host.Host(port, "Host", roles[0], 0, 0, kit);
-            var client = new Session();
-            client.Game.Bot = true;
-            client.Join("127.0.0.1", port, "Friend", roles[1], 0, 0, kit);
+            var client = JoinAs(port, true, "Friend", roles[1], 0, 0, kit);
             var s = new[] { host, client };
-            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            WaitForGame(host, client, dt);
             Run(s, dt, 6, () => host.Game.Enemies.Count >= 4 && host.Game.State == MatchState.Fighting);
             Func<int, Player> mine = id => (id == 1 ? host : client).Game.Players[id];
             foreach (int id in new[] { 1, 2 })

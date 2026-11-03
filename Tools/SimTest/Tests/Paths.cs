@@ -17,12 +17,10 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 5 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 5 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };
@@ -122,12 +120,10 @@ static partial class Program
         var offer = typeof(Game).GetMethod("OfferPaths", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 6 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 20f, () => g.State == MatchState.Fighting);
         foreach (var e in g.Enemies.Values) e.Hp = 0f;
@@ -206,8 +202,7 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 1, StartWave = 6 };
-        host.Host(port, "Solo", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 1, StartWave = 6 }, port, false, "Solo", Role.Dps);
         var g = host.Game;
         host.StartMatch();
         for (int f = 0; f < 60 * 20 && g.State != MatchState.Fighting; f++) Step(host, dt);
@@ -275,12 +270,10 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var queueField = typeof(Game).GetField("spawnQueue", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 6 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 6 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         g.Bot = client.Game.Bot = false;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
@@ -360,12 +353,10 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var openShop = typeof(Game).GetMethod("OpenShop", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 5 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 5 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Action NoPicks = () => { foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.LegendaryQueue.Clear(); p.Offer = null; } };

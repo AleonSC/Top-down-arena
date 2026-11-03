@@ -14,8 +14,7 @@ static partial class Program
         var cast = typeof(Game).GetMethod("HostAbility", flags);
         var hurtGuard = typeof(Game).GetMethod("HurtGuard", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Healer, 0, 2, Kit.Soldier);
+        var host = HostAs(new Session { AutoStart = 1 }, port, false, "Solo", Role.Healer, 0, 2, Kit.Soldier);
         var g = host.Game;
         g.Bot = false;
         host.StartMatch();

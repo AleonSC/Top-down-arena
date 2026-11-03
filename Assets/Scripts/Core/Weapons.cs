@@ -378,7 +378,7 @@ namespace Arena
                     SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Suppressive = true;
                     break;
                 case WeaponId.BearTotem:
-                    FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (Minions.cs)
+                    FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (KitWeapons.cs)
                     break;
                 case WeaponId.LightBolt:
                     FireRepulsion(p, aim, dmg, extra);  // the Repulsion Cannon (Repulsion.cs)
@@ -438,7 +438,7 @@ namespace Arena
                     var b = SpawnBullet(Defs.RailShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
                     b.Pierce += 3;
                     b.Bolts = true;  // it pierces: Ricochet flings bounce bolts off it
-                    IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (Minions.cs)
+                    IonTrail(p, muzzle, dir, b.Vel.Length, w.Life, dmg);  // its path stays charged (KitWeapons.cs)
                     if (extra > 0)
                         SetFrags(b, 2 * extra, Defs.DpsShot, 11f * dmg, 600f, 0.3f, 0f, true);
                     break;

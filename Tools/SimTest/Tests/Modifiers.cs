@@ -15,20 +15,18 @@ static partial class Program
         var cleared = typeof(Game).GetMethod("WaveCleared", flags);
         var closeShop = typeof(Game).GetMethod("CloseShop", flags);
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         foreach (var m in new[] { RunMod.HeadStart, RunMod.Practiced, RunMod.Bloodlust, RunMod.GoldRush, RunMod.TinyArena, RunMod.Nightfall })
             host.SetModifier(m, true);
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         var me = g.Players[1];
         Check(client.Game.Has(RunMod.Nightfall) && Modifiers.Count(client.Modifiers) == 6, "the friend's game knows the new modifiers");

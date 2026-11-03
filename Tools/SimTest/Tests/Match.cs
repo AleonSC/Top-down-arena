@@ -65,8 +65,7 @@ static partial class Program
         }
 
         // A third player must be turned away.
-        var extra = new Session();
-        extra.Join("127.0.0.1", port, "Third", null);
+        var extra = JoinAs(port, false, "Third", null);
         for (int i = 0; i < 120; i++)
         {
             Step(host, dt);
@@ -281,15 +280,9 @@ static partial class Program
     static void ThreePlayerTest(float dt)
     {
         int port = nextPort++;
-        var host = new Session { AutoStart = 3, StartWave = 1 };
-        host.Game.Bot = true;
-        host.Host(port, "Host", Role.Tank);
-        var a = new Session();
-        a.Game.Bot = true;
-        a.Join("127.0.0.1", port, "Friend A", Role.Healer);
-        var b = new Session();
-        b.Game.Bot = true;
-        b.Join("127.0.0.1", port, "Friend B", Role.Dps, 0, 0, Kit.Elementalist);
+        var host = HostAs(new Session { AutoStart = 3, StartWave = 1 }, port, true, "Host", Role.Tank);
+        var a = JoinAs(port, true, "Friend A", Role.Healer);
+        var b = JoinAs(port, true, "Friend B", Role.Dps, 0, 0, Kit.Elementalist);
         var all = new[] { host, a, b };
         for (int i = 0; i < 600 && (a.Screen != AppScreen.Game || b.Screen != AppScreen.Game); i++)
         {
@@ -365,10 +358,8 @@ static partial class Program
     static void ReadyTest(float dt)
     {
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
         Run(s, dt, 3, () => host.Lobby.Count == 2 && client.Lobby.Count == 2);
         host.StartMatch();
@@ -446,11 +437,9 @@ static partial class Program
         var host = new Session { AutoStart = 2, StartWave = 3 };
         host.Game.Bot = true;
         host.Host(port, "Host", Role.Healer, 0, 0);  // Repulsion Cannon + Mend Pulse
-        var client = new Session();
-        client.Game.Bot = true;
-        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0);
+        var client = JoinAs(port, true, "Friend", Role.Dps, 0, 0);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         host.Game.Players[2].Hp *= 0.5f;  // give the healer someone to heal
         Run(s, dt, 45, () => host.Game.State == MatchState.GameOver || (host.Game.RunTime > 20f && host.Game.Players[1].Run.HealingDone > 0f
             && host.Game.Players[2].Run.Kills > 0 && host.Game.Players[1].Run.AbilitiesUsed > 0));
@@ -537,11 +526,9 @@ static partial class Program
         host.Game.Bot = true;
         host.Game.RecordFolder = folder;
         host.Host(port, "Host", Role.Tank, 0, 0, Kit.Elementalist);
-        var client = new Session();
-        client.Game.Bot = true;
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var client = JoinAs(port, true, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         foreach (int id in new[] { 1, 2 })
         {

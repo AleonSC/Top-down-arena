@@ -17,20 +17,18 @@ static partial class Program
         var keep = typeof(Game).GetMethod("KeepInArena", flags);
         var gameOver = typeof(Game).GetMethod("CheckGameOver", flags);
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         foreach (var m in new[] { RunMod.Hunted, RunMod.DeathThroes, RunMod.SolidWalls, RunMod.SecondWind })
             host.SetModifier(m, true);
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         var c = client.Game;
         Run(s, dt, 6f, () => g.State == MatchState.Fighting);

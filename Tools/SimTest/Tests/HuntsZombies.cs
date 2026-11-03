@@ -36,8 +36,8 @@ static partial class Program
         var cp = client.Game.ProfileOverride = new Profile();  // the friend hasn't beaten it: the host's unlock is what counts
         client.Join("127.0.0.1", port, "Friend", Role.Dps);
         var s = new[] { host, client };
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         host.SetMode(false, true);
         host.SetHuntBoss(EnemyType.HiveQueen);  // no hunt for her yet: ignored
@@ -45,7 +45,7 @@ static partial class Program
         Check(client.HuntMode && client.HuntBoss == EnemyType.Boss && host.HuntBoss == EnemyType.Boss, "the friend's lobby shows the Boss Hunt and its boss (only bosses with a hunt can be picked)");
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         var c = client.Game;
         g.ChallengesOn = true;  // (on, to show a hunt opens no portal)
@@ -102,19 +102,17 @@ static partial class Program
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var xpScale = typeof(Game).GetMethod("ZombieXpScale", flags);
         int port = nextPort++;
-        var host = new Session { StartWave = 3 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { StartWave = 3 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         host.SetModifier(RunMod.ZombieInfection, true);
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         var c = client.Game;
         Action safe = () => { foreach (var p in g.Players.Values) { p.InvulnT = 1f; p.PendingPicks = 0; p.Offer = null; } };

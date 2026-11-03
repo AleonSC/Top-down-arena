@@ -38,8 +38,7 @@ static partial class Program
 
         // A practice run: exactly the chosen enemies, at the chosen level, then it ends after the last wave.
         int port = nextPort++;
-        var host = new Session { AutoStart = 1 };
-        host.Host(port, "Solo", Role.Tank, 0, 0, Kit.Knight);
+        var host = HostAs(new Session { AutoStart = 1 }, port, false, "Solo", Role.Tank, 0, 0, Kit.Knight);
         var g = host.Game;
         host.PracticeMode = true;
         host.Plan = PracticePlan.Parse(text, out problems);
@@ -165,13 +164,11 @@ static partial class Program
     {
         // The Practice Range lives in the lobby: everyone sees the setup, and the host decides who can edit it.
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         List<string> problems;
         host.SetPracticeMode(true);
@@ -206,7 +203,7 @@ static partial class Program
         client.RequestReady(true);
         Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         host.Game.DevSetGod(1, true); host.Game.DevSetGod(2, true);
         Run(s, dt, 15f, () => host.Game.State == MatchState.Fighting && host.Game.PracticeIndex == 1 && client.Game.PracticeIndex == 1,
             () => { foreach (var e in host.Game.Enemies.Values) e.Hp = 0f; foreach (var p in host.Game.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = 0; p.Offer = null; } });
@@ -224,12 +221,10 @@ static partial class Program
         var damage = typeof(Game).GetMethod("Damage", flags);
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         host.SetModifier(RunMod.ToughCrowd, true);
         host.SetModifier(RunMod.GlassCannon, true);
@@ -239,7 +234,7 @@ static partial class Program
         Check(client.Modifiers == host.Modifiers && Modifiers.Count(client.Modifiers) == 4, "the friend sees the host's run modifiers");
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Check(g.Has(RunMod.ToughCrowd) && client.Game.Has(RunMod.Lucky), "both games know the run's modifiers");
         Check(g.Players[1].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls && client.Game.Players[2].Rerolls == Game.StartingRerolls + Modifiers.LuckyRerolls,

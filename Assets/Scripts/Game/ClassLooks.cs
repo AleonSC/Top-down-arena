@@ -20,8 +20,8 @@ namespace Arena
             new KitLook(),                                                                    // Soldier: the plain role marker
             new KitLook { Body = (a, p, r, t, col) => a.DrawMageMark(p, r) },                // Elementalist (Kit.Elementalist)
             new KitLook { Body = (a, p, r, t, col) => a.DrawSummonerMark(p, r, t) },         // Summoner
-            new KitLook { Body = (a, p, r, t, col) => a.DrawKnight(p, r, t) },               // Knight (WorldRenderer.cs)
-            new KitLook { Body = (a, p, r, t, col) => a.DrawNinja(p, r, t, col),             // Ninja (WorldRenderer.cs)
+            new KitLook { Body = (a, p, r, t, col) => a.DrawKnight(p, r, t) },               // Knight (WorldPlayers.cs)
+            new KitLook { Body = (a, p, r, t, col) => a.DrawNinja(p, r, t, col),             // Ninja (WorldPlayers.cs)
                           Shot = (a, b, c, t) => a.DrawNinjaShot(b, c, t) },
             new KitLook { Body = (a, p, r, t, col) => a.DrawBloodMage(p, r, t, col),         // Hemomancer (BloodMageLook.cs)
                           Auras = (a, p, t) => a.DrawBloodAuras(p, t),

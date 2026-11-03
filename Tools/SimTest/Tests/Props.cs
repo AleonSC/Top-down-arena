@@ -15,12 +15,10 @@ static partial class Program
         var spawnEnemy = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var waveProps = typeof(Game).GetMethod("WaveProps", flags);
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 9 };
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 9 }, port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         var cg = client.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
@@ -169,7 +167,7 @@ static partial class Program
         client.Game.Bot = true;
         client.Join("127.0.0.1", port, "Friend", Role.Healer);
         s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         g = host.Game;
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Run(s, dt, 20f, () => g.State == MatchState.Fighting && g.Wave == 3);

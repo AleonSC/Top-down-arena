@@ -66,7 +66,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 
 | File | Lines | What it holds |
 |---|---|---|
-| `Game.cs` | 1.3k | Player/Enemy/Bullet/Minion/Zone classes, match state and engine constants (arena size, snapshot rate), lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
+| `Game.cs` | 1.2k | match state and engine constants (arena size, snapshot rate), lifecycle (`HostStart`, `Stop`), upgrades and picks (`Recalc`, `HostPick`, `NextOffer`), the frame loop (`FixedStep`, `Update`), `LocalControl` (local movement, dash, bow, boss shove), `HostTick`, `TickPlayers` |
+| `Entities.cs` | 0.39k | the data types the match holds: `MatchState`, `FxKind`, `Sfx`, `SoundCue`, `AbilitySlot`, `Player`, `Enemy`, `Bullet`, `Orb`, `Zone`, `Minion`, `Effect`, `PlayerInput` |
 | `GameNet.cs` | 0.55k | **all network serialisation**: inputs (`OnInput`, `OnAbility`), the snapshot (`SyncSnapshot` and its `SyncPlayer`/`SyncEnemy`/`SyncMinion`/`SyncZone`/`SyncOrb`; `SyncMastery`, `SyncShop`, `SyncWarden`, `SyncHazards`, `SyncCages` live with their systems), `OnHostMessage`, `SendSteer`/`ReadSteer`, `BroadcastFx` |
 | `NetSync.cs` | 0.03k | one pass that writes (host) or reads (client) each field by `ref`, so a snapshot field is listed once for both sides |
 | `Combat.cs` | 0.8k | bullets (`SpawnBullet`, `MoveBullets`, homing `Steer`, gravity wells), `Collide`, damage to players (`Damage`, `RevivePlayer`) and enemies (`HurtEnemy`), on-hit/on-kill effects, burn, orbs |
@@ -87,7 +88,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Queen.cs` | 0.6k | wave-10 boss, a hive in three stages (Swarm / Honeycomb / Frenzy + last stand): drones (shield; leftovers fly home and heal), bombers, eggs (`EnemyType.HiveEgg`), hex cells (`HiveCells`, same on every game), nectar spray (`Defs.HoneyShot`, `PatchKind.Honey` slows on your own game), swarm cloud (bee positions computed from the cloud and the clock on every game), royal dive (immune in the air), bomber barrage; `WriteQueen`/`ReadQueen` after her snapshot record; drawn in `QueenLook.cs` |
 | `Singularity.cs` | 0.25k | wave-20 boss: corner wells, lasers, cages |
 | `Colossus.cs` | 0.6k | wave-25 boss in three stages (Awakening / Crumbling / Molten Core + last stand): `ColossusState` (synced by `SyncColossus`), stomp rings of push blocks (`StompRing`, pushed on your own game in `ColossusPush`, hurt on the host), drops (boulders, meteors, pillars), fissures, plates (`ColSlab`, stop bullets both ways in `Collide` via `ColossusCoverStops`), charge + daze (`ColDazeMult` in `HurtEnemy`), lava patches (`PatchKind.Lava`). Look: `ColossusLook.cs` |
-| `Minions.cs` | 0.7k | Mage and Summoner weapons and abilities, companions/minions |
+| `Minions.cs` | 0.93k | Elementalist and Summoner abilities (`KitAbility`), minions (`SpawnMinion`, `TickMinions`) and ground zones (`AddZone`, `TickZones`) |
+| `KitWeapons.cs` | 0.93k | Elementalist and Summoner weapons (`FireKitWeapon`) and what they leave behind: bleeds, chain lightning, seeds and vines, sent minions, orbiters, refraction, ion trails, the wolf pack, arc fields, light cones, bone cages, boulders, shocks |
 | `Knight.cs` | 0.6k | Knight melee: swings (`Swing`, `LandSwing`, Lance box), sword waves, Knight abilities |
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
 | `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
@@ -127,8 +129,16 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | File | Lines | What it holds |
 |---|---|---|
 | `ArenaApp.cs` | 0.45k | boot, command line, input and the frame loop (`Update`, `FixedUpdate`), layout/scaling, `OnGUI` dispatch, small shared helpers |
-| `WorldRenderer.cs` | 1.3k | **world rendering in GL**: `OnPostRender`, `DrawWorld` (floor) → `DrawArenaContents` (one helper per layer: auras, shots, zones, orbs, enemies, players, effects), `DrawEnemy` (layers: underlay / status / body / details, with per-type helpers), `DrawPlayer`, `DrawKnight`, aim line / bow draw / cylinder overlays, GL primitives and clipping (`Tri`, `UiClip`, `BeginUiGl`/`UiModelAt`) |
-| `Hud.cs` | 1.0k | HUD (layout "C", Oct 2026: wave panel left of the ability bar, your card right of it with teammates as slim rows above, `DrawWaveCorner`/`DrawPlayerCorner`/`DrawTeammateRow`; boss bars wide at the top middle): wave plate, player cards, boss bars, ability bar, mastery toasts, Tab menu, upgrade picker and cards, `StatsSidebar`, banners, run summary |
+| `WorldRenderer.cs` | 0.74k | **world rendering in GL**: `OnPostRender`, `DrawWorld` (floor) → `DrawArenaContents` (one helper per layer: auras, shots, zones, orbs, enemies, players, effects), `DrawEnemy` (layers: underlay / status / body / details, with per-type helpers), `DrawPlayer`, `DrawKnight`, aim line / bow draw / cylinder overlays, GL primitives and clipping (`Tri`, `UiClip`, `BeginUiGl`/`UiModelAt`) (the frame, auras, parry shield, orbs, aim line and the GL primitives stay here; the rest is split by what is drawn into the four files below) |
+| `WorldShots.cs` | 0.37k | player shots (`DrawSmallShot`, `DrawNinjaShot`, fireballs, boulders, hammers), `DrawShotMods`, charge overlays (bow draw, hammer/boulder charge, revolver cylinder) |
+| `WorldEffects.cs` | 0.56k | `DrawEffect` and every `FxKind` look (repulse, shatter, slashes, claws, chains, arc fields, light cones, icicles, jabs, bolts) |
+| `WorldEnemies.cs` | 0.83k | Singularity hazards, `DrawZone`, `DrawMinion`, clones, `DrawEnemy` with its underlay, tells, details and status icons |
+| `WorldPlayers.cs` | 0.25k | `DrawPlayer`, `DrawKnight`, `DrawNinja` |
+| `Hud.cs` | 0.49k | HUD (layout "C", Oct 2026: wave panel left of the ability bar, your card right of it with teammates as slim rows above, `DrawWaveCorner`/`DrawPlayerCorner`/`DrawTeammateRow`; boss bars wide at the top middle): wave plate, player cards, boss bars, ability bar, mastery toasts, Tab menu, upgrade picker and cards, `StatsSidebar`, banners, run summary (Tab menu, boss bars, picker and summary are in the four files below) |
+| `HudTab.cs` | 0.24k | the Tab menu (`DrawTabMenu`, stats, abilities, upgrades pages) |
+| `HudBossBars.cs` | 0.43k | `DrawBossBars` and each boss's stage names and notes |
+| `HudPicker.cs` | 0.45k | `DrawUpgradePicker`, trophy and upgrade cards, the stat panel and sidebar |
+| `HudSummary.cs` | 0.25k | the end-of-run summary (`DrawRunSummary`, `DrawPlayerSummary`, `SummaryRows`) |
 | `Menus.cs` | 0.4k | main menu (title axis, plot corners), How to play, pause menu, settings and audio |
 | `LobbyUi.cs` | 0.5k | the lobby: "!" connection popup by the title (port, invite addresses), the hero card's live mini-arena (`DrawShowcase`, stepped from `FixedUpdate`), mode switch (left column, under the title), party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
@@ -211,7 +221,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit`
    value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 Space and 3 ultimate `AbilityId`s
    (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with its radius and colour
-   (`BulletRadius`, `BulletColor`) and its drawing in `WorldRenderer.DrawShot`. **Bump `Session.ProtocolVersion`.**
+   (`BulletRadius`, `BulletColor`) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
 2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
    `AbilityDef`s (Space `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
@@ -245,6 +255,10 @@ The lobby fits about 8 class cards in a row before they get too small.
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
   `Knight`, `Ninja`, `BloodMage`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
   `TextEdit`). `run.sh list` prints every suite.
+  - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
+    role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
+    new tests instead of writing the loops out. Big systems span several files (`Weapons`, `WeaponsByKit`,
+    `WeaponsSpecial`; `Bosses`, `BossesLate`, `BossMechanics`).
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
@@ -346,7 +360,7 @@ copies of the same numbers:
 |---|---|
 | **Weapon** | its `WeaponDef` in its class's file (since Oct 2026: lobby place, numbers, sound, area and card texts; before, `Defs` held the definition and numbers: `Speed`, `Life`, `Damage`, `Reach`, `Grow`, `BotRange`; `WeaponRange`, `MeleeRange` and the bots read them since Oct 2026) · `FireVolley` / `FireKitWeapon` / `FireKnightWeapon` / Ninja / Blood Mage (behaviour) · a `WeaponRange` case only if it's unusual (bow, returning star, beam, sword waves) · draw code · `ExtraDesc` text · README · Armory · re-run `Tools/SimTest/run.sh 1 1 weapondps write` (the lobby's Damage stat, `WeaponDps.Generated.cs`) |
 | **Ability** | `AbilityId` · its `AbilityDef` entry in its class's file (lobby place, name, cooldown, texts, capstone, instant, charges, bot rule; since Oct 2026) · its cast `case` next to the entry (`CastAbility` / `KitAbility` / `KnightAbility` / `NinjaAbility` / `BloodAbility` / `Ultimate`), including what its capstone does · `PixelArt` icon by name · README · Armory |
-| **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldRenderer.DrawEnemy` · README · Bestiary (then `node Docs/Bestiary/build_data.js` for the in-game one) |
+| **Enemy** | `EnemyType` + its `EnemyDef` in `Defs` (stats, blurb, picker group, late/heavy flags; since Oct 2026) · `EnemyAI` or `LateGame` (roster, move, fire, special) · `WorldEnemies.DrawEnemy` · README · Bestiary (then `node Docs/Bestiary/build_data.js` for the in-game one) |
 
 **Recommendations**
 1. ✅ **Done (Oct 2026).** **Put weapon numbers in `WeaponDef`** (shot speed, lifetime, damage, reach, per-extra

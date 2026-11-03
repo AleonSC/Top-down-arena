@@ -13,12 +13,8 @@ static partial class Program
     static void BossTtk(float dt, int lastWave)
     {
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 1 };
-        host.Game.Bot = true;
-        host.Host(port, "Host", Role.Tank, 0, 0, Kit.Soldier);
-        var client = new Session();
-        client.Game.Bot = true;
-        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0, Kit.Soldier);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 1 }, port, true, "Host", Role.Tank, 0, 0, Kit.Soldier);
+        var client = JoinAs(port, true, "Friend", Role.Dps, 0, 0, Kit.Soldier);
         var s = new[] { host, client };
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); }
         var born = new Dictionary<int, float>();

@@ -354,8 +354,8 @@ namespace Arena
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
                 TickBurn(e, dt);
-                TickBleed(e, dt);  // Minions.cs
-                TickBoneCage(e, dt);  // Minions.cs
+                TickBleed(e, dt);  // KitWeapons.cs
+                TickBoneCage(e, dt);  // KitWeapons.cs
                 TickHemorrhage(e, dt);  // BloodMage.cs
                 TickPoison(e, dt);  // Ninja.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy

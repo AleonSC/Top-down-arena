@@ -249,7 +249,7 @@ namespace Arena
                 }
                 if (b.Kind == Defs.BoulderShot)
                 {
-                    LandBoulder(b);  // Minions.cs
+                    LandBoulder(b);  // KitWeapons.cs
                     continue;
                 }
                 if (b.Kind == Defs.FlakShell)
@@ -411,7 +411,7 @@ namespace Arena
                         scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
                         continue;
                     }
-                    if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: Minions.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
+                    if (b.Refract ? RefractThroughAlly(b) : b.Medicine ? DoseAlly(b) : b.HealAlly > 0f && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: BloodMage.cs
                     {
                         scratchIds.Add(b.Id);
                         continue;
@@ -593,7 +593,7 @@ namespace Arena
                 nb.SlowAmt = rb.SlowAmt;
             }
 
-            SplitRefracted();  // Prism Beams that went through an ally (Minions.cs)
+            SplitRefracted();  // Prism Beams that went through an ally (KitWeapons.cs)
             // Fragments from Frost Lance, Railgun, Flak Cannon and Fireball hits.
             foreach (var f in frags)
             {
@@ -671,7 +671,7 @@ namespace Arena
             {
                 DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
                 Recorder?.EnemyKilled(e);
-                SeededKill(e);  // a Sprite Staff seed in it frees a sprite (Minions.cs)
+                SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
                 foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
                     onKill(this, e);
                 bool bossReward = OnEnemyKilled(e);
@@ -839,15 +839,15 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
-            BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (Minions.cs)
-            WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (Minions.cs)
+            BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (KitWeapons.cs)
+            WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
-            SeedHit(b, e);      // Sprite Staff seeds stick; Totem Staff seeds charge totems (Minions.cs)
+            SeedHit(b, e);      // Sprite Staff seeds stick; Totem Staff seeds charge totems (KitWeapons.cs)
             if (b.Shock > 0)
-                Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (Minions.cs)
+                Electrify(e, b.Dmg, b.Shock, b.Owner);  // the Storm Hammer (KitWeapons.cs)
             if (b.Ignite > 0f)  // the Flamethrower and the Fireball: burning, the strongest fire on it counts
             {
                 if (!b.Pierced && b.Kind == Defs.FlameShot)  // a flame does full damage to the first enemy, a third to the ones behind

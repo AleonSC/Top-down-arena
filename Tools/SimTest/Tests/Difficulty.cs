@@ -38,12 +38,10 @@ static partial class Program
 
         // The lobby: the host picks, the friend sees it, and only the host can change it.
         int port = nextPort++;
-        var host = new Session();
-        host.Host(port, "Host", Role.Tank);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Dps);
-        Action Sync = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); } };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        var host = HostAs(new Session(), port, false, "Host", Role.Tank);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        Action Sync = () => PollBoth(host, client);
+        WaitForLobby(host, client);
         Sync();
         host.SetDifficulty(DifficultyLevel.Hard);
         Sync();
@@ -64,7 +62,7 @@ static partial class Program
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
         host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Check(g.Diff.SameAs(host.Diff) && client.Game.Diff.SameAs(host.Diff), "both games play the lobby's difficulty");
 

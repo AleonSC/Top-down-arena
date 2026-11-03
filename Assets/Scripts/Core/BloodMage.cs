@@ -496,7 +496,7 @@ namespace Arena
                 if (!Enemies.TryGetValue(c.Enemy, out e) || e.Hp <= 0f)
                     continue;
                 HurtEnemy(e, c.Dmg, c.Owner);
-                ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // Minions.cs: each coat is another stack
+                ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // KitWeapons.cs: each coat is another stack
                 OnBulletHit(new Bullet { Pos = e.Pos, Owner = c.Owner, Dmg = c.Dmg, Kind = Defs.SanguineShot }, e);
                 if (Players.TryGetValue(c.Owner, out p))
                     p.BloodReserve = Math.Min(ReserveMax, p.BloodReserve + ReserveGain);

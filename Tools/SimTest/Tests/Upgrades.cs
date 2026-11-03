@@ -93,7 +93,7 @@ static partial class Program
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
         client.Join("127.0.0.1", 7791, "Friend", Role.Dps, 2);
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         int hollow = Array.FindIndex(Upgrades.All, u => u.Name == "Hollow Points");
         for (int k = 0; k < 25; k++)
         {

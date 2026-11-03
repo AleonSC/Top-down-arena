@@ -418,7 +418,7 @@ namespace Arena
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
                 if (s.Bleed > 0f)
-                    ApplyBleed(e, dmg * s.Bleed, p.Id);  // Minions.cs
+                    ApplyBleed(e, dmg * s.Bleed, p.Id);  // KitWeapons.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
                 {
                     e.FrozenT = Math.Max(e.FrozenT, s.Stun);

@@ -73,7 +73,7 @@ namespace Arena
         {
             if (tab == 1 && me != null)
             {
-                DrawTabMenu(me, dim);  // Your build: the loadout screen (Hud.cs)
+                DrawTabMenu(me, dim);  // Your build: the loadout screen (HudTab.cs)
                 return;
             }
             if (dim)

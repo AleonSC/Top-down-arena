@@ -96,7 +96,7 @@ static partial class Program
         var c = new Session(); c.Game.Bot = true; c.Game.BotLevel = BotSkill.Good; c.Game.BotRerolls = false;
         c.Join("127.0.0.1", port, "B", Role.Dps, 0);
         var s = new[] { host, c };
-        for (int i = 0; i < 300 && c.Screen != AppScreen.Game; i++) { Step(host, dt); Step(c, dt); Thread.Sleep(2); }
+        WaitForGame(host, c, dt);
         int lastWave = 0;
         for (int f = 0; f < 60 * 60 * 40 && host.Game.State != MatchState.GameOver && host.Game.Wave <= 30; f++)
         {
@@ -140,8 +140,7 @@ static partial class Program
     {
         var cleared = typeof(Game).GetMethod("WaveCleared", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         int port = nextPort++;
-        var host = new Session { AutoStart = 1, StartWave = 1 };
-        host.Host(port, "Bot", Role.Dps);
+        var host = HostAs(new Session { AutoStart = 1, StartWave = 1 }, port, false, "Bot", Role.Dps);
         var g = host.Game;
         g.Bot = true; g.BotLevel = BotSkill.Good;
         host.StartMatch();

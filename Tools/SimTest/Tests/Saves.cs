@@ -44,14 +44,10 @@ static partial class Program
 
             // The host saves as each wave starts; the save has every seat and their picks.
             int port = nextPort++;
-            var host = new Session { AutoStart = 2, StartWave = 3 };
-            host.Game.Bot = true;
-            host.Host(port, "Host", Role.Tank, 0, 0, Kit.Knight);
-            var client = new Session();
-            client.Game.Bot = true;
-            client.Join("127.0.0.1", port, "Friend", Role.Dps, 1, 0, Kit.Elementalist);
+            var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, true, "Host", Role.Tank, 0, 0, Kit.Knight);
+            var client = JoinAs(port, true, "Friend", Role.Dps, 1, 0, Kit.Elementalist);
             var s = new[] { host, client };
-            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            WaitForGame(host, client, dt);
             var g = host.Game;
             int fortitude = Array.FindIndex(Upgrades.All, u => u.Name == "Fortitude");
             g.GrantUpgrade(2, fortitude); g.GrantUpgrade(2, fortitude);
@@ -85,7 +81,7 @@ static partial class Program
             client.Game.Bot = true;
             client.Join("127.0.0.1", port, "Pal", Role.Healer, 0, 0, Kit.Summoner);
             s = new[] { host, client };
-            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            WaitForGame(host, client, dt);
             Run(s, dt, 0.5f);
             g = host.Game;
             var c = client.Game;
@@ -138,8 +134,7 @@ static partial class Program
             var friend = new Session();
             friend.Join("127.0.0.1", port, "Friend", Role.Dps);  // takes back seat 1, so none is free
             for (int i = 0; i < 100; i++) { Step(host, dt); Step(friend, dt); Thread.Sleep(1); }
-            var owner = new Session();
-            owner.Join("127.0.0.1", port, "Anthony", Role.Dps);
+            var owner = JoinAs(port, false, "Anthony", Role.Dps);
             for (int i = 0; i < 200; i++) { Step(host, dt); Step(friend, dt); Step(owner, dt); Thread.Sleep(1); }
             Console.WriteLine("  host in someone's seat: host still in the lobby {0} (seat {1}); 'Anthony' was {2} ({3})", host.Lobby.ContainsKey(1), host.Lobby.ContainsKey(1) ? host.Lobby[1].Seat : -1, owner.Screen, owner.Status);
             Check(host.Lobby.ContainsKey(1) && host.Lobby[1].Seat == 0 && host.Lobby.Count == 2 && owner.Screen == AppScreen.Menu && owner.Status.Contains("seats are taken"),
@@ -189,7 +184,7 @@ static partial class Program
             var cp = client.Game.ProfileOverride = new Profile();
             client.Join("127.0.0.1", port, "Friend", Role.Dps);
             var s = new[] { host, client };
-            for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+            WaitForGame(host, client, dt);
             var g = host.Game;
             Run(s, dt, 20f, () => g.State == MatchState.Fighting && Find(host, EnemyType.Boss) != null && !g.IsSpawning(Find(host, EnemyType.Boss)), () => { foreach (var p in g.Players.Values) p.InvulnT = 1f; });
             Find(host, EnemyType.Boss).Hp = 0f;

@@ -46,6 +46,44 @@ static partial class Program
 
     static int nextPort = 7810;
 
+    // Shared setup for host + friend tests over localhost.
+    // HostAs: host a match on `port` with `s` (pass `new Session { AutoStart = 2, StartWave = 3 }` etc.).
+    static Session HostAs(Session s, int port, bool bot, string name, Role role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
+    {
+        if (bot)
+            s.Game.Bot = true;
+        s.Host(port, name, role, weapon, ability, kit);
+        return s;
+    }
+
+    // JoinAs: a friend joining the host on `port`.
+    static Session JoinAs(int port, bool bot, string name, Role? role, int weapon = 0, int ability = 0, Kit kit = Kit.Soldier)
+    {
+        var s = new Session();
+        if (bot)
+            s.Game.Bot = true;
+        s.Join("127.0.0.1", port, name, role, weapon, ability, kit);
+        return s;
+    }
+
+    // Step both games until the client is in the match (at most 300 steps).
+    static void WaitForGame(Session host, Session client, float dt)
+    {
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+    }
+
+    // Poll both sessions until the client is in the lobby (at most 300 polls).
+    static void WaitForLobby(Session host, Session client)
+    {
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+    }
+
+    // Poll both sessions `times` times, letting messages cross.
+    static void PollBoth(Session host, Session client, int times = 40)
+    {
+        for (int i = 0; i < times; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+    }
+
     // Start a bot match at a given wave with both players buffed so they survive a while.
     static Session[] StartBuffed(float dt, int wave, int damageStacks)
     {
@@ -58,7 +96,7 @@ static partial class Program
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         foreach (int id in new[] { 1, 2 })
         {

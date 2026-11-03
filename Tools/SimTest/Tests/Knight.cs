@@ -28,12 +28,10 @@ static partial class Program
             "Knight ability upgrades are only offered with their ability");
 
         int port = nextPort++;
-        var host = new Session { AutoStart = 2, StartWave = 3 };
-        host.Host(port, "Tank", Role.Tank, 0, 0, Kit.Knight);
-        var client = new Session();
-        client.Join("127.0.0.1", port, "Dps", Role.Dps, 0, 0, Kit.Knight);
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Knight);
+        var client = JoinAs(port, false, "Dps", Role.Dps, 0, 0, Kit.Knight);
         var s = new[] { host, client };
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        WaitForGame(host, client, dt);
         var g = host.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
