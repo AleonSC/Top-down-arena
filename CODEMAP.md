@@ -66,6 +66,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
 - `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`
 - `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: per-class ability/buff overlays on the model, ability feedback, Blood Mage visuals
+- `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms

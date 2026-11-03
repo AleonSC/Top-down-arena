@@ -45,7 +45,7 @@ namespace Arena
         const float WallCapacity = 400f, WallTime = 4f, WallHalfArc = 1.05f;  // 120 degrees across
         const float WhirlRadius = 110f, WhirlDamage = 12f, WhirlEvery = 0.2f;
         public const float LanceHalfWidth = 44f, LanceStun = 1f;
-        public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
+        public const float IcicleHalfWidth = 14f, IcicleSlow = 0.3f, IcicleFxTime = 0.4f, SplinterFxTime = 0.4f;  // the Frost Lance's icicle (its length is the weapon's Reach)
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a charged slam on a 100 px wide box in front of you.
         public const float HammerHalfWidth = 50f;
@@ -350,7 +350,7 @@ namespace Arena
                     s.Silent ? Sfx.None : Sfx.SwingLight);
             else if (s.Ice != 0)
                 BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
-                    s.Ice == 1 ? IcicleFxTime : 0.3f, Sfx.None);
+                    s.Ice == 1 ? IcicleFxTime : SplinterFxTime, Sfx.None);
             else if (s.DrawCut)
                 BroadcastFx(FxKind.Slash, origin, origin + dir * s.Reach, new Rgba(1f, 1f, 1f), -0.1f, 0.3f, Sfx.SwingHeavy);
             else if (box)

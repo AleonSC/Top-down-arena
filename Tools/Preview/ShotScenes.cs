@@ -276,8 +276,8 @@ static partial class Shot {
       V2 tipAt = me.Pos + V2.FromAngle(me.Aim) * 230f;
       var frost = Defs.BulletColor(Defs.FrostShot);
       host.Game.Effects.Add(new Effect { Kind = FxKind.Icicle, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.IcicleHalfWidth, Dur = Game.IcicleFxTime, T = it });
-      if (st > 0f && st < 0.3f)
-        host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = 0.3f, T = st });
+      if (st > 0f && st < Game.SplinterFxTime)
+        host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = Game.SplinterFxTime, T = st });
     }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.

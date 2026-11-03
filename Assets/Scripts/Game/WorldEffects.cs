@@ -478,6 +478,11 @@ namespace Arena
         /// splinters fly (Splinter), then melts away.
         void DrawIcicleFx(Effect fx, float f)
         {
+            if (fxOn)
+            {
+                DrawIcicleCrystal(fx, f);  // the crystal spear (FrostLook.cs); with Visual effects off, the plain wedge below
+                return;
+            }
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
@@ -519,6 +524,11 @@ namespace Arena
         /// Radius. Seeded by where it was cast, so everyone sees the same burst.
         void DrawSplinterFx(Effect fx, float f)
         {
+            if (fxOn)
+            {
+                DrawSplinterCrystal(fx, f);  // tumbling crystal shards (FrostLook.cs)
+                return;
+            }
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, spread = fx.Radius;
             if (reach < 1f)
