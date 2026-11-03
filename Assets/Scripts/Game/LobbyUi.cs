@@ -840,6 +840,8 @@ namespace Arena
                 foreach (var p in sg.Players.Values)
                     if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
                         DrawBowDraw(p, true, sg.AnimT);
+                    else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
+                        DrawArcCharge(p, true, sg.AnimT);  // (with Visual effects on this draws nothing: the glow pass has the charge)
             }
             finally
             {

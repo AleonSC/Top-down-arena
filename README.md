@@ -907,7 +907,9 @@ so they never change the fight or what your friend sees):
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
 What it adds: **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
-each enemy it hits; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
+each enemy it hits; **Arc Lightning** as a halo and sparks building on your staff with a dashed outline of the strip (a pulse
+running out to a crackling marker), then one white-hot bolt racing down it with forks to its edges, and a crackle on each
+enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
 embers (thrusts stab through a beam, the Lance slides out through a glowing box, and the Warhammer is raised over your
 shoulder as it charges, then swung over into the floor with a glowing circle and a pillar of light); an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
 when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains

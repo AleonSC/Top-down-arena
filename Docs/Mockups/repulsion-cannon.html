@@ -1,0 +1,401 @@
+<title>Repulsion Cannon Visuals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The field-manual look of the other mockups. On top, a patch of arena at the game's scale (1 canvas px = 1 arena
+   px): a Healer, six target dummies, and the Repulsion Cannon fired on a loop in the picked look. Under it, the
+   controls and a strip of still frames through one cast. Then one card per look, then build notes.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --ice: #7fe8ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--ice); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14262c; border-color: var(--ice); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--ice); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 10; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--ice); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--ice); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+
+@media (max-width: 700px) {
+  .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .now { margin-left: 0; width: 100%; }
+}
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Repulsion Cannon · pick a look</div>
+    <h1>Repulsion Cannon <span>visuals</span></h1>
+    <p class="lead">The Soldier Healer's Repulsion Cannon blasts a 70° cone out to 240 px: 6 damage, a 90 px shove (bosses and
+      heavies don't budge), and enemies it hits sometimes shed a tiny health orb. Today that's a pale flash of the cone, three
+      thin pressure arcs and a few streaks. Below are four other looks, drawn at the game's real cone, reach and timing, with
+      today's look for comparison. Hits, shove and timing don't change: this is drawing only.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Look</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="again">Fire again</button>
+      </div>
+      <div class="group"><span class="label">Hit feedback</span>
+        <button id="frostOn" aria-pressed="true">On</button><button id="frostOff" aria-pressed="false">Off</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one blast"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The looks</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All of this is drawing, on each screen. The blast is <code>FxKind.Repulse</code>, drawn by <code>DrawRepulseFx</code> in <code>Game/WorldEffects.cs</code>; the cone, shove (<code>Knock.cs</code>) and orbs stay in <code>Core/Repulsion.cs</code>, so none of these need a protocol change.</li>
+      <li>The <b>hit feedback</b> (a white flash on each enemy hit, a streak and dust along its slide, a small green orb popping out) is partly there already: the slide has its own streak, dust and impact puff (<code>Knock.cs</code> draws it). The toggle shows each look with and without the extra pieces, so you can tell what is the look and what is the feedback.</li>
+      <li>The cone is wider with extra projectiles (+20° each) and narrower with Homing Rounds; every look is built from the real <code>half</code> angle and reach, shown here at the base 70° and 240 px.</li>
+      <li>Look C bends the floor grid. That is a small change to the floor drawing for the blast's 0.5 s, only with Visual effects on, and only the grid lines (no gameplay). It is the one look that touches more than the effect itself.</li>
+      <li>Look D shakes the screen a little on firing. It would use the existing shake in <code>Juice.cs</code> (so Screen shake and Reduced effects already turn it down), and a weapon this fast would need it small.</li>
+      <li>The cannon fires fast. Whatever the look, it has to stay readable stacked: with three Healers firing, the cone should stay a clear shape and not wash the screen. The looks here are drawn at a firing interval you can compare by pressing Fire again quickly.</li>
+      <li>With <b>Visual effects</b> off, the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>). The new look only shows with effects on.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const easeOut2 = x => 1 - Math.pow(1 - clamp01(x), 2);
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  // --- The game's numbers (Core/Repulsion.cs): half-angle 0.61 rad (70° across), reach 240 + the body, push 90 px ---
+  const HALF = 0.61, R = 253, PUSH = 90, SLIDE = 0.18, FX_LIFE = 0.35;
+  const O = { x: 110, y: 190 };
+  const DUMMIES = [
+    { x: O.x + 92,  y: O.y - 12, push: true, orb: true },
+    { x: O.x + 150, y: O.y + 56, push: true },
+    { x: O.x + 188, y: O.y - 68, push: true, orb: true },
+    { x: O.x + 222, y: O.y + 8,  push: true },
+    { x: O.x + 58,  y: O.y + 84, push: false },
+    { x: O.x + 292, y: O.y - 6,  push: false },
+  ];
+  DUMMIES.forEach(d => { const dx = d.x - O.x, dy = d.y - O.y; d.d = Math.hypot(dx, dy); d.ux = dx / d.d; d.uy = dy / d.d; d.hitAt = d.push ? 0.02 + d.d / R * 0.03 : null; });
+  let hitFx = true;
+
+  // ---------- drawing helpers (local space: the blast points along +x) ----------
+  const poly = (c, pts, fill, stroke, lw) => { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
+  const line = (c, x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const star4 = (c, x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+  const plus = (c, x, y, r, col) => { c.fillStyle = col; c.fillRect(x - r, y - r * 0.3, r * 2, r * 0.6); c.fillRect(x - r * 0.3, y - r, r * 0.6, r * 2); };
+  const glow = (c, col, blur) => { c.shadowColor = col; c.shadowBlur = blur; };
+  const noGlow = c => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const wedge = (c, r) => { c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, r, -HALF, HALF); c.closePath(); };
+  const clipCone = (c, r) => { wedge(c, r); c.clip(); };
+  // a band of radial gradient inside the cone: from radius r0 to r1, bright at the outer edge
+  const band = (c, r0, r1, a) => {
+    if (r1 <= r0 + 0.5 || a <= 0) return;
+    const g = c.createRadialGradient(0, 0, Math.max(0, r0), 0, 0, r1);
+    g.addColorStop(0, "rgba(110,225,255,0)"); g.addColorStop(0.7, `rgba(150,235,255,${0.35 * a})`); g.addColorStop(1, `rgba(255,255,255,${0.95 * a})`);
+    c.beginPath(); c.arc(0, 0, r1, -HALF, HALF); c.arc(0, 0, Math.max(0, r0), HALF, -HALF, true); c.closePath(); c.fillStyle = g; c.fill();
+  };
+
+  const LOOKS = {};
+
+  // Today: a port of DrawRepulseFx.
+  LOOKS.current = {
+    key: "Now", name: "Today's look", life: 0.4,
+    cast(c, t) {
+      const f = t / FX_LIFE; if (f >= 1) return;
+      if (f < 0.25) { const k = 1 - f / 0.25; c.fillStyle = `rgba(140,242,255,${0.22 * k})`; wedge(c, R); c.fill(); }
+      for (let k = 0; k < 3; k++) {
+        const g = clamp01(f * 1.6 - k * 0.18); if (g <= 0 || g >= 1) continue;
+        c.beginPath(); c.arc(0, 0, 20 + (R - 20) * g, -HALF, HALF); c.strokeStyle = `rgba(190,248,255,${0.85 * (1 - g)})`; c.lineWidth = 5 * (1 - g) + 1.5; c.stroke();
+      }
+      for (let i = 0; i < 7; i++) { const a = -HALF * 0.85 + 1.7 * HALF * i / 6, d0 = R * (0.2 + 0.8 * f), d1 = Math.min(R, d0 + 30); line(c, Math.cos(a) * d0, Math.sin(a) * d0, Math.cos(a) * d1, Math.sin(a) * d1, `rgba(255,255,255,${0.6 * (1 - f)})`, 2); }
+    }
+  };
+
+  // A: Shockwave. A thick bright pressure front sweeps out, with a wake of weaker fronts and air streaks.
+  LOOKS.shock = {
+    key: "A", name: "Shockwave", life: 0.5,
+    cast(c, t) {
+      c.save(); clipCone(c, R + 30);
+      const g = easeOut(t / 0.2);
+      // muzzle bloom
+      if (t < 0.1) { const k = 1 - t / 0.1; const m = c.createRadialGradient(0, 0, 0, 0, 0, 70); m.addColorStop(0, `rgba(255,255,255,${0.85 * k})`); m.addColorStop(1, "rgba(120,230,255,0)"); c.fillStyle = m; wedge(c, 70); c.fill(); }
+      // the front and two weaker ones behind it
+      const fade = t < 0.22 ? 1 : 1 - clamp01((t - 0.22) / 0.28);
+      glow(c, "rgba(130,230,255,0.9)", 14);
+      band(c, 22 + (R - 22) * g - (30 * (1 - g) + 12), 22 + (R - 22) * g, fade);
+      noGlow(c);
+      for (let k = 1; k <= 2; k++) { const gk = easeOut(Math.max(0, t - 0.045 * k) / 0.22); band(c, 22 + (R - 22) * gk - (14 + 6 * (1 - gk)), 22 + (R - 22) * gk, fade * (0.55 - 0.18 * k)); }
+      // air streaks racing ahead along the cone
+      const r = rnd(5);
+      for (let i = 0; i < 12; i++) { const a = (r() * 2 - 1) * HALF * 0.9, s = 0.15 + 0.8 * r(), len = 20 + 36 * r(); const d1 = Math.min(R, 22 + (R - 22) * easeOut((t - r() * 0.04) / 0.24) * (0.6 + 0.4 * s)); const d0 = Math.max(0, d1 - len); if (d1 <= 0) continue; line(c, Math.cos(a) * d0, Math.sin(a) * d0, Math.cos(a) * d1, Math.sin(a) * d1, `rgba(220,248,255,${0.55 * fade})`, 1.6); }
+      c.restore();
+      // the cone's edges, drawn out with the front
+      const ed = 22 + (R - 22) * g; c.strokeStyle = `rgba(200,245,255,${0.55 * fade})`; c.lineWidth = 1.5; c.lineCap = "round";
+      for (const sg of [-1, 1]) { c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(sg * HALF) * ed, Math.sin(sg * HALF) * ed); c.stroke(); }
+    },
+    hit(c, d, tt) { const k = easeOut(tt / 0.25), a = 1 - clamp01(tt / 0.3); c.strokeStyle = `rgba(200,246,255,${a})`; c.lineWidth = 3 * (1 - k) + 1; c.beginPath(); c.arc(d.x, d.y, 14 + 22 * k, 0, TAU); c.stroke(); }
+  };
+
+  // B: Light burst. A healer's blast: warm white and cyan rays fanning out, motes, and small green plus signs.
+  LOOKS.light = {
+    key: "B", name: "Light burst", life: 0.65,
+    cast(c, t) {
+      c.save(); c.globalCompositeOperation = "lighter";
+      const life = t < 0.18 ? 1 : 1 - clamp01((t - 0.18) / 0.4);
+      // the fan of light
+      const g = easeOut(t / 0.16), reach = R * g;
+      const fan = c.createRadialGradient(0, 0, 0, 0, 0, Math.max(1, reach)); fan.addColorStop(0, `rgba(255,250,225,${0.55 * life})`); fan.addColorStop(0.55, `rgba(160,240,255,${0.2 * life})`); fan.addColorStop(1, "rgba(120,220,255,0)");
+      c.fillStyle = fan; wedge(c, reach); c.fill();
+      // rays
+      const n = 13;
+      for (let i = 0; i < n; i++) {
+        const a = -HALF + 2 * HALF * (i + 0.5) / n, len = reach * (0.55 + 0.45 * ((i * 37) % 7) / 6), w = 0.034;
+        const gr = c.createLinearGradient(0, 0, Math.cos(a) * len, Math.sin(a) * len); gr.addColorStop(0, `rgba(255,250,225,${0.75 * life})`); gr.addColorStop(1, "rgba(160,240,255,0)");
+        c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a - w) * len, Math.sin(a - w) * len); c.lineTo(Math.cos(a + w) * len, Math.sin(a + w) * len); c.closePath(); c.fillStyle = gr; c.fill();
+      }
+      // a ring flash at the muzzle and a soft leading edge
+      if (t < 0.14) { const k = easeOut(t / 0.14); c.strokeStyle = `rgba(255,250,225,${1 - k})`; c.lineWidth = 4 * (1 - k) + 1; c.beginPath(); c.arc(0, 0, 14 + 30 * k, -HALF * 1.1, HALF * 1.1); c.stroke(); }
+      glow(c, "rgba(200,250,255,1)", 16); c.strokeStyle = `rgba(255,255,255,${0.85 * life})`; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, Math.max(1, reach), -HALF, HALF); c.stroke(); noGlow(c);
+      // motes and plus signs drifting out
+      const r = rnd(13);
+      for (let i = 0; i < 26; i++) {
+        const a = (r() * 2 - 1) * HALF * 0.95, sp = 0.5 + r() * 0.7, born = r() * 0.12, u = (t - born) / 0.5; if (u <= 0 || u >= 1) { r(); continue; }
+        const d = 30 + (R - 30) * easeOut(u) * sp, x = Math.cos(a) * d, y = Math.sin(a) * d, al = (1 - u) * 0.95;
+        if (i % 5 === 0) plus(c, x, y, 3.2 + r() * 1.5, `rgba(130,255,170,${al})`); else star4(c, x, y, 2 + r() * 3, `rgba(255,250,225,${al})`);
+      }
+      c.restore();
+    },
+    hit(c, d, tt) { const a = 1 - clamp01(tt / 0.5); c.save(); c.globalCompositeOperation = "lighter"; plus(c, d.x, d.y - 24 - 14 * easeOut(tt / 0.5), 4, `rgba(130,255,170,${a})`); star4(c, d.x, d.y, 16 * (1 - clamp01(tt / 0.2)), "rgba(255,255,255,0.9)"); c.restore(); }
+  };
+
+  // C: Force ripples. Sonar-like ripples expand through the cone, the floor grid bends, and chevrons point the way.
+  LOOKS.ripple = {
+    key: "C", name: "Force ripples", life: 0.6, warp: true,
+    cast(c, t) {
+      const fade = t < 0.3 ? 1 : 1 - clamp01((t - 0.3) / 0.3);
+      c.save(); clipCone(c, R + 4);
+      for (let k = 0; k < 5; k++) {
+        const g = clamp01((t - k * 0.04) / 0.3); if (g <= 0 || g >= 1) continue;
+        const r = 24 + (R - 24) * easeOut(g), a = (1 - g) * fade;
+        c.beginPath(); c.arc(0, 0, r, -HALF, HALF); c.strokeStyle = `rgba(150,235,255,${0.2 * a})`; c.lineWidth = 12 * (1 - g) + 4; c.stroke();
+        c.beginPath(); c.arc(0, 0, r, -HALF, HALF); c.strokeStyle = `rgba(235,252,255,${0.9 * a})`; c.lineWidth = 2.2 * (1 - g) + 1; c.stroke();
+      }
+      // chevrons pushing outward
+      for (let i = 0; i < 3; i++) {
+        const g = clamp01((t - 0.02 * i) / 0.28); if (g <= 0 || g >= 1) continue;
+        const d = 40 + (R - 70) * easeOut(g), a = (1 - g) * fade;
+        for (const off of [-0.34, 0, 0.34]) { const ang = off * HALF * 1.9, x = Math.cos(ang) * d, y = Math.sin(ang) * d, s = 9 - 3 * Math.abs(off); c.save(); c.translate(x, y); c.rotate(ang); c.beginPath(); c.moveTo(-s, -s); c.lineTo(s * 0.6, 0); c.lineTo(-s, s); c.strokeStyle = `rgba(235,252,255,${0.85 * a})`; c.lineWidth = 2.4; c.lineCap = "round"; c.lineJoin = "round"; c.stroke(); c.restore(); }
+      }
+      c.restore();
+    },
+    warpAt(x, y, t) {
+      // how far a floor point is shoved: a hump riding the front, only inside the cone
+      const dx = x - O.x, dy = y - O.y, r = Math.hypot(dx, dy); if (r < 8) return [0, 0];
+      const ang = Math.atan2(dy, dx), edge = clamp01(1 - Math.abs(ang) / (HALF * 1.15));
+      const front = 24 + (R - 24) * easeOut(t / 0.3), hump = Math.exp(-Math.pow((r - front) / 42, 2)) * (1 - clamp01((t - 0.25) / 0.3));
+      const amp = 14 * hump * Math.sqrt(edge); return [dx / r * amp, dy / r * amp];
+    }
+  };
+
+  // D: Cannon blast. A white muzzle star, smoke billowing through the cone, sparks, and a short screen kick.
+  LOOKS.blast = {
+    key: "D", name: "Cannon blast", life: 0.6, kick: true,
+    cast(c, t) {
+      c.save();
+      // smoke
+      const r = rnd(29);
+      for (let i = 0; i < 26; i++) {
+        const a = (r() * 2 - 1) * HALF * 0.92, sp = 0.6 + r() * 0.55, born = r() * 0.06, life = 0.4 + r() * 0.2, u = (t - born) / life;
+        if (u <= 0 || u >= 1) { r(); continue; }
+        const d = 14 + (R - 40) * easeOut(u) * sp, rad = 12 + 22 * u + 8 * r(), x = Math.cos(a) * d, y = Math.sin(a) * d;
+        const g = c.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, `rgba(205,235,250,${0.3 * (1 - u)})`); g.addColorStop(1, "rgba(205,235,250,0)");
+        c.fillStyle = g; c.beginPath(); c.arc(x, y, rad, 0, TAU); c.fill();
+      }
+      // the shock ring: thin and crisp
+      const g = easeOut(t / 0.16), fade = 1 - clamp01((t - 0.1) / 0.2);
+      if (fade > 0) { c.beginPath(); c.arc(0, 0, 24 + (R - 24) * g, -HALF, HALF); c.strokeStyle = `rgba(235,252,255,${0.9 * fade})`; c.lineWidth = 3; glow(c, "rgba(130,230,255,0.9)", 10); c.stroke(); noGlow(c); }
+      // muzzle star
+      c.globalCompositeOperation = "lighter";
+      if (t < 0.11) { const k = 1 - t / 0.11; const m = c.createRadialGradient(0, 0, 0, 0, 0, 56); m.addColorStop(0, `rgba(255,255,255,${k})`); m.addColorStop(0.4, `rgba(170,240,255,${0.6 * k})`); m.addColorStop(1, "rgba(120,220,255,0)"); c.fillStyle = m; c.beginPath(); c.arc(0, 0, 56, 0, TAU); c.fill();
+        for (let i = 0; i < 7; i++) { const a = (i / 6 - 0.5) * HALF * 2.1; star4(c, 0, 0, 1, "rgba(0,0,0,0)"); poly(c, [[0, 0], [Math.cos(a - 0.07) * 70 * k, Math.sin(a - 0.07) * 70 * k], [Math.cos(a) * 96 * k, Math.sin(a) * 96 * k], [Math.cos(a + 0.07) * 70 * k, Math.sin(a + 0.07) * 70 * k]], `rgba(255,255,255,${0.9 * k})`); } }
+      // sparks
+      const rs = rnd(31);
+      for (let i = 0; i < 20; i++) {
+        const a = (rs() * 2 - 1) * HALF, sp = 0.5 + rs() * 0.5, u = t / (0.2 + rs() * 0.15); if (u >= 1) { rs(); continue; }
+        const d = 20 + (R + 10) * easeOut(u) * sp, tail = 16 + 16 * rs();
+        line(c, Math.cos(a) * Math.max(0, d - tail), Math.sin(a) * Math.max(0, d - tail), Math.cos(a) * d, Math.sin(a) * d, `rgba(255,255,255,${1 - u})`, 1.6);
+      }
+      c.restore();
+    },
+    hit(c, d, tt) { const r = rnd(Math.floor(d.x * 5 + d.y)); const a = 1 - clamp01(tt / 0.5); for (let i = 0; i < 5; i++) { const an = r() * TAU, k = easeOut(tt / 0.45); c.fillStyle = `rgba(205,235,250,${0.35 * a})`; c.beginPath(); c.arc(d.x - d.ux * 16 * k + Math.cos(an) * 14 * k, d.y - d.uy * 16 * k + Math.sin(an) * 14 * k, 5 + 7 * k, 0, TAU); c.fill(); } }
+  };
+
+  // ---------- The scene ----------
+  const ORDER = ["current", "shock", "light", "ripple", "blast"];
+
+  function drawFloor(c, w, h, look, t) {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, w, h);
+    c.strokeStyle = "rgba(60,80,120,0.16)"; c.lineWidth = 1;
+    const warped = look.warp && t > 0 && t < look.life;
+    for (let x = 0; x <= w; x += 40) { c.beginPath(); for (let y = 0; y <= h; y += warped ? 6 : h) { const [ox, oy] = warped ? look.warpAt(x, y, t) : [0, 0]; y === 0 ? c.moveTo(x + 0.5 + ox, y + oy) : c.lineTo(x + 0.5 + ox, y + oy); } c.stroke(); }
+    for (let y = 0; y <= h; y += 40) { c.beginPath(); for (let x = 0; x <= w; x += warped ? 6 : w) { const [ox, oy] = warped ? look.warpAt(x, y, t) : [0, 0]; x === 0 ? c.moveTo(x + ox, y + 0.5 + oy) : c.lineTo(x + ox, y + 0.5 + oy); } c.stroke(); }
+  }
+  function drawPlayer(c, t, look) {
+    c.save(); c.translate(O.x, O.y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(2, 5, 17, 9, 0, 0, TAU); c.fill();
+    const rec = look.kick && t < 0.12 ? -6 * (1 - t / 0.12) : t < 0.1 ? -2.5 * (1 - t / 0.1) : 0;
+    c.translate(rec, 0);
+    // the cannon: a short flared barrel
+    poly(c, [[6, -4], [22, -8], [22, 8], [6, 4]], "#9fd4e0"); poly(c, [[20, -9], [25, -9], [25, 9], [20, 9]], "#d8f4fa");
+    c.fillStyle = "#58d68d"; c.beginPath(); c.arc(0, 0, 13, 0, TAU); c.fill();
+    c.strokeStyle = "#b6f2cf"; c.lineWidth = 2; c.stroke();
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(0, 0, 2.5, 0, TAU); c.fill();
+    c.restore();
+  }
+  function dummyPos(d, t) {
+    if (d.hitAt == null || t <= d.hitAt) return [d.x, d.y];
+    const k = easeOut((t - d.hitAt) / SLIDE);
+    return [d.x + d.ux * PUSH * k, d.y + d.uy * PUSH * k];
+  }
+  function drawDummy(c, d, t) {
+    const [x, y] = dummyPos(d, t), hit = d.hitAt != null && t > d.hitAt, since = hit ? t - d.hitAt : 0;
+    c.save(); c.translate(x, y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(2, 4, 16, 8, 0, 0, TAU); c.fill();
+    const flash = hit && hitFx ? clamp01(1 - since / 0.1) : 0;
+    c.fillStyle = flash > 0 ? `rgb(${Math.round(lerp(58, 255, flash))},${Math.round(lerp(64, 255, flash))},${Math.round(lerp(78, 255, flash))})` : "#3a404e";
+    c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.fill(); c.strokeStyle = "#566074"; c.lineWidth = 2; c.stroke();
+    c.restore();
+  }
+  function drawOrb(c, d, t) {
+    if (!d.orb || d.hitAt == null || !hitFx) return;
+    const u = (t - (d.hitAt + 0.05)) / 0.35; if (u <= 0) return;
+    const [bx, by] = dummyPos(d, t), k = easeOut(u), x = bx + d.uy * 26 * k - d.ux * 8, y = by - d.ux * 26 * k + d.uy * 0 - 6 * Math.sin(Math.min(1, u) * Math.PI);
+    c.save(); glow(c, "rgba(100,255,150,0.9)", 8); c.fillStyle = "#7dff9e"; c.beginPath(); c.arc(x, y, 4.5, 0, TAU); c.fill(); noGlow(c); c.fillStyle = "rgba(255,255,255,0.85)"; c.beginPath(); c.arc(x - 1.2, y - 1.2, 1.4, 0, TAU); c.fill(); c.restore();
+  }
+  function scene(c, t, key, w, h) {
+    const look = LOOKS[key]; if (t == null || t < 0) t = 0;
+    drawFloor(c, w, h, look, t);
+    c.save();
+    if (look.kick && t < 0.14) { const k = 1 - t / 0.14; c.translate(Math.sin(t * 160) * 3.2 * k, Math.cos(t * 130) * 2.2 * k); }
+    // the cone and reach (faint)
+    c.save(); c.translate(O.x, O.y); c.strokeStyle = "rgba(140,230,250,0.14)"; c.setLineDash([4, 5]); c.lineWidth = 1; wedge(c, R); c.stroke(); c.setLineDash([]);
+    c.fillStyle = "rgba(140,230,250,0.4)"; c.font = "500 10px 'IBM Plex Mono', monospace"; c.fillText("240 px · 70°", R - 30, -Math.sin(HALF) * R - 6 + 28); c.restore();
+    if (hitFx) DUMMIES.forEach(d => { if (d.hitAt != null && t > d.hitAt && t < d.hitAt + SLIDE + 0.05) { const k = easeOut((t - d.hitAt) / SLIDE), tr = Math.min(1, k) ; line(c, d.x + d.ux * PUSH * Math.max(0, k - 0.5), d.y + d.uy * PUSH * Math.max(0, k - 0.5), d.x + d.ux * PUSH * k, d.y + d.uy * PUSH * k, `rgba(220,248,255,${0.5 * (1 - (t - d.hitAt) / (SLIDE + 0.05))})`, 5); } });
+    DUMMIES.forEach(d => drawDummy(c, d, t));
+    drawPlayer(c, t, look);
+    c.save(); c.translate(O.x, O.y); look.cast(c, t); c.restore();
+    DUMMIES.forEach(d => drawOrb(c, d, t));
+    if (look.hit && hitFx) DUMMIES.forEach(d => { if (d.hitAt != null && t > d.hitAt) { const [x, y] = dummyPos(d, t); look.hit(c, { x, y, ux: d.ux, uy: d.uy }, t - d.hitAt); } });
+    c.restore();
+  }
+
+  // ---------- Page wiring ----------
+  const arena = document.getElementById("arena"), actx = arena.getContext("2d");
+  const fit = (cv, w, h) => { const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = w * dpr; cv.height = h * dpr; const cx = cv.getContext("2d"); cx.setTransform(dpr, 0, 0, dpr, 0, 0); return cx; };
+  fit(arena, 960, 380);
+  let cur = "shock", speed = 1, castT = 0, last = 0;
+  const nowEl = document.getElementById("now");
+  const styleBtns = document.getElementById("styleBtns");
+  ORDER.forEach(k => { const b = document.createElement("button"); b.dataset.k = k; b.innerHTML = `<span class="k">${LOOKS[k].key}</span>${LOOKS[k].name}`; b.setAttribute("aria-pressed", k === cur); b.onclick = () => pick(k); styleBtns.appendChild(b); });
+  const pairs = (a, b, onA, onB) => { const A = document.getElementById(a), B = document.getElementById(b); A.onclick = () => { onA(); A.setAttribute("aria-pressed", true); B.setAttribute("aria-pressed", false); }; B.onclick = () => { onB(); B.setAttribute("aria-pressed", true); A.setAttribute("aria-pressed", false); }; };
+  pairs("spd1", "spd4", () => speed = 1, () => speed = 0.25);
+  pairs("frostOn", "frostOff", () => { hitFx = true; drawStrip(); }, () => { hitFx = false; drawStrip(); });
+  document.getElementById("again").onclick = () => { castT = 0; };
+
+  const FRAMES = [0.02, 0.06, 0.12, 0.2, 0.32, 0.5];
+  const strip = document.getElementById("strip"), sctx = [];
+  FRAMES.forEach(t => { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); f.appendChild(cv); const sp = document.createElement("span"); sp.textContent = `${t.toFixed(2)} s`; f.appendChild(sp); strip.appendChild(f); sctx.push([cv, t]); });
+  const SW = 400, SH = 250;
+  sctx.forEach(([cv]) => fit(cv, SW, SH));
+  function drawStrip() {
+    sctx.forEach(([cv, t]) => {
+      const c = cv.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.save(); c.beginPath(); c.rect(0, 0, SW, SH); c.clip();
+      c.translate(-60, -(190 - SH / 2)); scene(c, t, cur, 960, 380); c.restore();
+    });
+  }
+  const cards = document.getElementById("cards");
+  const CARDS = {
+    current: { pitch: "What the game draws now, for comparison.", shape: "A pale flash of the whole cone, three thin pressure arcs and a few white streaks.", after: "All gone in about a third of a second.", feel: "Readable and cheap, but flat: it doesn't look like pressure, and nothing marks the enemies it hits." },
+    shock: { pitch: "A thick, bright pressure front that sweeps out of the muzzle, with weaker fronts in its wake.", shape: "A glowing band with a white leading edge, two fading bands behind, air streaks running ahead along the cone, and the cone's edges drawn out with it. A bloom at the muzzle.", after: "The fronts thin and fade by half a second. Each enemy hit gets a quick ring.", feel: "Looks like a wall of force. The clearest cone shape of the four. Cleanest to stack." },
+    light: { pitch: "A healer's blast: rays of warm white and cyan fan out, with motes and small green plus signs.", shape: "A soft fan of light with 13 rays, a bright ring at the muzzle, a glowing leading edge, drifting sparkles, and a few green plus signs that hint at the orbs it knocks loose.", after: "The rays fade in about half a second; hit enemies get a plus sign rising off them.", feel: "The most 'healer'. It looks gentle for a weapon that shoves, and busier with three Healers." },
+    ripple: { pitch: "Sonar-like ripples run through the cone, and the floor grid bends under the front.", shape: "Five nested ripple arcs with a soft halo, chevrons pointing the way out, and the background grid lines displaced by a hump riding the front.", after: "The ripples and the bend settle in a little over half a second.", feel: "Shows force, not light, and nothing else looks like it. The grid bend touches the floor drawing." },
+    blast: { pitch: "A real cannon shot: a white muzzle star, billowing smoke, a crisp ring, sparks and a small kick.", shape: "A white-cyan star flash with spikes across the cone, 26 smoke puffs billowing outward, a thin shock ring, 20 sparks with trails, and the whole screen jolts for a moment.", after: "The smoke drifts and thins for half a second. Hit enemies get a puff of dust behind them.", feel: "The most violent and physical. Fast firing makes the smoke and shake add up: it needs the shake kept very small." },
+  };
+  ORDER.forEach(k => {
+    const d = document.createElement("div"); d.className = "card"; d.dataset.k = k; d.tabIndex = 0; d.setAttribute("role", "button");
+    const c = CARDS[k]; d.innerHTML = `<div class="tag">${LOOKS[k].key} · ${LOOKS[k].name.toUpperCase()}</div><p>${c.pitch}</p><dl><dt>Looks</dt><dd>${c.shape}</dd><dt>After</dt><dd>${c.after}</dd><dt>Feel</dt><dd>${c.feel}</dd></dl>`;
+    d.onclick = () => pick(k); d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(k); } };
+    cards.appendChild(d);
+  });
+  function pick(k) {
+    cur = k; castT = 0;
+    styleBtns.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+    cards.querySelectorAll(".card").forEach(c => c.setAttribute("aria-current", c.dataset.k === k));
+    drawStrip();
+  }
+  const q = new URLSearchParams(location.search);
+  if (q.get("look") && LOOKS[q.get("look")]) cur = q.get("look");
+  pick(cur);
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    castT += dt * speed;
+    if (castT > LOOKS[cur].life + 0.55) castT = 0;
+    scene(actx, castT, cur, 960, 380);
+    nowEl.textContent = `${LOOKS[cur].name} · ${castT.toFixed(2)} s`;
+    requestAnimationFrame(tick);
+  }
+  if (q.get("t") != null) { castT = parseFloat(q.get("t")); scene(actx, castT, cur, 960, 380); }
+  else requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
