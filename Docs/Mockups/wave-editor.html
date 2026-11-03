@@ -1,0 +1,450 @@
+<title>Wave Editor Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: per option, a 1280x720 game screen scaled to the page width (the editor opens full screen from the
+   Practice tab), a switch for what's selected, notes beneath. Single dark look on purpose: these mock the game's
+   own screens, in the repo's mockup style (Docs/Mockups). */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --dim: #6b7690;
+  --panel: #151a26;
+  --panel-hi: #1c2232;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --red: #ff6470;
+  --teal: #2fc79c;
+  --rioter: #ff9a4d;
+  --guard: #5f8dff;
+  --shield: #a9b8d6;
+  --gas: #8fdc5a;
+  --prop: #b58a5a;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+  --font-mono: "Consolas", "Liberation Mono", Menlo, monospace;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 48px; }
+header h1 { font-size: 30px; margin: 0 0 8px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0 0 6px; max-width: 80ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; min-width: 0; }
+.bar { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; text-wrap: balance; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 3px 0; }
+.notes b { color: var(--ink); font-weight: 700; }
+
+.screen-box { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); }
+.screen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+              linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px) 0 0 / 40px 40px, #0b0d14; }
+.screen * { box-sizing: border-box; }
+.abs { position: absolute; }
+.pnl { background: var(--panel); border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); }
+.title { font: 700 22px var(--font-game); letter-spacing: 0.04em; color: #fff; text-shadow: 0 2px 0 #2b3a66; }
+.cap { font: 700 10px var(--font-game); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 8px; font: 700 12px var(--font-game); color: #fff; background: #2a3248; border: 0; cursor: pointer; }
+.btn.go { background: var(--teal); color: #052118; }
+.btn.gold { background: #c9921f; }
+.btn.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.chip { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 10px; font: 700 10px var(--font-game); letter-spacing: 0.06em; background: rgba(255,255,255,0.07); color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.row { display: flex; align-items: center; gap: 8px; }
+.waves { display: grid; gap: 4px; }
+.wv { display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 8px; border-radius: 6px; background: rgba(255,255,255,0.03); font-size: 12px; color: var(--muted); cursor: pointer; }
+.wv b { color: var(--ink); font-weight: 700; width: 18px; font-variant-numeric: tabular-nums; }
+.wv.on { background: #17483b; color: #d8fff2; box-shadow: inset 0 0 0 1px var(--teal); }
+.wv.boss { color: var(--gold); }
+.mono { font-family: var(--font-mono); }
+
+/* the arena map (1600x900 world, drawn in SVG at whatever size the box is) */
+.map { border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); background: #10131d; }
+.map svg { display: block; width: 100%; height: 100%; }
+
+/* group rows */
+.grp { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; padding: 7px 9px; border-radius: 7px; background: rgba(255,255,255,0.035); font-size: 12px; cursor: pointer; }
+.grp .nm { color: var(--ink); font-weight: 700; }
+.grp .sub { color: var(--dim); font-size: 11px; margin-top: 2px; }
+.grp.on { background: rgba(77,140,255,0.16); box-shadow: inset 0 0 0 1px var(--blue); }
+.field { display: grid; gap: 4px; }
+.field .v { display: flex; align-items: center; justify-content: space-between; height: 28px; padding: 0 10px; border-radius: 7px; background: #0f1320; box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-variant-numeric: tabular-nums; }
+.step { display: inline-flex; gap: 4px; }
+.step span { width: 22px; height: 20px; border-radius: 5px; background: #2a3248; display: grid; place-items: center; font-size: 12px; color: #fff; }
+.seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 8px; background: #0f1320; box-shadow: inset 0 0 0 1px var(--line); }
+.seg span { padding: 4px 9px; border-radius: 6px; font: 700 11px var(--font-game); color: var(--muted); }
+.seg span.on { background: #3a6fe0; color: #fff; }
+.palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.pal { display: grid; justify-items: center; gap: 4px; padding: 7px 4px; border-radius: 7px; background: rgba(255,255,255,0.035); font-size: 10px; color: var(--muted); }
+.pal i { width: 16px; height: 16px; display: block; }
+
+/* timeline */
+.tl { position: relative; }
+.tl .track { position: absolute; left: 150px; right: 10px; height: 26px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+.tl .lbl { position: absolute; left: 10px; width: 136px; height: 26px; display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink); }
+.clip { position: absolute; top: 3px; height: 20px; border-radius: 5px; display: flex; align-items: center; padding: 0 7px; font: 700 10px var(--font-game); color: #10131d; overflow: hidden; white-space: nowrap; }
+.tick { position: absolute; top: 0; width: 1px; background: rgba(255,255,255,0.06); }
+.ticklbl { position: absolute; font: 10px var(--font-game); color: var(--dim); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.playhead { position: absolute; top: 0; width: 2px; background: #fff; box-shadow: 0 0 8px #fff; }
+@media (prefers-reduced-motion: reduce) { .playhead { display: none; } }
+
+.code { background: #0f1320; border-radius: 8px; padding: 10px 12px; font: 11px/1.55 var(--font-mono); color: #c7d0e6; white-space: pre; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.code .k { color: var(--gold); }
+.code .c { color: var(--dim); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Wave Editor</h1>
+    <p>Three layouts for a full-screen wave editor, opened from the Practice tab's <b>Edit waves</b>. Each is filled with
+      the same real wave: <b>Warden Hunt, wave 6</b> (a Breakout rush, a Gas Grenadier pair, then the Riot line), so you
+      can compare how each one shows <b>what</b> spawns, <b>where</b>, <b>when</b>, and the <b>props</b> on the floor.</p>
+    <p>All three save the same text file (shown in A), which the build turns into code for final builds.</p>
+  </header>
+
+  <!-- ============================== A: MAP FIRST ============================== -->
+  <section class="option">
+    <div class="bar"><span class="tag">Option A</span><h2>Map first</h2></div>
+    <div class="screen-box"><div class="screen" id="scrA">
+      <div class="abs title" style="left:28px;top:20px">WAVE EDITOR</div>
+      <div class="abs row" style="left:220px;top:24px"><span class="chip">WARDEN HUNT</span><span class="chip">10 WAVES</span><span class="chip" style="color:var(--teal)">SAVED 2 MIN AGO</span></div>
+      <div class="abs row" style="right:28px;top:20px"><button class="btn ghost">Undo</button><button class="btn">Save</button><button class="btn go">▶ Test wave 6</button></div>
+
+      <!-- waves -->
+      <div class="abs pnl" style="left:20px;top:64px;width:170px;height:636px;padding:12px">
+        <div class="cap" style="margin-bottom:8px">Waves</div>
+        <div class="waves" id="wavesA"></div>
+        <div class="cap" style="margin:16px 0 8px">Wave 6</div>
+        <div class="field"><span class="cap" style="font-size:9px">Strength (level)</span><div class="v">6 <span class="step"><span>−</span><span>+</span></span></div></div>
+        <div class="field" style="margin-top:8px"><span class="cap" style="font-size:9px">Ends when</span><div class="v">All cleared</div></div>
+        <div class="field" style="margin-top:8px"><span class="cap" style="font-size:9px">Arena</span><div class="v">Plain</div></div>
+      </div>
+
+      <!-- map -->
+      <div class="abs" style="left:204px;top:64px;width:720px;height:405px">
+        <div class="map" style="width:720px;height:405px"><svg id="mapA" viewBox="0 0 1600 900"></svg></div>
+      </div>
+      <div class="abs row" style="left:204px;top:478px">
+        <span class="cap">Place:</span>
+        <div class="seg"><span class="on">Spawn point</span><span>Crate</span><span>Pot</span><span>Barrel</span><span>Chest</span><span>Hazard</span></div>
+        <span style="font-size:11px;color:var(--dim);margin-left:8px">Click the map to place · drag to move · right-click to remove</span>
+      </div>
+
+      <!-- groups list under map -->
+      <div class="abs pnl" style="left:204px;top:512px;width:720px;height:188px;padding:12px">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="cap">Spawn groups · in order</span><button class="btn ghost" style="height:24px">+ Add group</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="groupsA"></div>
+      </div>
+
+      <!-- inspector -->
+      <div class="abs pnl" style="left:938px;top:64px;width:322px;height:636px;padding:14px;display:grid;gap:10px;align-content:start">
+        <div class="cap">Selected group</div>
+        <div class="row"><span class="dot" style="background:var(--rioter)"></span><b style="font-size:16px">Breakout rush</b></div>
+        <div class="field"><span class="cap" style="font-size:9px">Enemies</span>
+          <div class="palette">
+            <div class="pal" style="box-shadow:inset 0 0 0 1px var(--rioter)"><i style="background:var(--rioter);border-radius:50%"></i>Rioter ×6</div>
+            <div class="pal" style="box-shadow:inset 0 0 0 1px var(--guard)"><i style="background:var(--guard);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>Guard ×1</div>
+            <div class="pal"><i style="background:var(--shield)"></i>Riot Shield</div>
+            <div class="pal"><i style="background:var(--gas);border-radius:3px"></i>Grenadier</div>
+          </div>
+        </div>
+        <div class="field"><span class="cap" style="font-size:9px">Comes in from</span><div class="v">Spawn point B · left edge</div></div>
+        <div class="row" style="gap:8px">
+          <div class="field" style="flex:1"><span class="cap" style="font-size:9px">Starts at</span><div class="v">0.0 s <span class="step"><span>−</span><span>+</span></span></div></div>
+          <div class="field" style="flex:1"><span class="cap" style="font-size:9px">One every</span><div class="v">0.4 s <span class="step"><span>−</span><span>+</span></span></div></div>
+        </div>
+        <div class="field"><span class="cap" style="font-size:9px">Arrives as</span><div class="seg"><span>One by one</span><span class="on">Squad</span><span>Ring</span><span>Line</span></div></div>
+        <div class="field"><span class="cap" style="font-size:9px">Elite</span><div class="seg"><span class="on">As usual</span><span>Never</span><span>Always</span></div></div>
+        <div class="cap" style="margin-top:6px">The file</div>
+        <div class="code"><span class="c"># warden-hunt.waves</span>
+<span class="k">wave 6</span> level 6
+  group <span class="k">Breakout rush</span>: Rioter x6, Guard
+    from B, at 0s, every 0.4s, squad
+  group <span class="k">Gas pair</span>: Gas Grenadier x2
+    from C D, at 5s
+  group <span class="k">Riot line</span>: squad Riot line
+    from A, at 11s
+  prop crate 610,330 · crate 990,330
+  prop barrel 800,640 · pot 300,200</div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><b>The arena is the main thing.</b> Spawn points are lettered pins on the edges or inside; props sit where they'll be in the match, drawn to the real 1600×900 scale.</li>
+      <li>Click a group and its spawn point lights up on the map, with an arrow for where its enemies head first.</li>
+      <li>Timing is numbers (starts at, one every), so it's precise, but you can't see the whole wave's rhythm at a glance.</li>
+      <li>The file panel shows exactly what Save writes, so you can always see what I'll get.</li>
+    </ul>
+  </section>
+
+  <!-- ============================== B: TIMELINE ============================== -->
+  <section class="option">
+    <div class="bar"><span class="tag">Option B</span><h2>Timeline</h2></div>
+    <div class="screen-box"><div class="screen" id="scrB">
+      <div class="abs title" style="left:28px;top:20px">WAVE EDITOR</div>
+      <div class="abs row" style="left:220px;top:24px"><span class="chip">WARDEN HUNT</span><span class="chip">WAVE 6 OF 10</span><span class="chip">LEVEL 6</span></div>
+      <div class="abs row" style="right:28px;top:20px"><button class="btn ghost">◀ Wave 5</button><button class="btn ghost">Wave 7 ▶</button><button class="btn">Save</button><button class="btn go">▶ Test</button></div>
+
+      <!-- small map -->
+      <div class="abs pnl" style="left:20px;top:64px;width:500px;height:330px;padding:10px">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="cap">Arena at <span id="tB" class="mono" style="color:#fff">0.0 s</span></span><div class="seg"><span class="on">Spawns</span><span>Props</span></div></div>
+        <div class="map" style="width:480px;height:270px"><svg id="mapB" viewBox="0 0 1600 900"></svg></div>
+      </div>
+
+      <!-- palette -->
+      <div class="abs pnl" style="left:534px;top:64px;width:352px;height:330px;padding:12px">
+        <div class="cap" style="margin-bottom:8px">Drag onto the timeline</div>
+        <div class="cap" style="font-size:9px;color:var(--gold);margin-bottom:6px">The Warden's own</div>
+        <div class="palette" style="margin-bottom:10px">
+          <div class="pal"><i style="background:var(--rioter);border-radius:50%"></i>Rioter</div>
+          <div class="pal"><i style="background:var(--guard);clip-path:polygon(50% 0,100% 100%,0 100%)"></i>Guard</div>
+          <div class="pal"><i style="background:var(--shield)"></i>Riot Shield</div>
+          <div class="pal"><i style="background:var(--gas);border-radius:3px"></i>Grenadier</div>
+        </div>
+        <div class="cap" style="font-size:9px;margin-bottom:6px">Squads</div>
+        <div class="palette" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">
+          <div class="pal">Breakout</div><div class="pal">Cell block</div><div class="pal" style="color:var(--gold)">Riot line</div>
+        </div>
+        <div class="cap" style="font-size:9px;margin-bottom:6px">Everyone else</div>
+        <div class="palette">
+          <div class="pal"><i style="background:#ff6b6b;clip-path:polygon(50% 0,100% 100%,0 100%)"></i>Grunt</div>
+          <div class="pal"><i style="background:#f7d046"></i>Sniper</div>
+          <div class="pal"><i style="background:#ff8a3d;border-radius:50%"></i>Swarmer</div>
+          <div class="pal" style="color:var(--blue)">+ 30 more</div>
+        </div>
+      </div>
+
+      <!-- clip inspector -->
+      <div class="abs pnl" style="left:900px;top:64px;width:360px;height:330px;padding:14px;display:grid;gap:9px;align-content:start">
+        <div class="cap">Selected · Gas pair</div>
+        <div class="row"><span class="dot" style="background:var(--gas)"></span><b style="font-size:15px">Gas Grenadier ×2</b></div>
+        <div class="field"><span class="cap" style="font-size:9px">From</span><div class="v">Corners C and D (one each)</div></div>
+        <div class="row" style="gap:8px">
+          <div class="field" style="flex:1"><span class="cap" style="font-size:9px">Starts</span><div class="v">5.0 s</div></div>
+          <div class="field" style="flex:1"><span class="cap" style="font-size:9px">Spacing</span><div class="v">0.0 s</div></div>
+        </div>
+        <div class="field"><span class="cap" style="font-size:9px">Arrives as</span><div class="seg"><span class="on">Together</span><span>One by one</span><span>Squad</span></div></div>
+        <p style="margin:2px 0 0;font-size:11px;color:var(--dim);line-height:1.5">Drag a clip sideways to change when it starts, drag its right edge to spread its enemies out. The map above shows who's in the arena at the playhead.</p>
+      </div>
+
+      <!-- timeline -->
+      <div class="abs pnl tl" style="left:20px;top:408px;width:1240px;height:292px;padding:0" id="tlB">
+        <div class="abs cap" style="left:12px;top:10px">Wave 6 · 0 to 20 seconds</div>
+        <div class="abs row" style="right:12px;top:6px"><span class="chip">Wave ends when all are down</span><button class="btn ghost" style="height:22px">+ Track</button></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><b>Timing is the main thing</b>, laid out like a video editor: one track per group, a clip for when its enemies arrive.</li>
+      <li>Scrub or press Play and the small map shows the wave unfolding (who's in, from where), so you can feel pacing before testing.</li>
+      <li>Good for set pieces (a rush, a pause, then the Riot line). Props get their own map mode, which is a little less direct than A.</li>
+      <li>Wave 5 / Wave 7 arrows step through the hunt without leaving the editor.</li>
+    </ul>
+  </section>
+
+  <!-- ============================== C: LIVE ============================== -->
+  <section class="option">
+    <div class="bar"><span class="tag">Option C</span><h2>Live test bench</h2></div>
+    <div class="screen-box"><div class="screen" id="scrC">
+      <div class="abs title" style="left:28px;top:20px">WAVE EDITOR</div>
+      <div class="abs row" style="left:220px;top:24px"><span class="chip" style="color:var(--red)">● LIVE</span><span class="chip">WAVE 6 · LEVEL 6</span><span class="chip">GOD MODE ON</span></div>
+      <div class="abs row" style="right:28px;top:20px"><button class="btn ghost">⟲ Restart wave</button><button class="btn ghost">❚❚ Pause</button><button class="btn">Save</button></div>
+
+      <!-- live arena -->
+      <div class="abs" style="left:20px;top:64px;width:800px;height:450px">
+        <div class="map" style="width:800px;height:450px"><canvas id="liveC" width="1600" height="900" style="width:800px;height:450px;display:block"></canvas></div>
+      </div>
+      <div class="abs row" style="left:20px;top:524px;width:800px;justify-content:space-between">
+        <div class="row"><span class="cap">Speed</span><div class="seg"><span>½×</span><span class="on">1×</span><span>2×</span></div></div>
+        <div class="row" style="font-size:12px;color:var(--muted)"><span>On screen <b id="onC" style="color:#fff">0</b></span><span>·</span><span>Spawned <b id="spC" style="color:#fff">0</b> / 18</span><span>·</span><span>Wave time <b id="tC" class="mono" style="color:#fff">0.0</b> s</span></div>
+      </div>
+      <div class="abs pnl" style="left:20px;top:560px;width:800px;height:140px;padding:12px">
+        <div class="cap" style="margin-bottom:8px">While it plays</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px;color:var(--muted);line-height:1.5">
+          <div><b style="color:var(--ink)">Edit and it restarts</b><br>Change a number and the wave replays from the start, at once.</div>
+          <div><b style="color:var(--ink)">Play it yourself</b><br>Take control with your loadout, or let the bot play to see how a typical team does.</div>
+          <div><b style="color:var(--ink)">Drop props in</b><br>Hold P and click the arena to place the prop picked on the right.</div>
+        </div>
+      </div>
+
+      <!-- cards -->
+      <div class="abs pnl" style="left:834px;top:64px;width:426px;height:636px;padding:12px;display:grid;gap:8px;align-content:start" id="cardsC">
+        <div class="row" style="justify-content:space-between"><span class="cap">Wave 6 · spawn groups</span><button class="btn ghost" style="height:24px">+ Group</button></div>
+      </div>
+    </div></div>
+    <ul class="notes">
+      <li><b>The wave plays while you edit</b>, in the real game, at the real speed (god mode on, so you can watch). The quickest loop from idea to feel.</li>
+      <li>Each group is a compact card with the settings that matter most; more options open on click.</li>
+      <li>Placing spawn points and props happens on the live arena, so you see them against moving enemies.</li>
+      <li>Busiest to build (it runs a match inside the editor), but the Practice Range already does most of that.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><span class="tag">Any option</span><h2>Shared pieces</h2></div>
+    <ul class="notes">
+      <li>All three save the same <b>.waves</b> text file. For final builds a script turns it into code (like the Bestiary's data), so there are no loose files to go missing or out of sync in co-op.</li>
+      <li><b>Test</b> plays the wave in the Practice Range with your party; saved waves can be assigned to a hunt, a boss's build-up or a path.</li>
+      <li>Mixing is fine: e.g. A's map with B's timeline strip under it.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+// ---------- shared data: Warden Hunt, wave 6 ----------
+const C = { rioter: "#ff9a4d", guard: "#5f8dff", shield: "#a9b8d6", gas: "#8fdc5a", prop: "#b58a5a" };
+const points = { A: [800, 40], B: [40, 450], C: [60, 60], D: [1540, 840], E: [1560, 450] };
+const props = [ ["crate", 610, 330], ["crate", 990, 330], ["barrel", 800, 640], ["pot", 300, 200], ["pot", 1300, 700] ];
+const groups = [
+  { name: "Breakout rush", who: "Rioter ×6, Guard", from: "B", at: 0, every: 0.4, n: 7, col: C.rioter, mix: [C.rioter, C.rioter, C.rioter, C.rioter, C.rioter, C.rioter, C.guard] },
+  { name: "Gas pair", who: "Gas Grenadier ×2", from: "C D", at: 5, every: 0, n: 2, col: C.gas, mix: [C.gas, C.gas] },
+  { name: "Guards", who: "Guard ×3", from: "E", at: 8, every: 0.6, n: 3, col: C.guard, mix: [C.guard, C.guard, C.guard] },
+  { name: "Riot line", who: "Riot Shield ×4, Guard ×5 (set piece)", from: "A", at: 11, every: 0.15, n: 9, col: C.shield, mix: [C.shield, C.shield, C.shield, C.shield, C.guard, C.guard, C.guard, C.guard, C.guard] },
+];
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a, p) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+function drawMap(svg, sel) {
+  for (let x = 100; x < 1600; x += 100) el("line", { x1: x, y1: 0, x2: x, y2: 900, stroke: "rgba(255,255,255,0.04)", "stroke-width": 2 }, svg);
+  for (let y = 100; y < 900; y += 100) el("line", { x1: 0, y1: y, x2: 1600, y2: y, stroke: "rgba(255,255,255,0.04)", "stroke-width": 2 }, svg);
+  el("rect", { x: 4, y: 4, width: 1592, height: 892, fill: "none", stroke: "rgba(255,255,255,0.15)", "stroke-width": 4, "stroke-dasharray": "18 14" }, svg);
+  for (const [k, x, y] of props) {
+    if (k === "crate") el("rect", { x: x - 34, y: y - 34, width: 68, height: 68, rx: 6, fill: "#5b4128", stroke: C.prop, "stroke-width": 5 }, svg);
+    else if (k === "barrel") el("circle", { cx: x, cy: y, r: 30, fill: "#6b2a22", stroke: "#e2604a", "stroke-width": 5 }, svg);
+    else el("circle", { cx: x, cy: y, r: 22, fill: "#3c2f22", stroke: C.prop, "stroke-width": 4 }, svg);
+  }
+  el("circle", { cx: 800, cy: 450, r: 14, fill: "none", stroke: "rgba(255,255,255,0.25)", "stroke-width": 3 }, svg);
+  for (const k in points) {
+    const [x, y] = points[k];
+    const on = sel && sel.includes(k);
+    if (on) {
+      el("circle", { cx: x, cy: y, r: 70, fill: "rgba(77,140,255,0.15)", stroke: "#4d8cff", "stroke-width": 3 }, svg);
+      const dx = 800 - x, dy = 450 - y, d = Math.hypot(dx, dy);
+      el("line", { x1: x + dx / d * 80, y1: y + dy / d * 80, x2: x + dx / d * 260, y2: y + dy / d * 260, stroke: "#4d8cff", "stroke-width": 8, "stroke-linecap": "round", "stroke-dasharray": "2 18" }, svg);
+    }
+    el("circle", { cx: x, cy: y, r: 34, fill: on ? "#4d8cff" : "#232b40", stroke: "#fff", "stroke-width": on ? 5 : 3 }, svg);
+    const t = el("text", { x, y: y + 13, "text-anchor": "middle", "font-size": 36, "font-weight": 700, fill: "#fff", "font-family": "Arial, sans-serif" }, svg);
+    t.textContent = k;
+  }
+}
+
+// ---------- A ----------
+const wavesA = document.getElementById("wavesA");
+for (let i = 1; i <= 10; i++) {
+  const d = document.createElement("div");
+  d.className = "wv" + (i === 6 ? " on" : "") + (i === 10 ? " boss" : "");
+  d.innerHTML = `<b>${i}</b>${i === 10 ? "The Warden" : i === 5 || i === 9 ? "Riot line" : (6 + i * 2) + " enemies"}`;
+  wavesA.appendChild(d);
+}
+const gA = document.getElementById("groupsA");
+groups.forEach((g, i) => {
+  const d = document.createElement("div");
+  d.className = "grp" + (i === 0 ? " on" : "");
+  d.innerHTML = `<span class="dot" style="background:${g.col}"></span><div><div class="nm">${g.name}</div><div class="sub">${g.who}</div></div><span class="chip">from ${g.from} · ${g.at}s</span>`;
+  gA.appendChild(d);
+});
+drawMap(document.getElementById("mapA"), ["B"]);
+
+// ---------- B ----------
+const mapB = document.getElementById("mapB");
+drawMap(mapB, ["C", "D"]);
+const dotsB = el("g", {}, mapB);
+const tl = document.getElementById("tlB");
+const span = 20, x0 = 150, w = 1240 - 150 - 10, top0 = 52;
+for (let s = 0; s <= span; s += 2) {
+  const x = x0 + s / span * w;
+  const t = document.createElement("div"); t.className = "tick"; t.style.left = x + "px"; t.style.top = (top0 - 4) + "px"; t.style.height = (groups.length * 34 + 8) + "px"; tl.appendChild(t);
+  const l = document.createElement("div"); l.className = "ticklbl"; l.style.left = x + "px"; l.style.top = (top0 - 18) + "px"; l.textContent = s + "s"; tl.appendChild(l);
+}
+groups.forEach((g, i) => {
+  const y = top0 + i * 34;
+  const lb = document.createElement("div"); lb.className = "lbl"; lb.style.top = y + "px";
+  lb.innerHTML = `<span class="dot" style="background:${g.col}"></span>${g.name}`; tl.appendChild(lb);
+  const tr = document.createElement("div"); tr.className = "track"; tr.style.top = y + "px"; tl.appendChild(tr);
+  const len = Math.max(0.9, g.every * (g.n - 1) + 0.9);
+  const c = document.createElement("div"); c.className = "clip";
+  c.style.left = (g.at / span * w) + "px"; c.style.width = (len / span * w) + "px"; c.style.background = g.col;
+  if (i === 1) c.style.boxShadow = "0 0 0 2px #fff";
+  c.textContent = g.who.split(" (")[0]; tr.appendChild(c);
+});
+const foot = document.createElement("div"); foot.className = "abs"; foot.style.cssText = `left:${x0}px;top:${top0 + groups.length * 34 + 10}px;font-size:11px;color:var(--dim)`;
+foot.textContent = "Space plays and pauses · drag the white line to scrub"; tl.appendChild(foot);
+const ph = document.createElement("div"); ph.className = "playhead"; ph.style.top = (top0 - 6) + "px"; ph.style.height = (groups.length * 34 + 12) + "px"; tl.appendChild(ph);
+
+// ---------- C: cards ----------
+const cards = document.getElementById("cardsC");
+groups.forEach((g, i) => {
+  const d = document.createElement("div");
+  d.className = "pnl"; d.style.cssText = "padding:10px;background:var(--panel-hi);display:grid;gap:7px" + (i === 3 ? ";box-shadow:inset 0 0 0 1px var(--gold)" : "");
+  d.innerHTML = `<div class="row" style="justify-content:space-between"><div class="row"><span class="dot" style="background:${g.col}"></span><b style="font-size:13px">${g.name}</b></div><span class="chip">from ${g.from}</span></div>
+    <div style="font-size:12px;color:var(--muted)">${g.who}</div>
+    <div class="row" style="gap:6px"><div class="field" style="flex:1"><div class="v" style="height:24px;font-size:12px">at ${g.at.toFixed(1)} s <span class="step"><span>−</span><span>+</span></span></div></div>
+    <div class="field" style="flex:1"><div class="v" style="height:24px;font-size:12px">every ${g.every.toFixed(1)} s <span class="step"><span>−</span><span>+</span></span></div></div></div>`;
+  cards.appendChild(d);
+});
+const propBox = document.createElement("div"); propBox.style.cssText = "margin-top:6px;display:grid;gap:6px";
+propBox.innerHTML = `<span class="cap">Props · 5 placed</span><div class="seg"><span class="on">Crate</span><span>Pot</span><span>Barrel</span><span>Chest</span><span>Hazard</span></div>`;
+cards.appendChild(propBox);
+
+// ---------- simulation shared by B (dots on the small map) and C (the live canvas) ----------
+function spawns() {
+  const out = [];
+  for (const g of groups) {
+    const from = g.from.split(" ");
+    for (let k = 0; k < g.n; k++) {
+      const p = points[from[k % from.length]];
+      out.push({ t: g.at + g.every * k, x: p[0], y: p[1], col: g.mix[k], line: g.name === "Riot line" ? k : -1 });
+    }
+  }
+  return out;
+}
+const S = spawns();
+function posAt(s, t) {
+  const a = t - s.t; if (a < 0) return null;
+  let tx = 800, ty = 450;
+  if (s.line >= 0) { tx = 560 + (s.line % 5) * 120; ty = s.line < 4 ? 380 : 300; }
+  const d = Math.hypot(tx - s.x, ty - s.y), k = Math.min(1, a * 140 / Math.max(1, d));
+  const wob = Math.sin(a * 3 + s.t * 7) * 18 * k;
+  return [s.x + (tx - s.x) * k + wob, s.y + (ty - s.y) * k - wob * 0.5];
+}
+
+const live = document.getElementById("liveC").getContext("2d");
+function drawLive(t) {
+  const g = live;
+  g.fillStyle = "#10131d"; g.fillRect(0, 0, 1600, 900);
+  g.strokeStyle = "rgba(255,255,255,0.04)"; g.lineWidth = 2;
+  for (let x = 100; x < 1600; x += 100) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 900); g.stroke(); }
+  for (let y = 100; y < 900; y += 100) { g.beginPath(); g.moveTo(0, y); g.lineTo(1600, y); g.stroke(); }
+  for (const [k, x, y] of props) {
+    g.fillStyle = k === "barrel" ? "#6b2a22" : k === "crate" ? "#5b4128" : "#3c2f22"; g.strokeStyle = k === "barrel" ? "#e2604a" : "#b58a5a"; g.lineWidth = 5;
+    if (k === "crate") { g.fillRect(x - 34, y - 34, 68, 68); g.strokeRect(x - 34, y - 34, 68, 68); }
+    else { g.beginPath(); g.arc(x, y, k === "barrel" ? 30 : 22, 0, 7); g.fill(); g.stroke(); }
+  }
+  // the players
+  const pl = [[760 + Math.sin(t) * 40, 520], [860, 500 + Math.cos(t * 1.3) * 30]];
+  pl.forEach((p, i) => { g.fillStyle = i ? "#ff8a3d" : "#4d8cff"; g.beginPath(); g.arc(p[0], p[1], 20, 0, 7); g.fill(); g.strokeStyle = "#fff"; g.lineWidth = 4; g.stroke(); });
+  let on = 0, sp = 0;
+  for (const s of S) {
+    const p = posAt(s, t); if (!p) continue; sp++;
+    if (t - s.t > 9) continue; on++;
+    g.fillStyle = s.col; g.beginPath(); g.arc(p[0], p[1], s.col === C.shield ? 22 : 15, 0, 7); g.fill();
+    if (t - s.t < 0.4) { g.strokeStyle = "rgba(255,255,255," + (1 - (t - s.t) / 0.4) + ")"; g.lineWidth = 4; g.beginPath(); g.arc(s.x, s.y, 30 + (t - s.t) * 80, 0, 7); g.stroke(); }
+  }
+  for (const k in points) { const [x, y] = points[k]; g.fillStyle = "rgba(77,140,255,0.25)"; g.beginPath(); g.arc(x, y, 30, 0, 7); g.fill(); g.fillStyle = "#fff"; g.font = "700 30px Arial"; g.textAlign = "center"; g.fillText(k, x, y + 11); }
+  document.getElementById("onC").textContent = on; document.getElementById("spC").textContent = sp; document.getElementById("tC").textContent = t.toFixed(1);
+}
+function drawB(t) {
+  dotsB.innerHTML = "";
+  for (const s of S) { const p = posAt(s, t); if (!p || t - s.t > 9) continue; el("circle", { cx: p[0], cy: p[1], r: s.col === C.shield ? 22 : 15, fill: s.col }, dotsB); }
+  ph.style.left = (x0 + Math.min(t, span) / span * w) + "px";
+  document.getElementById("tB").textContent = t.toFixed(1) + " s";
+}
+
+// ---------- scaling and the loop ----------
+function fit() { document.querySelectorAll(".screen").forEach(s => { s.style.transform = "scale(" + s.parentElement.clientWidth / 1280 + ")"; }); }
+addEventListener("resize", fit); fit();
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (still) { drawLive(12); drawB(12); }
+else { const t0 = performance.now(); (function tick(now) { const t = ((now - t0) / 1000) % 20; drawLive(t); drawB(t); requestAnimationFrame(tick); })(t0); }
+</script>
