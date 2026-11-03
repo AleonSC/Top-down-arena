@@ -19,6 +19,31 @@ A running list of things to pick up next session. Tick off / delete as they're d
       weapons' swings, thrusts and slams could look, to pick from before changing the game.
 - [ ] **Redesign the main menu buttons.** Mock up a few styles first, then pick one to build.
 
+## Unlocks & ascensions plan
+Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused
+unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep.
+
+**Unlock rules (weapons and abilities)**
+- Earned by playing that class, ideally hinting at what the item is good at. Takes 2-5 runs, not a grind.
+- Can't need the item itself. Per player in co-op (like Records). Today's weapons/abilities stay unlocked.
+- Built from a few **standard condition pieces**, themed per item: play class/role · reach wave N · beat boss X ·
+  win hunt X (later) · with item Y equipped · simple totals. Build the pieces once; each new unlock is just data.
+- Truly unique conditions only for a few showcase/secret unlocks.
+- Locked items show their condition and progress in the lobby and Records.
+- First one: **Missile Pod**, a 4th DPS Soldier weapon. Hold fire and sweep to lock up to 4 targets (~0.3 s each),
+  release to fire homing missiles with small blasts; a tap with no locks fires one unguided rocket. Upgrade: +1 lock
+  or bomblets. Weak up close. Unlock: **beat the Hive Queen as a DPS Soldier**. Mockup first.
+
+**Ascensions (per weapon, 3 tiers; the lobby strip is already there as a placeholder, `LobbyUi.DrawAscensionStrip`)**
+- Earned only by using that weapon:
+  I = reach wave 10 with it · II = beat 3 different bosses with it · III = win a full run or 3 different hunts with it.
+- Rewards are **twists, not raw power**; each tier is a variant you can switch on, the base stays available.
+  Example (Twin Rifle): I = new tracer/muzzle look · II = streams cross closer, crossfire hits harder ·
+  III = crossfire hits mark enemies for Mark for Death.
+- Links between systems, kept few: Boss Hunts count toward Ascension III; at most **one unlock per class** comes from
+  an ascension (e.g. Twin Rifle II unlocks the Missile Pod); perks stay separate (they come from bosses).
+- Open: each weapon's actual ascension variants need designing (a design doc or mockups before building).
+
 ## Bigger features (design docs ready)
 - [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
 - [ ] Boss Hunts, then Perks: [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
