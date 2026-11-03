@@ -1,0 +1,637 @@
+<title>Bear Totem Attacks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. On top, a patch of arena at the game's scale (1 canvas px = 1 arena px):
+   a Tank Summoner with the Bear Totem, three target dummies and the Bear companion, looping through the claws, the
+   bleed and the bear's bites in the picked style. Under it, still frames through one claw swipe, one bite and the
+   bleed stacking up. Then one card per style, then build notes. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1d2a2a; border-color: var(--teal); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.strips { display: grid; gap: 14px; padding: 0 16px 16px; }
+.strips h3 { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.strip.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 1 / 1; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--teal); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--teal); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+
+@media (max-width: 700px) {
+  .strip, .strip.five { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .now { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Summoner · Tank · Bear Totem · pick a style</div>
+    <h1>Bear Totem <span>attacks</span></h1>
+    <p class="lead">Today the Bear Totem is two quick claw swipes that make enemies bleed, plus a Bear companion that mauls
+      what's nearby. In the game the claws are three pale arcs, the Bear is a plain brown seven-sided shape, the bleed is a
+      red tint with drops, and the totem in your hand is a small brown block. Below are three other ways it could look,
+      beside today's, with the same moves: two raking swipes (85 px reach, 110° arc), the Bear running out to bite every
+      0.6 s, and bleed stacking up to five hits. Pick one, or mix parts of several (the claws from one, the Bear from another).</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group" id="viewBtns"><span class="label">View</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="pause" aria-pressed="false">Pause</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strips">
+      <div><h3>One claw swipe, frame by frame</h3><div class="strip" id="stripClaw"></div></div>
+      <div><h3>One bear bite, frame by frame</h3><div class="strip" id="stripBear"></div></div>
+      <div><h3>Bleed stacking, one to five claw hits</h3><div class="strip five" id="stripBleed"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li><b>Claws:</b> the swipes are <code>FxKind.Claw</code>, drawn by <code>DrawClawFx</code> in <code>Game/WorldEffects.cs</code> (reach, arc and rake direction already arrive with the effect). Every style here is a replacement for that one function, so the claws need no protocol change. Hits, bleed and timing stay in <code>Core/KitWeapons.cs</code> (<code>FireBearClaws</code>).</li>
+      <li><b>The totem in your hand</b> is the <code>WeaponId.BearTotem</code> case in <code>Game/CharacterModels.cs</code>. Turning it with the swipe is local: the swipe's angle comes from the same effect.</li>
+      <li><b>The Bear</b> is drawn today by the generic polygon at the end of <code>DrawMinion</code> (<code>Game/WorldEnemies.cs</code>). A new <code>DrawBear</code> would be called for <code>MinionKind.Bear</code> the way <code>DrawHiveDrone</code> is. Legs and trail come from how far it has moved since last frame (kept per minion on your own game), so a walk cycle needs nothing from the host.</li>
+      <li><b>The bite wind-up and chomp</b> (A, B and C) need to know when a bite lands. The bite timer (<code>Minion.Cd</code>) is host only, so there are two ways: guess it on each game (the Bear is next to an enemy, so open the jaw), or send a small effect when it bites. A new effect kind goes at the end of <code>FxKind</code> and bumps <code>Session.ProtocolVersion</code> (now 128).</li>
+      <li><b>Bleed stacks:</b> the five-notch counter (C) and the scar count (A) need the stack count on every game. Today only <code>BleedT</code> and <code>BleedDps</code> exist, on the host, and the enemy just has a bleeding flag. Showing stacks means adding one value to the enemy snapshot, which is also a protocol bump. The tint, drops and drip (all styles) work with the flag we have.</li>
+      <li><b>Reduced effects</b> already turns off the glow pass and particles. Each style degrades to its base shapes: the claws, the Bear body and the red tint.</li>
+      <li>Nothing here changes damage, reach or timing, so the sim tests are unaffected. The Armory and Bestiary pages aren't touched by this mockup.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const TAU = Math.PI * 2, PI = Math.PI;
+  const L = 6.4;                                   // the loop, in seconds
+  const SW = [0.3, 1.9, 3.5, 5.1], GAP = 0.12, SDUR = 0.3;   // a swipe pair starts at each SW; the second swipe follows after GAP
+  const REACH = 85, HALF = 55 * PI / 180;
+  const PL = { x: 200, y: 190, r: 18 };            // the Tank Summoner (BodyR 18)
+  const DUM = [{ x: 285, y: 165, r: 16 }, { x: 280, y: 222, r: 16 }];   // two dummies inside the claws' reach
+  const BRU = { x: 520, y: 250, r: 20 };           // the dummy the Bear works on
+  const HOME = { x: 150, y: 262 }, STOP = { x: BRU.x - BRU.r - 15 - 3, y: 250 };
+  const BITES = [1.9, 2.5, 3.1, 3.7];                   // the Bear bites every 0.6 s
+  const HITS = []; for (const s of SW) for (let k = 0; k < 2; k++) HITS.push(s + k * GAP + 0.05);   // when claws land on the two dummies
+  const $ = s => document.querySelector(s);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = t => t * t * (3 - 2 * t);
+  const wrap = (t, p) => ((t % p) + p) % p;
+  const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+  const STYLES = {
+    now: { key: "Now", name: "Today" },
+    A: { key: "A", name: "Raked" },
+    B: { key: "B", name: "Spirit bear" },
+    C: { key: "C", name: "Carved totem" },
+  };
+  const ORDER = ["now", "A", "B", "C"];
+  const CARDS = {
+    now: { pitch: "What's in the game now. Readable and cheap, but the Bear looks like any other minion and the totem isn't visible in use.",
+      claws: "Three thin arcs with a red core over a faint crescent", bear: "Brown seven-sided shape, no legs or face", bleed: "Red tint, flying drops, and a blood-drop status icon", totem: "A small brown block with three claw ticks", cost: "Nothing to build" },
+    A: { pitch: "Natural and fierce. Claws are tapered gouges that tear through and leave a red line; the Bear is a real brown bear that runs on four legs and snaps.",
+      claws: "Three comet-shaped gouges with a hot ivory core, a red scar behind them, and a few flicked drops", bear: "Brown bear from above: ears, snout, shoulder hump, four striding paws; the jaw opens before each bite and the head lunges", bleed: "Red claw scars across the enemy (one set per two hits), drips running down, drops on each hit", totem: "A carved bear-paw on a shaft that swings with each rake", cost: "Medium: one new function for the Bear, richer claw drawing, no network change for the look" },
+    B: { pitch: "The Summoner's own flavour: a spirit bear, made of the same pale green as its other summons. Less gore, more magic, and it stays readable against the red enemy bullets.",
+      claws: "A glowing spirit paw sweeps through the arc, three light claws ahead of it and fading trails behind", bear: "The bear drawn as a translucent spirit with glowing runes along its back and afterimages trailing it when it runs; the bite is a closing pair of fangs", bleed: "Dark red motes spiral up off the enemy, thicker with each stack, and a thin red ring", totem: "A floating spirit-bear emblem on a thin staff, brighter on each swipe", cost: "Medium: glow-heavy, so it leans on the existing glow pass" },
+    C: { pitch: "Matches the game's faceted polygons: a carved wooden totem and a low-poly painted bear. The most 'totem'; it also has the clearest bleed counter.",
+      claws: "Angular cream wedges in a row along each arc, wood chips flying, and a ring on the second swipe", bear: "A faceted bear with a red and cream war stripe across its back; its jaw is two wedges that snap", bleed: "Five carved notches over the enemy light up red, one per stacked hit, plus square drops", totem: "A little totem pole whose eyes flare amber on each swipe", cost: "Medium: all straight edges, cheap to draw; the stack counter needs the count replicated" },
+  };
+
+  // ------------------------------------------------------------------ tiny drawing helpers
+  function circ(c, x, y, r, f, s, lw) { c.beginPath(); c.arc(x, y, Math.max(0.1, r), 0, TAU); if (f) { c.fillStyle = f; c.fill(); } if (s) { c.strokeStyle = s; c.lineWidth = lw || 1; c.stroke(); } }
+  function ell(c, x, y, rx, ry, rot, f, s, lw) { c.beginPath(); c.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot || 0, 0, TAU); if (f) { c.fillStyle = f; c.fill(); } if (s) { c.strokeStyle = s; c.lineWidth = lw || 1; c.stroke(); } }
+  function poly(c, pts, f, s, lw) { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); if (f) { c.fillStyle = f; c.fill(); } if (s) { c.strokeStyle = s; c.lineWidth = lw || 1; c.lineJoin = "round"; c.stroke(); } }
+  function line(c, x0, y0, x1, y1, w, col) { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.stroke(); }
+  function rect(c, x, y, w, h, f, s, lw) { c.beginPath(); c.rect(x, y, w, h); if (f) { c.fillStyle = f; c.fill(); } if (s) { c.strokeStyle = s; c.lineWidth = lw || 1; c.stroke(); } }
+  function xf(c, x, y, a, fn) { c.save(); c.translate(x, y); c.rotate(a); fn(); c.restore(); }
+  function arcStroke(c, x, y, r, a0, sw, w, col) { if (sw === 0) return; c.beginPath(); c.arc(x, y, r, a0, a0 + sw, sw < 0); c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.stroke(); }
+  function ngon(c, x, y, r, n, rot, f, s, lw) { const p = []; for (let i = 0; i < n; i++) p.push([x + Math.cos(rot + TAU * i / n) * r, y + Math.sin(rot + TAU * i / n) * r]); poly(c, p, f, s, lw); }
+  const rgba = (r, g, b, a) => `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`;
+
+  // ------------------------------------------------------------------ the loop: where everything is at time T
+  function swipesAt(T) {                            // the claw swipes in progress, with how far along each is
+    const out = [];
+    for (const s of SW) for (let k = 0; k < 2; k++) {
+      const a0 = wrap(T - (s + k * GAP), L);
+      if (a0 < SDUR) out.push({ side: k === 0 ? 1 : -1, f: a0 / SDUR, age: a0, k });
+    }
+    return out;
+  }
+  function hitAge(T, times) {                       // seconds since the latest hit (large if none lately)
+    let best = 9;
+    for (const h of times) best = Math.min(best, wrap(T - h, L));
+    return best;
+  }
+  function stacksAt(T) {                            // claw hits in the last 3 s, capped at five
+    let n = 0;
+    for (const h of HITS) if (wrap(T - h, L) < 3) n++;
+    return Math.min(5, n);
+  }
+  function bearAt(T) {
+    const b = { x: HOME.x, y: HOME.y, ang: 0, stride: 0, run: 0, jaw: 0, lunge: 0, bite: -1, biteAge: 9 };
+    const t = wrap(T, L);
+    const move = u => 0.75 * u + 0.25 * ease(u);      // close to its real 200 px/s, with a short ease at each end
+    if (t >= 0.2 && t < 1.8) { const u = move((t - 0.2) / 1.6); b.x = lerp(HOME.x, STOP.x, u); b.y = lerp(HOME.y, STOP.y, u); b.run = 1; b.stride = t * 15; }
+    else if (t >= 1.8 && t < 4.2) { b.x = STOP.x; b.y = STOP.y; }
+    else if (t >= 4.2 && t < 5.8) { const u = move((t - 4.2) / 1.6); b.x = lerp(STOP.x, HOME.x, u); b.y = lerp(STOP.y, HOME.y, u); b.ang = PI; b.run = 1; b.stride = t * 15; }
+    else if (t >= 5.8) { b.ang = lerp(PI, 0, ease(clamp((t - 5.8) / 0.3))); }
+    if (t >= 4.2 && t < 5.8) b.ang = PI;
+    for (const bt of BITES) {                       // jaw opens just before, snaps shut at the bite, head lunges
+      const age = t - bt;
+      if (age >= -0.16 && age < 0) b.jaw = Math.max(b.jaw, (age + 0.16) / 0.16);
+      else if (age >= 0 && age < 0.14) b.jaw = Math.max(b.jaw, 1 - age / 0.14);
+      if (age >= -0.12 && age < 0.22) b.lunge = Math.max(b.lunge, 10 * Math.sin(PI * clamp((age + 0.12) / 0.34)));
+      if (age >= 0 && age < 0.3) { b.bite = bt; b.biteAge = age; }
+    }
+    b.idle = !b.run;
+    return b;
+  }
+
+  // ------------------------------------------------------------------ the floor
+  function floor(c, x0, y0, x1, y1) {
+    c.fillStyle = "#070910"; c.fillRect(x0, y0, x1 - x0, y1 - y0);
+    c.strokeStyle = "rgba(120,150,190,0.07)"; c.lineWidth = 1;
+    for (let x = Math.ceil(x0 / 50) * 50; x <= x1; x += 50) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y1); c.stroke(); }
+    for (let y = Math.ceil(y0 / 50) * 50; y <= y1; y += 50) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); }
+  }
+
+  // ------------------------------------------------------------------ the totem in your hand (local frame: +x points away from you)
+  function totem(c, S, glow, T) {
+    if (S === "now") {
+      rect(c, -4, -5, 6, 10, "#8a5a36"); circ(c, 2, 0, 4.5, "#6b4a2e");
+      for (let i = -1; i <= 1; i++) line(c, 5, i * 2.8, 14, i * 4.9, 1.8, "#f0e6c8");
+    } else if (S === "A") {
+      line(c, -8, 0, 9, 0, 3.2, "#5a3b22"); line(c, -8, -0.6, 9, -0.6, 1, "#7a5230");
+      ell(c, 12, 0, 6.5, 5.5, 0, "#8a5a36", "#3d2917", 1.2);
+      for (let i = -1; i <= 1; i++) circ(c, 17, i * 4.2, 2.1, "#a26a40", "#3d2917", 0.8);
+      for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(18, i * 4.2); c.quadraticCurveTo(25, i * 5.5 - i * 1.5, 30, i * 8); c.strokeStyle = "#f0e6c8"; c.lineWidth = 1.8; c.lineCap = "round"; c.stroke(); }
+      if (glow > 0) circ(c, 22, 0, 12, rgba(255, 220, 170, 0.18 * glow));
+    } else if (S === "B") {
+      line(c, -8, 0, 12, 0, 2, "#1d3b25");
+      const p = 0.7 + 0.3 * Math.sin(T * 5) + glow * 0.5;
+      circ(c, 20, 0, 12 + 3 * glow, rgba(120, 255, 225, 0.12 * p));
+      c.beginPath(); c.arc(20, 0, 8, 0, TAU); c.strokeStyle = rgba(140, 255, 230, 0.7 * p); c.lineWidth = 1.6; c.stroke();
+      circ(c, 20, 0, 4.2, rgba(190, 255, 240, 0.85 * p)); circ(c, 17, -4.2, 2.2, rgba(190, 255, 240, 0.85 * p)); circ(c, 17, 4.2, 2.2, rgba(190, 255, 240, 0.85 * p));
+      for (let i = -1; i <= 1; i++) line(c, 26, i * 3.4, 33 + 3 * glow, i * 6, 1.3, rgba(190, 255, 240, 0.8));
+    } else {
+      line(c, -8, 0, 4, 0, 3.4, "#5a3b22");
+      poly(c, [[4, -7], [18, -7], [18, 7], [4, 7]], "#9a6b3a", "#3a2614", 1.4);
+      poly(c, [[5, -7], [7, -11], [10, -7]], "#9a6b3a", "#3a2614", 1.1); poly(c, [[12, -7], [14, -11], [17, -7]], "#9a6b3a", "#3a2614", 1.1);
+      const eye = glow > 0.05 ? rgba(255, 190 + 30 * glow, 60, 0.7 + 0.3 * glow) : "#1b1209";
+      if (glow > 0.05) { circ(c, 10, -3, 5 + 3 * glow, rgba(255, 190, 60, 0.18 * glow)); circ(c, 10, 3, 5 + 3 * glow, rgba(255, 190, 60, 0.18 * glow)); }
+      rect(c, 8.6, -4.4, 3, 3, eye); rect(c, 8.6, 1.4, 3, 3, eye);
+      rect(c, 14, -3.5, 2, 7, "#3a2614"); line(c, 14, -1.5, 17, -1.5, 0.8, "#9a6b3a"); line(c, 14, 1.5, 17, 1.5, 0.8, "#9a6b3a");
+      for (let i = -1; i <= 1; i++) poly(c, [[18, i * 4 - 1.6], [27, i * 5.6], [18, i * 4 + 1.6]], "#f0e6c8", "#3a2614", 0.9);
+    }
+  }
+
+  // ------------------------------------------------------------------ the Tank Summoner
+  function player(c, S, T, swipes) {
+    const sw = swipes.length ? swipes[swipes.length - 1] : null;
+    let tAng = 0.06 * Math.sin(T * 1.8), glow = 0;
+    if (sw) {
+      const g = ease(clamp(sw.f * 3.2)), from = sw.side > 0 ? -HALF : HALF, to = sw.side > 0 ? HALF : -HALF;
+      tAng = lerp(from, to, g) * 0.9; glow = 1 - sw.f;
+    }
+    xf(c, PL.x, PL.y, 0, () => {
+      c.shadowColor = "rgba(0,0,0,0)";
+      poly(c, [[-13, 0], [-13, -6], [-30 - 3 * Math.sin(T * 3), 0], [-13, 6]], "#1d3b25");                       // the hood's trailing point
+      for (let i = 0; i < 7; i++) { const a = PI * 0.62 + i * (PI * 0.76 / 6); ell(c, Math.cos(a) * 19 * 0.85 - 2, Math.sin(a) * 19 * 0.95, 6.5, 3.4, a + 1.57, i % 2 ? "#3f7a4a" : "#52965c"); }
+      circ(c, 0, 0, 18, "#3f7a4a", "#1d3b25", 2);
+      ell(c, -2, -13, 9, 6, 0.15, "#3b6fcb", "#1e3d7a", 1.4); ell(c, -2, 13, 9, 6, -0.15, "#3b6fcb", "#1e3d7a", 1.4);   // Tank plate pauldrons
+      c.beginPath(); c.arc(0, 0, 14, -0.9, 0.9); c.strokeStyle = "#59b6ff"; c.lineWidth = 2; c.stroke();            // chest plate
+      circ(c, 3, 0, 9.5, "#1d3b25"); circ(c, 3, 0, 8.2, "#3f7a4a");
+      c.beginPath(); c.arc(3, 0, 6.2, -0.9, 0.9); c.strokeStyle = "#8fdc98"; c.lineWidth = 1.2; c.stroke();
+      circ(c, 8.2, -2.8, 1.3, "#c8ffd0"); circ(c, 8.2, 2.8, 1.3, "#c8ffd0");
+      // arms to the totem, which turns with the swipe
+      const hx = Math.cos(tAng) * 24, hy = Math.sin(tAng) * 24;
+      for (const sgn of [-1, 1]) {
+        const px = hx - Math.sin(tAng) * 5 * sgn, py = hy + Math.cos(tAng) * 5 * sgn;
+        line(c, 0, sgn * 13, px, py, 4.4, "#2f6039"); circ(c, px, py, 3.1, "#cfe9b8", "#20242a", 0.8);
+      }
+      xf(c, hx, hy, tAng, () => totem(c, S, glow, T));
+    });
+  }
+
+  // ------------------------------------------------------------------ claws, per style. aim 0 = to the right
+  function clawNow(c, x, y, f, side) {
+    const R = REACH, half = HALF, g = Math.min(1, f * 4), fade = 1 - f, sweep = 2 * half * g;
+    const from = side > 0 ? -half : half - sweep;
+    c.beginPath(); c.arc(x, y, R * 0.72, from, from + sweep); c.strokeStyle = rgba(230, 76, 64, 0.16 * fade); c.lineWidth = R * 0.5; c.lineCap = "butt"; c.stroke();
+    for (let k = -1; k <= 1; k++) {
+      const r = R * (0.78 + 0.13 * k), lag = (1 - k * side) * 0.06, a0 = from + (side > 0 ? 0 : sweep * lag), a1 = sweep * (1 - lag);
+      arcStroke(c, x, y, r, a0, a1, 4.5 * fade + 1, rgba(240, 232, 214, 0.9 * fade));
+      arcStroke(c, x, y, r, a0, a1, 1.5, rgba(217, 38, 38, 0.7 * fade));
+    }
+  }
+  function taper(c, x, y, r, a0, a1, maxW, col, lead) {      // a blade-shaped stroke along an arc from a0 to a1, thick in the middle
+    const n = 18, pts = [];
+    for (let i = 0; i <= n; i++) { const u = i / n, a = lerp(a0, a1, u), w = maxW * Math.pow(Math.sin(PI * u), lead || 0.8) / 2; pts.push([x + Math.cos(a) * (r + w), y + Math.sin(a) * (r + w)]); }
+    for (let i = n; i >= 0; i--) { const u = i / n, a = lerp(a0, a1, u), w = maxW * Math.pow(Math.sin(PI * u), lead || 0.8) / 2; pts.push([x + Math.cos(a) * (r - w), y + Math.sin(a) * (r - w)]); }
+    poly(c, pts, col);
+  }
+  function clawA(c, x, y, f, side, ph) {
+    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, fade = 1 - f * f;
+    const head = clamp(f * 3.2), tail = clamp((f - 0.12) * 1.7, 0, head);
+    for (let k = -1; k <= 1; k++) {
+      const r = R * (0.77 + 0.14 * k), lag = (1 - k * side) * 0.035, h = clamp(head - lag), t = Math.min(clamp(tail - lag * 0.5), h);
+      const a0 = lerp(from, to, t), a1 = lerp(from, to, h);
+      if (h - t > 0.01) {
+        taper(c, x, y, r, a0, a1, 12, rgba(255, 200, 130, 0.22 * fade), 0.7);
+        taper(c, x, y, r, a0, a1, 7.5, rgba(255, 244, 224, 0.95 * fade), 0.8);
+      }
+      arcStroke(c, x, y, r, from, (a1 - from), 1.6, rgba(210, 40, 40, 0.7 * (1 - f)));                                // the red scar it leaves
+    }
+    const tipA = lerp(from, to, head), tx = x + Math.cos(tipA) * R, ty = y + Math.sin(tipA) * R;
+    for (let i = 0; i < 7; i++) {                                                                                    // droplets flicked off the tip
+      const ang = tipA + side * (0.6 + rnd(i + ph) * 0.9) * (rnd(i + ph + 9) > 0.5 ? 1 : 0.6) + rnd(i + 3) * 0.4, d = 8 + f * (22 + rnd(i + 5) * 26);
+      if (f > 0.1) circ(c, tx + Math.cos(ang) * d, ty + Math.sin(ang) * d, 1.8 - f, rgba(222, 38, 48, 0.85 * (1 - f)));
+    }
+  }
+  function paw(c, x, y, rot, s, col, clawCol, a) {
+    xf(c, x, y, rot, () => {
+      ell(c, 0, 0, 12 * s, 9.5 * s, 0, rgba(col[0], col[1], col[2], 0.38 * a), rgba(col[0], col[1], col[2], 0.9 * a), 1.4);
+      for (let i = -2; i <= 1; i++) {
+        const ty = (i + 0.5) * 6.4 * s, tx = 11 * s - Math.abs(i + 0.5) * 2.4 * s;
+        ell(c, tx, ty, 4.4 * s, 3.6 * s, 0, rgba(col[0], col[1], col[2], 0.4 * a), rgba(col[0], col[1], col[2], 0.9 * a), 1.1);
+        poly(c, [[tx + 3 * s, ty - 1.2 * s], [tx + 16 * s, ty + (i + 0.5) * 1.6 * s], [tx + 3 * s, ty + 1.2 * s]], rgba(clawCol[0], clawCol[1], clawCol[2], 0.95 * a));
+      }
+    });
+  }
+  function clawB(c, x, y, f, side) {
+    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = clamp(f * 2.8), fade = Math.pow(1 - f, 0.7);
+    for (let k = -1; k <= 1; k++) {                                                                                 // fading trails behind the paw
+      const r = R * (0.77 + 0.14 * k), n = 14;
+      for (let i = 0; i < n; i++) {
+        const u0 = head * i / n, u1 = head * (i + 1) / n;
+        arcStroke(c, x, y, r, lerp(from, to, u0), lerp(from, to, u1) - lerp(from, to, u0), 1 + 2.4 * (i / n), rgba(140, 255, 230, 0.55 * (i / n) * fade));
+      }
+    }
+    const a = lerp(from, to, head), px = x + Math.cos(a) * R * 0.68, py = y + Math.sin(a) * R * 0.68;
+    c.save(); c.globalCompositeOperation = "lighter";
+    circ(c, px, py, 26, rgba(100, 255, 220, 0.12 * fade));
+    paw(c, px, py, a + (side > 0 ? 0.25 : -0.25), 1.15, [120, 255, 225], [210, 255, 245], fade);
+    c.restore();
+    c.beginPath(); c.arc(x, y, R * (0.55 + 0.5 * f), from, to, side < 0); c.strokeStyle = rgba(140, 255, 230, 0.18 * (1 - f)); c.lineWidth = 2; c.stroke();
+  }
+  function clawC(c, x, y, f, side, ph) {
+    const R = REACH, from = side > 0 ? -HALF : HALF, to = -from, head = clamp(f * 3), fade = 1 - f * f;
+    for (let k = -1; k <= 1; k++) {
+      const r = R * (0.77 + 0.14 * k), n = 7;
+      for (let i = 0; i < n; i++) {
+        const u = (i + 0.5) / n; if (u > head) break;
+        const a = lerp(from, to, u), cx = x + Math.cos(a) * r, cy = y + Math.sin(a) * r, along = a + (side > 0 ? PI / 2 : -PI / 2);
+        const len = 9 + 3 * Math.sin(PI * u), wd = 2.6 + 2 * Math.sin(PI * u);
+        xf(c, cx, cy, along, () => poly(c, [[-len, -wd], [len, -wd * 0.3], [len + 2, 0], [len, wd * 0.3], [-len, wd]], rgba(240, 230, 200, 0.95 * fade), rgba(58, 38, 20, 0.9 * fade), 1.1));
+      }
+    }
+    for (let i = 0; i < 9; i++) {                                                                                    // wood chips
+      const u = rnd(i + ph * 7), a = lerp(from, to, clamp(u * head * 1.1)), d = R * (0.7 + 0.3 * rnd(i + 2)) + f * (18 + 24 * rnd(i + 4));
+      xf(c, x + Math.cos(a) * d, y + Math.sin(a) * d, f * 8 * (rnd(i) - 0.5) + i, () => rect(c, -2, -1.6, 4, 3.2, rgba(154, 107, 58, 0.9 * (1 - f)), rgba(58, 38, 20, 0.7 * (1 - f)), 0.7));
+    }
+    if (side < 0) {                                                                                                  // the second swipe sends a ring out
+      const rr = R * (0.5 + 0.7 * f), n = 8;
+      for (let i = 0; i < n; i++) { const a0 = TAU * i / n + 0.2; arcStroke(c, x, y, rr, a0, TAU / n * 0.55, 3, rgba(240, 230, 200, 0.55 * (1 - f))); }
+    }
+  }
+  function claws(c, S, swipes) {
+    for (const s of swipes) {
+      if (S === "now") clawNow(c, PL.x, PL.y, s.f, s.side);
+      else if (S === "A") clawA(c, PL.x, PL.y, s.f, s.side, s.k);
+      else if (S === "B") clawB(c, PL.x, PL.y, s.f, s.side);
+      else clawC(c, PL.x, PL.y, s.f, s.side, s.k);
+    }
+  }
+
+  // ------------------------------------------------------------------ the bear, per style
+  function bear(c, S, b, T, trail) {
+    if (S === "now") { ngon(c, b.x, b.y, 15, 7, b.ang, "#996640"); return; }
+    if (S === "B" && trail) {                                                                                       // afterimages while it runs
+      trail.forEach((tb, i) => { if (b.run) ell(c, tb.x, tb.y, 15, 12, tb.ang, rgba(120, 255, 225, 0.12 - i * 0.025)); });
+    }
+    xf(c, b.x, b.y, b.ang, () => {
+      const st = Math.sin(b.stride), sp = b.run ? 1 : 0, br = 1 + 0.025 * Math.sin(T * 3);
+      const lunge = b.lunge, jaw = b.jaw;
+      if (S === "A") {
+        ell(c, 0, 3, 17, 13, 0, "rgba(0,0,0,0.25)");
+        for (const [px, py, ph] of [[9, -10, 1], [9, 10, -1], [-9, -10, -1], [-9, 10, 1]]) {
+          const ox = st * 5 * ph * sp; ell(c, px + ox, py, 5.2, 3.6, 0, "#4b3220", "#2a1a0e", 1);
+          for (let i = -1; i <= 1; i++) line(c, px + ox + 4, py + i * 1.6, px + ox + 7, py + i * 2, 1, "#f0e6c8");
+        }
+        ell(c, -1, 0, 16 * br, 12.5 * br, 0, "#6b4a2e", "#3d2917", 1.5);
+        ell(c, -4, 0, 10, 6, 0, "#573b24"); ell(c, 5, 0, 8, 9.5, 0, "#755233");
+        circ(c, -16, 0, 2.6, "#573b24");
+        const hx = 14 + lunge;
+        ell(c, hx - 4, -6.8, 3.4, 3.4, 0, "#6b4a2e", "#3d2917", 1); ell(c, hx - 4, 6.8, 3.4, 3.4, 0, "#6b4a2e", "#3d2917", 1);
+        circ(c, hx, 0, 8.4, "#8a5a36", "#3d2917", 1.5);
+        ell(c, hx + 8, 0, 5.8, 4.2, 0, "#b88a5a", "#3d2917", 1);
+        if (jaw > 0.05) {
+          ell(c, hx + 9, 0, 5.4 * jaw + 0.5, 3.8 * jaw, 0, "#3a0d12");
+          for (const sg of [-1, 1]) { poly(c, [[hx + 12, sg * 3.2 * jaw], [hx + 15, sg * 2.2 * jaw], [hx + 12.5, sg * 1.2 * jaw]], "#fffaf0"); poly(c, [[hx + 8, sg * 3.6 * jaw], [hx + 10.5, sg * 2.6 * jaw], [hx + 8.4, sg * 1.6 * jaw]], "#fffaf0"); }
+        }
+        circ(c, hx + 13.6, 0, 1.9, "#1b1209");
+        circ(c, hx + 3, -3.8, 1.3, jaw > 0.5 ? "#ff5a4a" : "#14100a"); circ(c, hx + 3, 3.8, 1.3, jaw > 0.5 ? "#ff5a4a" : "#14100a");
+      } else if (S === "B") {
+        c.save(); c.globalCompositeOperation = "lighter";
+        circ(c, 0, 0, 24, rgba(100, 255, 220, 0.1));
+        c.restore();
+        const fill = rgba(110, 240, 215, 0.3), edge = rgba(150, 255, 232, 0.85);
+        for (const [px, py, ph] of [[9, -10, 1], [9, 10, -1], [-9, -10, -1], [-9, 10, 1]]) { const ox = st * 5 * ph * sp; ell(c, px + ox, py, 5.2, 3.6, 0, fill, edge, 1); }
+        ell(c, -1, 0, 16 * br, 12.5 * br, 0, fill, edge, 1.5); ell(c, 5, 0, 8, 9.5, 0, rgba(110, 240, 215, 0.18));
+        circ(c, -16, 0, 2.6, fill, edge, 1);
+        const hx = 14 + lunge;
+        circ(c, hx - 4, -6.8, 3.3, fill, edge, 1); circ(c, hx - 4, 6.8, 3.3, fill, edge, 1);
+        circ(c, hx, 0, 8.4, fill, edge, 1.5); ell(c, hx + 8, 0, 5.6, 4, 0, fill, edge, 1);
+        for (let i = 0; i < 4; i++) circ(c, -9 + i * 4.5, (i % 2 ? 3 : -3), 1.4, rgba(220, 255, 248, 0.6 + 0.4 * Math.sin(T * 5 + i)));   // runes
+        if (jaw > 0.05) {
+          c.save(); c.globalCompositeOperation = "lighter"; circ(c, hx + 11, 0, 7 * jaw, rgba(180, 255, 240, 0.4 * jaw)); c.restore();
+          for (const sg of [-1, 1]) poly(c, [[hx + 8, sg * 4 * jaw], [hx + 15, sg * 1.4 * jaw], [hx + 8.5, sg * 2.2 * jaw]], rgba(240, 255, 250, 0.95));
+        }
+        circ(c, hx + 3, -3.8, 1.5, "#eafffa"); circ(c, hx + 3, 3.8, 1.5, "#eafffa");
+      } else {
+        const out = "#3a2614", wood = "#7a5230";
+        for (const [px, py, ph] of [[9, -10, 1], [9, 10, -1], [-9, -10, -1], [-9, 10, 1]]) {
+          const ox = st * 5 * ph * sp; poly(c, [[px + ox - 4, py - 3.4], [px + ox + 4, py - 3.4], [px + ox + 5, py], [px + ox + 4, py + 3.4], [px + ox - 4, py + 3.4]], "#4b3220", out, 1);
+          line(c, px + ox + 5, py - 1.2, px + ox + 8, py - 1.2, 1.1, "#f0e6c8"); line(c, px + ox + 5, py + 1.2, px + ox + 8, py + 1.2, 1.1, "#f0e6c8");
+        }
+        poly(c, [[-16, 0], [-12, -10], [-3, -13], [8, -11], [13, -6], [13, 6], [8, 11], [-3, 13], [-12, 10]], wood, out, 1.5);
+        poly(c, [[-8, -11.6], [-4.5, -12.6], [-4.5, 12.6], [-8, 11.6]], "#c0392b"); poly(c, [[-3.5, -12.8], [-1, -12.4], [-1, 12.4], [-3.5, 12.8]], "#f0e6c8");
+        const hx = 10 + lunge;
+        poly(c, [[hx - 2, -9], [hx, -14], [hx + 4, -8]], wood, out, 1.2); poly(c, [[hx - 2, 9], [hx, 14], [hx + 4, 8]], wood, out, 1.2);   // ears
+        const ang = jaw * 0.5;
+        xf(c, hx + 2, 0, -ang, () => poly(c, [[0, -7.5], [12, -4], [15, 0], [0, 0]], "#8a5a36", out, 1.2));
+        xf(c, hx + 2, 0, ang, () => poly(c, [[0, 7.5], [12, 4], [15, 0], [0, 0]], "#8a5a36", out, 1.2));
+        if (jaw > 0.1) {
+          xf(c, hx + 2, 0, -ang, () => poly(c, [[11, -2.8], [14, -0.4], [9.5, -0.6]], "#fffaf0"));
+          xf(c, hx + 2, 0, ang, () => poly(c, [[11, 2.8], [14, 0.4], [9.5, 0.6]], "#fffaf0"));
+        }
+        rect(c, hx + 1, -4.8, 2, 2, jaw > 0.5 ? "#ff5a4a" : "#1b1209"); rect(c, hx + 1, 2.8, 2, 2, jaw > 0.5 ? "#ff5a4a" : "#1b1209");
+      }
+    });
+  }
+
+  // the bite landing on its target (drawn at the target's edge, pointing at it)
+  function biteFx(c, S, b, age) {
+    if (age < 0 || age > 0.3) return;
+    const f = age / 0.3, x = STOP.x + 15 + 10, y = STOP.y;
+    if (S === "now") return;
+    if (S === "A") {
+      for (let k = -1; k <= 1; k++) { const o = k * 5, a = 0.5 * (1 - f); line(c, x - 6, y - 12 + o * 0 + k * 6, x + 10, y + 12 + k * 6, 2.4 * (1 - f) + 0.5, rgba(255, 244, 224, a * 2)); line(c, x - 6, y - 12 + k * 6, x + 10, y + 12 + k * 6, 1, rgba(210, 40, 40, a * 2)); }
+      for (let i = 0; i < 6; i++) { const ang = -1 + rnd(i + b.bite * 3) * 2, d = 6 + f * 22; circ(c, x + Math.cos(ang) * d, y + Math.sin(ang) * d, 1.6, rgba(222, 38, 48, 0.9 * (1 - f))); }
+    } else if (S === "B") {
+      c.save(); c.globalCompositeOperation = "lighter";
+      const r = 7 + 14 * f; c.beginPath(); c.arc(x, y, r, 0, TAU); c.strokeStyle = rgba(150, 255, 232, 0.6 * (1 - f)); c.lineWidth = 2; c.stroke();
+      for (const sg of [-1, 1]) arcStroke(c, x, y, 14 - 6 * Math.min(1, f * 3), sg > 0 ? 0.3 : -0.3 - 1.3 * 0, sg > 0 ? 1.3 : -1.3, 3, rgba(220, 255, 248, 0.9 * (1 - f)));
+      c.restore();
+    } else {
+      const k = 14 * (1 - Math.min(1, f * 2.5)) + 4;
+      poly(c, [[x - 4, y - k - 6], [x + 6, y - k], [x - 4, y - k + 5]], rgba(240, 230, 200, 1 - f), "#3a2614", 1);
+      poly(c, [[x - 4, y + k + 6], [x + 6, y + k], [x - 4, y + k - 5]], rgba(240, 230, 200, 1 - f), "#3a2614", 1);
+      for (let i = 0; i < 5; i++) { const ang = -1.1 + i * 0.55, d = 8 + f * 24; xf(c, x + Math.cos(ang) * d, y + Math.sin(ang) * d, i + f * 6, () => rect(c, -2, -2, 4, 4, rgba(192, 57, 43, 0.9 * (1 - f)), rgba(58, 38, 20, 0.6 * (1 - f)), 0.7)); }
+    }
+  }
+
+  // ------------------------------------------------------------------ the dummies and their bleed
+  function dummy(c, S, e, T, o) {
+    const age = o.hit, flash = age < 0.1 ? 1 - age / 0.1 : 0;
+    const k = age < 0.18 ? Math.sin(PI * age / 0.18) * 3 : 0;
+    const x = e.x + (o.pushX || 0) * k, y = e.y;
+    const n = o.stacks, bleeding = n > 0;
+    c.save(); c.translate(x, y);
+    ngon(c, 0, 0, e.r + 2 * flash, 6, T * 0 + 0.3, flash > 0.01 ? `rgba(255,255,255,${0.35 + 0.5 * flash})` : "#b24a58", "#5a1f2a", 2);
+    if (bleeding) ngon(c, 0, 0, e.r, 6, 0.3, rgba(204, 13, 31, 0.18 + 0.04 * n));
+    circ(c, e.r * 0.3, -e.r * 0.25, 2, "#20101a"); circ(c, e.r * 0.3, e.r * 0.25, 2, "#20101a");
+    if (bleeding) bleedLook(c, S, e, T, o, n);
+    c.restore();
+  }
+  function drops(c, e, age, col, count, square) {                                    // blood flying off at each hit
+    if (age > 0.5) return;
+    const f = age / 0.5;
+    for (let i = 0; i < count; i++) {
+      const a = -PI * 0.9 + rnd(i + Math.round(age * 0)) * PI * 1.3, d = e.r * 0.6 + f * (14 + 20 * rnd(i + 4));
+      const px = Math.cos(a) * d, py = Math.sin(a) * d + f * f * 12;
+      if (square) xf(c, px, py, i, () => rect(c, -1.8, -1.8, 3.6, 3.6, rgba(col[0], col[1], col[2], 0.9 * (1 - f))));
+      else circ(c, px, py, 2.2 * (1 - f) + 0.5, rgba(col[0], col[1], col[2], 0.9 * (1 - f)));
+    }
+  }
+  function dropIcon(c, x, y, s, a) { circ(c, x, y + 2 * s, 5.5 * s, rgba(204, 13, 31, a)); poly(c, [[x - 4.6 * s, y + 0.6 * s], [x + 4.6 * s, y + 0.6 * s], [x, y - 7 * s]], rgba(204, 13, 31, a)); }
+  function bleedLook(c, S, e, T, o, n) {
+    const r = e.r;
+    if (S === "now") {
+      drops(c, e, o.hit, [204, 13, 31], 5, false);
+      dropIcon(c, 0, -r - 14, 1, 0.95);
+    } else if (S === "A") {
+      const sets = Math.min(3, Math.ceil(n / 2));
+      for (let s = 0; s < sets; s++) for (let i = -1; i <= 1; i++) {
+        const o2 = i * 5 + (s - 1) * 1.2, ang = -0.45 + s * 0.4;
+        xf(c, 0, 0, ang, () => { line(c, -r * 0.85, o2, r * 0.85, o2, 2, rgba(120, 10, 20, 0.85)); line(c, -r * 0.75, o2, r * 0.8, o2, 1, rgba(235, 50, 60, 0.9)); });
+      }
+      for (let i = 0; i < Math.min(4, n); i++) {                                             // drips running down
+        const ph = wrap(T * 0.8 + i * 0.37, 1), dx = (i - 1.5) * 6.5, dy = r * 0.4 + ph * 22;
+        line(c, dx, r * 0.4, dx, dy, 1.5, rgba(204, 13, 31, 0.6 * (1 - ph))); circ(c, dx, dy, 2, rgba(222, 30, 44, 0.9 * (1 - ph)));
+      }
+      drops(c, e, o.hit, [222, 38, 48], 6, false);
+    } else if (S === "B") {
+      c.save(); c.globalCompositeOperation = "lighter";
+      c.beginPath(); c.arc(0, 0, r + 6, 0, TAU); c.strokeStyle = rgba(230, 40, 70, 0.1 + 0.07 * n); c.lineWidth = 1.5 + 0.4 * n; c.stroke();
+      for (let i = 0; i < n * 2; i++) {
+        const ph = wrap(T * 0.55 + i * 0.173, 1), a = i * 2.4 + ph * 3, d = r * 0.5 + ph * 24;
+        circ(c, Math.cos(a) * d * 0.7, -ph * 26 + Math.sin(a) * d * 0.25, 2.2 * (1 - ph) + 0.5, rgba(255, 70, 90, 0.9 * (1 - ph)));
+      }
+      c.restore();
+      drops(c, e, o.hit, [255, 70, 90], 4, false);
+    } else {
+      for (let i = 0; i < 5; i++) {                                                          // carved notches over its head
+        const x = (i - 2) * 8, on = i < n;
+        poly(c, [[x - 3, -r - 9], [x + 3, -r - 9], [x + 3.6, -r - 20], [x, -r - 23], [x - 3.6, -r - 20]], on ? "#d12a2a" : "#2b1d12", "#3a2614", 1.1);
+        if (on) line(c, x, -r - 20, x, -r - 12, 1, "#ff8a7a");
+      }
+      for (let i = 0; i < 3; i++) { const a = (i - 1) * 0.5; xf(c, 0, 0, a + 0.9, () => poly(c, [[-r * 0.7, -1.4], [r * 0.5, 0], [-r * 0.7, 1.4]], rgba(150, 20, 20, 0.7))); }
+      drops(c, e, o.hit, [192, 57, 43], 6, true);
+    }
+  }
+
+  // ------------------------------------------------------------------ one frame of the scene
+  function render(c, W, H, S, T, view) {
+    c.save();
+    c.setTransform(view.s, 0, 0, view.s, -view.ox * view.s, -view.oy * view.s);
+    floor(c, view.ox, view.oy, view.ox + W / view.s, view.oy + H / view.s);
+    const swipes = swipesAt(T), b = bearAt(T);
+    const trail = [1, 2, 3, 4].map(i => bearAt(T - i * 0.035));
+    const stacks = view.stacks !== undefined ? view.stacks : stacksAt(T);
+    const hitD = view.hit !== undefined ? view.hit : hitAge(T, HITS);
+    for (const d of DUM) dummy(c, S, d, T, { hit: hitD, stacks, pushX: 1 });
+    let bruHit = 9; for (const bt of BITES) bruHit = Math.min(bruHit, wrap(T - bt, L));
+    dummy(c, S, BRU, T, { hit: bruHit, stacks: 0, pushX: 1 });
+    if (!view.noBear) {
+      bear(c, S, b, T, trail);
+      if (b.bite >= 0) biteFx(c, S, b, b.biteAge);
+    }
+    if (!view.noPlayer) { player(c, S, T, swipes); claws(c, S, swipes); }
+    c.restore();
+    return { swipes, b, stacks };
+  }
+
+  // ------------------------------------------------------------------ the page
+  let style = "A", speed = 1, clock = 0, paused = false, last = 0, zoom = "wide";
+  const VIEWS = { wide: { name: "Wide", s: 1, ox: -170, oy: 0 }, claws: { name: "Claws", s: 2, ox: 10, oy: 95 }, bear: { name: "Bear", s: 2, ox: 262, oy: 155 } };
+  const cv = $("#arena"), actx = cv.getContext("2d");
+  function fit(canvas, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); canvas.width = Math.round(w * r); canvas.height = Math.round(h * r); return r; }
+  const ar = fit(cv, 960, 380);
+
+  function buildStrips() {
+    const sets = [
+      { el: "#stripClaw", times: [0.27, 0.33, 0.39, 0.46, 0.56, 0.72], labels: ["wind-up", "first rake", "mid-rake", "second rake", "follow-through", "fade"], view: { cx: 248, cy: 192, span: 150 }, opt: {} },
+      { el: "#stripBear", times: [1.68, 1.76, 1.83, 1.91, 2.0, 2.25], labels: ["arrives", "jaw opens", "wide", "chomp", "recover", "settle"], view: { cx: 470, cy: 248, span: 120 }, opt: { noPlayer: true } },
+    ];
+    for (const s of sets) {
+      const host = $(s.el); host.innerHTML = "";
+      s.times.forEach((t, i) => {
+        const f = document.createElement("div"); f.className = "frame";
+        const cn = document.createElement("canvas"); const rr = fit(cn, 240, 240);
+        const sp = document.createElement("span"); sp.textContent = `${s.labels[i]} · ${Math.round(t * 1000)} ms`;
+        f.append(cn, sp); host.append(f);
+        const cc = cn.getContext("2d"), k = 240 / s.view.span;
+        cc.setTransform(rr, 0, 0, rr, 0, 0);
+        cc.save(); cc.scale(k, k); cc.translate(120 / k - s.view.cx, 120 / k - s.view.cy);
+        cc.fillStyle = "#070910"; cc.fillRect(s.view.cx - 200, s.view.cy - 200, 400, 400);
+        renderFrame(cc, t, s.opt);
+        cc.restore();
+      });
+    }
+    const host = $("#stripBleed"); host.innerHTML = "";
+    for (let n = 1; n <= 5; n++) {
+      const f = document.createElement("div"); f.className = "frame";
+      const cn = document.createElement("canvas"); const rr = fit(cn, 240, 240);
+      const sp = document.createElement("span"); sp.textContent = `${n} hit${n > 1 ? "s" : ""}`;
+      f.append(cn, sp); host.append(f);
+      const cc = cn.getContext("2d"); cc.setTransform(rr, 0, 0, rr, 0, 0); cc.fillStyle = "#070910"; cc.fillRect(0, 0, 240, 240);
+      cc.save(); cc.translate(120, 128); cc.scale(2.6, 2.6);
+      dummy(cc, style, { x: 0, y: 0, r: 16 }, 0.5, { hit: 0.6, stacks: n, pushX: 0 });
+      cc.restore();
+    }
+  }
+  function renderFrame(cc, t, opt) {   // the scene without clearing the transform, for the strips
+    const S = style, swipes = swipesAt(t), b = bearAt(t), trail = [1, 2, 3, 4].map(i => bearAt(t - i * 0.035));
+    const stacks = stacksAt(t), hitD = hitAge(t, HITS);
+    floor(cc, -300, -300, 1300, 900);
+    for (const d of DUM) dummy(cc, S, d, t, { hit: hitD, stacks, pushX: 1 });
+    let bruHit = 9; for (const bt of BITES) bruHit = Math.min(bruHit, wrap(t - bt, L));
+    dummy(cc, S, BRU, t, { hit: bruHit, stacks: 0, pushX: 1 });
+    bear(cc, S, b, t, trail); if (b.bite >= 0) biteFx(cc, S, b, b.biteAge);
+    if (!opt.noPlayer) { player(cc, S, t, swipes); claws(cc, S, swipes); }
+  }
+
+  function buildButtons() {
+    const host = $("#styleBtns");
+    ORDER.forEach((k, i) => {
+      const b = document.createElement("button"); b.dataset.k = k; b.setAttribute("aria-pressed", k === style);
+      b.innerHTML = `<span class="k">${i + 1}</span>${k === "now" ? "Today" : k + " · " + STYLES[k].name}`;
+      b.onclick = () => setStyle(k); host.append(b);
+    });
+    const vh = $("#viewBtns");
+    Object.keys(VIEWS).forEach(k => { const b = document.createElement("button"); b.dataset.v = k; b.textContent = VIEWS[k].name; b.setAttribute("aria-pressed", k === zoom); b.onclick = () => { zoom = k; sync(); }; vh.append(b); });
+    const cards = $("#cards");
+    ORDER.forEach(k => {
+      const c = CARDS[k], el = document.createElement("article"); el.className = "card"; el.dataset.k = k;
+      el.innerHTML = `<div class="tag">${k === "now" ? "NOW" : "STYLE " + k}</div><h3>${STYLES[k].name}</h3><p>${c.pitch}</p>
+        <dl><dt>Claws</dt><dd>${c.claws}</dd><dt>Bear</dt><dd>${c.bear}</dd><dt>Bleed</dt><dd>${c.bleed}</dd><dt>Totem</dt><dd>${c.totem}</dd><dt>Cost</dt><dd>${c.cost}</dd></dl>`;
+      el.onclick = () => setStyle(k); cards.append(el);
+    });
+  }
+  function sync() {
+    document.querySelectorAll("#styleBtns button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === style));
+    document.querySelectorAll(".card").forEach(c => c.setAttribute("aria-current", c.dataset.k === style));
+    document.querySelectorAll("#viewBtns button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === zoom));
+    $("#spd1").setAttribute("aria-pressed", speed === 1); $("#spd4").setAttribute("aria-pressed", speed !== 1);
+    $("#pause").setAttribute("aria-pressed", paused);
+  }
+  function setStyle(k) { style = k; sync(); buildStrips(); }
+  $("#spd1").onclick = () => { speed = 1; sync(); };
+  $("#spd4").onclick = () => { speed = 0.25; sync(); };
+  $("#pause").onclick = () => { paused = !paused; sync(); };
+  addEventListener("keydown", e => { const i = "1234".indexOf(e.key); if (i >= 0) setStyle(ORDER[i]); else if (e.key === " ") { paused = !paused; sync(); e.preventDefault(); } });
+  const params = new URLSearchParams(location.search);
+  if (params.get("style") && ORDER.includes(params.get("style"))) style = params.get("style");
+  if (params.get("view") && VIEWS[params.get("view")]) zoom = params.get("view");
+  if (params.get("t")) { clock = parseFloat(params.get("t")); paused = true; }
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) speed = 0.25;
+
+  buildButtons(); sync(); buildStrips();
+  function frame() {
+    const V = VIEWS[zoom];
+    const info = render(actx, 960 * ar, 380 * ar, style, clock, { s: ar * V.s, ox: V.ox, oy: V.oy });
+    actx.save(); actx.setTransform(ar * V.s, 0, 0, ar * V.s, -V.ox * ar * V.s, -V.oy * ar * V.s);
+    actx.font = "600 12px Oxanium, system-ui, sans-serif"; actx.textAlign = "center";
+    actx.fillStyle = "#59b6ff"; actx.fillText("Tank Summoner", PL.x, PL.y - 40);
+    const b = info.b; actx.fillStyle = "#c9a57a"; actx.fillText("Bear", b.x, b.y + 34);
+    actx.restore();
+    actx.save(); actx.setTransform(ar, 0, 0, ar, 0, 0);
+    actx.font = "600 13px Oxanium, system-ui, sans-serif"; actx.fillStyle = "#92a1ad"; actx.textAlign = "left";
+    actx.fillText(`BEAR TOTEM  ·  ${style === "now" ? "TODAY" : "STYLE " + style + " · " + STYLES[style].name.toUpperCase()}`, 18, 28);
+    actx.restore();
+    $("#now").textContent = `t ${clock.toFixed(2)} s · bleed ×${info.stacks}${paused ? " · paused" : ""}${speed !== 1 ? " · ¼ speed" : ""}`;
+  }
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused) clock = wrap(clock + dt * speed, L);
+    frame(); requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
