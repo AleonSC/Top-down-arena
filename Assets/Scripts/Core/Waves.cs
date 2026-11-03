@@ -120,9 +120,9 @@ namespace Arena
                             }
                         }
                     }
-                    else if (Enemies.Count == 0 && PropsHoldWave())
+                    else if (Foes() == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (Enemies.Count == 0 && !ZombiesRising && DesignPending == 0)
+                    else if (Foes() == 0 && !ZombiesRising && DesignPending == 0)
                     {
                         if (Practice != null)
                         {
@@ -140,7 +140,7 @@ namespace Arena
                     }
                     break;
             }
-            Remaining = spawnQueue.Count + Enemies.Count + risers.Count + DesignPending;
+            Remaining = spawnQueue.Count + Foes() + risers.Count + DesignPending;
             foreach (var sq in squadQueue)
                 Remaining += sq.Members.Length;
         }

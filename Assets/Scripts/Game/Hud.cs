@@ -30,6 +30,8 @@ namespace Arena
             DrawUnlockToasts(W / 2f, 150f);  // SavesUi.cs
             if (aimDebug && me != null)
                 DrawAimDebug(me);
+            if (dpsMeter)
+                DrawDpsMeter();  // F2 (DpsMeterUi.cs)
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).

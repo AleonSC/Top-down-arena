@@ -38,8 +38,8 @@ off (or update them) as they're done.
 - **Divergent paths:** after each boss the host picks one of two **paths** (or no path) for the four regular
   waves before the next boss: enemy mixes, hazard floors, twists and arena rules (9 paths, danger 1-3 with a
   bonus and a prize). Bosses are always standard. See `Docs/Paths.md`.
-- **Dev tools (F1):** a tabbed menu (Match / Players / Tools): stat editor, god mode, wave skip, session
-  recording toggle, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
+- **Dev tools (F1):** a tabbed menu (Match / Players / Tools / DPS): stat editor, god mode, wave skip, session
+  recording toggle, **DPS meter (F2) and target dummies**, **Boss Lab** (bots that play like people fight any boss; live stats; also a CLI batch mode).
 - **Field guide (a button in the pause menu and in Settings):** in-game **Bestiary** and **Armory** databases
   (`FieldGuide.cs`): searchable lists, live models, stats, links between entries, and a link to the published web
   page.
@@ -94,6 +94,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Ultimates.cs` | 0.15k | the 12 ultimates |
 | `Mastery.cs` | 0.2k | ability XP/levels and capstone helpers (capstone texts are in each `AbilityDef`) |
 | `Knock.cs` | 0.05k | pushes slide: `KnockEnemy(e, delta)` (every shove goes through it), `TickKnock` (from `TickEnemies`); a `FxKind.Knock` draws the streak and dust (`WorldEffects.DrawKnockFx`) |
+| `DpsTools.cs` | 0.15k | the DPS meter's data (`DpsTrack`: a 10 s ring of 0.1 s slices; `TickDps` reads each player's `Run.DamageDealt` gain per tick, `DotDamage` reports the over-time share) and target dummies (`Enemy.Dummy`: a pinned Juggernaut refilled in `TickDummy`; `Foes()` is the enemy count that ignores them, used by the wave-clear checks). Host only, no network |
 | `Parry.cs`, `Pause.cs`, `DevTools.cs`, `StatSheet.cs`, `RunStats.cs`, `Kits.cs` | small | as named |
 | `BossSounds.cs` | 0.1k | soft audio cues when bosses start attacks |
 | `Paths.cs` | 0.46k | divergent paths: `PathDef` registry (`Paths.All`), offer/choice (`OfferPaths`, `ChoosePath`, `Msg.PathOffer`/`PathChosen`), enemy mixes (`BuildPathWave`, `ApplyPathToEnemy`), bonus/prize (`PathBonus`, `FinishPath`), hazard patches (`PathPatch`, `TickPaths`, `Msg.PathPatch`), arena rules (`ArenaRule`, `NarrowF`/`FogF`, the playable rect `ArenaMin`/`ArenaMax`) |
@@ -149,7 +150,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `WaveEditorUi.cs` | 0.7k | the F1 wave editor (option B of `Docs/Mockups/wave-editor.html`): arena map (spawn points, props, the wave at the playhead), palette, group settings, timeline (drag clips), save/load `.waves`, Test |
 | `MenuBackgrounds.cs` | 0.34k | 10 animated menu backgrounds + the lobby's picker card (bottom left: live thumbnail, arrows, dots); your pick is also drawn dimmed behind the arena (`DrawWorld`, `ArenaBgDim`) |
 | `DevTextEdit.cs` | 0.15k | F4 text-edit mode: banner, pick a text by clicking (`TextEditBeginGui` in `OnGUI`), the edit box; `Ui.Shown` (called by every label and button) applies edits and finds the text under the mouse. `Tools/TextEdits/fold.py` writes edits into the code |
-| `BossLabUi.cs`, `DevMenu.cs` | 0.3-0.4k each | F1 tools (`DevMenu`: sidebar tabs Match / Players / Tools, card layout) |
+| `BossLabUi.cs`, `DevMenu.cs` | 0.3-0.4k each | F1 tools (`DevMenu`: sidebar tabs Match / Players / Tools / DPS, card layout) |
+| `DpsMeterUi.cs` | 0.1k | the F2 DPS meter overlay (`DrawDpsMeter`) and the F1 DPS tab (`DrawDevDps`) |
 | `PathsUi.cs` | 0.48k | Choose-your-path cards (live floor + enemies, skulls, rules, bonus, prize, "No path"), each path's floor pattern (`DrawPathFloor`), fire/pool patches, Narrow Pass walls (`DrawNarrowWalls`) and Fogbound mist (`DrawFog`, per-vertex alpha grid), HUD path chip |
 | `ShopUi.cs` | 0.3k | the Bazaar's shop screen (`DrawShop`): shelf cards, services, remove-upgrade list, Give popup, Done button and status, host close button |
 | `ModifiersUi.cs` | 0.08k | the lobby's Modifiers tab |

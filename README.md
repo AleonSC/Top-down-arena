@@ -731,6 +731,7 @@ as usual.
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
+| DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
 ## Launching a run
@@ -987,6 +988,23 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   (every ability they have to level 5). Joining players can see everyone's stats but not change them.
 - **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that
   plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **DPS (host, in a match):** the DPS meter and target dummies, below.
+
+### DPS meter and target dummy (F2)
+
+For balancing. **F2** (or F1 → DPS) shows a **DPS meter** at the top left: for every player, the damage a second over
+the last second (big number), the last 5 seconds, the average, the best second, the total, and how much of it was
+burning, bleeding or poison. Every source counts (shots, minions, burning). The average only counts the time you
+were hitting something, so walking about doesn't drag it down. Next to it is **sim**, the no-upgrades figure the
+lobby shows for that weapon (`Defs.WeaponDps`), and how close you are to it. **Shift+F2** (or the **Reset** button)
+starts the meter over. Only the host sees it; nothing is sent over the network.
+
+**F1 → DPS → Spawn one in front of you** puts a **target dummy** down: a Juggernaut that never dies, never shoots,
+never hurts to touch and can't be pushed, frozen or caged. It heals to full every tick and counts what it took (the
+meter shows "took N"). It doesn't count as an enemy, so the wave ends with it standing. Up to four; **Patrol side to
+side** makes them strafe to test moving targets, and **Remove all** clears them. Kill all (X) leaves them alone. Using
+the dummy marks the run as a dev run, like god mode. In the Practice Range, a wave with no enemies and **Loop** off is
+the quietest place to test.
 
 ### Editing text in the game (F4)
 

@@ -1049,6 +1049,7 @@ namespace Arena
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt);
             Collide();
+            TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
 
             if (pendingSpawns.Count > 0)

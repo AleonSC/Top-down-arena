@@ -367,6 +367,11 @@ namespace Arena
                     e.SpawnT -= dt;
                     continue;
                 }
+                if (e.Dummy)
+                {
+                    TickDummy(e, dt);  // a balancing dummy (DpsTools.cs)
+                    continue;
+                }
                 if (ShowcaseMode)
                     continue;  // the loadout preview's target dummies stand still and never shoot (Showcase.cs)
                 if (e.FrozenT > 0f)  // Glacial Tomb: frozen solid, no moving or shooting
@@ -418,7 +423,7 @@ namespace Arena
                     }
                 }
                 if (e.Hp <= 0f || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.HiveEgg || e.Type == EnemyType.ReaperPillar || QueenAirborne(e)
-                    || e.Type == EnemyType.Morsel || DevourUnder(e))
+                    || e.Type == EnemyType.Morsel || DevourUnder(e) || e.Dummy)
                     continue;  // blew up this tick, explodes instead of bumping, an egg, the Hive Queen up in a dive, a morsel, the Devourer underground
                 // Bosses and heavies hurt to stand in (the difficulty's per-wave damage growth scales all of these).
                 float contact = e.Def.IsBoss ? 25f
