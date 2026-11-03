@@ -123,6 +123,7 @@ namespace Arena
             partN = 0;
             scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear();
             ClearGunBowLooks();  // GunBowLooks.cs
+            ClearSoldierLooks();  // SoldierLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -217,7 +218,10 @@ namespace Arena
                 newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
                 float near = me != null ? Mathf.Clamp01(1.2f - me.Pos.DistanceTo(fx.Pos) / 900f) : 0.5f;
                 boomShake = Mathf.Max(boomShake, Mathf.Min(0.22f, fx.Radius / 450f) * near);
-                Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
+                if (IsGrenadeBoom(fx))
+                    FragBurst(fx);  // a grenade's shards and smoke (SoldierLooks.cs)
+                else
+                    Sparks(fx.Pos, fx.Color, Mathf.Clamp((int)(fx.Radius / 4f), 4, 40), 160f + fx.Radius * 2f, 0.5f, 2.4f);
                 if (fx.Radius >= 80f)
                 {
                     Scorch(fx.Pos, fx.Radius * 1.6f);
@@ -656,6 +660,9 @@ namespace Arena
                         Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);
                         break;
                     }
+                    case PFrag:  // a grenade's shrapnel streak (SoldierLooks.cs)
+                        DrawFragPart(p, f);
+                        break;
                     case PMuzzle: case PCasing: case PSnap:  // the Revolver's flash and brass, the bow's ring (GunBowLooks.cs)
                         DrawGunPart(p, f);
                         break;
@@ -699,7 +706,7 @@ namespace Arena
                 if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
-                    GlowDisc(fx.Pos, fx.Radius * (1f + f), fx.Color, 0.55f * (1f - f));
+                    GlowDisc(fx.Pos, fx.Radius * (1f + f), IsGrenadeBoom(fx) ? FragOrange : fx.Color, 0.55f * (1f - f));
                 }
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)

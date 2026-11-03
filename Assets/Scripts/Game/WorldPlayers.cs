@@ -21,7 +21,9 @@ namespace Arena
             if (p.VanishT > 0f && !p.Downed)  // Vanish: barely there (a little clearer on your own screen)
                 col = col.WithAlpha(p.Id == game.MyId ? 0.45f : 0.18f);
 
-            if (p.Id == game.MyId && game.DashT > 0f)
+            if (p.Id == game.MyId && fxOn)
+                DrawDashStreak(p, t);  // Comet Streak (SoldierLooks.cs)
+            else if (p.Id == game.MyId && game.DashT > 0f)
                 Circle(p.Disp - game.DashDir * 18f, r * 0.8f, col.WithAlpha(0.25f), 20);
             // The footprint: a faint disc and a ring in the role's colour, the size of what the body can be hit by.
             // The model (CharacterModels.cs) is drawn over it in the class's own colours, and a downed player is a grey disc.

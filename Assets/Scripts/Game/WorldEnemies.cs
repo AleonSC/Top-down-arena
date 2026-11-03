@@ -618,7 +618,12 @@ namespace Arena
                 if (fxOn && e.BleedHits > 0)
                     DrawBleedScars(e, pos, r, t);  // claw scars, one set per two stacked hits (BearLooks.cs)
             }
-            if (e.Marked)  // Mark for Death: a rotating red reticle
+            if (e.Marked && fxOn)  // Mark for Death: the reticle lock and skull (SoldierLooks.cs)
+            {
+                col = col.Mix(new Rgba(1f, 0.42f, 0.35f), 0.2f);
+                DrawMarkLook(e, pos, r, t);
+            }
+            else if (e.Marked)  // Mark for Death: a rotating red reticle
             {
                 var mc = new Rgba(1f, 0.2f, 0.2f, 0.9f);
                 for (int k = 0; k < 4; k++)
