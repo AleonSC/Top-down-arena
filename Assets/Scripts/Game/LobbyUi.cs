@@ -912,7 +912,7 @@ namespace Arena
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W / 2f - 260f : W / 2f - 120f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
-            if (Ui.FancyButton(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, ready ? 15 : 0))
+            if (Ui.FancyButton(readyRect, ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -927,7 +927,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                string start = practice ? "Start practice" : session.HuntMode && session.Resume == null ? "Start hunt" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
+                string start = "Start";
                 if (Ui.FancyButton(new Rect(readyX + 260f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
