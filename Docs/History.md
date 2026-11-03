@@ -3,6 +3,18 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Melee style E, weapon + energy (Nov 2026), protocol 127 (no change):** the owner's pick from
+`Docs/Mockups/melee-attacks.html`: the weapon models with the energy arc. `Game/MeleeLooks.cs`, drawing only and only with
+Visual effects on (with them off `DrawSlashFx` / `DrawJabFx` draw as before; render check IDENTICAL). A player's
+`FxKind.Slash` / `FxKind.Jab` is matched to the player standing where it started (`MeleeOwnerOf`, noted per effect; the
+effect's `Dur` is stretched on this screen so the energy and embers last 0.55 s). Sweeps: the weapon (a model per melee
+weapon in `DrawMeleeModel`) sweeps through a glowing band with a white core, sparks off its tip and embers after; Twin
+Blades and the Katana alternate sides. Thrusts stab out through a beam; the Halberd's six steps draw one halberd at a time
+(`NewerStepThan`); the Lance slides out through a glowing box. The Warhammer is raised over your shoulder while it charges
+(`DrawHammerRaised`), swings over in a burning arc in 0.08 s and slams: a glowing circle with turning ticks, a pillar of
+light, embers (aftershocks are just the impact). Hits and timing are unchanged: the hit lands as the effect starts.
+Bosses' and enemies' slashes keep the old look. Preview: `SWING=<seconds>` with `SWINGW=<WeaponId>` (and `KNIGHT=0`).
+
 **Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
 Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);
 `Tools/WaveGen/build.sh` compiles `Gen.cs` with the core (leaving the generated file out, `Stub.cs` in its place),

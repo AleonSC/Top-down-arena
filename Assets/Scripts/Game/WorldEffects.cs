@@ -270,6 +270,8 @@ namespace Arena
         /// A melee swing: a bright crescent sweeping across the arc, fading out (a jab or thrust is a streak).
         void DrawSlashFx(Effect fx, float f, float t)
         {
+            if (DrawSlashE(fx, t))
+                return;  // a player's melee swing with Visual effects on: the weapon + energy look (MeleeLooks.cs)
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, aim = to.Angle, half = fx.Radius;
             if (reach < 1f)
@@ -546,6 +548,8 @@ namespace Arena
 
         void DrawJabFx(Effect fx, float f)
         {
+            if (DrawJabE(fx, Time.unscaledTime))
+                return;  // the Lance or the Warhammer with Visual effects on (MeleeLooks.cs)
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)

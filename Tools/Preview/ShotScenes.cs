@@ -189,6 +189,34 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
+    // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
+    // thrust), the Halberd's six steps, Jab boxes for the Lance and the Warhammer.
+    if (Environment.GetEnvironmentVariable("SWING") != null) {
+      float st = float.Parse(Environment.GetEnvironmentVariable("SWING"), System.Globalization.CultureInfo.InvariantCulture);
+      var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
+      // SWINGW=<WeaponId>: any melee weapon in your hand (e.g. Greatsword, Rapier, Halberd, Warhammer, Katana, BoStaff).
+      var wn = Environment.GetEnvironmentVariable("SWINGW");
+      if (wn != null) { var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == wn); if (wd != null) { me.Weapon = wd; me.Kit = wd.Kit; } }
+      me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.15f; me.DrawT = 0f;
+      int k = 0;
+      foreach (var en in gm.Enemies.Values) { if (en.Def.IsBoss) continue; float a = me.Aim + (k - 1) * 0.55f; en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * (70f + 25f * (k % 2)); if (++k >= 3) break; }
+      foreach (var en in gm.Enemies.Values) if (!en.Def.IsBoss && k-- <= 0) { en.Pos = en.Disp = new V2(150f, 120f); }
+      var col = Defs.BulletColor(Defs.KnightSlash);
+      float reach = Game.MeleeReach(me, me.Weapon.Reach);
+      V2 to = me.Pos + V2.FromAngle(me.Aim) * reach;
+      Action<FxKind, V2, float, float, float> fx = (kind, p2, rad, t0, dur) => gm.Effects.Add(new Effect { Kind = kind, Pos = me.Pos, Pos2 = p2, Color = col, Radius = rad, T = st - t0, Dur = dur });
+      switch (me.Weapon.Id) {
+        case WeaponId.Warhammer: fx(FxKind.Jab, to, Game.HammerHalfWidth, 0f, 0.26f); break;
+        case WeaponId.Lance: fx(FxKind.Jab, to, 44f, 0f, 0.26f); break;
+        case WeaponId.Rapier: case WeaponId.Kusarigama: fx(FxKind.Slash, to, -0.12f, 0f, 0.16f); break;
+        case WeaponId.Halberd: for (int i = 0; i < 6; i++) { float a = me.Aim + (i / 5f * 2f - 1f) * 0.7f; fx(FxKind.Slash, me.Pos + V2.FromAngle(a) * reach, 18f * MathX.Pi / 360f, 0.035f * i, 0.16f); } break;
+        case WeaponId.Censer: fx(FxKind.Slash, to, MathX.Pi, 0f, 0.24f); break;
+        case WeaponId.TwinBlades: case WeaponId.Katana: fx(FxKind.Slash, to, 1.05f, 0f, 0.16f); break;
+        default: fx(FxKind.Slash, to, 1.31f, 0f, 0.24f); break;
+      }
+      gm.Effects.RemoveAll(e => e.T < 0f);
+    }
     // KNOCK=<seconds>: the first few regular enemies that far into being knocked back 120 px (Knock.cs), with their
     // dust streak and impact puff.
     if (Environment.GetEnvironmentVariable("KNOCK") != null) {

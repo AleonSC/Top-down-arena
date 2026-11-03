@@ -890,7 +890,9 @@ so they never change the fight or what your friend sees):
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
-What it adds: an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
+What it adds: **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
+embers (thrusts stab through a beam, the Lance slides out through a glowing box, and the Warhammer is raised over your
+shoulder as it charges, then swung over into the floor with a glowing circle and a pillar of light); an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
 when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
 after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every 0.4
 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a

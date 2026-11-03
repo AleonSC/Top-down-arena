@@ -297,6 +297,7 @@ namespace Arena
         {
             float c = game.BowCharge(p, p.DrawT);
             bool full = c >= 1f;
+            DrawHammerRaised(p, c);  // raised over the shoulder, with Visual effects on (MeleeLooks.cs)
             var gold = new Rgba(1f, 0.82f, 0.3f);
             float r = p.Def.BodyR + 11f;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
