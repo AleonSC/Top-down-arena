@@ -42,6 +42,12 @@ DevMenu's Tools tab. Stubs gained `Event.shift`, `Vector2.Distance`, `EventType.
 `Mathf.Ceil`. Test: `wavedesign` (in features). Preview: `Tools/Preview/shot.sh <name> waveeditor` (`EDT`, `EDGROUP`,
 `EDPROPS=1`, `EDLOAD=1`, `MOUSE`).
 
+**Main menu: the tip chip, the box in the middle (Nov 2026), no protocol change:** option A of
+`Docs/Mockups/menu-tip.html`. `DrawMenuTipChip` (Menus.cs) draws the line under the title as a capsule (new
+`Ui.Capsule`) with a TIP (blue, `ui_help`) or RECORD (gold, `ui_trophy`) tag, the topic in bold and the rest; each line
+slides up and fades in, and on up as it goes (8 s each). `MenuCard` is centred on the screen (y 253) and the buttons
+and Join's row are placed from it; the title, axis, arc and chip moved up to fit (title y 126, axis 188, chip 220).
+
 **Main menu "Big play" with the pen plot intro (Nov 2026), no protocol change:** owner's pick: design D of
 `Docs/Mockups/menu-redesign.html` with intro B and the box of `Docs/Mockups/menu-d.html`. `Menus.cs`: the title at
 y 174 (size 74) on its axis (y 236), the shot's dashed arc over it (`DrawMenuArc`, `ArcAt`) and a line under it

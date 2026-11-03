@@ -13,14 +13,14 @@ namespace Arena
         // Host game button over Join and Continue; Join opens the address row under the box; a bar along the bottom with
         // your name, Records, Settings and Quit. The port is in Settings (Gameplay). The first time the menu shows, it
         // draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
-        const float MenuTitleY = 174f, MenuTitleSize = 74f, MenuAxisY = 236f, MenuAxisHalf = 390f, MenuTipY = 268f;
-        const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 70f, ArcBase = 210f;  // the shot's arc over the title
+        const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f, MenuTipY = 220f;
+        const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 24f, ArcBase = 162f;  // the shot's arc over the title
         const float MenuBarY = H - 70f;                                        // the bottom bar
-        static readonly Rect MenuCard = new Rect(W / 2f - 220f, 290f, 440f, 214f);
-        static readonly Rect MenuHostRect = new Rect(W / 2f - 190f, 314f, 380f, 82f);
-        static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, 414f, 186f, 52f);
-        static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, 414f, 186f, 52f);
-        static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, 516f, 440f, 64f);
+        static readonly Rect MenuCard = new Rect(W / 2f - 220f, (H - 214f) / 2f, 440f, 214f);  // in the middle of the screen
+        static readonly Rect MenuHostRect = new Rect(W / 2f - 190f, MenuCard.y + 24f, 380f, 82f);
+        static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, MenuCard.y + 124f, 186f, 52f);
+        static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, MenuCard.y + 124f, 186f, 52f);
+        static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, MenuCard.yMax + 12f, 440f, 64f);
         static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 12f, 250f, 46f);
         bool menuJoinOpen;    // Join opened the address row
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
@@ -54,31 +54,56 @@ namespace Arena
         {
             var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
             DrawMenuTitleText(r);
-            float tip = MenuIntroK(2.2f, 2.7f);
+            float tip = MenuIntroK(2.2f, 2.55f);
             if (tip > 0f)
-            {
-                string line = MenuTip(t, out float fade);
-                if (tip < 1f)
-                    line = line.Substring(0, Mathf.FloorToInt(line.Length * tip)) + "|";
-                Ui.Label(new Rect(0f, MenuTipY - 10f, W, 20f), line, 15, new Color(0.75f, 0.8f, 0.92f, 0.85f * fade * alpha), TextAnchor.MiddleCenter);
-            }
+                DrawMenuTipChip(t, alpha, tip);
         }
 
-        /// The line under the title: your best run, then the How to play tips, a new one every 8 s (fading between).
-        string MenuTip(float t, out float fade)
+        /// The line under the title: your best run, then the How to play tips, a new one every 8 s. Gives its topic and the
+        /// rest separately, whether it's a record (else a tip), and how long it has been up.
+        void MenuTip(float t, out string topic, out string body, out bool record, out float age)
         {
             var p = Profile.Current;
             int n = HowToTips.GetLength(0) + (p.BestWave > 0 ? 1 : 0);
-            float cycle = 8f;
-            int i = (Mathf.FloorToInt(t / cycle) + menuTipSeed) % n;
-            float into = t % cycle;
-            fade = Mathf.Clamp01(Mathf.Min(into / 0.4f, (cycle - into) / 0.4f));
-            if (MenuIntroPlaying)
-                fade = 1f;
-            if (p.BestWave > 0 && i == 0)
-                return "Best run: wave " + p.BestWave + "  ·  " + p.RunsStarted + (p.RunsStarted == 1 ? " run" : " runs") + " started";
+            int i = (Mathf.FloorToInt(t / MenuTipCycle) + menuTipSeed) % n;
+            age = t % MenuTipCycle;
+            record = p.BestWave > 0 && i == 0;
+            if (record)
+            {
+                topic = "Best run";
+                body = "wave " + p.BestWave + "  ·  " + p.RunsStarted + (p.RunsStarted == 1 ? " run" : " runs") + " started";
+                return;
+            }
             int k = i - (p.BestWave > 0 ? 1 : 0);
-            return HowToTips[k, 0] + ": " + HowToTips[k, 1];
+            topic = HowToTips[k, 0];
+            body = HowToTips[k, 1];
+        }
+
+        const float MenuTipCycle = 8f;
+
+        /// The line under the title as a chip ("A", Docs/Mockups/menu-tip.html): a dark pill with a coloured tag (a ? and
+        /// TIP in blue, or a trophy and RECORD in gold), the topic in bold, then the rest. Each line slides up and fades in,
+        /// and slides on up as it fades out. `intro` is how far the menu's intro has brought it in (1 = in place).
+        void DrawMenuTipChip(float t, float alpha, float intro = 1f)
+        {
+            MenuTip(t, out string topic, out string body, out bool record, out float age);
+            float inK = intro < 1f ? intro : Mathf.Clamp01(age / 0.35f), outK = intro < 1f ? 0f : Mathf.Clamp01((age - (MenuTipCycle - 0.3f)) / 0.3f);
+            inK = 1f - (1f - inK) * (1f - inK) * (1f - inK);
+            float a = inK * (1f - outK) * alpha;
+            if (a <= 0f)
+                return;
+            float dy = 10f * (1f - inK) - 8f * outK;
+            var col = record ? new Color(1f, 0.8f, 0.35f) : new Color(0.43f, 0.65f, 1f);
+            string tag = record ? "RECORD" : "TIP";
+            float tagW = Ui.TextWidth(tag, 11, true) + 34f, topicW = Ui.TextWidth(topic, 15, true) + 10f, bodyW = Ui.TextWidth(body, 15);
+            float w = tagW + 14f + topicW + bodyW + 16f, h = 30f, x = W / 2f - w / 2f, y = MenuTipY - h / 2f + dy;
+            Ui.Capsule(new Rect(x, y, w, h), new Color(0.05f, 0.06f, 0.1f, 0.88f * a), new Color(col.r, col.g, col.b, 0.35f * a));
+            Ui.Capsule(new Rect(x + 4f, y + 3f, tagW, h - 6f), new Color(col.r, col.g, col.b, 0.22f * a));
+            Ui.Icon(new Rect(x + 12f, y + 8f, 14f, 14f), PixelArt.Get(record ? "ui_trophy" : "ui_help"), new Color(col.r, col.g, col.b, a));
+            Ui.Label(new Rect(x + 29f, y, tagW - 25f, h), tag, 11, new Color(col.r, col.g, col.b, a), TextAnchor.MiddleLeft, true);
+            float tx = x + tagW + 14f;
+            Ui.Label(new Rect(tx, y, topicW, h), topic, 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(tx + topicW, y, bodyW + 8f, h), body, 15, new Color(0.78f, 0.82f, 0.91f, 0.95f * a), TextAnchor.MiddleLeft);
         }
 
         /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.

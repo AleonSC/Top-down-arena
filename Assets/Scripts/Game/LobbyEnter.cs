@@ -86,8 +86,7 @@ namespace Arena
                     GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
                     DrawMenuSecondary(t, false);
                     GUI.EndGroup();
-                    string tip = MenuTip(t, out float fade);
-                    Ui.Label(new Rect(0f, MenuTipY - 10f, W, 20f), tip, 15, new Color(0.75f, 0.8f, 0.92f, 0.85f * fade), TextAnchor.MiddleCenter);
+                    DrawMenuTipChip(t, 1f);
                 });
 
             // The card grows into the loadout panel; its insides fade at once.

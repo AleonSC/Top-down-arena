@@ -23,6 +23,7 @@ namespace Arena
 
         static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, check, hud, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
+        static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
         static Texture2D checkOn, checkOff;
 
@@ -49,6 +50,8 @@ namespace Arena
             cardTint = Style(Rounded(10, new Color(1f, 1f, 1f, 0.42f), new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), 0f), 10);
             cardRim = Style(Rounded(10, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.5f), 10);
             chip = Circle(40, Color.white, Color.white);
+            capsule = Style(Rounded(15, Color.white, Color.white, new Color(1f, 1f, 1f, 0f), 0f), 15);
+            capsuleRim = Style(Rounded(15, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, 1.2f), 15);
             button.alignment = TextAnchor.MiddleCenter;
             button.fontSize = 16;
             button.fontStyle = FontStyle.Bold;
@@ -571,6 +574,22 @@ namespace Arena
         }
 
         /// A rounded rectangle in one color (tints a near-white texture, so the top is a bit lighter).
+        /// A fully rounded pill (ends are half circles, up to 30 px tall) in a colour, with an optional rim.
+        public static void Capsule(Rect r, Color fill, Color? rimColor = null)
+        {
+            if (r.width <= 0f || r.height <= 0f)
+                return;
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = fill;
+            GUI.Box(r, GUIContent.none, capsule);
+            if (rimColor.HasValue)
+            {
+                GUI.backgroundColor = rimColor.Value;
+                GUI.Box(r, GUIContent.none, capsuleRim);
+            }
+            GUI.backgroundColor = old;
+        }
+
         public static void Pill(Rect r, Color c)
         {
             if (r.width <= 0f || r.height <= 0f)
