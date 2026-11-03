@@ -463,7 +463,7 @@ plus one per player (15 health each).
 Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
 inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold
 for their full duration; **only boss bullets wear them down**. Each soaks a limited amount of boss damage
-(Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a few
+(Barrier: 360, more with Bastion): with Visual effects on it's a ring of eight armour plates, one knocked off for every eighth it soaks, and they blow out when it breaks (off, it's a disc that fades as it weakens); companions are dazed for a few
 seconds instead. Boss bullets are easy to spot: they have a **dark core**. Violet-spiked ones wear blockers
 down; **red ones (aimed shots) can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
