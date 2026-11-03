@@ -203,25 +203,6 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); };
         play(0.3f);
 
-        // Prism Beam.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.PrismBeam);
-        var aside = dummy(allyAt + V2.FromAngle(Game.RefractFan) * 120f);  // where a split beam goes
-        ally.Hp = ally.MaxHp * 0.5f;
-        float a0 = ally.Hp;
-        g.Bullets.Clear();
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        int split = 0;
-        for (int f = 0; f < 20; f++) { play(1f / 60f); split = Math.Max(split, g.Bullets.Values.Count(b => b.Owner == 1)); }
-        float healed = ally.Hp - a0, asideHit = aside.MaxHp - aside.Hp;
-        ally.Pos = client.Game.Me.Pos = new V2(300f, 800f);
-        allyAt = new V2(300f, 800f);
-        float asideBefore = aside.Hp;
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(0.5f);
-        Console.WriteLine("  prism beam: through the ally it healed {0:0.0} and split into {1} beams; the one off to the side took {2:0.0}; without the ally {3:0.0}",
-            healed, split, asideHit, asideBefore - aside.Hp);
-        Check(healed > 0f && split == 3 && asideHit > 0f && aside.Hp == asideBefore, "a Prism Beam through an ally heals them and splits into three beams beyond them");
-        reset();
         allyAt = new V2(420f, 200f);
 
         // Wolf Whistle.
@@ -759,22 +740,6 @@ static partial class Program
         Check(freed == 1, "killing a seeded enemy frees a sprite");
         reset();
 
-        // Totem Staff: thrown to the cursor; seed hits near it charge a heal pulse.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TotemStaff);
-        me.TotemCd = 0f;
-        V2 throwTo = from + new V2(250f, 0f);
-        play(0.1f, new PlayerInput { Fire = true, AimAt = throwTo });
-        var totem = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.Totem && z.Owner == 1);
-        float totemAt = totem != null ? totem.Pos.DistanceTo(throwTo) : -1f;
-        allyAt = totem != null ? totem.Pos + new V2(0f, 100f) : allyAt;  // in the pulse, outside its steady heal
-        var near = dummy(throwTo + new V2(60f, 0f), 1e5f);
-        ally.Hp = ally.MaxHp * 0.3f;
-        play(0.5f, new PlayerInput());
-        float before = ally.Hp;
-        for (int k = 0; k < (int)Game.TotemCharge; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.3f, new PlayerInput()); }
-        float pulsed = ally.Hp - before;
-        Console.WriteLine("  totem staff: thrown {0:0} px from the cursor; {1} seed hits near it healed an ally just outside it {2:0.0}", totemAt, (int)Game.TotemCharge, pulsed);
-        Check(totem != null && totemAt < 5f && pulsed >= Game.TotemPulse - 1f, "the Totem Staff throws its totem to your cursor, and seed hits near it charge a heal pulse");
         host.Leave(""); client.Leave("");
     }
 

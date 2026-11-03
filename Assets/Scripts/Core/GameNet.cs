@@ -351,6 +351,7 @@ namespace Arena
                 foreach (var z in Zones.Values)
                     SyncZone(s, z);
 
+            SyncInk(s);      // Chalk.cs: everyone's spirit ink
             SyncHazards(s);  // LateGame.cs
             SyncCages(s);    // Singularity.cs
 
@@ -524,11 +525,12 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0;
-            bool winding = false;
+            bool winding = false, penned = false;
             if (!s.Reading)
             {
                 traits = e.Traits;
                 winding = e.Winding;
+                penned = e.PenId != 0;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
                 ward = e.BubbleHp > 0f ? e.WardId : 0;
@@ -568,6 +570,7 @@ namespace Arena
             s.Byte(ref bubble);
             s.Int(ref ward);
             s.Bool(ref winding);  // about to fire (Readability.cs)
+            s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -600,6 +603,7 @@ namespace Arena
                 e.BubbleFrac = bubble / 255f;
                 e.WardId = ward;
                 e.Winding = winding;
+                e.Penned = penned;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

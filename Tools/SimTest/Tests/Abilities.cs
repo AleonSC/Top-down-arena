@@ -118,7 +118,6 @@ static partial class Program
                 var p = client.Game.Players[id];
                 var w = p.Weapon;
                 bool weaponOk = w.Companion == MinionKind.None || minions.Contains(w.Companion);
-                if (w.Id == WeaponId.TotemStaff) weaponOk = zones.Contains(ZoneKind.Totem);
                 // Chains need a second enemy nearby, so per run just require the shots; a chain is checked below.
                 if (w.Id == WeaponId.StormHammer) weaponOk = boltShot;
                 if (w.Id == WeaponId.ChainLight || w.Id == WeaponId.ArcLightning) weaponOk = bolt;  // a cone of light or a strip of lightning, no shots: bolts arc to whatever is in it

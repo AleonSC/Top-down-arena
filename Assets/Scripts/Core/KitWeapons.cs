@@ -107,15 +107,9 @@ namespace Arena
                 case WeaponId.ChainLight:
                     LightCone(p, aim, w.Damage * (1f + LightConeGrow * extra) * ConeFocus(p) * dmg, extra);  // Homing Rounds condense it (AreaMult narrows it)
                     break;
-                case WeaponId.PrismBeam:
-                {
-                    // +30% length, +25% damage and +50% healing per extra projectile.
-                    var b = SpawnBullet(Defs.ArcaneShot, muzzle, V2.FromAngle(aim + Rand(-0.03f, 0.03f)) * w.Speed, 0f, w.Life * (1f + w.Grow * extra),
-                        w.Damage * (1f + 0.25f * extra) * dmg, p.Id);
-                    b.HealAlly = 2f * (1f + 0.5f * extra);
-                    b.Refract = true;  // through an ally it splits in three (RefractThroughAlly)
+                case WeaponId.Nimbus:
+                    NimbusStrike(p, w.Damage * dmg, extra);  // lightning under the cloud (Nimbus.cs)
                     break;
-                }
                 case WeaponId.Fireball:
                 {
                     // A big fireball that rolls on through everything, setting it all burning; extras fan out beside it.
@@ -167,9 +161,8 @@ namespace Arena
                     // A firefly: seeds the enemy it hits, then hops on to the nearest enemy that isn't seeded (FireflyHop).
                     SpawnBullet(Defs.FireflyShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Hops = FireflyHops;
                     break;
-                case WeaponId.TotemStaff:
-                    SpawnBullet(Defs.SeedShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    break;
+                case WeaponId.SpiritChalk:
+                    break;  // drawn while you hold, not fired (Chalk.cs)
                 case WeaponId.TreantRod:
                 {
                     // A thorny root whips out along your aim, hits everything on the line and mends the allies it touches.
@@ -204,6 +197,7 @@ namespace Arena
             {
                 case WeaponId.RadiantOrb: return extra + p.Stats.Fan;  // Multishot and Barrage each bring a light orb
                 case WeaponId.TreantRod: return w.CompanionCount;
+                case WeaponId.Nimbus: return w.CompanionCount;  // extra projectiles are extra strikes
                 case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
                 case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
                 default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra;
@@ -260,20 +254,6 @@ namespace Arena
                 e.SeededBy = p.Id;
                 e.SeededT = SeedTime;
             }
-            else if (p.Weapon.Id == WeaponId.TotemStaff)
-                foreach (var z in Zones.Values)
-                    if (z.Kind == ZoneKind.Totem && z.Owner == p.Id && z.Pos.DistanceTo(e.Pos) <= TotemReach)
-                    {
-                        z.Charge += 1f;
-                        if (z.Charge >= TotemCharge)
-                        {
-                            z.Charge = 0f;
-                            foreach (var q in Players.Values)
-                                if (!q.Downed && q.Pos.DistanceTo(z.Pos) <= TotemReach)
-                                    Heal(q, TotemPulse, p);
-                            BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, TotemReach, 0.5f, Sfx.SpellHoly);
-                        }
-                    }
         }
 
         /// A firefly landed: it carries on to the nearest enemy that isn't seeded yet (hops left in b.Hops), so one shot can

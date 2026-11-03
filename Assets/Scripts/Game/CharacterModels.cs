@@ -330,12 +330,11 @@ namespace Arena
                 case WeaponId.LightBolt: case WeaponId.BurstSmg: case WeaponId.HolyMace: hold = 1; offX = 8f; break;
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
-                case WeaponId.PrismBeam: hold = 1; offX = 6f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinBlades: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.ArcaneMissiles: case WeaponId.ClotBolt: case WeaponId.SanguineOrb: case WeaponId.Implosion:
-                case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.TotemStaff: hold = 3; break;
+                case WeaponId.GolemStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: hold = 3; break;
             }
         }
 
@@ -409,10 +408,18 @@ namespace Arena
                     MLine(18f, -5f, 21f, -2f + j, 1.2f, MWhite); MLine(21f, -2f + j, 20f, 0f, 1.2f, MWhite); MLine(20f, 0f, 21f, 2f - j, 1.2f, MWhite); MLine(21f, 2f - j, 18f, 5f, 1.2f, MWhite);
                     break;
                 }
-                case WeaponId.PrismBeam:
-                    MArc(8f, 0f, 9f, -2f, 2f, 2f, Hx(0x9aa6b8)); MPoly(Hx(0xc8e6ff, 0.6f), 6f, -8f, 22f, 0f, 6f, 8f); MLine(0f, 0f, 8f, 0f, 1.2f, MWhite);
-                    MLine(18f, -1f, 29f, -6f, 1f, Hx(0xff7a7a)); MLine(18f, 0f, 31f, 0f, 1f, Hx(0x8cff8c)); MLine(18f, 1f, 29f, 6f, 1f, Hx(0x7aa8ff));
+                case WeaponId.Nimbus:
+                {
+                    // A short wand under a little storm cloud that flickers with lightning.
+                    MLine(-8f, 0f, 14f, 0f, 2.4f, MWood);
+                    MCirc(18f, -3f, 5.5f, Hx(0x8a98c4), 10); MCirc(24f, -4f, 4.5f, Hx(0xa7b4dc), 10); MCirc(22f, 2f, 5f, Hx(0x7d8cba), 10); MCirc(26f, 1f, 3.5f, Hx(0xb9c5e8), 8);
+                    if (Mathf.Sin(t * 9f) > 0.55f)
+                    {
+                        MLine(22f, 5f, 20f, 9f, 1.4f, Hx(0xfff3a0));
+                        MLine(20f, 9f, 23f, 11f, 1.4f, Hx(0xfff3a0));
+                    }
                     break;
+                }
                 case WeaponId.Fireball:
                     MCirc(12f, 0f, 9f, Hx(0xff781e, 0.3f), 14); MCirc(12f, 0f, 6f, Hx(0xff7a1c), 12); MCirc(12f, 0f, 3.2f, Hx(0xffd35a), 10);
                     for (int i = 0; i < 5; i++) { float a = t * 5f + i * 1.26f; MLine(12f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 5f, 12f + Mathf.Cos(a) * 10.5f, Mathf.Sin(a) * 10.5f, 2.2f, new Rgba(1f, 0.59f, 0.16f, 0.8f)); }
@@ -455,10 +462,15 @@ namespace Arena
                     MCirc(27f, -3.5f, 2.8f, Hx(0x59d36a), 8); MCirc(28f, 3.5f, 2.8f, Hx(0x59d36a), 8); MCirc(31f, 0f, 3f, Hx(0xcfffb0), 8);
                     break;
                 }
-                case WeaponId.TotemStaff:
-                    MLine(-10f, 0f, 24f, 0f, 2.6f, MWood); MRect(22f, -6f, 10f, 12f, Hx(0x9a6b3a)); MCirc(26f, -2.5f, 1f, Hx(0x1b2026), 6); MCirc(26f, 2.5f, 1f, Hx(0x1b2026), 6); MLine(29f, -2f, 29f, 2f, 1f, Hx(0x1b2026));
-                    MLine(22f, -6f, 17f, -11f, 1.4f, Hx(0x59ff8c)); MLine(22f, 6f, 17f, 11f, 1.4f, MGold);
+                case WeaponId.SpiritChalk:
+                {
+                    // A stick of chalk with a glowing spirit tip, shedding a few motes.
+                    MRect(2f, -3.5f, 18f, 7f, Hx(0xdfeaf5));
+                    MRect(2f, -3.5f, 18f, 2.4f, Hx(0xffffff, 0.6f));
+                    MCirc(21f, 0f, 4.6f, Hx(0xbfe6ff, 0.5f), 12); MCirc(21f, 0f, 2.6f, MWhite, 8);
+                    for (int i = 0; i < 3; i++) { float a = t * 3f + i * 2.1f; MCirc(24f + Mathf.Cos(a) * 5f, Mathf.Sin(a) * 6f, 1.1f, Hx(0xdff3ff), 5); }
                     break;
+                }
                 case WeaponId.WolfWhistle:
                     MLine(-2f, 0f, 18f, 0f, 2.2f, Hx(0x7a6a55)); MCirc(19f, 0f, 1.6f, Hx(0xe85a5a), 6); MLine(-6f, 6f, -2f, 1f, 0.8f, Hx(0xcfcfcf)); MCirc(-6f, 6f, 3f, MBone, 8); MCirc(-6f, 6f, 1f, Hx(0x3a3a3a), 6);
                     break;

@@ -53,9 +53,9 @@ namespace Arena
         // Soldier
         Scattergun, FlakCannon, RiotRepeater, LightBolt, Pistol, MendersBow, TwinRifle, Railgun, BurstSmg,
         // Mage
-        Flamethrower, FrostLance, StormHammer, RadiantOrb, ChainLight, PrismBeam, Fireball, ArcLightning, ArcaneMissiles,
+        Flamethrower, FrostLance, StormHammer, RadiantOrb, ChainLight, Nimbus, Fireball, ArcLightning, ArcaneMissiles,
         // Summoner
-        GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, TotemStaff, WolfWhistle, WispLantern, ImpCaller,
+        GolemStaff, BoneGuard, BearTotem, SpriteStaff, TreantRod, SpiritChalk, WolfWhistle, WispLantern, ImpCaller,
         // Knight (melee)
         Warhammer, Lance, Halberd, HolyMace, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee

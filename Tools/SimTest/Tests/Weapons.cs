@@ -252,7 +252,7 @@ static partial class Program
             me.ReloadT = 0f;
             me.TotemCd = 0f;
             me.CompanionCd = 0f;
-            int spawned = 0, totems = 0;
+            int spawned = 0, totems = 0;  // totems: now the most ink dots down at once (Spirit Chalk's extra projectiles are more ink)
             var seen = new HashSet<int>();
             for (int f = 0; f < 6 * 60; f++)
             {
@@ -265,12 +265,11 @@ static partial class Program
                 {
                     x.Poll();
                     // The bow fires when you let go: draw past full (1.25 s), release, repeat.
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75, WeaponAction = w.Id == WeaponId.Kusarigama && f % 20 < 10 } : new PlayerInput());
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = w.Id == WeaponId.SpiritChalk ? from + V2.FromAngle(f * 0.06f) * 280f : center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75, WeaponAction = w.Id == WeaponId.Kusarigama && f % 20 < 10 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
-                foreach (var z in g.Zones.Values)
-                    if (z.Kind == ZoneKind.Totem && seen.Add(-z.Id)) totems++;
+                totems = Math.Max(totems, g.Ink.Count(d => d.Owner == 1));
             }
             float dmg = 0f;
             foreach (var e in dummies) dmg += e.MaxHp - e.Hp;
@@ -292,7 +291,7 @@ static partial class Program
             switch (w.Id)
             {
                 case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
-                case WeaponId.TotemStaff: ok = b[3] > a[3]; break;                       // totems more often
+                case WeaponId.SpiritChalk: ok = b[3] > a[3]; break;                      // more ink: a longer line
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.BearTotem: ok = ratio > 1.1f; break;                        // claws plus the Bear's cleave (it wanders)
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
@@ -462,6 +461,22 @@ static partial class Program
                 {
                     // No shots: your companions are sent (WispLantern/ImpCaller tests); the aim line shows how far.
                     if (Math.Abs(range - (w.Id == WeaponId.WispLantern ? Game.WispReach : Game.ImpReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.Nimbus || w.Id == WeaponId.SpiritChalk)
+                {
+                    // No shots: the cloud drifts to your cursor (and no further than its leash); the chalk draws to it (and no further than its reach).
+                    g.Ink.Clear();
+                    V2 stand = new V2(120f, 450f);
+                    for (int f = 0; f < 240; f++)
+                    {
+                        me.Pos = stand;
+                        host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f), Fire = w.Id == WeaponId.SpiritChalk });
+                    }
+                    float reached = 0f;
+                    foreach (var m in g.Minions.Values) if (m.Owner == 1 && m.Kind == MinionKind.Nimbus) reached = Math.Max(reached, m.Pos.DistanceTo(stand));
+                    foreach (var d in g.Ink) reached = Math.Max(reached, d.Pos.DistanceTo(stand));
+                    if (Math.Abs(reached - range) <= 12f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (reached " + reached.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
                 volley.Invoke(g, new object[] { me, 0f, extra });
