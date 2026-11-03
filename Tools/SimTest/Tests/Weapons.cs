@@ -468,6 +468,7 @@ static partial class Program
                     // No shots: the cloud drifts to your cursor (and no further than its leash); the chalk draws to it (and no further than its reach).
                     g.Ink.Clear();
                     V2 stand = new V2(120f, 450f);
+                    for (int f = 0; f < 5; f++) { me.Pos = stand; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }  // let go of the chalk first, so this is a new stroke
                     for (int f = 0; f < 240; f++)
                     {
                         me.Pos = stand;
