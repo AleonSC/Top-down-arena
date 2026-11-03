@@ -474,7 +474,9 @@ namespace Arena
                 // ---- Knight
                 case WeaponId.Warhammer:
                 {
-                    float c = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // charging: raised up and back over the shoulder, glowing
+                    if (p.DrawT > 0f && fxOn)
+                        break;  // charging with Visual effects on: DrawHammerRaised (MeleeLooks.cs) draws the hammer over the shoulder instead
+                    float c = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // charging with them off: raised up and back over the shoulder, glowing
                     MFrame(mOx, mOy, -1.9f * c, mWs, false);
                     MLine(-8f, 0f, 30f, 0f, 3.2f, MWood); MRect(28f, -9f, 10f, 18f, Hx(0xb9c4d4)); MPoly(MSteel, 38f, 0f, 38f, -2f, 45f, 0f, 38f, 2f); MPoly(MSteel, 28f, 0f, 28f, -2f, 23f, 0f, 28f, 2f);
                     MLine(28f, -5f, 38f, -5f, 1f, MDark); MLine(28f, 5f, 38f, 5f, 1f, MDark);
