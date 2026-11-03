@@ -228,7 +228,10 @@ namespace Arena
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
         public bool Marked;
-        public bool Risen;      // host: a Zombie Infection zombie that got back up (no XP; won't rise again; Zombies.cs)
+        public bool Risen;
+        public float FrenzyT;   // host: a Shrieker's scream: 30% faster and set on you (Zombies.cs)
+        public int GrabId;      // host: a Crawler holding this player (0: nobody)
+        public float GrabHp;    //   and its health when it grabbed (25 damage since then frees you)      // host: a Zombie Infection zombie that got back up (no XP; won't rise again; Zombies.cs)
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients

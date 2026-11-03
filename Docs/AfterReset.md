@@ -97,7 +97,7 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
-- [ ] **Zombie enemies for Zombie Infection.** Mockup: `Docs/Mockups/zombie-enemies.html` (published:
+- [x] **Zombie enemies for Zombie Infection** (built, with the dark green arena). Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs
       that leave acid puddles), Crawler (trapezoid, grabs and roots the player), Bloater (swelling circle, bursts into a slowing cloud), Shrieker

@@ -533,6 +533,35 @@ const E = [
       { name: "Volley", pattern: "With a ranged weapon: 1 aimed shot, +1 for each extra-shot or Barrage upgrade its player has (up to 5), 8° apart, every 2.5× its player's fire interval (0.6–1.6 s)", kind: "fast", n: 1, speed: 300, every: 1 },
       { name: "Slash", pattern: "With a melee weapon: 7 short-lived shots across 69°, only within 130 px", kind: "small", n: 7, speed: 380, every: 0.95 }],
     notes: ["Beat your own shadow, or help a friend with theirs: a shadow only goes for someone else when its player is down."] },
+  // Zombie Infection (a run modifier): the horde that replaces every regular wave
+  { id: "Shambler", cat: "Zombies", hp: 70, r: 22, speed: 70, sides: 3, col: rgb(0.5, 0.83, 0.35), melee: true, contact: 18, xp: 10, score: 8, wave: 1,
+    appears: "Zombie Infection, waves 1+ (about 45% of a horde)", lead: "A wide green triangle that lurches straight at you, swaying side to side. Its broad body soaks shots meant for the zombies behind it.",
+    attacks: [{ name: "Swipe", pattern: "Touching you", dmg: "18 contact", every: null }],
+    notes: ["Slow enough to outwalk: don't get cornered against a wall."] },
+  { id: "Runner", cat: "Zombies", hp: 28, r: 15, speed: 175, sides: 3, col: rgb(0.77, 1, 0.36), melee: true, contact: 10, xp: 5, score: 5, wave: 3,
+    appears: "Zombie Infection, waves 3+ (about 30%), in packs of three", lead: "A long, narrow lime triangle that sprints at you with a streak behind it. Faster than you walk, but frail.",
+    attacks: [{ name: "Bite", pattern: "Touching you", dmg: "10 contact", every: null }],
+    notes: ["Kiting doesn't work: turn and shoot them first."] },
+  { id: "Spitter", cat: "Zombies", hp: 45, r: 19, speed: 60, sides: 5, col: rgb(0.31, 0.88, 0.65), xp: 9, score: 8, wave: 6,
+    appears: "Zombie Infection, waves 6+ (about 15%, at most 4 a wave)", lead: "A teal pentagon that keeps about 260 px away and lobs a glob at where you're standing every 3 s. A yellow ring marks the landing 0.9 s ahead.",
+    attacks: [{ name: "Acid glob", pattern: "Lands as an acid puddle 70 px wide for 4 s: it burns (10 a second) and slows you by 30%", dmg: "10 a second", every: 3 }],
+    notes: ["Keep moving, then hunt it: it's slow and fragile once you reach it."] },
+  { id: "Crawler", cat: "Zombies", hp: 55, r: 17, speed: 95, sides: 4, col: rgb(0.25, 0.67, 0.33), melee: true, contact: 6, xp: 8, score: 8, wave: 9,
+    appears: "Zombie Infection, waves 9+ (about 10%, at most 3 a wave)", lead: "A low trapezoid that skitters along the floor, wide end first. In reach it grabs you: green vines hold your feet and you can't move (you can still shoot and cast).",
+    attacks: [{ name: "Grab", pattern: "Roots you for 1.5 s, or until it has taken 25 damage; once every 4 s", dmg: "6 a second", every: 4 }],
+    notes: ["Shoot it to break free; a grab in the middle of a horde is how runs end."] },
+  { id: "Bloater", cat: "Zombies", hp: 90, r: 27, speed: 50, sides: 12, col: rgb(0.66, 0.79, 0.23), melee: true, contact: 20, xp: 14, score: 10, wave: 8,
+    appears: "Zombie Infection, waves 8+ (about 8%)", lead: "A swollen olive circle that waddles in, breathing in and out. Killed, it bursts into a thick spore cloud; if it reaches you, it bursts on you.",
+    attacks: [{ name: "Burst", pattern: "On touching you; then a spore cloud 110 px wide for 4 s that slows you by 40%", dmg: "20", every: null }],
+    notes: ["Pop it at range, while it's still in the crowd."] },
+  { id: "Shrieker", cat: "Zombies", hp: 40, r: 17, speed: 80, sides: 4, col: rgb(0.89, 1, 0.61), xp: 12, score: 10, wave: 12,
+    appears: "Zombie Infection, waves 12+ (at most 2 a wave)", lead: "A pale diamond that hangs back about 350 px behind the horde. Every 6 s it screams: a ring rolls out 320 px, and every zombie it touches runs 30% faster and turns on you for 4 s (speed streaks show it).",
+    attacks: [{ name: "Scream", pattern: "Frenzies the zombies within 320 px for 4 s", dmg: "—", every: 6 }],
+    notes: ["Silence it: push through, or shoot over the crowd."] },
+  { id: "Mender", cat: "Zombies", hp: 50, r: 18, speed: 65, sides: 4, col: rgb(0.18, 0.84, 0.49), xp: 14, score: 10, wave: 15,
+    appears: "Zombie Infection, waves 15+ (at most 2 a wave)", lead: "An emerald cross with a glowing core that stays about 300 px back. Every 3 s a pulse heals the zombies within 220 px by 15% of their health, and the dead near it rise twice as often and twice as fast.",
+    attacks: [{ name: "Mending pulse", pattern: "Heals zombies within 220 px by 15%", dmg: "—", every: 3 }],
+    notes: ["Kill it first, or the horde in front of it never thins."] },
 ];
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const nameOf = d => d.label || d.id;
@@ -2663,7 +2692,7 @@ function statusLine() {
 // Roster
 // ---------------------------------------------------------------------------------------------
 const groupsEl = document.getElementById("groups");
-const cats = ["Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms"];
+const cats = ["Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms", "Zombies"];
 const thumbs = [];
 function buildRoster() {
   groupsEl.innerHTML = "";

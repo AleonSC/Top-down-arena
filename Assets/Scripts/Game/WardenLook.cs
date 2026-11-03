@@ -307,8 +307,8 @@ namespace Arena
         /// Stunned: crackling sparks round you and a ring that runs down with the stun.
         void DrawStunned(Player p, float t)
         {
-            if (p.StunT <= 0f || p.Downed)
-                return;
+            if (p.StunT <= 0f || p.Downed || HeldByCrawler(p))
+                return;  // (a Crawler's hold shows its vines instead: ZombieLook.cs)
             V2 c = p.Disp;
             for (int i = 0; i < 5; i++)
             {

@@ -728,6 +728,8 @@ namespace Arena
                 v = RoomMove(e, tpos, dir, dist, ref speed);  // Challenges.cs
             if (e.Type == EnemyType.RiotShield || e.Type == EnemyType.GasGrenadier)
                 v = WardenFactionMove(e, tpos, dir, dist, ref speed);  // WardenFaction.cs
+            if (Zombies.Is(e.Type))
+                v = ZombieMove(e, tpos, dir, dist, ref speed);  // Zombies.cs
             v = SquadMove(e, tpos, dir, v);  // squads keep together (Variety.cs)
             if (HasTrait(e, EliteTrait.Hasted))
                 speed *= HasteMult;
@@ -753,6 +755,11 @@ namespace Arena
             if (IsLateGame(e.Type))
             {
                 LateSpecial(e, tpos, dt);
+                return;
+            }
+            if (Zombies.Is(e.Type))
+            {
+                ZombieSpecial(e, tpos, dt);  // Zombies.cs
                 return;
             }
             switch (e.Type)
@@ -881,6 +888,8 @@ namespace Arena
                 LateFire(e, tpos, aim);
                 return;
             }
+            if (ZombieFire(e, tpos))
+                return;  // Zombies.cs
             if (e.Def.Melee)
             {
                 e.FireT = 99f;  // melee enemies don't shoot

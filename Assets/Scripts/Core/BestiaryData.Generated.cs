@@ -789,6 +789,125 @@ namespace Arena
                     "Beat your own shadow, or help a friend with theirs: a shadow only goes for someone else when its player is down.",
                 },
             },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Shambler,
+                Name = "Shambler",
+                Group = "Zombies",
+                Wave = 1,
+                Appears = "Zombie Infection, waves 1+ (about 45% of a horde)",
+                Lead = "A wide green triangle that lurches straight at you, swaying side to side. Its broad body soaks shots meant for the zombies behind it.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Swipe", Pattern = "Touching you", Damage = "18 contact" },
+                },
+                Notes = new[]
+                {
+                    "Slow enough to outwalk: don't get cornered against a wall.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Runner,
+                Name = "Runner",
+                Group = "Zombies",
+                Wave = 3,
+                Appears = "Zombie Infection, waves 3+ (about 30%), in packs of three",
+                Lead = "A long, narrow lime triangle that sprints at you with a streak behind it. Faster than you walk, but frail.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Bite", Pattern = "Touching you", Damage = "10 contact" },
+                },
+                Notes = new[]
+                {
+                    "Kiting doesn't work: turn and shoot them first.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Spitter,
+                Name = "Spitter",
+                Group = "Zombies",
+                Wave = 6,
+                Appears = "Zombie Infection, waves 6+ (about 15%, at most 4 a wave)",
+                Lead = "A teal pentagon that keeps about 260 px away and lobs a glob at where you're standing every 3 s. A yellow ring marks the landing 0.9 s ahead.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Acid glob", Pattern = "Lands as an acid puddle 70 px wide for 4 s: it burns (10 a second) and slows you by 30%", Damage = "10 a second", Every = 3f },
+                },
+                Notes = new[]
+                {
+                    "Keep moving, then hunt it: it's slow and fragile once you reach it.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Crawler,
+                Name = "Crawler",
+                Group = "Zombies",
+                Wave = 9,
+                Appears = "Zombie Infection, waves 9+ (about 10%, at most 3 a wave)",
+                Lead = "A low trapezoid that skitters along the floor, wide end first. In reach it grabs you: green vines hold your feet and you can't move (you can still shoot and cast).",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Grab", Pattern = "Roots you for 1.5 s, or until it has taken 25 damage; once every 4 s", Damage = "6 a second", Every = 4f },
+                },
+                Notes = new[]
+                {
+                    "Shoot it to break free; a grab in the middle of a horde is how runs end.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Bloater,
+                Name = "Bloater",
+                Group = "Zombies",
+                Wave = 8,
+                Appears = "Zombie Infection, waves 8+ (about 8%)",
+                Lead = "A swollen olive circle that waddles in, breathing in and out. Killed, it bursts into a thick spore cloud; if it reaches you, it bursts on you.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Burst", Pattern = "On touching you; then a spore cloud 110 px wide for 4 s that slows you by 40%", Damage = "20" },
+                },
+                Notes = new[]
+                {
+                    "Pop it at range, while it's still in the crowd.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Shrieker,
+                Name = "Shrieker",
+                Group = "Zombies",
+                Wave = 12,
+                Appears = "Zombie Infection, waves 12+ (at most 2 a wave)",
+                Lead = "A pale diamond that hangs back about 350 px behind the horde. Every 6 s it screams: a ring rolls out 320 px, and every zombie it touches runs 30% faster and turns on you for 4 s (speed streaks show it).",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Scream", Pattern = "Frenzies the zombies within 320 px for 4 s", Damage = "—", Every = 6f },
+                },
+                Notes = new[]
+                {
+                    "Silence it: push through, or shoot over the crowd.",
+                },
+            },
+            new BestiaryEntry
+            {
+                Type = EnemyType.Mender,
+                Name = "Mender",
+                Group = "Zombies",
+                Wave = 15,
+                Appears = "Zombie Infection, waves 15+ (at most 2 a wave)",
+                Lead = "An emerald cross with a glowing core that stays about 300 px back. Every 3 s a pulse heals the zombies within 220 px by 15% of their health, and the dead near it rise twice as often and twice as fast.",
+                Attacks = new[]
+                {
+                    new BestiaryAttack { Name = "Mending pulse", Pattern = "Heals zombies within 220 px by 15%", Damage = "—", Every = 3f },
+                },
+                Notes = new[]
+                {
+                    "Kill it first, or the horde in front of it never thins.",
+                },
+            },
         };
     }
 }

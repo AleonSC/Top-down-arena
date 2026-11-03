@@ -1,9 +1,11 @@
 # Zombie Infection modifier (design)
 
-Status: **steps 1 and 2 built** (Nov 2026: `Core/Zombies.cs`, `zombies` test suite): all-melee hordes from the
-existing Swarmer/Brute/Lunger, the growing count and the cap of 60, XP split, and the dead rising (25%, 3 s, half
-health, no XP; burning or melee kills stay down). Explosions don't stop a rise yet. Steps 3-4 (zombie looks/types,
-infected co-op players, the Death Throes variant) are still to do. A run modifier (one more switch in the lobby's Modifiers tab), tagged
+Status: **built** (Nov 2026): the hordes, cap, XP split and the dead rising (steps 1-2), and **seven zombie types**
+(step 3, designed in `Docs/Mockups/zombie-enemies.html`): Shambler, Runner, Spitter, Crawler, Bloater, Shrieker,
+Mender (`Core/Zombies.cs`, `Game/ZombieLook.cs`), green with green effects, on a dark green arena. Changes from the
+plan below: the types are the mockup's (no "Brute" zombie; the Bloater's puddle became a spore cloud); the Crawler is
+broken free by shooting it (no dash). Still to do: explosions stopping a rise, infected co-op players, a Death Throes
+variant, Bloater vision blocking. A run modifier (one more switch in the lobby's Modifiers tab), tagged
 **Harder**.
 
 > Every regular enemy is a zombie: no guns, they shamble at you, and there are more of them every wave. The dead

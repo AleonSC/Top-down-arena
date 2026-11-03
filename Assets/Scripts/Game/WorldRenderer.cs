@@ -51,9 +51,12 @@ namespace Arena
             drawScale = worldScale;
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
             FillRect(0, 0, AW, AH, new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
+            bool infected = ZombieArena;  // Zombie Infection: the arena goes dark green (ZombieLook.cs)
+            if (infected)
+                FillRect(0, 0, AW, AH, ZombieFloor);
             DrawPathArena(t);  // a divergent path's floor (PathsUi.cs)
             DrawRoomFloor(t);  // a challenge room's ground (ChallengeLook.cs)
-            var grid = new Rgba(1f, 1f, 1f, 0.035f);
+            var grid = infected ? ZombieGrid : new Rgba(1f, 1f, 1f, 0.035f);
             if (!DrawRippledGrid(AW, AH, grid))  // a big blast's ripple (Juice.cs)
             {
                 for (float x = 0; x <= AW; x += 64f)
@@ -61,7 +64,7 @@ namespace Arena
                 for (float y = 0; y <= AH; y += 64f)
                     Line(new V2(0, y), new V2(AW, y), 1f, grid);
             }
-            var border = new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
+            var border = infected ? ZombieBorder : new Rgba(0.3f, 0.35f, 0.5f, 0.6f);
             Line(new V2(2, 2), new V2(AW - 2, 2), 3f, border);
             Line(new V2(2, AH - 2), new V2(AW - 2, AH - 2), 3f, border);
             Line(new V2(2, 2), new V2(2, AH - 2), 3f, border);

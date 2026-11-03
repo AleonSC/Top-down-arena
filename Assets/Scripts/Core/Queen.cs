@@ -170,13 +170,23 @@ namespace Arena
             return (float)(s - Math.Floor(s));
         }
 
-        /// Standing in a honey puddle slows you (your own game moves you).
+        /// Standing in a honey puddle, a Spitter's acid or a Bloater's spores slows you (your own game moves you); the
+        /// strongest one counts.
         float HoneySlowAt(V2 pos)
         {
+            float slow = 1f;
             foreach (var pt in Patches.Values)
-                if (pt.Kind == PatchKind.Honey && pt.Active && pt.Pos.DistanceTo(pos) < pt.Radius)
-                    return HoneySlow;
-            return 1f;
+            {
+                if (!pt.Active || pt.Pos.DistanceTo(pos) >= pt.Radius)
+                    continue;
+                if (pt.Kind == PatchKind.Honey)
+                    slow = Math.Min(slow, HoneySlow);
+                else if (pt.Kind == PatchKind.Acid)
+                    slow = Math.Min(slow, Zombies.AcidSlow);  // Zombies.cs
+                else if (pt.Kind == PatchKind.Spores)
+                    slow = Math.Min(slow, Zombies.SporeSlow);
+            }
+            return slow;
         }
 
         // --- Moving ---------------------------------------------------------------------------------

@@ -333,15 +333,20 @@ namespace Arena
                 return;
             }
             // Melee enemies are spiky, so you can tell rushers from shooters at a glance.
-            if (e.Def.Melee && !spawning && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar)
+            if (e.Def.Melee && !spawning && e.Type != EnemyType.HiveEgg && e.Type != EnemyType.ReaperPillar && !Zombies.Is(e.Type))
                 DrawMeleeSpikes(e, pos, r, col, t);
+            if (Zombies.Is(e.Type))
+                DrawZombieUnder(e, pos, r, t);  // its spore haze, frenzy streaks and the Crawler's hold (ZombieLook.cs)
             col = DrawEnemyUnderlay(e, pos, r, col, spawning, t);
             if (e.Elite)
                 Arc(pos, r + 5f, 2.5f, new Rgba(1f, 0.85f, 0.3f, 0.9f), 32);
             col = DrawEnemyStatus(e, pos, r, col, t);
             if (e.Flash > 0f || JuiceFlash(e))
                 col = Rgba.White;
-            Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
+            if (Zombies.Is(e.Type))
+                DrawZombieBody(e, pos, r, col, t);  // its own shape (ZombieLook.cs)
+            else
+                Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen)
                 DrawIceBlock(e, pos, r, t);
             DrawEnemyDetails(e, pos, r, col, t);
@@ -581,7 +586,14 @@ namespace Arena
                 case EnemyType.HiveBomber:
                 case EnemyType.RiotShield:
                 case EnemyType.GasGrenadier:
-                    return e.Facing;  // point where they're aiming
+                case EnemyType.Shambler:
+                case EnemyType.Runner:
+                case EnemyType.Spitter:
+                case EnemyType.Crawler:
+                case EnemyType.Bloater:
+                case EnemyType.Shrieker:
+                case EnemyType.Mender:
+                    return e.Facing;  // point where they're aiming (zombies: where they're going)
                 case EnemyType.Spinner:
                     return t * (e.Phase == 1 ? 7f : 1.5f) + e.Id;  // revs up while it's spraying
                 case EnemyType.Singularity:

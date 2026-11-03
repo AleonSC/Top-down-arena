@@ -274,6 +274,16 @@ namespace Arena
                 DrawBilePatch(pt, t);  // the Devourer's acid (DevourerLook.cs)
                 return;
             }
+            if (pt.Kind == PatchKind.Acid)
+            {
+                DrawAcidPatch(pt, t);  // a Spitter's acid (ZombieLook.cs)
+                return;
+            }
+            if (pt.Kind == PatchKind.Spores)
+            {
+                DrawSporePatch(pt, t);  // a Bloater's spores (ZombieLook.cs)
+                return;
+            }
             if (pt.Kind == PatchKind.Lava)
             {
                 // The Colossus's lava (Colossus.cs): a dull glow while it settles, then bubbling molten rock.

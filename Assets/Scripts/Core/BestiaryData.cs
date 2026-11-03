@@ -30,7 +30,7 @@ namespace Arena
     /// (BestiaryData.Generated.cs, by Docs/Bestiary/build_data.js); the boss adds the page doesn't list are below.
     public static partial class BestiaryData
     {
-        public static readonly string[] Groups = { "Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms" };
+        public static readonly string[] Groups = { "Melee", "Shooters", "Late game", "Bosses", "Summons", "Challenge rooms", "Zombies" };
 
         static readonly BestiaryEntry[] Extra =
         {

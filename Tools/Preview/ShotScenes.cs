@@ -428,6 +428,25 @@ static partial class Shot {
       if (gm.Has(RunMod.Nightfall)) gm.NightF = 1f;
       if (gm.Has(RunMod.Hunted)) gm.HuntedId = gm.MyId;  // you're the quarry
       if (gm.Has(RunMod.SecondWind)) foreach (var pl in gm.Players.Values) pl.SecondWind = true;
+      if (gm.Has(RunMod.ZombieInfection)) {
+        // The horde (ZombieLook.cs): every kind round you, a Crawler holding you, a few frenzied, acid and spores.
+        gm.Enemies.Clear();
+        gm.Players[1].Pos = gm.Players[1].Disp = new V2(Game.Width / 2f, Game.Height / 2f + 20f);
+        var zp = gm.Players[1].Pos;
+        var kinds = new[] { EnemyType.Shambler, EnemyType.Shambler, EnemyType.Runner, EnemyType.Runner, EnemyType.Runner, EnemyType.Spitter, EnemyType.Bloater, EnemyType.Shrieker, EnemyType.Mender, EnemyType.Shambler, EnemyType.Runner, EnemyType.Shambler };
+        for (int i = 0; i < kinds.Length; i++) {
+          var d = Defs.Get(kinds[i]); float a = i * 0.53f + 0.3f, dd = kinds[i] == EnemyType.Spitter || kinds[i] == EnemyType.Shrieker || kinds[i] == EnemyType.Mender ? 330f : 150f + 25f * (i % 4);
+          var at = (zp + V2.FromAngle(a) * dd).Clamp(gm.ArenaMin + new V2(40f, 40f), gm.ArenaMax - new V2(40f, 40f));
+          var ze = new Enemy { Id = 900 + i, Type = kinds[i], Def = d, Radius = d.Radius, Pos = at, Disp = at, Hp = d.Hp * (i % 3 == 0 ? 0.6f : 1f), MaxHp = d.Hp };
+          ze.Facing = (zp - at).Angle; if (i < 5) ze.Phase = Zombies.PhFrenzy;
+          gm.Enemies[ze.Id] = ze;
+        }
+        var cd = Defs.Get(EnemyType.Crawler); var cat = zp + new V2(-36f, 14f);
+        gm.Enemies[950] = new Enemy { Id = 950, Type = EnemyType.Crawler, Def = cd, Radius = cd.Radius, Pos = cat, Disp = cat, Hp = cd.Hp, MaxHp = cd.Hp, Facing = (zp - cat).Angle, Phase = Zombies.PhGrab };
+        gm.Players[1].StunT = 1f;
+        gm.Patches[71] = new PathPatch { Id = 71, Kind = PatchKind.Acid, Pos = zp + new V2(170f, -150f), Warn = 0.9f, Life = 4.9f, R0 = 70f, R1 = 70f, Age = 2f };
+        gm.Patches[72] = new PathPatch { Id = 72, Kind = PatchKind.Spores, Pos = zp + new V2(-260f, -170f), Warn = 0f, Life = 4f, R0 = 110f, R1 = 110f, Age = 1.5f };
+      }
       if (gm.Has(RunMod.TinyArena)) {
         gm.TinyInset = (V2)typeof(Game).GetMethod("TinyTarget", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(gm, null);
         foreach (var pl in gm.Players.Values) pl.Disp = pl.Pos = pl.Pos.Clamp(gm.ArenaMin + new V2(30f, 30f), gm.ArenaMax - new V2(30f, 30f));

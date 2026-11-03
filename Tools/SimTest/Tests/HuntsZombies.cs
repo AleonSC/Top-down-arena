@@ -122,13 +122,19 @@ static partial class Program
         // Wave 3, two players: 10 + 4 for an early wave = 14 usually; a horde has x1.66 of that.
         int expect = (int)Math.Round(14 * Zombies.CountMult(3));
         Console.WriteLine("  wave 3 horde: {0} enemies (expected {1}): {2}", all.Count, expect, string.Join(",", all.GroupBy(t => t).Select(k => k.Key + " x" + k.Count())));
-        Check(c.Has(RunMod.ZombieInfection) && all.Count >= expect - 1 && all.All(t => t == EnemyType.Swarmer || t == EnemyType.Brute || t == EnemyType.Lunger),
-            "Zombie Infection: a regular wave is a bigger horde of melee enemies only (and the friend's game knows the modifier)");
-        Check(Math.Abs((float)xpScale.Invoke(g, new object[] { g.Enemies.Values.FirstOrDefault() ?? (Enemy)spawn.Invoke(g, new object[] { EnemyType.Swarmer, new V2(800f, 450f), 0f, 0, false }) }) - 1f / Zombies.CountMult(3)) < 0.001f,
+        Check(c.Has(RunMod.ZombieInfection) && all.Count >= expect - 1 && all.All(t => t == EnemyType.Shambler || t == EnemyType.Runner),
+            "Zombie Infection: a regular wave is a bigger horde of zombies (wave 3: Shamblers and Runners) and the friend's game knows the modifier");
+        var mix = new Dictionary<EnemyType, int>();
+        var rngMix = new Random(3);
+        for (int i = 0; i < 4000; i++) { var t = Zombies.Pick(rngMix, 20); int n0; mix.TryGetValue(t, out n0); mix[t] = n0 + 1; }
+        Check(mix.Count == 7 && mix[EnemyType.Shambler] > mix[EnemyType.Spitter] && mix[EnemyType.Runner] * 3 > mix[EnemyType.Spitter] && mix[EnemyType.Spitter] > mix[EnemyType.Mender]
+              && Zombies.Pick(new Random(1), 2) == EnemyType.Shambler,
+            "by wave 20 all seven kinds are in the mix, the support ones rarest (" + string.Join(", ", mix.OrderByDescending(k => k.Value).Select(k => k.Key + " " + k.Value)) + ")");
+        Check(Math.Abs((float)xpScale.Invoke(g, new object[] { g.Enemies.Values.FirstOrDefault() ?? (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shambler, new V2(800f, 450f), 0f, 0, false }) }) - 1f / Zombies.CountMult(3)) < 0.001f,
             "a horde zombie's XP is split so levels keep pace with a normal run");
 
         // The cap: however many are waiting, no more than Cap at once.
-        for (int i = 0; i < 120; i++) queue.Add(EnemyType.Brute);
+        for (int i = 0; i < 120; i++) queue.Add(EnemyType.Shambler);
         int most = 0;
         Run(s, dt, 50f, null, () => { safe(); most = Math.Max(most, g.Enemies.Count); });
         Console.WriteLine("  cap: at most {0} alive at once ({1} still waiting)", most, queue.Count);
@@ -145,7 +151,7 @@ static partial class Program
         {
             for (int i = 0; i < n; i++)
             {
-                var z = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Swarmer, new V2(300f + 20f * (i % 40), 300f + 10f * (i / 40)), 0f, 0, false });
+                var z = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shambler, new V2(300f + 20f * (i % 40), 300f + 10f * (i / 40)), 0f, 0, false });
                 z.SpawnT = 0f; z.LastHitBy = 1; z.Hp = 0f;
                 if (burning) z.BurnT = 1f;
             }
@@ -158,12 +164,12 @@ static partial class Program
             foreach (var e in g.Enemies.Values.Where(e => e.Risen).ToList()) g.Enemies.Remove(e.Id);
             return risen;
         };
-        var sample = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Swarmer, new V2(800f, 450f), 0f, 0, false });
+        var sample = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shambler, new V2(800f, 450f), 0f, 0, false });
         int rose = killBatch(80, false);
         Console.WriteLine("  80 shot down: {0} got back up", rose);
         Check(rose >= 8 && rose <= 35, "the dead rise: about a quarter of the zombies killed get back up a few seconds later");
         g.Enemies.Remove(sample.Id);
-        var r = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Swarmer, new V2(800f, 450f), 0f, 0, false });
+        var r = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shambler, new V2(800f, 450f), 0f, 0, false });
         r.Risen = true;
         Check((float)xpScale.Invoke(g, new object[] { r }) == 0f, "a risen zombie gives no XP");
         g.Enemies.Remove(r.Id);
@@ -174,13 +180,92 @@ static partial class Program
         anchor.Hp = 0f;  // the last one standing goes down with the rest
         for (int i = 0; i < 30; i++)
         {
-            var z = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Swarmer, new V2(400f + 10f * i, 400f), 0f, 0, false });
+            var z = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Shambler, new V2(400f + 10f * i, 400f), 0f, 0, false });
             z.SpawnT = 0f; z.LastHitBy = 1; z.Hp = 0f;
         }
         Run(s, dt, 0.2f, null, safe);
         bool held = g.ZombiesRising && g.State == MatchState.Fighting && g.Remaining > 0 && g.Enemies.Count == 0;
         Run(s, dt, Zombies.RiseTime + 1f, null, safe);
         Check(held && g.Enemies.Values.Any(e => e.Risen && Math.Abs(e.Hp - e.MaxHp * Zombies.RiseHp) < 0.01f), "the wave isn't over while the dead are still getting up, and they rise at half health");
+
+        // Each kind's trick. A still Brute in a corner keeps the wave going; the players stand still.
+        foreach (var e in g.Enemies.Values.ToList()) g.Enemies.Remove(e.Id);
+        queue.Clear();
+        var keep = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, new V2(60f, 840f), 0f, 0, false });
+        keep.MaxHp = keep.Hp = 1e6f; keep.Speed = 0f;
+        var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
+        var slowAt = typeof(Game).GetMethod("HoneySlowAt", flags);
+        var p1 = g.Players[1];
+        Func<EnemyType, V2, Enemy> put = (t, at) => { var z = (Enemy)spawn.Invoke(g, new object[] { t, at, 0f, 0, false }); z.SpawnT = 0f; return z; };
+        Action clearOut = () => { foreach (var e in g.Enemies.Values.ToList()) if (e != keep) g.Enemies.Remove(e.Id); g.Patches.Clear(); c.Patches.Clear(); };
+        Action calm = () => { keep.Hp = keep.MaxHp; foreach (var p in g.Players.Values) { p.PendingPicks = 0; p.Offer = null; } };
+
+        // Spitter: a glob at you lands as acid that burns and slows.
+        var spit = put(EnemyType.Spitter, p1.Pos + new V2(250f, 0f));
+        spit.FireT = 0f;
+        p1.InvulnT = 0f; p1.Hp = p1.MaxHp;
+        float hp0 = p1.Hp;
+        Run(s, dt, 2.2f, () => g.Patches.Values.Any(pt => pt.Kind == PatchKind.Acid && pt.Active && pt.Pos.DistanceTo(p1.Pos) < pt.Radius) && p1.Hp < hp0 - 4f, calm);
+        bool acid = g.Patches.Values.Any(pt => pt.Kind == PatchKind.Acid && pt.Pos.DistanceTo(p1.Pos) < pt.Radius) && c.Patches.Values.Any(pt => pt.Kind == PatchKind.Acid);
+        float acidSlow = (float)slowAt.Invoke(g, new object[] { p1.Pos });
+        Check(acid && p1.Hp < hp0 && Math.Abs(acidSlow - Zombies.AcidSlow) < 0.01f, "Spitter: its glob lands as acid at your feet that burns and slows you (" + (hp0 - p1.Hp).ToString("0") + " damage, speed x" + acidSlow + ")");
+        clearOut();
+        g.DevSetGod(1, true); g.DevSetGod(2, true);
+
+        // Crawler: grabs and roots you (shown on the friend's game too) until it's shot for 25.
+        p1.InvulnT = 0f; p1.StunT = 0f;
+        var crawl = put(EnemyType.Crawler, p1.Pos + new V2(28f, 0f));
+        Run(s, dt, 1f, () => p1.StunT > 0f, () => { calm(); p1.InvulnT = 0f; });
+        Run(s, dt, 0.2f, null, calm);
+        Enemy cc;
+        bool grabbed = p1.StunT > 0f && (crawl.Phase & Zombies.PhGrab) != 0 && c.Players[1].StunT > 0f
+                       && c.Enemies.TryGetValue(crawl.Id, out cc) && (cc.Phase & Zombies.PhGrab) != 0;
+        hurt.Invoke(g, new object[] { crawl, 30f, 2 });
+        Run(s, dt, 0.2f, null, calm);
+        Check(grabbed && p1.StunT == 0f && (crawl.Phase & Zombies.PhGrab) == 0, "Crawler: it grabs and roots you (the friend's game sees it), and shooting it for 25 breaks you free");
+        clearOut();
+
+        // Bloater: it bursts into a spore cloud that slows.
+        var bloat = put(EnemyType.Bloater, new V2(500f, 300f));
+        bloat.Hp = 0f;
+        Run(s, dt, 0.2f, null, calm);
+        float sporeSlow = (float)slowAt.Invoke(g, new object[] { new V2(500f, 300f) });
+        Check(g.Patches.Values.Any(pt => pt.Kind == PatchKind.Spores) && c.Patches.Values.Any(pt => pt.Kind == PatchKind.Spores) && Math.Abs(sporeSlow - Zombies.SporeSlow) < 0.01f,
+            "Bloater: killed, it bursts into a spore cloud that slows you (on every game)");
+        clearOut();
+
+        // Shrieker: its scream frenzies the zombies round it (the friend's game draws the streaks).
+        var shriek = put(EnemyType.Shrieker, new V2(1300f, 300f));
+        shriek.T = 1f; shriek.T2 = 0.2f;
+        var near = put(EnemyType.Shambler, new V2(1200f, 330f));
+        var far = put(EnemyType.Shambler, new V2(200f, 800f));
+        near.MaxHp = near.Hp = far.MaxHp = far.Hp = 1e5f;
+        Run(s, dt, 1f, () => near.FrenzyT > 0f, calm);
+        Run(s, dt, 0.2f, null, calm);
+        Enemy cn;
+        Check(near.FrenzyT > 0f && far.FrenzyT == 0f && c.Enemies.TryGetValue(near.Id, out cn) && (cn.Phase & Zombies.PhFrenzy) != 0,
+            "Shrieker: its scream frenzies the zombies near it (not the far ones), and the friend's game sees it");
+        clearOut();
+
+        // Mender: its pulse heals the zombies round it.
+        var mend = put(EnemyType.Mender, new V2(1300f, 300f));
+        mend.T = 1f; mend.T2 = 0.2f;
+        var hurtOne = put(EnemyType.Shambler, new V2(1250f, 360f));
+        hurtOne.MaxHp = 1000f; hurtOne.Hp = 300f; hurtOne.Speed = 0f;
+        Run(s, dt, 1f, () => hurtOne.Hp > 300f, calm);
+        Check(hurtOne.Hp >= 300f + 1000f * Zombies.MendHeal - 1f, "Mender: its pulse heals the zombies round it by 15%");
+
+        // ... and the dead near it rise twice as often, in half the time.
+        mend.Pos = new V2(500f, 300f); mend.Speed = 0f; mend.MaxHp = mend.Hp = 1e5f;
+        for (int i = 0; i < 60; i++)
+        {
+            var z = put(EnemyType.Shambler, new V2(400f + 20f * (i % 10), 230f + 20f * (i / 10)));
+            z.LastHitBy = 1; z.Hp = 0f;
+        }
+        Run(s, dt, Zombies.RiseTime * 0.5f + 0.4f, null, () => { calm(); mend.Hp = mend.MaxHp; });
+        int quick = g.Enemies.Values.Count(e => e.Risen);
+        Console.WriteLine("  60 shot down by a Mender: {0} up within {1:0.0} s", quick, Zombies.RiseTime * 0.5f + 0.4f);
+        Check(quick >= 18 && quick <= 45, "near a Mender about half the dead rise, twice as fast");
         host.Leave(""); client.Leave("");
     }
 }

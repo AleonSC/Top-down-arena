@@ -3,6 +3,23 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Zombie enemies and the green arena (Nov 2026), protocol 128:** owner's asks, from `Docs/Mockups/zombie-enemies.html`.
+Seven `EnemyType`s at the end of the enum (Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender; `Zombies.Is`)
+with `EnemyDef`s (green, in the Practice picker) and Bestiary entries in a new "Zombies" group. `Zombies.Pick` weights
+by wave (Runner picks are packs of three), `BuildZombieWave` caps the support kinds per wave. AI hooks: `ZombieMove`
+(MoveEnemy: Shamblers sway, Crawlers skitter, Spitter/Shrieker/Mender keep their distance; `FrenzyT` x1.3),
+`ZombieSpecial` (Special: the Crawler's grab sets the player's `StunT` and holds on, released by 25 damage since the
+grab, death or the stun ending; the Bloater bursts on contact; the Shrieker's scream sets `FrenzyT` within 320 px;
+the Mender heals within 220 px with `FxKind.Link` threads), `ZombieFire` (EnemyFire: the Spitter's glob is a
+`PatchKind.Acid` patch with a landing ring). New `PatchKind`s `Acid` and `Spores` (the Bloater's death, in
+`MaybeRise`); `HoneySlowAt` now takes the strongest of honey, acid and spores; `TickAcid` burns. What each game draws
+rides in the enemy's `Phase` bits (`Zombies.PhFrenzy`, `PhGrab`, `PhAct`), so the snapshot didn't change; the bump is
+for the new enum values. `Game/ZombieLook.cs`: shapes (`DrawZombieBody`, in place of `Polygon` in `DrawEnemy`), haze,
+eyes, drips (`Sparks`), frenzy streaks, the Crawler's vines and its ring (`DrawZombieUnder`; `DrawStunned` skips a
+player a Crawler holds), the acid and spore patches; `WorldRenderer.DrawWorld` paints the dark green floor, grid and
+border while the modifier is on (`ZombieArena`). Tests: `zombies` (the mix, each kind's trick, the friend's game
+seeing grabs and frenzies). Preview: `MODS=65536 Tools/Preview/shot.sh <name> hud 7 4 1`.
+
 **Modifier tiers line up and fold (Nov 2026), no protocol change:** owner's asks: the tier headings weren't aligned (a
 tier carried on along the previous one's row, so RISKY's heading sat mid-row), and they should collapse.
 `ModifiersUi.DrawModifiers`: each tier starts its own row under a full-width heading (fold marker, tag, blurb, line,
