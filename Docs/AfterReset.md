@@ -7,6 +7,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Balance / design
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
+- [ ] **Revolver and Mender's Bow animations: waiting for a pick of look for each.** Mockup (Nov 2026):
+      [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html). Revolver: A Smoke & brass, B Cylinder wheel,
+      C Tracer & shock. Bow: A Flex & snap, B Leaf gather, C Radiant arrow (today's look is shown for comparison). Drawing only.
 - [ ] **Healer Summoner left-click attacks.** Picks (Nov 2026), mockup [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
       (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8):
       - [x] **Sprite Staff: Firefly Hop.** Built (protocol 130): a firefly seeds what it hits, then hops (up to 2, 300 px) to the
