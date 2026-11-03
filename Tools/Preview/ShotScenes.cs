@@ -290,6 +290,12 @@ static partial class Shot {
       if (st > 0f && st < Game.SplinterFxTime)
         host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = Game.SplinterFxTime, T = st });
     }
+    if (Environment.GetEnvironmentVariable("REPULSE") != null) {
+      // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
+      float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
+      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.2f; host.Game.Bot = false;
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Repulse, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 253f, Color = new Rgba(0.55f, 0.95f, 1f), Radius = 0.61f, Dur = Game.RepulseFxTime, T = rt });
+    }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
       var sbh = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
