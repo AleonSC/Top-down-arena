@@ -910,8 +910,8 @@ when hit; every health bar gets a **damage ghost** (a pale chunk where health wa
 after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every 0.4
 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
 **scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
-shots; the **grid ripples** out from big blasts; a **vignette** and a tint for the path you're on or the boss you're
-fighting (darker round the edges in the Warden's searchlight turn); a faint **red tint in the corners** when you're
+shots; the **grid ripples** out from big blasts; a light tint for the path you're on or the boss you're
+fighting; a faint **red tint in the corners** when you're
 hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (3.2 s,
 with the HUD slid out of the way until it's done); the **ability bar's tiles react** (a tile pops with a white rim
 when its cooldown finishes, bigger and gold for your ultimate; a returning second charge pops its pip; a used ability

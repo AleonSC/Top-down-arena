@@ -3,6 +3,14 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Smooth menu-background glows; no arena vignette (Nov 2026), protocol 128 (no change):** owner: the backgrounds'
+gradients showed hard steps behind the lobby (the picker's small thumbnail hid them), and remove the vignette.
+`SoftGlow` (MenuBackgrounds.cs) stacked 3-6 flat discs, so every disc edge was a visible ring. It now draws bands of
+shaded triangles with a smoothstep falloff (`GlowFalloff`), blending continuously from the centre to nothing. Nebula,
+Spiral, Synthwave, Orbits, Ember Storm, Frost Peaks, Event Horizon and the rest that use it are affected. `DrawMood`
+(Juice.cs) no longer draws the dark band round the arena's edges (or the Warden searchlight's darker one); the path/boss
+tint and the red hurt corners stay, and so does the game-over/victory vignette in RunEnding.cs.
+
 **Melee: one effect per Halberd sweep; glow in the lobby preview (Nov 2026), protocol 127 (no change):** owner: the
 Halberd looked like the old design again, and the lobby previews lost their gradients. The Halberd sent one Slash per
 step (six), which MeleeLooks stitched together with neighbour-matching code (`StepNeighbours`, `NewerStepThan`); fragile,

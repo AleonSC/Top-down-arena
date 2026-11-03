@@ -38,7 +38,7 @@ class JuiceCheck {
     frame(); tick();
     int juicy = frame();
     Console.WriteLine("  triangles: {0} plain, {1} with effects", plain, juicy);
-    Check(juicy > plain, "with effects on, the arena draws more (glow, vignette)");
+    Check(juicy > plain, "with effects on, the arena draws more (glow, tint)");
 
     var spawn = typeof(Game).GetMethod("SpawnEnemyAt", f2);
     var a = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(500f, 300f), 0f, 0, false });

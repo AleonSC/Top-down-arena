@@ -16,7 +16,7 @@ namespace Arena
     ///   numbers     damage dealt to each enemy, merged every 0.15 s, rising off it (DrawJuiceHud)
     ///   sparks      on impacts, muzzle flashes; trails behind fast shots
     ///   floor       scorch marks that fade, and the grid ripples from big blasts
-    ///   mood        a vignette and a tint for the path or boss; a faint red tint in the corners when hurt or low
+    ///   mood        a tint for the path or boss; a faint red tint in the corners when hurt or low
     ///   level up    a gold ring and rising sparks (bigger for a legendary); a boss's entrance card
     /// Settings (Menus.cs): Visual effects on/off (off draws exactly as before), Screen shake off/low/full, Damage numbers,
     /// Ability names (AbilityLooks.cs) and Reduced effects (no shake, no hit-pause, no flashes).
@@ -782,36 +782,24 @@ namespace Arena
             return p + off;
         }
 
-        /// Over the whole arena, last: a vignette and a tint for the path or boss, and a faint red in the corners when
-        /// you're hurt or low.
+        /// Over the whole arena, last: a tint for the path or boss, and a faint red in the corners when you're hurt or
+        /// low. (There's no edge vignette: the owner had it removed.)
         void DrawMood(float aw, float ah)
         {
             if (!Juicy)
                 return;
             // The tint: the path you're on, or the boss you're fighting.
             Rgba tint = new Rgba(0.24f, 0.16f, 0.47f, 0.05f);
-            float edge = 0.6f;
             Enemy boss = null;
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss) { boss = e; break; }
             if (boss != null)
             {
                 tint = boss.Def.Color.WithAlpha(0.045f);
-                var w = boss.Type == EnemyType.Boss ? boss.Warden : null;
-                if (w != null && w.LightMode != WardenLight.Off)
-                    edge = 0.85f;  // the Warden's searchlight: darker round the edges
             }
             else if (game.OnPath && game.CurrentPath != PathId.None && Paths.Get(game.CurrentPath) != null)
                 tint = Paths.Get(game.CurrentPath).Accent.WithAlpha(0.05f);
             FillRect(0f, 0f, aw, ah, tint);
-            // The vignette: a dark band in from each edge.
-            float band = ah * 0.32f;
-            var dark = new Rgba(0.015f, 0.008f, 0.04f, edge);
-            var clear = dark.WithAlpha(0f);
-            VQuad(new V2(0f, 0f), dark, new V2(aw, 0f), dark, new V2(aw, band), clear, new V2(0f, band), clear);
-            VQuad(new V2(0f, ah), dark, new V2(aw, ah), dark, new V2(aw, ah - band), clear, new V2(0f, ah - band), clear);
-            VQuad(new V2(0f, 0f), dark, new V2(0f, ah), dark, new V2(band, ah), clear, new V2(band, 0f), clear);
-            VQuad(new V2(aw, 0f), dark, new V2(aw, ah), dark, new V2(aw - band, ah), clear, new V2(aw - band, 0f), clear);
             // Hurt, or below 30%: a faint red in the four corners only.
             var me = game.Me;
             float red = hurtTint * 0.28f;

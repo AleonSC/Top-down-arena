@@ -76,7 +76,7 @@ namespace Arena
             GlowPass();        // the additive glow
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
-            DrawMood(AW, AH);  // vignette, tint, red corners when hurt or low
+            DrawMood(AW, AH);  // tint, red corners when hurt or low
 
             EndEndingWorld();  // the camera and colours back; the ending's vignette and flash (RunEnding.cs)
             if (game.State == MatchState.GameOver || game.State == MatchState.Victory)

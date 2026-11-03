@@ -329,10 +329,38 @@ namespace Arena
             SetColor(bottom); Vtx(Px(c)); Vtx(Px(d));
         }
 
+        /// A soft round glow: c.A at the centre fading smoothly to nothing at radius r. Drawn as bands of shaded
+        /// triangles (the colour blends across each), so there are no hard rings. `rings` is kept for the callers;
+        /// more rings follow the smooth falloff more closely.
         void SoftGlow(V2 at, float r, Rgba c, int rings = 4)
         {
-            for (int k = 0; k < rings; k++)
-                Circle(at, r * (1f - k / (float)rings), c.WithAlpha(c.A / rings), 32);
+            const int segs = 40;
+            int bands = Mathf.Max(6, rings * 2);
+            for (int b = 0; b < bands; b++)
+            {
+                float f0 = b / (float)bands, f1 = (b + 1) / (float)bands;
+                var c0 = c.WithAlpha(c.A * GlowFalloff(f0));
+                var c1 = c.WithAlpha(c.A * GlowFalloff(f1));
+                for (int i = 0; i < segs; i++)
+                {
+                    V2 d0 = V2.FromAngle(MathX.Tau * i / segs), d1 = V2.FromAngle(MathX.Tau * (i + 1) / segs);
+                    if (b == 0)
+                    {
+                        VTri(at + d0 * (r * f1), c1, at + d1 * (r * f1), c1, at, c0);
+                        continue;
+                    }
+                    V2 a0 = at + d0 * (r * f0), a1 = at + d1 * (r * f0), b0 = at + d0 * (r * f1), b1 = at + d1 * (r * f1);
+                    VTri(b0, c1, b1, c1, a0, c0);
+                    VTri(a0, c0, b1, c1, a1, c0);
+                }
+            }
+        }
+
+        /// 1 at the centre to 0 at the edge, flat at both ends (smoothstep), so the glow has no visible rim or peak.
+        static float GlowFalloff(float f)
+        {
+            float x = 1f - f;
+            return x * x * (3f - 2f * x);
         }
 
         void Stars(int n, float t, float alpha, int seed = 0)
