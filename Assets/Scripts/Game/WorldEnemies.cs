@@ -258,6 +258,11 @@ namespace Arena
                 DrawNimbus(m, t);  // NimbusLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Treant)
+            {
+                DrawTreant(m, t, staggered);  // RootLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.WardenGuard)
             {
                 DrawWardenGuard(m, t);  // WardenLook.cs
