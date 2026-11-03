@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Sliders</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Mockup: three looks for Settings > Audio (Master, Music, Weapons, Enemies, Effects + Mute), shown in the game's
+   own panel colours. Everything is draggable; arrow keys, Home/End and PageUp/PageDown work. Click the speaker
+   to mute a row. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff; --g-text:#eef2fb; --g-muted:#8f9bb8; --g-track:#2b3248;
+  --display:"Oxanium","Segoe UI",system-ui,sans-serif; --body:"Barlow","Segoe UI",system-ui,sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--body); }
+.wrap { max-width:1200px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--teal); }
+h2 { font-size:20px; letter-spacing:.04em; }
+p { margin:0; max-width:70ch; color:#cfdae2; }
+.eyebrow { font:600 11px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; align-content:start; }
+.card p { font-size:14px; color:var(--muted); }
+.panel { background:var(--g-panel); border:1px solid #2a3350; border-radius:12px; padding:18px 18px 8px; color:var(--g-text); display:grid; gap:2px; }
+.panel .grp { font:700 11px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--g-muted); margin-bottom:6px; }
+
+.row { display:grid; grid-template-columns:28px 86px 1fr 46px; align-items:center; gap:10px; padding:9px 0; }
+.row .nm { font:600 14px var(--body); }
+.row .val { font:700 14px var(--display); text-align:right; font-variant-numeric:tabular-nums; }
+.spk { width:28px; height:28px; border:0; border-radius:7px; background:transparent; color:var(--g-muted); cursor:pointer; display:grid; place-items:center; padding:0; }
+.spk:hover { background:#252c44; color:var(--g-text); }
+.spk svg { width:20px; height:20px; fill:currentColor; }
+.spk .x { display:none; }
+.row.muted .spk { color:#ff6b86; }
+.row.muted .spk .w { display:none; }
+.row.muted .spk .x { display:block; }
+.row.muted .nm, .row.muted .val { opacity:.45; }
+.row.muted .sl { filter:grayscale(1) brightness(.6); }
+.sl { position:relative; height:30px; touch-action:none; cursor:pointer; outline:none; user-select:none; --v:.7; --c:#4f6cff; }
+.sl:focus-visible { box-shadow:0 0 0 2px var(--teal); border-radius:8px; }
+
+/* A: segmented meter */
+.a .sl { display:flex; gap:3px; align-items:flex-end; }
+.a .sl i { flex:1; height:100%; border-radius:2px; background:var(--g-track); transition:background .08s, transform .08s; transform-origin:bottom; }
+.a .sl i:nth-child(n) { height:calc(40% + var(--h)); }
+.a .sl i.on { background:var(--c); box-shadow:0 0 8px color-mix(in srgb,var(--c) 60%,transparent); }
+.a .sl i.on.hot { background:#ffb547; }
+.a .sl i.on.red { background:#ff5470; }
+.a .sl i.bump { transform:scaleY(1.18); }
+
+/* B: glowing rail with bubble knob */
+.b .sl .rail { position:absolute; left:0; right:0; top:50%; height:8px; margin-top:-4px; border-radius:6px; background:var(--g-track); box-shadow:inset 0 1px 3px #0008; }
+.b .sl .fill { position:absolute; left:0; top:50%; height:8px; margin-top:-4px; width:calc(var(--v)*100%); border-radius:6px; background:linear-gradient(90deg,#2e48c8,var(--c) 60%,#9bb0ff); box-shadow:0 0 12px color-mix(in srgb,var(--c) 55%,transparent); }
+.b .sl .ticks { position:absolute; left:0; right:0; top:calc(50% + 9px); height:5px; background:repeating-linear-gradient(90deg,#4a5578 0 1px,transparent 1px 10%); opacity:.7; }
+.b .sl .knob { position:absolute; top:50%; left:calc(var(--v)*100%); width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff,#c8d3ff 55%,#8ea2ff); box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 40%,transparent),0 2px 8px #000a; transition:transform .1s; }
+.b .sl:hover .knob, .b .sl.drag .knob { transform:scale(1.18); }
+.b .sl .tip { position:absolute; bottom:calc(50% + 16px); left:calc(var(--v)*100%); transform:translateX(-50%) translateY(4px); padding:2px 7px; border-radius:6px; background:#0b0e18; border:1px solid var(--c); font:700 11px var(--display); opacity:0; transition:opacity .12s, transform .12s; pointer-events:none; }
+.b .sl:hover .tip, .b .sl.drag .tip, .b .sl:focus-visible .tip { opacity:1; transform:translateX(-50%); }
+
+/* C: waveform track that fills as you drag */
+.c .sl { height:34px; }
+.c .sl canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.c .sl .head { position:absolute; top:-2px; bottom:-2px; left:calc(var(--v)*100%); width:2px; margin-left:-1px; background:#fff; box-shadow:0 0 8px var(--c); border-radius:2px; }
+.c .sl .head::after { content:""; position:absolute; left:-4px; top:-3px; width:10px; height:10px; border-radius:50%; background:#fff; }
+
+.bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:10px 0 8px; padding-top:12px; border-top:1px solid #2a3350; }
+.btn { height:32px; padding:0 14px; border-radius:8px; border:1px solid #3a4670; background:#212844; color:var(--g-text); font:600 13px var(--body); cursor:pointer; }
+.btn:hover { background:#2b3458; }
+.btn.on { border-color:#ff6b86; color:#ff9db0; }
+.test { margin-left:auto; font:12px var(--body); color:var(--g-muted); }
+.notes { display:grid; gap:6px; font-size:14px; color:#cfdae2; padding-left:18px; margin:0; max-width:80ch; }
+.notes b { color:var(--teal); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <div class="eyebrow">Mockup &middot; Settings &gt; Audio</div>
+    <h1>Fancy <span>audio sliders</span></h1>
+    <p>Three directions for the volume rows in Settings. All are live: drag, tap the speaker to mute a row, or focus a slider and use the arrow keys. Each fits the existing Master / Music / Weapons / Enemies / Effects list, and the same game panel colours.</p>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="card">
+    <h2>What each one costs in the game</h2>
+    <ul class="notes">
+      <li><b>A &middot; Level meter.</b> Cheapest: 20 rects per row in IMGUI. Bars bounce when you move it and flash amber/red near the top, so it reads as a real meter. Bar heights stagger for character.</li>
+      <li><b>B &middot; Glow rail.</b> Closest to a normal slider, but with a gradient fill, tick marks every 10% and a bubble showing the value on hover or drag. Needs a small glow texture for the fill.</li>
+      <li><b>C &middot; Waveform.</b> Most distinctive: a waveform you "fill in". Needs a pre-baked per-row waveform array (about 64 floats) and a line mesh in GL; the waves can idle-animate on the live Music row.</li>
+    </ul>
+    <p>Not wired into the game yet; pick a direction and I'll build it into the Settings screen.</p>
+  </section>
+</div>
+
+<script>
+const ROWS = [
+  ["Master", 80, "#4f6cff"], ["Music", 60, "#b06bff"], ["Weapons", 70, "#4fc3ff"],
+  ["Enemies", 55, "#ff6b86"], ["Effects", 75, "#6fe3c4"]
+];
+const SPK = '<svg viewBox="0 0 24 24"><path class="w" d="M3 9v6h4l5 4V5L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/><path class="x" d="M3 9v6h4l5 4V5L7 9H3zm12.6 1.4L14.2 12l1.4 1.6-1.2 1.1L13 13.1l-1.4 1.6-1.2-1.1L11.8 12l-1.4-1.6 1.2-1.1L13 10.9l1.4-1.6z"/></svg>';
+const STYLES = [
+  ["a", "A · Level meter", "Segmented LED bars with a hot top end."],
+  ["b", "B · Glow rail", "Gradient rail, ticks every 10%, value bubble."],
+  ["c", "C · Waveform", "A waveform that fills in as you drag."]
+];
+const SEGS = 20;
+const grid = document.getElementById("grid");
+const mixers = [];
+
+function wave(seed, n) {
+  let r = seed, out = [];
+  for (let i = 0; i < n; i++) { r = (r * 16807) % 2147483647; const e = 0.35 + 0.65 * Math.abs(Math.sin(i * 0.31 + seed)); out.push(e * (0.4 + 0.6 * (r % 1000) / 1000)); }
+  return out;
+}
+
+STYLES.forEach(([k, title, blurb]) => {
+  const card = document.createElement("section");
+  card.className = "card " + k;
+  card.innerHTML = `<h2>${title}</h2><p>${blurb}</p><div class="panel"><div class="grp">Audio</div></div>`;
+  const panel = card.querySelector(".panel");
+  const rows = [];
+  ROWS.forEach(([name, init, color], idx) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<button class="spk" aria-label="Mute ${name}">${SPK}</button><span class="nm">${name}</span><div class="sl" tabindex="0" role="slider" aria-label="${name} volume" aria-valuemin="0" aria-valuemax="100"></div><span class="val"></span>`;
+    const sl = row.querySelector(".sl"), val = row.querySelector(".val");
+    sl.style.setProperty("--c", color);
+    let segs = [], cv, w = wave(idx * 7 + 3, 64);
+    if (k === "a") for (let i = 0; i < SEGS; i++) { const s = document.createElement("i"); s.style.setProperty("--h", (20 + 40 * Math.abs(Math.sin(i * .55 + idx))) + "%"); sl.appendChild(s); segs.push(s); }
+    if (k === "b") sl.innerHTML = '<div class="rail"></div><div class="ticks"></div><div class="fill"></div><div class="tip"></div><div class="knob"></div>';
+    if (k === "c") { cv = document.createElement("canvas"); sl.appendChild(cv); const h = document.createElement("div"); h.className = "head"; sl.appendChild(h); }
+    const st = { v: init / 100, muted: false };
+    function draw(bump) {
+      sl.style.setProperty("--v", st.v);
+      const pct = Math.round(st.v * 100);
+      val.textContent = st.muted ? "Mute" : pct + "%";
+      sl.setAttribute("aria-valuenow", pct);
+      if (k === "a") segs.forEach((s, i) => {
+        const on = (i + 0.5) / SEGS <= st.v;
+        s.className = on ? "on" + (i >= SEGS * .85 ? " red" : i >= SEGS * .7 ? " hot" : "") : "";
+        if (bump && on && i === Math.round(st.v * SEGS) - 1) { s.classList.add("bump"); setTimeout(() => s.classList.remove("bump"), 90); }
+      });
+      if (k === "b") sl.querySelector(".tip").textContent = pct + "%";
+      if (k === "c") paint();
+    }
+    function paint() {
+      const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1;
+      if (!r.width) return;
+      cv.width = r.width * d; cv.height = r.height * d;
+      const g = cv.getContext("2d"); g.scale(d, d);
+      const n = w.length, bw = r.width / n, mid = r.height / 2;
+      for (let i = 0; i < n; i++) {
+        const on = (i + 0.5) / n <= st.v, h = Math.max(3, w[i] * r.height * 0.95);
+        g.fillStyle = on ? color : "#2b3248";
+        g.beginPath(); g.roundRect(i * bw + 1, mid - h / 2, Math.max(1.5, bw - 2), h, 1.5); g.fill();
+      }
+    }
+    function set(from) {
+      const r = sl.getBoundingClientRect();
+      st.v = Math.min(1, Math.max(0, Math.round((from - r.left) / r.width * 100) / 100));
+      if (st.muted && st.v > 0) { st.muted = false; row.classList.remove("muted"); }
+      draw(true);
+    }
+    sl.addEventListener("pointerdown", e => { sl.setPointerCapture(e.pointerId); sl.classList.add("drag"); set(e.clientX); });
+    sl.addEventListener("pointermove", e => { if (sl.classList.contains("drag")) set(e.clientX); });
+    const up = () => sl.classList.remove("drag");
+    sl.addEventListener("pointerup", up); sl.addEventListener("pointercancel", up);
+    sl.addEventListener("keydown", e => {
+      const step = { ArrowRight: .01, ArrowUp: .01, ArrowLeft: -.01, ArrowDown: -.01, PageUp: .1, PageDown: -.1 }[e.key];
+      if (step !== undefined) { st.v = Math.min(1, Math.max(0, Math.round((st.v + step) * 100) / 100)); draw(true); e.preventDefault(); }
+      if (e.key === "Home") { st.v = 0; draw(true); e.preventDefault(); }
+      if (e.key === "End") { st.v = 1; draw(true); e.preventDefault(); }
+    });
+    row.querySelector(".spk").onclick = () => { st.muted = !st.muted; row.classList.toggle("muted", st.muted); draw(); };
+    panel.appendChild(row);
+    rows.push({ draw, st, row });
+    mixers.push(draw);
+  });
+  const bar = document.createElement("div");
+  bar.className = "bar";
+  bar.innerHTML = '<button class="btn mute">Mute all</button><button class="btn reset">Reset</button><span class="test">Drag to try</span>';
+  bar.querySelector(".mute").onclick = e => {
+    const all = !rows.every(r => r.st.muted);
+    rows.forEach(r => { r.st.muted = all; r.row.classList.toggle("muted", all); r.draw(); });
+    e.target.classList.toggle("on", all); e.target.textContent = all ? "Unmute all" : "Mute all";
+  };
+  bar.querySelector(".reset").onclick = () => rows.forEach((r, i) => { r.st.v = ROWS[i][1] / 100; r.draw(); });
+  panel.appendChild(bar);
+  grid.appendChild(card);
+  rows.forEach(r => r.draw());
+});
+addEventListener("resize", () => mixers.forEach(d => d()));
+</script>
+</body>
+</html>
