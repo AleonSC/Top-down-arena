@@ -66,7 +66,7 @@ DevMenu's Tools tab. Stubs gained `Event.shift`, `Vector2.Distance`, `EventType.
 
 **Main menu: the tip chip, the box in the middle (Nov 2026), no protocol change:** option A of
 `Docs/Mockups/menu-tip.html`. `DrawMenuTipChip` (Menus.cs) draws the line under the title as a capsule (new
-`Ui.Capsule`) with a TIP (blue, `ui_help`) or RECORD (gold, `ui_trophy`) tag, the topic in bold and the rest; each line
+`Ui.Capsule`) with a TIP (blue, `ui_bulb`) or RECORD (gold, `ui_trophy`) tag, the topic in bold and the rest; each line
 slides up and fades in, and on up as it goes (8 s each). `MenuCard` is centred on the screen (y 253) and the buttons
 and Join's row are placed from it; the title, axis, arc and chip moved up to fit (title y 126, axis 188, chip 220).
 

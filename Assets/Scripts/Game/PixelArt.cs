@@ -477,6 +477,21 @@ namespace Arena
                 ".....ww.....",
                 "............",
             },
+            ["ui_bulb"] = new[]
+            {
+                "....wwww....",
+                "..wwwwwwww..",
+                ".wwwwwwwwww.",
+                ".www.wwwwww.",
+                ".ww.wwwwwww.",
+                ".wwwwwwwwww.",
+                "..wwwwwwww..",
+                "...wwwwww...",
+                "............",
+                "....wwww....",
+                "....wwww....",
+                ".....ww.....",
+            },
             ["ui_pencil"] = new[]
             {
                 "............",

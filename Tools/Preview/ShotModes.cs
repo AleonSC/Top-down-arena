@@ -190,6 +190,7 @@ static partial class Shot {
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) set("menuJoinOpen", true);
+      if (Environment.GetEnvironmentVariable("MENUTIP") != null) set("menuTipSeed", int.Parse(Environment.GetEnvironmentVariable("MENUTIP")));  // which line the chip shows
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "continue" ? "DrawContinue" : mode == "records" ? "DrawRecords" : mode == "settings" ? "DrawSettings" : "DrawHowToPlay", f2).Invoke(app, null);
       GL.ToUi = false;
     }
