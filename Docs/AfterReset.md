@@ -18,6 +18,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
       weapons' swings, thrusts and slams could look, to pick from before changing the game.
 - [ ] **Redesign the main menu buttons.** Mock up a few styles first, then pick one to build.
+- [ ] **Load-in animations for the How to Play and Field guide windows.** They should open with an animation (like
+      the other panels' open transitions, e.g. `Docs/Mockups/tab-transitions.html`) instead of just appearing.
 
 ## Unlocks & ascensions plan
 Two layers that don't compete: **unlocks give new items, ascensions deepen the ones you have.** Both use the unused
