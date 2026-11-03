@@ -297,30 +297,48 @@ namespace Arena
 
         public static bool SmallButton(Rect r, string text, int size = 12) => SmallButton(r, text, Neutral, size);
 
-        /// A thin bar whose two ends fade out (the colour line along the bottom of a choice card): a solid middle
-        /// and a smoothstep ramp of thin slices at each end. Neighbouring slices share their edges exactly, so the
-        /// GPU leaves no seams between them.
+        /// A thin bar whose two ends fade out (the colour line along the bottom of a choice card): a solid middle and a
+        /// smoothstep ramp at each end, 28 px long (or 30% of a short bar). It's ONE quad with a baked gradient. It used to
+        /// be a solid piece plus 28 thin slices, and wherever the GUI snapped two neighbours to different pixels a one-pixel
+        /// gap showed in the bar (on some buttons, always on the right); one quad has nothing to join.
         public static void FadedBar(Rect r, Color c)
         {
-            // Every edge is a multiple of 1/16, so a piece's x + width lands on its neighbour's x exactly. Computed
-            // separately (x + (w - 2 * fade) against xMax - ((x + 14 * step) - x)) the two could differ by a float
-            // ulp, and on some button positions that left a one-pixel gap where the middle meets the right fade.
+            if (r.width < 1f)
+                return;
             float fade = Mathf.Min(28f, r.width * 0.3f);
-            const int steps = 14;
-            float left = Snap16(r.x), right = Snap16(r.xMax), full = Snap16(fade);
-            Fill(new Rect(left + full, r.y, (right - full) - (left + full), r.height), c);
-            for (int i = 0; i < steps; i++)
-            {
-                float f = (i + 0.5f) / steps;
-                f = f * f * (3f - 2f * f);
-                var sc = new Color(c.r, c.g, c.b, c.a * f);
-                float a = Snap16(fade * i / steps), b = Snap16(fade * (i + 1) / steps);
-                Fill(new Rect(left + a, r.y, b - a, r.height), sc);
-                Fill(new Rect(right - b, r.y, b - a, r.height), sc);
-            }
+            var old = GUI.color;
+            GUI.color = Faded(c);
+            GUI.DrawTexture(r, FadeTexture(Mathf.Clamp(Mathf.RoundToInt(fade / r.width * 100f), 1, 30)));
+            GUI.color = old;
         }
 
-        static float Snap16(float v) => Mathf.Round(v * 16f) / 16f;
+        static readonly Texture2D[] fadeTextures = new Texture2D[31];  // by the ramp's share of the bar's width, in hundredths
+
+        /// White with an alpha ramp up over the first `hundredths`% of its width, flat, then down over the last.
+        static Texture2D FadeTexture(int hundredths)
+        {
+            var tex = fadeTextures[hundredths];
+            if (tex != null)
+                return tex;
+            const int w = 128;
+            var px = new Color32[w];
+            for (int x = 0; x < w; x++)
+            {
+                float u = (x + 0.5f) / w;
+                float d = Mathf.Clamp01(Mathf.Min(u, 1f - u) / (hundredths / 100f));
+                float a = d * d * (3f - 2f * d);
+                px[x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f));
+            }
+            tex = new Texture2D(w, 1, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+            tex.SetPixels32(px);
+            tex.Apply();
+            return fadeTextures[hundredths] = tex;
+        }
 
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
