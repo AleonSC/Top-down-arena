@@ -142,7 +142,7 @@ namespace Arena
                 }
                 else if (hover)
                     Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
-                string title = i == 0 ? "RUN" : i == 1 ? "BOSS HUNT" : "PRACTICE";
+                string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
                 Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 15, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
