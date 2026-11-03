@@ -291,8 +291,8 @@ namespace Arena
                 Line(from, from + V2.FromAngle(p.Aim) * len, perfect ? 3f : 2f, lc);
         }
 
-        /// The Warhammer's charge: a ring filling round you (gold when full) and, for your own, the strip it will
-        /// slam, brighter the harder it will hit.
+        /// The Warhammer's charge: a ring filling round you (gold when full) and, in front, the circle it will slam: always the
+        /// same size, a faint outline with a disc growing inside it as the charge builds.
         void DrawHammerCharge(Player p, bool mine, float t)
         {
             float c = game.BowCharge(p, p.DrawT);
@@ -302,17 +302,18 @@ namespace Arena
             float r = p.Def.BodyR + 11f;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
             Arc(p.Disp, r, full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
-            if (!mine)
-                return;
-            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal(), from = p.Disp + dir * p.Def.BodyR;
-            float reach = Game.MeleeReach(p, p.Weapon.Reach), w = Game.HammerHalfWidth;
-            var col = (full ? gold : new Rgba(0.9f, 0.85f, 0.75f)).WithAlpha(0.25f + 0.4f * c);
-            V2 a = from + side * w, b = from - side * w, cc = b + dir * reach, d = a + dir * reach;
-            SetColor(col.WithAlpha(0.06f + 0.12f * c));
-            Quad(a, b, cc, d);
-            Line(a, d, 2f, col);
-            Line(b, cc, 2f, col);
-            Line(d, cc, 2f, col);
+            // Where the slam will land: always the same circle. A faint outline marks the area; the charge grows an
+            // inner disc from a small core out to the outline, gold and pulsing when it's full.
+            float mult = Game.MeleeReach(p, p.Weapon.Reach) / p.Weapon.Reach;
+            V2 at = p.Disp + V2.FromAngle(p.Aim) * Game.HammerCentre(Game.MeleeReach(p, p.Weapon.Reach));
+            float R = Game.HammerRadius * mult;
+            float a = mine ? 1f : 0.6f;
+            Circle(at, R, new Rgba(0.9f, 0.85f, 0.75f, 0.05f * a), 40);
+            Arc(at, R, 2f, new Rgba(0.9f, 0.85f, 0.75f, 0.3f * a), 48);
+            float inner = Mathf.Lerp(8f, R, c);
+            var fill = full ? gold : new Rgba(1f, 0.7f, 0.4f);
+            Circle(at, inner, fill.WithAlpha((0.14f + 0.3f * c) * a), 40);
+            Arc(at, inner, full ? 4f : 2.5f, fill.WithAlpha((full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.55f + 0.3f * c) * a), 40);
         }
 
         /// The Golem Staff's charge: a ring filling round you (gold when full) and, for your own, where the boulder

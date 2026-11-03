@@ -562,6 +562,8 @@ namespace Arena
         {
             if (DrawJabE(fx, Time.unscaledTime))
                 return;  // the Lance or the Warhammer with Visual effects on (MeleeLooks.cs)
+            if (fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B)
+                return;  // the Warhammer's slam is a circle: with the melee look off, its blast ring (a Boom beside it) shows it
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
