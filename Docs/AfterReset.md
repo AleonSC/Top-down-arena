@@ -7,8 +7,17 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Balance / design
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
+- [ ] **Healer Summoner left-click attacks: waiting for a pick.** The Sprite Staff, Treant Rod and Totem Staff all fire
+      the same seed bolt. Mockup: [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
+      (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8): three new attacks for each, utility kept. Suggested: Sprite
+      Staff B (Firefly Hop), Treant Rod A (Root Lash), Totem Staff B (Drumbeat). Numbers are starting points, to tune
+      with the DPS meter and a target dummy (F1 → DPS) to about 26 a second, then re-run `weapondps write`.
 
 ## Visuals
+- [ ] **Chain Light looks: waiting for a pick.** Mockups: [`Mockups/chain-light.html`](Mockups/chain-light.html)
+      (https://claude.ai/artifact/SDTK1q5jgTo1g8wKqjBiVu): today's look and A Radiance (a soft blooming fan, beams and
+      halos), B Light chain (links hand -> nearest -> next), C Wavefront (an arc sweeping out to the reach), D Storm web
+      (forking electric arcs). Then build the pick in `DrawLightConeFx` / the cone's bolts (drawing only).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
       [`Mockups/character-models.html`](Mockups/character-models.html), colour-by-class (`Game/CharacterModels.cs`),
       plus a bigger role-coloured glow on the floor round every player (`Juice.cs`, `GlowPlayer`). The weapon models are

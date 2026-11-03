@@ -1,0 +1,908 @@
+<title>Healer Summoner Attacks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one section per weapon. Each has four live scenes at the game's scale (1 canvas px = 1 arena px): the
+   attack it has now, then three new ones, all aimed at the same three enemies and an ally who needs healing. A card
+   under each scene says what it does, what utility it keeps and what to watch. Build notes close the page.
+   Single dark look by choice: it mirrors the game, like the other mockups in this folder. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --sprite: #d4f06f; --treant: #e3a45b; --totem: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 30; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 26px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent, var(--fg)); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+header.top { display: grid; gap: 12px; }
+
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 10px 14px; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(6px); }
+.toolbar nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.toolbar a { font: 600 13px var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+.toolbar a:hover { color: var(--fg); border-bottom-color: var(--edge); }
+.toolbar a:focus-visible, button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.toolbar .controls { display: flex; gap: 6px; margin-left: auto; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button[aria-pressed="true"] { background: #1d2a2a; border-color: var(--teal); color: var(--fg); }
+
+.problem { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.problem > div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.problem b { font: 700 12px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
+.problem span { color: var(--soft); font-size: 15px; }
+
+.weapon { display: grid; gap: 18px; scroll-margin-top: 80px; }
+.weapon > header { display: grid; gap: 8px; }
+.today { display: grid; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 16px; }
+.today p { color: var(--soft); font-size: 15px; }
+.today b { color: var(--fg); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 860px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+.tile { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.tile.pick { border-color: var(--accent); }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 780 / 380; background: #070910; }
+.tile figcaption { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.tile .head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.tag { font: 700 12px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.tile.now .tag { color: var(--muted); }
+.badge { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: #0a0d10; background: var(--accent); border-radius: 4px; padding: 2px 7px; margin-left: auto; }
+.tile p { font-size: 15px; color: var(--soft); }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; font-size: 14px; }
+dt { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; color: var(--soft); min-width: 0; }
+dd.num { font: 500 13px var(--font-data); color: var(--fg); }
+
+.notes { display: grid; gap: 14px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 80ch; color: var(--soft); }
+.notes li::marker { color: var(--edge); }
+.ask { background: var(--panel); border: 1px solid var(--amber); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; }
+.ask h3 { color: var(--amber); }
+.ask p { color: var(--soft); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Healer · Summoner · left mouse button</div>
+    <h1>Healer <span>Summoner</span> attacks</h1>
+    <p class="lead">All three Healer Summoner weapons fire the same small green bolt, so they feel like one weapon with three names. Below are three new attacks for each, built so each weapon keeps what it does for the party. Every scene runs the attack on a loop at the game's scale.</p>
+  </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Playback">
+    <nav aria-label="Weapons">
+      <a href="#sprite">Sprite Staff</a><a href="#treant">Treant Rod</a><a href="#totem">Totem Staff</a><a href="#notes">Build notes</a>
+    </nav>
+    <div class="controls">
+      <button id="slow" type="button" aria-pressed="false">Slow motion</button>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+      <button id="restart" type="button">Restart all</button>
+    </div>
+  </div>
+
+  <div class="problem">
+    <div><b>Today</b><span>A 4 px green bolt at 600 px/s, about 26 damage a second, on all three weapons. The Treant Rod's also heals an ally it passes.</span></div>
+    <div><b>Kept</b><span>Seeding and freed Sprites, the Treant and its vine, the thrown totem and its heal pulse. Only the left-click attack changes.</span></div>
+    <div><b>Different on purpose</b><span>Across the nine: a cone, a hopping mote, a stream, a thrust, a boomerang, a ground burst, a lob, a drum ring and an orbit.</span></div>
+  </div>
+
+  <section class="weapon" id="sprite" style="--accent: var(--sprite)">
+    <header>
+      <div class="eyebrow">Weapon 1 of 3</div>
+      <h2>Sprite Staff</h2>
+    </header>
+    <div class="today">
+      <p><b>Today:</b> seeds (9 damage, every 0.35 s) stick in an enemy for 4 s. Two Sprites fly to whoever is hurt and heal them. Killing a seeded enemy frees another Sprite for 6 s, up to 4 more.</p>
+      <p><b>Keep:</b> seeding on every hit, so a kill still frees a Sprite. Upgrades stay as they are (+1 Sprite).</p>
+    </div>
+    <div class="tiles" data-weapon="sprite"></div>
+  </section>
+
+  <section class="weapon" id="treant" style="--accent: var(--treant)">
+    <header>
+      <div class="eyebrow">Weapon 2 of 3</div>
+      <h2>Treant Rod</h2>
+    </header>
+    <div class="today">
+      <p><b>Today:</b> bolts (8 damage, every 0.3 s) that heal an ally they pass through. Your Treant roots where it stands and blocks bullets. A vine from you to it heals allies crossing it (8 a second) and slows and stings enemies (50%, 6 a second).</p>
+      <p><b>Keep:</b> the attack heals allies it touches, and the Treant and vine are untouched. The ally in each scene is there to show that. Every few shots the weapon aims at them.</p>
+    </div>
+    <div class="tiles" data-weapon="treant"></div>
+  </section>
+
+  <section class="weapon" id="totem" style="--accent: var(--totem)">
+    <header>
+      <div class="eyebrow">Weapon 3 of 3</div>
+      <h2>Totem Staff</h2>
+    </header>
+    <div class="today">
+      <p><b>Today:</b> seeds (9 damage, every 0.35 s). Every 10 s your next shot also throws a healing totem to your cursor (up to 400 px). Six seed hits on enemies near a totem make it pulse 25 healing to allies near it.</p>
+      <p><b>Keep:</b> the thrown totem, and every attack hit on an enemy within 150 px of a totem counting as a charge. The totem in each scene shows its charge as six pips and its 150 px reach as the faint ring.</p>
+    </div>
+    <div class="tiles" data-weapon="totem"></div>
+  </section>
+
+  <section class="notes" id="notes">
+    <h2 style="color: var(--fg)">Build notes</h2>
+    <ul>
+      <li><b>Numbers are a starting point, not measured.</b> Each attack is sized to about 26 damage a second on one target, which is what the three weapons do now. Build one, then tune it with the DPS meter and a target dummy (F1 → DPS) until the lobby's Damage stat reads about the same.</li>
+      <li><b>Upgrades don't need new work.</b> On these three weapons Multishot and Barrage already add utility (+1 Sprite, more totems, a bigger Treant) and not extra bullets, so no attack has to handle extra projectiles. Damage, fire-rate, crit and mod cards apply to whatever the attack hits.</li>
+      <li><b>Where the utility hooks in.</b> Seeding and charging are called from a seed hitting an enemy (<code>SeedHit</code>), and the Treant's heal comes from a bullet's <code>HealAlly</code>. Each new attack calls the same functions for every enemy or ally it touches, so the Sprite, Treant and totem code stays as it is.</li>
+      <li><b>Network.</b> Anything drawn that isn't a plain bullet needs a new effect or bullet kind, which means a protocol version bump. New values go at the end of their enums.</li>
+      <li><b>Before building:</b> the lobby preview, the Armory text and the Bestiary descriptions for these weapons will be out of date after the change. The reference pages stay as they are until you ask for them.</li>
+    </ul>
+    <div class="ask">
+      <h3>What I need from you</h3>
+      <p>Pick one attack per weapon, or mix: "Sprite Staff B, Treant Rod A, Totem Staff C". The tag marked Suggested is my pick for each. Tell me which to change and I'll rerun the mockup.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+'use strict';
+var W = 780, H = 380, TAU = Math.PI * 2;
+function rand(a, b) { return a + Math.random() * (b - a); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function angDiff(a, b) { var d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+function easeOut(t) { return 1 - (1 - t) * (1 - t); }
+
+var SEED = '#9de65a', POLLEN = '#e2f78f', BARK = '#8a5a2b', BARK_HI = '#c58a48', LEAF = '#59c46a', SPIRIT = '#6fe3c4',
+    RUNE = '#ffd27a', FOE = '#ff6b6b', ALLY = '#6aa8ff', HEAL = '#7dffa8';
+
+/* ---------------------------------------------------------------- the scene: you, an ally, three enemies */
+
+function Scene(canvas, weapon, style) {
+  this.cv = canvas; this.g = canvas.getContext('2d');
+  canvas.width = W; canvas.height = H;
+  this.weapon = weapon; this.def = style;
+  this.visible = true;
+  this.reset();
+}
+
+Scene.prototype.reset = function () {
+  this.t = 0; this.cd = 0.4; this.shots = 0; this.ents = []; this.parts = []; this.pops = [];
+  this.P = { x: 150, y: 190 }; this.aim = 0; this.holdT = 0; this.acc = 0;
+  this.ally = { x: 430, y: 308, hp: 0.5, flash: 0 };
+  this.foes = [{ hx: 565, hy: 100, ph: 0 }, { hx: 652, hy: 195, ph: 2.1 }, { hx: 580, hy: 292, ph: 4.2 }].map(function (e) {
+    e.x = e.hx; e.y = e.hy; e.hp = 1; e.seed = 0; e.flash = 0; e.dead = 0; e.spawn = 0; e.acc = 0; e.popT = 0; e.cd = 0; return e;
+  });
+  this.order = this.weapon === 'treant' ? [0, 1, 'ally', 2, 1] : [0, 1, 2, 1];
+  this.oi = 0; this.tgtT = 0; this.tgt = this.foes[0];
+  this.sprites = [{ a: 0, m: 'orbit', x: 150, y: 190, extra: false, life: 0 }, { a: 3.1, m: 'orbit', x: 150, y: 190, extra: false, life: 0 }];
+  this.spriteT = 1.4;
+  this.totem = { x: 515, y: 236, charge: 0, flash: 0 };
+  this.treant = { x: 300, y: 92 };
+};
+
+Scene.prototype.muzzle = function () { return { x: this.P.x + Math.cos(this.aim) * 20, y: this.P.y + Math.sin(this.aim) * 20 }; };
+Scene.prototype.alive = function (e) { return e.dead <= 0 && e.spawn <= 0.2; };
+Scene.prototype.foeAt = function (x, y, r) {
+  for (var i = 0; i < this.foes.length; i++) { var e = this.foes[i]; if (this.alive(e) && Math.hypot(e.x - x, e.y - y) < r) return e; }
+  return null;
+};
+Scene.prototype.nearestFoe = function (from, skip, maxD) {
+  var best = null, bd = maxD;
+  for (var i = 0; i < this.foes.length; i++) {
+    var e = this.foes[i];
+    if (!this.alive(e) || skip.indexOf(e) >= 0) continue;
+    var d = Math.hypot(e.x - from.x, e.y - from.y);
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+};
+Scene.prototype.spark = function (x, y, col, n, speed, life) {
+  for (var i = 0; i < n; i++) {
+    var a = rand(0, TAU), s = rand(0.3, 1) * (speed || 90);
+    this.parts.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.5, 1) * (life || 0.4), max: life || 0.4, r: rand(1.5, 3), col: col, drag: 0.04 });
+  }
+};
+Scene.prototype.pop = function (x, y, text, col) {
+  if (this.pops.length > 24) this.pops.shift();
+  this.pops.push({ x: x, y: y, text: text, col: col, life: 0.8 });
+};
+Scene.prototype.heal = function (amt) {
+  var a = this.ally;
+  a.hp = Math.min(1, a.hp + amt / 100); a.flash = 0.35;
+  this.pop(a.x, a.y - 30, '+' + Math.round(amt), HEAL);
+  this.spark(a.x, a.y, HEAL, 8, 80, 0.5);
+};
+Scene.prototype.hit = function (e, dmg, o) {
+  o = o || {};
+  if (!this.alive(e)) return;
+  e.hp -= dmg / 160; e.flash = 0.09; e.acc += dmg;
+  if (e.popT <= 0) { this.pop(e.x + rand(-8, 8), e.y - 28, String(Math.round(e.acc)), '#ffe9b0'); e.acc = 0; e.popT = 0.3; }
+  if (o.seed && this.weapon === 'sprite') e.seed = 4;
+  this.spark(e.x, e.y, o.col || '#ffd9a0', 3, 70, 0.25);
+  if (this.weapon === 'totem' && o.charge !== false && Math.hypot(e.x - this.totem.x, e.y - this.totem.y) <= 150) this.charge();
+  if (e.hp <= 0) this.kill(e);
+};
+Scene.prototype.charge = function () {
+  var T = this.totem; T.charge++; T.flash = 0.2;
+  if (T.charge >= 6) {
+    T.charge = 0;
+    this.ents.push(new Ring(T.x, T.y, 150, 0.5, HEAL, 3));
+    if (Math.hypot(this.ally.x - T.x, this.ally.y - T.y) <= 150) this.heal(25);
+  }
+};
+Scene.prototype.kill = function (e) {
+  this.spark(e.x, e.y, FOE, 16, 140, 0.55);
+  if (this.weapon === 'sprite' && e.seed > 0 && this.sprites.length < 6) {
+    this.sprites.push({ a: rand(0, TAU), m: 'back', x: e.x, y: e.y, extra: true, life: 6 });
+    this.pop(e.x, e.y - 30, 'Sprite freed', POLLEN);
+  }
+  e.dead = 0.9; e.seed = 0;
+};
+
+Scene.prototype.step = function (dt) {
+  this.t += dt;
+  var i, e;
+  // Targets: the next one every 1.5 s, and the aim eases onto it.
+  this.tgtT -= dt;
+  if (this.tgtT <= 0) {
+    this.tgtT = 1.5; this.oi = (this.oi + 1) % this.order.length;
+    var k = this.order[this.oi];
+    this.tgt = k === 'ally' ? this.ally : this.foes[k];
+  }
+  var want = Math.atan2(this.tgt.y - this.P.y, this.tgt.x - this.P.x);
+  this.aim += angDiff(this.aim, want) * (1 - Math.exp(-dt * 9));
+  // Enemies drift a little and come back after a kill.
+  for (i = 0; i < this.foes.length; i++) {
+    e = this.foes[i];
+    e.x = e.hx + Math.sin(this.t * 0.8 + e.ph) * 14; e.y = e.hy + Math.cos(this.t * 0.65 + e.ph) * 10;
+    e.flash = Math.max(0, e.flash - dt); e.popT = Math.max(0, e.popT - dt); e.seed = Math.max(0, e.seed - dt); e.cd = Math.max(0, e.cd - dt);
+    if (e.acc > 0 && e.popT <= 0) { this.pop(e.x, e.y - 28, String(Math.round(e.acc)), '#ffe9b0'); e.acc = 0; e.popT = 0.3; }
+    if (e.dead > 0) { e.dead -= dt; if (e.dead <= 0) { e.hp = 1; e.spawn = 0.6; } }
+    if (e.spawn > 0) e.spawn -= dt;
+  }
+  this.ally.hp = Math.max(0.25, this.ally.hp - 0.03 * dt); this.ally.flash = Math.max(0, this.ally.flash - dt);
+  this.totem.flash = Math.max(0, this.totem.flash - dt);
+  if (this.weapon === 'sprite') this.stepSprites(dt);
+  // The attack.
+  if (this.def.tick) this.def.tick(this, dt);
+  else { this.cd -= dt; if (this.cd <= 0) { this.cd += this.def.interval; this.shots++; this.def.fire(this); } }
+  // Things in flight.
+  for (i = this.ents.length - 1; i >= 0; i--) if (this.ents[i].update(this, dt)) this.ents.splice(i, 1);
+  for (i = this.parts.length - 1; i >= 0; i--) {
+    var p = this.parts[i];
+    p.life -= dt; if (p.life <= 0) { this.parts.splice(i, 1); continue; }
+    if (p.wob) { p.ph += dt * 14; p.x += p.nx * Math.cos(p.ph) * p.wob * dt; p.y += p.ny * Math.cos(p.ph) * p.wob * dt; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    var f = Math.pow(p.drag, dt); p.vx *= f; p.vy *= f;
+  }
+  for (i = this.pops.length - 1; i >= 0; i--) { var q = this.pops[i]; q.life -= dt; q.y -= 22 * dt; if (q.life <= 0) this.pops.splice(i, 1); }
+};
+
+Scene.prototype.stepSprites = function (dt) {
+  var s, i, P = this.P;
+  this.spriteT -= dt;
+  if (this.spriteT <= 0) {
+    this.spriteT = 2.6;
+    for (i = 0; i < this.sprites.length; i++) if (this.sprites[i].m === 'orbit') { this.sprites[i].m = 'go'; break; }
+  }
+  for (i = this.sprites.length - 1; i >= 0; i--) {
+    s = this.sprites[i];
+    if (s.extra) { s.life -= dt; if (s.life <= 0) { this.sprites.splice(i, 1); continue; } }
+    s.a += dt * 2.2;
+    if (s.m === 'go') {
+      var dx = this.ally.x - s.x, dy = this.ally.y - 14 - s.y, d = Math.hypot(dx, dy) || 1;
+      s.x += dx / d * 440 * dt; s.y += dy / d * 440 * dt;
+      if (d < 12) { this.heal(8); s.m = 'back'; }
+    } else {
+      var gx = P.x + Math.cos(s.a) * 32, gy = P.y + Math.sin(s.a) * 24 - 8, k = 1 - Math.exp(-dt * (s.m === 'back' ? 5 : 12));
+      s.x = lerp(s.x, gx, k); s.y = lerp(s.y, gy, k);
+      if (s.m === 'back' && Math.hypot(gx - s.x, gy - s.y) < 14) s.m = 'orbit';
+    }
+  }
+};
+
+/* ---------------------------------------------------------------- drawing */
+
+Scene.prototype.draw = function () {
+  var g = this.g, i;
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = '#070910'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(120,150,190,0.07)'; g.lineWidth = 1; g.beginPath();
+  for (i = 40; i < W; i += 40) { g.moveTo(i + 0.5, 0); g.lineTo(i + 0.5, H); }
+  for (i = 40; i < H; i += 40) { g.moveTo(0, i + 0.5); g.lineTo(W, i + 0.5); }
+  g.stroke();
+  // Ground effects first, then the decor, then bodies, then what's in flight.
+  for (i = 0; i < this.ents.length; i++) if (this.ents[i].ground) this.ents[i].draw(this, g);
+  if (this.weapon === 'treant') this.drawTreant(g);
+  if (this.weapon === 'totem') this.drawTotem(g);
+  for (i = 0; i < this.foes.length; i++) this.drawFoe(g, this.foes[i]);
+  this.drawAlly(g); this.drawPlayer(g);
+  if (this.weapon === 'sprite') this.drawSprites(g);
+  for (i = 0; i < this.ents.length; i++) if (!this.ents[i].ground) this.ents[i].draw(this, g);
+  g.globalCompositeOperation = 'lighter';
+  for (i = 0; i < this.parts.length; i++) {
+    var p = this.parts[i], a = clamp(p.life / p.max, 0, 1);
+    g.globalAlpha = a * (p.alpha || 1); g.fillStyle = p.col;
+    g.beginPath(); g.arc(p.x, p.y, p.r * (p.shrink ? a : 1), 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.font = '600 15px "Barlow", system-ui, sans-serif'; g.textAlign = 'center';
+  for (i = 0; i < this.pops.length; i++) {
+    var q = this.pops[i]; g.globalAlpha = clamp(q.life / 0.4, 0, 1); g.fillStyle = q.col;
+    g.fillText(q.text, q.x, q.y);
+  }
+  g.globalAlpha = 1;
+  g.font = '500 17px "IBM Plex Mono", ui-monospace, monospace'; g.textAlign = 'left'; g.fillStyle = 'rgba(207,218,226,0.6)';
+  g.fillText(this.def.label, 14, 28);
+};
+
+Scene.prototype.drawFoe = function (g, e) {
+  if (e.dead > 0) return;
+  var a = e.spawn > 0 ? 1 - e.spawn / 0.6 : 1;
+  g.globalAlpha = a;
+  g.beginPath();
+  for (var i = 0; i < 6; i++) { var an = i * TAU / 6 + 0.5; g.lineTo(e.x + Math.cos(an) * 18, e.y + Math.sin(an) * 18); }
+  g.closePath();
+  g.fillStyle = e.flash > 0 ? '#ffffff' : 'rgba(255,107,107,0.16)'; g.fill();
+  g.strokeStyle = FOE; g.lineWidth = 2; g.stroke();
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(e.x - 18, e.y - 28, 36, 4);
+  g.fillStyle = FOE; g.fillRect(e.x - 18, e.y - 28, 36 * clamp(e.hp, 0, 1), 4);
+  if (e.seed > 0) {
+    var sx = e.x + 15, sy = e.y + 14;
+    g.fillStyle = SEED; g.beginPath(); g.arc(sx, sy, 3.5, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(157,230,90,0.8)'; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, 7, -Math.PI / 2, -Math.PI / 2 + TAU * e.seed / 4); g.stroke();
+  }
+  g.globalAlpha = 1;
+};
+
+Scene.prototype.drawAlly = function (g) {
+  var a = this.ally;
+  g.beginPath(); g.arc(a.x, a.y, 13, 0, TAU);
+  g.fillStyle = a.flash > 0 ? '#bfffd6' : '#17284a'; g.fill(); g.strokeStyle = ALLY; g.lineWidth = 2; g.stroke();
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(a.x - 18, a.y + 19, 36, 4);
+  g.fillStyle = HEAL; g.fillRect(a.x - 18, a.y + 19, 36 * a.hp, 4);
+};
+
+Scene.prototype.drawPlayer = function (g) {
+  var P = this.P, tip = { x: P.x + Math.cos(this.aim) * 26, y: P.y + Math.sin(this.aim) * 26 };
+  g.strokeStyle = '#6b5a3a'; g.lineWidth = 3; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(P.x + Math.cos(this.aim) * 8, P.y + Math.sin(this.aim) * 8); g.lineTo(tip.x, tip.y); g.stroke();
+  g.fillStyle = this.def.glow || SEED; g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.5; g.beginPath(); g.arc(tip.x, tip.y, 7, 0, TAU); g.fill();
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.beginPath(); g.arc(P.x, P.y, 12, 0, TAU); g.fillStyle = '#12302a'; g.fill(); g.strokeStyle = SPIRIT; g.lineWidth = 2; g.stroke();
+  g.strokeStyle = SPIRIT; g.lineWidth = 2; g.beginPath(); g.moveTo(P.x - 4, P.y); g.lineTo(P.x + 4, P.y); g.moveTo(P.x, P.y - 4); g.lineTo(P.x, P.y + 4); g.stroke();
+};
+
+Scene.prototype.drawSprites = function (g) {
+  for (var i = 0; i < this.sprites.length; i++) {
+    var s = this.sprites[i], fl = Math.sin(this.t * 30 + i) * 0.5 + 0.5;
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = 'rgba(226,247,143,0.28)'; g.beginPath(); g.arc(s.x, s.y, 10, 0, TAU); g.fill();
+    g.fillStyle = 'rgba(190,255,230,0.5)';
+    g.beginPath(); g.ellipse(s.x - 4, s.y - 2, 5, 2 + 2 * fl, -0.5, 0, TAU); g.fill();
+    g.beginPath(); g.ellipse(s.x + 4, s.y - 2, 5, 2 + 2 * fl, 0.5, 0, TAU); g.fill();
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = POLLEN; g.beginPath(); g.arc(s.x, s.y, 3.5, 0, TAU); g.fill();
+    if (s.extra) { g.strokeStyle = 'rgba(226,247,143,0.7)'; g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y, 8, -Math.PI / 2, -Math.PI / 2 + TAU * s.life / 6); g.stroke(); }
+  }
+};
+
+Scene.prototype.drawTreant = function (g) {
+  var P = this.P, T = this.treant, sway = Math.sin(this.t * 1.6) * 10;
+  var mx = (P.x + T.x) / 2 - 10 + sway, my = (P.y + T.y) / 2 + 24;
+  g.lineCap = 'round';
+  g.strokeStyle = 'rgba(89,196,106,0.28)'; g.lineWidth = 14; g.beginPath(); g.moveTo(P.x, P.y); g.quadraticCurveTo(mx, my, T.x, T.y); g.stroke();
+  g.strokeStyle = 'rgba(160,240,150,0.85)'; g.lineWidth = 3; g.beginPath(); g.moveTo(P.x, P.y); g.quadraticCurveTo(mx, my, T.x, T.y); g.stroke();
+  g.beginPath(); g.arc(T.x, T.y + 6, 24, 0, TAU); g.fillStyle = '#2b1d10'; g.fill(); g.strokeStyle = BARK_HI; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#2f6b3b';
+  [[-12, -14, 15], [10, -16, 14], [0, -24, 13]].forEach(function (c) { g.beginPath(); g.arc(T.x + c[0], T.y + c[1], c[2], 0, TAU); g.fill(); });
+  g.fillStyle = '#ffd27a'; g.fillRect(T.x - 9, T.y + 1, 4, 4); g.fillRect(T.x + 5, T.y + 1, 4, 4);
+};
+
+Scene.prototype.drawTotem = function (g) {
+  var T = this.totem;
+  g.setLineDash([5, 7]); g.strokeStyle = 'rgba(111,227,196,0.22)'; g.lineWidth = 1.5; g.beginPath(); g.arc(T.x, T.y, 150, 0, TAU); g.stroke(); g.setLineDash([]);
+  g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(T.x, T.y + 10, 20, 7, 0, 0, TAU); g.fill();
+  g.fillStyle = T.flash > 0 ? '#9ffff0' : '#2d3b3a'; g.strokeStyle = SPIRIT; g.lineWidth = 2;
+  g.beginPath(); g.rect(T.x - 12, T.y - 38, 24, 48); g.fill(); g.stroke();
+  g.fillStyle = SPIRIT; g.fillRect(T.x - 7, T.y - 28, 4, 5); g.fillRect(T.x + 3, T.y - 28, 4, 5); g.fillRect(T.x - 5, T.y - 14, 10, 3);
+  for (var i = 0; i < 6; i++) {
+    g.beginPath(); g.arc(T.x - 25 + i * 10, T.y - 52, 3.2, 0, TAU);
+    if (i < T.charge) { g.fillStyle = SPIRIT; g.fill(); } else { g.strokeStyle = 'rgba(111,227,196,0.5)'; g.lineWidth = 1.5; g.stroke(); }
+  }
+};
+
+/* ---------------------------------------------------------------- things in flight */
+
+function Ring(x, y, r, dur, col, w) { this.x = x; this.y = y; this.r = r; this.dur = dur; this.t = 0; this.col = col; this.w = w || 2; this.ground = true; }
+Ring.prototype.update = function (sc, dt) { this.t += dt; return this.t >= this.dur; };
+Ring.prototype.draw = function (sc, g) {
+  var k = this.t / this.dur;
+  g.globalAlpha = 1 - k; g.strokeStyle = this.col; g.lineWidth = this.w;
+  g.beginPath(); g.arc(this.x, this.y, this.r * easeOut(k), 0, TAU); g.stroke(); g.globalAlpha = 1;
+};
+
+// The bolt every weapon fires today.
+function Bolt(sc, ang, dmg, heal) {
+  var m = sc.muzzle(); this.x = m.x; this.y = m.y; this.vx = Math.cos(ang) * 600; this.vy = Math.sin(ang) * 600;
+  this.dmg = dmg; this.heal = heal; this.healed = false; this.trail = [];
+}
+Bolt.prototype.update = function (sc, dt) {
+  this.x += this.vx * dt; this.y += this.vy * dt;
+  this.trail.push([this.x, this.y]); if (this.trail.length > 7) this.trail.shift();
+  if (this.heal && !this.healed && Math.hypot(this.x - sc.ally.x, this.y - sc.ally.y) < 18) { this.healed = true; sc.heal(7); }
+  var e = sc.foeAt(this.x, this.y, 22);
+  if (e) { sc.hit(e, this.dmg, { seed: true, col: SEED }); return true; }
+  return this.x > W + 20 || this.x < -20 || this.y < -20 || this.y > H + 20;
+};
+Bolt.prototype.draw = function (sc, g) {
+  g.lineCap = 'round';
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(157,230,90,' + (i / this.trail.length * 0.45) + ')'; g.lineWidth = 1 + i * 0.5;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.fillStyle = SEED; g.beginPath(); g.arc(this.x, this.y, 4, 0, TAU); g.fill();
+};
+
+// Sprite Staff A: a drifting spore.
+function Spore(sc, ang) {
+  var m = sc.muzzle(), s = rand(330, 420);
+  var lead = rand(0, 16); this.x = m.x + Math.cos(ang) * lead; this.y = m.y + Math.sin(ang) * lead; this.vx = Math.cos(ang) * s; this.vy = Math.sin(ang) * s; this.life = 1.1; this.ph = rand(0, TAU); this.r = rand(2.4, 4);
+}
+Spore.prototype.update = function (sc, dt) {
+  this.life -= dt; this.ph += dt * 9;
+  var f = Math.pow(0.3, dt); this.vx *= f; this.vy *= f;
+  this.x += this.vx * dt + Math.cos(this.ph) * 10 * dt; this.y += this.vy * dt + Math.sin(this.ph * 1.3) * 10 * dt;
+  var e = sc.foeAt(this.x, this.y, 20);
+  if (e) { sc.hit(e, 3.5, { seed: true, col: POLLEN }); return true; }
+  return this.life <= 0;
+};
+Spore.prototype.draw = function (sc, g) {
+  var a = clamp(this.life / 0.5, 0, 1);
+  g.globalCompositeOperation = 'lighter';
+  g.fillStyle = 'rgba(226,247,143,' + 0.38 * a + ')'; g.beginPath(); g.arc(this.x, this.y, this.r * 2.8, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(250,255,215,' + a + ')'; g.beginPath(); g.arc(this.x, this.y, this.r * 1.05, 0, TAU); g.fill();
+  g.globalCompositeOperation = 'source-over';
+};
+
+// Sprite Staff B: a mote that hops from enemy to enemy.
+function Firefly(sc, ang) {
+  var m = sc.muzzle(); this.x = m.x; this.y = m.y; this.vx = Math.cos(ang) * 540; this.vy = Math.sin(ang) * 540;
+  this.hops = 0; this.seen = []; this.t = null; this.trail = []; this.fade = 0;
+}
+Firefly.prototype.update = function (sc, dt) {
+  if (this.fade > 0) { this.fade -= dt; return this.fade <= 0; }
+  if (this.t) {
+    var dx = this.t.x - this.x, dy = this.t.y - this.y, d = Math.hypot(dx, dy) || 1;
+    this.vx = dx / d * 860; this.vy = dy / d * 860;
+  }
+  var px = this.x, py = this.y;
+  this.x += this.vx * dt; this.y += this.vy * dt;
+  this.trail.push([this.x, this.y]); if (this.trail.length > 12) this.trail.shift();
+  var e = sc.foeAt(this.x, this.y, 22);
+  if (e && this.seen.indexOf(e) < 0) {
+    this.seen.push(e); sc.hit(e, 7, { seed: true, col: POLLEN }); this.hops++;
+    sc.ents.push(new Zap(px, py, e.x, e.y));
+    var next = sc.nearestFoe(e, this.seen, 300);
+    if (next && this.hops < 3) this.t = next;
+    else { this.fade = 0.25; this.t = null; this.vx = this.vy = 0; this.x = e.x; this.y = e.y; sc.spark(e.x, e.y, POLLEN, 10, 110, 0.5); }
+  }
+  return this.x > W + 20 || this.x < -20 || this.y < -20 || this.y > H + 20;
+};
+Firefly.prototype.draw = function (sc, g) {
+  var a = this.fade > 0 ? this.fade / 0.25 : 1;
+  g.lineCap = 'round'; g.globalCompositeOperation = 'lighter';
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(226,247,143,' + (i / this.trail.length * 0.5 * a) + ')'; g.lineWidth = 1 + i * 0.5;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.fillStyle = 'rgba(226,247,143,' + 0.3 * a + ')'; g.beginPath(); g.arc(this.x, this.y, 11, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(255,255,230,' + a + ')'; g.beginPath(); g.arc(this.x, this.y, 4, 0, TAU); g.fill();
+  g.globalCompositeOperation = 'source-over';
+};
+
+function Zap(x1, y1, x2, y2) {
+  this.pts = []; var n = 6;
+  for (var i = 0; i <= n; i++) {
+    var k = i / n, j = i === 0 || i === n ? 0 : rand(-9, 9);
+    var dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1;
+    this.pts.push([x1 + dx * k - dy / d * j, y1 + dy * k + dx / d * j]);
+  }
+  this.t = 0;
+}
+Zap.prototype.update = function (sc, dt) { this.t += dt; return this.t > 0.18; };
+Zap.prototype.draw = function (sc, g) {
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = 1 - this.t / 0.18; g.strokeStyle = POLLEN; g.lineWidth = 2; g.lineJoin = 'round';
+  g.beginPath(); this.pts.forEach(function (p, i) { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); }); g.stroke();
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+};
+
+// Treant Rod A: a root that whips out along the aim line.
+function Lash(sc, ang) {
+  this.P = sc.P; this.ang = ang; this.t = 0; this.len = 250; this.hit = []; this.healed = false;
+  this.ext = 0.14; this.hold = 0.1; this.ret = 0.2;
+}
+Lash.prototype.reach = function () {
+  if (this.t < this.ext) return this.len * easeOut(this.t / this.ext);
+  if (this.t < this.ext + this.hold) return this.len;
+  return this.len * (1 - (this.t - this.ext - this.hold) / this.ret);
+};
+Lash.prototype.update = function (sc, dt) {
+  this.t += dt;
+  var L = this.reach(), cx = Math.cos(this.ang), cy = Math.sin(this.ang);
+  if (this.t < this.ext + this.hold) {
+    for (var i = 0; i < sc.foes.length; i++) {
+      var e = sc.foes[i]; if (!sc.alive(e) || this.hit.indexOf(e) >= 0) continue;
+      var dx = e.x - this.P.x, dy = e.y - this.P.y, f = dx * cx + dy * cy, p = Math.abs(-dx * cy + dy * cx);
+      if (f > 0 && f < L + 14 && p < 18 + 8) { this.hit.push(e); sc.hit(e, 15, { col: LEAF }); sc.spark(e.x, e.y, LEAF, 6, 110, 0.4); }
+    }
+    var ax = sc.ally.x - this.P.x, ay = sc.ally.y - this.P.y, af = ax * cx + ay * cy, ap = Math.abs(-ax * cy + ay * cx);
+    if (!this.healed && af > 0 && af < L + 14 && ap < 26) { this.healed = true; sc.heal(10); }
+  }
+  return this.t >= this.ext + this.hold + this.ret;
+};
+Lash.prototype.draw = function (sc, g) {
+  var L = this.reach(); if (L < 2) return;
+  var cx = Math.cos(this.ang), cy = Math.sin(this.ang), nx = -cy, ny = cx, n = 16, i, pts = [];
+  for (i = 0; i <= n; i++) {
+    var k = i / n, wig = Math.sin(k * 9 - sc.t * 28) * 5 * Math.sin(k * Math.PI);
+    pts.push([this.P.x + cx * (22 + (L - 22) * k) + nx * wig, this.P.y + cy * (22 + (L - 22) * k) + ny * wig]);
+  }
+  g.lineCap = 'round';
+  for (i = 1; i <= n; i++) {
+    var w = lerp(13, 3, i / n);
+    g.strokeStyle = BARK; g.lineWidth = w; g.beginPath(); g.moveTo(pts[i - 1][0], pts[i - 1][1]); g.lineTo(pts[i][0], pts[i][1]); g.stroke();
+    g.strokeStyle = BARK_HI; g.lineWidth = w * 0.35; g.beginPath(); g.moveTo(pts[i - 1][0], pts[i - 1][1]); g.lineTo(pts[i][0], pts[i][1]); g.stroke();
+  }
+  for (i = 3; i < n; i += 3) {
+    var t = pts[i], side = i % 2 ? 1 : -1;
+    g.strokeStyle = '#d9c9a0'; g.lineWidth = 2; g.beginPath(); g.moveTo(t[0], t[1]); g.lineTo(t[0] + nx * 7 * side + cx * 4, t[1] + ny * 7 * side + cy * 4); g.stroke();
+  }
+  var tip = pts[n]; g.fillStyle = LEAF; g.beginPath(); g.ellipse(tip[0], tip[1], 8, 4, this.ang, 0, TAU); g.fill();
+};
+
+// Treant Rod B: a leaf blade that flies out on a curve and loops back.
+function Leaf(sc, ang, dist) {
+  this.ang = ang; this.D = clamp(dist, 140, 340); this.t = 0; this.dur = 1.1; this.x = sc.P.x; this.y = sc.P.y; this.trail = []; this.healT = 0;
+}
+Leaf.prototype.update = function (sc, dt) {
+  this.t += dt; var k = this.t / this.dur;
+  var cx = Math.cos(this.ang), cy = Math.sin(this.ang), a = this.D / 2, b = 64, cxp = sc.P.x + cx * a, cyp = sc.P.y + cy * a;
+  var u = k * TAU;
+  this.x = cxp - cx * a * Math.cos(u) - cy * b * Math.sin(u); this.y = cyp - cy * a * Math.cos(u) + cx * b * Math.sin(u);
+  this.trail.push([this.x, this.y]); if (this.trail.length > 10) this.trail.shift();
+  for (var i = 0; i < sc.foes.length; i++) {
+    var e = sc.foes[i];
+    if (sc.alive(e) && e.cd <= 0 && Math.hypot(e.x - this.x, e.y - this.y) < 26) { e.cd = 0.45; sc.hit(e, 7, { col: LEAF }); }
+  }
+  this.healT -= dt;
+  if (this.healT <= 0 && Math.hypot(sc.ally.x - this.x, sc.ally.y - this.y) < 28) { this.healT = 0.8; sc.heal(7); }
+  return this.t >= this.dur;
+};
+Leaf.prototype.draw = function (sc, g) {
+  g.lineCap = 'round';
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(89,196,106,' + (i / this.trail.length * 0.4) + ')'; g.lineWidth = i * 0.9;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.save(); g.translate(this.x, this.y); g.rotate(this.t * 22);
+  g.fillStyle = LEAF; g.strokeStyle = '#d7ffd0'; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(-13, 0); g.quadraticCurveTo(0, -9, 13, 0); g.quadraticCurveTo(0, 9, -13, 0); g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(-10, 0); g.lineTo(10, 0); g.stroke();
+  g.restore();
+};
+
+// Treant Rod C: a seed dropped at the cursor that sprouts and bursts in thorns.
+function Bloom(sc, x, y) { this.x = x; this.y = y; this.t = 0; this.R = 58; this.burst = false; this.ground = true; }
+Bloom.prototype.update = function (sc, dt) {
+  this.t += dt;
+  if (!this.burst && this.t >= 0.45) {
+    this.burst = true;
+    for (var i = 0; i < sc.foes.length; i++) { var e = sc.foes[i]; if (sc.alive(e) && Math.hypot(e.x - this.x, e.y - this.y) < this.R + 14) sc.hit(e, 22, { col: LEAF }); }
+    if (Math.hypot(sc.ally.x - this.x, sc.ally.y - this.y) < this.R + 14) sc.heal(12);
+    sc.spark(this.x, this.y, LEAF, 18, 170, 0.5);
+  }
+  return this.t >= 0.8;
+};
+Bloom.prototype.draw = function (sc, g) {
+  var x = this.x, y = this.y, k;
+  if (!this.burst) {
+    k = this.t / 0.45;
+    g.setLineDash([4, 6]); g.strokeStyle = 'rgba(227,164,91,' + (0.35 + 0.35 * k) + ')'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, this.R, 0, TAU); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = LEAF; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x, y + 6 - 18 * k); g.stroke();
+    g.fillStyle = '#e8ffd0'; g.beginPath(); g.arc(x, y + 6 - 18 * k, 3 + 4 * k, 0, TAU); g.fill();
+  } else {
+    k = (this.t - 0.45) / 0.35;
+    g.globalAlpha = 1 - k; g.strokeStyle = BARK_HI; g.lineWidth = 3; g.lineCap = 'round';
+    for (var i = 0; i < 12; i++) {
+      var a = i * TAU / 12 + 0.2, r1 = this.R * 0.25 + this.R * 0.55 * easeOut(k), r2 = r1 + 16;
+      g.beginPath(); g.moveTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); g.lineTo(x + Math.cos(a) * r2, y + Math.sin(a) * r2); g.stroke();
+    }
+    g.fillStyle = 'rgba(89,196,106,0.2)'; g.beginPath(); g.arc(x, y, this.R, 0, TAU); g.fill(); g.globalAlpha = 1;
+  }
+};
+
+// Totem Staff A: a rune stone lobbed to the cursor.
+function Stone(sc, tx, ty) {
+  var m = sc.muzzle(); this.sx = m.x; this.sy = m.y; this.tx = tx; this.ty = ty; this.t = 0; this.dur = 0.55; this.x = m.x; this.y = m.y; this.h = 0; this.landed = false;
+}
+Stone.prototype.update = function (sc, dt) {
+  this.t += dt; var k = clamp(this.t / this.dur, 0, 1);
+  this.x = lerp(this.sx, this.tx, k); this.y = lerp(this.sy, this.ty, k); this.h = Math.sin(k * Math.PI) * 84;
+  if (k >= 1 && !this.landed) {
+    this.landed = true;
+    for (var i = 0; i < sc.foes.length; i++) { var e = sc.foes[i]; if (sc.alive(e) && Math.hypot(e.x - this.tx, e.y - this.ty) < 46 + 14) sc.hit(e, 18, { col: RUNE }); }
+    sc.ents.push(new Ring(this.tx, this.ty, 46, 0.3, RUNE, 3)); sc.spark(this.tx, this.ty, RUNE, 12, 130, 0.45);
+    return true;
+  }
+  return false;
+};
+Stone.prototype.draw = function (sc, g) {
+  g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(this.x, this.y, 9, 4, 0, 0, TAU); g.fill();
+  var y = this.y - this.h;
+  g.save(); g.translate(this.x, y); g.rotate(this.t * 9);
+  g.fillStyle = '#4b4132'; g.strokeStyle = RUNE; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(0, -10); g.lineTo(8, 0); g.lineTo(0, 10); g.lineTo(-8, 0); g.closePath(); g.fill(); g.stroke();
+  g.strokeStyle = RUNE; g.lineWidth = 1.5; g.beginPath(); g.moveTo(-3, -3); g.lineTo(3, 3); g.moveTo(3, -3); g.lineTo(-3, 3); g.stroke();
+  g.restore();
+};
+
+// Totem Staff B: a beat along the ground, then a ring booming from the totem.
+function Beat(sc, accent) {
+  var m = sc.muzzle(), T = sc.totem; this.sx = m.x; this.sy = m.y; this.T = T; this.accent = accent; this.R = accent ? 150 : 110;
+  this.t = 0; this.run = 0.2; this.boom = 0.4; this.hit = false; this.ground = true;
+}
+Beat.prototype.update = function (sc, dt) {
+  this.t += dt;
+  if (this.t >= this.run && !this.hit) {
+    this.hit = true; sc.totem.flash = 0.15;
+    for (var i = 0; i < sc.foes.length; i++) { var e = sc.foes[i]; if (sc.alive(e) && Math.hypot(e.x - this.T.x, e.y - this.T.y) < this.R + 10) sc.hit(e, 14, { col: SPIRIT }); }
+    if (this.accent && Math.hypot(sc.ally.x - this.T.x, sc.ally.y - this.T.y) < this.R) sc.heal(6);
+  }
+  return this.t >= this.run + this.boom;
+};
+Beat.prototype.draw = function (sc, g) {
+  var k;
+  if (this.t < this.run) {
+    k = this.t / this.run;
+    var x = lerp(this.sx, this.T.x, k), y = lerp(this.sy, this.T.y + 8, k);
+    g.strokeStyle = 'rgba(111,227,196,0.55)'; g.lineWidth = 3; g.setLineDash([8, 6]);
+    g.beginPath(); g.moveTo(this.sx, this.sy); g.lineTo(x, y); g.stroke(); g.setLineDash([]);
+    g.fillStyle = SPIRIT; g.beginPath(); g.arc(x, y, 5, 0, TAU); g.fill();
+  } else {
+    k = (this.t - this.run) / this.boom;
+    g.globalAlpha = 1 - k; g.strokeStyle = SPIRIT; g.lineWidth = this.accent ? 6 : 3;
+    g.setLineDash([14, 8]); g.lineDashOffset = -k * 60;
+    g.beginPath(); g.arc(this.T.x, this.T.y, this.R * easeOut(k), 0, TAU); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(111,227,196,0.10)'; g.beginPath(); g.arc(this.T.x, this.T.y, this.R * easeOut(k), 0, TAU); g.fill(); g.globalAlpha = 1;
+  }
+};
+
+// Totem Staff C: a spirit mask that flies to the totem and circles it.
+function Mask(sc, slot) {
+  var m = sc.muzzle(); this.x = m.x; this.y = m.y; this.state = 'fly'; this.a = rand(0, TAU); this.r = 80 + (slot % 3) * 22; this.w = (slot % 2 ? -1 : 1) * 3.6; this.life = 2.8; this.trail = []; this.cool = [0, 0, 0];
+}
+Mask.prototype.update = function (sc, dt) {
+  var T = sc.totem, i;
+  if (this.state === 'fly') {
+    var gx = T.x + Math.cos(this.a) * this.r, gy = T.y + Math.sin(this.a) * this.r, dx = gx - this.x, dy = gy - this.y, d = Math.hypot(dx, dy) || 1;
+    this.x += dx / d * 620 * dt; this.y += dy / d * 620 * dt;
+    if (d < 14) this.state = 'orbit';
+  } else {
+    this.life -= dt; this.a += this.w * dt;
+    this.x = T.x + Math.cos(this.a) * this.r; this.y = T.y + Math.sin(this.a) * this.r * 0.78;
+    for (i = 0; i < sc.foes.length; i++) {
+      var e = sc.foes[i];
+      this.cool[i] = Math.max(0, this.cool[i] - dt);
+      if (sc.alive(e) && this.cool[i] <= 0 && Math.hypot(e.x - this.x, e.y - this.y) < 26) { this.cool[i] = 0.5; sc.hit(e, 7, { col: SPIRIT }); }
+    }
+  }
+  this.trail.push([this.x, this.y]); if (this.trail.length > 10) this.trail.shift();
+  return this.life <= 0;
+};
+Mask.prototype.draw = function (sc, g) {
+  var a = clamp(this.life / 0.4, 0, 1);
+  g.lineCap = 'round'; g.globalCompositeOperation = 'lighter';
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(111,227,196,' + (i / this.trail.length * 0.4 * a) + ')'; g.lineWidth = i * 0.8;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.globalCompositeOperation = 'source-over'; g.globalAlpha = a;
+  g.fillStyle = '#1c3a37'; g.strokeStyle = SPIRIT; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(this.x - 8, this.y - 9); g.lineTo(this.x + 8, this.y - 9); g.lineTo(this.x + 6, this.y + 8); g.lineTo(this.x - 6, this.y + 8); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#c8fff0'; g.fillRect(this.x - 5, this.y - 4, 3, 3); g.fillRect(this.x + 2, this.y - 4, 3, 3);
+  g.globalAlpha = 1;
+};
+
+/* ---------------------------------------------------------------- the styles */
+
+function aimDist(sc) { return Math.hypot(sc.tgt.x - sc.P.x, sc.tgt.y - sc.P.y); }
+function fireBolt(dmg, heal) { return function (sc) { sc.ents.push(new Bolt(sc, sc.aim, dmg, heal)); }; }
+
+var STYLES = {
+  sprite: [
+    { key: 'now', label: 'Today: seed bolt', interval: 0.35, glow: SEED, fire: fireBolt(9, false) },
+    { key: 'A', label: 'A  Spore Puff', interval: 0.8, glow: POLLEN, fire: function (sc) {
+        for (var i = 0; i < 8; i++) sc.ents.push(new Spore(sc, sc.aim + rand(-0.36, 0.36)));
+        var m = sc.muzzle(); sc.spark(m.x, m.y, POLLEN, 8, 90, 0.4);
+      } },
+    { key: 'B', label: 'B  Firefly Hop', interval: 0.5, glow: POLLEN, fire: function (sc) { sc.ents.push(new Firefly(sc, sc.aim)); } },
+    { key: 'C', label: 'C  Pollen Stream', glow: POLLEN, tick: function (sc, dt) {
+        sc.acc += dt * 130;
+        var m = sc.muzzle(), cx = Math.cos(sc.aim), cy = Math.sin(sc.aim);
+        while (sc.acc >= 1) {
+          sc.acc -= 1;
+          var a = sc.aim + rand(-0.045, 0.045), s = rand(340, 420), bright = Math.random() < 0.35;
+          sc.parts.push({ x: m.x, y: m.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.65, max: 0.65, r: bright ? 2.6 : 4.2, col: bright ? '#ffffff' : POLLEN, drag: 0.85, wob: rand(14, 34), ph: rand(0, TAU), nx: -cy, ny: cx, alpha: bright ? 1 : 0.7, shrink: true });
+        }
+        sc.holdT -= dt;
+        if (sc.holdT <= 0) {
+          sc.holdT = 0.1;
+          for (var i = 0; i < sc.foes.length; i++) {
+            var e = sc.foes[i]; if (!sc.alive(e)) continue;
+            var dx = e.x - sc.P.x, dy = e.y - sc.P.y, f = dx * cx + dy * cy, p = Math.abs(-dx * cy + dy * cx);
+            if (f > 10 && f < 245 && p < 8 + f * 0.05 + 17) sc.hit(e, 2.6, { seed: true, col: POLLEN });
+          }
+        }
+      } }
+  ],
+  treant: [
+    { key: 'now', label: 'Today: healing bolt', interval: 0.3, glow: SEED, fire: fireBolt(8, true) },
+    { key: 'A', label: 'A  Root Lash', interval: 0.55, glow: BARK_HI, fire: function (sc) { sc.ents.push(new Lash(sc, sc.aim)); } },
+    { key: 'B', label: 'B  Leaf Boomerang', interval: 0.7, glow: LEAF, fire: function (sc) { sc.ents.push(new Leaf(sc, sc.aim, aimDist(sc))); } },
+    { key: 'C', label: 'C  Thorn Bloom', interval: 0.85, glow: LEAF, fire: function (sc) {
+        var d = Math.min(aimDist(sc), 330), x = sc.P.x + Math.cos(sc.aim) * d, y = sc.P.y + Math.sin(sc.aim) * d;
+        sc.ents.push(new Bloom(sc, x, y));
+      } }
+  ],
+  totem: [
+    { key: 'now', label: 'Today: seed bolt', interval: 0.35, glow: SEED, fire: fireBolt(9, false) },
+    { key: 'A', label: 'A  Rune Stone', interval: 0.7, glow: RUNE, fire: function (sc) { sc.ents.push(new Stone(sc, sc.tgt.x, sc.tgt.y)); } },
+    { key: 'B', label: 'B  Drumbeat', interval: 0.55, glow: SPIRIT, fire: function (sc) { sc.ents.push(new Beat(sc, sc.shots % 3 === 0)); } },
+    { key: 'C', label: 'C  Spirit Orbit', interval: 0.8, glow: SPIRIT, fire: function (sc) {
+        var n = 0; sc.ents.forEach(function (e) { if (e instanceof Mask) n++; });
+        if (n >= 4) { for (var i = 0; i < sc.ents.length; i++) if (sc.ents[i] instanceof Mask) { sc.ents[i].life = Math.min(sc.ents[i].life, 0.4); break; } }
+        sc.ents.push(new Mask(sc, sc.shots));
+      } }
+  ]
+};
+
+/* ---------------------------------------------------------------- the cards under each scene */
+
+var CARDS = {
+  sprite: {
+    now: { name: 'Seed bolt', blurb: 'A small bolt that sticks a seed in the first enemy it hits.', rows: [['Feels like', 'The same shot as the other two staffs.'], ['Numbers', '9 damage, every 0.35 s, 600 px/s']] },
+    A: { name: 'Spore Puff', blurb: 'A soft cone of eight spores that slow down as they drift. Each one seeds what it touches.', rows: [
+      ['Feels like', 'A dandelion shotgun. Best close up, thin at range.'],
+      ['Keeps', 'One tap seeds a whole pack, so one kill frees a Sprite sooner.'],
+      ['Watch for', 'Spread makes it weak at long range, which suits a Healer who stays near the fight.'],
+      ['Numbers', '8 spores × 3.5, every 0.8 s. About 35 a second point-blank, about 12 at 250 px.']] },
+    B: { name: 'Firefly Hop', blurb: 'A mote flies to the enemy, seeds it, then hops to the nearest enemy that isn’t seeded yet. Up to three hops.', rows: [
+      ['Feels like', 'Tag and spread. Lining up shots matters less than picking the first target.'],
+      ['Keeps', 'Seeds three enemies from one shot, so kills free Sprites faster than any other option here.'],
+      ['Watch for', 'Weaker on a lone boss, where it only seeds once.'],
+      ['Numbers', '7 per hit, every 0.5 s. About 14 a second on one target, about 42 across three.']], pick: true },
+    C: { name: 'Pollen Stream', blurb: 'Hold to spray a thin, glittering stream 245 px long. It seeds and damages everything it sweeps across.', rows: [
+      ['Feels like', 'A delicate flamethrower. You paint targets by moving the cursor.'],
+      ['Keeps', 'Seeds a group at once. Sweeping across a pack tags every enemy.'],
+      ['Watch for', 'Close to the Flamethrower in feel, and short range.'],
+      ['Numbers', '2.6 per tick, 10 ticks a second: 26 a second on each enemy in the stream.']] }
+  },
+  treant: {
+    now: { name: 'Healing bolt', blurb: 'A small bolt that heals an ally it passes through.', rows: [['Feels like', 'The same shot as the other two staffs.'], ['Numbers', '8 damage, every 0.3 s, heals 7']] },
+    A: { name: 'Root Lash', blurb: 'A thorny root whips out from you along your aim, 250 px, then snaps back. It hits everything on the line and heals allies it touches.', rows: [
+      ['Feels like', 'A fast spear thrust made of roots. No travel time, so it always connects.'],
+      ['Keeps', 'Heals an ally in the line instantly. Fits the Treant and vine: it’s all roots.'],
+      ['Watch for', 'A straight line only, and 250 px of reach.'],
+      ['Numbers', '15 per enemy in the line, every 0.55 s: about 27 a second each. Heals 10.']], pick: true },
+    B: { name: 'Leaf Boomerang', blurb: 'A razor leaf flies out on a curve and loops back to you. It hits on the way out and on the way back, and heals allies on both legs.', rows: [
+      ['Feels like', 'A curving throw that covers the sides of the line, not just the middle.'],
+      ['Keeps', 'Heals allies it passes in either direction, closest to today’s behaviour.'],
+      ['Watch for', 'Many leaves in the air at once on fast fire-rate builds.'],
+      ['Numbers', '7 per pass, every 0.7 s: 14 per throw on one enemy, about 20 a second.']] },
+    C: { name: 'Thorn Bloom', blurb: 'A seed drops at your cursor and sprouts for half a second (the ring shows where). Then it bursts in thorns, hitting enemies inside and healing allies inside.', rows: [
+      ['Feels like', 'Place and punish. Aim at an ally to heal them without a bolt passing through.'],
+      ['Keeps', 'Heals allies at the cursor, so it can target someone out of line.'],
+      ['Watch for', 'The delay lets fast enemies slip out. Strong against slow ones and bosses.'],
+      ['Numbers', '22 to everything in a 58 px ring, every 0.85 s: about 26 a second each. Heals 12.']] }
+  },
+  totem: {
+    now: { name: 'Seed bolt', blurb: 'A small bolt. A hit on an enemy near a totem charges it.', rows: [['Feels like', 'The same shot as the other two staffs.'], ['Numbers', '9 damage, every 0.35 s, 600 px/s']] },
+    A: { name: 'Rune Stone', blurb: 'A heavy stone lobbed to your cursor. It lands with a small blast (46 px radius).', rows: [
+      ['Feels like', 'A mortar. You aim at the ground where they’ll be.'],
+      ['Keeps', 'The blast hits several enemies near a totem at once, so each stone can add several charges.'],
+      ['Watch for', 'The 0.55 s flight misses anything that moves.'],
+      ['Numbers', '18 to everything in the blast, every 0.7 s: about 26 a second each.']] },
+    B: { name: 'Drumbeat', blurb: 'Each tap sends a beat along the ground to your totem, which booms a ring around itself. Every third beat is bigger, and also heals allies in it.', rows: [
+      ['Feels like', 'Your totem is the gun and your job is to place it well. Hits arrive in a rhythm.'],
+      ['Keeps', 'Every enemy in the ring counts as a charge, so totems pulse sooner than with any other option.'],
+      ['Watch for', 'With no totem out (the first 10 s) the beat would ring small from the staff tip instead, so it never goes silent.'],
+      ['Numbers', '14 to everything in a 110 px ring (150 px every third), every 0.55 s: about 25 a second each.']], pick: true },
+    C: { name: 'Spirit Orbit', blurb: 'A glowing mask flies to your totem and circles it for 2.8 s, up to four at once. It clips enemies that come near.', rows: [
+      ['Feels like', 'Building a turret zone. The totem becomes a spinning saw.'],
+      ['Keeps', 'Masks keep charging the totem on their own while you reposition.'],
+      ['Watch for', 'Needs enemies to come to the totem. Weak if you place it where nothing walks.'],
+      ['Numbers', '7 per clip, one mask clipping an enemy about every 0.5 s. About 14 a second per mask, up to about 56 with four.']] }
+  }
+};
+
+/* ---------------------------------------------------------------- page wiring */
+
+var scenes = [], paused = false, slow = false, last = 0;
+var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduce) paused = true;
+
+function warm(sc) { for (var i = 0; i < 170; i++) sc.step(1 / 60); }
+
+['sprite', 'treant', 'totem'].forEach(function (weapon) {
+  var holder = document.querySelector('.tiles[data-weapon="' + weapon + '"]');
+  STYLES[weapon].forEach(function (style) {
+    var card = CARDS[weapon][style.key];
+    var fig = document.createElement('figure');
+    fig.className = 'tile' + (style.key === 'now' ? ' now' : '') + (card.pick ? ' pick' : '');
+    var cv = document.createElement('canvas');
+    cv.setAttribute('role', 'img');
+    cv.setAttribute('aria-label', style.label + ': ' + card.blurb);
+    fig.appendChild(cv);
+    var cap = document.createElement('figcaption');
+    var head = document.createElement('div'); head.className = 'head';
+    var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = style.key === 'now' ? 'Today' : 'Option ' + style.key;
+    var h = document.createElement('h3'); h.textContent = card.name;
+    head.appendChild(tag); head.appendChild(h);
+    if (card.pick) { var b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Suggested'; head.appendChild(b); }
+    var p = document.createElement('p'); p.textContent = card.blurb;
+    var dl = document.createElement('dl');
+    card.rows.forEach(function (r) {
+      var dt = document.createElement('dt'); dt.textContent = r[0];
+      var dd = document.createElement('dd'); dd.textContent = r[1]; if (r[0] === 'Numbers') dd.className = 'num';
+      dl.appendChild(dt); dl.appendChild(dd);
+    });
+    cap.appendChild(head); cap.appendChild(p); cap.appendChild(dl); fig.appendChild(cap);
+    holder.appendChild(fig);
+    var sc = new Scene(cv, weapon, style);
+    warm(sc); sc.draw();
+    scenes.push(sc);
+  });
+});
+
+if ('IntersectionObserver' in window) {
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) { for (var i = 0; i < scenes.length; i++) if (scenes[i].cv === en.target) scenes[i].visible = en.isIntersecting; });
+  }, { rootMargin: '80px' });
+  scenes.forEach(function (sc) { sc.visible = false; io.observe(sc.cv); });
+}
+
+function frame(now) {
+  var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now;
+  if (!paused) {
+    var k = slow ? 0.35 : 1;
+    for (var i = 0; i < scenes.length; i++) {
+      var sc = scenes[i]; if (!sc.visible) continue;
+      var rest = dt * k, n = Math.ceil(rest / (1 / 60));
+      for (var j = 0; j < n; j++) sc.step(rest / n);
+      sc.draw();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+var slowBtn = document.getElementById('slow'), pauseBtn = document.getElementById('pause'), restartBtn = document.getElementById('restart');
+pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+slowBtn.addEventListener('click', function () { slow = !slow; slowBtn.setAttribute('aria-pressed', slow ? 'true' : 'false'); });
+pauseBtn.addEventListener('click', function () { paused = !paused; pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false'); });
+restartBtn.addEventListener('click', function () { scenes.forEach(function (sc) { sc.reset(); warm(sc); sc.draw(); }); });
+
+window.__mockup = { scenes: scenes, step: function (s) { scenes.forEach(function (sc) { for (var i = 0; i < s * 60; i++) sc.step(1 / 60); sc.draw(); }); } };
+})();
+</script>

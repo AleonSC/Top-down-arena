@@ -1,0 +1,393 @@
+<title>Chain Light Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, a patch of arena at the game's scale (1 canvas px =
+   1 arena px): the Elementalist Healer casting Chain Light at a pack of enemies, on a loop at its real fire rate.
+   Under it, the controls and still frames through one cast. Then a card per style, then build notes.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --light: #fff2a0; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--light); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 400; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2716; border-color: var(--light); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--light); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 4 / 3; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--light); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--light); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .now { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist Healer · Chain Light · pick a style</div>
+    <h1>Chain <span>Light</span></h1>
+    <p class="lead">Chain Light throws a 320 px cone of light (about 70° wide) every half second, and its 40 damage is
+      shared between every enemy inside it. Today that's a flat flash and a bolt to each enemy. Below are four other
+      ways it could look, in the arena at the game's scale. Change the number of enemies to see the damage split,
+      and turn on Barrage for its extra cones.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="400"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group"><span class="label">Enemies in it</span>
+        <button id="n1" aria-pressed="false">1</button><button id="n3" aria-pressed="true">3</button><button id="n6" aria-pressed="false">6</button>
+      </div>
+      <div class="group"><span class="label">Barrage</span>
+        <button id="bar0" aria-pressed="true">Off</button><button id="bar1" aria-pressed="false">2 extra cones</button>
+      </div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one cast"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All drawing, on each screen: the cone is <code>FxKind.LightCone</code> (<code>DrawLightConeFx</code>, <code>WorldEffects.cs</code>) and the light to each enemy is <code>FxKind.Bolt</code> in the light's warm colour (<code>DrawBoltFx</code>, and <code>DrawJuicyBolt</code> with effects on). No protocol change: the effects already carry the cone's aim, angle and reach, and a bolt's two ends.</li>
+      <li>The damage lands at once on everything in the cone, as now. B's chain (links 40 ms apart) and C's wavefront (0.16 s out to the reach) light enemies up a moment after they're hit. If that reads as lag, they can play faster.</li>
+      <li>Only Chain Light's bolts change. Chain Lightning, the Storm Hammer's arcs and other bolts are a cooler blue (<code>BoltShot</code>) and keep their look.</li>
+      <li>The glows (the cone's light, beams, halos) go in the additive glow pass like the melee energy, so they also show, clipped, in the lobby's loadout preview.</li>
+      <li>With Visual effects off it draws exactly as now (render check <code>IDENTICAL</code>).</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const LIGHT = [1, 0.95, 0.6];   // Defs.BulletColor(HolyShot)
+  const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${a})`;
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // The game's numbers (Core/KitWeapons.cs LightCone): reach 320, half angle 0.6 rad, 40 damage shared, every 0.5 s;
+  // Barrage: cones edge to edge, at most 3.5 rad together, the extra ones at 60% damage.
+  const REACH = 320, HALF = 0.6, DMG = 40, PERIOD = 0.5, BODY = 16;
+  const P = { x: 230, y: 200 }, AIM = 0;
+  // Enemies by angle off the aim and distance: the first six are inside the cone, the last two never are.
+  const SPOTS = [{ a: -0.25, d: 140 }, { a: 0.3, d: 205 }, { a: -0.45, d: 270 }, { a: 0.08, d: 300 }, { a: 0.5, d: 115 }, { a: -0.05, d: 228 }];
+  const MISSES = [{ a: 1.0, d: 210 }, { a: 0.12, d: 370 }];
+  const BARRAGE_SPOTS = [{ a: 1.25, d: 180 }, { a: -1.3, d: 240 }];
+
+  function castFor(n, barrage) {
+    const cones = [];
+    const k = barrage ? 3 : 1, half = Math.min(HALF, 3.5 / (2 * k));
+    for (let v = 0; v < k; v++) cones.push({ aim: AIM + (v === 0 ? 0 : (v % 2 ? 1 : -1) * 2 * half * Math.ceil(v / 2)), half, reach: REACH, main: v === 0 });
+    const spots = SPOTS.slice(0, n).concat(barrage ? BARRAGE_SPOTS : []);
+    const enemies = spots.map(s => ({ x: P.x + Math.cos(AIM + s.a) * s.d, y: P.y + Math.sin(AIM + s.a) * s.d, d: s.d, a: s.a }))
+      .concat(MISSES.map(s => ({ x: P.x + Math.cos(AIM + s.a) * s.d, y: P.y + Math.sin(AIM + s.a) * s.d, d: s.d, a: s.a, out: true })));
+    for (const e of enemies) {  // each enemy belongs to the cone it's nearest the middle of
+      if (e.d > REACH) { e.cone = -1; continue; }
+      let best = -1, off = 1e9;
+      cones.forEach((c, i) => { const o = Math.abs(((e.a + AIM - c.aim) + Math.PI * 3) % TAU - Math.PI); if (o <= c.half + 0.05 && o < off) { off = o; best = i; } });
+      e.cone = best;
+    }
+    cones.forEach((c, i) => {
+      const hit = enemies.filter(e => e.cone === i).sort((a, b) => a.d - b.d);
+      hit.forEach((e, j) => { e.share = Math.round((c.main ? DMG : DMG * 0.6) / hit.length); e.order = j; });
+      c.hits = hit;
+    });
+    return { cones, enemies };
+  }
+
+  // --- Drawing helpers ---
+  const sprites = {};
+  function sprite(c) {  // a soft disc of light (the projectiles mockup's glow sprite)
+    const k = c.join();
+    if (sprites[k]) return sprites[k];
+    const s = document.createElement("canvas"); s.width = s.height = 64;
+    const x = s.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, rgba(c, 0.9)); g.addColorStop(0.28, rgba(c, 0.32)); g.addColorStop(1, rgba(c, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return sprites[k] = s;
+  }
+  function glow(ctx, x, y, r, c, a) {
+    if (a <= 0.01) return;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = Math.min(1, a);
+    ctx.drawImage(sprite(c), x - r, y - r, r * 2, r * 2); ctx.restore();
+  }
+  function wedge(ctx, aim, half, r0, r1) {
+    ctx.beginPath(); ctx.arc(P.x, P.y, r1, aim - half, aim + half); ctx.arc(P.x, P.y, Math.max(0.1, r0), aim + half, aim - half, true); ctx.closePath();
+  }
+  function jagged(ctx, ax, ay, bx, by, segs, amp, R) {
+    const pts = [[ax, ay]], nx = -(by - ay), ny = bx - ax, len = Math.hypot(nx, ny) || 1;
+    for (let i = 1; i < segs; i++) { const f = i / segs, j = (R() - 0.5) * 2 * amp * Math.sin(f * Math.PI); pts.push([ax + (bx - ax) * f + nx / len * j, ay + (by - ay) * f + ny / len * j]); }
+    pts.push([bx, by]);
+    return pts;
+  }
+  function stroke(ctx, pts, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
+  const muzzle = c => ({ x: P.x + Math.cos(c.aim) * BODY, y: P.y + Math.sin(c.aim) * BODY });
+
+  function floor(ctx) {
+    ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, 960, 400);
+    ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+    for (let x = 0; x < 960; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, 400); ctx.stroke(); }
+    for (let y = 0; y < 400; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(960, y + 0.5); ctx.stroke(); }
+  }
+  function healer(ctx, aim) {
+    const { x, y } = P;
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 13, 16, 7, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#14261c"; ctx.beginPath(); ctx.arc(x, y, BODY, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "#59ff8c"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, BODY, 0, TAU); ctx.stroke();
+    ctx.fillStyle = "#fff6c0"; ctx.beginPath(); ctx.arc(x + Math.cos(aim) * 9, y + Math.sin(aim) * 9, 4.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 2, 0, TAU); ctx.fill();
+  }
+  function enemy(ctx, e, flash, num, numAge) {
+    const r = 13 * (1 + 0.16 * flash);
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(Math.atan2(P.y - e.y, P.x - e.x));
+    ctx.fillStyle = flash > 0 ? `rgba(255,255,255,${0.5 + 0.5 * flash})` : "#5a1f24";
+    ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(-r * 0.7, r * 0.8); ctx.lineTo(-r * 0.7, -r * 0.8); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#ff5a5f"; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+    if (num && numAge >= 0 && numAge < 0.6) {
+      ctx.font = "700 13px 'IBM Plex Mono', monospace"; ctx.textAlign = "center";
+      ctx.fillStyle = `rgba(255,236,170,${1 - numAge / 0.6})`; ctx.fillText(String(num), e.x, e.y - 20 - numAge * 26);
+    }
+  }
+
+  // --- The styles. Each draws one cast at t seconds after it fires, and says when each enemy lights up. ---
+  const STYLES = {
+    now: { key: "Now", name: "Today's look", lit: () => 0,
+      draw(ctx, cast, t) {
+        for (const c of cast.cones) {
+          const f = t / 0.3; if (f >= 1) continue;
+          const fade = 1 - f, r = c.reach * (0.6 + 0.4 * Math.min(1, f / 0.15));
+          ctx.fillStyle = rgba(LIGHT, 0.22 * fade); wedge(ctx, c.aim, c.half, 0, r); ctx.fill();
+          ctx.strokeStyle = `rgba(255,255,255,${0.7 * fade})`; ctx.lineWidth = 2.5;
+          for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + Math.cos(c.aim + s * c.half) * r, P.y + Math.sin(c.aim + s * c.half) * r); ctx.stroke(); }
+          ctx.strokeStyle = rgba(LIGHT, 0.8 * fade); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(P.x, P.y, r, c.aim - c.half, c.aim + c.half); ctx.stroke();
+          for (let k = 0; k < 5; k++) { const a = c.aim - c.half * 0.8 + c.half * 1.6 * k / 4; ctx.strokeStyle = `rgba(255,255,255,${0.45 * fade})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(P.x + Math.cos(a) * r * 0.15, P.y + Math.sin(a) * r * 0.15); ctx.lineTo(P.x + Math.cos(a) * r * (0.5 + 0.45 * f), P.y + Math.sin(a) * r * (0.5 + 0.45 * f)); ctx.stroke(); }
+          for (const e of c.hits) {  // today's bolt with effects on (DrawJuicyBolt): re-forking, a white core
+            const bf = t / 0.2; if (bf >= 1) continue;
+            const m = muzzle(c), R = rnd(1 + Math.floor(t * 24) * 31 + Math.round(e.x)), pts = jagged(ctx, m.x, m.y, e.x, e.y, 7, 9.5, R);
+            stroke(ctx, pts, 4, rgba(LIGHT, 0.55 * (1 - bf))); stroke(ctx, pts, 1.6, `rgba(255,255,255,${1 - bf})`);
+          }
+        }
+      } },
+    radiance: { key: "A", name: "Radiance", lit: () => 0.02,
+      draw(ctx, cast, t) {
+        const R = rnd(77);
+        for (const c of cast.cones) {
+          const k = easeOut(t / 0.12), fade = t < 0.12 ? 1 : clamp01(1 - (t - 0.12) / 0.33);
+          if (fade <= 0) continue;
+          const r = c.reach * (0.35 + 0.65 * k);
+          ctx.save(); ctx.globalCompositeOperation = "lighter";
+          const g = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, r);
+          g.addColorStop(0, `rgba(255,255,255,${0.5 * fade})`); g.addColorStop(0.25, rgba(LIGHT, 0.3 * fade)); g.addColorStop(1, rgba(LIGHT, 0));
+          for (const [hm, am] of [[0.8, 1], [1, 0.55], [1.15, 0.25]]) { ctx.globalAlpha = am; ctx.fillStyle = g; wedge(ctx, c.aim, c.half * hm, 0, r); ctx.fill(); }  // soft edges
+          ctx.globalAlpha = 1;
+          for (let i = 0; i < 9; i++) {  // god-rays, flickering
+            const a = c.aim + (R() - 0.5) * 2 * c.half * 0.9, len = r * (0.55 + 0.4 * R()), fl = 0.5 + 0.5 * Math.sin(t * 40 + i * 2.1);
+            const lg = ctx.createLinearGradient(P.x, P.y, P.x + Math.cos(a) * len, P.y + Math.sin(a) * len);
+            lg.addColorStop(0, `rgba(255,255,255,${0.35 * fade * fl})`); lg.addColorStop(1, rgba(LIGHT, 0));
+            ctx.strokeStyle = lg; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(P.x, P.y); ctx.lineTo(P.x + Math.cos(a) * len, P.y + Math.sin(a) * len); ctx.stroke();
+          }
+          for (const e of c.hits) {  // a soft beam to each, a halo on each
+            const m = muzzle(c), bf = clamp01(1 - (t - 0.02) / 0.34);
+            if (t < 0.02) continue;
+            const lg = ctx.createLinearGradient(m.x, m.y, e.x, e.y); lg.addColorStop(0, rgba(LIGHT, 0.15 * bf)); lg.addColorStop(1, rgba(LIGHT, 0.55 * bf));
+            ctx.strokeStyle = lg; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+            ctx.strokeStyle = `rgba(255,255,255,${0.85 * bf})`; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.restore(); glow(ctx, e.x, e.y, 34, [1, 1, 1], 0.7 * bf); ctx.save(); ctx.globalCompositeOperation = "lighter";
+            ctx.strokeStyle = rgba(LIGHT, 0.7 * bf); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, 14 + 22 * (1 - bf), 0, TAU); ctx.stroke();
+          }
+          for (let i = 0; i < 16; i++) {  // motes drifting out through the cone
+            const a = c.aim + (R() - 0.5) * 2 * c.half, d = r * (0.2 + 0.7 * R()) + t * 60;
+            ctx.fillStyle = rgba(LIGHT, 0.8 * fade); ctx.fillRect(P.x + Math.cos(a) * d - 1, P.y + Math.sin(a) * d - 1, 2, 2);
+          }
+          ctx.restore();
+        }
+      } },
+    chain: { key: "B", name: "Light chain", lit: e => 0.02 + e.order * 0.04 + 0.05,
+      draw(ctx, cast, t) {
+        for (const c of cast.cones) {
+          const fade = clamp01(1 - (t - 0.2) / 0.25);
+          ctx.save();
+          ctx.setLineDash([6, 8]); ctx.strokeStyle = rgba(LIGHT, 0.28 * clamp01(1 - t / 0.3)); ctx.lineWidth = 1.5;  // the area, faintly
+          wedge(ctx, c.aim, c.half, BODY + 4, c.reach); ctx.stroke(); ctx.setLineDash([]);
+          ctx.globalCompositeOperation = "lighter";
+          let from = muzzle(c);
+          c.hits.forEach((e, i) => {
+            const start = 0.02 + i * 0.04, k = clamp01((t - start) / 0.05);
+            if (k <= 0) return;
+            // a link that sags a little to one side, drawn in from the last node to this one
+            const mx = (from.x + e.x) / 2, my = (from.y + e.y) / 2, nx = -(e.y - from.y), ny = e.x - from.x, l = Math.hypot(nx, ny) || 1, sag = (i % 2 ? 1 : -1) * 0.12 * l;
+            const cx = mx + nx / l * sag, cy = my + ny / l * sag;
+            const pts = []; for (let s = 0; s <= 20 * k; s++) { const u = s / 20; pts.push([(1 - u) * (1 - u) * from.x + 2 * (1 - u) * u * cx + u * u * e.x, (1 - u) * (1 - u) * from.y + 2 * (1 - u) * u * cy + u * u * e.y]); }
+            ctx.shadowColor = rgba(LIGHT, 1); ctx.shadowBlur = 14;
+            stroke(ctx, pts, 8, rgba(LIGHT, 0.5 * fade)); ctx.shadowBlur = 0; stroke(ctx, pts, 1.8, `rgba(255,255,255,${0.95 * fade})`);
+            if (k >= 1) { ctx.restore(); glow(ctx, e.x, e.y, 24 + 8 * Math.max(0, 1 - (t - start - 0.05) / 0.1), LIGHT, 0.9 * fade); ctx.save(); ctx.globalCompositeOperation = "lighter"; }
+            from = e;
+          });
+          ctx.restore();
+          glow(ctx, muzzle(c).x, muzzle(c).y, 20, LIGHT, 0.8 * clamp01(1 - t / 0.3));
+        }
+      } },
+    wave: { key: "C", name: "Wavefront", lit: e => 0.16 * Math.pow(e.d / REACH, 1 / 3) * 0.95,
+      draw(ctx, cast, t) {
+        for (const c of cast.cones) {
+          const k = easeOut(t / 0.16), R = BODY + (c.reach - BODY) * k, fade = t < 0.16 ? 1 : clamp01(1 - (t - 0.16) / 0.2);
+          if (fade <= 0) continue;
+          ctx.save(); ctx.globalCompositeOperation = "lighter";
+          const g = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, R);  // the light it leaves behind, brightest at the front
+          g.addColorStop(0, rgba(LIGHT, 0)); g.addColorStop(0.75, rgba(LIGHT, 0.12 * fade)); g.addColorStop(1, rgba(LIGHT, 0.3 * fade));
+          ctx.fillStyle = g; wedge(ctx, c.aim, c.half, 0, R); ctx.fill();
+          ctx.shadowColor = rgba(LIGHT, 1); ctx.shadowBlur = 16;
+          ctx.strokeStyle = rgba(LIGHT, 0.75 * fade); ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(P.x, P.y, R, c.aim - c.half, c.aim + c.half); ctx.stroke();
+          ctx.shadowBlur = 0; ctx.strokeStyle = `rgba(255,255,255,${0.95 * fade})`; ctx.lineWidth = 2; ctx.stroke();
+          ctx.restore();
+          for (const e of c.hits) { const lt = STYLES.wave.lit(e); if (t >= lt) glow(ctx, e.x, e.y, 30, LIGHT, 0.8 * clamp01(1 - (t - lt) / 0.25)); }
+        }
+      } },
+    storm: { key: "D", name: "Storm web", lit: () => 0.01,
+      draw(ctx, cast, t) {
+        const frame = Math.floor(t / 0.035);  // the bolts re-fork every 35 ms
+        for (const c of cast.cones) {
+          const fade = clamp01(1 - t / 0.3);
+          if (fade <= 0) continue;
+          ctx.save(); ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = rgba(LIGHT, 0.06 * fade); wedge(ctx, c.aim, c.half, 0, c.reach); ctx.fill();
+          const R0 = rnd(5 + frame * 13);
+          for (let i = 0; i < 6; i++) {  // crackle along the rim
+            const a = c.aim + (R0() - 0.5) * 2 * c.half, a2 = a + (R0() - 0.5) * 0.25;
+            const pts = jagged(ctx, P.x + Math.cos(a) * c.reach, P.y + Math.sin(a) * c.reach, P.x + Math.cos(a2) * (c.reach - 30), P.y + Math.sin(a2) * (c.reach - 30), 4, 6, R0);
+            stroke(ctx, pts, 1.2, rgba(LIGHT, 0.6 * fade));
+          }
+          for (const e of c.hits) {
+            const m = muzzle(c), R = rnd(9 + frame * 31 + Math.round(e.x * 3));
+            const pts = jagged(ctx, m.x, m.y, e.x, e.y, 9, 13, R);
+            ctx.shadowColor = rgba(LIGHT, 1); ctx.shadowBlur = 12;
+            stroke(ctx, pts, 6, rgba(LIGHT, 0.45 * fade)); ctx.shadowBlur = 0; stroke(ctx, pts, 1.6, `rgba(255,255,255,${fade})`);
+            for (let b = 0; b < 2; b++) {  // forks off the main bolt
+              const at = pts[2 + Math.floor(R() * (pts.length - 4))], dir = Math.atan2(e.y - m.y, e.x - m.x) + (R() < 0.5 ? -1 : 1) * (0.5 + R() * 0.6), len = 20 + R() * 30;
+              stroke(ctx, jagged(ctx, at[0], at[1], at[0] + Math.cos(dir) * len, at[1] + Math.sin(dir) * len, 4, 5, R), 1.1, rgba(LIGHT, 0.7 * fade));
+            }
+            for (let s = 0; s < 5; s++) { const a = R() * TAU, d = 6 + R() * 16 * (1 - fade + 0.3); ctx.fillStyle = `rgba(255,255,255,${fade})`; ctx.fillRect(e.x + Math.cos(a) * d - 1, e.y + Math.sin(a) * d - 1, 2, 2); }
+          }
+          ctx.restore();
+          for (const e of c.hits) glow(ctx, e.x, e.y, 26, LIGHT, 0.7 * fade);
+        }
+      } },
+  };
+  const CARDS = {
+    now: { pitch: "What the game draws now, for comparison.", before: "Nothing.", hit: "A flat, see-through cone flashes out with white edges, an arc and five rays; a jittering bolt runs to each enemy.", after: "Gone in 0.3 s.", feel: "Readable, but a flat stamp: the light has no glow and the bolts look like any lightning." },
+    radiance: { pitch: "A soft fan of light that blooms out of your hand.", before: "Nothing: it blooms in 0.12 s.", hit: "A glowing fan with soft edges (bright at your hand, gone at the reach), flickering god-rays and motes; a soft beam to each enemy and a halo ring on each.", after: "The light fades over a third of a second.", feel: "The most holy-light. Shows the area clearly without hard lines." },
+    chain: { pitch: "Light that really chains: from your hand to the nearest enemy, then on from enemy to enemy.", before: "The cone's area shows as a faint dashed outline.", hit: "A glowing link draws to the nearest enemy, then on to the next nearest (40 ms a link), each node blooming as it's reached.", after: "The chain fades after 0.2 s.", feel: "Most like its name, and it shows how many enemies are sharing the damage." },
+    wave: { pitch: "A bright arc of light sweeps out from you to the cone's reach.", before: "Nothing.", hit: "The front races out in 0.16 s, leaving a soft glow behind it; each enemy flares as the front passes it.", after: "The front fades at the reach.", feel: "Shows the reach best, and reads as a wave of light. Enemies light up a beat after they're hit." },
+    storm: { pitch: "Forking electric arcs to every enemy at once, crackling at the cone's rim.", before: "Nothing.", hit: "Jagged bolts (re-forking every 35 ms, with branches) from your hand to each enemy, sparks on each, crackle along the rim, and a faint fill.", after: "Gone in 0.3 s.", feel: "The most violent. Closest to today's bolts, done properly with glow." },
+  };
+
+  // --- One frame of the scene ---
+  function render(ctx, sk, cast, t) {
+    floor(ctx);
+    const st = STYLES[sk];
+    st.draw(ctx, cast, t);
+    for (const e of cast.enemies) {
+      if (e.cone < 0 || e.share == null) { enemy(ctx, e, 0); continue; }
+      const lt = st.lit(e), age = t - lt;
+      enemy(ctx, e, age >= 0 && age < 0.08 ? 1 - age / 0.08 : 0, e.share, age);
+    }
+    healer(ctx, AIM);
+  }
+
+  // --- Page wiring ---
+  const arena = document.getElementById("arena"), actx = arena.getContext("2d");
+  let style = "chain", n = 3, barrage = false, speed = 1, clock = 0, last = performance.now();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  arena.width = 960 * dpr; arena.height = 400 * dpr;
+  const styleBtns = document.getElementById("styleBtns");
+  for (const k in STYLES) { const b = document.createElement("button"); b.id = "st-" + k; b.innerHTML = `<span class="k">${STYLES[k].key}</span>${STYLES[k].name}`; b.onclick = () => { style = k; sync(); }; styleBtns.appendChild(b); }
+  const on = (id, f) => document.getElementById(id).onclick = () => { f(); sync(); };
+  on("n1", () => n = 1); on("n3", () => n = 3); on("n6", () => n = 6);
+  on("bar0", () => barrage = false); on("bar1", () => barrage = true);
+  on("spd1", () => speed = 1); on("spd4", () => speed = 0.25);
+  const cards = document.getElementById("cards");
+  for (const k in CARDS) {
+    const c = CARDS[k], el = document.createElement("article"); el.className = "card"; el.id = "card-" + k; el.tabIndex = 0;
+    el.innerHTML = `<div class="tag">${STYLES[k].key === "Now" ? "NOW" : "STYLE " + STYLES[k].key}</div><h3>${STYLES[k].name}</h3><p>${c.pitch}</p>
+      <dl><dt>Before</dt><dd>${c.before}</dd><dt>Hit</dt><dd>${c.hit}</dd><dt>After</dt><dd>${c.after}</dd><dt>Feel</dt><dd>${c.feel}</dd></dl>`;
+    el.onclick = () => { style = k; sync(); }; el.onkeydown = ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); style = k; sync(); } };
+    cards.appendChild(el);
+  }
+  const strip = document.getElementById("strip"), frames = [], TIMES = [0.02, 0.06, 0.1, 0.16, 0.25, 0.38];
+  for (let i = 0; i < 6; i++) { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); const sp = document.createElement("span"); f.append(cv, sp); strip.appendChild(f); frames.push({ cv, sp }); }
+  function drawStrip() {
+    const cast = castFor(n, barrage);
+    frames.forEach((f, i) => {
+      f.cv.width = 240 * dpr; f.cv.height = 180 * dpr;
+      const ctx = f.cv.getContext("2d");
+      ctx.setTransform(dpr * 240 / 400, 0, 0, dpr * 240 / 400, -P.x * dpr * 240 / 400 + 30 * dpr, -(P.y - 150) * dpr * 240 / 400);  // the cone, framed
+      render(ctx, style, cast, TIMES[i]);
+      f.sp.textContent = Math.round(TIMES[i] * 1000) + " ms";
+    });
+  }
+  function sync() {
+    for (const k in STYLES) document.getElementById("st-" + k).setAttribute("aria-pressed", String(k === style));
+    for (const [id, v] of [["n1", n === 1], ["n3", n === 3], ["n6", n === 6], ["bar0", !barrage], ["bar1", barrage], ["spd1", speed === 1], ["spd4", speed !== 1]]) document.getElementById(id).setAttribute("aria-pressed", String(v));
+    for (const k in CARDS) document.getElementById("card-" + k).setAttribute("aria-current", String(k === style));
+    drawStrip();
+  }
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) speed = 0.25;
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    clock = (clock + dt * speed) % PERIOD;
+    actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    render(actx, style, castFor(n, barrage), clock);
+    actx.font = "600 13px Oxanium, system-ui, sans-serif"; actx.fillStyle = "#92a1ad"; actx.textAlign = "left";
+    actx.fillText(`CHAIN LIGHT  ·  ${STYLES[style].key === "Now" ? "TODAY" : "STYLE " + STYLES[style].key + " · " + STYLES[style].name.toUpperCase()}`, 18, 28);
+    const share = Math.round(DMG / n);
+    document.getElementById("now").textContent = `${String(Math.round(clock * 1000)).padStart(3, " ")} ms into a cast · ${n} in the cone: ${share} each${speed !== 1 ? " · ¼ speed" : ""}`;
+    requestAnimationFrame(tick);
+  }
+  sync();
+  requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
