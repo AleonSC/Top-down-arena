@@ -49,6 +49,9 @@ namespace Arena
         public const float SplinterReach = 60f, SplinterGrow = 15f, SplinterMult = 0.5f, SplinterDelay = 0.15f;  // and the splinters off its sides  // the Lance hits an 88 px wide box straight ahead
         // The Warhammer: a charged slam on a 100 px wide box in front of you.
         public const float HammerHalfWidth = 50f;
+        /// The Warhammer's blast colour: it also marks the blast as the hammer's, so the screen's melee look (MeleeLooks.cs),
+        /// which draws the whole slam itself, can leave it out.
+        public static readonly Rgba HammerBoomColor = new Rgba(0.85f, 0.8f, 0.7f);
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
         // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
         public const int HalberdSteps = 6;
@@ -98,7 +101,7 @@ namespace Arena
                         pendingSwings.Add(s);
                     }
                     V2 hitAt = p.Pos + V2.FromAngle(aim) * (p.Def.BodyR + w.Reach * 0.65f);
-                    BroadcastFx(FxKind.Boom, hitAt, new Rgba(0.85f, 0.8f, 0.7f), 40f + 50f * c, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
+                    BroadcastFx(FxKind.Boom, hitAt, HammerBoomColor, 40f + 50f * c, 0.35f, c > 0.95f ? Sfx.BigExplode : Sfx.Explode);
                     break;
                 }
                 case WeaponId.Lance:

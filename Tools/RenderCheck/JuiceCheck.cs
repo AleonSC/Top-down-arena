@@ -281,6 +281,23 @@ class JuiceCheck {
       };
       var halberd = swing(WeaponId.Halberd);
       var sword = swing(WeaponId.Greatsword);
+      // The Warhammer: its slam (a Jab) draws the new look, and its blast (a Boom beside it) isn't drawn twice.
+      pl.Weapon = Defs.Weapons.First(x => x.Id == WeaponId.Warhammer);
+      g.Effects.Clear();
+      fire.Invoke(g, new object[] { pl, 0f, 1f, 0 });
+      var boomOld = typeof(ArenaApp).GetMethod("HammerBoomDrawnByMelee", f2);
+      int hammerJabs = 0, hammerJabsSeen = 0, booms = 0, boomsLeftOut = 0;
+      var hs = new HashSet<Effect>();
+      for (int i = 0; i < 20; i++) {
+        tick(); frame();
+        foreach (var fx in g.Effects) {
+          if (!hs.Add(fx)) continue;
+          if (fx.Kind == FxKind.Jab) { hammerJabs++; if (seenMap.Contains(fx)) hammerJabsSeen++; }
+          if (fx.Kind == FxKind.Boom) { booms++; if ((bool)boomOld.Invoke(app, new object[] { fx })) boomsLeftOut++; }
+        }
+      }
+      Check(hammerJabs >= 1 && hammerJabsSeen == hammerJabs && booms >= 1 && boomsLeftOut == booms,
+        "a Warhammer slam draws only the new look (its blast's old ring is left out: " + boomsLeftOut + "/" + booms + ")");
       pl.Weapon = keep;
       g.Bot = botWas;
       Console.WriteLine("  melee: Halberd {0} effect(s), {1} frames missed; Greatsword {2} effect(s), {3} missed", halberd[2], halberd[1], sword[2], sword[1]);

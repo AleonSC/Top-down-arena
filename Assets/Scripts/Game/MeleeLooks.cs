@@ -317,6 +317,11 @@ namespace Arena
             }
         }
 
+        /// The Warhammer's blast (Game.HammerBoomColor), sent beside its slam: with Visual effects on, the slam above draws the
+        /// impact, so the blast's old ring and its glow are left out (effects off: drawn as before).
+        bool HammerBoomDrawnByMelee(Effect fx) => fxOn && fx.Kind == FxKind.Boom && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G
+            && fx.Color.B == Game.HammerBoomColor.B;
+
         /// The Warhammer while it charges: raised up over your shoulder, higher the more it's charged.
         void DrawHammerRaised(Player p, float charge)
         {

@@ -13,7 +13,10 @@ arc. The lobby's loadout preview never ran the glow pass (its comment said glows
 when the melee energy moved into the glow pass the preview lost it: `VTri` now clips like `Tri` (`ClippedVTri`, colours
 blended along each cut) and the preview runs `DrawGlowPass` (melee energy, bullet and blast glows) clipped to its window.
 The preview tool's UI layer (GL drawn in menus) now uses the GPU-like rasterizer too. `juice.sh` fires real Greatsword and
-Halberd swings through the game's code and checks every frame, and that a Halberd sweep is one effect.
+Halberd swings through the game's code and checks every frame, and that a Halberd sweep is one effect. Then (owner: "the warhammer renders the new and old animations"): a Warhammer slam
+sends a blast (`FxKind.Boom`) beside its box (`Jab`), and the blast still drew its old ring and glow under the new
+slam. The blast's colour is now a named constant (`Game.HammerBoomColor`) that also marks it as the hammer's;
+`HammerBoomDrawnByMelee` leaves it out (ring and glow) with Visual effects on. `juice.sh` checks a real slam.
 
 **Colour space and glows (Nov 2026), protocol 127 (no change):** owner: the game's glows and gradients don't match the
 mockups or the preview images (the lobby background previews, the bullet glow in Settings). Cause: ProjectSettings

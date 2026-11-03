@@ -695,7 +695,7 @@ namespace Arena
                     GlowDisc(p.Pos, p.Size * (1.6f - f), p.Kind == PFlash ? Rgba.White : p.Col, 0.5f * f);
             }
             foreach (var fx in game.Effects)
-                if (fx.Kind == FxKind.Boom)
+                if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
                     GlowDisc(fx.Pos, fx.Radius * (1f + f), fx.Color, 0.55f * (1f - f));
