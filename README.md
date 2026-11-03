@@ -909,7 +909,7 @@ so they never change the fight or what your friend sees):
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
-What it adds: **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
+What it adds: the Soldier DPS's abilities (from [`Docs/Mockups/soldier-dps-abilities.html`](Docs/Mockups/soldier-dps-abilities.html)): **Dash** leaves a tapered cyan comet streak (your own dash) that cools over 0.4 s, with sparks where you land; the **Cluster Grenade** is an olive grenade with a faint ring growing to its blast radius, then a white flash, an orange blast, eight streaking shards and smoke; **Mark for Death** puts a red reticle that snaps onto the enemy and circles it, a timer arc unwinding round it, and a small skull floating overhead, all blinking for the last second; **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
 each enemy it hits; **Arc Lightning** as a halo and sparks building on your staff with a dashed outline of the strip (a pulse
 running out to a crackling marker), then one white-hot bolt racing down it with forks to its edges, and a crackle on each
 enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves

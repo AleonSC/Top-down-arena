@@ -28,6 +28,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
       lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
+- [x] **Soldier DPS ability visuals: Dash, Cluster Grenade, Mark for Death.** Built (Nov 2026, no protocol change,
+      `Game/SoldierLooks.cs`) from [`Mockups/soldier-dps-abilities.html`](Mockups/soldier-dps-abilities.html)
+      (https://claude.ai/artifact/5ZoTSdqs2X2kqCzhZwdRRo): Dash B (Comet Streak), Grenade A (Frag Burst), Mark A (Reticle Lock)
+      with B's skull over it. Left out for now: the dash's squashed body, and other players' dash streaks (only your own dash
+      has ever been replicated); the shards are for looks (the real shrapnel's angles are the host's).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
       [`Mockups/character-models.html`](Mockups/character-models.html), colour-by-class (`Game/CharacterModels.cs`),
       plus a bigger role-coloured glow on the floor round every player (`Juice.cs`, `GlowPlayer`). The weapon models are

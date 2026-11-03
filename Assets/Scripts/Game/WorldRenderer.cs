@@ -357,6 +357,11 @@ namespace Arena
                 return;  // its weapon's new look (ShotLooks.cs)
             if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
             {
+                if (fxOn)
+                {
+                    DrawGrenadeFlight(b, t);  // SoldierLooks.cs
+                    return;
+                }
                 Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
                 if (MathX.Fmod(t, 0.15f) < 0.075f)
                     Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);

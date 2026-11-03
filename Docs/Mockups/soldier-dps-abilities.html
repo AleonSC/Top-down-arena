@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soldier DPS Abilities</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Soldier DPS abilities: Dash, Cluster Grenade, Mark for Death. Three looks each, looping scenes at game scale
+   (1 canvas px = 1 arena px). Numbers come from Core/Balance.cs and Core/Abilities.cs. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --amber:#ffb547; --acc:#ff8a4c;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:28px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--acc); }
+h2 { font-size:22px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:74ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header, section.ab { display:grid; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--acc); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:80ch; }
+.bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:2; background:var(--bg); padding:8px 0; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible, input:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+label { color:var(--soft); font-size:14.5px; display:flex; gap:6px; align-items:center; cursor:pointer; }
+code { font-size:.92em; color:var(--soft); }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Soldier · DPS abilities</div>
+  <h1>Dash, Grenade &amp; <span>Mark</span></h1>
+  <p class="lead">Three looks for each of the Soldier DPS's three abilities, as looping scenes at game scale. The blue circle is you, red diamonds are enemies, red dots are enemy bullets. Pick one look per ability (or mix: they are independent). Dash is only 0.18 s long in the real game, so use <b>Slow motion</b> to study it.</p>
+  <div class="bar">
+    <button id="pause" aria-pressed="false">Pause</button>
+    <button id="restart">Restart all</button>
+    <label><input type="checkbox" id="slow"> Slow motion (¼ speed)</label>
+    <label><input type="checkbox" id="cap"> Mastered (capstone)</label>
+    <span class="note-motion">Reduced motion is on: each scene shows one still frame. Press Pause to start them.</span>
+  </div>
+</header>
+
+<section class="ab" id="s-dash">
+  <div class="eyebrow">Ability 1 · 3.5 s cooldown</div>
+  <h2>Dash</h2>
+  <p>A 216 px burst (1200 px/s for 0.18 s) in your move direction, invulnerable for 0.30 s (the dash and 0.12 s after). Capstone: +1 charge, so nothing new to draw. The scene shows three enemy bullets that would have hit; they pass through you during the invulnerable window.</p>
+  <div class="grid" id="g-dash"></div>
+</section>
+
+<section class="ab" id="s-gren">
+  <div class="eyebrow">Ability 2 · 6 s cooldown</div>
+  <h2>Cluster Grenade</h2>
+  <p>A lobbed grenade lands at your cursor after 0.55 s (up to 380 px), deals 80 in a 110 px radius, and bursts into 8 shrapnel. The circle is the real blast radius. Tick <b>Mastered</b> to see the second grenade 80 px further.</p>
+  <div class="grid" id="g-gren"></div>
+</section>
+
+<section class="ab" id="s-mark">
+  <div class="eyebrow">Ability 3 · 12 s cooldown</div>
+  <h2>Mark for Death</h2>
+  <p>Marks the enemy nearest your cursor for 6 s: it takes 50% more damage (a 12 hit becomes 18). The scene casts at 0.8 s, shoots every 0.7 s and lets the mark expire at 6.8 s. Tick <b>Mastered</b> to mark the three nearest.</p>
+  <div class="grid" id="g-mark"></div>
+</section>
+
+<section class="panel">
+  <h2>Shared across all looks</h2>
+  <ul>
+    <li><b>Colours:</b> Dash is cool blue-white (it's you), the Grenade is orange-yellow like fire, Mark is red like the existing Mark ring (<code>1, 0.25, 0.25</code>). No two abilities share a colour.</li>
+    <li><b>Drawing only:</b> none of these change gameplay or the network. Dash and the Mark ring already broadcast <code>FxKind.Ring</code>; the Grenade already carries <code>Splash</code> and <code>Burst</code> on the bullet. The Mark timer reads <code>Enemy.MarkT</code>, already synced.</li>
+    <li><b>Where it would go:</b> a new <code>Game/SoldierLooks.cs</code>, hooked from <code>AbilityLooks.cs</code> (Dash and Mark) and the shot drawing in <code>ShotLooks.cs</code> (Grenade, detonation).</li>
+    <li><b>If it needs a new effect kind</b> (e.g. the afterimages), that is a new <code>FxKind</code> at the end of the enum and a <code>Session.ProtocolVersion</code> bump. Most looks can be built from local state and avoid that.</li>
+    <li>The Armory and Bestiary pages are not touched unless you ask.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const W = 480, H = 340, TAU = Math.PI * 2;
+  const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const eo = (u) => 1 - (1 - cl(u)) ** 3;
+  const opts = { cap: false };
+
+  function floor(ctx) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = '#10151b'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+  function label(ctx, s) { ctx.fillStyle = '#92a1ad'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(s, 10, H - 10); }
+  function player(ctx, x, y, o = {}) {
+    const a = o.alpha ?? 1;
+    ctx.fillStyle = o.hollow ? rgba([90, 200, 255], .18) : rgba([90, 160, 230], a);
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, TAU); ctx.fill();
+    if (o.hollow) { ctx.strokeStyle = rgba([150, 230, 255], .95); ctx.lineWidth = 2; ctx.stroke(); }
+    ctx.strokeStyle = rgba([230, 240, 250], a); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 6, y); ctx.lineTo(x + 17, y); ctx.stroke();
+  }
+  function foe(ctx, x, y, o = {}) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = o.col || '#e0504e'; ctx.fillRect(-9, -9, 18, 18);
+    if (o.flash) { ctx.fillStyle = rgba([255, 255, 255], o.flash); ctx.fillRect(-9, -9, 18, 18); }
+    ctx.restore();
+  }
+  function floater(ctx, age, x, y, txt, col, size = 14) {
+    if (age < 0 || age > .8) return;
+    ctx.fillStyle = rgba(col, 1 - age / .8); ctx.font = `800 ${size}px Oxanium, sans-serif`; ctx.textAlign = 'center';
+    ctx.fillText(txt, x, y - 16 - 26 * eo(age / .8));
+  }
+  function bullet(ctx, x, y) { ctx.fillStyle = '#ff5a4a'; ctx.beginPath(); ctx.arc(x, y, 4, 0, TAU); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill(); }
+
+  /* ===================================================== DASH */
+  const D = { x0: 90, x1: 306, y: 170, t0: .6, dur: .18, inv: .30 };
+  const dEnd = D.t0 + D.dur;
+  const dashX = (t) => D.x0 + (D.x1 - D.x0) * cl((t - D.t0) / D.dur);
+  const dashBullets = (t) => [0, 25, 50].map((off, i) => ({ x: 470 - 330 * (t - .2) + off, y: [166, 172, 169][i] }));
+
+  function dashScene(ctx, st, t) {
+    floor(ctx);
+    // aim cursor hint
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.setLineDash([4, 6]); ctx.beginPath(); ctx.moveTo(D.x0 + 20, D.y); ctx.lineTo(D.x1 + 40, D.y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(D.x0 - 8, D.y + 20, 16, 2);
+    const x = dashX(t), dashing = t >= D.t0 && t < dEnd, inv = t >= D.t0 && t < D.t0 + D.inv;
+    st.under(ctx, t, x);
+    for (const b of dashBullets(t)) if (b.x > -8 && b.x < 490) bullet(ctx, b.x, b.y);
+    st.body(ctx, t, x, inv, dashing);
+    st.over(ctx, t, x, inv);
+    if (inv) for (const b of dashBullets(t)) if (Math.abs(b.x - x) < 13) st.ping && st.ping(ctx, b.x, b.y, t);
+    label(ctx, t < D.t0 ? 'ready' : t < dEnd ? 'dashing' : inv ? 'invulnerable' : 'done');
+  }
+  const dashLooks = [
+    { name: 'A · Afterimages', tag: 'Classic and cheap', desc: 'Fading ghost copies and speed lines behind you, a dust puff where you left and a small ring where you land. Reads instantly; costs a few circles.',
+      under(ctx, t, x) {
+        if (t < D.t0) return;
+        const p = (t - D.t0) / .45;
+        if (p < 1) for (let k = 0; k < 4; k++) { const a = k * 1.7; ctx.fillStyle = rgba([210, 220, 235], .35 * (1 - p)); ctx.beginPath(); ctx.arc(D.x0 - 6 + Math.cos(a) * 14 * p - 8 * p, D.y + Math.sin(a) * 12 * p, 5 + 8 * p, 0, TAU); ctx.fill(); }
+        const e = Math.min(t, dEnd), fade = t > dEnd ? 1 - (t - dEnd) / .35 : 1; if (fade <= 0) return;
+        const xs = dashX(e);
+        for (let g = 1; g <= 5; g++) { const gx = dashX(e - g * .03); ctx.fillStyle = rgba([90, 160, 230], .5 * (1 - g / 6) * fade); ctx.beginPath(); ctx.arc(gx, D.y, 11, 0, TAU); ctx.fill(); }
+        ctx.lineWidth = 1.5;
+        for (let k = 0; k < 8; k++) { const yk = D.y + (k - 3.5) * 5, st0 = D.x0 + rnd(k) * 60; ctx.strokeStyle = rgba([210, 235, 255], .55 * fade); ctx.beginPath(); ctx.moveTo(st0, yk); ctx.lineTo(Math.max(st0, xs - 12), yk); ctx.stroke(); }
+      },
+      body(ctx, t, x) { player(ctx, x, D.y); },
+      over(ctx, t, x) { if (t > dEnd && t < dEnd + .3) { const k = (t - dEnd) / .3; ctx.strokeStyle = rgba([200, 230, 255], .8 * (1 - k)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, D.y, 12 + 26 * k, 0, TAU); ctx.stroke(); } } },
+    { name: 'B · Comet Streak', tag: 'Fastest feeling', desc: 'A tapered cyan ribbon stretches from where you started to where you are and cools off over a third of a second. Sparks fly off the head. Your body squashes long while dashing.',
+      under(ctx, t, x) {
+        if (t < D.t0) return;
+        const e = Math.min(t, dEnd), fade = t > dEnd ? 1 - (t - dEnd) / .4 : 1; if (fade <= 0) return;
+        const xs = dashX(e), len = xs - D.x0;
+        const g = ctx.createLinearGradient(D.x0, 0, xs, 0); g.addColorStop(0, rgba([80, 200, 255], 0)); g.addColorStop(1, rgba([200, 250, 255], .85 * fade));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(D.x0, D.y); ctx.lineTo(xs, D.y - 11 * fade); ctx.lineTo(xs, D.y + 11 * fade); ctx.closePath(); ctx.fill();
+        if (len > 8) for (let k = 0; k < 9; k++) { const u = rnd(k + 3), sx = D.x0 + len * u, dy = (rnd(k + 9) - .5) * 30 * (1 + (t - D.t0) * 2); ctx.fillStyle = rgba([220, 250, 255], .8 * fade * (1 - u * .4)); ctx.fillRect(sx, D.y + dy, 5, 1.5); }
+      },
+      body(ctx, t, x, inv, dashing) { if (dashing) { ctx.save(); ctx.translate(x, D.y); ctx.scale(1.7, .72); ctx.translate(-x, -D.y); player(ctx, x, D.y); ctx.restore(); } else player(ctx, x, D.y); },
+      over(ctx, t, x) { if (t > dEnd && t < dEnd + .25) { const k = (t - dEnd) / .25; for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ctx.fillStyle = rgba([210, 245, 255], 1 - k); ctx.fillRect(x + Math.cos(a) * (14 + 18 * k), D.y + Math.sin(a) * (14 + 18 * k), 3, 3); } } } },
+    { name: 'C · Phase Shift', tag: 'Best for the i-frames', desc: 'You turn into a hollow outline while invulnerable, ringed by a shimmer that unwinds as the 0.30 s runs out. Bullets that pass through you spark. Tells you exactly when you are safe.',
+      under(ctx, t, x) {
+        if (t < D.t0) return;
+        const fade = t > dEnd ? cl(1 - (t - dEnd) / .3) : 1;
+        for (let g = 1; g <= 3; g++) { const gx = dashX(Math.min(t, dEnd) - g * .045); ctx.strokeStyle = rgba([120, 220, 255], .45 * (1 - g / 4) * fade); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(gx, D.y, 11, 0, TAU); ctx.stroke(); }
+      },
+      body(ctx, t, x, inv) { player(ctx, x, D.y, { hollow: inv }); },
+      over(ctx, t, x, inv) {
+        if (!inv) return; const left = 1 - (t - D.t0) / D.inv;
+        ctx.strokeStyle = rgba([140, 230, 255], .9); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, D.y, 19, -Math.PI / 2, -Math.PI / 2 + TAU * left); ctx.stroke();
+        ctx.strokeStyle = rgba([200, 245, 255], .4); ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(x, D.y, 24, t * 8, t * 8 + TAU); ctx.stroke(); ctx.setLineDash([]);
+      },
+      ping(ctx, x, y, t) { ctx.strokeStyle = 'rgba(190,245,255,.9)'; ctx.lineWidth = 1.5; for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + t * 20; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * 5, y + Math.sin(a) * 5); ctx.lineTo(x + Math.cos(a) * 11, y + Math.sin(a) * 11); ctx.stroke(); } } },
+  ];
+
+  /* ===================================================== CLUSTER GRENADE */
+  const G = { px: 60, py: 170, t0: .35, fl: .55, R: 110, ty: 170 };
+  const gLand = G.t0 + G.fl;
+  const gFoes = [{ x: 250, y: 118 }, { x: 330, y: 218 }, { x: 292, y: 162 }, { x: 412, y: 150 }, { x: 205, y: 215 }];
+  function gTargets() { return opts.cap ? [{ x: 290, y: G.ty }, { x: 370, y: G.ty }] : [{ x: 290, y: G.ty }]; }
+
+  function gren(ctx, st, t) {
+    floor(ctx);
+    const tg = gTargets(), tt = t - gLand;
+    player(ctx, G.px, G.py);
+    const fl = t >= G.t0 && t < gLand;
+    if (fl) tg.forEach((T) => st.tele(ctx, t, T, (t - G.t0) / G.fl));
+    if (tt > 0) tg.forEach((T) => st.scorch(ctx, tt, T));
+    // enemies and hits
+    gFoes.forEach((f, i) => {
+      let hit = -1; tg.forEach((T) => { if (Math.hypot(f.x - T.x, f.y - T.y) < G.R) hit = 0; });
+      foe(ctx, f.x, f.y, { flash: hit === 0 && tt > 0 && tt < .2 ? 1 - tt / .2 : 0 });
+      if (hit === 0) floater(ctx, tt, f.x, f.y, '80', [255, 190, 90]);
+    });
+    if (fl) tg.forEach((T) => {
+      const u = (t - G.t0) / G.fl, gx = G.px + (T.x - G.px) * u, gy = G.py - 70 * Math.sin(Math.PI * u);
+      ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(gx, G.py, 6 - 2 * Math.sin(Math.PI * u), 3, 0, 0, TAU); ctx.fill();
+      st.nade(ctx, gx, gy, u, t);
+    });
+    if (tt > 0) tg.forEach((T, i) => st.boom(ctx, tt, T, i));
+    label(ctx, t < G.t0 ? 'ready' : fl ? 'in the air' : tt < .5 ? 'detonation' : 'aftermath');
+  }
+  function nadeBody(ctx, x, y, u, blink) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(u * 9);
+    ctx.fillStyle = '#5b6b3d'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#2b3320'; ctx.fillRect(-6, -1, 12, 2); ctx.fillStyle = '#b8c0a0'; ctx.fillRect(-1.5, -8, 3, 3);
+    ctx.restore();
+    if (blink) { ctx.fillStyle = blink; ctx.beginPath(); ctx.arc(x, y - 1, 2.5, 0, TAU); ctx.fill(); }
+  }
+  function shrap(ctx, tt, T, i, o) {
+    const n = opts.cap ? 8 : 8;
+    for (let k = 0; k < n; k++) {
+      const a = k / n * TAU + .3 + i * .2, u = cl((tt - .04) / o.dur); if (tt < .04) continue;
+      const d = o.reach * eo(u), x = T.x + Math.cos(a) * d, y = T.y + Math.sin(a) * d, f = 1 - u * u;
+      o.draw(ctx, x, y, a, f, k, u, T);
+    }
+  }
+  const gLooks = [
+    { name: 'A · Frag Burst', tag: 'Most grounded', desc: 'A hot flash, an orange blast ring out to the true 110 px, then 8 streaking shards with short spark trails. Smoke puffs and a scorch mark linger. Straight out of an action game.',
+      tele(ctx, t, T, u) { ctx.strokeStyle = 'rgba(255,170,70,.28)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.arc(T.x, T.y, G.R * eo(u), 0, TAU); ctx.stroke(); ctx.setLineDash([]); },
+      nade(ctx, x, y, u) { nadeBody(ctx, x, y, u); },
+      scorch(ctx, tt, T) { const a = cl(1 - (tt - .3) / 1.6) * .5; ctx.fillStyle = rgba([20, 14, 10], a); ctx.beginPath(); ctx.arc(T.x, T.y, 38, 0, TAU); ctx.fill(); },
+      boom(ctx, tt, T, i) {
+        if (tt < .12) { ctx.fillStyle = rgba([255, 240, 190], 1 - tt / .12); ctx.beginPath(); ctx.arc(T.x, T.y, 34 + 30 * tt / .12, 0, TAU); ctx.fill(); }
+        const k = eo(tt / .28); if (tt < .4) { ctx.fillStyle = rgba([255, 140, 40], .22 * (1 - tt / .4)); ctx.beginPath(); ctx.arc(T.x, T.y, G.R * k, 0, TAU); ctx.fill(); ctx.strokeStyle = rgba([255, 190, 80], .9 * (1 - tt / .4)); ctx.lineWidth = 3; ctx.stroke(); }
+        for (let s = 0; s < 6; s++) { const p = cl((tt - .05) / 1.1); if (tt < .05 || p >= 1) continue; const a = s / 6 * TAU + i; ctx.fillStyle = rgba([90, 80, 75], .45 * (1 - p)); ctx.beginPath(); ctx.arc(T.x + Math.cos(a) * 26 * eo(p) , T.y + Math.sin(a) * 26 * eo(p) - 14 * p, 12 + 12 * p, 0, TAU); ctx.fill(); }
+        shrap(ctx, tt, T, i, { dur: .4, reach: 175, draw(c, x, y, a, f) { c.strokeStyle = rgba([255, 200, 90], f); c.lineWidth = 2.5; c.beginPath(); c.moveTo(x - Math.cos(a) * 16, y - Math.sin(a) * 16); c.lineTo(x, y); c.stroke(); c.fillStyle = rgba([255, 255, 230], f); c.fillRect(x - 1.5, y - 1.5, 3, 3); } });
+      } },
+    { name: 'B · Shock Ring', tag: 'Cleanest on a busy screen', desc: 'No fireball: a crisp white-hot ring races out to the radius, with a faint echo ring behind it. Shrapnel are thin white darts that leave long fading lines, so you can read the spread of all 8.',
+      tele(ctx, t, T, u) { ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(T.x, T.y, G.R, 0, TAU); ctx.stroke(); },
+      nade(ctx, x, y, u, t) { nadeBody(ctx, x, y, u); const r = 8 + 10 * (1 - Math.abs(Math.cos(t * 14))); ctx.strokeStyle = 'rgba(255,230,160,.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); },
+      scorch(ctx, tt, T) { const a = cl(1 - tt / 1.2) * .35; ctx.strokeStyle = rgba([255, 200, 120], a); ctx.lineWidth = 1.5; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(T.x, T.y, G.R, 0, TAU); ctx.stroke(); ctx.setLineDash([]); },
+      boom(ctx, tt, T, i) {
+        for (let r = 0; r < 2; r++) { const d = r * .07, u = cl((tt - d) / .3); if (u <= 0 || u >= 1) continue; ctx.strokeStyle = rgba(r ? [255, 170, 80] : [255, 250, 235], (r ? .5 : .95) * (1 - u)); ctx.lineWidth = (r ? 3 : 5) * (1 - u) + 1; ctx.beginPath(); ctx.arc(T.x, T.y, G.R * eo(u), 0, TAU); ctx.stroke(); }
+        if (tt < .1) { ctx.fillStyle = rgba([255, 255, 255], 1 - tt / .1); ctx.beginPath(); ctx.arc(T.x, T.y, 22, 0, TAU); ctx.fill(); }
+        shrap(ctx, tt, T, i, { dur: .45, reach: 190, draw(c, x, y, a, f, k, u) { const tail = 46 * (1 - u * .6); const g = c.createLinearGradient(x - Math.cos(a) * tail, y - Math.sin(a) * tail, x, y); g.addColorStop(0, rgba([255, 255, 255], 0)); g.addColorStop(1, rgba([255, 255, 255], f)); c.strokeStyle = g; c.lineWidth = 2; c.beginPath(); c.moveTo(x - Math.cos(a) * tail, y - Math.sin(a) * tail); c.lineTo(x, y); c.stroke(); } });
+      } },
+    { name: 'C · Armed &amp; Dangerous', tag: 'Most readable warning', desc: 'The landing zone is filled with a pulsing red telegraph while the grenade is airborne and its light blinks faster. The blast is a lime-yellow flash with spinning diamond shards, so enemy fire never gets confused with it.',
+      tele(ctx, t, T, u) { const p = .5 + .5 * Math.sin(t * 18 * (1 + u)); ctx.fillStyle = rgba([255, 60, 50], .06 + .08 * u * p); ctx.beginPath(); ctx.arc(T.x, T.y, G.R, 0, TAU); ctx.fill(); ctx.strokeStyle = rgba([255, 80, 60], .35 + .4 * u); ctx.lineWidth = 1.5; ctx.setLineDash([8, 6]); ctx.lineDashOffset = -t * 40; ctx.beginPath(); ctx.arc(T.x, T.y, G.R, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0; ctx.strokeStyle = 'rgba(255,90,70,.6)'; ctx.beginPath(); ctx.moveTo(T.x - 8, T.y); ctx.lineTo(T.x + 8, T.y); ctx.moveTo(T.x, T.y - 8); ctx.lineTo(T.x, T.y + 8); ctx.stroke(); },
+      nade(ctx, x, y, u, t) { nadeBody(ctx, x, y, u, Math.sin(t * 40 * (1 + u)) > 0 ? '#ff4a3a' : null); },
+      scorch(ctx, tt, T) { const a = cl(1 - tt / 1.2) * .5; ctx.strokeStyle = rgba([190, 255, 80], a); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(T.x, T.y, 16 + 6 * tt, 0, TAU); ctx.stroke(); },
+      boom(ctx, tt, T, i) {
+        if (tt < .16) { const k = tt / .16; ctx.fillStyle = rgba([230, 255, 120], .85 * (1 - k)); ctx.beginPath(); ctx.arc(T.x, T.y, G.R * (.35 + .65 * k), 0, TAU); ctx.fill(); }
+        if (tt < .35) { ctx.strokeStyle = rgba([210, 255, 90], 1 - tt / .35); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(T.x, T.y, G.R * eo(tt / .2), 0, TAU); ctx.stroke(); }
+        shrap(ctx, tt, T, i, { dur: .42, reach: 170, draw(c, x, y, a, f, k, u) { c.save(); c.translate(x, y); c.rotate(a + u * 10); c.fillStyle = rgba(k % 2 ? [210, 255, 90] : [255, 230, 120], f); c.beginPath(); c.moveTo(7, 0); c.lineTo(0, 3); c.lineTo(-4, 0); c.lineTo(0, -3); c.closePath(); c.fill(); c.restore(); } });
+      } },
+  ];
+
+  /* ===================================================== MARK FOR DEATH */
+  const M = { px: 70, py: 170, cast: .8, end: 6.8, life: 8.4, every: .7, first: .5, base: 12, mult: 1.5 };
+  const mFoes = [{ x: 330, y: 170 }, { x: 292, y: 96 }, { x: 300, y: 246 }];
+  const markCol = [255, 64, 64];
+  function markList() { return opts.cap ? [0, 1, 2] : [0]; }
+
+  function markScene(ctx, st, t) {
+    floor(ctx);
+    const marked = t >= M.cast && t < M.end, list = markList();
+    const rem = marked ? (M.end - t) / (M.end - M.cast) : 0;
+    player(ctx, M.px, M.py);
+    // shots: every 0.7 s from first; target rotates among the marked (or the main foe)
+    const shots = [];
+    for (let i = 0; i * M.every + M.first < M.life; i++) {
+      const ht = M.first + i * M.every, fi = (ht >= M.cast && ht < M.end) ? list[i % list.length] : 0;
+      shots.push({ ht, fi, mk: ht >= M.cast && ht < M.end && list.includes(fi) });
+    }
+    mFoes.forEach((f, fi) => {
+      const mk = marked && list.includes(fi), age = t - M.cast;
+      const lastHit = shots.filter((s) => s.fi === fi && s.ht <= t).pop();
+      const pulse = lastHit ? cl(1 - (t - lastHit.ht) / .25) : 0;
+      st.foe(ctx, f, mk, t, rem, age, pulse);
+    });
+    for (const s of shots) {
+      const f = mFoes[s.fi], flight = (f.x - M.px) / 700, ts = s.ht - flight;
+      if (t > ts && t < s.ht) { const u = (t - ts) / flight; ctx.fillStyle = '#ffe28a'; ctx.beginPath(); ctx.arc(M.px + (f.x - M.px) * u, M.py + (f.y - M.py) * u, 3, 0, TAU); ctx.fill(); }
+      floater(ctx, t - s.ht, f.x, f.y, String(s.mk ? Math.round(M.base * M.mult) : M.base), s.mk ? markCol : [255, 226, 138], s.mk ? 18 : 13);
+    }
+    if (t >= M.cast && t < M.cast + .5) { const k = (t - M.cast) / .5; ctx.strokeStyle = rgba(markCol, 1 - k); ctx.lineWidth = 3; list.forEach((fi) => { ctx.beginPath(); ctx.arc(mFoes[fi].x, mFoes[fi].y, 12 + 30 * k + 4, 0, TAU); ctx.stroke(); }); }
+    label(ctx, t < M.cast ? 'unmarked' : marked ? 'marked  ' + (M.end - t).toFixed(1) + ' s left' : 'expired');
+  }
+  const blink = (rem, t) => rem > .17 ? 1 : (Math.sin(t * 30) > 0 ? 1 : .25);       // last second (of 6) blinks
+  const mLooks = [
+    { name: 'A · Reticle Lock', tag: 'Most readable', desc: 'A red reticle snaps down onto the target from large to small, then circles it. A timer arc unwinds around it, and it blinks in the last second. Each hit makes it kick. Clearly says "shoot this one", and the arc tells you how long you have.',
+      foe(ctx, f, mk, t, rem, age, pulse) {
+        foe(ctx, f.x, f.y, { col: mk ? '#ff6a5a' : '#e0504e' }); if (!mk) return;
+        const sc = (age < .25 ? 2.4 - 1.4 * eo(age / .25) : 1) + .18 * pulse, r = 26 * sc, al = blink(rem, t);
+        ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(t * .9);
+        ctx.strokeStyle = rgba(markCol, al); ctx.lineWidth = 2.5;
+        for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(0, 0, r, i * Math.PI / 2 + .25, i * Math.PI / 2 + Math.PI / 2 - .25); ctx.stroke(); ctx.beginPath(); ctx.moveTo(Math.cos(i * Math.PI / 2) * (r - 6), Math.sin(i * Math.PI / 2) * (r - 6)); ctx.lineTo(Math.cos(i * Math.PI / 2) * (r + 7), Math.sin(i * Math.PI / 2) * (r + 7)); ctx.stroke(); }
+        ctx.restore();
+        ctx.strokeStyle = rgba([255, 150, 130], .85 * al); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 36 * Math.min(1, sc * .9 + .1), -Math.PI / 2, -Math.PI / 2 + TAU * rem); ctx.stroke();
+        if (age < 1) { ctx.fillStyle = rgba(markCol, 1 - age); ctx.font = '800 12px Oxanium, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('MARKED +50%', f.x, f.y - 50 - 10 * age); }
+      } },
+    { name: 'B · Death\'s Head', tag: 'Most characterful', desc: 'A small skull floats over the target, bobbing, with a pulsing red glow round the enemy and thin cracks across it. Each hit flares the skull\'s eyes. Fits the name; the skull dims and the cracks close as time runs out.',
+      foe(ctx, f, mk, t, rem, age, pulse) {
+        if (!mk) { foe(ctx, f.x, f.y); return; }
+        const al = blink(rem, t), glow = .5 + .5 * Math.sin(t * 5);
+        ctx.save(); ctx.shadowColor = rgba(markCol, al); ctx.shadowBlur = 12 + 10 * glow + 14 * pulse; foe(ctx, f.x, f.y, { col: '#b83838' }); ctx.restore();
+        ctx.strokeStyle = rgba([255, 120, 100], .8 * al * rem + .15); ctx.lineWidth = 1.2; ctx.beginPath();
+        [[-5, -7, 1, -1, 6, 4], [-7, 4, -1, 0, 3, 8]].forEach(([a, b, c, d, e, g]) => { ctx.moveTo(f.x + a, f.y + b); ctx.lineTo(f.x + c, f.y + d); ctx.lineTo(f.x + e, f.y + g); }); ctx.stroke();
+        const s = age < .3 ? eo(age / .3) : 1, bob = Math.sin(t * 3) * 2.5, sx = f.x, sy = f.y - 33 + bob - (1 - s) * 14;
+        ctx.save(); ctx.translate(sx, sy); ctx.scale(s, s); ctx.globalAlpha = al;
+        ctx.fillStyle = '#ece6dc'; ctx.beginPath(); ctx.arc(0, -1, 9, 0, TAU); ctx.fill(); ctx.fillRect(-5, 4, 10, 6);
+        ctx.fillStyle = '#11161b'; ctx.fillRect(-2.5, 7, 1.5, 3); ctx.fillRect(1, 7, 1.5, 3);
+        ctx.fillStyle = rgba(markCol, 1); ctx.shadowColor = rgba(markCol, 1); ctx.shadowBlur = 4 + 12 * pulse;
+        ctx.beginPath(); ctx.arc(-3.5, -2, 2.4, 0, TAU); ctx.arc(3.5, -2, 2.4, 0, TAU); ctx.fill();
+        ctx.restore();
+      } },
+    { name: 'C · Hunter\'s Brand', tag: 'Best for crowds', desc: 'A red sigil turns on the ground beneath the target and the enemy glows hot, with chevrons stepping downward over it ("take more damage"). The marker is on the floor, so it never hides the enemy. Embers rise when it expires.',
+      foe(ctx, f, mk, t, rem, age, pulse) {
+        const exp = t > M.end && t < M.end + .8;
+        if (mk) {
+          const al = blink(rem, t), grow = eo(age / .3);
+          ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(t * .7);
+          ctx.fillStyle = rgba(markCol, .12 * al * grow); ctx.beginPath(); ctx.arc(0, 0, 30 * grow, 0, TAU); ctx.fill();
+          ctx.strokeStyle = rgba(markCol, .85 * al); ctx.lineWidth = 2; ctx.setLineDash([9, 5]); ctx.beginPath(); ctx.arc(0, 0, 30 * grow, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+          ctx.lineWidth = 1.5; for (let r = 0; r < 2; r++) { ctx.beginPath(); for (let i = 0; i < 3; i++) { const a = i * TAU / 3 + r * Math.PI / 3 - Math.PI / 2; ctx.lineTo(Math.cos(a) * 24 * grow, Math.sin(a) * 24 * grow); } ctx.closePath(); ctx.stroke(); }
+          ctx.restore();
+        }
+        foe(ctx, f.x, f.y, { col: mk ? '#ff5a4a' : '#e0504e', flash: mk ? .25 * pulse : 0 });
+        if (mk) {
+          const al = blink(rem, t);
+          for (let c = 0; c < 2; c++) { const ph = (t * 1.6 + c * .5) % 1; ctx.strokeStyle = rgba(markCol, al * Math.sin(ph * Math.PI)); ctx.lineWidth = 2.5; const y = f.y - 38 + ph * 16; ctx.beginPath(); ctx.moveTo(f.x - 7, y - 5); ctx.lineTo(f.x, y); ctx.lineTo(f.x + 7, y - 5); ctx.stroke(); }
+        }
+        if (exp) for (let k = 0; k < 10; k++) { const u = (t - M.end) / .8 ; ctx.fillStyle = rgba([255, 120, 60], 1 - u); ctx.fillRect(f.x + (rnd(k) - .5) * 40, f.y + 10 - u * (24 + rnd(k + 5) * 24), 2.5, 2.5); }
+      } },
+  ];
+
+  /* ===================================================== page wiring */
+  const sets = [
+    { host: 'g-dash', len: 2.6, looks: dashLooks, run: dashScene, still: 0.72 },
+    { host: 'g-gren', len: 3.4, looks: gLooks, run: gren, still: 1.05 },
+    { host: 'g-mark', len: M.life, looks: mLooks, run: markScene, still: 2.6 },
+  ];
+  const dpr = Math.min(2, window.devicePixelRatio || 1), cards = [];
+  for (const s of sets) {
+    const host = document.getElementById(s.host);
+    for (const look of s.looks) {
+      const card = document.createElement('div'); card.className = 'card';
+      const cv = document.createElement('canvas'); cv.width = W * dpr; cv.height = H * dpr; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', look.name.replace('&amp;', '&') + ': ' + look.desc);
+      const tx = document.createElement('div'); tx.className = 't';
+      tx.innerHTML = `<span class="tag">${look.tag}</span><b>${look.name}</b><span>${look.desc}</span>`;
+      card.append(cv, tx); host.append(card);
+      const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cards.push({ ctx, set: s, look });
+    }
+  }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let paused = reduce, clock = 0, last = performance.now();
+  const pauseBtn = document.getElementById('pause'), slow = document.getElementById('slow');
+  const setPause = (p) => { paused = p; pauseBtn.textContent = p ? 'Play' : 'Pause'; pauseBtn.setAttribute('aria-pressed', String(p)); };
+  setPause(paused);
+  pauseBtn.onclick = () => setPause(!paused);
+  document.getElementById('restart').onclick = () => { clock = 0; draw(); };
+  document.getElementById('cap').onchange = (e) => { opts.cap = e.target.checked; draw(); };
+  function draw() {
+    for (const c of cards) {
+      const t = (paused && reduce && clock === 0) ? c.set.still : clock % c.set.len;
+      c.set.run(c.ctx, c.look, t);
+    }
+  }
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!paused) clock += dt * (slow.checked ? .25 : 1);
+    draw(); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  window.__setClock = (v) => { paused = true; clock = v; draw(); };       // for screenshots
+})();
+</script>
+</body>
+</html>
