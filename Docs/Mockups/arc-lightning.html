@@ -1,0 +1,437 @@
+<title>Arc Lightning Looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: the Elementalist DPS charging and loosing Arc Lightning on a loop
+   (hold, release, aftermath), drawn at 0.55 of the game's scale so a full 800 px strip fits. Under it: controls and
+   still frames. Then a card per look, then build notes. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --bolt: #bfd9ff; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--bolt); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #16233a; border-color: var(--bolt); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--bolt); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 4 / 3; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--bolt); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--bolt); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .now { margin-left: 0; width: 100%; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist DPS · Arc Lightning · pick a style</div>
+    <h1>Arc <span>Lightning</span></h1>
+    <p class="lead">Hold to charge a strip of ground in front of you (90 px wide, 160 px long for a tap, out to 800 px,
+      half the arena, at full charge after 0.9 s). Let go and everything in the strip takes 40 and is stunned for 0.4 s.
+      Today that's a ring filling round you, a flat outlined strip, and three jagged lines. Below are four other ways it
+      could look, each covering the whole sequence: <b>charge</b>, <b>release</b>, <b>aftermath</b>. Drag the charge
+      length to see how each look grows, and turn on Barrage for the extra strips.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="420"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group"><span class="label">Charge</span>
+        <button id="c0" aria-pressed="false">Tap</button><button id="c5" aria-pressed="false">Half</button><button id="c10" aria-pressed="true">Full</button>
+      </div>
+      <div class="group"><span class="label">Barrage</span>
+        <button id="bar0" aria-pressed="true">Off</button><button id="bar1" aria-pressed="false">+2 strips</button>
+      </div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one cast"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>Charge: <code>DrawArcCharge</code> (<code>WorldEffects.cs</code>). Release: <code>FxKind.ArcField</code> (<code>DrawArcFieldFx</code>) plus a <code>FxKind.Bolt</code> to each enemy hit. The effect already carries the strip's start, end, half width and colour, so there is no protocol change. Everyone sees the same crackle because it's seeded by where it went off.</li>
+      <li>Only your own charge shows the strip preview today (<code>mine</code>); other players get the ring. Every look below keeps that: allies see the build-up on the caster but not the aim strip.</li>
+      <li>The enemy stun (0.4 s) is shown as a small crackle that stays on each enemy for the stun, in the looks that have one (a per-enemy timer would be needed on remote screens; the host already tracks <code>FrozenT</code>).</li>
+      <li>Colours: the game's <code>BoltShot</code> pale blue, with white cores and a gold "full" cue as today. Chain Light's warm light and the Storm Hammer's arcs are not touched.</li>
+      <li>Glows go in the additive glow pass like the other upgraded looks. With Visual effects off it draws exactly as now (render check <code>IDENTICAL</code>).</li>
+      <li>The preview is drawn at 0.55 of the game's scale; the strip, its width and the timings (0.15 s minimum draw, 0.9 s full, 0.35 s effect) are the real numbers.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, S = 0.55;               // preview scale: 1 arena px = 0.55 canvas px
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const BOLT = [0.75, 0.85, 1], GOLD = [1, 0.82, 0.3], WHITE = [1, 1, 1];
+  const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${Math.max(0, Math.min(1, a))})`;
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // The game's numbers (Core/KitWeapons.cs ArcField, Weapons.cs BowCharge): length 160 -> 800, half width 45, stun 0.4 s,
+  // draw 0.15 s minimum, 0.9 s full, effect 0.35 s. Barrage: parallel strips side by side, alternating sides.
+  const LMIN = 160, LMAX = 800, HW = 45, STUN = 0.4, MIN_DRAW = 0.15, FULL_DRAW = 0.9, FX = 0.35, BODY = 16;
+  const P = { x: 70, y: 210 };
+  // Enemies by distance along the strip and across it (arena px): the first ones sit in a full-length strip.
+  const SPOTS = [[170, -10], [300, 30], [420, -35], [540, 5], [650, 38], [760, -20], [230, 120], [480, -130], [700, 110]];
+
+  const lenFor = c => LMIN + (LMAX - LMIN) * c;
+  function cast(c, barrage) {
+    const len = lenFor(c), n = barrage ? 3 : 1, shifts = [];
+    for (let v = 0; v < n; v++) shifts.push(v === 0 ? 0 : (v % 2 ? 1 : -1) * 2 * HW * Math.ceil(v / 2));
+    const enemies = SPOTS.map(([along, across]) => {
+      let strip = -1;
+      for (let v = 0; v < n && strip < 0; v++) if (along <= len + 13 && Math.abs(across - shifts[v]) <= HW + 13) strip = v;
+      return { along, across, strip };
+    });
+    return { len, shifts, enemies, c };
+  }
+  const X = a => P.x + a * S, Y = a => P.y + a * S;  // arena offsets -> canvas
+
+  // --- Drawing helpers ---
+  const sprites = {};
+  function sprite(c) {
+    const k = c.join();
+    if (sprites[k]) return sprites[k];
+    const s = document.createElement("canvas"); s.width = s.height = 64;
+    const x = s.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, rgba(c, 0.9)); g.addColorStop(0.28, rgba(c, 0.32)); g.addColorStop(1, rgba(c, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return sprites[k] = s;
+  }
+  function glow(ctx, x, y, r, c, a) {
+    if (a <= 0.01) return;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = Math.min(1, a);
+    ctx.drawImage(sprite(c), x - r, y - r, r * 2, r * 2); ctx.restore();
+  }
+  function jagged(ax, ay, bx, by, segs, amp, R) {
+    const pts = [[ax, ay]], nx = -(by - ay), ny = bx - ax, len = Math.hypot(nx, ny) || 1;
+    for (let i = 1; i < segs; i++) { const f = i / segs, j = (R() - 0.5) * 2 * amp * Math.sin(f * Math.PI); pts.push([ax + (bx - ax) * f + nx / len * j, ay + (by - ay) * f + ny / len * j]); }
+    pts.push([bx, by]);
+    return pts;
+  }
+  function stroke(ctx, pts, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
+  function bolt(ctx, pts, w, a, col = BOLT) { glow(ctx, pts[0][0], pts[0][1], 0, col, 0); stroke(ctx, pts, w * 2.6, rgba(col, 0.35 * a)); stroke(ctx, pts, w, rgba(WHITE, a)); }
+  function strokeRect(ctx, x0, y0, x1, y1) { ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); }
+  function stripRect(sh, len) { return [X(0), Y(sh - HW), X(len), Y(sh + HW)]; }
+
+  function floor(ctx) {
+    ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, 960, 420);
+    ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+    for (let x = 0; x < 960; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, 420); ctx.stroke(); }
+    for (let y = 0; y < 420; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(960, y + 0.5); ctx.stroke(); }
+  }
+  function caster(ctx, charge) {
+    const { x, y } = P, r = BODY * S * 1.4;
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 9, r, r * 0.45, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#1a2236"; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "#ffb04a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+    // the staff's two prongs, with a spark between them that grows with the charge
+    ctx.strokeStyle = "#cfd8e3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 4, y - 3); ctx.lineTo(x + 16, y - 3); ctx.moveTo(x + 4, y + 3); ctx.lineTo(x + 16, y + 3); ctx.stroke();
+    glow(ctx, x + 16, y, 6 + 14 * charge, BOLT, 0.5 + 0.5 * charge);
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 1.8, 0, TAU); ctx.fill();
+  }
+  function enemy(ctx, e, flash, stunned, t) {
+    const x = X(e.along), y = Y(e.across), r = 13 * S * 1.4 * (1 + 0.16 * flash);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI);
+    ctx.fillStyle = flash > 0 ? `rgba(255,255,255,${0.5 + 0.5 * flash})` : "#5a1f24";
+    ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(-r * 0.7, r * 0.8); ctx.lineTo(-r * 0.7, -r * 0.8); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#ff5a5f"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    if (stunned) {  // a little crackle round a stunned enemy
+      const R = rnd(11 + Math.floor(t * 20) * 7 + Math.round(e.along));
+      for (let k = 0; k < 2; k++) { const a = R() * TAU, b = a + 0.7 + R(); stroke(ctx, jagged(x + Math.cos(a) * r * 1.5, y + Math.sin(a) * r * 1.5, x + Math.cos(b) * r * 1.5, y + Math.sin(b) * r * 1.5, 3, 3, R), 1.2, rgba(WHITE, 0.8)); }
+    }
+  }
+
+  // The sequence: hold from 0 to HOLD (charge c = (hold - 0.15) / 0.75), release at T0, aftermath until the loop ends.
+  const LOOP = 2.6;
+  const REL = (c) => MIN_DRAW + (FULL_DRAW - MIN_DRAW) * c;   // how long you hold to get charge c
+  const timeline = (c, clock) => { const hold = REL(c) + 0.35, rel = hold; return { holdT: Math.min(clock, hold), c: clock < hold ? clamp01((clock - MIN_DRAW) / (FULL_DRAW - MIN_DRAW)) : c, since: clock - rel, released: clock >= rel }; };
+
+  // --- The styles. Each has charge(ctx, ...) and release(ctx, ...). since = seconds after letting go. ---
+  const STYLES = {
+    now: { key: "Now", name: "Today's look", stun: () => false,
+      charge(ctx, k, c, t) {
+        const full = c >= 1, r = BODY * S * 1.4 + 9;
+        ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(P.x, P.y, r, 0, TAU); ctx.stroke();
+        ctx.strokeStyle = rgba(full ? GOLD : BOLT, full ? 0.75 + 0.25 * Math.sin(t * 20) : 0.85); ctx.lineWidth = full ? 4 : 2.5; ctx.beginPath(); ctx.arc(P.x, P.y, r, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, c)); ctx.stroke();
+        const col = full ? GOLD : BOLT;
+        k.shifts.forEach(sh => { const [x0, y0, x1, y1] = stripRect(sh, lenFor(c)); ctx.fillStyle = rgba(col, 0.05 + 0.1 * c); ctx.fillRect(x0, y0, x1 - x0, y1 - y0); ctx.strokeStyle = rgba(col, 0.35 + 0.35 * c); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke(); ctx.strokeStyle = rgba(col, 0.6 + 0.4 * Math.sin(t * 30)); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x1, y0); ctx.lineTo(x1, y1); ctx.stroke(); });
+      },
+      release(ctx, k, since) {
+        const f = since / FX; if (f >= 1) return;
+        const fade = 1 - f;
+        k.shifts.forEach((sh, v) => {
+          const [x0, y0, x1, y1] = stripRect(sh, k.len);
+          ctx.fillStyle = rgba(BOLT, 0.2 * fade); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+          ctx.strokeStyle = rgba(BOLT, 0.7 * fade); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+          const R = rnd(5 + v * 13 + Math.floor(f * 8) * 97);
+          for (let j = 0; j < 3; j++) { const pts = []; const n = Math.max(4, Math.floor(k.len / 40)); let py = Y(sh) + (R() - 0.5) * HW * S; pts.push([x0, py]); for (let i = 1; i <= n; i++) { py = Y(sh) + (R() - 0.5) * HW * S * 1.6; pts.push([x0 + (x1 - x0) * i / n, py]); } stroke(ctx, pts, j === 0 ? 3 : 1.5, rgba(j === 0 ? WHITE : BOLT, fade)); }
+        });
+      } },
+
+    // A: Thunderhead — static builds round the caster and a ground rune; the release is one hard bolt down the middle with
+    // forks into the strip, and the strip ends in a flash.
+    thunder: { key: "A", name: "Thunderhead", stun: () => true,
+      charge(ctx, k, c, t) {
+        const full = c >= 1, col = full ? GOLD : BOLT, R = rnd(31 + Math.floor(t * 16));
+        glow(ctx, P.x, P.y, 30 + 46 * c, col, 0.35 + 0.4 * c);
+        const n = 2 + Math.floor(c * 8);                       // sparks leaping off the prongs, more as it builds
+        for (let i = 0; i < n; i++) { const a = R() * TAU, d = 16 + R() * (22 + 30 * c); stroke(ctx, jagged(P.x + 14, P.y, P.x + 14 + Math.cos(a) * d, P.y + Math.sin(a) * d, 3, 4, R), 1.3, rgba(WHITE, 0.8)); }
+        k.shifts.forEach(sh => {                                // the strip as a dashed ground outline with a pulse running up it
+          const [x0, y0, x1, y1] = stripRect(sh, lenFor(c)), a = 0.25 + 0.4 * c;
+          ctx.setLineDash([10, 8]); ctx.lineDashOffset = -t * 40; ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 2; strokeRect(ctx, x0, y0, x1, y1); ctx.stroke(); ctx.setLineDash([]);
+          const px = x0 + ((t * 1.6) % 1) * (x1 - x0); glow(ctx, px, Y(sh), 22, col, 0.25 + 0.3 * c);
+          const cx = x1 + 2, tick = Math.sin(t * 30) * 0.5 + 0.5;  // a lightning rod at the far end, crackling, to show where it lands
+          stroke(ctx, [[cx, Y(sh) - 12], [cx, Y(sh) + 12]], 2, rgba(col, 0.4 + 0.5 * tick));
+        });
+      },
+      release(ctx, k, since) {
+        const f = since / 0.4; if (f >= 1) return;
+        k.shifts.forEach((sh, v) => {
+          const [x0, y0, x1, y1] = stripRect(sh, k.len), yc = Y(sh), run = easeOut(since / 0.08), fade = clamp01(1 - (since - 0.06) / 0.34);
+          glow(ctx, (x0 + x1) / 2, yc, (x1 - x0) / 2 + 40, BOLT, 0.28 * fade);
+          ctx.fillStyle = rgba(BOLT, 0.14 * fade); ctx.fillRect(x0, y0, (x1 - x0), y1 - y0);
+          const R = rnd(91 + v * 17 + Math.floor(since * 30) * 41), reach = x0 + (x1 - x0) * run;
+          const spine = jagged(x0, yc, reach, yc, Math.max(6, Math.floor(k.len / 28)), 14 * S * 2, R);
+          bolt(ctx, spine, 3.2, fade);
+          if (since < 0.2) spine.forEach((p, i) => { if (i % 2 && i < spine.length - 1) { const side = R() < 0.5 ? -1 : 1; bolt(ctx, jagged(p[0], p[1], p[0] + 16 + R() * 18, yc + side * (HW * S * (0.6 + R() * 0.5)), 4, 5, R), 1.4, fade * 0.9); } });
+          glow(ctx, reach, yc, 26, WHITE, 0.8 * fade);          // the head of the bolt
+          if (run >= 1) glow(ctx, x1, yc, 40 * (1 + f), BOLT, 0.7 * (1 - f));
+        });
+      } },
+
+    // B: Storm Front — a wall of charged air: a rolling cloud of static fills the strip while charging, and the release is
+    // a wavefront that races down it, with a column of lightning striking down on every enemy it passes.
+    front: { key: "B", name: "Storm Front", stun: () => true,
+      charge(ctx, k, c, t) {
+        const full = c >= 1, col = full ? GOLD : BOLT;
+        glow(ctx, P.x, P.y, 28 + 20 * c, col, 0.5);
+        k.shifts.forEach(sh => {
+          const [x0, y0, x1, y1] = stripRect(sh, lenFor(c)), R = rnd(7);
+          ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
+          for (let i = 0; i < 26; i++) {                         // drifting cloud puffs
+            const px = x0 + R() * (x1 - x0), py = y0 + R() * (y1 - y0), ph = R() * TAU;
+            glow(ctx, px + Math.sin(t * 1.2 + ph) * 8, py + Math.cos(t * 0.9 + ph) * 4, 26 + 16 * R(), col, 0.07 + 0.1 * c);
+          }
+          const Rf = rnd(3 + Math.floor(t * 12));                 // flickers inside the cloud
+          for (let i = 0; i < 1 + Math.floor(c * 4); i++) { const ax = x0 + Rf() * (x1 - x0), ay = y0 + Rf() * (y1 - y0); stroke(ctx, jagged(ax, ay, ax + 14 + Rf() * 22, ay + (Rf() - 0.5) * 20, 3, 3, Rf), 1.2, rgba(WHITE, 0.7)); }
+          ctx.restore();
+          ctx.strokeStyle = rgba(col, 0.3 + 0.35 * c); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+          ctx.strokeStyle = rgba(col, 0.5 + 0.4 * Math.sin(t * 28)); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x1, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        });
+      },
+      release(ctx, k, since) {
+        if (since > 0.5) return;
+        const run = easeOut(since / 0.16);
+        k.shifts.forEach((sh, v) => {
+          const [x0, y0, x1, y1] = stripRect(sh, k.len), front = x0 + (x1 - x0) * run, fade = clamp01(1 - since / 0.5);
+          ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, front - x0, y1 - y0); ctx.clip();
+          const g = ctx.createLinearGradient(x0, 0, front, 0); g.addColorStop(0, rgba(BOLT, 0)); g.addColorStop(1, rgba(BOLT, 0.5 * fade));
+          ctx.fillStyle = g; ctx.fillRect(x0, y0, front - x0, y1 - y0); ctx.restore();
+          ctx.strokeStyle = rgba(WHITE, 0.95 * fade); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(front, y0 - 4); ctx.lineTo(front, y1 + 4); ctx.stroke();   // the wavefront
+          glow(ctx, front, (y0 + y1) / 2, 60, BOLT, 0.6 * fade);
+          k.enemies.forEach(e => {                              // a bolt strikes each enemy the front passes
+            if (e.strip !== v) return;
+            const ex = X(e.along), ey = Y(e.across), at = ((ex - x0) / (x1 - x0)) * 0.16, a = since - at;
+            if (a < 0 || a > 0.3) return;
+            const R = rnd(Math.round(e.along) + Math.floor(a * 40) * 13), top = ey - 190, ff = clamp01(1 - a / 0.3);
+            bolt(ctx, jagged(ex + (R() - 0.5) * 20, top, ex, ey, 8, 11, R), 2.8, ff);
+            glow(ctx, ex, ey, 44 * (1 + a * 3), WHITE, 0.7 * ff);
+            ctx.strokeStyle = rgba(BOLT, 0.7 * ff); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ex, ey, 10 + a * 110, (10 + a * 110) * 0.45, 0, 0, TAU); ctx.stroke();  // ground ring
+          });
+        });
+      } },
+
+    // C: Tesla Coil — two charged pylons sit at the strip's far corners-to-be; while charging, a current arcs between the
+    // caster and a marker that slides out to the end. The release is a dense curtain of arcs between rails.
+    coil: { key: "C", name: "Tesla Rails", stun: () => true,
+      charge(ctx, k, c, t) {
+        const full = c >= 1, col = full ? GOLD : BOLT;
+        k.shifts.forEach(sh => {
+          const [x0, y0, x1, y1] = stripRect(sh, lenFor(c)), R = rnd(21 + Math.floor(t * 14));
+          for (const yy of [y0, y1]) {                          // two rails of crackling light run out from the caster as you hold
+            const pts = jagged(x0, yy, x1, yy, Math.max(5, Math.floor(lenFor(c) / 36)), 4, R);
+            stroke(ctx, pts, 3.5, rgba(col, 0.16 + 0.1 * c)); stroke(ctx, pts, 1.3, rgba(WHITE, 0.45 + 0.4 * c));
+          }
+          for (const yy of [y0, y1]) { glow(ctx, x1, yy, 16 + 8 * c, col, 0.7); ctx.fillStyle = "#dfe8f5"; ctx.fillRect(x1 - 2, yy - 5, 4, 10); }   // the far pylons
+          if (Math.sin(t * 22) > 0.2) stroke(ctx, jagged(x1, y0, x1, y1, 4, 6, R), 1.4, rgba(WHITE, 0.8 * c + 0.1));    // an arc between them
+        });
+        glow(ctx, P.x, P.y, 26 + 22 * c, col, 0.45);
+      },
+      release(ctx, k, since) {
+        const f = since / 0.4; if (f >= 1) return;
+        const fade = 1 - f;
+        k.shifts.forEach((sh, v) => {
+          const [x0, y0, x1, y1] = stripRect(sh, k.len), R = rnd(401 + v * 5 + Math.floor(since * 28) * 29), N = 5 + Math.floor((x1 - x0) / 120);
+          ctx.fillStyle = rgba(BOLT, 0.14 * fade); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+          glow(ctx, (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2 + 30, BOLT, 0.2 * fade);
+          for (const yy of [y0, y1]) stroke(ctx, jagged(x0, yy, x1, yy, 14, 5, R), 2.2, rgba(WHITE, fade));
+          for (let i = 0; i <= N; i++) {                        // rungs of lightning crossing between the rails, left to right
+            const px = x0 + (x1 - x0) * i / N, appear = (i / N) * 0.1;
+            if (since < appear) continue;
+            bolt(ctx, jagged(px, y0, px, y1, 5, 7, R), 1.8, fade);
+          }
+        });
+      } },
+
+    // D: Ball Lightning — the charge is an orb that swells at your staff; the release throws it down the strip as a travelling
+    // bolt whose arc whips side to side across the full width, shocking as it goes.
+    orb: { key: "D", name: "Whip Arc", stun: () => true,
+      charge(ctx, k, c, t) {
+        const full = c >= 1, col = full ? GOLD : BOLT, R = rnd(2 + Math.floor(t * 18)), ox = P.x + 26, r = 6 + 24 * c;
+        glow(ctx, ox, P.y, r * 3, col, 0.55 + 0.3 * c);
+        glow(ctx, ox, P.y, r * 1.3, WHITE, 0.55);
+        for (let i = 0; i < 3 + Math.floor(c * 4); i++) { const a = R() * TAU; stroke(ctx, jagged(ox + Math.cos(a) * r * 0.7, P.y + Math.sin(a) * r * 0.7, ox + Math.cos(a) * r * 1.9, P.y + Math.sin(a) * r * 1.9, 3, 4, R), 1.4, rgba(WHITE, 0.85)); }
+        k.shifts.forEach(sh => {                                // the strip itself is only hinted by two faint tick marks at the far end, so the orb stays the focus
+          const [x0, y0, x1, y1] = stripRect(sh, lenFor(c)), a = 0.25 + 0.4 * c;
+          ctx.strokeStyle = rgba(col, a); ctx.lineWidth = 2;
+          for (const yy of [y0, y1]) { const dy = yy === y0 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x1 - 18, yy); ctx.lineTo(x1, yy); ctx.lineTo(x1, yy + dy * 18); ctx.stroke(); }
+          ctx.setLineDash([3, 9]); ctx.beginPath(); ctx.moveTo(x0 + 30, Y(sh)); ctx.lineTo(x1, Y(sh)); ctx.stroke(); ctx.setLineDash([]);
+        });
+      },
+      release(ctx, k, since) {
+        const tt = 0.2, fadeEnd = 0.45; if (since > fadeEnd) return;
+        const run = easeOut(since / tt);
+        k.shifts.forEach((sh, v) => {
+          const [x0, y0, x1, y1] = stripRect(sh, k.len), yc = Y(sh), head = x0 + 26 + (x1 - x0 - 26) * run, fade = clamp01(1 - (since - tt * 0.6) / (fadeEnd - tt * 0.6));
+          const R = rnd(808 + v * 3 + Math.floor(since * 30) * 17);
+          glow(ctx, head, yc, 50, BOLT, 0.8 * fade); glow(ctx, head, yc, 22, WHITE, 0.9 * fade);
+          const trail = [];                                      // a whipping trail: sine sweeps across the width, tight behind the head, damped as it ages
+          for (let i = 0; i <= 40; i++) { const px = x0 + 26 + (head - x0 - 26) * i / 40; const age = 1 - i / 40; trail.push([px, yc + Math.sin(i * 0.9 + since * 60) * HW * S * 0.9 * (1 - age * 0.5) * (0.4 + 0.6 * R())]); }
+          bolt(ctx, trail, 3, fade);
+          ctx.fillStyle = rgba(BOLT, 0.08 * fade); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+          for (let i = 0; i < 8; i++) { const px = x0 + R() * (head - x0), dy = (R() < 0.5 ? -1 : 1) * HW * S * (0.7 + 0.3 * R()); stroke(ctx, jagged(px, yc, px + 6, yc + dy, 3, 3, R), 1.2, rgba(WHITE, 0.7 * fade)); }   // edge sparks
+        });
+      } },
+  };
+
+  const CARDS = {
+    now: { pitch: "What's in the game now.", charge: "A ring fills round you (gold at full); your own strip shows as a faint box with a crackling far edge.", release: "The strip flashes, with three jagged lines the length of it; a bolt to each enemy.", after: "Fades in 0.35 s.", feel: "Clear, but flat: the strip doesn't look like it's the thing that does the damage." },
+    thunder: { pitch: "A single hard bolt down the middle, forking into the sides, with a charged build-up.", charge: "Static spits off the staff, more the longer you hold, and a halo grows round you. The strip is a dashed ground outline with a pulse running out to a crackling marker at the far end.", release: "One white-hot bolt races the strip's length in 80 ms, throwing forks to its edges, with a flash at the end. Enemies in it flash and crackle for the stun.", after: "Glow fades over 0.4 s.", feel: "The most 'lightning'. Easy to read how far it will reach." },
+    front: { pitch: "A cloud of static fills the strip, then a wavefront sweeps down it and strikes every enemy.", charge: "Drifting cloud puffs fill the strip as it grows, with small flickers inside that get busier. Allies see a bigger halo on you, not the strip.", release: "A bright line races out in 0.16 s with a lit trail behind it; a bolt falls from above onto each enemy as the front passes, each with a ground ring.", after: "Rings fade over 0.3 s.", feel: "Shows each enemy that's hit and the area, at the cost of more going on at once." },
+    coil: { pitch: "Two crackling rails mark the edges as you hold, then rungs of lightning snap across between them.", charge: "Rails of lightning run out from you along both edges as the charge grows, ending in two pylons that arc to each other. Gold at full.", release: "Rungs of lightning snap across the strip from near to far (100 ms), the rails flaring white.", after: "Fades in 0.4 s.", feel: "Shows the exact width the whole way. Tidy, 'machine' feeling, the least wild." },
+    orb: { pitch: "A ball of lightning swells on the staff and is thrown down the strip, whipping side to side.", charge: "An orb grows at the staff tip with sparks flicking round it. The strip is only hinted: corner marks and a dotted centre line.", release: "The orb flies the length in 0.2 s, trailing a whipping arc that sweeps the full width, with sparks to the edges.", after: "Trail fades over 0.25 s.", feel: "The most dynamic and the least readable for exact area; best with the hint marks on." },
+  };
+
+  // --- One frame of the scene ---
+  function render(ctx, sk, c, barrage, clock) {
+    floor(ctx);
+    const st = STYLES[sk], tl = timeline(c, clock), k = cast(c, barrage);
+    if (!tl.released) st.charge(ctx, cast(tl.c, barrage), tl.c, clock);
+    else st.release(ctx, k, tl.since);
+    for (const e of k.enemies) {
+      let flash = 0, stunned = false;
+      if (tl.released && e.strip >= 0) {
+        const age = tl.since - (sk === "front" ? ((X(e.along) - X(0)) / (X(k.len) - X(0))) * 0.16 : sk === "thunder" ? 0.04 : sk === "orb" ? 0.2 * (e.along / k.len) : 0.02);
+        if (age >= 0 && age < 0.1) flash = 1 - age / 0.1;
+        stunned = age >= 0 && age < STUN && st.stun(e);
+        if (sk === "now") stunned = false;
+      }
+      enemy(ctx, e, flash, stunned, tl.since);
+      if (tl.released && e.strip >= 0 && tl.since >= 0 && tl.since < 0.7) {
+        ctx.font = "700 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.fillStyle = `rgba(190,220,255,${1 - tl.since / 0.7})`; ctx.fillText("40", X(e.along), Y(e.across) - 18 - tl.since * 24);
+      }
+    }
+    caster(ctx, tl.released ? 0 : tl.c);
+    ctx.font = "600 11px Oxanium, system-ui, sans-serif"; ctx.textAlign = "left"; ctx.fillStyle = "#92a1ad";
+    ctx.fillText(tl.released ? "RELEASE" : (tl.c >= 1 ? "FULL CHARGE" : "HOLD…"), 18, 404);
+  }
+
+  // --- Page wiring ---
+  const arena = document.getElementById("arena"), actx = arena.getContext("2d");
+  let style = "thunder", charge = 1, barrage = false, speed = 1, clock = 0, last = performance.now();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  arena.width = 960 * dpr; arena.height = 420 * dpr;
+  const styleBtns = document.getElementById("styleBtns");
+  for (const k in STYLES) { const b = document.createElement("button"); b.id = "st-" + k; b.innerHTML = `<span class="k">${STYLES[k].key}</span>${STYLES[k].name}`; b.onclick = () => { style = k; sync(); }; styleBtns.appendChild(b); }
+  const on = (id, f) => document.getElementById(id).onclick = () => { f(); sync(); };
+  on("c0", () => charge = 0); on("c5", () => charge = 0.5); on("c10", () => charge = 1);
+  on("bar0", () => barrage = false); on("bar1", () => barrage = true);
+  on("spd1", () => speed = 1); on("spd4", () => speed = 0.25);
+  const cards = document.getElementById("cards");
+  for (const k in CARDS) {
+    const c = CARDS[k], el = document.createElement("article"); el.className = "card"; el.id = "card-" + k; el.tabIndex = 0;
+    el.innerHTML = `<div class="tag">${STYLES[k].key === "Now" ? "NOW" : "STYLE " + STYLES[k].key}</div><h3>${STYLES[k].name}</h3><p>${c.pitch}</p>
+      <dl><dt>Charge</dt><dd>${c.charge}</dd><dt>Release</dt><dd>${c.release}</dd><dt>After</dt><dd>${c.after}</dd><dt>Feel</dt><dd>${c.feel}</dd></dl>`;
+    el.onclick = () => { style = k; sync(); }; el.onkeydown = ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); style = k; sync(); } };
+    cards.appendChild(el);
+  }
+  // Still frames: halfway through the hold, full charge, then 20, 60, 120 and 250 ms after letting go.
+  const strip = document.getElementById("strip"), frames = [];
+  for (let i = 0; i < 6; i++) { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); const sp = document.createElement("span"); f.append(cv, sp); strip.appendChild(f); frames.push({ cv, sp }); }
+  function drawStrip() {
+    const rel = REL(charge) + 0.35;
+    const marks = [[MIN_DRAW + (rel - 0.35 - MIN_DRAW) * 0.5, "halfway through the hold"], [rel - 0.02, "charged"], [rel + 0.02, "+20 ms"], [rel + 0.06, "+60 ms"], [rel + 0.12, "+120 ms"], [rel + 0.25, "+250 ms"]];
+    frames.forEach((f, i) => {
+      f.cv.width = 320 * dpr; f.cv.height = 240 * dpr;
+      const ctx = f.cv.getContext("2d"), s = 0.5;   // zoomed on the strip (x 40..680)
+      ctx.setTransform(dpr * s, 0, 0, dpr * s, -40 * s * dpr, dpr * (120 - 210 * s));
+      render(ctx, style, charge, barrage, marks[i][0]);
+      f.sp.textContent = marks[i][1];
+    });
+  }
+  function sync() {
+    for (const k in STYLES) document.getElementById("st-" + k).setAttribute("aria-pressed", String(k === style));
+    for (const [id, v] of [["c0", charge === 0], ["c5", charge === 0.5], ["c10", charge === 1], ["bar0", !barrage], ["bar1", barrage], ["spd1", speed === 1], ["spd4", speed !== 1]]) document.getElementById(id).setAttribute("aria-pressed", String(v));
+    for (const k in CARDS) document.getElementById("card-" + k).setAttribute("aria-current", String(k === style));
+    drawStrip();
+  }
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) speed = 0.25;
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    clock = (clock + dt * speed) % (REL(charge) + 0.35 + 0.75);
+    actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    render(actx, style, charge, barrage, clock);
+    actx.font = "600 13px Oxanium, system-ui, sans-serif"; actx.fillStyle = "#92a1ad"; actx.textAlign = "left";
+    actx.fillText(`ARC LIGHTNING  ·  ${STYLES[style].key === "Now" ? "TODAY" : "STYLE " + STYLES[style].key + " · " + STYLES[style].name.toUpperCase()}`, 18, 28);
+    const tl = timeline(charge, clock);
+    document.getElementById("now").textContent = `${Math.round(lenFor(charge))} px strip · ${tl.released ? Math.round(tl.since * 1000) + " ms after release" : Math.round(clock * 1000) + " ms held"}${speed !== 1 ? " · ¼ speed" : ""}`;
+    requestAnimationFrame(tick);
+  }
+  sync();
+  requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>

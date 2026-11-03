@@ -207,6 +207,8 @@ namespace Arena
                 if (fx.Juiced)
                     continue;
                 fx.Juiced = true;
+                if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
+                    Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
                 if (fx.Kind != FxKind.Boom)
                     continue;
                 newBooms.Add(fx.Pos);  // an enemy's death plays one where it died (DeathFx)
@@ -700,6 +702,7 @@ namespace Arena
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
+            DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));
