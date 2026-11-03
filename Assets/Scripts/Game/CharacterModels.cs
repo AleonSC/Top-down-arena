@@ -455,11 +455,12 @@ namespace Arena
                     break;
                 }
                 case WeaponId.ArcaneMissiles:
-                    MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0xc58bff, 0.4f));
-                    for (int i = 0; i < 3; i++)
+                    MArc(12f, 0f, 11f, 0f, MathX.Tau, 0.8f, Hx(0x8fe3ff, 0.4f));
+                    for (int i = 0; i < 3; i++)  // three ice shards circling
                     {
-                        float a = t * 2f + i * 2.09f, x = 12f + Mathf.Cos(a) * 11f, y = Mathf.Sin(a) * 11f;
-                        MLine(x, y, x - Mathf.Cos(a + 1.57f) * 5f, y - Mathf.Sin(a + 1.57f) * 5f, 1.4f, Hx(0xc58bff, 0.6f)); MCirc(x, y, 2.8f, Hx(0xc58bff), 8);
+                        float a = t * 2f + i * 2.09f, x = 12f + Mathf.Cos(a) * 11f, y = Mathf.Sin(a) * 11f, dx = -Mathf.Sin(a), dy = Mathf.Cos(a);
+                        MPoly(Hx(0xe6fbff), x + dx * 5f, y + dy * 5f, x - dy * 2f, y + dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
+                        MPoly(Hx(0x4fa8e0), x + dx * 5f, y + dy * 5f, x + dy * 2f, y - dx * 2f, x - dx * 2.2f, y - dy * 2.2f);
                     }
                     break;
                 // ---- Summoner

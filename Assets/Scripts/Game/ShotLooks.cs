@@ -8,7 +8,7 @@ namespace Arena
     ///   Railgun                 a heavy slug pushing rings of air ahead of it
     ///   Pistol                  a heavier round with one ring of air
     ///   Scattergun              flechettes: hair-thin needles
-    ///   Arcane Missiles         little missiles with a smoke trail (EmitFromShot)
+    ///   Ice Shards (was Arcane Missiles)   faceted ice kites with a trail of glints (EmitFromShot)
     ///   lightning               flickering, re-forking bolts with a white-hot core (DrawJuicyBolt)
     ///   Shuriken                motion-blur arcs while it spins
     ///   Blood Bolts             the mockup's blood drop: a teardrop with a dotted trail
@@ -18,13 +18,15 @@ namespace Arena
     public partial class ArenaApp
     {
         /// The weapon that fired a player's shot, if the shot is that weapon's own (not a turret's, an ability's...).
-        WeaponId? ShotWeapon(Bullet b)
+        WeaponId? ShotWeapon(Bullet b) => ShotWeapon(b.Kind, b.Owner);
+
+        WeaponId? ShotWeapon(byte kind, int owner)
         {
             Player p;
-            if (b.Owner <= 0 || !game.Players.TryGetValue(b.Owner, out p))
+            if (owner <= 0 || !game.Players.TryGetValue(owner, out p))
                 return null;
             var w = p.Weapon.Id;
-            switch (b.Kind)
+            switch (kind)
             {
                 case Defs.DpsShot: return w == WeaponId.TwinRifle || w == WeaponId.BurstSmg ? w : (WeaponId?)null;
                 case Defs.RailShot: return w == WeaponId.Railgun ? w : (WeaponId?)null;
@@ -36,6 +38,23 @@ namespace Arena
                 case Defs.FireflyShot: return w == WeaponId.SpriteStaff ? w : (WeaponId?)null;
             }
             return null;
+        }
+
+        /// Ice Shards (WeaponId.ArcaneMissiles, Docs/Mockups/ice-shards.html look A): frost blue, with a pale and a deep half.
+        /// Defs.BulletColor(ArcaneShot) stays violet for the other arcane shots (Arcane Aegis reflections and rings).
+        static readonly Rgba IceCol = new Rgba(0.56f, 0.89f, 1f), IceLight = new Rgba(0.94f, 0.99f, 1f), IceDark = new Rgba(0.29f, 0.64f, 0.88f);
+
+        /// A shot's colour: Ice Shards' frost blue, or the kind's own.
+        Rgba ShotColor(byte kind, int owner) => kind == Defs.ArcaneShot && ShotWeapon(kind, owner) == WeaponId.ArcaneMissiles ? IceCol : Defs.BulletColor(kind);
+
+        /// One ice shard (a kite: pale half, deep half) pointing along `dir`, `len` long and `wid` across.
+        void IceShard(V2 at, V2 dir, float len, float wid, float alpha)
+        {
+            V2 side = dir.Orthogonal();
+            SetColor(IceLight.WithAlpha(alpha));
+            Tri(at + dir * len, at + side * wid, at - dir * (len * 0.45f));
+            SetColor(IceDark.WithAlpha(alpha));
+            Tri(at + dir * len, at - side * wid, at - dir * (len * 0.45f));
         }
 
         /// The mockup's taper(): a trail as long as the shot's last `frames` frames (never longer than it has flown), from
@@ -67,7 +86,7 @@ namespace Arena
                     GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
                     return;
                 case WeaponId.ArcaneMissiles:
-                    GlowDisc(b.Pos - (b.Vel.IsZero ? V2.Zero : b.Vel.Normalized()) * 10f, 12f, new Rgba(1f, 0.7f, 0.3f), 0.9f);  // its exhaust
+                    GlowDisc(b.Pos, 16f, IceCol, 0.7f);  // a cold glow round the shard
                     return;
                 case WeaponId.GolemStaff:
                 case WeaponId.BloodBolts:
@@ -164,12 +183,9 @@ namespace Arena
                     return false;  // drawn by DrawBoulder (WorldShots.cs); only its glow is set here (ShotGlow: none, it's a rock)
                 case WeaponId.ArcaneMissiles:
                 {
-                    // A little missile: a pale body, a coloured nose, a flame at the back.
-                    float l = r + 4f;
-                    Line(b.Pos - dir * l, b.Pos + dir * (l * 0.4f), r * 1.1f, new Rgba(0.82f, 0.85f, 0.92f));
-                    SetColor(c);
-                    Tri(b.Pos + dir * (l + 3f), b.Pos + dir * (l * 0.4f) + side * (r * 0.6f), b.Pos + dir * (l * 0.4f) - side * (r * 0.6f));
-                    Circle(b.Pos - dir * (l + 2f), r * (0.6f + 0.2f * Mathf.Sin(t * 40f + b.Id)), new Rgba(1f, 0.75f, 0.35f, 0.9f), 8);
+                    // An ice shard: a faceted kite, pale above and deep blue below, with a white ridge down the middle.
+                    IceShard(b.Pos, dir, 11f, 4f, 1f);
+                    Line(b.Pos - dir * 3f, b.Pos + dir * 10f, 1f, Rgba.White.WithAlpha(0.9f));
                     return true;
                 }
             }
@@ -184,8 +200,8 @@ namespace Arena
             V2 back = b.Vel.IsZero ? V2.Zero : -b.Vel.Normalized();
             if (b.Kind == Defs.ArcaneShot && ShotWeapon(b) == WeaponId.ArcaneMissiles)
             {
-                if (Rnd(0f, 1f) < dt * 40f)
-                    AddPart(new Part { Kind = PDust, Pos = b.Pos + back * (b.Radius + 5f), Vel = back * 20f + new V2(Rnd(-8f, 8f), Rnd(-8f, 8f)), Life = 0.6f, Max = 0.6f, Size = 2.4f, Col = new Rgba(0.7f, 0.68f, 0.78f) });
+                if (Rnd(0f, 1f) < dt * 40f)  // glints shed behind it, fading
+                    AddPart(new Part { Kind = PSpark, Pos = b.Pos + back * (b.Radius + 4f) + new V2(Rnd(-3f, 3f), Rnd(-3f, 3f)), Vel = back * 12f + new V2(Rnd(-8f, 8f), Rnd(-8f, 8f)), Life = 0.45f, Max = 0.45f, Size = 2.2f, Col = new Rgba(0.82f, 0.96f, 1f) });
             }
             else if (b.Kind == Defs.FireballShot)
             {

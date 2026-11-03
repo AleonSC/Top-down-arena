@@ -1031,7 +1031,7 @@ namespace Arena
             TickShocks(dt);   // KitWeapons.cs: the Storm Hammer's electrified enemies
             TickIonTrails(dt);  // KitWeapons.cs: the Railgun's charged paths
             TickPack(dt);     // KitWeapons.cs: the Wolf Whistle's prey
-            TickOrbiters(dt);  // KitWeapons.cs: Arcane Missiles launching
+            TickOrbiters(dt);  // KitWeapons.cs: Ice Shards (WeaponId.ArcaneMissiles) launching
             TickCombo(dt);    // Knight.cs: Twin Blades combos lapsing
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out

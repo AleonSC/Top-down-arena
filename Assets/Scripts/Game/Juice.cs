@@ -477,7 +477,7 @@ namespace Arena
 
         void BulletEnding(ShotSeen s)
         {
-            var c = Defs.BulletColor(s.Kind);
+            var c = ShotColor(s.Kind, s.Owner);
             float r = Mathf.Max(2.5f, s.Radius);
             V2 dir = s.Vel.IsZero ? V2.FromAngle(0f) : s.Vel.Normalized();
             switch (WhyGone(s.Pos, s.Vel, s.Life, s.Radius, s.Owner))
@@ -495,6 +495,12 @@ namespace Arena
                         float a = dir.Angle + MathX.Pi + Rnd(-0.75f, 0.75f);
                         AddPart(new Part { Kind = PSpark, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(90f, 260f), Life = Rnd(0.15f, 0.28f), Max = 0.28f, Size = 1.8f, Col = c });
                     }
+                    if (s.Kind == Defs.ArcaneShot && ShotWeapon(s.Kind, s.Owner) == WeaponId.ArcaneMissiles)  // an ice shard shatters
+                        for (int i = 0; i < 4; i++)
+                        {
+                            float a = Rnd(0f, MathX.Tau);
+                            AddPart(new Part { Kind = PTumble, Pos = s.Pos, Vel = V2.FromAngle(a) * Rnd(70f, 170f), Rot = a, Spin = Rnd(-14f, 14f), Life = 0.4f, Max = 0.4f, Size = 2.4f, Col = new Rgba(0.9f, 0.98f, 1f) });
+                        }
                     break;
                 case Ending.Blocked:
                 {

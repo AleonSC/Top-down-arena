@@ -50,8 +50,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 40f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
                 Desc = "Hold to charge a strip of ground in front of you, longer the longer you hold (160 px to half the arena). Let go: lightning shocks everything in it (40, and a 0.4 s stun).",
                 Sound = Sfx.SpellZap, AreaDesc = "the lightning strip 25% wider", BarrageDesc = "+1 strip of lightning side by side with the first. Covers more ground; nothing is shocked twice" },
-            new WeaponDef { Id = WeaponId.ArcaneMissiles, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 missile a cast, +2 in orbit, and faster launches", Name = "Arcane Missiles", FireInterval = 0.3f,
-                Desc = "Each cast conjures 3 missiles into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim.",
+            new WeaponDef { Id = WeaponId.ArcaneMissiles, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 shard a cast, +2 in orbit, and faster launches", Name = "Ice Shards", FireInterval = 0.3f,
+                Desc = "Each cast conjures 3 shards of ice into orbit round you (up to 6). They launch at enemies within 300 px, homing, one after another. With the orbit full, a cast flies at your aim.",
                 Sound = Sfx.SpellArcane },
         };
 

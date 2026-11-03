@@ -1,0 +1,390 @@
+<title>Elemental Missiles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. A patch of arena at the game's scale (1 canvas px = 1 arena px): an
+   Elementalist and four target dummies, running the Arcane Missiles loop in the picked element. Mechanics are the
+   game's real numbers (Core/KitWeapons.cs); only the drawing changes. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --ice: #8fe3ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--ice); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14262c; border-color: var(--ice); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--ice); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--ice); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--ice); }
+.card h3 { margin: 0; font: 700 18px var(--font-display); }
+.card canvas { width: 100%; height: auto; aspect-ratio: 3 / 1; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .now { margin-left: 0; width: 100%; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · DPS Elementalist · pick an element</div>
+    <h1>Arcane Missiles <span>→ elemental</span></h1>
+    <p class="lead">Arcane Missiles today are purple rocket-shaped bolts. The mechanics stay exactly as they are: each cast
+      conjures 3 into orbit round you (cap 6), they launch one every 0.08 s at the nearest enemy within 300 px, homing, and
+      with the orbit full a cast flies at your aim. Below are five elements for them, drawn at the real orbit radius,
+      launch rate, speed and homing, with today's look for comparison. Fire and lightning already belong to the Fireball and
+      Arc Lightning, so the leading ideas are frost (three takes) and a stone one that gives the Elementalist's DPS trio
+      three different elements.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Look</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="again">Restart</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The looks</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>Drawing only. The shot stays <code>Defs.ArcaneShot</code> / <code>WeaponId.ArcaneMissiles</code>, so damage, homing (<code>MissileTurn</code>), orbit and launch timing in <code>Core/KitWeapons.cs</code> are untouched and there is <b>no protocol change</b>. The looks live in <code>Game/ShotLooks.cs</code> (the missile and its trail), <code>Game/WorldRenderer.cs</code> (the orbit) and <code>Game/CharacterModels.cs</code> (the staff icon).</li>
+      <li>If you pick one, the name, <code>Desc</code> and README row change with it ("Ice Shards", "conjures 3 shards into orbit..."), and <code>Defs.BulletColor(ArcaneShot)</code> moves from violet to the element's colour so the hit sparks and damage numbers match. A rename of the enum value is optional: <code>WeaponId.ArcaneMissiles</code> can stay as the internal id to avoid touching saves, tests and the Armory build.</li>
+      <li>The frost looks (A–C) are purely visual: they do <b>not</b> slow enemies, because that would be a mechanics change. If you want a chill on hit later, that is a separate decision (Frost Lance already owns slowing).</li>
+      <li>Per-shot sparkle trails are cheap particles like the existing arcane smoke (<code>EmitFromShot</code>). With <b>Visual effects</b> off, the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>).</li>
+      <li>Not done here, on purpose: the Armory and Bestiary reference pages stay as they are until you ask for them to be updated.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // --- The game's numbers (Core/KitWeapons.cs, Minions.cs) ---
+  const ORBIT_R = 34, ORBIT_SPIN = 3, CAP = 6, PER_CAST = 3, CAST_EVERY = 0.3;
+  const LAUNCH_RANGE = 300, LAUNCH_EVERY = 0.08, SPEED = 520, LIFE = 1, TURN = 6;
+  const O = { x: 150, y: 190 };
+  // Casts happen at these times in the loop; launching is only allowed once enemies step into range at 1.0 s.
+  const CASTS = [0, 0.3, 0.6, 1.2, 1.5], IN_RANGE_AT = 1.0, LOOP = 3.6;
+  const DUMMY_DEFS = [
+    { x: O.x + 150, y: O.y },
+    { x: O.x + 215, y: O.y - 62 },
+    { x: O.x + 225, y: O.y + 60 },
+    { x: O.x + 300, y: O.y + 4 },
+  ];
+
+  // ---------- helpers ----------
+  const poly = (c, pts, fill, stroke, lw) => {
+    c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+    c.closePath();
+    if (fill) { c.fillStyle = fill; c.fill(); }
+    if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); }
+  };
+  const line = (c, x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const disc = (c, x, y, r, col) => { c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = col; c.fill(); };
+  const glow = (c, col, blur) => { c.shadowColor = col; c.shadowBlur = blur; };
+  const noGlow = c => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const star4 = (c, x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+  const kite = (c, x, y, ang, len, wid, light, dark) => {
+    c.save(); c.translate(x, y); c.rotate(ang);
+    poly(c, [[len, 0], [0, -wid], [-len * 0.45, 0]], light);
+    poly(c, [[len, 0], [0, wid], [-len * 0.45, 0]], dark);
+    c.restore();
+  };
+  const flake = (c, x, y, r, col, rot, lw) => {
+    c.save(); c.translate(x, y); c.rotate(rot); c.strokeStyle = col; c.lineWidth = lw || 1.2; c.lineCap = "round";
+    for (let i = 0; i < 3; i++) { c.rotate(Math.PI / 3); c.beginPath(); c.moveTo(-r, 0); c.lineTo(r, 0); c.moveTo(r * 0.55, -r * 0.32); c.lineTo(r * 0.55, r * 0.32); c.moveTo(-r * 0.55, -r * 0.32); c.lineTo(-r * 0.55, r * 0.32); c.stroke(); }
+    c.restore();
+  };
+
+  // ---------- The looks ----------
+  // orbiter(c, x, y, ang, t, i): one waiting missile; ang is the tangent direction it circles in.
+  // missile(c, m, t): m = { x, y, ang, age }; the trail is a list of { x, y, age } behind it (see trail()).
+  // trail(c, pts, m, t): drawn first, behind the missile.
+  // hit(c, x, y, age, seed): the burst when one lands (life ~0.4 s).
+  const LOOKS = {};
+
+  LOOKS.current = {
+    key: "Now", name: "Arcane Missiles (today)", elem: "Arcane", col: "#c58bff",
+    blurb: "Pale body, violet nose, orange exhaust and grey smoke. Violet hit sparks.",
+    mood: "Rocket", ring: "rgba(197,139,255,0.35)",
+    orbiter(c, x, y, ang) { line(c, x - Math.cos(ang) * 6, y - Math.sin(ang) * 6, x, y, "rgba(197,139,255,0.35)", 2); disc(c, x, y, 4, "rgba(197,139,255,0.3)"); disc(c, x, y, 2.4, "#c58bff"); },
+    trail(c, pts) { pts.forEach(p => { const k = 1 - p.age / 0.5; if (k > 0) disc(c, p.x, p.y, 2.4 * k, `rgba(180,172,198,${0.5 * k})`); }); },
+    missile(c, m, t) {
+      c.save(); c.translate(m.x, m.y); c.rotate(m.ang);
+      const r = 3, l = r + 4;
+      line(c, -l, 0, l * 0.4, 0, "rgba(209,217,235,1)", r * 1.1);
+      poly(c, [[l + 3, 0], [l * 0.4, -r * 0.6], [l * 0.4, r * 0.6]], "#c58bff");
+      disc(c, -l - 2, 0, r * (0.6 + 0.2 * Math.sin(t * 40)), "rgba(255,190,90,0.9)");
+      c.restore();
+    },
+    hit(c, x, y, age, seed) { const r = rnd(seed), k = clamp01(age / 0.35); for (let i = 0; i < 7; i++) { const a = r() * TAU, d = 4 + 16 * k * (0.5 + r()); disc(c, x + Math.cos(a) * d, y + Math.sin(a) * d, 2 * (1 - k), `rgba(197,139,255,${1 - k})`); } }
+  };
+
+  // A: faceted crystal shards. Kite-shaped, two-tone, a cold glow and a shimmer behind.
+  LOOKS.shards = {
+    key: "A", name: "Ice Shards", elem: "Frost", col: "#8fe3ff", ring: "rgba(143,227,255,0.25)",
+    blurb: "Kite-shaped crystals, pale on top and deep blue below, glowing cold. They tumble slowly in orbit, snap to point at the target, and leave glints that fade. A hit shatters into flying splinters.",
+    mood: "Closest to \"ice shards\"",
+    orbiter(c, x, y, ang, t, i) {
+      glow(c, "rgba(130,225,255,0.9)", 8);
+      kite(c, x, y, ang + Math.sin(t * 2 + i) * 0.5, 7, 2.8, "#e6fbff", "#4fa8e0"); noGlow(c);
+      if ((Math.floor(t * 3) + i) % 5 === 0) star4(c, x + 2, y - 2, 2.6, "rgba(255,255,255,0.9)");
+    },
+    trail(c, pts) {
+      pts.forEach((p, i) => { const k = 1 - p.age / 0.45; if (k > 0 && i % 2 === 0) star4(c, p.x + p.jx, p.y + p.jy, 3 * k, `rgba(210,245,255,${0.85 * k})`); });
+    },
+    missile(c, m, t) {
+      glow(c, "rgba(130,225,255,0.95)", 12);
+      kite(c, m.x, m.y, m.ang, 11, 4, "#f0fcff", "#4aa3de"); noGlow(c);
+      c.save(); c.translate(m.x, m.y); c.rotate(m.ang); line(c, -3, 0, 10, 0, "rgba(255,255,255,0.9)", 1); c.restore();
+    },
+    hit(c, x, y, age, seed) {
+      const r = rnd(seed), k = clamp01(age / 0.4), fade = 1 - k;
+      for (let i = 0; i < 6; i++) { const a = r() * TAU, d = 5 + 22 * (1 - (1 - k) * (1 - k)); kite(c, x + Math.cos(a) * d, y + Math.sin(a) * d, a + k * 4, 5, 2, `rgba(235,252,255,${fade})`, `rgba(90,180,235,${fade})`); }
+      if (k < 0.5) star4(c, x, y, 11 * (1 - k * 2), "rgba(255,255,255,0.95)");
+    }
+  };
+
+  // B: long thin icicle darts: needle-like, fast-looking, with a streak behind.
+  LOOKS.darts = {
+    key: "B", name: "Icicle Darts", elem: "Frost", col: "#bfeeff", ring: "rgba(191,238,255,0.25)",
+    blurb: "Long needles with a white core, so they read as fast. Orbit as a fan of spikes that point outwards like a crown. Leaves a thin frost streak. A hit pricks out a star of ice spikes.",
+    mood: "Sharpest, most readable at speed",
+    orbiter(c, x, y, ang, t, i) {
+      const out = Math.atan2(y - O.y, x - O.x); c.save(); c.translate(x, y); c.rotate(out);
+      glow(c, "rgba(150,230,255,0.8)", 6); poly(c, [[9, 0], [-4, -2.4], [-4, 2.4]], "#d8f7ff"); noGlow(c); line(c, -3, 0, 8, 0, "#fff", 0.9); c.restore();
+    },
+    trail(c, pts, m) {
+      if (pts.length < 2) return;
+      c.beginPath(); c.moveTo(m.x, m.y); pts.forEach(p => c.lineTo(p.x, p.y)); c.strokeStyle = "rgba(170,235,255,0.28)"; c.lineWidth = 3; c.lineCap = "round"; c.lineJoin = "round"; c.stroke();
+      c.beginPath(); c.moveTo(m.x, m.y); pts.slice(0, Math.ceil(pts.length * 0.5)).forEach(p => c.lineTo(p.x, p.y)); c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 1.2; c.stroke();
+    },
+    missile(c, m) {
+      c.save(); c.translate(m.x, m.y); c.rotate(m.ang);
+      glow(c, "rgba(150,230,255,0.95)", 10);
+      poly(c, [[16, 0], [-6, -3], [-12, 0], [-6, 3]], "#cdf4ff"); noGlow(c);
+      poly(c, [[16, 0], [-6, 3], [-12, 0], [0, 0]], "rgba(70,150,215,0.7)");
+      line(c, -8, 0, 15, 0, "#fff", 1.2); c.restore();
+    },
+    hit(c, x, y, age, seed) {
+      const k = clamp01(age / 0.4), fade = 1 - k, n = 8;
+      for (let i = 0; i < n; i++) { const a = i / n * TAU + seed * 0.1, l1 = 4 + 6 * k, l2 = (i % 2 ? 11 : 17) * (1 - (1 - k) * (1 - k)); line(c, x + Math.cos(a) * l1, y + Math.sin(a) * l1, x + Math.cos(a) * (l1 + l2), y + Math.sin(a) * (l1 + l2), `rgba(215,247,255,${fade})`, 2 * fade + 0.5); }
+      disc(c, x, y, 9 * (1 - k), `rgba(200,240,255,${0.4 * fade})`);
+    }
+  };
+
+  // C: spinning snowflakes. Prettiest, most obviously frost, a little less "projectile".
+  LOOKS.flakes = {
+    key: "C", name: "Frost Stars", elem: "Frost", col: "#9fd8ff", ring: "rgba(159,216,255,0.22)",
+    blurb: "Six-armed snowflakes that spin as they fly and leave a drift of snow. They orbit like a loose halo of flakes. A hit pops into a puff of flakes and mist.",
+    mood: "Prettiest, softest",
+    orbiter(c, x, y, ang, t, i) { glow(c, "rgba(150,215,255,0.8)", 6); flake(c, x, y, 5.5, "rgba(225,247,255,0.95)", t * 1.5 + i, 1.3); noGlow(c); disc(c, x, y, 1.4, "#fff"); },
+    trail(c, pts) { pts.forEach((p, i) => { const k = 1 - p.age / 0.5; if (k > 0 && i % 2) disc(c, p.x + p.jx * 1.3, p.y + p.jy * 1.3, 1.6 * k + 0.4, `rgba(235,248,255,${0.8 * k})`); }); },
+    missile(c, m, t) { glow(c, "rgba(150,215,255,0.95)", 11); flake(c, m.x, m.y, 8, "#eefaff", t * 10 + m.id, 1.6); noGlow(c); disc(c, m.x, m.y, 2.4, "#fff"); },
+    hit(c, x, y, age, seed) {
+      const r = rnd(seed), k = clamp01(age / 0.45), fade = 1 - k;
+      disc(c, x, y, 14 * k, `rgba(200,232,255,${0.22 * fade})`);
+      for (let i = 0; i < 5; i++) { const a = r() * TAU, d = 6 + 22 * k * (0.6 + 0.4 * r()); flake(c, x + Math.cos(a) * d, y + Math.sin(a) * d, 4 * (1 - k * 0.5), `rgba(235,250,255,${fade})`, a + k * 3, 1.1); }
+    }
+  };
+
+  // D: embers. Fire, to compare. (Fireball already covers fire for this class.)
+  LOOKS.embers = {
+    key: "D", name: "Ember Darts", elem: "Fire", col: "#ff9a3c", ring: "rgba(255,150,60,0.22)",
+    blurb: "Teardrop sparks of flame with a bright core and a long ragged tail. They hover like a swarm of fireflies. A hit bursts into sparks. Overlaps the Fireball's element.",
+    mood: "Warm, but the class already has fire",
+    orbiter(c, x, y, ang, t, i) { const f = 1 + 0.25 * Math.sin(t * 14 + i * 2); glow(c, "rgba(255,140,40,0.9)", 9); disc(c, x, y, 4.2 * f, "rgba(255,130,40,0.55)"); noGlow(c); disc(c, x, y, 2.5, "#ffd58a"); },
+    trail(c, pts) { pts.forEach((p, i) => { const k = 1 - p.age / 0.4; if (k > 0) disc(c, p.x + p.jx * 0.6, p.y + p.jy * 0.6 - (1 - k) * 8, 3.2 * k, `rgba(255,${90 + 110 * k | 0},40,${0.55 * k})`); }); },
+    missile(c, m) {
+      c.save(); c.translate(m.x, m.y); c.rotate(m.ang); glow(c, "rgba(255,140,40,1)", 14);
+      poly(c, [[7, 0], [0, -5], [-14, 0], [0, 5]], "#ff8a2a"); noGlow(c);
+      poly(c, [[5, 0], [0, -2.8], [-6, 0], [0, 2.8]], "#fff0b8"); c.restore();
+    },
+    hit(c, x, y, age, seed) {
+      const r = rnd(seed), k = clamp01(age / 0.4), fade = 1 - k;
+      disc(c, x, y, 12 * Math.sqrt(k), `rgba(255,150,50,${0.35 * fade})`);
+      for (let i = 0; i < 8; i++) { const a = r() * TAU, d = 4 + 20 * k * (0.5 + r()); disc(c, x + Math.cos(a) * d, y + Math.sin(a) * d - 6 * k, 2.2 * fade, `rgba(255,${150 + 80 * r() | 0},60,${fade})`); }
+    }
+  };
+
+  // E: stone shards. Earth, a third element for the DPS trio.
+  LOOKS.stone = {
+    key: "E", name: "Stone Shards", elem: "Earth", col: "#c9a46a", ring: "rgba(201,164,106,0.22)",
+    blurb: "Jagged grey-brown rock chips with a pale chipped edge, trailing dust. They circle like a slow gravel ring. A hit throws pebbles and a puff of dust. Gives the DPS trio fire, lightning and earth.",
+    mood: "Heaviest, fully new element",
+    orbiter(c, x, y, ang, t, i) { c.save(); c.translate(x, y); c.rotate(t * 1.2 + i * 1.7); poly(c, [[6, 0], [1, -4], [-5, -2], [-4, 3], [2, 4]], "#a8896a", "#6b5640", 1); poly(c, [[6, 0], [1, -4], [-1, -1]], "#d8c3a2"); c.restore(); },
+    trail(c, pts) { pts.forEach((p, i) => { const k = 1 - p.age / 0.5; if (k > 0) disc(c, p.x + p.jx, p.y + p.jy, 2.8 * k, `rgba(150,128,100,${0.45 * k})`); }); },
+    missile(c, m, t) {
+      c.save(); c.translate(m.x, m.y); c.rotate(m.ang + t * 8 + m.id);
+      poly(c, [[9, 0], [2, -6], [-8, -3], [-7, 4], [2, 6]], "#a8896a", "#5e4b37", 1.2);
+      poly(c, [[9, 0], [2, -6], [-1, -1]], "#dccaa8"); poly(c, [[-8, -3], [-7, 4], [-2, 1]], "#7a6248"); c.restore();
+    },
+    hit(c, x, y, age, seed) {
+      const r = rnd(seed), k = clamp01(age / 0.45), fade = 1 - k;
+      disc(c, x, y, 13 * Math.sqrt(k), `rgba(170,148,120,${0.3 * fade})`);
+      for (let i = 0; i < 6; i++) { const a = r() * TAU, d = 5 + 22 * k * (0.5 + r()); c.save(); c.translate(x + Math.cos(a) * d, y + Math.sin(a) * d + 12 * k * k); c.rotate(a + k * 6); c.globalAlpha = fade; poly(c, [[3.4, 0], [-1, -2.4], [-2.6, 1.6]], "#b59b78"); c.restore(); }
+    }
+  };
+
+  const ORDER = ["current", "shards", "darts", "flakes", "embers", "stone"];
+  let look = "shards", speed = 1;
+
+  // ---------- The simulation: one loop of the real mechanics ----------
+  function freshSim() {
+    return { t: 0, orbiters: [], missiles: [], hits: [], castIdx: 0, launchCd: 0, nextId: 1, dummies: DUMMY_DEFS.map(d => ({ ...d, hp: 2, flash: 0, dead: 0 })), spin: 0 };
+  }
+  let sim = freshSim();
+
+  function nearestDummy(from) {
+    let best = null, bd = LAUNCH_RANGE;
+    sim.dummies.forEach(d => { if (d.hp <= 0) return; const dd = Math.hypot(d.x - from.x, d.y - from.y); if (dd < bd) { bd = dd; best = d; } });
+    return best;
+  }
+  const orbPos = (i, n, t) => { const a = t * ORBIT_SPIN + TAU * i / Math.max(1, n); return { x: O.x + Math.cos(a) * ORBIT_R, y: O.y + Math.sin(a) * ORBIT_R, ang: a + Math.PI / 2 }; };
+
+  function step(dt) {
+    const s = sim; s.t += dt; s.spin += dt; s.launchCd -= dt;
+    while (s.castIdx < CASTS.length && s.t >= CASTS[s.castIdx]) { const n = Math.min(CAP, s.orbiters.length + PER_CAST); while (s.orbiters.length < n) s.orbiters.push(1); s.castIdx++; }
+    if (s.t >= IN_RANGE_AT && s.orbiters.length && s.launchCd <= 0) {
+      const n = s.orbiters.length, from = orbPos(n - 1, n, s.spin), tgt = nearestDummy(O);
+      if (tgt) {
+        s.orbiters.pop();
+        s.missiles.push({ id: s.nextId++, x: from.x, y: from.y, ang: Math.atan2(tgt.y - from.y, tgt.x - from.x), age: 0, tgt, trail: [], tc: 0 });
+        s.launchCd = LAUNCH_EVERY / 1.35;
+      }
+    }
+    for (let i = s.missiles.length - 1; i >= 0; i--) {
+      const m = s.missiles[i]; m.age += dt;
+      if (m.tgt.hp <= 0) m.tgt = nearestDummy(m) || m.tgt;
+      const want = Math.atan2(m.tgt.y - m.y, m.tgt.x - m.x);
+      let diff = ((want - m.ang + Math.PI * 3) % TAU) - Math.PI; const maxT = TURN * dt;
+      m.ang += Math.max(-maxT, Math.min(maxT, diff));
+      m.x += Math.cos(m.ang) * SPEED * dt; m.y += Math.sin(m.ang) * SPEED * dt;
+      m.tc += dt; if (m.tc > 0.012) { m.tc = 0; m.trail.unshift({ x: m.x, y: m.y, age: 0, jx: (Math.random() - 0.5) * 6, jy: (Math.random() - 0.5) * 6 }); }
+      m.trail.forEach(p => p.age += dt); while (m.trail.length && m.trail[m.trail.length - 1].age > 0.5) m.trail.pop();
+      const d = m.tgt;
+      if (d.hp > 0 && Math.hypot(d.x - m.x, d.y - m.y) < 16) { d.hp--; d.flash = 0.2; if (d.hp <= 0) d.dead = 0.01; s.hits.push({ x: m.x, y: m.y, age: 0, seed: 100 + m.id * 17 }); s.missiles.splice(i, 1); }
+      else if (m.age > LIFE) s.missiles.splice(i, 1);
+    }
+    s.hits.forEach(h => h.age += dt); s.hits = s.hits.filter(h => h.age < 0.5);
+    s.dummies.forEach(d => { d.flash = Math.max(0, d.flash - dt); if (d.dead) d.dead += dt; });
+    if (s.t > LOOP) sim = freshSim();
+  }
+
+  // ---------- drawing the scene ----------
+  const cv = document.getElementById("arena"), cx = cv.getContext("2d");
+  function drawScene(c, W, H, L, s, tNow) {
+    c.clearRect(0, 0, W, H);
+    // floor grid, like the other mockups
+    c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+    for (let x = 0; x < W; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+    for (let y = 0; y < H; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+    // launch range ring: lights up when enemies step into range
+    const inRange = s.t >= IN_RANGE_AT;
+    c.beginPath(); c.arc(O.x, O.y, LAUNCH_RANGE, 0, TAU); c.setLineDash([4, 8]); c.strokeStyle = inRange ? L.ring : "rgba(255,255,255,0.07)"; c.lineWidth = 1.2; c.stroke(); c.setLineDash([]);
+    // dummies
+    s.dummies.forEach(d => {
+      if (d.hp <= 0 && d.dead > 0.5) return;
+      const fade = d.hp <= 0 ? 1 - d.dead / 0.5 : 1;
+      c.globalAlpha = fade * (inRange ? 1 : 0.35);
+      disc(c, d.x, d.y, 15, d.flash > 0 ? "#f4f6f8" : "#5b2e33"); c.beginPath(); c.arc(d.x, d.y, 15, 0, TAU); c.strokeStyle = "#a35560"; c.lineWidth = 2; c.stroke();
+      c.globalAlpha = 1;
+    });
+    // player
+    disc(c, O.x, O.y, 15, "#2b3a55"); c.beginPath(); c.arc(O.x, O.y, 15, 0, TAU); c.strokeStyle = "#8fb0e8"; c.lineWidth = 2; c.stroke();
+    line(c, O.x, O.y, O.x + 22, O.y, "#c9d6ee", 3);
+    // orbit
+    const n = s.orbiters.length;
+    for (let i = 0; i < n; i++) { const p = orbPos(i, n, s.spin); L.orbiter(c, p.x, p.y, p.ang, tNow, i); }
+    // missiles
+    s.missiles.forEach(m => { L.trail(c, m.trail, m, tNow); });
+    s.missiles.forEach(m => { L.missile(c, m, tNow); });
+    s.hits.forEach(h => L.hit(c, h.x, h.y, h.age, h.seed));
+  }
+
+  // ---------- UI ----------
+  const btns = document.getElementById("styleBtns"), cards = document.getElementById("cards"), now = document.getElementById("now");
+  const cardEls = {}, cardCtx = {};
+  function setLook(k) {
+    look = k; sim = freshSim();
+    [...btns.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === k)));
+    Object.keys(cardEls).forEach(id => cardEls[id].setAttribute("aria-current", String(id === k)));
+    now.textContent = LOOKS[k].name + " · " + LOOKS[k].elem;
+  }
+  ORDER.forEach(k => {
+    const L = LOOKS[k];
+    const b = document.createElement("button"); b.dataset.k = k; b.setAttribute("aria-pressed", "false");
+    b.innerHTML = `<span class="k">${L.key}</span>${L.name.replace(" (today)", "")}`; b.onclick = () => setLook(k); btns.appendChild(b);
+    const card = document.createElement("div"); card.className = "card"; card.setAttribute("aria-current", "false"); card.onclick = () => { setLook(k); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    card.innerHTML = `<div class="tag">${L.key === "Now" ? "TODAY" : "LOOK " + L.key}</div><h3>${L.name}</h3><canvas width="360" height="120"></canvas><dl><dt>Element</dt><dd>${L.elem}</dd><dt>Feel</dt><dd>${L.mood}</dd><dt>Look</dt><dd>${L.blurb}</dd></dl>`;
+    cards.appendChild(card); cardEls[k] = card; cardCtx[k] = card.querySelector("canvas").getContext("2d");
+  });
+  document.getElementById("spd1").onclick = () => { speed = 1; document.getElementById("spd1").setAttribute("aria-pressed", "true"); document.getElementById("spd4").setAttribute("aria-pressed", "false"); };
+  document.getElementById("spd4").onclick = () => { speed = 0.25; document.getElementById("spd4").setAttribute("aria-pressed", "true"); document.getElementById("spd1").setAttribute("aria-pressed", "false"); };
+  document.getElementById("again").onclick = () => { sim = freshSim(); };
+
+  // Card thumbnails: a static pose, one orbiter ring + a missile in flight + a hit.
+  function drawCard(k) {
+    const L = LOOKS[k], c = cardCtx[k], t = 0.4;
+    c.clearRect(0, 0, 360, 120); c.save(); c.translate(-O.x + 50, -O.y + 60);
+    disc(c, O.x, O.y, 15, "#2b3a55"); c.beginPath(); c.arc(O.x, O.y, 15, 0, TAU); c.strokeStyle = "#8fb0e8"; c.lineWidth = 2; c.stroke();
+    for (let i = 0; i < 6; i++) { const p = orbPos(i, 6, 0.3); L.orbiter(c, p.x, p.y, p.ang, t, i); }
+    const pts = []; for (let i = 0; i < 14; i++) pts.push({ x: O.x + 120 - i * 7, y: O.y - 4 + i * 0.4, age: i * 0.03, jx: Math.sin(i * 3) * 3, jy: Math.cos(i * 2) * 3 });
+    const m = { id: 3, x: O.x + 120, y: O.y - 4, ang: 0.04, age: 0.2 }; L.trail(c, pts, m, t); L.missile(c, m, t);
+    const m2 = { id: 5, x: O.x + 82, y: O.y + 26, ang: -0.5, age: 0.1 }; L.missile(c, m2, t);
+    disc(c, O.x + 215, O.y, 15, "#5b2e33"); L.hit(c, O.x + 200, O.y, 0.1, 42);
+    c.restore();
+  }
+
+  let last = performance.now(), acc = 0;
+  function frame(nowMs) {
+    const dt = Math.min(0.05, (nowMs - last) / 1000) * speed; last = nowMs;
+    acc += dt; while (acc > 1 / 120) { step(1 / 120); acc -= 1 / 120; }
+    drawScene(cx, 960, 380, LOOKS[look], sim, nowMs / 1000);
+    requestAnimationFrame(frame);
+  }
+  setLook("shards"); ORDER.forEach(drawCard);
+  requestAnimationFrame(frame);
+  // Window hooks for screenshots / checks.
+  window.__mock = { setLook, advance: (s) => { for (let i = 0; i < s * 120; i++) step(1 / 120); }, redrawCards: () => ORDER.forEach(drawCard) };
+})();
+</script>
