@@ -8,82 +8,219 @@ namespace Arena
     /// The main menu, How to play, and the pause menu and audio settings.
     public partial class ArenaApp
     {
+        // The main menu ("Big play", Docs/Mockups/menu-d.html): the title on its x-axis with a shot arcing over it and a
+        // line under it that changes; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big
+        // Host game button over Join and Continue; Join opens the address row under the box; a bar along the bottom with
+        // your name, Records, Settings and Quit. The port is in Settings (Gameplay). The first time the menu shows, it
+        // draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
+        const float MenuTitleY = 174f, MenuTitleSize = 74f, MenuAxisY = 236f, MenuAxisHalf = 390f, MenuTipY = 268f;
+        const float ArcX0 = 250f, ArcX1 = 1030f, ArcTop = 70f, ArcBase = 210f;  // the shot's arc over the title
+        const float MenuBarY = H - 70f;                                        // the bottom bar
+        static readonly Rect MenuCard = new Rect(W / 2f - 220f, 290f, 440f, 214f);
+        static readonly Rect MenuHostRect = new Rect(W / 2f - 190f, 314f, 380f, 82f);
+        static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, 414f, 186f, 52f);
+        static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, 414f, 186f, 52f);
+        static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, 516f, 440f, 64f);
+        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 15f, 210f, 40f);
+        bool menuJoinOpen;    // Join opened the address row
+        int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
+
         void DrawMenu()
         {
             float t = Time.unscaledTime;
-            DrawMenuTitle();
-            var card = MenuCard;
-            Ui.Panel(card, true);
+            DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
+            DrawMenuTitle(t);
+            float box = MenuIntroK(1.65f, 2.0f);
+            if (box > 0f)
+                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => Ui.Panel(MenuCard, true)));
             if (BeginUiGl())
             {
-                DrawAxis(new V2(W / 2f, 158f), 380f, t);  // the title sits on an x-axis
-                DrawPlotCorners(card, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f));
+                DrawAxis(new V2(W / 2f, MenuAxisY), MenuAxisHalf * EaseOut(MenuIntroK(0f, 0.45f)), t);  // the title sits on an x-axis
+                DrawMenuArc(t, 1f);
+                float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
+                if (snap > 0f)
+                    DrawPlotCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * snap));
+                DrawMenuIntroPen(t);  // the pen writing the title and tracing the arc (MenuIntro.cs)
                 EndUiGl();
             }
-            DrawMenuCardInside(t, true);
-            DrawMenuSecondary(t, true);
+            bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
+            DrawMenuCardInside(t, live);
+            DrawMenuSecondary(t, live);
+            DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
         }
 
-        static readonly Rect MenuCard = new Rect(W / 2f - 250f, 200f, 500f, 316f);
-
-        void DrawMenuTitle()
+        /// The title, the line under it (typed in during the intro), drawn in ink then filled during the intro.
+        void DrawMenuTitle(float t, float alpha = 1f)
         {
-            Ui.Fancy(new Rect(0, 64f, W, 76f), "CARTESIAN COLOSSEUM", 58, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent);
+            var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
+            DrawMenuTitleText(r);
+            float tip = MenuIntroK(2.2f, 2.7f);
+            if (tip > 0f)
+            {
+                string line = MenuTip(t, out float fade);
+                if (tip < 1f)
+                    line = line.Substring(0, Mathf.FloorToInt(line.Length * tip)) + "|";
+                Ui.Label(new Rect(0f, MenuTipY - 10f, W, 20f), line, 15, new Color(0.75f, 0.8f, 0.92f, 0.85f * fade * alpha), TextAnchor.MiddleCenter);
+            }
         }
 
-        /// The menu card's fields and buttons. live = false draws them only (Repaint), for the move into the lobby (LobbyEnter.cs).
+        /// The line under the title: your best run, then the How to play tips, a new one every 8 s (fading between).
+        string MenuTip(float t, out float fade)
+        {
+            var p = Profile.Current;
+            int n = HowToTips.GetLength(0) + (p.BestWave > 0 ? 1 : 0);
+            float cycle = 8f;
+            int i = (Mathf.FloorToInt(t / cycle) + menuTipSeed) % n;
+            float into = t % cycle;
+            fade = Mathf.Clamp01(Mathf.Min(into / 0.4f, (cycle - into) / 0.4f));
+            if (MenuIntroPlaying)
+                fade = 1f;
+            if (p.BestWave > 0 && i == 0)
+                return "Best run: wave " + p.BestWave + "  ·  " + p.RunsStarted + (p.RunsStarted == 1 ? " run" : " runs") + " started";
+            int k = i - (p.BestWave > 0 ? 1 : 0);
+            return HowToTips[k, 0] + ": " + HowToTips[k, 1];
+        }
+
+        /// GL (inside BeginUiGl): the shot's dashed arc over the title, the shot flying along it, and its label.
+        void DrawMenuArc(float t, float alpha)
+        {
+            UiModelAt(V2.Zero, 1f);
+            float upTo = MenuIntroK(1.4f, 1.9f);
+            if (upTo <= 0f || alpha <= 0f)
+                return;
+            var c = new Rgba(0.45f, 0.65f, 1f, 0.35f * alpha);
+            const int Segs = 60;
+            int n = Mathf.CeilToInt(Segs * upTo);
+            for (int i = 0; i < n; i += 2)  // dashes: every other step
+                Line(ArcAt(Mathf.Min(upTo, (float)i / Segs)), ArcAt(Mathf.Min(upTo, (float)(i + 1) / Segs)), 1.5f, c);
+            float shotIn = MenuIntroK(1.9f, 2.2f) * alpha;
+            if (shotIn > 0f)
+            {
+                float u = MathX.Fmod(t * 0.22f, 1f);
+                for (int i = 6; i >= 0; i--)  // the shot and its fading tail
+                {
+                    float uu = Mathf.Max(0f, u - i * 0.008f);
+                    Circle(ArcAt(uu), 5f - i * 0.5f, new Rgba(1f, 0.47f, 0.59f, (0.12f + 0.5f * (1f - i / 6f)) * shotIn), 10);
+                }
+            }
+        }
+
+        static V2 ArcAt(float u) => new V2(Mathf.Lerp(ArcX0, ArcX1, u), ArcBase - (ArcBase - ArcTop) * 4f * u * (1f - u));
+
+        /// The box's buttons: Host game, Join and Continue, the address row Join opens, and how joining is going.
+        /// live = false draws them only (Repaint), for the intro and the move into the lobby (LobbyEnter.cs).
         void DrawMenuCardInside(float t, bool live)
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            var card = MenuCard;
-            float x = card.x + 32f, w = card.width - 64f, y = card.y + 26f;
-            Ui.Heading(x, y, w, "Your name");
-            nameText = Ui.Field(new Rect(x, y + 28f, w, 38f), nameText, 16);
-            y += 82f;
-            Ui.Heading(x, y, w - 130f, "Host address (to join)");
-            Ui.Heading(x + w - 110f, y, 110f, "Port");
-            addressText = Ui.Field(new Rect(x, y + 28f, w - 130f, 38f), addressText, 64);
-            portText = Ui.Field(new Rect(x + w - 110f, y + 28f, 110f, 38f), portText, 5);
-            y += 94f;
-            if (session.Connecting && live)
+            float host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
+            if (host > 0f)
+                MenuRise(host, 60f, () =>
+                {
+                    Ui.PulseRing(MenuHostRect, Ui.Primary, t);
+                    if (Ui.FancyButton(MenuHostRect, "HOST GAME", Ui.Primary, PixelArt.Get("ui_play"), t, 30) && live)
+                        HostGame();
+                });
+            if (join > 0f)
+                MenuRise(join, 24f, () =>
+                {
+                    if (Ui.FancyButton(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t, 18) && live)
+                        menuJoinOpen = !menuJoinOpen;
+                });
+            if (cont > 0f)
+                MenuRise(cont, 24f, () =>
+                {
+                    int saved = savedRunsCount;  // saved runs (SavesUi.cs)
+                    var col = saved > 0 ? new Color(SaveColor.r * 0.6f, SaveColor.g * 0.6f, SaveColor.b * 0.6f) : Ui.Neutral;
+                    if (Ui.FancyButton(MenuContinueRect, "Continue", col, PixelArt.Get("ui_play"), t, 18) && live)
+                        OpenContinue();
+                    Ui.Label(new Rect(MenuContinueRect.x, MenuContinueRect.yMax + 4f, MenuContinueRect.width, 18f),
+                        saved > 0 ? saved + (saved == 1 ? " saved run" : " saved runs") : "No saved runs yet", 12,
+                        saved > 0 ? new Color(0.66f, 0.85f, 0.75f, 0.85f) : new Color(1f, 1f, 1f, 0.4f), TextAnchor.MiddleCenter);
+                });
+            // Join's address row (or, while connecting, how it's going and Cancel), then any message from the last try.
+            var row = MenuJoinRow;
+            if (session.Connecting)
             {
-                Ui.Label(new Rect(x, y, w, 44f), session.Status, 15, Ui.Muted, TextAnchor.MiddleCenter);
-                if (Ui.FancyButton(new Rect(x + w / 2f - 90f, y + 52f, 180f, 44f), "Cancel", Ui.Danger, PixelArt.Get("ui_back"), t))
+                Ui.Panel(row, false);
+                Ui.Label(new Rect(row.x + 16f, row.y, row.width - 170f, row.height), session.Status, 14, Ui.Muted, TextAnchor.MiddleLeft, false, true);
+                if (Ui.FancyButton(new Rect(row.xMax - 150f, row.y + 12f, 136f, 40f), "Cancel", Ui.Danger, PixelArt.Get("ui_back"), t, 15) && live)
                     session.Leave("");
             }
-            else
+            else if (menuJoinOpen && join >= 1f)
             {
-                if (Ui.FancyButton(new Rect(x, y, w / 2f - 8f, 50f), "Host game", Ui.Primary, PixelArt.Get("ui_play"), t) && live)
-                    HostGame();
-                if (Ui.FancyButton(new Rect(x + w / 2f + 8f, y, w / 2f - 8f, 50f), "Join game", Ui.Neutral, PixelArt.Get("ui_arrow"), t) && live)
-                    session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
-                if (session.Status.Length > 0 && live)
-                    Ui.Label(new Rect(x - 10f, y + 58f, w + 20f, 50f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
+                Ui.Panel(row, false);
+                Ui.Label(new Rect(row.x + 16f, row.y + 4f, 200f, 14f), "HOST ADDRESS", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+                addressText = Ui.Field(new Rect(row.x + 14f, row.y + 20f, row.width - 178f, 36f), addressText, 64);
+                if (Ui.FancyButton(new Rect(row.xMax - 154f, row.y + 18f, 140f, 38f), "Connect", Ui.Primary, PixelArt.Get("ui_arrow"), t, 16) && live)
+                    JoinGame();
             }
+            if (session.Status.Length > 0 && !session.Connecting && live)
+                Ui.Label(new Rect(row.x - 40f, (menuJoinOpen ? row.yMax : row.y) + 6f, row.width + 80f, 40f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
         }
 
-        /// The buttons under the menu card. live = false draws them only (Repaint), for the move into the lobby.
-        void DrawMenuSecondary(float t, bool live)
+        void JoinGame()
+        {
+            SaveMenuFields();
+            session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice);
+        }
+
+        /// A piece of the menu rising into place as the intro brings it in (k 0 to 1; 1 = in place).
+        void MenuRise(float k, float from, Action draw)
+        {
+            if (k >= 1f)
+            {
+                draw();
+                return;
+            }
+            GUI.BeginGroup(new Rect(0f, from * (1f - EaseBack(k)), W, H));
+            WithAlpha(Mathf.Clamp01(k * 2f), draw);
+            GUI.EndGroup();
+        }
+
+        /// The bar along the bottom: your name (type to change it), Records, Settings and Quit. live = false draws it only
+        /// (Repaint), for the intro and the move into the lobby.
+        void DrawMenuSecondary(float t, bool live, bool withName = true)
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            // Four buttons stacked, as wide as the card (the Field guide and How to play are in the lobby's and the pause
-            // menu's drawer).
-            const float bh = 34f, gap = 8f;
-            float bx = MenuCard.x, bw = MenuCard.width, by = MenuCard.yMax + 22f;
-            int saved = savedRunsCount;  // saved runs and records (SavesUi.cs)
-            if (Ui.FancyButton(new Rect(bx, by, bw, bh), saved > 0 ? "Continue a run  (" + saved + ")" : "Continue a run", saved > 0 ? new Color(SaveColor.r * 0.7f, SaveColor.g * 0.7f, SaveColor.b * 0.7f) : Ui.Neutral, PixelArt.Get("ui_play"), t, 16) && live)
-                OpenContinue();
-            by += bh + gap;
-            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Records", new Color(0.62f, 0.5f, 0.2f), PixelArt.Get("ui_trophy"), t, 16) && live)
+            float k = MenuIntroK(2.1f, 2.5f);
+            if (k <= 0f)
+                return;
+            GUI.BeginGroup(new Rect(0f, 80f * (1f - EaseOut(k)), W, H));
+            Ui.Fill(new Rect(0f, MenuBarY, W, 70f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
+            Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
+            if (withName)
+            {
+                Ui.Label(new Rect(MenuNameRect.x + 2f, MenuNameRect.y - 13f, 120f, 12f), "YOUR NAME", 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+                string before = nameText;
+                nameText = Ui.Field(MenuNameRect, nameText, 16);
+                if (nameText != before)
+                    SaveMenuFields();
+            }
+            if (Ui.FancyButton(new Rect(W / 2f - 125f, MenuBarY + 16f, 120f, 38f), "Records", new Color(0.36f, 0.3f, 0.14f), PixelArt.Get("ui_trophy"), t, 14) && live)
                 recordsOpen = true;
-            by += bh + gap;
-            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 16) && live)
+            if (Ui.FancyButton(new Rect(W / 2f + 5f, MenuBarY + 16f, 120f, 38f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 14) && live)
                 settingsOpen = true;
-            by += bh + gap;
-            if (Ui.FancyButton(new Rect(bx, by, bw, bh), "Quit", Ui.Danger, PixelArt.Get("ui_power"), t, 16) && live)
+            if (Ui.FancyButton(new Rect(W - 148f, MenuBarY + 16f, 120f, 38f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 14) && live)
                 Application.Quit();
+            GUI.EndGroup();
+        }
+
+        /// Your name and the port are kept between sessions (unless given on the command line).
+        void LoadMenuFields()
+        {
+            nameText = PlayerPrefs.GetString("player_name", nameText);
+            portText = PlayerPrefs.GetString("net_port", portText);
+            addressText = PlayerPrefs.GetString("join_address", addressText);
+        }
+
+        void SaveMenuFields()
+        {
+            PlayerPrefs.SetString("player_name", nameText);
+            PlayerPrefs.SetString("net_port", portText);
+            PlayerPrefs.SetString("join_address", addressText);
+            PlayerPrefs.Save();
         }
 
         /// A glowing x-axis under a title: ticks (a long one every fourth), arrowheads, a pulsing origin and

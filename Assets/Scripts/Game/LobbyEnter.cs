@@ -78,14 +78,16 @@ namespace Arena
             float t = Time.unscaledTime;
             var oldColor = GUI.color;
 
-            // The buttons under the card drop away.
+            // The bottom bar drops away (your name flies up to your party card, below); the line under the title fades.
             float drop = Seg(e, 0f, 0.35f);
             if (drop < 1f)
                 WithAlpha(1f - drop, () =>
                 {
                     GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
-                    DrawMenuSecondary(t, false);
+                    DrawMenuSecondary(t, false, false);
                     GUI.EndGroup();
+                    string tip = MenuTip(t, out float fade);
+                    Ui.Label(new Rect(0f, MenuTipY - 10f, W, 20f), tip, 15, new Color(0.75f, 0.8f, 0.92f, 0.85f * fade), TextAnchor.MiddleCenter);
                 });
 
             // The card grows into the loadout panel; its insides fade at once.
@@ -107,7 +109,7 @@ namespace Arena
             LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
             LobbyPiece(new Rect(0f, PartyTop + 96f, split, H - 180f - PartyTop - 104f), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
             LobbyPiece(new Rect(0f, H - 186f, split, 96f), e, 0.7f, 1.1f, -60f, 0f);              // the background picker
-            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f);       // your party card, last
+            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.95f, 1.15f, 0f, 0f);        // your party card, where your name lands
             LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
             LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - 96f - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             LobbyPiece(new Rect(0f, H - 92f, W, 92f), e, 0.6f, 1.05f, 0f, 60f);                   // the bottom bar
@@ -116,19 +118,42 @@ namespace Arena
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
-            float cx = Lerp(W / 2f, 135f, tk), cy = Lerp(102f, 41f, tk), size = Lerp(58f, 40f, tk);
+            float cx = Lerp(W / 2f, 135f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Fancy(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
                 WithAlpha(newA, () => Ui.Fancy(new Rect(40f + (cx - 135f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent));
 
+            // Your name, from the bottom bar up the left side into your party card (which takes over as it lands).
+            float fly = EaseInOut(Seg(e, 0.5f, 1.1f));
+            if (fly > 0f && e < 1.15f)
+            {
+                var card = new Rect(40f, PartyTop, 376f, 88f);
+                var fr = LerpRect(MenuNameRect, card, fly);
+                fr.y -= 60f * Mathf.Sin(Mathf.PI * fly);
+                WithAlpha(1f - Seg(e, 1.0f, 1.15f), () =>
+                {
+                    Ui.Panel(fr, true);
+                    Ui.Fancy(new Rect(fr.x + Mathf.Lerp(10f, 96f, fly), fr.y, fr.width, Mathf.Min(fr.height, 44f)), nameText, Mathf.RoundToInt(Mathf.Lerp(16f, 20f, fly)), Color.white, new Color(0.85f, 0.9f, 1f), TextAnchor.MiddleLeft);
+                });
+            }
+            else if (fly <= 0f && drop < 1f && e > 0f)
+            {
+                // Before it sets off, it waits where it was (the bar drops away under it).
+                Ui.Panel(MenuNameRect, true);
+                Ui.Label(new Rect(MenuNameRect.x + 10f, MenuNameRect.y, MenuNameRect.width - 20f, MenuNameRect.height), nameText, 16, Color.white, TextAnchor.MiddleLeft, true);
+            }
+
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())
             {
                 float axisA = 1f - Seg(e, 0.5f, 0.8f);
                 if (axisA > 0f)
-                    DrawAxis(new V2(cx, Lerp(158f, 70f, tk)), Lerp(380f, 100f, tk), t, axisA);
+                    DrawAxis(new V2(cx, Lerp(MenuAxisY, 70f, tk)), Lerp(MenuAxisHalf, 100f, tk), t, axisA);
+                float arcA = 1f - Seg(e, 0f, 0.3f);  // the shot's arc over the title fades
+                if (arcA > 0f)
+                    DrawMenuArc(t, arcA);
                 float cornersA = 1f - Seg(e, 0.75f, 1.1f);
                 if (cornersA > 0f)
                     DrawPlotCorners(r, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * cornersA));

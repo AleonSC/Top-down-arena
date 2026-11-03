@@ -587,7 +587,7 @@ namespace Arena
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
             string[] icons = { "pulse", "nova", "crosshair" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f) };
-            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line and the HUD" };
+            string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port" };
             float y = 128f;
             for (int i = 0; i < SettingsGroups.Length; i++)
             {
@@ -659,6 +659,16 @@ namespace Arena
                     bool hud = SwitchRow(new Rect(x, y, w, 48f), hudShown, "Show the HUD", "Hide it for a clean screen; a slim boss bar stays", "H");
                     if (hud != hudShown)
                         hudShown = hud;
+                    y += 70f;
+                    // The network port (it used to sit on the main menu): hosting and joining both use it.
+                    Ui.Label(new Rect(x, y, w - 130f, 20f), "Network port", 15, Ui.Text, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(x, y + 20f, w - 130f, 36f), "Hosting and joining use it (" + Session.DefaultPort + " unless changed). Everyone in a game needs the same one.", 12, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                    string port = Ui.Field(new Rect(x + w - 110f, y + 2f, 110f, 36f), portText, 5);
+                    if (port != portText)
+                    {
+                        portText = port;
+                        SaveMenuFields();
+                    }
                     break;
                 }
             }

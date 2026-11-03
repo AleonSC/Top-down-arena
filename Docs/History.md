@@ -3,6 +3,19 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Main menu "Big play" with the pen plot intro (Nov 2026), no protocol change:** owner's pick: design D of
+`Docs/Mockups/menu-redesign.html` with intro B and the box of `Docs/Mockups/menu-d.html`. `Menus.cs`: the title at
+y 174 (size 74) on its axis (y 236), the shot's dashed arc over it (`DrawMenuArc`, `ArcAt`) and a line under it
+(`MenuTip`: best run, then How to play's tips, every 8 s); `MenuCard` is now the box behind Host game (with
+`Ui.PulseRing`), Join (opens `MenuJoinRow`: address and Connect, or the connecting status and Cancel) and Continue (the
+saved-run count); the bottom bar has the name field, Records, Settings, Quit. The port moved to Settings, Gameplay. Name,
+port and last address are saved (`player_name`, `net_port`, `join_address`; the command line still wins).
+`MenuIntro.cs`: the intro (2.75 s; a 0.45 s fade with Reduced effects or effects off), once per launch, skipped by
+any key or click; buttons take no clicks until it's over. `LobbyEnter.cs`: the title and axis start from the new
+spot, the arc and tip fade, the bar drops without the name, which flies (`MenuNameRect` to the party card) and hands
+over to the party card piece. Stubs gained `Input.anyKeyDown` and `PlayerPrefs.GetString/SetString`; the preview's
+`LOBBYIN` works again (`DrawLobbyEntering` is overloaded, so it's looked up by its empty signature).
+
 **Boss Hunt: ten waves of the boss's own enemies (Nov 2026), protocol 126:** owner's asks: the Tab screen still said
 "wave n / 50" in a hunt, and hunts should be 10 waves with the boss's own enemies building up. `Hunts.Length` 10, all
 hunts start at wave 1 and the boss comes on wave 10 (`HuntDef.BossWave`/`FirstWave` gone; `HomeWave` is only for

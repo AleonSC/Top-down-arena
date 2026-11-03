@@ -134,6 +134,7 @@ namespace Arena
                     opts[arg.Substring(2, eq - 2)] = arg.Substring(eq + 1);
             }
             string v;
+            LoadMenuFields();  // your name, the port and the last address (Menus.cs); the command line wins
             if (opts.TryGetValue("name", out v)) nameText = v;
             if (opts.TryGetValue("port", out v)) portText = v;
             if (opts.TryGetValue("role", out v))
@@ -175,6 +176,7 @@ namespace Arena
 
         void HostGame()
         {
+            SaveMenuFields();
             if (session.Host(Port(), nameText, hostRole, weaponChoice, abilityChoice, kitChoice))
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
         }
@@ -301,6 +303,7 @@ namespace Arena
             if (Input.GetKeyDown(KeyCode.H) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 hudShown = !hudShown;  // hide or show the HUD (Hud.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
             TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)

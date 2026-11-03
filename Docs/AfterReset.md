@@ -17,7 +17,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
 ## Visuals
 - [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
       weapons' swings, thrusts and slams could look, to pick from before changing the game.
-- [ ] **Redesign the main menu buttons.** Mock up a few styles first, then pick one to build.
+- [x] **Redesign the main menu buttons.** Built: design D with the pen plot intro (Nov 2026).
       Mockups done, waiting for a pick: four layouts in [`Mockups/menu-redesign.html`](Mockups/menu-redesign.html)
       (https://claude.ai/artifact/6T2r1GZSBsajVK8pxaAo8s), and three plotted intros for the menu in
       [`Mockups/menu-intro.html`](Mockups/menu-intro.html) (https://claude.ai/artifact/TdwEQNxJ8STpVk2MRPqLuk).

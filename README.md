@@ -837,13 +837,19 @@ window really close. That goes for the pause menu and for Settings from the lobb
   pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
-- **The main menu** has four buttons stacked under the card, as wide as it: **Continue a run**, **Records**,
-  **Settings** and **Quit** (the Field guide and How to play are in the lobby's and the pause menu's drawer).
+- **The main menu**: the title on its x-axis with a shot arcing over it, and a line under it that changes (your best
+  run, or a tip). In a box under it, a big **Host game** button over **Join game** and **Continue** (how many runs are
+  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name** (type to
+  change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
+  draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
+  any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
+  into the lobby's loadout while your name flies up into your party card. (The Field guide and How to play are in the
+  lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for
   **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
-  HUD). Mute and Aim line are also quick switches under the groups.
+  HUD, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
 - **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
   won) and Unlocks.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
