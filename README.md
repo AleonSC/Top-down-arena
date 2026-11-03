@@ -45,7 +45,7 @@ unique to their role and class.
 |---|---|---|---|
 | **Tank** (240 HP, enemies prefer you) | Weapons: Scattergun (double damage and a shove point-blank), Flak Cannon (airbursts at your cursor, shredding enemy bullets), Riot Repeater (rounds suppress: enemies hit shoot slower)<br>Abilities: Barrier, Roar, Bulldoze | Weapons: Flamethrower (sets enemies burning), Frost Lance (an icicle out from you that splinters sideways, slowing), Storm Hammer (a spinning hammer that electrifies what it hits)<br>Abilities: **Arcane Aegis** (reflects bullets), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets) | Weapons: Golem Staff (hold to lob a crushing boulder, + bullet-blocking Golem), Bone Guard (darts that cage enemies, + 2 orbiting skeletons that shoot the caged), Bear Totem (melee claws that cause bleeding, + Bear)<br>Abilities: **Golem Wall** (3 stone walls), **Earthquake** (you and every minion slam), **Guardian Spirit** (eats nearby bullets for 8 s) |
 | **Healer** (140 HP, healing aura) | Weapons: Repulsion Cannon, Revolver, Mender's Bow<br>Abilities: Mend Pulse, Haven, Soul Link (alone: links to a Soul Ghost of you that fights beside you, firing light bolts, 11 every 0.3 s; it has half your health, takes half damage and regenerates while linked, and fades when the link ends) | Weapons: Radiant Orb (heals allies it passes), Chain Light (a cone of light, its damage shared between what's in it), Nimbus (a storm cloud follows your cursor, raining healing on allies under it; click calls lightning on the spot beneath it)<br>Abilities: **Healing Rain** (a rain at your cursor for 6 s: heals allies inside 8 HP a second, slows enemies 30%), **Arcane Ward** (60 HP shields; when one breaks or runs out, half of what it soaked comes back as healing), **Sanctify** (erase bullets, heal) | Weapons: Sprite Staff (a firefly that seeds up to three enemies, + 2 healing sprites; seeded kills free more), Treant Rod (a root lash that mends allies it touches; the Treant roots and a root to you heals allies and slows enemies crossing it), Spirit Chalk (hold and drag to draw a line of spirit ink that burns enemies, heals allies on it and destroys bullets; draw a loop round enemies to trap them)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (fights, and instantly revives a downed ally), **Soul Lantern** (allies near it can't go down) |
-| **DPS** (95 HP) | Weapons: Twin Rifle (streams cross at your cursor for double), Railgun (leaves its path charged for a second), Burst SMG (spins up: tighter and harder the longer you fire)<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to charge a strip of lightning), Arcane Missiles (bank in orbit, launching at enemies that come near)<br>Abilities: **Meteor** (warning circle, then 150 damage), **Blizzard** (slowing storm), **Arcane Surge** (+60% damage, +2 pierce) | Weapons: Wolf Whistle (darts mark the prey the 2 wolves hunt; every wolf biting at once is a takedown), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
+| **DPS** (95 HP) | Weapons: Twin Rifle (streams cross at your cursor for double), Railgun (leaves its path charged for a second), Burst SMG (spins up: tighter and harder the longer you fire)<br>Abilities: Dash, Cluster Grenade, Mark for Death | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to charge a strip of lightning), Ice Shards (bank in orbit, launching at enemies that come near)<br>Abilities: **Meteor** (warning circle, then 150 damage), **Blizzard** (slowing storm), **Arcane Surge** (+60% damage, +2 pierce) | Weapons: Wolf Whistle (darts mark the prey the 2 wolves hunt; every wolf biting at once is a takedown), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast)<br>Abilities: **Bat Swarm** (8 bats), **Sacrifice** (all your minions explode, then return), **Alpha Call** (minions frenzy) |
 
 Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work for every class; minions
 use your damage and attack-speed bonuses too.
@@ -155,7 +155,7 @@ your weapon. Per extra projectile:
 | | **Burst SMG** | Very fast spray (5) that spins up as you keep firing: over 2 s the spray tightens from 9° to 2° either side and damage climbs to +60%; it winds down in 0.6 s when you stop | +1 bullet per shot (half damage) and a wider spray |
 | DPS · Elementalist | **Fireball** | A big, slow fireball that rolls through every enemy in its path (22 each), setting them burning (8 a second for 3 s) | +1 fireball, fanned out |
 | | **Arc Lightning** | Hold to charge a 90 px wide strip in front of you, 160 px for a tap out to half the arena at full; let go and everything in it is shocked (40, 0.4 s stun) | +25% damage |
-| | **Arcane Missiles** | Each cast puts 3 missiles (7) into orbit round you (up to 6); they launch, homing, at enemies within 300 px, one every 0.08 s. With the orbit full, a cast flies at your aim | +1 missile a cast, +2 in orbit, and faster launches |
+| | **Ice Shards** | Each cast puts 3 shards of ice (7) into orbit round you (up to 6); they launch, homing, at enemies within 300 px, one every 0.08 s. With the orbit full, a cast flies at your aim | +1 shard a cast, +2 in orbit, and faster launches |
 | DPS · Summoner | **Wolf Whistle** | Darts mark the enemy they hit as prey for 4 s and your 2 wolves hunt it (a fanned or piercing dart that clips an enemy farther from your cursor doesn't move the prey); every wolf biting it within a second is a takedown (20 per wolf, 0.6 s stun) | +1 Wolf |
 | | **Wisp Lantern** | 3 wisps orbit you and are your shots: each shot sends one at the enemy nearest your cursor (22), and it comes back | +1 Wisp, and each shot sends one more |
 | | **Imp Caller** | An imp every 3 s (up to 3) waits by you; tap fire to send them charging at your cursor (45 each), or hold to merge them into one big imp (blast 125% of theirs together, and wider) | +1 Imp, arriving 50% faster |
@@ -497,19 +497,18 @@ on three target dummies, so you can see how it attacks. Hover an ability button 
 that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
 
-## Lobby backgrounds
+## Menu backgrounds
 
-The lobby's **Background** card (bottom left) switches the animated background behind the menus. There are 20:
+**Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
+lobby. There are 20:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood and Plotter. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
-**LIVE** to freeze the background into a still image (it then reads **STILL**). Each player's choice is saved on their
+**LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
+background full screen with only a small bar over it (name, arrows or the left and right arrow keys, LIVE / STILL and
+Back, or Esc). Each player's choice is saved on their
 own computer. Your pick also shows faintly behind the arena during matches (dimmed so the fight stays easy to read).
-
-The card's fold-down button shrinks it to a slim tab with a tiny live thumbnail, the name and quick arrows. The tab
-fades away after a few seconds; hover where it was to bring it back, and click it to open the full card again
-(remembered on your computer).
 
 ## Arena props
 
@@ -909,7 +908,7 @@ so they never change the fight or what your friend sees):
   big hits are larger and gold.
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
-What it adds: **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
+What it adds: the Soldier DPS's abilities (from [`Docs/Mockups/soldier-dps-abilities.html`](Docs/Mockups/soldier-dps-abilities.html)): **Dash** leaves a tapered cyan comet streak (your own dash) that cools over 0.4 s, with sparks where you land; the **Cluster Grenade** is an olive grenade with a faint ring growing to its blast radius, then a white flash, an orange blast, eight streaking shards and smoke; **Mark for Death** puts a red reticle that snaps onto the enemy and circles it, a timer arc unwinding round it, and a small skull floating overhead, all blinking for the last second; **Chain Light** as a soft fan of light blooming out of your hand, with god-rays and a beam and halo on
 each enemy it hits; **Arc Lightning** as a halo and sparks building on your staff with a dashed outline of the strip (a pulse
 running out to a crackling marker), then one white-hot bolt racing down it with forks to its edges, and a crackle on each
 enemy it stuns; **melee attacks** drawn as the weapon itself swinging through a glowing arc that throws sparks and leaves
@@ -932,8 +931,8 @@ ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on
 Sniper Ridge, gold motes on the Elite Gauntlet, lantern sparks at the Bazaar), fading in as the path starts.
 **Weapons' shots have their own looks** (from [`Docs/Mockups/projectiles.html`](Docs/Mockups/projectiles.html)): the
 Twin Rifle and Burst SMG fire tracers, the Railgun a heavy slug pushing rings of air (the Pistol a lighter one), the
-Scattergun flechettes, Arcane Missiles
-little missiles with smoke trails; lightning flickers and forks with a white-hot core; Shuriken spin with motion blur;
+Scattergun flechettes, Ice Shards
+(from [`Docs/Mockups/ice-shards.html`](Docs/Mockups/ice-shards.html)) faceted ice kites with glints that shatter on a hit; lightning flickers and forks with a white-hot core; Shuriken spin with motion blur;
 Fireballs shed embers and smoke, the Golem's boulder dust, Blood Bolts drips. The lobby's loadout preview shows the
 new shot looks, trails, sparks, bullet endings and hit flashes too (not the glow). **Bullets end instead of
 vanishing:** one that runs out of range shrinks and fades into a wisp of smoke; one that hits an enemy flattens into a

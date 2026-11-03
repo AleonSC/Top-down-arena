@@ -18,6 +18,11 @@ namespace Arena
                 case FxKind.Boom:
                     if (HammerBoomDrawnByMelee(fx))
                         break;  // the Warhammer's own slam draws its impact (MeleeLooks.cs)
+                    if (IsGrenadeBoom(fx))
+                    {
+                        DrawFragBlast(fx, f);  // SoldierLooks.cs
+                        break;
+                    }
                     Circle(fx.Pos, fx.Radius * (0.4f + 0.6f * f), fx.Color.WithAlpha(0.35f * (1f - f)), 24);
                     Arc(fx.Pos, fx.Radius * (0.5f + f), 3f, fx.Color.WithAlpha(1f - f), 32);
                     break;

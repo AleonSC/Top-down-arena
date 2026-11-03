@@ -221,13 +221,12 @@ namespace Arena
             }
             if (p.Weapon.Id == WeaponId.ArcaneMissiles && p.Orbiters > 0)  // Arcane Missiles waiting in orbit
             {
-                var arc = Defs.BulletColor(Defs.ArcaneShot);
-                for (int i = 0; i < p.Orbiters; i++)
+                for (int i = 0; i < p.Orbiters; i++)  // ice shards circling you, each tumbling a little round its own centre
                 {
                     V2 at = Game.OrbiterPos(p.Disp, i, p.Orbiters, game.AnimT), d = (at - p.Disp).Normalized();
-                    Line(at - d.Orthogonal() * 6f, at, 2f, arc.WithAlpha(0.35f));  // a short tail, trailing round
-                    Circle(at, 4f, arc.WithAlpha(0.3f), 8);
-                    Circle(at, 2.4f, arc, 8);
+                    V2 pt = (d.Orthogonal() * Mathf.Cos(Mathf.Sin(t * 2f + i) * 0.5f) + d * Mathf.Sin(Mathf.Sin(t * 2f + i) * 0.5f)).Normalized();  // the tangent, rocking
+                    Circle(at, 6f, IceCol.WithAlpha(0.25f), 8);
+                    IceShard(at, pt, 7f, 2.8f, 1f);
                 }
             }
             if (p.Weapon.Id == WeaponId.Lightbringer && p.Light > 0)  // the light gauge: pips filling round you, a halo once it's full
@@ -359,16 +358,22 @@ namespace Arena
                 return;  // its weapon's new look (ShotLooks.cs)
             if (b.Kind == Defs.GrenadeShot)  // spinning grenade with a blinking fuse
             {
+                if (fxOn)
+                {
+                    DrawGrenadeFlight(b, t);  // SoldierLooks.cs
+                    return;
+                }
                 Polygon(b.Pos, b.Radius, 6, t * 12f, Defs.BulletColor(b.Kind));
                 if (MathX.Fmod(t, 0.15f) < 0.075f)
                     Circle(b.Pos, 3f, new Rgba(1f, 0.3f, 0.2f), 8);
                 return;
             }
+            var shotCol = ShotColor(b.Kind, b.Owner);
             if (b.Kind == Defs.FireShot || b.Kind == Defs.HolyShot || b.Kind == Defs.ArcaneShot)
-                Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), Defs.BulletColor(b.Kind).WithAlpha(0.25f), 12);
+                Circle(b.Pos, b.Radius * (1.8f + 0.3f * Mathf.Sin(t * 30f + b.Id)), shotCol.WithAlpha(0.25f), 12);
             if (b.Kind == Defs.RailShot)
                 Line(b.Pos - b.Vel * 0.03f, b.Pos, 3f, Defs.BulletColor(b.Kind).WithAlpha(0.6f));
-            Circle(b.Pos, b.Radius, Defs.BulletColor(b.Kind).WithAlpha(0.8f), 10);
+            Circle(b.Pos, b.Radius, shotCol.WithAlpha(0.8f), 10);
         }
 
         /// An incoming lightning strike: a filling warning circle (or a Lich's dead hand, LichLook.cs).

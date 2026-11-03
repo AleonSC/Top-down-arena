@@ -95,7 +95,8 @@ namespace Arena
         const float RoarTime = 5f, RoarReduction = 0.4f;
         const float HavenRadius = 130f, HavenTime = 6f;
         const float LinkTime = 6f, LinkHeal = 8f;
-        const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeRadius = 110f, GrenadeDamage = 80f;
+        const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeDamage = 80f;
+        public const float GrenadeRadius = 110f;  // (public: the grenade's flight look draws it, SoldierLooks.cs)
         const float MarkTime = 6f;
         const float BlinkRange = 300f;
         const float ShockwaveRange = 230f;

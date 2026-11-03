@@ -26,12 +26,21 @@ A running list of things to pick up next session. Tick off / delete as they're d
       (https://claude.ai/artifact/CpWoeYAWoSirm4mkf7XHx4): A today, B Force Field (hex dome), C Bulwark Plates (8 plates,
       one knocked off per boss hit), D Soap Bubble. Drawing only; a reflect-specific tint would need `BarrierReflect`
       replicated (protocol bump).
+- [x] **Arcane Missiles reworked as Ice Shards.** Built (Nov 2026), look A from [`Mockups/ice-shards.html`](Mockups/ice-shards.html)
+      (https://claude.ai/artifact/6D2aFuh1WxeedCRGpd7iSx). Same mechanics (orbit, launch, homing); renamed, frost-blue kites that
+      shatter on a hit. Internal ids (`WeaponId.ArcaneMissiles`, `Defs.ArcaneShot`) unchanged; no protocol change. The Armory
+      page still says Arcane Missiles until you ask for it to be updated.
 - [x] **Radiant Orb trail.** Built (Nov 2026): style B, Stardust (`Game/RadiantOrbLooks.cs`), from
       [`Mockups/radiant-orb-trails.html`](Mockups/radiant-orb-trails.html). Light Orbs get it at half size. Drawing only.
 - [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
+- [x] **Soldier DPS ability visuals: Dash, Cluster Grenade, Mark for Death.** Built (Nov 2026, no protocol change,
+      `Game/SoldierLooks.cs`) from [`Mockups/soldier-dps-abilities.html`](Mockups/soldier-dps-abilities.html)
+      (https://claude.ai/artifact/5ZoTSdqs2X2kqCzhZwdRRo): Dash B (Comet Streak), Grenade A (Frag Burst), Mark A (Reticle Lock)
+      with B's skull over it. Left out for now: the dash's squashed body, and other players' dash streaks (only your own dash
+      has ever been replicated); the shards are for looks (the real shrapnel's angles are the host's).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
       [`Mockups/character-models.html`](Mockups/character-models.html), colour-by-class (`Game/CharacterModels.cs`),
       plus a bigger role-coloured glow on the floor round every player (`Juice.cs`, `GlowPlayer`). The weapon models are

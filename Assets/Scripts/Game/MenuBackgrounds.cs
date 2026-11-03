@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The animated backgrounds behind the menus and lobby. Each player picks their own in the lobby
-    /// (saved on their machine), and can freeze it into a still image.
+    /// The animated backgrounds behind the menus and lobby. Each player picks their own in Settings > Visual
+    /// effects (saved on their machine), and can freeze it into a still image.
     public partial class ArenaApp
     {
         public static readonly string[] BackgroundNames =
@@ -14,22 +14,17 @@ namespace Arena
 
         int menuBg;
         bool menuBgAnimate = true;
-        bool bgPickerMin;            // the lobby's picker is minimized to a tab that fades away
-        float bgTabSeen = -100f;     // when the minimized tab was last shown (minimized or hovered)
-        const float BgTabStay = 3f, BgTabFade = 0.8f;
 
         void LoadBackgroundSettings()
         {
             menuBg = Mathf.Clamp(PlayerPrefs.GetInt("menu_bg", 0), 0, BackgroundNames.Length - 1);
             menuBgAnimate = PlayerPrefs.GetInt("menu_bg_anim", 1) == 1;
-            bgPickerMin = PlayerPrefs.GetInt("menu_bg_min", 0) == 1;
         }
 
         void SaveBackgroundSettings()
         {
             PlayerPrefs.SetInt("menu_bg", menuBg);
             PlayerPrefs.SetInt("menu_bg_anim", menuBgAnimate ? 1 : 0);
-            PlayerPrefs.SetInt("menu_bg_min", bgPickerMin ? 1 : 0);
             PlayerPrefs.Save();
         }
 
@@ -129,16 +124,13 @@ namespace Arena
             GUI.color = old;
         }
 
-        /// The lobby's background picker (bottom left): a live thumbnail of the current background (click it for
-        /// the next one), its name between arrows, a swatch per background in its colour (click one to jump to
-        /// it), a LIVE / STILL switch for the animation, and a button that folds it into a small tab.
-        void DrawBackgroundPicker(Rect r)
+        static bool bgBig;   // (static so EscPressed can leave that Esc to the view)   // Settings > Visual effects: the background shown full screen, with only its controls over it
+
+        /// Settings > Visual effects: a live thumbnail of the current background (click it for the next one), its
+        /// name between arrows, a swatch per background in its colour (click one to jump to it), a LIVE / STILL
+        /// switch for the animation, and a button for a bigger view.
+        void DrawBackgroundRow(Rect r)
         {
-            if (bgPickerMin)
-            {
-                DrawBackgroundTab(r);
-                return;
-            }
             float now = Time.unscaledTime;
             var mouse = Event.current.mousePosition;
             var accent = BackgroundAccents[menuBg];
@@ -146,8 +138,8 @@ namespace Arena
             var thumb = new Rect(r.x + 10f, r.y + 10f, (r.height - 20f) * W / H, r.height - 20f);
             bool thumbHover = thumb.Contains(mouse);
             float x = thumb.xMax + 14f, w = r.xMax - 12f - x;
-            var live = new Rect(r.xMax - 12f - 24f - 6f - 58f, r.y + 7f, 58f, 20f);
-            var minimize = new Rect(r.xMax - 12f - 24f, r.y + 7f, 24f, 20f);
+            var big = new Rect(r.xMax - 12f - 74f, r.y + 7f, 74f, 20f);
+            var live = new Rect(big.x - 6f - 58f, r.y + 7f, 58f, 20f);
             var prev = new Rect(x, r.y + 32f, 26f, 26f);
             var next = new Rect(x + w - 26f, r.y + 32f, 26f, 26f);
             float gap = BackgroundNames.Length > 12 ? 2f : 4f;
@@ -165,12 +157,11 @@ namespace Arena
             Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, liveHover ? 1f : 0.85f) : new Color(1f, 1f, 1f, liveHover ? 0.14f : 0.07f));
             Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
             // Ui.Button takes the click itself, so act on what it returns (the chevrons are drawn on it below).
-            bool clickMin = Ui.Button(minimize, "", Ui.Neutral);
+            bool clickBig = Ui.Button(big, "BIGGER", Ui.Neutral);
             bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
             bool clickNext = Ui.Button(next, "", Ui.Neutral);
             BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 16, 1f);
 
-            // A swatch per background, in its colour: the current one lit and taller.
             int swatchHover = -1;
             for (int i = 0; i < BackgroundNames.Length; i++)
             {
@@ -186,18 +177,16 @@ namespace Arena
                 else
                     Ui.Pill(new Rect(x + i * (sw + gap), sy, sw, 4f), new Color(c.r, c.g, c.b, swatchHover == i ? 0.85f : 0.3f));
             }
-            // The label names the swatch under the mouse, in its colour.
             if (swatchHover >= 0 && swatchHover != menuBg)
                 Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), BackgroundNames[swatchHover].ToUpperInvariant(), 10, BackgroundAccents[swatchHover], TextAnchor.MiddleLeft, true);
             else
-                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), "BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
+                Ui.Label(new Rect(x, r.y + 8f, live.x - x - 4f, 18f), "MENU BACKGROUND", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
 
             if (BeginUiGl())
             {
                 var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f);
                 Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 10f, 2.5f, ink);
                 Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 10f, 2.5f, ink);
-                Chevron(new V2(minimize.center.x, minimize.center.y), new V2(0f, 1f), 9f, 2f, ink);
                 var dot = new V2(live.x + 11f, live.center.y);
                 if (menuBgAnimate)
                 {
@@ -210,21 +199,11 @@ namespace Arena
                     FillRect(dot.X - 3.5f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
                     FillRect(dot.X + 1f, dot.Y - 3.5f, 2.5f, 7f, new Rgba(0.75f, 0.8f, 0.9f, 0.9f));
                 }
-                if (thumbHover)
-                {
-                    var tc = new V2(thumb.center.x, thumb.center.y);
-                    Circle(tc, 16f, new Rgba(0f, 0f, 0f, 0.45f), 24);
-                    Chevron(tc + new V2(1.5f, 0f), new V2(1f, 0f), 12f, 3f, Rgba.White);
-                }
                 EndUiGl();
             }
 
-            if (clickMin)
-            {
-                bgPickerMin = true;
-                bgTabSeen = now;
-                SaveBackgroundSettings();
-            }
+            if (clickBig)
+                bgBig = true;
             if (Ui.HitArea(live))
             {
                 menuBgAnimate = !menuBgAnimate;
@@ -239,65 +218,42 @@ namespace Arena
                     SetBackground(i, i > menuBg ? 1 : -1);
         }
 
-        /// The minimized picker: a slim card at the bottom of where the full one was, with a tiny live
-        /// thumbnail, the name, quick arrows and an expand button. It stays a few seconds, then fades away
-        /// (the thumbnail shrinks into its centre); hovering brings it back, and clicking it opens the full picker.
-        void DrawBackgroundTab(Rect card)
+        /// The bigger view: nothing over the background but a bar at the bottom with its name, arrows (or the arrow
+        /// keys), LIVE / STILL and Back (or Esc / click anywhere else).
+        void DrawBackgroundBig()
         {
-            var tab = new Rect(card.x, card.yMax - 38f, 240f, 38f);
             float now = Time.unscaledTime;
-            var mouse = Event.current.mousePosition;
-            var hot = new Rect(tab.x - 16f, tab.y - 24f, tab.width + 32f, tab.height + 40f);
-            if (hot.Contains(mouse))
-                bgTabSeen = now;
-            float a = 1f - Mathf.Clamp01((now - bgTabSeen - BgTabStay) / BgTabFade);
-            if (a <= 0.01f)
-                return;
             var accent = BackgroundAccents[menuBg];
-            var thumbFull = new Rect(tab.x + 5f, tab.y + 5f, (tab.height - 10f) * W / H, tab.height - 10f);
-            var thumb = new Rect(thumbFull.center.x - thumbFull.width * a / 2f, thumbFull.center.y - thumbFull.height * a / 2f, thumbFull.width * a, thumbFull.height * a);
-            var prev = new Rect(tab.xMax - 72f, tab.y + 9f, 20f, 20f);
-            var next = new Rect(tab.xMax - 50f, tab.y + 9f, 20f, 20f);
-            var open = new Rect(tab.xMax - 27f, tab.y + 9f, 20f, 20f);
-            float tx = thumbFull.xMax + 9f;
-
-            var old = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, a);
-            Ui.Card(tab, accent, (0.35f + 0.15f * Mathf.Sin(now * 2f)) * a);
-            GUI.color = old;
-            if (BeginUiGl())
-            {
-                if (a > 0.05f)
-                    BackgroundThumb(thumb, accent, 0.7f * a);
-                EndUiGl();
-            }
-            GUI.color = new Color(1f, 1f, 1f, a);
-            Ui.Label(new Rect(tx, tab.y + 3f, prev.x - tx, 13f), "BACKGROUND", 9, Ui.Muted, TextAnchor.MiddleLeft, true);
-            GUI.color = old;
-            BackgroundName(new Rect(tx, tab.y + 15f, prev.x - tx - 4f, 20f), 14, a);
-            GUI.color = new Color(1f, 1f, 1f, a);
+            var bar = new Rect(W / 2f - 260f, H - 84f, 520f, 56f);
+            Ui.Card(bar, accent, 0.4f + 0.15f * Mathf.Sin(now * 2f));
+            var prev = new Rect(bar.x + 12f, bar.y + 15f, 26f, 26f);
+            var next = new Rect(prev.xMax + 190f, prev.y, 26f, 26f);
+            var live = new Rect(next.xMax + 12f, bar.y + 18f, 64f, 20f);
+            var back = new Rect(bar.xMax - 12f - 110f, bar.y + 10f, 110f, 36f);
             bool clickPrev = Ui.Button(prev, "", Ui.Neutral);
             bool clickNext = Ui.Button(next, "", Ui.Neutral);
-            bool clickOpen = Ui.Button(open, "", Ui.Neutral);
-            GUI.color = old;
+            bool clickBack = Ui.Button(back, "Back  [Esc]", Ui.Primary);
+            BackgroundName(new Rect(prev.xMax + 4f, prev.y, next.x - prev.xMax - 8f, prev.height), 18, 1f);
+            Ui.Pill(live, menuBgAnimate ? new Color(accent.r * 0.35f, accent.g * 0.35f, accent.b * 0.35f, 0.9f) : new Color(1f, 1f, 1f, 0.08f));
+            Ui.Label(new Rect(live.x + 20f, live.y, live.width - 22f, live.height), menuBgAnimate ? "LIVE" : "STILL", 10, menuBgAnimate ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
             if (BeginUiGl())
             {
-                var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f * a);
-                Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 8f, 2f, ink);
-                Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 8f, 2f, ink);
-                Chevron(new V2(open.center.x, open.center.y + 1f), new V2(0f, -1f), 8f, 2f, ToRgba(Color.Lerp(accent, Color.white, 0.4f), a));
+                var ink = new Rgba(0.85f, 0.9f, 1f, 0.9f);
+                Chevron(new V2(prev.center.x + 1f, prev.center.y), new V2(-1f, 0f), 10f, 2.5f, ink);
+                Chevron(new V2(next.center.x - 1f, next.center.y), new V2(1f, 0f), 10f, 2.5f, ink);
                 EndUiGl();
             }
-            // The small buttons took their own clicks above, so a click on one doesn't also open the picker.
-            if (clickPrev)
-                SetBackground(menuBg - 1, -1);
-            else if (clickNext)
-                SetBackground(menuBg + 1, 1);
-            else if (clickOpen || Ui.HitArea(tab))
+            if (Ui.HitArea(live))
             {
-                bgPickerMin = false;
+                menuBgAnimate = !menuBgAnimate;
                 SaveBackgroundSettings();
             }
+            if (clickPrev || Input.GetKeyDown(KeyCode.LeftArrow))
+                SetBackground(menuBg - 1, -1);
+            if (clickNext || Input.GetKeyDown(KeyCode.RightArrow))
+                SetBackground(menuBg + 1, 1);
+            if (clickBack || Input.GetKeyDown(KeyCode.Escape))
+                bgBig = false;
         }
 
         void SetBackground(int i, int dir = 1)

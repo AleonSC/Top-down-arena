@@ -239,7 +239,7 @@ static partial class Program
         Test("scatterflak", "the Scattergun, Flak Cannon and Blood Bolts", () => ScatterFlakBloodTest(Dt)),
         Test("twinsmg", "the Twin Rifle and Burst SMG", () => TwinSmgTest(Dt)),
         Test("prismwolfrail", "the Prism Beam, Wolf Whistle and Railgun", () => PrismWolfRailTest(Dt)),
-        Test("missilesriot", "Arcane Missiles, the Riot Repeater and Twin Blades", () => MissilesRiotBladesTest(Dt)),
+        Test("missilesriot", "Ice Shards, the Riot Repeater and Twin Blades", () => MissilesRiotBladesTest(Dt)),
         Test("bosspowertest", "bosses get more health for a party far above a typical build", () => BossPowerTest(Dt)),
         Test("reaperloot", "the Twin Reapers' legendaries: Twin Scythes, Final Reap, Scythe Throw", () => ReaperLootTest(Dt)),
         Test("queenloot", "the Hive Queen's legendaries: Hive Drones, Royal Dive, Bomber Escort", () => QueenLootTest(Dt)),

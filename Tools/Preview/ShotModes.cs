@@ -106,7 +106,6 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=1: Boss Hunt mode, its tab (the Warden's hunt open, won once).
       if (Environment.GetEnvironmentVariable("HUNT") != null) { host.HuntMode = true; var hpr = host.Game.ProfileOverride = new Profile(); hpr.BossBeaten(EnemyType.Boss, 5); hpr.HuntEnded(EnemyType.Boss, true, 312f); hpr.HuntEnded(EnemyType.Boss, false, 200f); }
-      if (Environment.GetEnvironmentVariable("BGMIN") != null) { set("bgPickerMin", true); set("bgTabSeen", 0f); }
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
       if (mode == "lobbypr") {
