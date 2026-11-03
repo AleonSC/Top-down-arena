@@ -787,8 +787,8 @@ namespace Arena
             for (int v = 0; v < n; v++)
                 aims[v] = aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * step * ((v + 1) / 2));
             var light = Defs.BulletColor(Defs.HolyShot);
-            foreach (float a in aims)
-                BroadcastFx(FxKind.LightCone, p.Pos, p.Pos + V2.FromAngle(a) * reach, light, half, 0.3f, Sfx.None);
+            for (int v = 0; v < n; v++)  // one cast sound, however many cones
+                BroadcastFx(FxKind.LightCone, p.Pos, p.Pos + V2.FromAngle(aims[v]) * reach, light, half, 0.3f, v == 0 ? Sfx.SpellChainCone : Sfx.None);
             var hits = new List<Enemy>[n];
             for (int v = 0; v < n; v++)
                 hits[v] = new List<Enemy>();
@@ -819,7 +819,7 @@ namespace Arena
                     hits[best].Add(e);
             }
             p.Run.ShotsFired++;
-            bool any = false;
+            bool any = false, arcSounded = false;
             for (int v = 0; v < n; v++)
             {
                 if (hits[v].Count == 0)
@@ -827,11 +827,14 @@ namespace Arena
                 any = true;
                 float share = total * (v == 0 ? 1f : BarrageCopyDamage) / hits[v].Count;
                 V2 dir = V2.FromAngle(aims[v]), from = p.Pos + dir * p.Def.BodyR;
+                bool firstArc = !arcSounded;  // the arcs crackle once per cast, not once per enemy
+                arcSounded = true;
                 foreach (var e in hits[v])
                 {
                     HurtEnemy(e, share, p.Id);
                     OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
-                    BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, Sfx.None);
+                    BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, firstArc ? Sfx.SpellChainArc : Sfx.None);
+                    firstArc = false;
                 }
             }
             if (any)
