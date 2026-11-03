@@ -512,22 +512,43 @@ namespace Arena
             return GUI.HorizontalSlider(r, value, 0f, 1f, track, thumb);
         }
 
+        static readonly System.Collections.Generic.Dictionary<int, float> meterKick = new System.Collections.Generic.Dictionary<int, float>();
+
         /// Level-meter slider (Settings > Audio): 20 bars that light up to the value, amber then red at the top, in `tint`.
-        /// Drag or click anywhere on it; r should be about 28 px tall. Bars bounce a little near the value while you drag.
+        /// Drag or click anywhere on it; r should be about 36 px tall. Lit bars ripple like a live meter (faster and
+        /// livelier the higher the value), glow, and the bars at the value kick up when it changes, then settle.
         public static float MeterSlider(Rect r, float value, Color tint)
         {
             const int Segs = 20;
             float v = GUI.HorizontalSlider(r, value, 0f, 1f, track, meterThumb);
-            bool drag = Input.GetMouseButton(0) && v != value;
+            float t = Time.unscaledTime;
+            int id = Mathf.RoundToInt(r.y * 7f + r.x);
+            float kick;
+            meterKick.TryGetValue(id, out kick);
+            if (v != value)
+                kick = 1f;
+            else
+                kick = Mathf.Max(0f, kick - Time.unscaledDeltaTime * 3.5f);
+            meterKick[id] = kick;
             float gap = 3f, bw = (r.width - gap * (Segs - 1)) / Segs;
+            int peak = Mathf.RoundToInt(v * Segs) - 1;
             for (int i = 0; i < Segs; i++)
             {
-                float h = r.height * (0.4f + 0.45f * Mathf.Abs(Mathf.Sin(i * 0.55f)));
+                float h = r.height * (0.38f + 0.3f * Mathf.Abs(Mathf.Sin(i * 0.55f)));
                 bool on = (i + 0.5f) / Segs <= v;
                 Color c = !on ? new Color(0.17f, 0.2f, 0.28f) : i >= Segs * 0.85f ? new Color(1f, 0.33f, 0.44f) : i >= Segs * 0.7f ? new Color(1f, 0.71f, 0.28f) : tint;
-                if (on && drag && i == Mathf.RoundToInt(v * Segs) - 1)
-                    h = Mathf.Min(r.height, h * 1.18f);
-                Fill(new Rect(r.x + i * (bw + gap), r.yMax - h, bw, h), c);
+                if (on)
+                {
+                    float wave = 0.5f + 0.5f * Mathf.Sin(t * (3f + 4f * v) + i * 0.6f);
+                    h += r.height * 0.28f * wave * (0.4f + 0.6f * v);
+                    float near = Mathf.Clamp01(1f - Mathf.Abs(i - peak) / 3f);
+                    h += r.height * 0.3f * kick * near;
+                }
+                h = Mathf.Min(r.height, h);
+                var bar = new Rect(r.x + i * (bw + gap), r.yMax - h, bw, h);
+                if (on)
+                    Fill(new Rect(bar.x - 2f, bar.y - 2f, bar.width + 4f, bar.height + 2f), new Color(c.r, c.g, c.b, 0.18f));
+                Fill(bar, c);
             }
             return v;
         }
