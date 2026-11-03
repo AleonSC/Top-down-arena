@@ -1,0 +1,576 @@
+<title>Melee Swing Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, a patch of arena at the game's scale (1 canvas px =
+   1 arena px): a Knight, three target dummies, and the picked weapon swinging on a loop in the picked style. Under
+   it, the controls and a strip of still frames through one attack. Then one card per style, then build notes.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1d2a2a; border-color: var(--teal); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 1 / 1; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--teal); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--teal); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+
+@media (max-width: 700px) {
+  .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .now { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · melee attacks · pick a style</div>
+    <h1>Melee swing <span>styles</span></h1>
+    <p class="lead">Today a swing is a white arc and a faint band, a thrust is a streak, and a slam is a flash. Below are
+      four ways melee could look instead, on five Knight weapons that cover the three motions: sweeps, thrusts and slams.
+      The arena is drawn at the game's scale, with each weapon's real reach. Pick one, or mix parts of several.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Style</span></div>
+      <div class="group" id="weaponBtns"><span class="label">Weapon</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="again">Swing again</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one attack"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The styles</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All of this is drawing, on each screen: <code>FxKind.Slash</code> (sweeps and thrusts) and <code>FxKind.Jab</code> (the Lance) are drawn by <code>DrawSlashFx</code> and <code>DrawJabFx</code> in <code>Game/WorldEffects.cs</code>. Hits, reach and timing stay in <code>Core/Knight.cs</code>, so styles B, C and D need no protocol change.</li>
+      <li><b>Wind-ups</b> (A, and C's short pull-back) are the one gameplay question. If the hit waits for the wind-up, attacks land about 0.08 s after the click and feel slower. To keep the timing, play the pull-back during the previous swing's recovery, or draw it over the first frames while the hit lands as it does now.</li>
+      <li><b>Hit-pause</b> in A uses the hit-pause that's already in <code>Juice.cs</code> (held frames), but short (50 ms) and only for heavy weapons. Reduced effects already turns hit-pause, flashes and shake off.</li>
+      <li>The weapon model (A and C draw it) can come from the class looks in <code>ClassLooks.cs</code> and <code>WorldPlayers.cs</code> (<code>DrawKnight</code> already draws the sword at your side).</li>
+      <li>The same style should carry over to the other melee weapons: the Lance's box, Holy Mace, Lightbringer, Censer, Quarterstaff, the Ninja's Kusarigama, Bo Staff and Katana, and the Hemomancer's Blood Lash.</li>
+      <li>With <b>Visual effects</b> off, the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>). The new look only shows with effects on, like the other effects.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const backOut = x => { x = clamp01(x); const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+  // A tiny seeded random, so particles are the same every frame (the still frames match the live one).
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // --- Weapons: the game's numbers (Core/Knight.cs WeaponDefs; reach in arena px, half arc in radians) ---
+  const WEAPONS = {
+    greatsword: { name: "Greatsword", color: "#8fc8ff", blade: 0.78, heavy: true,
+      parts: [{ kind: "swing", reach: 125, half: 1.3, sign: 1, delay: 0 }], dmg: 60 },
+    twin: { name: "Twin Blades", color: "#ffd27a", blade: 0.7, heavy: false,
+      parts: [{ kind: "swing", reach: 75, half: 1.05, sign: 1, delay: 0 }, { kind: "swing", reach: 75, half: 1.05, sign: -1, delay: 0.14 }], dmg: 15 },
+    halberd: { name: "Halberd", color: "#8ff0c8", blade: 0.3, pole: true, heavy: true,
+      parts: [{ kind: "swing", reach: 200, half: 0.7, sign: 1, delay: 0 }], dmg: 30 },
+    rapier: { name: "Rapier", color: "#cdb8ff", heavy: false,
+      parts: [{ kind: "thrust", reach: 130, delay: 0 }], dmg: 18 },
+    hammer: { name: "Warhammer", color: "#ffa36b", heavy: true,
+      parts: [{ kind: "slam", reach: 130, width: 100, delay: 0 }], dmg: 80 },
+  };
+
+  // --- Styles: timing (seconds) and what each draws ---
+  // windup: before the blade moves; active: the sweep / thrust / fall; the effect then fades over `tail`.
+  const STYLES = {
+    current: { key: "Now", name: "Today's look", windup: 0, active: 0.117, tail: 0.35 },
+    weighted: { key: "A", name: "Weighted", windup: 0.1, active: 0.11, tail: 0.4 },
+    smear: { key: "B", name: "Ink smear", windup: 0.03, active: 0.09, tail: 0.32 },
+    ghost: { key: "C", name: "Afterimage", windup: 0.06, active: 0.11, tail: 0.32 },
+    energy: { key: "D", name: "Energy arc", windup: 0.04, active: 0.11, tail: 0.55 },
+  };
+  const CARDS = {
+    current: { pitch: "What the game draws now, for comparison.",
+      before: "Nothing: the hit and the arc come together.", hit: "A white arc sweeps out with a faint band inside; thrusts are a white streak; the slam is a flash and a ring.", after: "It fades in a third of a second.", feel: "Clear and cheap, but floaty: no weight, no contact." },
+    weighted: { pitch: "Heavy, readable swings with a pull-back, overshoot and a jolt on contact.",
+      before: "The weapon draws back a little (0.1 s); the hammer rises, its shadow shrinking.", hit: "A fast sweep that overshoots and settles; a solid smear behind the blade; sparks and a 50 ms hit-pause on contact (heavy weapons).", after: "The blade holds a beat, then returns. Slams crack the floor and kick up dust and chips.", feel: "The most weight. Costs a little time per swing (see the notes)." },
+    smear: { pitch: "One bold crescent, the classic action-game smear, without drawing the blade.",
+      before: "Almost nothing (0.03 s).", hit: "A thick lens-shaped smear in the weapon's colour with a hard white leading edge and speed lines; thrusts are a long teardrop with a star glint at the tip; slams are a burst of lines and a ring.", after: "The smear thins and peels away from its start to its end.", feel: "Very readable at a glance, even in a busy fight." },
+    ghost: { pitch: "The weapon itself, drawn crisply, with a trail of fading copies along its path.",
+      before: "A short pull-back (0.06 s).", hit: "The blade sweeps with six fading afterimages behind it; the rapier leaves copies along its line; the hammer leaves copies as it falls, then a ring of shards.", after: "The afterimages fade out from the oldest.", feel: "Shows exactly where the weapon went, and suits the pixel look of the game." },
+    energy: { pitch: "A glowing arc of light that throws sparks and leaves embers.",
+      before: "A brief glow at the blade (0.04 s).", hit: "An additive arc with a bright core and a soft glow, sparks streaming off the tip; thrusts are a beam with a spray; slams are a glowing circle and a pillar of light.", after: "Embers drift and fade over half a second.", feel: "Flashiest. Matches the glow pass; might be too much at 3 players." },
+  };
+
+  // --- The scene ---
+  const PLAYER = { x: 390, y: 200, r: 16 };
+  const AIM = -0.12;
+  function dummiesFor(w) {
+    const p = w.parts[0];
+    const reach = p.reach;
+    if (p.kind === "thrust") return [{ a: 0, d: reach * 0.55 }, { a: 0, d: reach * 0.95 }, { a: 0.5, d: reach * 0.7, miss: true }];
+    if (p.kind === "slam") return [{ a: -0.28, d: reach * 0.7 }, { a: 0.05, d: reach * 0.95 }, { a: 0.3, d: reach * 0.55 }];
+    const h = p.half;
+    return [{ a: -h * 0.6, d: reach * 0.75 }, { a: 0.05, d: reach * 0.85 }, { a: h * 0.55, d: reach * 0.7 }];
+  }
+  const dpos = d => ({ x: PLAYER.x + Math.cos(AIM + d.a) * d.d, y: PLAYER.y + Math.sin(AIM + d.a) * d.d });
+
+  // Sweep angle at local time lt for a style (radians from the aim).
+  function sweepAt(st, part, lt) {
+    const { windup, active } = st;
+    const start = -part.half * part.sign, end = part.half * part.sign;
+    if (lt < windup) {  // pulled back a little past the start
+      const k = easeOut(lt / Math.max(windup, 1e-6));
+      return start - 0.35 * part.sign * (st === STYLES.weighted ? 1 : 0.5) * k;
+    }
+    const f = (lt - windup) / active;
+    const e = st === STYLES.weighted ? backOut(f) : st === STYLES.current ? clamp01(f) : easeOut(f);
+    const from = start - (st === STYLES.weighted ? 0.35 : st === STYLES.ghost ? 0.17 : 0) * part.sign;
+    return from + (end - from) * e;
+  }
+  // When does a part reach a dummy (local time), or never (null)?
+  function hitTime(st, part, d) {
+    if (part.kind === "thrust") return d.miss ? null : st.windup + st.active * 0.6 * (d.d / part.reach);
+    if (part.kind === "slam") return st.windup + st.active;
+    const target = d.a * part.sign, start = -part.half * part.sign;
+    for (let k = 0; k <= 60; k++) {
+      const lt = st.windup + st.active * k / 60;
+      const a = sweepAt(st, part, lt) * part.sign;
+      if (a >= target * part.sign && lt >= st.windup) return lt;
+    }
+    return null;
+  }
+
+  // --- Drawing helpers ---
+  function floor(ctx, W, H, ox, oy) {
+    ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+    for (let x = ((-ox) % 40 + 40) % 40; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+    for (let y = ((-oy) % 40 + 40) % 40; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+  }
+  function knight(ctx, ang) {
+    const { x, y, r } = PLAYER;
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + r * 0.8, r, r * 0.45, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#1a2236"; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "#5b8cff"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+    ctx.fillStyle = "#c9d6ff"; ctx.beginPath(); ctx.arc(x + Math.cos(ang) * 5, y + Math.sin(ang) * 5, 5.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = "#0b0f18"; ctx.fillRect(x + Math.cos(ang) * 6 - 1, y + Math.sin(ang) * 6 - 3, 3, 6);
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 2, 0, TAU); ctx.fill();
+  }
+  function dummy(ctx, p, flash, bulge) {
+    const r = 15 * (1 + 0.18 * bulge);
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(p.x, p.y + 12, 14, 6, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = flash > 0 ? `rgba(255,255,255,${0.55 + 0.45 * flash})` : "#3a2f2a";
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = "#c98f63"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = "rgba(201,143,99,0.6)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(p.x - r * 0.6, p.y); ctx.lineTo(p.x + r * 0.6, p.y); ctx.moveTo(p.x, p.y - r * 0.6); ctx.lineTo(p.x, p.y + r * 0.6); ctx.stroke();
+  }
+  // A blade from the body out along angle a: a long tapered shape (or a pole with a head).
+  function blade(ctx, w, a, reach, alpha, glow) {
+    const { x, y } = PLAYER, c = Math.cos(a), s = Math.sin(a), nx = -s, ny = c;
+    const r0 = 18, r1 = reach * 0.98, hilt = w.pole ? reach * (1 - w.blade) : r0 + (r1 - r0) * (1 - w.blade);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = "#6b5640"; ctx.lineWidth = 4; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x + c * (r0 - 6), y + s * (r0 - 6)); ctx.lineTo(x + c * hilt, y + s * hilt); ctx.stroke();
+    ctx.strokeStyle = "#d8c07a"; ctx.lineWidth = 3;  // guard
+    ctx.beginPath(); ctx.moveTo(x + c * hilt + nx * 7, y + s * hilt + ny * 7); ctx.lineTo(x + c * hilt - nx * 7, y + s * hilt - ny * 7); ctx.stroke();
+    const wd = w.pole ? 7 : 5;
+    ctx.fillStyle = glow ? "#ffffff" : "#e6eefc";
+    ctx.beginPath();
+    ctx.moveTo(x + c * hilt + nx * wd, y + s * hilt + ny * wd);
+    ctx.lineTo(x + c * (r1 - 10) + nx * wd * 0.8, y + s * (r1 - 10) + ny * wd * 0.8);
+    ctx.lineTo(x + c * r1, y + s * r1);
+    ctx.lineTo(x + c * (r1 - 10) - nx * wd * 0.6, y + s * (r1 - 10) - ny * wd * 0.6);
+    ctx.lineTo(x + c * hilt - nx * wd * 0.6, y + s * hilt - ny * wd * 0.6);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = rgba(w.color, 0.9); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.globalAlpha = 1; ctx.lineCap = "butt";
+  }
+  function ring(ctx, x, y, r, wdt, col) { ctx.strokeStyle = col; ctx.lineWidth = wdt; ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, TAU); ctx.stroke(); }
+  // A filled band between two radii over an angle range, with alpha fading from `a0` at its start to `a1` at its end.
+  function band(ctx, r0, r1, from, to, col, a0, a1, steps = 18) {
+    const { x, y } = PLAYER;
+    for (let i = 0; i < steps; i++) {
+      const t0 = from + (to - from) * i / steps, t1 = from + (to - from) * (i + 1) / steps;
+      ctx.fillStyle = rgba(col, a0 + (a1 - a0) * (i + 0.5) / steps);
+      ctx.beginPath(); ctx.arc(x, y, r1, t0, t1, t1 < t0); ctx.arc(x, y, r0, t1, t0, t1 >= t0); ctx.closePath(); ctx.fill();
+    }
+  }
+  // A lens-shaped crescent: thickest in the middle, tapering to points at both ends (the smear).
+  function crescent(ctx, rOut, thick, from, to, col, alpha) {
+    const { x, y } = PLAYER, n = 28, pts = [];
+    for (let i = 0; i <= n; i++) { const f = i / n, a = from + (to - from) * f; pts.push([x + Math.cos(a) * rOut, y + Math.sin(a) * rOut]); }
+    for (let i = n; i >= 0; i--) { const f = i / n, a = from + (to - from) * f, r = rOut - thick * Math.sin(Math.PI * Math.pow(f, 0.7)); pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]); }
+    const g = ctx.createRadialGradient(x, y, rOut - thick, x, y, rOut);
+    g.addColorStop(0, rgba(col, 0)); g.addColorStop(0.55, rgba(col, 0.55 * alpha)); g.addColorStop(1, rgba("#ffffff", 0.95 * alpha));
+    ctx.fillStyle = g; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill();
+  }
+
+  // --- One attack part in one style, at local time lt (seconds since the click) ---
+  function drawPart(ctx, st, w, part, lt, sk) {
+    if (lt < 0) return;
+    const { x, y } = PLAYER, dir = AIM, c = Math.cos(dir), s = Math.sin(dir);
+    const end = st.windup + st.active, life = end + st.tail;
+    if (lt > life) return;
+    const fade = lt < end ? 1 : 1 - (lt - end) / st.tail;
+    const R = rnd(7 + Math.round(part.reach) + (part.sign || 0) * 3);
+
+    if (part.kind === "swing") {
+      const a = sweepAt(st, part, Math.min(lt, end)), from = -part.half * part.sign, reach = part.reach;
+      const at = AIM + a, a0 = AIM + from;
+      if (sk === "current") {
+        const f = lt / (st.active + st.tail), sweep = 2 * part.half * Math.min(1, f * 3);
+        const s0 = AIM - part.half * part.sign, s1 = s0 + sweep * part.sign;
+        band(ctx, reach * 0.58, reach * 0.98, s0, s1, w.color, 0.28 * (1 - f), 0.28 * (1 - f), 12);
+        ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - f)})`; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(x, y, reach, Math.min(s0, s1), Math.max(s0, s1)); ctx.stroke();
+        return;
+      }
+      if (sk === "weighted") {
+        if (lt >= st.windup) {  // smear trailing the blade: last 0.9 rad, solid at the blade
+          const back = Math.min(0.9, Math.abs(a - from)) * part.sign;
+          band(ctx, reach * 0.3, reach, at - back, at, w.color, 0, 0.55 * fade, 16);
+          ctx.strokeStyle = `rgba(255,255,255,${0.8 * fade})`; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(x, y, reach, Math.min(at - back, at), Math.max(at - back, at)); ctx.stroke();
+        }
+        const hold = lt < end + 0.1 ? 1 : 1 - clamp01((lt - end - 0.1) / 0.2);
+        const ret = lt < end + 0.1 ? 0 : easeOut((lt - end - 0.1) / 0.25);
+        blade(ctx, w, at + (AIM + 0.25 - at) * ret * 0, reach, Math.max(0.15, hold), false);
+        return;
+      }
+      if (sk === "smear") {
+        if (lt < st.windup) { blade(ctx, w, at, reach, 1, false); return; }
+        const done = clamp01((lt - end) / st.tail), lead = at, trailStart = a0 + (lead - a0) * easeOut(done * 1.1);
+        if (Math.abs(lead - trailStart) > 0.02) crescent(ctx, reach, reach * 0.42 * (1 - done * 0.7), trailStart, lead, w.color, 1 - done * 0.6);
+        for (let i = 0; i < 4; i++) {  // speed lines just outside the arc
+          const fa = a0 + (lead - a0) * (0.3 + 0.17 * i), rr = reach + 6 + (i % 2) * 6;
+          ctx.strokeStyle = `rgba(255,255,255,${0.5 * (1 - done)})`; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(x, y, rr, Math.min(fa, fa + 0.25 * part.sign), Math.max(fa, fa + 0.25 * part.sign)); ctx.stroke();
+        }
+        if (lt > end) blade(ctx, w, lead, reach, clamp01(1 - done * 2.5) * 0.9, false);
+        return;
+      }
+      if (sk === "ghost") {
+        for (let k = 6; k >= 1; k--) {
+          const tg = Math.max(0, Math.min(lt, end) - k * 0.018);
+          if (tg < st.windup) continue;
+          blade(ctx, w, AIM + sweepAt(st, part, tg), reach, (0.5 - k * 0.07) * fade, false);
+        }
+        blade(ctx, w, at, reach, lt < end + 0.12 ? 1 : 1 - clamp01((lt - end - 0.12) / 0.15), false);
+        return;
+      }
+      if (sk === "energy") {
+        ctx.save(); ctx.globalCompositeOperation = "lighter";
+        if (lt < st.windup) { ring(ctx, x + Math.cos(at) * reach * 0.9, y + Math.sin(at) * reach * 0.9, 6, 3, rgba(w.color, 0.8)); ctx.restore(); return; }
+        const s0 = a0, s1 = at;
+        ctx.shadowColor = w.color; ctx.shadowBlur = 18;
+        band(ctx, reach * 0.72, reach, s0, s1, w.color, 0.05 * fade, 0.45 * fade, 18);
+        ctx.strokeStyle = `rgba(255,255,255,${0.95 * fade})`; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, reach * 0.92, Math.min(s0, s1), Math.max(s0, s1)); ctx.stroke();
+        ctx.shadowBlur = 0;
+        for (let i = 0; i < 22; i++) {  // sparks thrown off the tip as it passes
+          const born = st.windup + st.active * R(), age = lt - born, spd = 120 + 160 * R(), spread = (R() - 0.5) * 0.9;
+          if (age < 0 || age > 0.5) continue;
+          const ba = AIM + sweepAt(st, part, born), oa = ba + part.sign * 0.9 + spread;
+          const bx = x + Math.cos(ba) * reach, by = y + Math.sin(ba) * reach, dd = spd * age * (1 - age);
+          ctx.fillStyle = rgba(i % 3 ? w.color : "#ffffff", 0.9 * (1 - age / 0.5));
+          ctx.fillRect(bx + Math.cos(oa) * dd - 1.5, by + Math.sin(oa) * dd - 1.5, 3, 3);
+        }
+        ctx.restore();
+        return;
+      }
+    }
+
+    if (part.kind === "thrust") {
+      const reach = part.reach, f = clamp01((lt - st.windup) / (st.active * 0.6));
+      const pull = lt < st.windup ? easeOut(lt / Math.max(st.windup, 1e-6)) : 0;
+      const ext = lt < st.windup ? -14 * pull : (sk === "current" ? 1 : easeOut(f)) * reach * (sk === "current" ? 1 : 1);
+      const tip = { x: x + c * Math.max(24, 30 + ext), y: y + s * Math.max(24, 30 + ext) };
+      const drawRapier = (len, alpha) => {
+        ctx.globalAlpha = alpha; ctx.strokeStyle = "#eef3ff"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(x + c * 18, y + s * 18); ctx.lineTo(x + c * len, y + s * len); ctx.stroke();
+        ctx.strokeStyle = "#d8c07a"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(x + c * 20, y + s * 20, 6, dir - 1.6, dir + 1.6); ctx.stroke(); ctx.globalAlpha = 1;
+      };
+      if (sk === "current") {
+        const k = clamp01(lt / (st.active + st.tail));
+        ctx.strokeStyle = rgba(w.color, 0.35 * (1 - k)); ctx.lineWidth = 8 * (1 - k);
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + c * reach, y + s * reach); ctx.stroke();
+        ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + c * reach, y + s * reach); ctx.stroke();
+        return;
+      }
+      const len = Math.max(26, 30 + ext);
+      if (sk === "weighted") {
+        if (lt > st.windup) {
+          ctx.fillStyle = rgba(w.color, 0.45 * fade);
+          ctx.beginPath(); ctx.moveTo(x + c * 20 - s * 7, y + s * 20 + c * 7); ctx.lineTo(tip.x, tip.y); ctx.lineTo(x + c * 20 + s * 7, y + s * 20 - c * 7); ctx.closePath(); ctx.fill();
+        }
+        drawRapier(lt < end + 0.12 ? len : len * (1 - 0.6 * easeOut((lt - end - 0.12) / 0.2)), 1);
+        return;
+      }
+      if (sk === "smear") {
+        const done = clamp01((lt - end) / st.tail), back = 30 + (len - 30) * easeOut(done);
+        if (lt > st.windup) {
+          const g = ctx.createLinearGradient(x + c * back, y + s * back, tip.x, tip.y);
+          g.addColorStop(0, rgba(w.color, 0)); g.addColorStop(0.7, rgba(w.color, 0.6 * (1 - done))); g.addColorStop(1, `rgba(255,255,255,${0.95 * (1 - done)})`);
+          ctx.fillStyle = g; const wd = 9 * (1 - done * 0.6);
+          ctx.beginPath(); ctx.moveTo(x + c * back, y + s * back);
+          ctx.quadraticCurveTo(x + c * (len * 0.7) - s * wd, y + s * (len * 0.7) + c * wd, tip.x, tip.y);
+          ctx.quadraticCurveTo(x + c * (len * 0.7) + s * wd, y + s * (len * 0.7) - c * wd, x + c * back, y + s * back); ctx.fill();
+          const gl = 1 - clamp01((lt - end) / 0.15);  // star glint at the tip
+          if (gl > 0) { ctx.strokeStyle = `rgba(255,255,255,${gl})`; ctx.lineWidth = 2; const L = 10 * gl + 4;
+            ctx.beginPath(); ctx.moveTo(tip.x - L, tip.y); ctx.lineTo(tip.x + L, tip.y); ctx.moveTo(tip.x, tip.y - L); ctx.lineTo(tip.x, tip.y + L); ctx.stroke(); }
+        } else drawRapier(len, 1);
+        return;
+      }
+      if (sk === "ghost") {
+        for (let k = 5; k >= 1; k--) {
+          const tg = Math.min(lt, end) - k * 0.02; if (tg < st.windup) continue;
+          const e = easeOut((tg - st.windup) / (st.active * 0.6)) * reach;
+          drawRapier(30 + e, (0.45 - k * 0.07) * fade);
+        }
+        drawRapier(len, lt < end + 0.1 ? 1 : 1 - clamp01((lt - end - 0.1) / 0.15));
+        return;
+      }
+      if (sk === "energy") {
+        ctx.save(); ctx.globalCompositeOperation = "lighter";
+        if (lt > st.windup) {
+          ctx.shadowColor = w.color; ctx.shadowBlur = 16;
+          ctx.strokeStyle = rgba(w.color, 0.6 * fade); ctx.lineWidth = 10 * fade;
+          ctx.beginPath(); ctx.moveTo(x + c * 20, y + s * 20); ctx.lineTo(tip.x, tip.y); ctx.stroke();
+          ctx.strokeStyle = `rgba(255,255,255,${fade})`; ctx.lineWidth = 2.5; ctx.stroke(); ctx.shadowBlur = 0;
+          for (let i = 0; i < 18; i++) {
+            const born = st.windup + st.active * 0.6 * R(), age = lt - born, oa = dir + (R() - 0.5) * 1.2, spd = 90 + 140 * R();
+            if (age < 0 || age > 0.45) continue;
+            const bx = x + c * (30 + reach * (born - st.windup) / (st.active * 0.6)), by = y + s * (30 + reach * (born - st.windup) / (st.active * 0.6)), dd = spd * age;
+            ctx.fillStyle = rgba(i % 3 ? w.color : "#ffffff", 0.9 * (1 - age / 0.45)); ctx.fillRect(bx + Math.cos(oa) * dd - 1.5, by + Math.sin(oa) * dd - 1.5, 3, 3);
+          }
+        } else ring(ctx, x + c * 22, y + s * 22, 5, 3, rgba(w.color, 0.8));
+        ctx.restore();
+        return;
+      }
+    }
+
+    if (part.kind === "slam") {
+      const reach = part.reach, cx = x + c * reach * 0.7, cy = y + s * reach * 0.7;
+      const fall = lt < st.windup ? 0 : clamp01((lt - st.windup) / st.active), after = lt - end;
+      const lift = lt < st.windup ? easeOut(lt / Math.max(st.windup, 1e-6)) : 1 - fall * fall;
+      const hammer = (hx, hy, scale, alpha) => {
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = "#6b5640"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x + c * 14, y + s * 14); ctx.lineTo(hx, hy); ctx.stroke();
+        ctx.save(); ctx.translate(hx, hy); ctx.rotate(dir); ctx.scale(scale, scale);
+        ctx.fillStyle = "#c8ced8"; ctx.fillRect(-9, -16, 18, 32); ctx.fillStyle = rgba(w.color, 0.9); ctx.fillRect(-9, -16, 18, 5); ctx.fillRect(-9, 11, 18, 5);
+        ctx.restore(); ctx.globalAlpha = 1;
+      };
+      const box = (alpha) => {  // the slam's 100 px wide box
+        ctx.save(); ctx.translate(x, y); ctx.rotate(dir);
+        ctx.fillStyle = rgba(w.color, alpha); ctx.fillRect(20, -part.width / 2, reach, part.width); ctx.restore();
+      };
+      if (sk === "current") {
+        const k = clamp01(lt / (st.active + st.tail));
+        box(0.25 * (1 - k)); ring(ctx, cx, cy, 20 + 60 * k, 3, `rgba(255,255,255,${0.9 * (1 - k)})`);
+        return;
+      }
+      if (lt < end) {  // up and down
+        const sc = 1 + 0.45 * lift, hx = x + c * (reach * 0.7) , hy = y + s * (reach * 0.7) - 26 * lift;
+        ctx.fillStyle = `rgba(0,0,0,${0.25 + 0.2 * (1 - lift)})`; ctx.beginPath(); ctx.ellipse(cx, cy + 6, 14 * (1 - 0.4 * lift), 6 * (1 - 0.4 * lift), 0, 0, TAU); ctx.fill();
+        if (sk === "ghost") for (let k = 4; k >= 1; k--) { const tg = lt - k * 0.02; if (tg < st.windup) continue; const ff = clamp01((tg - st.windup) / st.active), ll = 1 - ff * ff; hammer(hx, y + s * (reach * 0.7) - 26 * ll, 1 + 0.45 * ll, 0.4 - k * 0.08); }
+        if (sk === "energy" && lt < st.windup) ring(ctx, cx, cy, 26, 2, rgba(w.color, 0.6));
+        hammer(hx, hy, sc, 1);
+        return;
+      }
+      const k = clamp01(after / st.tail);
+      if (sk === "weighted") {
+        box(0.18 * (1 - k));
+        ctx.strokeStyle = `rgba(30,20,12,${0.8 * (1 - k * 0.6)})`; ctx.lineWidth = 2;  // cracks in the floor
+        for (let i = 0; i < 7; i++) { const a = R() * TAU, l = 20 + 30 * R(); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * l * 0.5 + (R() - 0.5) * 8, cy + Math.sin(a) * l * 0.5 + (R() - 0.5) * 8); ctx.lineTo(cx + Math.cos(a) * l, cy + Math.sin(a) * l); ctx.stroke(); }
+        ring(ctx, cx, cy, 18 + 70 * easeOut(k * 1.6), 4 * (1 - k) + 1, `rgba(255,236,210,${0.8 * (1 - k)})`);
+        for (let i = 0; i < 8; i++) { const a = R() * TAU, d = (30 + 40 * R()) * easeOut(k * 2); ctx.fillStyle = `rgba(200,184,160,${0.35 * (1 - k)})`; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 6 + 10 * k, 0, TAU); ctx.fill(); }
+        for (let i = 0; i < 9; i++) { const a = R() * TAU, v = 90 + 120 * R(), d = v * after, up = 160 * after - 420 * after * after; if (after > 0.35) continue; ctx.fillStyle = "#9a8a76"; ctx.fillRect(cx + Math.cos(a) * d - 2, cy + Math.sin(a) * d * 0.6 - Math.max(0, up) - 2, 4, 4); }
+        hammer(cx, cy, 1, 1 - clamp01((after - 0.15) / 0.2));
+        return;
+      }
+      if (sk === "smear") {
+        for (let i = 0; i < 14; i++) { const a = i / 14 * TAU + 0.2, r0 = 16 + 50 * easeOut(k), r1 = r0 + 26 * (1 - k); ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.stroke(); }
+        ring(ctx, cx, cy, 20 + 70 * easeOut(k), 6 * (1 - k), rgba(w.color, 0.8 * (1 - k)));
+        if (after < 0.06) { ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - after / 0.06)})`; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, TAU); ctx.fill(); }
+        hammer(cx, cy, 1, 1 - clamp01(after / 0.12));
+        return;
+      }
+      if (sk === "ghost") {
+        ring(ctx, cx, cy, 18 + 60 * easeOut(k), 3 * (1 - k) + 1, `rgba(255,255,255,${0.8 * (1 - k)})`);
+        for (let i = 0; i < 10; i++) { const a = i / 10 * TAU + R() * 0.3, d = 14 + 70 * easeOut(k); ctx.save(); ctx.translate(cx + Math.cos(a) * d, cy + Math.sin(a) * d); ctx.rotate(a + k * 4); ctx.fillStyle = rgba(w.color, 0.9 * (1 - k)); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(4, 3); ctx.lineTo(-4, 3); ctx.closePath(); ctx.fill(); ctx.restore(); }
+        hammer(cx, cy, 1, 1 - clamp01((after - 0.12) / 0.15));
+        return;
+      }
+      if (sk === "energy") {
+        ctx.save(); ctx.globalCompositeOperation = "lighter";
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
+        g.addColorStop(0, rgba("#ffffff", 0.7 * (1 - k))); g.addColorStop(0.4, rgba(w.color, 0.35 * (1 - k))); g.addColorStop(1, rgba(w.color, 0));
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 60, 0, TAU); ctx.fill();
+        ring(ctx, cx, cy, 46, 2, rgba(w.color, 0.9 * (1 - k)));
+        for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + after * 2; ctx.strokeStyle = rgba(w.color, 0.8 * (1 - k)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 38, a, a + 0.22); ctx.stroke(); }
+        if (after < 0.2) { const pk = 1 - after / 0.2; ctx.fillStyle = rgba("#ffffff", 0.5 * pk); ctx.fillRect(cx - 10 * pk, cy - 120, 20 * pk, 120); }
+        for (let i = 0; i < 16; i++) { const a = R() * TAU, v = 30 + 50 * R(), age = after - 0.05 * R(); if (age < 0) continue; ctx.fillStyle = rgba(i % 2 ? w.color : "#ffe2b0", 0.9 * (1 - k)); ctx.fillRect(cx + Math.cos(a) * (20 + v * age), cy + Math.sin(a) * (20 + v * age) - 40 * age, 3, 3); }
+        ctx.restore();
+        hammer(cx, cy, 1, 1 - clamp01(after / 0.15));
+        return;
+      }
+    }
+  }
+
+  // --- A whole frame: the scene at time t (seconds since the click) ---
+  function render(ctx, W, H, sk, wk, t, view) {
+    const st = STYLES[sk], w = WEAPONS[wk];
+    // Hit-pause (A only, heavy weapons): the attack holds for 50 ms at its first contact.
+    let at = t;
+    const ds = dummiesFor(w);
+    if (sk === "weighted" && w.heavy) {
+      let first = Infinity;
+      for (const part of w.parts) for (const d of ds) { const h = hitTime(st, part, d); if (h != null) first = Math.min(first, h + part.delay); }
+      if (t > first) at = t < first + 0.05 ? first : t - 0.05;
+    }
+    ctx.save();
+    ctx.setTransform(view.s, 0, 0, view.s, -view.ox * view.s, -view.oy * view.s);
+    floor(ctx, W / view.s + view.ox, H / view.s + view.oy, 0, 0);
+    // Dummies: flash, bulge, slide back and show a number when hit.
+    for (const d of ds) {
+      let ht = null;
+      for (const part of w.parts) { const h = hitTime(st, part, d); if (h != null) { ht = ht == null ? h + part.delay : Math.min(ht, h + part.delay); } }
+      let p = dpos(d), flash = 0, bulge = 0;
+      if (ht != null && t >= ht) {
+        const age = t - ht, away = Math.atan2(p.y - PLAYER.y, p.x - PLAYER.x), slide = 16 * easeOut(age / 0.18);
+        p = { x: p.x + Math.cos(away) * slide, y: p.y + Math.sin(away) * slide };
+        flash = age < 0.08 ? 1 - age / 0.08 : 0; bulge = age < 0.12 ? 1 - age / 0.12 : 0;
+        dummy(ctx, p, flash, bulge);
+        if (age < 0.7) { ctx.font = "700 13px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.fillStyle = `rgba(255,236,170,${1 - age / 0.7})`; ctx.fillText(String(w.dmg), p.x, p.y - 22 - age * 30); }
+        if (sk !== "current" && age < 0.12) {  // contact sparks
+          const R = rnd(91 + Math.round(p.x)); ctx.strokeStyle = `rgba(255,255,255,${1 - age / 0.12})`; ctx.lineWidth = 2;
+          for (let i = 0; i < 6; i++) { const a = R() * TAU, l = 8 + 14 * (age / 0.12); ctx.beginPath(); ctx.moveTo(p.x + Math.cos(a) * 10, p.y + Math.sin(a) * 10); ctx.lineTo(p.x + Math.cos(a) * (10 + l), p.y + Math.sin(a) * (10 + l)); ctx.stroke(); }
+        }
+      } else dummy(ctx, p, 0, 0);
+    }
+    for (const part of w.parts) drawPart(ctx, st, w, part, at - part.delay, sk);
+    knight(ctx, AIM);
+    ctx.restore();
+  }
+
+  // --- Page wiring ---
+  const arena = document.getElementById("arena"), actx = arena.getContext("2d");
+  let style = "weighted", weapon = "greatsword", speed = 1, clock = 0, last = performance.now();
+  const PERIOD = 1.6, AUTO = ["greatsword", "twin", "halberd", "rapier", "hammer"];
+  let autoCycle = true;
+  function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; return r; }
+  let ar = fit(arena, 960, 380);
+  const styleBtns = document.getElementById("styleBtns"), weaponBtns = document.getElementById("weaponBtns");
+  for (const k in STYLES) { const b = document.createElement("button"); b.id = "st-" + k; b.innerHTML = `<span class="k">${STYLES[k].key}</span>${STYLES[k].name}`; b.onclick = () => setStyle(k); styleBtns.appendChild(b); }
+  { const b = document.createElement("button"); b.id = "wp-auto"; b.textContent = "All, in turn"; b.onclick = () => { autoCycle = true; sync(); }; weaponBtns.appendChild(b); }
+  for (const k in WEAPONS) { const b = document.createElement("button"); b.id = "wp-" + k; b.textContent = WEAPONS[k].name; b.onclick = () => { autoCycle = false; weapon = k; clock = 0; sync(); }; weaponBtns.appendChild(b); }
+  document.getElementById("spd1").onclick = () => { speed = 1; sync(); };
+  document.getElementById("spd4").onclick = () => { speed = 0.25; sync(); };
+  document.getElementById("again").onclick = () => { clock = 0; };
+
+  const cards = document.getElementById("cards");
+  for (const k in CARDS) {
+    const c = CARDS[k], el = document.createElement("article"); el.className = "card"; el.id = "card-" + k; el.tabIndex = 0;
+    el.innerHTML = `<div class="tag">${STYLES[k].key === "Now" ? "NOW" : "STYLE " + STYLES[k].key}</div><h3>${STYLES[k].name}</h3><p>${c.pitch}</p>
+      <dl><dt>Before</dt><dd>${c.before}</dd><dt>Hit</dt><dd>${c.hit}</dd><dt>After</dt><dd>${c.after}</dd><dt>Feel</dt><dd>${c.feel}</dd></dl>`;
+    el.onclick = () => setStyle(k); el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setStyle(k); } };
+    cards.appendChild(el);
+  }
+
+  // Still frames through one attack (the current style and weapon).
+  const strip = document.getElementById("strip"), frames = [];
+  for (let i = 0; i < 6; i++) { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); const sp = document.createElement("span"); f.append(cv, sp); strip.appendChild(f); frames.push({ cv, sp }); }
+  function drawStrip() {
+    const st = STYLES[style], w = WEAPONS[weapon], end = st.windup + st.active + (w.parts.at(-1).delay || 0);
+    const times = [0, st.windup * 0.8, st.windup + st.active * 0.45, end, end + 0.1, end + 0.28];
+    const reach = Math.max(...w.parts.map(p => p.reach));
+    const size = Math.max(150, reach * 2 + 60), cx = PLAYER.x + Math.cos(AIM) * reach * 0.45, cy = PLAYER.y;
+    frames.forEach((f, i) => {
+      const r = fit(f.cv, 180, 180), ctx = f.cv.getContext("2d");
+      const s = (180 * r) / size;
+      render(ctx, 180 * r, 180 * r, style, weapon, times[i], { s, ox: cx - size / 2, oy: cy - size / 2 });
+      f.sp.textContent = (times[i] * 1000).toFixed(0) + " ms";
+    });
+  }
+  function setStyle(k) { style = k; clock = 0; sync(); }
+  function sync() {
+    for (const k in STYLES) document.getElementById("st-" + k).setAttribute("aria-pressed", String(k === style));
+    document.getElementById("wp-auto").setAttribute("aria-pressed", String(autoCycle));
+    for (const k in WEAPONS) document.getElementById("wp-" + k).setAttribute("aria-pressed", String(!autoCycle && k === weapon));
+    document.getElementById("spd1").setAttribute("aria-pressed", String(speed === 1));
+    document.getElementById("spd4").setAttribute("aria-pressed", String(speed !== 1));
+    for (const k in CARDS) document.getElementById("card-" + k).setAttribute("aria-current", String(k === style));
+    drawStrip();
+  }
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) speed = 0.25;
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    clock += dt * speed;
+    if (clock > PERIOD) { clock -= PERIOD; if (autoCycle) { weapon = AUTO[(AUTO.indexOf(weapon) + 1) % AUTO.length]; drawStrip(); } }
+    const t = clock - 0.2;  // a short rest before each attack
+    render(actx, 960 * ar, 380 * ar, style, weapon, Math.max(0, t), { s: ar, ox: 0, oy: 0 });
+    if (t < 0) { actx.save(); actx.setTransform(ar, 0, 0, ar, 0, 0); actx.restore(); }
+    actx.save(); actx.setTransform(ar, 0, 0, ar, 0, 0);
+    actx.font = "600 13px Oxanium, system-ui, sans-serif"; actx.fillStyle = "#92a1ad"; actx.textAlign = "left";
+    actx.fillText(`${WEAPONS[weapon].name.toUpperCase()}  ·  ${STYLES[style].key === "Now" ? "TODAY" : "STYLE " + STYLES[style].key + " · " + STYLES[style].name.toUpperCase()}`, 18, 28);
+    actx.restore();
+    document.getElementById("now").textContent = `${(Math.max(0, t) * 1000).toFixed(0).padStart(4, " ")} ms into the attack${speed !== 1 ? " · ¼ speed" : ""}`;
+    requestAnimationFrame(tick);
+  }
+  sync();
+  requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>

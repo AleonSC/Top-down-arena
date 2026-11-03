@@ -9,8 +9,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 
 ## Visuals
-- [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
-      weapons' swings, thrusts and slams could look, to pick from before changing the game.
+- [ ] **Melee attack animations: waiting for a pick.** Mockups done: [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html)
+      (https://claude.ai/artifact/TvpChwUCGjQ44HCbGvTFB7): today's look and styles A Weighted (wind-up, overshoot,
+      hit-pause), B Ink smear, C Afterimage, D Energy arc, on the Greatsword, Twin Blades, Halberd, Rapier and
+      Warhammer. Then build the pick in `DrawSlashFx` / `DrawJabFx` (A's wind-up needs a decision on hit timing).
 - [x] **Redesign the main menu buttons.** Built: design D with the pen plot intro (Nov 2026).
       Mockups done, waiting for a pick: four layouts in [`Mockups/menu-redesign.html`](Mockups/menu-redesign.html)
       (https://claude.ai/artifact/6T2r1GZSBsajVK8pxaAo8s), and three plotted intros for the menu in
