@@ -463,7 +463,7 @@ plus one per player (15 health each).
 Arcane Aegis stop bullets *coming in*, so a tank can still soak fire for the team, but bullets fired from
 inside them pass through: you can't muzzle a boss by standing on it. Against regular waves blockers hold
 for their full duration; **only boss bullets wear them down**. Each soaks a limited amount of boss damage
-(Barrier: 360, more with Bastion): it fades as it weakens, then breaks; companions are dazed for a few
+(Barrier: 360, more with Bastion): with Visual effects on it's a ring of eight armour plates, one knocked off for every eighth it soaks, and they blow out when it breaks (off, it's a disc that fades as it weakens); companions are dazed for a few
 seconds instead. Boss bullets are easy to spot: they have a **dark core**. Violet-spiked ones wear blockers
 down; **red ones (aimed shots) can't be blocked** and must be dodged, and standing
 inside a boss hurts more each wave.
@@ -697,7 +697,7 @@ as usual.
 - **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
   they're working on (players who can't edit follow along to it). The host can tick **Let others edit** so
   friends can change the waves too.
-- Everyone keeps their own loadout (the **Your loadout** tab).
+- Everyone keeps their own loadout (the **Loadout** tab).
 - **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
   sessions folder (**Open folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
 
@@ -859,7 +859,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
-  pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving
+  pause menu's), the **Field Guide**, **How To Play** (in the drawer too), **Main Menu** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
@@ -871,7 +871,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
   lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for
-  **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
+  **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
   HUD, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
@@ -947,6 +947,14 @@ has its own track** that crossfades in while it's on the field (`Assets/Scripts/
 track is a short recipe: tempo, key, chords and which instruments play). Tracks render in the background, and
 the next boss's track is prepared ahead of time. The **Music** slider controls all of it.
 
+**Music player** (Settings > Audio > *Music player*): 22 tracks to pick from, which play everywhere (menus and matches)
+instead of the automatic music until you pick **Automatic** again. Besides the menu theme, the wave battle track and the
+ten boss themes there are eight extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*
+(Chill); *Neon Highway*, *Sunrise Run*, *Arcade Heist* and *Dust Road* (Action); *Haunted Hollow* and *Iron Rain* (Dark);
+*Last Stand* (Epic). Controls: Prev / Play-Pause / Next, Shuffle, Repeat (all, or this one), a progress bar, and
+"Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the
+list. Your pick, shuffle and repeat are saved. Tracks render in the background the first time (a few seconds).
+
 ## Playing with a friend
 
 **You both need the same version of the game.** The version is shown at the bottom of the main menu and
@@ -960,7 +968,7 @@ One person **hosts**, the other **joins**. The host's game acts as the server, s
    give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
 4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host
-   clicks **Start game**.
+   clicks **Start**.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask

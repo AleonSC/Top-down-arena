@@ -504,6 +504,7 @@ namespace Arena
                     break;
                 case Ending.Blocked:
                 {
+                    NoteBarrierBlock(s.Pos);  // a Barrier's plate recoils there (BarrierLook.cs)
                     // A ricochet: the shot glances off, tumbling and fading, with a bright metallic spark.
                     float a = dir.Angle + MathX.Pi + Rnd(-0.9f, 0.9f);
                     AddPart(new Part { Kind = PTumble, Pos = s.Pos, Vel = V2.FromAngle(a) * Mathf.Max(140f, s.Vel.Length * 0.45f), Rot = a, Spin = Rnd(-18f, 18f), Life = 0.42f, Max = 0.42f, Size = r, Col = c });

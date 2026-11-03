@@ -22,6 +22,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
 ## Visuals
+- [x] **Tank Soldier Barrier animations.** Built (Nov 2026): look C, Bulwark Plates (`Game/BarrierLook.cs`, no protocol bump). Reflect tint left out (host-only flag). Mockup: [`Mockups/barrier-animations.html`](Mockups/barrier-animations.html)
+      (https://claude.ai/artifact/CpWoeYAWoSirm4mkf7XHx4): A today, B Force Field (hex dome), C Bulwark Plates (8 plates,
+      one knocked off per boss hit), D Soap Bubble. Drawing only; a reflect-specific tint would need `BarrierReflect`
+      replicated (protocol bump).
 - [x] **Arcane Missiles reworked as Ice Shards.** Built (Nov 2026), look A from [`Mockups/ice-shards.html`](Mockups/ice-shards.html)
       (https://claude.ai/artifact/6D2aFuh1WxeedCRGpd7iSx). Same mechanics (orbit, launch, homing); renamed, frost-blue kites that
       shatter on a hit. Internal ids (`WeaponId.ArcaneMissiles`, `Defs.ArcaneShot`) unchanged; no protocol change. The Armory

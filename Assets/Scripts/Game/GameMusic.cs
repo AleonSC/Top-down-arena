@@ -175,6 +175,9 @@ namespace Arena
                 case "m": return new[] { r, r + 3, r + 7 };
                 case "5": return new[] { r, r + 7, r + 12 };
                 case "dim": return new[] { r, r + 3, r + 6 };
+                case "sus2": return new[] { r, r + 2, r + 7 };
+                case "sus4": return new[] { r, r + 5, r + 7 };
+                case "aug": return new[] { r, r + 4, r + 8 };
                 default: return new[] { r, r + 4, r + 7 };
             }
         }

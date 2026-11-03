@@ -119,6 +119,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            LoadJukebox();
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadBackgroundSettings();
@@ -402,8 +403,8 @@ namespace Arena
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
-                else if (lobbyMenuOpen && (pauseSettings || pauseHowTo))
-                    pauseSettings = pauseHowTo = false;  // the lobby menu's Settings: back to its list
+                else if (lobbyMenuOpen && (pauseSettings || pauseHowTo || pauseRecords))
+                    pauseSettings = pauseHowTo = pauseRecords = false;  // the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
@@ -427,8 +428,8 @@ namespace Arena
                     devMenuOpen = false;
                 else if (EscPressed && pauseConfirmLobby && menuUp)
                     pauseConfirmLobby = false;  // "back to the lobby?": no (MenuDrawer.cs)
-                else if (EscPressed && (pauseSettings || pauseHowTo) && menuUp)
-                    pauseSettings = pauseHowTo = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
+                else if (EscPressed && (pauseSettings || pauseHowTo || pauseRecords) && menuUp)
+                    pauseSettings = pauseHowTo = pauseRecords = false;  // the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)
@@ -471,7 +472,22 @@ namespace Arena
                 sounds.RequestBossTrack(upcoming);
                 keep = SoundBank.BossTrackId(upcoming);
             }
-            sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime);
+            // The music player's choice replaces the automatic music (a boss still gets its own theme if that's on).
+            string keep2 = null;
+            if (juke.Selected != null)
+            {
+                if (juke.BossThemes && wanted.StartsWith("boss:"))
+                    keep2 = juke.Selected;
+                else
+                {
+                    wanted = juke.Selected;
+                    sounds.RequestLibraryTrack(wanted);
+                    keep2 = juke.Upcoming;
+                    sounds.RequestLibraryTrack(keep2);
+                }
+                AdvanceJukebox();
+            }
+            sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime, keep2);
         }
 
         void FixedUpdate()

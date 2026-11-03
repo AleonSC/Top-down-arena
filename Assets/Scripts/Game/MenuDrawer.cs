@@ -17,6 +17,7 @@ namespace Arena
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)
         bool pauseSettings;      // the pause menu showing Settings
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
+        bool pauseRecords;       // the lobby or pause menu showing Records
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int recordsSection;      // 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Unlocks
@@ -204,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "How to play", "Leave to main menu", "Quit game" };
+        static readonly string[] LobbyChoices = { "Back To The Lobby", "Settings", "Field Guide", "Records", "How To Play", "Main Menu", "Quit Game" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -213,13 +214,13 @@ namespace Arena
         {
             lobbyMenuOpen = true;
             lobbySel = 0;
-            pauseSettings = pauseHowTo = false;
+            pauseSettings = pauseHowTo = pauseRecords = false;
             drawerKey = null;
             winOpenAt = Time.unscaledTime;
             GUIUtility.keyboardControl = 0;
         }
 
-        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = false; });
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; });
 
         /// The lobby's menu: back to the lobby, Settings (in the drawer, like the pause menu's), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
@@ -233,6 +234,11 @@ namespace Arena
                 DrawSettingsWindow(true);  // its Back returns to this list
                 return;
             }
+            if (pauseRecords)
+            {
+                DrawRecordsWindow(true);  // its Back returns to this list
+                return;
+            }
             if (pauseHowTo)
             {
                 DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
@@ -241,9 +247,9 @@ namespace Arena
             DrawerIn("pause", false);
             LobbyMenuKeys();
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
-            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_help", "ui_back", "ui_power" };
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Controls and tips",
+            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
                 session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
             float y = 128f;
             for (int i = 0; i < LobbyChoices.Length; i++)
@@ -284,8 +290,9 @@ namespace Arena
                 case 0: CloseLobbyMenu(); break;
                 case 1: pauseSettings = true; break;
                 case 2: OpenFieldGuide(); break;
-                case 3: pauseHowTo = true; break;
-                case 4:
+                case 3: pauseRecords = true; break;
+                case 4: pauseHowTo = true; break;
+                case 5:
                     lobbyMenuOpen = false;
                     pauseSettings = pauseHowTo = false;
                     StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
@@ -296,8 +303,8 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "How to play", "Settings", "Leave to lobby", "Leave game" };
-        const int PauseToLobby = 5;  // the host only: everyone back to the lobby
+        static readonly string[] PauseChoices = { "Resume", "Run Stats", "Field Guide", "Records", "How To Play", "Settings", "Leave To Lobby", "Leave Game" };
+        const int PauseToLobby = 6;  // the host only: everyone back to the lobby
 
         /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).
         List<int> PauseRows()
@@ -315,6 +322,11 @@ namespace Arena
             if (pauseSettings)
             {
                 DrawSettingsWindow(true);
+                return;
+            }
+            if (pauseRecords)
+            {
+                DrawRecordsWindow(true);  // its Back returns to the choices
                 return;
             }
             if (pauseHowTo)
@@ -339,10 +351,10 @@ namespace Arena
             else if (game.Players.Count > 1)
                 sub = "Nobody moves until someone resumes";
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
-            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_help", "ui_gear", "ui_back", "ui_power" };
+            Color[] cols = { Ui.Primary, Ui.Gold, FieldGuideColor, Ui.Gold, HowToColor, new Color(0.6f, 0.66f, 0.82f), new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_trophy", "ui_book", "ui_star", "ui_help", "ui_gear", "ui_back", "ui_power" };
             bool saved = session.IsHost && game.RunId != null;
-            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Controls and tips",
+            string[] lines = { "Back into wave " + Mathf.Max(1, game.Wave), "Your build, damage and kills so far", "Every enemy, weapon and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
                 "Audio, visual effects, aim line", (game.Players.Count > 1 ? "Everyone back to the lobby" : "Back to the lobby") + (saved ? ": the run stays saved" : ""),
                 saved ? "Saved as each wave starts: continue from the menu" : "Back to the main menu" };
             var rows = PauseRows();
@@ -451,8 +463,9 @@ namespace Arena
                 case 0: ResumeGame(); break;
                 case 1: runStatsOpen = true; break;
                 case 2: OpenFieldGuide(); break;
-                case 3: pauseHowTo = true; break;
-                case 4: pauseSettings = true; break;
+                case 3: pauseRecords = true; break;
+                case 4: pauseHowTo = true; break;
+                case 5: pauseSettings = true; break;
                 case PauseToLobby:
                     if (!session.IsHost)
                         break;
@@ -633,7 +646,19 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("AUDIO", col, "Each kind of sound has its own volume, under the master.", k);
+                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", k);
+                    string[] audioTabs = { "Volume", "Music player" };
+                    for (int ti = 0; ti < 2; ti++)
+                        if (Ui.SmallButton(new Rect(DrawerPanel.xMax - 28f - 270f + ti * 138f, DrawerPanel.y + 24f, 132f, 34f), audioTabs[ti], audioTab == ti ? Ui.Primary : Ui.Neutral, 14))
+                        {
+                            audioTab = ti;
+                            jukeScroll = 0f;
+                        }
+                    if (audioTab == 1)
+                    {
+                        DrawMusicPlayer(t);
+                        break;
+                    }
                     float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
                     y = DrawerPanel.y + 104f;
                     bool changed = false;
@@ -718,7 +743,6 @@ namespace Arena
             if (changed)
                 SaveFxSettings();
             DrawBackgroundRow(new Rect(x, DrawerPanel.yMax - 34f - 90f, w, 84f));  // MenuBackgrounds.cs
-            Ui.Label(new Rect(x, DrawerPanel.yMax - 34f, w, 18f), "The preview shows what's on: shots and a hit, its number, an ability's name, a blast and its shake.", 12, Ui.Muted);
         }
 
         /// A tiny fight that follows the visual settings: shots into a target (it flashes and shows numbers), an
@@ -786,11 +810,11 @@ namespace Arena
 
         static readonly string[] RecordSections = { "Overview", "Bosses", "Classes", "Challenge rooms", "Unlocks" };
 
-        void DrawRecordsWindow()
+        void DrawRecordsWindow(bool inMenu = false)
         {
             var p = Profile.Current;
             float t = Time.unscaledTime;
-            float k = DrawerIn("records", true);
+            float k = DrawerIn(inMenu ? "pause-records" : "records", !inMenu);
             BeginDrawer("RECORDS", Ui.Gold, k, "Kept on this computer");
             int bossesBeaten = 0;
             foreach (var b in RecordBosses)
@@ -816,7 +840,12 @@ namespace Arena
                 y += r.height + 4f;
             }
             if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
-                CloseWindow(() => recordsOpen = false);
+            {
+                if (inMenu)
+                    pauseRecords = false;
+                else
+                    CloseWindow(() => recordsOpen = false);
+            }
             EndDrawer();
             BeginPanelAnim("records" + recordsSection);
             DrawRecordsSection(p, t, bossesBeaten, roomsWon, cols);

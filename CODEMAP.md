@@ -78,6 +78,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `SoldierLooks.cs`: Soldier DPS ability looks with Visual effects on: Dash's comet streak, the Cluster Grenade's flight ring and Frag Burst blast, Mark for Death's reticle and skull
 - `ChainLightLooks.cs`: Chain Light with Visual effects on: a soft fan of light, beams and halos (style A, Radiance)
+- `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: charge halo, sparks and dashed strip, the spine bolt (style A, Thunderhead)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
@@ -97,6 +98,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
+- `PerksUi.cs`: the lobby's Perks tab (placeholder: every slot and perk locked, "Coming soon"; see `Docs/BossHuntsAndPerks.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
 - `SavesUi.cs`: Continue list, Records, unlock toasts
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages
@@ -109,6 +111,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Audio (Game)
 - `SoundBank.cs`: every synthesised sound effect
 - `GameMusic.cs`, `MenuMusic.cs`: in-run and menu music
+- `MusicLibrary.cs`: every track the music player lists (extra mood recipes) and the `Jukebox` selection logic; `MusicPlayerUi.cs`: Settings > Audio > Music player
 - `PickSounds.cs`, `PauseGlitch.cs`: upgrade picker and pause-menu sounds
 
 ## Tools and docs (repo root)
@@ -132,7 +135,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |
-| Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
+| Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `MusicLibrary.cs` (add a track here), `MusicPlayerUi.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
 | Pixel icons | `PixelArt.cs` |
 | Bots, Boss Lab | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |

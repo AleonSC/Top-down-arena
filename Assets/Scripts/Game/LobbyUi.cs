@@ -11,7 +11,7 @@ namespace Arena
         static readonly Color PracticeColor = new Color(0.22f, 0.78f, 0.62f);
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt
+        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks
         bool lobbyWasPractice, lobbyWasHunt;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
@@ -49,6 +49,8 @@ namespace Arena
             }
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
+            if (practice && lobbyTab == PerkTab)
+                lobbyTab = 0;  // perks are off in the Practice Range
             var infoButton = new Rect(196f, 28f, 28f, 28f);
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
@@ -98,6 +100,8 @@ namespace Arena
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
                 DrawDifficulty(body, t);  // DifficultyUi.cs
+            else if (lobbyTab == PerkTab && !practice)
+                DrawPerks(body, t);  // PerksUi.cs
             else if (session.Resume != null)
                 DrawResumeSeats(body, t);  // SavesUi.cs
             else if (me != null)
@@ -138,7 +142,7 @@ namespace Arena
                 }
                 else if (hover)
                     Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
-                string title = i == 0 ? "RUN" : i == 1 ? "BOSS HUNT" : "PRACTICE";
+                string title = i == 0 ? "GAUNTLET" : i == 1 ? "BOSS HUNT" : "PRACTICE";
                 string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "10 waves to one boss" : "Build your own waves";
                 Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 15, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
                 Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
@@ -150,26 +154,27 @@ namespace Arena
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
-            var hunt = session.HuntMode && !practice && session.Resume == null ? Hunts.Get(session.HuntBoss) : null;
-            string[] names = { session.Resume != null ? "Seats" : "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty  ·  " + session.Diff.Name, session.HuntMode && !practice && session.Resume == null ? "Boss hunt  ·  " + (hunt != null ? BossName(hunt.Boss) : "pick one") : null };
+            bool hunt = session.HuntMode && !practice && session.Resume == null;
+            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks); null = not shown.
+            string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks" };
+            // The same order in every mode: the shared tabs, then the mode's own tab at the end.
+            int[] order = { 0, PerkTab, 3, 2, 1, 4 };
             float x = r.x;
-            for (int i = 0; i < names.Length; i++)
+            foreach (int i in order)
             {
                 if (names[i] == null)
                     continue;
                 float w = 30f + names[i].Length * 8.2f;
                 var tab = new Rect(x, r.y, w, r.height);
                 bool on = lobbyTab == i;
-                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : Ui.Accent;
+                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : i == PerkTab ? Ui.Gold : Ui.Accent;
                 Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
                 Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
                 if (!on && Ui.HitArea(tab))
                     lobbyTab = i;
                 x += w + 8f;
             }
-            if (practice && session.Plan.Waves.Count > 0 && lobbyTab == 0)
-                Ui.Label(new Rect(x + 8f, r.y, r.xMax - x - 8f, r.height), PracticeSummary(), 11, PracticeColor, TextAnchor.MiddleRight);
         }
 
         string PracticeSummary()
@@ -904,10 +909,16 @@ namespace Arena
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
             // Leaving, Settings and the Field guide are in the menu Esc opens (MenuDrawer.cs); Ready and Start sit in the middle.
+            // Bottom left: a small red back button, the same as Main Menu in the Esc menu.
+            var backRect = new Rect(40f, H - 70f, 48f, 48f);
+            bool back = Ui.Button(backRect, "", Ui.Danger);
+            Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));
+            if (back)
+                StartLobbyLeave();  // LobbyEnter.cs
             bool ready = me != null && me.Ready;
             float readyX = session.IsHost ? W / 2f - 260f : W / 2f - 120f;
             var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
-            if (Ui.FancyButton(readyRect, ready ? "Ready!  (click to cancel)" : "Ready", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, ready ? 15 : 0))
+            if (Ui.FancyButton(readyRect, ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -922,7 +933,7 @@ namespace Arena
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                string start = practice ? "Start practice" : session.HuntMode && session.Resume == null ? "Start hunt" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
+                string start = "Start";
                 if (Ui.FancyButton(new Rect(readyX + 260f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
