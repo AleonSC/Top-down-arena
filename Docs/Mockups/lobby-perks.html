@@ -1,0 +1,262 @@
+<title>Lobby Perks Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a proposal page in the style of the other mockups. Three copies of the lobby at the game's 1280x720 canvas,
+   scaled to the page width, each placing the Perks menu differently. Single dark look on purpose: they mirror the game. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12; --ink: #e9edf8; --muted: #9ea9c4; --line: rgba(255,255,255,0.08); --gold: #ffcc59;
+  --g-bg: #070912; --g-panel: #10152a; --g-card: #171e38; --g-edge: #3b4a85; --g-text: #eef2fb; --g-muted: #9ea9c4;
+  --blue: #5c99ff; --perk: #f2b13c; --mod: #d973f2; --diff: #e8a33a; --hunt: #f26b52; --prac: #38c79e;
+  --font: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 44px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0 0 6px; max-width: 78ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; }
+.option h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+.vp { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: var(--g-bg); box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); }
+.scr { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; color: var(--g-text); font-family: var(--font);
+  background: radial-gradient(900px 500px at 30% 20%, #101a3a 0%, transparent 70%), repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 48px), #070912; }
+.abs { position: absolute; }
+.pill { border-radius: 999px; background: rgba(255,255,255,0.05); }
+.panel { background: rgba(16,21,42,0.95); border: 2px solid #2a3566; border-radius: 10px; }
+.card { background: rgba(10,13,26,0.9); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
+.lbl { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-muted); font-weight: 700; }
+.muted { color: var(--g-muted); }
+
+/* tabs */
+.tab { position: absolute; top: 24px; height: 34px; border-radius: 17px; background: rgba(255,255,255,0.05); color: var(--g-muted); font: 700 12px/34px var(--font); letter-spacing: 0.04em; text-align: center; text-transform: uppercase; cursor: pointer; }
+.tab.on { color: #fff; }
+.tab.new { box-shadow: 0 0 0 2px rgba(242,177,60,0.55), 0 0 18px rgba(242,177,60,0.35); }
+.vp .tab:not(.on):hover { background: rgba(255,255,255,0.1); }
+
+/* left column */
+.title { left: 40px; top: 16px; font: 800 40px/50px var(--font); letter-spacing: 0.03em; color: #fff; text-shadow: 0 2px 0 #24336e; }
+.mode { left: 40px; top: 76px; width: 376px; height: 58px; border-radius: 29px; background: rgba(8,10,18,0.9); padding: 4px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+.mode div { border-radius: 25px; text-align: center; padding-top: 5px; }
+.mode b { display: block; font-size: 14px; } .mode small { font-size: 10px; color: var(--g-muted); }
+.mode .on { background: rgba(77,130,255,0.85); } .mode .on small { color: rgba(255,255,255,0.85); }
+.party { left: 40px; width: 376px; height: 88px; padding: 8px; display: grid; grid-template-columns: 72px 1fr; gap: 12px; }
+.face { width: 72px; height: 72px; border-radius: 10px; background: #060810; position: relative; overflow: hidden; }
+.face i { position: absolute; left: 20px; top: 20px; width: 32px; height: 32px; border-radius: 50%; }
+.party b { font-size: 15px; } .party .sub { font-size: 12px; color: var(--g-muted); margin-top: 2px; }
+.badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 9px; background: var(--blue); color: #fff; margin-left: 6px; vertical-align: 2px; }
+.pips { position: absolute; right: 10px; bottom: 8px; display: flex; gap: 5px; }
+.pip { width: 26px; height: 26px; border-radius: 6px; border: 2px solid rgba(242,177,60,0.85); background: rgba(242,177,60,0.16); display: grid; place-items: center; font-size: 13px; color: var(--perk); font-weight: 800; }
+.pip.empty { border-style: dashed; border-color: rgba(255,255,255,0.28); background: transparent; color: rgba(255,255,255,0.4); }
+.pip.lock { border: 2px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.28); font-size: 11px; }
+.pip.click { cursor: pointer; box-shadow: 0 0 0 2px rgba(242,177,60,0.35); }
+.open { left: 40px; width: 376px; height: 88px; border: 2px dashed rgba(255,255,255,0.14); border-radius: 8px; color: var(--g-muted); font-size: 13px; display: grid; place-items: center; }
+
+/* bottom bar */
+.bottom { left: 0; right: 0; bottom: 0; height: 96px; background: linear-gradient(transparent, rgba(5,6,12,0.95) 45%); }
+.start { right: 40px; bottom: 26px; width: 240px; height: 52px; border-radius: 26px; background: linear-gradient(#5c99ff,#3a6fe0); font: 800 18px/52px var(--font); text-align: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3); }
+.back { left: 40px; bottom: 30px; font-size: 14px; color: var(--g-muted); }
+
+/* Perks tab bodies */
+.body { left: 440px; top: 68px; width: 800px; height: 556px; }
+.hd { font: 800 13px var(--font); letter-spacing: 0.1em; text-transform: uppercase; color: var(--perk); }
+.slot { height: 78px; border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; }
+.slot.full { border: 2px solid var(--perk); background: rgba(242,177,60,0.12); }
+.slot.empty { border: 2px dashed rgba(255,255,255,0.28); }
+.slot.locked { border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.025); }
+.ic { width: 54px; height: 54px; border-radius: 10px; display: grid; place-items: center; font-size: 24px; font-weight: 800; position: relative; }
+.ic::after { content: ""; display: var(--dot, block); position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--bc, #888); border: 2px solid #0b0e1c; }
+.slot b, .perk b { font-size: 15px; display: block; }
+.slot .d, .perk .d { font-size: 12px; line-height: 1.35; color: var(--g-muted); margin-top: 2px; }
+.perk { border-radius: 9px; padding: 9px 10px; display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: center; background: rgba(23,30,56,0.9); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; position: relative; }
+.perk .ic { width: 46px; height: 46px; font-size: 20px; }
+.perk:hover { border-color: rgba(242,177,60,0.6); }
+.perk.eq { border: 2px solid var(--perk); background: rgba(242,177,60,0.12); }
+.perk.eq::before { content: "EQUIPPED"; position: absolute; right: 8px; top: 7px; font: 700 9px var(--font); letter-spacing: 0.08em; color: var(--perk); }
+.perk.lk { opacity: 0.55; cursor: default; background: rgba(255,255,255,0.025); }
+.perk.lk:hover { border-color: rgba(255,255,255,0.1); }
+.perk.lk .ic { filter: grayscale(1); }
+.cond { color: #cdd6ee; font-size: 11.5px; }
+.cond em { color: var(--perk); font-style: normal; font-weight: 700; }
+.bossrow { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.bossrow .bn { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+.bn i { width: 30px; height: 30px; border-radius: 50%; display: block; flex: none; border: 2px solid rgba(255,255,255,0.35); }
+.chip { border-radius: 8px; padding: 4px 9px; font-size: 12px; line-height: 1.2; background: rgba(23,30,56,0.9); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; min-height: 40px; display: flex; flex-direction: column; justify-content: center; }
+.chip b { font-size: 13px; }
+.chip.eq { border: 2px solid var(--perk); background: rgba(242,177,60,0.14); }
+.chip.lk { opacity: 0.5; cursor: default; background: rgba(255,255,255,0.025); }
+.chip.hid b { color: var(--g-muted); }
+.chip span { color: var(--g-muted); font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fly { background: #141a33; border: 2px solid var(--perk); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.65); }
+.blk { background: rgba(255,255,255,0.05); border-radius: 6px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Lobby Perks Mockups</h1>
+    <p>Where the Perks menu could live in the lobby (design in <code>Docs/BossHuntsAndPerks.md</code> §2: 1 slot to start, up to 3; perks unlock per boss; equipped per player). Every option keeps the lobby exactly as it is today and adds as little as possible.</p>
+    <p>All three put your equipped perks on your party card (teammates' show on theirs, as the design asks). The options differ in where you <em>change</em> them. In Option A you can click the perk cards to equip them; the tabs work in all three.</p>
+  </header>
+  <section class="option" id="oA"></section>
+  <section class="option" id="oB"></section>
+  <section class="option" id="oC"></section>
+</div>
+
+<script>
+const BOSSES = [
+  ['Warden','#8aa0b8',[['Riot Gear','🛡','Blocks the first hit you take each wave.',1],['Contraband','◆','Boss-cycle chests are rare or better.',0,'Win the Warden hunt on Hard+']]],
+  ['Hive Queen','#d8b441',[['Royal Jelly','✚','Health orbs heal 30% more and reach further.',1],['Brood','✦','A small drone orbits and chips enemies.',0,'Win the Hive Queen hunt on Hard+']]],
+  ['Twin Reapers','#c44a5a',[["Death's Door",'☠','Once a run, going down leaves you at 1 HP, safe for 1.5 s.',0,'Win the Twin Reapers hunt'],['Reaping','✂','Low-health kills refund 0.5 s of Space cooldown.',0,'Win the hunt on Hard+']]],
+  ['Singularity','#8a5cf0',[['Event Horizon','◎','Enemy bullets near you slow by 30%.',0,'Win the Singularity hunt']]],
+  ['Colossus','#a3714a',[['Bedrock','▲','Knockback and pushes move you 40% less.',0,'Win the Colossus hunt']]],
+  ['Duelist','#e0e0f0',[['Riposte','⚔','Wider parry window; perfect parry boosts damage.',0,'Win the Duelist hunt']]],
+  ['Lich','#4fd6a0',[['Phylactery','♥','+1 revive token at the start of a run.',0,'Win the Lich hunt'],['Soul Tithe','⟲','Each boss kill gives +1 reroll.',0,'Win the hunt on Hard+']]],
+  ['Storm Herald','#59c7ff',[['Tailwind','≫','+10% move speed while not firing.',0,'Win the Storm Herald hunt']]],
+  ['Devourer','#a8c43a',[['Second Helping','⊕','Level-up offers show 4 cards, not 3.',0,'Win the Devourer hunt']]],
+  ['The Eclipse','#ffb347',[['Totality','☀','First upgrade offer is rare or better.',0,'Win The Eclipse hunt']]],
+];
+const eq = new Set(['Riot Gear']);
+
+function chrome(active, tabs, extra) {
+  // The lobby as it is today, tabs row included. Perk-related additions come in through `extra`.
+  const t = (name, x, w, i, c, cls='') => `<div class="tab ${i===active?'on':''} ${cls}" data-i="${i}" style="left:${x}px;width:${w}px;${i===active?`background:${c}e6`:''}">${name}</div>`;
+  let html = `
+  <div class="abs title">LOBBY</div>
+  <div class="abs mode"><div class="on"><b>RUN</b><small>50 waves, a boss every 5</small></div><div><b>BOSS HUNT</b><small>10 waves to one boss</small></div><div><b>PRACTICE</b><small>Build your own waves</small></div></div>
+  <div class="abs lbl" style="left:40px;top:150px">Party (2/3)</div>
+  <div class="abs card party" style="top:184px;border:2px solid #4d82ff"><div class="face"><i style="background:#4d82ff"></i></div><div><b>Aleon<span class="badge">HOST</span></b><div class="sub">Knight Tank</div><div class="sub">Riot Gear equipped</div></div><div class="pips" id="pips"></div></div>
+  <div class="abs card party" style="top:280px"><div class="face"><i style="background:#e8734a"></i></div><div><b>Sam</b><div class="sub">Rifle Soldier</div><div class="sub">No perks</div></div><div class="pips"><div class="pip">✚</div><div class="pip empty">+</div></div></div>
+  <div class="abs open" style="top:376px">Open slot</div>
+  <div class="abs" style="left:40px;top:596px;width:376px;height:20px;font-size:11px;color:var(--g-muted);letter-spacing:.08em;text-transform:uppercase;font-weight:700">Background</div>
+  <div class="abs bottom"></div><div class="abs back">‹ Back</div><div class="abs start">START RUN</div>`;
+  html += tabs;
+  return html + (extra||'');
+}
+function tabsRow(active, withPerks, perksCls) {
+  const defs = [['Your loadout',0,'#5c99ff'],['Modifiers',2,'var(--mod)'],['Difficulty  ·  Normal',3,'var(--diff)']];
+  let x = 440, out = '';
+  const mk = (name, i, c, cls) => { const w = 30 + name.length * 8.2; const s = `<div class="tab ${i===active?'on':''} ${cls||''}" data-i="${i}" style="left:${x}px;width:${w}px;${i===active?`background:${c}`:''}">${name}</div>`; x += w + 8; return s; };
+  // tab ids: 0 loadout, 2 modifiers, 3 difficulty, 5 perks (4 is the boss hunt tab)
+  out += mk('Your loadout',0,'rgba(92,153,255,.9)');
+  out += mk('Modifiers',2,'rgba(217,115,242,.9)');
+  out += mk('Difficulty  ·  Normal',3,'rgba(232,163,58,.9)');
+  if (withPerks) out += mk(withPerks, 5, 'rgba(242,177,60,.9)', perksCls);
+  return out;
+}
+
+function slotsHtml(compact) {
+  const cur = [...eq];
+  const first = cur[0] ? findPerk(cur[0]) : null;
+  const full = first ? `<div class="slot full"><div class="ic" style="background:rgba(242,177,60,.18);--bc:${first.bc}">${first.ic}</div><div><b>${first.n}</b><div class="d">${first.d}</div></div></div>` : `<div class="slot empty"><div class="ic" style="border:2px dashed rgba(255,255,255,.25)">+</div><div><b>Empty slot</b><div class="d">Pick an unlocked perk.</div></div></div>`;
+  const l2 = `<div class="slot locked"><div class="ic" style="background:rgba(255,255,255,.05);font-size:18px">🔒</div><div><b class="muted">Slot 2</b><div class="d">Beat The Eclipse in a full run.</div></div></div>`;
+  const l3 = `<div class="slot locked"><div class="ic" style="background:rgba(255,255,255,.05);font-size:18px">🔒</div><div><b class="muted">Slot 3</b><div class="d">Win 5 different Boss Hunts. <span style="color:var(--perk)">1 / 5</span></div></div></div>`;
+  return full + l2 + l3;
+}
+function findPerk(n) { for (const b of BOSSES) for (const p of b[2]) if (p[0]===n) return {n:p[0],ic:p[1],d:p[2],bc:b[1],boss:b[0]}; }
+function pipsHtml(clickable) {
+  const cur = [...eq]; const p = cur[0] ? findPerk(cur[0]) : null;
+  return `<div class="pip ${clickable?'click':''} ${p?'':'empty'}" ${clickable?'data-open="1"':''} title="${p?p.n:'Empty'}">${p?p.ic:'+'}</div><div class="pip lock">🔒</div><div class="pip lock">🔒</div>`;
+}
+
+// ---- Option A: a Perks tab, slots on the left, cards on the right
+function bodyA() {
+  const col = (b) => b[2].map(p => {
+    const isEq = eq.has(p[0]);
+    return `<div class="perk ${isEq?'eq':''} ${p[3]?'':'lk'}" data-perk="${p[0]}" data-un="${p[3]}"><div class="ic" style="background:${p[3]?'rgba(255,255,255,.07)':'rgba(255,255,255,.04)'};--bc:${b[1]}">${p[3]?p[1]:'🔒'}</div><div><b>${p[0]}</b>${p[3]?`<div class="d">${p[2]}</div>`:`<div class="d cond"><em>${b[0]}:</em> ${p[4]}</div>`}</div></div>`;
+  }).join('');
+  const cards = BOSSES.slice(0,7).map(col).join('');
+  return `<div class="abs panel body">
+    <div class="abs" style="left:18px;top:16px;width:236px"><div class="hd">Equipped  ·  1 / 1</div><div style="display:grid;gap:8px;margin-top:10px">${slotsHtml()}</div>
+      <div class="d muted" style="font-size:11.5px;line-height:1.45;margin-top:12px">One perk per boss. Perks are off in the Practice Range. Winning a Boss Hunt unlocks that boss's perks.</div></div>
+    <div class="abs" style="left:274px;top:16px;right:18px"><div class="hd" style="display:flex;justify-content:space-between"><span>Unlocked perks</span><span class="muted" style="letter-spacing:.04em;text-transform:none;font-weight:400">2 of 14 unlocked</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">${cards}</div><div class="muted" style="font-size:11.5px;margin-top:8px">+ 3 more bosses (scrolls)</div></div>
+  </div>`;
+}
+// ---- Option B: Perks tab as a boss ladder, one row per boss
+function bodyB() {
+  const rows = BOSSES.map(b => {
+    const chips = [0,1,2].map(i => {
+      const p = b[2][i];
+      if (!p) return `<div class="chip lk hid"><b>???</b><span>Coming later</span></div>`;
+      const on = p[3], isEq = eq.has(p[0]);
+      return `<div class="chip ${isEq?'eq':''} ${on?'':'lk'}" data-perk="${p[0]}" data-un="${on}"><b>${on?p[1]+' ':'🔒 '}${p[0]}</b><span>${on?p[2]:p[4]}</span></div>`;
+    }).join('');
+    return `<div class="bossrow"><div class="bn"><i style="background:${b[1]}"></i>${b[0]}</div>${chips}</div>`;
+  }).join('');
+  return `<div class="abs panel body">
+    <div class="abs" style="left:18px;top:14px;right:18px;display:flex;align-items:center;gap:14px"><div class="hd">Equipped</div><div style="display:flex;gap:6px" id="slotsB"></div><div class="muted" style="margin-left:auto;font-size:11.5px">Slot 2: beat The Eclipse  ·  Slot 3: win 5 hunts (1/5)</div></div>
+    <div class="abs" style="left:18px;top:56px;right:18px;display:grid;gap:4px;overflow:hidden;height:490px">${rows}</div>
+  </div>`;
+}
+function slotsB() {
+  const cur = [...eq]; const p = cur[0] ? findPerk(cur[0]) : null;
+  return `<div class="slot ${p?'full':'empty'}" style="height:42px;width:210px;padding:5px 8px;grid-template-columns:30px 1fr;gap:8px"><div class="ic" style="width:30px;height:30px;font-size:15px;border-radius:7px;--bc:${p?p.bc:'transparent'}">${p?p.ic:'+'}</div><div style="font-size:13px;font-weight:700">${p?p.n:'Empty slot'}</div></div>
+  <div class="slot locked" style="height:42px;width:90px;padding:5px 8px;grid-template-columns:1fr;font-size:12px;color:var(--g-muted)">🔒 Slot 2</div><div class="slot locked" style="height:42px;width:90px;padding:5px 8px;grid-template-columns:1fr;font-size:12px;color:var(--g-muted)">🔒 Slot 3</div>`;
+}
+
+// ---- Option C: no tab. The slots on your party card open a flyout over the right panel.
+function loadoutBody(flyout) {
+  const blk = (x,y,w,h,txt) => `<div class="abs blk" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;${txt?'font-size:12px;color:var(--g-muted);padding:8px 10px':''}">${txt||''}</div>`;
+  return `<div class="abs panel body">
+    <div class="abs card" style="left:14px;top:14px;width:232px;height:528px"><div class="abs" style="left:8px;top:8px;width:216px;height:180px;background:#080a14;border-radius:8px"></div><div class="abs" style="left:98px;top:80px;width:36px;height:36px;border-radius:50%;background:#4d82ff"></div>
+      <div class="abs" style="left:0;top:200px;width:232px;text-align:center;font:800 19px var(--font)">Knight Tank</div>
+      ${['Health','Speed','Range','Damage'].map((s,i)=>`<div class="abs lbl" style="left:16px;top:${240+i*30}px">${s}</div><div class="abs blk" style="left:90px;top:${244+i*30}px;width:${[110,80,60,90][i]}px;height:8px"></div>`).join('')}
+      ${blk(10,380,212,140,'')}</div>
+    <div class="abs lbl" style="left:266px;top:16px">Role</div>${[0,1,2,3].map(i=>blk(266+i*129,40,121,46,'')).join('')}
+    <div class="abs lbl" style="left:266px;top:100px">Class</div>${[0,1,2,3].map(i=>blk(266+i*129,124,121,46,'')).join('')}
+    <div class="abs lbl" style="left:266px;top:184px">Weapon</div>${blk(266,208,254,60,'')}
+    <div class="abs lbl" style="left:540px;top:184px">Ability</div>${blk(540,208,242,60,'')}
+    ${blk(266,284,516,250,'')}
+  </div>${flyout||''}`;
+}
+function flyC() {
+  const list = BOSSES.flatMap(b => b[2].filter(p=>p[3]).map(p => ({n:p[0],ic:p[1],d:p[2],bc:b[1],boss:b[0]})));
+  const locked = BOSSES.flatMap(b => b[2].filter(p=>!p[3]).map(p => ({n:p[0],ic:p[1],bc:b[1],boss:b[0],c:p[4]}))).slice(0,4);
+  return `<div class="abs fly" style="left:440px;top:96px;width:372px;padding:12px 14px;z-index:5">
+    <div class="hd" style="display:flex;justify-content:space-between"><span>Slot 1 perk</span><span class="muted" style="font-weight:400;letter-spacing:0;text-transform:none">click to equip</span></div>
+    <div style="display:grid;gap:6px;margin-top:8px">${list.map(p=>`<div class="perk ${eq.has(p.n)?'eq':''}" data-perk="${p.n}" data-un="1" style="padding:6px 8px;grid-template-columns:36px 1fr"><div class="ic" style="width:36px;height:36px;font-size:16px;background:rgba(255,255,255,.07);--bc:${p.bc}">${p.ic}</div><div><b style="font-size:14px">${p.n}</b><div class="d" style="font-size:11.5px">${p.d}</div></div></div>`).join('')}
+    ${locked.map(p=>`<div class="perk lk" style="padding:6px 8px;grid-template-columns:36px 1fr"><div class="ic" style="width:36px;height:36px;font-size:14px;background:rgba(255,255,255,.04);--bc:${p.bc}">🔒</div><div><b style="font-size:14px">${p.n}</b><div class="d cond" style="font-size:11.5px"><em>${p.boss}:</em> ${p.c}</div></div></div>`).join('')}
+    <div class="muted" style="font-size:11px;padding:2px 2px 0">+ 6 more locked  ·  Full list in Records</div></div></div>`;
+}
+
+function section(id, tag, title, notes, build) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<h2><span class="tag">${tag}</span>${title}</h2><div class="vp"><div class="scr"></div></div><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul>`;
+  const scr = el.querySelector('.scr'), vp = el.querySelector('.vp');
+  const state = { tab: 0, flyout: false };
+  const render = () => {
+    scr.innerHTML = build(state);
+    const pips = scr.querySelector('#pips'); if (pips) pips.innerHTML = pipsHtml(id === 'oC');
+    const sb = scr.querySelector('#slotsB'); if (sb) sb.innerHTML = slotsB();
+    scr.querySelectorAll('.tab').forEach(t => t.onclick = () => { state.tab = +t.dataset.i; state.flyout = false; render(); });
+    scr.querySelectorAll('[data-perk]').forEach(p => p.onclick = () => { if (p.dataset.un !== '1') return; const n = p.dataset.perk; if (eq.has(n)) eq.clear(); else { eq.clear(); eq.add(n); } state.flyout = false; renderAll(); });
+    const o = scr.querySelector('[data-open]'); if (o) o.onclick = () => { state.flyout = !state.flyout; render(); };
+    scr.querySelectorAll('.start,.back,.bottom').forEach(()=>{});
+  };
+  el._render = render;
+  const fit = () => { scr.style.transform = `scale(${vp.clientWidth / 1280})`; };
+  new ResizeObserver(fit).observe(vp); fit(); render();
+}
+const all = []; function renderAll() { document.querySelectorAll('.option').forEach(e => e._render()); }
+
+section('oA', 'Option A', 'A Perks tab beside Difficulty (recommended)', [
+  'One new tab on the existing row, in the same pill style and spacing. Nothing else in the lobby moves; the tab is gold so it stays distinct from the blue, purple and amber ones.',
+  'Left: your slots (1 open, 2 more locked with how to earn them). Right: perk cards, locked ones greyed with the boss and condition. Click a card to equip it; click again to remove it.',
+  'The small dot on each icon is the boss that perk came from, in that boss\'s colour. The party cards already show everyone\'s equipped perks.',
+  'Costs: a fourth tab (a fifth when Boss Hunt is on). With 14 bosses x 3 perks the grid will need a scroll or paging once more unlock.'
+], s => chrome(0, tabsRow(s.tab, 'Perks  ·  1', 'new')) + (s.tab === 5 ? bodyA() : s.tab === 0 ? loadoutBody() : `<div class="abs panel body" style="display:grid;place-items:center;color:var(--g-muted)">(${s.tab === 2 ? 'Modifiers' : 'Difficulty'} tab as it is today)</div>`));
+
+section('oB', 'Option B', 'A Perks tab shown as a boss ladder', [
+  'Same tab as A, but the body is one row per boss, three perk chips each. It reads like the Boss Hunt picker, and shows the whole unlock path at a glance.',
+  'Your slots sit in a thin strip across the top instead of a side column, so every row gets the full width.',
+  'Better once many perks exist (everything fits without scrolling, locked ones show their condition in place). Denser, and less room for a perk\'s full text than A.'
+], s => chrome(0, tabsRow(s.tab, 'Perks  ·  1', 'new')) + (s.tab === 5 ? bodyB() : s.tab === 0 ? loadoutBody() : `<div class="abs panel body" style="display:grid;place-items:center;color:var(--g-muted)">(${s.tab === 2 ? 'Modifiers' : 'Difficulty'} tab as it is today)</div>`));
+
+section('oC', 'Option C', 'No new tab: perk slots on your party card', [
+  'The lobby gets no new tab. Your party card shows three small slots (gold = equipped, dashed = empty, padlock = locked). Click one to open a flyout list of your unlocked perks.',
+  'The least change to the layout, and it puts the perk where teammates will see it. Click the gold slot on your card to try it. The flyout opens over the right panel, so the party stays visible.',
+  'Costs: perks are a bit hidden (nothing in the tabs hints they exist), the flyout is cramped for locked-perk conditions, and the party card gets busier. Could be paired with A or B as a shortcut.'
+], s => chrome(0, tabsRow(s.tab, null)) + (s.tab === 0 ? loadoutBody(s.flyout ? flyC() : '') : `<div class="abs panel body" style="display:grid;place-items:center;color:var(--g-muted)">(${s.tab === 2 ? 'Modifiers' : 'Difficulty'} tab as it is today)</div>`));
+</script>
