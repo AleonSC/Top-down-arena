@@ -205,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "BACK TO THE LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
+        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
         bool lobbyMenuOpen;
         int lobbySel;
 
