@@ -69,20 +69,24 @@ namespace Arena
             switch (game.State)
             {
                 case MatchState.Intermission:
+                    // While the pause menu is up these full-screen choices stay out of its way: they're drawn first, so their click
+                    // areas would take the clicks that belong to the menu (Leave to lobby did nothing while a pick was on screen).
+                    bool pauseUp = PauseMenuWanted;
                     if (me != null && me.Offer != null)
                     {
-                        if (!tabHeld && !PickOutroPlaying)
+                        if (!tabHeld && !PickOutroPlaying && !pauseUp)
                             DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu; the next pick waits for the last one's outro (PickOutro.cs)
                         break;
                     }
                     if (game.PathOffer != null && !tabHeld)
                     {
-                        DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
+                        if (!pauseUp)
+                            DrawPathChoice(Time.unscaledTime);  // PathsUi.cs
                         break;
                     }
                     if (game.ShopOpen && me != null)
                     {
-                        if (!tabHeld)
+                        if (!tabHeld && !pauseUp)
                             DrawShop(me, Time.unscaledTime);  // ShopUi.cs
                         break;
                     }
