@@ -7,23 +7,26 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Balance / design
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
+- [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
+      (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)
+      (https://claude.ai/artifact/WRUe5JpFtw1zhdMPZtiVY4). Kept from today's look: the cylinder pips and the bow's draw ring and aim cone.
 - [ ] **Healer Summoner left-click attacks.** Picks (Nov 2026), mockup [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
       (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8):
       - [x] **Sprite Staff: Firefly Hop.** Built (protocol 130): a firefly seeds what it hits, then hops (up to 2, 300 px) to the
             nearest enemy that isn't seeded. 7 damage every 0.5 s: ~14 a second on one enemy, ~42 across three.
       - [x] **Treant Rod: Root Lash**, and the tether to the Treant is now a root too. Built: 250 px line, 15 damage every 0.55 s
             (~27 a second), heals allies it touches 10. Homing Rounds widen it. Code names (`Vine*`, `TickVines`) are unchanged.
-      - [ ] **Totem Staff: rework into something entirely different: waiting for a pick.** Mockup:
-            [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
-            Five whole-weapon concepts: **Nimbus** (a storm cloud over your cursor: click drops lightning under it, its rain heals
-            allies beneath it; suggested), **Stag of Dawn** (a spirit stag charges toward the cursor, leaving a healing, speeding
-            trail), **Tollbell** (hold to whirl a spirit bell; each full turn tolls damage and healing), **Rolly** (a spiky pet
-            launched like a pinball, healing each ally it bumps), **Spirit Chalk** (drag to paint a line of ink that burns
-            enemies, heals allies on it and destroys bullets crossing it).
+      - [x] **Totem Staff replaced by Spirit Chalk**, and **Prism Beam replaced by Nimbus** (Healer Elementalist). Built (Nov 2026, protocol 131)
+            from [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
+            Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
+            code that isn't tied to their ids is still in the tree and unused: `Bullet.Refract` with `SplitRefracted` and
+            `RefractThroughAlly` (Prism Beam), `ZoneKind.Totem`, `TotemCharge` and friends, `Player.TotemCd` (Totem Staff). Ask before removing.
 
 ## Visuals
 - [x] **Radiant Orb trail.** Built (Nov 2026): style B, Stardust (`Game/RadiantOrbLooks.cs`), from
       [`Mockups/radiant-orb-trails.html`](Mockups/radiant-orb-trails.html). Light Orbs get it at half size. Drawing only.
+- [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
+      lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
@@ -32,6 +35,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
       a first pass: redraw any of them in `DrawHeld`.
 - [x] **Melee attack animations.** Built (Nov 2026): style E, the weapon models with the energy arc
       (`Game/MeleeLooks.cs`), from [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html).
+- [x] **Repulsion Cannon visuals.** Built: look D, the cannon blast (`RepulseLook.cs`), Nov 2026. Mockup: [`Mockups/repulsion-cannon.html`](Mockups/repulsion-cannon.html)
+      (https://claude.ai/artifact/QutT2bQZmuigHQpx9cX5h3): today's look and four options, A Shockwave, B Light
+      burst, C Force ripples (bends the floor grid), D Cannon blast (smoke, sparks, small kick), at the real 70° / 240 px
+      cone, with optional hit feedback (flash, slide streak, orb). Drawing only (`DrawRepulseFx`), no protocol change.
+      Not built from D: the dust puffs behind hit enemies (needs hit positions in the effect).
 - [x] **Frost Lance visuals.** Built: look A, the crystal spear (`FrostLook.cs`), Nov 2026. Mockup: [`Mockups/frost-lance.html`](Mockups/frost-lance.html)
       (https://claude.ai/artifact/3iseS4yjtmVDriXUxqJoxF): today's look and four options, A Crystal spear, B Frost
       growth, C Glacier, D Aurora lance, at the real 230 px reach and 0.15 s splinter delay, with optional frost on

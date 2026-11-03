@@ -1038,6 +1038,8 @@ namespace Arena
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
             TickSpearPickups();  // BloodMage.cs: Bone Spears walked over
             TickHealerKit(dt);   // KitWeapons.cs: the Censer's incense, Ofuda wards, seeded enemies
+            TickNimbus(dt);      // Nimbus.cs: rain under each cloud heals allies in it
+            TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
             TickWaves(dt);
             TickPaths(dt);    // Paths.cs: hazard floors
@@ -1049,6 +1051,7 @@ namespace Arena
             TickProps(dt);    // Props.cs: fuses, smashed pots, opened chests, breaks
             MoveBullets(dt);
             Collide();
+            EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             TickDps(dt);      // DpsTools.cs: the DPS meter reads this tick's damage
             CheckGameOver();
 

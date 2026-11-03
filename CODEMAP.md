@@ -18,6 +18,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Shop.cs`: the Bazaar (gold, shelves, shop actions)
 - `Difficulty.cs`, `Modifiers.cs`, `Balance.cs`: difficulty presets, run modifiers, general balance numbers
 - `Pause.cs`, `DevTools.cs`, `Showcase.cs`: pause sync, F1 dev tools, lobby loadout preview game
+- `Nimbus.cs`, `Chalk.cs`: the Nimbus (cloud minion, rain, strikes) and Spirit Chalk (ink dots, burn/heal/bullets, loops that pen enemies in)
 - `DpsTools.cs`: DPS meter data (`DpsTrack`, `Game.Dps`, host only) and target dummies (`DevSpawnDummy`, `TickDummy`, `Foes()`)
 - `MathTypes.cs`: `V2`, `Rgba`, `MathX`
 
@@ -66,13 +67,17 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
 - `CharacterModels.cs`: the 18 player models (role build + class costume) and one held-weapon model per `WeaponId`
 - `ClassLooks.cs`, `AbilityLooks.cs`, `BloodMageLook.cs`: per-class ability/buff overlays on the model, ability feedback, Blood Mage visuals
+- `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
 - `ShotLooks.cs`, `Juice.cs`, `Ambience.cs`: weapon shot looks, screen shake/particles/glow, weather and trails
 - `MeleeLooks.cs`: melee attacks with Visual effects on: the weapon model swinging through a glowing arc (style E)
 - `BearLooks.cs`: the Bear Totem: a claw on each hand, claw trails, the Bear companion, claw scars on bleeding enemies
 - `RadiantOrbLooks.cs`: Radiant Orb's stardust trail with Visual effects on (style B): motes and sparkles in the glow pass
+- `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `ChainLightLooks.cs`: Chain Light with Visual effects on: a soft fan of light, beams and halos (style A, Radiance)
+- `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: charge halo, sparks and dashed strip, the spine bolt (style A, Thunderhead)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,

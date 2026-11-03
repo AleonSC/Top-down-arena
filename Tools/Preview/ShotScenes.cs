@@ -14,6 +14,33 @@ static partial class Shot {
       float age = float.Parse(Environment.GetEnvironmentVariable("TREANT"), System.Globalization.CultureInfo.InvariantCulture);
       host.Game.Effects.Add(new Effect { Kind = FxKind.RootLash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 250f, Color = new Rgba(0.55f, 0.36f, 0.17f), Radius = Game.RootHalfWidth, Dur = Game.RootFxTime, T = age });
     }
+    if (Environment.GetEnvironmentVariable("NIMBUS") != null) {
+      // The Nimbus: its cloud over your cursor (200 px out), rain under it, and a strike NIMBUS=<seconds> ago.
+      me.Weapon = Defs.Weapon(Role.Healer, Kit.Elementalist, 2); me.Kit = Kit.Elementalist; host.Game.Bot = false;
+      me.Pos = me.Disp = new V2(450f, 450f);
+      V2 cursor = new V2(700f, 360f);
+      for (int i = 0; i < 200; i++) { me.Pos = me.Disp = new V2(450f, 450f); host.Poll(); host.Game.FixedStep(1f/60f, new PlayerInput { AimAt = cursor }); host.Game.Update(1f/60f); }
+      float age = float.Parse(Environment.GetEnvironmentVariable("NIMBUS"), System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Strike, Pos = cursor, Pos2 = cursor, Color = new Rgba(0.78f, 0.86f, 1f), Radius = Game.NimbusBlast, Dur = Game.StrikeFxTime, T = age });
+    }
+    if (Environment.GetEnvironmentVariable("CHALK") != null) {
+      // Spirit Chalk: a loop drawn round some enemies (they're held where they stand), and a line trailing off it.
+      me.Weapon = Defs.Weapon(Role.Healer, Kit.Summoner, 2); me.Kit = Kit.Summoner; host.Game.Bot = false;
+      V2 ctr = new V2(700f, 450f);
+      host.Game.DevSetGod(1, true);
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var held = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { ctr + new V2(-20f, -15f), ctr + new V2(28f, 20f), ctr + new V2(-5f, 38f) })
+        held.Add((Enemy)spawn.Invoke(host.Game, new object[] { EnemyType.Grunt, at, 0f, 0, false }));
+      for (int i = 0; i < 200; i++)
+      {
+        me.Pos = me.Disp = new V2(450f, 450f); me.InvulnT = 1f; me.Hp = me.MaxHp;
+        foreach (var e in held) { e.Hp = e.MaxHp = 1e5f; e.SpawnT = 0f; e.FireT = 99f; if (!host.Game.Ink.Exists(d => d.Pen != 0)) e.Pos = e.Disp = e.Pos; }
+        float a = Math.Min(i * 2.9f / 60f, MathX.Tau + 0.5f);
+        V2 aim = i < 160 ? ctr + V2.FromAngle(a) * 84f : ctr + new V2(84f + (i - 160) * 2.2f, 84f);
+        host.Poll(); host.Game.FixedStep(1f/60f, new PlayerInput { Fire = true, AimAt = aim }); host.Game.Update(1f/60f);
+      }
+    }
     if (Environment.GetEnvironmentVariable("FIREFLY") != null) {
       // The Sprite Staff's fireflies in flight: one just left your staff, one is hopping between enemies.
       me.Weapon = System.Array.Find(Defs.Weapons, w => w.Id == WeaponId.SpriteStaff); me.Kit = Kit.Summoner; host.Game.Bot = false;
@@ -224,6 +251,23 @@ static partial class Shot {
         float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.1", System.Globalization.CultureInfo.InvariantCulture);
         foreach (var fx in gm.Effects) fx.T = st2;
       }
+      else if (wd.Id == WeaponId.ArcLightning) {
+        // Arc Lightning: enemies where the mockup has them (arc-lightning.html). SHOTC=<0..1>: that far through the hold (the
+        // charge). Otherwise one full-charge release, the frame SHOTT s into it.
+        var spawnE = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var sp in new[] { new V2(170f, -10f), new V2(300f, 30f), new V2(420f, -35f), new V2(540f, 5f), new V2(650f, 38f), new V2(760f, -20f) }) {
+          var en = (Enemy)spawnE.Invoke(gm, new object[] { EnemyType.Grunt, me.Pos + new V2(sp.X, sp.Y), 0f, 0, false });
+          en.SpawnT = 0f; en.Disp = en.Pos; en.MaxHp = en.Hp = 1e5f;
+        }
+        string sc = Environment.GetEnvironmentVariable("SHOTC");
+        if (sc != null) me.DrawT = Game.BowMinDraw + (Game.BowFullDraw - Game.BowMinDraw) * float.Parse(sc, System.Globalization.CultureInfo.InvariantCulture);
+        else {
+          me.BowShotDraw = Game.BowFullDraw;
+          fireV.Invoke(gm, new object[] { me, 0f, 0 });
+          float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.06", System.Globalization.CultureInfo.InvariantCulture);
+          foreach (var fx in gm.Effects) fx.T = st2;
+        }
+      }
       else foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
         var before = new System.Collections.Generic.HashSet<int>(gm.Bullets.Keys);
         fireV.Invoke(gm, new object[] { me, 0f, 0 });
@@ -317,6 +361,12 @@ static partial class Shot {
       if (st > 0f && st < Game.SplinterFxTime)
         host.Game.Effects.Add(new Effect { Kind = FxKind.Splinter, Pos = me.Pos, Pos2 = tipAt, Color = frost, Radius = Game.SplinterReach, Dur = Game.SplinterFxTime, T = st });
     }
+    if (Environment.GetEnvironmentVariable("REPULSE") != null) {
+      // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
+      float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
+      me.Pos = me.Disp = new V2(600f, 450f); me.Aim = -0.2f; host.Game.Bot = false;
+      host.Game.Effects.Add(new Effect { Kind = FxKind.Repulse, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * 253f, Color = new Rgba(0.55f, 0.95f, 1f), Radius = 0.61f, Dur = Game.RepulseFxTime, T = rt });
+    }
     if (Environment.GetEnvironmentVariable("HAMMER") != null) {
       // Storm Hammers in flight, and an electrified enemy arcing to the ones round it.
       var sbh = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -331,7 +381,7 @@ static partial class Shot {
       // Each weapon's new shot look (ShotLooks.cs), one row per weapon, the player's weapon switched for each.
       var sbs = typeof(Game).GetMethod("SpawnBullet", BindingFlags.NonPublic | BindingFlags.Instance);
       host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false;
-      var rows = new[] { WeaponId.TwinRifle, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.PrismBeam, WeaponId.ArcaneMissiles };
+      var rows = new[] { WeaponId.TwinRifle, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.ArcaneMissiles };
       var kinds = new[] { Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
       int pid = 100;
       for (int i = 0; i < rows.Length; i++) {

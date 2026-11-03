@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Healing Rain Visuals</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Healing Rain (Healer Elementalist, replaces Time Rewind): a zone at the cursor, radius 130 like Blizzard, ~6 s.
+   Heals allies inside and slows enemies. Four looks, each a looping scene at game scale
+   (1 canvas px = 1 arena px): two allies (one hurt), two enemies, and the zone's cast, steady and fade-out stages. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --heal:#59ff8c; --amber:#ffb547;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--heal); }
+h2 { font-size:20px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--heal); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:78ch; }
+.bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible { outline:2px solid var(--heal); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Healer Elementalist · replaces Time Rewind</div>
+  <h1>Healing <span>Rain</span></h1>
+  <p class="lead">A rain zone cast at your cursor. Allies standing in it are healed over time; enemies in it get slowed. Four looks to pick from. Each loops the same scene: cast, about 5 s steady, then the fade. The circle is the real radius (130 px, same as Blizzard). Allies are the two blue figures (the left one is hurt), enemies are the red diamonds.</p>
+  <div class="bar"><button id="pause" aria-pressed="false">Pause</button><button id="restart">Restart all</button><span class="note-motion">Reduced motion is on: the scenes show one still frame each. Press Restart to step through them.</span></div>
+</header>
+
+<div class="grid" id="cards"></div>
+
+<section class="panel">
+  <h2>Shared across all four</h2>
+  <ul>
+    <li><b>Cast:</b> a ring (the game's <code>FxKind.Ring</code>) expands to 130 px in 0.4 s while the first drops land; a soft chime plays.</li>
+    <li><b>Heal tick:</b> every 0.5 s each ally inside gets a small green <code>+</code> floater and a brief glow, so you can read who is being healed.</li>
+    <li><b>Enemies inside:</b> slowed 30%; a blue-teal tint and falling drops on them so the slow is readable.</li>
+    <li><b>Expiring:</b> the last 1 s the disc fades and the rim dashes break up. Drops thin out. No timer ring (like Blizzard).</li>
+    <li><b>Colour:</b> a green-teal (<code>0.35, 1, 0.7</code>) so it never reads as Blizzard's pale blue or Sanctify's gold.</li>
+    <li><b>Capstone (if it lasts 10 s):</b> same look for longer; nothing new to draw.</li>
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>If you pick one</h2>
+  <ul>
+    <li>Needs a new <code>ZoneKind.HealingRain</code> (at the end, before any sentinel), a <code>ZoneDef</code> in <code>Kits.cs</code>, a draw case in <code>WorldEnemies.cs</code> next to Blizzard, and a new <code>AbilityId</code> at the end. Both enums are serialised, so <code>Session.ProtocolVersion</code> gets bumped.</li>
+    <li>The icon is a new entry in <code>PixelArt.cs</code> (a cloud with drops); the Time Rewind <code>hourglass2</code> mapping goes.</li>
+    <li>The Time Rewind plumbing (<code>HpHistory</code>, <code>FxKind.Rewind</code>, <code>DrawRewindFx</code>) becomes dead code. I'd ask before removing it.</li>
+    <li>The Armory and Bestiary pages are not touched unless you ask.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const W = 480, H = 340, R = 130, CX = W / 2, CY = H / 2 + 6, LIFE = 6.4, CAST = 0.4, FADE = 1.0, TAU = Math.PI * 2;
+  const HEAL = [89, 255, 140];
+  const looks = [
+    { id: 'rainfall', name: 'A · Rainfall', tag: 'Plain and readable', desc: 'Teal disc, diagonal drops that splash into small ripples on the ground. Closest to Blizzard in structure, so it is cheap and clear.' },
+    { id: 'bloom', name: 'B · Verdant Bloom', tag: 'Most "healing"', desc: 'Grass blades and small flowers sprout across the disc as it rains, and green motes drift up from them. Reads as life at a glance; the zone grows more lush over its duration.' },
+    { id: 'cloud', name: 'C · Raincloud', tag: 'Most distinctive', desc: 'A small cloud hovers over the centre and rains inside the circle. The cloud makes the source obvious and the rim is a thin dashed ring, so the disc itself stays quiet.' },
+    { id: 'mist', name: 'D · Prism Mist', tag: 'Most magical', desc: 'Soft layered mist with slow rainbow-tinted sparkles and a light mist-fall instead of hard drops. Gentlest on a busy screen, hardest to read at a distance.' },
+  ];
+  const rnd = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+
+  function scene(ctx, look, t) {
+    const life = Math.max(0, t) % (LIFE + 1.2);             // 1.2 s of nothing before the next cast
+    const on = life < LIFE;
+    ctx.clearRect(0, 0, W, H);
+    // floor grid
+    ctx.strokeStyle = '#10151b'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+
+    const grow = on ? Math.min(1, life / CAST) : 0;
+    const fade = on ? Math.min(1, (LIFE - life) / FADE) : 0;
+    const rad = R * (0.3 + 0.7 * grow);
+    const a = grow * fade;
+
+    // actors: allies fixed, enemies drift
+    const allies = [{ x: CX - 50, y: CY + 20, hp: 0.35 + 0.55 * Math.min(1, Math.max(0, (life - .5) / 5)) }, { x: CX + 62, y: CY - 28, hp: 1 }];
+    const foes = [{ x: CX + 20 + 18 * Math.sin(t * .6), y: CY + 58 + 5 * Math.sin(t * .8) }, { x: CX + 175 - 18 * Math.min(life, 4) * 0.4, y: CY - 90 }];
+    const inside = (p) => on && grow > .9 && (p.x - CX) ** 2 + (p.y - CY) ** 2 < R * R;
+
+    if (on) disc(ctx, look.id, t, life, rad, a, grow);
+
+    // foes
+    for (const f of foes) {
+      const wet = inside(f);
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = wet ? '#c86a8a' : '#e0504e'; ctx.fillRect(-9, -9, 18, 18);
+      ctx.restore();
+      if (wet) { ctx.strokeStyle = 'rgba(120,230,255,.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(f.x, f.y, 15, 0, TAU); ctx.stroke(); }
+    }
+    // allies
+    for (const p of allies) {
+      const inn = inside(p);
+      if (inn) { const tick = (t * 2) % 1; ctx.fillStyle = rgba(HEAL, .25 * (1 - tick)); ctx.beginPath(); ctx.arc(p.x, p.y, 16 + 6 * tick, 0, TAU); ctx.fill(); }
+      ctx.fillStyle = '#5aa0e6'; ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#0c1118'; ctx.fillRect(p.x - 14, p.y - 22, 28, 4);
+      ctx.fillStyle = p.hp < .5 ? '#e0504e' : '#59ff8c'; ctx.fillRect(p.x - 14, p.y - 22, 28 * p.hp, 4);
+      if (inn && p.hp < .99) {
+        const k = (t * 2) % 1;
+        ctx.fillStyle = rgba(HEAL, 1 - k); ctx.font = '700 14px Oxanium, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('+4', p.x + 14, p.y - 26 - 16 * k);
+      }
+    }
+    // cast ring
+    if (on && life < CAST + 0.2) {
+      const k = life / (CAST + .2);
+      ctx.strokeStyle = rgba(HEAL, .9 * (1 - k)); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(CX, CY, R * k, 0, TAU); ctx.stroke();
+    }
+    // labels
+    ctx.fillStyle = '#92a1ad'; ctx.font = '12px Barlow, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(on ? (life < CAST ? 'cast' : life > LIFE - FADE ? 'expiring' : 'steady') + '  ' + life.toFixed(1) + ' s' : 'cooldown…', 10, H - 10);
+  }
+
+  function rim(ctx, rad, a, dashed, col) {
+    ctx.strokeStyle = rgba(col, .75 * a); ctx.lineWidth = 2;
+    ctx.setLineDash(dashed ? [10, 8] : []); ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function drops(ctx, n, t, rad, a, speed, col, len) {
+    for (let k = 0; k < n; k++) {
+      const ph = (t * speed + rnd(k)) % 1, ang = rnd(k + 50) * TAU, rr = Math.sqrt(rnd(k + 90)) * rad * .96;
+      const x = CX + Math.cos(ang) * rr, y = CY + Math.sin(ang) * rr * .94;
+      const top = y - 46 + 46 * ph;
+      ctx.strokeStyle = rgba(col, .85 * a * (ph < .9 ? 1 : 0)); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(x - 3, top - len); ctx.lineTo(x, top); ctx.stroke();
+      if (ph > .86) { const s = (ph - .86) / .14; ctx.strokeStyle = rgba(col, .7 * a * (1 - s)); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(x, y, 3 + 9 * s, 1.5 + 4 * s, 0, 0, TAU); ctx.stroke(); }
+    }
+  }
+
+  function disc(ctx, id, t, life, rad, a, grow) {
+    const g = ctx.createRadialGradient(CX, CY, rad * .1, CX, CY, rad);
+    if (id === 'rainfall') {
+      g.addColorStop(0, rgba([70, 220, 190], .2 * a)); g.addColorStop(1, rgba([70, 220, 190], .08 * a));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.fill();
+      rim(ctx, rad, a, false, [110, 240, 200]);
+      drops(ctx, 46, t, rad, a, 1.3, [160, 255, 225], 9);
+    } else if (id === 'bloom') {
+      g.addColorStop(0, rgba([70, 200, 90], .22 * a)); g.addColorStop(1, rgba([70, 200, 90], .1 * a));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.fill();
+      rim(ctx, rad, a, false, [130, 255, 140]);
+      const lush = Math.min(1, life / 4);
+      for (let k = 0; k < 40; k++) {
+        const born = rnd(k + 5) * .8; if (lush < born) continue;
+        const s = Math.min(1, (lush - born) / .15), ang = rnd(k) * TAU, rr = Math.sqrt(rnd(k + 20)) * rad * .92;
+        const x = CX + Math.cos(ang) * rr, y = CY + Math.sin(ang) * rr;
+        ctx.strokeStyle = rgba([90, 230, 110], .9 * a); ctx.lineWidth = 1.6;
+        for (let b = -1; b <= 1; b++) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + b * 3.5, y - 8 * s); ctx.stroke(); }
+        if (k % 4 === 0 && s > .7) { ctx.fillStyle = rgba(k % 8 === 0 ? [255, 240, 150] : [255, 255, 255], a); ctx.beginPath(); ctx.arc(x, y - 9, 2.4, 0, TAU); ctx.fill(); }
+      }
+      for (let k = 0; k < 14; k++) { // motes rising
+        const ph = (t * .35 + rnd(k + 200)) % 1, ang = rnd(k + 210) * TAU, rr = Math.sqrt(rnd(k + 220)) * rad * .85;
+        ctx.fillStyle = rgba(HEAL, .8 * a * (1 - ph)); ctx.beginPath();
+        ctx.arc(CX + Math.cos(ang) * rr + Math.sin(t * 2 + k) * 3, CY + Math.sin(ang) * rr - 26 * ph, 2, 0, TAU); ctx.fill();
+      }
+      drops(ctx, 22, t, rad, a, 1.2, [170, 255, 200], 8);
+    } else if (id === 'cloud') {
+      g.addColorStop(0, rgba([80, 170, 190], .12 * a)); g.addColorStop(1, rgba([80, 170, 190], .05 * a));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.fill();
+      rim(ctx, rad, a, true, [140, 230, 220]);
+      drops(ctx, 52, t, rad, a, 1.5, [150, 235, 255], 11);
+      const bob = Math.sin(t * 2) * 3, cy = CY - 46 + bob, sc = grow;
+      ctx.fillStyle = rgba([205, 225, 235], .95 * a); ctx.beginPath();
+      [[-24, 0, 15], [-8, -9, 18], [12, -6, 17], [28, 2, 13], [2, 4, 20]].forEach(([dx, dy, r]) => { ctx.moveTo(CX + dx * sc + r * sc, cy + dy * sc); ctx.arc(CX + dx * sc, cy + dy * sc, r * sc, 0, TAU); });
+      ctx.fill();
+      ctx.fillStyle = rgba([160, 190, 205], .5 * a); ctx.beginPath(); ctx.ellipse(CX, cy + 12 * sc, 34 * sc, 6 * sc, 0, 0, TAU); ctx.fill();
+    } else { // mist
+      for (let k = 0; k < 3; k++) {
+        const rr = rad * (1 - k * .12), gg = ctx.createRadialGradient(CX, CY, 0, CX, CY, rr);
+        const hue = [[120, 255, 200], [150, 220, 255], [220, 190, 255]][k];
+        gg.addColorStop(0, rgba(hue, .16 * a)); gg.addColorStop(1, rgba(hue, 0));
+        ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(CX + Math.sin(t * .6 + k * 2) * 8, CY + Math.cos(t * .5 + k) * 6, rr, 0, TAU); ctx.fill();
+      }
+      ctx.strokeStyle = rgba([200, 255, 235], .4 * a); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.stroke();
+      drops(ctx, 26, t, rad, a * .55, .7, [230, 255, 245], 5);
+      for (let k = 0; k < 20; k++) {
+        const ph = (t * .5 + rnd(k + 300)) % 1, ang = rnd(k + 310) * TAU, rr = Math.sqrt(rnd(k + 320)) * rad * .9;
+        const c = [[255, 170, 200], [170, 255, 220], [170, 200, 255], [255, 240, 170]][k % 4], tw = Math.sin(ph * Math.PI);
+        const x = CX + Math.cos(ang) * rr, y = CY + Math.sin(ang) * rr - 14 * ph;
+        ctx.strokeStyle = rgba(c, tw * a); ctx.lineWidth = 1.3; ctx.beginPath();
+        ctx.moveTo(x - 4 * tw, y); ctx.lineTo(x + 4 * tw, y); ctx.moveTo(x, y - 4 * tw); ctx.lineTo(x, y + 4 * tw); ctx.stroke();
+      }
+    }
+  }
+
+  const host = document.getElementById('cards'), cvs = [];
+  for (const l of looks) {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `<canvas width="${W}" height="${H}" aria-label="${l.name} animation"></canvas><div class="t"><span class="tag">${l.tag}</span><b>${l.name}</b><span>${l.desc}</span></div>`;
+    host.appendChild(card); cvs.push({ look: l, ctx: card.querySelector('canvas').getContext('2d') });
+  }
+  let t0 = performance.now(), paused = false, held = 0, tNow = 0;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const draw = () => cvs.forEach(c => scene(c.ctx, c.look, tNow));
+  function frame(now) {
+    if (!paused && !reduce) { tNow = (now - t0) / 1000 + held; draw(); }
+    requestAnimationFrame(frame);
+  }
+  const pb = document.getElementById('pause');
+  pb.onclick = () => { paused = !paused; pb.setAttribute('aria-pressed', paused); pb.textContent = paused ? 'Play' : 'Pause'; if (!paused) { t0 = performance.now(); held = tNow; } };
+  document.getElementById('restart').onclick = () => { t0 = performance.now(); held = 0; tNow = reduce ? tNow + 1.5 : 0; if (reduce) { tNow = tNow % (LIFE + 1.2); } draw(); };
+  tNow = reduce ? 3 : 0; draw(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

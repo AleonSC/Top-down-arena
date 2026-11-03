@@ -124,7 +124,7 @@ namespace Arena
             { "Arcane Aegis", "mirror" },
             { "Frost Nova", "snow" },
             { "Flame Wall", "flame" },
-            { "Time Rewind", "hourglass2" },
+            { "Healing Rain", "rain" },
             { "Arcane Ward", "shield" },
             { "Sanctify", "aura" },
             { "Meteor", "explode" },
@@ -1241,6 +1241,21 @@ namespace Arena
                 "...kyyyyk...",
                 "..kGGGGGGk..",
                 "..kkkkkkkk..",
+            },
+            ["rain"] = new[]
+            {
+                "...kkkk.....",
+                "..kggggk.kk.",
+                ".kgwwggkkggk",
+                ".kggggggggGk",
+                "..kkkkkkkk..",
+                "............",
+                "..c..c..c...",
+                "..c..c..c...",
+                "....c..c....",
+                ".n.......n..",
+                "nNn.....nNn.",
+                ".N.......N..",
             },
             ["hourglass2"] = new[]
             {

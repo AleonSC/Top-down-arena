@@ -183,7 +183,7 @@ class JuiceCheck {
 
     // New shot looks: each weapon's own shot draws its new way with effects on; an enemy's shot of the same kind doesn't.
     var dws = typeof(ArenaApp).GetMethod("DrawWeaponShot", f2);
-    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.PrismBeam, WeaponId.ArcaneMissiles };
+    var lookWeapons = new[] { WeaponId.TwinRifle, WeaponId.BurstSmg, WeaponId.Railgun, WeaponId.Pistol, WeaponId.Scattergun, WeaponId.ArcaneMissiles };
     var lookKinds = new[] { Defs.DpsShot, Defs.DpsShot, Defs.RailShot, Defs.HealerShot, Defs.TankShot, Defs.ArcaneShot, Defs.ArcaneShot };
     bool allLooks = true, offPlain = true;
     var keepWeapon = me.Weapon;
@@ -326,6 +326,31 @@ class JuiceCheck {
       frame();
       pl.Weapon = keep; g.Bot = botWas;
       Check(onLook && offLook && boltsRadiant == bolts, "Chain Light's cone and its beams draw as the radiance with effects on, and as before with them off (" + bolts + " beams)");
+    }
+
+    // Arc Lightning in style A (ArcLightningLooks.cs): a real cast's strip is the Thunderhead bolt, drawn in the glow pass,
+    // with effects on; with them off, the old flat strip.
+    {
+      set("fxOn", true);
+      var pl = g.Players.Values.First();
+      var keep = pl.Weapon;
+      bool botWas = g.Bot; g.Bot = false;
+      pl.Weapon = Defs.Weapons.First(x => x.Id == WeaponId.ArcLightning);
+      pl.BowShotDraw = Game.BowFullDraw;
+      g.Effects.Clear();
+      typeof(Game).GetMethod("FireVolley", f2).Invoke(g, new object[] { pl, 0f, 0 });
+      var thunder = typeof(ArenaApp).GetMethod("ArcLightningDrawnAsThunder", f2);
+      var strip = g.Effects.FirstOrDefault(fx => fx.Kind == FxKind.ArcField);
+      bool onLook = strip != null && (bool)thunder.Invoke(app, new object[] { strip });
+      set("fxOn", false);
+      bool offLook = strip != null && !(bool)thunder.Invoke(app, new object[] { strip });
+      set("fxOn", true);
+      pl.DrawT = 0.5f;
+      frame();  // the charge and the release through the glow pass
+      pl.DrawT = 0f;
+      frame();
+      pl.Weapon = keep; g.Bot = botWas;
+      Check(onLook && offLook, "Arc Lightning's strip draws as the Thunderhead bolt with effects on, and as before with them off");
     }
 
     // Off again: exactly the plain drawing.
