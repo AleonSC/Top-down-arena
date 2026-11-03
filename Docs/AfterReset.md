@@ -13,7 +13,13 @@ A running list of things to pick up next session. Tick off / delete as they're d
             nearest enemy that isn't seeded. 7 damage every 0.5 s: ~14 a second on one enemy, ~42 across three.
       - [x] **Treant Rod: Root Lash**, and the tether to the Treant is now a root too. Built: 250 px line, 15 damage every 0.55 s
             (~27 a second), heals allies it touches 10. Homing Rounds widen it. Code names (`Vine*`, `TickVines`) are unchanged.
-      - [ ] **Totem Staff: rework into something entirely different.** Mockups of five whole-weapon concepts are being drawn.
+      - [ ] **Totem Staff: rework into something entirely different: waiting for a pick.** Mockup:
+            [`Mockups/totem-staff-rework.html`](Mockups/totem-staff-rework.html) (https://claude.ai/artifact/3cp8ynYASdq6fySbRoaeJZ).
+            Five whole-weapon concepts: **Nimbus** (a storm cloud over your cursor: click drops lightning under it, its rain heals
+            allies beneath it; suggested), **Stag of Dawn** (a spirit stag charges toward the cursor, leaving a healing, speeding
+            trail), **Tollbell** (hold to whirl a spirit bell; each full turn tolls damage and healing), **Rolly** (a spiky pet
+            launched like a pinball, healing each ally it bumps), **Spirit Chalk** (drag to paint a line of ink that burns
+            enemies, heals allies on it and destroys bullets crossing it).
 
 ## Visuals
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
