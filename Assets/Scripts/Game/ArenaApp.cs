@@ -119,6 +119,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            LoadJukebox();
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
             LoadBackgroundSettings();
@@ -471,7 +472,22 @@ namespace Arena
                 sounds.RequestBossTrack(upcoming);
                 keep = SoundBank.BossTrackId(upcoming);
             }
-            sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime);
+            // The music player's choice replaces the automatic music (a boss still gets its own theme if that's on).
+            string keep2 = null;
+            if (juke.Selected != null)
+            {
+                if (juke.BossThemes && wanted.StartsWith("boss:"))
+                    keep2 = juke.Selected;
+                else
+                {
+                    wanted = juke.Selected;
+                    sounds.RequestLibraryTrack(wanted);
+                    keep2 = juke.Upcoming;
+                    sounds.RequestLibraryTrack(keep2);
+                }
+                AdvanceJukebox();
+            }
+            sounds.UpdateMusic(wanted, keep, Time.unscaledDeltaTime, keep2);
         }
 
         void FixedUpdate()

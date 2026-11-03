@@ -871,7 +871,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
   lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for
-  **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
+  **Master**, **Music** (all music; the **Music player** tab picks the track), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
   fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
   do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
   HUD, and the **network port** hosting and joining use, 7777 unless changed; everyone in a game needs the same one). Mute and Aim line are also quick switches under the groups.
@@ -946,6 +946,14 @@ theme (`Assets/Scripts/Game/MenuMusic.cs`); matches play a soft track during reg
 has its own track** that crossfades in while it's on the field (`Assets/Scripts/Game/GameMusic.cs`, where each
 track is a short recipe: tempo, key, chords and which instruments play). Tracks render in the background, and
 the next boss's track is prepared ahead of time. The **Music** slider controls all of it.
+
+**Music player** (Settings > Audio > *Music player*): 22 tracks to pick from, which play everywhere (menus and matches)
+instead of the automatic music until you pick **Automatic** again. Besides the menu theme, the wave battle track and the
+ten boss themes there are eight extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lounge*, *Crystal Caves* and *Deep Freeze*
+(Chill); *Neon Highway*, *Sunrise Run*, *Arcade Heist* and *Dust Road* (Action); *Haunted Hollow* and *Iron Rain* (Dark);
+*Last Stand* (Epic). Controls: Prev / Play-Pause / Next, Shuffle, Repeat (all, or this one), a progress bar, and
+"Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the
+list. Your pick, shuffle and repeat are saved. Tracks render in the background the first time (a few seconds).
 
 ## Playing with a friend
 

@@ -46,6 +46,7 @@ namespace Arena
             public float Gain;
             public volatile float[] Samples;
             public AudioClip Clip;
+            public float Length;    // seconds
             public float ResumeAt;  // where to pick up next time (menu and battle tracks)
         }
 
@@ -81,12 +82,39 @@ namespace Arena
 
         public static string BossTrackId(EnemyType boss) => "boss:" + boss;
 
+        /// Start rendering any track of the music player's library (MusicLibrary.cs) if it isn't already.
+        public void RequestLibraryTrack(string id)
+        {
+            var e = id == null ? null : MusicLibrary.Find(id);
+            if (e != null)
+                RequestTrack(e.Id, e.Render, e.Gain);
+        }
+
+        /// Music player: pause or resume whatever is playing (the fades and track switches wait while paused).
+        public bool MusicPaused;
+        bool pauseApplied;
+
+        /// The track on the active voice, how far into it we are, and how long it is (for the player's bar).
+        public string PlayingId => voiceTrack[activeVoice] == null ? null : voiceTrack[activeVoice].Id;
+        public float PlayingTime => voiceTrack[activeVoice] == null ? 0f : musicVoices[activeVoice].time;
+        public float PlayingLength => voiceTrack[activeVoice] == null || voiceTrack[activeVoice].Clip == null ? 0f : voiceTrack[activeVoice].Length;
+
+        /// True once the track has been synthesised (a few seconds for the first play of a track).
+        public bool IsTrackReady(string id) => id != null && tracks.TryGetValue(id, out var t) && t.Clip != null;
+
+        /// The next time this track starts, start it from the top (used when the player picks a track).
+        public void RestartTrack(string id)
+        {
+            if (id != null && tracks.TryGetValue(id, out var t))
+                t.ResumeAt = 0f;
+        }
+
         public void RequestBossTrack(EnemyType boss) =>
             RequestTrack(BossTrackId(boss), () => GameMusic.Render(GameMusic.ForBoss(boss)), 0.55f);
 
         /// Call every frame. wanted: the track that should be playing (null for silence);
         /// keep: another track to hold on to (the next boss's), so it's ready in time.
-        public void UpdateMusic(string wanted, string keep, float dt)
+        public void UpdateMusic(string wanted, string keep, float dt, string keep2 = null)
         {
             if (musicVoices[0] == null)
                 return;
@@ -96,8 +124,21 @@ namespace Arena
                 {
                     t.Clip = AudioClip.Create(t.Id, t.Samples.Length, 1, MenuMusic.Rate, false);
                     t.Clip.SetData(t.Samples, 0);
+                    t.Length = t.Samples.Length / (float)MenuMusic.Rate;
                     t.Samples = null;
                 }
+
+            if (MusicPaused != pauseApplied)
+            {
+                pauseApplied = MusicPaused;
+                for (int v = 0; v < musicVoices.Length; v++)
+                    if (MusicPaused)
+                        musicVoices[v].Pause();
+                    else
+                        musicVoices[v].UnPause();
+            }
+            if (MusicPaused)
+                return;
 
             // Switch when the wanted track is ready (until then, whatever's playing carries on).
             Track want = null;
@@ -133,7 +174,7 @@ namespace Arena
             // Let go of boss tracks nobody needs any more (they're a few MB each).
             string drop = null;
             foreach (var t in tracks.Values)
-                if (t.Id.StartsWith("boss:") && t.Clip != null && t.Id != wanted && t.Id != keep && t != voiceTrack[0] && t != voiceTrack[1])
+                if (MusicLibrary.IsTransient(t.Id) && t.Clip != null && t.Id != wanted && t.Id != keep && t.Id != keep2 && t != voiceTrack[0] && t != voiceTrack[1])
                     drop = t.Id;
             if (drop != null)
             {
@@ -145,7 +186,7 @@ namespace Arena
         void Release(int v)
         {
             var t = voiceTrack[v];
-            if (t != null && !t.Id.StartsWith("boss:"))
+            if (t != null && !MusicLibrary.IsTransient(t.Id))
                 t.ResumeAt = musicVoices[v].time;  // pick the menu / battle music up where it left off
             musicVoices[v].Stop();
             voiceTrack[v] = null;

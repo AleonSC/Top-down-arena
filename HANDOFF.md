@@ -187,6 +187,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `PickSounds.cs` | 0.05k | the upgrade picker's sounds, local only (`TickPickSounds` from Update plays each as the opening/close passes its moment; recipes `Sfx.PickRise`..`PickAbsorb` in SoundBank.cs, appended to `Sfx` and never sent). Hear them: `Tools/SoundCheck/render.sh Pick` |
 | `PickIntro.cs`, `PickOutro.cs` | 0.3k | the upgrade picker opening out of your character and closing back into it (see "Upgrade picker opening and close" below) |
 | `PixelArt.cs` | 1.15k | 16×16 pixel-art icons as text grids |
+| `MusicLibrary.cs`, `MusicPlayerUi.cs` | 0.4k | the music player's track list (extra mood recipes), `Jukebox` selection logic, and its Settings > Audio tab |
 | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs` | 1.3k | every sound and all music synthesised in code |
 | `WardenLook.cs`, `StageShiftLook.cs`, `SingularityLook.cs`, `LichLook.cs`, `DuelistLook.cs`, `HeraldLook.cs`, `DevourerLook.cs` | 0.1-0.6k each | each boss fight's look (`StageShiftLook`: the Warden's and Queen's 2 s stage changes) |
 | `QueenLootLook.cs`, `ReaperLootLook.cs` | <0.1k each | how the Queen's and Reapers' legendaries look |

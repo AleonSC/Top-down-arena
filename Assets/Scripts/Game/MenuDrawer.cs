@@ -633,7 +633,19 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("AUDIO", col, "Each kind of sound has its own volume, under the master.", k);
+                    OpenSectionPanel("AUDIO", col, audioTab == 0 ? "Each kind of sound has its own volume, under the master." : "Pick what plays, in the menus and in a match.", k);
+                    string[] audioTabs = { "Volume", "Music player" };
+                    for (int ti = 0; ti < 2; ti++)
+                        if (Ui.SmallButton(new Rect(DrawerPanel.xMax - 28f - 270f + ti * 138f, DrawerPanel.y + 24f, 132f, 34f), audioTabs[ti], audioTab == ti ? Ui.Primary : Ui.Neutral, 14))
+                        {
+                            audioTab = ti;
+                            jukeScroll = 0f;
+                        }
+                    if (audioTab == 1)
+                    {
+                        DrawMusicPlayer(t);
+                        break;
+                    }
                     float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
                     y = DrawerPanel.y + 104f;
                     bool changed = false;

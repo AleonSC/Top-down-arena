@@ -111,6 +111,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Audio (Game)
 - `SoundBank.cs`: every synthesised sound effect
 - `GameMusic.cs`, `MenuMusic.cs`: in-run and menu music
+- `MusicLibrary.cs`: every track the music player lists (extra mood recipes) and the `Jukebox` selection logic; `MusicPlayerUi.cs`: Settings > Audio > Music player
 - `PickSounds.cs`, `PauseGlitch.cs`: upgrade picker and pause-menu sounds
 
 ## Tools and docs (repo root)
@@ -134,7 +135,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 | Save/load, records, unlocks | `RunSaves.cs`, `SaveData.cs`, `Profile.cs`, `SavesUi.cs` |
 | Shop and gold | `Shop.cs`, `ShopUi.cs` |
 | Paths, challenge rooms, props | `Paths.cs`/`PathsUi.cs`, `Challenges.cs`/`ChallengeLook.cs`, `Props.cs`/`PropsLook.cs` |
-| Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
+| Sounds and music | `SoundBank.cs`, `GameMusic.cs`, `MenuMusic.cs`, `MusicLibrary.cs` (add a track here), `MusicPlayerUi.cs`, `BossSounds.cs`; hear them with `Tools/SoundCheck/render.sh` |
 | Pixel icons | `PixelArt.cs` |
 | Bots, Boss Lab | `BotBrain.cs`, `BossLab.cs`, `BossLabUi.cs` |
 | Practice Range, wave editor | `Practice.cs`, `PracticeUi.cs`, `WaveDesign.cs`, `WaveEditorUi.cs`; built-in designs: `Data/Waves`, `Tools/WaveGen/build.sh`, `DesignedWaves.cs` |
