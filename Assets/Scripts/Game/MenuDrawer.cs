@@ -205,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "Back To The Lobby", "Settings", "Field Guide", "Records", "How To Play", "Main Menu", "Quit Game" };
+        static readonly string[] LobbyChoices = { "BACK TO THE LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -246,7 +246,7 @@ namespace Arena
             }
             DrawerIn("pause", false);
             LobbyMenuKeys();
-            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
+            BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : null);
             Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
             string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
             string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
@@ -303,7 +303,7 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "Resume", "Run Stats", "Field Guide", "Records", "How To Play", "Settings", "Leave To Lobby", "Leave Game" };
+        static readonly string[] PauseChoices = { "RESUME", "RUN STATS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "SETTINGS", "LEAVE TO LOBBY", "LEAVE GAME" };
         const int PauseToLobby = 6;  // the host only: everyone back to the lobby
 
         /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).
