@@ -1,0 +1,303 @@
+<title>Menu Splash Text</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the top of the game's main menu (1280 px wide, scaled
+   to fit) with the line under the title in the selected style, cycling through the game's real lines. The strips pick
+   the style and the wording. Under that, a card per style. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 1280 / 400; background: #07080d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #3a2c13; box-shadow: inset 0 0 0 1px var(--amber); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--panel-2); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); border-top-color: var(--c); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p { font-size: 14px; color: var(--soft); }
+.card p.how { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+code { font: 12.5px var(--font-data); color: var(--fg); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cartesian Colosseum · mockup · main menu</div>
+    <h1>The line <span>under the title</span></h1>
+    <p class="lead">Five ways to show the changing line under CARTESIAN COLOSSEUM, against today's plain text. The lines are the game's
+      own (your best run and the How to play tips); they change every few seconds here so you can see the switch. The second
+      strip tries shorter wording, which suits a splash better than full sentences.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="scr" width="1280" height="400" aria-label="The top of the main menu with the line under the title in the selected style"></canvas>
+    <div class="bar">
+      <span class="lbl">Style</span>
+      <div class="seg" id="styles"></div>
+      <span class="spacer"></span>
+      <button type="button" class="act" id="next">Next line</button>
+    </div>
+    <div class="bar">
+      <span class="lbl">Wording</span>
+      <div class="seg" id="wording">
+        <button type="button" data-v="full" class="on">Today's tips</button>
+        <button type="button" data-v="short">Short lines</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div style="display:grid;gap:6px"><h2>The styles</h2><p class="hint">Click a card to show it above.</p></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All in <code>Menus.cs</code> (<code>MenuTip</code> picks the line, <code>DrawMenuTitle</code> draws it). Pills, chips and the leader line are the UI kit's pills and the menu's GL lines; the splash's tilt is a <code>GUI.matrix</code> turn.</li>
+      <li>Each line gets a kind (Tip or Record) so the tag and icon can follow it; the short wording would be a second column in the tips table, kept next to the long one How to play uses.</li>
+      <li>Reduced effects: no bounce, wobble or typing; lines just fade.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const STYLES = [
+    { id: "today", name: "Today", c: "#92a1ad", tag: "plain text",
+      sum: "The line as it is now: muted text centred under the axis, fading between lines.", how: "For comparison." },
+    { id: "chip", name: "A · Chip", c: "#6fe3c4", tag: "tag + text in a pill",
+      sum: "A slim dark pill with a coloured tag on the left (TIP in blue, RECORD in gold, with a small icon), the topic in bold and the rest in a softer tone. It slides up and fades when it changes.",
+      how: "Tidy and easy to read; the tag tells you what kind of line it is at a glance." },
+    { id: "note", name: "B · Plot note", c: "#7fb6ff", tag: "an annotation on the axis",
+      sum: "Like a note on a chart: a point is marked on the x-axis, a dashed leader line drops from it, and the line hangs at its end in a small card. Each new line marks a different point.",
+      how: "The most on theme: the menu is a graph, and this reads as a labelled data point." },
+    { id: "splash", name: "C · Splash", c: "#ffd75a", tag: "the classic tilted yellow text",
+      sum: "Bright yellow text tilted at the title's bottom right corner, gently pulsing in size. Works best with short, punchy lines.",
+      how: "Playful and the most noticed. Long tips don't fit it, so it goes with the short wording." },
+    { id: "console", name: "D · Readout", c: "#ff8fa8", tag: "typed like a terminal",
+      sum: "Monospace text typed in after a prompt (>), with a blinking cursor; the tag sits before it in its colour. It deletes itself before the next line types in.",
+      how: "Techy; suits the plotter and coordinates look." },
+    { id: "ribbon", name: "E · Ribbon", c: "#c79bff", tag: "a banner across the axis",
+      sum: "A thin ribbon across the axis under the title, the line in the middle with soft fades at both ends, and the topic picked out in colour. Changes with a light sweep.",
+      how: "Calm and wide, so long lines fit comfortably." },
+  ];
+
+  // The game's lines: your best run, then How to play's tips (Menus.cs HowToTips), and a shorter version of each.
+  const LINES = [
+    { kind: "record", topic: "Best run", full: "wave 23  ·  41 runs started", short: "Best run: wave 23" },
+    { kind: "tip", topic: "Hitbox", full: "Your hitbox is just the small white dot in the middle of your character.", short: "Only the white dot can be hit!" },
+    { kind: "tip", topic: "Wrap around", full: "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", short: "Walk off an edge. They can't follow!" },
+    { kind: "tip", topic: "Perfect parry", full: "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", short: "Parry late, send it back!" },
+    { kind: "tip", topic: "Co-op", full: "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", short: "Bring two friends!" },
+    { kind: "tip", topic: "Roles", full: "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest.", short: "Enemies love Tanks." },
+    { kind: "tip", topic: "Health orbs", full: "Kills sometimes drop green orbs that heal you. They drift toward you when you're close.", short: "Green orbs heal!" },
+    { kind: "tip", topic: "Ability mastery", full: "Abilities level up from 1 to 5 as you use them in fights. Level 5 unlocks a capstone.", short: "Use it to master it." },
+    { kind: "tip", topic: "Boss shots", full: "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", short: "Red can't be blocked." },
+  ];
+
+  const W = 1280, H = 400, BLUE = [115, 166, 255], GF = `"Liberation Sans", Arial, Helvetica, sans-serif`;
+  const TX = 640, TY = 120, TS = 74, AXY = 182, OX = 640, LINE_Y = 214;
+  const ARC = { x0: 250, x1: 1030, top: 16, base: 156 };
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const ease = k => 1 - Math.pow(1 - k, 3);
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const cv = document.getElementById("scr"), g = cv.getContext("2d");
+  const KIND = { tip: { col: [110, 165, 255], label: "TIP" }, record: { col: [255, 205, 90], label: "RECORD" } };
+
+  let style = "chip", wording = "full", idx = 0, shownAt = performance.now() / 1000, prevIdx = -1;
+  const CYCLE = 4.2;
+
+  function rr(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  const sparks = Array.from({ length: 22 }, (_, i) => ({ x: (i * 397) % W, y: (i * 233 + 40) % H, ph: i * 1.7, pink: i % 3 !== 0 }));
+  function background(t) {
+    g.fillStyle = "#07080d"; g.fillRect(0, 0, W, H);
+    const gr = g.createRadialGradient(330, 220, 0, 330, 220, 300); gr.addColorStop(0, "rgba(40,70,160,0.15)"); gr.addColorStop(1, "rgba(40,70,160,0)"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(90,110,180,0.09)"; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 48) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 14; y <= H; y += 48) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+    for (const s of sparks) { const a = 0.2 + 0.3 * (0.5 + 0.5 * Math.sin(t * 1.3 + s.ph)); g.fillStyle = s.pink ? `rgba(255,90,120,${a})` : `rgba(120,160,255,${a})`; g.beginPath(); g.arc(s.x, s.y, 2, 0, Math.PI * 2); g.fill(); }
+  }
+  function title() {
+    g.save(); g.font = `bold ${TS}px Arial, "Liberation Sans", sans-serif`; g.textBaseline = "middle"; g.textAlign = "center";
+    g.shadowColor = "rgba(92,153,255,0.8)"; g.shadowBlur = 14; g.lineJoin = "round"; g.lineWidth = TS / 11; g.strokeStyle = "rgba(14,22,52,0.9)";
+    g.strokeText("CARTESIAN COLOSSEUM", TX, TY); g.shadowBlur = 0;
+    const gr = g.createLinearGradient(0, TY - TS * 0.4, 0, TY + TS * 0.4); gr.addColorStop(0, "#fff"); gr.addColorStop(0.5, "#fff"); gr.addColorStop(0.52, "#b8ccff"); gr.addColorStop(1, "#b8ccff");
+    g.fillStyle = gr; g.fillText("CARTESIAN COLOSSEUM", TX, TY); g.restore();
+  }
+  const arcY = u => ARC.base - (ARC.base - ARC.top) * 4 * u * (1 - u), arcX = u => ARC.x0 + (ARC.x1 - ARC.x0) * u;
+  function arcAndAxis(t) {
+    g.save(); g.strokeStyle = rgba(BLUE, 0.35); g.lineWidth = 1.5; g.setLineDash([6, 7]); g.beginPath();
+    for (let i = 0; i <= 60; i++) { const u = i / 60; i ? g.lineTo(arcX(u), arcY(u)) : g.moveTo(arcX(u), arcY(u)); } g.stroke(); g.restore();
+    const u = (t * 0.22) % 1; g.save(); g.globalCompositeOperation = "lighter";
+    for (let i = 6; i >= 0; i--) { const uu = Math.max(0, u - i * 0.008); g.fillStyle = `rgba(255,120,150,${0.12 + 0.5 * (1 - i / 6)})`; g.beginPath(); g.arc(arcX(uu), arcY(uu), 5 - i * 0.5, 0, Math.PI * 2); g.fill(); } g.restore();
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6; g.beginPath(); g.moveTo(OX - 390, AXY); g.lineTo(OX + 390, AXY); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.75); g.lineWidth = 1.5; g.beginPath(); g.moveTo(OX - 390, AXY); g.lineTo(OX + 390, AXY); g.stroke();
+    for (let i = 1; i * 24 < 380; i++) { const l = i % 4 === 0 ? 6 : 3; g.lineWidth = 1.2; g.strokeStyle = rgba(BLUE, 0.6); for (const s of [-1, 1]) { g.beginPath(); g.moveTo(OX + s * i * 24, AXY - l); g.lineTo(OX + s * i * 24, AXY + l); g.stroke(); } }
+    const p = 0.5 + 0.5 * Math.sin(t * 3); g.fillStyle = "rgba(200,220,255,0.9)"; g.beginPath(); g.arc(OX, AXY, 3.5, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(BLUE, 0.5 + 0.3 * p); g.beginPath(); g.arc(OX, AXY, 6 + 2 * p, 0, Math.PI * 2); g.stroke();
+    // The top of the box under it, for context.
+    rr(420, 290, 440, 214, 10); g.fillStyle = "rgba(25,29,44,0.95)"; g.fill(); g.strokeStyle = "rgba(107,153,255,0.9)"; g.lineWidth = 1.5; g.stroke();
+    rr(450, 314, 380, 82, 12); const gb = g.createLinearGradient(0, 314, 0, 396); gb.addColorStop(0, "#5f95ff"); gb.addColorStop(1, "#3866c8"); g.fillStyle = gb; g.fill();
+    g.font = `bold 30px ${GF}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#fff"; g.fillText("HOST GAME", 652, 356);
+  }
+  const lineOf = i => LINES[i % LINES.length];
+  const textOf = L => wording === "short" ? L.short : (L.kind === "record" ? L.topic + ": " + L.full : L.topic + ": " + L.full);
+
+  // --- The styles: each draws line L, `age` seconds after it appeared, with `out` (0..1) as it leaves -------------------
+  function sToday(L, age, out) {
+    const a = clamp01(age / 0.4) * (1 - out);
+    g.font = `15px ${GF}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = `rgba(190,200,225,${0.85 * a})`;
+    g.fillText(textOf(L), OX, LINE_Y + 40);
+  }
+  function sChip(L, age, out) {
+    const k = ease(clamp01(age / 0.35)), a = k * (1 - out), dy = 10 * (1 - k) - 8 * out, K = KIND[L.kind];
+    const y = LINE_Y + 40 + dy;
+    const body = wording === "short" ? L.short : L.full, topic = wording === "short" ? "" : L.topic;
+    g.font = `bold 11px ${GF}`; const tagW = g.measureText(K.label).width + 34;
+    g.font = `bold 15px ${GF}`; const topW = topic ? g.measureText(topic).width + 10 : 0;
+    g.font = `15px ${GF}`; const bodyW = g.measureText(body).width;
+    const w = tagW + 14 + topW + bodyW + 18, x = OX - w / 2;
+    g.save(); g.globalAlpha = a;
+    rr(x, y - 16, w, 32, 16); g.fillStyle = "rgba(12,15,26,0.88)"; g.fill(); g.strokeStyle = rgba(K.col, 0.35); g.lineWidth = 1; g.stroke();
+    rr(x + 4, y - 12, tagW, 24, 12); g.fillStyle = rgba(K.col, 0.22); g.fill();
+    // A small icon: a bulb for tips, a trophy for records.
+    g.fillStyle = rgba(K.col, 1); g.strokeStyle = rgba(K.col, 1); g.lineWidth = 1.6;
+    if (L.kind === "tip") { g.beginPath(); g.arc(x + 17, y - 2, 4.5, 0, Math.PI * 2); g.fill(); g.fillRect(x + 15, y + 3, 4, 4); }
+    else { g.fillRect(x + 12, y - 6, 10, 6); g.fillRect(x + 15.5, y, 3, 4); g.fillRect(x + 13, y + 4, 8, 2); }
+    g.font = `bold 11px ${GF}`; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(K.label, x + 27, y + 0.5);
+    let tx = x + tagW + 14;
+    if (topic) { g.font = `bold 15px ${GF}`; g.fillStyle = "#fff"; g.fillText(topic, tx, y); tx += topW; }
+    g.font = `15px ${GF}`; g.fillStyle = "rgba(200,210,232,0.95)"; g.fillText(body, tx, y);
+    g.restore();
+  }
+  // Plot note: a different point on the axis for each line.
+  function sNote(L, age, out, i) {
+    const K = KIND[L.kind], px = OX + [-220, 150, -90, 260, -300, 40, 200, -160, 300][i % 9];
+    const mark = ease(clamp01(age / 0.25)), drop = ease(clamp01((age - 0.15) / 0.3)), card = ease(clamp01((age - 0.35) / 0.3));
+    const a = 1 - out;
+    g.save(); g.globalAlpha = a;
+    g.strokeStyle = rgba(K.col, 0.9); g.lineWidth = 2; g.beginPath(); g.arc(px, AXY, 3 + 4 * mark, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = rgba(K.col, 1); g.beginPath(); g.arc(px, AXY, 2.5, 0, Math.PI * 2); g.fill();
+    const y1 = AXY + 46 * drop;
+    g.setLineDash([4, 4]); g.strokeStyle = rgba(K.col, 0.6); g.lineWidth = 1.2; g.beginPath(); g.moveTo(px, AXY + 6); g.lineTo(px, y1); g.stroke(); g.setLineDash([]);
+    if (card > 0) {
+      const body = textOf(L);
+      g.font = `14px ${GF}`; const bw = g.measureText(body).width;
+      g.font = "500 10.5px 'IBM Plex Mono', monospace"; const coord = `(${Math.round((px - OX) / 24)}, 0)  ${K.label}`;
+      const w = Math.max(bw, g.measureText(coord).width) + 24, x = Math.min(W - w - 20, Math.max(20, px - w / 2)), y = AXY + 46;
+      g.globalAlpha = a * card;
+      rr(x, y, w, 46, 7); g.fillStyle = "rgba(14,18,30,0.94)"; g.fill(); g.strokeStyle = rgba(K.col, 0.55); g.lineWidth = 1; g.stroke();
+      g.fillStyle = rgba(K.col, 0.85); g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(coord, x + 12, y + 13);
+      g.font = `14px ${GF}`; g.fillStyle = "rgba(225,232,248,0.95)"; g.fillText(body, x + 12, y + 32);
+    }
+    g.restore();
+  }
+  function sSplash(L, age, out, i, t) {
+    const pop = clamp01(age / 0.25), a = clamp01(pop * 2) * (1 - out);
+    const s = (wording === "short" ? 1 : 0.72) * (0.6 + 0.4 * ease(pop)) * (1 + 0.06 * Math.sin(t * 5.5));
+    const text = wording === "short" ? L.short : textOf(L);
+    g.save(); g.translate(1010, TY + 50); g.rotate(-0.33); g.scale(s, s); g.globalAlpha = a;
+    g.font = `bold 22px ${GF}`; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillStyle = "rgba(62,52,0,0.95)"; g.fillText(text, 2, 2);
+    g.fillStyle = "#ffef3a"; g.fillText(text, 0, 0);
+    g.restore();
+  }
+  function sConsole(L, age, out, i, t) {
+    const K = KIND[L.kind], body = textOf(L), cps = 55;
+    const shown = out > 0 ? Math.floor(body.length * (1 - out)) : Math.min(body.length, Math.floor(age * cps));
+    g.font = "500 15px 'IBM Plex Mono', monospace";
+    const full = "> " + K.label + "  " + body, w = g.measureText(full).width, x = OX - w / 2, y = LINE_Y + 40;
+    g.textAlign = "left"; g.textBaseline = "middle";
+    g.fillStyle = "rgba(111,227,196,0.9)"; g.fillText(">", x, y);
+    let tx = x + g.measureText("> ").width;
+    g.fillStyle = rgba(K.col, 1); g.fillText(K.label, tx, y); tx += g.measureText(K.label + "  ").width;
+    g.fillStyle = "rgba(205,215,235,0.95)"; const part = body.slice(0, shown); g.fillText(part, tx, y);
+    if ((t * 2) % 1 < 0.6) { g.fillStyle = "rgba(111,227,196,0.9)"; g.fillRect(tx + g.measureText(part).width + 2, y - 9, 9, 18); }
+  }
+  function sRibbon(L, age, out, i) {
+    const K = KIND[L.kind], a = clamp01(age / 0.4) * (1 - out), y = LINE_Y + 40;
+    const gr = g.createLinearGradient(OX - 470, 0, OX + 470, 0);
+    gr.addColorStop(0, "rgba(30,40,70,0)"); gr.addColorStop(0.2, "rgba(30,40,70,0.75)"); gr.addColorStop(0.8, "rgba(30,40,70,0.75)"); gr.addColorStop(1, "rgba(30,40,70,0)");
+    g.fillStyle = gr; g.fillRect(OX - 470, y - 17, 940, 34);
+    const lgr = g.createLinearGradient(OX - 470, 0, OX + 470, 0); lgr.addColorStop(0, rgba(K.col, 0)); lgr.addColorStop(0.5, rgba(K.col, 0.6)); lgr.addColorStop(1, rgba(K.col, 0));
+    g.fillStyle = lgr; g.fillRect(OX - 470, y - 17, 940, 1); g.fillRect(OX - 470, y + 16, 940, 1);
+    const sweep = clamp01(age / 0.6);
+    if (sweep < 1) { const sx = OX - 470 + 940 * ease(sweep); const sg = g.createLinearGradient(sx - 80, 0, sx + 80, 0); sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, "rgba(255,255,255,0.18)"); sg.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = sg; g.fillRect(sx - 80, y - 17, 160, 34); }
+    const topic = wording === "short" ? "" : L.topic, body = wording === "short" ? L.short : L.full;
+    g.font = `bold 15px ${GF}`; const tw = topic ? g.measureText(topic + "  ·  ").width : 0;
+    g.font = `15px ${GF}`; const bw = g.measureText(body).width, x = OX - (tw + bw) / 2;
+    g.save(); g.globalAlpha = a; g.textAlign = "left"; g.textBaseline = "middle";
+    if (topic) { g.font = `bold 15px ${GF}`; g.fillStyle = rgba(K.col, 1); g.fillText(topic + "  ·  ", x, y); }
+    g.font = `15px ${GF}`; g.fillStyle = "rgba(220,228,245,0.95)"; g.fillText(body, x + tw, y);
+    g.restore();
+  }
+  const DRAW = { today: sToday, chip: sChip, note: sNote, splash: sSplash, console: sConsole, ribbon: sRibbon };
+  const OUT = { today: 0.35, chip: 0.3, note: 0.3, splash: 0.2, console: 0.45, ribbon: 0.35 };
+
+  function frame(now) {
+    const t = now / 1000;
+    if (t - shownAt > CYCLE) { prevIdx = idx; idx++; shownAt = t; }
+    background(t); arcAndAxis(t); title();
+    const age = t - shownAt, outLen = OUT[style];
+    // The old line leaves over outLen; the new one waits for it.
+    if (prevIdx >= 0 && age < outLen) DRAW[style](lineOf(prevIdx), CYCLE, age / outLen, prevIdx, t);
+    else DRAW[style](lineOf(idx), age - (prevIdx >= 0 ? outLen : 0), 0, idx, t);
+    const s = STYLES.find(x => x.id === style);
+    g.font = "600 13px Oxanium, 'Segoe UI', sans-serif"; g.textAlign = "left"; g.textBaseline = "top"; g.fillStyle = "rgba(146,161,173,0.85)"; g.fillText(s.name.toUpperCase(), 18, H - 26);
+    requestAnimationFrame(frame);
+  }
+  function setStyle(id) {
+    style = id;
+    document.querySelectorAll("#styles button").forEach(b => b.classList.toggle("on", b.dataset.v === id));
+    document.querySelectorAll(".card").forEach(c => c.classList.toggle("on", c.dataset.v === id));
+    if (id === "splash" && wording === "full") setWording("short");
+    shownAt = performance.now() / 1000; prevIdx = -1;
+  }
+  function setWording(v) { wording = v; document.querySelectorAll("#wording button").forEach(b => b.classList.toggle("on", b.dataset.v === v)); shownAt = performance.now() / 1000; prevIdx = -1; }
+  const segS = document.getElementById("styles"), cards = document.getElementById("cards");
+  for (const s of STYLES) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = s.id; b.textContent = s.name; b.onclick = () => setStyle(s.id); segS.appendChild(b);
+    const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.v = s.id; c.style.setProperty("--c", s.c);
+    c.innerHTML = `<div class="hd"><b class="n"></b><span class="tag"></span></div><p class="sum"></p><p class="how"></p>`;
+    c.querySelector(".n").textContent = s.name; c.querySelector(".tag").textContent = s.tag; c.querySelector(".sum").textContent = s.sum; c.querySelector(".how").textContent = s.how;
+    c.onclick = () => { setStyle(s.id); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    cards.appendChild(c);
+  }
+  document.querySelectorAll("#wording button").forEach(b => b.onclick = () => setWording(b.dataset.v));
+  document.getElementById("next").onclick = () => { prevIdx = idx; idx++; shownAt = performance.now() / 1000; };
+  setStyle("chip");
+  requestAnimationFrame(frame);
+})();
+</script>
