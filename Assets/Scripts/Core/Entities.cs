@@ -31,6 +31,8 @@ namespace Arena
         LaunchSweep, LaunchRipple, LaunchBeam, LaunchLand, LaunchHud,
         // The pause menu's sounds (WindowAnim.cs; the tear and the typing were its old glitch opening's): your own screen only, never sent.
         PauseTear, PauseType, PauseSettle, PauseClose,
+        // The Radiant Orb (RadiantOrb.cs): cast, a twinkle each tick that touches something, and fading out. Sent, so quieter for allies.
+        RadiantCast, RadiantTouch, RadiantFade,
     }
 
     public struct SoundCue

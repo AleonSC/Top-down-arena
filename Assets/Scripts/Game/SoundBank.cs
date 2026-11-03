@@ -402,6 +402,18 @@ namespace Arena
                 Tone(0.04f, Osc.Sine, 600f, 600f, 0.25f, noise: 1f, lowpass: 0.7f, attack: 0.001f, decay: 1f),
                 Tone(0.07f, Osc.Saw, 300f, 120f, 0.25f, noise: 0.4f, lowpass: 0.35f, attack: 0.001f, decay: 2f))), 0.26f), 0.15f);
 
+            // The Radiant Orb (RadiantOrb.cs): a rising shimmer as it's cast, a small twinkle (three takes, in turn) each time its
+            // tick touches an enemy or an ally, and a falling shimmer as it fades.
+            Set(Sfx.RadiantCast, Finish(Reverb(Mix(Tone(0.35f, Osc.Sine, 700f, 1400f, 0.18f, attack: 0.03f, decay: 2f),
+                Tone(0.4f, Osc.Triangle, 1047f, 2093f, 0.08f, attack: 0.05f, decay: 2f), Tone(0.3f, Osc.Sine, 1568f, 2349f, 0.05f, attack: 0.08f, decay: 2.5f))), 0.28f), 0.1f);
+            var twinkles = new float[3][];
+            float[][] pairs = { new[] { 2093f, 2637f }, new[] { 1760f, 2349f }, new[] { 1976f, 2794f } };
+            for (int k = 0; k < 3; k++)
+                twinkles[k] = Finish(Notes(pairs[k], 0.04f, Osc.Sine, 0.1f, 1f), 0.1f);
+            Set(Sfx.RadiantTouch, twinkles, 0.1f);
+            Set(Sfx.RadiantFade, Finish(Reverb(Mix(Tone(0.4f, Osc.Sine, 1400f, 500f, 0.16f, attack: 0.01f, decay: 2.2f),
+                Tone(0.4f, Osc.Triangle, 2100f, 900f, 0.06f, attack: 0.01f, decay: 2.5f))), 0.22f), 0.1f);
+
             Set(Sfx.Summon, Tone(0.4f, Osc.Triangle, 200f, 600f, 0.3f, attack: 0.05f));
             Set(Sfx.Freeze, Tone(0.4f, Osc.Triangle, 2000f, 800f, 0.3f, noise: 0.2f));
             Set(Sfx.Victory, Notes(new[] { 523f, 659f, 784f, 1047f, 784f, 1047f, 1319f }, 0.13f, Osc.Square, 0.25f, 0.4f));

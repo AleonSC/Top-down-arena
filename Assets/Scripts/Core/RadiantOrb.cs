@@ -26,7 +26,7 @@ namespace Arena
             if (!hold)
             {
                 if (p.RadiantOn)
-                    BroadcastFx(FxKind.Spark, p.RadiantPos, Defs.BulletColor(Defs.HolyShot), RadiantRadius + 10f, 0.3f, Sfx.None);  // it fades
+                    BroadcastFx(FxKind.Spark, p.RadiantPos, Defs.BulletColor(Defs.HolyShot), RadiantRadius + 10f, 0.3f, Sfx.RadiantFade);  // it fades
                 p.RadiantOn = false;
                 return;
             }
@@ -35,7 +35,7 @@ namespace Arena
                 p.RadiantOn = true;
                 p.RadiantPos = p.Pos + V2.FromAngle(p.Aim) * p.Def.BodyR;  // cast from you
                 p.FireCd = 0f;
-                Sounds.Add(new SoundCue { Sfx = Sfx.SpellHoly, Ally = p.Id != MyId });
+                Sounds.Add(new SoundCue { Sfx = Sfx.RadiantCast, Ally = p.Id != MyId });
             }
             p.RadiantPos += (RadiantGoal(p, p.AimAt) - p.RadiantPos).LimitLength(RadiantSpeed * p.Stats.ShotSpeedMult * dt);
             p.RadiantPos = p.Pos + (p.RadiantPos - p.Pos).LimitLength(RadiantReach(p));  // it never strays past its reach, even as you move
@@ -43,18 +43,23 @@ namespace Arena
                 return;
             p.FireCd = RadiantTick / FireRate(p);
             float r = RadiantSize(p), dmg = p.Weapon.Damage * p.Stats.DmgMult;
-            bool hit = false;
+            bool hit = false, touched = false;
             foreach (var e in Enemies.Values)
             {
                 if (e.SpawnT > 0f || e.Hp <= 0f || e.Pos.DistanceTo(p.RadiantPos) > r + e.Radius)
                     continue;
-                hit = true;
+                hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = (e.Pos - p.RadiantPos).Normalized(), Owner = p.Id, Dmg = dmg, Kind = Defs.HolyShot }, e);  // weapon mods ride it
             }
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && q.Pos.DistanceTo(p.RadiantPos) <= r + q.Def.BodyR)
+                {
                     Heal(q, RadiantHeal * p.Stats.DmgMult, p);
+                    touched = true;
+                }
+            if (touched)
+                Sounds.Add(new SoundCue { Sfx = Sfx.RadiantTouch, Ally = p.Id != MyId });  // a twinkle for what it touched
             p.Run.ShotsFired++;
             if (hit)
                 p.Run.ShotsHit++;
