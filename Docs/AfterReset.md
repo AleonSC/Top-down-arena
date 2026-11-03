@@ -12,7 +12,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [ ] **Melee attack animations: waiting for a pick.** Mockups done: [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html)
       (https://claude.ai/artifact/TvpChwUCGjQ44HCbGvTFB7): today's look and styles A Weighted (wind-up, overshoot,
       hit-pause), B Ink smear, C Afterimage, D Energy arc, on the Greatsword, Twin Blades, Halberd, Rapier and
-      Warhammer. Then build the pick in `DrawSlashFx` / `DrawJabFx` (A's wind-up needs a decision on hit timing).
+      Warhammer. Owner's direction: **the weapon models with the energy arc effects**, now style **E (Weapon +
+      energy)** in the mockup, with the Warhammer as an overhead swing (raised over the shoulder, a burning arc, a
+      slam into the floor). Waiting for the owner's OK on E, then build it in `DrawSlashFx` / `DrawJabFx`.
 - [x] **Redesign the main menu buttons.** Built: design D with the pen plot intro (Nov 2026).
       Mockups done, waiting for a pick: four layouts in [`Mockups/menu-redesign.html`](Mockups/menu-redesign.html)
       (https://claude.ai/artifact/6T2r1GZSBsajVK8pxaAo8s), and three plotted intros for the menu in

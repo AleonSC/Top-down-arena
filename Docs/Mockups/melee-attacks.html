@@ -136,7 +136,10 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
     smear: { key: "B", name: "Ink smear", windup: 0.03, active: 0.09, tail: 0.32 },
     ghost: { key: "C", name: "Afterimage", windup: 0.06, active: 0.11, tail: 0.32 },
     energy: { key: "D", name: "Energy arc", windup: 0.04, active: 0.11, tail: 0.55 },
+    combo: { key: "E", name: "Weapon + energy", windup: 0.06, active: 0.11, tail: 0.55 },
   };
+  const SLAM_SLOW = 1.8;  // a slam's swing takes this much longer than a sweep (a heavy overhead arc)
+  const actFor = (st, part) => part.kind === "slam" && st !== STYLES.current ? st.active * SLAM_SLOW : st.active;
   const CARDS = {
     current: { pitch: "What the game draws now, for comparison.",
       before: "Nothing: the hit and the arc come together.", hit: "A white arc sweeps out with a faint band inside; thrusts are a white streak; the slam is a flash and a ring.", after: "It fades in a third of a second.", feel: "Clear and cheap, but floaty: no weight, no contact." },
@@ -146,6 +149,8 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
       before: "Almost nothing (0.03 s).", hit: "A thick lens-shaped smear in the weapon's colour with a hard white leading edge and speed lines; thrusts are a long teardrop with a star glint at the tip; slams are a burst of lines and a ring.", after: "The smear thins and peels away from its start to its end.", feel: "Very readable at a glance, even in a busy fight." },
     ghost: { pitch: "The weapon itself, drawn crisply, with a trail of fading copies along its path.",
       before: "A short pull-back (0.06 s).", hit: "The blade sweeps with six fading afterimages behind it; the rapier leaves copies along its line; the hammer leaves copies as it falls, then a ring of shards.", after: "The afterimages fade out from the oldest.", feel: "Shows exactly where the weapon went, and suits the pixel look of the game." },
+    combo: { pitch: "Your pick: the weapon itself, drawn crisply, swinging through D's glowing arc, sparks and embers.",
+      before: "A short pull-back (0.06 s) with a glow gathering at the blade; the hammer rises up over your shoulder.", hit: "The blade sweeps inside a glowing arc, sparks streaming off its tip; the rapier stabs out through a beam; the hammer swings over in a burning arc and slams into the floor: a glowing circle, a pillar of light, embers.", after: "The weapon holds a beat and fades; embers drift for half a second.", feel: "Shows where the weapon went and makes every hit feel charged." },
     energy: { pitch: "A glowing arc of light that throws sparks and leaves embers.",
       before: "A brief glow at the blade (0.04 s).", hit: "An additive arc with a bright core and a soft glow, sparks streaming off the tip; thrusts are a beam with a spray; slams are a glowing circle and a pillar of light.", after: "Embers drift and fade over half a second.", feel: "Flashiest. Matches the glow pass; might be too much at 3 players." },
   };
@@ -179,7 +184,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   // When does a part reach a dummy (local time), or never (null)?
   function hitTime(st, part, d) {
     if (part.kind === "thrust") return d.miss ? null : st.windup + st.active * 0.6 * (d.d / part.reach);
-    if (part.kind === "slam") return st.windup + st.active;
+    if (part.kind === "slam") return st.windup + actFor(st, part);
     const target = d.a * part.sign, start = -part.half * part.sign;
     for (let k = 0; k <= 60; k++) {
       const lt = st.windup + st.active * k / 60;
@@ -259,7 +264,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   function drawPart(ctx, st, w, part, lt, sk) {
     if (lt < 0) return;
     const { x, y } = PLAYER, dir = AIM, c = Math.cos(dir), s = Math.sin(dir);
-    const end = st.windup + st.active, life = end + st.tail;
+    const act = actFor(st, part), end = st.windup + act, life = end + st.tail;
     if (lt > life) return;
     const fade = lt < end ? 1 : 1 - (lt - end) / st.tail;
     const R = rnd(7 + Math.round(part.reach) + (part.sign || 0) * 3);
@@ -308,7 +313,12 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
         blade(ctx, w, at, reach, lt < end + 0.12 ? 1 : 1 - clamp01((lt - end - 0.12) / 0.15), false);
         return;
       }
-      if (sk === "energy") {
+      if (sk === "energy" || sk === "combo") {
+        if (sk === "combo") {  // the energy, then the weapon itself on top
+          drawPart(ctx, st, w, part, lt, "energy");
+          blade(ctx, w, at, reach, lt < end + 0.1 ? 1 : 1 - clamp01((lt - end - 0.1) / 0.18), lt >= st.windup && lt < end);
+          return;
+        }
         ctx.save(); ctx.globalCompositeOperation = "lighter";
         if (lt < st.windup) { ring(ctx, x + Math.cos(at) * reach * 0.9, y + Math.sin(at) * reach * 0.9, 6, 3, rgba(w.color, 0.8)); ctx.restore(); return; }
         const s0 = a0, s1 = at;
@@ -382,7 +392,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
         drawRapier(len, lt < end + 0.1 ? 1 : 1 - clamp01((lt - end - 0.1) / 0.15));
         return;
       }
-      if (sk === "energy") {
+      if (sk === "energy" || sk === "combo") {
         ctx.save(); ctx.globalCompositeOperation = "lighter";
         if (lt > st.windup) {
           ctx.shadowColor = w.color; ctx.shadowBlur = 16;
@@ -397,38 +407,68 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
           }
         } else ring(ctx, x + c * 22, y + s * 22, 5, 3, rgba(w.color, 0.8));
         ctx.restore();
+        if (sk === "combo") drawRapier(len, lt < end + 0.1 ? 1 : 1 - clamp01((lt - end - 0.1) / 0.15));
         return;
       }
     }
 
     if (part.kind === "slam") {
       const reach = part.reach, cx = x + c * reach * 0.7, cy = y + s * reach * 0.7;
-      const fall = lt < st.windup ? 0 : clamp01((lt - st.windup) / st.active), after = lt - end;
-      const lift = lt < st.windup ? easeOut(lt / Math.max(st.windup, 1e-6)) : 1 - fall * fall;
-      const hammer = (hx, hy, scale, alpha) => {
+      const after = lt - end;
+      // The swing: raised up over the left shoulder (the head drawn bigger and higher, its shadow small), then brought
+      // over in a wide arc that speeds up as it falls, into the floor in front of you.
+      const restA = dir - 1.1, upA = dir - 2.6;
+      const pose = tt => {
+        if (tt < st.windup) { const k = easeOut(tt / Math.max(st.windup, 1e-6)); return { a: restA + (upA - restA) * k, h: 0.3 + 0.7 * k, d: reach * 0.42 }; }
+        const f = clamp01((tt - st.windup) / act), e = f * f;
+        return { a: upA + (dir - upA) * e, h: 1 - e, d: reach * (0.42 + 0.28 * e) };
+      };
+      const headAt = q => ({ x: x + Math.cos(q.a) * q.d, y: y + Math.sin(q.a) * q.d - 26 * q.h });
+      const groundAt = q => ({ x: x + Math.cos(q.a) * q.d, y: y + Math.sin(q.a) * q.d });
+      const hammer = (q, alpha, glow) => {
+        const hp = headAt(q), sc = 1 + 0.55 * q.h;
         ctx.globalAlpha = alpha;
-        ctx.strokeStyle = "#6b5640"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x + c * 14, y + s * 14); ctx.lineTo(hx, hy); ctx.stroke();
-        ctx.save(); ctx.translate(hx, hy); ctx.rotate(dir); ctx.scale(scale, scale);
-        ctx.fillStyle = "#c8ced8"; ctx.fillRect(-9, -16, 18, 32); ctx.fillStyle = rgba(w.color, 0.9); ctx.fillRect(-9, -16, 18, 5); ctx.fillRect(-9, 11, 18, 5);
+        ctx.strokeStyle = "#6b5640"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x + Math.cos(q.a) * 12, y + Math.sin(q.a) * 12); ctx.lineTo(hp.x, hp.y); ctx.stroke(); ctx.lineCap = "butt";
+        ctx.save(); ctx.translate(hp.x, hp.y); ctx.rotate(q.a); ctx.scale(sc, sc);
+        if (glow) { ctx.shadowColor = w.color; ctx.shadowBlur = 14; }
+        ctx.fillStyle = "#c8ced8"; ctx.fillRect(-9, -16, 18, 32); ctx.fillStyle = rgba(w.color, 0.95); ctx.fillRect(-9, -16, 18, 5); ctx.fillRect(-9, 11, 18, 5);
         ctx.restore(); ctx.globalAlpha = 1;
       };
       const box = (alpha) => {  // the slam's 100 px wide box
         ctx.save(); ctx.translate(x, y); ctx.rotate(dir);
         ctx.fillStyle = rgba(w.color, alpha); ctx.fillRect(20, -part.width / 2, reach, part.width); ctx.restore();
       };
+      const shadow = q => { const g = groundAt(q), k = 1 - 0.5 * q.h; ctx.fillStyle = `rgba(0,0,0,${0.22 + 0.25 * (1 - q.h)})`; ctx.beginPath(); ctx.ellipse(g.x, g.y + 4, 15 * k, 7 * k, 0, 0, TAU); ctx.fill(); };
       if (sk === "current") {
         const k = clamp01(lt / (st.active + st.tail));
         box(0.25 * (1 - k)); ring(ctx, cx, cy, 20 + 60 * k, 3, `rgba(255,255,255,${0.9 * (1 - k)})`);
         return;
       }
-      if (lt < end) {  // up and down
-        const sc = 1 + 0.45 * lift, hx = x + c * (reach * 0.7) , hy = y + s * (reach * 0.7) - 26 * lift;
-        ctx.fillStyle = `rgba(0,0,0,${0.25 + 0.2 * (1 - lift)})`; ctx.beginPath(); ctx.ellipse(cx, cy + 6, 14 * (1 - 0.4 * lift), 6 * (1 - 0.4 * lift), 0, 0, TAU); ctx.fill();
-        if (sk === "ghost") for (let k = 4; k >= 1; k--) { const tg = lt - k * 0.02; if (tg < st.windup) continue; const ff = clamp01((tg - st.windup) / st.active), ll = 1 - ff * ff; hammer(hx, y + s * (reach * 0.7) - 26 * ll, 1 + 0.45 * ll, 0.4 - k * 0.08); }
-        if (sk === "energy" && lt < st.windup) ring(ctx, cx, cy, 26, 2, rgba(w.color, 0.6));
-        hammer(hx, hy, sc, 1);
+      if (lt < end) {
+        const q = pose(lt);
+        shadow(q);
+        if (lt > st.windup && (sk === "energy" || sk === "combo" || sk === "smear")) {
+          // The head's path so far: a burning trail (D, E) or a solid smear (B).
+          const t0 = Math.max(st.windup, lt - (sk === "smear" ? 0.2 : 0.11)), n = 12, pts = [];
+          for (let i = 0; i <= n; i++) pts.push(headAt(pose(t0 + (lt - t0) * i / n)));
+          ctx.save();
+          if (sk !== "smear") { ctx.globalCompositeOperation = "lighter"; ctx.shadowColor = w.color; ctx.shadowBlur = 18; }
+          for (let i = 1; i <= n; i++) {
+            const f = i / n; ctx.strokeStyle = rgba(sk === "smear" ? w.color : w.color, (sk === "smear" ? 0.55 : 0.7) * f); ctx.lineWidth = 6 + 22 * f; ctx.lineCap = "round";
+            ctx.beginPath(); ctx.moveTo(pts[i - 1].x, pts[i - 1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+          }
+          ctx.shadowBlur = 0; ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 2.5;
+          ctx.beginPath(); pts.forEach((p2, i) => i ? ctx.lineTo(p2.x, p2.y) : ctx.moveTo(p2.x, p2.y)); ctx.stroke();
+          ctx.restore();
+        }
+        if (sk === "ghost" || sk === "weighted") for (let g = sk === "ghost" ? 5 : 2; g >= 1; g--) { const tg = lt - g * 0.022; if (tg < st.windup) continue; hammer(pose(tg), (sk === "ghost" ? 0.42 : 0.25) - g * 0.07, false); }
+        if ((sk === "energy" || sk === "combo") && lt < st.windup) ring(ctx, cx, cy, 30, 2, rgba(w.color, 0.5 * (lt / Math.max(st.windup, 1e-6))));
+        if (sk !== "smear" && sk !== "energy") hammer(q, 1, sk === "combo");
+        else if (sk === "smear" && lt < st.windup) hammer(q, 1, false);
+        else if (sk === "energy") hammer(q, lt < st.windup ? 1 : 0.35, true);
         return;
       }
+      const hit = pose(end);
       const k = clamp01(after / st.tail);
       if (sk === "weighted") {
         box(0.18 * (1 - k));
@@ -437,33 +477,37 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
         ring(ctx, cx, cy, 18 + 70 * easeOut(k * 1.6), 4 * (1 - k) + 1, `rgba(255,236,210,${0.8 * (1 - k)})`);
         for (let i = 0; i < 8; i++) { const a = R() * TAU, d = (30 + 40 * R()) * easeOut(k * 2); ctx.fillStyle = `rgba(200,184,160,${0.35 * (1 - k)})`; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 6 + 10 * k, 0, TAU); ctx.fill(); }
         for (let i = 0; i < 9; i++) { const a = R() * TAU, v = 90 + 120 * R(), d = v * after, up = 160 * after - 420 * after * after; if (after > 0.35) continue; ctx.fillStyle = "#9a8a76"; ctx.fillRect(cx + Math.cos(a) * d - 2, cy + Math.sin(a) * d * 0.6 - Math.max(0, up) - 2, 4, 4); }
-        hammer(cx, cy, 1, 1 - clamp01((after - 0.15) / 0.2));
+        hammer(hit, 1 - clamp01((after - 0.15) / 0.2), false);
         return;
       }
       if (sk === "smear") {
         for (let i = 0; i < 14; i++) { const a = i / 14 * TAU + 0.2, r0 = 16 + 50 * easeOut(k), r1 = r0 + 26 * (1 - k); ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - k)})`; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.stroke(); }
         ring(ctx, cx, cy, 20 + 70 * easeOut(k), 6 * (1 - k), rgba(w.color, 0.8 * (1 - k)));
         if (after < 0.06) { ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - after / 0.06)})`; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, TAU); ctx.fill(); }
-        hammer(cx, cy, 1, 1 - clamp01(after / 0.12));
+        hammer(hit, 1 - clamp01(after / 0.12), false);
         return;
       }
       if (sk === "ghost") {
         ring(ctx, cx, cy, 18 + 60 * easeOut(k), 3 * (1 - k) + 1, `rgba(255,255,255,${0.8 * (1 - k)})`);
         for (let i = 0; i < 10; i++) { const a = i / 10 * TAU + R() * 0.3, d = 14 + 70 * easeOut(k); ctx.save(); ctx.translate(cx + Math.cos(a) * d, cy + Math.sin(a) * d); ctx.rotate(a + k * 4); ctx.fillStyle = rgba(w.color, 0.9 * (1 - k)); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(4, 3); ctx.lineTo(-4, 3); ctx.closePath(); ctx.fill(); ctx.restore(); }
-        hammer(cx, cy, 1, 1 - clamp01((after - 0.12) / 0.15));
+        hammer(hit, 1 - clamp01((after - 0.12) / 0.15), false);
         return;
       }
-      if (sk === "energy") {
+      if (sk === "energy" || sk === "combo") {
         ctx.save(); ctx.globalCompositeOperation = "lighter";
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
         g.addColorStop(0, rgba("#ffffff", 0.7 * (1 - k))); g.addColorStop(0.4, rgba(w.color, 0.35 * (1 - k))); g.addColorStop(1, rgba(w.color, 0));
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 60, 0, TAU); ctx.fill();
         ring(ctx, cx, cy, 46, 2, rgba(w.color, 0.9 * (1 - k)));
         for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + after * 2; ctx.strokeStyle = rgba(w.color, 0.8 * (1 - k)); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, 38, a, a + 0.22); ctx.stroke(); }
-        if (after < 0.2) { const pk = 1 - after / 0.2; ctx.fillStyle = rgba("#ffffff", 0.5 * pk); ctx.fillRect(cx - 10 * pk, cy - 120, 20 * pk, 120); }
+        if (after < 0.22) {  // a pillar of light, fading upward
+          const pk = 1 - after / 0.22, pg = ctx.createLinearGradient(0, cy, 0, cy - 130);
+          pg.addColorStop(0, rgba("#ffffff", 0.7 * pk)); pg.addColorStop(0.4, rgba(w.color, 0.4 * pk)); pg.addColorStop(1, rgba(w.color, 0));
+          ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(cx, cy - 60, 12 * pk + 3, 70, 0, 0, TAU); ctx.fill();
+        }
         for (let i = 0; i < 16; i++) { const a = R() * TAU, v = 30 + 50 * R(), age = after - 0.05 * R(); if (age < 0) continue; ctx.fillStyle = rgba(i % 2 ? w.color : "#ffe2b0", 0.9 * (1 - k)); ctx.fillRect(cx + Math.cos(a) * (20 + v * age), cy + Math.sin(a) * (20 + v * age) - 40 * age, 3, 3); }
         ctx.restore();
-        hammer(cx, cy, 1, 1 - clamp01(after / 0.15));
+        hammer(hit, sk === "combo" ? 1 - clamp01((after - 0.15) / 0.2) : 1 - clamp01(after / 0.15), sk === "combo" && after < 0.15);
         return;
       }
     }
@@ -507,7 +551,7 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
 
   // --- Page wiring ---
   const arena = document.getElementById("arena"), actx = arena.getContext("2d");
-  let style = "weighted", weapon = "greatsword", speed = 1, clock = 0, last = performance.now();
+  let style = "combo", weapon = "greatsword", speed = 1, clock = 0, last = performance.now();
   const PERIOD = 1.6, AUTO = ["greatsword", "twin", "halberd", "rapier", "hammer"];
   let autoCycle = true;
   function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; return r; }
@@ -533,8 +577,8 @@ button .k { font: 700 12px var(--font-display); color: var(--teal); margin-right
   const strip = document.getElementById("strip"), frames = [];
   for (let i = 0; i < 6; i++) { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); const sp = document.createElement("span"); f.append(cv, sp); strip.appendChild(f); frames.push({ cv, sp }); }
   function drawStrip() {
-    const st = STYLES[style], w = WEAPONS[weapon], end = st.windup + st.active + (w.parts.at(-1).delay || 0);
-    const times = [0, st.windup * 0.8, st.windup + st.active * 0.45, end, end + 0.1, end + 0.28];
+    const st = STYLES[style], w = WEAPONS[weapon], end = st.windup + actFor(st, w.parts[0]) + (w.parts.at(-1).delay || 0);
+    const times = [0, st.windup * 0.8, st.windup + actFor(st, w.parts[0]) * (w.parts[0].kind === "slam" ? 0.78 : 0.5), end, end + 0.1, end + 0.28];
     const reach = Math.max(...w.parts.map(p => p.reach));
     const size = Math.max(150, reach * 2 + 60), cx = PLAYER.x + Math.cos(AIM) * reach * 0.45, cy = PLAYER.y;
     frames.forEach((f, i) => {
