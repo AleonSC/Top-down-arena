@@ -1,0 +1,529 @@
+<title>Frost Lance Visuals</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The field-manual look of the other mockups. On top, a patch of arena at the game's scale (1 canvas px = 1 arena
+   px): an Elementalist, five target dummies, and the Frost Lance cast on a loop in the picked look. Under it, the
+   controls and a strip of still frames through one cast. Then one card per look, then build notes.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --ice: #8fe3ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--ice); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14262c; border-color: var(--ice); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--ice); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; padding: 0 16px 16px; }
+.frame { display: grid; gap: 4px; min-width: 0; }
+.frame canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 10; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.frame span { font: 500 11px var(--font-data); color: var(--muted); text-align: center; }
+
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--ice); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--ice); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+
+@media (max-width: 700px) {
+  .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .now { margin-left: 0; width: 100%; }
+}
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Frost Lance · pick a look</div>
+    <h1>Frost Lance <span>visuals</span></h1>
+    <p class="lead">The Elementalist Tank's Frost Lance juts a 230 px icicle out along your aim (18 damage), then splinters
+      off its sides into enemies up to 60 px beside it (50%). Both slow by 30%. Today that's a flat blue wedge and a few
+      small triangles. Below are four other looks, drawn at the game's real reach and timing, with today's look for
+      comparison. Hits, reach and timing don't change: this is drawing only.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Look</span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="again">Cast again</button>
+      </div>
+      <div class="group"><span class="label">Hit frost</span>
+        <button id="frostOn" aria-pressed="true">On</button><button id="frostOff" aria-pressed="false">Off</button>
+      </div>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="strip" id="strip" aria-label="Still frames through one cast"></div>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:12px">The looks</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>All of this is drawing, on each screen. The icicle is <code>FxKind.Icicle</code> (<code>DrawIcicleFx</code>) and the splinters are <code>FxKind.Splinter</code> (<code>DrawSplinterFx</code>), both in <code>Game/WorldEffects.cs</code>. Hits, slow, reach and the 0.15 s splinter delay stay in <code>Core/Knight.cs</code> and <code>Core/KitWeapons.cs</code>, so none of these need a protocol change.</li>
+      <li>The <b>hit frost</b> on enemies (the pale tint and frost spikes that fade over about 1.5 s, showing the 30% slow) needs a small per-enemy timer the drawing code can read. Enemies already show a frozen look (<code>WorldEnemies.cs</code>); this would reuse it. The toggle above shows each look with and without it.</li>
+      <li>The ground frost in B and C lingers about a second on each screen as a purely visual effect (no gameplay), like the other floor decals.</li>
+      <li>Look D matches the glowing arc direction picked for the melee weapons, so it would sit with them best. B and C are the most distinctly "ice".</li>
+      <li>With <b>Visual effects</b> off, the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>). The new look only shows with effects on, like the other effects.</li>
+      <li>Extra projectiles make the icicle longer and the splinters fly further: every look scales with the real reach and spread, shown here at the base 230 and 60.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const easeOut2 = x => 1 - Math.pow(1 - clamp01(x), 2);
+  const backOut = x => { x = clamp01(x); const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  // --- The game's numbers (Core/Minions.cs, Knight.cs): reach and spread in arena px, times in seconds ---
+  const REACH = 230, W = 14, SPREAD = 60, SPLINTER_AT = 0.15, ICICLE_FX = 0.4, SPLINTER_FX = 0.3;
+  const O = { x: 110, y: 190 };
+  const DUMMIES = [
+    { x: O.x + 120, y: O.y,       kind: "line" },
+    { x: O.x + 205, y: O.y - 8,   kind: "line" },
+    { x: O.x + 92,  y: O.y - 46,  kind: "side" },
+    { x: O.x + 168, y: O.y + 48,  kind: "side" },
+    { x: O.x + 262, y: O.y + 36,  kind: "out" },
+  ];
+  DUMMIES.forEach(d => { d.hitAt = d.kind === "line" ? 0.03 + (d.x - O.x) / REACH * 0.05 : d.kind === "side" ? SPLINTER_AT + 0.03 + (d.x - O.x) / REACH * 0.06 : null; });
+
+  let frostHits = true;
+
+  // ---------- small drawing helpers (local space: the lance points along +x, sides are ±y) ----------
+  const poly = (c, pts, fill, stroke, lw) => {
+    c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+    c.closePath();
+    if (fill) { c.fillStyle = fill; c.fill(); }
+    if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); }
+  };
+  const line = (c, x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const star4 = (c, x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+  const flake = (c, x, y, r, col, rot) => {
+    c.save(); c.translate(x, y); c.rotate(rot); c.strokeStyle = col; c.lineWidth = 1; c.lineCap = "round";
+    for (let i = 0; i < 3; i++) { c.rotate(Math.PI / 3); c.beginPath(); c.moveTo(-r, 0); c.lineTo(r, 0); c.moveTo(r * 0.55, -r * 0.3); c.lineTo(r * 0.55, r * 0.3); c.moveTo(-r * 0.55, -r * 0.3); c.lineTo(-r * 0.55, r * 0.3); c.stroke(); }
+    c.restore();
+  };
+  const glow = (c, col, blur) => { c.shadowColor = col; c.shadowBlur = blur; };
+  const noGlow = c => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const kite = (c, x, y, ang, len, wid, light, dark) => {
+    c.save(); c.translate(x, y); c.rotate(ang);
+    poly(c, [[len, 0], [0, -wid], [-len * 0.45, 0]], light);
+    poly(c, [[len, 0], [0, wid], [-len * 0.45, 0]], dark);
+    c.restore();
+  };
+
+  // ---------- The looks. Each: { name, cast(c, t) in local space, hit(c, d, tt, wx) in world space } ----------
+  // t is seconds since the cast. The icicle appears at 0 and the splinters at SPLINTER_AT, as in the game.
+  const LOOKS = {};
+
+  // Today: a port of DrawIcicleFx and DrawSplinterFx.
+  LOOKS.current = {
+    key: "Now", name: "Today's look", life: 0.5,
+    cast(c, t) {
+      const f = t / ICICLE_FX;
+      if (f < 1) {
+        const g0 = Math.min(1, f / 0.2), g = 1 - (1 - g0) * (1 - g0), fade = f < 0.6 ? 1 : 1 - (f - 0.6) / 0.4, w = W, L = REACH * g;
+        c.fillStyle = `rgba(153,230,255,${0.18 * fade})`; poly(c, [[0, -w - 6], [L + 8, 0], [0, w + 6]], c.fillStyle);
+        poly(c, [[0, -w], [L, 0], [0, w]], `rgba(199,240,255,${0.85 * fade})`);
+        poly(c, [[0, -w], [L, 0], [0, w * 0.2]], `rgba(255,255,255,${0.6 * fade})`);
+        line(c, 0, 0, L, 0, `rgba(255,255,255,${0.8 * fade})`, 1.2);
+        for (let k = 1; k <= 4; k++) { const at = REACH * g * k / 5, h = w * (1 - k / 5); line(c, at, -h, at + 6 - h * 0.7, -h * 0.3, `rgba(255,255,255,${0.5 * fade})`, 1.5); line(c, at, h, at + 6 - h * 0.7, h * 0.3, `rgba(255,255,255,${0.5 * fade})`, 1.5); }
+        if (f > 0.35) { const k = Math.min(1, (f - 0.35) / 0.15); for (let i = 0; i < 3; i++) { const at = REACH * (0.25 + 0.25 * i), h = w * (1 - (0.25 + 0.25 * i)) * k; line(c, at + 4, -h, at - 4, h, `rgba(89,153,217,${0.8 * fade})`, 1.2); } }
+      }
+      const s = (t - SPLINTER_AT) / SPLINTER_FX;
+      if (s > 0 && s < 1) {
+        const e = 1 - (1 - s) * (1 - s), fade = 1 - s, r = rnd(7);
+        c.fillStyle = `rgba(153,230,255,${0.1 * fade})`;
+        poly(c, [[0, -SPREAD * e], [REACH, -SPREAD * e], [REACH, SPREAD * e], [0, SPREAD * e]], c.fillStyle);
+        const n = Math.max(4, Math.floor(REACH / 22));
+        for (let i = 0; i < n; i++) for (const sg of [-1, 1]) {
+          const along = REACH * (i + 0.3 + 0.4 * r()) / n, tilt = (r() - 0.5) * 0.8, len = 7 + 6 * r();
+          const hx = tilt, hy = sg, hl = Math.hypot(hx, hy), ux = hx / hl, uy = hy / hl;
+          const ax = along + ux * SPREAD * e * (0.6 + 0.4 * r()), ay = uy * SPREAD * e * (0.6 + 0.4 * r());
+          const bx = ax - ux * len, by = ay - uy * len;
+          poly(c, [[ax + ux * 3, ay + uy * 3], [bx - uy * 2.2, by + ux * 2.2], [bx + uy * 2.2, by - ux * 2.2]], `rgba(199,240,255,${0.95 * fade})`);
+          line(c, bx - ux * 6, by - uy * 6, bx, by, `rgba(255,255,255,${0.4 * fade})`, 1);
+        }
+      }
+    },
+    hit: null
+  };
+
+  // A: a faceted crystal spear that shatters into kite-shaped shards.
+  LOOKS.crystal = {
+    key: "A", name: "Crystal spear", life: 0.65,
+    cast(c, t) {
+      const ex = backOut(t / 0.09), L = REACH * Math.min(1.05, ex), w = W;
+      const fade = t < 0.2 ? 1 : 1 - clamp01((t - 0.2) / 0.16);
+      if (fade > 0) {
+        c.save(); c.globalAlpha = fade;
+        // cold haze
+        const hz = c.createLinearGradient(0, 0, L, 0); hz.addColorStop(0, "rgba(120,210,255,0.22)"); hz.addColorStop(1, "rgba(120,210,255,0)");
+        poly(c, [[0, -w * 2.2], [L, 0], [0, w * 2.2]], hz);
+        const top = [[0, 0], [0, -w * 0.55], [L * 0.28, -w], [L * 0.88, -w * 0.28], [L, 0]];
+        const bot = [[0, 0], [0, w * 0.55], [L * 0.28, w], [L * 0.88, w * 0.28], [L, 0]];
+        glow(c, "rgba(130,220,255,0.9)", 14);
+        poly(c, top, "#c9f4ff"); poly(c, bot, "#58b0e6");
+        noGlow(c);
+        // inner facets
+        poly(c, [[L * 0.28, -w], [L * 0.88, -w * 0.28], [L * 0.5, 0], [L * 0.1, -w * 0.3]], "rgba(255,255,255,0.35)");
+        poly(c, [[L * 0.28, w], [L * 0.88, w * 0.28], [L * 0.6, 0], [L * 0.2, w * 0.3]], "rgba(20,70,140,0.35)");
+        line(c, L * 0.28, -w, L, 0, "rgba(255,255,255,0.9)", 1.3);
+        line(c, L * 0.28, w, L, 0, "rgba(220,245,255,0.5)", 1);
+        line(c, 0, 0, L, 0, "rgba(255,255,255,0.95)", 1.6);
+        line(c, L * 0.28, -w, L * 0.28, w, "rgba(255,255,255,0.35)", 1);
+        // glints sliding along it
+        for (let i = 0; i < 3; i++) { const gx = ((t * 700 + i * 90) % (L + 1)); star4(c, gx, (i - 1) * w * 0.25 * (1 - gx / REACH), 3 + (i % 2) * 2, "rgba(255,255,255,0.95)"); }
+        // the crack: a white flash along it just before the splinters
+        const cf = clamp01(1 - Math.abs(t - 0.13) / 0.05);
+        if (cf > 0) { c.globalAlpha = fade * cf * 0.8; poly(c, top, "#ffffff"); poly(c, bot, "#ffffff"); }
+        c.restore();
+        // cracks
+        if (t > 0.08) for (let i = 0; i < 4; i++) { const at = L * (0.2 + 0.2 * i), h = w * (1 - at / REACH) * 0.9; line(c, at + 5, -h, at - 3, h * 0.2, `rgba(60,120,190,${0.8 * fade})`, 1.2); }
+      }
+      // splinters: tumbling kite shards, with a sparkle as each one lands
+      const s = (t - SPLINTER_AT) / 0.4;
+      if (s > 0 && s < 1) {
+        const r = rnd(11), e = easeOut(s * 1.15), n = Math.floor(REACH / 17);
+        for (let i = 0; i < n; i++) for (const sg of [-1, 1]) {
+          const along = REACH * (i + 0.2 + 0.6 * r()) / n, reach = SPREAD * (0.55 + 0.45 * r()), len = 7 + 6 * r(), spin = (r() - 0.5) * 9, tilt = (r() - 0.5) * 0.7;
+          const x = along + tilt * reach * e * 0.6, y = sg * (W * 0.7 + (reach - W * 0.7) * e), a = Math.atan2(sg, tilt) + spin * s;
+          c.globalAlpha = clamp01(1.6 - s * 1.6);
+          glow(c, "rgba(140,225,255,0.8)", 8);
+          kite(c, x, y, a, len, len * 0.38, "#e6fbff", "#5db6ea");
+          noGlow(c);
+          if (s > 0.55) star4(c, x, y, 5 * (1 - s) * 2.2, "rgba(255,255,255,0.9)");
+        }
+        c.globalAlpha = 1;
+      }
+    },
+    hit(c, d, tt) {
+      // facet flashes where a shard lands
+      const r = rnd(Math.floor(d.x * 7 + d.y)); c.save();
+      for (let i = 0; i < 6; i++) { const a = r() * TAU, k = easeOut(tt / 0.25), fade = 1 - clamp01(tt / 0.3); kite(c, d.x + Math.cos(a) * (10 + 18 * k), d.y + Math.sin(a) * (10 + 18 * k), a, 5, 2, `rgba(230,250,255,${fade})`, `rgba(90,180,235,${fade})`); }
+      c.restore();
+    }
+  };
+
+  // B: ice grows out of the ground like frost on glass: a trunk with branches, that then reach out as the splinters.
+  LOOKS.growth = {
+    key: "B", name: "Frost growth", life: 1.3,
+    cast(c, t) {
+      const prog = easeOut(t / 0.13), Lp = REACH * prog;
+      const hold = t < 0.3 ? 1 : 1 - clamp01((t - 0.3) / 0.25);
+      // ground rime: a jagged frosted patch, lingering after
+      const rim = (t < 0.16 ? t / 0.16 : 1 - clamp01((t - 0.55) / 0.7)) * 0.9;
+      if (rim > 0) {
+        const r = rnd(5), top = [], bot = [];
+        for (let x = -8; x <= REACH + 24; x += 11) { const e = Math.sin(clamp01(x / (REACH + 24)) * Math.PI) ** 0.5; const j = 0.6 + 0.4 * r(); if (x <= Lp + 30) { top.push([x, -(SPREAD * 0.55 + (SPREAD * 0.5) * clamp01((t - SPLINTER_AT) / 0.25) * j) * e]); bot.push([x, (SPREAD * 0.55 + (SPREAD * 0.5) * clamp01((t - SPLINTER_AT) / 0.25) * (0.6 + 0.4 * r())) * e]); } }
+        if (top.length > 2) {
+          const pts = top.concat(bot.reverse()); c.globalAlpha = rim;
+          poly(c, pts, "rgba(150,215,255,0.13)", "rgba(190,235,255,0.35)", 1);
+          const rr = rnd(21); for (let i = 0; i < 28; i++) { const x = rr() * Math.min(REACH, Lp), y = (rr() - 0.5) * SPREAD * 1.4 * Math.sin(clamp01(x / REACH) * Math.PI) ** 0.5; flake(c, x, y, 2 + rr() * 3, "rgba(220,245,255,0.7)", rr() * TAU); }
+          c.globalAlpha = 1;
+        }
+      }
+      if (hold <= 0) return;
+      c.save(); c.globalAlpha = hold; glow(c, "rgba(130,225,255,0.9)", 10);
+      // trunk, tapering
+      poly(c, [[0, -W * 0.45], [Lp, 0], [0, W * 0.45]], "#d6f6ff");
+      line(c, 0, 0, Lp, 0, "rgba(255,255,255,0.95)", 1.3);
+      // branches: pairs along the trunk, growing as the trunk passes, and reaching out as the splinters
+      const sp = easeOut((t - SPLINTER_AT) / 0.22);
+      const N = 9;
+      for (let i = 1; i <= N; i++) {
+        const s = REACH * i / (N + 0.6); if (s > Lp) break;
+        const gr = clamp01((Lp - s) / 55), base = 26 * (1 - i / (N + 2)) + 6, len = (base + (SPREAD * 0.9 - base) * sp) * gr;
+        for (const sg of [-1, 1]) {
+          const ang = sg * (1.05 - 0.18 * sp), ex = Math.cos(ang) * len, ey = Math.sin(ang) * len;
+          const x0 = s, y0 = sg * W * 0.35 * (1 - s / REACH);
+          line(c, x0, y0, x0 + ex, y0 + ey, "rgba(205,244,255,0.95)", 2);
+          for (const f of [0.45, 0.75]) {
+            const tx = x0 + ex * f, ty = y0 + ey * f, tl = len * (0.36 - 0.1 * f), ta = ang + sg * 0.75;
+            line(c, tx, ty, tx + Math.cos(ta) * tl, ty + Math.sin(ta) * tl, "rgba(205,244,255,0.85)", 1.3);
+            line(c, tx, ty, tx + Math.cos(ang - sg * 0.75) * tl, ty + Math.sin(ang - sg * 0.75) * tl, "rgba(205,244,255,0.85)", 1.3);
+          }
+          if (sp > 0.05) kite(c, x0 + ex, y0 + ey, ang, 5 + 2 * sp, 2, "#ffffff", "#8fd6f7");
+        }
+      }
+      noGlow(c); star4(c, Lp, 0, 7 + 3 * Math.sin(t * 40), "rgba(255,255,255,0.95)");
+      c.restore();
+    },
+    hit(c, d, tt) {
+      // frost creeping over the ground under it
+      const k = easeOut(tt / 0.3), fade = tt < 1 ? 1 : 1 - clamp01((tt - 1) / 0.5), r = rnd(Math.floor(d.x * 3 + d.y * 5)); c.save(); c.globalAlpha = fade;
+      c.strokeStyle = "rgba(200,240,255,0.8)"; c.lineWidth = 1.2; c.lineCap = "round";
+      for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + r() * 0.3, l = (14 + 14 * r()) * k; c.beginPath(); c.moveTo(d.x + Math.cos(a) * 12, d.y + Math.sin(a) * 12); c.lineTo(d.x + Math.cos(a) * (12 + l), d.y + Math.sin(a) * (12 + l)); c.stroke();
+        const b = a + 0.6; c.beginPath(); c.moveTo(d.x + Math.cos(a) * (12 + l * 0.6), d.y + Math.sin(a) * (12 + l * 0.6)); c.lineTo(d.x + Math.cos(a) * (12 + l * 0.6) + Math.cos(b) * l * 0.3, d.y + Math.sin(a) * (12 + l * 0.6) + Math.sin(b) * l * 0.3); c.stroke(); }
+      c.restore();
+    }
+  };
+
+  // C: a heavy glacier slab with cold mist, snow puffs on contact and chunks of ice that tumble out.
+  LOOKS.glacier = {
+    key: "C", name: "Glacier", life: 1.1,
+    cast(c, t) {
+      const ex = easeOut2(t / 0.1), L = REACH * ex, w = W * 1.15;
+      const fade = t < 0.24 ? 1 : 1 - clamp01((t - 0.24) / 0.22);
+      // mist: soft puffs along it, drifting back and out
+      const r = rnd(33);
+      for (let i = 0; i < 34; i++) {
+        const born = r() * 0.2, life = 0.5 + r() * 0.35, u = (t - born) / life; if (u <= 0 || u >= 1) { r(); r(); r(); continue; }
+        const x = r() * Math.min(REACH, L) - 30 * u, side = (r() - 0.5) * 2, rad = 10 + 16 * r() + 14 * u, y = side * (w + 14 * u * 2) * (0.4 + 0.6 * u);
+        const gr = c.createRadialGradient(x, y, 0, x, y, rad); gr.addColorStop(0, `rgba(215,245,255,${0.16 * (1 - u)})`); gr.addColorStop(1, "rgba(215,245,255,0)");
+        c.fillStyle = gr; c.beginPath(); c.arc(x, y, rad, 0, TAU); c.fill();
+      }
+      if (fade > 0) {
+        c.save(); c.globalAlpha = fade;
+        const g = c.createLinearGradient(0, 0, L, 0); g.addColorStop(0, "#5cb3e6"); g.addColorStop(0.5, "#a6e3fb"); g.addColorStop(1, "#effcff");
+        glow(c, "rgba(120,210,255,0.85)", 16);
+        poly(c, [[0, -w], [L * 0.6, -w * 0.9], [L, 0], [L * 0.6, w * 0.9], [0, w]], g);
+        noGlow(c);
+        // inner refraction bands and a bright edge
+        poly(c, [[L * 0.05, -w * 0.55], [L * 0.62, -w * 0.45], [L * 0.9, -w * 0.05], [L * 0.1, -w * 0.12]], "rgba(255,255,255,0.28)");
+        line(c, 0, -w, L * 0.6, -w * 0.9, "rgba(255,255,255,0.9)", 1.4); line(c, L * 0.6, -w * 0.9, L, 0, "rgba(255,255,255,0.95)", 1.4);
+        line(c, 0, w, L * 0.6, w * 0.9, "rgba(40,110,190,0.8)", 1.4); line(c, L * 0.6, w * 0.9, L, 0, "rgba(120,190,235,0.9)", 1.2);
+        for (let i = 0; i < 5; i++) { const x = L * (0.12 + 0.17 * i), y = (i % 2 ? 1 : -1) * w * 0.35; line(c, x, y, x + 12, y * 0.4, "rgba(255,255,255,0.45)", 1); }
+        // frozen bubbles
+        const rb = rnd(9); for (let i = 0; i < 7; i++) { const x = rb() * L * 0.85 + 6, y = (rb() - 0.5) * w * 1.1 * (1 - x / REACH); c.beginPath(); c.arc(x, y, 1 + rb() * 1.6, 0, TAU); c.strokeStyle = "rgba(255,255,255,0.55)"; c.lineWidth = 0.8; c.stroke(); }
+        c.restore();
+      }
+      // splinters: heavy chunks, spinning off with a trail of snow
+      const s = (t - SPLINTER_AT) / 0.38;
+      if (s > 0 && s < 1) {
+        const rc = rnd(17), e = easeOut(s * 1.1), n = Math.floor(REACH / 20);
+        for (let i = 0; i < n; i++) for (const sg of [-1, 1]) {
+          const along = REACH * (i + 0.2 + 0.6 * rc()) / n, reach = SPREAD * (0.5 + 0.5 * rc()), sz = 4.5 + 5 * rc(), spin = (rc() - 0.5) * 12, tilt = (rc() - 0.5) * 0.6;
+          const x = along + tilt * reach * e * 0.5, y = sg * (w * 0.8 + (reach - w * 0.8) * e);
+          c.save(); c.globalAlpha = clamp01(1.7 - s * 1.7); c.translate(x, y); c.rotate(spin * s);
+          for (let k = 1; k <= 3; k++) { c.fillStyle = `rgba(235,250,255,${0.12 * (4 - k)})`; c.beginPath(); c.arc(-k * 4 * Math.cos(0) , -sg * k * 3.2, sz * 0.35, 0, TAU); c.fill(); }
+          glow(c, "rgba(130,215,255,0.7)", 6);
+          poly(c, [[sz, 0], [sz * 0.3, -sz * 0.9], [-sz * 0.8, -sz * 0.5], [-sz * 0.7, sz * 0.6], [sz * 0.2, sz * 0.9]], "#cdf1ff", "rgba(255,255,255,0.9)", 1);
+          noGlow(c); poly(c, [[sz * 0.3, -sz * 0.2], [-sz * 0.6, -sz * 0.3], [-sz * 0.5, sz * 0.4]], "rgba(70,150,215,0.5)");
+          c.restore();
+        }
+      }
+    },
+    hit(c, d, tt) {
+      // snow puffs and a lingering patch of ice under the enemy
+      const r = rnd(Math.floor(d.x * 11 + d.y * 3)), fade = tt < 0.9 ? 1 : 1 - clamp01((tt - 0.9) / 0.5); c.save();
+      c.globalAlpha = 0.5 * fade; poly(c, Array.from({ length: 14 }, (_, i) => { const a = i / 14 * TAU, rad = (i % 2 ? 24 : 31) * (0.85 + 0.15 * r()) * easeOut(tt / 0.2); return [d.x + Math.cos(a) * rad, d.y + Math.sin(a) * rad]; }), "rgba(170,225,250,0.35)", "rgba(220,245,255,0.7)", 1);
+      c.globalAlpha = 1;
+      for (let i = 0; i < 9; i++) { const a = r() * TAU, k = easeOut(tt / 0.35), pf = 1 - clamp01(tt / 0.4); c.fillStyle = `rgba(245,252,255,${0.7 * pf})`; c.beginPath(); c.arc(d.x + Math.cos(a) * (8 + 26 * k * (0.5 + r() * 0.5)), d.y + Math.sin(a) * (8 + 26 * k * (0.5 + r() * 0.5)), 2 + 3 * (1 - k) * r() + 1.5, 0, TAU); c.fill(); }
+      c.restore();
+    }
+  };
+
+  // D: a glowing lance of light: a white core with aurora ribbons, a star at the tip and needles of light as splinters.
+  LOOKS.aurora = {
+    key: "D", name: "Aurora lance", life: 0.85,
+    cast(c, t) {
+      const ex = easeOut(t / 0.07), L = REACH * ex;
+      const life = t < 0.22 ? 1 : 1 - clamp01((t - 0.22) / 0.3);
+      c.save(); c.globalCompositeOperation = "lighter";
+      if (life > 0) {
+        // ribbons
+        const cols = [[90, 255, 220], [110, 190, 255], [175, 150, 255]];
+        for (let k = 0; k < 3; k++) {
+          const amp = W * (1.15 - 0.2 * k) * life, ph = k * 2.1 + t * 16;
+          c.beginPath(); c.moveTo(0, 0);
+          for (let x = 0; x <= L; x += 6) c.lineTo(x, Math.sin(x * 0.045 + ph) * amp * Math.pow(1 - x / REACH, 0.55) * (k % 2 ? -1 : 1));
+          c.lineTo(L, 0); c.closePath();
+          const g = c.createLinearGradient(0, 0, L, 0); g.addColorStop(0, `rgba(${cols[k]},${0.2 * life})`); g.addColorStop(1, `rgba(${cols[k]},0)`);
+          c.fillStyle = g; c.fill();
+          c.beginPath(); for (let x = 0; x <= L; x += 6) { const y = Math.sin(x * 0.045 + ph) * amp * Math.pow(1 - x / REACH, 0.55) * (k % 2 ? -1 : 1); x ? c.lineTo(x, y) : c.moveTo(x, y); }
+          c.strokeStyle = `rgba(${cols[k]},${0.65 * life})`; c.lineWidth = 2; c.lineCap = "round"; glow(c, `rgba(${cols[k]},0.9)`, 10); c.stroke(); noGlow(c);
+        }
+        // the core
+        const cg = c.createLinearGradient(0, 0, L, 0); cg.addColorStop(0, `rgba(180,235,255,${0.9 * life})`); cg.addColorStop(1, `rgba(255,255,255,${life})`);
+        glow(c, "rgba(140,225,255,1)", 22); line(c, 0, 0, L, 0, cg, 3.4 * life + 0.6); noGlow(c);
+        line(c, 0, 0, L, 0, `rgba(255,255,255,${life})`, 1.4);
+        // tip flare
+        const fl = 11 + 5 * Math.sin(t * 50) + (t < 0.08 ? 10 : 0);
+        star4(c, L, 0, fl * life, "rgba(255,255,255,0.95)"); c.save(); c.translate(L, 0); c.rotate(Math.PI / 4); star4(c, 0, 0, fl * 0.6 * life, "rgba(170,235,255,0.8)"); c.restore();
+        // snowflakes drifting off it
+        const r = rnd(41); for (let i = 0; i < 9; i++) { const x = r() * L, born = r() * 0.2, u = (t - born) / 0.55; if (u > 0 && u < 1) flake(c, x - 12 * u, (r() < 0.5 ? -1 : 1) * (W + 18 * u * (0.6 + r())), 3 + 2 * r(), `rgba(220,248,255,${0.9 * (1 - u)})`, u * 3 + r() * TAU); else { r(); r(); } }
+      }
+      // splinters: needles of light with long trails
+      const s = (t - SPLINTER_AT) / 0.34;
+      if (s > 0 && s < 1) {
+        const r = rnd(23), e = easeOut(s * 1.2), n = Math.floor(REACH / 15);
+        for (let i = 0; i < n; i++) for (const sg of [-1, 1]) {
+          const along = REACH * (i + 0.2 + 0.6 * r()) / n, reach = SPREAD * (0.55 + 0.45 * r()), tilt = (r() - 0.5) * 0.8;
+          const hx = tilt, hy = sg, hl = Math.hypot(hx, hy), ux = hx / hl, uy = hy / hl;
+          const d1 = W * 0.6 + (reach - W * 0.6) * e, d0 = Math.max(W * 0.6, d1 - 34), a = clamp01(1.5 - s * 1.5);
+          const x1 = along + ux * d1 * 0.9, y1 = uy * d1, x0 = along + ux * d0 * 0.9, y0 = uy * d0;
+          const g = c.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, "rgba(120,220,255,0)"); g.addColorStop(1, `rgba(235,252,255,${a})`);
+          glow(c, "rgba(130,225,255,0.9)", 8); line(c, x0, y0, x1, y1, g, 2.2); noGlow(c);
+          c.fillStyle = `rgba(255,255,255,${a})`; c.beginPath(); c.arc(x1, y1, 1.8, 0, TAU); c.fill();
+        }
+      }
+      c.restore();
+    },
+    hit(c, d, tt) {
+      // a burst of snowflakes and a pulse ring
+      const r = rnd(Math.floor(d.x * 13 + d.y)); c.save(); c.globalCompositeOperation = "lighter";
+      const k = easeOut(tt / 0.4), fade = 1 - clamp01(tt / 0.5);
+      c.strokeStyle = `rgba(160,230,255,${0.8 * fade})`; c.lineWidth = 2; c.beginPath(); c.arc(d.x, d.y, 10 + 26 * k, 0, TAU); c.stroke();
+      for (let i = 0; i < 6; i++) { const a = r() * TAU; flake(c, d.x + Math.cos(a) * (10 + 22 * k), d.y + Math.sin(a) * (10 + 22 * k), 3 + 2 * r(), `rgba(230,250,255,${fade})`, tt * 4 + r() * 6); }
+      c.restore();
+    }
+  };
+
+  // ---------- The scene ----------
+  const ORDER = ["current", "crystal", "growth", "glacier", "aurora"];
+
+  function drawFloor(c, w, h) {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, w, h);
+    c.strokeStyle = "rgba(60,80,120,0.16)"; c.lineWidth = 1;
+    for (let x = 0; x <= w; x += 40) { c.beginPath(); c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, h); c.stroke(); }
+    for (let y = 0; y <= h; y += 40) { c.beginPath(); c.moveTo(0, y + 0.5); c.lineTo(w, y + 0.5); c.stroke(); }
+  }
+  function drawPlayer(c, t) {
+    // an Elementalist with the lance raised: a blue body, a pale staff that the icicle grows from
+    c.save(); c.translate(O.x, O.y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(2, 5, 17, 9, 0, 0, TAU); c.fill();
+    const kick = t != null && t < 0.1 ? -4 * (1 - t / 0.1) : 0;
+    line(c, -4 + kick, 0, 14 + kick, 0, "#cfeaff", 3);
+    c.fillStyle = "#4f8bff"; c.beginPath(); c.arc(0, 0, 13, 0, TAU); c.fill();
+    c.strokeStyle = "#a9c6ff"; c.lineWidth = 2; c.stroke();
+    c.fillStyle = "#fff"; c.beginPath(); c.arc(0, 0, 2.5, 0, TAU); c.fill();
+    c.restore();
+  }
+  function drawDummy(c, d, t, look) {
+    c.save(); c.translate(d.x, d.y);
+    c.fillStyle = "rgba(0,0,0,0.35)"; c.beginPath(); c.ellipse(2, 4, 16, 8, 0, 0, TAU); c.fill();
+    const hit = d.hitAt != null && t > d.hitAt, since = hit ? t - d.hitAt : 0;
+    const frozen = hit && frostHits ? clamp01(1 - since / 1.6) : 0;
+    c.fillStyle = frozen > 0 ? `rgb(${Math.round(lerp(58, 120, frozen))},${Math.round(lerp(64, 170, frozen))},${Math.round(lerp(78, 215, frozen))})` : "#3a404e";
+    c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.fill();
+    c.strokeStyle = frozen > 0 ? `rgba(210,243,255,${0.4 + 0.5 * frozen})` : "#566074"; c.lineWidth = 2; c.stroke();
+    if (frozen > 0) { // frost spikes on its rim
+      c.strokeStyle = `rgba(235,250,255,${0.85 * frozen})`; c.lineWidth = 1.4; c.lineCap = "round";
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.2, l = 5 + 4 * ((i * 7) % 3); c.beginPath(); c.moveTo(Math.cos(a) * 16, Math.sin(a) * 16); c.lineTo(Math.cos(a) * (16 + l * easeOut(since / 0.25)), Math.sin(a) * (16 + l * easeOut(since / 0.25))); c.stroke(); }
+    }
+    if (hit && since < 0.12) { c.strokeStyle = `rgba(255,255,255,${1 - since / 0.12})`; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, 17 + 10 * since / 0.12, 0, TAU); c.stroke(); }
+    c.restore();
+  }
+  function scene(c, t, key, w, h) {
+    const look = LOOKS[key];
+    drawFloor(c, w, h);
+    // the reach marker: where the icicle ends (faint), and the splinter band
+    c.save(); c.translate(O.x, O.y); c.strokeStyle = "rgba(140,200,240,0.14)"; c.setLineDash([4, 5]); c.lineWidth = 1;
+    c.strokeRect(0, -SPREAD, REACH, SPREAD * 2); c.setLineDash([]);
+    c.fillStyle = "rgba(140,200,240,0.4)"; c.font = "500 10px 'IBM Plex Mono', monospace"; c.fillText("230 px", REACH - 38, -SPREAD - 6); c.restore();
+    if (t < 0 || t == null) t = 0;
+    DUMMIES.forEach(d => drawDummy(c, d, t, look));
+    drawPlayer(c, t);
+    // the effect, in the lance's own space
+    c.save(); c.translate(O.x, O.y); look.cast(c, t); c.restore();
+    // per-enemy hit effects
+    if (look.hit && frostHits) DUMMIES.forEach(d => { if (d.hitAt != null && t > d.hitAt) look.hit(c, d, t - d.hitAt); });
+  }
+
+  // ---------- Page wiring ----------
+  const arena = document.getElementById("arena"), actx = arena.getContext("2d");
+  const fit = (cv, w, h) => { const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = w * dpr; cv.height = h * dpr; const cx = cv.getContext("2d"); cx.setTransform(dpr, 0, 0, dpr, 0, 0); return cx; };
+  fit(arena, 960, 380);
+  let cur = "crystal", speed = 1, castT = 0, last = 0, hold = 0.5;
+  const nowEl = document.getElementById("now");
+
+  const styleBtns = document.getElementById("styleBtns");
+  ORDER.forEach(k => { const b = document.createElement("button"); b.dataset.k = k; b.innerHTML = `<span class="k">${LOOKS[k].key}</span>${LOOKS[k].name}`; b.setAttribute("aria-pressed", k === cur); b.onclick = () => pick(k); styleBtns.appendChild(b); });
+  const pairs = (a, b, onA, onB) => { document.getElementById(a).onclick = () => { onA(); document.getElementById(a).setAttribute("aria-pressed", true); document.getElementById(b).setAttribute("aria-pressed", false); }; document.getElementById(b).onclick = () => { onB(); document.getElementById(b).setAttribute("aria-pressed", true); document.getElementById(a).setAttribute("aria-pressed", false); }; };
+  pairs("spd1", "spd4", () => speed = 1, () => speed = 0.25);
+  pairs("frostOn", "frostOff", () => { frostHits = true; drawStrip(); }, () => { frostHits = false; drawStrip(); });
+  document.getElementById("again").onclick = () => { castT = 0; };
+
+  const FRAMES = [0.03, 0.08, 0.17, 0.27, 0.42, 0.7];
+  const strip = document.getElementById("strip"), sctx = [];
+  FRAMES.forEach(t => { const f = document.createElement("div"); f.className = "frame"; const cv = document.createElement("canvas"); f.appendChild(cv); const sp = document.createElement("span"); sp.textContent = `${t.toFixed(2)} s`; f.appendChild(sp); strip.appendChild(f); sctx.push([cv, t]); });
+  const SW = 400, SH = 250;
+  sctx.forEach(([cv]) => { fit(cv, SW, SH); });
+  function drawStrip() {
+    sctx.forEach(([cv, t]) => {
+      const c = cv.getContext("2d"); const dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.save();
+      c.beginPath(); c.rect(0, 0, SW, SH); c.clip();
+      c.translate(-60, -(190 - SH / 2)); // crop to the lance and its dummies
+      scene(c, t, cur, 960, 380);
+      c.restore();
+    });
+  }
+  const cards = document.getElementById("cards");
+  const CARDS = {
+    current: { pitch: "What the game draws now, for comparison.", shape: "A flat pale wedge with a few ridge lines; the splinters are small white triangles in a faint band.", after: "It all fades in under half a second.", feel: "Clear and cheap, but flat: no material, nothing happens on contact." },
+    crystal: { pitch: "A faceted crystal spear that cracks white and bursts into glittering shards.", shape: "Light and dark facets, a bright ridge, glints sliding along it. A white flash, then the body breaks into tumbling kite-shaped shards that sparkle as they land.", after: "The shards fade as they fly. Hit enemies get a small spray of facet flashes.", feel: "Reads as ice immediately and keeps the cast-then-splinter beat. Cleanest of the four." },
+    growth: { pitch: "Frost grows out of the floor like ice on glass: a trunk with branching crystals that reach out.", shape: "A thin white trunk grows out, side branches sprout along it as it passes, then stretch out to the full splinter width, tipped with shards. Frosted ground under it.", after: "The branches melt; the rime on the floor lingers about a second. Enemies get frost creeping over the ground under them.", feel: "The most unusual. Shows the splinter width clearly. Busier, and it lingers." },
+    glacier: { pitch: "A heavy slab of glacier ice with cold mist, snow on contact and tumbling chunks.", shape: "A thick gradient slab with bands and bubbles frozen in it, mist puffing off it, then chunky ice pieces tumbling out the sides trailing snow.", after: "The mist drifts away. A patch of ice stays under each hit enemy for a moment, with a snow puff.", feel: "The most weight, and the best 'it hit something' feedback. Softer edges than A." },
+    aurora: { pitch: "A lance of light: a white core with shifting aurora ribbons and needles of light.", shape: "An additive white beam with green, blue and violet ribbons waving along it, a star at the tip, snowflakes drifting off, then glowing needles shooting out the sides.", after: "The ribbons thin and fade. A pulse ring and a few snowflakes mark each hit.", feel: "Flashiest, and matches the glowing arc direction picked for melee. Might be too much with three players." },
+  };
+  ORDER.forEach(k => {
+    const d = document.createElement("div"); d.className = "card"; d.dataset.k = k; d.tabIndex = 0; d.setAttribute("role", "button");
+    const c = CARDS[k]; d.innerHTML = `<div class="tag">${LOOKS[k].key} · ${LOOKS[k].name.toUpperCase()}</div><p>${c.pitch}</p><dl><dt>Looks</dt><dd>${c.shape}</dd><dt>After</dt><dd>${c.after}</dd><dt>Feel</dt><dd>${c.feel}</dd></dl>`;
+    d.onclick = () => pick(k); d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(k); } };
+    cards.appendChild(d);
+  });
+  function pick(k) {
+    cur = k; castT = 0;
+    styleBtns.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+    cards.querySelectorAll(".card").forEach(c => c.setAttribute("aria-current", c.dataset.k === k));
+    drawStrip();
+  }
+  const still = new URLSearchParams(location.search);
+  if (still.get("look") && LOOKS[still.get("look")]) cur = still.get("look");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  pick(cur);
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const life = LOOKS[cur].life;
+    castT += dt * speed;
+    if (castT > life + hold) castT = 0;
+    scene(actx, castT, cur, 960, 380);
+    nowEl.textContent = `${LOOKS[cur].name} · ${castT.toFixed(2)} s`;
+    requestAnimationFrame(tick);
+  }
+  if (still.get("t") != null) { castT = parseFloat(still.get("t")); scene(actx, castT, cur, 960, 380); }
+  else requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
