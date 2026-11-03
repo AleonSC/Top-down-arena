@@ -21,7 +21,7 @@ namespace Arena
         static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, MenuCard.y + 124f, 186f, 52f);
         static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, MenuCard.y + 124f, 186f, 52f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, MenuCard.yMax + 12f, 440f, 64f);
-        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 12f, 250f, 46f);
+        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 11f, 300f, 48f);
         bool menuJoinOpen;    // Join opened the address row
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
 
@@ -242,8 +242,10 @@ namespace Arena
                 EndUiGl();
             }
             float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - (editable ? 44f : 8f);
-            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(2f, 8f, k), tw, Mathf.Lerp(24f, 26f, k));
+            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(3f, 8f, k), tw, Mathf.Lerp(25f, 26f, k));
             int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
+            while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
+                size--;  // a long name gets smaller until it fits
             if (editable)
             {
                 // The pencil puts the cursor in your name (clicking the name itself works too); it lights up while typing.
@@ -260,7 +262,7 @@ namespace Arena
             }
             else
                 Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(24f, 34f, k), tw, 20f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
+            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(27f, 34f, k), tw, 18f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
                 Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
         }
 
