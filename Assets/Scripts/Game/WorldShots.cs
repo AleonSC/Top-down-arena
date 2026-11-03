@@ -142,7 +142,10 @@ namespace Arena
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
                 V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;
-                Line(tail - dir * 10f, tail, 2f, c.WithAlpha(0.25f));                    // faint green streak behind
+                if (Juicy)
+                    DrawArrowStreak(b, dir, tail, c);                                     // a longer streak, by how hard it was drawn (GunBowLooks.cs)
+                else
+                    Line(tail - dir * 10f, tail, 2f, c.WithAlpha(0.25f));                // faint green streak behind
                 Line(tail, neck, 2f, new Rgba(0.78f, 0.6f, 0.38f));                      // shaft
                 SetColor(new Rgba(0.9f, 0.95f, 1f));                                      // head
                 Tri(tip, neck + side * 3.5f, neck - side * 3.5f);
@@ -276,6 +279,7 @@ namespace Arena
             var gold = new Rgba(1f, 0.82f, 0.3f);
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
             Arc(p.Disp, r, perfect ? 4f : 2.5f, (full ? gold : role).WithAlpha(perfect ? 0.75f + 0.25f * Mathf.Sin(t * 30f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
+            DrawBowFullPop(p);  // a gold ring as the draw reaches full (GunBowLooks.cs)
             if (!mine)
                 return;
             float cone = 0.2f * (1f - c);  // radians either side: 11 degrees at the start of a draw, a line at full

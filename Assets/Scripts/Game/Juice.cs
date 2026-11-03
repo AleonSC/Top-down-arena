@@ -77,7 +77,7 @@ namespace Arena
             public Rgba Col;
         }
 
-        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;
+        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;  // 8-10: GunBowLooks.cs
 
         struct Decal { public V2 Pos; public float R, Age; }
         struct Ripple { public V2 Pos; public float T, Power; }
@@ -122,6 +122,7 @@ namespace Arena
             seenShots.Clear();
             partN = 0;
             scorches.Clear(); ripples.Clear(); numbers.Clear(); bursts.Clear(); muzzleT.Clear();
+            ClearGunBowLooks();  // GunBowLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -311,10 +312,12 @@ namespace Arena
                     s = shotPool.Count > 0 ? shotPool.Pop() : new ShotSeen();
                     s.N = 0;
                     seenShots[b.Id] = s;
-                    Player owner;
+                    Player owner = null;
                     float cool;
-                    if (b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f
-                        && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
+                    bool fromGun = b.Owner > 0 && game.Players.TryGetValue(b.Owner, out owner) && b.Pos.DistanceTo(owner.Pos) < owner.Def.BodyR + 40f;
+                    if (fromGun && owner.Weapon.Id == WeaponId.Pistol && b.Kind == Defs.HealerShot)
+                        OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
+                    if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
                     {
                         muzzleT[b.Owner] = juiceClock + 0.05f;
                         AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
@@ -364,6 +367,7 @@ namespace Arena
                 myLegendaries = legendaries;
             }
 
+            UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
             UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
             UpdateDust(dt);      // dust at your feet
             UpdateWeather(dt);   // the path's weather
@@ -657,6 +661,9 @@ namespace Arena
                         Quad(p.Pos + across * w, p.Pos + along * h, p.Pos - across * w, p.Pos - along * h);
                         break;
                     }
+                    case PMuzzle: case PCasing: case PSnap:  // the Revolver's flash and brass, the bow's ring (GunBowLooks.cs)
+                        DrawGunPart(p, f);
+                        break;
                     case PTumble:  // a ricochet spinning off: a short bar that turns as it flies
                     {
                         V2 d = V2.FromAngle(p.Rot) * (p.Size * 1.6f);
