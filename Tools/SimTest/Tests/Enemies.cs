@@ -284,6 +284,7 @@ static partial class Program
             float hungryHp = -1f;
             byte eclipsePhase = 0;
             int ghosts = 0, frame = 0;
+            var ghostKinds = new List<string>();  // bullets the client has and the host doesn't, for the log
             // The Eclipse's five stages are checked one by one in its own test (eclipse); here the simple bots (they walk
             // in circles, so they can't hide from its flashes or keep to the light) can't be killed, and it starts at 45%
             // so the fight fits the time limit, still changing stage through the Umbra, Last Light and Totality.
@@ -336,12 +337,18 @@ static partial class Program
                 if (++frame % 60 == 0)
                 {
                     for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
-                    ghosts += Ghosts(s);
+                    int g = Ghosts(s);
+                    if (g > 0)
+                        foreach (var b in s[1].Game.Bullets.Values)
+                            if (!s[0].Game.Bullets.ContainsKey(b.Id))
+                                ghostKinds.Add(b.Kind + (b.Source != EnemyType.Grunt ? " from " + b.Source : "") + " life " + b.Life.ToString("0.00") + " at frame " + frame);
+                    ghosts += g;
                 }
             });
             bool dead = !BossAlive(s[0]) && s[0].Game.State != MatchState.GameOver;
             string name = Defs.Get(boss).Name;
-            Console.WriteLine("  wave {0}: {1} defeated {2}, mechanic seen {3}, state {4}", wave, name, dead, mechanic, s[0].Game.State);
+            Console.WriteLine("  wave {0}: {1} defeated {2}, mechanic seen {3}, state {4}, ghost bullets {5}{6}", wave, name, dead, mechanic, s[0].Game.State, ghosts,
+                ghostKinds.Count > 0 ? " (" + string.Join("; ", ghostKinds.Take(6)) + ")" : "");
             Check(dead && mechanic && ghosts == 0 && (boss != EnemyType.Devourer || devourerHealed),
                 "wave " + wave + " boss " + name + " works (its mechanic shows on the client) and can be beaten");
             if (wave == 50)
