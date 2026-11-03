@@ -662,11 +662,11 @@ namespace Arena
                     float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
                     y = DrawerPanel.y + 104f;
                     bool changed = false;
-                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
-                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music);
-                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
-                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
-                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects);
+                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master, new Color(0.31f, 0.42f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music, new Color(0.69f, 0.42f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, new Color(0.31f, 0.76f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, new Color(1f, 0.42f, 0.53f));
+                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, new Color(0.43f, 0.89f, 0.77f));
                     bool m2 = SwitchRow(new Rect(x, y + 6f, w, 44f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
                     if (m2 != sounds.Muted)
                     {
