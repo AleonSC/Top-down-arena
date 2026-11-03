@@ -14,6 +14,10 @@ Blades and the Katana alternate sides. Thrusts stab out through a beam; the Halb
 (`DrawHammerRaised`), swings over in a burning arc in 0.08 s and slams: a glowing circle with turning ticks, a pillar of
 light, embers (aftershocks are just the impact). Hits and timing are unchanged: the hit lands as the effect starts.
 Bosses' and enemies' slashes keep the old look. Preview: `SWING=<seconds>` with `SWINGW=<WeaponId>` (and `KNIGHT=0`).
+Follow-up (owner: "not smooth, the line is too thick, the gradient is blocky"): the arc is one band coloured per vertex
+(`EnergyBand`: about 20 slices a radian, clear at both edges, brightest near the rim) instead of two stepped bands, the
+core is a 1.5 px line that brightens toward the blade (`CoreArc`), thrust beams are a soft line (`SoftLine`), the
+hammer's trail is one ribbon, and the blades and handles are slimmer.
 
 **Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
 Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);
