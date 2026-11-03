@@ -1,0 +1,510 @@
+<title>Barrier Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. A patch of arena at the game's scale (1 canvas px = 1 arena px):
+   a Tank Soldier, shooters, and the Barrier (radius 105). Pick a situation and a look; it loops. Single dark look
+   by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --tank: #6fb4ff; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--tank); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--tank); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #12243a; border-color: var(--tank); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--tank); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--tank); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--tank); }
+.card p { font-size: 14px; color: var(--soft); }
+.card .pk { font-size: 13px; color: var(--muted); }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .now { margin-left: 0; width: 100%; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Tank Soldier · Barrier · pick a look</div>
+    <h1>Barrier <span>animations</span></h1>
+    <p class="lead">Today the Barrier is a faint disc with a ring that thins as it soaks damage and flickers when it is
+      about to go. Nothing shows the cast, a bullet hitting it, or it breaking beyond a puff. Below are three reworks
+      next to today's look, in the three situations that matter (hold against regular fire, a boss wearing it down, the
+      reflect capstone), at the game's real size and timing. Radius, duration, soak and every hit rule stay as they are:
+      this is drawing only.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group"><span class="label">Situation</span><span id="sBtns"></span></div>
+      <div class="group"><span class="label">Look</span><span id="lBtns"></span></div>
+    </div>
+    <div class="bar" style="border-top:0;padding-top:0">
+      <div class="group"><span class="label">View</span>
+        <button id="cmp" aria-pressed="false">Compare all four</button>
+        <button id="zoom" aria-pressed="false">Close-up</button>
+      </div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="pause" aria-pressed="false">Pause</button>
+      </div>
+      <div class="now" id="now"></div>
+    </div>
+  </section>
+
+  <section aria-label="Looks">
+    <h2 style="margin-bottom:12px">Looks</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>Drawing only: the Barrier block in <code>WorldRenderer.cs</code> (the <code>p.BarrierT &gt; 0f</code> part of the under-player layer) would call a new small look file like <code>BarrierLook.cs</code>. Nothing in <code>Core/</code> changes for A to C; no protocol bump.</li>
+      <li>With <b>Visual effects</b> off the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>); the new looks only show with effects on.</li>
+      <li>Real numbers are used: radius 105, lasts 4 s, soaks 360 of boss damage, 0.4 s cast ring, flicker under 1 s left or under 25% strength. Regular bullets never wear it down; boss bullets do. <b>The 45 damage per boss bullet here is only illustrative</b> (eight hits to break it) so the break is easy to see; the real wear comes from <code>BlockerWear</code>.</li>
+      <li>Already replicated and enough to drive every look: <code>BarrierT</code> and <code>BarrierFrac</code>. Hit ripples, dents and plate recoil are cosmetic, triggered where <code>Juice.cs</code> already spots a blocked shot. Which plate or crack goes is chosen locally from the hit angle, so players could see slightly different cracks but never different results.</li>
+      <li><b>Reflect tint needs one new bit.</b> <code>BarrierReflect</code> is host-only today, so other clients can't tell a mastered Barrier from a plain one. Showing the mirror look on everyone's screen means replicating that flag, which is a snapshot change and so a <code>Session.ProtocolVersion</code> bump. Without it the tint would show only for the host and the owner; the rest of each look is unchanged.</li>
+      <li>Shatter and the expiry pop play on <code>BarrierT</code> falling to 0, so a late join or a dropped packet just skips them.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, R = 105, DUR = 4, CAP = 360, WEAR = 45, NP = 8;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const easeBack = x => { x = clamp01(x); return 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); };
+  const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+  const angd = (a, b) => { let d = (a - b) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
+  const cv = document.getElementById("arena"), c = cv.getContext("2d");
+
+  const line = (x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const circ = (x, y, r, fill, stroke, lw) => { c.beginPath(); c.arc(x, y, Math.max(0.01, r), 0, TAU); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
+  const arc = (x, y, r, a0, a1, col, lw, cap) => { c.beginPath(); c.arc(x, y, Math.max(0.01, r), a0, a1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = cap || "round"; c.stroke(); };
+  const rect = (x, y, w, h, fill) => { c.fillStyle = fill; c.fillRect(x, y, w, h); };
+  const glow = (col, b) => { c.shadowColor = col; c.shadowBlur = b; };
+  const noGlow = () => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const star4 = (x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+  const rgba = (r, g, b, a) => `rgba(${r | 0},${g | 0},${b | 0},${Math.max(0, Math.min(1, a)).toFixed(3)})`;
+  const text = (s, x, y, col, size, align, font) => { c.font = `${font || 700} ${size || 13}px ${font ? "'IBM Plex Mono', monospace" : "Oxanium, sans-serif"}`; c.textAlign = align || "left"; c.fillStyle = col; c.fillText(s, x, y); };
+
+  // ---------- situations ----------
+  // hits: [time the bullet reaches the barrier edge, angle it comes from, boss bullet?]. Shooters sit at those angles.
+  const SCN = [
+    { id: "hold", name: "Hold", sub: "regular fire, then it runs out", L: 6.6, cast: 0.5, reflect: false, boss: false,
+      hits: [[1.3, 0, 0], [1.8, 2.8, 0], [2.2, -0.35, 0], [2.6, 0.4, 0], [3.0, 2.8, 0], [3.4, 0, 0], [3.8, -0.35, 0], [4.2, 0.4, 0], [5.1, 0, 0]] },
+    { id: "boss", name: "Boss breaks it", sub: "eight boss bullets wear it down", L: 6.2, cast: 0.5, reflect: false, boss: true,
+      hits: [[1.2, 0, 1], [1.52, 2.8, 1], [1.84, -0.35, 1], [2.16, 0.4, 1], [2.48, 0, 1], [2.8, 2.8, 1], [3.12, -0.35, 1], [3.44, 0.4, 1], [4.1, 0, 1]] },
+    { id: "reflect", name: "Reflect (capstone)", sub: "bullets go back as yours", L: 6.6, cast: 0.5, reflect: true, boss: false,
+      hits: [[1.3, 0, 0], [1.85, 2.8, 0], [2.4, -0.35, 0], [2.95, 0.4, 0], [3.5, 0, 0], [4.05, 2.8, 0]] },
+  ];
+  const PLATE_C = k => k * TAU / NP + TAU / (2 * NP);
+
+  function evaluate(scn, D) {
+    const evs = scn.hits.map(h => { const heavy = !!h[2], v = heavy ? 200 : 260; return { hit: h[0], ang: h[1], heavy, v, fire: h[0] - (D - R) / v, blocked: false, cum: 0, plate: -1 }; })
+      .sort((a, b) => a.hit - b.hit);
+    const expT = scn.cast + DUR; let used = 0, breakT = null;
+    for (const e of evs) {
+      if (e.hit < scn.cast || e.hit >= expT || breakT !== null) continue;
+      e.blocked = true;
+      if (e.heavy) { used += WEAR; if (used >= CAP && breakT === null) breakT = e.hit; }
+      e.cum = used;
+    }
+    const lost = new Array(NP).fill(Infinity);
+    for (const e of evs) {
+      if (!e.blocked) continue;
+      let best = -1, bd = 9;
+      for (let k = 0; k < NP; k++) { if (lost[k] < Infinity) continue; const d = Math.abs(angd(PLATE_C(k), e.ang)); if (d < bd) { bd = d; best = k; } }
+      e.plate = best;
+      if (e.heavy && best >= 0) lost[best] = e.hit;
+    }
+    return { scn, D, evs, expT, breakT, end: breakT !== null ? breakT : expT, lost };
+  }
+  function stateAt(E, t) {
+    const scn = E.scn; let str = 1;
+    for (const e of E.evs) if (e.blocked && e.hit <= t) str = 1 - Math.min(1, e.cum / CAP);
+    const rem = E.expT - t;
+    const S = { t, age: t - scn.cast, rem, str, reflect: scn.reflect, boss: scn.boss, lost: E.lost,
+      alive: t >= scn.cast && t < E.end,
+      broke: E.breakT !== null && t >= E.breakT ? t - E.breakT : -1,
+      exp: E.breakT === null && t >= E.expT ? t - E.expT : -1,
+      hits: E.evs.filter(e => e.blocked && t >= e.hit && t - e.hit < 1.2).map(e => ({ age: t - e.hit, ang: e.ang, heavy: e.heavy, plate: e.plate })),
+      cracks: E.evs.filter(e => e.blocked && e.heavy && t >= e.hit).map((e, i) => ({ age: t - e.hit, ang: e.ang, id: i })) };
+    S.failing = rem < 1 || str < 0.25;
+    S.visible = t >= scn.cast && (S.alive || (S.broke >= 0 && S.broke < 0.8) || (S.exp >= 0 && S.exp < 0.6));
+    return S;
+  }
+  const impactPt = (ang, r) => [Math.cos(ang) * (r || R), Math.sin(ang) * (r || R)];
+  function sparks(s) {
+    for (const h of s.hits) {
+      if (h.age > 0.22) continue;
+      const k = h.age / 0.22, [x, y] = impactPt(h.ang);
+      for (let i = 0; i < 6; i++) {
+        const a = h.ang + Math.PI + (i - 2.5) * 0.45, l0 = 4 + 18 * k, l1 = l0 + 7 * (1 - k);
+        line(x + Math.cos(a) * l0, y + Math.sin(a) * l0, x + Math.cos(a) * l1, y + Math.sin(a) * l1, rgba(255, 255, 255, 1 - k), 2);
+      }
+    }
+  }
+
+  // =====================================================================================================
+  // LOOK A · Today: the disc and ring from WorldRenderer.cs, a cast ring and a boom ring on shatter.
+  // =====================================================================================================
+  function lookToday(s) {
+    const t = s.t;
+    if (s.alive) {
+      const a = !s.failing || (t % 0.2) < 0.1 ? 0.3 + 0.5 * s.str : 0.15;
+      circ(0, 0, R, rgba(102, 179, 255, 0.04 + 0.1 * s.str));
+      arc(0, 0, R, 0, TAU, rgba(128, 204, 255, a), 1.5 + 2.5 * s.str);
+      if (s.age < 0.4) { const k = s.age / 0.4; arc(0, 0, R * easeOut(k), 0, TAU, rgba(128, 204, 255, 1 - k), 3); }
+      sparks(s);
+    }
+    if (s.broke >= 0 && s.broke < 0.4) { const k = s.broke / 0.4; arc(0, 0, R * (0.4 + 0.6 * k), 0, TAU, rgba(128, 204, 255, 1 - k), 4); }
+  }
+
+  // =====================================================================================================
+  // LOOK B · Force Field: a hex-cell dome. Opens outward from you; hits light up a spreading ripple of
+  // cells; cells drop out as it weakens; on a break the cells scatter.
+  // =====================================================================================================
+  const HEX = []; { const S = 13; for (let q = -9; q <= 9; q++) for (let r = -9; r <= 9; r++) { const x = S * Math.sqrt(3) * (q + r / 2), y = S * 1.5 * r; if (Math.hypot(x, y) < R - 4) HEX.push({ x, y, id: hash(q * 31 + r * 17 + 5), d: Math.hypot(x, y), S }); } }
+  function hexPath(x, y, rr, rot) { c.beginPath(); for (let i = 0; i < 6; i++) { const a = TAU * i / 6 + Math.PI / 6 + (rot || 0); const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr; i ? c.lineTo(px, py) : c.moveTo(px, py); } c.closePath(); }
+  function lookForceField(s) {
+    const t = s.t, ref = s.reflect;
+    const col = ref ? [215, 240, 255] : [110, 190, 255];
+    const sEff = s.alive ? Math.min(s.str, s.rem < 1 ? Math.max(0, s.rem) : 1) : 0;
+    const reveal = s.age < 0.5 ? R * easeOut(s.age / 0.45) : R + 30;
+    let out = 1, scatter = -1;
+    if (s.broke >= 0) { scatter = s.broke / 0.7; out = 1 - scatter; }
+    else if (s.exp >= 0) out = 1 - s.exp / 0.5;
+    const flick = s.alive && s.failing && !(s.rem < 1 && s.str >= 0.25) ? ((t % 0.2) < 0.1 ? 1 : 0.55) : 1;
+    const sweep = ((t * 0.55) % 1.6) * 260 - 130;   // a slow glint band across the dome
+    c.globalAlpha = Math.max(0, out) * flick;
+    circ(0, 0, R * Math.min(1, reveal / R), rgba(col[0], col[1], col[2], 0.035 + 0.07 * s.str));
+    for (const h of HEX) {
+      const vis = h.id < 0.22 + 0.78 * (scatter >= 0 ? 0.75 : s.alive ? sEff : 0.0);
+      if (!vis || h.d > reveal) continue;
+      let g = 0;
+      for (const hit of s.hits) {
+        const [ix, iy] = impactPt(hit.ang), d = Math.hypot(h.x - ix, h.y - iy);
+        g += Math.exp(-Math.pow(d / 36, 2)) * Math.max(0, 1 - hit.age / 0.8) * (hit.heavy ? 1 : 0.8);
+        g += Math.max(0, 1 - Math.abs(d - hit.age * 260) / 16) * Math.max(0, 1 - hit.age / 0.9) * 0.55;
+      }
+      const edge = s.age < 0.55 ? clamp01(1 - (reveal - h.d) / 24) : 0;
+      const gl = (Math.abs((h.x * 0.8 + h.y * 0.6) - sweep) < 12 ? 0.18 : 0) * s.str;
+      const k = Math.min(1, g + edge + gl);
+      let px = h.x, py = h.y, rot = 0;
+      if (scatter >= 0) { const a = Math.atan2(h.y, h.x), sp = (40 + 150 * h.id) * easeOut(scatter); px += Math.cos(a) * sp; py += Math.sin(a) * sp; rot = (h.id - 0.5) * 3 * scatter; }
+      const fillA = 0.05 + 0.5 * k, strokeA = 0.2 + 0.25 * s.str + 0.55 * k;
+      hexPath(px, py, h.S - 1.4, rot);
+      c.fillStyle = rgba(col[0] + (255 - col[0]) * k, col[1] + (255 - col[1]) * k, col[2] + (255 - col[2]) * k, fillA); c.fill();
+      c.strokeStyle = rgba(col[0], col[1], col[2], strokeA); c.lineWidth = 1.2; c.stroke();
+    }
+    // rim
+    const rimR = scatter >= 0 ? R * (1 + 0.35 * easeOut(scatter)) : R * (s.exp >= 0 ? 1 : Math.min(1, reveal / R));
+    const rimA = scatter >= 0 ? Math.max(0, 1 - scatter * 2.2) : 0.5 + 0.4 * s.str;
+    glow(rgba(col[0], col[1], col[2], 0.8), 12);
+    arc(0, 0, rimR, 0, TAU, rgba(col[0], col[1], col[2], rimA), 2 + 2 * s.str);
+    noGlow();
+    if (s.age < 0.5 && s.alive) arc(0, 0, reveal, 0, TAU, rgba(255, 255, 255, 0.9 * (1 - s.age / 0.5)), 3);
+    if (ref && s.alive) arc(0, 0, R - 5, 0, TAU, rgba(255, 255, 255, 0.3 * s.str), 1);
+    c.globalAlpha = 1;
+    if (s.alive) for (const hit of s.hits) if (hit.age < 0.25) { const [x, y] = impactPt(hit.ang); star4(x, y, (ref ? 22 : 15) * (1 - hit.age / 0.25), rgba(255, 255, 255, 0.95)); }
+  }
+
+  // =====================================================================================================
+  // LOOK C · Bulwark Plates: eight armour plates slam down round you. Each boss hit knocks the nearest one off.
+  // =====================================================================================================
+  function lookPlates(s) {
+    const t = s.t, ref = s.reflect, span = TAU / NP * 0.78;
+    const failFlick = s.alive && s.failing ? ((t % 0.2) < 0.1 ? 1 : 0.5) : 1;
+    // energy field between the plates
+    if (s.alive) {
+      circ(0, 0, R, rgba(102, 179, 255, (0.03 + 0.06 * s.str) * clamp01(s.age / 0.3)));
+      c.save(); c.setLineDash([6, 12]); c.lineDashOffset = -t * 18;
+      arc(0, 0, R - 15, 0, TAU, rgba(150, 210, 255, 0.16 * s.str), 1.4, "butt"); c.restore();
+    }
+    for (let k = 0; k < NP; k++) {
+      const ca = PLATE_C(k), lostAt = s.lost[k] === Infinity ? Infinity : s.lost[k];
+      const lostAge = s.t - lostAt;
+      let off = 0, alpha = 1, rot = 0, flash = 0, scale = 1;
+      if (lostAge >= 0) {               // knocked off: spins away outward
+        const q = lostAge / 0.6; if (q > 1) continue;
+        off = 90 * easeOut(q); rot = (hash(k + 3) - 0.5) * 4 * q; alpha = 1 - q;
+      } else {
+        const delay = k * 0.035, p = easeOut((s.age - delay) / 0.3);
+        if (s.age < 0) continue;
+        off = (1 - p) * 70; alpha = clamp01((s.age - delay) / 0.12);
+        const landed = s.age - delay - 0.3; if (landed > 0 && landed < 0.12) flash += 0.6 * (1 - landed / 0.12);
+        for (const h of s.hits) if (h.plate === k && h.age < 0.4) { const q = h.age / 0.4; off -= 10 * Math.pow(1 - q, 2) * (h.heavy ? 1.3 : 0.8); flash += (1 - h.age / 0.22 > 0 ? 1 - h.age / 0.22 : 0); }
+        if (s.broke >= 0) { const q = s.broke / 0.7; if (q > 1) continue; off += 110 * easeOut(q) * (0.7 + hash(k) * 0.6); rot = (hash(k + 9) - 0.5) * 5 * q; alpha *= 1 - q; }
+        else if (s.exp >= 0) { const q = clamp01((s.exp - k * 0.02) / 0.4); off += 38 * easeOut(q); alpha *= 1 - q; }
+        else if (s.rem < 1) alpha *= (t % 0.2) < 0.1 ? 1 : 0.45;
+      }
+      alpha *= (s.alive || lostAge >= 0 || s.broke >= 0 || s.exp >= 0) ? 1 : 0;
+      alpha *= lostAge >= 0 ? 1 : failFlick > 0 && s.str < 0.25 ? failFlick : 1;
+      if (alpha <= 0.01) continue;
+      const a0 = ca - span / 2 + rot, a1 = ca + span / 2 + rot, rr = R - 4 + off;
+      flash = clamp01(flash);
+      const base = ref ? [95, 135, 185] : [30, 66, 118], mid = ref ? [200, 225, 250] : [66, 124, 200], hi = [200, 228, 255];
+      arc(0, 0, rr, a0, a1, rgba(base[0], base[1], base[2], alpha), 13, "butt");
+      arc(0, 0, rr, a0 + 0.02, a1 - 0.02, rgba(mid[0] + (255 - mid[0]) * flash, mid[1] + (255 - mid[1]) * flash, mid[2] + (255 - mid[2]) * flash, alpha), 8, "butt");
+      arc(0, 0, rr + 5.5, a0 + 0.02, a1 - 0.02, rgba(hi[0], hi[1], hi[2], alpha * 0.9), 2, "butt");
+      // idle glint travelling round the plates
+      const gl = ((t * 0.9) % TAU); const gd = Math.abs(angd(gl, ca));
+      if (gd < span / 2 && s.alive) arc(0, 0, rr + 5.5, ca + gd - 0.05, ca + gd + 0.05, rgba(255, 255, 255, alpha * 0.9), 3);
+      for (const sgn of [-1, 1]) { const ra = ca + sgn * span * 0.36 + rot; circ(Math.cos(ra) * rr, Math.sin(ra) * rr, 1.6, rgba(220, 238, 255, alpha * 0.9)); }
+      if (lostAge >= 0 && lostAge < 0.25) { const [x, y] = [Math.cos(ca) * (R - 4), Math.sin(ca) * (R - 4)]; for (let i = 0; i < 5; i++) { const a = ca + (i - 2) * 0.5, l = 8 + 26 * lostAge / 0.25; line(x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, rgba(255, 220, 160, 1 - lostAge / 0.25), 2); } }
+    }
+    if (s.alive) {
+      for (const hit of s.hits) if (hit.age < 0.2) { const [x, y] = impactPt(hit.ang); star4(x, y, (ref ? 20 : 12) * (1 - hit.age / 0.2), rgba(255, 255, 255, 0.95)); }
+      if (s.age < 0.45) { const k = (s.age - 0.15) / 0.3; if (k > 0) arc(0, 0, R * (0.4 + 0.75 * k), 0, TAU, rgba(150, 210, 255, 0.5 * (1 - k)), 4); }
+    }
+  }
+
+  // =====================================================================================================
+  // LOOK D · Soap Bubble: a wobbling film. Inflates with a bounce, dents and rings where hit, cracks under
+  // boss fire, thins before it ends and pops into droplets.
+  // =====================================================================================================
+  function lookBubble(s) {
+    const t = s.t, ref = s.reflect;
+    const popK = s.broke >= 0 ? s.broke / 0.6 : s.exp >= 0 ? s.exp / 0.5 : -1;
+    if (popK >= 0) {                                     // pop: ring, droplets, (shards when it was broken)
+      const q = popK;
+      arc(0, 0, R * (1 + 0.28 * easeOut(q)), 0, TAU, rgba(190, 230, 255, 0.8 * (1 - q)), 3 * (1 - q) + 0.5);
+      const n = s.broke >= 0 ? 16 : 12;
+      for (let i = 0; i < n; i++) {
+        const a = TAU * i / n + hash(i) * 0.4, d = R + (24 + 70 * hash(i + 7)) * easeOut(q);
+        if (s.broke >= 0) arc(0, 0, d, a, a + 0.22 + 0.2 * hash(i + 2), rgba(170, 215, 255, 0.9 * (1 - q)), 3, "round");
+        else circ(Math.cos(a) * d, Math.sin(a) * d, 2.4 * (1 - q) + 0.4, rgba(200, 235, 255, 0.9 * (1 - q)));
+      }
+      return;
+    }
+    const wob = s.failing ? 2.2 : 1;
+    const scale = s.age < 0.5 ? easeBack(s.age / 0.5) : 1;
+    const thin = s.rem < 1 ? 0.55 + 0.45 * Math.abs(Math.sin(t * 9)) : 1;
+    const alpha = thin * (s.str < 0.25 ? 0.55 + 0.45 * Math.abs(Math.sin(t * 11)) : 1);
+    const rad = th => {
+      let w = wob * (0.012 * Math.sin(t * 2.6 + th * 3) + 0.008 * Math.sin(t * 3.7 - th * 2));
+      for (const h of s.hits) {
+        const g = Math.exp(-Math.pow(angd(th, h.ang) / 0.55, 2)), dec = Math.exp(-h.age * 4.5), m = h.heavy ? 1.4 : 1;
+        w += -0.11 * m * g * Math.cos(h.age * 24) * dec;
+        w += 0.03 * m * Math.sin(h.age * 20) * dec * Math.cos(2 * (th - h.ang));
+      }
+      return R * scale * (1 + w);
+    };
+    const path = () => { c.beginPath(); for (let i = 0; i <= 96; i++) { const th = TAU * i / 96, r = rad(th); i ? c.lineTo(Math.cos(th) * r, Math.sin(th) * r) : c.moveTo(Math.cos(th) * r, Math.sin(th) * r); } c.closePath(); };
+    const fillCol = ref ? [225, 240, 255] : [130, 195, 255];
+    const g = c.createRadialGradient(0, 0, R * 0.5, 0, 0, R * 1.02);
+    g.addColorStop(0, rgba(fillCol[0], fillCol[1], fillCol[2], 0));
+    g.addColorStop(0.75, rgba(fillCol[0], fillCol[1], fillCol[2], (0.04 + 0.06 * s.str) * alpha));
+    g.addColorStop(1, rgba(fillCol[0] + 30, fillCol[1] + 20, fillCol[2], ((ref ? 0.3 : 0.16) + 0.14 * s.str) * alpha));
+    path(); c.fillStyle = g; c.fill();
+    // iridescent film on the rim
+    const al = (0.45 + 0.4 * s.str) * alpha; let stroke;
+    if (c.createConicGradient) {
+      stroke = c.createConicGradient(t * 0.6, 0, 0);
+      const cols = ref ? [[235, 245, 255], [255, 240, 200], [210, 235, 255], [255, 255, 255]] : [[120, 230, 255], [190, 150, 255], [255, 170, 230], [150, 240, 200]];
+      cols.forEach((q, i) => stroke.addColorStop(i / 4, rgba(q[0], q[1], q[2], al * (i === 2 ? 0.8 : 1))));
+      stroke.addColorStop(1, rgba(cols[0][0], cols[0][1], cols[0][2], al));
+    } else stroke = rgba(150, 215, 255, al);
+    path(); c.strokeStyle = stroke; c.lineWidth = 2 + 2.2 * s.str; c.stroke();
+    // highlights (the light stays put, the bubble wobbles under it)
+    arc(0, 0, R * 0.84 * scale, -2.55, -1.95, rgba(255, 255, 255, 0.6 * s.str * alpha + 0.1), 4);
+    circ(Math.cos(-1.78) * R * 0.84 * scale, Math.sin(-1.78) * R * 0.84 * scale, 2.2, rgba(255, 255, 255, 0.7 * alpha));
+    arc(0, 0, R * 0.86 * scale, 0.55, 0.9, rgba(255, 255, 255, 0.2 * alpha), 3);
+    // cracks from boss hits
+    for (const cr of s.cracks) {
+      const grow = clamp01(cr.age / 0.15), x0 = Math.cos(cr.ang) * R * 0.99, y0 = Math.sin(cr.ang) * R * 0.99, inward = cr.ang + Math.PI;
+      const h1 = hash(cr.id + 1), h2 = hash(cr.id + 9), L = (22 + 12 * h1) * grow;
+      const jx = x0 + Math.cos(inward + (h1 - 0.5) * 0.6) * L, jy = y0 + Math.sin(inward + (h1 - 0.5) * 0.6) * L;
+      c.beginPath(); c.moveTo(x0, y0); c.lineTo(jx, jy); c.lineTo(jx + Math.cos(inward + 0.8) * 12 * grow, jy + Math.sin(inward + 0.8) * 12 * grow);
+      c.moveTo(jx, jy); c.lineTo(jx + Math.cos(inward - 0.7 - h2 * 0.4) * 14 * grow, jy + Math.sin(inward - 0.7 - h2 * 0.4) * 14 * grow);
+      c.strokeStyle = rgba(255, 255, 255, 0.6 * alpha); c.lineWidth = 1.3; c.lineCap = "round"; c.stroke();
+    }
+    for (const hit of s.hits) if (hit.age < 0.25) { const [x, y] = impactPt(hit.ang, R * 0.97); star4(x, y, (ref ? 22 : 13) * (1 - hit.age / 0.25), rgba(255, 255, 255, 0.95)); }
+  }
+
+  const LOOKS = [
+    { id: "A", name: "Today", fn: lookToday, tag: "A · TODAY",
+      desc: "The flat disc and one ring that thins with the soak. A cast ring, a boom ring on a break, a few sparks per block. No sense of the barrier being a thing.",
+      pk: "Kept as the baseline so you can compare." },
+    { id: "B", name: "Force Field", fn: lookForceField, tag: "B · FORCE FIELD",
+      desc: "A dome of hex cells that opens outward from you. Every block sends a ripple of light through the cells around the hit. As it weakens, cells drop out; on a break they scatter. Reflect turns it mirror-white.",
+      pk: "Reads as sci-fi tech; clearest 'where did it get hit' of the three." },
+    { id: "C", name: "Bulwark Plates", fn: lookPlates, tag: "C · BULWARK PLATES",
+      desc: "Eight armour plates slam down in a ring with a clang. A hit makes the nearest plate recoil and flash; each boss hit knocks one off. Eight plates = eight 'lives', so how much is left is obvious at a glance. Reflect polishes them to chrome.",
+      pk: "Best at-a-glance health; most 'tank' feel. Fits the 360 soak best." },
+    { id: "D", name: "Soap Bubble", fn: lookBubble, tag: "D · SOAP BUBBLE",
+      desc: "An iridescent film that inflates with a bounce, dents and rings like jelly where it is hit, cracks under boss fire, shimmers faster as it thins and pops into droplets (or shards, if broken).",
+      pk: "Softest and most readable at a distance; least 'armoured'." },
+  ];
+
+  // ---------- scene ----------
+  function ground(x0, y0, w, h) {
+    c.fillStyle = "#070910"; c.fillRect(x0, y0, w, h);
+    c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+    for (let x = x0; x < x0 + w; x += 40) { c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y0 + h); c.stroke(); }
+    for (let y = y0; y < y0 + h; y += 40) { c.beginPath(); c.moveTo(x0, y); c.lineTo(x0 + w, y); c.stroke(); }
+  }
+  function tank(flash) {
+    circ(0, 0, 16, flash > 0 ? rgba(255, 140, 140, 1) : "#2f4a78", "#5b9bff", 2);
+    circ(0, 0, 10.5, "#27406a");
+    rect(-12, -7, 6, 14, "#1d2f4d");       // pack
+    rect(2, -3, 7, 6, "#a7d3ff");           // visor
+    rect(12, -3, 14, 6, "#3b5f99");         // gun
+    rect(24, -4, 5, 8, "#6fb4ff");
+    arc(0, 0, 18.5, -1.2, 1.2, "rgba(111,180,255,0.5)", 2);   // the heavy shoulder plate
+  }
+  function bullet(x, y, dirAng, heavy, mine, t) {
+    if (mine) {
+      for (let i = 1; i <= 4; i++) circ(x - Math.cos(dirAng) * i * 6, y - Math.sin(dirAng) * i * 6, 4.5 - i * 0.8, rgba(150, 215, 255, 0.5 - i * 0.1));
+      glow("#9fd8ff", 10); circ(x, y, 5, "#d8f0ff"); noGlow(); return;
+    }
+    if (heavy) {
+      c.save(); c.translate(x, y); c.rotate(t * 4);
+      c.beginPath(); for (let i = 0; i < 12; i++) { const a = TAU * i / 12, r = i % 2 ? 6 : 11; i ? c.lineTo(Math.cos(a) * r, Math.sin(a) * r) : c.moveTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath();
+      c.fillStyle = "#a76bff"; c.fill(); c.restore(); circ(x, y, 5, "#1a0f22", "#d0b0ff", 1.2); return;
+    }
+    glow("#ff7a4a", 8); circ(x, y, 5.5, "#ff8a5a"); noGlow(); circ(x, y, 2.4, "#ffe0c0");
+  }
+  function drawScene(E, S, lookIdx, t) {
+    const { scn, D } = E;
+    const angs = [...new Set(scn.hits.map(h => h[1]))];
+    // shooters
+    for (const a of angs) {
+      const x = Math.cos(a) * D, y = Math.sin(a) * D; let fl = 0;
+      for (const e of E.evs) { if (e.ang !== a) continue; const af = t - e.fire; if (af >= 0 && af < 0.12) fl = Math.max(fl, 1 - af / 0.12); if (e.blocked && scn.reflect) { const rt = t - (e.hit + (D - R) / 360); if (rt >= 0 && rt < 0.3) fl = Math.max(fl, 1 - rt / 0.3); } }
+      const rr = scn.boss ? 22 : 14, hurt = scn.reflect && fl > 0 && angs.length;
+      circ(x, y, rr, scn.boss ? "#2a1838" : "#3b2f33", scn.boss ? "#a76bff" : "#8a4a55", 2);
+      circ(x, y, scn.boss ? 8 : 5, scn.boss ? "#a76bff" : "#8a4a55");
+      if (fl > 0) circ(x, y, rr + 6 * fl, hurt ? rgba(255, 255, 255, 0.5 * fl) : rgba(255, 200, 140, 0.4 * fl));
+    }
+    // bullets
+    let pflash = 0;
+    for (const e of E.evs) {
+      if (t < e.fire) continue;
+      const dx = Math.cos(e.ang), dy = Math.sin(e.ang), d = D - e.v * (t - e.fire), inAng = e.ang + Math.PI;
+      if (e.blocked) {
+        if (t < e.hit) bullet(dx * d, dy * d, inAng, e.heavy, false, t);
+        else if (scn.reflect) { const d2 = R + 360 * (t - e.hit); if (d2 < D) bullet(dx * d2, dy * d2, e.ang, false, true, t); }
+      } else {
+        if (d > 0) bullet(dx * d, dy * d, inAng, e.heavy, false, t);
+        else { const ph = t - (e.fire + D / e.v); if (ph >= 0 && ph < 0.25) pflash = Math.max(pflash, 1 - ph / 0.25); }
+      }
+    }
+    tank(pflash);
+    if (pflash > 0) circ(0, 0, 18 + 8 * (1 - pflash), null, rgba(255, 90, 90, pflash), 2);
+    const look = LOOKS[lookIdx];
+    if (S.visible) look.fn(S);
+  }
+
+  // ---------- main loop ----------
+  let scnIdx = 0, lookIdx = 2, compare = false, zoom = false, speed = 1, paused = false, T = 0, last = performance.now();
+  const q = new URLSearchParams(location.search);
+  if (q.has("s")) scnIdx = Math.min(SCN.length - 1, +q.get("s") || 0);
+  if (q.has("l")) lookIdx = Math.min(3, +q.get("l") || 0);
+  if (q.has("c")) compare = q.get("c") === "1";
+  if (q.has("z")) zoom = q.get("z") === "1";
+  if (q.has("t")) { T = +q.get("t") || 0; paused = true; }
+  let evCache = {};
+  const getE = (si, D) => { const k = si + ":" + D; return evCache[k] || (evCache[k] = evaluate(SCN[si], D)); };
+
+  function readout(E, S, x, y) {
+    const used = Math.round((1 - S.str) * CAP), left = Math.max(0, S.rem);
+    const state = S.t < E.scn.cast ? "waiting" : S.broke >= 0 ? "BROKEN" : S.exp >= 0 ? "expired" : left.toFixed(1) + " s left";
+    text(`${state}${E.scn.boss ? ` · soaked ${used}/${CAP}` : ""}`, x, y, "#92a1ad", 11, "left", 500);
+  }
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused) T += dt * speed;
+    const scn = SCN[scnIdx];
+    const t = T % scn.L;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    if (!compare) {
+      ground(0, 0, 960, 380);
+      const E = getE(scnIdx, 330), S = stateAt(E, t);
+      c.save(); c.translate(480, 190); if (zoom) c.scale(1.55, 1.55);
+      drawScene(E, S, lookIdx, t);
+      c.restore();
+      text(LOOKS[lookIdx].name.toUpperCase(), 16, 28, "#6fb4ff", 14);
+      readout(E, S, 16, 46);
+    } else {
+      const E = getE(scnIdx, 250), S = stateAt(E, t);
+      for (let i = 0; i < 4; i++) {
+        const x0 = (i % 2) * 480, y0 = (i >> 1) * 190;
+        c.save(); c.beginPath(); c.rect(x0, y0, 480, 190); c.clip();
+        ground(x0, y0, 480, 190);
+        c.translate(x0 + 240, y0 + 95); c.scale(0.8, 0.8);
+        drawScene(E, S, i, t);
+        c.restore();
+        text(LOOKS[i].name.toUpperCase(), x0 + 12, y0 + 22, i === lookIdx ? "#6fb4ff" : "#92a1ad", 12);
+        c.strokeStyle = "#242d36"; c.lineWidth = 1; c.strokeRect(x0 + 0.5, y0 + 0.5, 479, 189);
+      }
+      readout(E, S, 12, 372);
+    }
+    document.getElementById("now").textContent = `${scn.name} · ${t.toFixed(1)} / ${scn.L.toFixed(1)} s`;
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- controls ----------
+  const sB = document.getElementById("sBtns"), lB = document.getElementById("lBtns"), cards = document.getElementById("cards");
+  const mk = (parent, label, key, fn) => { const b = document.createElement("button"); b.innerHTML = key ? `<span class="k">${key}</span>${label}` : label; b.onclick = fn; parent.appendChild(b); return b; };
+  const sBs = SCN.map((s, i) => mk(sB, s.name, i + 1, () => { scnIdx = i; T = 0; sync(); }));
+  const lBs = LOOKS.map((l, i) => mk(lB, l.name, l.id, () => { lookIdx = i; sync(); }));
+  const cardEls = LOOKS.map((l, i) => {
+    const d = document.createElement("div"); d.className = "card"; d.tabIndex = 0;
+    d.innerHTML = `<div class="tag">${l.tag}</div><p>${l.desc}</p><p class="pk">${l.pk}</p>`;
+    d.onclick = () => { lookIdx = i; compare = false; sync(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    d.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); d.click(); } };
+    cards.appendChild(d); return d;
+  });
+  const $ = id => document.getElementById(id);
+  function sync() {
+    sBs.forEach((b, i) => b.setAttribute("aria-pressed", i === scnIdx));
+    lBs.forEach((b, i) => b.setAttribute("aria-pressed", i === lookIdx));
+    cardEls.forEach((d, i) => d.setAttribute("aria-current", i === lookIdx));
+    $("cmp").setAttribute("aria-pressed", compare); $("zoom").setAttribute("aria-pressed", zoom);
+    $("spd1").setAttribute("aria-pressed", speed === 1); $("spd4").setAttribute("aria-pressed", speed !== 1);
+    $("pause").setAttribute("aria-pressed", paused);
+  }
+  $("cmp").onclick = () => { compare = !compare; sync(); };
+  $("zoom").onclick = () => { zoom = !zoom; sync(); };
+  $("spd1").onclick = () => { speed = 1; sync(); };
+  $("spd4").onclick = () => { speed = 0.25; sync(); };
+  $("pause").onclick = () => { paused = !paused; sync(); };
+  addEventListener("keydown", e => {
+    if (e.key >= "1" && e.key <= "3") { scnIdx = +e.key - 1; T = 0; }
+    else if ("abcd".includes(e.key.toLowerCase()) && e.key.length === 1) lookIdx = "abcd".indexOf(e.key.toLowerCase());
+    else if (e.key === " ") { paused = !paused; e.preventDefault(); }
+    sync();
+  });
+  sync();
+  requestAnimationFrame(frame);
+})();
+</script>
