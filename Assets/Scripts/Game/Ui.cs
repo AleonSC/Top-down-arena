@@ -21,7 +21,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, check, hud, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, meterThumb, check, hud, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static GUIStyle capsule, capsuleRim;      // fully rounded pills (the menu's tip chip)
         static Texture2D chip;
@@ -81,6 +81,7 @@ namespace Arena
             thumb = new GUIStyle();
             thumb.normal.background = thumb.hover.background = thumb.active.background = Circle(18, Color.white, Accent);
             thumb.fixedWidth = thumb.fixedHeight = 18f;
+            meterThumb = new GUIStyle { fixedWidth = 1f, fixedHeight = 1f };  // invisible: the meter draws the value
 
             checkOff = Rounded(5, new Color(0.06f, 0.07f, 0.1f), new Color(0.07f, 0.08f, 0.12f), new Color(0.4f, 0.45f, 0.6f), 1.5f, 22);
             checkOn = Rounded(5, Accent, new Color(0.25f, 0.45f, 0.85f), new Color(0.6f, 0.75f, 1f), 1.5f, 22);
@@ -509,6 +510,26 @@ namespace Arena
             Fill(bar, new Color(0.18f, 0.2f, 0.28f));
             Fill(new Rect(bar.x, bar.y, bar.width * Mathf.Clamp01(value), bar.height), Accent);
             return GUI.HorizontalSlider(r, value, 0f, 1f, track, thumb);
+        }
+
+        /// Level-meter slider (Settings > Audio): 20 bars that light up to the value, amber then red at the top, in `tint`.
+        /// Drag or click anywhere on it; r should be about 28 px tall. Bars bounce a little near the value while you drag.
+        public static float MeterSlider(Rect r, float value, Color tint)
+        {
+            const int Segs = 20;
+            float v = GUI.HorizontalSlider(r, value, 0f, 1f, track, meterThumb);
+            bool drag = Input.GetMouseButton(0) && v != value;
+            float gap = 3f, bw = (r.width - gap * (Segs - 1)) / Segs;
+            for (int i = 0; i < Segs; i++)
+            {
+                float h = r.height * (0.4f + 0.45f * Mathf.Abs(Mathf.Sin(i * 0.55f)));
+                bool on = (i + 0.5f) / Segs <= v;
+                Color c = !on ? new Color(0.17f, 0.2f, 0.28f) : i >= Segs * 0.85f ? new Color(1f, 0.33f, 0.44f) : i >= Segs * 0.7f ? new Color(1f, 0.71f, 0.28f) : tint;
+                if (on && drag && i == Mathf.RoundToInt(v * Segs) - 1)
+                    h = Mathf.Min(r.height, h * 1.18f);
+                Fill(new Rect(r.x + i * (bw + gap), r.yMax - h, bw, h), c);
+            }
+            return v;
         }
 
         public static bool Toggle(Rect r, bool value, string text)
