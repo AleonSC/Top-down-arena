@@ -81,7 +81,7 @@ namespace Arena
 
         const float MenuTipCycle = 8f;
 
-        /// The line under the title as a chip ("A", Docs/Mockups/menu-tip.html): a dark pill with a coloured tag (a bulb and
+        /// The line under the title as a chip ("A", Docs/Mockups/menu-tip.html): a dark pill with a coloured tag (no box behind it: a bulb and
         /// TIP in blue, or a trophy and RECORD in gold), the topic in bold, then the rest. Each line slides up and fades in,
         /// and slides on up as it fades out. `intro` is how far the menu's intro has brought it in (1 = in place).
         void DrawMenuTipChip(float t, float alpha, float intro = 1f)
@@ -95,13 +95,12 @@ namespace Arena
             float dy = 10f * (1f - inK) - 8f * outK;
             var col = record ? new Color(1f, 0.8f, 0.35f) : new Color(0.43f, 0.65f, 1f);
             string tag = record ? "RECORD" : "TIP";
-            float tagW = Ui.TextWidth(tag, 11, true) + 34f, topicW = Ui.TextWidth(topic, 15, true) + 10f, bodyW = Ui.TextWidth(body, 15);
-            float w = tagW + 14f + topicW + bodyW + 16f, h = 30f, x = W / 2f - w / 2f, y = MenuTipY - h / 2f + dy;
+            float tagW = Ui.TextWidth(tag, 11, true) + 30f, topicW = Ui.TextWidth(topic, 15, true) + 10f, bodyW = Ui.TextWidth(body, 15);
+            float w = tagW + 6f + topicW + bodyW + 16f, h = 30f, x = W / 2f - w / 2f, y = MenuTipY - h / 2f + dy;
             Ui.Capsule(new Rect(x, y, w, h), new Color(0.05f, 0.06f, 0.1f, 0.88f * a), new Color(col.r, col.g, col.b, 0.35f * a));
-            Ui.Capsule(new Rect(x + 4f, y + 3f, tagW, h - 6f), new Color(col.r, col.g, col.b, 0.22f * a));
             Ui.Icon(new Rect(x + 12f, y + 9f, 12f, 12f), PixelArt.Get(record ? "ui_trophy" : "ui_bulb"), new Color(col.r, col.g, col.b, a));  // at its pixel size: crisp
             Ui.Label(new Rect(x + 28f, y, tagW - 24f, h), tag, 11, new Color(col.r, col.g, col.b, a), TextAnchor.MiddleLeft, true);
-            float tx = x + tagW + 14f;
+            float tx = x + tagW + 6f;
             Ui.Label(new Rect(tx, y, topicW, h), topic, 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(tx + topicW, y, bodyW + 8f, h), body, 15, new Color(0.78f, 0.82f, 0.91f, 0.95f * a), TextAnchor.MiddleLeft);
         }

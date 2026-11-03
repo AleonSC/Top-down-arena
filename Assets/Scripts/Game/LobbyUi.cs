@@ -206,8 +206,15 @@ namespace Arena
                 EndUiGl();
             }
             float tx = face.xMax + 14f;
-            Ui.Label(new Rect(tx, r.y + 8f, r.xMax - tx - 110f, 26f), e.Name, 19, Color.white, TextAnchor.MiddleLeft, true);
+            // The badges sit at the top right; work out where they start so the name stops short of them.
             float bx = r.xMax - 12f;
+            if (mine)
+                bx -= 44f;
+            if (e.Id == 1)
+                bx -= 54f;
+            float badgesLeft = (mine || e.Id == 1) ? bx : r.xMax - 12f;
+            DrawOneLine(new Rect(tx, r.y + 8f, badgesLeft - 8f - tx, 26f), e.Name, 19, 13, Color.white, true);
+            bx = r.xMax - 12f;
             if (mine)
             {
                 bx -= 44f;
@@ -218,9 +225,9 @@ namespace Arena
                 bx -= 54f;
                 Ui.Badge(new Rect(bx, r.y + 10f, 50f, 20f), "HOST", Ui.GoldButton);
             }
-            Ui.Label(new Rect(tx, r.y + 34f, r.xMax - tx - 10f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
-                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, Ui.Muted);
+            DrawOneLine(new Rect(tx, r.y + 34f, r.xMax - tx - 10f, 20f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 14, 11, Color.Lerp(color, Color.white, 0.15f), true);
+            DrawOneLine(new Rect(tx, r.y + 56f, r.xMax - tx - 104f, 20f),
+                Defs.Weapon(e.Role, e.Kit, e.Weapon).Name + "  ·  " + Upgrades.Ability(Upgrades.RoleAbility(e.Role, e.Kit, e.Ability)).Name, 12, 10, Ui.Muted, false);
             var ready = new Rect(r.xMax - 98f, r.yMax - 30f, 86f, 20f);
             if (e.Ready)
                 Ui.Pill(new Rect(ready.x - 3f, ready.y - 3f, ready.width + 6f, ready.height + 6f), new Color(0.3f, 1f, 0.45f, 0.18f + 0.1f * Mathf.Sin(t * 4f)));
@@ -707,6 +714,22 @@ namespace Arena
                 Ui.Icon(new Rect(0f, my + 1f, 10f, 10f), PixelArt.Get("ui_star"), Ui.Gold);
             Ui.Label(new Rect(starW, my, r.width - starW, mh), mastery, ms, new Color(0.85f, 0.75f, 0.48f), align, false, true);
             GUI.EndGroup();
+        }
+
+        /// One line of text that always stays inside r: smaller text first (down to minSize), then cut short with "…".
+        static void DrawOneLine(Rect r, string text, int size, int minSize, Color color, bool bold)
+        {
+            int s = size;
+            while (s > minSize && Ui.TextWidth(text, s, bold) > r.width)
+                s--;
+            if (Ui.TextWidth(text, s, bold) > r.width)
+            {
+                int n = text.Length;
+                while (n > 1 && Ui.TextWidth(text.Substring(0, n).TrimEnd() + "…", s, bold) > r.width)
+                    n--;
+                text = text.Substring(0, n).TrimEnd() + "…";
+            }
+            Ui.Label(r, text, s, color, TextAnchor.MiddleLeft, bold);
         }
 
         /// Wrapped text that always stays inside r: smaller text first (down to 10), then cut short with "…".
