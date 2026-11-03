@@ -4,22 +4,26 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Melee attacks in style E ("Weapon + energy", Docs/Mockups/melee-attacks.html, the owner's pick): the weapon
-    /// itself, drawn crisply, swinging through a glowing arc that throws sparks off its tip and leaves embers. Thrusts
-    /// stab out through a beam; the Lance slides out through a glowing box; the Warhammer is raised over your shoulder
-    /// while it charges, then swings over in a burning arc into the floor (a glowing circle, a pillar of light, embers).
-    /// Drawing only, on each screen, and only with Visual effects on: hits, reach and timing are the game's own (the
-    /// hit lands as the effect starts; the sweep plays just after, as before), and with effects off DrawSlashFx /
-    /// DrawJabFx draw exactly as they did. Bosses' and enemies' slashes keep the old look.
+    /// Melee attacks in style E ("Weapon + energy", Docs/Mockups/melee-attacks.html, the owner's pick), ported from the
+    /// mockup's numbers (arena px = the mockup's canvas px). Two layers, like the mockup's two:
+    ///   - the weapon itself and its sparks, drawn normally (DrawSlashE / DrawJabE, from DrawSlashFx / DrawJabFx);
+    ///   - the energy (the glowing band behind the blade, its soft halo, the white core, beams, the Lance's box, the
+    ///     hammer's trail and impact), drawn in the additive glow pass (DrawMeleeGlow, from DrawGlowPass), which adds
+    ///     light the way the mockup's "lighter" canvas does.
+    /// Drawing only, on each screen, and only with Visual effects on: hits, reach and timing are the game's own (the hit
+    /// lands as the effect starts; the sweep plays just after, as before). With effects off DrawSlashFx / DrawJabFx draw
+    /// exactly as they did. Bosses' and enemies' slashes keep the old look.
     public partial class ArenaApp
     {
-        const float MeleeSweepTime = 0.11f;   // the blade's sweep across its arc
-        const float MeleeLife = 0.55f;        // how long a swing's energy and embers last
-        const float MeleeThrustTime = 0.07f;  // a thrust's stab out to full reach
+        const float MeleeSweepTime = 0.11f;   // the blade's sweep across its arc (the mockup's `active`)
+        const float MeleeTail = 0.55f;        // the energy fading after it (the mockup's `tail`)
+        const float MeleeThrustTime = 0.066f; // a thrust's stab out to full reach (60% of the sweep, as in the mockup)
         const float HammerSwingTime = 0.08f;  // the Warhammer's arc from over your shoulder into the floor
+        const float HalberdStep = 0.035f;     // Knight.cs HalberdStepTime: one step of its sweep
+        const float MeleeBright = 0.6f;       // the energy band at its brightest (added light; the mockup's 0.45 plus its blur)
 
         static readonly Rgba MeleeSteel = new Rgba(0.9f, 0.93f, 0.99f), MeleeHandle = new Rgba(0.42f, 0.34f, 0.25f),
-            MeleeGuard = new Rgba(0.85f, 0.75f, 0.48f), HammerHead = new Rgba(0.78f, 0.81f, 0.85f);
+            MeleeGuard = new Rgba(0.85f, 0.75f, 0.48f), HammerHead = new Rgba(0.78f, 0.81f, 0.85f), HammerGlow = new Rgba(1f, 0.64f, 0.42f);
 
         /// What a melee effect belongs to, noted the first time it's drawn (the swinger moves on, the effect stays).
         class MeleeSeen
@@ -86,11 +90,60 @@ namespace Arena
             return game.Players.TryGetValue(seen.Owner, out p) && !p.Downed ? p.Disp : fx.Pos;
         }
 
-        /// FxKind.Slash in style E. False: not a player's melee swing (draw the old look).
+        /// Each melee weapon's energy colour (the mockup's for its five; the rest to match their look).
+        static Rgba MeleeColor(WeaponId id, Rgba fallback)
+        {
+            switch (id)
+            {
+                case WeaponId.Greatsword: return new Rgba(0.56f, 0.78f, 1f);
+                case WeaponId.TwinBlades: return new Rgba(1f, 0.82f, 0.48f);
+                case WeaponId.Halberd: return new Rgba(0.56f, 0.94f, 0.78f);
+                case WeaponId.Rapier: return new Rgba(0.8f, 0.72f, 1f);
+                case WeaponId.Warhammer: return new Rgba(1f, 0.64f, 0.42f);
+                case WeaponId.Lance: return new Rgba(0.62f, 0.88f, 1f);
+                case WeaponId.HolyMace: return new Rgba(1f, 0.88f, 0.54f);
+                case WeaponId.Lightbringer: return new Rgba(1f, 0.94f, 0.62f);
+                case WeaponId.Censer: return new Rgba(1f, 0.8f, 0.5f);
+                case WeaponId.Katana: return new Rgba(1f, 0.56f, 0.66f);
+                case WeaponId.BoStaff: return new Rgba(0.78f, 0.9f, 0.62f);
+                case WeaponId.Kusarigama: return new Rgba(0.7f, 0.64f, 1f);
+                case WeaponId.BloodLash: return new Rgba(1f, 0.32f, 0.38f);
+                default: return fallback;
+            }
+        }
+
+        static int MeleeSeed(Effect fx) => (int)(fx.Pos.X * 13f + fx.Pos.Y * 7f + (fx.Pos2 - fx.Pos).Angle * 100f);
+
+        /// FxKind.Slash in style E, the solid layer (weapon and sparks). False: not a player's melee swing (old look).
         bool DrawSlashE(Effect fx, float t)
         {
-            if (!fxOn)
-                return false;
+            return fxOn && DrawSlashLayer(fx, false);
+        }
+
+        /// FxKind.Jab in style E, the solid layer. False: draw the old look.
+        bool DrawJabE(Effect fx, float t)
+        {
+            return fxOn && DrawJabLayer(fx, false);
+        }
+
+        /// The glow pass (Juice.DrawGlowPass, additive): every melee effect's energy.
+        void DrawMeleeGlow()
+        {
+            foreach (var fx in game.Effects)
+            {
+                if (!meleeSeen.ContainsKey(fx))
+                    continue;
+                if (fx.Kind == FxKind.Slash)
+                    DrawSlashLayer(fx, true);
+                else if (fx.Kind == FxKind.Jab)
+                    DrawJabLayer(fx, true);
+            }
+        }
+
+        // --- Sweeps, thrusts and the Halberd ----------------------------------------------------------------------
+
+        bool DrawSlashLayer(Effect fx, bool light)
+        {
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, aim = to.Angle, half = fx.Radius;
             if (reach < 1f)
@@ -98,172 +151,224 @@ namespace Arena
             bool thrust = half < 0f, step = half >= 0f && half < 0.2f;
             if (step && fx.Dur > 0.25f && !meleeSeen.ContainsKey(fx))
                 return false;  // a lunge or a dash streak, not a swing (a Halberd step's Dur is stretched once it's seen)
-            var seen = MeleeOwnerOf(fx, thrust ? 0.45f : step ? 0.3f : MeleeLife);
+            var seen = MeleeOwnerOf(fx, thrust ? MeleeThrustTime + MeleeTail : step ? HalberdStep * 6f + MeleeTail : MeleeSweepTime + MeleeTail);
             if (seen == null || step && seen.Weapon != WeaponId.Halberd)
                 return false;
             V2 o = MeleeOrigin(fx, seen);
-            var col = fx.Color;
+            var col = MeleeColor(seen.Weapon, fx.Color);
             float T = fx.T;
-            int seed = (int)(fx.Pos.X * 13f + fx.Pos.Y * 7f + aim * 100f);
+            int seed = MeleeSeed(fx);
 
             if (thrust)
             {
                 V2 dir = V2.FromAngle(aim);
-                float ext = EaseOut3(Mathf.Clamp01(T / MeleeThrustTime)) * reach, fade = T < MeleeThrustTime ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime) / (fx.Dur - MeleeThrustTime));
-                V2 tip = o + dir * Mathf.Max(20f, ext);
-                SoftLine(o + dir * 18f, tip, 6f * fade + 2f, col.WithAlpha(0.4f * fade));
-                Line(o + dir * 18f, tip, 1f, Rgba.White.WithAlpha(0.9f * fade));
-                GlowDisc(tip, 18f * fade + 4f, col, 0.6f * fade);
-                MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true);
-                DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(24f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col);
+                float ext = EaseOut3(Mathf.Clamp01(T / MeleeThrustTime)) * reach;
+                float fade = T < MeleeThrustTime ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime) / MeleeTail);
+                V2 tip = o + dir * Mathf.Max(30f, ext);
+                if (light)
+                {
+                    SoftLine(o + dir * 20f, tip, 26f * fade + 4f, col.WithAlpha(0.5f * fade));  // the beam and its glow
+                    SoftLine(o + dir * 20f, tip, 10f * fade + 2f, col.WithAlpha(0.6f * fade));
+                    Line(o + dir * 20f, tip, 2.5f, Rgba.White.WithAlpha(0.9f * fade));
+                }
+                else
+                {
+                    MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true, 18);
+                    DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(26f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col, T < MeleeThrustTime);
+                }
                 return true;
             }
+
             if (step)
             {
-                // One step of the Halberd's sweep (six in a row): a slice of glowing arc, and the halberd at this angle
-                // for a moment, so the steps read as one blade sweeping across.
-                float fade = 1f - Mathf.Clamp01(T / fx.Dur);
-                EnergyBand(o, reach - 9f, reach + 3f, aim - half, aim + half, col, 0.45f * fade, 0.45f * fade);
-                CoreArc(o, reach - 2f, 1f, aim - half, aim + half, 0.8f * fade, false);
-                MeleeSparks(o, aim - half, 2f * half, reach, T, 0.035f, col, seed, false, 4);
-                if (!NewerStepThan(fx, seen))  // only the latest step holds the halberd, so there's one blade at a time
-                    DrawMeleeModel(seen.Weapon, o, aim, reach, T < 0.12f ? 1f : 1f - Mathf.Clamp01((T - 0.12f) / 0.15f), col);
+                // One step of the Halberd's sweep (six in a row, 35 ms apart). Each draws its slice of the band, from the
+                // older step's brightness at its trailing edge to its own at its leading edge, so the six join into one
+                // smooth band that fades behind the blade; only the latest step holds the halberd.
+                float older, dirSign, olderAim;
+                StepNeighbours(fx, out older, out dirSign, out olderAim);
+                if (light)
+                {
+                    // Its slice runs from the older step's angle (or, for the first, half a cone back) to its own, so the
+                    // six slices tile the sweep exactly: no gaps, and no overlaps doubling up in the additive glow.
+                    float aLead = MeleeEnergy(T), aTrail = older >= 0f ? MeleeEnergy(older) : 0.05f * aLead / MeleeBright;
+                    float from = older >= 0f ? aim + MathX.Fmod(olderAim - aim + MathX.Pi, MathX.Tau) - MathX.Pi : aim - half * dirSign;
+                    GlowArcBand(o, reach, from, aim, col, aTrail, aLead);
+                }
+                else
+                {
+                    MeleeSparks(o, aim - half * dirSign, 2f * half * dirSign, reach, T, HalberdStep, col, seed, false, 5);
+                    if (!NewerStepThan(fx))
+                        DrawMeleeModel(seen.Weapon, o, aim, reach, T < 0.1f ? 1f : 1f - Mathf.Clamp01((T - 0.1f) / 0.18f), col, T < HalberdStep);
+                }
                 return true;
             }
 
             // A sweep across its arc (a full circle spins).
             bool full = half >= MathX.Pi - 0.01f;
             float s = seen.Sign, e = EaseOut3(Mathf.Clamp01(T / MeleeSweepTime));
-            float fadeOut = T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / (fx.Dur - MeleeSweepTime));
+            float fadeOut = T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / MeleeTail);
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
-            EnergyBand(o, reach - 9f, reach + 3f, start, at, col, 0f, 0.55f * fadeOut);
-            CoreArc(o, reach - 2f, 1f, start, at, 0.9f * fadeOut);
-            MeleeSparks(o, start, 2f * half * s, reach, T, MeleeSweepTime, col, seed, false);
-            MeleeEmbers(o, start, at, reach, T, MeleeSweepTime, fx.Dur, col, seed);
-            float hold = T < MeleeSweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime - 0.1f) / 0.18f);
-            if (hold > 0f)
+            if (light)
+                GlowArcBand(o, reach, start, at, col, 0.05f * fadeOut, MeleeBright * fadeOut);
+            else
             {
-                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col);
-                if (T < MeleeSweepTime)
-                    GlowDisc(o + V2.FromAngle(at) * reach * 0.95f, 14f, col, 0.7f);
+                MeleeSparks(o, start, 2f * half * s, reach, T, MeleeSweepTime, col, seed, false);
+                float hold = T < MeleeSweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime - 0.1f) / 0.18f);
+                DrawMeleeModel(seen.Weapon, o, at, reach, hold, col, T < MeleeSweepTime);
             }
             return true;
         }
 
-        /// Is there a later step of the same Halberd sweep than this one?
-        bool NewerStepThan(Effect fx, MeleeSeen seen)
+        /// The energy's brightness at `T` into a swing: full while it sweeps, then fading out over MeleeTail.
+        static float MeleeEnergy(float T) => MeleeBright * (T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / MeleeTail));
+
+        /// A Halberd step's neighbours: the next older step's T (or -1 for the first), and which way the sweep runs.
+        void StepNeighbours(Effect fx, out float olderT, out float dirSign, out float olderAim)
         {
+            olderT = -1f;
+            dirSign = 1f;
+            olderAim = 0f;
+            float aim = (fx.Pos2 - fx.Pos).Angle, best = float.MaxValue, bestNewer = float.MaxValue;
+            float newerAim = 0f;
             foreach (var e in game.Effects)
             {
+                if (e == fx || e.Kind != FxKind.Slash || Mathf.Abs(e.Radius - fx.Radius) > 0.001f || e.Pos.DistanceTo(fx.Pos) > 40f)
+                    continue;
+                float dt = e.T - fx.T;
+                if (dt > 0.001f && dt < 0.06f && dt < best)
+                {
+                    best = dt;
+                    olderT = e.T;
+                    olderAim = (e.Pos2 - e.Pos).Angle;
+                }
+                else if (dt < -0.001f && dt > -0.06f && -dt < bestNewer)
+                {
+                    bestNewer = -dt;
+                    newerAim = (e.Pos2 - e.Pos).Angle;
+                }
+            }
+            if (olderT >= 0f)
+                dirSign = MathX.Fmod(aim - olderAim + MathX.Pi, MathX.Tau) - MathX.Pi >= 0f ? 1f : -1f;
+            else if (bestNewer < float.MaxValue)
+                dirSign = MathX.Fmod(newerAim - aim + MathX.Pi, MathX.Tau) - MathX.Pi >= 0f ? 1f : -1f;
+        }
+
+        /// Is there a later step of the same Halberd sweep than this one?
+        bool NewerStepThan(Effect fx)
+        {
+            foreach (var e in game.Effects)
                 if (e != fx && e.Kind == FxKind.Slash && e.T < fx.T && Mathf.Abs(e.Radius - fx.Radius) < 0.001f && e.Pos.DistanceTo(fx.Pos) < 40f)
                     return true;  // a later step of the same sweep (same cone, from about the same spot)
-            }
             return false;
         }
 
-        /// FxKind.Jab in style E: the Lance's glowing box, or the Warhammer's slam. False: draw the old look.
-        bool DrawJabE(Effect fx, float t)
+        // --- The Lance and the Warhammer ----------------------------------------------------------------------------
+
+        bool DrawJabLayer(Effect fx, bool light)
         {
-            if (!fxOn)
-                return false;
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, w = fx.Radius;
             if (reach < 1f)
                 return false;
-            var seen = MeleeOwnerOf(fx, 0.5f);
+            var seen = MeleeOwnerOf(fx, HammerSwingTime + 0.5f);
             if (seen == null || seen.Weapon != WeaponId.Lance && seen.Weapon != WeaponId.Warhammer)
                 return false;
             V2 o = MeleeOrigin(fx, seen), dir = to / reach, side = dir.Orthogonal();
             float T = fx.T, aim = to.Angle;
-            int seed = (int)(fx.Pos.X * 11f + fx.Pos.Y * 5f);
-            var col = fx.Color;
+            int seed = MeleeSeed(fx);
+            var col = MeleeColor(seen.Weapon, fx.Color);
             if (seen.Weapon == WeaponId.Warhammer)
             {
-                DrawHammerSlamE(fx, seen, o, aim, reach, T, seed);
+                DrawHammerSlamE(seen, o, aim, reach, T, seed, light);
                 return true;
             }
             // The Lance: the box glows from your body to its sliding front edge, the lance riding out at its front.
             float g = EaseOut3(Mathf.Clamp01(T / 0.09f)), front = reach * g;
-            float fade = T < 0.09f ? 1f : 1f - Mathf.Clamp01((T - 0.09f) / (fx.Dur - 0.09f));
-            V2 a0 = o + side * w, a1 = o - side * w, b0 = a0 + dir * front, b1 = a1 + dir * front;
-            VTri(a0, col.WithAlpha(0.02f * fade), b0, col.WithAlpha(0.3f * fade), b1, col.WithAlpha(0.3f * fade));
-            VTri(a0, col.WithAlpha(0.02f * fade), b1, col.WithAlpha(0.3f * fade), a1, col.WithAlpha(0.02f * fade));
-            Line(a0, b0, 2f, col.WithAlpha(0.7f * fade));
-            Line(a1, b1, 2f, col.WithAlpha(0.7f * fade));
-            Line(b0, b1, 8f, col.WithAlpha(0.35f * fade));
-            Line(b0, b1, 3f, Rgba.White.WithAlpha(0.95f * fade));
-            GlowDisc(o + dir * front, w * 0.8f, col, 0.5f * fade);
-            MeleeSparks(o, aim, 0f, reach, T, 0.09f, col, seed, true);
-            DrawMeleeModel(WeaponId.Lance, o, aim, Mathf.Max(30f, front), T < 0.2f ? 1f : 1f - Mathf.Clamp01((T - 0.2f) / 0.15f), col);
+            float fade = T < 0.09f ? 1f : 1f - Mathf.Clamp01((T - 0.09f) / 0.45f);
+            if (light)
+            {
+                V2 a0 = o + side * w, a1 = o - side * w, b0 = a0 + dir * front, b1 = a1 + dir * front;
+                var clear = col.WithAlpha(0f);
+                VTri(a0, clear, b0, col.WithAlpha(0.35f * fade), b1, col.WithAlpha(0.35f * fade));
+                VTri(a0, clear, b1, col.WithAlpha(0.35f * fade), a1, clear);
+                SoftLine(b0, b1, 22f * fade + 4f, col.WithAlpha(0.6f * fade));
+                Line(b0, b1, 2.5f, Rgba.White.WithAlpha(0.9f * fade));
+            }
+            else
+            {
+                MeleeSparks(o, aim, 0f, reach, T, 0.09f, col, seed, true, 18);
+                DrawMeleeModel(WeaponId.Lance, o, aim, Mathf.Max(30f, front), T < 0.2f ? 1f : 1f - Mathf.Clamp01((T - 0.2f) / 0.15f), col, T < 0.09f);
+            }
             return true;
         }
 
-        /// The Warhammer: from over your shoulder, a burning arc into the floor in front of you, then the impact. An
-        /// aftershock (a later slam, further out) is just the impact.
-        void DrawHammerSlamE(Effect fx, MeleeSeen seen, V2 o, float aim, float reach, float T, int seed)
+        /// The Warhammer: from over your shoulder, a burning arc into the floor in front of you, then the impact (a
+        /// glow, a ring with turning ticks, a pillar of light, embers). An aftershock (a later slam, further out) is just
+        /// the impact.
+        void DrawHammerSlamE(MeleeSeen seen, V2 o, float aim, float reach, float T, int seed, bool light)
         {
-            var col = new Rgba(1f, 0.64f, 0.42f);
+            var col = HammerGlow;
             bool aftershock = reach > seen.BaseReach + 1f;
             float d = 16f + seen.BaseReach * 0.65f + (reach - seen.BaseReach);
             V2 c = o + V2.FromAngle(aim) * d;
             float after = aftershock ? T : T - HammerSwingTime;
             if (!aftershock && T < HammerSwingTime)
             {
-                // The swing: the head's burning path so far, and the hammer on it.
                 float f = T / HammerSwingTime;
-                const int n = 16;
-                float t0 = Mathf.Max(0f, f - 0.7f);
-                V2 prev = HammerHeadAt(o, aim, d, t0);
-                for (int i = 1; i <= n; i++)
+                if (light)
                 {
-                    // One smooth ribbon: widening toward the head, bright down its middle, clear at its edges.
-                    float fi = t0 + (f - t0) * i / n, k0 = (float)(i - 1) / n, k1 = (float)i / n;
-                    V2 p = HammerHeadAt(o, aim, d, fi);
-                    V2 nrm = (p - prev).Normalized().Orthogonal();
-                    float w0 = 3f + 13f * k0, w1 = 3f + 13f * k1;
-                    Rgba c0 = col.WithAlpha(0.55f * k0), c1 = col.WithAlpha(0.55f * k1), clear = col.WithAlpha(0f);
-                    VTri(prev + nrm * w0, clear, p + nrm * w1, clear, p, c1);
-                    VTri(prev + nrm * w0, clear, p, c1, prev, c0);
-                    VTri(prev - nrm * w0, clear, prev, c0, p, c1);
-                    VTri(prev - nrm * w0, clear, p, c1, p - nrm * w1, clear);
-                    var cw0 = Rgba.White.WithAlpha(0.8f * k0 * k0); var cw1 = Rgba.White.WithAlpha(0.8f * k1 * k1);
-                    VTri(prev + nrm * 0.75f, cw0, p + nrm * 0.75f, cw1, p - nrm * 0.75f, cw1);
-                    VTri(prev + nrm * 0.75f, cw0, p - nrm * 0.75f, cw1, prev - nrm * 0.75f, cw0);
-                    prev = p;
+                    // The head's burning path so far: one ribbon widening toward the head, with a white core.
+                    const int n = 16;
+                    float t0 = Mathf.Max(0f, f - 0.7f);
+                    V2 prev = HammerHeadAt(o, aim, d, t0);
+                    for (int i = 1; i <= n; i++)
+                    {
+                        float fi = t0 + (f - t0) * i / n, k0 = (float)(i - 1) / n, k1 = (float)i / n;
+                        V2 p = HammerHeadAt(o, aim, d, fi);
+                        Ribbon(prev, p, 4f + 18f * k0, 4f + 18f * k1, col.WithAlpha(0.7f * k0), col.WithAlpha(0.7f * k1));
+                        Ribbon(prev, p, 1.2f, 1.2f, Rgba.White.WithAlpha(0.85f * k0 * k0), Rgba.White.WithAlpha(0.85f * k1 * k1));
+                        prev = p;
+                    }
                 }
-                HammerPose(o, aim, d, f, 1f, true);
+                else
+                    HammerPose(o, aim, d, f, 1f, true);
                 return;
             }
-            float life = 0.5f, k2 = Mathf.Clamp01(after / life);
-            // The impact: a glow on the floor, a ring with turning ticks, a pillar of light, embers.
-            GlowDisc(c, 62f, col, 0.75f * (1f - k2));
-            Arc(c, 46f, 2.5f, col.WithAlpha(0.9f * (1f - k2)), 32);
-            for (int i = 0; i < 12; i++)
+            const float life = 0.5f;
+            float k2 = Mathf.Clamp01(after / life);
+            if (light)
             {
-                float a = i / 12f * MathX.Tau + after * 2f;
-                Arc(c, 38f, 2.5f, col.WithAlpha(0.8f * (1f - k2)), 2, a, 0.22f);
+                GlowDisc(c, 50f, Rgba.White, 0.25f * (1f - k2));
+                GlowDisc(c, 60f, col, 0.6f * (1f - k2));
+                Arc(c, 46f, 2f, col.WithAlpha(0.9f * (1f - k2)), 40);
+                for (int i = 0; i < 12; i++)
+                {
+                    float a = i / 12f * MathX.Tau + after * 2f;
+                    Arc(c, 38f, 2f, col.WithAlpha(0.8f * (1f - k2)), 3, a, 0.22f);
+                }
+                if (after < 0.22f)
+                {
+                    float pk = 1f - after / 0.22f;  // a pillar of light, fading upward (the arena's up is -y)
+                    SoftLineFade(c, c + new V2(0f, -130f), 24f * pk + 6f, Rgba.White.WithAlpha(0.7f * pk), col.WithAlpha(0f));
+                }
             }
-            Arc(c, 20f + 70f * EaseOut3(Mathf.Min(1f, k2 * 1.6f)), 4f * (1f - k2) + 1f, Rgba.White.WithAlpha(0.7f * (1f - k2)), 32);
-            if (after < 0.22f)
+            else
             {
-                float pk = 1f - after / 0.22f;
-                for (int i = 0; i < 6; i++)  // the pillar, fading upward (the arena's up is -y)
-                    Line(c + new V2(0f, -i * 20f), c + new V2(0f, -(i + 1) * 20f), (12f * pk + 3f) * (1f - i / 7f), (i < 2 ? Rgba.White : col).WithAlpha(0.6f * pk * (1f - i / 6f)));
+                uint r = (uint)seed;
+                for (int i = 0; i < 16; i++)
+                {
+                    float a = Rand01(ref r) * MathX.Tau, v = 30f + 50f * Rand01(ref r), age = after - 0.05f * Rand01(ref r);
+                    if (age < 0f)
+                        continue;
+                    V2 p = c + V2.FromAngle(a) * (20f + v * age) + new V2(0f, -40f * age);
+                    Square(p, 3f, (i % 2 == 0 ? col : new Rgba(1f, 0.89f, 0.69f)).WithAlpha(0.9f * (1f - k2)));
+                }
+                Player owner;
+                bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
+                if (!aftershock && !charging)
+                    HammerPose(o, aim, d, 1f, 1f - Mathf.Clamp01((after - 0.15f) / 0.2f), after < 0.15f);
             }
-            uint r = (uint)seed;
-            for (int i = 0; i < 16; i++)
-            {
-                float a = Rand01(ref r) * MathX.Tau, v = 30f + 50f * Rand01(ref r), age = after - 0.05f * Rand01(ref r);
-                if (age < 0f)
-                    continue;
-                V2 p = c + V2.FromAngle(a) * (20f + v * age) + new V2(0f, -40f * age);
-                Circle(p, 1.8f, (i % 2 == 0 ? col : new Rgba(1f, 0.89f, 0.69f)).WithAlpha(0.9f * (1f - k2)), 4);
-            }
-            Player owner;
-            bool charging = game.Players.TryGetValue(seen.Owner, out owner) && owner.DrawT > 0f;  // raised again for the next slam
-            if (!aftershock && !charging)
-                HammerPose(o, aim, d, 1f, 1f - Mathf.Clamp01((after - 0.15f) / 0.2f), after < 0.15f);
         }
 
         /// The Warhammer while it charges: raised up over your shoulder, higher the more it's charged.
@@ -301,8 +406,8 @@ namespace Arena
             r = d * (0.6f + 0.4f * e);
         }
 
-        /// The hammer itself at `f` through its arc: its handle from your body, its shadow on the floor, its head
-        /// drawn bigger the higher it is.
+        /// The hammer itself at `f` through its arc: its handle from your body, its shadow on the floor, its head (18 x
+        /// 32 with coloured bands, as in the mockup) drawn bigger the higher it is.
         void HammerPose(V2 o, float aim, float d, float f, float alpha, bool glow)
         {
             if (alpha <= 0f)
@@ -311,83 +416,95 @@ namespace Arena
             HammerArc(aim, d, f, out a, out h, out r);
             V2 ground = o + V2.FromAngle(a) * r, head = ground + new V2(0f, -26f * h);
             float sk = 1f - 0.5f * h;
-            Circle(ground + new V2(0f, 4f), 13f * sk, new Rgba(0f, 0f, 0f, (0.22f + 0.25f * (1f - h)) * alpha), 12);
+            Circle(ground + new V2(0f, 4f), 13f * sk, new Rgba(0f, 0f, 0f, (0.22f + 0.25f * (1f - h)) * alpha), 16);
             Line(o + V2.FromAngle(a) * 12f, head, 4f, MeleeHandle.WithAlpha(alpha));
             float sc = 1f + 0.55f * h;
             V2 dir = V2.FromAngle(a), side = dir.Orthogonal();
             if (glow)
-                GlowDisc(head, 26f * sc, new Rgba(1f, 0.64f, 0.42f), 0.6f * alpha);
+                GlowDisc(head, 26f * sc, HammerGlow, 0.5f * alpha);
             V2 hx = dir * 9f * sc, hy = side * 16f * sc;
             SetColor(HammerHead.WithAlpha(alpha));
             Quad(head - hx - hy, head + hx - hy, head + hx + hy, head - hx + hy);
-            var band = new Rgba(1f, 0.64f, 0.42f, 0.95f * alpha);
             V2 bandY = side * 5f * sc;
-            SetColor(band);
+            SetColor(HammerGlow.WithAlpha(0.95f * alpha));
             Quad(head - hx - hy, head + hx - hy, head + hx - hy + bandY, head - hx - hy + bandY);
             Quad(head - hx + hy - bandY, head + hx + hy - bandY, head + hx + hy, head - hx + hy);
         }
 
         // --- Pieces ------------------------------------------------------------------------------------------------
 
-        /// A glowing band between two radii over an angle range, smooth both ways: across it, it fades in from nothing
-        /// at r0 to its brightest near the outer edge and out again at r1; along it, its alpha goes from aFrom at `from`
-        /// to aTo at `to`. Colour per vertex (no flat steps), in slices of about 3 degrees.
-        void EnergyBand(V2 o, float r0, float r1, float from, float to, Rgba col, float aFrom, float aTo)
+        /// The mockup's energy arc (its `band` with `lighter` and a blur, then the white core), for the glow pass: a band
+        /// from 72% of the reach to the reach, its alpha going from aFrom at `from` to aTo at `to`, softened past both
+        /// edges like the blur; then a 2 px white line at 92%.
+        void GlowArcBand(V2 o, float reach, float from, float to, Rgba col, float aFrom, float aTo)
         {
             float span = Mathf.Abs(to - from);
-            if (span < 0.005f)
+            if (span < 0.005f || aFrom <= 0.003f && aTo <= 0.003f)
                 return;
-            int n = Mathf.Max(4, Mathf.CeilToInt(span * 20f));
-            float rp = r0 + (r1 - r0) * 0.78f;  // where it's brightest
-            var clear = col.WithAlpha(0f);
+            float r0 = reach * 0.72f, r1 = reach;
+            // radii across the band and how bright each is (the blur: fading in and out over 6 px at each edge)
+            float[] rr = { r0 - 6f, r0 + 3f, r1 - 3f, r1 + 6f };
+            float[] kk = { 0f, 1f, 1f, 0f };
+            int n = Mathf.Max(4, Mathf.CeilToInt(span * 24f));
             for (int i = 0; i < n; i++)
             {
                 float f0 = (float)i / n, f1 = (float)(i + 1) / n;
                 float a0 = from + (to - from) * f0, a1 = from + (to - from) * f1;
                 float al0 = aFrom + (aTo - aFrom) * f0, al1 = aFrom + (aTo - aFrom) * f1;
-                if (al0 <= 0.003f && al1 <= 0.003f)
-                    continue;
                 V2 d0 = V2.FromAngle(a0), d1 = V2.FromAngle(a1);
-                V2 i0 = o + d0 * r0, i1 = o + d1 * r0, p0 = o + d0 * rp, p1 = o + d1 * rp, e0 = o + d0 * r1, e1 = o + d1 * r1;
-                Rgba c0 = col.WithAlpha(al0), c1 = col.WithAlpha(al1), o0 = col.WithAlpha(al0 * 0.25f), o1 = col.WithAlpha(al1 * 0.25f);
-                // (the faint vertex first in each triangle, so the preview tool leaves the soft parts out)
-                VTri(i0, clear, p0, c0, p1, c1);
-                VTri(i0, clear, p1, c1, i1, clear);
-                VTri(e0, o0, e1, o1, p1, c1);
-                VTri(e0, o0, p1, c1, p0, c0);
+                for (int j = 0; j < 3; j++)
+                {
+                    Rgba ci0 = col.WithAlpha(al0 * kk[j]), ci1 = col.WithAlpha(al1 * kk[j]), co0 = col.WithAlpha(al0 * kk[j + 1]), co1 = col.WithAlpha(al1 * kk[j + 1]);
+                    V2 p00 = o + d0 * rr[j], p01 = o + d1 * rr[j], p10 = o + d0 * rr[j + 1], p11 = o + d1 * rr[j + 1];
+                    VTri(p00, ci0, p10, co0, p11, co1);
+                    VTri(p00, ci0, p11, co1, p01, ci1);
+                }
             }
-        }
-
-        /// The thin bright line along a sweep, clear where the sweep started and brightest at the blade (fade = false:
-        /// even all along).
-        void CoreArc(V2 o, float r, float width, float from, float to, float alpha, bool fade = true)
-        {
-            float span = Mathf.Abs(to - from);
-            if (span < 0.005f || alpha <= 0f)
-                return;
-            int n = Mathf.Max(3, Mathf.CeilToInt(span * 20f));
-            float ri = r - width / 2f, ro = r + width / 2f;
+            // The white core, even along the sweep, as bright as the band's leading edge.
+            float rc = reach * 0.92f, hw = 1f;
+            var cw = Rgba.White.WithAlpha(0.95f * Mathf.Min(1f, Mathf.Max(aFrom, aTo) / MeleeBright));
             for (int i = 0; i < n; i++)
             {
-                float f0 = (float)i / n, f1 = (float)(i + 1) / n;
-                float a0 = from + (to - from) * f0, a1 = from + (to - from) * f1;
-                var c0 = Rgba.White.WithAlpha(alpha * (fade ? f0 * f0 : 1f));
-                var c1 = Rgba.White.WithAlpha(alpha * (fade ? f1 * f1 : 1f));
+                float a0 = from + (to - from) * i / n, a1 = from + (to - from) * (i + 1) / n;
                 V2 d0 = V2.FromAngle(a0), d1 = V2.FromAngle(a1);
-                VTri(o + d0 * ri, c0, o + d0 * ro, c0, o + d1 * ro, c1);
-                VTri(o + d0 * ri, c0, o + d1 * ro, c1, o + d1 * ri, c1);
+                VTri(o + d0 * (rc - hw), cw, o + d0 * (rc + hw), cw, o + d1 * (rc + hw), cw);
+                VTri(o + d0 * (rc - hw), cw, o + d1 * (rc + hw), cw, o + d1 * (rc - hw), cw);
             }
         }
 
         /// A line that's brightest along its middle and fades to nothing at its sides.
         void SoftLine(V2 a, V2 b, float width, Rgba col)
         {
+            SoftLineFade(a, b, width, col, col);
+        }
+
+        /// SoftLine, its colour going from ca at a to cb at b.
+        void SoftLineFade(V2 a, V2 b, float width, Rgba ca, Rgba cb)
+        {
             V2 n = (b - a).Normalized().Orthogonal() * (width / 2f);
-            var clear = col.WithAlpha(0f);
-            VTri(a + n, clear, b + n, clear, b, col);
-            VTri(a + n, clear, b, col, a, col);
-            VTri(a - n, clear, a, col, b, col);
-            VTri(a - n, clear, b, col, b - n, clear);
+            Rgba za = ca.WithAlpha(0f), zb = cb.WithAlpha(0f);
+            VTri(a + n, za, b + n, zb, b, cb);
+            VTri(a + n, za, b, cb, a, ca);
+            VTri(a - n, za, a, ca, b, cb);
+            VTri(a - n, za, b, cb, b - n, zb);
+        }
+
+        /// A segment of a ribbon: half-widths w0 at a and w1 at b, bright down its middle, clear at its edges.
+        void Ribbon(V2 a, V2 b, float w0, float w1, Rgba ca, Rgba cb)
+        {
+            V2 n = (b - a).Normalized().Orthogonal();
+            Rgba za = ca.WithAlpha(0f), zb = cb.WithAlpha(0f);
+            VTri(a + n * w0, za, b + n * w1, zb, b, cb);
+            VTri(a + n * w0, za, b, cb, a, ca);
+            VTri(a - n * w0, za, a, ca, b, cb);
+            VTri(a - n * w0, za, b, cb, b - n * w1, zb);
+        }
+
+        void Square(V2 c, float size, Rgba col)
+        {
+            float h = size / 2f;
+            SetColor(col);
+            Quad(c + new V2(-h, -h), c + new V2(h, -h), c + new V2(h, h), c + new V2(-h, h));
         }
 
         static float Rand01(ref uint s)
@@ -396,22 +513,23 @@ namespace Arena
             return (s >> 8) / 16777216f;
         }
 
-        /// Sparks thrown off the tip as it passes (a sweep from `start` over `sweep`), or sprayed along a thrust.
-        void MeleeSparks(V2 o, float start, float sweep, float reach, float T, float active, Rgba col, int seed, bool line, int count = 18)
+        /// Sparks thrown off the tip as it passes (a sweep from `start` over `sweep`), or sprayed along a thrust: 3 px
+        /// squares, a third of them white, as in the mockup.
+        void MeleeSparks(V2 o, float start, float sweep, float reach, float T, float active, Rgba col, int seed, bool line, int count = 22)
         {
             uint r = (uint)seed;
             float s = sweep >= 0f ? 1f : -1f;
             for (int i = 0; i < count; i++)
             {
-                float born = active * Rand01(ref r), spd = 110f + 160f * Rand01(ref r), spread = (Rand01(ref r) - 0.5f) * 0.9f;
+                float born = active * Rand01(ref r), spd = 120f + 160f * Rand01(ref r), spread = (Rand01(ref r) - 0.5f) * 0.9f;
                 float age = T - born;
-                if (age < 0f || age > 0.45f)
+                if (age < 0f || age > 0.5f)
                     continue;
                 V2 from;
                 float oa;
                 if (line)
                 {
-                    from = o + V2.FromAngle(start) * (24f + reach * born / Mathf.Max(active, 1e-4f));
+                    from = o + V2.FromAngle(start) * (30f + reach * born / Mathf.Max(active, 1e-4f));
                     oa = start + spread * 1.4f;
                 }
                 else
@@ -421,53 +539,29 @@ namespace Arena
                     oa = ba + s * 0.9f + spread;
                 }
                 float dd = spd * age * (1f - age);
-                Circle(from + V2.FromAngle(oa) * dd, 1.6f, (i % 3 == 0 ? Rgba.White : col).WithAlpha(0.9f * (1f - age / 0.45f)), 4);
+                Square(from + V2.FromAngle(oa) * dd, 3f, (i % 3 == 0 ? Rgba.White : col).WithAlpha(0.9f * (1f - age / 0.5f)));
             }
         }
 
-        /// Embers left along the arc once it's swept: they drift outward and fade.
-        void MeleeEmbers(V2 o, float start, float end, float reach, float T, float active, float life, Rgba col, int seed)
-        {
-            if (T < active)
-                return;
-            uint r = (uint)(seed * 7 + 3);
-            float k = Mathf.Clamp01((T - active) / Mathf.Max(0.01f, life - active));
-            for (int i = 0; i < 7; i++)
-            {
-                float f = Rand01(ref r), a = start + (end - start) * f, drift = 10f + 22f * Rand01(ref r);
-                V2 p = o + V2.FromAngle(a) * (reach * (0.8f + 0.2f * Rand01(ref r)) + drift * k) + new V2(0f, -12f * k);
-                Circle(p, 1.5f, col.Mix(Rgba.White, 0.3f).WithAlpha(0.8f * (1f - k)), 4);
-            }
-        }
-
-        /// The weapon itself, from your body out along `ang` to `reach`.
-        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col)
+        /// The weapon itself, from your body out along `ang` to `reach` (the mockup's shapes and sizes: a handle, a gold
+        /// guard and a tapered blade with a coloured edge; a pole for the Halberd; a thin blade for the Rapier).
+        /// `bright`: mid-swing, the blade is white.
+        void DrawMeleeModel(WeaponId id, V2 o, float ang, float reach, float alpha, Rgba col, bool bright)
         {
             if (alpha <= 0f)
                 return;
             V2 dir = V2.FromAngle(ang), side = dir.Orthogonal();
-            float r0 = 12f, tip = reach * 0.97f;
-            var steel = MeleeSteel.WithAlpha(alpha);
             var edge = col.WithAlpha(0.9f * alpha);
             switch (id)
             {
                 case WeaponId.Rapier:
-                    Line(o + dir * r0, o + dir * tip, 2f, steel);
-                    Arc(o + dir * (r0 + 6f), 6f, 2.5f, MeleeGuard.WithAlpha(alpha), 8, ang - 1.6f, 3.2f);
+                    Line(o + dir * 18f, o + dir * reach, 2.5f, new Rgba(0.93f, 0.95f, 1f, alpha));
+                    Arc(o + dir * 20f, 6f, 3f, MeleeGuard.WithAlpha(alpha), 10, ang - 1.6f, 3.2f);
                     break;
-                case WeaponId.Halberd:
-                {
-                    Line(o + dir * (r0 - 4f), o + dir * tip, 2.5f, MeleeHandle.WithAlpha(alpha));
-                    V2 h0 = o + dir * (tip - 34f), h1 = o + dir * (tip - 12f);
-                    SetColor(steel);
-                    Quad(h0, h1, h1 + side * 14f, h0 + side * 18f);  // the axe blade
-                    Line(h0 + side * 18f, h1 + side * 14f, 1.5f, edge);
-                    Tri(o + dir * (tip + 8f), h1 + side * 3f, h1 - side * 3f);  // the spike
-                    break;
-                }
                 case WeaponId.Lance:
                 {
-                    SetColor(steel);
+                    float tip = reach * 0.98f, r0 = 18f;
+                    SetColor((bright ? Rgba.White : MeleeSteel).WithAlpha(alpha));
                     V2 b = o + dir * r0;
                     Quad(b + side * 6f, b - side * 6f, o + dir * (tip - 20f) - side * 2.5f, o + dir * (tip - 20f) + side * 2.5f);
                     Tri(o + dir * tip, o + dir * (tip - 22f) + side * 4f, o + dir * (tip - 22f) - side * 4f);
@@ -477,29 +571,30 @@ namespace Arena
                 }
                 case WeaponId.HolyMace:  // the Quarterstaff
                 case WeaponId.BoStaff:
-                    Line(o - dir * reach * 0.25f, o + dir * tip, 3f, MeleeHandle.WithAlpha(alpha));
-                    Line(o + dir * (tip - 10f), o + dir * tip, 5f, MeleeGuard.WithAlpha(alpha));
+                    Line(o - dir * reach * 0.25f, o + dir * reach * 0.97f, 4f, MeleeHandle.WithAlpha(alpha));
+                    Line(o + dir * (reach * 0.97f - 10f), o + dir * reach * 0.97f, 5f, MeleeGuard.WithAlpha(alpha));
                     Line(o - dir * reach * 0.25f, o - dir * (reach * 0.25f - 8f), 5f, MeleeGuard.WithAlpha(alpha));
                     break;
                 case WeaponId.Censer:
-                    Line(o + dir * r0, o + dir * (tip - 12f), 1.5f, MeleeGuard.WithAlpha(alpha));
-                    Circle(o + dir * (tip - 6f), 7f, MeleeGuard.WithAlpha(alpha), 10);
-                    Arc(o + dir * (tip - 6f), 7f, 1.5f, edge, 10);
+                    Line(o + dir * 12f, o + dir * (reach * 0.97f - 12f), 1.5f, MeleeGuard.WithAlpha(alpha));
+                    Circle(o + dir * (reach * 0.97f - 6f), 7f, MeleeGuard.WithAlpha(alpha), 12);
+                    Arc(o + dir * (reach * 0.97f - 6f), 7f, 1.5f, edge, 12);
                     break;
                 case WeaponId.Kusarigama:
                 {
-                    Line(o + dir * r0, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain
-                    V2 h = o + dir * tip;
-                    Arc(h - side * 8f, 10f, 3f, steel, 8, ang - 0.2f, 1.9f);  // the sickle
+                    float tip = reach * 0.97f;
+                    Line(o + dir * 12f, o + dir * (tip - 8f), 1.5f, new Rgba(0.7f, 0.72f, 0.78f, alpha));  // the chain
+                    Arc(o + dir * tip - side * 8f, 10f, 3f, MeleeSteel.WithAlpha(alpha), 10, ang - 0.2f, 1.9f);  // the sickle
                     break;
                 }
                 case WeaponId.BloodLash:
                 {
-                    V2 prev = o + dir * r0;  // a whip: a wavy line, thinning out
-                    for (int i = 1; i <= 8; i++)
+                    float tip = reach * 0.97f;
+                    V2 prev = o + dir * 12f;  // a whip: a wavy line, thinning out
+                    for (int i = 1; i <= 10; i++)
                     {
-                        float f = i / 8f;
-                        V2 p = o + dir * (r0 + (tip - r0) * f) + side * (Mathf.Sin(f * 6f) * 5f * f);
+                        float f = i / 10f;
+                        V2 p = o + dir * (12f + (tip - 12f) * f) + side * (Mathf.Sin(f * 6f) * 5f * f);
                         Line(prev, p, 3.5f - 2.5f * f, new Rgba(0.75f, 0.12f, 0.16f, alpha));
                         prev = p;
                     }
@@ -507,16 +602,25 @@ namespace Arena
                 }
                 default:
                 {
-                    // A sword: handle, guard, blade (wider for the Greatsword, slim for the Twin Blades and Katana).
-                    float wd = id == WeaponId.Greatsword ? 3.5f : id == WeaponId.TwinBlades || id == WeaponId.Katana ? 2f : 2.6f;
-                    float hilt = r0 + (tip - r0) * (id == WeaponId.Greatsword ? 0.2f : 0.28f);
-                    Line(o + dir * (r0 - 6f), o + dir * hilt, 2.5f, MeleeHandle.WithAlpha(alpha));
-                    Line(o + dir * hilt + side * 6f, o + dir * hilt - side * 6f, 2f, MeleeGuard.WithAlpha(alpha));
-                    SetColor(id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f, alpha) : steel);
-                    V2 b0 = o + dir * hilt, b1 = o + dir * (tip - 10f);
-                    Quad(b0 + side * wd, b1 + side * wd * 0.8f, b1 - side * wd * 0.6f, b0 - side * wd * 0.6f);
-                    Tri(o + dir * tip, b1 + side * wd * 0.8f, b1 - side * wd * 0.6f);
-                    Line(b0 + side * wd, b1 + side * wd * 0.8f, 1f, edge.WithAlpha(0.6f * alpha));
+                    // The mockup's blade(): handle (4 px) from just inside your body to the hilt, a guard 14 px across,
+                    // then the blade, wd wide at the hilt, tapering to its tip at 98% of the reach. The Halberd is a pole
+                    // with its blade on the last 30%.
+                    bool pole = id == WeaponId.Halberd;
+                    float bladeShare = pole ? 0.3f : id == WeaponId.TwinBlades || id == WeaponId.Katana ? 0.7f : 0.78f;
+                    float r0 = 18f, r1 = reach * 0.98f, hilt = pole ? reach * (1f - bladeShare) : r0 + (r1 - r0) * (1f - bladeShare);
+                    float wd = pole ? 7f : 5f;
+                    Line(o + dir * (r0 - 6f), o + dir * hilt, 4f, MeleeHandle.WithAlpha(alpha));
+                    Line(o + dir * hilt + side * 7f, o + dir * hilt - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
+                    var fill = bright ? Rgba.White : id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(0.9f, 0.93f, 0.99f);
+                    V2 h0 = o + dir * hilt, b1 = o + dir * (r1 - 10f), tip = o + dir * r1;
+                    V2 p0 = h0 + side * wd, p1 = b1 + side * wd * 0.8f, p3 = b1 - side * wd * 0.6f, p4 = h0 - side * wd * 0.6f;
+                    SetColor(fill.WithAlpha(alpha));
+                    Quad(p0, p1, p3, p4);
+                    Tri(p1, tip, p3);
+                    Line(p0, p1, 1.2f, edge);  // its coloured edge
+                    Line(p1, tip, 1.2f, edge);
+                    Line(tip, p3, 1.2f, edge);
+                    Line(p3, p4, 1.2f, edge);
                     break;
                 }
             }

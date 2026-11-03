@@ -7,9 +7,16 @@ d=ImageDraw.Draw(img,'RGBA')
 data=open(base+'.tris','rb').read()
 v=struct.unpack('<%df'%(len(data)//4),data)
 def c8(r,g,b,a): return tuple(int(max(0,min(1,x))*255) for x in (r,g,b,a))
-for i in range(0,len(v),18):
-    pts=[(v[i+k*6], H-v[i+k*6+1]) for k in range(3)]
-    d.polygon(pts, fill=c8(*v[i+2:i+6]))
+import os
+if os.environ.get('FAST') == '1':  # the old quick look: each triangle flat in its first vertex's colour
+    for i in range(0,len(v),18):
+        pts=[(v[i+k*6], H-v[i+k*6+1]) for k in range(3)]
+        d.polygon(pts, fill=c8(*v[i+2:i+6]))
+else:  # like the GPU: colour blended across each triangle, alpha blending, the glow pass adding light, smooth edges
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from raster import raster
+    img=Image.fromarray(raster(v, W, H, int(os.environ.get('SS', '2'))))
+    d=ImageDraw.Draw(img,'RGBA')
 img=img.convert('RGBA')
 fonts={}
 def font(size,bold):

@@ -304,7 +304,10 @@ The lobby fits about 8 class cards in a row before they get too small.
   drawn; refs before the Ninja can't build it) with `DrawWorld`, in the working tree and at `git-ref` (default
   `HEAD`), and compares every GL triangle. `IDENTICAL` means nothing on screen changed: use it for any rendering
   refactor.
-- **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. Modes: `hud`,
+- **Screenshots without Unity:** `Tools/Preview/shot.sh <name> <mode>` → `Tools/Preview/out/<name>.png`. The arena's
+  triangles are drawn like the GPU (`Tools/Preview/raster.py`: colour blended across each triangle, alpha blending, the
+  glow pass adding light, 2x supersampled; about 7 s); `FAST=1` gives the old quick look (each triangle flat in its
+  first vertex's colour, no glow), which can't show gradients or glows, so don't judge effects with it. Modes: `hud`,
   `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `howto`, `bg` (with
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample

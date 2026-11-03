@@ -701,6 +701,7 @@ namespace Arena
                     GlowDisc(fx.Pos, fx.Radius * (1f + f), fx.Color, 0.55f * (1f - f));
                 }
             DrawWeatherGlow();  // Ambience.cs
+            DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));

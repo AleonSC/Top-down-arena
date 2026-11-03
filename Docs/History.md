@@ -20,7 +20,15 @@ core is a 1.5 px line that brightens toward the blade (`CoreArc`), thrust beams 
 hammer's trail is one ribbon, and the blades and handles are slimmer. Then (owner: "the line is too thick, the halberd didn't get
 updated"): the arc is a thin glowing line at the tip's reach (12 px wide, 1 px core) instead of a band over 40% of the
 reach, and the Halberd's steps keep the new look on every frame (stretching a step's `Dur` had made later frames take
-it for a dash streak); `juice.sh` checks both.
+it for a dash streak); `juice.sh` checks both. Then (owner: "the halberd has no fade behind the slash, the model looks bad, the other
+weapons still have the thick line, nothing looks as good as the mockup"): the preview had been drawing each triangle in
+one flat colour with no glow pass, so gradients and glows were invisible to every check; `Tools/Preview/raster.py` now
+draws like the GPU (the stub marks the glow material's vertices), and a side-by-side with the mockup at the game's scale
+showed what was wrong: the energy had been drawn with plain alpha in the slash colour (near white, so a grey haze) where
+the mockup adds light in each weapon's own colour. Now the energy is drawn in the additive glow pass (`DrawMeleeGlow`, from
+`DrawGlowPass`) in `MeleeColor(weapon)`, as the mockup's band (72-100% of the reach, 0.6 at the blade, a 6 px soft edge)
+with a 2 px white core; the models are the mockup's `blade()` shapes; the Halberd's six slices tile from one step's angle
+to the next (no overlaps doubling up in the additive light), so they make one band fading behind the blade.
 
 **Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
 Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);
