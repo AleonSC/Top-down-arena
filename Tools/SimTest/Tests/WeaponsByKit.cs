@@ -131,8 +131,10 @@ static partial class Program
         };
         Func<V2, V2, float> Volley = (dummyAt, cursor) => VolleyAt(dummyAt, cursor, EnemyType.Brute);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.TwinRifle);
-        float crossed = Volley(from + new V2(300f, 0f), from + new V2(300f, 0f));
-        float before = Volley(from + new V2(200f, 0f), from + new V2(600f, 0f));
+        // A big target (radius 34) for the comparison: the barrels are 60 px apart, so up close the streams sit ~20 px either
+        // side of the aim line, and a small one could be hit by just one stream. Both must land for the doubling to read cleanly.
+        float crossed = VolleyAt(from + new V2(300f, 0f), from + new V2(300f, 0f), EnemyType.Gatekeeper);
+        float before = VolleyAt(from + new V2(200f, 0f), from + new V2(600f, 0f), EnemyType.Gatekeeper);
         Console.WriteLine("  twin rifle: a volley where the streams cross {0:0.0}; short of the crossing {1:0.0}", crossed, before);
         Check(before > 0f && Math.Abs(crossed - before * Game.TwinCrossMult) < 0.5f, "the Twin Rifle's streams cross at your cursor's distance, and hits there do double");
         // Its barrels are set wide: up close, aiming past a small enemy, the streams go either side of it; and it reaches
