@@ -22,6 +22,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
             enemies, heals allies on it and destroys bullets crossing it).
 
 ## Visuals
+- [ ] **Radiant Orb trail.** Pick a style (Nov 2026), mockup [`Mockups/radiant-orb-trails.html`](Mockups/radiant-orb-trails.html):
+      A Comet tail, B Stardust, C Echo rings, D Prism strands, E Radiance (suggested: comet + stardust). Drawing only, no protocol bump.
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
