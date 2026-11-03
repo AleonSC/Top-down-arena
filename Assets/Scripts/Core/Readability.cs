@@ -27,7 +27,7 @@ namespace Arena
         public int ShooterLimit => Math.Max(1, (int)Math.Round(Math.Min(8f, 4f + Wave / 6f) * (1f + 0.25f * (Math.Max(1, Players.Count) - 1)) * D(DiffKnob.Shooters)));
 
         /// Does this enemy need a turn to shoot? Regular shooters do; bosses, melee and things that never fire don't.
-        static bool TakesTurns(Enemy e) => !e.Def.IsBoss && !e.Def.Melee && e.FireT < 50f && !Challenges.Own(e.Type);  // (a room's mini-boss and shadows fire freely)
+        static bool TakesTurns(Enemy e) => !e.Def.IsBoss && !e.Def.Melee && e.FireT < 50f && !Challenges.Own(e.Type) && !Zombies.Is(e.Type);  // (a room's mini-boss and shadows fire freely; a Spitter's glob isn't a bullet)
 
         readonly List<Enemy> turnScratch = new List<Enemy>();
 

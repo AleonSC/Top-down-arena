@@ -411,7 +411,7 @@ namespace Arena
                     {
                         if (!HasTurn(e))
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
-                        else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && enemyShots >= RegularShotBudget())
+                        else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
                         else
                             EnemyFire(e, tpos);
