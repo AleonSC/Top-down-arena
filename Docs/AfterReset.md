@@ -44,6 +44,28 @@ unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep
   an ascension (e.g. Twin Rifle II unlocks the Missile Pod); perks stay separate (they come from bosses).
 - Open: each weapon's actual ascension variants need designing (a design doc or mockups before building).
 
+## Difficulty with twists
+Today the presets only change numbers (README "Difficulty"), so Nightmare plays like Normal, just harder. Keep the
+numbers, but each step up also **adds named rules**, shown on the difficulty card.
+
+- **Hard** adds:
+  - **Smarter enemies:** snipers lead their shots, chargers fake out, melee enemies flank instead of beelining.
+  - **Elite affixes:** each elite gets one trait (shielded, splits on death, leaves a hazard trail...).
+- **Nightmare** adds Hard's twists, plus:
+  - **Boss upgrades:** every boss gets one extra move per stage (e.g. the Warden's searchlight splits in the last
+    stand, the Hive Queen's eggs hatch faster). Most work (10 bosses), most memorable.
+  - Longer last stands; health orbs fade after a few seconds.
+- **Ladder past Nightmare** (name it **Threat** or **Heat**, not "ascension", which is for weapons): beat a Nightmare
+  run to unlock 10 rungs, each adding one stacking rule (enemies drop a hazard on death · slower revives and the
+  reviver can't shoot · mimic chests · a forced Harder modifier · bosses get an extra stage · ...). Each rung won is
+  a record.
+- **Ties in:**
+  - "Win on Hard" / "win at Threat N" become standard unlock pieces.
+  - A hunt's "Hard" (perk #2) uses these twists.
+  - The twists become switches in the Custom panel.
+- **Build first:** the Hard twists (smarter AI + elite affixes). They're in every wave, so they change the feel
+  fastest, and need no per-boss work.
+
 ## Bigger features (design docs ready)
 - [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
 - [ ] Boss Hunts, then Perks: [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
