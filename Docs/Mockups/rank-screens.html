@@ -1,0 +1,386 @@
+<title>Rank Screens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a badge-style picker, then four 1280x720 game screens (canvas) showing where Rank appears.
+   Single dark look on purpose: these are mockups of the game's own screens. */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --blue: #4d8cff;
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0 0 8px; max-width: 78ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; min-width: 0; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.seg { display: inline-flex; background: #141926; border-radius: 9px; padding: 3px; gap: 3px; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button { font: 700 13px var(--font-game); color: var(--muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #2c5bd0; color: #fff; }
+.replay { margin-left: auto; font: 700 14px var(--font-game); color: #fff; background: linear-gradient(#5a97ff, #3a6fe0); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.screen.s169 { aspect-ratio: 16 / 9; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+.picker { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--page); padding-block: 8px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Rank Screens</h1>
+    <p>Where a cosmetic account Rank would show up: a badge in three styles, then the end-of-run screen, the lobby, the main menu chip and Records. Pick a badge style with the switch below and every screen redraws with it. All numbers are placeholders (a rank costs 200 x rank XP; a run is worth roughly 400 to 1,200 XP).</p>
+    <p>Rank is separate from the <b>Level</b> on the results cards, which is the in-run level you earn during a match. That is why the badge is a different shape and says RANK.</p>
+  </header>
+
+  <section class="option picker">
+    <div class="bar"><h2><span class="tag">Badge</span>Style</h2>
+      <div class="seg" role="group" aria-label="Badge style" id="styleSeg">
+        <button data-s="0" aria-pressed="true">A  Hex</button><button data-s="1" aria-pressed="false">B  Shield</button><button data-s="2" aria-pressed="false">C  Ring</button>
+      </div></div>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Badges</span>Three styles, five tiers, four sizes</h2></div>
+    <canvas class="screen" id="strip" width="1280" height="360"></canvas>
+    <ul class="notes">
+      <li>The colour is the tier: steel (1-4), blue (5-9), teal (10-19), violet (20-29), gold (30+). The tier also has a title: Recruit, Challenger, Veteran, Champion, Legend.</li>
+      <li>A is the simplest to read at tiny sizes. B adds chevrons for the tier (they drop out when small). C puts pips on the ring.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Screen 1</span>End of run</h2>
+      <div class="seg" role="group" aria-label="Outcome" id="endSeg">
+        <button data-m="up" aria-pressed="true">Rank up</button><button data-m="stay" aria-pressed="false">No rank up</button>
+      </div>
+      <button class="replay" id="replay">Replay</button></div>
+    <canvas class="screen s169" id="end" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>This is the payoff moment. The XP breakdown ticks in line by line, the modifier multiplier lands last (this is where harder modifiers pay off), then the bar fills.</li>
+      <li>On a rank up the bar fills, snaps and restarts, the badge pops with a ring, and the reward card unlocks. Without one, the card says how much XP is left.</li>
+      <li>Your party mate's rank shows smaller on the right. It would replace nothing on the existing results cards; this panel sits beside them, or opens after the stats, whichever you prefer.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Screen 2</span>Lobby party cards</h2></div>
+    <canvas class="screen s169" id="lobby" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The badge sits on the corner of each portrait, so the card keeps its three lines. Cosmetic rewards show here: Sam has the gold frame and a title on the hover card.</li>
+      <li>Hover a card (shown on the first) for the title, total XP and equipped cosmetics. Everyone sees everyone's rank, which is where it matters in co-op.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Screen 3</span>Main menu name chip</h2></div>
+    <canvas class="screen s169" id="menu" width="1280" height="720"></canvas>
+    <canvas class="screen" id="chips" width="1280" height="240"></canvas>
+    <ul class="notes">
+      <li>The bottom-left chip gets a second line (your title) and the badge, with a thin XP bar along its bottom edge. Clicking still edits the name.</li>
+      <li>On hover it shows the XP numbers (strip above, right). It is the first thing you see on launch, so it never needs its own screen.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Screen 4</span>Records profile</h2></div>
+    <canvas class="screen s169" id="records" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>The full view. Left: rank, XP and what is equipped. Right: the reward ladder and recent runs, with the modifiers each run used and the XP multiplier they gave.</li>
+      <li>The modifier badges from the unlock plan (one per modifier you have won with) fit on this page under the runs.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const W = 1280, H = 720;
+let STYLE = 0;
+
+// --- helpers --------------------------------------------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = x => 1 - Math.pow(1 - x, 3);
+const lerp = (a, b, k) => a + (b - a) * k;
+const ctxOf = id => document.getElementById(id).getContext("2d");
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function label(g, text, x, y, size, col, align = "left", weight = 700, alpha = 1) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha *= alpha; g.font = `${weight} ${size}px Arial, sans-serif`; g.fillStyle = col; g.textAlign = align; g.textBaseline = "middle"; g.fillText(text, x, y); g.restore();
+}
+function fancy(g, text, x, y, size, low, alpha = 1, align = "center") {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha *= alpha; g.font = `900 ${size}px Arial, sans-serif`; g.textAlign = align; g.textBaseline = "middle";
+  g.shadowColor = low; g.shadowBlur = size * 0.35;
+  g.lineJoin = "round"; g.lineWidth = Math.max(3, size * 0.11); g.strokeStyle = "#0b1020"; g.strokeText(text, x, y);
+  g.shadowBlur = 0;
+  const gr = g.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); gr.addColorStop(0.3, "#fff"); gr.addColorStop(1, low);
+  g.fillStyle = gr; g.fillText(text, x, y); g.restore();
+}
+function panel(g, x, y, w, h, stroke = "rgba(107,153,255,0.9)", alpha = 1) {
+  g.save(); g.globalAlpha *= alpha; rr(g, x, y, w, h, 10);
+  const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "rgba(31,36,54,0.96)"); gr.addColorStop(1, "rgba(23,26,38,0.96)");
+  g.fillStyle = gr; g.fill(); g.strokeStyle = stroke; g.lineWidth = 1.5; g.stroke(); g.restore();
+}
+function button(g, x, y, w, h, text, c1, c2) {
+  const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+  rr(g, x, y, w, h, 10); g.fillStyle = gr; g.fill(); g.fillStyle = "rgba(255,255,255,0.22)"; g.fillRect(x + 12, y + 2, w - 24, 1);
+  fancy(g, text, x + w / 2, y + h / 2, 18, "#e0ebff");
+}
+function backdrop(g) {
+  const gr = g.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, 820); gr.addColorStop(0, "#151a2a"); gr.addColorStop(1, "#080a10");
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.strokeStyle = "rgba(120,150,255,0.05)"; g.lineWidth = 1; g.beginPath();
+  for (let x = 0; x <= W; x += 64) { g.moveTo(x, 0); g.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 64) { g.moveTo(0, y); g.lineTo(W, y); }
+  g.stroke();
+}
+function xpbar(g, x, y, w, h, f, col, glow = 0) {
+  rr(g, x, y, w, h, h / 2); g.fillStyle = "#1d2232"; g.fill(); g.strokeStyle = "rgba(255,255,255,0.08)"; g.lineWidth = 1; g.stroke();
+  const fw = Math.max(0, Math.min(1, f)) * w;
+  if (fw > 0) {
+    g.save(); rr(g, x, y, w, h, h / 2); g.clip();
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "#fff8"); gr.addColorStop(0.35, col); gr.addColorStop(1, col);
+    if (glow) { g.shadowColor = col; g.shadowBlur = glow; }
+    g.fillStyle = gr; g.fillRect(x, y, fw, h); g.restore();
+  }
+}
+
+// --- ranks ------------------------------------------------------------------------------------------
+const need = r => 200 * r;                                   // XP to get from rank r to r+1
+const tierIdx = r => r >= 30 ? 4 : r >= 20 ? 3 : r >= 10 ? 2 : r >= 5 ? 1 : 0;
+const tierCol = r => ["#8a94b0", "#5a96ff", "#4fd1b5", "#b473ff", "#ffcc59"][tierIdx(r)];
+const rankTitle = r => ["Recruit", "Challenger", "Veteran", "Champion", "Legend"][tierIdx(r)];
+const REWARDS = [[8, "Trail", "Ember trail"], [10, "Title", "Veteran"], [12, "Frame", "Steel frame"], [15, "Background", "Dusk grid"], [20, "Title", "Champion"], [25, "Trail", "Gold stardust"], [30, "Frame", "Gold frame"]];
+
+function badge(g, x, y, r, rank, style = STYLE, scale = 1) {
+  const col = tierCol(rank), n = tierIdx(rank);
+  g.save(); g.translate(x, y); g.scale(scale, scale);
+  const lw = Math.max(1.6, r * 0.13);
+  const numSize = r * (rank >= 100 ? 0.7 : rank >= 10 ? 0.92 : 1.12);
+  if (style === 0) {                                          // hexagon
+    const hex = k => { g.beginPath(); for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + i * Math.PI / 3; g.lineTo(Math.cos(a) * r * k, Math.sin(a) * r * k); } g.closePath(); };
+    hex(1); g.fillStyle = "#141929"; g.fill();
+    const gr = g.createLinearGradient(0, -r, 0, r); gr.addColorStop(0, col + "66"); gr.addColorStop(1, col + "14"); g.fillStyle = gr; g.fill();
+    g.lineJoin = "round"; g.strokeStyle = col; g.lineWidth = lw; g.stroke();
+    if (r >= 20) { hex(0.76); g.strokeStyle = col + "55"; g.lineWidth = 1; g.stroke(); }
+    label(g, String(rank), 0, r * 0.04, numSize, "#fff", "center", 900);
+  } else if (style === 1) {                                   // shield with tier chevrons
+    g.beginPath(); g.moveTo(-r * 0.85, -r * 0.9); g.lineTo(r * 0.85, -r * 0.9); g.lineTo(r * 0.85, r * 0.1);
+    g.quadraticCurveTo(r * 0.85, r * 0.66, 0, r); g.quadraticCurveTo(-r * 0.85, r * 0.66, -r * 0.85, r * 0.1); g.closePath();
+    g.fillStyle = "#141929"; g.fill();
+    const gr = g.createLinearGradient(0, -r, 0, r); gr.addColorStop(0, col + "66"); gr.addColorStop(1, col + "14"); g.fillStyle = gr; g.fill();
+    g.lineJoin = "round"; g.strokeStyle = col; g.lineWidth = lw; g.stroke();
+    const showChev = r >= 18;
+    label(g, String(rank), 0, showChev ? -r * 0.18 : 0, numSize * (showChev ? 0.88 : 1), "#fff", "center", 900);
+    if (showChev) { g.strokeStyle = col; g.lineWidth = Math.max(1.5, r * 0.07); g.lineCap = "round"; g.lineJoin = "round";
+      for (let i = 0; i <= n; i++) { const yy = r * 0.36 + i * r * 0.115; g.beginPath(); g.moveTo(-r * 0.3, yy); g.lineTo(0, yy + r * 0.12); g.lineTo(r * 0.3, yy); g.stroke(); } }
+  } else {                                                    // ring with pips
+    g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fillStyle = "#141929"; g.fill();
+    const gr = g.createRadialGradient(0, -r * 0.3, 0, 0, 0, r); gr.addColorStop(0, col + "55"); gr.addColorStop(1, col + "10"); g.fillStyle = gr; g.fill();
+    g.beginPath(); g.arc(0, 0, r * 0.88, 0, Math.PI * 2); g.strokeStyle = col; g.lineWidth = lw; g.stroke();
+    if (r >= 18) for (let i = 0; i <= n; i++) { const a = Math.PI / 2 + (i - n / 2) * 0.34; g.beginPath(); g.arc(Math.cos(a) * r * 0.88, Math.sin(a) * r * 0.88, r * 0.075, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill(); }
+    label(g, String(rank), 0, r >= 18 ? -r * 0.04 : 0, numSize * 0.92, "#fff", "center", 900);
+  }
+  g.restore();
+}
+
+// --- badge strip ------------------------------------------------------------------------------------
+function drawStrip() {
+  const g = ctxOf("strip"); g.fillStyle = "#0b0d14"; g.fillRect(0, 0, 1280, 360);
+  const names = ["A  Hex", "B  Shield", "C  Ring"], ranks = [3, 8, 12, 27, 34];
+  names.forEach((nm, s) => {
+    const y = 62 + s * 118;
+    if (STYLE === s) { rr(g, 12, y - 54, 1256, 108, 10); g.fillStyle = "rgba(77,140,255,0.08)"; g.fill(); g.strokeStyle = "rgba(77,140,255,0.5)"; g.lineWidth = 1; g.stroke(); }
+    label(g, nm, 34, y, 18, "#e9edf8", "left", 800);
+    ranks.forEach((rk, i) => { const x = 250 + i * 150; badge(g, x, y, 40, rk, s); label(g, rankTitle(rk), x, y + 55, 11, tierCol(rk), "center", 800); });
+    [[26, 0], [18, 1], [12, 2]].forEach(([r, i]) => badge(g, 1030 + i * 70 + (i > 0 ? 0 : 0), y - 6, r, 8, s));
+    label(g, "as it would sit on a card / chip / list row", 1030, y + 44, 10, "#9ea9c4", "left", 400);
+  });
+}
+
+// --- screen 1: end of run -------------------------------------------------------------------------
+const END = { up: { start: 900, gain: 615 }, stay: { start: 300, gain: 615 } };
+let endMode = "up", endT = 0, endCross = null;
+const BAR0 = 3.0, BAR1 = 4.7;
+function endXp(m, t) { return END[m].start + END[m].gain * ease(seg(t, BAR0, BAR1)); }
+function endCrossTime(m) { for (let s = BAR0; s <= BAR1; s += 0.005) if (endXp(m, s) >= need(7)) return s; return null; }
+function drawEnd(t) {
+  const g = ctxOf("end"), M = END[endMode], tc = endCrossTime(endMode);
+  backdrop(g); g.fillStyle = "rgba(3,4,8,0.55)"; g.fillRect(0, 0, W, H);
+  fancy(g, "GAME OVER", 640, 58, 50, "#ff6470"); label(g, "YOU MADE IT TO WAVE 11", 640, 98, 14, "#b9c2db", "center", 800);
+
+  // Your rank panel
+  panel(g, 70, 130, 700, 480); label(g, "YOUR RANK", 96, 156, 12, "#9ea9c4", "left", 800);
+  const xp = endXp(endMode, t), crossed = tc !== null && t >= tc;
+  const rank = crossed ? 8 : 7, frac = crossed ? (xp - need(7)) / need(8) : xp / need(7);
+  const k = crossed ? seg(t, tc, tc + 0.9) : 0;
+  const pop = crossed ? 1 + 0.28 * Math.sin(Math.PI * clamp(k * 1.5, 0, 1)) : 1;
+  if (crossed && k < 1) { g.save(); g.globalAlpha = 1 - k; g.beginPath(); g.arc(158, 232, 52 + k * 90, 0, 7); g.strokeStyle = tierCol(8); g.lineWidth = 4; g.stroke(); g.restore(); }
+  badge(g, 158, 232, 54, rank, STYLE, pop);
+  label(g, "Anthony", 250, 206, 26, "#5a96ff", "left", 900);
+  label(g, rankTitle(rank) + "  ·  Rank " + rank, 250, 234, 15, tierCol(rank), "left", 700);
+  const into = crossed ? xp - need(7) : xp, cap = crossed ? need(8) : need(7);
+  label(g, Math.round(into).toLocaleString("en-US") + " / " + cap.toLocaleString("en-US") + " XP", 730, 234, 14, "#dfe6ff", "right", 800);
+  xpbar(g, 250, 252, 480, 18, frac, tierCol(rank), 12);
+  if (crossed && k < 0.5) { g.save(); g.globalAlpha = (0.5 - k) * 1.2; rr(g, 250, 252, 480, 18, 9); g.fillStyle = "#fff"; g.fill(); g.restore(); }
+  fancy(g, "RANK UP!", 560, 200, 30, "#ffcc59", crossed ? ease(seg(t, tc, tc + 0.25)) * (1 - seg(t, tc + 2.2, tc + 2.8)) : 0, "center");
+
+  const rows = [["Waves cleared", "11 x 20", "220"], ["Boss defeated: The Warden", "", "150"], ["Allies revived", "1 x 40", "40"], ["Subtotal", "", "410"], ["Modifiers", "Tough Crowd +25%   Nightfall +25%", "x 1.5"], ["Total", "", "+615 XP"]];
+  rows.forEach(([a, b, c], i) => {
+    const ak = ease(seg(t, 0.5 + i * 0.35, 0.8 + i * 0.35)); if (ak <= 0) return;
+    const y = 318 + i * 44, last = i === rows.length - 1, mod = i === 4, sub = i === 3;
+    g.save(); g.translate((1 - ak) * -24, 0);
+    if (last) { rr(g, 92, y - 20, 656, 40, 8); g.fillStyle = "rgba(255,204,89,0.12)"; g.fill(); }
+    if (mod) { rr(g, 92, y - 20, 656, 40, 8); g.fillStyle = "rgba(180,115,255,0.12)"; g.fill(); }
+    label(g, a, 112, y, last ? 20 : 16, last ? "#ffcc59" : sub ? "#9ea9c4" : "#d6dcee", "left", last ? 900 : 700, ak);
+    label(g, b, 340, y, 13, mod ? "#c9a6ff" : "#9ea9c4", "left", 400, ak);
+    label(g, c, 728, y, last ? 24 : 17, last ? "#ffcc59" : mod ? "#c9a6ff" : "#fff", "right", 900, ak);
+    g.restore();
+  });
+
+  // Party mate + reward
+  panel(g, 800, 130, 410, 170, "rgba(255,154,74,0.8)"); label(g, "PARTY", 824, 154, 12, "#9ea9c4", "left", 800);
+  const ak = ease(seg(t, BAR0, BAR0 + 0.5));
+  badge(g, 862, 224, 32, 12); label(g, "Aleon", 914, 206, 22, "#ff9a4a", "left", 900); label(g, "Veteran  ·  Rank 12", 914, 230, 13, tierCol(12), "left", 700);
+  xpbar(g, 914, 248, 270, 12, lerp(0.40, 0.69, ease(seg(t, BAR0, BAR1))), tierCol(12), 8); label(g, "+592 XP", 1184, 214, 15, "#ffcc59", "right", 900, ak);
+
+  panel(g, 800, 320, 410, 290, "rgba(255,204,89,0.5)"); label(g, "RANK 8 REWARD", 824, 344, 12, "#9ea9c4", "left", 800);
+  const got = crossed ? ease(seg(t, tc + 0.2, tc + 0.8)) : 0;
+  g.save(); g.translate(1005, 450);
+  const shine = g.createRadialGradient(0, 0, 4, 0, 0, 90); shine.addColorStop(0, `rgba(255,150,60,${0.15 + 0.4 * got})`); shine.addColorStop(1, "rgba(255,150,60,0)"); g.fillStyle = shine; g.fillRect(-120, -100, 240, 200);
+  for (let i = 0; i < 18; i++) { const px = -70 + i * 7.5, py = Math.sin(i * 0.6 + t * 4) * 6, a = (0.15 + 0.85 * i / 18) * (0.25 + 0.75 * got); g.beginPath(); g.arc(px, py, 1.5 + i * 0.28, 0, 7); g.fillStyle = `rgba(255,${120 + i * 7},50,${a})`; g.fill(); }
+  g.beginPath(); g.arc(72, Math.sin(17 * 0.6 + t * 4) * 6, 7, 0, 7); g.fillStyle = got > 0 ? "#fff3d6" : "#4a5578"; g.fill(); g.restore();
+  label(g, "Ember trail", 1005, 524, 22, got > 0.5 ? "#ffcc59" : "#8a94b0", "center", 900);
+  if (got > 0.5) label(g, "Unlocked. Equip it on the lobby's Cosmetics tab.", 1005, 554, 12, "#b9c2db", "center", 400, got);
+  else label(g, (need(7) - Math.round(xp)).toLocaleString("en-US") + " XP to go", 1005, 554, 13, "#b9c2db", "center", 700);
+  if (got <= 0) { g.save(); g.translate(1005, 472); rr(g, -9, -4, 18, 14, 3); g.fillStyle = "#8a94b0"; g.fill(); g.beginPath(); g.arc(0, -4, 6, Math.PI, 0); g.strokeStyle = "#8a94b0"; g.lineWidth = 3; g.stroke(); g.restore(); }
+
+  button(g, 70, 640, 170, 48, "Leave", "#c85a63", "#a43d48"); button(g, 736, 640, 230, 48, "Play again  [R]", "#5a97ff", "#3a6fe0"); button(g, 980, 640, 230, 48, "Back to lobby  [L]", "#4a5578", "#353e5c");
+}
+let last = performance.now();
+function loop(now) { endT += Math.min(0.05, (now - last) / 1000); last = now; drawEnd(Math.min(endT, 9)); requestAnimationFrame(loop); }
+
+// --- screen 2: lobby --------------------------------------------------------------------------------
+function portrait(g, x, y, s, col, letter) {
+  rr(g, x, y, s, s, 7); g.fillStyle = col + "33"; g.fill();
+  g.beginPath(); g.arc(x + s / 2, y + s / 2, s * 0.3, 0, 7); g.fillStyle = col; g.fill();
+  label(g, letter, x + s / 2, y + s / 2 + 1, s * 0.34, "#0b1020", "center", 900);
+}
+function drawLobby() {
+  const g = ctxOf("lobby"); backdrop(g);
+  fancy(g, "LOBBY", 42, 42, 44, "#6b99ff", 1, "left");
+  const P = [
+    { name: "Anthony", cls: "Knight Tank", ld: "Lance  ·  Shield Wall", col: "#5a96ff", rank: 7, host: true, you: true },
+    { name: "Aleon", cls: "Elementalist DPS", ld: "Fireball  ·  Blink", col: "#ff9a4a", rank: 12 },
+    { name: "Sam", cls: "Summoner Healer", ld: "Sprite Staff  ·  Mend", col: "#6fe39a", rank: 27, gold: true },
+  ];
+  P.forEach((p, i) => {
+    const x = 40, y = 184 + i * 104, w = 376, h = 88;
+    g.save(); if (p.gold) { g.shadowColor = "#ffcc59"; g.shadowBlur = 14; }
+    rr(g, x, y, w, h, 10); g.fillStyle = "rgba(22,28,46,0.97)"; g.fill(); g.strokeStyle = p.gold ? "#ffcc59" : "rgba(107,153,255,0.9)"; g.lineWidth = p.gold ? 2.5 : 1.5; g.stroke(); g.restore();
+    portrait(g, x + 8, y + 8, 72, p.col, p.name[0]);
+    badge(g, x + 74, y + 74, 17, p.rank);
+    label(g, p.name, x + 96, y + 20, 19, "#fff", "left", 900); label(g, p.cls, x + 96, y + 43, 14, p.col, "left", 700); label(g, p.ld, x + 96, y + 66, 12.5, "rgba(200,210,230,0.75)", "left", 400);
+    if (p.host) { rr(g, x + w - 112, y + 10, 54, 22, 11); g.fillStyle = "rgba(160,120,40,0.9)"; g.fill(); label(g, "HOST", x + w - 85, y + 21, 10.5, "#fff", "center", 800); }
+    if (p.you) { rr(g, x + w - 52, y + 10, 42, 22, 11); g.fillStyle = "rgba(74,110,200,0.9)"; g.fill(); label(g, "YOU", x + w - 31, y + 21, 10.5, "#fff", "center", 800); }
+  });
+  panel(g, 440, 68, 800, 556); label(g, "Loadout panel (unchanged)", 840, 346, 16, "rgba(158,169,196,0.5)", "center", 400);
+  // hover card on the first player
+  const hx = 300, hy = 150;
+  g.save(); g.shadowColor = "rgba(0,0,0,0.6)"; g.shadowBlur = 24; rr(g, hx + 130, hy + 6, 300, 128, 10); g.fillStyle = "#10142200"; g.fillStyle = "#101422"; g.fill(); g.restore();
+  rr(g, hx + 130, hy + 6, 300, 128, 10); g.strokeStyle = tierCol(7); g.lineWidth = 1.5; g.stroke();
+  badge(g, hx + 176, hy + 52, 30, 7);
+  label(g, "Challenger  ·  Rank 7", hx + 220, hy + 34, 15, tierCol(7), "left", 900);
+  label(g, "900 / 1,400 XP", hx + 220, hy + 56, 12, "#dfe6ff", "left", 700);
+  xpbar(g, hx + 148, hy + 84, 264, 8, 900 / 1400, tierCol(7));
+  label(g, "Equipped: no frame  ·  no trail", hx + 148, hy + 108, 12, "#9ea9c4", "left", 400);
+}
+
+// --- screen 3: main menu ----------------------------------------------------------------------------
+function drawChip(g, x, y, w, h, rank, name, xpFrac, hover) {
+  rr(g, x, y, w, h, h / 2); g.fillStyle = hover ? "#162038" : "#0e121e"; g.fill();
+  g.save(); rr(g, x, y, w, h, h / 2); g.clip(); xpbar(g, x + h / 2, y + h - 4, w - h, 4, xpFrac, tierCol(rank)); g.restore();
+  rr(g, x, y, w, h, h / 2); g.strokeStyle = hover ? "rgba(107,153,255,0.9)" : "rgba(107,153,255,0.45)"; g.lineWidth = 1.2; g.stroke();
+  g.beginPath(); g.arc(x + 24, y + h / 2 - 2, 15, 0, 7); g.fillStyle = "#2a4a8a"; g.fill(); label(g, name[0], x + 24, y + h / 2 - 1, 15, "#fff", "center", 900);
+  badge(g, x + 38, y + h / 2 + 12, 11, rank);
+  label(g, name, x + 54, y + 15, 15, "#fff", "left", 800);
+  label(g, hover ? "115 / 1,600 XP" : rankTitle(rank), x + 54, y + h / 2 + 7, 11.5, hover ? "#dfe6ff" : tierCol(rank), "left", 700);
+  label(g, "✎", x + w - 22, y + h / 2 - 2, 15, "rgba(107,153,255,0.7)", "center", 700);
+}
+function drawMenu() {
+  const g = ctxOf("menu"); backdrop(g);
+  fancy(g, "CARTESIAN COLOSSEUM", 640, 174, 54, "#6b99ff");
+  panel(g, 420, 290, 440, 214);
+  g.save(); g.shadowColor = "rgba(92,153,255,0.6)"; g.shadowBlur = 30; rr(g, 450, 314, 380, 82, 14); g.fillStyle = "rgba(74,130,245,0.95)"; g.fill(); g.restore();
+  fancy(g, "HOST GAME", 640, 355, 30, "#e0ebff");
+  button(g, 450, 414, 186, 52, "Join game", "#545c78", "#3c4260"); button(g, 644, 414, 186, 52, "Continue", "#46966a", "#336e4c");
+  g.fillStyle = "rgba(8,10,16,0.85)"; g.fillRect(0, 650, W, 70); g.fillStyle = "rgba(107,153,255,0.3)"; g.fillRect(0, 650, W, 1);
+  drawChip(g, 28, 662, 270, 46, 8, "Anthony", 115 / 1600, false);
+  [["Records", 520, "#ffc85a"], ["Settings", 650, "#96b4ff"], ["Quit", 1132, "#ff646e"]].forEach(([t, x, c]) => { rr(g, x, 666, 120, 38, 9); g.fillStyle = "rgba(255,255,255,0.05)"; g.fill(); label(g, t, x + 60, 685, 14, c, "center", 800); });
+  // call-out arrow
+  g.strokeStyle = "#ffcc59"; g.lineWidth = 2; g.setLineDash([6, 5]); rr(g, 20, 654, 286, 62, 31); g.stroke(); g.setLineDash([]);
+}
+function drawChips() {
+  const g = ctxOf("chips"); g.fillStyle = "#0b0d14"; g.fillRect(0, 0, 1280, 240);
+  label(g, "NORMAL", 40, 30, 12, "#9ea9c4", "left", 800); label(g, "HOVER (XP numbers)", 470, 30, 12, "#9ea9c4", "left", 800); label(g, "OTHER TIERS", 930, 30, 12, "#9ea9c4", "left", 800);
+  g.save(); g.translate(40, 56); g.scale(1.5, 1.5); drawChip(g, 0, 0, 270, 46, 8, "Anthony", 115 / 1600, false); g.restore();
+  g.save(); g.translate(470, 56); g.scale(1.5, 1.5); drawChip(g, 0, 0, 270, 46, 8, "Anthony", 115 / 1600, true); g.restore();
+  [[3, "Sam", 0.4], [14, "Aleon", 0.7], [31, "Mira", 0.2]].forEach(([r, n, f], i) => drawChip(g, 930, 50 + i * 58, 270, 46, r, n, f, false));
+}
+
+// --- screen 4: records ------------------------------------------------------------------------------
+function drawRecords() {
+  const g = ctxOf("records"); backdrop(g); g.fillStyle = "rgba(3,4,8,0.5)"; g.fillRect(0, 0, W, H);
+  fancy(g, "RECORDS", 60, 40, 36, "#ffc85a", 1, "left");
+  // profile column
+  panel(g, 60, 80, 380, 580);
+  badge(g, 250, 190, 78, 8);
+  label(g, "Anthony", 250, 300, 28, "#fff", "center", 900); label(g, "Challenger  ·  Rank 8", 250, 330, 16, tierCol(8), "center", 800);
+  xpbar(g, 100, 354, 300, 16, 115 / 1600, tierCol(8), 8); label(g, "115 / 1,600 XP", 250, 388, 13, "#dfe6ff", "center", 700); label(g, "5,715 XP total  ·  1,485 to Rank 9", 250, 408, 12, "#9ea9c4", "center", 400);
+  label(g, "EQUIPPED", 92, 448, 12, "#9ea9c4", "left", 800);
+  [["Title", "Challenger"], ["Trail", "Ember"], ["Frame", "none"], ["Background", "Default"]].forEach(([a, b], i) => {
+    const y = 482 + i * 42; rr(g, 88, y - 16, 324, 34, 7); g.fillStyle = "rgba(255,255,255,0.04)"; g.fill();
+    label(g, a, 104, y, 14, "#9ea9c4", "left", 400); label(g, b, 396, y, 14, b === "none" ? "#6a728c" : "#fff", "right", 800);
+  });
+  // ladder
+  panel(g, 470, 80, 360, 580); label(g, "REWARD LADDER", 494, 106, 12, "#9ea9c4", "left", 800);
+  const done = REWARDS.filter(r => r[0] <= 8), todo = REWARDS.filter(r => r[0] > 8);
+  [...done.reverse(), ...todo].forEach(([rk, kind, nm], i) => {
+    const y = 148 + i * 66, got = rk <= 8, nxt = rk === todo[0][0];
+    rr(g, 490, y - 26, 320, 56, 8); g.fillStyle = nxt ? "rgba(255,204,89,0.1)" : "rgba(255,255,255,0.03)"; g.fill(); if (nxt) { g.strokeStyle = "rgba(255,204,89,0.55)"; g.lineWidth = 1; g.stroke(); }
+    g.globalAlpha = got ? 1 : 0.55; badge(g, 524, y + 2, 17, rk); g.globalAlpha = 1;
+    label(g, nm, 556, y - 8, 16, got ? "#fff" : "#d6dcee", "left", 800); label(g, kind + (got ? "  ·  unlocked" : nxt ? "  ·  next" : ""), 556, y + 14, 12, got ? "#6fe39a" : nxt ? "#ffcc59" : "#9ea9c4", "left", 700);
+  });
+  // runs
+  panel(g, 860, 80, 360, 580); label(g, "RECENT RUNS", 884, 106, 12, "#9ea9c4", "left", 800);
+  [["Wave 11", "Game over", "+615", "x 1.50", ["Tough Crowd", "Nightfall"]], ["Wave 23", "Lich", "+1,120", "x 1.75", ["Death Throes", "Frenzy", "Tough Crowd"]], ["Wave 14", "Game over", "+440", "x 1.00", []], ["Wave 50", "Victory", "+3,900", "x 2.25", ["Glass Cannon", "Famine", "Solid Walls", "Hunted"]]].forEach(([w, e, xp, mult, mods], i) => {
+    const y = 130 + i * 112; rr(g, 880, y, 320, 100, 8); g.fillStyle = "rgba(255,255,255,0.04)"; g.fill();
+    label(g, w, 896, y + 22, 18, "#fff", "left", 900); label(g, e, 896, y + 44, 12, e === "Victory" ? "#ffcc59" : "#9ea9c4", "left", 700);
+    label(g, xp + " XP", 1184, y + 22, 18, "#ffcc59", "right", 900); label(g, mult, 1184, y + 44, 12, mods.length ? "#c9a6ff" : "#6a728c", "right", 800);
+    let cx = 896, cy = y + 74;
+    mods.forEach(m => { g.font = "700 10.5px Arial"; const tw = g.measureText(m).width + 14; if (cx + tw > 1190) { cx = 896; cy += 20; } rr(g, cx, cy - 9, tw, 18, 9); g.fillStyle = "rgba(180,115,255,0.2)"; g.fill(); label(g, m, cx + 7, cy, 10.5, "#c9a6ff", "left", 700); cx += tw + 5; });
+    if (!mods.length) label(g, "No modifiers", 896, cy, 11, "#6a728c", "left", 400);
+  });
+}
+
+// --- wiring -------------------------------------------------------------------------------------
+function redrawStatic() { drawStrip(); drawLobby(); drawMenu(); drawChips(); drawRecords(); }
+document.getElementById("styleSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; STYLE = +b.dataset.s;
+  document.querySelectorAll("#styleSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  redrawStatic();
+});
+document.getElementById("endSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; endMode = b.dataset.m; endT = 0;
+  document.querySelectorAll("#endSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+});
+document.getElementById("replay").addEventListener("click", () => { endT = 0; });
+redrawStatic(); requestAnimationFrame(loop);
+</script>
