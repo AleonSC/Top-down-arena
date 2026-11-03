@@ -280,9 +280,9 @@ static partial class Program
         var target = dummy(from + new V2(200f, 120f));
         float t0 = target.Hp;
         step(90, new PlayerInput());
-        Console.WriteLine("  arcane missiles: banked {0} (cap {1}) with {2} flying from the full cast; held with no enemy near {3}; once one came near: {4} left, it took {5:0.0}",
+        Console.WriteLine("  ice shards: banked {0} (cap {1}) with {2} flying from the full cast; held with no enemy near {3}; once one came near: {4} left, it took {5:0.0}",
             banked, Game.OrbitCap(0), flying, held, me.Orbiters, t0 - target.Hp);
-        Check(banked == Game.OrbitCap(0) && flying == 3 && held, "Arcane Missiles bank in orbit (a full orbit's cast flies at your aim instead) and wait while no enemy is near");
+        Check(banked == Game.OrbitCap(0) && flying == 3 && held, "Ice Shards bank in orbit (a full orbit's cast flies at your aim instead) and wait while no enemy is near");
         Check(me.Orbiters == 0 && target.Hp < t0, "orbiting missiles launch at an enemy that comes near");
 
         // Riot Repeater.
