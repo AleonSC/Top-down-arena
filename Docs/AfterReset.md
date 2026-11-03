@@ -66,6 +66,19 @@ numbers, but each step up also **adds named rules**, shown on the difficulty car
 - **Build first:** the Hard twists (smarter AI + elite affixes). They're in every wave, so they change the feel
   fastest, and need no per-boss work.
 
+## Online play without Tailscale: relay with room codes (not urgent)
+So friends can play without Tailscale or port forwarding.
+- A small **relay** program on a cheap server (~$4-6/month, e.g. Hetzner or DigitalOcean) that just passes messages
+  between the host and the joiners. The host's game still runs the match.
+- In the menu: **Host online** gives a short room code (e.g. `KJ4P`); **Join online** takes the code. Nobody
+  installs anything extra.
+- Fits the current setup: networking is plain TCP (`Assets/Scripts/Core/Net.cs`, `Session.cs`) and the core game
+  doesn't depend on Unity, so the relay can be plain C#. Test it like the rest of multiplayer (SimTest drives real
+  sessions over localhost); add a relay check.
+- Deliverables: the relay program, the two menu buttons and code entry, a version check through the relay, and
+  step-by-step server setup instructions (rent, install, run as a service) in the README.
+- Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
+
 ## Bigger features (design docs ready)
 - [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
 - [ ] Boss Hunts, then Perks: [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
