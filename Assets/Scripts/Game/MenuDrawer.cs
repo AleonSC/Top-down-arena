@@ -17,6 +17,7 @@ namespace Arena
         int pauseSel;            // the pause menu's highlighted choice (↑ ↓, Enter)
         bool pauseSettings;      // the pause menu showing Settings
         bool pauseHowTo;         // the pause (or lobby) menu showing How to play
+        bool pauseRecords;       // the lobby menu showing Records
         Vector2 pauseMouse;      // where the mouse was last frame (hovering moves the highlight only when it moves)
         int settingsGroup = 1;   // 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int recordsSection;      // 0 Overview, 1 Bosses, 2 Classes, 3 Challenge rooms, 4 Unlocks
@@ -204,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "How to play", "Leave to main menu", "Quit game" };
+        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "Records", "How to play", "Leave to main menu", "Quit game" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -213,13 +214,13 @@ namespace Arena
         {
             lobbyMenuOpen = true;
             lobbySel = 0;
-            pauseSettings = pauseHowTo = false;
+            pauseSettings = pauseHowTo = pauseRecords = false;
             drawerKey = null;
             winOpenAt = Time.unscaledTime;
             GUIUtility.keyboardControl = 0;
         }
 
-        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = false; });
+        void CloseLobbyMenu() => CloseWindow(() => { lobbyMenuOpen = false; pauseSettings = pauseHowTo = pauseRecords = false; });
 
         /// The lobby's menu: back to the lobby, Settings (in the drawer, like the pause menu's), the Field guide, leaving
         /// for the main menu, or quitting. The lobby stays behind it, dimmed.
@@ -233,6 +234,11 @@ namespace Arena
                 DrawSettingsWindow(true);  // its Back returns to this list
                 return;
             }
+            if (pauseRecords)
+            {
+                DrawRecordsWindow(true);  // its Back returns to this list
+                return;
+            }
             if (pauseHowTo)
             {
                 DrawHowToContent(DrawerIn("pause-howto", false), Time.unscaledTime, "Back  [Esc]", () => pauseHowTo = false);
@@ -241,9 +247,9 @@ namespace Arena
             DrawerIn("pause", false);
             LobbyMenuKeys();
             BeginDrawer("MENU", Ui.Accent, 1f, session.IsHost && session.Lobby.Count > 1 ? "Leaving closes the lobby for everyone" : "In the lobby");
-            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
-            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_help", "ui_back", "ui_power" };
-            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Controls and tips",
+            Color[] cols = { Ui.Primary, new Color(0.6f, 0.66f, 0.82f), FieldGuideColor, Ui.Gold, HowToColor, new Color(1f, 0.6f, 0.45f), new Color(1f, 0.45f, 0.5f) };
+            string[] icons = { "ui_play", "ui_gear", "ui_book", "ui_trophy", "ui_help", "ui_back", "ui_power" };
+            string[] lines = { "Close this menu", "Audio, visual effects, aim line", "Every enemy, boss, class, weapon, ability and upgrade", "Your runs, bosses beaten and class wins", "Controls and tips",
                 session.IsHost ? "Close the lobby and go back to the title screen" : "Leave the lobby and go back to the title screen", "Close the game" };
             float y = 128f;
             for (int i = 0; i < LobbyChoices.Length; i++)
@@ -284,8 +290,9 @@ namespace Arena
                 case 0: CloseLobbyMenu(); break;
                 case 1: pauseSettings = true; break;
                 case 2: OpenFieldGuide(); break;
-                case 3: pauseHowTo = true; break;
-                case 4:
+                case 3: pauseRecords = true; break;
+                case 4: pauseHowTo = true; break;
+                case 5:
                     lobbyMenuOpen = false;
                     pauseSettings = pauseHowTo = false;
                     StartLobbyLeave();  // the way in from the menu, backwards (LobbyEnter.cs)
@@ -797,11 +804,11 @@ namespace Arena
 
         static readonly string[] RecordSections = { "Overview", "Bosses", "Classes", "Challenge rooms", "Unlocks" };
 
-        void DrawRecordsWindow()
+        void DrawRecordsWindow(bool inMenu = false)
         {
             var p = Profile.Current;
             float t = Time.unscaledTime;
-            float k = DrawerIn("records", true);
+            float k = DrawerIn(inMenu ? "pause-records" : "records", !inMenu);
             BeginDrawer("RECORDS", Ui.Gold, k, "Kept on this computer");
             int bossesBeaten = 0;
             foreach (var b in RecordBosses)
@@ -827,7 +834,12 @@ namespace Arena
                 y += r.height + 4f;
             }
             if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
-                CloseWindow(() => recordsOpen = false);
+            {
+                if (inMenu)
+                    pauseRecords = false;
+                else
+                    CloseWindow(() => recordsOpen = false);
+            }
             EndDrawer();
             BeginPanelAnim("records" + recordsSection);
             DrawRecordsSection(p, t, bossesBeaten, roomsWon, cols);

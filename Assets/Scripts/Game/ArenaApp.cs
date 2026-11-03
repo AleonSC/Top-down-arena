@@ -403,8 +403,8 @@ namespace Arena
             {
                 if (fieldGuideOpen)
                     CloseFieldGuide();  // back to the lobby's menu
-                else if (lobbyMenuOpen && (pauseSettings || pauseHowTo))
-                    pauseSettings = pauseHowTo = false;  // the lobby menu's Settings: back to its list
+                else if (lobbyMenuOpen && (pauseSettings || pauseHowTo || pauseRecords))
+                    pauseSettings = pauseHowTo = pauseRecords = false;  // the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
