@@ -46,6 +46,21 @@ unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep
   an ascension (e.g. Twin Rifle II unlocks the Missile Pod); perks stay separate (they come from bosses).
 - Open: each weapon's actual ascension variants need designing (a design doc or mockups before building).
 
+**Modifier unlocks** (same standard condition pieces, no new system)
+- **Open from the start:** the Easier ones (Lucky, Head Start, Practiced, Second Wind) plus a couple of simple
+  Harder ones (Tough Crowd, Swift Foes). Easier ones help struggling players, who have unlocked the least.
+- **Unlocked by playing:** the rest of the Harder/Risky ones, each tied to something that fits its theme. Examples:
+  - Nightfall: reach wave 20.
+  - Death Throes: beat the Hive Queen.
+  - Hunted: win a co-op run.
+  - Zombie Infection: beat the Lich.
+- In co-op the **host's** unlocks decide what's available.
+- Locked modifiers show their condition in the Modifiers tab.
+- **Badges:** a Records badge for each modifier you've won a run with, so the open ones also get tried.
+
+**Sort modifiers by tier.** In the lobby's Modifiers tab, group the switches by their tag (Easier / Risky /
+Harder), with a small heading per group, instead of the current order.
+
 ## Difficulty with twists
 Today the presets only change numbers (README "Difficulty"), so Nightmare plays like Normal, just harder. Keep the
 numbers, but each step up also **adds named rules**, shown on the difficulty card.
