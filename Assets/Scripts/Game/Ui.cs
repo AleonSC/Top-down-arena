@@ -302,20 +302,25 @@ namespace Arena
         /// GPU leaves no seams between them.
         public static void FadedBar(Rect r, Color c)
         {
+            // Every edge is a multiple of 1/16, so a piece's x + width lands on its neighbour's x exactly. Computed
+            // separately (x + (w - 2 * fade) against xMax - ((x + 14 * step) - x)) the two could differ by a float
+            // ulp, and on some button positions that left a one-pixel gap where the middle meets the right fade.
             float fade = Mathf.Min(28f, r.width * 0.3f);
             const int steps = 14;
-            float step = fade / steps;
-            Fill(new Rect(r.x + fade, r.y, r.width - 2f * fade, r.height), c);
+            float left = Snap16(r.x), right = Snap16(r.xMax), full = Snap16(fade);
+            Fill(new Rect(left + full, r.y, (right - full) - (left + full), r.height), c);
             for (int i = 0; i < steps; i++)
             {
                 float f = (i + 0.5f) / steps;
                 f = f * f * (3f - 2f * f);
                 var sc = new Color(c.r, c.g, c.b, c.a * f);
-                float x0 = r.x + i * step, x1 = r.x + (i + 1) * step;
-                Fill(new Rect(x0, r.y, x1 - x0, r.height), sc);
-                Fill(new Rect(r.xMax - (r.x + (i + 1) * step - r.x), r.y, x1 - x0, r.height), sc);
+                float a = Snap16(fade * i / steps), b = Snap16(fade * (i + 1) / steps);
+                Fill(new Rect(left + a, r.y, b - a, r.height), sc);
+                Fill(new Rect(right - b, r.y, b - a, r.height), sc);
             }
         }
+
+        static float Snap16(float v) => Mathf.Round(v * 16f) / 16f;
 
         /// One option of a row of choices, drawn as a card: dark with a colour bar along the bottom; the selected
         /// one is washed with its colour, rimmed in it and glows. With an icon (and an optional second line such
