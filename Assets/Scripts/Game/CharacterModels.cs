@@ -480,9 +480,18 @@ namespace Arena
                     break;
                 case WeaponId.TreantRod:
                 {
+                    // A gnarled root staff: dark bark with a light edge, a few thorns, and a green bud curling at the tip.
                     float px = -8f, py = 0f;
-                    for (int i = 1; i <= 9; i++) { float x = -8f + i * 4f, y = Mathf.Sin(i * 0.9f) * 1.6f; MLine(px, py, x, y, 3.2f - i * 0.12f, Hx(0x7a5a38)); px = x; py = y; }
-                    MCirc(27f, -3.5f, 2.8f, Hx(0x59d36a), 8); MCirc(28f, 3.5f, 2.8f, Hx(0x59d36a), 8); MCirc(31f, 0f, 3f, Hx(0xcfffb0), 8);
+                    for (int i = 1; i <= 9; i++)
+                    {
+                        float x = -8f + i * 4f, y = Mathf.Sin(i * 0.9f) * 1.8f, w = 3.8f - i * 0.16f;
+                        MLine(px, py, x, y, w, Hx(0x8a5a2b)); MLine(px, py, x, y, w * 0.35f, Hx(0xc58a48));
+                        if (i == 3 || i == 6) MLine(x, y, x + 1.5f, y + (i == 3 ? -5f : 5f), 1.3f, Hx(0xd9c9a0));  // thorns
+                        px = x; py = y;
+                    }
+                    MCirc(-8f, 0f, 3f, Hx(0x4d3217), 8);  // the knotted butt
+                    MPoly(Hx(0x59c46a), 28f, 0f, 24f, -6f, 33f, -3f); MPoly(Hx(0x59c46a), 28f, 0f, 24f, 6f, 33f, 3f);  // two leaves
+                    MCirc(29f, 0f, 2.6f, Hx(0xcfffb0), 8);
                     break;
                 }
                 case WeaponId.SpiritChalk:

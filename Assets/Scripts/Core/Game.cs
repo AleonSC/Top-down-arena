@@ -185,7 +185,6 @@ namespace Arena
                 p.RoleAbility = Upgrades.RoleAbility(role, kit, ability);
                 p.BaseHp = def.Hp * Defs.KitHpMult(kit);
                 p.MaxHp = p.Hp = p.BaseHp;
-                p.TotemCd = 2f;
                 for (int k = 0; k < p.HpHistory.Length; k++)
                     p.HpHistory[k] = p.Hp;
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
@@ -683,6 +682,7 @@ namespace Arena
             AnimT += dt;
             TickShopNotices(dt);
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
+            UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs

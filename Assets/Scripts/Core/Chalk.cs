@@ -26,7 +26,7 @@ namespace Arena
     /// are penned in until it fades (bosses aren't held). Clients see it through the snapshot (SyncInk). Looks: Game/ChalkLook.cs.
     public partial class Game
     {
-        public const float ChalkSpeed = 260f, ChalkStep = 10f, ChalkLife = 4f, ChalkInk = 600f, ChalkDotR = 11f;
+        public const float ChalkSpeed = 700f, ChalkStep = 10f, ChalkLife = 4f, ChalkInk = 600f, ChalkDotR = 11f;
         public const float ChalkBurn = 26f, ChalkSlow = 0.3f, ChalkHeal = 10f, ChalkWear = 0.3f;
         public const float ChalkSeal = 3.5f, ChalkCloseDist = 20f, ChalkMinLoopArea = 3600f;  // a loop closes within this of where it began; it holds this long; it must enclose at least about 60 x 60 px
         public const int ChalkMinLoopDots = 12;  // a loop is at least 120 px of line (so a scribble in place doesn't count)
@@ -40,10 +40,15 @@ namespace Arena
         readonly Dictionary<int, ChalkHand> hands = new Dictionary<int, ChalkHand>();  // host: each drawer's pen tip
         int nextStroke = 1, nextPen = 1;
 
+        /// Where each drawer's chalk is right now (while they hold the button), sent with the ink so the head of a line moves
+        /// smoothly instead of in dab-sized steps. InkTipDisp is what's drawn: it eases toward the tip every frame (UpdateInkView).
+        public readonly Dictionary<int, V2> InkTip = new Dictionary<int, V2>();
+        public readonly Dictionary<int, V2> InkTipDisp = new Dictionary<int, V2>();
+
         class ChalkHand
         {
             public V2 Tip;
-            public bool Down;
+            public bool Down, Broken;  // Broken: out of ink, so the line resumes as a new stroke (not a chord back to where it stopped)
             public int Stroke, LoopFrom;
             public readonly List<InkDot> Dots = new List<InkDot>();
         }
@@ -93,6 +98,7 @@ namespace Arena
             if (p.Weapon.Id != WeaponId.SpiritChalk || p.Downed || !p.Firing)
             {
                 h.Down = false;
+                InkTip.Remove(p.Id);
                 return;
             }
             V2 target = ClampToArena(p.Pos + (p.AimAt - p.Pos).LimitLength(ChalkReach(p)), 4f);
@@ -100,28 +106,47 @@ namespace Arena
             {
                 h.Down = true;
                 h.Tip = target;
-                h.Stroke = nextStroke++;
-                h.LoopFrom = 0;
-                h.Dots.Clear();
-                LayDot(p, h, h.Tip);
+                BeginStroke(p, h);
+                InkTip[p.Id] = h.Tip;
                 return;
             }
             V2 to = target - h.Tip;
             float len = to.Length, move = Math.Min(len, ChalkSpeed * dt);
-            if (move <= 0f)
-                return;
-            V2 dir = to / len;
-            V2 last = h.Dots.Count > 0 ? h.Dots[h.Dots.Count - 1].Pos : h.Tip;
-            V2 end = h.Tip + dir * move;
-            float gap = last.DistanceTo(end);
-            if (gap >= ChalkStep)
+            V2 end = len > 0.001f ? h.Tip + to / len * move : h.Tip;
+            if (InkCount(p.Id) >= InkCap(p))
+                h.Broken = true;  // out of ink: the chalk keeps following the cursor, but leaves nothing
+            else if (h.Broken)
             {
-                int n = (int)(gap / ChalkStep);
-                for (int k = 1; k <= n; k++)
-                    LayDot(p, h, last + (end - last) / gap * (ChalkStep * k));
+                h.Broken = false;  // the ink is back (a line faded): start again where the chalk is now, held still or not
+                h.Tip = end;
+                BeginStroke(p, h);
+                InkTip[p.Id] = h.Tip;
+                return;
+            }
+            else if (move > 0f)
+            {
+                V2 last = h.Dots.Count > 0 ? h.Dots[h.Dots.Count - 1].Pos : h.Tip;
+                float gap = last.DistanceTo(end);
+                if (gap >= ChalkStep)
+                {
+                    int n = (int)(gap / ChalkStep);
+                    for (int k = 1; k <= n; k++)
+                        LayDot(p, h, last + (end - last) / gap * (ChalkStep * k));
+                }
             }
             h.Tip = end;
+            InkTip[p.Id] = h.Tip;
         }
+
+        void BeginStroke(Player p, ChalkHand h)
+        {
+            h.Stroke = nextStroke++;
+            h.LoopFrom = 0;
+            h.Dots.Clear();
+            LayDot(p, h, h.Tip);
+        }
+
+        int InkCap(Player p) => (int)(ChalkInk * (1f + 0.2f * ExtraShots(p)) / ChalkStep);
 
         int InkCount(int owner)
         {
@@ -134,8 +159,7 @@ namespace Arena
 
         void LayDot(Player p, ChalkHand h, V2 at)
         {
-            int cap = (int)(ChalkInk * (1f + 0.2f * ExtraShots(p)) / ChalkStep);
-            if (InkCount(p.Id) >= cap)
+            if (InkCount(p.Id) >= InkCap(p))
                 return;  // out of ink: it comes back as the line fades
             var dot = new InkDot { Pos = at, T = ChalkLife, Owner = p.Id, Stroke = h.Stroke };
             Ink.Add(dot);
@@ -304,7 +328,26 @@ namespace Arena
                     into.Add(d.Pos);
         }
 
-        /// Snapshot: everyone's ink (position, life, owner, stroke, pen), small enough to send whole each time.
+        /// Every frame (everyone's game): the drawn chalk tips ease toward where the host says they are, and a client ages its ink
+        /// between snapshots (the host sends each dot's life only 20 times a second).
+        void UpdateInkView(float dt)
+        {
+            float k = 1f - (float)Math.Exp(-dt * 30f);
+            foreach (var kv in InkTip)
+            {
+                V2 shown;
+                InkTipDisp[kv.Key] = InkTipDisp.TryGetValue(kv.Key, out shown) && shown.DistanceTo(kv.Value) < 120f ? V2.Lerp(shown, kv.Value, k) : kv.Value;
+            }
+            if (InkTipDisp.Count > InkTip.Count)
+                foreach (int id in new List<int>(InkTipDisp.Keys))
+                    if (!InkTip.ContainsKey(id))
+                        InkTipDisp.Remove(id);
+            if (!IsHost)
+                foreach (var d in Ink)
+                    d.T -= dt;
+        }
+
+        /// Snapshot: everyone's ink (position, life, owner, stroke, pen) and each drawer's live tip, small enough to send whole each time.
         void SyncInk(NetSync s)
         {
             int count = Ink.Count;
@@ -328,6 +371,26 @@ namespace Arena
                     V2 pos = d.Pos;
                     float t = d.T;
                     s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
+                }
+            int tips = InkTip.Count;
+            s.Byte(ref tips);
+            if (s.Reading)
+            {
+                InkTip.Clear();
+                for (int i = 0; i < tips; i++)
+                {
+                    int owner = 0;
+                    V2 pos = default(V2);
+                    s.Byte(ref owner); s.Vec(ref pos);
+                    InkTip[owner] = pos;
+                }
+            }
+            else
+                foreach (var kv in InkTip)
+                {
+                    int owner = kv.Key & 0xff;
+                    V2 pos = kv.Value;
+                    s.Byte(ref owner); s.Vec(ref pos);
                 }
         }
     }

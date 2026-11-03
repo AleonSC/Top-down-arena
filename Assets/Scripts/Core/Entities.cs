@@ -142,7 +142,7 @@ namespace Arena
         public float ArcaneStore;                // host: what it has soaked
         public int ArcaneBy;                     // host: who cast it
         public float WardT, WardFrac, WardInvuln;  // Martyr's ward: going down while it lasts gets you straight back up (WardT replicated)
-        public float CompanionCd, TotemCd;     // host: summoner companion and totem timers
+        public float CompanionCd;              // host: summoner companion timer
         public readonly float[] HpHistory = new float[16];   // host: unused since Time Rewind was replaced by Healing Rain (every 0.25 s)
         public readonly bool[] DownHistory = new bool[16];
         public int HistoryIdx;
@@ -282,7 +282,6 @@ namespace Arena
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
         public Bullet Sent;       // host only: its entry in the spawn message still to go out (so its Look can be set after)
         public bool Rush;         // host only: a Pauser's shot; when it runs out (after hanging still) one rushes at a player from where it hung
-        public bool Refract;      // host only: a Prism Beam, which splits in three through an ally
         public bool Suppressive;  // host only: a Riot Repeater round, which slows how fast what it hits shoots
         public bool Medicine;     // host only: a Medicine Dart (poisons enemies, doses allies with healing over time)
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
@@ -346,8 +345,8 @@ namespace Arena
         public bool Embers;         // host: a mastered Meteor leaves burning ground
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
-        public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Totem's charge)
-        public float Charge;        // host: a thrown Totem's charge from seed hits near it
+        public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Spirit Ward's soak)
+        public float Charge;        // host: a Mist's timer to its next dewdrop (Ninja.cs)
         public bool Congealed;      // host: a Blood Pool that has set (BloodMage.cs)
         public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
         public ZoneDef Def => Kits.Get(Kind);

@@ -126,6 +126,7 @@ namespace Arena
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
+            radiantTrails.Clear();
             ClearAmbience();  // Ambience.cs
         }
 
@@ -197,6 +198,7 @@ namespace Arena
             }
             juiceClock += dt;
             juiceFrame++;
+            UpdateRadiantStardust(dt);  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             float t = game.AnimT;
             var me = game.Me;
 
@@ -702,6 +704,7 @@ namespace Arena
             DrawWeatherGlow();  // Ambience.cs
             DrawMeleeGlow();    // melee swings' energy (MeleeLooks.cs)
             DrawChainLightGlow();  // Chain Light's radiance (ChainLightLooks.cs)
+            DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's Thunderhead (ArcLightningLooks.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
