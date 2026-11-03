@@ -205,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "BACK TO THE LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
+        static readonly string[] LobbyChoices = { "LOBBY", "SETTINGS", "FIELD GUIDE", "RECORDS", "HOW TO PLAY", "MAIN MENU", "QUIT GAME" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -402,7 +402,7 @@ namespace Arena
             }
             bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null;
             BeginDrawer("TO LOBBY?", LobbyConfirmColor, 1f, many ? "Ends the run for everyone" : "Ends the run");
-            string[] names = { "Back to the lobby", "Keep playing" };
+            string[] names = { "BACK TO THE LOBBY", "KEEP PLAYING" };
             string[] lines = { many ? "Everyone beams out to the lobby" : "Beam out to the lobby", "Back to the pause menu" };
             string[] icons = { "ui_back", "ui_play" };
             Color[] cols = { LobbyConfirmColor, Ui.Primary };
@@ -602,7 +602,7 @@ namespace Arena
             bgBig = false;
             float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
-            BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
+            BeginDrawer("SETTINGS", Ui.Accent, k);
             string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change any key, Left Alt for weapon secondaries" };
@@ -662,11 +662,11 @@ namespace Arena
                     float x = DrawerPanel.x + 28f, w = DrawerPanel.width - 56f;
                     y = DrawerPanel.y + 104f;
                     bool changed = false;
-                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master);
-                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music);
-                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons);
-                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies);
-                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects);
+                    changed |= VolumeSlider(x, ref y, w, "Master", ref sounds.Master, new Color(0.31f, 0.42f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Music", ref sounds.Music, new Color(0.69f, 0.42f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Weapons  (your shots and spells)", ref sounds.Weapons, new Color(0.31f, 0.76f, 1f));
+                    changed |= VolumeSlider(x, ref y, w, "Enemies", ref sounds.Enemies, new Color(1f, 0.42f, 0.53f));
+                    changed |= VolumeSlider(x, ref y, w, "Effects  (explosions, abilities, the menus)", ref sounds.Effects, new Color(0.43f, 0.89f, 0.77f));
                     bool m2 = SwitchRow(new Rect(x, y + 6f, w, 44f), sounds.Muted, "Mute all sound", "Everything off at once; the volumes are kept", Keybinds.KeyName(Keybinds.Get(KeyAction.Mute)));
                     if (m2 != sounds.Muted)
                     {

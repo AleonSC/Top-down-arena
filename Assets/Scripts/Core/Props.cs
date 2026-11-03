@@ -60,6 +60,8 @@ namespace Arena
 
         /// Crates (cover) on the field in a regular wave: more as the bullets thicken.
         public static int CrateTarget(int wave) => Math.Min(10, 2 + (int)(wave * 0.3f));
+        /// The Cluttered modifier: a maze of crates, growing every wave (they stay until broken; bosses clear them).
+        public static int ClutterTarget(int wave) => Math.Min(48, 14 + wave * 3);
         public static int PotTarget(int wave) => Math.Min(5, 1 + wave / 7);
         public static float BarrelChance(int wave) => Math.Min(0.45f, 0.25f + wave * 0.005f);
         /// Enemy hits a crate takes before it breaks.
@@ -136,16 +138,18 @@ namespace Arena
                 else if (p.Kind == PropKind.Pot)
                     pots++;
             }
-            for (int tries = 0; crates < CrateTarget(Wave) && tries < 20; tries++)
+            bool clutter = Has(RunMod.Cluttered);
+            int crateGoal = clutter ? ClutterTarget(Wave) : CrateTarget(Wave);
+            for (int tries = 0; crates < crateGoal && tries < (clutter ? 300 : 20); tries++)
             {
-                var kind = Wave >= 12 && rng.NextDouble() < 0.35 ? PropKind.HeavyCrate : PropKind.Crate;
+                var kind = Wave >= (clutter ? 8 : 12) && rng.NextDouble() < 0.35 ? PropKind.HeavyCrate : PropKind.Crate;
                 V2 at;
                 if (!FreeSpot(HalfW(kind), out at))
                     break;
                 AddProp(kind, at);
                 crates++;
                 // Often a second one alongside: a little wall to hide behind.
-                if (crates < CrateTarget(Wave) && rng.NextDouble() < 0.45)
+                if (crates < crateGoal && rng.NextDouble() < 0.45)
                 {
                     float step = HalfW(kind) * 2f + 2f;
                     V2 next = at + (rng.Next(2) == 0 ? new V2(rng.Next(2) == 0 ? step : -step, 0f) : new V2(0f, rng.Next(2) == 0 ? step : -step));

@@ -42,6 +42,18 @@ static partial class Program
         bool clearOfPlayers = g.Props.Values.All(p => g.Players.Values.All(pl => pl.Pos.DistanceTo(p.Pos) > 100f));
         Check(clearOfPlayers, "props never land on top of a player");
 
+        // Cluttered: a lot more crates, growing by wave, still clear of the players.
+        Check(Game.ClutterTarget(9) >= 3 * Game.CrateTarget(9) && Game.ClutterTarget(20) > Game.ClutterTarget(9),
+            "Cluttered: many more crates than a normal wave, and more each wave");
+        foreach (var id in g.Props.Keys.ToList()) g.Props.Remove(id);
+        g.Mods |= RunMod.Cluttered;
+        waveProps.Invoke(g, null);
+        int cluttered = g.Props.Values.Count(p => Game.IsCrate(p));
+        g.Mods &= ~RunMod.Cluttered;
+        Console.WriteLine("  Cluttered wave 9: {0} crates (target {1})", cluttered, Game.ClutterTarget(9));
+        Check(cluttered >= Game.ClutterTarget(9) * 3 / 4 && g.Props.Values.All(p => g.Players.Values.All(pl => pl.Pos.DistanceTo(p.Pos) > 100f)),
+            "Cluttered: the wave fills the arena with crates, none on a player");
+
         // Clear the field for the checks below.
         Quiet();
         g.Props.Clear();

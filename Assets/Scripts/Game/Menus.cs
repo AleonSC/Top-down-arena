@@ -555,12 +555,12 @@ namespace Arena
         /// Settings (main menu, lobby; the pause menu's opens from its drawer), as the side drawer (MenuDrawer.cs).
         void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(false); }
 
-        bool VolumeSlider(float x, ref float y, float w, string label, ref float value)
+        bool VolumeSlider(float x, ref float y, float w, string label, ref float value, Color tint)
         {
             Ui.Label(new Rect(x, y, w - 60f, 20f), label, 14, Ui.Text);
             Ui.Label(new Rect(x + w - 60f, y, 60f, 20f), Mathf.RoundToInt(value * 100f) + "%", 14, Ui.Muted, TextAnchor.MiddleRight, true);
-            float v = Ui.Slider(new Rect(x, y + 24f, w, 18f), value);
-            y += 54f;
+            float v = Ui.MeterSlider(new Rect(x, y + 22f, w, 36f), value, tint);
+            y += 66f;
             if (Mathf.Abs(v - value) < 0.0001f)
                 return false;
             value = v;
