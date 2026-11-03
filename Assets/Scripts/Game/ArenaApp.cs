@@ -36,6 +36,8 @@ namespace Arena
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
         bool devPauseKey;                // F1 dev tool: P freezes the match with no menu, for screenshots (saved)
+        /// The frame time for things the drawing moves by itself (sweeping lasers, spark rates): zero while P has frozen the match.
+        float ViewDt => devFrozen ? 0f : Time.deltaTime;
         bool devFrozen, devFrozenAck;    // P has frozen the match (Ack: the pause has come back from the host, so a later resume is someone else's)
         bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
@@ -208,7 +210,7 @@ namespace Arena
         {
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
             session.Poll();
-            game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
+            game.Update(devFrozen ? 0f : Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs); nothing ages while P has frozen it
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             WaveEditorUpdate(Time.unscaledDeltaTime);  // the wave editor's playhead and keys (WaveEditorUi.cs)
             foreach (var sfx in game.Sounds)

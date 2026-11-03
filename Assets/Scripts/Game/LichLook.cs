@@ -43,7 +43,7 @@ namespace Arena
             if (s.SweepOn > 0)
             {
                 float diff = MathX.Fmod(s.SweepA - sweepAngle + MathX.Pi, MathX.Tau) - MathX.Pi;
-                sweepAngle += Mathf.Abs(diff) > 0.6f ? diff : diff * Mathf.Min(1f, Time.deltaTime * 12f);
+                sweepAngle += Mathf.Abs(diff) > 0.6f ? diff : diff * Mathf.Min(1f, ViewDt * 12f);
                 V2 end = lich.Disp + V2.FromAngle(sweepAngle) * Game.LichSweepLen;
                 if (s.SweepOn == 1)
                     Line(lich.Disp, end, 2f, SpiritCol.WithAlpha(MathX.Fmod(t, 0.12f) < 0.06f ? 0.9f : 0.35f));

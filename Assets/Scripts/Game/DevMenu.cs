@@ -224,7 +224,7 @@ namespace Arena
             aimDebug = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
             y += 30f;
             // P freezes the match with no menu on screen, for screenshots (ArenaApp.cs). Pausing is shared: it stops everyone.
-            bool pauseKey = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Pause-time key  (P): freeze, no menu");
+            bool pauseKey = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Freeze-time key  (P): hold everything, no menu");
             if (pauseKey != devPauseKey)
             {
                 devPauseKey = pauseKey;

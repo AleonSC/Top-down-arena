@@ -579,8 +579,8 @@ namespace Arena
         void BeginJuiceFrame()
         {
             shakeX = shakeY = 0f;
-            if (!Juicy || trauma <= 0f)
-                return;
+            if (!Juicy || trauma <= 0f || devFrozen)
+                return;  // (frozen with P: the picture holds still)
             float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
             shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);
             shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
