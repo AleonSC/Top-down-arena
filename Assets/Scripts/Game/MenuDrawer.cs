@@ -205,7 +205,7 @@ namespace Arena
 
         // --- The lobby's menu (Esc) --------------------------------------------------------------------------------------
 
-        static readonly string[] LobbyChoices = { "Back to the lobby", "Settings", "Field guide", "Records", "How to play", "Leave to main menu", "Quit game" };
+        static readonly string[] LobbyChoices = { "Back To The Lobby", "Settings", "Field Guide", "Records", "How To Play", "Main Menu", "Quit Game" };
         bool lobbyMenuOpen;
         int lobbySel;
 
@@ -303,7 +303,7 @@ namespace Arena
 
         // --- The pause menu -------------------------------------------------------------------------------------------
 
-        static readonly string[] PauseChoices = { "Resume", "Run stats", "Field guide", "Records", "How to play", "Settings", "Leave to lobby", "Leave game" };
+        static readonly string[] PauseChoices = { "Resume", "Run Stats", "Field Guide", "Records", "How To Play", "Settings", "Leave To Lobby", "Leave Game" };
         const int PauseToLobby = 6;  // the host only: everyone back to the lobby
 
         /// The pause menu's choices for this player (Leave to lobby is the host's: it takes everyone back).

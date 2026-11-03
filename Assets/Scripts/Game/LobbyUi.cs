@@ -909,7 +909,7 @@ namespace Arena
             Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
             // Leaving, Settings and the Field guide are in the menu Esc opens (MenuDrawer.cs); Ready and Start sit in the middle.
-            // Bottom left: a small red back button, the same as Leave to main menu in the Esc menu.
+            // Bottom left: a small red back button, the same as Main Menu in the Esc menu.
             var backRect = new Rect(40f, H - 70f, 48f, 48f);
             bool back = Ui.Button(backRect, "", Ui.Danger);
             Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));

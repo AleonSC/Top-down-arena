@@ -859,7 +859,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
   (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
-  pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving
+  pause menu's), the **Field Guide**, **How To Play** (in the drawer too), **Main Menu** (the host leaving
   closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
