@@ -196,7 +196,18 @@ static partial class Shot {
       var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == Environment.GetEnvironmentVariable("SHOTW"));
       me.Weapon = wd; me.Kit = wd.Kit; me.Pos = me.Disp = new V2(420f, 450f); me.Aim = 0f; me.DrawT = 0f;
       var fireV = typeof(Game).GetMethod("FireVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-      foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
+      if (wd.Id == WeaponId.ChainLight) {
+        // Chain Light: three enemies where the mockup has them (chain-light.html), one cast, the frame SHOTT s into it.
+        var spawnE = typeof(Game).GetMethod("SpawnEnemyAt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        foreach (var sp in new[] { new V2(-0.25f, 140f), new V2(0.3f, 205f), new V2(-0.45f, 270f) }) {
+          var en = (Enemy)spawnE.Invoke(gm, new object[] { EnemyType.Grunt, me.Pos + V2.FromAngle(sp.X) * sp.Y, 0f, 0, false });
+          en.SpawnT = 0f; en.Disp = en.Pos; en.MaxHp = en.Hp = 1e5f;
+        }
+        fireV.Invoke(gm, new object[] { me, 0f, 0 });
+        float st2 = float.Parse(Environment.GetEnvironmentVariable("SHOTT") ?? "0.1", System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var fx in gm.Effects) fx.T = st2;
+      }
+      else foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
         var before = new System.Collections.Generic.HashSet<int>(gm.Bullets.Keys);
         fireV.Invoke(gm, new object[] { me, 0f, 0 });
         foreach (var bl in gm.Bullets.Values) if (!before.Contains(bl.Id)) { bl.Pos += bl.Vel * age; bl.Life -= age; }

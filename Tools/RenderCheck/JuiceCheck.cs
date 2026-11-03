@@ -306,6 +306,28 @@ class JuiceCheck {
       Check(halberd[2] == 1, "a Halberd sweep is one effect (its six steps share it)");
     }
 
+    // Chain Light in style A (ChainLightLooks.cs): a real cast's cone (and any bolts from it) is the radiance, drawn in
+    // the glow pass, with effects on; with them off, the old look.
+    {
+      set("fxOn", true);
+      var pl = g.Players.Values.First();
+      var keep = pl.Weapon;
+      bool botWas = g.Bot; g.Bot = false;
+      pl.Weapon = Defs.Weapons.First(x => x.Id == WeaponId.ChainLight);
+      g.Effects.Clear();
+      typeof(Game).GetMethod("FireVolley", f2).Invoke(g, new object[] { pl, 0f, 0 });
+      var radiant = typeof(ArenaApp).GetMethod("ChainLightDrawnAsRadiance", f2);
+      var cone = g.Effects.FirstOrDefault(fx => fx.Kind == FxKind.LightCone);
+      bool onLook = cone != null && (bool)radiant.Invoke(app, new object[] { cone });
+      int bolts = g.Effects.Count(fx => fx.Kind == FxKind.Bolt), boltsRadiant = g.Effects.Count(fx => fx.Kind == FxKind.Bolt && (bool)radiant.Invoke(app, new object[] { fx }));
+      set("fxOn", false);
+      bool offLook = cone != null && !(bool)radiant.Invoke(app, new object[] { cone });
+      set("fxOn", true);
+      frame();
+      pl.Weapon = keep; g.Bot = botWas;
+      Check(onLook && offLook && boltsRadiant == bolts, "Chain Light's cone and its beams draw as the radiance with effects on, and as before with them off (" + bolts + " beams)");
+    }
+
     // Off again: exactly the plain drawing.
     set("fxOn", false);
     tick(); set("fxOn", false);

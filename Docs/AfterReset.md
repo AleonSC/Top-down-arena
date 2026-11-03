@@ -14,10 +14,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
       with the DPS meter and a target dummy (F1 → DPS) to about 26 a second, then re-run `weapondps write`.
 
 ## Visuals
-- [ ] **Chain Light looks: waiting for a pick.** Mockups: [`Mockups/chain-light.html`](Mockups/chain-light.html)
-      (https://claude.ai/artifact/SDTK1q5jgTo1g8wKqjBiVu): today's look and A Radiance (a soft blooming fan, beams and
-      halos), B Light chain (links hand -> nearest -> next), C Wavefront (an arc sweeping out to the reach), D Storm web
-      (forking electric arcs). Then build the pick in `DrawLightConeFx` / the cone's bolts (drawing only).
+- [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
+      lobby preview, from [`Mockups/chain-light.html`](Mockups/chain-light.html).
 - [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
       [`Mockups/character-models.html`](Mockups/character-models.html), colour-by-class (`Game/CharacterModels.cs`),
       plus a bigger role-coloured glow on the floor round every player (`Juice.cs`, `GlowPlayer`). The weapon models are

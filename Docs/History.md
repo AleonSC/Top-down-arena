@@ -3,6 +3,16 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Chain Light, style A "Radiance" (Nov 2026), protocol 127 (no change):** the owner's pick from
+`Docs/Mockups/chain-light.html`, "make sure the lobby preview matches it". `Game/ChainLightLooks.cs`, with Visual effects
+on: `DrawLightConeFx` and `DrawBoltFx` hand Chain Light's cone (`FxKind.LightCone`, only Chain Light's) and its bolts (the
+only bolts in the light's warm `HolyShot` colour) to the glow pass, where `DrawChainLightGlow` draws the mockup's fan
+(blooming 0.12 s, fading 0.33 s; white at your hand, the light a quarter out, clear at the reach; soft edges from 80% to
+115% of its half angle; colour per vertex), nine flickering god-rays, motes, and per enemy a soft beam, a white core, a
+halo and a ring. The lobby's loadout preview runs the glow pass (clipped), so it shows the same. Side by side with the
+mockup at the game's scale (preview `SHOTW=ChainLight SHOTT=<s>`) it matches; `juice.sh` checks a real cast. Effects
+off: unchanged (render check IDENTICAL).
+
 **Every custom shot checked against the projectiles mockup (Nov 2026), protocol 127 (no change):** each weapon fired by
 the game's own code (preview flag `SHOTW=<WeaponId>`: three volleys at 0.06 / 0.18 / 0.3 s) beside the matching
 `Docs/Mockups/projectiles.html` projectile drawn by its own `draw()` at the game's scale. Close already: Twin Rifle (after

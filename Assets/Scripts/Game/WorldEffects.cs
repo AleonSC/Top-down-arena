@@ -451,6 +451,8 @@ namespace Arena
         /// running out through it.
         void DrawLightConeFx(Effect fx, float f, float t)
         {
+            if (ChainLightDrawnAsRadiance(fx))
+                return;  // the radiance, drawn in the glow pass (ChainLightLooks.cs)
             V2 to = fx.Pos2 - fx.Pos;
             float reach = to.Length, half = fx.Radius, aim = to.Angle;
             if (reach < 1f)
@@ -598,6 +600,8 @@ namespace Arena
         /// Jagged lightning between two points.
         void DrawBoltFx(Effect fx, float f)
         {
+            if (ChainLightDrawnAsRadiance(fx))
+                return;  // Chain Light's beam, drawn in the glow pass (ChainLightLooks.cs)
             if (DrawJuicyBolt(fx, f))
                 return;  // flickering, with a white-hot core (ShotLooks.cs)
             V2 a = fx.Pos, b = fx.Pos2, n = (b - a).Normalized().Orthogonal();
