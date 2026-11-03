@@ -497,19 +497,18 @@ on three target dummies, so you can see how it attacks. Hover an ability button 
 that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
 
-## Lobby backgrounds
+## Menu backgrounds
 
-The lobby's **Background** card (bottom left) switches the animated background behind the menus. There are 20:
+**Settings > Visual effects** has a **Menu background** card that switches the animated background behind the menus and
+lobby. There are 20:
 Spiral, Warp, Aurora, Synthwave, Bokeh, Hex Pulse, Orbits, Digital Rain, Nebula, Tides, Ember Storm, Constellations,
 Radar, Blueprint, Bullet Curtain, Frost Peaks, Circuit, Event Horizon, Firefly Wood and Plotter. Each has its own
 colour, which tints the card. The card shows a live thumbnail (click it for the next one), arrows either side of the
 name and a strip of coloured swatches, one per background (hover one to see its name, click to jump to it). Click
-**LIVE** to freeze the background into a still image (it then reads **STILL**). Each player's choice is saved on their
+**LIVE** to freeze the background into a still image (it then reads **STILL**). Click **BIGGER** to see the
+background full screen with only a small bar over it (name, arrows or the left and right arrow keys, LIVE / STILL and
+Back, or Esc). Each player's choice is saved on their
 own computer. Your pick also shows faintly behind the arena during matches (dimmed so the fight stays easy to read).
-
-The card's fold-down button shrinks it to a slim tab with a tiny live thumbnail, the name and quick arrows. The tab
-fades away after a few seconds; hover where it was to bring it back, and click it to open the full card again
-(remembered on your computer).
 
 ## Arena props
 

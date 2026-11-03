@@ -581,6 +581,12 @@ namespace Arena
         void DrawSettingsWindow(bool paused)
         {
             float t = Time.unscaledTime;
+            if (bgBig && settingsGroup == 1)
+            {
+                DrawBackgroundBig();  // MenuBackgrounds.cs: only the background and its controls
+                return;
+            }
+            bgBig = false;
             float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
@@ -711,6 +717,7 @@ namespace Arena
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
             if (changed)
                 SaveFxSettings();
+            DrawBackgroundRow(new Rect(x, DrawerPanel.yMax - 34f - 90f, w, 84f));  // MenuBackgrounds.cs
             Ui.Label(new Rect(x, DrawerPanel.yMax - 34f, w, 18f), "The preview shows what's on: shots and a hit, its number, an ability's name, a blast and its shake.", 12, Ui.Muted);
         }
 

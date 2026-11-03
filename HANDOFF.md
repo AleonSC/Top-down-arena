@@ -327,7 +327,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
-  box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BGMIN=1` (minimized background picker),
+  box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), 
   `DEVTAB=n` (F1 tab), `FROST=<0..1>` (a Frost Lance icicle that far through, with its splinters), `HAMMER=1` (Storm
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WEAPONS5=1` (Fuma
