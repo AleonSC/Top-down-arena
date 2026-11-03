@@ -7,6 +7,10 @@ October 2026 code audit (with a prioritised list of improvements).
 `README.md` is the player-facing and feature-level reference (every weapon, ability, enemy, boss, control
 and tool is described there). This document is the developer-facing overview; read both.
 
+**The owner's to-do list is [`Docs/AfterReset.md`](Docs/AfterReset.md)**: bugs, polish, plans and feature ideas
+they've asked to have done next, with the design docs they link to. Check it at the start of a session; tick items
+off (or update them) as they're done.
+
 ---
 
 ## 1. The game in one page

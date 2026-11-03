@@ -1,5 +1,8 @@
 # Docs
 
+**To-do list:** [`AfterReset.md`](AfterReset.md), what the owner wants done next (bugs, polish, plans), with links to
+the design docs (`BossHuntsAndPerks.md`, `ZombieInfection.md`, `Paths.md`...).
+
 Reference pages published as claude.ai artifacts. Their sources live here so future sessions can update them.
 
 | Page | Source | Published at |
