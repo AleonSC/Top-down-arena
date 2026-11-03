@@ -1,6 +1,6 @@
 # Healing Rain: design note
 
-Status: **built** (protocol 130). Decisions below were taken as recommended; the old Time Rewind code listed under "Dead code" is still in place. It replaces **Time Rewind**, the Healer Elementalist's first ability
+Status: **built** (protocol 131). Decisions below were taken as recommended; the old Time Rewind code listed under "Dead code" is still in place. It replaces **Time Rewind**, the Healer Elementalist's first ability
 (Healer · Choice 0). Look chosen by the owner: **Verdant Bloom** (`Docs/Mockups/healing-rain.html`, option B).
 Numbers below are first guesses to tune in play-testing.
 
@@ -67,7 +67,7 @@ A new `ZoneKind` value goes at the end, as the project rules say. For `AbilityId
 `TimeRewind` as a dead entry in the middle of the Mage block, so the plan is to **reuse the slot under a new name.**
 No other value shifts. The meaning of that slot changes, so:
 
-- **Bump `Session.ProtocolVersion` (129 to 130).** `ZoneKind` and the ability's effect are both on the wire.
+- **Bump `Session.ProtocolVersion` (130 to 131).** `ZoneKind` and the ability's effect are both on the wire.
 - A saved run (`RunSaves.cs`) that had Time Rewind equipped will load with Healing Rain instead. That's the intended
   result, but it's a change of behaviour on old saves. If you'd rather not, say so and I'll append a new
   `AbilityId` at the end instead and retire the old one.

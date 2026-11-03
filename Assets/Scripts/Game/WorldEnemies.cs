@@ -289,6 +289,11 @@ namespace Arena
                 DrawThrownScythe(m, t);  // ReaperLootLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Bear)
+            {
+                DrawBear(m, t);  // BearLooks.cs
+                return;
+            }
             float rot = d.Move == MinionMove.Static ? 0f : m.Aim;
             if (m.Kind == MinionKind.Wisp || m.Kind == MinionKind.Sprite)
                 Circle(m.Disp, d.Radius * 2.2f, c.WithAlpha(0.2f), 12);
@@ -606,6 +611,8 @@ namespace Arena
                     V2 at = pos + new V2((k - 1f) * r * 0.5f, r * 0.2f + f * r * 1.1f);
                     Circle(at, 2.2f + r * 0.08f, BleedColor.WithAlpha(0.85f * (1f - f)), 6);
                 }
+                if (fxOn && e.BleedHits > 0)
+                    DrawBleedScars(e, pos, r, t);  // claw scars, one set per two stacked hits (BearLooks.cs)
             }
             if (e.Marked)  // Mark for Death: a rotating red reticle
             {

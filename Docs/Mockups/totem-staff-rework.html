@@ -1,0 +1,825 @@
+<title>Totem Staff Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the same field-manual look as the other mockups. One grid of live scenes at the game's scale (1 canvas px =
+   1 arena px): today's Totem Staff first, then five whole-weapon concepts. Each scene shows the left-click attack and
+   the way the weapon heals, aimed at the same three enemies and an ally who needs healing. A card under each scene
+   says what it does. Build notes close the page.
+   Single dark look by choice: it mirrors the game, like the other mockups in this folder. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --totem: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 30; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 26px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg); }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+header.top { display: grid; gap: 12px; }
+
+.toolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 10px 14px; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(6px); }
+.toolbar nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.toolbar a { font: 600 13px var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; }
+.toolbar a:hover { color: var(--fg); border-bottom-color: var(--edge); }
+.toolbar a:focus-visible, button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.toolbar .controls { display: flex; gap: 6px; margin-left: auto; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button[aria-pressed="true"] { background: #1d2a2a; border-color: var(--teal); color: var(--fg); }
+
+.problem { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.problem > div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.problem b { font: 700 12px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
+.problem span { color: var(--soft); font-size: 15px; }
+
+.weapon { display: grid; gap: 18px; scroll-margin-top: 80px; }
+.weapon > header { display: grid; gap: 8px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 860px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+.tile { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.tile.pick { border-color: var(--accent); }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 780 / 380; background: #070910; }
+.tile figcaption { padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; }
+.tile .head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.tag { font: 700 12px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.tile.now .tag { color: var(--muted); }
+.badge { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: #0a0d10; background: var(--accent); border-radius: 4px; padding: 2px 7px; margin-left: auto; }
+.tile p { font-size: 15px; color: var(--soft); }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; font-size: 14px; }
+dt { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; color: var(--soft); min-width: 0; }
+dd.num { font: 500 13px var(--font-data); color: var(--fg); }
+
+.notes { display: grid; gap: 14px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 80ch; color: var(--soft); }
+.notes li::marker { color: var(--edge); }
+.ask { background: var(--panel); border: 1px solid var(--amber); border-radius: 10px; padding: 16px 18px; display: grid; gap: 6px; }
+.ask h3 { color: var(--amber); }
+.ask p { color: var(--soft); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Healer · Summoner · weapon 3 of 3</div>
+    <h1>Totem Staff <span>rework</span></h1>
+    <p class="lead">The Sprite Staff is getting the Firefly Hop, and the Treant Rod the Root Lash with a root tether. That leaves the Totem Staff, which today is the same seed bolt plus a totem that sits still. You want something entirely different, so these are five whole-weapon ideas and not new bullets. Each one heals through its own mechanic, and none repeats a hopping mote, a root thrust or a standing totem.</p>
+  </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Playback">
+    <nav aria-label="Sections">
+      <a href="#concepts">Concepts</a><a href="#notes">Build notes</a>
+    </nav>
+    <div class="controls">
+      <button id="slow" type="button" aria-pressed="false">Slow motion</button>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+      <button id="restart" type="button">Restart all</button>
+    </div>
+  </div>
+
+  <div class="problem">
+    <div><b>Today</b><span>Seeds (9 damage every 0.35 s). Every 10 s the next shot also throws a healing totem to your cursor, up to 400 px. Six seed hits on enemies near it make it pulse 25 healing.</span></div>
+    <div><b>The brief</b><span>A Healer weapon in the Summoner kit. It heals or protects by what it does, has a creature or a piece of ground to call its own, and deals about 26 damage a second on one target, like today.</span></div>
+    <div><b>Different on purpose</b><span>A cloud under your cursor, a charging stag, a whirling bell, a bouncing pet and a line you draw. The first tile is today's weapon, for comparison.</span></div>
+  </div>
+
+  <section class="weapon" id="concepts">
+    <header>
+      <div class="eyebrow">Five concepts</div>
+      <h2>Replacing the Totem Staff</h2>
+    </header>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="notes" id="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li><b>What goes away.</b> The totem zone and its charge (<code>ZoneKind.Totem</code>, <code>TotemCharge</code>, <code>TotemPulse</code>, the 10 s throw, the totem branch in <code>SeedHit</code>, the charge shown on the totem), plus its tests, its lobby text and its README rows. That is a deletion, so I would ask before removing it.</li>
+      <li><b>What each concept needs.</b> Nimbus: a zone that follows your cursor, with its position sent to everyone. Stag of Dawn: a Summoner minion like the Bear, with a dash and trail zones. Tollbell: an orbiting hitbox like the Knight's swings, plus a toll effect. Rolly: a bouncing minion. Spirit Chalk: a line zone whose points are sent to everyone, the biggest change to the snapshot.</li>
+      <li><b>Network.</b> Every concept adds new effect, zone or minion values, so the protocol version goes up. New values go at the end of their enums.</li>
+      <li><b>Upgrades.</b> Multishot and Barrage need an answer for the new weapon, as the Sprite Staff has (+1 Sprite). Suggested: Nimbus +1 cloud, Stag +1 stag, Tollbell +1 bell, Rolly +1 Rolly, Spirit Chalk +50% ink.</li>
+      <li><b>Numbers are a starting point, not measured.</b> Each is sized to about 26 damage a second on one target. Build one, then tune it with the DPS meter and a target dummy (F1 → DPS), and rerun <code>weapondps write</code>. The dummy stands still, so it flatters the stag, Rolly and the chalk.</li>
+      <li><b>Reference pages.</b> The Armory and Bestiary entries for the Totem Staff go out of date after the change. They stay as they are until you ask for them.</li>
+    </ul>
+    <div class="ask">
+      <h3>What I need from you</h3>
+      <p>Pick one concept, or mix, for example "Nimbus's cloud with the Tollbell's whirl". The tag marked Suggested is my pick. If none of them feels right, tell me the fantasy you want and I will sketch more.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+'use strict';
+var W = 780, H = 380, TAU = Math.PI * 2;
+function rand(a, b) { return a + Math.random() * (b - a); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function angDiff(a, b) { var d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
+function easeOut(t) { return 1 - (1 - t) * (1 - t); }
+function segDist(px, py, ax, ay, bx, by) {
+  var dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, t = l2 ? clamp(((px - ax) * dx + (py - ay) * dy) / l2, 0, 1) : 0;
+  return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+}
+
+var SEED = '#9de65a', FOE = '#ff6b6b', ALLY = '#6aa8ff', HEAL = '#7dffa8', SPIRIT = '#6fe3c4',
+    SKY = '#8fc4ff', GOLD = '#ffd27a', BRASS = '#e0b04a', COPPER = '#ff9f6b';
+
+/* ---------------------------------------------------------------- the scene: you, an ally, three enemies */
+
+function Scene(canvas, style) {
+  this.cv = canvas; this.g = canvas.getContext('2d');
+  canvas.width = W; canvas.height = H;
+  this.def = style; this.weapon = style.scene;
+  this.visible = true;
+  this.reset();
+}
+
+Scene.prototype.reset = function () {
+  var d = this.def;
+  this.t = 0; this.cd = 0.4; this.shots = 0; this.ents = []; this.parts = []; this.pops = [];
+  this.P = d.P ? { x: d.P.x, y: d.P.y } : { x: 150, y: 190 }; this.aim = 0; this.acc = 0;
+  this.ally = { x: d.ally ? d.ally.x : 430, y: d.ally ? d.ally.y : 308, hp: 0.5, flash: 0, boost: 0 };
+  var spots = d.foes || [{ hx: 565, hy: 100, ph: 0 }, { hx: 652, hy: 195, ph: 2.1 }, { hx: 580, hy: 292, ph: 4.2 }];
+  this.foes = spots.map(function (s) {
+    return { hx: s.hx, hy: s.hy, ph: s.ph, x: s.hx, y: s.hy, hp: 1, seed: 0, flash: 0, dead: 0, spawn: 0, acc: 0, popT: 0, cd: 0 };
+  });
+  this.order = d.order || [0, 1, 2, 1]; this.oi = 0; this.tgtT = 0; this.tgt = this.foes[0];
+  this.totem = { x: 515, y: 236, charge: 0, flash: 0 };
+  if (d.init) d.init(this);
+};
+
+Scene.prototype.muzzle = function () { return { x: this.P.x + Math.cos(this.aim) * 20, y: this.P.y + Math.sin(this.aim) * 20 }; };
+Scene.prototype.alive = function (e) { return e.dead <= 0 && e.spawn <= 0.2; };
+Scene.prototype.foeAt = function (x, y, r) {
+  for (var i = 0; i < this.foes.length; i++) { var e = this.foes[i]; if (this.alive(e) && Math.hypot(e.x - x, e.y - y) < r) return e; }
+  return null;
+};
+Scene.prototype.nearestFoe = function (from, skip, maxD) {
+  var best = null, bd = maxD;
+  for (var i = 0; i < this.foes.length; i++) {
+    var e = this.foes[i];
+    if (!this.alive(e) || skip.indexOf(e) >= 0) continue;
+    var d = Math.hypot(e.x - from.x, e.y - from.y);
+    if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+};
+Scene.prototype.spark = function (x, y, col, n, speed, life) {
+  for (var i = 0; i < n; i++) {
+    var a = rand(0, TAU), s = rand(0.3, 1) * (speed || 90);
+    this.parts.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.5, 1) * (life || 0.4), max: life || 0.4, r: rand(1.5, 3), col: col, drag: 0.04 });
+  }
+};
+Scene.prototype.pop = function (x, y, text, col) {
+  if (this.pops.length > 24) this.pops.shift();
+  this.pops.push({ x: x, y: y, text: text, col: col, life: 0.8 });
+};
+Scene.prototype.heal = function (amt) {
+  var a = this.ally;
+  a.hp = Math.min(1, a.hp + amt / 100); a.flash = 0.35;
+  this.pop(a.x, a.y - 30, '+' + Math.round(amt), HEAL);
+  this.spark(a.x, a.y, HEAL, 8, 80, 0.5);
+};
+Scene.prototype.hit = function (e, dmg, o) {
+  o = o || {};
+  if (!this.alive(e)) return;
+  e.hp -= dmg / 160; e.flash = 0.09; e.acc += dmg;
+  if (e.popT <= 0) { this.pop(e.x + rand(-8, 8), e.y - 28, String(Math.round(e.acc)), '#ffe9b0'); e.acc = 0; e.popT = 0.3; }
+  this.spark(e.x, e.y, o.col || '#ffd9a0', 3, 70, 0.25);
+  if (this.weapon === 'totem' && Math.hypot(e.x - this.totem.x, e.y - this.totem.y) <= 150) this.charge();
+  if (e.hp <= 0) this.kill(e);
+};
+Scene.prototype.charge = function () {
+  var T = this.totem; T.charge++; T.flash = 0.2;
+  if (T.charge >= 6) {
+    T.charge = 0;
+    this.ents.push(new Ring(T.x, T.y, 150, 0.5, HEAL, 3));
+    if (Math.hypot(this.ally.x - T.x, this.ally.y - T.y) <= 150) this.heal(25);
+  }
+};
+Scene.prototype.kill = function (e) { this.spark(e.x, e.y, FOE, 16, 140, 0.55); e.dead = 0.9; e.seed = 0; };
+
+Scene.prototype.step = function (dt) {
+  this.t += dt;
+  var i, e, d = this.def;
+  // Targets: the next one every tgtEvery seconds, and the aim eases onto the cursor.
+  this.tgtT -= dt;
+  if (this.tgtT <= 0) {
+    this.tgtT = d.tgtEvery || 1.5; this.oi = (this.oi + 1) % this.order.length;
+    var k = this.order[this.oi];
+    this.tgt = k === 'ally' ? this.ally : this.foes[k];
+  }
+  var cur = d.cursor ? d.cursor(this) : this.tgt;
+  var want = Math.atan2(cur.y - this.P.y, cur.x - this.P.x);
+  this.aim += angDiff(this.aim, want) * (1 - Math.exp(-dt * 9));
+  // Enemies drift a little and come back after a kill.
+  for (i = 0; i < this.foes.length; i++) {
+    e = this.foes[i];
+    e.x = e.hx + Math.sin(this.t * 0.8 + e.ph) * 14; e.y = e.hy + Math.cos(this.t * 0.65 + e.ph) * 10;
+    e.flash = Math.max(0, e.flash - dt); e.popT = Math.max(0, e.popT - dt); e.cd = Math.max(0, e.cd - dt);
+    if (e.acc > 0 && e.popT <= 0) { this.pop(e.x, e.y - 28, String(Math.round(e.acc)), '#ffe9b0'); e.acc = 0; e.popT = 0.3; }
+    if (e.dead > 0) { e.dead -= dt; if (e.dead <= 0) { e.hp = 1; e.spawn = 0.6; } }
+    if (e.spawn > 0) e.spawn -= dt;
+  }
+  this.ally.hp = Math.max(0.25, this.ally.hp - 0.03 * dt); this.ally.flash = Math.max(0, this.ally.flash - dt);
+  this.ally.boost = Math.max(0, this.ally.boost - dt);
+  this.totem.flash = Math.max(0, this.totem.flash - dt);
+  if (d.update) d.update(this, dt);
+  // The attack: a tap every interval, or a held attack that runs every frame.
+  if (d.tick) d.tick(this, dt);
+  else {
+    this.cd -= dt;
+    if (this.cd <= 0) {
+      if (d.fire(this) === false) this.cd = 0.08;
+      else { this.cd += d.interval; this.shots++; }
+    }
+  }
+  for (i = this.ents.length - 1; i >= 0; i--) if (this.ents[i].update(this, dt)) this.ents.splice(i, 1);
+  for (i = this.parts.length - 1; i >= 0; i--) {
+    var p = this.parts[i];
+    p.life -= dt; if (p.life <= 0) { this.parts.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    var f = Math.pow(p.drag, dt); p.vx *= f; p.vy *= f;
+  }
+  for (i = this.pops.length - 1; i >= 0; i--) { var q = this.pops[i]; q.life -= dt; q.y -= 22 * dt; if (q.life <= 0) this.pops.splice(i, 1); }
+};
+
+/* ---------------------------------------------------------------- drawing */
+
+Scene.prototype.draw = function () {
+  var g = this.g, i, d = this.def;
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = '#070910'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(120,150,190,0.07)'; g.lineWidth = 1; g.beginPath();
+  for (i = 40; i < W; i += 40) { g.moveTo(i + 0.5, 0); g.lineTo(i + 0.5, H); }
+  for (i = 40; i < H; i += 40) { g.moveTo(0, i + 0.5); g.lineTo(W, i + 0.5); }
+  g.stroke();
+  for (i = 0; i < this.ents.length; i++) if (this.ents[i].ground) this.ents[i].draw(this, g);
+  if (d.below) d.below(this, g);
+  if (this.weapon === 'totem') this.drawTotem(g);
+  for (i = 0; i < this.foes.length; i++) this.drawFoe(g, this.foes[i]);
+  this.drawAlly(g); this.drawPlayer(g);
+  if (d.above) d.above(this, g);
+  for (i = 0; i < this.ents.length; i++) if (!this.ents[i].ground) this.ents[i].draw(this, g);
+  g.globalCompositeOperation = 'lighter';
+  for (i = 0; i < this.parts.length; i++) {
+    var p = this.parts[i], a = clamp(p.life / p.max, 0, 1);
+    g.globalAlpha = a * (p.alpha || 1); g.fillStyle = p.col;
+    g.beginPath(); g.arc(p.x, p.y, p.r * (p.shrink ? a : 1), 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.font = '600 15px "Barlow", system-ui, sans-serif'; g.textAlign = 'center';
+  for (i = 0; i < this.pops.length; i++) {
+    var q = this.pops[i]; g.globalAlpha = clamp(q.life / 0.4, 0, 1); g.fillStyle = q.col;
+    g.fillText(q.text, q.x, q.y);
+  }
+  g.globalAlpha = 1;
+  g.font = '500 17px "IBM Plex Mono", ui-monospace, monospace'; g.textAlign = 'left'; g.fillStyle = 'rgba(207,218,226,0.6)';
+  g.fillText(d.label, 14, 28);
+};
+
+Scene.prototype.drawFoe = function (g, e) {
+  if (e.dead > 0) return;
+  var a = e.spawn > 0 ? 1 - e.spawn / 0.6 : 1;
+  g.globalAlpha = a;
+  g.beginPath();
+  for (var i = 0; i < 6; i++) { var an = i * TAU / 6 + 0.5; g.lineTo(e.x + Math.cos(an) * 18, e.y + Math.sin(an) * 18); }
+  g.closePath();
+  g.fillStyle = e.flash > 0 ? '#ffffff' : 'rgba(255,107,107,0.16)'; g.fill();
+  g.strokeStyle = FOE; g.lineWidth = 2; g.stroke();
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(e.x - 18, e.y - 28, 36, 4);
+  g.fillStyle = FOE; g.fillRect(e.x - 18, e.y - 28, 36 * clamp(e.hp, 0, 1), 4);
+  g.globalAlpha = 1;
+};
+
+Scene.prototype.drawAlly = function (g) {
+  var a = this.ally;
+  g.beginPath(); g.arc(a.x, a.y, 13, 0, TAU);
+  g.fillStyle = a.flash > 0 ? '#bfffd6' : '#17284a'; g.fill(); g.strokeStyle = ALLY; g.lineWidth = 2; g.stroke();
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(a.x - 18, a.y + 19, 36, 4);
+  g.fillStyle = HEAL; g.fillRect(a.x - 18, a.y + 19, 36 * a.hp, 4);
+  if (a.boost > 0) {
+    g.font = '700 18px "Barlow", system-ui, sans-serif'; g.textAlign = 'center'; g.fillStyle = GOLD;
+    g.fillText('»', a.x, a.y - 20);
+  }
+};
+
+Scene.prototype.drawPlayer = function (g) {
+  var P = this.P, tip = { x: P.x + Math.cos(this.aim) * 26, y: P.y + Math.sin(this.aim) * 26 };
+  g.strokeStyle = '#6b5a3a'; g.lineWidth = 3; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(P.x + Math.cos(this.aim) * 8, P.y + Math.sin(this.aim) * 8); g.lineTo(tip.x, tip.y); g.stroke();
+  g.fillStyle = this.def.glow || SEED; g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.5; g.beginPath(); g.arc(tip.x, tip.y, 7, 0, TAU); g.fill();
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  g.beginPath(); g.arc(P.x, P.y, 12, 0, TAU); g.fillStyle = '#12302a'; g.fill(); g.strokeStyle = SPIRIT; g.lineWidth = 2; g.stroke();
+  g.strokeStyle = SPIRIT; g.lineWidth = 2; g.beginPath(); g.moveTo(P.x - 4, P.y); g.lineTo(P.x + 4, P.y); g.moveTo(P.x, P.y - 4); g.lineTo(P.x, P.y + 4); g.stroke();
+};
+
+Scene.prototype.drawTotem = function (g) {
+  var T = this.totem;
+  g.setLineDash([5, 7]); g.strokeStyle = 'rgba(111,227,196,0.22)'; g.lineWidth = 1.5; g.beginPath(); g.arc(T.x, T.y, 150, 0, TAU); g.stroke(); g.setLineDash([]);
+  g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(T.x, T.y + 10, 20, 7, 0, 0, TAU); g.fill();
+  g.fillStyle = T.flash > 0 ? '#9ffff0' : '#2d3b3a'; g.strokeStyle = SPIRIT; g.lineWidth = 2;
+  g.beginPath(); g.rect(T.x - 12, T.y - 38, 24, 48); g.fill(); g.stroke();
+  g.fillStyle = SPIRIT; g.fillRect(T.x - 7, T.y - 28, 4, 5); g.fillRect(T.x + 3, T.y - 28, 4, 5); g.fillRect(T.x - 5, T.y - 14, 10, 3);
+  for (var i = 0; i < 6; i++) {
+    g.beginPath(); g.arc(T.x - 25 + i * 10, T.y - 52, 3.2, 0, TAU);
+    if (i < T.charge) { g.fillStyle = SPIRIT; g.fill(); } else { g.strokeStyle = 'rgba(111,227,196,0.5)'; g.lineWidth = 1.5; g.stroke(); }
+  }
+};
+
+/* ---------------------------------------------------------------- things in flight */
+
+function Ring(x, y, r, dur, col, w) { this.x = x; this.y = y; this.r = r; this.dur = dur; this.t = 0; this.col = col; this.w = w || 2; this.ground = true; }
+Ring.prototype.update = function (sc, dt) { this.t += dt; return this.t >= this.dur; };
+Ring.prototype.draw = function (sc, g) {
+  var k = this.t / this.dur;
+  g.globalAlpha = 1 - k; g.strokeStyle = this.col; g.lineWidth = this.w;
+  g.beginPath(); g.arc(this.x, this.y, this.r * easeOut(k), 0, TAU); g.stroke(); g.globalAlpha = 1;
+};
+
+// Today's seed bolt.
+function Bolt(sc, ang, dmg) {
+  var m = sc.muzzle(); this.x = m.x; this.y = m.y; this.vx = Math.cos(ang) * 600; this.vy = Math.sin(ang) * 600; this.dmg = dmg; this.trail = [];
+}
+Bolt.prototype.update = function (sc, dt) {
+  this.x += this.vx * dt; this.y += this.vy * dt;
+  this.trail.push([this.x, this.y]); if (this.trail.length > 7) this.trail.shift();
+  var e = sc.foeAt(this.x, this.y, 22);
+  if (e) { sc.hit(e, this.dmg, { col: SEED }); return true; }
+  return this.x > W + 20 || this.x < -20 || this.y < -20 || this.y > H + 20;
+};
+Bolt.prototype.draw = function (sc, g) {
+  g.lineCap = 'round';
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(157,230,90,' + (i / this.trail.length * 0.45) + ')'; g.lineWidth = 1 + i * 0.5;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.fillStyle = SEED; g.beginPath(); g.arc(this.x, this.y, 4, 0, TAU); g.fill();
+};
+
+// Concept 1, Nimbus: lightning that falls from the cloud onto the spot beneath it.
+function Strike(sc, x, y) {
+  this.x = x; this.y = y; this.t = 0; this.done = false; this.pts = [];
+  var n = 7;
+  for (var i = 0; i <= n; i++) { var k = i / n; this.pts.push([x + (i === n ? 0 : rand(-14, 14)), y - 38 + 38 * k]); }
+}
+Strike.prototype.update = function (sc, dt) {
+  this.t += dt;
+  if (!this.done && this.t >= 0.06) {
+    this.done = true;
+    for (var i = 0; i < sc.foes.length; i++) { var e = sc.foes[i]; if (sc.alive(e) && Math.hypot(e.x - this.x, e.y - this.y) < 54) sc.hit(e, 16, { col: '#cfe6ff' }); }
+    sc.ents.push(new Ring(this.x, this.y, 42, 0.3, '#bfe0ff', 3)); sc.spark(this.x, this.y, '#bfe0ff', 10, 150, 0.4);
+  }
+  return this.t >= 0.22;
+};
+Strike.prototype.draw = function (sc, g) {
+  var a = 1 - this.t / 0.22;
+  g.globalCompositeOperation = 'lighter'; g.globalAlpha = a; g.lineJoin = 'round'; g.lineCap = 'round';
+  [['#6fb0ff', 8], ['#ffffff', 2.5]].forEach(function (s, k) {
+    g.strokeStyle = s[0]; g.lineWidth = s[1]; g.beginPath();
+    this.pts.forEach(function (p, i) { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
+    g.stroke();
+  }, this);
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+};
+
+function drawCloud(g, c, t) {
+  var x = c.x, y = c.y - 42 + Math.sin(t * 2) * 2, hot = c.flash > 0;
+  var blobs = [[-24, 6, 13], [-9, -5, 17], [12, -3, 16], [28, 6, 12], [2, 9, 15]];
+  g.fillStyle = hot ? '#ffffff' : '#8fb4e8';
+  blobs.forEach(function (b) { g.beginPath(); g.arc(x + b[0], y + b[1], b[2] + 2, 0, TAU); g.fill(); });
+  g.fillStyle = hot ? '#e4f1ff' : '#33425c';
+  blobs.forEach(function (b) { g.beginPath(); g.arc(x + b[0], y + b[1], b[2], 0, TAU); g.fill(); });
+  g.fillStyle = hot ? '#33425c' : '#bfe0ff';
+  g.beginPath(); g.arc(x - 6, y + 6, 2.6, 0, TAU); g.fill();
+  g.beginPath(); g.arc(x + 9, y + 6, 2.6, 0, TAU); g.fill();
+}
+
+// Concept 2, Stag of Dawn.
+function drawStag(g, s) {
+  var dashing = s.m === 'dash', sw = Math.sin(s.run * 0.9) * 5;
+  g.save(); g.translate(s.x, s.y); g.rotate(s.face);
+  g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,210,122,' + (dashing ? 0.2 : 0.14) + ')';
+  g.beginPath(); g.arc(0, 0, 26, 0, TAU); g.fill(); g.globalCompositeOperation = 'source-over';
+  g.strokeStyle = '#e9d6a0'; g.lineWidth = 2.5; g.lineCap = 'round';
+  [[-8, -1, sw], [-8, 1, -sw], [8, -1, -sw], [8, 1, sw]].forEach(function (l) {
+    g.beginPath(); g.moveTo(l[0], l[1] * 6); g.lineTo(l[0] + l[2], l[1] * 12); g.stroke();
+  });
+  g.fillStyle = '#f4e3b0'; g.strokeStyle = GOLD; g.lineWidth = 2;
+  g.beginPath(); g.ellipse(0, 0, 15, 8, 0, 0, TAU); g.fill(); g.stroke();
+  g.beginPath(); g.ellipse(16, 0, 6.5, 5, 0, 0, TAU); g.fill(); g.stroke();
+  g.strokeStyle = GOLD; g.lineWidth = 2;
+  [-1, 1].forEach(function (sg) {
+    g.beginPath(); g.moveTo(18, sg * 3); g.lineTo(25, sg * 10); g.lineTo(31, sg * 9); g.moveTo(25, sg * 10); g.lineTo(26, sg * 17); g.stroke();
+  });
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(-15, 0, 2.5, 0, TAU); g.fill();
+  g.restore();
+}
+
+// Concept 3, Tollbell.
+function drawBell(g, x, y, rot) {
+  g.save(); g.translate(x, y); g.rotate(rot); g.scale(1.3, 1.3);
+  g.fillStyle = '#e0b04a'; g.strokeStyle = '#fff0b0'; g.lineWidth = 1.2;
+  g.beginPath(); g.moveTo(-12, 9); g.quadraticCurveTo(-12, -4, -6, -10); g.quadraticCurveTo(0, -15, 6, -10); g.quadraticCurveTo(12, -4, 12, 9); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#b88a2a'; g.beginPath(); g.ellipse(0, 9, 12, 3.5, 0, 0, TAU); g.fill(); g.stroke();
+  g.fillStyle = '#7a5410'; g.beginPath(); g.arc(0, 12, 3, 0, TAU); g.fill();
+  g.fillStyle = '#3b2a08'; g.beginPath(); g.arc(-4, -1, 1.8, 0, TAU); g.fill(); g.beginPath(); g.arc(4, -1, 1.8, 0, TAU); g.fill();
+  g.restore();
+}
+
+// Concept 4, Rolly: a spiky pet that ricochets around the arena.
+var BOUNDS = { x0: 40, x1: 740, y0: 30, y1: 350 };
+function bounce(r, o, rad) {
+  var dx = r.x - o.x, dy = r.y - o.y, d = Math.hypot(dx, dy) || 1, nx = dx / d, ny = dy / d, dot = r.vx * nx + r.vy * ny;
+  if (dot < 0) { r.vx -= 2 * dot * nx; r.vy -= 2 * dot * ny; }
+  var sp = Math.hypot(r.vx, r.vy) || 1; r.vx = r.vx / sp * 430; r.vy = r.vy / sp * 430;
+  r.x = o.x + nx * rad; r.y = o.y + ny * rad;
+}
+function Rolly(sc) {
+  var m = sc.muzzle();
+  this.x = m.x; this.y = m.y; this.vx = Math.cos(sc.aim) * 430; this.vy = Math.sin(sc.aim) * 430;
+  this.life = 3.5; this.age = 0; this.roll = 0; this.allyT = 0; this.trail = [];
+}
+Rolly.prototype.update = function (sc, dt) {
+  this.life -= dt; this.age += dt; this.allyT = Math.max(0, this.allyT - dt);
+  this.x += this.vx * dt; this.y += this.vy * dt; this.roll += 430 * dt / 12;
+  if (this.x < BOUNDS.x0) { this.x = BOUNDS.x0; this.vx = Math.abs(this.vx); }
+  if (this.x > BOUNDS.x1) { this.x = BOUNDS.x1; this.vx = -Math.abs(this.vx); }
+  if (this.y < BOUNDS.y0) { this.y = BOUNDS.y0; this.vy = Math.abs(this.vy); }
+  if (this.y > BOUNDS.y1) { this.y = BOUNDS.y1; this.vy = -Math.abs(this.vy); }
+  for (var i = 0; i < sc.foes.length; i++) {
+    var e = sc.foes[i];
+    if (sc.alive(e) && Math.hypot(e.x - this.x, e.y - this.y) < 30) {
+      bounce(this, e, 31);
+      if (e.cd <= 0) { e.cd = 0.35; sc.hit(e, 16, { col: COPPER }); sc.ents.push(new Ring(e.x, e.y, 26, 0.22, COPPER, 2)); }
+    }
+  }
+  if (Math.hypot(sc.ally.x - this.x, sc.ally.y - this.y) < 25) {
+    bounce(this, sc.ally, 26);
+    if (this.allyT <= 0) { this.allyT = 0.8; sc.heal(9); }
+  }
+  if (this.age > 0.4 && Math.hypot(sc.P.x - this.x, sc.P.y - this.y) < 24) bounce(this, sc.P, 25);
+  this.trail.push([this.x, this.y]); if (this.trail.length > 12) this.trail.shift();
+  if (this.life <= 0) { sc.spark(this.x, this.y, COPPER, 12, 120, 0.5); sc.cd = Math.max(sc.cd, 0.6); return true; }
+  return false;
+};
+Rolly.prototype.draw = function (sc, g) {
+  var a = clamp(this.life / 0.4, 0, 1);
+  g.lineCap = 'round'; g.globalAlpha = a;
+  for (var i = 1; i < this.trail.length; i++) {
+    g.strokeStyle = 'rgba(255,159,107,' + (i / this.trail.length * 0.35) + ')'; g.lineWidth = i * 0.9;
+    g.beginPath(); g.moveTo(this.trail[i - 1][0], this.trail[i - 1][1]); g.lineTo(this.trail[i][0], this.trail[i][1]); g.stroke();
+  }
+  g.save(); g.translate(this.x, this.y); g.rotate(this.roll);
+  g.strokeStyle = COPPER; g.lineWidth = 2.5;
+  for (var k = 0; k < 10; k++) { var an = k * TAU / 10; g.beginPath(); g.moveTo(Math.cos(an) * 10, Math.sin(an) * 10); g.lineTo(Math.cos(an) * 17, Math.sin(an) * 17); g.stroke(); }
+  g.fillStyle = '#6b4a2e'; g.beginPath(); g.arc(0, 0, 11.5, 0, TAU); g.fill(); g.strokeStyle = '#e3a45b'; g.lineWidth = 2; g.stroke();
+  g.restore();
+  g.fillStyle = '#fff3d6';
+  g.beginPath(); g.arc(this.x - 4, this.y - 2, 2.4, 0, TAU); g.fill();
+  g.beginPath(); g.arc(this.x + 4, this.y - 2, 2.4, 0, TAU); g.fill();
+  g.strokeStyle = '#fff3d6'; g.lineWidth = 1.5; g.beginPath(); g.arc(this.x, this.y + 1, 4, 0.2, Math.PI - 0.2); g.stroke();
+  g.globalAlpha = 1;
+};
+
+// Concept 5, Spirit Chalk: the strokes the Healer paints (they start in the same order every loop).
+var CHALK = [
+  [[395, 322], [430, 314], [480, 306], [540, 298], [590, 292], [625, 262], [652, 222], [664, 190]],
+  [[500, 64], [540, 86], [565, 104], [610, 138], [650, 168], [694, 204]]
+];
+function pathLen(pts) { var l = 0; for (var i = 1; i < pts.length; i++) l += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return l; }
+function visPts(pts, upto) {
+  var out = [pts[0]], acc = 0;
+  for (var i = 1; i < pts.length; i++) {
+    var a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (acc + l <= upto) { out.push(b); acc += l; }
+    else { var k = (upto - acc) / l; out.push([lerp(a[0], b[0], k), lerp(a[1], b[1], k)]); break; }
+  }
+  return out;
+}
+function nearLine(px, py, pts, r) {
+  for (var i = 1; i < pts.length; i++) if (segDist(px, py, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]) <= r) return true;
+  return false;
+}
+
+/* ---------------------------------------------------------------- the concepts */
+
+function fireBolt(dmg) { return function (sc) { sc.ents.push(new Bolt(sc, sc.aim, dmg)); }; }
+
+var STYLES = [
+  { key: 'today', scene: 'totem', label: 'Today: Totem Staff', interval: 0.35, glow: SEED, fire: fireBolt(9) },
+
+  { key: 'nimbus', scene: 'nimbus', label: '1  Nimbus', order: [0, 'ally', 1, 2, 'ally'], tgtEvery: 2.3, interval: 0.6, glow: SKY, accent: SKY,
+    init: function (sc) { sc.cloud = { x: 300, y: 170, flash: 0, healT: 0.2, rain: 0 }; },
+    update: function (sc, dt) {
+      var c = sc.cloud, g = sc.tgt, dx = g.x - c.x, dy = g.y - c.y, d = Math.hypot(dx, dy), step = Math.min(300 * dt, d * Math.min(1, dt * 3));
+      if (d > 0.5) { c.x += dx / d * step; c.y += dy / d * step; }
+      c.flash = Math.max(0, c.flash - dt);
+      c.rain += dt * 70;
+      while (c.rain >= 1) {
+        c.rain -= 1;
+        sc.parts.push({ x: c.x + rand(-52, 52), y: c.y - 30 + rand(-4, 4), vx: rand(-6, 6), vy: rand(260, 330), life: 0.2 + rand(0, 0.08), max: 0.28, r: 1.5, col: '#8fc4ff', drag: 1, alpha: 0.85 });
+      }
+      if (Math.hypot(sc.ally.x - c.x, sc.ally.y - c.y) < 70) { c.healT -= dt; if (c.healT <= 0) { c.healT = 0.5; sc.heal(4); } }
+      else c.healT = Math.min(c.healT, 0.15);
+    },
+    fire: function (sc) {
+      var c = sc.cloud;
+      if (!sc.nearestFoe(c, [], 56)) return false;
+      sc.ents.push(new Strike(sc, c.x, c.y)); c.flash = 0.2;
+    },
+    below: function (sc, g) {
+      var c = sc.cloud;
+      g.fillStyle = 'rgba(143,196,255,0.07)'; g.beginPath(); g.arc(c.x, c.y, 70, 0, TAU); g.fill();
+      g.setLineDash([6, 8]); g.strokeStyle = 'rgba(143,196,255,0.35)'; g.lineWidth = 1.5; g.beginPath(); g.arc(c.x, c.y, 70, 0, TAU); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(c.x, c.y + 4, 36, 10, 0, 0, TAU); g.fill();
+    },
+    above: function (sc, g) { drawCloud(g, sc.cloud, sc.t); } },
+
+  { key: 'stag', scene: 'stag', label: '2  Stag of Dawn', order: [0, 'ally', 1, 2], tgtEvery: 2.4, interval: 1.4, glow: GOLD, accent: GOLD,
+    init: function (sc) {
+      sc.stag = { x: sc.P.x - 34, y: sc.P.y + 30, m: 'heel', t: 0, face: 0, run: 0, sx: 0, sy: 0, dir: 0, dist: 0, hit: [], laid: 0, healT: 0.2 };
+      sc.trail = [];
+    },
+    update: function (sc, dt) {
+      var s = sc.stag, P = sc.P, hx = P.x - 34, hy = P.y + 30, i, d, dx, dy;
+      if (s.m === 'heel') {
+        var k = 1 - Math.exp(-dt * 6); s.x = lerp(s.x, hx, k); s.y = lerp(s.y, hy, k);
+        s.face += angDiff(s.face, sc.aim) * (1 - Math.exp(-dt * 8));
+      } else if (s.m === 'dash') {
+        s.t += dt; d = Math.min(s.dist, 820 * s.t);
+        s.x = s.sx + Math.cos(s.dir) * d; s.y = s.sy + Math.sin(s.dir) * d; s.face = s.dir; s.run += dt * 60;
+        while (s.laid <= d) { sc.trail.push({ x: s.sx + Math.cos(s.dir) * s.laid, y: s.sy + Math.sin(s.dir) * s.laid, age: 0 }); s.laid += 12; }
+        for (i = 0; i < sc.foes.length; i++) {
+          var e = sc.foes[i];
+          if (sc.alive(e) && s.hit.indexOf(e) < 0 && Math.hypot(e.x - s.x, e.y - s.y) < 36) { s.hit.push(e); sc.hit(e, 36, { col: GOLD }); sc.spark(e.x, e.y, GOLD, 8, 140, 0.4); }
+        }
+        if (d >= s.dist) s.m = 'back';
+      } else {
+        dx = hx - s.x; dy = hy - s.y; d = Math.hypot(dx, dy); s.face = Math.atan2(dy, dx); s.run += dt * 40;
+        var st = Math.min(d, 640 * dt); if (d > 0.5) { s.x += dx / d * st; s.y += dy / d * st; }
+        if (d < 8) s.m = 'heel';
+      }
+      var onTrail = false;
+      for (i = sc.trail.length - 1; i >= 0; i--) {
+        var p = sc.trail[i]; p.age += dt;
+        if (p.age > 3) { sc.trail.splice(i, 1); continue; }
+        if (Math.hypot(p.x - sc.ally.x, p.y - sc.ally.y) < 34) onTrail = true;
+        if (Math.random() < dt * 1.2) sc.parts.push({ x: p.x + rand(-10, 10), y: p.y + rand(-10, 10), vx: 0, vy: -24, life: 0.7, max: 0.7, r: 2, col: GOLD, drag: 1 });
+      }
+      if (onTrail) { sc.ally.boost = 0.4; s.healT -= dt; if (s.healT <= 0) { s.healT = 0.5; sc.heal(5); } }
+      else s.healT = Math.min(s.healT, 0.15);
+    },
+    fire: function (sc) {
+      var s = sc.stag, tg = sc.tgt;
+      if (s.m !== 'heel') return false;
+      s.m = 'dash'; s.t = 0; s.sx = s.x; s.sy = s.y; s.dir = Math.atan2(tg.y - s.y, tg.x - s.x);
+      s.dist = Math.min(Math.hypot(tg.x - s.x, tg.y - s.y) + 34, 460); s.hit = []; s.laid = 0;
+    },
+    below: function (sc, g) {
+      g.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < sc.trail.length; i++) {
+        var p = sc.trail[i], a = (1 - p.age / 3) * 0.2, gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, 24);
+        gr.addColorStop(0, 'rgba(255,210,122,' + a + ')'); gr.addColorStop(1, 'rgba(255,210,122,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, 24, 0, TAU); g.fill();
+      }
+      g.globalCompositeOperation = 'source-over';
+    },
+    above: function (sc, g) { drawStag(g, sc.stag); } },
+
+  { key: 'bell', scene: 'bell', label: '3  Tollbell', P: { x: 455, y: 200 }, ally: { x: 385, y: 322 }, interval: 1, glow: BRASS, accent: BRASS,
+    foes: [{ hx: 545, hy: 125, ph: 0 }, { hx: 595, hy: 200, ph: 2.1 }, { hx: 545, hy: 282, ph: 4.2 }],
+    init: function (sc) { sc.bell = { a: -1.2, w: 0, x: sc.P.x, y: sc.P.y, trail: [], last: -1 }; },
+    tick: function (sc, dt) {
+      var b = sc.bell, R = 118, i;
+      b.w = Math.min(7, b.w + dt * 14); b.a += b.w * dt;
+      b.x = sc.P.x + Math.cos(b.a) * R; b.y = sc.P.y + Math.sin(b.a) * R;
+      b.trail.push([b.x, b.y]); if (b.trail.length > 16) b.trail.shift();
+      for (i = 0; i < sc.foes.length; i++) {
+        var e = sc.foes[i];
+        if (sc.alive(e) && e.cd <= 0 && Math.hypot(e.x - b.x, e.y - b.y) < 34) { e.cd = 0.45; sc.hit(e, 18, { col: BRASS }); sc.ents.push(new Ring(e.x, e.y, 24, 0.2, BRASS, 2)); }
+      }
+      var rev = Math.floor(b.a / TAU);
+      if (rev !== b.last) {
+        if (b.last !== -1) {
+          sc.ents.push(new Ring(sc.P.x, sc.P.y, 160, 0.55, GOLD, 4));
+          for (i = 0; i < sc.foes.length; i++) if (sc.alive(sc.foes[i]) && Math.hypot(sc.foes[i].x - sc.P.x, sc.foes[i].y - sc.P.y) < 160) sc.hit(sc.foes[i], 6, { col: GOLD });
+          if (Math.hypot(sc.ally.x - sc.P.x, sc.ally.y - sc.P.y) < 160) sc.heal(10);
+        }
+        b.last = rev;
+      }
+    },
+    below: function (sc, g) {
+      g.setLineDash([5, 8]); g.strokeStyle = 'rgba(255,210,122,0.22)'; g.lineWidth = 1.5; g.beginPath(); g.arc(sc.P.x, sc.P.y, 160, 0, TAU); g.stroke(); g.setLineDash([]);
+    },
+    above: function (sc, g) {
+      var b = sc.bell, P = sc.P, i;
+      g.lineCap = 'round';
+      for (i = 1; i < b.trail.length; i++) {
+        g.strokeStyle = 'rgba(255,210,122,' + (i / b.trail.length * 0.4) + ')'; g.lineWidth = 1 + i * 0.9;
+        g.beginPath(); g.moveTo(b.trail[i - 1][0], b.trail[i - 1][1]); g.lineTo(b.trail[i][0], b.trail[i][1]); g.stroke();
+      }
+      for (i = 1; i <= 8; i++) {
+        var k = i / 9; g.fillStyle = '#cdbb8a'; g.beginPath(); g.arc(lerp(P.x, b.x, k), lerp(P.y, b.y, k), 2.3, 0, TAU); g.fill();
+      }
+      drawBell(g, b.x, b.y, b.a - Math.PI / 2);
+    } },
+
+  { key: 'rolly', scene: 'rolly', label: '4  Rolly', order: ['ally', 0, 'ally', 1, 2], tgtEvery: 4.1, interval: 0.6, glow: COPPER, accent: COPPER,
+    fire: function (sc) {
+      for (var i = 0; i < sc.ents.length; i++) if (sc.ents[i] instanceof Rolly) return false;
+      sc.ents.push(new Rolly(sc));
+    } },
+
+  { key: 'chalk', scene: 'chalk', label: '5  Spirit Chalk', interval: 1, glow: SPIRIT, accent: SPIRIT,
+    cursor: function (sc) { return sc.chalkTip || sc.tgt; },
+    init: function (sc) { sc.lines = []; sc.nextLine = 0.3; sc.lineIdx = 0; sc.chalkTip = null; sc.chalkHeal = 0.2; sc.ink = 1; },
+    tick: function (sc, dt) {
+      var i, j, e, L, used = 0, onLine = false;
+      sc.nextLine -= dt;
+      if (sc.nextLine <= 0) {
+        sc.nextLine = 3.3; var pts = CHALK[sc.lineIdx++ % CHALK.length];
+        sc.lines.push({ pts: pts, len: pathLen(pts), drawn: 0, done: false, doneAge: 0, alpha: 1, vis: [pts[0], pts[0]] });
+      }
+      sc.chalkTip = null;
+      for (i = sc.lines.length - 1; i >= 0; i--) {
+        L = sc.lines[i];
+        if (!L.done) {
+          L.drawn += 260 * dt; if (L.drawn >= L.len) { L.drawn = L.len; L.done = true; }
+          L.vis = visPts(L.pts, L.drawn); sc.chalkTip = { x: L.vis[L.vis.length - 1][0], y: L.vis[L.vis.length - 1][1] };
+          if (Math.random() < dt * 40) sc.spark(sc.chalkTip.x, sc.chalkTip.y, '#bff7e6', 1, 60, 0.35);
+        } else {
+          L.doneAge += dt; L.alpha = clamp(1 - (L.doneAge - 3) / 1, 0, 1);
+          if (L.doneAge > 4) { sc.lines.splice(i, 1); continue; }
+        }
+        used += L.drawn * L.alpha;
+        for (j = 0; j < sc.foes.length; j++) {
+          e = sc.foes[j];
+          if (L.alpha > 0.3 && sc.alive(e) && e.cd <= 0 && nearLine(e.x, e.y, L.vis, 16)) { e.cd = 0.25; sc.hit(e, 6.5, { col: SPIRIT }); }
+        }
+        if (L.alpha > 0.3 && nearLine(sc.ally.x, sc.ally.y, L.vis, 24)) onLine = true;
+      }
+      if (!sc.chalkTip && sc.lines.length) { var last = sc.lines[sc.lines.length - 1].vis; sc.chalkTip = { x: last[last.length - 1][0], y: last[last.length - 1][1] }; }
+      sc.ink = clamp(1 - used / 600, 0, 1);
+      if (onLine) { sc.chalkHeal -= dt; if (sc.chalkHeal <= 0) { sc.chalkHeal = 0.5; sc.heal(5); } }
+      else sc.chalkHeal = Math.min(sc.chalkHeal, 0.15);
+    },
+    below: function (sc, g) {
+      var i, k, L;
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      for (i = 0; i < sc.lines.length; i++) {
+        L = sc.lines[i]; var a = L.alpha, v = L.vis;
+        [['rgba(111,227,196,' + 0.16 * a + ')', 16], ['rgba(111,227,196,' + 0.5 * a + ')', 6], ['rgba(225,255,246,' + a + ')', 2]].forEach(function (s) {
+          g.strokeStyle = s[0]; g.lineWidth = s[1]; g.beginPath();
+          v.forEach(function (p, n) { if (n) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
+          g.stroke();
+        });
+        g.strokeStyle = 'rgba(191,247,230,' + 0.7 * a + ')'; g.lineWidth = 1.5;
+        var acc = 0, next = 14;
+        for (k = 1; k < v.length; k++) {
+          var ax = v[k - 1][0], ay = v[k - 1][1], bx = v[k][0], by = v[k][1], l = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / l, uy = (by - ay) / l;
+          while (acc + l >= next) {
+            var t = next - acc, cx = ax + ux * t, cy = ay + uy * t;
+            g.beginPath(); g.moveTo(cx - uy * 7, cy + ux * 7); g.lineTo(cx + uy * 7, cy - ux * 7); g.stroke();
+            next += 28;
+          }
+          acc += l;
+        }
+      }
+    },
+    above: function (sc, g) {
+      var P = sc.P;
+      g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(P.x - 20, P.y + 20, 40, 4);
+      g.fillStyle = SPIRIT; g.fillRect(P.x - 20, P.y + 20, 40 * sc.ink, 4);
+      g.font = '600 10px "IBM Plex Mono", ui-monospace, monospace'; g.textAlign = 'center'; g.fillStyle = 'rgba(207,218,226,0.7)'; g.fillText('INK', P.x, P.y + 36);
+      if (sc.chalkTip) {
+        g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(191,247,230,0.5)'; g.beginPath(); g.arc(sc.chalkTip.x, sc.chalkTip.y, 8, 0, TAU); g.fill(); g.globalCompositeOperation = 'source-over';
+      }
+    } }
+];
+
+/* ---------------------------------------------------------------- the cards under each scene */
+
+var CARDS = {
+  today: { name: 'Totem Staff', blurb: 'Seed bolts, a totem thrown every 10 s, and a heal pulse when seeds land near it.', rows: [
+    ['Left click', 'A seed bolt, the same shot as the other two staffs.'],
+    ['Feels like', 'Shooting, with a totem to place now and then.'],
+    ['Heals', 'Six seed hits on enemies near the totem make it pulse 25 to allies near it.'],
+    ['Watch for', 'The attack is shared with other weapons, and the totem sits still.'],
+    ['Numbers', '9 per bolt, about 26 a second. Totem every 10 s, up to 400 px away.']] },
+  nimbus: { name: 'Nimbus', blurb: 'A small storm spirit that floats over your cursor and drizzles healing on whoever stands beneath it.', pick: true, rows: [
+    ['Left click', 'Calls a lightning strike onto the spot under the cloud, a 40 px blast.'],
+    ['Feels like', 'You aim the cloud itself. Park it over the tank to heal, slide it over a pack and click to strike. It drifts after your cursor at 300 px/s and stays within 380 px of you.'],
+    ['Heals', 'Rain falls in a 70 px circle under the cloud: 8 a second to every ally inside. It needs no clicking.'],
+    ['Watch for', 'Allies have to stand under it, so the party has to cooperate. Slow to cross the whole arena.'],
+    ['Numbers', 'Strike 16 to each enemy in the blast, every 0.6 s: about 27 a second. Drizzle 8 a second per ally.']] },
+  stag: { name: 'Stag of Dawn', blurb: 'A spirit stag runs where you point and leaves a path of dawn light that heals and speeds up allies on it.', rows: [
+    ['Left click', 'Sends the stag charging up to 460 px toward your cursor. It tramples enemies on the way, then trots back to you.'],
+    ['Feels like', 'Charge, wait, charge. You pick the lane: through the pack to hurt it, or through your friends to lay a healing road.'],
+    ['Heals', 'The trail lasts 3 s and is 34 px wide. Allies on it heal 10 a second and run 30% faster.'],
+    ['Watch for', 'A straight line, like the Root Lash, only longer. The stag is away from you for about a second after every charge.'],
+    ['Numbers', '36 to each enemy it runs through, every 1.4 s: about 26 a second on one target. Trail heals 10 a second.']] },
+  bell: { name: 'Tollbell', blurb: 'A bronze bell with a spirit inside, swung on a chain. Every full turn tolls and heals everyone close.', rows: [
+    ['Left click', 'Hold to whirl the bell around you at 118 px. It hits anything it passes. Let go and it hangs at your side.'],
+    ['Feels like', 'Close and rhythmic. You wade in and keep the whirl going, stepping so the bell sweeps the pack and your ally stays inside the toll.'],
+    ['Heals', 'Each turn tolls: allies within 160 px heal 10, about 11 a second. The bell also cuts small enemy bullets it touches.'],
+    ['Watch for', 'Short range puts a 140 HP Healer in the danger zone. The bell does nothing from a distance.'],
+    ['Numbers', 'Bell hit 18 (once a turn, 0.9 s) plus a toll of 6 to every enemy within 160 px: about 27 a second.']] },
+  rolly: { name: 'Rolly', blurb: 'A spiky little pet you flick across the arena. It ricochets off everything and heals the allies it bumps.', rows: [
+    ['Left click', 'Launches Rolly at 430 px/s. It lives 3.5 s and bounces off walls, enemies, allies and you. You cannot steer it.'],
+    ['Feels like', 'Pinball. You choose the launch angle, then watch it work. Bouncing it off an ally into a pack is the clever play.'],
+    ['Heals', 'Each bump on an ally heals 9, once per 0.8 s per ally.'],
+    ['Watch for', 'Random. Heals arrive when the ball happens to hit an ally, so it suits a bonus heal better than a main one.'],
+    ['Numbers', '16 per enemy bump: about 30 a second across a pack and about 16 on a lone target. Relaunch 0.6 s after it fades.']] },
+  chalk: { name: 'Spirit Chalk', blurb: 'Hold and drag to paint a line of bound spirit ink. The line burns enemies, heals allies and stops bullets.', rows: [
+    ['Left click', 'Hold and move the cursor to draw, up to 260 px/s. Ink holds 600 px of line at once and comes back as lines fade after 4 s.'],
+    ['Feels like', 'You shape the fight: fence a lane, circle an ally, draw through a pack.'],
+    ['Heals', 'Allies standing on a line heal 10 a second. Enemy bullets that cross it are destroyed, and each wears the line down 0.3 s.'],
+    ['Watch for', 'It needs planning, and does nothing if enemies never touch the line. Close in role to the Flame Wall ability.'],
+    ['Numbers', 'Burn 26 a second to each enemy touching a line, and a 30% slow. Heal 10 a second to allies on it.']] }
+};
+
+/* ---------------------------------------------------------------- page wiring */
+
+var scenes = [], paused = false, slow = false, last = 0, n = 0;
+var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduce) paused = true;
+
+function warm(sc) { for (var i = 0; i < 170; i++) sc.step(1 / 60); }
+
+var holder = document.getElementById('tiles');
+STYLES.forEach(function (style) {
+  var card = CARDS[style.key];
+  var fig = document.createElement('figure');
+  fig.className = 'tile' + (style.key === 'today' ? ' now' : '') + (card.pick ? ' pick' : '');
+  fig.style.setProperty('--accent', style.accent || 'var(--muted)');
+  var cv = document.createElement('canvas');
+  cv.setAttribute('role', 'img');
+  cv.setAttribute('aria-label', style.label + ': ' + card.blurb);
+  fig.appendChild(cv);
+  var cap = document.createElement('figcaption');
+  var head = document.createElement('div'); head.className = 'head';
+  var tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = style.key === 'today' ? 'Today' : 'Concept ' + (++n);
+  var h = document.createElement('h3'); h.textContent = card.name;
+  head.appendChild(tag); head.appendChild(h);
+  if (card.pick) { var b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Suggested'; head.appendChild(b); }
+  var p = document.createElement('p'); p.textContent = card.blurb;
+  var dl = document.createElement('dl');
+  card.rows.forEach(function (r) {
+    var dt = document.createElement('dt'); dt.textContent = r[0];
+    var dd = document.createElement('dd'); dd.textContent = r[1]; if (r[0] === 'Numbers') dd.className = 'num';
+    dl.appendChild(dt); dl.appendChild(dd);
+  });
+  cap.appendChild(head); cap.appendChild(p); cap.appendChild(dl); fig.appendChild(cap);
+  holder.appendChild(fig);
+  var sc = new Scene(cv, style);
+  warm(sc); sc.draw();
+  scenes.push(sc);
+});
+
+if ('IntersectionObserver' in window) {
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) { for (var i = 0; i < scenes.length; i++) if (scenes[i].cv === en.target) scenes[i].visible = en.isIntersecting; });
+  }, { rootMargin: '80px' });
+  scenes.forEach(function (sc) { sc.visible = false; io.observe(sc.cv); });
+}
+
+function frame(now) {
+  var dt = Math.min(0.05, (now - last) / 1000 || 0); last = now;
+  if (!paused) {
+    var k = slow ? 0.35 : 1;
+    for (var i = 0; i < scenes.length; i++) {
+      var sc = scenes[i]; if (!sc.visible) continue;
+      var rest = dt * k, steps = Math.ceil(rest / (1 / 60));
+      for (var j = 0; j < steps; j++) sc.step(rest / steps);
+      sc.draw();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+var slowBtn = document.getElementById('slow'), pauseBtn = document.getElementById('pause'), restartBtn = document.getElementById('restart');
+pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+slowBtn.addEventListener('click', function () { slow = !slow; slowBtn.setAttribute('aria-pressed', slow ? 'true' : 'false'); });
+pauseBtn.addEventListener('click', function () { paused = !paused; pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false'); });
+restartBtn.addEventListener('click', function () { scenes.forEach(function (sc) { sc.reset(); warm(sc); sc.draw(); }); });
+
+window.__mockup = { scenes: scenes, step: function (s) { scenes.forEach(function (sc) { for (var i = 0; i < s * 60; i++) sc.step(1 / 60); sc.draw(); }); } };
+})();
+</script>

@@ -507,6 +507,7 @@ namespace Arena
                 case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
                     return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.FrostLance:  // the icicle, out from you
+                case WeaponId.TreantRod:   // the root lash, out from you
                     return MeleeReach(p, w.Reach + w.Grow * x);
                 case WeaponId.Katana:  // sheathed, the quick-draw cut reaches much further (Ninja.cs)
                     return MeleeReach(p, p.SheathT >= KatanaSheath ? KatanaDrawReach : w.Reach);

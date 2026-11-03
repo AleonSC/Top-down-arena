@@ -42,7 +42,10 @@ namespace Arena
                     DrawJabFx(fx, f);
                     break;
                 case FxKind.Claw:
-                    DrawClawFx(fx, f);
+                    if (fxOn && IsBearClaw(fx))
+                        DrawBearClawFx(fx);  // BearLooks.cs
+                    else
+                        DrawClawFx(fx, f);
                     break;
                 case FxKind.Bolt:
                     DrawBoltFx(fx, f);
@@ -81,6 +84,9 @@ namespace Arena
                     break;
                 case FxKind.Knock:
                     DrawKnockFx(fx);
+                    break;
+                case FxKind.RootLash:
+                    DrawRootLashFx(fx, f);  // RootLook.cs
                     break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);

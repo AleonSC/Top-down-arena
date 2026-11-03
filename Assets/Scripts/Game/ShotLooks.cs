@@ -34,6 +34,7 @@ namespace Arena
                 case Defs.ArcaneShot: return w == WeaponId.PrismBeam || w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
                 case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
                 case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
+                case Defs.FireflyShot: return w == WeaponId.SpriteStaff ? w : (WeaponId?)null;
             }
             return null;
         }
@@ -162,6 +163,19 @@ namespace Arena
                     Circle(b.Pos + new V2(1f, -2f), 1.5f, new Rgba(1f, 0.6f, 0.6f), 6);
                     return true;
                 }
+                case WeaponId.SpriteStaff:
+                {
+                    // A firefly: a pale pollen trail, two flickering wings and a white-hot core.
+                    TaperTrail(b, 14, 4f, c, 0.55f);
+                    float flap = 0.5f + 0.5f * Mathf.Sin(t * 60f + b.Id);
+                    Rgba wing = new Rgba(0.75f, 1f, 0.9f, 0.55f);
+                    SetColor(wing);
+                    Tri(b.Pos - dir * 1f, b.Pos - dir * 8f + side * (4f + 5f * flap), b.Pos - dir * 3f + side * 2f);
+                    Tri(b.Pos - dir * 1f, b.Pos - dir * 8f - side * (4f + 5f * flap), b.Pos - dir * 3f - side * 2f);
+                    Circle(b.Pos, r * 0.9f, c, 10);
+                    Circle(b.Pos, 2.4f, Rgba.White, 8);
+                    return true;
+                }
                 case WeaponId.GolemStaff:
                     return false;  // drawn by DrawBoulder (WorldShots.cs); only its glow is set here (ShotGlow: none, it's a rock)
                 case WeaponId.ArcaneMissiles:
@@ -195,6 +209,11 @@ namespace Arena
                     AddPart(new Part { Kind = PSpark, Pos = b.Pos + new V2(Rnd(-4f, 4f), Rnd(-4f, 4f)), Vel = back * 60f + new V2(Rnd(-20f, 20f), Rnd(-35f, 0f)), Life = 0.35f, Max = 0.35f, Size = 2.4f, Col = new Rgba(1f, Rnd(0.5f, 0.9f), 0.25f) });
                 if (Rnd(0f, 1f) < dt * 12f)
                     AddPart(new Part { Kind = PDust, Pos = b.Pos, Vel = new V2(Rnd(-10f, 10f), Rnd(-25f, -5f)), Life = 0.7f, Max = 0.7f, Size = 3.5f, Col = new Rgba(0.45f, 0.42f, 0.46f) });
+            }
+            else if (b.Kind == Defs.FireflyShot)
+            {
+                if (Rnd(0f, 1f) < dt * 45f)  // pollen glitter shed behind it
+                    AddPart(new Part { Kind = PSpark, Pos = b.Pos + back * 4f + new V2(Rnd(-3f, 3f), Rnd(-3f, 3f)), Vel = back * 25f + new V2(Rnd(-14f, 14f), Rnd(-14f, 14f)), Life = 0.4f, Max = 0.4f, Size = 1.8f, Col = new Rgba(0.92f, 1f, 0.65f) });
             }
             else if (b.Kind == Defs.BoulderShot)
             {

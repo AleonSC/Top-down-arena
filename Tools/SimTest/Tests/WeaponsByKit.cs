@@ -750,7 +750,7 @@ static partial class Program
 
         // Sprite Staff: a seeded enemy that dies frees a sprite.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.SpriteStaff);
-        var seedling = dummy(from + new V2(200f, 0f), 15f);
+        var seedling = dummy(from + new V2(200f, 0f), 13f);  // two fireflies (7 each) kill it
         volley.Invoke(g, new object[] { me, 0f, 0 });
         volley.Invoke(g, new object[] { me, 0f, 0 });
         play(0.8f, new PlayerInput());
