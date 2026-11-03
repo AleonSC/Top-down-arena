@@ -3,6 +3,15 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Every custom shot checked against the projectiles mockup (Nov 2026), protocol 127 (no change):** each weapon fired by
+the game's own code (preview flag `SHOTW=<WeaponId>`: three volleys at 0.06 / 0.18 / 0.3 s) beside the matching
+`Docs/Mockups/projectiles.html` projectile drawn by its own `draw()` at the game's scale. Close already: Twin Rifle (after
+its fix), Railgun, Pistol, and the bespoke Fireball and Shuriken. Fixed: the **Scattergun**'s pellets each had the big
+shared glow (a column of blobs; now the mockup's 7 px pin of light); the **Prism Beam** gets the mockup's fading trail
+(`TaperTrail`, shared with the tracer) and 16 px glow; **Arcane Missiles** glow at the exhaust (12 px orange) instead of
+the body; the **Golem Staff**'s boulder no longer glows (it's a rock); **Blood Bolts** are the mockup's teardrop with a
+dotted trail and a highlight, unglowing. `ShotGlow` holds each shot's glow. Effects off: unchanged (render check IDENTICAL).
+
 **Smooth menu-background glows; no arena vignette (Nov 2026), protocol 128 (no change):** owner: the backgrounds'
 gradients showed hard steps behind the lobby (the picker's small thumbnail hid them), and remove the vignette.
 `SoftGlow` (MenuBackgrounds.cs) stacked 3-6 flat discs, so every disc edge was a visible ring. It now draws bands of

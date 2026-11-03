@@ -2,96 +2,21 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Blood Mage looks: a crimson hood, blood drops circling it that glow brighter the more health
-    /// it's missing (Blood Price), its weapon in hand, its shots and its zones.
+    /// How the Blood Mage looks beyond its model (CharacterModels.cs): the Blood Price glow, Clot plating, ability
+    /// feedback, its shots and its zones.
     public partial class ArenaApp
     {
         static readonly Rgba BloodRed = new Rgba(0.85f, 0.1f, 0.18f);
         static readonly Rgba BloodDark = new Rgba(0.35f, 0.03f, 0.08f);
         static readonly Rgba Bone = new Rgba(0.95f, 0.9f, 0.82f);
 
-        /// A blood mage: a dark crimson hood, three blood drops circling (brighter as its health drops), the
-        /// weapon in hand, and any buff it has up.
+        /// A blood mage's Blood Price glow, Clot plating and ability feedback over the model.
         void DrawBloodMage(Player p, float r, float t, Rgba col)
         {
             float a = col.A;
-            V2 dir = V2.FromAngle(p.Aim), side = dir.Orthogonal();
             float missing = p.MaxHp > 0f ? MathX.Clamp01(1f - p.Hp / p.MaxHp) : 0f;
             if (missing > 0.05f)  // Blood Price: a red glow that grows as health falls
                 Circle(p.Disp, r + 6f + 3f * Mathf.Sin(t * (4f + 6f * missing)), BloodRed.WithAlpha(0.25f * missing * a), 24);
-            Arc(p.Disp, r * 0.7f, 5f, BloodDark.WithAlpha(0.95f * a), 18, p.Aim + MathX.Pi - 1.3f, 2.6f);  // the hood
-            Arc(p.Disp, r * 0.7f + 2.5f, 1.5f, BloodRed.WithAlpha(0.8f * a), 18, p.Aim + MathX.Pi - 1.3f, 2.6f);
-            for (int k = 0; k < 3; k++)
-            {
-                V2 at = p.Disp + V2.FromAngle(t * 1.6f + MathX.Tau * k / 3f) * (r + 8f);
-                DrawDrop(at, 2.6f, V2.FromAngle(t * 1.6f + MathX.Tau * k / 3f + MathX.Pi / 2f), BloodRed.WithAlpha((0.55f + 0.45f * missing) * a));
-            }
-            V2 grip = p.Disp + side * (r * 0.75f);
-            switch (p.Weapon.Id)
-            {
-                case WeaponId.BloodLash:  // a whip of blood, swaying
-                {
-                    V2 prev = grip;
-                    for (int i = 1; i <= 6; i++)
-                    {
-                        V2 pt = grip + dir * (i * 4f) + side * (Mathf.Sin(t * 8f + i * 0.9f) * 2.5f * i / 6f);
-                        Line(prev, pt, 2.5f - 0.25f * i, BloodRed.WithAlpha(a));
-                        prev = pt;
-                    }
-                    break;
-                }
-                case WeaponId.ClotBolt:  // a dark clot held up
-                    Circle(grip + dir * 5f, 5f, BloodDark.WithAlpha(a), 10);
-                    Circle(grip + dir * 6f + side * 1.5f, 2.5f, BloodRed.WithAlpha(a), 8);
-                    break;
-                case WeaponId.LeechBeam:  // a knot of three little tendrils curling from the palm
-                    Circle(grip + dir * 3f, 3f, BloodDark.WithAlpha(a), 8);
-                    for (int k = -1; k <= 1; k++)
-                    {
-                        V2 prev = grip + dir * 3f;
-                        for (int i = 1; i <= 4; i++)
-                        {
-                            V2 pt = grip + dir * (3f + i * 2.6f) + side * (k * i * 1.6f + Mathf.Sin(t * 7f + i * 1.1f + k * 2f) * 1.2f * i / 4f);
-                            Line(prev, pt, 2.2f - 0.35f * i, BloodRed.WithAlpha(a));
-                            prev = pt;
-                        }
-                    }
-                    break;
-                case WeaponId.VeinTether:  // a fanged crescent
-                    Arc(grip + dir * 4f, 6f, 2.5f, Defs.BulletColor(Defs.VeinShot).WithAlpha(a), 10, p.Aim - 1f, 2f);
-                    break;
-                case WeaponId.TransfusionDarts:  // a syringe
-                    Line(grip - dir * 3f, grip + dir * 7f, 3.5f, new Rgba(0.9f, 0.9f, 0.95f, 0.8f * a));
-                    Line(grip - dir * 1f, grip + dir * 5f, 2f, BloodRed.WithAlpha(a));
-                    Line(grip + dir * 7f, grip + dir * 11f, 1f, Steel.WithAlpha(a));
-                    break;
-                case WeaponId.SanguineOrb:
-                {
-                    Circle(grip + dir * 5f, 6f, BloodRed.WithAlpha(0.3f * a), 10);
-                    Circle(grip + dir * 5f, 3.5f, BloodRed.WithAlpha(a), 10);
-                    // The heal reserve: an arc under you filling as you coat enemies, glowing once there's enough to coat an ally.
-                    float full = MathX.Clamp01(p.BloodReserve / Game.ReserveMax);
-                    bool ready = p.BloodReserve >= Game.AllyCoatCost;
-                    Arc(p.Disp, r + 5f, 2.5f, BloodDark.WithAlpha(0.6f * a), 20, MathX.Pi * 0.2f, MathX.Pi * 0.6f);
-                    if (full > 0f)
-                        Arc(p.Disp, r + 5f, 2.5f, (ready ? new Rgba(1f, 0.35f, 0.45f) : BloodRed).WithAlpha((ready ? 0.8f + 0.2f * Mathf.Sin(t * 8f) : 0.8f) * a), 20,
-                            MathX.Pi * 0.8f - MathX.Pi * 0.6f * full, MathX.Pi * 0.6f * full);
-                    break;
-                }
-                case WeaponId.Implosion:  // a clenched knot of blood, drops circling into it
-                    Circle(grip + dir * 5f, 3.5f, BloodDark.WithAlpha(a), 8);
-                    for (int k = 0; k < 3; k++)
-                        Circle(grip + dir * 5f + V2.FromAngle(-t * 7f + k * MathX.Tau / 3f) * 5f, 1.5f, BloodRed.WithAlpha(a), 6);
-                    break;
-                case WeaponId.BoneSpear:  // a bone spear held back, ready to throw
-                    Line(grip - dir * 10f, grip + dir * (r + 8f), 3f, Bone.WithAlpha(a));
-                    SetColor(Bone.WithAlpha(a));
-                    Tri(grip + dir * (r + 15f), grip + dir * (r + 7f) + side * 3.5f, grip + dir * (r + 7f) - side * 3.5f);
-                    break;
-                default:  // Blood Bolts: a drop hovering over the palm
-                    DrawDrop(grip + dir * 5f, 3.5f, dir, BloodRed.WithAlpha(a));
-                    break;
-            }
             if (p.Clot > 0 && p.ClotMax > 0)  // Blood Lash's Clot: dark scabs plating you, glowing when a Clot Burst is ready
             {
                 bool ready = p.Clot >= p.ClotMax;

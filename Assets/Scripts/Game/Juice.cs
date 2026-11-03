@@ -704,7 +704,17 @@ namespace Arena
                     GlowDisc(e.Disp, e.Radius * 2.6f, e.Def.Color, 0.22f + 0.05f * Mathf.Sin(game.AnimT * 3f));
             foreach (var p in game.Players.Values)
                 if (!p.Downed)
-                    GlowDisc(p.Disp, p.Def.BodyR * 2.6f, p.Def.Color, 0.18f);
+                    GlowPlayer(p);
+        }
+
+        /// A player's glow on the floor around them, in their role's colour: a wide soft halo breathing slowly and a
+        /// tighter one hugging the body. Fainter while they're hard to see (Vanish, i-frame flicker).
+        void GlowPlayer(Player p)
+        {
+            float r = p.Def.BodyR, breath = 0.92f + 0.08f * Mathf.Sin(game.AnimT * 2f + p.Id * 1.7f);
+            float vis = p.VanishT > 0f ? (p.Id == game.MyId ? 0.5f : 0.2f) : 1f;
+            GlowDisc(p.Disp, r * 5.2f, p.Def.Color, 0.3f * breath * vis);
+            GlowDisc(p.Disp, r * 2.4f, p.Def.Color, 0.22f * vis);
         }
 
         /// A soft spot of light: bright in the middle, gone at the rim. The rim vertex comes first in each triangle,

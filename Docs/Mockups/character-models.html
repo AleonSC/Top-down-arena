@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Character Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. A big live stage (one character, any role/class/weapon, aiming
+   at your pointer), the 18 role x class models, a lineup at the game's real size, and the weapon bench: every weapon
+   in its socket, with the grip, off-hand and muzzle points a reworked model has to keep. Single dark look by choice:
+   it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547; --red: #ff6b6b;
+  --tank: #5999ff; --healer: #59ff8c; --dps: #ff8c40;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 16px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 960 / 440; background: #070910; cursor: crosshair; touch-action: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #1d2a2a; border-color: var(--teal); color: var(--fg); }
+button.role[aria-pressed="true"][data-v="Tank"] { border-color: var(--tank); background: #17233a; }
+button.role[aria-pressed="true"][data-v="Healer"] { border-color: var(--healer); background: #14291d; }
+button.role[aria-pressed="true"][data-v="DPS"] { border-color: var(--dps); background: #33210f; }
+.info { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; padding: 14px 16px 16px; border-top: 1px solid var(--line); }
+.info div { display: grid; gap: 3px; align-content: start; }
+.info b { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.info span { color: var(--soft); font-size: 14.5px; }
+.info .name { font: 700 20px var(--font-display); color: var(--fg); letter-spacing: .03em; }
+
+.classes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.cls { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.cls .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cls .tile { background: #070910; border: 1px solid var(--line); border-radius: 8px; padding: 0 0 6px; display: grid; justify-items: center; gap: 2px; cursor: pointer; color: var(--soft); font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+.cls .tile:hover { border-color: var(--edge); }
+.cls .tile[aria-current="true"] { border-color: var(--teal); }
+.cls .tile canvas { width: 100%; aspect-ratio: 1; display: block; }
+.cls .tile small { font: 500 11px var(--font-data); color: var(--muted); letter-spacing: 0; text-transform: none; text-align: center; padding: 0 4px; }
+.cls p { font-size: 14px; color: var(--muted); }
+.tile[data-role="Tank"] span { color: var(--tank); } .tile[data-role="Healer"] span { color: var(--healer); } .tile[data-role="DPS"] span { color: var(--dps); }
+
+.lineup { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+#lineup { display: block; width: 100%; background: #070910; }
+
+.bench { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.wtile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 6px; min-width: 0; cursor: pointer; align-content: start; }
+.wtile:hover { border-color: var(--edge); }
+.wtile[aria-current="true"] { border-color: var(--teal); }
+.wtile canvas { width: 100%; aspect-ratio: 2 / 1.15; background: #070910; border-radius: 6px; display: block; }
+.wtile .nm { font: 700 15px var(--font-display); letter-spacing: .03em; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.wtile .nm i { font: 600 10px var(--font-display); letter-spacing: .12em; font-style: normal; text-transform: uppercase; }
+.wtile .meta { font: 500 11.5px var(--font-data); color: var(--muted); }
+.wtile .why { font-size: 13px; color: var(--soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 12px var(--font-data); color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 92ch; color: var(--soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · character models · reworked weapon sockets</div>
+    <h1>Character <span>models</span></h1>
+    <p class="lead">Today every player is a coloured circle with a role mark and a small class overlay. This is one coherent
+      set of 18 top-down models (3 roles x 6 classes) built on the same three rules, plus a <em>socket</em> for every
+      weapon so a reworked weapon model drops straight in. Everything stays inside the real body circle (Tank 18 px,
+      Healer 14, DPS 12) and the bright hit core stays on top, so dodging reads exactly as it does now.</p>
+    <p class="lead"><b>Role = body shape and trim colour. Class = costume and head. Weapon = hands and prop.</b> Move your
+      pointer over the stage to aim; click any model or weapon below to load it.</p>
+  </header>
+
+  <section aria-label="Live stage">
+    <div class="stage">
+      <canvas id="stage" aria-label="Live character preview"></canvas>
+      <div class="bar">
+        <div class="group" id="kitBtns"><span class="label">Class</span></div>
+        <div class="group" id="roleBtns"><span class="label">Role</span></div>
+        <div class="group" id="wpnBtns"><span class="label">Weapon</span></div>
+      </div>
+      <div class="bar">
+        <div class="group" id="viewBtns"><span class="label">View</span></div>
+        <div class="group" id="togBtns"><span class="label">Show</span></div>
+      </div>
+      <div class="info" id="info"></div>
+    </div>
+  </section>
+
+  <section aria-label="All 18 models">
+    <h2>All 18 models</h2>
+    <p>Each class has one costume and head; the role changes the build and trim. Each tile shows the first weapon of that
+      role and class, in its hold pose.</p>
+    <div class="classes" id="classes"></div>
+  </section>
+
+  <section aria-label="Lineup at game size">
+    <h2>Lineup at the game's real size</h2>
+    <p>The silhouette test: all 18 at 1x (1 canvas pixel = 1 arena pixel), the way they appear mid-fight. Role must read
+      from the outline and trim colour first, class second.</p>
+    <div class="lineup"><canvas id="lineup"></canvas></div>
+  </section>
+
+  <section aria-label="Weapon bench">
+    <h2>Weapon bench</h2>
+    <p>Every weapon in its socket for the selected class. The dashed box is the <b>envelope</b> a model must fit; the dots
+      are the anchors the character and the shot code use. A reworked model only has to redraw inside the box and keep
+      the anchors, and nothing else about the character changes.</p>
+    <div class="group" id="benchBtns"><span class="label">Show</span></div>
+    <div class="legend"><span><i style="background:#6fe3c4"></i>grip (main hand, the model's origin)</span><span><i style="background:#6aa8ff"></i>off-hand</span><span><i style="background:#ffb547"></i>muzzle / effect point</span></div>
+    <div class="bench" id="bench"></div>
+  </section>
+
+  <section aria-label="Socket contract and build notes" class="cols">
+    <div class="notes">
+      <h3>The weapon socket</h3>
+      <ul>
+        <li><b>Origin and axis:</b> a weapon is drawn in its own frame: the main grip at (0, 0), the aim direction along +x, +y to the player's right. The character places and rotates it; the weapon never knows about the body.</li>
+        <li><b>Envelope:</b> x from -16 to 56, y from -14 to 14 (in Tank-size units; the frame is scaled down for Healer and DPS). Long weapons (Lance, Halberd, Bone Spear) use the full length; sidearms use a fraction.</li>
+        <li><b>Anchors:</b> <code>grip</code>, optional <code>off</code> (where the second hand lands), and <code>muzzle</code> (shot origin, flashes, charge glow). Shots keep spawning from the body edge as now; the muzzle is only for the flash.</li>
+        <li><b>Hold poses:</b> <code>one</code> (one hand, other arm free), <code>two</code> (both on the weapon), <code>dual</code> (a mirrored copy in each hand), <code>float</code> (open palm, the weapon hovers above it).</li>
+        <li><b>States a model can animate:</b> idle, fire (a kick of 3 px and the muzzle flash), and the weapon-action key (Kusarigama reel, Katana sheath, Kunai blink...). The stage's "Auto-fire" shows the fire kick.</li>
+      </ul>
+    </div>
+    <div class="notes">
+      <h3>Building it</h3>
+      <ul>
+        <li>Visual only: no network message or snapshot changes, so no <code>ProtocolVersion</code> bump.</li>
+        <li>Each class's <code>KitLook.Body</code> (<code>ClassLooks.cs</code>) already draws over the player circle. The new body would become the shared layers (back, shoulders, role trim, arms, head) plus a per-class costume, with the weapon switch (today inside <code>DrawKnight</code>, <code>DrawNinja</code>, <code>DrawBloodMage</code>) moved into one <code>DrawHeldWeapon</code> keyed by <code>WeaponId</code> so Soldier, Elementalist and Summoner weapons get models too.</li>
+        <li>Downed players keep the grey circle; Vanish, i-frame flicker and hit-flash already scale the whole body's alpha, so they carry over unchanged.</li>
+        <li>The Armory, field guide and lobby previews all go through <code>DrawPlayer</code>, so they'd pick the models up for free. Bestiary/Armory pages stay as they are until you ask.</li>
+      </ul>
+    </div>
+    <div class="notes">
+      <h3>Open questions</h3>
+      <ul>
+        <li><b>Detail level:</b> this is about 20-30 shapes per model. Too busy at 1x? The lineup is the test.</li>
+        <li><b>Shoulders and pauldrons stick out a little past the body circle</b> (Tank by ~2 px). Keep that, or clamp everything inside?</li>
+        <li><b>Class colours:</b> each class has its own palette (olive, violet, forest, steel, charcoal, crimson) with the role colour only in the trim. Alternative: tint the whole body by role like today. Say which you prefer.</li>
+        <li><b>Weapons first:</b> which weapons do you want redrawn from scratch? The bench versions are a first pass to prove the sockets.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ---------- drawing helpers (global ctx `c`) ---------- */
+let c, T = 0, FIRE = 0;
+const TAU = Math.PI * 2;
+const ln = (x1, y1, x2, y2, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); };
+const ci = (x, y, r, col) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); };
+const rc = (x, y, w, h, col, rad = 0) => { c.fillStyle = col; c.beginPath(); c.roundRect(x, y, w, h, rad); c.fill(); };
+const pg = (p, col, stroke) => { c.fillStyle = col; c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1; c.stroke(); } };
+const ar = (x, y, r, a0, a1, w, col) => { c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.beginPath(); c.arc(x, y, r, a0, a1); c.stroke(); };
+const el = (x, y, rx, ry, col, rot = 0) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, TAU); c.fill(); };
+const star = (x, y, R, r, n, rot, col) => { const p = []; for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, q = i % 2 ? r : R; p.push([x + Math.cos(a) * q, y + Math.sin(a) * q]); } pg(p, col); };
+const ST = "#cfd8e6", DK = "#3a4250", WD = "#8a6a45", GD = "#e8c25a", BONE = "#efe9d8", BLOOD = "#c4122e";
+
+/* ---------- roles and classes ---------- */
+const ROLES = {
+  Tank:   { r: 18, hit: 9, col: "#5999ff", dim: "#17233a", d: "Broad shoulders, plate pauldrons and a chest plate: the widest silhouette, trim in blue." },
+  Healer: { r: 14, hit: 7, col: "#59ff8c", dim: "#14291d", d: "Medium frame, a white stole over the shoulders and a thin halo ring round the head, trim in green." },
+  DPS:    { r: 12, hit: 6, col: "#ff8c40", dim: "#33210f", d: "Narrow and leaning forward, a sash across the chest and a speed streak behind, trim in orange." },
+};
+const KITS = {
+  Soldier:      { base: "#5b6b52", dark: "#2d3829", sleeve: "#46543e", glove: "#20242a", d: "Helmet with a glowing visor, a backpack. Tank wears side guards, Healer a cross on the helmet and a med-pack, DPS goggles and a headband." },
+  Elementalist: { base: "#6b4fb0", dark: "#33235c", sleeve: "#573f95", glove: "#e6dcff", d: "A wide pointed hat and a flaring robe. Seen from above the hat is a brim with a gem on its tip; the hem sways." },
+  Summoner:     { base: "#3f7a4a", dark: "#1d3b25", sleeve: "#2f6039", glove: "#cfe9b8", d: "A hood with a trailing point, a mantle of leaves and glowing eyes. Three motes circle the body, as today." },
+  Knight:       { base: "#aab6c8", dark: "#5d6a7c", sleeve: "#8795ab", glove: "#cfd8e6", d: "A steel helm with a crest and plume, and a cape in the role's colour. The visor and held weapon stay as today." },
+  Ninja:        { base: "#2a2a38", dark: "#13131a", sleeve: "#1d1d28", glove: "#0e0e14", d: "A dark wrap with an eye slit, a headband knot and two scarf ribbons in the role colour streaming behind." },
+  Hemomancer:   { base: "#8c1626", dark: "#3a0a12", sleeve: "#6a101c", glove: "#2a0a10", d: "A crimson hood with a blood-drop gem, a tattered cloak and three drops circling that glow as health falls." },
+};
+const KIT_ORDER = Object.keys(KITS), ROLE_ORDER = Object.keys(ROLES);
+
+/* ---------- weapons: 54 sockets. Origin = main grip, +x = aim, +y = right. ---------- */
+const WEAPONS = [];
+function W(kit, role, name, hold, off, mz, len, why, draw, col = "#fff") { WEAPONS.push({ kit, role, name, hold, off, mz, len, why, draw, col }); }
+const S_ = Math.sin, C_ = Math.cos;
+/* Soldier */
+W("Soldier","Tank","Scattergun","two",[14,0],[30,0],30,"Stock, twin barrels, a pump grip.",()=>{ rc(-12,-2.6,12,5.2,WD,2); rc(0,-3.2,16,6.4,DK,1.5); ln(2,-1.7,29,-1.7,2.4,ST); ln(2,1.7,29,1.7,2.4,ST); rc(12,-4,9,8,"#6a4b2e",2); },"#ffd27a");
+W("Soldier","Tank","Flak Cannon","two",[10,0],[32,0],32,"A fat flared tube with a drum, orange bands.",()=>{ rc(-6,-4,12,8,DK,2); pg([[6,-5],[26,-6],[32,-9],[32,9],[26,6],[6,5]],"#55606e"); ln(14,-6,14,6,2,"#ff9d3a"); ln(22,-7,22,7,2,"#ff9d3a"); ci(9,-7,4.5,"#3b4350"); },"#ff9d3a");
+W("Soldier","Tank","Riot Repeater","two",[14,0],[28,0],28,"A slotted shroud round the barrel.",()=>{ rc(-8,-2.5,8,5,WD,2); rc(0,-3.5,26,7,DK,2); rc(6,-5.5,14,11,"#4c5a68",3); for(let i=0;i<4;i++) ln(8+i*3.2,-4,8+i*3.2,4,1,"#1b2026"); ln(24,-1.5,31,-1.5,2.2,ST); },"#ffe08a");
+W("Soldier","Healer","Repulsion Cannon","two",[8,0],[26,0],26,"A bell-mouthed emitter with rings.",()=>{ rc(-4,-3,10,6,DK,2); pg([[6,-4],[22,-11],[22,11],[6,4]],"#3d6b5a"); [6,10,14].forEach(r=>ar(10,0,r,-0.85,0.85,1.5,"#9dffcf")); },"#9dffcf");
+W("Soldier","Healer","Revolver","one",null,[17,0],17,"Short barrel, big cylinder, wooden grip.",()=>{ rc(-5,-2.2,7,8,WD,2); rc(0,-2.6,10,5.2,DK,1.5); ln(8,0,17,0,3,ST); ci(5,0,3.6,"#6a7685"); ci(5,0,1.4,"#1b2026"); },"#ffe08a");
+W("Soldier","Healer","Mender's Bow","two",[18,0],[26,0],34,"A recurve with a green leaf charm; the drawn arrow glows.",()=>{ ar(2,0,16,-1.05,1.05,2.6,"#7a5a3a"); ln(10,-13.9,-2,0,0.8,"#eaeaea"); ln(-2,0,10,13.9,0.8,"#eaeaea"); ln(-2,0,26,0,1.4,"#cfe9d6"); pg([[26,-2],[31,0],[26,2]],"#59ff8c"); ci(18,0,2,"#59ff8c"); },"#59ff8c");
+W("Soldier","DPS","Twin Rifle","dual",null,[26,0],26,"Two compact rifles with blue scopes.",()=>{ rc(-6,-2,8,4,WD,1.5); rc(0,-2.6,14,5.2,DK,1.5); ln(12,0,26,0,2.4,ST); rc(5,-5,8,2.6,"#7bd0ff",1); },"#ffd27a");
+W("Soldier","DPS","Railgun","two",[18,0],[40,0],40,"Twin rails and glowing coils.",()=>{ rc(-8,-3,10,6,DK,2); ln(2,-3,38,-3,2.2,ST); ln(2,3,38,3,2.2,ST); [10,18,26].forEach(x=>rc(x,-4.6,3,9.2,"#52c9ff",1)); ln(4,0,36,0,1.5,"#bff3ff"); },"#52c9ff");
+W("Soldier","DPS","Burst SMG","two",[8,0],[25,0],25,"A boxy body; its barrel cluster spins up.",()=>{ rc(-6,-2.5,8,5,DK,1.5); rc(0,-3.4,14,6.8,"#4a5560",2); rc(4,2,5,8,"#22272e",1); for(let i=0;i<3;i++){ const y=S_(T*9+i*2.09)*2.2; ln(14,y,24,y,1.8,ST);} },"#ffe08a");
+/* Elementalist */
+W("Elementalist","Tank","Flamethrower","two",[12,0],[28,0],28,"A nozzle with a pilot flame, a fuel canister on the hip.",()=>{ rc(-6,-3,10,6,DK,2); rc(2,-2.2,22,4.4,"#7a3b22",2); ci(26,0,3.2,"#2a2a2a"); pg([[28,-2],[36+S_(T*20)*2,0],[28,2]],"rgba(255,150,40,.85)"); rc(0,5,14,6,"#b8442a",3); ln(6,5,6,11,1.4,"#ffd24a"); },"#ff9a30");
+W("Elementalist","Tank","Frost Lance","two",[14,0],[42,0],44,"A long icicle spear with side shards.",()=>{ ln(-8,0,30,0,2.6,"#9ab9d6"); pg([[30,-4],[44,0],[30,4],[34,0]],"#bff1ff"); pg([[22,-3],[27,-7],[29,-3]],"#9fe6ff"); pg([[22,3],[27,7],[29,3]],"#9fe6ff"); ci(16,0,2,"#e8fbff"); },"#9fe6ff");
+W("Elementalist","Tank","Storm Hammer","one",null,[34,0],34,"A hammer head wrapped in lightning.",()=>{ ln(-6,0,22,0,3,WD); rc(20,-8,12,16,"#7d8796",2); rc(26,-8,3,16,"#ffe04a",1); ln(32,-4,36,-1,1.2,"#ffe04a"); ln(36,-1,33,3,1.2,"#ffe04a"); },"#ffe04a");
+W("Elementalist","Healer","Radiant Orb","float",null,[12,0],24,"An open palm under a gold orb with an orbiting ring.",()=>{ ci(12,0,10,"rgba(255,224,120,.25)"); ci(12,0,6.5,"#ffe9a0"); ci(12,0,3.5,"#fff"); ar(12,0,9.5,T*2,T*2+2.5,1.5,"#ffd24a"); },"#ffe9a0");
+W("Elementalist","Healer","Chain Light","one",null,[20,0],22,"A rod with a three-pronged crown and a live arc.",()=>{ rc(-6,-2,12,4,ST,2); [[18,-5],[20,0],[18,5]].forEach(p=>ln(6,0,p[0],p[1],1.8,"#8fd8ff")); ln(18,-5,21,-2+S_(T*30),1.2,"#fff"); ln(21,-2+S_(T*30),20,0,1.2,"#fff"); ln(20,0,21,2+C_(T*30),1.2,"#fff"); ln(21,2+C_(T*30),18,5,1.2,"#fff"); },"#bfe9ff");
+W("Elementalist","Healer","Prism Beam","two",[6,0],[28,0],28,"A glass prism in a cradle, splitting light.",()=>{ ar(8,0,9,-2,2,2,"#9aa6b8"); pg([[6,-8],[22,0],[6,8]],"rgba(200,230,255,.6)","#e8f4ff"); ln(0,0,8,0,1.2,"#fff"); ln(18,-1,29,-6,1,"#ff7a7a"); ln(18,0,31,0,1,"#8cff8c"); ln(18,1,29,6,1,"#7aa8ff"); },"#e8f4ff");
+W("Elementalist","DPS","Fireball","float",null,[12,0],24,"An open palm and a rolling ball of fire.",()=>{ ci(12,0,9,"rgba(255,120,30,.3)"); ci(12,0,6,"#ff7a1c"); ci(12,0,3.2,"#ffd35a"); for(let i=0;i<5;i++){ const a=T*5+i*1.26; ln(12+C_(a)*5,S_(a)*5,12+C_(a)*10.5,S_(a)*10.5,2.2,"rgba(255,150,40,.8)"); } },"#ff9a30");
+W("Elementalist","DPS","Arc Lightning","one",null,[16,0],20,"Two electrodes with an arc jumping between them.",()=>{ ln(0,-4,16,-4,2.2,ST); ln(0,4,16,4,2.2,ST); ci(16,-4,1.8,"#bfe9ff"); ci(16,4,1.8,"#bfe9ff"); const j=S_(T*35)*1.5; ln(16,-4,20,-1+j,1.3,"#fff"); ln(20,-1+j,14,1-j,1.3,"#fff"); ln(14,1-j,16,4,1.3,"#fff"); },"#bfe9ff");
+W("Elementalist","DPS","Arcane Missiles","float",null,[12,0],24,"Three missiles banked in orbit over the palm.",()=>{ ar(12,0,11,0,TAU,0.8,"rgba(197,139,255,.4)"); for(let i=0;i<3;i++){ const a=T*2+i*2.09, x=12+C_(a)*11, y=S_(a)*11; ln(x,y,x-C_(a+1.57)*5,y-S_(a+1.57)*5,1.4,"rgba(197,139,255,.6)"); ci(x,y,2.8,"#c58bff"); } },"#c58bff");
+/* Summoner */
+W("Summoner","Tank","Golem Staff","staff",[10,0],[32,0],36,"A pole topped with a rough stone and an amber rune.",()=>{ ln(-12,0,28,0,3.2,WD); pg([[26,-6],[34,-4],[36,3],[30,7],[24,3]],"#8d8a82","#5a5750"); ci(30,0,5,"rgba(255,176,58,.3)"); ci(30,0,2.5,"#ffb03a"); },"#ffb03a");
+W("Summoner","Tank","Bone Guard","one",null,[30,0],36,"A skull-topped staff, two bone chips circling.",()=>{ ln(-10,0,26,0,3,BONE); ci(30,0,5.5,BONE); ci(31,-2,1.2,"#1b2026"); ci(31,2,1.2,"#1b2026"); rc(28,3.5,6,2.2,BONE,1); for(let i=0;i<2;i++){ const a=T*2.5+i*Math.PI; ci(30+C_(a)*10,S_(a)*10,1.8,BONE); } },"#e8ffd0");
+W("Summoner","Tank","Bear Totem","one",null,[14,0],16,"A fur cuff and a fist of three claws.",()=>{ rc(-4,-5,6,10,"#8a5a36",3); ci(2,0,4.5,"#6b4a2e"); [-0.35,0,0.35].forEach(a=>ln(5,a*8,14,a*14,1.8,"#f0e6c8")); },"#ffb078");
+W("Summoner","Healer","Sprite Staff","staff",[8,0],[28,0],34,"A leaf loop holding a sprite; two more circle it.",()=>{ ln(-10,0,24,0,2.6,WD); ar(28,0,5.5,0,TAU,2,"#59d36a"); ci(28,0,3,"#b8ffc4"); for(let i=0;i<2;i++){ const a=T*3+i*Math.PI; ci(28+C_(a)*9,S_(a)*9,1.8,"#9dffb0"); } },"#9dffb0");
+W("Summoner","Healer","Treant Rod","one",null,[30,0],34,"A twisting branch with fresh leaves.",()=>{ let px=-8, py=0; for(let i=1;i<=9;i++){ const x=-8+i*4, y=S_(i*0.9)*1.6; ln(px,py,x,y,3.2-i*0.12,"#7a5a38"); px=x; py=y; } ci(27,-3.5,2.8,"#59d36a"); ci(28,3.5,2.8,"#59d36a"); ci(31,0,3,"#cfffb0"); },"#cfffb0");
+W("Summoner","Healer","Totem Staff","staff",[8,0],[28,0],34,"A carved block with feathers.",()=>{ ln(-10,0,24,0,2.6,WD); rc(22,-6,10,12,"#9a6b3a",2); ci(26,-2.5,1,"#1b2026"); ci(26,2.5,1,"#1b2026"); ln(29,-2,29,2,1,"#1b2026"); ln(22,-6,17,-11,1.4,"#59ff8c"); ln(22,6,17,11,1.4,GD); },"#59ff8c");
+W("Summoner","DPS","Wolf Whistle","one",null,[19,0],20,"A blowpipe with a bone whistle on a cord.",()=>{ ln(-2,0,18,0,2.2,"#7a6a55"); ci(19,0,1.6,"#e85a5a"); ln(-6,6,-2,1,0.8,"#cfcfcf"); ci(-6,6,3,BONE); ci(-6,6,1,"#3a3a3a"); },"#e85a5a");
+W("Summoner","DPS","Wisp Lantern","one",null,[16,0],24,"A hooked lantern with three wisps orbiting.",()=>{ ln(-8,0,10,0,2.4,"#6b5a45"); rc(10,-5,10,10,"#2c3a46",2); rc(12,-3,6,6,"#aaf0ff",1); for(let i=0;i<3;i++){ const a=T*2.5+i*2.09; ci(15+C_(a)*11,S_(a)*11,2.2,"#cffaff"); } },"#cffaff");
+W("Summoner","DPS","Imp Caller","one",null,[22,0],26,"A crook with a horned imp head; two embers hover.",()=>{ ln(-8,0,18,0,2.6,"#5a2a2a"); ci(20,0,4,"#c0392b"); pg([[19,-3],[16,-8],[22,-4]],"#ff6a3a"); pg([[19,3],[16,8],[22,4]],"#ff6a3a"); ci(22,-1.5,0.9,"#ffe04a"); ci(22,1.5,0.9,"#ffe04a"); for(let i=0;i<2;i++) pg([[8,-9+i*18+S_(T*4+i)*1.5],[13,-7+i*18],[8,-5+i*18]],"#ff7a3a"); },"#ff7a3a");
+/* Knight */
+W("Knight","Tank","Warhammer","two",[12,0],[40,0],44,"A long haft with a steel head and spike.",()=>{ ln(-8,0,30,0,3.2,WD); rc(28,-9,10,18,"#b9c4d4",2); pg([[38,-2],[45,0],[38,2]],ST); pg([[28,-2],[23,0],[28,2]],ST); ln(28,-5,38,-5,1,DK); ln(28,5,38,5,1,DK); },"#ffe08a");
+W("Knight","Tank","Lance","two",[-4,0],[56,0],70,"A very long lance with a round guard.",()=>{ ln(-12,0,40,0,3.6,"#c9a35e"); pg([[40,-3.5],[56,0],[40,3.5]],ST); ci(8,0,7,"#aeb9c9"); ci(8,0,3,"#7c8797"); },"#ffe08a");
+W("Knight","Tank","Halberd","two",[10,0],[52,0],62,"An axe blade, a spike and a hook.",()=>{ ln(-10,0,40,0,3,WD); pg([[28,0],[30,-11],[40,-8],[36,-2]],ST); pg([[40,-1.5],[52,0],[40,1.5]],ST); pg([[30,2],[36,7],[34,1]],ST); },"#ffe08a");
+W("Knight","Healer","Quarterstaff","two",[8,0],[30,0],46,"A plain pole capped in gold.",()=>{ ln(-16,0,30,0,3.4,"#9a7648"); ci(-16,0,3.4,GD); ci(30,0,3.8,GD); ln(0,-2,0,2,1.6,GD); ln(14,-2,14,2,1.6,GD); },"#fff3b0");
+W("Knight","Healer","Lightbringer","one",null,[34,0],38,"A glowing longsword with a gold guard.",()=>{ ln(2,0,34,0,7,"rgba(255,240,170,.25)"); ln(2,0,34,0,3.6,"#fff3c0"); pg([[33,-2],[40,0],[33,2]],"#fff3c0"); ln(2,-6,2,6,3,GD); ln(-6,0,2,0,3,"#6b4a2e"); ci(-7,0,2.6,GD); },"#fff3b0");
+W("Knight","Healer","Censer","one",null,[16,0],22,"A gold censer on a chain; smoke trails behind.",()=>{ const y=S_(T*2)*4; ln(0,0,12,y,1.2,"#c9b26b"); ci(14,y,5,GD); ci(13,y-1.5,1,"#2a1d08"); ci(15,y+1.5,1,"#2a1d08"); ar(14,y,8,T,T+1.4,1.2,"rgba(255,240,200,.35)"); },"#fff3b0");
+W("Knight","DPS","Twin Blades","dual",null,[22,0],24,"Two short swords with gold guards.",()=>{ ln(-4,0,0,0,3,"#6b4a2e"); ln(0,-4,0,4,2.6,GD); ln(1,0,22,0,3,ST); pg([[21,-1.6],[26,0],[21,1.6]],ST); },"#ffffff");
+W("Knight","DPS","Greatsword","two",[-8,0],[46,0],60,"A broad blade with a fuller and big guard.",()=>{ pg([[3,-3.5],[40,-3.5],[46,0],[40,3.5],[3,3.5]],"#d7e0ee"); ln(10,0,40,0,0.8,"#8fa0b8"); rc(-1,-9,4,18,GD,1.5); ln(-12,0,-1,0,3.4,"#6b4a2e"); ci(-14,0,3,GD); },"#ffffff");
+W("Knight","DPS","Rapier","one",null,[38,0],42,"A thin blade and a swept cup hilt.",()=>{ ln(2,0,38,0,1.6,"#eef4ff"); ar(2,0,6,-1.6,1.6,2,GD); ln(-8,0,0,0,2.4,"#5a3a2a"); ln(-1,-6,-1,6,1.4,GD); },"#ffffff");
+/* Ninja */
+W("Ninja","Tank","Kusarigama","one",null,[22,0],24,"A sickle with its chain looped at the hip.",()=>{ ln(-4,0,12,0,2.6,WD); ar(14,-6,8,0.2,1.9,2.6,ST); for(let i=0;i<9;i++){ const a=T*1.5+i*0.7; ci(-4+C_(a)*6,8+S_(a)*4,1,"#b8c2d0"); } },"#ffffff");
+W("Ninja","Tank","Bo Staff","two",[10,0],[26,0],48,"A long staff with dark caps and grip bands.",()=>{ ln(-22,0,26,0,3.2,"#8a6a45"); ci(26,0,2.2,"#1d1d26"); ci(-22,0,2.2,"#1d1d26"); ln(-2,-2,-2,2,1.4,"#1d1d26"); ln(14,-2,14,2,1.4,"#1d1d26"); },"#ffffff");
+W("Ninja","Tank","Fuma Shuriken","one",null,[20,0],22,"A giant four-point star, spinning in hand.",()=>{ star(12,0,11,3.5,4,T*2,ST); ci(12,0,2.4,"#1b2026"); },"#ffffff");
+W("Ninja","Healer","Medicine Darts","one",null,[12,0],14,"Three green-tipped needles between the fingers.",()=>{ [-0.3,0,0.3].forEach(a=>{ ln(0,0,12*C_(a),12*S_(a),1.3,"#cfd8e6"); ci(12*C_(a),12*S_(a),1.3,"#7fffa3"); }); },"#7fffa3");
+W("Ninja","Healer","Spirit Fan","one",null,[16,0],18,"An open fan in pale green with ribs.",()=>{ c.fillStyle="rgba(190,255,215,.85)"; c.beginPath(); c.moveTo(0,0); c.arc(0,0,16,-1,1); c.closePath(); c.fill(); for(let i=-2;i<=2;i++) ln(0,0,16*C_(i*0.5),16*S_(i*0.5),0.8,"#4a8a66"); ar(0,0,16,-1,1,1.4,"#7ad0a0"); },"#bfffd8");
+W("Ninja","Healer","Ofuda","one",null,[16,0],18,"A paper charm with a red seal; two more flutter.",()=>{ c.save(); c.rotate(S_(T*3)*0.1); rc(4,-4.5,13,9,"#fff0cf",1); rc(8,-1.5,6,3,"#d93b3b",.5); c.restore(); rc(14,-13+S_(T*2),8,5,"rgba(255,240,207,.6)",1); rc(18,9+S_(T*2.4),8,5,"rgba(255,240,207,.6)",1); },"#ffe9b0");
+W("Ninja","DPS","Shuriken","one",null,[12,0],14,"A four-point star held ready.",()=>{ star(6,0,6.5,2,4,T*4,ST); },"#ffffff");
+W("Ninja","DPS","Katana","one",null,[36,0],38,"A long curved blade, gold tsuba, dark grip.",()=>{ ln(-6,0,0,0,3,"#1d1d26"); ci(1,0,3.4,GD); ci(1,0,1.4,"#1d1d26"); ln(1,0,36,0,2.4,"#dfe7f2"); ln(2,-0.9,35,-0.9,0.7,"#fff"); pg([[35,-1.2],[40,0],[35,1.2]],"#dfe7f2"); },"#ffffff");
+W("Ninja","DPS","Kunai","one",null,[18,0],20,"A leaf-bladed knife with a ring pommel.",()=>{ ln(-1,0,5,0,2.2,"#2a2a2a"); ar(-4,0,3,0,TAU,1.2,ST); pg([[5,0],[10,-3],[18,0],[10,3]],ST); },"#ffffff");
+/* Hemomancer */
+W("Hemomancer","Tank","Blood Lash","one",null,[40,0],42,"A handle and a whip of living blood.",()=>{ ln(-4,0,6,0,3,"#3a0a10"); let px=6,py=0; for(let i=1;i<=9;i++){ const x=6+i*3.6, y=S_(T*8+i*0.9)*2.8*i/9; ln(px,py,x,y,3-i*0.25,"#e0203a"); px=x; py=y; } ci(px,py,1.5,"#ff9aa6"); },"#ff6b7e");
+W("Hemomancer","Tank","Clot Bolt","float",null,[12,0],22,"A dark clot with a red core, dripping.",()=>{ ci(12,0,7,"#3a0710"); ci(11,-2,3,"#a8182b"); ci(14,2,2,"#e0203a"); ci(12,8+((T*8)%4),1.4,"#c4122e"); },"#e0203a");
+W("Hemomancer","Tank","Leech Tendrils","one",null,[18,0],20,"Three tendrils curling from a dark palm.",()=>{ ci(2,0,3.4,"#3a0710"); for(let k=-1;k<=1;k++){ let px=3,py=0; for(let i=1;i<=7;i++){ const x=3+i*2.6, y=k*i*1.4+S_(T*7+i*1.1+k*2)*1.3*i/7; ln(px,py,x,y,2.4-i*0.22,"#e0203a"); px=x; py=y; } } },"#e0203a");
+W("Hemomancer","Healer","Transfusion Darts","one",null,[26,0],28,"A syringe dart with red fluid and a plus mark.",()=>{ ln(-4,0,0,0,2,"#999"); rc(0,-2.6,16,5.2,"#dddddd",2); rc(2,-1.6,10,3.2,"#d71f3b",1); ln(16,0,26,0,1.2,ST); ln(13,-1.6,13,1.6,1,"#59ff8c"); ln(11.4,0,14.6,0,1,"#59ff8c"); },"#ff6b7e");
+W("Hemomancer","Healer","Sanguine Orb","float",null,[12,0],24,"A deep red orb with a swirl and three drops.",()=>{ ci(12,0,10,"rgba(200,20,40,.25)"); ci(12,0,7,"#8e0f22"); ar(12,0,4.5,T*3,T*3+3.5,1.6,"#ff6b7e"); for(let i=0;i<3;i++){ const a=-T*2+i*2.09; ci(12+C_(a)*10,S_(a)*10,1.6,"#e0203a"); } },"#ff6b7e");
+W("Hemomancer","Healer","Vein Tether","one",null,[14,0],18,"Two bone fangs round a ruby, a vein leading back.",()=>{ ar(6,0,10,-1.3,-0.2,2.8,BONE); ar(6,0,10,0.2,1.3,2.8,BONE); ci(8,0,3.8,BLOOD); ci(7,-1,1.2,"#ff9aa6"); ln(-6,0,5,0,1.4,"#e0203a"); },"#ff6b7e");
+W("Hemomancer","DPS","Blood Bolts","one",null,[22,0],24,"A crimson shard flanked by two smaller ones.",()=>{ pg([[2,0],[10,-3],[22,0],[10,3]],"#b3122a"); pg([[4,3],[10,8],[14,4]],"#7a0c1d"); pg([[4,-3],[10,-8],[14,-4]],"#7a0c1d"); ln(4,0,20,0,1,"#ff8896"); },"#ff6b7e");
+W("Hemomancer","DPS","Implosion","float",null,[14,0],24,"A fist and a ring of blood collapsing inward.",()=>{ ci(2,0,4.2,"#3a0710"); for(let i=0;i<3;i++){ const r=14-((T*10+i*4.7)%14); ar(14,0,Math.max(r,1),0,TAU,1.4,"rgba(224,32,58,"+(0.2+0.6*(1-r/14))+")"); } ci(14,0,2.4,"#12020a"); },"#e0203a");
+W("Hemomancer","DPS","Bone Spear","two",[10,0],[48,0],62,"A notched bone spear, its barbed head stained red.",()=>{ ln(-14,0,34,0,3,BONE); ln(0,-1.6,0,1.6,1,"#b9b09a"); ln(12,-1.6,12,1.6,1,"#b9b09a"); pg([[34,-4.5],[48,0],[34,4.5]],BONE); pg([[36,-4.5],[34,-8],[39,-4]],BONE); pg([[36,4.5],[34,8],[39,4]],BONE); ln(34,0,46,0,1.4,"#b3122a"); },"#ff6b7e");
+const wpnsOf = (kit, role) => WEAPONS.filter(w => w.kit === kit && w.role === role);
+
+/* ---------- the body ---------- */
+const SH = { Tank: { rx: 11, ry: 17, hr: 9, hx: 0.5 }, Healer: { rx: 10, ry: 14.5, hr: 9, hx: 0 }, DPS: { rx: 9, ry: 12.5, hr: 9.5, hx: 2.5 } };
+
+function backLayer(o, K, sh) {
+  const rl = o.role, RC = ROLES[rl].col, w = S_(T * 3) * 1.6;
+  switch (o.kit) {
+    case "Soldier": {
+      const b = rl === "Tank" ? 1 : rl === "Healer" ? 0.85 : 0.7;
+      rc(-18, -7 * b - 1, 11, 14 * b + 2, K.dark, 2.5); rc(-17, -6 * b, 9, 12 * b, K.base, 2);
+      if (rl === "Healer") { rc(-14.6, -1.2, 4.6, 2.4, "#fff", 0.6); rc(-13.5, -2.3, 2.4, 4.6, "#fff", 0.6); }
+      else if (rl === "Tank") rc(-19, -9, 3, 18, RC, 1.2);
+      else { ln(-13, -5, -13, 5, 1.6, RC); rc(-15, -sh.ry + 1, 5, 3, "#333b44", 1); rc(-15, sh.ry - 4, 5, 3, "#333b44", 1); }
+      break; }
+    case "Elementalist": {
+      const rr = sh.ry;
+      pg([[-2, -rr - 1], [-13, -rr - 5 + w], [-22, -9 + w], [-27, 0], [-22, 9 - w], [-13, rr + 5 - w], [-2, rr + 1]], K.dark);
+      pg([[-2, -rr + 2], [-12, -rr - 1 + w], [-20, -6 + w], [-24, 0], [-20, 6 - w], [-12, rr + 1 - w], [-2, rr - 2]], K.base);
+      ln(-24, 0, -10, 0, 1.2, RC);
+      break; }
+    case "Summoner": {
+      for (let i = 0; i < 7; i++) {
+        const a = Math.PI * 0.62 + i * (Math.PI * 0.76 / 6), x = C_(a) * (sh.ry + 1), y = S_(a) * (sh.ry + 1);
+        el(x * 0.85 - 2, y * 0.95, 6.5, 3.4, i % 2 ? K.base : "#52965c", a + 1.57);
+      }
+      break; }
+    case "Knight": {
+      const cc = rl === "Tank" ? "#2c4f99" : rl === "Healer" ? "#f1efe6" : "#a8222e";
+      pg([[-1, -sh.ry * 0.85], [-19 - w, -sh.ry * 0.9 - 1], [-23 - w, 0], [-19 - w, sh.ry * 0.9 + 1], [-1, sh.ry * 0.85]], cc);
+      ln(-3, 0, -21 - w, 0, 1.1, "rgba(0,0,0,.25)");
+      if (rl === "Healer") ln(-3, 0, -22 - w, 0, 2, GD);
+      break; }
+    case "Ninja": {
+      for (let k = 0; k < 2; k++) {
+        let px = -8, py = k ? 4 : -4;
+        for (let i = 1; i <= 7; i++) {
+          const f = i / 7, x = -8 - f * (18 + 5 * k), y = (k ? 4 : -4) + S_(T * 8 + i * 0.9 + k) * 4.5 * f;
+          ln(px, py, x, y, 4 - 2.4 * f, RC); px = x; py = y;
+        }
+      }
+      break; }
+    case "Hemomancer": {
+      const j = [[-2, -sh.ry]]; const n = 6;
+      for (let i = 0; i <= n; i++) { const y = -sh.ry + (2 * sh.ry) * i / n; j.push([-16 - (i % 2 ? 0 : 6) - w * (i % 2), y]); }
+      j.push([-2, sh.ry]);
+      pg(j, K.dark);
+      ln(-4, 0, -17, 0, 1, "rgba(224,32,58,.5)");
+      const d = (T * 6) % 8; ci(-18, 2, 1.3, "rgba(224,32,58,.8)"); ci(-20 - d, -3, 1.1, "rgba(224,32,58,.6)");
+      break; }
+  }
+}
+
+function roleBody(o, K, sh) {
+  const rl = o.role, RC = ROLES[rl].col;
+  if (rl === "Tank") {
+    [-1, 1].forEach(s => { ci(0, s * (sh.ry - 1), 7.2, K.dark); ci(0, s * (sh.ry - 1), 6, K.base); ar(0, s * (sh.ry - 1), 6, 0, TAU, 1.6, RC); });
+    rc(-4, -8, 13, 16, "rgba(255,255,255,.14)", 4); c.strokeStyle = RC; c.lineWidth = 1.4; c.beginPath(); c.roundRect(-4, -8, 13, 16, 4); c.stroke();
+  } else if (rl === "Healer") {
+    [-1, 1].forEach(s => ln(5, s * sh.ry * 0.55, -14, s * 2.6, 3.2, "#f4fff6"));
+    [-1, 1].forEach(s => ln(-2, s * sh.ry * 0.4, -14, s * 2.6, 1.2, RC));
+    ln(-13, -3, -13, 3, 2.4, RC);
+  } else {
+    [-1, 1].forEach(s => ci(0, s * (sh.ry - 1), 4.4, K.dark));
+    ln(5, -sh.ry * 0.65, -6, sh.ry * 0.65, 3.4, RC);
+    ln(-sh.rx - 2, -3, -sh.rx - 9 - S_(T * 6), -3, 1.3, RC); ln(-sh.rx - 2, 3, -sh.rx - 11 - S_(T * 6), 3, 1.3, RC);
+  }
+}
+
+function head(o, K, sh) {
+  const x = sh.hx, r = sh.hr, rl = o.role, RC = ROLES[rl].col, w = S_(T * 3) * 1.4;
+  if (rl === "Healer") ar(x, 0, r + 3.4, 0, TAU, 1.3, "rgba(89,255,140,.75)");
+  switch (o.kit) {
+    case "Soldier": {
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      rc(x + r * 0.15, -r * 0.55, r * 0.75, r * 1.1, "#10161c", 2); ln(x + r * 0.55, -r * 0.4, x + r * 0.55, r * 0.4, 1.2, "#7bd0ff");
+      if (rl === "Tank") { rc(x - 4, -r - 1.5, 8, 2.8, K.dark, 1); rc(x - 4, r - 1.3, 8, 2.8, K.dark, 1); ln(x - r + 1, 0, x - 1, 0, 1.8, RC); }
+      if (rl === "Healer") { rc(x - 7, -1.1, 8, 2.2, "#fff", 0.6); rc(x - 4.1, -4, 2.2, 8, "#fff", 0.6); }
+      if (rl === "DPS") { ln(x - r + 1, -3, x - r - 8 - w, -4, 2, RC); ln(x - r + 1, 3, x - r - 10 - w, 4, 2, RC); ci(x + 3, -3.2, 2.1, "#7bd0ff"); ci(x + 3, 3.2, 2.1, "#7bd0ff"); }
+      break; }
+    case "Elementalist": {
+      const br = r + (rl === "Tank" ? 5 : 4);
+      ci(x, 0, br, K.dark); ci(x, 0, br - 1.4, K.base); ar(x, 0, br - 2.6, 0, TAU, 1, "rgba(255,255,255,.18)");
+      ci(x - 1.5, 0, r * 0.62, "#463375"); ci(x - 1.5, 0, r * 0.62 - 1.6, K.base);
+      ar(x, 0, br - 4.4, 0, TAU, 1.6, RC);
+      const gem = rl === "Tank" ? "#ff8a3a" : rl === "Healer" ? "#ffe9a0" : "#bfe9ff";
+      ci(x - 1.5, 0, 2.6, gem); ci(x - 2, -0.6, 1, "#fff");
+      break; }
+    case "Summoner": {
+      pg([[x - r + 1, -5.5], [x - r - 10 - w, 0], [x - r + 1, 5.5]], K.dark);
+      ci(x, 0, r + 1.2, K.dark); ci(x, 0, r - 0.4, K.base);
+      ar(x, 0, r - 2, -0.9, 0.9, 1.4, "#8fdc98");
+      ci(x + r * 0.55, -3, 1.3, "#c8ffd0"); ci(x + r * 0.55, 3, 1.3, "#c8ffd0");
+      if (rl === "Tank") { ln(x - 1, -r + 1, x - 4, -r - 5, 1.8, BONE); ln(x - 1, r - 1, x - 4, r + 5, 1.8, BONE); }
+      if (rl === "Healer") ar(x, 0, r - 3.4, 2.2, 4.1, 1.6, "#ffe9a0");
+      if (rl === "DPS") ln(x - r, 0, x - r - 5, 0, 2, RC);
+      for (let k = 0; k < 3; k++) ci(S_(T * 2 + TAU * k / 3 + 1.57) * 0 + C_(T * 2 + TAU * k / 3) * (sh.ry + 5), S_(T * 2 + TAU * k / 3) * (sh.ry + 5), 2.4, "rgba(153,255,179,.9)");
+      break; }
+    case "Knight": {
+      const cc = rl === "Tank" ? "#7fa6ff" : rl === "Healer" ? "#fffbe8" : "#ff5a66";
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      ar(x, 0, r * 0.62, -0.9, 0.9, 2.6, "rgba(0,0,0,.55)");
+      ln(x - r, 0, x + r * 0.2, 0, rl === "Tank" ? 3.4 : 2.4, cc);
+      for (let i = 0; i < 4; i++) ln(x - r - 1 - i * 3, 0, x - r - 4 - i * 3, S_(T * 6 + i) * (1.6 + i * 0.5), 3 - i * 0.5, cc);
+      if (rl === "Healer") ar(x, 0, r - 2.4, 0, TAU, 1.2, GD);
+      if (rl === "DPS") ci(x + r * 0.45, 0, 2.4, K.glove);
+      if (rl === "Tank") { rc(x - 2, -r - 2, 6, 3, K.dark, 1); rc(x - 2, r - 1, 6, 3, K.dark, 1); }
+      break; }
+    case "Ninja": {
+      ci(x, 0, r, K.dark); ci(x, 0, r - 1.2, K.base);
+      ar(x, 0, r - 2.6, -1.2, 1.2, 3.2, RC);
+      ln(x - r + 2, 0, x - r - 5, S_(T * 6) * 1.5, 2.4, RC);
+      rc(x + r * 0.4, -r * 0.4, 1.6, r * 0.8, "#fff", 0.6);
+      if (rl === "Tank") rc(x + 1, -3, 4, 6, "#8795ab", 1);
+      if (rl === "Healer") rc(x - 1, -3.5, 4, 7, "#fff0cf", 1);
+      if (rl === "DPS") { ln(x - 1, 0, x - r - 8, 0, 2, K.base); }
+      break; }
+    case "Hemomancer": {
+      pg([[x - r + 2, -5], [x - r - 8, 0], [x - r + 2, 5]], K.dark);
+      ci(x, 0, r + 0.6, K.dark); ci(x, 0, r - 1, K.base);
+      ar(x, 0, r - 2.4, -1.0, 1.0, 1.4, "#e0203a");
+      ci(x + r * 0.5, -2.6, 1.2, "#ffd0d6"); ci(x + r * 0.5, 2.6, 1.2, "#ffd0d6");
+      pg([[x + 1, 0], [x - 1.4, -2.2], [x - 3.2, 0], [x - 1.4, 2.2]], BLOOD);
+      if (rl === "Tank") for (let i = -3; i <= 3; i++) { const a = Math.PI + i * 0.38; pg([[x + C_(a) * (r - 1), S_(a) * (r - 1)], [x + C_(a - .15) * (r + 3), S_(a - .15) * (r + 3)], [x + C_(a + .15) * (r + 3), S_(a + .15) * (r + 3)]], BONE); }
+      if (rl === "Healer") ar(x, 0, r - 3.8, 2.2, 4.1, 1.4, BONE);
+      const miss = o.miss == null ? 0.3 : o.miss;
+      for (let k = 0; k < 3; k++) { const a = T * 1.6 + TAU * k / 3; ci(C_(a) * (sh.ry + 5), S_(a) * (sh.ry + 5), 2.4, "rgba(224,32,58," + (0.5 + 0.5 * miss) + ")"); }
+      break; }
+  }
+}
+
+function drawCharacter(ctx, x, y, S, o) {
+  c = ctx; const RL = ROLES[o.role], u = RL.r / 18, K = KITS[o.kit], sh = SH[o.role];
+  const wp = o.wp || wpnsOf(o.kit, o.role)[0];
+  c.save(); c.translate(x, y); c.scale(S, S);
+  if (o.ring) { ci(0, 0, RL.r, RL.col + "1c"); ar(0, 0, RL.r, 0, TAU, 1.2, RL.col + "99"); }
+  c.rotate(o.aim); c.scale(u, u);
+  el(1, 2, sh.rx + 2, sh.ry + 1, "rgba(0,0,0,.28)");
+  backLayer(o, K, sh);
+  el(-1, 0, sh.rx, sh.ry, K.dark); el(-1, 0, sh.rx - 1.6, sh.ry - 1.6, K.base);
+  roleBody(o, K, sh);
+  // arms, weapon, hands
+  const sway = S_(T * 2.4) * 1.2, wk = (0.8 + 0.2 * u) / u, kick = (o.fire || 0) * 3;
+  let rh, lh;
+  switch (wp.hold) {
+    case "one": rh = [15, 10.5]; lh = [8, -13.5 + sway]; break;
+    case "two": rh = [13, 4.5]; lh = [13 + wp.off[0] * wk, 4.5 + wp.off[1] * wk]; break;
+    case "dual": rh = [14, 11]; lh = [14, -11]; break;
+    default: rh = [11, 3.5]; lh = [7, -13 + sway];
+  }
+  const shr = [1, sh.ry * 0.72], shl = [1, -sh.ry * 0.72];
+  const arm = (s, h) => { ln(s[0], s[1], h[0], h[1], 6, K.dark); ln(s[0], s[1], h[0], h[1], 4.4, K.sleeve); };
+  arm(shr, rh); arm(shl, lh);
+  const place = (hx, hy, mirror) => {
+    c.save(); c.translate(hx - kick, hy); c.scale(wk, mirror ? -wk : wk); T = o.t; FIRE = o.fire || 0; wp.draw();
+    if (o.fire > 0.05) { const m = wp.mz; const g = c.createRadialGradient(m[0], m[1], 0, m[0], m[1], 9 * o.fire + 2); g.addColorStop(0, "#fff"); g.addColorStop(0.4, wp.col); g.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = g; c.beginPath(); c.arc(m[0], m[1], 9 * o.fire + 2, 0, TAU); c.fill(); }
+    c.restore();
+  };
+  place(rh[0], rh[1], false); if (wp.hold === "dual") place(lh[0], lh[1], true);
+  ci(rh[0] - kick, rh[1], 3.3, K.glove); ci(lh[0] - (wp.hold === "dual" ? kick : 0), lh[1], 3.3, K.glove);
+  head(o, K, sh);
+  c.restore();
+  if (o.hit) { c.save(); c.translate(x, y); c.scale(S, S); ci(0, 0, RL.hit, "rgba(255,255,255,.85)"); ci(0, 0, RL.hit * 0.5, RL.col); c.restore(); }
+  return { u, rh, lh, wk, wp, S, x, y };
+}
+
+/* "Today": the circle, the aim stub, the role mark and the small class overlay, as DrawPlayer draws them now. */
+function drawToday(ctx, x, y, S, o) {
+  c = ctx; const RL = ROLES[o.role], r = RL.r, col = RL.col, wp = o.wp || wpnsOf(o.kit, o.role)[0];
+  c.save(); c.translate(x, y); c.scale(S, S);
+  ci(0, 0, r, shade(col, 0.45)); ar(0, 0, r, 0, TAU, 3, col);
+  const ca = C_(o.aim), sa = S_(o.aim);
+  ln(ca * r * 0.5, sa * r * 0.5, ca * (r + 10), sa * (r + 10), 5, col);
+  if (o.role === "Tank") { const h = r * 0.55; c.strokeStyle = col + "80"; c.lineWidth = 2; c.strokeRect(-h, -h, 2 * h, 2 * h); }
+  if (o.role === "Healer") { ln(-r * 0.6, 0, r * 0.6, 0, 3, col + "99"); ln(0, -r * 0.6, 0, r * 0.6, 3, col + "99"); }
+  if (o.kit === "Elementalist") for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2; ln(C_(a) * r * 0.35, S_(a) * r * 0.35, C_(a) * (r + 6), S_(a) * (r + 6), 2, "rgba(204,140,255,.8)"); }
+  if (o.kit === "Summoner") for (let k = 0; k < 3; k++) { const a = T * 2 + TAU * k / 3; ci(C_(a) * (r + 7), S_(a) * (r + 7), 2.5, "rgba(153,255,179,.9)"); }
+  if (o.kit === "Knight") { ar(0, 0, r * 0.62, o.aim - 0.9, o.aim + 0.9, 2.5, "rgba(210,224,255,.75)"); const s = { x: -sa, y: ca }; ln(s.x * r * 0.7, s.y * r * 0.7, s.x * r * 0.7 + ca * (r + 16), s.y * r * 0.7 + sa * (r + 16), 3.5, "#d2e0ff"); }
+  if (o.kit === "Ninja") { ar(0, 0, r * 0.62, o.aim - 1.1, o.aim + 1.1, 4, "rgba(26,26,36,.9)"); ln(ca * r * 0.55 - sa * 4, sa * r * 0.55 + ca * 4, ca * r * 0.55 + sa * 4, sa * r * 0.55 - ca * 4, 1.5, "#fff"); }
+  if (o.kit === "Hemomancer") { ar(0, 0, r * 0.7, o.aim + Math.PI - 1.3, o.aim + Math.PI + 1.3, 5, "rgba(90,8,20,.95)"); for (let k = 0; k < 3; k++) { const a = T * 1.6 + TAU * k / 3; ci(C_(a) * (r + 8), S_(a) * (r + 8), 2.6, "rgba(217,26,46,.8)"); } }
+  c.restore();
+  if (o.hit) { c.save(); c.translate(x, y); c.scale(S, S); ci(0, 0, RL.hit, "rgba(255,255,255,.85)"); ci(0, 0, RL.hit * 0.5, col); c.restore(); }
+}
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); return "rgb(" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => Math.round(v * f)).join(",") + ")"; }
+
+/* ---------- page state and UI ---------- */
+const st = { kit: "Knight", role: "Tank", wi: 0, view: "Proposed", hit: true, ring: true, fire: false, pause: false, bench: "Class" };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduce) st.pause = true;
+const $ = id => document.getElementById(id);
+function mkBtns(id, items, key, cls) {
+  const box = $(id);
+  items.forEach(v => { const b = document.createElement("button"); b.textContent = v; b.dataset.v = v; b.dataset.k = key; if (cls) b.className = cls; b.setAttribute("aria-pressed", "false"); b.onclick = () => { st[key] = v; if (key !== "wi") st.wi = 0; sync(); }; box.appendChild(b); });
+}
+function mkToggle(id, label, key) {
+  const b = document.createElement("button"); b.textContent = label; b.dataset.t = key; b.setAttribute("aria-pressed", "false"); b.onclick = () => { st[key] = !st[key]; sync(); }; $(id).appendChild(b);
+}
+mkBtns("kitBtns", KIT_ORDER, "kit"); mkBtns("roleBtns", ROLE_ORDER, "role", "role");
+mkBtns("viewBtns", ["Proposed", "Today", "Both"], "view");
+mkToggle("togBtns", "Hit core + footprint", "hit"); mkToggle("togBtns", "Auto-fire", "fire"); mkToggle("togBtns", "Pause", "pause");
+mkBtns("benchBtns", ["Class", "All 54"], "bench");
+function curWeapons() { return wpnsOf(st.kit, st.role); }
+function sync() {
+  const ws = curWeapons();
+  const wb = $("wpnBtns"); wb.querySelectorAll("button").forEach(b => b.remove());
+  ws.forEach((w, i) => { const b = document.createElement("button"); b.textContent = w.name; b.setAttribute("aria-pressed", String(i === st.wi)); b.onclick = () => { st.wi = i; sync(); }; wb.appendChild(b); });
+  document.querySelectorAll("#kitBtns button,#roleBtns button,#viewBtns button,#benchBtns button").forEach(b => { const k = b.dataset.k; b.setAttribute("aria-pressed", String(k === "bench" ? (b.dataset.v === "All 54") === (st.bench === "All 54") : st[k] === b.dataset.v)); });
+  document.querySelectorAll("#togBtns button").forEach(b => { const k = b.dataset.t; const on = k === "hit" ? st.hit : st[k]; b.setAttribute("aria-pressed", String(on)); });
+  const w = ws[Math.min(st.wi, ws.length - 1)];
+  $("info").innerHTML = '<div><b>Model</b><span class="name">' + st.role + " " + st.kit + '</span><span>' + w.name + ": " + w.why + '</span></div>' +
+    '<div><b>Role: ' + st.role + '</b><span>' + ROLES[st.role].d + " Body circle " + ROLES[st.role].r + " px, hit core " + ROLES[st.role].hit + " px.</span></div>" +
+    '<div><b>Class: ' + st.kit + '</b><span>' + KITS[st.kit].d + '</span></div>' +
+    '<div><b>Weapon socket</b><span>Hold: ' + w.hold + (w.off ? ", off-hand at " + w.off.join(", ") : "") + ". Muzzle at " + w.mz.join(", ") + ". Length " + w.len + " px.</span></div>";
+  document.querySelectorAll(".tile").forEach(t => t.setAttribute("aria-current", String(t.dataset.kit === st.kit && t.dataset.role === st.role)));
+  buildBench();
+}
+
+/* classes grid */
+const tiles = [];
+KIT_ORDER.forEach(k => {
+  const box = document.createElement("div"); box.className = "cls";
+  box.innerHTML = "<h3>" + k + "</h3>";
+  const row = document.createElement("div"); row.className = "row";
+  ROLE_ORDER.forEach(r => {
+    const t = document.createElement("div"); t.className = "tile"; t.dataset.kit = k; t.dataset.role = r; t.tabIndex = 0; t.setAttribute("role", "button");
+    const cv = document.createElement("canvas"); const wn = wpnsOf(k, r)[0].name;
+    t.innerHTML = ""; t.appendChild(cv); t.insertAdjacentHTML("beforeend", "<span>" + r + "</span><small>" + wn + "</small>");
+    const go = () => { st.kit = k; st.role = r; st.wi = 0; sync(); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); };
+    t.onclick = go; t.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+    row.appendChild(t); tiles.push({ cv, kit: k, role: r });
+  });
+  box.appendChild(row); box.insertAdjacentHTML("beforeend", "<p>" + KITS[k].d + "</p>"); $("classes").appendChild(box);
+});
+
+/* weapon bench */
+let benchTiles = [];
+function buildBench() {
+  const list = st.bench === "All 54" ? WEAPONS : WEAPONS.filter(w => w.kit === st.kit);
+  const box = $("bench"); box.innerHTML = ""; benchTiles = [];
+  list.forEach(w => {
+    const t = document.createElement("div"); t.className = "wtile"; t.tabIndex = 0; t.setAttribute("role", "button");
+    t.setAttribute("aria-current", String(w.kit === st.kit && w.role === st.role && wpnsOf(w.kit, w.role)[st.wi] === w));
+    const cv = document.createElement("canvas"); t.appendChild(cv);
+    t.insertAdjacentHTML("beforeend", '<div class="nm"><span>' + w.name + '</span><i style="color:' + ROLES[w.role].col + '">' + (st.bench === "All 54" ? w.kit + " " : "") + w.role + '</i></div><div class="meta">hold ' + w.hold + " · muzzle " + w.mz.join(",") + " · " + w.len + " px</div><div class=\"why\">" + w.why + "</div>");
+    const go = () => { st.kit = w.kit; st.role = w.role; st.wi = wpnsOf(w.kit, w.role).indexOf(w); sync(); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); };
+    t.onclick = go; t.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+    box.appendChild(t); benchTiles.push({ cv, w });
+  });
+}
+
+/* canvas sizing */
+function fit(cv, cssW, cssH) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return g;
+}
+
+/* pointer aim */
+let pointer = null;
+const stage = $("stage");
+function setPointer(e) { const r = stage.getBoundingClientRect(); pointer = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; }
+stage.addEventListener("pointermove", setPointer); stage.addEventListener("pointerdown", setPointer);
+stage.addEventListener("pointerleave", () => { pointer = null; });
+
+let lastFire = 0, tNow = 0, frame = 0;
+function drawStage(t) {
+  const W = stage.clientWidth, H = W * 440 / 960; const g = fit(stage, W, H);
+  g.clearRect(0, 0, W, H); g.fillStyle = "#070910"; g.fillRect(0, 0, W, H);
+  g.strokeStyle = "rgba(255,255,255,.04)"; g.lineWidth = 1;
+  for (let x = 0; x < W; x += W / 24) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  for (let y = 0; y < H; y += W / 24) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  const ws = curWeapons(), wp = ws[Math.min(st.wi, ws.length - 1)];
+  const both = st.view === "Both", sc = W / 960 * (both ? 3.8 : 5.4);
+  const cy = H * 0.52, cxs = both ? [W * 0.27, W * 0.73] : [W * 0.42];
+  let aimAt = (cx) => pointer ? Math.atan2(pointer.y * H - cy, pointer.x * W - cx) : S_(t * 0.5) * 0.7 - 0.1;
+  let fire = 0;
+  if (st.fire) { const ph = (t * 3.2) % 1; fire = ph < 0.3 ? 1 - ph / 0.3 : 0; }
+  const o0 = { kit: st.kit, role: st.role, wp, t, fire, hit: st.hit, ring: st.hit, miss: 0.5 + 0.4 * S_(t * 0.7) };
+  let info = null;
+  if (st.view === "Today" || both) {
+    const cx = both ? cxs[0] : cxs[0]; T = t;
+    drawToday(g, cx, cy, sc, { ...o0, aim: aimAt(cx) });
+    g.fillStyle = "#92a1ad"; g.font = "600 12px Oxanium, system-ui"; g.textAlign = "center"; g.fillText("TODAY", cx, H - 14);
+  }
+  if (st.view === "Proposed" || both) {
+    const cx = both ? cxs[1] : cxs[0];
+    info = drawCharacter(g, cx, cy, sc, { ...o0, aim: aimAt(cx) });
+    info.aim = aimAt(cx);
+    g.fillStyle = "#6fe3c4"; g.font = "600 12px Oxanium, system-ui"; g.textAlign = "center"; g.fillText(both ? "PROPOSED" : "", cx, H - 14);
+    if (!both) callouts(g, info, W, H);
+  }
+}
+function callouts(g, inf, W, H) {
+  const { u, rh, lh, wk, wp, S, x, y, aim } = inf;
+  const toS = (lx, ly, ox, oy) => { const px = (ox + lx * wk) * u, py = (oy + ly * wk) * u; return [x + (px * C_(aim) - py * S_(aim)) * S, y + (px * S_(aim) + py * C_(aim)) * S]; };
+  const pts = [
+    { p: toS(0, 0, rh[0], rh[1]), c: "#6fe3c4", label: "grip (origin)", side: -1 },
+    { p: wp.hold === "dual" ? toS(0, 0, lh[0], lh[1]) : (wp.off || wp.hold === "one" || wp.hold === "float") ? [x + (lh[0] * C_(aim) - lh[1] * S_(aim)) * u * S, y + (lh[0] * S_(aim) + lh[1] * C_(aim)) * u * S] : null, c: "#6aa8ff", label: "off-hand", side: -1 },
+    { p: toS(wp.mz[0], wp.mz[1], rh[0], rh[1]), c: "#ffb547", label: "muzzle / effect", side: 1 },
+  ];
+  g.font = "500 11px 'IBM Plex Mono', monospace"; g.textBaseline = "middle";
+  pts.forEach((q, i) => {
+    if (!q.p) return;
+    const dx = i === 0 ? -36 : 34, dy = i === 0 ? 38 : (i === 1 ? 38 : -30);
+    const ex = q.p[0] + dx, ey = q.p[1] + dy;
+    g.strokeStyle = q.c + "aa"; g.lineWidth = 1; g.beginPath(); g.moveTo(q.p[0], q.p[1]); g.lineTo(ex, ey); g.stroke();
+    g.fillStyle = q.c; g.beginPath(); g.arc(q.p[0], q.p[1], 4.5, 0, TAU); g.fill(); g.strokeStyle = "#000"; g.stroke();
+    g.textAlign = dx > 0 ? "left" : "right"; g.fillStyle = q.c; g.fillText(q.label, ex + (dx > 0 ? 4 : -4), ey);
+  });
+}
+
+function drawTiles(t) {
+  tiles.forEach(tl => {
+    const w = tl.cv.clientWidth; if (!w) return; const g = fit(tl.cv, w, w);
+    g.clearRect(0, 0, w, w);
+    const wp = wpnsOf(tl.kit, tl.role)[0]; const s = w / 118; /* tile art */
+    const cx = w * 0.4, cy = w * 0.5;
+    drawCharacter(g, cx, cy, s * 1.55, { kit: tl.kit, role: tl.role, wp, aim: -0.18, t, fire: 0, hit: false, ring: false, miss: 0.5 });
+  });
+}
+function drawBench(t) {
+  benchTiles.forEach(b => {
+    const w = b.cv.clientWidth; if (!w) return; const h = w * 1.15 / 2; const g = fit(b.cv, w, h);
+    g.clearRect(0, 0, w, h); c = g;
+    const s = w / 124; // 1 weapon unit = s px
+    const ox = w * 0.2, oy = h * 0.5;
+    // envelope: x -16..56, y -14..14
+    g.strokeStyle = "rgba(255,255,255,.18)"; g.setLineDash([4, 3]); g.lineWidth = 1; g.strokeRect(ox - 16 * s, oy - 14 * s, 72 * s, 28 * s); g.setLineDash([]);
+    g.strokeStyle = "rgba(255,255,255,.07)"; g.beginPath(); g.moveTo(ox - 16 * s, oy); g.lineTo(ox + 56 * s, oy); g.stroke();
+    const fire = ((t * 1.1) % 1) < 0.18 ? 1 : 0;
+    const draw1 = mirror => { g.save(); g.translate(ox - fire * 2 * s, oy + (mirror ? 0 : 0)); g.scale(s, mirror ? -s : s); T = t; b.w.draw(); g.restore(); };
+    if (b.w.hold === "dual") { g.save(); g.translate(0, -7 * s); draw1(false); g.restore(); g.save(); g.translate(0, 7 * s); draw1(true); g.restore(); }
+    else draw1(false);
+    const dot = (px, py, col) => { g.fillStyle = col; g.beginPath(); g.arc(px, py, 3.2, 0, TAU); g.fill(); g.strokeStyle = "#000"; g.lineWidth = 1; g.stroke(); };
+    dot(ox, oy, "#6fe3c4");
+    if (b.w.off) dot(ox + b.w.off[0] * s, oy + b.w.off[1] * s, "#6aa8ff");
+    dot(ox + b.w.mz[0] * s, oy + b.w.mz[1] * s, "#ffb547");
+  });
+}
+function drawLineup(t) {
+  const cv = $("lineup"), W = cv.parentElement.clientWidth, cols = W < 620 ? 6 : 18, rows = 18 / cols;
+  const cellW = W / cols, cellH = 96; const g = fit(cv, W, rows * cellH + 8); cv.style.height = (rows * cellH + 8) + "px";
+  g.fillStyle = "#070910"; g.fillRect(0, 0, W, rows * cellH + 8);
+  g.strokeStyle = "rgba(255,255,255,.035)";
+  for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, rows * cellH + 8); g.stroke(); }
+  let i = 0;
+  KIT_ORDER.forEach(k => ROLE_ORDER.forEach(r => {
+    const col = i % cols, row = Math.floor(i / cols), cx = col * cellW + cellW / 2, cy = row * cellH + 40;
+    drawCharacter(g, cx, cy, 1, { kit: k, role: r, aim: -0.45 + 0.5 * S_(t * 0.6 + i), t, fire: 0, hit: true, ring: true, miss: 0.5 });
+    g.fillStyle = "#92a1ad"; g.font = "500 10px 'IBM Plex Mono', monospace"; g.textAlign = "center"; g.fillText(k.slice(0, 4), cx, cy + 36); g.fillText(r === "Healer" ? "Heal" : r, cx, cy + 47); i++;
+  }));
+}
+
+function loop(ms) {
+  if (!st.pause) tNow = ms / 1000;
+  frame++;
+  drawStage(tNow);
+  if (frame % 2 === 0) { drawTiles(tNow); drawBench(tNow); drawLineup(tNow); }
+  requestAnimationFrame(loop);
+}
+sync();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

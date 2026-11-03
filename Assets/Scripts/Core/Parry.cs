@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The parry (hold right click): a small shield in front of you, facing your cursor. It stops
+    /// The parry (hold the parry button: right click by default): a small shield in front of you, facing your cursor. It stops
     /// enemy bullets and melee hits from that side, but you can't shoot while it's up and you move
     /// slower. It takes a limited amount of damage, then breaks and has to recharge. Raising it
     /// just as something hits (a perfect parry) sends bullets back and costs nothing.

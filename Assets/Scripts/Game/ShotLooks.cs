@@ -12,7 +12,10 @@ namespace Arena
     ///   Arcane Missiles         little missiles with a smoke trail (EmitFromShot)
     ///   lightning               flickering, re-forking bolts with a white-hot core (DrawJuicyBolt)
     ///   Shuriken                motion-blur arcs while it spins
+    ///   Blood Bolts             the mockup's blood drop: a teardrop with a dotted trail
     ///   Fireball, boulder, Blood Bolts   embers and smoke, dust, drips (EmitFromShot)
+    /// Each one's glow in the glow pass is the mockup's too (ShotGlow): small for flechettes, at the exhaust for missiles,
+    /// none for the boulder and blood.
     public partial class ArenaApp
     {
         /// The weapon that fired a player's shot, if the shot is that weapon's own (not a turret's, an ability's...).
@@ -29,18 +32,49 @@ namespace Arena
                 case Defs.HealerShot: return w == WeaponId.Pistol ? w : (WeaponId?)null;
                 case Defs.TankShot: return w == WeaponId.Scattergun ? w : (WeaponId?)null;
                 case Defs.ArcaneShot: return w == WeaponId.PrismBeam || w == WeaponId.ArcaneMissiles ? w : (WeaponId?)null;
+                case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
+                case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
             }
             return null;
+        }
+
+        /// The mockup's taper(): a trail as long as the shot's last `frames` frames (never longer than it has flown), from
+        /// `width` at the shot to 0.6 px and from `alpha` to nothing, colour per vertex so it's smooth.
+        void TaperTrail(Bullet b, int frames, float width, Rgba c, float alpha)
+        {
+            float speed = b.Vel.Length, flown = Mathf.Max(0f, (b.Life0 - b.Life) * speed);
+            float len = Mathf.Min(speed / 60f * frames, flown);
+            if (len <= 1f)
+                return;
+            V2 dir = b.Vel.Normalized(), side = dir.Orthogonal(), tail = b.Pos - dir * len;
+            Rgba head = c.WithAlpha(alpha), clear = c.WithAlpha(0f);
+            VTri(b.Pos + side * (width / 2f), head, tail + side * 0.3f, clear, tail - side * 0.3f, clear);
+            VTri(b.Pos + side * (width / 2f), head, tail - side * 0.3f, clear, b.Pos - side * (width / 2f), head);
         }
 
         /// The glow pass's glow for a shot: the tracers' is the mockup's (14 px at 0.8), the rest the usual soft glow.
         void ShotGlow(Bullet b)
         {
             var w = ShotWeapon(b);
-            if (w == WeaponId.TwinRifle || w == WeaponId.BurstSmg)
+            var c = Defs.BulletColor(b.Kind);
+            switch (w)
             {
-                GlowDisc(b.Pos, 14f, Defs.BulletColor(b.Kind), 0.8f);
-                return;
+                case WeaponId.TwinRifle:
+                case WeaponId.BurstSmg:
+                    GlowDisc(b.Pos, 14f, c, 0.8f);  // the mockup's tracer
+                    return;
+                case WeaponId.Scattergun:
+                    GlowDisc(b.Pos, 7f, c, 0.6f);  // flechettes: a pin of light each, not a blob
+                    return;
+                case WeaponId.PrismBeam:
+                    GlowDisc(b.Pos, 16f, c, 0.6f);
+                    return;
+                case WeaponId.ArcaneMissiles:
+                    GlowDisc(b.Pos - (b.Vel.IsZero ? V2.Zero : b.Vel.Normalized()) * 10f, 12f, new Rgba(1f, 0.7f, 0.3f), 0.9f);  // its exhaust
+                    return;
+                case WeaponId.GolemStaff:
+                case WeaponId.BloodBolts:
+                    return;  // a rock and a drop of blood don't glow (as in the mockup)
             }
             GlowDisc(b.Pos, Mathf.Max(14f, b.Radius * 4.5f), Defs.BulletColor(b.Kind), b.Owner != 0 ? 0.47f : 0.5f);
         }
@@ -64,15 +98,7 @@ namespace Arena
                     // The mockup's tracer: a streak as long as its last 10 frames (never longer than it has flown),
                     // tapering from 3 px to 0.6 and fading from 0.8 to nothing, colour per vertex so it's smooth; a white
                     // head; its glow (TracerGlow) is drawn in the glow pass.
-                    float speed = b.Vel.Length, flown = Mathf.Max(0f, (b.Life0 - b.Life) * speed);
-                    float len = Mathf.Min(speed / 6f, flown);
-                    if (len > 1f)
-                    {
-                        V2 tail = b.Pos - dir * len;
-                        Rgba head = c.WithAlpha(0.8f), clear = c.WithAlpha(0f);
-                        VTri(b.Pos + side * 1.5f, head, tail + side * 0.3f, clear, tail - side * 0.3f, clear);
-                        VTri(b.Pos + side * 1.5f, head, tail - side * 0.3f, clear, b.Pos - side * 1.5f, head);
-                    }
+                    TaperTrail(b, 10, 3f, c, 0.8f);
                     Circle(b.Pos, 3f, Rgba.White, 10);
                     return true;
                 }
@@ -103,7 +129,8 @@ namespace Arena
                     return true;
                 case WeaponId.PrismBeam:
                 {
-                    // A clear shard with a rainbow edge.
+                    // A clear shard with a rainbow edge, over the mockup's fading trail.
+                    TaperTrail(b, 6, 3f, c, 0.4f);
                     V2 tip = b.Pos + dir * (r + 6f), back = b.Pos - dir * (r + 2f);
                     SetColor(new Rgba(0.95f, 0.97f, 1f, 0.9f));
                     Tri(tip, back + side * (r + 1f), back - side * (r + 1f));
@@ -112,6 +139,31 @@ namespace Arena
                     Line(back + side * (r + 1f), back - side * (r + 1f), 1.2f, new Rgba(0.35f, 1f, 0.45f, 0.9f));
                     return true;
                 }
+                case WeaponId.BloodBolts:
+                {
+                    // The mockup's blood drop: a dotted trail (every other frame of the last 8, shrinking and fading),
+                    // a teardrop pointing back, and a pale highlight.
+                    float speed = b.Vel.Length, flown = Mathf.Max(0f, (b.Life0 - b.Life) * speed);
+                    for (int i = 2; i < 8; i += 2)
+                    {
+                        float back = speed / 60f * i, f = 1f - i / 8f;
+                        if (back > flown)
+                            break;
+                        Circle(b.Pos - dir * back, 2.2f * f, c.WithAlpha(0.6f * f), 8);
+                    }
+                    SetColor(c);
+                    V2 o = b.Pos + dir * 2f;
+                    for (int k = 0; k < 8; k++)  // the round front: a half circle of radius 5
+                    {
+                        float a0 = -MathX.Pi / 2f + MathX.Pi * k / 8f, a1 = -MathX.Pi / 2f + MathX.Pi * (k + 1) / 8f;
+                        Tri(o, o + (dir * Mathf.Cos(a0) + side * Mathf.Sin(a0)) * 5f, o + (dir * Mathf.Cos(a1) + side * Mathf.Sin(a1)) * 5f);
+                    }
+                    Tri(b.Pos - dir * 9f, o + side * 5f, o - side * 5f);  // the point, trailing behind
+                    Circle(b.Pos + new V2(1f, -2f), 1.5f, new Rgba(1f, 0.6f, 0.6f), 6);
+                    return true;
+                }
+                case WeaponId.GolemStaff:
+                    return false;  // drawn by DrawBoulder (WorldShots.cs); only its glow is set here (ShotGlow: none, it's a rock)
                 case WeaponId.ArcaneMissiles:
                 {
                     // A little missile: a pale body, a coloured nose, a flame at the back.

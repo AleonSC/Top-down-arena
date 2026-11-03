@@ -348,7 +348,7 @@ namespace Arena
                     howToKeysVersion = Keybinds.Version;
                     howToKeys = new[]
                     {
-                        new[] { K(KeyAction.MoveUp), K(KeyAction.MoveLeft), K(KeyAction.MoveDown), K(KeyAction.MoveRight) }, new[] { "LMB" }, new[] { "RMB" },
+                        new[] { K(KeyAction.MoveUp), K(KeyAction.MoveLeft), K(KeyAction.MoveDown), K(KeyAction.MoveRight) }, new[] { K(KeyAction.Fire) }, new[] { K(KeyAction.Parry) },
                         new[] { K(KeyAction.Ability) }, new[] { K(KeyAction.WeaponAction) }, new[] { K(KeyAction.Ultimate) },
                         new[] { K(KeyAction.AbilityQ), K(KeyAction.AbilityE), K(KeyAction.AbilityShift) },
                         new[] { "1", "2", "3" }, new[] { K(KeyAction.Reroll) }, new[] { "Tab" }, new[] { K(KeyAction.AimLine), K(KeyAction.ToggleHud) },
@@ -361,8 +361,8 @@ namespace Arena
         static readonly string[,] HowToActions =
         {
             { "Move", "or the arrow keys; change keys in Settings" },
-            { "Aim and shoot", "aim with the mouse, hold left click to fire" },
-            { "Parry", "hold right click: a shield toward your cursor (no shooting)" },
+            { "Aim and shoot", "aim with the mouse, hold to fire" },
+            { "Parry", "hold: a shield toward your cursor (no shooting)" },
             { "Role ability", "" },
             { "Weapon secondary", "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama reel" },
             { "Ultimate", "one per role and class; starts each match half charged" },

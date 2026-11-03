@@ -18,35 +18,46 @@ namespace Arena
             float yL = top, yR = top;
             for (int g = 0; g < Keybinds.GroupNames.Length; g++)
             {
-                bool left = g < 2;
+                bool left = g < 2;  // Movement and Abilities on the left; Weapon, Items and Toggles on the right
                 float gx = left ? x : x + colW + 28f;
                 float gy = left ? yL : yR;
                 Ui.Label(new Rect(gx + 2f, gy, colW, 16f), Keybinds.GroupNames[g], 11, Ui.Muted, TextAnchor.MiddleLeft, true);
                 Ui.Fill(new Rect(gx, gy + 18f, colW, 1f), new Color(1f, 1f, 1f, 0.08f));
-                gy += 26f;
+                gy += 24f;
                 int first = (int)Keybinds.GroupStart[g];
                 int end = g + 1 < Keybinds.GroupNames.Length ? (int)Keybinds.GroupStart[g + 1] : Keybinds.All.Length;
                 for (int i = first; i < end; i++)
                 {
-                    var row = new Rect(gx, gy, colW, 34f);
+                    var row = new Rect(gx, gy, colW, 31f);
                     if (KeybindRow(row, (KeyAction)i, col, t))
                         Keybinds.Listening = Keybinds.Listening == i ? -1 : i;
                     if (row.Contains(Event.current.mousePosition))
                         hovered = i;
-                    gy += 38f;
+                    gy += 34f;
                 }
-                gy += 14f;
+                gy += 12f;
                 if (left) yL = gy; else yR = gy;
             }
 
             // The right column's last: put everything back.
-            var reset = new Rect(x + colW + 28f, yR + 6f, colW, 40f);
+            var reset = new Rect(x + colW + 28f, yR + 4f, colW, 38f);
             if (Ui.SmallButton(reset, "Reset all keys to their defaults", Ui.Neutral, 13))
             {
                 Keybinds.Listening = -1;
                 Keybinds.ResetAll();
                 Keybinds.Notice = "Every key is back to its default";
                 Keybinds.NoticeAt = Time.unscaledTime;
+            }
+
+            // Fire and Parry can also take a click, which can't be pressed while the page is the one being clicked: two buttons.
+            var la = (KeyAction)Keybinds.Listening;
+            if (Keybinds.Listening >= 0 && (la == KeyAction.Fire || la == KeyAction.Parry))
+            {
+                Ui.Label(new Rect(x + 2f, DrawerPanel.yMax - 120f, 60f, 32f), "Or use", 13, Ui.Muted, TextAnchor.MiddleLeft, true);
+                if (Ui.SmallButton(new Rect(x + 62f, DrawerPanel.yMax - 120f, 130f, 32f), "Left click", Ui.Neutral, 13))
+                    FinishMouseBind(la, KeyCode.Mouse0);
+                if (Ui.SmallButton(new Rect(x + 200f, DrawerPanel.yMax - 120f, 130f, 32f), "Right click", Ui.Neutral, 13))
+                    FinishMouseBind(la, KeyCode.Mouse1);
             }
 
             // The line along the bottom: what a key does (hover), a message about the last change, or the fixed keys.
@@ -65,8 +76,14 @@ namespace Arena
             else if (hovered >= 0)
                 info = Keybinds.Title((KeyAction)hovered) + ": " + Keybinds.Line((KeyAction)hovered);
             else
-                info = "Fixed: left click fires, right click parries, Esc pauses, Tab shows your stats, 1-3 pick a card, Enter confirms.";
+                info = "Fixed: Esc pauses, Tab shows your stats, 1-3 pick a card, Enter confirms. Menus are always clicked with the mouse.";
             Ui.Label(new Rect(x, DrawerPanel.yMax - 54f, w, 36f), info, 13, infoCol, TextAnchor.UpperLeft, false, true);
+        }
+
+        void FinishMouseBind(KeyAction a, KeyCode mouse)
+        {
+            Keybinds.Listening = -1;
+            Keybinds.Assign(a, mouse);
         }
 
         /// One action: its name, and its key as a cap you click. Returns true when the cap was clicked.
