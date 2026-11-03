@@ -730,7 +730,6 @@ namespace Arena
             if (changed)
                 SaveFxSettings();
             DrawBackgroundRow(new Rect(x, DrawerPanel.yMax - 34f - 90f, w, 84f));  // MenuBackgrounds.cs
-            Ui.Label(new Rect(x, DrawerPanel.yMax - 34f, w, 18f), "The preview shows what's on: shots and a hit, its number, an ability's name, a blast and its shake.", 12, Ui.Muted);
         }
 
         /// A tiny fight that follows the visual settings: shots into a target (it flashes and shows numbers), an
