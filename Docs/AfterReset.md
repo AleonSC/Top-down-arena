@@ -18,6 +18,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
       weapons' swings, thrusts and slams could look, to pick from before changing the game.
 - [ ] **Redesign the main menu buttons.** Mock up a few styles first, then pick one to build.
+- [ ] **Knockback visual effect.** Pushes are instant jumps today, which is disorienting: the Repulsion Cannon
+      (`Repulsion.cs`, `e.Pos = ... + away * push`) and the shared `Knockback()` in `Mastery.cs` (Roar and the
+      shockwave use it) move the enemy the whole distance in one frame. Make it a quick slide instead (a short knock
+      velocity over ~0.15-0.25 s, like the players' `ApplyKnock`), with a visual: a motion streak or dust trail
+      behind the enemy and a small impact puff. Check other instant pushes too (Scattergun point-blank shove).
 - [ ] **Load-in animations for the How to Play and Field guide windows.** They should open with an animation (like
       the other panels' open transitions, e.g. `Docs/Mockups/tab-transitions.html`) instead of just appearing.
 
