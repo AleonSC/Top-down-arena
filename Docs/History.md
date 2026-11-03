@@ -17,7 +17,10 @@ Bosses' and enemies' slashes keep the old look. Preview: `SWING=<seconds>` with 
 Follow-up (owner: "not smooth, the line is too thick, the gradient is blocky"): the arc is one band coloured per vertex
 (`EnergyBand`: about 20 slices a radian, clear at both edges, brightest near the rim) instead of two stepped bands, the
 core is a 1.5 px line that brightens toward the blade (`CoreArc`), thrust beams are a soft line (`SoftLine`), the
-hammer's trail is one ribbon, and the blades and handles are slimmer.
+hammer's trail is one ribbon, and the blades and handles are slimmer. Then (owner: "the line is too thick, the halberd didn't get
+updated"): the arc is a thin glowing line at the tip's reach (12 px wide, 1 px core) instead of a band over 40% of the
+reach, and the Halberd's steps keep the new look on every frame (stretching a step's `Dur` had made later frames take
+it for a dash streak); `juice.sh` checks both.
 
 **Designed waves built into the game (Nov 2026), no protocol change:** owner's ask, the wave editor's code generation.
 Designed sets live in `Data/Waves/*.waves` (outside `Assets`, so Unity doesn't import loose files);

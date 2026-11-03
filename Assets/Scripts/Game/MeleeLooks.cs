@@ -96,8 +96,8 @@ namespace Arena
             if (reach < 1f)
                 return false;
             bool thrust = half < 0f, step = half >= 0f && half < 0.2f;
-            if (step && fx.Dur > 0.25f)
-                return false;  // a lunge or a dash streak, not a swing
+            if (step && fx.Dur > 0.25f && !meleeSeen.ContainsKey(fx))
+                return false;  // a lunge or a dash streak, not a swing (a Halberd step's Dur is stretched once it's seen)
             var seen = MeleeOwnerOf(fx, thrust ? 0.45f : step ? 0.3f : MeleeLife);
             if (seen == null || step && seen.Weapon != WeaponId.Halberd)
                 return false;
@@ -111,8 +111,8 @@ namespace Arena
                 V2 dir = V2.FromAngle(aim);
                 float ext = EaseOut3(Mathf.Clamp01(T / MeleeThrustTime)) * reach, fade = T < MeleeThrustTime ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime) / (fx.Dur - MeleeThrustTime));
                 V2 tip = o + dir * Mathf.Max(20f, ext);
-                SoftLine(o + dir * 18f, tip, 9f * fade + 2f, col.WithAlpha(0.4f * fade));
-                Line(o + dir * 18f, tip, 1.5f, Rgba.White.WithAlpha(0.9f * fade));
+                SoftLine(o + dir * 18f, tip, 6f * fade + 2f, col.WithAlpha(0.4f * fade));
+                Line(o + dir * 18f, tip, 1f, Rgba.White.WithAlpha(0.9f * fade));
                 GlowDisc(tip, 18f * fade + 4f, col, 0.6f * fade);
                 MeleeSparks(o, aim, 0f, reach, T, MeleeThrustTime, col, seed, true);
                 DrawMeleeModel(seen.Weapon, o, aim, Mathf.Max(24f, ext), T < MeleeThrustTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeThrustTime - 0.1f) / 0.15f), col);
@@ -123,8 +123,8 @@ namespace Arena
                 // One step of the Halberd's sweep (six in a row): a slice of glowing arc, and the halberd at this angle
                 // for a moment, so the steps read as one blade sweeping across.
                 float fade = 1f - Mathf.Clamp01(T / fx.Dur);
-                EnergyBand(o, reach * 0.6f, reach * 1.04f, aim - half, aim + half, col, 0.4f * fade, 0.4f * fade);
-                CoreArc(o, reach * 0.93f, 1.5f, aim - half, aim + half, 0.8f * fade, false);
+                EnergyBand(o, reach - 9f, reach + 3f, aim - half, aim + half, col, 0.45f * fade, 0.45f * fade);
+                CoreArc(o, reach - 2f, 1f, aim - half, aim + half, 0.8f * fade, false);
                 MeleeSparks(o, aim - half, 2f * half, reach, T, 0.035f, col, seed, false, 4);
                 if (!NewerStepThan(fx, seen))  // only the latest step holds the halberd, so there's one blade at a time
                     DrawMeleeModel(seen.Weapon, o, aim, reach, T < 0.12f ? 1f : 1f - Mathf.Clamp01((T - 0.12f) / 0.15f), col);
@@ -137,8 +137,8 @@ namespace Arena
             float fadeOut = T < MeleeSweepTime ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime) / (fx.Dur - MeleeSweepTime));
             float start = full ? aim + T * 14f * s - 1.6f * s : aim - half * s;
             float at = full ? aim + T * 14f * s : start + 2f * half * s * e;
-            EnergyBand(o, reach * 0.6f, reach * 1.04f, start, at, col, 0f, 0.5f * fadeOut);
-            CoreArc(o, reach * 0.93f, 1.5f, start, at, 0.9f * fadeOut);
+            EnergyBand(o, reach - 9f, reach + 3f, start, at, col, 0f, 0.55f * fadeOut);
+            CoreArc(o, reach - 2f, 1f, start, at, 0.9f * fadeOut);
             MeleeSparks(o, start, 2f * half * s, reach, T, MeleeSweepTime, col, seed, false);
             MeleeEmbers(o, start, at, reach, T, MeleeSweepTime, fx.Dur, col, seed);
             float hold = T < MeleeSweepTime + 0.1f ? 1f : 1f - Mathf.Clamp01((T - MeleeSweepTime - 0.1f) / 0.18f);
