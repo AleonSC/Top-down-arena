@@ -75,7 +75,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 124;
+        public const int ProtocolVersion = 125;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -96,6 +96,8 @@ namespace Arena
         public bool PracticeMode;
         public PracticePlan Plan = PracticePlan.Default();
         public bool OthersCanEdit;
+        public bool HuntMode;                       // a Boss Hunt instead (Hunts.cs): HuntBoss's
+        public EnemyType HuntBoss = EnemyType.Boss;
         public string PlanEditor = "";  // who made the last change
         public int PlanEditorSel;       // the wave they were working on
         public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
@@ -186,7 +188,9 @@ namespace Arena
         {
             Game.Stop();
             Game.Practice = null;
+            Game.Hunt = null;
             PracticeMode = false;
+            HuntMode = false;
             OthersCanEdit = false;
             Modifiers = RunMod.None;
             Diff = new Difficulty();
@@ -442,6 +446,7 @@ namespace Arena
             Modifiers = save.Mods;
             Diff = save.Diff.Copy();
             PracticeMode = false;
+            HuntMode = false;
             int seat = Game.SeatFor(save, Lobby[1].Name);
             TakeSeat(Lobby[1], seat < 0 ? 0 : seat);
             BroadcastLobby();
@@ -606,6 +611,8 @@ namespace Arena
             }
             w.Write((int)Modifiers);
             Diff.Write(w);
+            w.Write(HuntMode);
+            w.Write((byte)HuntBoss);
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -629,15 +636,41 @@ namespace Arena
         // --- Practice Range (lobby) ----------------------------------------------
 
         /// Host: switch the lobby between a normal run and the Practice Range.
-        public void SetPracticeMode(bool on)
+        public void SetPracticeMode(bool on) => SetMode(on, false);
+
+        /// Host: the lobby's mode: a normal run, a Boss Hunt (Hunts.cs) or the Practice Range.
+        public void SetMode(bool practice, bool hunt)
         {
             if (!IsHost || Game.Running)
                 return;
-            PracticeMode = on;
+            PracticeMode = practice;
+            HuntMode = hunt && !practice;
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // what you're readying up for changed
             BroadcastLobby();
             BroadcastPractice();
+        }
+
+        /// Host: which boss the Boss Hunt is for (only one the host has unlocked).
+        public void SetHuntBoss(EnemyType boss)
+        {
+            var h = Hunts.Get(boss);
+            if (!IsHost || Game.Running || h == null || !Hunts.Available(h, Game.Profile) || HuntBoss == boss)
+                return;
+            HuntBoss = boss;
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// The hunt the lobby is set up for, if the host can play it (null: not a hunt, or not unlocked).
+        public HuntDef LobbyHunt
+        {
+            get
+            {
+                var h = HuntMode && Resume == null ? Hunts.Get(HuntBoss) : null;
+                return h != null && (!IsHost || Hunts.Available(h, Game.Profile)) ? h : null;
+            }
         }
 
         /// Host: turn a run modifier on or off. Everyone's Ready is taken back, since the run changed.
@@ -743,12 +776,20 @@ namespace Arena
                 return;
             if (Screen == AppScreen.Lobby && AutoStart == 0 && !AllReady)
                 return;
+            if (HuntMode && Resume == null && LobbyHunt == null)
+            {
+                Status = "That Boss Hunt is locked: beat the boss in a run first";
+                return;
+            }
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // ready up again next time you're back in the lobby
             Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress
+            Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
             int startWave = StartWave;
+            if (Game.Hunt != null)
+                StartWave = Game.Hunt.FirstWave;  // the boss's stretch (put back below)
             if (Resume != null)
             {
                 // Continuing a saved run: from the next wave, each player in their seat (unclaimed seats stay out).
@@ -786,6 +827,7 @@ namespace Arena
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
             Game.Stop();
             Game.Practice = null;
+            Game.Hunt = null;
             Screen = AppScreen.Lobby;
             foreach (var e in Lobby.Values)
                 e.Ready = false;
@@ -915,6 +957,8 @@ namespace Arena
                     }
                     Modifiers = (RunMod)r.ReadInt32();
                     Diff = Difficulty.Read(r);
+                    HuntMode = r.ReadBoolean();
+                    HuntBoss = (EnemyType)r.ReadByte();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
@@ -937,6 +981,7 @@ namespace Arena
                 case Msg.ToLobby:
                     Game.Stop();
                     Game.Practice = null;
+                    Game.Hunt = null;
                     Screen = AppScreen.Lobby;
                     break;
                 case Msg.Practice:
@@ -952,6 +997,7 @@ namespace Arena
                 }
                 case Msg.Start:
                     Game.Practice = PracticeMode ? Plan.Copy() : null;  // for the HUD: which waves this practice has
+                    Game.Hunt = HuntMode && !PracticeMode && Resume == null ? Hunts.Get(HuntBoss) : null;
                     Game.Mods = Modifiers;
                     Game.Diff = Diff.Copy();
                     Game.OnHostMessage(type, r);

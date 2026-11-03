@@ -122,7 +122,7 @@ namespace Arena
         public void Begin(Game g, int startWaveNumber)
         {
             startWave = startWaveNumber;
-            mode = g.Practice != null ? "practice" : "run";
+            mode = g.Practice != null ? "practice" : g.Hunt != null ? "hunt: " + g.Hunt.Name : "run";
             lastBot = g.Bot;
             if (g.Bot)
                 Dev(g, "bot plays for the host: on");

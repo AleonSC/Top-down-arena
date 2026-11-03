@@ -98,12 +98,14 @@ namespace Arena
                     }
                     break;
                 case MatchState.Fighting:
+                    TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
                     if (spawnQueue.Count > 0 || squadQueue.Count > 0)
                     {
                         spawnTimer -= dt;
-                        if (spawnTimer <= 0f)
+                        float next = Math.Max(0.3f, 1.1f - Wave * 0.05f);
+                        if (spawnTimer <= 0f && ZombieSpawnReady(ref next))  // (a horde comes faster, up to its cap)
                         {
-                            spawnTimer = Math.Max(0.3f, 1.1f - Wave * 0.05f);
+                            spawnTimer = next;
                             if (SpawnNextSquad())  // a squad comes after every few single enemies (Variety.cs)
                                 spawnTimer *= 3f;
                             else
@@ -116,7 +118,7 @@ namespace Arena
                     }
                     else if (Enemies.Count == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (Enemies.Count == 0)
+                    else if (Enemies.Count == 0 && !ZombiesRising)
                     {
                         if (Practice != null)
                         {
@@ -125,6 +127,8 @@ namespace Arena
                             else
                                 WaveCleared();
                         }
+                        else if (Hunt != null && Wave >= Hunt.BossWave)
+                            Win();  // a Boss Hunt ends with its boss (Hunts.cs)
                         else if (Wave >= MaxWave && !Endless)
                             Win();
                         else
@@ -132,7 +136,7 @@ namespace Arena
                     }
                     break;
             }
-            Remaining = spawnQueue.Count + Enemies.Count;
+            Remaining = spawnQueue.Count + Enemies.Count + risers.Count;
             foreach (var sq in squadQueue)
                 Remaining += sq.Members.Length;
         }
@@ -142,6 +146,7 @@ namespace Arena
             Recorder?.WaveEnd(this);
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)
+            ClearRisers();
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

@@ -11,8 +11,8 @@ namespace Arena
         static readonly Color PracticeColor = new Color(0.22f, 0.78f, 0.62f);
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty
-        bool lobbyWasPractice;
+        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt
+        bool lobbyWasPractice, lobbyWasHunt;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -39,6 +39,15 @@ namespace Arena
                 lobbyWasPractice = practice;
             }
             if (!practice && lobbyTab == 1)
+                lobbyTab = 0;
+            bool hunt = session.HuntMode && !practice && session.Resume == null;
+            if (hunt != lobbyWasHunt)
+            {
+                if (hunt)
+                    lobbyTab = 4;  // to the boss picker when the host picks Boss Hunt (HuntUi.cs)
+                lobbyWasHunt = hunt;
+            }
+            if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
             var infoButton = new Rect(196f, 28f, 28f, 28f);
             var infoPanel = ConnInfoRect(infoButton);
@@ -85,6 +94,8 @@ namespace Arena
             var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
             if (lobbyTab == 1 && practice)
                 DrawPracticeEditor(body, t);
+            else if (lobbyTab == 4 && hunt)
+                DrawHuntPicker(body, t);  // HuntUi.cs
             else if (lobbyTab == 2)
                 DrawModifiers(body, t);
             else if (lobbyTab == 3)
@@ -109,16 +120,17 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        /// Two halves: a normal run, or the Practice Range. Only the host can switch.
+        /// Three parts: a normal run, a Boss Hunt, or the Practice Range. Only the host can switch.
         void DrawModeSwitch(Rect r, float t)
         {
             bool practice = session.PracticeMode;
+            int mode = practice ? 2 : session.HuntMode ? 1 : 0;
             Ui.Pill(r, new Color(0.04f, 0.05f, 0.08f, 0.9f));
-            float half = (r.width - 8f) / 2f;
-            for (int i = 0; i < 2; i++)
+            float half = (r.width - 8f) / 3f;
+            for (int i = 0; i < 3; i++)
             {
-                bool on = (i == 1) == practice;
-                var c = i == 0 ? Ui.Primary : PracticeColor;
+                bool on = i == mode;
+                var c = i == 0 ? Ui.Primary : i == 1 ? HuntColor : PracticeColor;
                 var h = new Rect(r.x + 4f + i * half, r.y + 4f, half, r.height - 8f);
                 bool hover = session.IsHost && h.Contains(Event.current.mousePosition);
                 if (on)
@@ -128,20 +140,21 @@ namespace Arena
                 }
                 else if (hover)
                     Ui.Pill(h, new Color(c.r, c.g, c.b, 0.22f));
-                string title = i == 0 ? "RUN" : "PRACTICE RANGE";
-                string sub = i == 0 ? "50 waves, a boss every 5" : "Build your own waves";
-                Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 17, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
-                Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 11, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
+                string title = i == 0 ? "RUN" : i == 1 ? "BOSS HUNT" : "PRACTICE";
+                string sub = i == 0 ? "50 waves, a boss every 5" : i == 1 ? "5 waves, then one boss" : "Build your own waves";
+                Ui.Fancy(new Rect(h.x, h.y + 4f, h.width, 24f), title, 15, Color.white, on ? new Color(0.85f, 0.92f, 1f) : Color.Lerp(c, Color.white, 0.4f), TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(h.x, h.y + 27f, h.width, 16f), sub, 10, on ? new Color(1f, 1f, 1f, 0.85f) : Ui.Muted, TextAnchor.MiddleCenter);
                 if (session.IsHost && !on && Ui.HitArea(h))
-                    session.SetPracticeMode(i == 1);
+                    session.SetMode(i == 2, i == 1);
             }
         }
 
         void DrawLobbyTabs(Rect r, bool practice)
         {
             int mods = Modifiers.Count(session.Modifiers);
+            var hunt = session.HuntMode && !practice && session.Resume == null ? Hunts.Get(session.HuntBoss) : null;
             string[] names = { session.Resume != null ? "Seats" : "Your loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty  ·  " + session.Diff.Name };
+                "Difficulty  ·  " + session.Diff.Name, session.HuntMode && !practice && session.Resume == null ? "Boss hunt  ·  " + (hunt != null ? BossName(hunt.Boss) : "pick one") : null };
             float x = r.x;
             for (int i = 0; i < names.Length; i++)
             {
@@ -150,7 +163,7 @@ namespace Arena
                 float w = 30f + names[i].Length * 8.2f;
                 var tab = new Rect(x, r.y, w, r.height);
                 bool on = lobbyTab == i;
-                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : Ui.Accent;
+                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : Ui.Accent;
                 Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
                 Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
                 if (!on && Ui.HitArea(tab))
@@ -879,8 +892,8 @@ namespace Arena
             if (session.IsHost)
             {
                 bool wasEnabled = GUI.enabled;
-                GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0);
-                string start = practice ? "Start practice" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
+                GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
+                string start = practice ? "Start practice" : session.HuntMode && session.Resume == null ? "Start hunt" : session.Lobby.Count == 1 ? "Start solo" : "Start game (" + session.Lobby.Count + " players)";
                 if (Ui.FancyButton(new Rect(readyX + 260f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;

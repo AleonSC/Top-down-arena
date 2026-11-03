@@ -28,7 +28,7 @@ namespace Arena
 
         enum RecordKind : byte { Boss, End, Resume, Room }
 
-        bool Saveable => IsHost && Practice == null && !ShowcaseMode && !Unrecorded && RunId != null;
+        bool Saveable => IsHost && Practice == null && Hunt == null && !ShowcaseMode && !Unrecorded && RunId != null;
 
         /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
         bool RecordsRuns => Practice == null && !ShowcaseMode && !Unrecorded;
@@ -156,7 +156,7 @@ namespace Arena
                 devTouched = false;
                 RunId = !RecordsRuns ? null : resumed && ResumeFrom != null ? ResumeFrom.Id : RunSave.NewId();
             }
-            if (!resumed && RecordsRuns && Me != null)
+            if (!resumed && RecordsRuns && Me != null && Hunt == null)  // (a Boss Hunt isn't a run: its own records at the end)
             {
                 Profile.RunStarted();
                 Profile.Save();
@@ -283,6 +283,12 @@ namespace Arena
                     if (me == null || dev || botTouched || runRecorded)
                         return;
                     runRecorded = true;
+                    if (Hunt != null)
+                    {
+                        AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time));  // Hunts.cs
+                        Profile.Save();
+                        return;
+                    }
                     AddUnlockToasts(Profile.RunEnded(won, wave, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     Profile.Save();
                     return;

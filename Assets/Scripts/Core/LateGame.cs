@@ -47,8 +47,8 @@ namespace Arena
         /// Host, from the victory screen: keep going past wave 50.
         public void ContinueEndless()
         {
-            if (!IsHost || State != MatchState.Victory)
-                return;
+            if (!IsHost || State != MatchState.Victory || Hunt != null)
+                return;  // (a Boss Hunt is over once its boss is)
             Endless = true;
             Recorder?.ContinueEndless();
             WaveCleared();

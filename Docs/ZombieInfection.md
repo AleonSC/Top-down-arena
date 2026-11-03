@@ -1,6 +1,9 @@
 # Zombie Infection modifier (design)
 
-Status: **proposal**, nothing built yet. A run modifier (one more switch in the lobby's Modifiers tab), tagged
+Status: **steps 1 and 2 built** (Nov 2026: `Core/Zombies.cs`, `zombies` test suite): all-melee hordes from the
+existing Swarmer/Brute/Lunger, the growing count and the cap of 60, XP split, and the dead rising (25%, 3 s, half
+health, no XP; burning or melee kills stay down). Explosions don't stop a rise yet. Steps 3-4 (zombie looks/types,
+infected co-op players, the Death Throes variant) are still to do. A run modifier (one more switch in the lobby's Modifiers tab), tagged
 **Harder**.
 
 > Every regular enemy is a zombie: no guns, they shamble at you, and there are more of them every wave. The dead

@@ -73,6 +73,8 @@ namespace Arena
             float share = D(DiffKnob.ApproachShare);
             if (step == 0 || share <= 0f || Approaches.For(ApproachBoss(wave)) == null || Practice != null)
                 return 0f;
+            if (Hunt != null)
+                return RampSteps[step - 1];  // a Boss Hunt is all about its boss: fully themed, building up (Hunts.cs)
             return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
         }
 

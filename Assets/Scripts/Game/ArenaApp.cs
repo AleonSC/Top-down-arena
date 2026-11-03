@@ -390,7 +390,7 @@ namespace Arena
                         session.StartMatch();
                     else if (Input.GetKeyDown(KeyCode.L))
                         RecallToLobby();  // everyone beams out first (Recall.cs)
-                    else if (Input.GetKeyDown(KeyCode.C))
+                    else if (Input.GetKeyDown(KeyCode.C) && game.Hunt == null)
                         game.ContinueEndless();
                 }
             }

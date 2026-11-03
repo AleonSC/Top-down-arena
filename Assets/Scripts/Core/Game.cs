@@ -224,6 +224,7 @@ namespace Arena
         public bool Caged;                  // replicated, for drawing (and the Skeleton Guards' aim)
         public int LastHitBy;
         public bool Marked;
+        public bool Risen;      // host: a Zombie Infection zombie that got back up (no XP; won't rise again; Zombies.cs)
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients
@@ -636,6 +637,7 @@ namespace Arena
             Sounds.Clear();
             spawnQueue.Clear();
             squadQueue.Clear();
+            ClearRisers();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
             lastDowned.Clear();

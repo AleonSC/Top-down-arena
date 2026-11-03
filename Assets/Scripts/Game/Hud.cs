@@ -429,7 +429,7 @@ namespace Arena
             // middle and gliding up, then the tiles, the cards and the buttons.
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.012f, 0.03f, 0.84f * EndBg));
             Color theme = won ? Ui.Gold : new Color(1f, 0.36f, 0.38f);
-            string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : won ? "VICTORY!" : "GAME OVER";
+            string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won ? "VICTORY!" : "GAME OVER";
             float titleIn = EndTitleIn;
             if (titleIn > 0f)
             {
@@ -446,6 +446,7 @@ namespace Arena
             Ui.Alpha = oldAlpha * subIn;
             GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, oldColor.a * subIn);
             string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
+                : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + Hunts.Length)
                 : won ? "YOU BEAT ALL " + Game.MaxWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.Wave;
             if (!won && game.Practice == null && game.Wave % 5 == 0 && game.Wave > 0)
                 sub += "  ·  " + Defs.Get(Game.BossForWave(game.Wave)).Name.ToUpperInvariant();
@@ -504,7 +505,7 @@ namespace Arena
                 if (session.IsHost)
                 {
                     float bx = W - 70f;
-                    if (won)
+                    if (won && game.Hunt == null)  // (a Boss Hunt is over once its boss is: no endless)
                     {
                         bx -= 300f;
                         if (Ui.FancyButton(new Rect(bx, by, 300f, 48f), "Keep going (endless)  [C]", Ui.GoldButton, PixelArt.Get("ui_star"), now))
@@ -1128,11 +1129,11 @@ namespace Arena
             var practice = game.Practice;
             bool bossWave = practice != null ? BossUp() : game.Wave > 0 && game.Wave % 5 == 0;
             Ui.HudPanel(r, bossWave ? Ui.Gold : (Color?)null);
-            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : bossWave ? "BOSS WAVE" : "WAVE";
+            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS WAVE" : "WAVE";
             Ui.Label(new Rect(r.x + 16f, r.y + 8f, 120f, 14f), head, 10, bossWave ? Ui.Gold : practice != null ? Ui.Accent : Ui.Muted, TextAnchor.MiddleLeft, true);
-            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Wave.ToString();
+            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.Wave.ToString();
             Ui.Label(new Rect(r.x + 14f, r.y + 20f, 120f, 40f), num, 34, Color.white, TextAnchor.MiddleLeft, true);
-            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : "/ " + Game.MaxWave;
+            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + Hunts.Length : "/ " + Game.MaxWave;
             Ui.Label(new Rect(r.x + 18f + num.Length * 20f, r.y + 31f, 100f, 24f), of, 13,
                 game.Endless || practice != null && practice.Loop ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.xMax - 140f, r.y + 8f, 124f, 14f), "ENEMIES LEFT", 10, Ui.Muted, TextAnchor.MiddleRight, true);

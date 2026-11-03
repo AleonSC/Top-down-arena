@@ -102,5 +102,7 @@ So friends can play without Tailscale or port forwarding.
 - Until then, a no-code stopgap: the host runs a free tunnel app like playit.gg and friends join its address + port.
 
 ## Bigger features (design docs ready)
-- [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
-- [ ] Boss Hunts, then Perks: [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
+- [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
+      co-op players: [`ZombieInfection.md`](ZombieInfection.md)
+- [x] Boss Hunt for the Warden. Next: hunts for later bosses (need a starting build), then Perks:
+      [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)

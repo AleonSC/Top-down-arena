@@ -16,10 +16,13 @@ namespace Arena
 
     public static class Unlocks
     {
-        /// Every unlock in the game. None yet: add entries here, e.g.
+        /// Every unlock in the game. Add entries here, e.g.
         ///   new UnlockDef { Id = "first-win", Name = "Champion", Desc = "Win a run", Earned = p => p.RunsWon > 0 },
         /// then check Profile.IsUnlocked("first-win") wherever it should matter (a lobby choice, a modifier...).
-        public static readonly List<UnlockDef> All = new List<UnlockDef>();
+        public static readonly List<UnlockDef> All = new List<UnlockDef>
+        {
+            new UnlockDef { Id = "hunt-warden", Name = "Warden Hunt", Desc = "Beat the Warden in a run: hunt it any time from the lobby's Boss Hunt", Earned = p => p.Beaten(EnemyType.Boss) > 0 },
+        };
 
         public static UnlockDef Get(string id) => All.Find(u => u.Id == id);
     }
@@ -42,6 +45,9 @@ namespace Arena
         public readonly Dictionary<string, int> ModWins = new Dictionary<string, int>();       // RunMod name -> wins with it on
         public readonly Dictionary<string, int> RoomsPlayed = new Dictionary<string, int>();   // ChallengeKind name -> rooms played
         public readonly Dictionary<string, int> RoomsWon = new Dictionary<string, int>();      // ChallengeKind name -> rooms won
+        public readonly Dictionary<string, int> HuntsPlayed = new Dictionary<string, int>();   // EnemyType name -> hunts finished
+        public readonly Dictionary<string, int> HuntsWon = new Dictionary<string, int>();      // EnemyType name -> hunts won
+        public readonly Dictionary<string, float> HuntBest = new Dictionary<string, float>();  // EnemyType name -> fastest win (seconds)
         public readonly HashSet<string> Unlocked = new HashSet<string>();
 
         public static string Folder;  // null: profiles aren't kept (tests set a temp folder)
@@ -63,6 +69,25 @@ namespace Arena
         public int Beaten(EnemyType boss) => Get(BossesBeaten, boss.ToString());
         public int RoomPlayed(ChallengeKind k) => Get(RoomsPlayed, k.ToString());
         public int RoomWon(ChallengeKind k) => Get(RoomsWon, k.ToString());
+        public int HuntPlayed(EnemyType boss) => Get(HuntsPlayed, boss.ToString());
+        public int HuntWon(EnemyType boss) => Get(HuntsWon, boss.ToString());
+        public float HuntBestTime(EnemyType boss) { float v; return HuntBest.TryGetValue(boss.ToString(), out v) ? v : 0f; }
+
+        /// A Boss Hunt finished (won: the boss beaten). Hunts aren't runs: they don't count towards the run records.
+        public List<UnlockDef> HuntEnded(EnemyType boss, bool won, float time)
+        {
+            string k = boss.ToString();
+            Bump(HuntsPlayed, k);
+            if (won)
+            {
+                Bump(HuntsWon, k);
+                float best = HuntBestTime(boss);
+                if (best <= 0f || time < best)
+                    HuntBest[k] = time;
+            }
+            PlayTime += time;
+            return CheckUnlocks();
+        }
 
         /// A challenge room ended (Challenges.cs).
         public void RoomEnded(ChallengeKind k, bool won)
@@ -143,6 +168,7 @@ namespace Arena
             foreach (var kv in WinsAs) RunSave.Line(sb, "won", kv.Value + " " + kv.Key);
             foreach (var kv in ModWins) RunSave.Line(sb, "modwin", kv.Key + " " + kv.Value);
             foreach (var kv in RoomsPlayed) RunSave.Line(sb, "room", kv.Key + " " + kv.Value + " " + Get(RoomsWon, kv.Key));
+            foreach (var kv in HuntsPlayed) RunSave.Line(sb, "hunt", kv.Key + " " + kv.Value + " " + Get(HuntsWon, kv.Key) + " " + RunSave.F(HuntBest.ContainsKey(kv.Key) ? HuntBest[kv.Key] : 0f));
             foreach (var u in Unlocked) RunSave.Line(sb, "unlocked", u);
             return sb.ToString();
         }
@@ -174,6 +200,10 @@ namespace Arena
                         case "won": p.WinsAs[val.Substring(val.IndexOf(' ') + 1)] = RunSave.I(f[0]); break;
                         case "modwin": p.ModWins[f[0]] = RunSave.I(f[1]); break;
                         case "room": p.RoomsPlayed[f[0]] = RunSave.I(f[1]); p.RoomsWon[f[0]] = RunSave.I(f[2]); break;
+                        case "hunt":
+                            p.HuntsPlayed[f[0]] = RunSave.I(f[1]); p.HuntsWon[f[0]] = RunSave.I(f[2]);
+                            if (RunSave.Fl(f[3]) > 0f) p.HuntBest[f[0]] = RunSave.Fl(f[3]);
+                            break;
                         case "unlocked": p.Unlocked.Add(val); break;
                     }
                 }

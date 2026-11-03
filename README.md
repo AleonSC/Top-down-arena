@@ -581,7 +581,7 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 16 switches (four to a row) that change the whole run, for everyone (Practice Range too). The
+The lobby's **Modifiers** tab lists 17 switches (four to a row) that change the whole run, for everyone (Practice Range too). The
 host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
 as chips above the wave panel during the match, and session recordings list them.
 
@@ -603,6 +603,7 @@ as chips above the wave panel during the match, and session recordings list them
 | Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
 | Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Second Wind | Once per boss cycle (waves 1-5, 6-10, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
+| Zombie Infection | Every regular wave is a horde of melee zombies (Swarmers, Brutes from wave 3, Lungers from wave 5; no shooters): the wave's usual count x1.5 at wave 1, growing to x3 by wave 20, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer. Each zombie's XP is split so levels keep pace with a normal run. **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; one that was burning or cut down by a melee weapon stays down, and the wave isn't over until they're up and beaten. Bosses, their adds and challenge rooms are unchanged. Not in the Practice Range | Harder |
 
 ## Difficulty
 
@@ -642,9 +643,23 @@ Easy is close to how the game played before difficulties (without the per-wave d
 multiplies with Enemy damage: Nightmare at wave 11 hits 1.5 × 1.5 = 2.25x as hard as a listed shot. Modifiers stack
 on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
+## Boss Hunt
+
+In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends with
+one boss: its four waves (the boss's own faction, building up from 40% to fully themed), then the boss at its usual
+wave. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no path offer, no challenge portal, and a
+hunt isn't saved to continue. Modifiers and the difficulty apply as in a run, and so does the boss's health boost for
+strong builds. The HUD counts the hunt's waves (1-5).
+
+The **Boss hunt** tab shows the ten bosses with their live models. A boss's hunt **opens once you've beaten it in a
+run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
+locked one. **Only the Warden has a hunt so far** (waves 1-5): later bosses' stretches start mid-run, so their hunts
+will first need the party handed a fitting build. Records keep each hunt's plays, wins and best time per player
+(not counted as runs). Plan: `Docs/BossHuntsAndPerks.md` (perks come next).
+
 ## Practice Range
 
-In the lobby the host picks **Run** (the normal 50 waves) or **Practice Range** at the top. Practice Range
+In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range) at the top. Practice Range
 plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves as usual.
 
 - **Practice waves** tab: add as many waves as you like (**+ Add**, **Copy**, **Remove**). Each has a **level**
@@ -753,9 +768,9 @@ class. The host tells every player's game when a boss falls and when a run ends,
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
 Kept in `profile.txt` in the game's data folder.
 
-**Unlocks** are ready to be added: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the
-records; it's earned the moment the condition holds (an **Unlocked** toast in the match, listed in Records).
-There are none yet.
+**Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
+moment the condition holds (an **Unlocked** toast in the match, listed in Records). So far: **Warden Hunt** (beat the
+Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins and best time.
 
 ## Run stats (Tab)
 

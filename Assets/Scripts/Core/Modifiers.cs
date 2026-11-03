@@ -24,6 +24,7 @@ namespace Arena
         DeathThroes = 8192,
         SolidWalls = 16384,
         SecondWind = 32768,
+        ZombieInfection = 65536,
     }
 
     public enum ModLean { Harder, Easier, Risky }
@@ -54,6 +55,7 @@ namespace Arena
             new ModDef { Mod = RunMod.Hunted, Name = "Hunted", Desc = "Each wave one player is hunted by every enemy, and deals double damage.", Lean = ModLean.Risky },
             new ModDef { Mod = RunMod.DeathThroes, Name = "Death Throes", Desc = "Every regular enemy bursts into a ring of 6 shots a moment after it dies.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.SolidWalls, Name = "Solid Walls", Desc = "No wrapping round the edges: the arena's sides are walls.", Lean = ModLean.Harder },
+            new ModDef { Mod = RunMod.ZombieInfection, Name = "Zombie Infection", Desc = "Every wave is a growing horde of melee zombies, and some of the dead get back up.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.SecondWind, Name = "Second Wind", Desc = "Once between bosses, each player gets back up by themselves at half health.", Lean = ModLean.Easier },
         };
 
