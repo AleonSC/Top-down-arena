@@ -215,7 +215,7 @@ namespace Arena
         float FlakeAlpha(Flake f, WeatherDef w, float t) =>
             weatherFade * (w.Twinkle > 0f ? 0.55f + 0.45f * Mathf.Sin(t * w.Twinkle + f.Phase * 3f) : 1f);
 
-        /// Over the arena's contents (under the vignette): this path's weather.
+        /// Over the arena's contents (under the mood tint): this path's weather.
         void DrawWeather()
         {
             var w = WeatherFor(weatherPath);

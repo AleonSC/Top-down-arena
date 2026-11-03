@@ -12,6 +12,13 @@ shared glow (a column of blobs; now the mockup's 7 px pin of light); the **Prism
 the body; the **Golem Staff**'s boulder no longer glows (it's a rock); **Blood Bolts** are the mockup's teardrop with a
 dotted trail and a highlight, unglowing. `ShotGlow` holds each shot's glow. Effects off: unchanged (render check IDENTICAL).
 
+**Smooth menu-background glows; no arena vignette (Nov 2026), protocol 128 (no change):** owner: the backgrounds'
+gradients showed hard steps behind the lobby (the picker's small thumbnail hid them), and remove the vignette.
+`SoftGlow` (MenuBackgrounds.cs) stacked 3-6 flat discs, so every disc edge was a visible ring. It now draws bands of
+shaded triangles with a smoothstep falloff (`GlowFalloff`), blending continuously from the centre to nothing. Nebula,
+Spiral, Synthwave, Orbits, Ember Storm, Frost Peaks, Event Horizon and the rest that use it are affected. `DrawMood`
+(Juice.cs) no longer draws the dark band round the arena's edges (or the Warden searchlight's darker one); the path/boss
+tint and the red hurt corners stay, and so does the game-over/victory vignette in RunEnding.cs.
 **Tracer rounds as in the mockup (Nov 2026), protocol 127 (no change):** owner: not sure the Twin Rifle's tracers glow
 properly. Compared with `Docs/Mockups/projectiles.html` at the same scale: the game drew a 25 px streak of two flat-ended,
 flat-coloured lines and the general bullet glow (0.47), where the mockup has a streak as long as the shot's last 10
