@@ -42,8 +42,8 @@ unlock system in `Profile.cs` (`Unlocks.All`) and the stats Records already keep
   or bomblets. Weak up close. Unlock: **beat the Hive Queen as a DPS Soldier**. Mockup first.
 
 **Ascensions (per weapon, 3 tiers; the lobby strip is already there as a placeholder, `LobbyUi.DrawAscensionStrip`)**
-- Earned only by using that weapon:
-  I = reach wave 10 with it · II = beat 3 different bosses with it · III = win a full run or 3 different hunts with it.
+- Earned only by using that weapon: I = reach wave 10 with it · II = beat 3 different bosses with it · III = win a
+  full run or 3 different hunts with it.
 - Rewards are **twists, not raw power**; each tier is a variant you can switch on, the base stays available.
   Example (Twin Rifle): I = new tracer/muzzle look · II = streams cross closer, crossfire hits harder ·
   III = crossfire hits mark enemies for Mark for Death.

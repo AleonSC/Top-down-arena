@@ -2,12 +2,13 @@
 
 A co-op top-down bullet hell for **1 to 3 players** over the network, made in **Unity 6**.
 
-**Party size scaling:** solo, enemies have 85% health (Normal difficulty); with two players, 100%; with three, regular enemies
-have 120% health and waves have 25% more of them, and bosses have 150% health.
-Bosses also have 1.2x to 5.5x their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult` in Balance.cs; the Warden and Hive Queen 2.5x), and every boss has 10% more on top (`BossHpBonus`), and every enemy bullet hits 15% harder than its listed damage.
-**Enemy damage grows 3% a wave** (Normal: 1.3x at wave 11, 2.5x at wave 50), on everything that hurts you. The host
-picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom.
-Pick a role, then survive endless waves of enemies with a boss every 5th wave.
+**Party size scaling:** solo, enemies have 85% health (Normal difficulty); with two players, 100%; with three, regular
+enemies have 120% health and waves have 25% more of them, and bosses have 150% health. Bosses also have 1.2x to 5.5x
+their base health, set per boss so each fight lasts about 60-120 s (`BossHpMult` in Balance.cs; the Warden and Hive
+Queen 2.5x), and every boss has 10% more on top (`BossHpBonus`), and every enemy bullet hits 15% harder than its
+listed damage. **Enemy damage grows 3% a wave** (Normal: 1.3x at wave 11, 2.5x at wave 50), on everything that hurts
+you. The host picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom. Pick a role,
+then survive endless waves of enemies with a boss every 5th wave.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
 press Play, so there are no scenes or prefabs to wire together.
@@ -27,16 +28,18 @@ New to the code? Read [`HANDOFF.md`](HANDOFF.md) for the architecture, tools, te
 
 ## Roles and classes
 
-In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer), then
-one of that combination's three weapons and three Space abilities. Weapons and abilities are unique to
-their role and class.
+In the lobby each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
+Ninja, Hemomancer), then one of that combination's three weapons and three Space abilities. Weapons and abilities are
+unique to their role and class.
 
 - **Soldier**: guns and gear, full health.
 - **Elementalist**: spells (fire, frost, lightning, arcane), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
-- **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see below).
-- **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its health; full health (see below).
+- **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see
+  below).
+- **Hemomancer**: blood spells that drain and heal; every Space ability costs health, and it hits harder the lower its
+  health; full health (see below).
 
 | | Soldier | Elementalist | Summoner |
 |---|---|---|---|
@@ -48,11 +51,11 @@ Generic upgrades (damage, fire rate, cooldowns, Second Charge, legendaries) work
 use your damage and attack-speed bonuses too.
 
 **Healers** (every class): the healing aura heals allies within 170 px for 9 HP/s and you for 1 HP/s; each
-**Sanctuary** card adds another 9 HP/s for allies (and 40% reach) and +1 HP/s for you. A Healer's healing past someone's full
-health becomes a shield (up to 20% of their max health, for 4 s; the aura's own ticks don't count). Healer
-abilities work alone too: **Haven** heals 50% faster with nobody to revive, **Spirit Ward** takes your own damage, **Martyr** with no
-one down wards the most hurt ally (you, alone) for 12 s so going down puts them straight back up at 50%, and a
-**Phoenix** brings anyone back, you included (the run doesn't end while one is out).
+**Sanctuary** card adds another 9 HP/s for allies (and 40% reach) and +1 HP/s for you. A Healer's healing past
+someone's full health becomes a shield (up to 20% of their max health, for 4 s; the aura's own ticks don't count).
+Healer abilities work alone too: **Haven** heals 50% faster with nobody to revive, **Spirit Ward** takes your own
+damage, **Martyr** with no one down wards the most hurt ally (you, alone) for 12 s so going down puts them straight
+back up at 50%, and a **Phoenix** brings anyone back, you included (the run doesn't end while one is out).
 
 ### The Knight
 
@@ -110,7 +113,8 @@ them for half · Siphon Field follows you · Martyr: you're invulnerable for 2 s
 hit enemies within 80 px · Frenzy Pact: no health drain · Hemo Nova's bolts pierce 2 · Blood Rite lasts 12 s ·
 Sanguine Rain lasts 9 s and heals 30% · Crimson Apotheosis lasts 9 s.
 
-Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see [Difficulty](#difficulty)).
+Players can pick the same role if you want. Everyone also slowly regenerates health (0.25 HP/s on Normal; see
+[Difficulty](#difficulty)).
 
 Enemies sometimes drop **health orbs**: small green ones heal 15 HP (18% chance), and rare large ones
 with a gold ring heal 60 HP (3% chance). Bosses always drop a large orb plus four small ones. Orbs drift
@@ -186,21 +190,21 @@ your weapon. Per extra projectile:
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
 fills while it reloads.
 
-Want a **wall of bullets** instead? The **Barrage** card (Rare, stacks to 3) makes every shot also fire a copy
-fanned out to the side (8° steps, alternating sides), at 60% damage. It stacks with the weapon upgrades above, so a Twin
-Rifle with Multishot and Barrage fires several side-by-side barrels in a fan. A Revolver round fans out for a
-single round of ammo.
+Want a **wall of bullets** instead? The **Barrage** card (Rare, stacks to 3) makes every shot also fire a copy fanned
+out to the side (8° steps, alternating sides), at 60% damage. It stacks with the weapon upgrades above, so a Twin
+Rifle with Multishot and Barrage fires several side-by-side barrels in a fan. A Revolver round fans out for a single
+round of ammo.
 
 ### Parry
 
-Hold **right click** to raise a small shield on the side facing your cursor. It blocks enemy bullets from that
-side (including the red aimed shots that barriers can't stop) and melee enemies that run into it, shoving
-them back. While it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and
-can't be raised for 3 s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**:
-for the first instant after raising it, blocked bullets are sent back at enemies and cost nothing (it has to
-have been down for half a second, so you can't spam it). A thin blue bar curving around the shield shows how much
-it has left, shrinking toward your aim as it wears and blinking red when it's nearly gone; when it breaks it
-cracks and shatters, and while it's lowered a faint bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
+Hold **right click** to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
+(including the red aimed shots that barriers can't stop) and melee enemies that run into it, shoving them back. While
+it's up you **can't shoot** and you move at 70% speed. It soaks **150 damage**, then breaks and can't be raised for 3
+s; it refills when you lower it. Raise it just as a shot arrives for a **perfect parry**: for the first instant after
+raising it, blocked bullets are sent back at enemies and cost nothing (it has to have been down for half a second, so
+you can't spam it). A thin blue bar curving around the shield shows how much it has left, shrinking toward your aim as
+it wears and blinking red when it's nearly gone; when it breaks it cracks and shatters, and while it's lowered a faint
+bar shows it refilling. Against the Warden up close it holds for about 3 seconds of fire, enough to close the gap.
 
 Parry upgrades show up like any other card:
 
@@ -270,11 +274,11 @@ once mastered); the Tab menu shows the level.
 | **Last Stand** | Lasts 12 s. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
 | **Blade Tempest** | Five sword beams a swing instead of three. |  |  |
 
-A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next
-one fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
+A popup appears when an ability levels up. The **Tab** menu shows each ability's level as five pips (the next one
+fills as it earns XP). What level 5 unlocks is always written in gold under each ability's description: in the lobby
 (your Space ability and your ultimate), on the Tab screen's ability tiles, on the cards that give an ability (in the
-level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened with
-"…"; hover a Tab tile to read it in full.
+level-up picks and the Bazaar), and in the Field guide. Where space is tight the text gets smaller, then shortened
+with "…"; hover a Tab tile to read it in full.
 
 In the lobby, your **ultimate** sits at the bottom of your character card: a gold charge ring (half full, as every
 ultimate starts a match half charged) with its key, its charge time, what it does and what mastering it adds. Click
@@ -283,14 +287,13 @@ Mastery resets each run.
 
 ## Levels and upgrades
 
-Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when
-the wave is cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to
-select a card, then **Take** it (or Enter). The cards are tall, with the icon big on a backdrop of the card's rarity
-(rare and better ones shine); the one you pick lifts and glows, and a line under the cards says what it changes
-("Regeneration 0.25 → 3.25 HP/s", or a new ability and its key). Hold **Tab** for all your stats. Boss rewards say
-**BOSS REWARD!** (legendaries) or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set. You
-start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone
-have chosen.
+Every enemy killed gives **both** players XP. Level up during a wave and you'll see **LEVEL UP!**; when the wave is
+cleared, each player picks one of **3 upgrades per level gained**: click (or press 1/2/3) to select a card, then
+**Take** it (or Enter). The cards are tall, with the icon big on a backdrop of the card's rarity (rare and better ones
+shine); the one you pick lifts and glows, and a line under the cards says what it changes ("Regeneration 0.25 → 3.25
+HP/s", or a new ability and its key). Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendaries)
+or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set. You
+start with 2 rerolls and everyone gets 2 more for each boss killed. The next wave waits until everyone have chosen.
 
 | Rarity | Color | What you get |
 |---|---|---|
@@ -325,25 +328,34 @@ Mods apply to your weapon's shots and your minions' shots, but not to grenades. 
 weapons that don't fire bullets (melee swings, beams, cones, the Repulsion Cannon's blast, Ofuda ward bursts,
 sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (see The Knight above).
 
-**Piercing Rounds** let shots pass through two more enemies per stack. Weapons without bullets that run out of
-pierce (melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit
-Fan, Ofuda, Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls through everything) reach 15%
-farther per stack instead.
+**Piercing Rounds** let shots pass through two more enemies per stack. Weapons without bullets that run out of pierce
+(melee, the Flamethrower, Frost Lance, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit Fan, Ofuda,
+Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls through everything) reach 15% farther
+per stack instead.
 
 Rarer cards show up a bit more often as you level. All the numbers live in
 `Assets/Scripts/Core/Upgrades.cs` if you want to rebalance or add upgrades.
 
 ## Rules
 
-- The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side. Enemies and bullets don't wrap, so the edges make a good escape route.
+- The arena is 1600x900 and **wraps around for players**: walk off any edge and you come in on the opposite side.
+  Enemies and bullets don't wrap, so the edges make a good escape route.
 - Your hitbox is the small white dot in the middle of your character, not the whole circle.
-- **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding (drops fall off it), **red crosshair** = marked (takes extra damage).
-- At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the healer can pulse them back).
-- After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large ones from 3%.
+- **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
+  move or shoot), **blue double arrow** = slowed, **flame** = burning (flames rise off it), **blood drop** = bleeding
+  (drops fall off it), **red crosshair** = marked (takes extra damage).
+- At 0 HP you're **downed**. Stand next to a downed ally for 4 seconds (Normal difficulty) to revive them (or the
+  healer can pulse them back).
+- After a hit you can't be hit again for 0.25 s (Normal). Small health orbs drop from 12% of kills (Normal), large
+  ones from 3%.
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - New enemy types unlock as the waves go up (see below), with a boss every 5 waves.
-- **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% a wave) and shoves you about 100 px back out; it can't hurt you again for 1 s.
-- **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal). Later waves get harder through tougher enemies, not more bullets.
+- **Boss bodies:** touching a boss hurts once (25, plus the difficulty's 3% a wave) and shoves you about 100 px back
+  out; it can't hurt you again for 1 s.
+- **Bullet budget:** enemy bullets on screen are capped at 40 + 3 per wave, up to 85 from wave 15 (20% more per extra
+  player; times the difficulty's Bullet budget). When the screen is over the cap, regular enemies hold their fire and
+  try again a moment later. Bosses always fire, and while a boss is up the other enemies get 60% of the cap (Normal).
+  Later waves get harder through tougher enemies, not more bullets.
 - **Taking turns:** only so many regular shooters fire at once: 4, one more every 6 waves up to 8 (wave 24), a quarter
   more for each extra player (times the difficulty's **Shooters at once**). Each gets a 5 s turn, then rests 1.5 s
   while whoever has waited longest takes over; the rest keep moving and hold fire. Bosses don't take turns.
@@ -359,15 +371,16 @@ little more each wave: wave 1 is all melee, wave 7 about half, and from **wave 1
 comes back in squads, and with the Reaver from wave 28).
 
 **Squads.** About 70% of a regular wave arrives as small teams that come in together from one edge and look after each
-other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave:
-Rush (1: four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to
-reach you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder leading two Snipers that keep behind
-it), Field hospital (11: three Brutes and a Medic behind them), Hold the line (14: a Pauser and two Grunts), Ambush (16: three Phantoms blink in around you),
-Beam battery (18: two Beam Sentries guarded by a Shielder), Hunting party (19: two Leaders and a Sniper), Pincer (21: Hexers from opposite edges),
-Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth
-(24: two Scorchers and Swarmers), Siege (26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two
-Lungers), Hive (31: a Nest guarded by Splitters), Bastion (36: a Warder, a Juggernaut and two Grunts). Early waves keep
-their share of rushers (a melee squad as often as a melee enemy used to come). Paths with their own mix keep it.
+other; the rest are single enemies. Each squad unlocks at a wave, and none comes more than twice in one wave: Rush (1:
+four Swarmers), Firing line (3: three Grunts, a Sniper behind), Brute pack (5: the Lunger waits for a Brute to reach
+you), Splinters (7: two Splitters and a Grunt), Bombardment (8: a Charger and two Mortars), Shield wall (9: a Shielder
+leading two Snipers that keep behind it), Field hospital (11: three Brutes and a Medic behind them), Hold the line
+(14: a Pauser and two Grunts), Ambush (16: three Phantoms blink in around you), Beam battery (18: two Beam Sentries
+guarded by a Shielder), Hunting party (19: two Leaders and a Sniper), Pincer (21: Hexers from opposite edges),
+Seamstresses (22: two Stitchers side by side, and a Grunt), Scorched earth (24: two Scorchers and Swarmers), Siege
+(26: a Juggernaut and two Medics), Reaver pack (28: two Reavers and two Lungers), Hive (31: a Nest guarded by
+Splitters), Bastion (36: a Warder, a Juggernaut and two Grunts). Early waves keep their share of rushers (a melee
+squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
@@ -402,15 +415,15 @@ their share of rushers (a melee squad as often as a melee enemy used to come). P
 ### Boss approaches
 
 The four waves before each boss are its **approach**: part of each wave is the boss's own kind of enemy, so you meet
-its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting (Difficulty
-tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave; **Fully
-themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix, paths
-still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the boss
-fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before the
-first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
-(waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a wall,
-five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its shields are down.
-The other bosses' factions come next.
+its world on the way to it (design: [`Docs/Approaches.md`](Docs/Approaches.md)). How much is a lobby setting
+(Difficulty tab, below): **Blend** (the default) builds up over the four waves, 34%, 51%, 68% then 85% of each wave;
+**Fully themed** makes all four waves the boss's own enemies; 0% turns it off. The rest of each wave is the usual mix,
+paths still apply (an enemy-mix path builds from what's left; Elite Gauntlet makes the faction elite too), and the
+boss fight itself is the same. A chip above the wave panel says "Approach · The Warden · 3/4", and the banner before
+the first and last waves says you're on the road to the boss, then that it's near. So far the **Warden** has a faction
+(waves 1-4), and the last wave before him always brings the **Riot Line**: four Riot Shields marching at you as a
+wall, five Guards close behind it, who break out and rush you once the wall gets within about 190 px or half its
+shields are down. The other bosses' factions come next.
 
 | From | The Warden's faction | What it does |
 |---|---|---|
@@ -453,9 +466,10 @@ Bosses give soft sound cues when they start an ability: a low swell when they sw
 before something telegraphed (lasers, bombers, lightning), a deep thump for slams and stomps, and a chime for
 summons and phase changes.
 
-The game has **50 waves** with a different boss every 5 waves. Bosses after wave 20 get extra health (+10% per wave on top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and warnings show at
-the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C), where the
-bosses come back around, tougher each time.
+The game has **50 waves** with a different boss every 5 waves. Bosses after wave 20 get extra health (+10% per wave on
+top of the normal scaling: x2 at wave 30, x4 at wave 50) to keep up with stacked upgrades. Their name, health bar and
+warnings show at the top. Beat The Eclipse at wave 50 to win; the host can then keep going in **endless** mode (C),
+where the bosses come back around, tougher each time.
 
 | Wave | Boss | Mechanic |
 |---|---|---|
@@ -493,8 +507,8 @@ fades away after a few seconds; hover where it was to bring it back, and click i
 
 ## Arena props
 
-Regular waves (not bosses, not the Practice Range) put things in the arena; boss fights only get health barrels. What's left at the end of a wave stays for
-the next, and each wave tops it up; a boss wave clears it all away.
+Regular waves (not bosses, not the Practice Range) put things in the arena; boss fights only get health barrels.
+What's left at the end of a wave stays for the next, and each wave tops it up; a boss wave clears it all away.
 
 | Prop | What it does |
 |---|---|
@@ -508,8 +522,9 @@ the next, and each wave tops it up; a boss wave clears it all away.
 ## Paths
 
 After each boss (and its rewards), the host picks one of **two paths** for the four regular waves before the next
-boss, or **no path** (the plain arena, no bonus or prize); everyone sees the choice, and the next wave waits for it. Bosses are always the standard fight. A path changes
-the enemy mix and the arena floor, and pays off by its danger (1-3 skulls):
+boss, or **no path** (the plain arena, no bonus or prize); everyone sees the choice, and the next wave waits for it.
+Bosses are always the standard fight. A path changes the enemy mix and the arena floor, and pays off by its danger
+(1-3 skulls):
 
 | Danger | While on the path | Prize (before the boss) |
 |---|---|---|
@@ -581,9 +596,9 @@ everyone straight into any of the five.
 
 ## Run modifiers
 
-The lobby's **Modifiers** tab lists 17 switches (four to a row) that change the whole run, for everyone (Practice Range too). The
-host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active ones show
-as chips above the wave panel during the match, and session recordings list them.
+The lobby's **Modifiers** tab lists 17 switches (four to a row) that change the whole run, for everyone (Practice
+Range too). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
+ones show as chips above the wave panel during the match, and session recordings list them.
 
 | Modifier | Effect | |
 |---|---|---|
@@ -608,12 +623,12 @@ as chips above the wave panel during the match, and session recordings list them
 ## Difficulty
 
 The lobby's **Difficulty** tab: the host picks one of five cards, and everyone sees it (changing it takes back
-everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps
-its difficulty), shows as a chip above the wave panel during the match (not on Normal), and is written in session
+everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps its
+difficulty), shows as a chip above the wave panel during the match (not on Normal), and is written in session
 recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it
 (percent numbers are typed as percent: `12` is 12%); changing any number turns the difficulty into Custom, starting
-from the preset you had. Each slider has a tick where Normal is, and a value shows red when it's harder than Normal and
-green when it's easier. Hover a number for what it does.
+from the preset you had. Each slider has a tick where Normal is, and a value shows red when it's harder than Normal
+and green when it's easier. Hover a number for what it does.
 
 | Number | Easy | **Normal** | Hard | Nightmare | Custom range |
 |---|---|---|---|---|---|
@@ -645,11 +660,11 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 ## Boss Hunt
 
-In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends with
-one boss: its four waves (the boss's own faction, building up from 40% to fully themed), then the boss at its usual
-wave. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no path offer, no challenge portal, and a
-hunt isn't saved to continue. Modifiers and the difficulty apply as in a run, and so does the boss's health boost for
-strong builds. The HUD counts the hunt's waves (1-5).
+In the lobby the host picks **Run**, **Boss Hunt** or **Practice** at the top. A Boss Hunt is a short run that ends
+with one boss: its four waves (the boss's own faction, building up from 40% to fully themed), then the boss at its
+usual wave. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no path offer, no challenge portal,
+and a hunt isn't saved to continue. Modifiers and the difficulty apply as in a run, and so does the boss's health
+boost for strong builds. The HUD counts the hunt's waves (1-5).
 
 The **Boss hunt** tab shows the ten bosses with their live models. A boss's hunt **opens once you've beaten it in a
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
@@ -659,8 +674,9 @@ will first need the party handed a fitting build. Records keep each hunt's plays
 
 ## Practice Range
 
-In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range) at the top. Practice Range
-plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves as usual.
+In the lobby the host picks **Run** (the normal 50 waves), **Boss Hunt** (above) or **Practice** (the Practice Range)
+at the top. Practice Range plays waves you build yourself, with everyone in the lobby, and upgrade picks between waves
+as usual.
 
 - **Practice waves** tab: add as many waves as you like (**+ Add**, **Copy**, **Remove**). Each has a **level**
   (1-50) that sets how strong its enemies are: their health and fire rate as on that wave of a normal run.
@@ -712,18 +728,19 @@ plays waves you build yourself, with everyone in the lobby, and upgrade picks be
 
 ## Launching a run
 
-When a run starts it drops you in, all within the 3 s before wave 1 (on your own screen only): the lobby's two
-sides slide off left and right; a ripple runs out from the middle of the arena, bending its grid; each player
-beams down as a pillar of light in their colour, a quarter second apart, landing with a ring and their class icon
-flashing above them; the HUD slides in; GET READY counts down; and a gold **WAVE 1** pops in as the fight starts. You can't move, dash, shoot, parry or use abilities
-until then. **Play again** from the results screen does the same without the lobby part.
+When a run starts it drops you in, all within the 3 s before wave 1 (on your own screen only): the lobby's two sides
+slide off left and right; a ripple runs out from the middle of the arena, bending its grid; each player beams down as
+a pillar of light in their colour, a quarter second apart, landing with a ring and their class icon flashing above
+them; the HUD slides in; GET READY counts down; and a gold **WAVE 1** pops in as the fight starts. You can't move,
+dash, shoot, parry or use abilities until then. **Play again** from the results screen does the same without the lobby
+part.
 
 ## Ending a run
 
 When the run ends, time slows almost to a stop on the killing blow and the camera eases in on it. On a game over the
-colour drains out and a red vignette closes in; on a victory the screen flashes white, The Eclipse bursts into gold rays
-and its shots turn into gold sparks. GAME OVER or VICTORY! slams down with a shake and a thud, then glides up as the
-results come in: the stat tiles drop in one by one, the player cards rise and the buttons come up last. The slow
+colour drains out and a red vignette closes in; on a victory the screen flashes white, The Eclipse bursts into gold
+rays and its shots turn into gold sparks. GAME OVER or VICTORY! slams down with a shake and a thud, then glides up as
+the results come in: the stat tiles drop in one by one, the player cards rise and the buttons come up last. The slow
 motion is the game's own clock, so everyone sees it; the rest is on your own screen.
 
 ## The HUD
@@ -774,7 +791,8 @@ Warden in a run; see Boss Hunt). Records also keep each Boss Hunt's plays, wins 
 
 ## Run stats (Tab)
 
-Hold **Tab** during a match for the **Run stats** screen, with three tabs (click to switch; it remembers the last one):
+Hold **Tab** during a match for the **Run stats** screen, with three tabs (click to switch; it remembers the last
+one):
 
 - **Run so far:** the wave and where you are (path and wave of it, enemies left), time played, score, the next boss
   and the run's modifiers; your totals (damage, kills, healing, accuracy, biggest hit, level, times downed, allies
@@ -783,7 +801,8 @@ Hold **Tab** during a match for the **Run stats** screen, with three tabs (click
   the party's damage.
 - **Your build:** your stats, weapon, abilities (charges, cooldowns, mastery, moving them between keys) and every
   upgrade you've picked, rarest first.
-- **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and upgrades.
+- **Team:** each teammate's build: a live model, class and level, health, weapon, abilities with mastery, and
+  upgrades.
 
 Switching tabs **zooms through**: the old page grows a little and fades while the new one rises in from just
 behind (about a quarter of a second; teammates' live models appear once it settles). With **Reduced effects** it's a
@@ -804,26 +823,26 @@ drops in with a small bounce; a new list in the drawer (the pause menu's Setting
 right, and a new section's panel slides in; closing slides the drawer back out (Back or Esc), and only then does the
 window really close. That goes for the pause menu and for Settings from the lobby or the main menu alike.
 
-- **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together),
-  **Field guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Leave to lobby**
-  (the host only: it asks first, "TO LOBBY?" with Back to the lobby or Keep playing, Keep playing picked to start with;
-  then everyone beams out up a pillar of light, the screen goes dark and the lobby slides back in; the run stays saved to
-  continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the right with a **this run** card: the wave, time and
-  score, chips for the path (and waves left), the run's modifiers and the difficulty, the next boss (moving), and this
-  stretch's challenge room (won, lost, or when the next portal can open). The card runs down to near the bottom of the
-  screen, with the players at its foot as compact cards (class, level, health; the Tab screen has the rest), stacked
-  from the bottom up.
+- **Pause menu:** **Resume** (Esc), **Run stats** (the Tab screen, so a paused party can look at it together), **Field
+  guide**, **How to play** (in the drawer; Back or Esc returns to the list), **Settings**, **Leave to lobby** (the
+  host only: it asks first, "TO LOBBY?" with Back to the lobby or Keep playing, Keep playing picked to start with;
+  then everyone beams out up a pillar of light, the screen goes dark and the lobby slides back in; the run stays saved
+  to continue later) and **Leave game**, chosen with the mouse or ↑ ↓ and Enter. The frozen arena stays in view on the
+  right with a **this run** card: the wave, time and score, chips for the path (and waves left), the run's modifiers
+  and the difficulty, the next boss (moving), and this stretch's challenge room (won, lost, or when the next portal
+  can open). The card runs down to near the bottom of the screen, with the players at its foot as compact cards
+  (class, level, health; the Tab screen has the rest), stacked from the bottom up.
 - **The lobby's menu** (Esc in the lobby): **Back to the lobby** (Esc again), **Settings** (in the drawer, like the
-  pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving closes the lobby for everyone) and
-  **Quit game**. The lobby has no Leave button or settings cog any more; its bottom bar is just **Ready** and
-  **Start** (host), side by side in the middle, with who you're waiting on to their left.
+  pause menu's), the **Field guide**, **How to play** (in the drawer too), **Leave to main menu** (the host leaving
+  closes the lobby for everyone) and **Quit game**. The lobby has no Leave button or settings cog any more; its bottom
+  bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu** has four buttons stacked under the card, as wide as it: **Continue a run**, **Records**,
   **Settings** and **Quit** (the Field guide and How to play are in the lobby's and the pause menu's drawer).
-- **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for **Master**,
-  **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy fire) and
-  **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they do: shots
-  and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the HUD). Mute
-  and Aim line are also quick switches under the groups.
+- **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for
+  **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy
+  fire) and **Effects** (explosions, abilities, UI), and mute), **Visual effects** (with a live preview of what they
+  do: shots and a hit, its number, an ability's name, a blast and its shake) and **Gameplay** (aim line, show the
+  HUD). Mute and Aim line are also quick switches under the groups.
 - **Records:** Overview, Bosses (each one moving beside its count), Classes, **Challenge rooms** (each room played and
   won) and Unlocks.
 - **How to play** (in Settings: the drawer turns into its topics, and Back returns to the groups): Controls, The
@@ -841,11 +860,11 @@ Esc goes back (from the pause menu's Settings, to its list). The **Field guide**
   level, the cards that improve it) and **Upgrades** (every card by rarity: stacks, who it's offered to, which
   boss gives it, how many you have). The Armory reads the game's own definitions, so it's never out of date.
 
-Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to
-their own entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked
-**YOU**. It reopens where you left it, and **Esc** goes back. Its **Web page** button opens the published page of
-the book you're in (the Armory's has live weapon demos; in the Unity editor it opens the local copy from `Docs/`). The same audio options are under **Settings** on the main menu, and
-they're saved between sessions.
+Both have a search box (it matches names and descriptions), ↑/↓ to browse, and names inside an entry link to their own
+entries (a class's weapons, an upgrade's ability...). Whatever is yours this match is marked **YOU**. It reopens where
+you left it, and **Esc** goes back. Its **Web page** button opens the published page of the book you're in (the
+Armory's has live weapon demos; in the Unity editor it opens the local copy from `Docs/`). The same audio options are
+under **Settings** on the main menu, and they're saved between sessions.
 
 **Visual effects** (the right-hand column of **Settings**, saved between sessions; all drawn on your own screen only,
 so they never change the fight or what your friend sees):
@@ -858,14 +877,32 @@ so they never change the fight or what your friend sees):
 - **Reduced effects:** no screen shake, no hit-pause and no white flashes, for anyone they bother.
 
 What it adds: an **additive glow** on bullets, blasts, sparks, bosses and players; enemies **flash white and bulge**
-when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every
-0.4 s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
+when hit; every health bar gets a **damage ghost** (a pale chunk where health was lost lingers for 0.45 s, then drains
+after it); **hit-pause** (the picture holds for a few frames on a heavy enemy's death or a huge hit, at most every 0.4
+s, and longer for a boss); enemies **shatter** into shards of their own shape with a white flash, sparks and a
 **scorch mark** that fades over 8 s; **sparks** where shots land and a flash at your muzzle; **trails** behind fast
 shots; the **grid ripples** out from big blasts; a **vignette** and a tint for the path you're on or the boss you're
 fighting (darker round the edges in the Warden's searchlight turn); a faint **red tint in the corners** when you're
-hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (3.2 s, with the HUD slid out of the way until it's done); the **ability bar's tiles react** (a tile pops with a white rim when its cooldown finishes, bigger and gold for your ultimate; a returning second charge pops its pip; a used ability presses its tile in; pressing one that's still recharging shakes it with a red rim and timer; Reduced effects keeps a smaller pop and the red, without the shake or white flash); a health orb flying to you leaves a **trail** and a faint link to you, and picking one up pulses green on you; a **puff of dust** at your feet when you set off, turn hard or dash; and **weather on every path** (embers rising on Burning Grounds, snow on Frozen Lake, petals on Sanctuary, red ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on Swarm Fields, wind-blown dust on Sniper Ridge, gold motes on the Elite Gauntlet, lantern sparks at the Bazaar), fading in as the path starts. **Weapons' shots have their own looks** (from [`Docs/Mockups/projectiles.html`](Docs/Mockups/projectiles.html)): the Twin Rifle and Burst SMG fire tracers, the Railgun a heavy slug pushing rings of air (the Pistol a lighter one), the Scattergun flechettes, the Prism Beam prism shards that split red, green and blue when they hit, Arcane Missiles little missiles with smoke trails; lightning flickers and forks with a white-hot core; Shuriken spin with motion blur; Fireballs shed embers and smoke, the Golem's boulder dust, Blood Bolts drips. The lobby's loadout preview shows the new shot looks, trails, sparks, bullet endings and hit flashes too (not the glow). **Bullets end instead of vanishing:** one that runs out of range shrinks and fades into a wisp of smoke; one that hits an enemy flattens into a splash with sparks bouncing back; one that's blocked (your parry, a Barrier, a Shield Wall, a blocking minion, or a Shielder's or Riot Shield's front) ricochets off, tumbling, with a bright spark; and one that hits a player bursts in its own colour with a small ring (its name
-and the wave, the arena dimming for a moment). A boss's death bursts in waves. Mocked up first in
-[`Docs/Mockups/visual-flair.html`](Docs/Mockups/visual-flair.html).
+hurt or below 30% health; a gold **level-up** burst (bigger for a legendary); and a boss's **entrance card** (3.2 s,
+with the HUD slid out of the way until it's done); the **ability bar's tiles react** (a tile pops with a white rim
+when its cooldown finishes, bigger and gold for your ultimate; a returning second charge pops its pip; a used ability
+presses its tile in; pressing one that's still recharging shakes it with a red rim and timer; Reduced effects keeps a
+smaller pop and the red, without the shake or white flash); a health orb flying to you leaves a **trail** and a faint
+link to you, and picking one up pulses green on you; a **puff of dust** at your feet when you set off, turn hard or
+dash; and **weather on every path** (embers rising on Burning Grounds, snow on Frozen Lake, petals on Sanctuary, red
+ash under the Blood Moon, mist motes in Fogbound, grit on Narrow Pass, pollen on Swarm Fields, wind-blown dust on
+Sniper Ridge, gold motes on the Elite Gauntlet, lantern sparks at the Bazaar), fading in as the path starts.
+**Weapons' shots have their own looks** (from [`Docs/Mockups/projectiles.html`](Docs/Mockups/projectiles.html)): the
+Twin Rifle and Burst SMG fire tracers, the Railgun a heavy slug pushing rings of air (the Pistol a lighter one), the
+Scattergun flechettes, the Prism Beam prism shards that split red, green and blue when they hit, Arcane Missiles
+little missiles with smoke trails; lightning flickers and forks with a white-hot core; Shuriken spin with motion blur;
+Fireballs shed embers and smoke, the Golem's boulder dust, Blood Bolts drips. The lobby's loadout preview shows the
+new shot looks, trails, sparks, bullet endings and hit flashes too (not the glow). **Bullets end instead of
+vanishing:** one that runs out of range shrinks and fades into a wisp of smoke; one that hits an enemy flattens into a
+splash with sparks bouncing back; one that's blocked (your parry, a Barrier, a Shield Wall, a blocking minion, or a
+Shielder's or Riot Shield's front) ricochets off, tumbling, with a bright spark; and one that hits a player bursts in
+its own colour with a small ring (its name and the wave, the arena dimming for a moment). A boss's death bursts in
+waves. Mocked up first in [`Docs/Mockups/visual-flair.html`](Docs/Mockups/visual-flair.html).
 
 **Music:** everything is generated in code, like the sound effects. The menus and lobby play a synthwave
 theme (`Assets/Scripts/Game/MenuMusic.cs`); matches play a soft track during regular waves, and **every boss
@@ -882,9 +919,11 @@ pulling an update, everyone should rebuild (or the host should send the new buil
 One person **hosts**, the other **joins**. The host's game acts as the server, so you don't need anything else.
 
 1. Both of you install [Tailscale](https://tailscale.com/download) (free) and join the same tailnet.
-2. Host: open the game, click **Host game**. Click the **!** next to the Lobby title to see your port and addresses; give your friend the one starting with `100.`.
+2. Host: open the game, click **Host game**. Click the **!** next to the Lobby title to see your port and addresses;
+   give your friend the one starting with `100.`.
 3. Friend: type that address into **Host address**, click **Join game**.
-4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host clicks **Start game**.
+4. Both pick a loadout and click **Ready** (changing your loadout un-readies you). Once everyone is ready, the host
+   clicks **Start game**.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
@@ -892,11 +931,12 @@ the host to allow the game the first time they host; click **Allow**.
 
 ## Making a build to send to your friend
 
-In Unity, use the menu **Arena → Build Windows Game**. It builds to `Build/TopDownArena/` and opens the folder.
-Zip the whole `TopDownArena` folder (the `.exe` needs the files next to it) and send the zip.
-On first launch Windows may say "Windows protected your PC"; click **More info → Run anyway** (the game isn't code-signed).
+In Unity, use the menu **Arena → Build Windows Game**. It builds to `Build/TopDownArena/` and opens the folder. Zip
+the whole `TopDownArena` folder (the `.exe` needs the files next to it) and send the zip. On first launch Windows may
+say "Windows protected your PC"; click **More info → Run anyway** (the game isn't code-signed).
 
-To test multiplayer on one computer, run the built `.exe` twice (or the `.exe` plus the editor): host in one, join `127.0.0.1` in the other.
+To test multiplayer on one computer, run the built `.exe` twice (or the `.exe` plus the editor): host in one, join
+`127.0.0.1` in the other.
 
 ## Testing tricks
 
@@ -907,7 +947,8 @@ TopDownArena.exe --host --role=tank --autostart=2     # host and auto-start when
 TopDownArena.exe --join=127.0.0.1 --role=dps          # join a local host
 ```
 
-Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N` (jump ahead), `--bot` (your player moves and shoots by itself).
+Also: `--name=X`, `--port=N`, `--class=soldier|mage|summoner`, `--weapon=1|2|3`, `--ability=1|2|3`, `--start-wave=N`
+(jump ahead), `--bot` (your player moves and shoots by itself).
 
 `Tools/SimTest` runs a host and a client against each other over localhost without Unity and checks that
 they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs Mono). The default suite is
@@ -920,12 +961,12 @@ Press **F1** anywhere for the developer menu (Esc, F1 or its X closes it). Tabs 
 the bottom of them shows what's on (wave, recording, bot, aim debug, players):
 
 - **Match (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
-  downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown
-  moving beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on
-  the field, bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and
-  immunity. It doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while
-  you're standing on one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once.
-  **Challenge rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
+  downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown moving
+  beside it. **Kill-all key (X)**: a switch (saved between sessions) that makes **X** kill every enemy on the field,
+  bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
+  doesn't end the wave: enemies still to come keep coming. X still throws away a chest item while you're standing on
+  one. **Everyone** buttons: full heal, level up, max mastery and god mode for every player at once. **Challenge
+  rooms** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
 - **Players (host):** choose a player, then edit any of their stats by hand: type a number or use - / +.
   Type in **Filter** to narrow the list (e.g. "barrier"). Edited stats show in gold, are sent to every player's
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
@@ -985,26 +1026,27 @@ Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
 ### Session recording (for balancing)
 
-**Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red
-**● REC** in the top-right corner shows a match is being recorded. The Unity editor and a built game keep
-separate settings, so check it in each. While you **host**, every match (solo or with friends) is saved to a JSON file in the sessions folder (the **Open sessions folder** button shows it; on Windows it's
-`%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file
-covers all players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so
-a crash keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game,
-Back to lobby), "quit" (the game was closed) or "restarted" (a new match started over it); a file whose outcome
-still reads "in progress" is from a run that crashed.
+**Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red **● REC** in
+the top-right corner shows a match is being recorded. The Unity editor and a built game keep separate settings, so
+check it in each. While you **host**, every match (solo or with friends) is saved to a JSON file in the sessions
+folder (the **Open sessions folder** button shows it; on Windows it's
+`%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file covers all
+players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so a crash
+keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game, Back to
+lobby), "quit" (the game was closed) or "restarted" (a new match started over it); a file whose outcome still reads
+"in progress" is from a run that crashed.
 
 Each file records:
 
 - the team (role, class, weapon, ability, ultimate), party size, start wave, the mode (run or Practice Range),
   run modifiers, and how it ended (a run continued into endless mode records its real end, marked "(endless)")
 - each player's final level and the abilities they ended with, at their mastery levels
-- **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to
-  enemies (Burning Grounds' fire), and per player: damage dealt (and to bosses),
-  kills, damage taken **broken down by source** (e.g. "The Warden (aimed)", "Brute (contact)"), healing done,
-  healing received **broken down by source** (allies, own abilities, regeneration, lifesteal, heal on kill,
-  orbs, Sanctuary pools, Blood Moon), health orbs, downs, revives, seconds spent under 25% health, health and level at the end, ability uses
-  and parry blocks / perfect parries / breaks
+- **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to enemies
+  (Burning Grounds' fire), and per player: damage dealt (and to bosses), kills, damage taken **broken down by source**
+  (e.g. "The Warden (aimed)", "Brute (contact)"), healing done, healing received **broken down by source** (allies,
+  own abilities, regeneration, lifesteal, heal on kill, orbs, Sanctuary pools, Blood Moon), health orbs, downs,
+  revives, seconds spent under 25% health, health and level at the end, ability uses and parry blocks / perfect
+  parries / breaks
 - **per boss:** health, time to kill, each player's damage, damage players took and downs during the fight
 - **every down** (who, when, what did it), **every upgrade pick** (the cards offered and the one taken) and rerolls
 - **per enemy type:** spawned, killed, average lifetime and damage dealt to players
@@ -1030,37 +1072,4 @@ that level up and pick upgrades at random, and prints how long each boss survive
 
 ## Code layout
 
-- `Assets/Scripts/Core/`: plain C# with no Unity dependency
-  - `Defs.cs`: role, enemy and bullet stats, and the weapon definition (`WeaponDef`: shot speed, lifetime, damage, reach, growth per extra projectile, sound); each class keeps its weapons' numbers in its own file
-  - `Classes.cs`: the class registry: each class's `KitDef` (name, blurb, icon, health and speed, and its hooks into the game loop). See "Adding a class" in `HANDOFF.md`
-  - `Upgrades.cs`: the upgrade cards, rarities and the extra abilities
-  - `EnemyAI.cs`: waves, enemy behaviour and attack patterns, boss mechanics
-  - `LateGame.cs`: waves 16-50 enemies and bosses, lightning strikes, victory and endless mode
-  - `StatSheet.cs`: the stats shown beside the upgrade cards
-  - `Kits.cs` / `Minions.cs`: minion and zone definitions; Elementalist and Summoner weapons, abilities and minion AI
-  - `Ultimates.cs`: the nine ultimates
-  - `Mastery.cs`: ability mastery levels, XP and capstone descriptions
-  - `Knight.cs`: the Knight class: melee swings, bullet cutting, its abilities and ultimates
-  - `Ninja.cs` / `BloodMage.cs`: the Ninja and Hemomancer classes: weapons, abilities and ultimates
-  - `Stun.cs`: the Warden's legendaries: the Stun Gun ability and Warden's Guard companions
-  - `Game/Juice.cs`: the visual effects (glow, shake, hit-pause, shatter, particles, trails, floor, mood, level up, boss entrances) and their settings
-  - `Approaches.cs` / `ApproachUi.cs`: boss approaches: each boss's faction, the themed share of a wave, building it into the wave; the chip and banner
-  - `WardenFaction.cs`: the Warden's faction: the Riot Shield (shield, bash and knockback) and the Gas Grenadier
-  - `Paths.cs` / `PathsUi.cs`: divergent paths (offer, choice, enemy mixes, bonus and prize; the cards, floor and chip)
-  - `Challenges.cs` / `ChallengeLook.cs`: challenge rooms (the portal, the five challenges, the Gatekeeper and shadows, the altar's prize; their looks and HUD)
-  - `Shop.cs` / `ShopUi.cs`: the Bazaar's gold and shop (shelves, services, giving gold, closing, leftover gold to XP; the shop screen)
-  - `Modifiers.cs` / `ModifiersUi.cs`: run modifiers and the lobby's Modifiers tab
-  - `Variety.cs` / `VarietyLook.cs`: the second half's enemies (Beam Sentry, Scorcher, Reaver, Warder), the shooting-pattern enemies (Pauser, Leader, Stitcher), elite traits and squads, and how they look
-  - `Difficulty.cs` / `DifficultyUi.cs`: the difficulty presets and every Custom number (with their ranges), and the lobby's Difficulty tab
-  - `Practice.cs`: the Practice Range's waves, their text format, and building a practice wave
-  - `MenuBackgrounds.cs`: the 10 menu backgrounds (also dimmed behind the arena) and the lobby's picker
-  - `LobbyUi.cs` / `PracticeUi.cs`: the lobby (mode switch, party, loadout with a live mini-arena preview) and the Practice Range editor
-  - `Showcase.cs`: the loadout preview: an offline copy of the game with target dummies
-  - `BotBrain.cs` / `BossLab.cs`: the bots that play like a person, and the Boss Lab's fight setup and scoring
-  - `Game.cs`: the match: host simulation (enemies, bullets, waves, damage) and network sync
-  - `Session.cs`: hosting, joining, lobby and role selection, message types
-  - `Net.cs`: small TCP transport
-- `Assets/Scripts/Game/ArenaApp.cs`: the Unity side: input, drawing (GL), menus and HUD (IMGUI)
-- `Assets/Scripts/Game/SoundBank.cs`: sound effects, synthesized in code (no audio files). Each weapon has
-  its own gunshot recipe (muzzle crack, body, thump, room tail, reverb) you can tweak
-- `Assets/Editor/ArenaEditor.cs`: creates the scene and the **Arena** build menu
+See section 2 of [`HANDOFF.md`](HANDOFF.md) (one table row per source file).
