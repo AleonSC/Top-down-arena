@@ -21,6 +21,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
       Mockups done, waiting for a pick: four layouts in [`Mockups/menu-redesign.html`](Mockups/menu-redesign.html)
       (https://claude.ai/artifact/6T2r1GZSBsajVK8pxaAo8s), and three plotted intros for the menu in
       [`Mockups/menu-intro.html`](Mockups/menu-intro.html) (https://claude.ai/artifact/TdwEQNxJ8STpVk2MRPqLuk).
+      Owner likes **D (Big play)**: its intros and the Host game → lobby move are in
+      [`Mockups/menu-d.html`](Mockups/menu-d.html) (https://claude.ai/artifact/VskdxmJhgTzmpeUnjjM2R5). With D the
+      port moves to Settings (Network, 7777 by default) and the name is edited on the bottom-left chip.
 - [ ] **Knockback visual effect.** Pushes are instant jumps today, which is disorienting: the Repulsion Cannon
       (`Repulsion.cs`, `e.Pos = ... + away * push`) and the shared `Knockback()` in `Mastery.cs` (Roar and the
       shockwave use it) move the enemy the whole distance in one frame. Make it a quick slide instead (a short knock

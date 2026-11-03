@@ -1,0 +1,670 @@
+<title>Big Play Menu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the field-manual look of the other mockups. On top, the game's 1280 x 720 screen scaled to fit, showing the
+   picked main menu design (D, Big play): its intro, then the menu live, and Host game playing the move into the lobby.
+   The strips below pick the scene, scrub or slow it. Under that, one card per scene with its beats, then notes.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #6fe3c4; --amber: #ffb547;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--amber); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 16 / 9; background: #07080d; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.bar .lbl { font: 600 10.5px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.seg button { height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 12.5px var(--font-body); cursor: pointer; }
+.seg button:hover { color: var(--fg); background: #1c252e; }
+.seg button.on { color: #fff; background: #3a2c13; box-shadow: inset 0 0 0 1px var(--amber); }
+.act { height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--edge); background: var(--panel); color: var(--fg); font: 600 12.5px var(--font-body); cursor: pointer; }
+.act:hover { border-color: var(--amber); }
+.tog { display: inline-flex; gap: 7px; align-items: center; font: 600 12.5px var(--font-body); color: var(--soft); cursor: pointer; }
+.tog input { accent-color: var(--amber); width: 15px; height: 15px; margin: 0; }
+input[type=range] { accent-color: var(--amber); flex: 1 1 200px; min-width: 120px; }
+.clock { font: 500 12.5px var(--font-data); color: var(--soft); font-variant-numeric: tabular-nums; min-width: 92px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.spacer { flex: 1 1 auto; }
+.hint { font-size: 13px; color: var(--muted); }
+.sec { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-top: 2px solid var(--c); border-radius: 9px; padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; background: var(--panel-2); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.card:hover { border-color: var(--edge); border-top-color: var(--c); }
+.card.on { box-shadow: inset 0 0 0 1px var(--c); }
+.card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card b.n { font: 700 17px var(--font-display); letter-spacing: 0.03em; color: var(--c); }
+.card .tag { font: 500 11.5px var(--font-data); color: var(--muted); }
+.card p.sum { font-size: 14px; color: var(--soft); }
+.card ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 13px; color: var(--soft); }
+.card ol li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; }
+.card ol li span { font: 500 11.5px var(--font-data); color: var(--muted); padding-top: 1px; font-variant-numeric: tabular-nums; }
+code { font: 12.5px var(--font-data); color: var(--fg); }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Cartesian Colosseum · mockup · main menu D</div>
+    <h1>Big play: <span>in and out</span></h1>
+    <p class="lead">Design D from the redesigns, with three intros made for it and the move into the lobby when you press
+      <b>Host game</b>. After an intro the menu is live: hover it, click <b>Host game</b> to play the move into the lobby,
+      then click anywhere in the lobby to go back. Clicking during an intro skips it, as it would in the game.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="scr" width="1280" height="720" aria-label="Main menu design D: its intro, the menu, and the move into the lobby"></canvas>
+    <div class="bar">
+      <span class="lbl">Scene</span>
+      <div class="seg" id="scenes"></div>
+      <span class="spacer"></span>
+      <button type="button" class="act" id="replay">Replay</button>
+    </div>
+    <div class="bar">
+      <span class="lbl">Time</span>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub through the scene">
+      <span class="clock" id="clock">0.00 / 0.00 s</span>
+      <div class="seg" id="speeds">
+        <button type="button" data-v="1" class="on">1x</button>
+        <button type="button" data-v="0.5">½x</button>
+        <button type="button" data-v="0.25">¼x</button>
+      </div>
+      <label class="tog"><input type="checkbox" id="reduced"> Reduced effects</label>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div style="display:grid;gap:6px">
+      <h2>The scenes</h2>
+      <p class="hint">Click a card to play it above. Any intro goes with the same move into the lobby.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="sec notes">
+    <h2>Notes for building it</h2>
+    <ul>
+      <li>The menu: <code>Menus.cs</code> redrawn as D (the big button, Join and Continue, the bottom bar). The port moves to Settings (a Network line, 7777 by default); your name is edited in place on the chip.</li>
+      <li>The intro: a new <code>MenuIntro.cs</code> clock, first time the menu shows only; any key or click skips it; buttons ignore clicks until they've landed. Reduced effects or Visual effects off: a 0.4 s fade.</li>
+      <li>Into the lobby: <code>LobbyEnter.cs</code> keeps its clock and the lobby's pieces sliding in; what changes is the start: the Host button grows into the loadout panel (instead of the card), the name chip flies to your party card, and the bottom bar drops away. Leaving plays it backwards, as now.</li>
+      <li>Joining a friend (once it connects) plays the same move, starting from the Join button.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const SCENES = [
+    { id: "launch", name: "Intro A · Launch", c: "#ffb547", tag: "2.6 s · a shot draws the arc",
+      sum: "A shot is fired from the left end of the axis. Its arc draws behind it, and the letters drop into place as it passes over them. It lands with a spark, and the menu rises in.",
+      beats: [[0, 0.4, "The x-axis draws out from the origin"], [0.3, 1.5, "A shot flies along the arc, drawing it; each letter drops in as the shot passes over"],
+        [1.5, 1.7, "The shot lands at the far end: a spark ring"], [1.6, 2.1, "HOST GAME rises from below and flashes; Join and Continue pop in"],
+        [1.9, 2.4, "The bottom bar slides up; the line under the title types itself out"]] },
+    { id: "pen", name: "Intro B · Pen plot", c: "#6fe3c4", tag: "2.7 s · the plotter",
+      sum: "The plotter version for D: the axis draws out, a pen writes the title's outline and fills it, then traces the arc over it. The buttons follow.",
+      beats: [[0, 0.45, "The x-axis draws out from the origin"], [0.35, 1.35, "A pen writes the title's outline, left to right"], [1.35, 1.55, "The letters fill in with a flash"],
+        [1.4, 1.9, "The pen traces the arc over the title; the shot starts along it"], [1.8, 2.7, "HOST GAME rises, Join and Continue pop in, the bottom bar slides up"]] },
+    { id: "fit", name: "Intro C · Best fit", c: "#ff8fa8", tag: "2.9 s · data becomes the title",
+      sum: "Dots fly in and settle into the letters. A straight line fits under them and becomes the axis; a curve fits the dots above and becomes the arc (r² = 0.99).",
+      beats: [[0, 1.1, "Dots in the bullet colours fly in and settle into the letters, and a few into an arc above"],
+        [1.0, 1.4, "A line of best fit swings flat: the axis"], [1.25, 1.65, "A curve fits the dots above: the arc"], [1.5, 1.8, "The dots melt into solid letters"],
+        [1.8, 2.9, "HOST GAME rises, Join and Continue pop in, the bottom bar slides up"]] },
+    { id: "host", name: "Host game → lobby", c: "#7fb6ff", tag: "1.6 s · the button becomes the loadout",
+      sum: "Pressing Host game: the button presses in and flashes, then grows into the lobby's loadout panel. The title flies to the top left as LOBBY, your name chip flies up to become your party card, and everything else drops away while the lobby slides in.",
+      beats: [[0, 0.15, "The button presses in and flashes"], [0.1, 0.65, "It grows into the loadout panel; HOST GAME fades from it"],
+        [0.05, 0.55, "The title shrinks and flies to the top left, turning into LOBBY; the arc and the tip line fade"],
+        [0.05, 0.4, "Join and Continue drop away; the bottom bar slides down off the screen"], [0.45, 1.05, "The lobby's pieces slide in: modes and background from the left, tabs from above, Ready and Start from below"],
+        [0.5, 1.5, "Your name chip flies up the left side and opens into your party card, with a ring"], [0.9, 1.6, "The loadout fills in"]] },
+  ];
+
+  const W = 1280, H = 720, BLUE = [115, 166, 255], GF = `"Liberation Sans", Arial, Helvetica, sans-serif`;
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const ease = k => 1 - Math.pow(1 - k, 3);
+  const easeIn = k => k * k * k;
+  const easeBack = k => { const c = 1.70158; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+  const easeIO = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const seg = (t, a, b) => clamp01((t - a) / (b - a));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const mix = (a, b, k) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
+  const cv = document.getElementById("scr"), g = cv.getContext("2d");
+
+  // D's layout (the same numbers as the redesign mockup).
+  const ARC = { x0: 250, x1: 1030, top: 70, base: 210 };
+  const TITLE = "CARTESIAN COLOSSEUM", TX = 640, TY = 174, TS = 74, AXY = 236, OX = 640;
+  const HOST = { x: 450, y: 314, w: 380, h: 82 }, JOIN = { x: 450, y: 414, w: 186, h: 52 }, CONT = { x: 644, y: 414, w: 186, h: 52 };
+  const BAR_Y = 650, CHIP = { x: 28, y: 666, w: 186, h: 38 };
+  const SAVE_COL = [70, 150, 105];
+  const TIP = "Best run: wave 23 · downed by the Lich";
+  // The lobby's layout (from the game's lobby).
+  const L = { panel: { x: 440, y: 68, w: 800, h: 556 }, party: { x: 40, y: 184, w: 376, h: 88 } };
+
+  const arcY = u => ARC.base - (ARC.base - ARC.top) * 4 * u * (1 - u);
+  const arcX = u => ARC.x0 + (ARC.x1 - ARC.x0) * u;
+
+  // --- Shared drawing -----------------------------------------------------------------------------------------------
+  function rr(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  const sparks = Array.from({ length: 30 }, (_, i) => ({ x: (i * 397) % W, y: (i * 233 + 40) % H, ph: i * 1.7, pink: i % 3 !== 0 }));
+  function background(t) {
+    g.fillStyle = "#07080d"; g.fillRect(0, 0, W, H);
+    let gr = g.createRadialGradient(330, 250, 0, 330, 250, 270); gr.addColorStop(0, "rgba(40,70,160,0.15)"); gr.addColorStop(1, "rgba(40,70,160,0)"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    gr = g.createRadialGradient(1050, 480, 0, 1050, 480, 330); gr.addColorStop(0, "rgba(120,50,150,0.11)"); gr.addColorStop(1, "rgba(120,50,150,0)"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "rgba(90,110,180,0.09)"; g.lineWidth = 1;
+    for (let x = 0; x <= W; x += 48) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 14; y <= H; y += 48) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+    for (const s of sparks) { const a = 0.2 + 0.3 * (0.5 + 0.5 * Math.sin(t * 1.3 + s.ph)); g.fillStyle = s.pink ? `rgba(255,90,120,${a})` : `rgba(120,160,255,${a})`; g.beginPath(); g.arc(s.x, s.y, 2, 0, Math.PI * 2); g.fill(); }
+  }
+  function titleGrad(y, size) {
+    const gr = g.createLinearGradient(0, y - size * 0.4, 0, y + size * 0.4);
+    gr.addColorStop(0, "#fff"); gr.addColorStop(0.5, "#fff"); gr.addColorStop(0.52, "#b8ccff"); gr.addColorStop(1, "#b8ccff"); return gr;
+  }
+  function titleText(s, x, y, size, align = "center", alpha = 1, flash = 0) {
+    if (alpha <= 0) return;
+    g.save(); g.globalAlpha = alpha; g.font = `bold ${size}px Arial, "Liberation Sans", sans-serif`; g.textBaseline = "middle"; g.textAlign = align;
+    g.shadowColor = "rgba(92,153,255,0.8)"; g.shadowBlur = 14 + 20 * flash; g.lineJoin = "round"; g.lineWidth = size / 11; g.strokeStyle = "rgba(14,22,52,0.9)";
+    g.strokeText(s, x, y); g.shadowBlur = 0; g.fillStyle = titleGrad(y, size); g.fillText(s, x, y);
+    if (flash > 0) { g.globalCompositeOperation = "lighter"; g.fillStyle = `rgba(255,255,255,${0.6 * flash})`; g.fillText(s, x, y); }
+    g.restore();
+  }
+  let letters = [], dots = [], arcDots = [], titleW = 0;
+  function measure() {
+    g.save(); g.font = `bold ${TS}px Arial, "Liberation Sans", sans-serif`;
+    titleW = g.measureText(TITLE).width; const x0 = TX - titleW / 2;
+    letters = [...TITLE].map((ch, i) => { const a = g.measureText(TITLE.slice(0, i)).width, b = g.measureText(TITLE.slice(0, i + 1)).width; return { ch, x: x0 + a, w: b - a }; });
+    g.restore();
+    const off = document.createElement("canvas"); off.width = W; off.height = 160; const o = off.getContext("2d");
+    o.font = `bold ${TS}px Arial, "Liberation Sans", sans-serif`; o.textBaseline = "middle"; o.textAlign = "center"; o.fillStyle = "#fff"; o.fillText(TITLE, TX, 80);
+    const d = o.getImageData(0, 0, W, 160).data, pts = [];
+    for (let y = 0; y < 160; y += 3) for (let x = 0; x < W; x += 3) if (d[(y * W + x) * 4 + 3] > 128) pts.push([x, y - 80 + TY]);
+    let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = pts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pts[i], pts[j]] = [pts[j], pts[i]]; }
+    const fly = p => { const a = rnd() * Math.PI * 2, r = 520 + rnd() * 480; return { tx: p[0], ty: p[1], sx: W / 2 + Math.cos(a) * r, sy: H / 2 + Math.sin(a) * r * 0.7, d: rnd() * 0.3, pink: rnd() < 0.4 }; };
+    dots = pts.slice(0, 950).map(fly);
+    arcDots = Array.from({ length: 26 }, (_, i) => { const u = 0.04 + 0.92 * i / 25; return fly([arcX(u), arcY(u) + (rnd() - 0.5) * 14]); });
+  }
+  function axis(k, t, alpha = 1, half = 390) {
+    if (k <= 0 || alpha <= 0) return;
+    const h = half * ease(k);
+    g.save(); g.globalAlpha = alpha;
+    g.strokeStyle = rgba(BLUE, 0.12); g.lineWidth = 6; g.beginPath(); g.moveTo(OX - h, AXY); g.lineTo(OX + h, AXY); g.stroke();
+    g.strokeStyle = rgba(BLUE, 0.75); g.lineWidth = 1.5; g.beginPath(); g.moveTo(OX - h, AXY); g.lineTo(OX + h, AXY); g.stroke();
+    for (let i = 1; i * 24 < h - 10; i++) { const x = i * 24, l = i % 4 === 0 ? 6 : 3, pop = 1 + 0.8 * (1 - clamp01((h - x) / 40)); g.strokeStyle = rgba(BLUE, 0.6); g.lineWidth = 1.2; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(OX + s * x, AXY - l * pop); g.lineTo(OX + s * x, AXY + l * pop); g.stroke(); } }
+    if (k > 0.85) { g.fillStyle = rgba(BLUE, 0.9 * seg(k, 0.85, 1)); for (const s of [-1, 1]) { const x = OX + s * h; g.beginPath(); g.moveTo(x + s * 8, AXY); g.lineTo(x - s * 3, AXY - 5); g.lineTo(x - s * 3, AXY + 5); g.fill(); } }
+    const p = 0.5 + 0.5 * Math.sin(t * 3);
+    g.fillStyle = "rgba(200,220,255,0.9)"; g.beginPath(); g.arc(OX, AXY, 3.5, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = rgba(BLUE, 0.5 + 0.3 * p); g.beginPath(); g.arc(OX, AXY, 6 + 2 * p, 0, Math.PI * 2); g.stroke();
+    g.restore();
+  }
+  /// The dashed arc up to u, the shot at u (with a short tail), and its label.
+  function arcPath(upTo, alpha = 1) {
+    if (upTo <= 0 || alpha <= 0) return;
+    g.save(); g.globalAlpha = alpha; g.strokeStyle = rgba(BLUE, 0.35); g.lineWidth = 1.5; g.setLineDash([6, 7]); g.beginPath();
+    const n = Math.max(1, Math.round(60 * upTo));
+    for (let i = 0; i <= n; i++) { const u = upTo * i / n; i ? g.lineTo(arcX(u), arcY(u)) : g.moveTo(arcX(u), arcY(u)); }
+    g.stroke(); g.restore();
+  }
+  function shot(u, alpha = 1, big = 1) {
+    if (alpha <= 0) return;
+    g.save(); g.globalAlpha = alpha; g.globalCompositeOperation = "lighter";
+    for (let i = 6; i >= 0; i--) { const uu = Math.max(0, u - i * 0.008); g.fillStyle = `rgba(255,120,150,${0.12 + 0.5 * (1 - i / 6)})`; g.beginPath(); g.arc(arcX(uu), arcY(uu), (5 - i * 0.5) * big, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+  }
+  function arcLabel(alpha = 1) { if (alpha > 0) text("y = −x² + 1", ARC.x1 + 14, ARC.base + 2, 12, `rgba(170,200,255,${0.5 * alpha})`, "left", false, "'IBM Plex Mono', monospace"); }
+  function text(s, x, y, size, col, align = "left", bold = true, font = GF) { g.font = `${bold ? "bold " : ""}${size}px ${font}`; g.fillStyle = col; g.textAlign = align; g.textBaseline = "middle"; g.fillText(s, x, y); }
+  function shadowText(s, x, y, size, col, align = "left") { g.font = `bold ${size}px ${GF}`; g.textAlign = align; g.textBaseline = "middle"; g.fillStyle = "rgba(0,0,0,0.6)"; g.fillText(s, x + 1, y + 1.5); g.fillStyle = col; g.fillText(s, x, y); }
+  function icon(kind, x, y, s, col = "#fff", box = true) {
+    g.save(); g.translate(x, y);
+    if (box) { g.fillStyle = "rgba(255,255,255,0.18)"; rr(0, 0, s, s, 3); g.fill(); }
+    g.fillStyle = col; g.strokeStyle = col; g.lineWidth = Math.max(1.5, s / 13); const c = s / 2, u = s / 26;
+    if (kind === "play") { g.beginPath(); g.moveTo(c - 4 * u, c - 6 * u); g.lineTo(c + 6 * u, c); g.lineTo(c - 4 * u, c + 6 * u); g.fill(); }
+    if (kind === "arrow") { g.beginPath(); g.moveTo(c - 6 * u, c); g.lineTo(c + 5 * u, c); g.moveTo(c + 1 * u, c - 4 * u); g.lineTo(c + 5 * u, c); g.lineTo(c + 1 * u, c + 4 * u); g.stroke(); }
+    if (kind === "resume") { g.fillRect(c - 6 * u, c - 6 * u, 3 * u, 12 * u); g.beginPath(); g.moveTo(c - 1 * u, c - 6 * u); g.lineTo(c + 7 * u, c); g.lineTo(c - 1 * u, c + 6 * u); g.fill(); }
+    if (kind === "trophy") { g.fillRect(c - 5 * u, c - 6 * u, 10 * u, 7 * u); g.fillRect(c - 1.5 * u, c + 1 * u, 3 * u, 4 * u); g.fillRect(c - 4 * u, c + 5 * u, 8 * u, 2 * u); }
+    if (kind === "gear") { g.beginPath(); g.arc(c, c, 5 * u, 0, Math.PI * 2); g.stroke(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; g.fillRect(c + Math.cos(a) * 6.5 * u - 1.5 * u, c + Math.sin(a) * 6.5 * u - 1.5 * u, 3 * u, 3 * u); } }
+    if (kind === "power") { g.beginPath(); g.arc(c, c + 1 * u, 5.5 * u, -Math.PI / 2 + 0.6, Math.PI * 1.5 - 0.6); g.stroke(); g.beginPath(); g.moveTo(c, c - 7 * u); g.lineTo(c, c); g.stroke(); }
+    if (kind === "pen") { g.beginPath(); g.moveTo(c - 5 * u, c + 5 * u); g.lineTo(c + 4 * u, c - 4 * u); g.stroke(); g.fillRect(c - 6 * u, c + 4 * u, 2 * u, 2 * u); }
+    if (kind === "check") { g.beginPath(); g.moveTo(c - 6 * u, c); g.lineTo(c - 1 * u, c + 5 * u); g.lineTo(c + 7 * u, c - 5 * u); g.stroke(); }
+    g.restore();
+  }
+  function fancyButton(x, y, w, h, s, col, ic, size = 19, hover = 0, labelAlpha = 1) {
+    y -= 2 * hover;
+    if (hover > 0) { g.save(); g.shadowColor = rgba(col, 0.8 * hover); g.shadowBlur = 18 * hover; rr(x, y, w, h, 8); g.fillStyle = rgba(col, 0.6); g.fill(); g.restore(); }
+    rr(x, y, w, h, Math.min(10, h / 4));
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, rgba(mix(col, [255, 255, 255], 0.12 + 0.12 * hover), 1)); gr.addColorStop(1, rgba(col.map(v => v * 0.72), 1));
+    g.fillStyle = gr; g.fill(); g.strokeStyle = `rgba(255,255,255,${0.18 + 0.25 * hover})`; g.lineWidth = 1; g.stroke();
+    if (labelAlpha <= 0 || !s) return;
+    g.save(); g.globalAlpha *= labelAlpha;
+    g.font = `bold ${size}px ${GF}`; const tw = g.measureText(s).width, is = Math.min(26, h - 10), total = (ic ? is + 12 : 0) + tw, sx = x + w / 2 - total / 2;
+    if (ic) icon(ic, sx, y + h / 2 - is / 2, is);
+    shadowText(s, sx + (ic ? is + 12 : 0), y + h / 2, size, "#fff");
+    g.restore();
+  }
+  function quietButton(x, y, w, h, s, col, ic, size = 14, hover = 0) {
+    rr(x, y, w, h, 7); g.fillStyle = rgba(mix([18, 22, 34], col, 0.18 * hover), 0.92); g.fill();
+    g.strokeStyle = rgba(mix([255, 255, 255], col, hover), 0.14 + 0.5 * hover); g.lineWidth = 1; g.stroke();
+    if (hover > 0) { g.fillStyle = rgba(col, 0.9 * hover); g.fillRect(x + 12, y + h - 2, (w - 24) * ease(hover), 2); }
+    g.font = `bold ${size}px ${GF}`; const tw = g.measureText(s).width, is = 18, sx = x + w / 2 - (is + 9 + tw) / 2;
+    icon(ic, sx, y + h / 2 - is / 2, is, rgba(col, 1), false); text(s, sx + is + 9, y + h / 2, size, "rgba(235,240,252,0.9)");
+  }
+  function character(cx, cy, t, r, aimAt) {
+    const aim = aimAt ? Math.atan2(aimAt.y - cy, aimAt.x - cx) : -0.5 + Math.sin(t) * 0.6;
+    g.save(); g.translate(cx, cy);
+    g.fillStyle = "rgb(115,63,29)"; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "rgb(255,140,64)"; g.lineWidth = Math.max(2, r / 6.5); g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = "rgba(209,224,255,0.8)"; g.lineWidth = Math.max(1.5, r / 7.5); g.beginPath(); g.arc(0, 0, r * 0.62, aim - 0.9, aim + 0.9); g.stroke();
+    const sx = Math.cos(aim + 1.2) * r * 0.75, sy = Math.sin(aim + 1.2) * r * 0.75;
+    g.strokeStyle = "rgba(209,224,255,0.95)"; g.lineWidth = Math.max(1.5, r / 6.5); g.lineCap = "round";
+    g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx + Math.cos(aim) * r * 1.7, sy + Math.sin(aim) * r * 1.7); g.stroke(); g.lineCap = "butt";
+    g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.arc(0, 0, Math.max(2, r / 5), 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+  function plotCorners(x, y, w, h, a = 0.75, len = 20, off = 7) {
+    if (a <= 0) return;
+    g.strokeStyle = rgba(BLUE, a); g.lineWidth = 3; g.lineCap = "square";
+    for (const [cx, cy, sx, sy] of [[x - off, y - off, 1, 1], [x + w + off, y - off, -1, 1], [x + w + off, y + h + off, -1, -1], [x - off, y + h + off, 1, -1]]) { g.beginPath(); g.moveTo(cx, cy + sy * len); g.lineTo(cx, cy); g.lineTo(cx + sx * len, cy); g.stroke(); }
+    g.lineCap = "butt";
+  }
+
+  // --- The menu's pieces, each with its own progress (1 = in place) -----------------------------------------------
+  const P = { axis: 1, arc: 1, shotU: null, title: 1, tip: 1, host: 1, join: 1, cont: 1, bar: 1 };
+  function drawHost(k, t, hover = 0, press = 0, flash = 0) {
+    if (k <= 0) return;
+    const rise = easeBack(k), y = HOST.y + 60 * (1 - rise), pulse = 0.5 + 0.5 * Math.sin(t * 2.5);
+    g.save(); g.globalAlpha = clamp01(k * 2);
+    const s = 1 - 0.05 * press, cx = HOST.x + HOST.w / 2, cy = y + HOST.h / 2;
+    g.translate(cx, cy); g.scale(s, s); g.translate(-cx, -cy);
+    g.save(); g.shadowColor = `rgba(92,153,255,${(0.45 + 0.3 * pulse + 0.3 * hover) * k})`; g.shadowBlur = 26 + 14 * pulse; rr(HOST.x, y, HOST.w, HOST.h, 14); g.fillStyle = "rgba(74,130,245,0.9)"; g.fill(); g.restore();
+    fancyButton(HOST.x, y, HOST.w, HOST.h, "HOST GAME", [74, 130, 245], "play", 30, hover);
+    if (flash > 0) { rr(HOST.x, y, HOST.w, HOST.h, 10); g.fillStyle = `rgba(255,255,255,${0.55 * flash})`; g.fill(); }
+    g.restore();
+  }
+  function drawSmall(k, hoverJ = 0, hoverC = 0, drop = 0) {
+    for (const [r, s, col, ic, hv, sub, i] of [[JOIN, "Join game", [76, 84, 112], "arrow", hoverJ, null, 0], [CONT, "Continue", SAVE_COL, "resume", hoverC, "wave 14 · 22:41", 1]]) {
+      const kk = seg(k, i * 0.25, i * 0.25 + 0.75);
+      if (kk <= 0) continue;
+      const sc = easeBack(kk), dy = 260 * easeIn(drop) + 10 * i * drop;
+      g.save(); g.globalAlpha = clamp01(kk * 2) * (1 - drop);
+      const cx = r.x + r.w / 2, cy = r.y + r.h / 2 + dy;
+      g.translate(cx, cy); g.rotate((i ? 0.25 : -0.25) * drop); g.scale(sc, sc); g.translate(-cx, -cy);
+      fancyButton(r.x, r.y + dy, r.w, r.h, s, col, ic, 18, hv);
+      if (sub) text(sub, cx, r.y + r.h + 14 + dy, 12, "rgba(170,215,190,0.8)", "center", false);
+      g.restore();
+    }
+  }
+  function drawBar(k, t, hov = {}, chipAway = 0) {
+    if (k <= 0) return;
+    const dy = 80 * (1 - ease(k));
+    g.save(); g.translate(0, dy);
+    g.fillStyle = "rgba(8,10,16,0.82)"; g.fillRect(0, BAR_Y, W, 70); g.fillStyle = "rgba(107,153,255,0.3)"; g.fillRect(0, BAR_Y, W, 1);
+    if (chipAway <= 0) drawChip(CHIP.x, CHIP.y, CHIP.w, CHIP.h, t, hov.name || 0);
+    quietButton(520, 666, 120, 38, "Records", [255, 200, 90], "trophy", 14, hov.records || 0);
+    quietButton(650, 666, 120, 38, "Settings", [150, 180, 255], "gear", 14, hov.settings || 0);
+    quietButton(1132, 666, 120, 38, "Quit", [255, 100, 110], "power", 14, hov.quit || 0);
+    g.restore();
+  }
+  function drawChip(x, y, w, h, t, hover = 0) {
+    rr(x, y, w, h, h / 2); g.fillStyle = rgba(mix([14, 18, 30], BLUE, 0.2 * hover), 1); g.fill(); g.strokeStyle = rgba(BLUE, 0.4 + 0.4 * hover); g.lineWidth = 1.2; g.stroke();
+    g.save(); g.beginPath(); g.arc(x + 22, y + h / 2, 15, 0, Math.PI * 2); g.clip(); character(x + 22, y + h / 2, t * 0.6, 8); g.restore();
+    text("Anthony", x + 52, y + h / 2, 15, "#fff"); icon("pen", x + w - 36, y + h / 2 - 10, 20, rgba(BLUE, 0.6 + 0.4 * hover), false);
+  }
+  function drawTip(k) {
+    if (k <= 0) return;
+    const n = Math.floor(TIP.length * k);
+    text(TIP.slice(0, n) + (k < 1 ? "▌" : ""), 640, 268, 15, "rgba(190,205,235,0.85)", "center", false);
+  }
+  function drawMenu(t, opt = {}) {
+    background(t);
+    arcPath(1, opt.arcA ?? 1); arcLabel(opt.arcA ?? 1);
+    shot((t * 0.22) % 1, opt.arcA ?? 1);
+    titleText(TITLE, TX, TY, TS);
+    axis(1, t);
+    drawTip(1);
+    drawHost(1, t, opt.hover?.host || 0);
+    drawSmall(1, opt.hover?.join || 0, opt.hover?.cont || 0);
+    drawBar(1, t, opt.hover || {});
+  }
+
+  // --- Intro A: Launch ----------------------------------------------------------------------------------------------
+  function introLaunch(t) {
+    background(t);
+    axis(seg(t, 0, 0.4), t);
+    const fly = seg(t, 0.3, 1.5), u = easeIO(fly);
+    arcPath(u); if (fly > 0 && fly < 1) shot(u, 1, 1.3);
+    // Letters drop in as the shot passes over them.
+    for (const L2 of letters) {
+      if (L2.ch === " ") continue;
+      const passU = (L2.x + L2.w / 2 - ARC.x0) / (ARC.x1 - ARC.x0);
+      const k = clamp01((u - passU) / 0.08 + (fly >= 1 ? 1 : 0));
+      if (k <= 0) continue;
+      const d = 1 - easeBack(Math.min(1, k)), y = TY - 70 * d;
+      g.save(); g.beginPath(); g.rect(L2.x - 6, 0, L2.w + 12, H); g.clip();
+      titleText(TITLE, TX, y, TS, "center", clamp01(k * 3), Math.max(0, 1 - k * 2) * 0.8);
+      g.restore();
+    }
+    const land = seg(t, 1.5, 1.8);
+    if (land > 0 && land < 1) {
+      g.strokeStyle = `rgba(255,140,170,${0.9 * (1 - land)})`; g.lineWidth = 2.5; g.beginPath(); g.arc(ARC.x1, ARC.base, 6 + 40 * ease(land), 0, Math.PI * 2); g.stroke();
+      for (let i = 0; i < 8; i++) { const a = -Math.PI * i / 7, r = 10 + 40 * ease(land); g.fillStyle = `rgba(255,170,190,${1 - land})`; g.beginPath(); g.arc(ARC.x1 + Math.cos(a) * r, ARC.base + Math.sin(a) * r, 2, 0, Math.PI * 2); g.fill(); }
+    }
+    arcLabel(seg(t, 1.6, 1.9));
+    if (t > 1.7) shot(((t - 1.7) * 0.22) % 1, seg(t, 1.9, 2.3));
+    drawHost(seg(t, 1.6, 2.0), t, 0, 0, Math.max(0, 1 - seg(t, 1.95, 2.2)) * (t > 1.95 ? 1 : 0));
+    drawSmall(seg(t, 1.8, 2.2));
+    drawBar(seg(t, 1.9, 2.3), t);
+    drawTip(seg(t, 2.0, 2.6));
+  }
+
+  // --- Intro B: Pen plot --------------------------------------------------------------------------------------------
+  function pen(x, y) {
+    g.save(); g.globalCompositeOperation = "lighter";
+    const gr = g.createRadialGradient(x, y, 0, x, y, 16); gr.addColorStop(0, "rgba(255,255,255,0.95)"); gr.addColorStop(0.3, "rgba(150,200,255,0.6)"); gr.addColorStop(1, "rgba(150,200,255,0)");
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, 16, 0, Math.PI * 2); g.fill(); g.restore();
+  }
+  function introPen(t) {
+    background(t);
+    axis(seg(t, 0, 0.45), t);
+    const pk = seg(t, 0.35, 1.35), fk = seg(t, 1.35, 1.55);
+    const x0 = TX - titleW / 2 - 6, px = x0 + (titleW + 12) * pk, py = TY - 26 + 52 * (0.5 + 0.5 * Math.sin(px * 0.19));
+    if (pk > 0 && fk < 1) {
+      g.save(); g.globalAlpha = 1 - fk; g.beginPath(); g.rect(0, 0, px, H); g.clip();
+      g.font = `bold ${TS}px Arial, "Liberation Sans", sans-serif`; g.textBaseline = "middle"; g.textAlign = "center";
+      g.shadowColor = "rgba(92,153,255,0.9)"; g.shadowBlur = 8; g.lineWidth = 1.8; g.strokeStyle = "rgba(170,200,255,0.95)"; g.strokeText(TITLE, TX, TY);
+      g.restore();
+      if (pk < 1) pen(px, py);
+    }
+    if (fk > 0) titleText(TITLE, TX, TY, TS, "center", fk, (1 - fk) * 0.9);
+    const ak = seg(t, 1.4, 1.9);
+    arcPath(ak); if (ak > 0 && ak < 1) pen(arcX(ak), arcY(ak));
+    arcLabel(seg(t, 1.8, 2.1));
+    if (t > 1.9) shot(((t - 1.9) * 0.22) % 1, seg(t, 1.9, 2.2));
+    drawHost(seg(t, 1.8, 2.2), t);
+    drawSmall(seg(t, 2.0, 2.4));
+    drawBar(seg(t, 2.1, 2.5), t);
+    drawTip(seg(t, 2.2, 2.7));
+  }
+
+  // --- Intro C: Best fit --------------------------------------------------------------------------------------------
+  function introFit(t) {
+    background(t);
+    const fly = seg(t, 0, 1.1), melt = seg(t, 1.5, 1.8);
+    g.save(); g.globalCompositeOperation = "lighter";
+    for (const d of melt < 1 ? dots : []) {
+      const k = ease(clamp01((fly - d.d) / 0.7)); if (k <= 0) continue;
+      g.fillStyle = rgba(d.pink ? [255, 110, 150] : [130, 175, 255], (0.25 + 0.6 * k) * (1 - melt));
+      g.beginPath(); g.arc(lerp(d.sx, d.tx, k), lerp(d.sy, d.ty, k), 1.6 + 0.6 * (1 - k), 0, Math.PI * 2); g.fill();
+    }
+    const arcFade = seg(t, 1.6, 1.9);
+    for (const d of arcDots) {
+      const k = ease(clamp01((fly - d.d) / 0.7)); if (k <= 0) continue;
+      g.fillStyle = rgba([255, 200, 120], 0.8 * (1 - arcFade)); g.beginPath(); g.arc(lerp(d.sx, d.tx, k), lerp(d.sy, d.ty, k), 2.4, 0, Math.PI * 2); g.fill();
+    }
+    g.restore();
+    if (melt > 0) titleText(TITLE, TX, TY, TS, "center", melt, (1 - melt) * 0.8);
+    // A straight line fits under the letters and becomes the axis.
+    const fit = seg(t, 1.0, 1.4);
+    if (fit > 0 && fit < 1) {
+      const ang = 0.3 * (1 - easeBack(fit)), cy = AXY - 50 * (1 - ease(fit)), half = 320 + 70 * ease(fit);
+      g.save(); g.strokeStyle = "rgba(255,200,120,0.9)"; g.lineWidth = 2; g.shadowColor = "rgba(255,180,90,0.9)"; g.shadowBlur = 10;
+      g.beginPath(); g.moveTo(OX - Math.cos(ang) * half, cy - Math.sin(ang) * half); g.lineTo(OX + Math.cos(ang) * half, cy + Math.sin(ang) * half); g.stroke(); g.restore();
+    }
+    axis(seg(t, 1.25, 1.55), t);
+    // A curve fits the dots above and becomes the arc.
+    const cf = seg(t, 1.25, 1.65);
+    if (cf > 0) {
+      const flat = 1 - ease(cf);
+      g.save(); g.strokeStyle = `rgba(255,200,120,${0.9 * (1 - seg(t, 1.65, 1.9))})`; g.lineWidth = 2; g.shadowColor = "rgba(255,180,90,0.9)"; g.shadowBlur = 8; g.beginPath();
+      for (let i = 0; i <= 60; i++) { const u = i / 60, y = lerp(arcY(u), (ARC.base + ARC.top) / 2, flat); i ? g.lineTo(arcX(u), y) : g.moveTo(arcX(u), y); }
+      g.stroke(); g.restore();
+      arcPath(seg(t, 1.55, 1.75));
+      const la = clamp01(cf * 3) * (1 - seg(t, 2.2, 2.6));
+      text("quadratic fit · r² = 0.99", ARC.x1 - 10, ARC.top + 52, 12.5, `rgba(255,210,140,${la})`, "left", false, "'IBM Plex Mono', monospace");
+      text("linear fit · r² = 1.00", OX + 404, AXY + 18, 12.5, `rgba(255,210,140,${la})`, "left", false, "'IBM Plex Mono', monospace");
+    }
+    arcLabel(seg(t, 2.3, 2.6));
+    if (t > 1.8) shot(((t - 1.8) * 0.22) % 1, seg(t, 1.8, 2.1));
+    drawHost(seg(t, 1.8, 2.2), t);
+    drawSmall(seg(t, 2.05, 2.45));
+    drawBar(seg(t, 2.2, 2.6), t);
+    drawTip(seg(t, 2.3, 2.9));
+  }
+
+  // --- The lobby ----------------------------------------------------------------------------------------------------
+  /// The lobby's pieces with their own progress: left column, tabs, bottom bar, loadout contents, your party card.
+  function drawLobby(t, k) {
+    const left = ease(k.left), tabs = ease(k.tabs), bottom = ease(k.bottom), fill = k.fill, party = k.party;
+    // Left: modes and background.
+    if (left > 0) {
+      g.save(); g.globalAlpha = left; g.translate(-60 * (1 - left), 0);
+      rr(44, 80, 372, 52, 8); g.fillStyle = "rgba(14,18,30,0.9)"; g.fill();
+      rr(48, 84, 118, 44, 6); g.fillStyle = "rgba(74,130,245,0.95)"; g.fill();
+      text("RUN", 107, 98, 15, "#fff", "center"); text("50 waves, a boss every 5", 107, 117, 10, "rgba(230,238,255,0.85)", "center", false);
+      text("BOSS HUNT", 228, 98, 15, "#ffd2c0", "center"); text("5 waves, then one boss", 228, 117, 10, "rgba(200,210,230,0.7)", "center", false);
+      text("PRACTICE", 350, 98, 15, "#c8ffe0", "center"); text("Build your own waves", 350, 117, 10, "rgba(200,210,230,0.7)", "center", false);
+      text("PARTY  (1/3)", 42, 158, 12, "rgba(170,182,210,0.95)");
+      for (const y of [290, 386]) { g.save(); g.setLineDash([5, 5]); rr(40, y, 376, 82, 8); g.strokeStyle = "rgba(255,255,255,0.15)"; g.lineWidth = 1; g.stroke(); g.restore(); text("Open slot", 228, y + 32, 15, "rgba(200,210,230,0.55)", "center"); text("Room for one more (optional)", 228, y + 54, 11.5, "rgba(200,210,230,0.45)", "center", false); }
+      rr(40, 540, 376, 84, 10); g.fillStyle = "rgba(20,24,38,0.9)"; g.fill(); g.strokeStyle = "rgba(107,153,255,0.4)"; g.stroke();
+      rr(50, 550, 114, 64, 4); g.fillStyle = "rgba(10,12,22,1)"; g.fill();
+      text("BACKGROUND", 180, 556, 10.5, "rgba(170,182,210,0.9)"); text("Spiral", 290, 584, 17, "#fff", "center");
+      g.restore();
+    }
+    // LOBBY title (drawn by the transition itself while it flies; here once it has landed).
+    // Tabs.
+    if (tabs > 0) {
+      g.save(); g.globalAlpha = tabs; g.translate(0, -40 * (1 - tabs));
+      rr(440, 24, 128, 34, 6); g.fillStyle = "rgba(74,130,245,0.95)"; g.fill(); text("YOUR LOADOUT", 504, 41, 12, "#fff", "center");
+      rr(576, 24, 104, 34, 6); g.fillStyle = "rgba(24,28,44,0.95)"; g.fill(); text("MODIFIERS", 628, 41, 12, "rgba(200,210,230,0.75)", "center");
+      rr(688, 24, 202, 34, 6); g.fillStyle = "rgba(24,28,44,0.95)"; g.fill(); text("DIFFICULTY  ·  NORMAL", 789, 41, 12, "rgba(200,210,230,0.75)", "center");
+      g.restore();
+    }
+    // Bottom: waiting text, Ready and Start.
+    if (bottom > 0) {
+      g.save(); g.globalAlpha = bottom; g.translate(0, 70 * (1 - bottom));
+      if (k.party > 0 || k.left >= 1) text("Pick your loadout, then start", 358, 675, 14, "rgba(200,210,230,0.7)", "right", false);
+      fancyButton(380, 650, 240, 48, "Ready", [190, 140, 40], "check", 16);
+      fancyButton(640, 650, 260, 48, "Start game (1 player)", [74, 130, 245], "play", 16);
+      g.restore();
+    }
+    // Loadout contents.
+    if (fill > 0) {
+      const P2 = L.panel;
+      g.save(); g.globalAlpha = fill; g.translate(0, 10 * (1 - ease(fill)));
+      rr(P2.x + 14, P2.y + 14, 232, 528, 8); g.fillStyle = "rgba(8,10,18,0.9)"; g.fill();
+      g.save(); rr(P2.x + 22, P2.y + 22, 216, 180, 4); g.clip(); g.fillStyle = "rgba(12,16,28,1)"; g.fillRect(P2.x + 22, P2.y + 22, 216, 180);
+      g.strokeStyle = "rgba(90,110,180,0.2)"; for (let x = P2.x + 22; x < P2.x + 238; x += 27) { g.beginPath(); g.moveTo(x, P2.y + 22); g.lineTo(x, P2.y + 202); g.stroke(); } for (let y = P2.y + 22; y < P2.y + 202; y += 27) { g.beginPath(); g.moveTo(P2.x + 22, y); g.lineTo(P2.x + 238, y); g.stroke(); }
+      character(P2.x + 130, P2.y + 140, t, 13, null); g.restore();
+      titleText("Knight DPS", P2.x + 130, P2.y + 222, 19);
+      [["HEALTH", "110 HP", 0.5, [80, 230, 110]], ["SPEED", "240", 0.8, [110, 170, 255]], ["REACH", "120 px", 0.3, [255, 200, 90]], ["DAMAGE", "74 / s", 0.6, [240, 100, 100]]].forEach(([a, b, f, c], i) => {
+        const y = P2.y + 250 + i * 27; text(a, P2.x + 30, y, 10, "rgba(170,182,210,0.9)"); text(b, P2.x + 230, y, 12, "#fff", "right");
+        g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(P2.x + 30, y + 9, 200, 4); g.fillStyle = rgba(c, 1); g.fillRect(P2.x + 30, y + 9, 200 * f, 4);
+      });
+      const rows = [["ROLE", ["Tank", "Healer", "DPS", "Locked"], 2], ["CLASS", ["Soldier", "Elementalist", "Summoner", "Knight"], 3], ["WEAPON", ["Twin Blades", "Greatsword", "Rapier", "Locked"], 0], ["ABILITY · SPACE", ["Whirlwind", "Lunge", "Battle Fury", "Locked"], 1]];
+      rows.forEach(([h, opts, sel], r) => {
+        const y = P2.y + 26 + r * 96;
+        text(h, P2.x + 266, y, 12, "rgba(170,182,210,0.95)");
+        opts.forEach((o, i) => {
+          const x = P2.x + 266 + i * 130, locked = o === "Locked";
+          rr(x, y + 16, 122, 44, 7);
+          if (locked) { g.save(); g.setLineDash([4, 4]); g.strokeStyle = "rgba(255,255,255,0.15)"; g.stroke(); g.restore(); }
+          else { g.fillStyle = i === sel ? "rgba(46,66,120,0.95)" : "rgba(22,26,40,0.95)"; g.fill(); g.strokeStyle = i === sel ? "rgba(140,180,255,0.9)" : "rgba(255,255,255,0.1)"; g.lineWidth = 1; g.stroke(); }
+          text(o, x + 61, y + 38, 13.5, locked ? "rgba(200,210,230,0.4)" : i === sel ? "#fff" : "rgba(210,220,240,0.85)", "center");
+        });
+      });
+      rr(P2.x + 266, P2.y + 410, 520, 132, 8); g.fillStyle = "rgba(14,18,30,0.9)"; g.fill(); plotCorners(P2.x + 266, P2.y + 410, 520, 132, 0.6, 16, 4);
+      text("WEAPON", P2.x + 282, P2.y + 428, 10.5, "rgba(170,182,210,0.9)"); text("Twin Blades", P2.x + 282, P2.y + 452, 19, "#fff");
+      text("Very fast alternating slashes; 10 hits in a row prime a dash-strike.", P2.x + 282, P2.y + 482, 12.5, "rgba(210,220,240,0.8)", "left", false);
+      g.restore();
+    }
+    // Your party card.
+    if (party > 0) drawPartyCard(L.party.x, L.party.y, L.party.w, L.party.h, t, 1, party);
+  }
+  function drawPartyCard(x, y, w, h, t, alpha, ring = 1) {
+    g.save(); g.globalAlpha = alpha;
+    rr(x, y, w, h, 10); g.fillStyle = "rgba(22,28,46,0.97)"; g.fill(); g.strokeStyle = "rgba(107,153,255,0.9)"; g.lineWidth = 1.5; g.stroke();
+    rr(x + 8, y + 8, 72, h - 16, 6); g.fillStyle = "rgba(20,32,58,1)"; g.fill();
+    character(x + 44, y + h / 2, t, 16, null);
+    if (w > 200) {
+      text("Anthony", x + 96, y + 20, 19, "#fff"); text("Knight DPS", x + 96, y + 43, 14, "rgb(255,160,100)"); text("Twin Blades  ·  Lunge", x + 96, y + 66, 12.5, "rgba(200,210,230,0.75)", "left", false);
+      rr(x + w - 112, y + 10, 54, 22, 11); g.fillStyle = "rgba(160,120,40,0.9)"; g.fill(); text("HOST", x + w - 85, y + 21, 10.5, "#fff", "center");
+      rr(x + w - 52, y + 10, 42, 22, 11); g.fillStyle = "rgba(74,110,200,0.9)"; g.fill(); text("YOU", x + w - 31, y + 21, 10.5, "#fff", "center");
+    }
+    g.restore();
+    if (ring < 1 && ring > 0.35) { const k = (ring - 0.35) / 0.65; rr(x - 10 * k, y - 10 * k, w + 20 * k, h + 20 * k, 10 + 6 * k); g.strokeStyle = rgba(BLUE, 0.85 * (1 - k)); g.lineWidth = 2; g.stroke(); }
+  }
+
+  // --- Host game → lobby ----------------------------------------------------------------------------------------
+  /// e: seconds into the move (0 .. HOST_LEN); leaving plays it backwards.
+  function hostToLobby(t, e) {
+    background(t);
+    const press = e < 0.15 ? Math.sin(Math.PI * e / 0.15) : 0, flash = 1 - seg(e, 0.05, 0.3);
+    const away = seg(e, 0.05, 0.4), titleK = easeIO(seg(e, 0.05, 0.55)), grow = easeIO(seg(e, 0.12, 0.65));
+    // Arc, shot and tip fade.
+    const fade = 1 - seg(e, 0.0, 0.3);
+    arcPath(1, fade); arcLabel(fade); shot((t * 0.22) % 1, fade);
+    if (fade > 0) { g.save(); g.globalAlpha = fade; drawTip(1); g.restore(); }
+    axis(1, t, 1 - seg(e, 0.05, 0.35));
+    // The title flies to the top left and turns into LOBBY.
+    // Its left edge moves to the lobby's title spot while it shrinks; it turns into LOBBY as it lands.
+    const lx = lerp(TX - titleW / 2, 42, titleK), ty = lerp(TY, 42, titleK), ts = lerp(TS, 44, titleK);
+    const swap = seg(e, 0.38, 0.55);
+    titleText(TITLE, lx, ty, ts, "left", 1 - swap);
+    if (swap > 0) titleText("LOBBY", lx, ty, ts, "left", swap, (1 - swap) * 0.6);
+    const badge = seg(e, 0.55, 0.75);
+    if (badge > 0) { g.save(); g.globalAlpha = badge; rr(196, 28, 28, 28, 7); g.fillStyle = "rgba(60,72,110,0.9)"; g.fill(); text("!", 210, 42, 16, "#fff", "center"); g.restore(); }
+    // Join and Continue drop away, the bottom bar slides down (the name chip leaves it).
+    drawSmall(1, 0, 0, away);
+    const chipFly = easeIO(seg(e, 0.5, 1.1));
+    drawBar(1 - away, t, {}, e > 0.02 ? 1 : 0);
+    // The lobby's pieces.
+    drawLobby(t, { left: seg(e, 0.45, 0.95), tabs: seg(e, 0.5, 0.95), bottom: seg(e, 0.55, 1.05), fill: seg(e, 0.9, 1.4), party: 0 });
+    // The Host button grows into the loadout panel.
+    if (grow <= 0) drawHost(1, t, 0, press, flash);
+    else {
+      const P2 = L.panel, x = lerp(HOST.x, P2.x, grow), y = lerp(HOST.y, P2.y, grow), w = lerp(HOST.w, P2.w, grow), h = lerp(HOST.h, P2.h, grow);
+      const col = mix([74, 130, 245], [22, 26, 40], seg(grow, 0.2, 0.9));
+      g.save();
+      g.shadowColor = `rgba(92,153,255,${0.6 * (1 - grow)})`; g.shadowBlur = 30 * (1 - grow);
+      rr(x, y, w, h, lerp(14, 10, grow));
+      const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, rgba(mix(col, [255, 255, 255], 0.08), 0.97)); gr.addColorStop(1, rgba(col.map(v => v * 0.8), 0.97));
+      g.fillStyle = gr; g.fill(); g.shadowBlur = 0;
+      g.strokeStyle = rgba(mix([255, 255, 255], [107, 153, 255], grow), 0.25 + 0.65 * grow); g.lineWidth = 1.5; g.stroke();
+      if (flash > 0) { g.fillStyle = `rgba(255,255,255,${0.5 * flash})`; g.fill(); }
+      const la = 1 - seg(grow, 0, 0.35);
+      if (la > 0) { g.globalAlpha = la; g.font = `bold 30px ${GF}`; const s = "HOST GAME", tw = g.measureText(s).width; icon("play", x + w / 2 - (tw + 38) / 2, y + h / 2 - 13, 26); shadowText(s, x + w / 2 - (tw + 38) / 2 + 38, y + h / 2, 30, "#fff"); }
+      g.restore();
+      plotCorners(x, y, w, h, 0.75 * seg(grow, 0.3, 1), 22, 0);
+      // The panel's contents come in on top once it's there.
+      if (e > 0.9) drawLobby(t, { left: 0, tabs: 0, bottom: 0, fill: seg(e, 0.9, 1.4), party: 0 });
+    }
+    // The name chip flies up the left and opens into your party card.
+    if (e > 0.02) {
+      if (chipFly <= 0) drawChip(CHIP.x, CHIP.y + 80 * ease(away) * 0, CHIP.w, CHIP.h, t, 0);
+      else if (chipFly < 1) {
+        const x = lerp(CHIP.x, L.party.x, chipFly), y = lerp(CHIP.y, L.party.y, chipFly) - 60 * Math.sin(Math.PI * chipFly);
+        const w = lerp(CHIP.w, L.party.w, chipFly), h = lerp(CHIP.h, L.party.h, chipFly);
+        if (chipFly < 0.5) { g.save(); g.globalAlpha = 1 - chipFly * 2; drawChip(x, y, w, h, t); g.restore(); }
+        drawPartyCard(x, y, w, h, t, clamp01(chipFly * 2), 1);
+      } else drawPartyCard(L.party.x, L.party.y, L.party.w, L.party.h, t, 1, seg(e, 1.1, 1.5) || 1);
+    }
+  }
+  function lobbyScene(t) {
+    background(t);
+    titleText("LOBBY", 42, 42, 44, "left"); rr(196, 28, 28, 28, 7); g.fillStyle = "rgba(60,72,110,0.9)"; g.fill(); text("!", 210, 42, 16, "#fff", "center");
+    const P2 = L.panel; rr(P2.x, P2.y, P2.w, P2.h, 10); g.fillStyle = "rgba(22,26,40,0.97)"; g.fill(); g.strokeStyle = "rgba(107,153,255,0.9)"; g.lineWidth = 1.5; g.stroke(); plotCorners(P2.x, P2.y, P2.w, P2.h, 0.75, 22, 0);
+    drawLobby(t, { left: 1, tabs: 1, bottom: 1, fill: 1, party: 1 });
+    text("Click anywhere to leave (it plays backwards)", 1240, 690, 12.5, "rgba(170,182,210,0.6)", "right", false);
+  }
+
+  // --- Reduced effects ---------------------------------------------------------------------------------------------
+  function reducedIntro(t) { drawMenu(t); const a = 1 - seg(t, 0, 0.4); if (a > 0) { g.fillStyle = `rgba(7,8,13,${a})`; g.fillRect(0, 0, W, H); } }
+  function reducedHost(t, e) { const k = seg(e, 0, 0.3); if (k < 0.5) drawMenu(t); else lobbyScene(t); const a = 1 - Math.abs(k * 2 - 1); g.fillStyle = `rgba(7,8,13,${a})`; g.fillRect(0, 0, W, H); }
+
+  // --- Playback -----------------------------------------------------------------------------------------------------
+  const INTRO = { launch: introLaunch, pen: introPen, fit: introFit };
+  const LEN = { launch: 2.6, pen: 2.7, fit: 2.9, host: 1.65, back: 1.0 }, RED = { intro: 0.45, host: 0.3 };
+  let scene = "launch", lastIntro = "launch", speed = 1, reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let mode = "intro", tm = 0, scrubbing = false, mouse = { x: -1, y: -1 }, hover = {};
+  const len = () => mode === "intro" ? (reduced ? RED.intro : LEN[lastIntro]) : mode === "host" ? (reduced ? RED.host : LEN.host) : mode === "back" ? (reduced ? RED.host : LEN.back) : 0;
+  const inRect = (r, p) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+  const scrub = document.getElementById("scrub"), clock = document.getElementById("clock");
+
+  function render(t) {
+    if (mode === "intro") { if (reduced) reducedIntro(tm); else INTRO[lastIntro](tm); }
+    else if (mode === "menu") drawMenu(t, { hover });
+    else if (mode === "host") { if (reduced) reducedHost(t, tm); else hostToLobby(t, tm); }
+    else if (mode === "lobby") lobbyScene(t);
+    else if (mode === "back") { if (reduced) reducedHost(t, RED.host - tm); else hostToLobby(t, LEN.host * (1 - tm / LEN.back) * 0.85); }
+    const name = mode === "intro" ? SCENES.find(s => s.id === lastIntro).name : mode === "menu" ? "Menu (live)" : mode === "lobby" ? "Lobby" : mode === "back" ? "Leaving the lobby" : "Host game → lobby";
+    g.font = "600 13px Oxanium, 'Segoe UI', sans-serif"; g.textAlign = "right"; g.textBaseline = "top"; g.fillStyle = "rgba(146,161,173,0.85)";
+    g.fillText((name + (reduced ? "  ·  reduced effects" : "")).toUpperCase(), W - 18, mode === "menu" || mode === "intro" ? 16 : 6);
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; const t = now / 1000;
+    if (!scrubbing && (mode === "intro" || mode === "host" || mode === "back")) {
+      tm += dt * speed;
+      if (tm >= len()) { tm = len(); mode = mode === "intro" ? "menu" : mode === "host" ? "lobby" : "menu"; }
+    }
+    // Hover on the live menu.
+    const target = mode === "menu" ? (inRect(HOST, mouse) ? "host" : inRect(JOIN, mouse) ? "join" : inRect(CONT, mouse) ? "cont" : inRect(CHIP, mouse) ? "name" : inRect({ x: 520, y: 666, w: 120, h: 38 }, mouse) ? "records" : inRect({ x: 650, y: 666, w: 120, h: 38 }, mouse) ? "settings" : inRect({ x: 1132, y: 666, w: 120, h: 38 }, mouse) ? "quit" : null) : null;
+    for (const k of ["host", "join", "cont", "name", "records", "settings", "quit"]) hover[k] = clamp01((hover[k] || 0) + (k === target ? dt : -dt) / 0.14);
+    cv.style.cursor = target || mode === "lobby" || mode === "intro" ? "pointer" : "default";
+    render(t);
+    const L2 = len();
+    if (!scrubbing) scrub.value = L2 ? Math.round(1000 * tm / L2) : 1000;
+    clock.textContent = L2 ? `${tm.toFixed(2)} / ${L2.toFixed(2)} s` : (mode === "menu" ? "menu: live" : "lobby");
+    requestAnimationFrame(frame);
+  }
+  function play(id) {
+    scene = id;
+    if (id === "host") { mode = "host"; tm = 0; } else { lastIntro = id; mode = "intro"; tm = 0; }
+    document.querySelectorAll("#scenes button").forEach(b => b.classList.toggle("on", b.dataset.v === id));
+    document.querySelectorAll(".card").forEach(c => c.classList.toggle("on", c.dataset.v === id));
+  }
+  const toCanvas = e => { const b = cv.getBoundingClientRect(); return { x: (e.clientX - b.left) * W / b.width, y: (e.clientY - b.top) * H / b.height }; };
+  cv.addEventListener("mousemove", e => { mouse = toCanvas(e); });
+  cv.addEventListener("mouseleave", () => { mouse = { x: -1, y: -1 }; });
+  cv.addEventListener("click", e => {
+    const p = toCanvas(e);
+    if (mode === "intro") { tm = len(); return; }  // skip, as in the game
+    if (mode === "menu" && inRect(HOST, p)) { mode = "host"; tm = 0; scene = "host"; document.querySelectorAll("#scenes button").forEach(b => b.classList.toggle("on", b.dataset.v === "host")); return; }
+    if (mode === "lobby") { mode = "back"; tm = 0; }
+  });
+  const segS = document.getElementById("scenes"), cards = document.getElementById("cards");
+  for (const s of SCENES) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.v = s.id; b.textContent = s.name; b.onclick = () => play(s.id); segS.appendChild(b);
+    const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.v = s.id; c.style.setProperty("--c", s.c);
+    c.innerHTML = `<div class="hd"><b class="n"></b><span class="tag"></span></div><p class="sum"></p><ol></ol>`;
+    c.querySelector(".n").textContent = s.name; c.querySelector(".tag").textContent = s.tag; c.querySelector(".sum").textContent = s.sum;
+    const ol = c.querySelector("ol");
+    for (const [a, b2, what] of s.beats) { const li = document.createElement("li"), sp = document.createElement("span"); sp.textContent = `${a.toFixed(2)}–${b2.toFixed(2)} s`; li.append(sp, document.createTextNode(what)); ol.appendChild(li); }
+    c.onclick = () => { play(s.id); window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" }); };
+    cards.appendChild(c);
+  }
+  document.getElementById("replay").onclick = () => play(scene);
+  document.querySelectorAll("#speeds button").forEach(b => b.onclick = () => { speed = +b.dataset.v; document.querySelectorAll("#speeds button").forEach(x => x.classList.toggle("on", x === b)); });
+  const red = document.getElementById("reduced"); red.checked = reduced; red.onchange = () => { reduced = red.checked; play(scene); };
+  scrub.addEventListener("input", () => {
+    scrubbing = true;
+    if (mode === "menu") { mode = "intro"; } if (mode === "lobby") { mode = "host"; }
+    tm = len() * scrub.value / 1000;
+  });
+  scrub.addEventListener("change", () => { scrubbing = false; });
+  const start = () => { measure(); play("launch"); requestAnimationFrame(frame); };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+})();
+</script>

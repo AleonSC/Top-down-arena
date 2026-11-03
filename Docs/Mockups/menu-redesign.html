@@ -111,7 +111,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
       good: "Memorable and very graph-like.", cost: "Four equal cards make Host less obviously first." },
     { id: "play", name: "D · Big play", c: "#ffb547", tag: "arcade",
       sum: "A big title with a shot arcing over it, one large pulsing Host game button, Join and Continue beside each other under it, and a slim bar at the bottom for your name, Records, Settings and Quit. A line under the title changes each visit.",
-      good: "Most energy; the first choice is obvious.", cost: "Least graph-like of the new ones; busier." },
+      good: "Most energy; the first choice is obvious. Its intros and the move into the lobby: https://claude.ai/artifact/VskdxmJhgTzmpeUnjjM2R5", cost: "Least graph-like of the new ones; busier." },
   ];
 
   const W = 1280, H = 720;
@@ -474,7 +474,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   }
 
   const DRAW = { today: dToday, card: dCard, rail: dRail, hub: dHub, play: dPlay };
-  const ACTION = { host: "Host game: opens the lobby", connect: "Connect: joins the host", continue: "Continue: the saved runs", records: "Records", settings: "Settings", quit: "Quit the game", name: "Edit your name" };
+  const ACTION = { host: "Host game: opens the lobby (D's version plays on the Big play mockup)", connect: "Connect: joins the host", continue: "Continue: the saved runs", records: "Records", settings: "Settings", quit: "Quit the game", name: "Edit your name" };
 
   // --- Loop and input -----------------------------------------------------------------------------------------------
   let last = performance.now();
