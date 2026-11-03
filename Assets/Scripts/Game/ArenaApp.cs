@@ -35,6 +35,8 @@ namespace Arena
         bool recordSessions;             // dev: record each match for balancing (Settings or --record)
         bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: X kills every enemy on the field (host only; saved)
+        bool devPauseKey;                // F1 dev tool: P freezes the match with no menu, for screenshots (saved)
+        bool devFrozen, devFrozenAck;    // P has frozen the match (Ack: the pause has come back from the host, so a later resume is someone else's)
         bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
         void SetAimLine(bool on)
@@ -159,6 +161,7 @@ namespace Arena
             game.Bot = opts.ContainsKey("bot");
             recordSessions = PlayerPrefs.GetInt("record_sessions", 1) == 1 || opts.ContainsKey("record");
             devKillAllKey = PlayerPrefs.GetInt("dev_killall", 0) == 1;
+            devPauseKey = PlayerPrefs.GetInt("dev_pausekey", 0) == 1;
             ApplyRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
@@ -250,7 +253,32 @@ namespace Arena
                     game.RequestPause(false);
                 tabPaused = false;
             }
-            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || devMenuOpen || labSetupOpen || waveEdOpen;
+            // The F1 pause key (P): freezes the match without opening the pause menu, so a screenshot shows only the game.
+            // P again resumes. Opening the pause menu, or anyone resuming, ends it.
+            if (devFrozen && (pauseMenuOpen || session.Screen != AppScreen.Game || game.State == MatchState.GameOver || game.State == MatchState.Victory))
+                devFrozen = false;  // the menu or the end of the run takes over
+            if (devFrozen && game.Paused)
+                devFrozenAck = true;
+            else if (devFrozen && devFrozenAck)
+                devFrozen = false;  // someone else resumed
+            if (!devFrozen)
+                devFrozenAck = false;
+            if (devPauseKey && Input.GetKeyDown(KeyCode.P) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game && me != null && !LabRunning
+                && !pauseMenuOpen && !devMenuOpen && !labSetupOpen && !waveEdOpen && !RecallActive && !tabPaused
+                && (game.State == MatchState.Fighting || game.State == MatchState.Intermission))
+            {
+                if (devFrozen)
+                {
+                    devFrozen = false;
+                    game.RequestPause(false);
+                }
+                else if (!game.Paused)
+                {
+                    devFrozen = true;
+                    game.RequestPause(true);
+                }
+            }
+            bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused && !devFrozen) || devMenuOpen || labSetupOpen || waveEdOpen;
             bool choosing = me != null && me.Offer != null && !menuUp;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.

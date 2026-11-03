@@ -203,7 +203,7 @@ namespace Arena
         {
             float half = (body.width - 14f) / 2f;
             // Recording.
-            var rec = new Rect(body.x, body.y, half, 200f);
+            var rec = new Rect(body.x, body.y, half, 212f);
             float y = DevCard(rec, "Session recording", "Saves each match you host as JSON for balancing.", new Color(1f, 0.45f, 0.45f));
             bool on = Ui.Toggle(new Rect(rec.x + 16f, y, rec.width - 32f, 26f), recordSessions, "Record sessions (when hosting)");
             if (on != recordSessions)
@@ -219,29 +219,37 @@ namespace Arena
             Ui.Label(new Rect(rec.x + 16f, y + 36f, rec.width - 32f, 18f), "Summarise them with Tools/SessionReport", 11, Ui.Muted);
 
             // Overlays and the bot.
-            var ov = new Rect(body.x + half + 14f, body.y, half, 200f);
+            var ov = new Rect(body.x + half + 14f, body.y, half, 212f);
             y = DevCard(ov, "Overlays and helpers", "Just for you, on this computer.", Ui.Accent);
             aimDebug = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), aimDebug, "Aim debug overlay  (F3)");
-            y += 32f;
+            y += 30f;
+            // P freezes the match with no menu on screen, for screenshots (ArenaApp.cs). Pausing is shared: it stops everyone.
+            bool pauseKey = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), devPauseKey, "Pause-time key  (P): freeze, no menu");
+            if (pauseKey != devPauseKey)
+            {
+                devPauseKey = pauseKey;
+                PlayerPrefs.SetInt("dev_pausekey", pauseKey ? 1 : 0);
+            }
+            y += 30f;
             bool bot = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), game.Bot, "Bot plays for you");
             if (bot != game.Bot)
             {
                 game.Bot = bot;
                 game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
             }
-            y += 32f;
+            y += 30f;
             bool editText = Ui.Toggle(new Rect(ov.x + 16f, y, ov.width - 32f, 26f), textEditMode, "Edit any text on screen  (F4)");
             if (editText != textEditMode)
             {
                 SetTextEditMode(editText);
                 devMenuOpen = !editText;  // out of the way, so you can click the text you want
             }
-            y += 32f;
+            y += 30f;
             if (Ui.Button(new Rect(ov.x + 16f, y, 190f, 30f), "Open practice folder"))
                 OpenFolder(PracticeFolder);
 
             // Boss Lab.
-            var lab = new Rect(body.x, body.y + 214f, body.width, 150f);
+            var lab = new Rect(body.x, body.y + 226f, body.width, 150f);
             y = DevCard(lab, "Boss Lab", "Watch bots that play like people fight any boss, with any party, at up to 8x speed, and see what hurts them.", Ui.Gold);
             if (Ui.Button(new Rect(lab.x + 16f, y + 6f, 260f, 44f), "Open Boss Lab", Ui.GoldButton))
             {
@@ -251,7 +259,7 @@ namespace Arena
             Ui.Label(new Rect(lab.x + 292f, y + 6f, lab.width - 308f, 44f), "Starting the lab leaves any match you're in.", 11, Ui.Muted, TextAnchor.MiddleLeft, false, true);
 
             // The wave editor (WaveEditorUi.cs).
-            var wed = new Rect(body.x, body.y + 378f, body.width, 140f);
+            var wed = new Rect(body.x, body.y + 390f, body.width, 140f);
             y = DevCard(wed, "Wave editor", "Design waves on a timeline: enemies, squads, spawn points, timing and props. Test them in the Practice Range.", EdColor);
             if (Ui.Button(new Rect(wed.x + 16f, y + 6f, 260f, 44f), "Open wave editor", EdDark(EdColor, 0.75f)))
                 OpenWaveEditor();

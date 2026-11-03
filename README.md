@@ -734,6 +734,7 @@ as usual.
 | Hide / show the HUD | H (it slides away and fades; "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top) |
 | Aim debug overlay | F3 |
 | DPS meter on / off (host); reset it | F2; Shift+F2 (see *DPS meter and target dummy*, below) |
+| Freeze time with no menu (dev) | P, once the F1 Tools tab's pause-time key is on; P again resumes. Pausing is shared, so it stops everyone |
 | After game over / victory (host) | R = play again, L = back to lobby, C = keep going (endless, after victory) |
 
 ### Keybinds
@@ -1000,8 +1001,9 @@ the bottom of them shows what's on (wave, recording, bot, aim debug, players):
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to level 5). Joining players can see everyone's stats but not change them.
-- **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that
-  plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **Tools:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), the **pause-time key (P)**
+  (a saved switch: P freezes the match without opening the pause menu, for screenshots; press it again to resume;
+  hide the HUD with H), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
 - **DPS (host, in a match):** the DPS meter and target dummies, below.
 
 ### DPS meter and target dummy (F2)
