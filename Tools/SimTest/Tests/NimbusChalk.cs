@@ -129,7 +129,7 @@ static partial class Program
         int capped = 0;
         play(5f, f =>
         {
-            capped = Math.Max(capped, g.Ink.Count(d => d.Owner == 1));  // the most at once (a line fades after 4 s)
+            capped = Math.Max(capped, g.Ink.Count(d => d.Owner == 1 && d.T > Game.ChalkErase));  // the most at once (a line fades after 4 s)
             return new PlayerInput { Fire = true, AimAt = mid + V2.FromAngle(f * 0.07f) * 180f * (0.5f + 0.5f * (float)Math.Sin(f * 0.02f)) };
         });
         Check(capped <= (int)(Game.ChalkInk / Game.ChalkStep) && capped >= 40, "ink is limited to " + (int)Game.ChalkInk + " px of line at a time (" + capped + " dots)");
@@ -145,16 +145,26 @@ static partial class Program
         Check(client.Game.InkTip.ContainsKey(1) && Math.Abs(tipAt - far2.X) < 8f, "the chalk keeps up with a fast cursor, and the other player gets its tip (" + tipAt.ToString("0") + " vs " + far2.X.ToString("0") + ")");
         play(0.3f, idle);
         Check(!client.Game.InkTip.ContainsKey(1), "the tip goes away when you let go");
+        // At the cap, drawing on rubs out the start of the line instead of stopping: one unbroken stroke, always the newest part.
         reset();
         play(0.3f, idle);
-        V2 into = from + new V2(160f, 0f), away = from + new V2(330f, 130f);
-        play(1.6f, f => new PlayerInput { Fire = true, AimAt = into + V2.FromAngle(f * 0.13f) * 120f });  // fills the ink
-        var before = g.Ink.Where(d => d.Owner == 1).ToList();
-        int strokeBefore = before.Count > 0 ? before.Last().Stroke : -1;
-        play(5f, f => new PlayerInput { Fire = true, AimAt = away });  // the chalk goes off with no ink left; the line fades and the ink comes back
-        var later = g.Ink.Where(d => d.Owner == 1 && d.Stroke != strokeBefore).ToList();
-        Console.WriteLine("  chalk: out of ink with {0} dots; {1} new dots began again at the cursor ({2:0} px from it at most)", before.Count, later.Count, later.Count > 0 ? later.Max(d => d.Pos.DistanceTo(away)) : -1f);
-        Check(later.Count > 0 && later.All(d => d.Pos.DistanceTo(away) < 40f), "when the ink comes back, the line starts fresh where the chalk is, not as a straight chord from where it ran out");
+        Func<int, V2> zig = f => from + new V2(100f + Math.Abs((f * 7) % 400 - 200), -130f);  // back and forth along a 200 px line: over 1000 px of path in 2.5 s
+        play(0.5f, f => new PlayerInput { Fire = true, AimAt = zig(f) });
+        InkDot first = g.Ink.First(d => d.Owner == 1);
+        int ff0 = 30;
+        int drawn = 0, atCap = 0;
+        play(2.5f, f =>
+        {
+            drawn = Math.Max(drawn, g.Ink.Count(d => d.Owner == 1 && d.T > Game.ChalkErase));
+            return new PlayerInput { Fire = true, AimAt = zig(f + ff0) };
+        });
+        var live = g.Ink.Where(d => d.Owner == 1 && d.T > Game.ChalkErase).ToList();
+        V2 tipNow = g.InkTip.ContainsKey(1) ? g.InkTip[1] : new V2(-999f, -999f);
+        Console.WriteLine("  chalk: past the cap: {0} dots down (cap {1}); the first dot's life {2:0.00}; one stroke {3}; the newest dot {4:0} px from the chalk",
+            live.Count, (int)(Game.ChalkInk / Game.ChalkStep), g.Ink.Contains(first) ? first.T : 0f, live.Select(d => d.Stroke).Distinct().Count() == 1, live.Count > 0 ? live.Last().Pos.DistanceTo(tipNow) : -1f);
+        Check(drawn <= (int)(Game.ChalkInk / Game.ChalkStep) && live.Count >= (int)(Game.ChalkInk / Game.ChalkStep) - 2, "drawing past the cap keeps the line at its limit (" + live.Count + " dots)");
+        Check(!g.Ink.Contains(first) || first.T <= Game.ChalkErase, "and rubs out the start of the line");
+        Check(live.Select(d => d.Stroke).Distinct().Count() == 1 && live.Count > 0 && live.Last().Pos.DistanceTo(tipNow) < 25f, "the chalk keeps drawing at the cursor, as one unbroken stroke");
         reset();
         play(0.3f, idle);
 

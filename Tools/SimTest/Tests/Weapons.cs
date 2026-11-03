@@ -268,7 +268,7 @@ static partial class Program
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
-                totems = Math.Max(totems, g.Ink.Count(d => d.Owner == 1));
+                totems = Math.Max(totems, g.Ink.Count(d => d.Owner == 1 && d.T > Game.ChalkErase));
             }
             float dmg = 0f;
             foreach (var e in dummies) dmg += e.MaxHp - e.Hp;

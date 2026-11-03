@@ -304,6 +304,29 @@ namespace Arena
             Set(Sfx.SpellFrost, Tone(0.18f, Osc.Triangle, 1800f, 2600f, 0.16f, noise: 0.15f), 0.08f);
             Set(Sfx.SpellZap, Tone(0.12f, Osc.Saw, 900f, 300f, 0.2f, noise: 0.3f, lowpass: 0.6f), 0.07f);
             Set(Sfx.SpellArcane, Tone(0.2f, Osc.Sine, 500f, 1100f, 0.2f, attack: 0.01f), 0.06f);
+            // The Repulsion Cannon: a compressed-air thump with a crack on the front, a rush of air through the cone, and a short room tail.
+            {
+                var dry = Mix(
+                    Tone(0.03f, Osc.Sine, 2600f, 800f, 0.55f, noise: 1f, lowpass: 0.85f, attack: 0.0005f, decay: 3f),                       // the crack
+                    Tone(0.32f, Osc.Sine, 150f, 36f, 0.95f, lowpass: 0.5f, attack: 0.002f, decay: 2.2f),                                    // the thump
+                    Tone(0.2f, Osc.Sine, 650f, 180f, 0.55f, noise: 0.95f, lowpass: 0.22f, attack: 0.004f, decay: 2.4f),                     // the burst of air
+                    Tone(0.36f, Osc.Saw, 240f, 70f, 0.3f, lowpass: 0.16f, attack: 0.01f, decay: 1.8f),                                      // the body of the blast
+                    Concat(new float[(int)(0.04f * Rate)], Tone(0.45f, Osc.Sine, 900f, 260f, 0.26f, noise: 0.9f, lowpass: 0.14f, attack: 0.12f, decay: 1.3f)));  // air racing out
+                var wet = Reverb(dry);
+                var all = new float[Math.Max(dry.Length, wet.Length)];
+                for (int i = 0; i < all.Length; i++)
+                    all[i] = (i < dry.Length ? dry[i] : 0f) + (i < wet.Length ? wet[i] * 0.7f : 0f);
+                Set(Sfx.ShotRepulse, Finish(all, 0.6f), 0.1f);
+            }
+            // Chain Light: a bright flash and rising shimmer, a buzzing zap, and a crackle of light arcing to each enemy.
+            Set(Sfx.SpellChainCone, Finish(Mix(
+                Tone(0.1f, Osc.Sine, 3400f, 900f, 0.5f, noise: 0.8f, lowpass: 0.85f, attack: 0.001f, decay: 3f),                                          // the flash
+                Tremolo(Tone(0.42f, Osc.Saw, 560f, 170f, 0.5f, noise: 0.15f, lowpass: 0.4f, attack: 0.004f, decay: 1.5f), 52f, 0.55f),               // the zap
+                Notes(new[] { 1568f, 2093f, 2637f, 3136f, 4186f }, 0.035f, Osc.Sine, 0.22f, 1f),                                                       // light, rising
+                Crackle(0.38f, 26)), 0.5f), 0.1f);
+            Set(Sfx.SpellChainArc, Finish(Mix(
+                Tone(0.07f, Osc.Square, 2200f, 700f, 0.35f, noise: 0.35f, lowpass: 0.7f, attack: 0.0008f, decay: 3f),
+                Crackle(0.14f, 7)), 0.3f), 0.05f);
             Set(Sfx.SpellHoly, Notes(new[] { 1047f, 1319f }, 0.06f, Osc.Sine, 0.18f, 1f), 0.1f);
             Set(Sfx.Throw, Tone(0.1f, Osc.Sine, 400f, 200f, 0.16f, noise: 0.6f, lowpass: 0.3f), 0.07f);
             // Knight: a quick airy whoosh, a heavier one with a low thud, and steel on steel.

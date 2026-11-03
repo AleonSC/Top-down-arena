@@ -19,7 +19,7 @@ namespace Arena
             float reach = w.Reach * AreaMult(p) * PierceReach(p), half = (RepelHalfArc + RepelArcPerExtra * extra) * ConeNarrow(p);
             float hit = (w.Damage + RepelDmgPerExtra * extra) * dmg * ConeFocus(p), push = (RepelPush + RepelPushPerExtra * extra) * ConeFocus(p);
             V2 origin = p.Pos;
-            BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, RepulseFxTime, Sfx.Shockwave);
+            BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, RepulseFxTime, Sfx.ShotRepulse);
             bool any = false;
             foreach (var e in new System.Collections.Generic.List<Enemy>(Enemies.Values))
             {
