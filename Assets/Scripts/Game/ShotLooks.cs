@@ -33,6 +33,18 @@ namespace Arena
             return null;
         }
 
+        /// The glow pass's glow for a shot: the tracers' is the mockup's (14 px at 0.8), the rest the usual soft glow.
+        void ShotGlow(Bullet b)
+        {
+            var w = ShotWeapon(b);
+            if (w == WeaponId.TwinRifle || w == WeaponId.BurstSmg)
+            {
+                GlowDisc(b.Pos, 14f, Defs.BulletColor(b.Kind), 0.8f);
+                return;
+            }
+            GlowDisc(b.Pos, Mathf.Max(14f, b.Radius * 4.5f), Defs.BulletColor(b.Kind), b.Owner != 0 ? 0.47f : 0.5f);
+        }
+
         /// DrawBigShot / DrawSmallShot: draws the shot its new way and says so (false: draw it as before).
         bool DrawWeaponShot(Bullet b, float t)
         {
@@ -49,10 +61,19 @@ namespace Arena
                 case WeaponId.TwinRifle:
                 case WeaponId.BurstSmg:
                 {
-                    float len = Mathf.Min(46f, b.Vel.Length * 0.03f);
-                    Line(b.Pos - dir * len, b.Pos, r * 1.1f, c.WithAlpha(0.35f));
-                    Line(b.Pos - dir * (len * 0.6f), b.Pos, r * 0.6f, c.WithAlpha(0.85f));
-                    Circle(b.Pos, r * 0.75f, Rgba.White, 8);
+                    // The mockup's tracer: a streak as long as its last 10 frames (never longer than it has flown),
+                    // tapering from 3 px to 0.6 and fading from 0.8 to nothing, colour per vertex so it's smooth; a white
+                    // head; its glow (TracerGlow) is drawn in the glow pass.
+                    float speed = b.Vel.Length, flown = Mathf.Max(0f, (b.Life0 - b.Life) * speed);
+                    float len = Mathf.Min(speed / 6f, flown);
+                    if (len > 1f)
+                    {
+                        V2 tail = b.Pos - dir * len;
+                        Rgba head = c.WithAlpha(0.8f), clear = c.WithAlpha(0f);
+                        VTri(b.Pos + side * 1.5f, head, tail + side * 0.3f, clear, tail - side * 0.3f, clear);
+                        VTri(b.Pos + side * 1.5f, head, tail - side * 0.3f, clear, b.Pos - side * 1.5f, head);
+                    }
+                    Circle(b.Pos, 3f, Rgba.White, 10);
                     return true;
                 }
                 case WeaponId.Railgun:
