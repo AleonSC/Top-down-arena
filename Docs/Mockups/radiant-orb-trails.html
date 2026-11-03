@@ -1,0 +1,462 @@
+<title>Radiant Orb Trails</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a patch of arena at the game's scale (1 canvas px = 1 arena px)
+   with the Elementalist Healer holding the Radiant Orb on a looping scripted cursor, so you see the cast, the drag
+   through enemies, and the release. Under it: one card per trail style, each a live preview running the same loop.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --light: #fff2a0; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--light); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 400; background: #070910; touch-action: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2716; border-color: var(--light); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--light); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--light); }
+.card canvas { width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 400; background: #070910; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--light); }
+.card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 14px; }
+.card dt { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.card dd { margin: 0; color: var(--soft); min-width: 0; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .now { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .motion-note { display: block !important; } }
+.motion-note { display: none; color: var(--amber); font-size: 14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist Healer · Radiant Orb · pick a trail</div>
+    <h1>Radiant <span>Orb</span> Trails</h1>
+    <p class="lead">Hold fire and the orb flies from you to your cursor at 750 px/s, then sits on the cursor and burns
+      enemies (8 damage) and heals allies (4) five times a second while you drag it around. Today it has no trail at
+      all. Below are five ways to give it one, in the arena at the game's scale. The loop shows the three moments:
+      the <b>cast</b> (the orb flies out), the <b>drag</b> (it chases a moving cursor through the pack) and the
+      <b>release</b> (it fades). The two Light Orbs that Multishot and Barrage add are on by default, and share the
+      trail style at half size.</p>
+    <p class="motion-note">Your system asks for reduced motion; these previews are animated on purpose, so use Pause to hold a frame.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="400"></canvas>
+    <div class="bar">
+      <div class="group" id="styleBtns"><span class="label">Trail</span></div>
+      <div class="group"><span class="label">Show</span>
+        <button id="lights" aria-pressed="true">Light Orbs</button>
+        <button id="mouse" aria-pressed="false">Steer with mouse</button>
+      </div>
+      <div class="group"><span class="label">Time</span>
+        <button id="pause" aria-pressed="false">Pause</button>
+        <button id="slow" aria-pressed="false">Slow-mo ¼×</button>
+      </div>
+      <div class="now" id="now">cast</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The styles</h2>
+    <p class="lead" style="margin-block: 6px 14px">Every card runs the same loop at the same moment, so you're comparing
+      like with like. Click one to put it in the big stage.</p>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li><b>Drawing only.</b> The trail is the client replaying where the orb has been: <code>DrawRadiantOrbs</code>
+        in <code>Game/WorldRenderer.cs</code> would keep the last ~0.5 s of <code>p.RadiantDisp</code> per orb (and per
+        Light Orb) and draw from that. Nothing is sent over the network, so no protocol bump, and every player sees
+        the same trail on everyone's orb.</li>
+      <li><b>Still orb, still alive.</b> The orb sits on the cursor most of the time, so a pure motion trail would
+        vanish whenever you hold still. B, C and D keep a little life going at rest (stardust drifting off, echoes
+        pulsing, three coloured motes circling); A is a pure comet tail and only shows when you move.</li>
+      <li><b>Glow pass.</b> The soft light (ribbons, halos, sparkles) goes in the additive glow pass like the melee
+        energy and Chain Light's looks, so it also shows, clipped, in the lobby's loadout preview.</li>
+      <li><b>Scales with the orb.</b> Width follows <code>RadiantSize</code> (Homing Rounds grow the orb, so the
+        trail widens with it); a Light Orb gets the same trail at half size.</li>
+      <li><b>Cost.</b> A and D are one polyline each, around 30 segments per orb. B and C spawn small particles
+        or rings (roughly 30 alive per orb) from the existing Spark and ring helpers. With Visual effects off it
+        draws exactly as now (render check <code>IDENTICAL</code>).</li>
+      <li><b>My pick: E, Radiance.</b> The comet tail gives the drag its sense of speed and a readable shape for
+        where you've swept, and the sprinkle of stardust keeps it alive when you stop. It stays in the orb's own
+        pale gold, so it still reads as light and as the Healer's (the Mage's fire and frost have their own
+        colours). Say which you want and I'll build it.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const smooth = x => { x = clamp01(x); return x * x * (3 - 2 * x); };
+  const LIGHT = [1, 0.95, 0.6];    // Defs.BulletColor(HolyShot)
+  const WARM = [1, 0.74, 0.3];
+  const WHITE = [1, 1, 1];
+  const ROSE = [1, 0.55, 0.72], AQUA = [0.55, 0.95, 1];
+  const rgba = (c, a) => `rgba(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)},${Math.max(0, Math.min(1, a))})`;
+  const mix = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // The game's numbers (Core/RadiantOrb.cs, KitWeapons.cs): the orb is 20 px, flies at 750 px/s, goes at most 520 px
+  // from you; a tick every 0.2 s (8 damage to enemies, 4 healing to allies); Light Orbs ring it at 45 px, 900 px/s.
+  const R = 20, SPEED = 750, REACH = 520, TICK = 0.2, RING = 45, LSPEED = 900, BODY = 16;
+  const W = 960, H = 400, P = { x: 150, y: 200 };
+  const CYCLE = 8.4, HOLD_ON = 0.45, HOLD_OFF = 6.9;
+  const ENEMIES = [[420, 105], [545, 150], [615, 255], [478, 305], [382, 232], [575, 62]];
+  const ALLY = [320, 330];
+
+  const STYLES = [
+    { id: "none", tag: "NOW", name: "No trail", dflt: "the game today" },
+    { id: "comet", tag: "A", name: "Comet tail" },
+    { id: "stardust", tag: "B", name: "Stardust" },
+    { id: "echo", tag: "C", name: "Echo rings" },
+    { id: "prism", tag: "D", name: "Prism strands" },
+    { id: "radiance", tag: "E", name: "Radiance" },
+  ];
+
+  // --- Drawing helpers ---
+  const sprites = {};
+  function sprite(c) {  // a soft disc of light (the projectiles mockup's glow sprite)
+    const k = c.join();
+    if (sprites[k]) return sprites[k];
+    const s = document.createElement("canvas"); s.width = s.height = 64;
+    const x = s.getContext("2d"), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, rgba(c, 0.9)); g.addColorStop(0.28, rgba(c, 0.32)); g.addColorStop(1, rgba(c, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return sprites[k] = s;
+  }
+  function glow(ctx, x, y, r, c, a) {
+    if (a <= 0.01 || r <= 0.3) return;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = Math.min(1, a);
+    ctx.drawImage(sprite(c), x - r, y - r, r * 2, r * 2); ctx.restore();
+  }
+  function seg(ctx, ax, ay, bx, by, w, col) {
+    ctx.strokeStyle = col; ctx.lineWidth = Math.max(0.4, w); ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  }
+  function disc(ctx, x, y, r, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, TAU); ctx.fill(); }
+  function ring(ctx, x, y, r, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, TAU); ctx.stroke(); }
+  function star(ctx, x, y, r, rot, col, w) {  // a four-point sparkle
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath();
+    for (let k = 0; k < 2; k++) { const a = rot + k * Math.PI / 2; ctx.moveTo(x - Math.cos(a) * r, y - Math.sin(a) * r); ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+    ctx.stroke();
+  }
+
+  // The orb itself, as DrawRadiantOrbs draws it: soft halo, body, six slow rays, bright core.
+  function drawOrb(ctx, x, y, r, a, t, seed) {
+    if (a <= 0.01) return;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 8 + seed);
+    glow(ctx, x, y, r * 3.4, LIGHT, 0.55 * a);
+    disc(ctx, x, y, r * 1.6, rgba(LIGHT, (0.1 + 0.05 * pulse) * a));
+    disc(ctx, x, y, r, rgba(LIGHT, 0.28 * a));
+    for (let k = 0; k < 6; k++) {
+      const an = t * 1.5 + k * TAU / 6, dx = Math.cos(an), dy = Math.sin(an);
+      seg(ctx, x + dx * r * 0.55, y + dy * r * 0.55, x + dx * r * (1.05 + 0.15 * pulse), y + dy * r * (1.05 + 0.15 * pulse), Math.max(1, r * 0.1), rgba(LIGHT, 0.6 * a));
+    }
+    disc(ctx, x, y, r * 0.45 + 1.5 * pulse * (r / R), rgba(LIGHT, a));
+    disc(ctx, x, y, r * 0.22, rgba(WHITE, a));
+  }
+
+  // --- A trail emitter: follows one orb (or Light Orb), keeps 0.55 s of where it's been, and sheds particles ---
+  class Emitter {
+    constructor(seed) { this.hist = []; this.parts = []; this.echoes = []; this.R = rnd(seed); this.px = null; this.py = null; this.accEcho = 0; this.accDust = 0; this.speed = 0; }
+    update(dt, now, x, y, alive, style, k) {
+      const R_ = this.R;
+      if (alive) {
+        this.speed = this.px == null ? 0 : Math.hypot(x - this.px, y - this.py) / dt;
+        const dist = this.px == null ? 0 : this.speed * dt;
+        this.hist.push({ x, y, t: now });
+        const hasDust = style === "stardust" || style === "radiance", hasEcho = style === "echo";
+        if (hasDust) {
+          this.accDust += dist / 5 + dt * (style === "stardust" ? 26 : 9);
+          while (this.accDust >= 1) {
+            this.accDust -= 1;
+            const a = R_() * TAU, sp = 14 + R_() * 44 * k, f = R_();
+            this.parts.push({ x: x - (x - (this.px ?? x)) * f + Math.cos(a) * R * 0.55 * k * R_(), y: y - (y - (this.py ?? y)) * f + Math.sin(a) * R * 0.55 * k * R_(),
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 6, life: 0.45 + R_() * 0.55, age: 0, size: (1.2 + R_() * 2.6) * k, kind: R_() < 0.35 ? 1 : 0, rot: R_() * 3, tw: R_() * TAU, warm: R_() });
+          }
+        }
+        if (hasEcho) {
+          this.accEcho += dt;
+          const gap = this.speed > 60 ? 0.04 : 0.16;
+          if (this.accEcho >= gap) { this.accEcho = 0; this.echoes.push({ x, y, age: 0, rot: R_() * TAU, still: this.speed <= 60 }); }
+        }
+        this.px = x; this.py = y;
+      } else { this.px = null; this.py = null; this.speed = 0; }
+      while (this.hist.length && now - this.hist[0].t > 0.55) this.hist.shift();
+      for (const p of this.parts) { p.age += dt / p.life; p.x += p.vx * dt; p.y += p.vy * dt; const d = Math.pow(0.9, dt * 60); p.vx *= d; p.vy *= d; }
+      this.parts = this.parts.filter(p => p.age < 1);
+      for (const e of this.echoes) e.age += dt / 0.55;
+      this.echoes = this.echoes.filter(e => e.age < 1);
+    }
+    // The ribbon: a tapered stroke along the history. newest point last.
+    comet(ctx, now, k, a, bright) {
+      const h = this.hist; if (h.length < 2) return;
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      for (let i = 1; i < h.length; i++) {
+        const f = clamp01(1 - (now - h[i].t) / 0.55), fp = Math.pow(f, 1.25);
+        const w = R * 1.5 * k * fp;
+        seg(ctx, h[i - 1].x, h[i - 1].y, h[i].x, h[i].y, w * 2.3, rgba(LIGHT, 0.09 * fp * a * bright));
+        seg(ctx, h[i - 1].x, h[i - 1].y, h[i].x, h[i].y, w, rgba(mix(WARM, LIGHT, f), 0.5 * fp * a * bright));
+        seg(ctx, h[i - 1].x, h[i - 1].y, h[i].x, h[i].y, w * 0.38, rgba(WHITE, 0.85 * fp * a * bright));
+      }
+      ctx.restore();
+    }
+    dust(ctx, now, k, a) {
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      for (const p of this.parts) {
+        const f = 1 - p.age, tw = 0.65 + 0.35 * Math.sin(now * 22 + p.tw), c = mix(WHITE, mix(LIGHT, WARM, p.warm), p.age);
+        const s = p.size * (0.4 + 0.6 * f);
+        glow(ctx, p.x, p.y, s * 4.5, c, 0.55 * f * a);
+        if (p.kind) star(ctx, p.x, p.y, s * 3.2 * tw, p.rot + p.age * 2, rgba(c, 0.9 * f * a), Math.max(0.8, s * 0.35));
+        else disc(ctx, p.x, p.y, s * 0.6, rgba(WHITE, 0.9 * f * a));
+      }
+      ctx.restore();
+    }
+    echo(ctx, now, k, a) {
+      const h = this.hist;
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      if (h.length > 1) for (let i = 1; i < h.length; i++) {
+        const f = clamp01(1 - (now - h[i].t) / 0.55);
+        seg(ctx, h[i - 1].x, h[i - 1].y, h[i].x, h[i].y, 2 * k * f, rgba(LIGHT, 0.3 * f * a));
+      }
+      for (const e of this.echoes) {
+        const f = 1 - e.age, rr = e.still ? R * k * (1 + e.age * 1.5) : R * k * (1 - e.age * 0.55);
+        glow(ctx, e.x, e.y, rr * 2.6, LIGHT, 0.2 * f * a);
+        ring(ctx, e.x, e.y, rr, Math.max(1, 2.2 * k * f), rgba(e.still ? WARM : LIGHT, 0.75 * f * a));
+        if (!e.still) for (let r = 0; r < 3; r++) { const an = e.rot + e.age * 2 + r * TAU / 3; seg(ctx, e.x + Math.cos(an) * rr * 0.4, e.y + Math.sin(an) * rr * 0.4, e.x + Math.cos(an) * rr * 0.95, e.y + Math.sin(an) * rr * 0.95, Math.max(0.8, 1.6 * k * f), rgba(WHITE, 0.55 * f * a)); }
+      }
+      ctx.restore();
+    }
+    prism(ctx, now, k, a, x, y, alive) {
+      const h = this.hist, cols = [LIGHT, ROSE, AQUA];
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      if (h.length > 2) for (let s = 0; s < 3; s++) {
+        let prev = null;
+        for (let i = 0; i < h.length; i++) {
+          const a0 = h[Math.max(0, i - 1)], a1 = h[Math.min(h.length - 1, i + 1)];
+          let tx = a1.x - a0.x, ty = a1.y - a0.y; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+          const f = clamp01(1 - (now - h[i].t) / 0.55), ph = h[i].t * 22 + s * TAU / 3;
+          const amp = R * 0.95 * k * (0.35 + 0.65 * Math.sqrt(1 - f) + 0.2 * f), o = Math.sin(ph) * amp;
+          const px = h[i].x - ty * o, py = h[i].y + tx * o;
+          if (prev) seg(ctx, prev[0], prev[1], px, py, (1 + 3.2 * f) * k, rgba(cols[s], 0.8 * Math.pow(f, 1.2) * a));
+          prev = [px, py];
+        }
+      }
+      ctx.restore();
+      if (alive && this.speed < 220) {  // at rest: three coloured motes circle the orb
+        ctx.save(); ctx.globalCompositeOperation = "lighter";
+        const calm = 1 - clamp01(this.speed / 220);
+        for (let s = 0; s < 3; s++) {
+          const an = now * 5 + s * TAU / 3, rr = R * 1.35 * k;
+          const mx = x + Math.cos(an) * rr, my = y + Math.sin(an) * rr;
+          glow(ctx, mx, my, 9 * k, cols[s], 0.7 * calm * a);
+          for (let j = 1; j <= 6; j++) { const a2 = an - j * 0.17; glow(ctx, x + Math.cos(a2) * rr, y + Math.sin(a2) * rr, (7 - j) * k, cols[s], 0.32 * calm * a * (1 - j / 7)); }
+        }
+        ctx.restore();
+      }
+    }
+    draw(ctx, style, now, k, a, x, y, alive) {
+      switch (style) {
+        case "comet": this.comet(ctx, now, k, a, 1); break;
+        case "stardust": this.dust(ctx, now, k, a); this.comet(ctx, now, k * 0.5, a * 0.4, 0.8); break;
+        case "echo": this.echo(ctx, now, k, a); break;
+        case "prism": this.prism(ctx, now, k, a, x, y, alive); break;
+        case "radiance": this.comet(ctx, now, k, a, 1); this.dust(ctx, now, k, a); break;
+      }
+    }
+  }
+
+  // --- One preview: a caster, a pack, an ally, the orb on a scripted cursor, two Light Orbs ---
+  class Sim {
+    constructor(canvas, style, scale, opts) {
+      this.cv = canvas; this.ctx = canvas.getContext("2d"); this.style = style; this.scale = scale; this.opts = opts || {};
+      const dpr = Math.min(2, window.devicePixelRatio || 1); canvas.width = W * scale * dpr; canvas.height = H * scale * dpr; this.dpr = dpr;
+      this.t = 0; this.orb = { x: P.x, y: P.y, on: false, fade: 0 };
+      this.em = new Emitter(11); this.lights = [0, 1].map(i => ({ x: P.x + 20, y: P.y, em: new Emitter(31 + i) }));
+      this.tick = 0; this.parts = []; this.floats = []; this.flash = ENEMIES.map(() => 0); this.allyFlash = 0; this.held = false; this.cursor = { x: 400, y: 200 };
+      this.mouse = null; this.pressed = false; this.useMouse = false; this.showLights = true; this.phase = "idle"; this.R = rnd(77);
+    }
+    scriptCursor(c) {
+      const u = Math.max(0, c - HOLD_ON);
+      const ramp = Math.min(1, u / 0.5);
+      return { x: P.x + 345 + 195 * Math.sin(1.1 * u + 0.35) * ramp + (1 - ramp) * 40, y: P.y + 135 * Math.sin(1.85 * u + 0.4) * ramp };
+    }
+    step(dt) {
+      this.t += dt; const now = this.t, c = now % CYCLE, o = this.orb;
+      let hold = c >= HOLD_ON && c < HOLD_OFF, cur = this.scriptCursor(c);
+      if (this.useMouse && this.mouse) { cur = this.mouse; hold = this.pressed; }
+      else if (this.useMouse) hold = false;
+      this.cursor = cur;
+      const goalV = { x: cur.x - P.x, y: cur.y - P.y }, gl = Math.hypot(goalV.x, goalV.y) || 1, lim = Math.min(REACH, gl);
+      const goal = { x: P.x + goalV.x / gl * lim, y: P.y + goalV.y / gl * lim };
+      if (hold && !this.held) {  // cast
+        const d = { x: goalV.x / gl, y: goalV.y / gl };
+        o.x = P.x + d.x * BODY; o.y = P.y + d.y * BODY; o.on = true; o.fade = 1; this.tick = 0; this.burst(o.x, o.y, 10, 120);
+        this.em.hist = []; this.em.px = null;
+      }
+      if (!hold && this.held) { o.on = false; this.burst(o.x, o.y, 14, 90); }
+      this.held = hold;
+      if (o.on) {
+        const dx = goal.x - o.x, dy = goal.y - o.y, dl = Math.hypot(dx, dy), step = Math.min(dl, SPEED * dt);
+        if (dl > 0.001) { o.x += dx / dl * step; o.y += dy / dl * step; }
+        const rx = o.x - P.x, ry = o.y - P.y, rl = Math.hypot(rx, ry); if (rl > REACH) { o.x = P.x + rx / rl * REACH; o.y = P.y + ry / rl * REACH; }
+        this.tick -= dt;
+        if (this.tick <= 0) { this.tick = TICK; this.touch(); }
+      } else o.fade = Math.max(0, o.fade - dt / 0.3);
+      this.phase = !hold ? (o.fade > 0 ? "release" : "idle") : (now % CYCLE - HOLD_ON < 0.55 && Math.hypot(o.x - goal.x, o.y - goal.y) > 4 ? "cast" : "drag");
+      const em = this.style === "none" ? null : this.em;
+      if (em) em.update(dt, now, o.x, o.y, o.on, this.style, 1);
+      // Light Orbs ring the orb while it's out (you otherwise), chasing at 900 px/s
+      this.lights.forEach((l, i) => {
+        const cx = o.on ? o.x : P.x, cy = o.on ? o.y : P.y, an = now * 3.2 + i * Math.PI;
+        const tx = cx + Math.cos(an) * RING, ty = cy + Math.sin(an) * RING, dx = tx - l.x, dy = ty - l.y, dl = Math.hypot(dx, dy), s = Math.min(dl, LSPEED * dt);
+        if (dl > 0.001) { l.x += dx / dl * s; l.y += dy / dl * s; }
+        if (this.style !== "none") l.em.update(dt, now, l.x, l.y, this.showLights, this.style, 0.5);
+      });
+      for (let i = 0; i < this.flash.length; i++) this.flash[i] = Math.max(0, this.flash[i] - dt * 5);
+      this.allyFlash = Math.max(0, this.allyFlash - dt * 4);
+      for (const p of this.parts) { p.age += dt / p.life; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.93; p.vy *= 0.93; }
+      this.parts = this.parts.filter(p => p.age < 1);
+      for (const f of this.floats) { f.age += dt / 0.8; f.y -= 28 * dt; }
+      this.floats = this.floats.filter(f => f.age < 1);
+    }
+    touch() {
+      const o = this.orb;
+      ENEMIES.forEach((e, i) => { if (Math.hypot(e[0] - o.x, e[1] - o.y) <= R + 15) { this.flash[i] = 1; this.floats.push({ x: e[0], y: e[1] - 16, age: 0, txt: "8", col: "#ffd98a" }); this.burst(e[0], e[1], 3, 60); } });
+      if (Math.hypot(ALLY[0] - o.x, ALLY[1] - o.y) <= R + 15) { this.allyFlash = 1; this.floats.push({ x: ALLY[0], y: ALLY[1] - 18, age: 0, txt: "+4", col: "#7dffb0" }); }
+    }
+    burst(x, y, n, sp) {
+      for (let i = 0; i < n; i++) { const a = this.R() * TAU, s = sp * (0.3 + this.R()); this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.3 + this.R() * 0.2, age: 0 }); }
+    }
+    draw() {
+      const ctx = this.ctx, s = this.scale * this.dpr, now = this.t, o = this.orb;
+      ctx.setTransform(s, 0, 0, s, 0, 0);
+      ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+      // reach ring, faint
+      ring(ctx, P.x, P.y, REACH, 1, "rgba(255,242,160,0.05)");
+      // enemies and ally
+      ENEMIES.forEach((e, i) => {
+        const f = this.flash[i];
+        disc(ctx, e[0], e[1], 15, f > 0 ? `rgb(${Math.round(150 + 105 * f)},${Math.round(60 + 160 * f)},${Math.round(70 + 90 * f)})` : "#9a3a46");
+        ring(ctx, e[0], e[1], 15, 2, "rgba(255,160,170,0.55)");
+        disc(ctx, e[0] - 4, e[1] - 3, 2, "#1a0a0e"); disc(ctx, e[0] + 4, e[1] - 3, 2, "#1a0a0e");
+      });
+      disc(ctx, ALLY[0], ALLY[1], 14, this.allyFlash > 0 ? `rgb(${Math.round(60 + 120 * this.allyFlash)},230,${Math.round(150 + 60 * this.allyFlash)})` : "#2f9d78");
+      ring(ctx, ALLY[0], ALLY[1], 14, 2, "rgba(150,255,210,0.55)");
+      // caster
+      glow(ctx, P.x, P.y, 46, LIGHT, 0.25);
+      disc(ctx, P.x, P.y, BODY, "#d9c27a"); ring(ctx, P.x, P.y, BODY, 2, "rgba(255,242,160,0.8)");
+      // beam back to the caster, and the cursor
+      if (o.on || o.fade > 0) { const a = o.on ? 1 : o.fade; seg(ctx, P.x, P.y, o.x, o.y, 6, rgba(LIGHT, 0.08 * a)); seg(ctx, P.x, P.y, o.x, o.y, 1.5, rgba(LIGHT, 0.35 * a)); }
+      if (this.opts.cursor) { const c = this.cursor; ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(c.x, c.y, 6, 0, TAU); ctx.moveTo(c.x - 10, c.y); ctx.lineTo(c.x - 3, c.y); ctx.moveTo(c.x + 3, c.y); ctx.lineTo(c.x + 10, c.y); ctx.moveTo(c.x, c.y - 10); ctx.lineTo(c.x, c.y - 3); ctx.moveTo(c.x, c.y + 3); ctx.lineTo(c.x, c.y + 10); ctx.stroke(); }
+      // trails, then bodies
+      const a = o.on ? 1 : Math.max(0, o.fade);
+      if (this.style !== "none") {
+        if (this.showLights) this.lights.forEach(l => l.em.draw(ctx, this.style, now, 0.5, 1, l.x, l.y, true));
+        this.em.draw(ctx, this.style, now, 1, o.on ? 1 : a, o.x, o.y, o.on);
+      }
+      if (this.showLights) this.lights.forEach((l, i) => { glow(ctx, l.x, l.y, 16, LIGHT, 0.7); disc(ctx, l.x, l.y, 6, rgba(LIGHT, 0.95)); disc(ctx, l.x, l.y, 2.6, rgba(WHITE, 1)); });
+      drawOrb(ctx, o.x, o.y, R, a, now, 0);
+      // hit sparks and numbers
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      for (const p of this.parts) { const f = 1 - p.age; seg(ctx, p.x, p.y, p.x - p.vx * 0.04, p.y - p.vy * 0.04, 2 * f + 0.5, rgba(LIGHT, f)); }
+      ctx.restore();
+      ctx.font = "700 14px Oxanium, system-ui, sans-serif"; ctx.textAlign = "center";
+      for (const f of this.floats) { ctx.globalAlpha = 1 - f.age; ctx.fillStyle = f.col; ctx.fillText(f.txt, f.x, f.y); }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // --- Page wiring ---
+  const main = new Sim(document.getElementById("arena"), "radiance", 1, { cursor: true });
+  const btns = document.getElementById("styleBtns"), cardsEl = document.getElementById("cards");
+  const CARD_TEXT = {
+    none: ["Today: the orb and its soft halo, nothing behind it.", "Clean, but a cast and a drag look like the orb teleports along; no feel of speed.", "Nothing to add."],
+    comet: ["A tapered ribbon of pale gold that follows the orb's last half second, white-hot in the middle, fading to nothing at the tail.", "The classic. The cast reads as a bolt flung from you and a drag paints a swept arc you can see. Still, it disappears when you hold still.", "One polyline, about 30 segments."],
+    stardust: ["The orb sheds glittering motes and four-point sparkles that drift off and twinkle out, over a thin faint tail.", "Soft and magical, lively even at rest, but the path is less crisp than a ribbon.", "About 30 particles per orb."],
+    echo: ["Afterimage rings spaced along the path, each shrinking and turning over; at rest the orb throws slow expanding pulses.", "Reads as a rhythm of light and shows speed by spacing, closer to a pulse than a flame. Busiest on a fast flick.", "Up to ~14 rings per orb."],
+    prism: ["Three intertwined strands (gold, rose, aqua) corkscrew around the path; at rest three coloured motes circle the orb.", "The showiest and most colourful, and the least like the pale gold it is now; it stands out from every other effect on screen.", "Three polylines, ~30 segments each."],
+    radiance: ["A: the comet tail, plus a gentle sprinkle of stardust from B. The ribbon gives the path, the sparkles keep it alive.", "Light as a sunbeam trailing off a thrown star. Stays in the orb's pale gold and the Healer's colours, and is still alive when you stop.", "One polyline plus about 15 particles per orb."],
+  };
+  STYLES.forEach((s, i) => {
+    const b = document.createElement("button"); b.setAttribute("aria-pressed", s.id === main.style); b.dataset.id = s.id;
+    b.innerHTML = `<span class="k">${s.tag}</span>${s.name}`; b.onclick = () => pick(s.id); btns.appendChild(b);
+    const card = document.createElement("div"); card.className = "card"; card.dataset.id = s.id; card.tabIndex = 0; card.setAttribute("role", "button");
+    const T = CARD_TEXT[s.id];
+    card.innerHTML = `<canvas aria-hidden="true"></canvas><div class="tag">${s.tag} · ${s.name.toUpperCase()}</div><dl><dt>What</dt><dd>${T[0]}</dd><dt>Feel</dt><dd>${T[1]}</dd><dt>Cost</dt><dd>${T[2]}</dd></dl>`;
+    card.onclick = () => { pick(s.id); document.getElementById("arena").scrollIntoView({ behavior: "smooth", block: "center" }); };
+    card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.onclick(); } };
+    cardsEl.appendChild(card); s.sim = new Sim(card.querySelector("canvas"), s.id, 0.5, {});
+  });
+  function pick(id) {
+    main.style = id;
+    for (const b of btns.querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.id === id);
+    for (const c of cardsEl.children) c.setAttribute("aria-current", c.dataset.id === id);
+    main.em = new Emitter(11); main.lights.forEach((l, i) => l.em = new Emitter(31 + i));
+  }
+  pick(main.style);
+  const tog = (id, fn) => { const b = document.getElementById(id); b.onclick = () => { const v = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", v); fn(v); }; };
+  tog("lights", v => { main.showLights = v; STYLES.forEach(s => s.sim.showLights = v); });
+  tog("mouse", v => { main.useMouse = v; main.pressed = false; });
+  let paused = false, slow = false;
+  tog("pause", v => paused = v); tog("slow", v => slow = v);
+  const cvs = document.getElementById("arena");
+  const toWorld = e => { const r = cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+  cvs.addEventListener("pointermove", e => { main.mouse = toWorld(e); });
+  cvs.addEventListener("pointerdown", e => { main.mouse = toWorld(e); main.pressed = true; cvs.setPointerCapture(e.pointerId); });
+  cvs.addEventListener("pointerup", () => { main.pressed = false; });
+  cvs.addEventListener("pointercancel", () => { main.pressed = false; });
+  addEventListener("keydown", e => { const s = STYLES[+e.key - 1]; if (s && !e.metaKey && !e.ctrlKey) pick(s.id); });
+  STYLES.forEach(s => s.sim.showLights = true);
+
+  const now = document.getElementById("now");
+  let last = performance.now();
+  function frame(ts) {
+    const real = Math.min(0.05, (ts - last) / 1000); last = ts;
+    if (!paused) {
+      const dt = real * (slow ? 0.25 : 1), n = Math.max(1, Math.ceil(dt / (1 / 60)));
+      for (let i = 0; i < n; i++) { main.step(dt / n); for (const s of STYLES) s.sim.step(dt / n); }
+    }
+    main.draw(); for (const s of STYLES) s.sim.draw();
+    now.textContent = main.useMouse ? (main.pressed ? "holding: steer it" : "mouse mode: press and hold on the arena") : main.phase;
+    requestAnimationFrame(frame);
+  }
+  window.__mock = { main, STYLES, step: n => { for (let i = 0; i < n; i++) { main.step(1 / 60); for (const s of STYLES) s.sim.step(1 / 60); } main.draw(); for (const s of STYLES) s.sim.draw(); }, pause: () => paused = true };
+  requestAnimationFrame(frame);
+})();
+</script>

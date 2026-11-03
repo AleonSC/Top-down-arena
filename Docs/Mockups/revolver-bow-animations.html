@@ -1,0 +1,593 @@
+<title>Revolver and Bow Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. A patch of arena at the game's scale (1 canvas px = 1 arena px):
+   a Healer, target dummies, and (for the bow) an ally. Pick a weapon, an action and a look; it loops. Single dark
+   look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --heal: #59ff8c; --amber: #ffb547; --gold: #ffd24d;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--heal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 380; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--heal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14291d; border-color: var(--heal); color: var(--fg); }
+button .k { font: 700 12px var(--font-display); color: var(--heal); margin-right: 6px; }
+.now { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--heal); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--heal); }
+.card p { font-size: 14px; color: var(--soft); }
+.card .pk { font-size: 13px; color: var(--muted); }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+@media (max-width: 700px) { .now { margin-left: 0; width: 100%; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Healer weapons · pick a look for each</div>
+    <h1>Revolver &amp; Mender's Bow <span>animations</span></h1>
+    <p class="lead">Both Healer sidearms draw very little today: the Revolver is a flat gun with a muzzle dot and a row of
+      pips; the Bow is a ring that fills and a plain arrow. Below, each one is shown in the actions you actually do
+      (tap, fan the hammer, reload; tap, full draw, perfect shot), in today's look and three alternatives, at the game's
+      real size and timing. Hits, damage, rounds and timing don't change: this is drawing only.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="380"></canvas>
+    <div class="bar">
+      <div class="group"><span class="label">Weapon</span><span id="wBtns"></span></div>
+      <div class="group"><span class="label">Action</span><span id="aBtns"></span></div>
+    </div>
+    <div class="bar" style="border-top:0;padding-top:0">
+      <div class="group"><span class="label">Look</span><span id="lBtns"></span></div>
+      <div class="group"><span class="label">Speed</span>
+        <button id="spd1" aria-pressed="true">1×</button><button id="spd4" aria-pressed="false">¼×</button>
+        <button id="pause" aria-pressed="false">Pause</button><button id="zoom" aria-pressed="false">Close-up</button>
+      </div>
+      <div class="now" id="now"></div>
+    </div>
+  </section>
+
+  <section aria-label="Looks">
+    <h2 id="cardsTitle" style="margin-bottom:12px">Looks</h2>
+    <div class="styles" id="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li>Drawing only: <code>CharacterModels.cs</code> (the gun and bow in hand), <code>WorldShots.cs</code> (bullets, arrows, the cylinder pips and bow ring) plus a new small look file like <code>FrostLook.cs</code>. Nothing in <code>Core/</code> changes, so no protocol bump.</li>
+      <li>With <b>Visual effects</b> off the arena should draw exactly as now (the render check stays <code>IDENTICAL</code>); the new looks only show with effects on.</li>
+      <li>The Revolver's real numbers are used: tap every 0.45 s, fan after 0.2 s then a round every 0.07 s within 5° of aim, last round heavy, 6 rounds, 1.2 s reload, top-up one round every 0.25 s.</li>
+      <li>The Bow's real numbers are used: 0.15 s minimum draw, full draw 0.9 s, perfect shot = release within 0.25 s of full, tap arrow 8 damage and 5 heal, full 40 and 20, perfect 50 and 25. A fire-rate upgrade only shortens the draw.</li>
+      <li>Multiplayer: other players' guns and bows would animate the same from the data they already sync (<code>DrawT</code>, <code>AmmoUsed</code>, <code>ReloadT</code>); the recoil, casings and string wobble are cosmetic, driven by the local clock.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const cv = document.getElementById("arena"), c = cv.getContext("2d");
+  const O = { x: 110, y: 190 }, GREEN = "#59ff8c";
+
+  const poly = (pts, fill, stroke, lw) => { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
+  const line = (x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const circ = (x, y, r, fill, stroke, lw) => { c.beginPath(); c.arc(x, y, Math.max(0.01, r), 0, TAU); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
+  const arc = (x, y, r, a0, a1, col, lw) => { c.beginPath(); c.arc(x, y, r, a0, a1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const rect = (x, y, w, h, fill) => { c.fillStyle = fill; c.fillRect(x, y, w, h); };
+  const glow = (col, b) => { c.shadowColor = col; c.shadowBlur = b; };
+  const noGlow = () => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const star4 = (x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+  const leaf = (x, y, ang, s, col) => { c.save(); c.translate(x, y); c.rotate(ang); c.beginPath(); c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * 0.8, s, 0); c.quadraticCurveTo(0, s * 0.8, -s, 0); c.fillStyle = col; c.fill(); c.restore(); };
+  const plus = (x, y, s, col) => { line(x - s, y, x + s, y, col, 2.2); line(x, y - s, x, y + s, col, 2.2); };
+  const text = (s, x, y, col, size) => { c.font = `700 ${size || 13}px Oxanium, sans-serif`; c.textAlign = "center"; c.fillStyle = col; c.fillText(s, x, y); };
+
+  // ---------- scene: ground, the Healer, dummies ----------
+  function ground() {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, 960, 380);
+    c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+    for (let x = 0; x < 960; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 380); c.stroke(); }
+    for (let y = 0; y < 380; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(960, y); c.stroke(); }
+  }
+  function healer(drawWeapon) {
+    c.save(); c.translate(O.x, O.y);
+    circ(0, 0, 14, "#5b6b52", GREEN, 2); circ(0, 0, 9.5, "#46543e");
+    rect(-3, -13, 5, 26, "#e8f0e8");            // the stole
+    circ(0, 0, 16.5, null, "rgba(89,255,140,0.5)", 1);  // halo
+    rect(-11, -6, 7, 12, "#2d3829");            // backpack
+    rect(1, -3, 7, 6, "#9fe8b0");               // visor
+    drawWeapon();
+    c.restore();
+  }
+  function dummy(x, y, flash, hp) {
+    const f = clamp01(flash);
+    circ(x, y, 16, f > 0 ? `rgba(255,${200 - 100 * f | 0},${160 - 100 * f | 0},1)` : "#3b2f33", "#8a4a55", 2);
+    circ(x, y, 5, "#8a4a55");
+    if (hp != null) { rect(x - 16, y - 26, 32, 3, "#222"); rect(x - 16, y - 26, 32 * hp, 3, "#e0535f"); }
+  }
+  const floater = (s, x, y, age, col) => { if (age < 0 || age > 0.8) return; c.globalAlpha = 1 - clamp01((age - 0.4) / 0.4); text(s, x, y - 24 - 26 * easeOut(age / 0.8), col, 14); c.globalAlpha = 1; };
+
+  // =====================================================================================================
+  //  REVOLVER
+  // =====================================================================================================
+  const FIRST = 0.2, FAN_WAIT = 0.2, FAN_EACH = 0.07, TAP_EACH = 0.45, RELOAD = 1.2, TOP_DELAY = 0.8, TOP_EACH = 0.25, BSPEED = 700;
+  const MUZ = { x: 10 + 17, y: 0 };
+
+  // Scenarios: a list of shots (time, angle, heavy) and a function for how many rounds are in the cylinder.
+  function revolverScenario(kind) {
+    const shots = []; let dur, rounds, reload = null, top = null;
+    if (kind === "tap") {            // three taps, the third is the heavy round
+      [0.2, 0.65, 1.1].forEach((t, i) => shots.push({ t, a: 0, heavy: i === 2 }));
+      dur = 2.4; const start = 3;
+      rounds = t => start - shots.filter(s => s.t <= t).length;
+    } else if (kind === "fan") {     // hold: the full cylinder empties, then it reloads
+      const r = rnd(9);
+      for (let i = 0; i < 6; i++) shots.push({ t: 0.3 + FAN_WAIT + i * FAN_EACH, a: (r() - 0.5) * 2 * 0.0873, heavy: i === 5 });
+      const end = shots[5].t; reload = { t0: end + 0.15, t1: end + 0.15 + RELOAD };
+      dur = reload.t1 + 0.7;
+      rounds = t => t >= reload.t1 ? 6 : 6 - shots.filter(s => s.t <= t).length;
+    } else if (kind === "reload") {  // empty: the 1.2 s reload
+      reload = { t0: 0.35, t1: 0.35 + RELOAD }; dur = reload.t1 + 0.9;
+      rounds = t => t >= reload.t1 ? 6 : 0;
+    } else {                         // top-up: stopped shooting for 0.8 s, rounds slide back in one at a time
+      top = { t0: 0.35 + TOP_DELAY }; dur = top.t0 + 4 * TOP_EACH + 1.0;
+      rounds = t => t < top.t0 ? 2 : Math.min(6, 2 + 1 + Math.floor((t - top.t0) / TOP_EACH));
+      if (true) rounds = t => t < top.t0 ? 2 : Math.min(6, 2 + 1 + Math.floor((t - top.t0) / TOP_EACH));
+    }
+    return { shots, dur, rounds, reload, top };
+  }
+
+  // the gun in hand, local to the Healer. kick = 0..1 recoil, spin = cylinder angle
+  function gun(kick, spin, hammerGlow) {
+    c.save(); c.translate(10 - 4 * kick, 0); c.rotate(-0.12 * kick);
+    rect(-5, -2.2, 7, 8, "#7a5a3a"); rect(0, -2.6, 10, 5.2, "#2a323b");
+    line(8, 0, 17, 0, "#9aa7b5", 3);
+    c.save(); c.translate(5, 0); c.rotate(spin);
+    circ(0, 0, 3.6, "#6a7685");
+    for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; circ(Math.cos(a) * 2.1, Math.sin(a) * 2.1, 0.8, "#1b2026"); }
+    c.restore();
+    if (hammerGlow > 0) { glow("rgba(255,170,60,0.9)", 8); circ(-2, -3, 1.6, `rgba(255,190,90,${hammerGlow})`); noGlow(); }
+    c.restore();
+  }
+
+  // today's pips and reload ring (a port of DrawCylinder)
+  function pips(rounds, reloadF, heavyN) {
+    const cap = 6, r = 14 + 13, gold = "#ffcc4d";
+    if (reloadF != null) { arc(O.x, O.y, r, 0, TAU, "rgba(255,255,255,0.15)", 2.5); arc(O.x, O.y, r, -Math.PI / 2, -Math.PI / 2 + TAU * reloadF, "rgba(255,204,77,0.85)", 2.5); return; }
+    const span = Math.min(Math.PI * 0.9, cap * 0.2);
+    for (let i = 0; i < cap; i++) {
+      const a = Math.PI / 2 + span / 2 - span * (i / (cap - 1)), x = O.x + Math.cos(a) * r, y = O.y + Math.sin(a) * r;
+      const heavy = i < heavyN, col = heavy ? gold : "#d9f2ff";
+      circ(x, y, heavy ? 3.2 : 2.6, i < rounds ? col : "rgba(217,242,255,0.15)");
+      if (i >= rounds) circ(x, y, heavy ? 3.2 : 2.6, "rgba(255,204,77,0)");
+    }
+  }
+
+  // ---- the looks: each gives muzzle(), bullet(), casing(), cyl() ----
+  const REV = {};
+  REV.current = {
+    key: "Now", name: "Today's look",
+    muzzle(age, s) { if (age > 0.06) return; circ(O.x + MUZ.x + 4, O.y + MUZ.y, 5 * (1 - age / 0.06), `rgba(255,230,160,${1 - age / 0.06})`); },
+    bullet(x, y, s) { circ(x, y, s.heavy ? 6 : 4, s.heavy ? "#ffcc4d" : "#d9f2ff"); },
+    cyl(rounds, reloadF) { pips(rounds, reloadF, 1); },
+    gun(a) { return { kick: 0, spin: 0, glow: 0 }; },
+    hit(x, y, age, s) { if (age < 0.15) circ(x, y, 6 + 10 * age / 0.15, null, `rgba(255,255,255,${1 - age / 0.15})`, 2); }
+  };
+  // A: smoke, brass and a proper recoil kick
+  REV.smoke = {
+    key: "A", name: "Smoke & brass",
+    muzzle(age, s, ang) {
+      const R = rnd(Math.floor(s.t * 977) + 3), L = s.heavy ? 1.4 : 1;
+      c.save(); c.translate(O.x + MUZ.x, O.y); c.rotate(ang);
+      if (age < 0.09) {   // flash: a star plus a short cone
+        const k = 1 - age / 0.09; glow("rgba(255,170,60,0.9)", 14);
+        poly([[0, 0], [16 * L, -4 * L], [24 * L, 0], [16 * L, 4 * L]], `rgba(255,220,140,${k})`);
+        star4(6 * L, 0, 10 * L * k + 2, `rgba(255,255,255,${k})`); noGlow();
+      }
+      // smoke: soft puffs that drift up and out, lasting a while
+      for (let i = 0; i < 7; i++) {
+        const born = 0.02 + i * 0.012, u = (age - born) / (0.6 + 0.3 * R()); if (u <= 0 || u >= 1) { R(); R(); continue; }
+        const x = 6 + 38 * easeOut(u) * (0.5 + R()) * L, y = (R() - 0.7) * 16 * u * 2 - 4 * u, r = (5 + 9 * u) * L;
+        circ(x, y, r, `rgba(200,205,215,${0.22 * (1 - u)})`);
+      }
+      c.restore();
+    },
+    bullet(x, y, s, ang) {
+      c.save(); c.translate(x, y); c.rotate(ang);
+      const L = s.heavy ? 22 : 14; const g = c.createLinearGradient(-L, 0, 0, 0); g.addColorStop(0, "rgba(255,200,120,0)"); g.addColorStop(1, s.heavy ? "rgba(255,190,80,0.9)" : "rgba(255,255,255,0.7)");
+      line(-L, 0, 0, 0, g, s.heavy ? 5 : 3); circ(0, 0, s.heavy ? 5 : 3.2, s.heavy ? "#ffb52e" : "#fff");
+      c.restore();
+    },
+    casing(age, s) {   // a brass casing flips out of the right side and bounces
+      if (age < 0 || age > 0.7) return;
+      const R = rnd(Math.floor(s.t * 313) + 5), vx = -20 + R() * 30, vy = 70 + R() * 40, x = O.x + 12 + vx * age, y = O.y + 4 + vy * age - 0 - 0;
+      const yy = Math.min(y, O.y + 40 + R() * 10), settle = y > O.y + 36;
+      c.save(); c.translate(x, yy); c.rotate(age * 22 * (settle ? 0.2 : 1)); c.globalAlpha = 1 - clamp01((age - 0.45) / 0.25);
+      rect(-3, -1.3, 6, 2.6, "#e0b04a"); rect(-3, -1.3, 1.6, 2.6, "#fff0b0"); c.restore(); c.globalAlpha = 1;
+    },
+    cyl(rounds, reloadF) { pips(rounds, reloadF, 1); },
+    gun(a, s) { return { kick: s ? Math.exp(-a * 22) * (s.heavy ? 1.6 : 1) : 0, spin: 0, glow: 0 }; },
+    hit(x, y, age, s) {
+      if (age > 0.4) return; const R = rnd(Math.floor(x + y + s.t * 100));
+      for (let i = 0; i < 6; i++) { const a = Math.PI + (R() - 0.5) * 2.2, d = easeOut(age / 0.4) * (10 + 14 * R()); circ(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.6, `rgba(255,190,100,${1 - age / 0.4})`); }
+    }
+  };
+  // B: a cylinder wheel beside the gun that really turns, with chambers you can see empty and refill
+  REV.wheel = {
+    key: "B", name: "Cylinder wheel",
+    muzzle(age, s, ang) {
+      if (age > 0.07) return; const k = 1 - age / 0.07, L = s.heavy ? 1.5 : 1;
+      c.save(); c.translate(O.x + MUZ.x, O.y); c.rotate(ang); glow("rgba(255,200,100,0.9)", 10);
+      for (let i = -1; i <= 1; i++) line(2, 0, (18 - Math.abs(i) * 5) * L, i * 6 * L, `rgba(255,230,170,${k})`, 2);
+      circ(3, 0, 5 * k * L, `rgba(255,255,255,${k})`); noGlow(); c.restore();
+    },
+    bullet(x, y, s, ang) { c.save(); c.translate(x, y); c.rotate(ang); poly([[7, 0], [-4, -3], [-4, 3]], s.heavy ? "#ffb52e" : "#e8f6ff"); if (s.heavy) line(-4, 0, -16, 0, "rgba(255,180,60,0.6)", 4); c.restore(); },
+    casing() {},
+    cyl(rounds, reloadF, time, scn) {
+      // a wheel hovering behind-left of the Healer: 6 chambers, the loaded one pointing at the barrel
+      const wx = O.x - 4, wy = O.y + 48, R = 17; c.save();
+      circ(wx, wy, R + 5, "rgba(10,16,20,0.75)", "rgba(255,255,255,0.14)", 1.5);
+      const lastShot = scn.shots.filter(s => time >= s.t).pop(), turn = lastShot ? easeOut((time - lastShot.t) / 0.1) : 1;
+      let rot = scn.shots.filter(s => time >= s.t).length * (TAU / 6) - (lastShot ? (1 - turn) * (TAU / 6) : 0);
+      if (reloadF != null) rot += reloadF * TAU * 2.5;            // spinning while the rounds go back in
+      if (scn.top && time >= scn.top.t0) rot += Math.floor((time - scn.top.t0) / TOP_EACH) * (TAU / 6) + easeOut(((time - scn.top.t0) % TOP_EACH) / 0.12) * (TAU / 6);
+      c.translate(wx, wy); c.rotate(rot);
+      for (let i = 0; i < 6; i++) {
+        const a = i / 6 * TAU - Math.PI / 2, x = Math.cos(a) * 11, y = Math.sin(a) * 11;
+        // chamber i is "loaded" if it is within the remaining count (counted from the top, going round)
+        const slot = (i), loaded = reloadF != null ? (reloadF * 6 > i) : slot < rounds, heavy = slot < 1;
+        circ(x, y, 4.3, "#0b0f13", "#46515c", 1);
+        if (loaded) circ(x, y, 3, heavy ? "#ffc23d" : "#dff4ff");
+      }
+      circ(0, 0, 3, "#46515c"); c.restore();
+      // the firing mark at the top
+      poly([[wx - 3, wy - R - 9], [wx + 3, wy - R - 9], [wx, wy - R - 4]], "#59ff8c");
+      if (reloadF != null) arc(wx, wy, R + 5, -Math.PI / 2, -Math.PI / 2 + TAU * reloadF, "rgba(255,204,77,0.9)", 2.5);
+    },
+    gun(a, s, time, scn) {
+      const lastShot = scn.shots.filter(x => time >= x.t).pop(); const turn = lastShot ? easeOut((time - lastShot.t) / 0.1) : 1;
+      return { kick: s ? Math.exp(-a * 18) * 0.7 : 0, spin: scn.shots.filter(x => time >= x.t).length * (TAU / 6) - (lastShot ? (1 - turn) * (TAU / 6) : 0), glow: 0 };
+    },
+    hit(x, y, age) { if (age < 0.2) { const k = age / 0.2; line(x - 8, y, x + 8, y, `rgba(255,255,255,${1 - k})`, 2); line(x, y - 8, x, y + 8, `rgba(255,255,255,${1 - k})`, 2); } }
+  };
+  // C: the heavy round hits like a real slug: shock ring, long tracer, screen kick; fanning leaves a glowing hammer
+  REV.slug = {
+    key: "C", name: "Tracer & shock",
+    muzzle(age, s, ang) {
+      const L = s.heavy ? 1.8 : 1; c.save(); c.translate(O.x + MUZ.x, O.y); c.rotate(ang);
+      if (age < 0.1) { const k = 1 - age / 0.1; glow(s.heavy ? "rgba(255,120,40,1)" : "rgba(255,220,140,0.9)", 16); poly([[0, 0], [10 * L, -7 * L * (1 - k * 0.3)], [30 * L, 0], [10 * L, 7 * L * (1 - k * 0.3)]], s.heavy ? `rgba(255,150,50,${k})` : `rgba(255,235,170,${k})`); noGlow(); }
+      if (s.heavy && age < 0.28) { const k = age / 0.28; arc(8, 0, 10 + 40 * easeOut(k), -0.9, 0.9, `rgba(255,190,90,${1 - k})`, 3); arc(8, 0, 6 + 28 * easeOut(k), -0.9, 0.9, `rgba(255,255,255,${0.7 * (1 - k)})`, 1.5); }
+      c.restore();
+    },
+    bullet(x, y, s, ang) {
+      c.save(); c.translate(x, y); c.rotate(ang); const L = s.heavy ? 110 : 60;
+      const g = c.createLinearGradient(-L, 0, 0, 0); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(1, s.heavy ? "rgba(255,170,60,0.95)" : "rgba(160,225,255,0.9)");
+      poly([[0, 0], [-L, -(s.heavy ? 6 : 3.4)], [-L, s.heavy ? 6 : 3.4]], g); glow(s.heavy ? "#ff9d2e" : "#9fe0ff", 10); circ(0, 0, s.heavy ? 5.5 : 3.4, "#fff"); noGlow(); c.restore();
+    },
+    casing() {},
+    cyl(rounds, reloadF) { pips(rounds, reloadF, 1); },
+    gun(a, s, time, scn) {
+      const hot = scn.shots.length ? clamp01(1 - (time - scn.shots.filter(x => time >= x.t).map(x => x.t).pop() || 9) / 0.5) : 0;
+      return { kick: s ? Math.exp(-a * 20) * (s.heavy ? 2 : 1) : 0, spin: 0, glow: isFinite(hot) ? hot : 0 };
+    },
+    hit(x, y, age, s) {
+      const d = s.heavy ? 0.35 : 0.16; if (age > d) return; const k = age / d;
+      circ(x, y, (s.heavy ? 14 : 8) + (s.heavy ? 36 : 14) * easeOut(k), null, `rgba(255,${s.heavy ? 170 : 240},${s.heavy ? 70 : 255},${1 - k})`, s.heavy ? 3 : 2);
+      if (s.heavy) star4(x, y, 18 * (1 - k), `rgba(255,255,255,${1 - k})`);
+    }
+  };
+
+  // dummies for the revolver
+  const RDUM = [{ x: O.x + 250, y: O.y }, { x: O.x + 400, y: O.y - 4 }, { x: O.x + 560, y: O.y + 2 }];
+  function drawRevolver(scn, look, time) {
+    const L = REV[look];
+    // which shots hit which dummy: the first dummy within 24 px of the bullet's line
+    const events = [];
+    scn.shots.forEach(s => {
+      const dir = [Math.cos(s.a), Math.sin(s.a)], x0 = O.x + MUZ.x, y0 = O.y;
+      for (const d of RDUM) { const along = (d.x - x0) / dir[0], y = y0 + dir[1] * along; if (Math.abs(y - d.y) < 22) { events.push({ s, d, t: s.t + along / BSPEED, y }); break; } }
+    });
+    // dummies
+    RDUM.forEach(d => { const hits = events.filter(e => e.d === d && time >= e.t); const last = hits[hits.length - 1]; dummy(d.x, d.y, last ? 1 - (time - last.t) / 0.15 : 0, 1 - Math.min(1, hits.length * 0.16)); });
+    events.forEach(e => { if (time >= e.t) L.hit(e.d.x - 14, e.y, time - e.t, e.s); });
+    // casing + bullets + muzzle
+    scn.shots.forEach(s => { if (L.casing) L.casing(time - s.t, s); });
+    scn.shots.forEach(s => {
+      const age = time - s.t; if (age < 0) return;
+      const dist = BSPEED * age, hit = events.find(e => e.s === s), maxd = hit ? hit.d.x - 14 - O.x - MUZ.x : 1e9;
+      if (dist < maxd && dist < 900) L.bullet(O.x + MUZ.x + Math.cos(s.a) * dist, O.y + Math.sin(s.a) * dist, s, s.a);
+    });
+    // player + gun
+    const lastS = scn.shots.filter(s => time >= s.t).pop(), age = lastS ? time - lastS.t : 9, g = L.gun(age, lastS, time, scn);
+    // a 10° fan cone hint while the hammer is being fanned
+    if (scn.shots.length === 6 && time > 0.3 && time < scn.shots[5].t + 0.05) { c.save(); c.translate(O.x, O.y); poly([[0, 0], [640, -56], [640, 56]], "rgba(255,200,100,0.05)"); c.restore(); }
+    healer(() => gun(g.kick, g.spin, g.glow));
+    scn.shots.forEach(s => { const a = time - s.t; if (a >= 0) L.muzzle(a, s, s.a); });
+    const rounds = scn.rounds(time), rl = scn.reload && time >= scn.reload.t0 && time < scn.reload.t1 ? (time - scn.reload.t0) / RELOAD : null;
+    L.cyl(rounds, rl, time, scn);
+    // kinds of action labels
+    if (scn.reload && time >= scn.reload.t0 && time < scn.reload.t1) text("RELOADING", O.x, O.y - 40, "#ffcc4d", 11);
+    if (scn.top && time >= scn.top.t0 && rounds < 6) text("SLIDING ROUNDS BACK IN", O.x, O.y - 40, "#9fe8b0", 11);
+    // floating numbers
+    events.forEach((e, i) => floater(e.s.heavy ? "-48" : "-24", e.d.x + (i % 3 - 1) * 18, e.d.y, time - e.t, e.s.heavy ? "#ffcc4d" : "#fff"));
+    document.getElementById("now").textContent = `rounds ${rounds}/6 · t ${time.toFixed(2)} s`;
+  }
+
+  // =====================================================================================================
+  //  MENDER'S BOW
+  // =====================================================================================================
+  const FULL = 0.9, MIN = 0.15, PERF = 0.25;
+  const ENEMY1 = { x: O.x + 260, y: O.y }, ALLY = { x: O.x + 410, y: O.y - 3 }, ENEMY2 = { x: O.x + 570, y: O.y + 2 };
+  function bowScenario(kind) {
+    const start = 0.25;
+    let hold, release;
+    if (kind === "tap") hold = 0.2;
+    else if (kind === "full") hold = FULL + 0.55;     // let it go late: a full, not perfect, shot
+    else hold = FULL + 0.1;                           // inside the 0.25 s perfect window
+    release = start + hold;
+    const draw = t => (t < start ? -1 : t < release ? t - start : -1);
+    const chargeAt = d => clamp01((d - MIN) / (FULL - MIN));
+    const ch = chargeAt(hold), perfect = hold >= FULL && hold <= FULL + PERF, tap = ch <= 0.001 || kind === "tap";
+    const speed = lerp(500, 950, tap ? 0 : ch);
+    return { kind, start, release, hold, draw, chargeAt, perfect, tap, ch, speed, dur: release + 2.1,
+      dmg: tap ? 8 : perfect ? 50 : 40, heal: tap ? 5 : perfect ? 25 : 20, pierce: tap ? 0 : 2 };
+  }
+  // the bow in hand, local to Healer. k = draw 0..1; bend curves limbs; wobble = string shake after release
+  function bow(k, wobble, bend, glowCol, nockGlow, noArrow) {
+    c.save(); c.translate(18, 0);
+    const tipx = 9.9 - 5 * bend, ty = 13.9 - 1.8 * bend;
+    c.beginPath(); c.moveTo(tipx, -ty); c.quadraticCurveTo(2 * (18 - 2 * bend) - tipx, 0, tipx, ty); c.strokeStyle = "#7a5a3a"; c.lineWidth = 2.6; c.lineCap = "round"; c.stroke();
+    const nock = 4 - 10 * k, w = wobble;
+    line(tipx, -ty, nock + w, 0, "#eaeaea", 0.9); line(nock + w, 0, tipx, ty, "#eaeaea", 0.9);
+    if (!noArrow) {
+      if (glowCol) glow(glowCol, 6 + 10 * (nockGlow || 0));
+      line(nock, 0, 26, 0, "#cfe9d6", 1.6); poly([[26, -2.2], [32, 0], [26, 2.2]], glowCol ? "#fff" : GREEN);
+      noGlow(); circ(nock, 0, 1.6, GREEN);
+    }
+    circ(18, 0, 2, GREEN);
+    c.restore();
+  }
+
+  // arrow flying (world space), looks decide how it is drawn
+  const BOW = {};
+  BOW.current = {
+    key: "Now", name: "Today's look",
+    draw(s, d) { // the ring and the aim cone (port of DrawBowDraw)
+      const ch = s.chargeAt(d), full = ch >= 1, perf = d >= FULL && d <= FULL + PERF, r = 25, gold = "#ffd24d";
+      arc(O.x, O.y, r, 0, TAU, "rgba(255,255,255,0.12)", 2.5);
+      arc(O.x, O.y, r, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, ch), (full ? gold : GREEN), perf ? 4 : 2.5);
+      const cone = 0.2 * (1 - ch), len = 120 + 160 * ch, from = [O.x + 20, O.y], col = full ? "rgba(255,210,77,0.8)" : "rgba(180,255,200,0.45)";
+      if (cone > 0.01) { line(from[0], from[1], from[0] + Math.cos(-cone) * len, from[1] + Math.sin(-cone) * len, col, 1.5); line(from[0], from[1], from[0] + Math.cos(cone) * len, from[1] + Math.sin(cone) * len, col, 1.5); }
+      else line(from[0], from[1], from[0] + len, from[1], col, perf ? 3 : 2);
+    },
+    bow(s, d, since) { const k = d >= 0 ? s.chargeAt(d) * 0.8 + 0.2 : 0.35; return { k: d >= 0 ? k : 0.2, wobble: 0, bend: d >= 0 ? s.chargeAt(d) : 0 }; },
+    release() {},
+    arrow(x, y, s) { // the in-game arrow
+      const tail = x - 15, neck = x - 3 + 6;
+      line(tail - 10, y, tail, y, "rgba(89,255,140,0.25)", 2); line(tail, y, neck, y, "#c79961", 2);
+      poly([[x + 9, y], [neck, y - 3.5], [neck, y + 3.5]], "#e6f2ff");
+      for (let i = 0; i < 2; i++) { const ax = tail + 2 + i * 3; line(ax, y, ax - 4, y - 3.5, GREEN, 1.5); line(ax, y, ax - 4, y + 3.5, GREEN, 1.5); }
+    },
+    hit(x, y, age, s) { if (age < 0.18) circ(x, y, 6 + 10 * age / 0.18, null, `rgba(255,255,255,${1 - age / 0.18})`, 2); },
+    heal(x, y, age, s) { if (age < 0.5) { plus(x, y - 18 - 10 * age / 0.5, 6, `rgba(89,255,140,${1 - age / 0.5})`); } }
+  };
+  // A: a real draw: limbs flex, the string pulls, the arrow tip glows, and the string snaps on release
+  BOW.string = {
+    key: "A", name: "Flex & snap",
+    draw(s, d) {
+      const ch = s.chargeAt(d), perf = d >= FULL && d <= FULL + PERF, full = ch >= 1;
+      // the tension builds as a thin arc of light in the draw
+      arc(O.x, O.y, 25, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, ch), full ? "rgba(255,210,77,0.55)" : "rgba(89,255,140,0.4)", 1.5);
+      const from = O.x + 32, len = 40 + 220 * ch;
+      const g = c.createLinearGradient(from, 0, from + len, 0); g.addColorStop(0, full ? "rgba(255,210,77,0.55)" : "rgba(180,255,200,0.4)"); g.addColorStop(1, "rgba(180,255,200,0)");
+      line(from, O.y, from + len, O.y, g, perf ? 3 : 1.6);
+      // the tip glints as it nears full; a snap ring at the moment full draw is reached
+      if (ch > 0.7) { const k = (ch - 0.7) / 0.3; star4(O.x + 18 + 32, O.y, 3 + 5 * k, `rgba(255,255,255,${0.4 + 0.6 * k})`); }
+      if (d >= FULL && d < FULL + 0.2) { const k = (d - FULL) / 0.2; arc(O.x + 18, O.y, 12 + 26 * easeOut(k), -0.9, 0.9, `rgba(255,210,77,${1 - k})`, 3); }
+    },
+    bow(s, d, since) {
+      if (d >= 0) { const ch = s.chargeAt(d); return { k: 0.15 + 0.85 * ch, wobble: 0, bend: ch + (s.perfect ? 0 : 0) }; }
+      // after release: the string whips back and rings out
+      const w = since > 0 && since < 0.5 ? Math.sin(since * 70) * 4 * Math.exp(-since * 9) : 0;
+      return { k: 0.1, wobble: w, bend: 0 };
+    },
+    release(s, since) {
+      if (since < 0 || since > 0.4) return; const k = since / 0.4, gold = s.perfect;
+      arc(O.x + 24, O.y, 10 + 40 * easeOut(k), -0.7, 0.7, `rgba(${gold ? "255,210,77" : "180,255,200"},${1 - k})`, gold ? 4 : 2.5);
+      if (gold) arc(O.x + 24, O.y, 6 + 24 * easeOut(k), -0.9, 0.9, `rgba(255,255,255,${0.8 * (1 - k)})`, 2);
+    },
+    arrow(x, y, s) {
+      const L = s.tap ? 28 : 50, g = c.createLinearGradient(x - L, 0, x, 0); g.addColorStop(0, "rgba(89,255,140,0)"); g.addColorStop(1, s.perfect ? "rgba(255,210,77,0.7)" : "rgba(89,255,140,0.55)");
+      line(x - L, y, x, y, g, s.tap ? 2 : 4);
+      BOW.current.arrow(x, y, s);
+    },
+    hit(x, y, age, s) { if (age < 0.3) { const k = age / 0.3, R = rnd(Math.floor(x)); for (let i = 0; i < 6; i++) { const a = Math.PI + (R() - 0.5) * 2.4, dd = easeOut(k) * (10 + 14 * R()); line(x + Math.cos(a) * dd, y + Math.sin(a) * dd, x + Math.cos(a) * (dd + 5), y + Math.sin(a) * (dd + 5), `rgba(255,255,255,${1 - k})`, 1.5); } } },
+    heal(x, y, age) { if (age < 0.6) { const k = age / 0.6; arc(x, y, 12 + 18 * easeOut(k), 0, TAU, `rgba(89,255,140,${0.8 * (1 - k)})`, 2); plus(x, y - 16 - 12 * k, 6, `rgba(89,255,140,${1 - k})`); } }
+  };
+  // B: leaves gather into the arrow as you draw, and the arrow sheds them as it flies
+  BOW.leaves = {
+    key: "B", name: "Leaf gather",
+    draw(s, d) {
+      const ch = s.chargeAt(d), full = ch >= 1, perf = d >= FULL && d <= FULL + PERF, R = rnd(41);
+      const nx = O.x + 18 + 28, ny = O.y;
+      for (let i = 0; i < 12; i++) {   // leaves spiral in from a ring and arrive at the arrowhead
+        const phase = (d * 1.3 + R()) % 1, a0 = R() * TAU, rad = (1 - phase) * (46 + 14 * R()), a = a0 + phase * 3;
+        if (ch <= 0.02) continue;
+        c.globalAlpha = 0.9 * clamp01(ch * 3) * (phase > 0.9 ? 1 - (phase - 0.9) * 10 : 1);
+        leaf(nx - 24 + Math.cos(a) * rad, ny + Math.sin(a) * rad, a + 1, 3.2 + 2 * R(), full ? "#ffd86a" : "#7dffa8");
+      }
+      c.globalAlpha = 1;
+      // a soft green-gold bloom on the arrowhead
+      const bl = c.createRadialGradient(nx, ny, 0, nx, ny, 12 + 20 * ch); bl.addColorStop(0, full ? "rgba(255,225,120,0.7)" : "rgba(120,255,170,0.55)"); bl.addColorStop(1, "rgba(120,255,170,0)");
+      circ(nx, ny, 12 + 20 * ch, bl);
+      if (perf) { arc(O.x, O.y, 26, 0, TAU, `rgba(255,210,77,${0.55 + 0.4 * Math.sin(d * 30)})`, 3); }
+    },
+    bow(s, d) { if (d >= 0) { const ch = s.chargeAt(d); return { k: 0.15 + 0.85 * ch, wobble: 0, bend: ch, glow: "rgba(120,255,170,0.9)", ng: ch }; } return { k: 0.1, wobble: 0, bend: 0 }; },
+    release(s, since) {
+      if (since < 0 || since > 0.5) return; const R = rnd(77), k = since / 0.5;
+      for (let i = 0; i < (s.perfect ? 14 : 8); i++) { const a = (R() - 0.5) * 1.4, d = easeOut(k) * (20 + 60 * R()); c.globalAlpha = 1 - k; leaf(O.x + 38 + Math.cos(a) * d, O.y + Math.sin(a) * d, a + k * 6, 3 + 2 * R(), s.perfect ? "#ffd86a" : "#7dffa8"); }
+      c.globalAlpha = 1;
+    },
+    arrow(x, y, s, age) {
+      const R = rnd(13);
+      for (let i = 0; i < (s.tap ? 4 : 9); i++) { const behind = 14 + R() * 70, dy = (R() - 0.5) * 24 * (behind / 80), lifeK = clamp01(behind / 90); c.globalAlpha = 0.8 * (1 - lifeK); leaf(x - behind, y + dy + Math.sin((age * 6) + i) * 3, age * 5 + i, 2.6 + 2 * R(), s.perfect ? "#ffd86a" : "#7dffa8"); }
+      c.globalAlpha = 1;
+      BOW.current.arrow(x, y, s);
+    },
+    hit(x, y, age, s) { if (age < 0.4) { const R = rnd(Math.floor(x)); const k = age / 0.4; for (let i = 0; i < 8; i++) { const a = (R() - 0.5) * 6, d = easeOut(k) * (10 + 20 * R()); c.globalAlpha = 1 - k; leaf(x + Math.cos(a) * d, y + Math.sin(a) * d, a + k * 5, 3, "#7dffa8"); } c.globalAlpha = 1; } },
+    heal(x, y, age) { if (age < 0.9) { const R = rnd(5), k = age / 0.9; for (let i = 0; i < 10; i++) { const a = R() * TAU, rr = 24 * (1 - easeOut(k)) + 4; c.globalAlpha = 1 - k; leaf(x + Math.cos(a + k * 4) * rr, y + Math.sin(a + k * 4) * rr - 10 * k, a, 3, "#9dffbf"); } c.globalAlpha = 1; plus(x, y - 20 - 10 * k, 6, `rgba(89,255,140,${1 - k})`); } }
+  };
+  // C: the arrow is a bolt of light: a cross-star at full draw, a gold afterimage for a perfect shot
+  BOW.radiant = {
+    key: "C", name: "Radiant arrow",
+    draw(s, d) {
+      const ch = s.chargeAt(d), full = ch >= 1, perf = d >= FULL && d <= FULL + PERF;
+      const nx = O.x + 18 + 28, col = full ? "255,215,100" : "150,255,190";
+      const bl = c.createRadialGradient(nx, O.y, 0, nx, O.y, 8 + 22 * ch); bl.addColorStop(0, `rgba(${col},${0.5 + 0.4 * ch})`); bl.addColorStop(1, `rgba(${col},0)`);
+      circ(nx, O.y, 8 + 22 * ch, bl);
+      if (full) { const pul = perf ? 1 + 0.25 * Math.sin(d * 40) : 1; star4(nx, O.y, 20 * pul, "rgba(255,255,255,0.9)"); c.save(); c.translate(nx, O.y); c.rotate(Math.PI / 4); star4(0, 0, 11 * pul, `rgba(${col},0.8)`); c.restore(); }
+      // aim line: dotted, brightening
+      for (let i = 0; i < 18; i++) { const x = nx + 14 + i * (10 + 5 * ch); c.globalAlpha = (1 - i / 18) * (0.25 + 0.5 * ch); circ(x, O.y, perf ? 2.2 : 1.5, `rgb(${col})`); }
+      c.globalAlpha = 1;
+      if (perf) text("PERFECT", O.x + 20, O.y - 40, "#ffd24d", 12); else if (full) text("FULL", O.x + 20, O.y - 40, "#ffd24d", 11);
+      arc(O.x, O.y, 25, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, ch), `rgb(${col})`, perf ? 4 : 2.5);
+    },
+    bow(s, d) { if (d >= 0) { const ch = s.chargeAt(d); return { k: 0.15 + 0.85 * ch, wobble: 0, bend: ch, glow: ch >= 1 ? "rgba(255,215,100,1)" : "rgba(130,255,180,0.9)", ng: ch }; } return { k: 0.1, wobble: 0, bend: 0 }; },
+    release(s, since) {
+      if (since < 0 || since > 0.35) return; const k = since / 0.35, col = s.perfect ? "255,215,100" : "150,255,190";
+      circ(O.x + 46, O.y, 28 * easeOut(k), `rgba(${col},${0.35 * (1 - k)})`); star4(O.x + 46, O.y, 26 * (1 - k) + 4, `rgba(255,255,255,${1 - k})`);
+    },
+    arrow(x, y, s, age) {
+      const col = s.perfect ? "255,215,100" : "150,255,190", L = s.tap ? 40 : 130;
+      const g = c.createLinearGradient(x - L, 0, x, 0); g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},0.8)`);
+      poly([[x, y], [x - L, y - (s.tap ? 2 : 4.5)], [x - L, y + (s.tap ? 2 : 4.5)]], g);
+      if (s.perfect) { for (let i = 1; i <= 3; i++) { c.globalAlpha = 0.25 / i; poly([[x - 22 * i, y], [x - 22 * i - 12, y - 2.5], [x - 22 * i - 12, y + 2.5]], "#ffd86a"); } c.globalAlpha = 1; }
+      glow(`rgb(${col})`, 12); BOW.current.arrow(x, y, s); noGlow();
+    },
+    hit(x, y, age, s) { if (age < 0.3) { const k = age / 0.3; const col = s.perfect ? "255,215,100" : "255,255,255"; star4(x, y, 22 * (1 - k) + 3, `rgba(${col},${1 - k})`); circ(x, y, 10 + 24 * easeOut(k), null, `rgba(${col},${0.8 * (1 - k)})`, 2); } },
+    heal(x, y, age) { if (age < 0.7) { const k = age / 0.7; circ(x, y, 12 + 24 * easeOut(k), `rgba(89,255,140,${0.25 * (1 - k)})`, `rgba(89,255,140,${1 - k})`, 2); plus(x, y - 14 - 14 * k, 7 * (1 - 0.3 * k), `rgba(200,255,220,${1 - k})`); } }
+  };
+
+  function drawBow(scn, look, time) {
+    const L = BOW[look]; const d = scn.draw(time), since = time - scn.release;
+    // targets
+    const hitT = x => scn.release + (x - (O.x + 46)) / scn.speed;
+    const targets = [
+      { t: ENEMY1, kind: "enemy", at: hitT(ENEMY1.x - 16) },
+      { t: ALLY, kind: "ally", at: hitT(ALLY.x - 16) },
+      { t: ENEMY2, kind: "enemy", at: hitT(ENEMY2.x - 16) }
+    ];
+    // a tap arrow stops at the first enemy; a full draw pierces 2 (here: the enemy, the ally passes it without a pierce, the second enemy)
+    const alive = targets.filter((e, i) => !scn.tap || i === 0);
+    // ally
+    const ahit = time >= targets[1].at && !scn.tap;
+    circ(ALLY.x, ALLY.y, 14, "#2c3d33", GREEN, 2); circ(ALLY.x, ALLY.y, 8, "#3d5a48"); rect(ALLY.x - 16, ALLY.y - 26, 32, 3, "#222"); rect(ALLY.x - 16, ALLY.y - 26, 32 * (ahit ? 0.95 : 0.6), 3, GREEN);
+    [targets[0], targets[2]].forEach((e, i) => { const hit = time >= e.at && (!scn.tap || i === 0); dummy(e.t.x, e.t.y, hit ? 1 - (time - e.at) / 0.15 : 0, hit ? 0.55 : 1); });
+    alive.forEach(e => {
+      if (time < e.at) return;
+      if (e.kind === "enemy") { L.hit(e.t.x - 14, e.t.y, time - e.at, scn); floater("-" + scn.dmg, e.t.x, e.t.y, time - e.at, scn.perfect ? "#ffd24d" : "#fff"); }
+      else { L.heal(e.t.x, e.t.y, time - e.at, scn); floater("+" + scn.heal, e.t.x, e.t.y, time - e.at, GREEN); }
+    });
+    // arrow in flight
+    if (since >= 0) {
+      const x = O.x + 46 + scn.speed * since; const stopAt = scn.tap ? targets[0].t.x - 14 : 99999;
+      const end = scn.tap ? stopAt : ENEMY2.x + 40;
+      if (x < end && x < 1000) L.arrow(x, O.y, scn, since);
+    }
+    // player and bow
+    const b = L.bow(scn, d, since), fx = L.release;
+    if (d >= 0) L.draw(scn, d);
+    healer(() => bow(b.k, b.wobble, b.bend, b.glow, b.ng, since >= 0));
+    if (fx) fx(scn, since);
+    document.getElementById("now").textContent = (d >= 0 ? `drawing ${d.toFixed(2)} s · charge ${(scn.chargeAt(d) * 100 | 0)}%` : since >= 0 ? `released after ${scn.hold.toFixed(2)} s${scn.perfect ? " · PERFECT" : scn.tap ? " · tap" : " · full draw"}` : "");
+  }
+
+  // =====================================================================================================
+  //  UI
+  // =====================================================================================================
+  const WEAPONS = {
+    revolver: {
+      name: "Revolver", actions: [["tap", "Tap shots"], ["fan", "Fan the hammer"], ["reload", "Reload"], ["topup", "Top-up"]], looks: REV,
+      info: {
+        current: ["Today's look", "A flat gun, a small round muzzle dot, a plain ball for a bullet and a row of pips under you.", "Reads clearly, but the heavy round looks like any other and nothing says the gun kicked."],
+        smoke: ["Smoke & brass", "The gun kicks back on every shot, a flash cone and drifting smoke at the muzzle, brass casings flip out and bounce. The heavy round is a bigger flash with a hot orange streak.", "The most gun-like. Small and ground-level, so it never hides a bullet pattern. Casings are a cosmetic extra and could be turned off alone."],
+        wheel: ["Cylinder wheel", "A little wheel by your feet shows the real cylinder: it clicks round on each shot, chambers empty, the heavy one is gold, and on reload it spins while rounds drop back in one by one. The gun's own cylinder turns too.", "Best for reading ammo at a glance, instead of the pips. Replaces the pips under you."],
+        slug: ["Tracer & shock", "Bullets leave a long tracer. The heavy round is a thick orange slug with a shock arc at the muzzle and a ring and star where it lands. The hammer glows hot while you fan.", "The heaviest hit feel. The tracers are long, so a six-round fan is a bright streak: the busiest of the four."]
+      }
+    },
+    bow: {
+      name: "Mender's Bow", actions: [["tap", "Tap (weak arrow)"], ["full", "Full draw"], ["perfect", "Perfect shot"]], looks: BOW,
+      info: {
+        current: ["Today's look", "A ring that fills round you, gold at full draw, an aim cone that narrows to a line, and a plain arrow. The bow in hand pulls its string back.", "Clear on timing, but a perfect shot and a late full draw look nearly the same on release and nothing says the arrow healed."],
+        string: ["Flex & snap", "The limbs visibly bend as you draw, the arrow tip glints near full, a gold ring pops at the full-draw moment, and on release the string snaps and rings out. A perfect shot adds a gold shock arc and a gold trail.", "The most physical. Quiet while drawing, so it fits when you're dodging. Heal gets a green ring and cross."],
+        leaves: ["Leaf gather", "Leaves spiral in to the arrowhead as you draw (green, turning gold at full), then are shed along the flight path. Hits scatter leaves, and a healed ally is wreathed in them.", "It sells the healer theme best and makes the heal read at once. The leaves are small and low in contrast, so busy waves can bury them."],
+        radiant: ["Radiant arrow", "The arrow is light: a bloom grows on the head as you draw, a cross-star at full, a pulsing star in the perfect window. It flies as a comet with a long tail (gold afterimages when perfect) and lands with a starburst.", "The strongest signal for the perfect window and the easiest to see from far away. Brightest of the four, so it is also the one that hides the aim."]
+      }
+    }
+  };
+  let cur = { w: "revolver", a: "tap", l: "current" }, t0 = performance.now(), speed = 1, paused = false, pauseAt = 0, scn = null;
+  const $ = id => document.getElementById(id);
+  function mk(btn, label, pressed, on, k) { const b = document.createElement("button"); b.setAttribute("aria-pressed", pressed); b.innerHTML = (k ? `<span class="k">${k}</span>` : "") + label; b.onclick = on; return b; }
+  function rebuild() {
+    const W = WEAPONS[cur.w];
+    $("wBtns").replaceChildren(...Object.keys(WEAPONS).map(k => mk(null, WEAPONS[k].name, k === cur.w, () => { cur.w = k; cur.a = WEAPONS[k].actions[0][0]; cur.l = "current"; reset(); rebuild(); })));
+    $("aBtns").replaceChildren(...W.actions.map(([k, n]) => mk(null, n, k === cur.a, () => { cur.a = k; reset(); rebuild(); })));
+    $("lBtns").replaceChildren(...Object.keys(W.looks).map(k => mk(null, W.looks[k].name, k === cur.l, () => { cur.l = k; rebuild(); }, W.looks[k].key)));
+    $("cardsTitle").textContent = W.name + " looks";
+    $("cards").replaceChildren(...Object.keys(W.info).map(k => {
+      const d = document.createElement("div"); d.className = "card"; d.setAttribute("aria-current", k === cur.l);
+      d.innerHTML = `<div class="tag">${W.looks[k].key}</div><h3>${W.info[k][0]}</h3><p>${W.info[k][1]}</p><p class="pk">${W.info[k][2]}</p>`;
+      d.onclick = () => { cur.l = k; rebuild(); window.scrollTo({ top: 0, behavior: "smooth" }); }; return d;
+    }));
+  }
+  function reset() { t0 = performance.now(); pauseAt = 0; scn = cur.w === "revolver" ? revolverScenario(cur.a) : bowScenario(cur.a); }
+  $("spd1").onclick = () => { speed = 1; $("spd1").setAttribute("aria-pressed", true); $("spd4").setAttribute("aria-pressed", false); };
+  $("spd4").onclick = () => { speed = 0.25; $("spd4").setAttribute("aria-pressed", true); $("spd1").setAttribute("aria-pressed", false); };
+  $("pause").onclick = () => { paused = !paused; $("pause").setAttribute("aria-pressed", paused); $("pause").textContent = paused ? "Play" : "Pause"; if (paused) pauseAt = clock; else t0 = performance.now() - pauseAt / speed * 1000; };
+  let clock = 0, zoom = false;
+  $("zoom").onclick = () => { zoom = !zoom; $("zoom").setAttribute("aria-pressed", zoom); };
+  function frame(now) {
+    if (!paused) { clock = ((now - t0) / 1000 * speed); if (clock > scn.dur) { t0 = now; clock = 0; } }
+    ground(); c.save(); if (zoom) { c.translate(O.x - 40, O.y); c.scale(2.6, 2.6); c.translate(-(O.x - 40) + 0, -O.y); c.translate(0, 0); }
+    if (cur.w === "revolver") drawRevolver(scn, cur.l, clock); else drawBow(scn, cur.l, clock);
+    c.restore(); requestAnimationFrame(frame);
+  }
+  // test hook: ?w=bow&a=perfect&l=radiant&t=1.2 draws one still frame
+  const q = new URLSearchParams(location.search);
+  if (q.get("w")) cur.w = q.get("w"); if (q.get("a")) cur.a = q.get("a"); if (q.get("l")) cur.l = q.get("l");
+  reset(); rebuild();
+  if (q.get("z")) { zoom = true; $("zoom").setAttribute("aria-pressed", true); }
+  if (q.get("t")) { paused = true; clock = +q.get("t"); $("pause").setAttribute("aria-pressed", true); }
+  requestAnimationFrame(frame);
+})();
+</script>

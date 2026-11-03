@@ -188,7 +188,10 @@ your weapon. Per extra projectile:
 | | **Bone Spear** | A heavy spear (60) that pierces 3; each throw costs 2 health, and the spear stays stuck where it stops for 8 s: walk over it for the 2 back | +1 spear, fanned out (costs no more health) |
 
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
-fills while it reloads.
+fills while it reloads. With **Visual effects** on, the gun kicks back and its cylinder clicks round on every shot, a flash
+and drifting smoke leave the muzzle and a brass casing flips out (a heavy round is a bigger, orange flash). The Mender's
+Bow's limbs bend as you draw, its arrowhead glints near full draw, a gold ring pops at full draw, and on release the
+string snaps and a ring of light flies off (gold for a perfect shot); arrows fly with a longer streak. Drawing only.
 
 Want a **wall of bullets** instead? The **Barrage** card (Rare, stacks to 3) makes every shot also fire a copy fanned
 out to the side (8° steps, alternating sides), at 60% damage. It stacks with the weapon upgrades above, so a Twin

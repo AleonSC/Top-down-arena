@@ -368,10 +368,26 @@ namespace Arena
                     for (int i = 0; i < 3; i++) MArc(10f, 0f, 6f + i * 4f, -0.85f, 0.85f, 1.5f, Hx(0x9dffcf));
                     break;
                 case WeaponId.Pistol:  // Revolver
-                    MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10); MCirc(5f, 0f, 1.4f, Hx(0x1b2026), 8);
+                {
+                    float kick, spin;
+                    bool fx = GunLook(p, out kick, out spin);  // with Visual effects on: it kicks back and the cylinder clicks round (GunBowLooks.cs)
+                    if (fx)
+                        MFrame(mOx - 4f * kick, mOy, -0.12f * kick, mWs, false);
+                    MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10);
+                    if (fx)
+                        for (int i = 0; i < 6; i++)
+                            MCirc(5f + Mathf.Cos(spin + i * MathX.Tau / 6f) * 2.1f, Mathf.Sin(spin + i * MathX.Tau / 6f) * 2.1f, 0.8f, Hx(0x1b2026), 6);
+                    else
+                        MCirc(5f, 0f, 1.4f, Hx(0x1b2026), 8);
                     break;
+                }
                 case WeaponId.MendersBow:
                 {
+                    if (Juicy)  // Visual effects on: limbs that flex, a string that snaps (GunBowLooks.cs)
+                    {
+                        DrawBowFlex(p);
+                        break;
+                    }
                     float draw = p.DrawT > 0f ? MathX.Clamp01(p.DrawT / 1.2f) : 0.35f;
                     MArc(2f, 0f, 16f, -1.05f, 1.05f, 2.6f, Hx(0x7a5a3a));
                     float nock = 4f - 6f * draw;

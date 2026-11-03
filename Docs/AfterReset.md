@@ -7,6 +7,9 @@ A running list of things to pick up next session. Tick off / delete as they're d
 
 ## Balance / design
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
+- [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
+      (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)
+      (https://claude.ai/artifact/WRUe5JpFtw1zhdMPZtiVY4). Kept from today's look: the cylinder pips and the bow's draw ring and aim cone.
 - [ ] **Healer Summoner left-click attacks.** Picks (Nov 2026), mockup [`Mockups/healer-summoner-attacks.html`](Mockups/healer-summoner-attacks.html)
       (https://claude.ai/artifact/V7omfhCLTvzB8i3riqqfA8):
       - [x] **Sprite Staff: Firefly Hop.** Built (protocol 130): a firefly seeds what it hits, then hops (up to 2, 300 px) to the
@@ -19,6 +22,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
 ## Visuals
+- [x] **Radiant Orb trail.** Built (Nov 2026): style B, Stardust (`Game/RadiantOrbLooks.cs`), from
+      [`Mockups/radiant-orb-trails.html`](Mockups/radiant-orb-trails.html). Light Orbs get it at half size. Drawing only.
 - [x] **Arc Lightning looks.** Built (Nov 2026): style A, Thunderhead (`Game/ArcLightningLooks.cs`), in the arena and the
       lobby preview, from [`Mockups/arc-lightning.html`](Mockups/arc-lightning.html).
 - [x] **Chain Light looks.** Built (Nov 2026): style A, Radiance (`Game/ChainLightLooks.cs`), in the arena and the
