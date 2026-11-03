@@ -3,6 +3,11 @@
 Moved out of `HANDOFF.md` so sessions don't read it by default. `git log` has the same story;
 look here only when you need why something was built the way it was.
 
+**Smaller zombies (Nov 2026), no protocol change:** owner: "zombies are way too big". Radii cut about 35-40% to sit
+with the regular enemies (Shambler 22→14, Runner 15→10, Spitter 19→12, Crawler 17→11, Bloater 27→18, Shrieker
+17→11, Mender 18→12; Defs.cs and the Bestiary), the spore haze 2.1r→1.7r and drips a little smaller. Also: zombies
+skip the shooter turns and shot budget (a Spitter's glob is a patch), and the zombie test pins the Spitter's target.
+
 **Zombie enemies and the green arena (Nov 2026), protocol 128:** owner's asks, from `Docs/Mockups/zombie-enemies.html`.
 Seven `EnemyType`s at the end of the enum (Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender; `Zombies.Is`)
 with `EnemyDef`s (green, in the Practice picker) and Bestiary entries in a new "Zombies" group. `Zombies.Pick` weights

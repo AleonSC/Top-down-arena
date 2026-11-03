@@ -203,6 +203,7 @@ static partial class Program
         // Spitter: a glob at you lands as acid that burns and slows.
         var spit = put(EnemyType.Spitter, p1.Pos + new V2(250f, 0f));
         spit.FireT = 0f;
+        spit.TargetId = p1.Id; spit.RetargetT = 30f;  // at the host (with another seed it may pick the friend)
         p1.InvulnT = 0f; p1.Hp = p1.MaxHp;
         float hp0 = p1.Hp;
         Run(s, dt, 2.2f, () => g.Patches.Values.Any(pt => pt.Kind == PatchKind.Acid && pt.Active && pt.Pos.DistanceTo(p1.Pos) < pt.Radius) && p1.Hp < hp0 - 4f, calm);

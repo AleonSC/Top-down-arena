@@ -77,11 +77,11 @@ namespace Arena
             if (fxOn && !fxReduced)
             {
                 float pulse = 0.5f + 0.5f * Mathf.Sin(t * 2f + e.Id);
-                Circle(pos, r * 2.1f, col.WithAlpha(0.05f + 0.03f * pulse), 20);
-                Circle(pos, r * 1.5f, col.WithAlpha(0.07f + 0.03f * pulse), 18);
+                Circle(pos, r * 1.7f, col.WithAlpha(0.05f + 0.03f * pulse), 18);
+                Circle(pos, r * 1.3f, col.WithAlpha(0.07f + 0.03f * pulse), 16);
                 float rate = e.Type == EnemyType.Runner ? 22f : 6f;
                 if (!game.IsSpawning(e) && Rnd(0f, 1f) < Time.deltaTime * rate)
-                    Sparks(pos - V2.FromAngle(e.Facing) * (r * 0.6f), col, 1, 20f, e.Type == EnemyType.Runner ? 0.5f : 1f, e.Type == EnemyType.Runner ? 3f : 2.6f);
+                    Sparks(pos - V2.FromAngle(e.Facing) * (r * 0.6f), col, 1, 16f, e.Type == EnemyType.Runner ? 0.5f : 0.9f, e.Type == EnemyType.Runner ? 2.2f : 2f);
             }
             if ((e.Phase & Zombies.PhFrenzy) != 0)
             {
