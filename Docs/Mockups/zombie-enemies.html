@@ -71,19 +71,20 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   <header>
     <span class="eyebrow">Zombie Infection · enemy designs</span>
     <h1>The <span>horde</span></h1>
-    <p class="lead">With Zombie Infection on, every regular enemy is replaced by one of four zombies, all green, all
-      dripping. Two kinds of melee runner set the pace, a Spitter makes you move, and a Crawler punishes standing still.
-      The dead still get back up (shown here as a green crack and glow before they rise).</p>
+    <p class="lead">With Zombie Infection on, every regular enemy is replaced by zombies, all green, all dripping. Two
+      kinds of melee runner set the pace, a Spitter makes you move, a Crawler punishes standing still, and later waves add
+      a Bloater that bursts into a choking cloud, a Shrieker that whips the horde into a frenzy, and a Mender that keeps
+      it alive. The dead still get back up (a green crack and glow before they rise).</p>
   </header>
 
   <section class="stage" aria-label="Live horde">
     <canvas id="arena" width="1600" height="900"></canvas>
     <div class="controls">
       <div class="field"><span class="lbl">Horde</span><div class="seg" id="mix">
-        <button data-v="all" class="on">All four</button><button data-v="Shambler">Shamblers</button><button data-v="Runner">Runners</button><button data-v="Spitter">Spitters</button><button data-v="Crawler">Crawlers</button>
+        <button data-v="all" class="on">The horde</button><button data-v="Shambler">Shamblers</button><button data-v="Runner">Runners</button><button data-v="Spitter">Spitters</button><button data-v="Crawler">Crawlers</button><button data-v="Bloater">Bloaters</button><button data-v="Shrieker">Shriekers</button><button data-v="Mender">Menders</button>
       </div></div>
       <div class="field"><span class="lbl">Wave</span><div class="seg" id="wave">
-        <button data-v="3">3</button><button data-v="10" class="on">10</button><button data-v="20">20</button>
+        <button data-v="3">3</button><button data-v="10">10</button><button data-v="20" class="on">20</button>
       </div></div>
       <div class="field"><span class="lbl">Effects</span><div class="seg" id="fxlvl">
         <button data-v="full" class="on">Full</button><button data-v="reduced">Reduced</button>
@@ -94,18 +95,21 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   </section>
 
   <section style="display:grid;gap:14px">
-    <h3>The four zombies</h3>
+    <h3>The zombies</h3>
     <div class="grid" id="cards"></div>
   </section>
 
   <section style="display:grid;gap:14px">
-    <h3>Green effects (all four share them)</h3>
+    <h3>Green effects (every zombie shares them)</h3>
     <div class="fx">
       <div><b>Drips</b><span>Every zombie leaves a few green drops behind as it moves; Runners leave a streak. They fade in about a second.</span></div>
       <div><b>Spore haze</b><span>A faint green glow around each body, pulsing slowly. Spitters puff a cloud when they spit.</span></div>
       <div><b>Hit splats</b><span>Your shots knock out a small green spray the way they came in.</span></div>
       <div><b>Death burst</b><span>A ring of green droplets and a stain on the floor that fades over a few seconds.</span></div>
       <div><b>Rising</b><span>Where a zombie will get back up: the stain cracks and glows brighter for 3 s, then it climbs out.</span></div>
+      <div><b>Bloater cloud</b><span>A thick green fog where a Bloater burst, swirling and thinning over 4 s. Inside it you're slowed and can see less.</span></div>
+      <div><b>Shriek</b><span>A pale ring rolls out from the Shrieker; every zombie it touches gets speed streaks for 4 s.</span></div>
+      <div><b>Mending pulse</b><span>A soft emerald pulse from the Mender, with a green thread to each zombie it heals.</span></div>
       <div><b>Reduced effects</b><span>Drips and haze off; bursts and the rising glow stay, smaller (the setting players already have).</span></div>
     </div>
   </section>
@@ -114,8 +118,9 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
     <h3>Notes</h3>
     <ul class="notes">
       <li><b>Replaces the basic version's stand-ins</b> (Swarmers, Brutes and Lungers). Bosses, their adds and challenge rooms stay as they are.</li>
-      <li><b>Mix by wave:</b> Shamblers from wave 1, Runners from 3, Spitters from 6 (at most 4 alive), Crawlers from 9 (at most 3). The cap of 60 alive and the growing count stay.</li>
-      <li><b>Counterplay is the point:</b> Shamblers punish being cornered, Runners punish standing in the open, Spitters push you off a spot, Crawlers punish standing still. Together they keep you moving without bullets on screen.</li>
+      <li><b>Mix by wave:</b> Shamblers from wave 1, Runners from 3, Spitters from 6 (at most 4 alive), Bloaters from 8, Crawlers from 9 (at most 3), Shriekers from 12 (at most 2), Menders from 15 (at most 2). The cap of 60 alive and the growing count stay.</li>
+      <li><b>Priority targets:</b> the Shrieker and the Mender hang back behind the horde, so getting to them is the challenge; both are frail once you do.</li>
+      <li><b>Counterplay is the point:</b> Shamblers punish being cornered, Runners punish standing in the open, Spitters push you off a spot, Crawlers punish standing still, Bloaters punish killing up close, Shriekers punish ignoring the back line, Menders punish spreading your damage. Together they keep you moving without bullets on screen.</li>
       <li>Numbers are starting points for tuning with the bots, like the basic version's.</li>
     </ul>
   </section>
@@ -144,6 +149,18 @@ const Z = {
     shape: "Trapezoid", role: "Grabber",
     does: ["Scuttles low along the floor, wide end first.", "Gets within reach and grabs: you're rooted for 1.5 s (you can still shoot and use abilities), taking 6 a second.", "Shoot it for 25 damage, or dash, to break free early. Each Crawler can grab once every 4 s."],
     counter: "<b>Watch your feet.</b> Easy to kill, but a grab in the middle of a horde is how runs end." },
+  Bloater: { col: "#a8c93a", glow: "168,201,58", r: 27, hp: 90, speed: 50, dmg: 20, from: 8, share: "about 8%",
+    shape: "Big circle, swelling", role: "Burst",
+    does: ["Waddles in slowly, swelling and shrinking as it breathes.", "Killed, it bursts into a green cloud (110 px, 4 s): inside you're slowed by 40% and can only see a short way.", "If it reaches you it bursts on you (20 damage) with the same cloud."],
+    counter: "<b>Kill it at range.</b> Pop it while it's still in the crowd, never on top of you." },
+  Shrieker: { col: "#e3ff9c", glow: "227,255,156", r: 17, hp: 40, speed: 80, dmg: 0, from: 12, share: "about 4%",
+    shape: "Diamond", role: "Support: frenzy",
+    does: ["Hangs back about 350 px behind the horde.", "Every 6 s it screams: a ring rolls out 320 px, and every zombie it touches runs 30% faster and turns on you for 4 s.", "Two Shriekers at once is the most dangerous moment of a wave."],
+    counter: "<b>Silence it.</b> Push through or shoot over the crowd to reach it before the next scream." },
+  Mender: { col: "#2fd57c", glow: "47,213,124", r: 18, hp: 50, speed: 65, dmg: 0, from: 15, share: "about 4%",
+    shape: "Cross", role: "Support: heals and raises",
+    does: ["Stays behind the horde, keeping about 300 px from you.", "Every 3 s a pulse heals zombies within 220 px by 15% of their health.", "The dead near it rise twice as often and in half the time."],
+    counter: "<b>Kill it first,</b> or the horde in front of it never thins." },
 };
 const TYPES = Object.keys(Z);
 
@@ -154,6 +171,9 @@ function shapePath(c, type, x, y, r, a, t) {
   if (type === "Shambler") { pts.push([1.05, 0], [-0.75, 1.05], [-0.75, -1.05]); }
   else if (type === "Runner") { pts.push([1.55, 0], [-0.95, 0.52], [-0.95, -0.52]); }
   else if (type === "Spitter") { for (let k = 0; k < 5; k++) { const q = k / 5 * TAU; pts.push([Math.cos(q), Math.sin(q)]); } }
+  else if (type === "Bloater") { c.arc(x, y, r, 0, TAU); c.closePath(); return; }
+  else if (type === "Shrieker") { pts.push([1.2, 0], [0, 0.72], [-1.0, 0], [0, -0.72]); }
+  else if (type === "Mender") { const a2 = 0.36; pts.push([1, -a2], [1, a2], [a2, a2], [a2, 1], [-a2, 1], [-a2, a2], [-1, a2], [-1, -a2], [-a2, -a2], [-a2, -1], [a2, -1], [a2, -a2]); }
   else { pts.push([0.75, 0.5], [0.75, -0.5], [-0.8, -1.0], [-0.8, 1.0]); }
   const ca = Math.cos(a), sa = Math.sin(a);
   pts.forEach(([px, py], i) => { const X = x + (px * ca - py * sa) * r, Y = y + (px * sa + py * ca) * r; i ? c.lineTo(X, Y) : c.moveTo(X, Y); });
@@ -169,12 +189,18 @@ function drawZombie(c, z, t, fx) {
     g.addColorStop(0, `rgba(${d.glow},${0.22 + 0.08 * Math.sin(t * 2 + z.id)})`); g.addColorStop(1, `rgba(${d.glow},0)`);
     c.fillStyle = g; c.beginPath(); c.arc(z.x, z.y, d.r * 2.1, 0, TAU); c.fill();
   }
-  const r = d.r * (z.type === "Spitter" && z.spit > 0 ? 1 + 0.25 * Math.sin(Math.min(1, z.spit) * Math.PI) : 1);
+  let r = d.r * (z.type === "Spitter" && z.spit > 0 ? 1 + 0.25 * Math.sin(Math.min(1, z.spit) * Math.PI) : 1);
+  if (z.type === "Bloater") r *= 1 + 0.09 * Math.sin(t * 2.6 + z.id);
+  if (z.type === "Shrieker" && z.scream > 0) r *= 1 + 0.3 * Math.sin(Math.min(1, z.scream / 0.6) * Math.PI);
+  if (z.haste > 0) for (let k = 1; k <= 3; k++) {  // a frenzied zombie: speed streaks behind it
+    c.strokeStyle = `rgba(227,255,156,${0.35 / k})`; c.lineWidth = 2; const bx = z.x - Math.cos(z.face) * (d.r + 6 * k), by = z.y - Math.sin(z.face) * (d.r + 6 * k), sx2 = -Math.sin(z.face) * d.r * 0.6, sy2 = Math.cos(z.face) * d.r * 0.6;
+    c.beginPath(); c.moveTo(bx + sx2, by + sy2); c.lineTo(bx + sx2 - Math.cos(z.face) * 10, by + sy2 - Math.sin(z.face) * 10); c.moveTo(bx - sx2, by - sy2); c.lineTo(bx - sx2 - Math.cos(z.face) * 10, by - sy2 - Math.sin(z.face) * 10); c.stroke(); }
   shapePath(c, z.type, z.x, z.y, r, a, t);
   c.fillStyle = d.col + "4d"; c.fill();
   c.lineWidth = 3; c.strokeStyle = z.flash > 0 ? "#ffffff" : d.col; c.lineJoin = "round"; c.stroke();
   // a darker core and two dead eyes, facing forward
   shapePath(c, z.type, z.x, z.y, r * 0.48, a, t); c.fillStyle = "rgba(10,30,12,0.55)"; c.fill();
+  if (z.type === "Mender") { c.fillStyle = `rgba(220,255,230,${0.5 + 0.4 * Math.sin(t * 4 + z.id)})`; c.beginPath(); c.arc(z.x, z.y, r * 0.22, 0, TAU); c.fill(); }
   const ex = Math.cos(a), ey = Math.sin(a), sx = -ey, sy = ex, ef = z.type === "Runner" ? 0.55 : 0.35;
   for (const s of [-1, 1]) { c.fillStyle = "#eaff9e"; c.beginPath(); c.arc(z.x + ex * r * ef + sx * s * r * 0.24, z.y + ey * r * ef + sy * s * r * 0.24, Math.max(1.8, r * 0.09), 0, TAU); c.fill(); }
   if (z.risen) { c.strokeStyle = "rgba(141,255,106,0.55)"; c.setLineDash([3, 4]); c.lineWidth = 1.5; c.beginPath(); c.arc(z.x, z.y, r + 6, 0, TAU); c.stroke(); c.setLineDash([]); }
@@ -182,7 +208,7 @@ function drawZombie(c, z, t, fx) {
 }
 
 // ---------- particles ----------
-function makeFx() { return { parts: [], stains: [], puddles: [], globs: [], rises: [] }; }
+function makeFx() { return { parts: [], stains: [], puddles: [], globs: [], rises: [], clouds: [], rings: [], links: [] }; }
 function drip(F, x, y, col, n, spd, life, size) {
   for (let i = 0; i < n; i++) { const q = rnd(0, TAU), s = rnd(spd * 0.3, spd); F.parts.push({ x, y, vx: Math.cos(q) * s, vy: Math.sin(q) * s, t: 0, life: rnd(life * 0.6, life), col, size: rnd(size * 0.6, size) }); }
 }
@@ -191,6 +217,9 @@ function stepFx(F, dt) {
   F.parts = F.parts.filter(p => p.t < p.life);
   for (const s of F.stains) s.t += dt; F.stains = F.stains.filter(s => s.t < s.life);
   for (const p of F.puddles) p.t += dt; F.puddles = F.puddles.filter(p => p.t < 4);
+  for (const k of F.clouds) k.t += dt; F.clouds = F.clouds.filter(k => k.t < 4);
+  for (const k of F.rings) k.t += dt; F.rings = F.rings.filter(k => k.t < k.life);
+  for (const k of F.links) k.t += dt; F.links = F.links.filter(k => k.t < 0.6);
 }
 function drawFxUnder(c, F, t) {
   for (const s of F.stains) { const k = 1 - s.t / s.life; c.fillStyle = `rgba(${s.glow},${0.22 * k})`; c.beginPath(); c.ellipse(s.x, s.y, s.r * 1.3, s.r, s.rot, 0, TAU); c.fill(); }
@@ -209,7 +238,19 @@ function drawFxUnder(c, F, t) {
   }
   for (const g of F.globs) { c.strokeStyle = `rgba(232,227,90,${0.5 + 0.4 * Math.sin(t * 20)})`; c.lineWidth = 2; c.setLineDash([6, 5]); c.beginPath(); c.arc(g.tx, g.ty, 70, 0, TAU); c.stroke(); c.setLineDash([]); }
 }
-function drawFxOver(c, F) {
+function drawFxOver(c, F, t) {
+  for (const k of F.links) { const a = 1 - k.t / 0.6; c.strokeStyle = `rgba(47,213,124,${0.7 * a})`; c.lineWidth = 2; c.beginPath(); c.moveTo(k.x1, k.y1); c.lineTo(k.x2, k.y2); c.stroke();
+    c.fillStyle = `rgba(160,255,190,${0.8 * a})`; c.font = "700 14px Oxanium, sans-serif"; c.textAlign = "center"; c.fillText("+", k.x2, k.y2 - 18 - 10 * (1 - a)); }
+  for (const k of F.rings) { const q = k.t / k.life; c.strokeStyle = `rgba(${k.col},${0.75 * (1 - q)})`; c.lineWidth = k.w * (1 - q) + 1; c.beginPath(); c.arc(k.x, k.y, k.r * Math.min(1, q * 1.4), 0, TAU); c.stroke(); }
+  for (const k of F.clouds) {
+    const a = k.t < 0.3 ? k.t / 0.3 : k.t > 3 ? 4 - k.t : 1;
+    for (let i = 0; i < 9; i++) {
+      const q = i / 9 * TAU + t * 0.4 * (i % 2 ? 1 : -1), rr = 40 + 45 * ((i * 37) % 7) / 7;
+      const g = c.createRadialGradient(k.x + Math.cos(q) * rr * 0.6, k.y + Math.sin(q) * rr * 0.5, 0, k.x + Math.cos(q) * rr * 0.6, k.y + Math.sin(q) * rr * 0.5, 70);
+      g.addColorStop(0, `rgba(168,201,58,${0.32 * a})`); g.addColorStop(1, "rgba(168,201,58,0)");
+      c.fillStyle = g; c.beginPath(); c.arc(k.x + Math.cos(q) * rr * 0.6, k.y + Math.sin(q) * rr * 0.5, 70, 0, TAU); c.fill();
+    }
+  }
   for (const p of F.parts) { const k = 1 - p.t / p.life; c.fillStyle = p.col.replace("A", (0.85 * k).toFixed(2)); c.beginPath(); c.arc(p.x, p.y, p.size * (0.5 + 0.5 * k), 0, TAU); c.fill(); }
   for (const g of F.globs) {
     const k = g.t / g.dur, x = g.sx + (g.tx - g.sx) * k, y = g.sy + (g.ty - g.sy) * k - Math.sin(Math.PI * k) * 120;
@@ -217,11 +258,11 @@ function drawFxOver(c, F) {
     c.fillStyle = "#b8ff7a"; c.beginPath(); c.arc(x, y, 10, 0, TAU); c.fill(); c.fillStyle = "#4fe0a6"; c.beginPath(); c.arc(x - 3, y - 3, 4, 0, TAU); c.fill();
   }
 }
-const PCOL = { Shambler: "rgba(127,211,90,A)", Runner: "rgba(196,255,92,A)", Spitter: "rgba(79,224,166,A)", Crawler: "rgba(63,170,85,A)", splat: "rgba(170,255,120,A)" };
+const PCOL = { Shambler: "rgba(127,211,90,A)", Runner: "rgba(196,255,92,A)", Spitter: "rgba(79,224,166,A)", Crawler: "rgba(63,170,85,A)", Bloater: "rgba(168,201,58,A)", Shrieker: "rgba(227,255,156,A)", Mender: "rgba(47,213,124,A)", splat: "rgba(170,255,120,A)" };
 
 // ---------- a tiny world: used by the arena and by each card's close-up ----------
 function makeWorld(w, h) { return { w, h, t: 0, zs: [], F: makeFx(), p: { x: w / 2, y: h / 2, vx: 0, vy: 0, aim: 0, fire: 0, root: 0, grabbedBy: null, hurt: 0 }, shots: [], nextId: 1, spawnT: 0, queue: [], risen: 0 }; }
-function addZ(W, type, x, y, risen) { const d = Z[type]; const z = { id: W.nextId++, type, x, y, face: 0, hp: d.hp * (risen ? 0.5 : 1), max: d.hp, flash: 0, spit: 0, spitCd: rnd(1, 3), grabCd: 0, risen: !!risen, pack: 0 }; W.zs.push(z); return z; }
+function addZ(W, type, x, y, risen) { const d = Z[type]; const z = { id: W.nextId++, type, x, y, face: 0, hp: d.hp * (risen ? 0.5 : 1), max: d.hp, flash: 0, spit: 0, spitCd: rnd(1, 3), grabCd: 0, risen: !!risen, pack: 0, haste: 0, scream: 0, screamCd: rnd(1.5, 3), healCd: rnd(0.8, 2) }; W.zs.push(z); return z; }
 
 function stepWorld(W, dt, fx, opts) {
   W.t += dt; const P = W.p, F = W.F;
@@ -250,9 +291,30 @@ function stepWorld(W, dt, fx, opts) {
   W.shots = W.shots.filter(s => s.t < 1);
   // zombies
   for (const z of W.zs) {
-    const d = Z[z.type]; z.flash = Math.max(0, z.flash - dt); z.grabCd = Math.max(0, z.grabCd - dt);
+    const d = Z[z.type]; z.flash = Math.max(0, z.flash - dt); z.grabCd = Math.max(0, z.grabCd - dt); z.haste = Math.max(0, z.haste - dt);
     const dx = P.x - z.x, dy = P.y - z.y, dd = Math.hypot(dx, dy) || 1, toP = Math.atan2(dy, dx);
-    let sp = d.speed * (opts.speedMul || 1), mv = toP;
+    let sp = d.speed * (opts.speedMul || 1) * (z.haste > 0 ? 1.3 : 1), mv = toP;
+    if (z.type === "Shrieker" || z.type === "Mender") {
+      const keep = z.type === "Shrieker" ? 350 : 300;
+      if (dd < keep - 40) mv = toP + Math.PI; else if (dd < keep + 40) sp = 0;
+      mv += 0.5 * Math.sin(W.t * 0.7 + z.id);
+    }
+    if (z.type === "Shrieker") {
+      z.screamCd -= dt; z.scream = Math.max(0, z.scream - dt);
+      if (z.screamCd <= 0) {
+        z.screamCd = 6; z.scream = 0.6;
+        F.rings.push({ x: z.x, y: z.y, r: 320, t: 0, life: 0.8, col: "227,255,156", w: 8 });
+        for (const o of W.zs) if (o !== z && dist(o, z) < 320) { o.haste = 4; o.face = Math.atan2(P.y - o.y, P.x - o.x); }
+      }
+    }
+    if (z.type === "Mender") {
+      z.healCd -= dt;
+      if (z.healCd <= 0) {
+        z.healCd = 3;
+        F.rings.push({ x: z.x, y: z.y, r: 220, t: 0, life: 0.9, col: "47,213,124", w: 5 });
+        for (const o of W.zs) if (o !== z && dist(o, z) < 220 && o.hp < o.max) { o.hp = Math.min(o.max, o.hp + o.max * 0.15); F.links.push({ x1: z.x, y1: z.y, x2: o.x, y2: o.y, t: 0 }); }
+      }
+    }
     if (z.type === "Shambler") mv += Math.sin(W.t * 2.4 + z.id) * 0.45;
     if (z.type === "Crawler") mv += Math.sin(W.t * 5 + z.id) * 0.25;
     if (z.type === "Spitter") {
@@ -267,8 +329,10 @@ function stepWorld(W, dt, fx, opts) {
     }
     if (z.type === "Crawler" && dd < d.r + 22 && z.grabCd <= 0 && P.root <= 0) { P.root = 1.5; P.grabbedBy = z; z.grabCd = 4; z.grabHurt = 0; }
     if (P.grabbedBy === z) { sp = 0; z.x = P.x - Math.cos(toP) * (d.r + 14); z.y = P.y - Math.sin(toP) * (d.r + 14); }
-    const stop = z.type === "Spitter" ? 0 : d.r + 16;
-    if (dd > stop) { z.x += Math.cos(mv) * sp * dt; z.y += Math.sin(mv) * sp * dt; } else if (z.type !== "Spitter" && P.grabbedBy !== z) P.hurt = 0.2;
+    const stop = d.r + 16;
+    if (z.type === "Bloater" && dd < d.r + 22) { z.hp = 0; z.popped = true; P.hurt = 0.4; }  // it bursts on you
+    const support = z.type === "Spitter" || z.type === "Shrieker" || z.type === "Mender";
+    if (dd > stop || support) { z.x += Math.cos(mv) * sp * dt; z.y += Math.sin(mv) * sp * dt; } else if (P.grabbedBy !== z) P.hurt = 0.2;
     z.face += Math.atan2(Math.sin(toP - z.face), Math.cos(toP - z.face)) * Math.min(1, dt * (z.type === "Runner" ? 12 : 6));
     if (fx && Math.random() < dt * (z.type === "Runner" ? 22 : 6)) drip(F, z.x - Math.cos(z.face) * d.r * 0.6, z.y - Math.sin(z.face) * d.r * 0.6, PCOL[z.type], 1, 20, z.type === "Runner" ? 0.5 : 1.0, z.type === "Runner" ? 3 : 2.6);
   }
@@ -282,13 +346,16 @@ function stepWorld(W, dt, fx, opts) {
     const d = Z[z.type];
     drip(F, z.x, z.y, PCOL[z.type], fx ? 16 : 7, 230, 0.6, 4);
     F.stains.push({ x: z.x, y: z.y, r: d.r * 1.2, rot: rnd(0, TAU), t: 0, life: fx ? 5 : 2.5, glow: d.glow });
-    if (!z.risen && opts.rise && Math.random() < 0.25) F.rises.push({ x: z.x, y: z.y, type: z.type, t: 0, seed: rnd(0, TAU) });
+    if (z.type === "Bloater") F.clouds.push({ x: z.x, y: z.y, t: 0 });
+    const mended = W.zs.some(m => m.type === "Mender" && m.hp > 0 && m !== z && dist(m, z) < 220);
+    if (!z.risen && opts.rise && z.type !== "Bloater" && Math.random() < (mended ? 0.5 : 0.25)) F.rises.push({ x: z.x, y: z.y, type: z.type, t: 0, seed: rnd(0, TAU), fast: mended });
   }
   W.zs = W.zs.filter(z => z.hp > 0);
-  for (const r of F.rises) { r.t += dt; if (r.t >= 3) { addZ(W, r.type, r.x, r.y, true); W.risen++; drip(F, r.x, r.y, PCOL.splat, 12, 140, 0.6, 3.5); } }
+  for (const r of F.rises) { r.t += dt * (r.fast ? 2 : 1); if (r.t >= 3) { addZ(W, r.type, r.x, r.y, true); W.risen++; drip(F, r.x, r.y, PCOL.splat, 12, 140, 0.6, 3.5); } }
   F.rises = F.rises.filter(r => r.t < 3);
   for (const g of F.globs) { g.t += dt; if (g.t >= g.dur) { F.puddles.push({ x: g.tx, y: g.ty, t: 0 }); drip(F, g.tx, g.ty, PCOL.Spitter, fx ? 14 : 6, 180, 0.5, 4); } }
   F.globs = F.globs.filter(g => g.t < g.dur);
+  P.inCloud = F.clouds.some(k => Math.hypot(k.x - P.x, k.y - P.y) < 110);
   stepFx(F, dt);
 }
 
@@ -313,16 +380,18 @@ function drawWorld(c, W, fx) {
   c.strokeStyle = "#fff"; c.lineWidth = 3; c.stroke();
   c.strokeStyle = "#cfe0ff"; c.lineWidth = 5; c.beginPath(); c.moveTo(P.x, P.y); c.lineTo(P.x + Math.cos(P.aim) * 28, P.y + Math.sin(P.aim) * 28); c.stroke();
   for (const s of W.shots) { c.fillStyle = "#ffe08a"; c.beginPath(); c.arc(s.x, s.y, 4, 0, TAU); c.fill(); }
-  drawFxOver(c, W.F);
+  drawFxOver(c, W.F, t);
+  if (W.p.inCloud) { c.font = "700 14px Oxanium, sans-serif"; c.fillStyle = "#d8ef7a"; c.textAlign = "center"; c.fillText("SLOWED", W.p.x, W.p.y + 40); }
 }
 
 // ---------- the arena ----------
-const S = { mix: "all", wave: 10, fx: "full", paused: false };
+const S = { mix: "all", wave: 20, fx: "full", paused: false };
 const arena = document.getElementById("arena"), ac = arena.getContext("2d");
 let A;
 function waveMix(n) {
   const m = [["Shambler", 45]];
-  if (n >= 3) m.push(["Runner", 30]); if (n >= 6) m.push(["Spitter", 15]); if (n >= 9) m.push(["Crawler", 10]);
+  if (n >= 3) m.push(["Runner", 30]); if (n >= 6) m.push(["Spitter", 15]); if (n >= 8) m.push(["Bloater", 8]); if (n >= 9) m.push(["Crawler", 10]);
+  if (n >= 12) m.push(["Shrieker", 4]); if (n >= 15) m.push(["Mender", 4]);
   return m;
 }
 function pickType() {
@@ -337,7 +406,7 @@ function feedArena(dt) {
   if (A.spawnT <= 0 && A.zs.length < A.target) {
     A.spawnT = 0.35;
     const t = pickType(), [x, y] = edge();
-    const cap = t === "Spitter" ? 4 : t === "Crawler" ? 3 : 99;
+    const cap = { Spitter: 4, Crawler: 3, Shrieker: 2, Mender: 2 }[t] || 99;
     if (A.zs.filter(z => z.type === t).length >= cap) return;
     const n = t === "Runner" ? 3 : 1;
     for (let i = 0; i < n; i++) addZ(A, t, x + rnd(-30, 30), y + rnd(-30, 30));
@@ -356,7 +425,7 @@ for (const type of TYPES) {
       <div class="stats">
         <div class="stat"><div class="k">Health</div><div class="v">${d.hp}</div></div>
         <div class="stat"><div class="k">Speed</div><div class="v">${d.speed}</div></div>
-        <div class="stat"><div class="k">${type === "Spitter" ? "Puddle" : type === "Crawler" ? "Grab" : "Hit"}</div><div class="v">${type === "Spitter" ? "10/s" : type === "Crawler" ? "6/s" : d.dmg}</div></div>
+        <div class="stat"><div class="k">${{ Spitter: "Puddle", Crawler: "Grab", Bloater: "Burst", Shrieker: "Frenzy", Mender: "Heal" }[type] || "Hit"}</div><div class="v">${{ Spitter: "10/s", Crawler: "6/s", Bloater: "20", Shrieker: "+30%", Mender: "15%" }[type] || d.dmg}</div></div>
         <div class="stat"><div class="k">From</div><div class="v">w${d.from}</div></div>
       </div>
       <ul>${d.does.map(x => `<li>${x}</li>`).join("")}</ul>
@@ -372,6 +441,9 @@ function resetCard(k) {
   if (t === "Runner") { W.p.x = 400; W.p.y = 180; for (let i = 0; i < 3; i++) addZ(W, t, -20 - i * 30, 140 + i * 40); }
   if (t === "Spitter") { W.p.x = 330; W.p.y = 200; const z = addZ(W, t, 80, 120); z.spitCd = 0.4; }
   if (t === "Crawler") { W.p.x = 330; W.p.y = 190; addZ(W, t, 40, 250); }
+  if (t === "Bloater") { W.p.x = 410; W.p.y = 180; addZ(W, t, 60, 180); addZ(W, "Shambler", 30, 100); addZ(W, "Shambler", 30, 270); }
+  if (t === "Shrieker") { W.p.x = 430; W.p.y = 180; const z = addZ(W, t, 60, 180); z.screamCd = 1.2; for (let i = 0; i < 4; i++) addZ(W, "Shambler", 150 + (i % 2) * 40, 80 + i * 65); }
+  if (t === "Mender") { W.p.x = 430; W.p.y = 180; const z = addZ(W, t, 50, 180); z.healCd = 1.4; for (let i = 0; i < 3; i++) { const s = addZ(W, "Shambler", 170, 90 + i * 90); s.hp = s.max * 0.45; } }
 }
 cards.forEach(resetCard);
 const CARD_OPTS = {
@@ -379,6 +451,9 @@ const CARD_OPTS = {
   Runner: { playerMoves: false, fireRate: 0.45, dmg: 10 },
   Spitter: { playerMoves: false, playerShoots: false },
   Crawler: { playerMoves: false, fireRate: 0.35, dmg: 6 },
+  Bloater: { playerMoves: false, fireRate: 0.3, dmg: 14 },
+  Shrieker: { playerMoves: false, playerShoots: false },
+  Mender: { playerMoves: false, fireRate: 0.4, dmg: 7, rise: true },
 };
 
 // ---------- controls ----------

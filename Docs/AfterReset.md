@@ -100,7 +100,8 @@ So friends can play without Tailscale or port forwarding.
 - [ ] **Zombie enemies for Zombie Infection.** Mockup: `Docs/Mockups/zombie-enemies.html` (published:
       https://claude.ai/artifact/9Dvd5zEz49owzvonTP3hnb). Four green zombies with green particle effects: Shambler
       (wide triangle, slow melee), Runner (narrow long triangle, fast melee, packs of 3), Spitter (pentagon, lobs globs
-      that leave acid puddles), Crawler (trapezoid, grabs and roots the player). Waiting for the owner's go-ahead or
+      that leave acid puddles), Crawler (trapezoid, grabs and roots the player), Bloater (swelling circle, bursts into a slowing cloud), Shrieker
+      (diamond, screams to frenzy the horde), Mender (cross, heals and raises the dead faster). Waiting for the owner's go-ahead or
       changes; then build them as new EnemyTypes replacing the stand-ins.
 - [x] **Wave editor** (option B, timeline) in F1 → Tools. Next: a script that turns `.waves` files into generated code
       for final builds, then let hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
