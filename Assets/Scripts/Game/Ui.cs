@@ -21,7 +21,7 @@ namespace Arena
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);
         public static readonly Color GoldButton = new Color(0.85f, 0.62f, 0.18f);
 
-        static GUIStyle panel, panelAccent, button, field, label, track, thumb, check, hud, hudLit, hudRim, pill, rim;
+        static GUIStyle panel, panelAccent, button, field, bareField, label, track, thumb, check, hud, hudLit, hudRim, pill, rim;
         static GUIStyle card, cardTint, cardRim;  // choice cards
         static Texture2D chip;
         static Texture2D checkOn, checkOff;
@@ -62,6 +62,15 @@ namespace Arena
             field.alignment = TextAnchor.MiddleLeft;
             field.padding = new RectOffset(10, 10, 4, 4);
             field.normal.textColor = field.focused.textColor = field.hover.textColor = Text;
+            // A field with no box of its own, for text typed straight onto a card (your name on the menu's name card).
+            bareField = new GUIStyle();
+            bareField.focused.background = Rounded(4, new Color(1f, 1f, 1f, 0.08f), new Color(1f, 1f, 1f, 0.08f), new Color(0.42f, 0.6f, 1f, 0.6f), 1f);
+            bareField.border = new RectOffset(6, 6, 6, 6);
+            bareField.fontSize = 19;
+            bareField.fontStyle = FontStyle.Bold;
+            bareField.alignment = TextAnchor.MiddleLeft;
+            bareField.padding = new RectOffset(4, 4, 0, 0);
+            bareField.normal.textColor = bareField.focused.textColor = bareField.hover.textColor = Color.white;
 
             label = new GUIStyle(GUI.skin.label) { richText = false };
 
@@ -380,6 +389,13 @@ namespace Arena
         public static string Field(Rect r, string value, int maxLength)
         {
             return GUI.TextField(r, value, maxLength, field);
+        }
+
+        /// A text field with no box: the text sits on whatever is behind it (a faint box shows while typing).
+        public static string BareField(Rect r, string value, int maxLength, int size)
+        {
+            bareField.fontSize = size;
+            return GUI.TextField(r, value, maxLength, bareField);
         }
 
         static GUIStyle area;

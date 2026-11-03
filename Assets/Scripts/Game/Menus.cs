@@ -21,7 +21,7 @@ namespace Arena
         static readonly Rect MenuJoinRect = new Rect(W / 2f - 190f, 414f, 186f, 52f);
         static readonly Rect MenuContinueRect = new Rect(W / 2f + 4f, 414f, 186f, 52f);
         static readonly Rect MenuJoinRow = new Rect(W / 2f - 220f, 516f, 440f, 64f);
-        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 15f, 210f, 40f);
+        static readonly Rect MenuNameRect = new Rect(28f, MenuBarY + 12f, 250f, 46f);
         bool menuJoinOpen;    // Join opened the address row
         int menuTipSeed;      // which line shows under the title (a new one each time the menu opens)
 
@@ -191,13 +191,7 @@ namespace Arena
             Ui.Fill(new Rect(0f, MenuBarY, W, 70f), new Color(0.03f, 0.04f, 0.06f, 0.82f));
             Ui.Fill(new Rect(0f, MenuBarY, W, 1f), new Color(0.42f, 0.6f, 1f, 0.3f));
             if (withName)
-            {
-                Ui.Label(new Rect(MenuNameRect.x + 2f, MenuNameRect.y - 13f, 120f, 12f), "YOUR NAME", 9, Ui.Muted, TextAnchor.MiddleLeft, true);
-                string before = nameText;
-                nameText = Ui.Field(MenuNameRect, nameText, 16);
-                if (nameText != before)
-                    SaveMenuFields();
-            }
+                DrawNameCard(MenuNameRect, 0f, live, t);
             if (Ui.FancyButton(new Rect(W / 2f - 125f, MenuBarY + 16f, 120f, 38f), "Records", new Color(0.36f, 0.3f, 0.14f), PixelArt.Get("ui_trophy"), t, 14) && live)
                 recordsOpen = true;
             if (Ui.FancyButton(new Rect(W / 2f + 5f, MenuBarY + 16f, 120f, 38f), "Settings", Ui.Neutral, PixelArt.Get("ui_gear"), t, 14) && live)
@@ -205,6 +199,38 @@ namespace Arena
             if (Ui.FancyButton(new Rect(W - 148f, MenuBarY + 16f, 120f, 38f), "Quit", new Color(0.46f, 0.18f, 0.21f), PixelArt.Get("ui_power"), t, 14) && live)
                 Application.Quit();
             GUI.EndGroup();
+        }
+
+        /// Your name card: the lobby's party card in small (frame in your role's colour, your character, your name, your
+        /// class). k = 0 is its menu size (the name can be typed when editable), 1 its party card size; the move into the
+        /// lobby grows it from one to the other (LobbyEnter.cs), so it lands exactly as your party card looks.
+        void DrawNameCard(Rect r, float k, bool editable, float t)
+        {
+            var color = ToColor(Defs.Get(hostRole).Color);
+            Ui.Card(r, color, 0.85f);
+            float fs = Mathf.Lerp(r.height - 10f, 72f, k);
+            var face = new Rect(r.x + Mathf.Lerp(5f, 8f, k), r.y + Mathf.Lerp((r.height - fs) / 2f, 8f, k), fs, fs);
+            Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
+            if (BeginUiGl())
+            {
+                UiModelAt(new V2(face.center.x, face.center.y), Mathf.Lerp(0.45f, 0.95f, k));
+                DrawPreviewPlayer(hostRole, kitChoice, weaponChoice, t);
+                EndUiGl();
+            }
+            float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - 8f;
+            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(2f, 8f, k), tw, Mathf.Lerp(24f, 26f, k));
+            int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
+            if (editable)
+            {
+                string before = nameText;
+                nameText = Ui.BareField(nameRect, nameText, 16, size);
+                if (nameText != before)
+                    SaveMenuFields();
+            }
+            else
+                Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(24f, 34f, k), tw, 20f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name + (editable ? "  ·  click your name to change it" : ""),
+                Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
         }
 
         /// Your name and the port are kept between sessions (unless given on the command line).
