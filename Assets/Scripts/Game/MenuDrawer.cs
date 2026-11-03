@@ -602,7 +602,7 @@ namespace Arena
             bgBig = false;
             float k = DrawerIn(paused ? "pause" : "settings", !paused);  // (in the pause or lobby menu: the same drawer, its list swapped)
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
-            BeginDrawer("SETTINGS", Ui.Accent, k, "Saved on this computer  ·  changes apply at once");
+            BeginDrawer("SETTINGS", Ui.Accent, k);
             string[] icons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] cols = { new Color(0.5f, 0.69f, 1f), Ui.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change any key, Left Alt for weapon secondaries" };
