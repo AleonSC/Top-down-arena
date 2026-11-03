@@ -17,6 +17,7 @@ A running list of things to pick up next session. Tick off / delete as they're d
 ## Visuals
 - [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
       weapons' swings, thrusts and slams could look, to pick from before changing the game.
+- [ ] **Redesign the main menu buttons.** Mock up a few styles first, then pick one to build.
 
 ## Bigger features (design docs ready)
 - [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
