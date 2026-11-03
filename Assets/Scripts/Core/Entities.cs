@@ -219,6 +219,7 @@ namespace Arena
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
         public int BurnBy;
         public float BleedT, BleedDps;      // Bear Totem's claws (host)
+        public int BleedHits;               // the claw hits stacked on it, up to five (replicated, for the claw scars: Game/BearLooks.cs)
         public int BleedBy;
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)

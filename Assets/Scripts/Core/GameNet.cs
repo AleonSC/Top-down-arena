@@ -526,8 +526,10 @@ namespace Arena
             byte phase = 0, status = 0;
             int hemorrhage = 0, stars = 0, traits = 0, bubble = 0, ward = 0;
             bool winding = false, penned = false;
+            int bleedHits = 0;
             if (!s.Reading)
             {
+                bleedHits = e.BleedT > 0f ? e.BleedHits : 0;
                 traits = e.Traits;
                 winding = e.Winding;
                 penned = e.PenId != 0;
@@ -571,6 +573,7 @@ namespace Arena
             s.Int(ref ward);
             s.Bool(ref winding);  // about to fire (Readability.cs)
             s.Bool(ref penned);   // held in by a chalk loop (Chalk.cs)
+            s.Byte(ref bleedHits);  // claw hits stacked on it, for the Bear Totem's scars (BearLooks.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -604,6 +607,7 @@ namespace Arena
                 e.WardId = ward;
                 e.Winding = winding;
                 e.Penned = penned;
+                e.BleedHits = bleedHits;
             }
             if (kind == EnemyType.Boss)
                 SyncWarden(s, e);  // Warden.cs

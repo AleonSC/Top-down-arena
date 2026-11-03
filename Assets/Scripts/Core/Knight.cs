@@ -356,7 +356,7 @@ namespace Arena
                 BroadcastFx(FxKind.Slash, origin, origin + V2.FromAngle(s.FxAim) * s.Reach, Defs.BulletColor(Defs.KnightSlash), s.FxHalf, 0.3f,
                     s.Silent ? Sfx.None : Sfx.SwingHeavy);
             else if (s.ClawSide != 0f)
-                BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, new Rgba(1f, 0.86f, 0.78f), s.ClawSide * s.HalfArc, 0.2f,
+                BroadcastFx(FxKind.Claw, origin, origin + dir * s.Reach, BearClawColor, s.ClawSide * s.HalfArc, 0.2f,
                     s.Silent ? Sfx.None : Sfx.SwingLight);
             else if (s.Ice != 0)
                 BroadcastFx(s.Ice == 1 ? FxKind.Icicle : FxKind.Splinter, origin, origin + dir * s.Reach, Defs.BulletColor(Defs.FrostShot), s.HalfWidth,
@@ -457,7 +457,7 @@ namespace Arena
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.KnightSlash, SlowAmt = s.Slow }, e);
                 if (s.Bleed > 0f)
-                    ApplyBleed(e, dmg * s.Bleed, p.Id);  // KitWeapons.cs
+                    ApplyBleed(e, dmg * s.Bleed, p.Id, true);  // KitWeapons.cs
                 if (s.Stun > 0f && !e.Def.IsBoss)
                 {
                     e.FrozenT = Math.Max(e.FrozenT, s.Stun);
