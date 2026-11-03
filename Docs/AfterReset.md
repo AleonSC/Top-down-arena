@@ -9,9 +9,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 
 ## Visuals
-- [ ] **Character models for every role and class (18), with weapon sockets.** Mockup done, waiting for your pick and
-      answers to its open questions: [`Mockups/character-models.html`](Mockups/character-models.html). Visual only, no
-      protocol bump. Then: shared body layers + per-class costume, and one `DrawHeldWeapon` keyed by `WeaponId`.
+- [x] **Character models for every role and class (18), with weapon models.** Built (Nov 2026) from
+      [`Mockups/character-models.html`](Mockups/character-models.html), colour-by-class (`Game/CharacterModels.cs`),
+      plus a bigger role-coloured glow on the floor round every player (`Juice.cs`, `GlowPlayer`). The weapon models are
+      a first pass: redraw any of them in `DrawHeld`.
 - [x] **Melee attack animations.** Built (Nov 2026): style E, the weapon models with the energy arc
       (`Game/MeleeLooks.cs`), from [`Mockups/melee-attacks.html`](Mockups/melee-attacks.html).
 - [x] **Redesign the main menu buttons.** Built: design D with the pen plot intro (Nov 2026).
