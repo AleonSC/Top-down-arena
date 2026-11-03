@@ -206,7 +206,7 @@ static partial class Program
         MusicTest, () => ParryTest(Dt), () => SessionTest(Dt), () => ParryUpgradeTest(Dt), () => AimTest(Dt), () => SpinnerTest(Dt), () => ShielderTest(Dt), () => DevToolsTest(Dt),
         () => MasteryTest(Dt), () => BudgetHomingTest(Dt), () => BossLabTest(Dt), () => SingularityTest(Dt), () => ColossusTest(Dt), () => LichTest(Dt), () => KnightTest(Dt), () => BearTotemTest(Dt),
         () => WardenTest(Dt), () => QueenTest(Dt), () => ReapersTest(Dt), () => BossSoundTest(Dt), () => WeaponExtraTest(Dt), () => RepulsionTest(Dt), () => QuarterstaffTest(Dt), () => TankKnightTest(Dt), () => KeybindTest(Dt), () => RevolverReloadTest(Dt), () => BowTest(Dt),
-        () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
+        () => PracticeTest(Dt), () => MoreModifiersTest(Dt), () => DuelistTest(Dt), () => HealerSoloTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt), () => WeaponSoundsTest(Dt), () => ShowcaseTest(Dt), () => ClassAbilityTest(Dt), () => NinjaTest(Dt),
         () => BloodMageTest(Dt), TextOverridesTest, () => VeinBeamTest(Dt), () => WardenLootTest(Dt), () => LeechGraspTest(Dt), () => F1BotTest(Dt), () => FlamethrowerTest(Dt), () => SoulGhostTest(Dt), () => RadiantOrbTest(Dt), () => StormHammerTest(Dt), () => GolemStaffTest(Dt), () => BoneGuardTest(Dt), () => LightConeTest(Dt), () => SanguineOrbTest(Dt), () => FireballArcTest(Dt), () => ScatterFlakBloodTest(Dt), () => TwinSmgTest(Dt), () => PrismWolfRailTest(Dt), () => MissilesRiotBladesTest(Dt), () => FiveMoreTest(Dt), () => FourMoreTest(Dt), () => HealerFiveTest(Dt), () => LastFourTest(Dt), () => HealerWardsTest(Dt), () => HeraldTest(Dt), () => DevourerTest(Dt), () => EclipseTest(Dt), () => VarietyTest(Dt), () => SavesTest(Dt), () => ProfileTest(Dt), () => UpgradeFixesTest(Dt), () => QueenLootTest(Dt), () => ReaperLootTest(Dt), () => BossPowerTest(Dt), () => FieldGuideTest(Dt), () => DifficultyTest(Dt), () => PatternsTest(Dt), () => RuleModifiersTest(Dt), () => ReadabilityTest(Dt), () => RunStatsLiveTest(Dt), () => PropsTest(Dt), () => ChallengesTest(Dt), ClassCompletenessTest, () => ApproachesTest(Dt), () => HuntTest(Dt), () => ZombieTest(Dt), () => ClearGhostsTest(Dt), () => WaveDesignTest(Dt), WaveGenTest, () => DpsToolsTest(Dt), () => FireflyRootTest(Dt),
     };
 
@@ -228,6 +228,7 @@ static partial class Program
         Test("approaches", "boss approaches: the themed share, waves built with it, the Riot Shield (bash, knockback, shield), the Gas Grenadier, the Warden's pair", () => ApproachesTest(Dt)),
         Test("parry", "the parry and its upgrades", () => ParryTest(Dt), () => ParryUpgradeTest(Dt)),
         Test("aim", "aim precision, weapon range, the Frost Lance", () => AimTest(Dt), () => WeaponRangeTest(Dt), () => FrostLanceTest(Dt)),
+        Test("weaponsounds", "the Repulsion Cannon's blast and Chain Light's cone and arcs make their own sounds", () => WeaponSoundsTest(Dt)),
         Test("extra", "extra projectiles upgrade every weapon its own way", () => WeaponExtraTest(Dt)),
         Test("storm", "the Storm Hammer", () => StormHammerTest(Dt)),
         Test("golem", "the Golem Staff's boulder", () => GolemStaffTest(Dt)),
