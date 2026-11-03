@@ -14,6 +14,10 @@ A running list of things to pick up next session. Tick off / delete as they're d
       mix (`Assets/Scripts/Core/Challenges.cs`) to mostly melee (Swarmer, Brute, Lunger) with a few ranged at most,
       and update the `challenges` SimTest check if it depends on the mix.
 
+## Visuals
+- [ ] **Mockups for melee attack animations.** HTML mockups (like the others in `Docs/Mockups/`) of how melee
+      weapons' swings, thrusts and slams could look, to pick from before changing the game.
+
 ## Bigger features (design docs ready)
 - [ ] Zombie Infection modifier, basic version first: [`ZombieInfection.md`](ZombieInfection.md)
 - [ ] Boss Hunts, then Perks: [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
