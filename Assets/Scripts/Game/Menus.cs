@@ -241,19 +241,26 @@ namespace Arena
                 DrawPreviewPlayer(hostRole, kitChoice, weaponChoice, t);
                 EndUiGl();
             }
-            float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - 8f;
+            float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - (editable ? 44f : 8f);
             var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(2f, 8f, k), tw, Mathf.Lerp(24f, 26f, k));
             int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             if (editable)
             {
+                // The pencil puts the cursor in your name (clicking the name itself works too); it lights up while typing.
+                var pencil = new Rect(r.xMax - 38f, r.y + (r.height - 30f) / 2f, 30f, 30f);
+                bool typing = GUI.GetNameOfFocusedControl() == "menu_name";
+                if (Ui.Button(pencil, "", typing ? Ui.Primary : Ui.Neutral))
+                    GUI.FocusControl("menu_name");
+                Ui.Icon(new Rect(pencil.x + 7f, pencil.y + 7f, 16f, 16f), PixelArt.Get("ui_pencil"), Color.white);
                 string before = nameText;
+                GUI.SetNextControlName("menu_name");
                 nameText = Ui.BareField(nameRect, nameText, 16, size);
                 if (nameText != before)
                     SaveMenuFields();
             }
             else
                 Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(24f, 34f, k), tw, 20f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name + (editable ? "  ·  click your name to change it" : ""),
+            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(24f, 34f, k), tw, 20f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
                 Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
         }
 

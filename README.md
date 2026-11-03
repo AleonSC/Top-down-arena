@@ -845,7 +845,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   bar is just **Ready** and **Start** (host), side by side in the middle, with who you're waiting on to their left.
 - **The main menu**: the title on its x-axis with a shot arcing over it, and a chip under it that changes every 8 s
   (a gold RECORD tag with your best run, or a blue TIP tag with a How to play tip). In a box in the middle of the screen, a big **Host game** button over **Join game** and **Continue** (how many runs are
-  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name to
+  saved). **Join game** opens a row for the host's address and **Connect**. Along the bottom: **your name card** (your party card in small; click the name or its pencil button to
   change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
   draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
   any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
