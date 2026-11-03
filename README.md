@@ -843,7 +843,7 @@ window really close. That goes for the pause menu and for Settings from the lobb
   change it; it's remembered), **Records**, **Settings** and **Quit**. The first time it shows after the game starts it
   draws itself in: a pen writes the title and traces the arc, then the box opens and the buttons rise into it (2.75 s;
   any key or click skips it; with Reduced effects or Visual effects off, a short fade). **Host game** grows the box
-  into the lobby's loadout while your name flies up into your party card. (The Field guide and How to play are in the
+  into the lobby's loadout while the rest of the menu fades out and the lobby fades in. (The Field guide and How to play are in the
   lobby's and the pause menu's drawer.)
 - **Settings** (main menu, the lobby's menu, and the pause menu): three groups, **Audio** (volume sliders for
   **Master**, **Music** (the menu theme), **Weapons** (your and your friend's shots and spells), **Enemies** (enemy

@@ -202,8 +202,7 @@ namespace Arena
         }
 
         /// Your name card: the lobby's party card in small (frame in your role's colour, your character, your name, your
-        /// class). k = 0 is its menu size (the name can be typed when editable), 1 its party card size; the move into the
-        /// lobby grows it from one to the other (LobbyEnter.cs), so it lands exactly as your party card looks.
+        /// class), sized for the bottom bar. (k between 0 and 1 would lay it out toward a full party card's size.)
         void DrawNameCard(Rect r, float k, bool editable, float t)
         {
             var color = ToColor(Defs.Get(hostRole).Color);

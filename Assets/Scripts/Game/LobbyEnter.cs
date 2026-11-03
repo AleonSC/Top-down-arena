@@ -78,13 +78,13 @@ namespace Arena
             float t = Time.unscaledTime;
             var oldColor = GUI.color;
 
-            // The bottom bar drops away (your name flies up to your party card, below); the line under the title fades.
+            // The bottom bar (your name card with it) drops away and fades; the line under the title fades.
             float drop = Seg(e, 0f, 0.35f);
             if (drop < 1f)
                 WithAlpha(1f - drop, () =>
                 {
                     GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
-                    DrawMenuSecondary(t, false, false);
+                    DrawMenuSecondary(t, false);
                     GUI.EndGroup();
                     string tip = MenuTip(t, out float fade);
                     Ui.Label(new Rect(0f, MenuTipY - 10f, W, 20f), tip, 15, new Color(0.75f, 0.8f, 0.92f, 0.85f * fade), TextAnchor.MiddleCenter);
@@ -109,7 +109,7 @@ namespace Arena
             LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
             LobbyPiece(new Rect(0f, PartyTop + 96f, split, H - 180f - PartyTop - 104f), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
             LobbyPiece(new Rect(0f, H - 186f, split, 96f), e, 0.7f, 1.1f, -60f, 0f);              // the background picker
-            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.95f, 1.15f, 0f, 0f);        // your party card, where your name lands
+            LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f);       // your party card, last
             LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
             LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - 96f - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             LobbyPiece(new Rect(0f, H - 92f, W, 92f), e, 0.6f, 1.05f, 0f, 60f);                   // the bottom bar
@@ -124,16 +124,6 @@ namespace Arena
                 WithAlpha(oldA, () => Ui.Fancy(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
                 WithAlpha(newA, () => Ui.Fancy(new Rect(40f + (cx - 135f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent));
-
-            // Your name card, from the bottom bar up the left side, growing into your party card (which takes over as it
-            // lands; both are drawn the same way, so the hand-over doesn't show).
-            float fly = EaseInOut(Seg(e, 0.5f, 1.1f));
-            if (e < 1.15f && (fly > 0f || drop < 1f))
-            {
-                var fr = LerpRect(MenuNameRect, new Rect(40f, PartyTop, 376f, 88f), fly);
-                fr.y -= 60f * Mathf.Sin(Mathf.PI * fly);
-                WithAlpha(1f - Seg(e, 1.0f, 1.15f), () => DrawNameCard(fr, fly, false, t));
-            }
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())
