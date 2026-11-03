@@ -189,6 +189,19 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    // SHOTW=<WeaponId>: that weapon in your hand, three volleys fired by the game's own code and moved on 0.06 / 0.18 /
+    // 0.3 s, aiming right, the arena otherwise empty (for comparing shot looks with Docs/Mockups/projectiles.html).
+    if (Environment.GetEnvironmentVariable("SHOTW") != null) {
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      var wd = System.Array.Find(Defs.Weapons, x => x.Id.ToString() == Environment.GetEnvironmentVariable("SHOTW"));
+      me.Weapon = wd; me.Kit = wd.Kit; me.Pos = me.Disp = new V2(420f, 450f); me.Aim = 0f; me.DrawT = 0f;
+      var fireV = typeof(Game).GetMethod("FireVolley", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+      foreach (float age in new[] { 0.3f, 0.18f, 0.06f }) {
+        var before = new System.Collections.Generic.HashSet<int>(gm.Bullets.Keys);
+        fireV.Invoke(gm, new object[] { me, 0f, 0 });
+        foreach (var bl in gm.Bullets.Values) if (!before.Contains(bl.Id)) { bl.Pos += bl.Vel * age; bl.Life -= age; }
+      }
+    }
     // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
     // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
     // thrust), the Halberd's six steps, Jab boxes for the Lance and the Warhammer.
