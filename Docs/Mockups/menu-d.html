@@ -101,7 +101,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     <ul>
       <li>The menu: <code>Menus.cs</code> redrawn as D (the big button, Join and Continue, the bottom bar). The port moves to Settings (a Network line, 7777 by default); your name is edited in place on the chip.</li>
       <li>The intro: a new <code>MenuIntro.cs</code> clock, first time the menu shows only; any key or click skips it; buttons ignore clicks until they've landed. Reduced effects or Visual effects off: a 0.4 s fade.</li>
-      <li>Into the lobby: <code>LobbyEnter.cs</code> keeps its clock and the lobby's pieces sliding in; what changes is the start: the Host button grows into the loadout panel (instead of the card), the name chip flies to your party card, and the bottom bar drops away. Leaving plays it backwards, as now.</li>
+      <li>Into the lobby: <code>LobbyEnter.cs</code> works as now: the box behind the buttons is the card that empties and grows into the loadout panel. What's new: the name chip flies to your party card and the bottom bar drops away. Leaving plays it backwards, as now.</li>
       <li>Joining a friend (once it connects) plays the same move, starting from the Join button.</li>
     </ul>
   </section>
@@ -111,9 +111,9 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
 (() => {
   const SCENES = [
     { id: "launch", name: "Intro A · Launch", c: "#ffb547", tag: "2.6 s · a shot draws the arc",
-      sum: "A shot is fired from the left end of the axis. Its arc draws behind it, and the letters drop into place as it passes over them. It lands with a spark, and the menu rises in.",
+      sum: "A shot is fired from the left end of the axis. Its arc draws behind it, and the letters drop into place as it passes over them. It lands with a spark, the box opens, and the buttons rise into it.",
       beats: [[0, 0.4, "The x-axis draws out from the origin"], [0.3, 1.5, "A shot flies along the arc, drawing it; each letter drops in as the shot passes over"],
-        [1.5, 1.7, "The shot lands at the far end: a spark ring"], [1.6, 2.1, "HOST GAME rises from below and flashes; Join and Continue pop in"],
+        [1.5, 1.7, "The shot lands at the far end: a spark ring"], [1.5, 1.85, "The box opens out of its middle, its plot corners snapping on"], [1.6, 2.1, "HOST GAME rises into it and flashes; Join and Continue pop in"],
         [1.9, 2.4, "The bottom bar slides up; the line under the title types itself out"]] },
     { id: "pen", name: "Intro B · Pen plot", c: "#6fe3c4", tag: "2.7 s · the plotter",
       sum: "The plotter version for D: the axis draws out, a pen writes the title's outline and fills it, then traces the arc over it. The buttons follow.",
@@ -125,10 +125,10 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
         [1.0, 1.4, "A line of best fit swings flat: the axis"], [1.25, 1.65, "A curve fits the dots above: the arc"], [1.5, 1.8, "The dots melt into solid letters"],
         [1.8, 2.9, "HOST GAME rises, Join and Continue pop in, the bottom bar slides up"]] },
     { id: "host", name: "Host game → lobby", c: "#7fb6ff", tag: "1.6 s · the button becomes the loadout",
-      sum: "Pressing Host game: the button presses in and flashes, then grows into the lobby's loadout panel. The title flies to the top left as LOBBY, your name chip flies up to become your party card, and everything else drops away while the lobby slides in.",
-      beats: [[0, 0.15, "The button presses in and flashes"], [0.1, 0.65, "It grows into the loadout panel; HOST GAME fades from it"],
+      sum: "Pressing Host game: the button presses in and flashes, the box behind the buttons empties and grows into the lobby's loadout panel, as the card does today. The title flies to the top left as LOBBY, your name chip flies up to become your party card, and the bottom bar drops away while the lobby slides in.",
+      beats: [[0, 0.15, "The button presses in and flashes"], [0.1, 0.3, "The box empties: Host, Join and Continue fade out of it"], [0.2, 0.7, "The box grows into the loadout panel, its plot corners riding out with it"],
         [0.05, 0.55, "The title shrinks and flies to the top left, turning into LOBBY; the arc and the tip line fade"],
-        [0.05, 0.4, "Join and Continue drop away; the bottom bar slides down off the screen"], [0.45, 1.05, "The lobby's pieces slide in: modes and background from the left, tabs from above, Ready and Start from below"],
+        [0.05, 0.4, "The bottom bar slides down off the screen"], [0.45, 1.05, "The lobby's pieces slide in: modes and background from the left, tabs from above, Ready and Start from below"],
         [0.5, 1.5, "Your name chip flies up the left side and opens into your party card, with a ring"], [0.9, 1.6, "The loadout fills in"]] },
   ];
 
@@ -148,6 +148,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   const ARC = { x0: 250, x1: 1030, top: 70, base: 210 };
   const TITLE = "CARTESIAN COLOSSEUM", TX = 640, TY = 174, TS = 74, AXY = 236, OX = 640;
   const HOST = { x: 450, y: 314, w: 380, h: 82 }, JOIN = { x: 450, y: 414, w: 186, h: 52 }, CONT = { x: 644, y: 414, w: 186, h: 52 };
+  const BOX = { x: 420, y: 290, w: 440, h: 214 };  // the backdrop behind Host, Join and Continue
   const BAR_Y = 650, CHIP = { x: 28, y: 666, w: 186, h: 38 };
   const SAVE_COL = [70, 150, 105];
   const TIP = "Best run: wave 23 · downed by the Lich";
@@ -281,6 +282,22 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   }
 
   // --- The menu's pieces, each with its own progress (1 = in place) -----------------------------------------------
+  /// The backdrop box (the menu's panel, with plot corners): opens out of its middle as k goes 0 to 1.
+  function panelBox(x, y, w, h, alpha = 1) {
+    g.save(); g.globalAlpha = alpha;
+    rr(x, y, w, h, 10);
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "rgba(31,36,54,0.93)"); gr.addColorStop(1, "rgba(23,26,38,0.93)");
+    g.fillStyle = gr; g.fill(); g.strokeStyle = "rgba(107,153,255,0.9)"; g.lineWidth = 1.5; g.stroke();
+    g.restore();
+  }
+  function drawBox(k) {
+    if (k <= 0) return;
+    const e = easeBack(k), cx = BOX.x + BOX.w / 2, cy = BOX.y + BOX.h / 2;
+    const w = BOX.w * Math.min(1, 0.3 + 0.7 * e), h = BOX.h * e;
+    panelBox(cx - w / 2, cy - h / 2, w, h, clamp01(k * 2.5));
+    const snap = seg(k, 0.5, 1), off = 18 * (1 - ease(snap));
+    plotCorners(BOX.x - off, BOX.y - off, BOX.w + 2 * off, BOX.h + 2 * off, 0.75 * snap);
+  }
   const P = { axis: 1, arc: 1, shotU: null, title: 1, tip: 1, host: 1, join: 1, cont: 1, bar: 1 };
   function drawHost(k, t, hover = 0, press = 0, flash = 0) {
     if (k <= 0) return;
@@ -334,6 +351,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     titleText(TITLE, TX, TY, TS);
     axis(1, t);
     drawTip(1);
+    drawBox(1);
     drawHost(1, t, opt.hover?.host || 0);
     drawSmall(1, opt.hover?.join || 0, opt.hover?.cont || 0);
     drawBar(1, t, opt.hover || {});
@@ -363,6 +381,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     }
     arcLabel(seg(t, 1.6, 1.9));
     if (t > 1.7) shot(((t - 1.7) * 0.22) % 1, seg(t, 1.9, 2.3));
+    drawBox(seg(t, 1.5, 1.85));
     drawHost(seg(t, 1.6, 2.0), t, 0, 0, Math.max(0, 1 - seg(t, 1.95, 2.2)) * (t > 1.95 ? 1 : 0));
     drawSmall(seg(t, 1.8, 2.2));
     drawBar(seg(t, 1.9, 2.3), t);
@@ -392,6 +411,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     arcPath(ak); if (ak > 0 && ak < 1) pen(arcX(ak), arcY(ak));
     arcLabel(seg(t, 1.8, 2.1));
     if (t > 1.9) shot(((t - 1.9) * 0.22) % 1, seg(t, 1.9, 2.2));
+    drawBox(seg(t, 1.65, 2.0));
     drawHost(seg(t, 1.8, 2.2), t);
     drawSmall(seg(t, 2.0, 2.4));
     drawBar(seg(t, 2.1, 2.5), t);
@@ -437,6 +457,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     }
     arcLabel(seg(t, 2.3, 2.6));
     if (t > 1.8) shot(((t - 1.8) * 0.22) % 1, seg(t, 1.8, 2.1));
+    drawBox(seg(t, 1.65, 2.0));
     drawHost(seg(t, 1.8, 2.2), t);
     drawSmall(seg(t, 2.05, 2.45));
     drawBar(seg(t, 2.2, 2.6), t);
@@ -531,7 +552,7 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
   function hostToLobby(t, e) {
     background(t);
     const press = e < 0.15 ? Math.sin(Math.PI * e / 0.15) : 0, flash = 1 - seg(e, 0.05, 0.3);
-    const away = seg(e, 0.05, 0.4), titleK = easeIO(seg(e, 0.05, 0.55)), grow = easeIO(seg(e, 0.12, 0.65));
+    const away = seg(e, 0.05, 0.4), titleK = easeIO(seg(e, 0.05, 0.55)), grow = easeIO(seg(e, 0.2, 0.7));
     // Arc, shot and tip fade.
     const fade = 1 - seg(e, 0.0, 0.3);
     arcPath(1, fade); arcLabel(fade); shot((t * 0.22) % 1, fade);
@@ -546,30 +567,23 @@ code { font: 12.5px var(--font-data); color: var(--fg); }
     const badge = seg(e, 0.55, 0.75);
     if (badge > 0) { g.save(); g.globalAlpha = badge; rr(196, 28, 28, 28, 7); g.fillStyle = "rgba(60,72,110,0.9)"; g.fill(); text("!", 210, 42, 16, "#fff", "center"); g.restore(); }
     // Join and Continue drop away, the bottom bar slides down (the name chip leaves it).
-    drawSmall(1, 0, 0, away);
+    const empty = seg(e, 0.1, 0.3);  // the box empties: the buttons fade out of it
     const chipFly = easeIO(seg(e, 0.5, 1.1));
     drawBar(1 - away, t, {}, e > 0.02 ? 1 : 0);
     // The lobby's pieces.
     drawLobby(t, { left: seg(e, 0.45, 0.95), tabs: seg(e, 0.5, 0.95), bottom: seg(e, 0.55, 1.05), fill: seg(e, 0.9, 1.4), party: 0 });
-    // The Host button grows into the loadout panel.
-    if (grow <= 0) drawHost(1, t, 0, press, flash);
-    else {
-      const P2 = L.panel, x = lerp(HOST.x, P2.x, grow), y = lerp(HOST.y, P2.y, grow), w = lerp(HOST.w, P2.w, grow), h = lerp(HOST.h, P2.h, grow);
-      const col = mix([74, 130, 245], [22, 26, 40], seg(grow, 0.2, 0.9));
-      g.save();
-      g.shadowColor = `rgba(92,153,255,${0.6 * (1 - grow)})`; g.shadowBlur = 30 * (1 - grow);
-      rr(x, y, w, h, lerp(14, 10, grow));
-      const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, rgba(mix(col, [255, 255, 255], 0.08), 0.97)); gr.addColorStop(1, rgba(col.map(v => v * 0.8), 0.97));
-      g.fillStyle = gr; g.fill(); g.shadowBlur = 0;
-      g.strokeStyle = rgba(mix([255, 255, 255], [107, 153, 255], grow), 0.25 + 0.65 * grow); g.lineWidth = 1.5; g.stroke();
-      if (flash > 0) { g.fillStyle = `rgba(255,255,255,${0.5 * flash})`; g.fill(); }
-      const la = 1 - seg(grow, 0, 0.35);
-      if (la > 0) { g.globalAlpha = la; g.font = `bold 30px ${GF}`; const s = "HOST GAME", tw = g.measureText(s).width; icon("play", x + w / 2 - (tw + 38) / 2, y + h / 2 - 13, 26); shadowText(s, x + w / 2 - (tw + 38) / 2 + 38, y + h / 2, 30, "#fff"); }
+    // The box grows into the loadout panel, its plot corners riding out with it, as the buttons in it fade.
+    const P2 = L.panel, bx = lerp(BOX.x, P2.x, grow), by = lerp(BOX.y, P2.y, grow), bw = lerp(BOX.w, P2.w, grow), bh = lerp(BOX.h, P2.h, grow);
+    panelBox(bx, by, bw, bh);
+    plotCorners(bx, by, bw, bh, 0.75, 22, lerp(7, 0, grow));
+    if (empty < 1) {
+      g.save(); g.globalAlpha = 1 - empty;
+      drawHost(1, t, 0, press, flash);
+      drawSmall(1);
       g.restore();
-      plotCorners(x, y, w, h, 0.75 * seg(grow, 0.3, 1), 22, 0);
-      // The panel's contents come in on top once it's there.
-      if (e > 0.9) drawLobby(t, { left: 0, tabs: 0, bottom: 0, fill: seg(e, 0.9, 1.4), party: 0 });
     }
+    // The panel's contents come in on top once it's there.
+    if (e > 0.9) drawLobby(t, { left: 0, tabs: 0, bottom: 0, fill: seg(e, 0.9, 1.4), party: 0 });
     // The name chip flies up the left and opens into your party card.
     if (e > 0.02) {
       if (chipFly <= 0) drawChip(CHIP.x, CHIP.y + 80 * ease(away) * 0, CHIP.w, CHIP.h, t, 0);
