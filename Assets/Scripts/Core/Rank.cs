@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a cosmetic changes. Titles aren't here: they come with the tier (Rank.TierName).
-    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground }
+    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote }
 
     /// A cosmetic reward for reaching a rank. Id is stored in the profile: never change one once players own it.
     public class CosmeticDef
@@ -123,6 +123,19 @@ namespace Arena
             new CosmeticDef { Id = "card-void", Name = "Void Rift card", Kind = CosmeticKind.CardBackground, Rank = 37 },
             new CosmeticDef { Id = "card-foil", Name = "Gilded Foil card", Kind = CosmeticKind.CardBackground, Rank = 42 },
             new CosmeticDef { Id = "card-prism", Name = "Prism Shards card", Kind = CosmeticKind.CardBackground, Rank = 55 },
+            new CosmeticDef { Id = "emote-wave", Name = "Wave emote", Kind = CosmeticKind.Emote, Rank = 1 },
+            new CosmeticDef { Id = "emote-thumbs", Name = "Thumbs up emote", Kind = CosmeticKind.Emote, Rank = 1 },
+            new CosmeticDef { Id = "emote-gg", Name = "GG emote", Kind = CosmeticKind.Emote, Rank = 3 },
+            new CosmeticDef { Id = "emote-cheer", Name = "Cheer emote", Kind = CosmeticKind.Emote, Rank = 7 },
+            new CosmeticDef { Id = "emote-heart", Name = "Heart emote", Kind = CosmeticKind.Emote, Rank = 10 },
+            new CosmeticDef { Id = "emote-laugh", Name = "Laugh emote", Kind = CosmeticKind.Emote, Rank = 12 },
+            new CosmeticDef { Id = "emote-question", Name = "Question emote", Kind = CosmeticKind.Emote, Rank = 15 },
+            new CosmeticDef { Id = "emote-sleep", Name = "Sleep emote", Kind = CosmeticKind.Emote, Rank = 17 },
+            new CosmeticDef { Id = "emote-dance", Name = "Dance emote", Kind = CosmeticKind.Emote, Rank = 21 },
+            new CosmeticDef { Id = "emote-spin", Name = "Spin emote", Kind = CosmeticKind.Emote, Rank = 25 },
+            new CosmeticDef { Id = "emote-salute", Name = "Salute emote", Kind = CosmeticKind.Emote, Rank = 31 },
+            new CosmeticDef { Id = "emote-fireworks", Name = "Fireworks emote", Kind = CosmeticKind.Emote, Rank = 41 },
+            new CosmeticDef { Id = "emote-steam", Name = "Steam emote", Kind = CosmeticKind.Emote, Rank = 52 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -186,6 +199,10 @@ namespace Arena
         public static byte TrailIndex(string id) => IndexOf(CosmeticKind.Trail, id);
         public static string TrailId(int index) => IdOf(CosmeticKind.Trail, index);
         public static byte CardBgIndex(string id) => IndexOf(CosmeticKind.CardBackground, id);
+        /// Emotes (Game/EmoteLooks.cs): not equipped, every one your rank has is on the emote bar. Their number on the wire is 1.. in table order.
+        public static byte EmoteIndex(string id) => IndexOf(CosmeticKind.Emote, id);
+        public static string EmoteId(int index) => IdOf(CosmeticKind.Emote, index);
+        public static int EmoteCount => OfKind(CosmeticKind.Emote).Count;
         public static string CardBgId(int index) => IdOf(CosmeticKind.CardBackground, index);  // "card-dusk" ... (Game/CardBackgrounds.cs draws them)
 
         /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).

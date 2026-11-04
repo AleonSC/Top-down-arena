@@ -108,6 +108,8 @@ namespace Arena
         /// Equips a cosmetic you've reached the rank for (id "" takes the slot off). False: not yours yet, or not that kind.
         public bool Equip(CosmeticKind kind, string id)
         {
+            if (kind == CosmeticKind.Emote)
+                return false;  // emotes aren't equipped: all the ones your rank has are on the emote bar
             if (id != "")
             {
                 var c = Rank.Cosmetic(id);
@@ -121,7 +123,7 @@ namespace Arena
             return true;
         }
 
-        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : kind == CosmeticKind.CardBackground ? CardBg : Background;
+        public string Equipped(CosmeticKind kind) => kind == CosmeticKind.Emote ? "" : kind == CosmeticKind.Frame ? Frame : kind == CosmeticKind.Trail ? Trail : kind == CosmeticKind.CardBackground ? CardBg : Background;
 
         public static string ClassKey(Role role, Kit kit) => Defs.KitName(kit) + " " + Defs.Get(role).Name;  // "Knight Tank", as the lobby says it
 

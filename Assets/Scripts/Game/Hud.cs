@@ -17,6 +17,7 @@ namespace Arena
             var me = game.Me;
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
+            DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             HudGroup(1, new Vector2(-150f, 30f), new Rect(SideL, SideY, SideW, SideH), DrawWaveCorner);
             HudGroup(3, new Vector2(0f, -80f), new Rect(W / 2f - 320f, 0f, 640f, 60f), () =>
             {
@@ -67,6 +68,8 @@ namespace Arena
             HudGroup(2, new Vector2(150f, 30f), new Rect(SideR, SideY, SideW, SideH), DrawPlayerCorner);
             if (me != null)
                 HudGroup(0, new Vector2(0f, 110f), new Rect(W / 2f - 391f, H - 92f, 782f, 80f), () => DrawAbilityBar(me));
+            if (me != null && !me.Downed)
+                DrawEmoteBar(W / 2f, H - 98f);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawTreasureHud(me);  // your chest item's card, or what the wave is waiting for (PropsLook.cs)
 
             switch (game.State)

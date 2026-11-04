@@ -61,6 +61,15 @@ namespace Arena
             }
             foreach (var kv in order)
                 DrawAvatarTag(kv.Key, kv.Value, room, t);
+            foreach (var kv in order)  // their emotes (EmoteBar.cs)
+            {
+                int index;
+                float age;
+                if (session.EmoteOf(kv.Key, out index, out age))
+                    DrawEmote(index, new Vector2(room.x + kv.Value.Disp.X, room.y + kv.Value.Disp.Y - 30f), age, 1f);
+            }
+            TickEmoteBar(HangoutKeysFree);
+            DrawEmoteBar(room.center.x, room.yMax - 14f);
         }
 
         static string MoveKeysText()
