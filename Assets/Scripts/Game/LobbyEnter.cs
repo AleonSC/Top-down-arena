@@ -65,7 +65,7 @@ namespace Arena
             new Rect(Lerp(a.x, b.x, k), Lerp(a.y, b.y, k), Lerp(a.width, b.width, k), Lerp(a.height, b.height, k));
 
         /// The loadout panel the menu card grows into (DrawLobby's body).
-        static Rect LobbyBodyRect => new Rect(440f, LobbyBodyTop, W - 480f, H - 96f - LobbyBodyTop);
+        static Rect LobbyBodyRect => new Rect(440f, LobbyBodyTop, W - 480f, H - LobbyBottomPad - LobbyBodyTop);
 
         /// Instead of DrawLobby while leaving: the entrance, backwards.
         void DrawLobbyLeavingToMenu() => DrawLobbyEntering(LeaveFrom * (1f - Mathf.Clamp01(leaveT / LeaveLen)), true);
@@ -105,26 +105,26 @@ namespace Arena
             // Its live models wait.
             uiGlBlocked = true;
             const float split = 430f;
-            LobbyPiece(new Rect(180f, 0f, split - 180f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
+            LobbyPiece(new Rect(0f, 0f, 100f, 68f), e, 0.5f, 0.8f, -60f, 0f);                      // the back button
+            LobbyPiece(new Rect(240f, 0f, split - 240f, 68f), e, 0.55f, 0.8f, 0f, -20f);          // the "!" by the title (the title itself flies in)
             LobbyPiece(new Rect(0f, 68f, split, 80f), e, 0.45f, 0.85f, -60f, 0f);                  // the mode switch
             LobbyPiece(new Rect(0f, 148f, split, PartyTop - 148f), e, 0.5f, 0.9f, -60f, 0f);      // "Party (1/3)"
-            LobbyPiece(new Rect(0f, PartyTop + 96f, split, H - 180f - PartyTop - 104f), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
-            LobbyPiece(new Rect(0f, H - 186f, split, 96f), e, 0.7f, 1.1f, -60f, 0f);              // the background picker
+            LobbyPiece(new Rect(0f, PartyTop + 96f, split, LobbyNoteY - 4f - (PartyTop + 96f)), e, 0.6f, 1.0f, -60f, 0f);  // the other slots
+            LobbyPiece(new Rect(0f, LobbyNoteY - 4f, split, H - LobbyNoteY + 4f), e, 0.7f, 1.1f, -60f, 0f);  // Ready and Start
             LobbyPiece(new Rect(0f, PartyTop - 6f, split, 102f), e, 0.8f, 1.15f, -60f, 0f);       // your party card, last
             LobbyPiece(new Rect(split, 0f, W - split, LobbyBodyTop - 2f), e, 0.55f, 0.9f, 0f, -30f);  // the tabs
-            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - 96f - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
-            LobbyPiece(new Rect(0f, H - 92f, W, 92f), e, 0.6f, 1.05f, 0f, 60f);                   // the bottom bar
+            LobbyPiece(new Rect(split, LobbyBodyTop - 2f, W - split, H - LobbyBottomPad - LobbyBodyTop + 4f), e, 0.65f, 1.05f, 0f, 0f);  // the loadout, filling in
             uiGlBlocked = false;
             GUI.color = oldColor;
 
             // The title flies to the top left, shrinking, and turns into LOBBY on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
-            float cx = Lerp(W / 2f, 135f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
+            float cx = Lerp(W / 2f, 199f, tk), cy = Lerp(MenuTitleY, 41f, tk), size = Lerp(MenuTitleSize, 40f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Fancy(new Rect(cx - W / 2f, cy - size, W, size * 2f), "CARTESIAN COLOSSEUM", Mathf.RoundToInt(size), Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleCenter, Ui.Accent));
             if (newA > 0f)
-                WithAlpha(newA, () => Ui.Fancy(new Rect(40f + (cx - 135f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent));
+                WithAlpha(newA, () => Ui.Fancy(new Rect(104f + (cx - 199f), 16f + (cy - 41f), 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent));
 
             // GL: the axis riding along under the title, the card's plot corners, and the ring off your party card.
             if (BeginUiGl())

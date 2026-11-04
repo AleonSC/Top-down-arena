@@ -51,7 +51,7 @@ namespace Arena
                 lobbyTab = 0;
             if (practice && lobbyTab == PerkTab)
                 lobbyTab = 0;  // perks are off in the Practice Range
-            var infoButton = new Rect(196f, 28f, 28f, 28f);
+            var infoButton = new Rect(260f, 28f, 28f, 28f);
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
             {
@@ -62,7 +62,13 @@ namespace Arena
             }
 
             // --- Left column, top: the title, then the mode switch (a choice for the whole lobby, so it sits with the party).
-            Ui.Fancy(new Rect(40f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
+            // Back: a small red button beside the title (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs).
+            var backRect = new Rect(40f, 17f, 48f, 48f);
+            bool back = Ui.Button(backRect, "", Ui.Danger);
+            Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));
+            if (back)
+                StartLobbyLeave();  // LobbyEnter.cs
+            Ui.Fancy(new Rect(104f, 16f, 300f, 50f), "LOBBY", 40, Color.white, new Color(0.72f, 0.8f, 1f), TextAnchor.MiddleLeft, Ui.Accent);
             if (Ui.Button(infoButton, "!", connInfoOpen ? Ui.Accent : Ui.Neutral))
                 connInfoOpen = !connInfoOpen;
             if (session.Resume != null)
@@ -98,10 +104,10 @@ namespace Arena
                 y += 96f;
             }
             if (session.Status.Length > 0)
-                Ui.Label(new Rect(lx, y + 4f, lw, H - 96f - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
+                Ui.Label(new Rect(lx, y + 4f, lw, LobbyNoteY - 8f - (y + 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
             // --- Right: tabs level with the title, then your loadout or the practice waves.
-            var area = new Rect(440f, 24f, W - 480f, H - 120f);
+            var area = new Rect(440f, 24f, W - 480f, H - LobbyBottomPad - 24f);
             DrawLobbyTabs(new Rect(area.x, area.y, area.width, 34f), practice);
             var body = new Rect(area.x, LobbyBodyTop, area.width, area.yMax - LobbyBodyTop);
             if (lobbyTab == 1 && practice)
@@ -121,7 +127,7 @@ namespace Arena
             else if (me != null)
                 DrawLoadout(me, body, t);
 
-            DrawLobbyBottom(me, practice);
+            DrawLobbyActions(me, practice);
             DrawLockedTip();  // on top of the loadout
             DrawTip();
             if (connInfoOpen)
@@ -129,6 +135,11 @@ namespace Arena
         }
 
         const float LobbyBodyTop = 68f;   // the top of the loadout box (under the tabs)
+        const float LobbyBottomPad = 36f; // the gap under the loadout box and the action buttons
+        const float LobbyStartH = 66f, LobbyReadyH = 56f;
+        const float LobbyStartY = 720f - LobbyBottomPad - LobbyStartH;  // Start (host) or Ready (guest) sits on the box's bottom edge
+        const float LobbyReadyY = LobbyStartY - 10f - LobbyReadyH;
+        const float LobbyNoteY = LobbyReadyY - 30f;  // who we're waiting for, just above Ready
         const float PartyTop = 184f;      // the top of the first party card (under the mode switch)
 
         string HostName()
@@ -942,24 +953,17 @@ namespace Arena
             y += 27f;
         }
 
-        // --- Bottom bar ------------------------------------------------------------
+        // --- Actions under the party -------------------------------------------------
 
-        void DrawLobbyBottom(LobbyEntry me, bool practice)
+        void DrawLobbyActions(LobbyEntry me, bool practice)
         {
-            Ui.Fill(new Rect(0f, H - 88f, W, 88f), new Color(0.02f, 0.025f, 0.04f, 0.55f));
-            Ui.Fill(new Rect(0f, H - 88f, W, 1f), new Color(1f, 1f, 1f, 0.06f));
             float t = Time.unscaledTime;
-            // Leaving, Settings and the Field guide are in the menu Esc opens (MenuDrawer.cs); Ready and Start sit in the middle.
-            // Bottom left: a small red back button, the same as Main Menu in the Esc menu.
-            var backRect = new Rect(40f, H - 70f, 48f, 48f);
-            bool back = Ui.Button(backRect, "", Ui.Danger);
-            Ui.Icon(new Rect(backRect.center.x - 12f, backRect.center.y - 12f, 24f, 24f), PixelArt.Get("ui_back"));
-            if (back)
-                StartLobbyLeave();  // LobbyEnter.cs
+            const float lx = 40f, lw = 376f;
+            bool host = session.IsHost;
             bool ready = me != null && me.Ready;
-            float readyX = session.IsHost ? W / 2f - 260f : W / 2f - 120f;
-            var readyRect = new Rect(readyX, H - 70f, 240f, 48f);
-            if (Ui.FancyButton(readyRect, ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
+            // The host stacks Ready over Start; a guest's Ready takes the bottom slot, where Start would be.
+            float readyY = host ? LobbyReadyY : LobbyStartY, readyH = host ? LobbyReadyH : LobbyStartH;
+            if (Ui.FancyButton(new Rect(lx, readyY, lw, readyH), ready ? "Ready!" : "Ready?", ready ? Ui.GoldButton : Ui.Primary, PixelArt.Get("ui_check"), t, 0))
                 session.RequestReady(!ready);
             int waiting = 0;  // other players who aren't ready yet
             foreach (var e in session.Lobby.Values)
@@ -968,14 +972,13 @@ namespace Arena
             // Only with other players: who you're waiting on, or that everyone's ready.
             string note = session.Lobby.Count < 2 ? ""
                 : waiting > 0 ? "Waiting for " + waiting + " player" + (waiting == 1 ? "" : "s") + " to ready up"
-                : !ready ? "" : session.IsHost ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
-            Ui.Label(new Rect(140f, H - 56f, readyX - 160f, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleRight);
-            if (session.IsHost)
+                : !ready ? "" : host ? "Everyone's ready" : "Everyone's ready: waiting for the host to start";
+            Ui.Label(new Rect(lx, readyY - 30f, lw, 26f), note, 14, waiting == 0 ? Ui.Good : Ui.Muted, TextAnchor.MiddleCenter);
+            if (host)
             {
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (practice || !session.HuntMode || session.Resume != null || session.LobbyHunt != null);  // (a locked hunt can't start)
-                string start = "Start";
-                if (Ui.FancyButton(new Rect(readyX + 260f, H - 70f, 260f, 48f), start, practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
+                if (Ui.FancyButton(new Rect(lx, LobbyStartY, lw, LobbyStartH), "Start", practice ? new Color(PracticeColor.r * 0.85f, PracticeColor.g * 0.85f, PracticeColor.b * 0.85f) : Ui.Primary, PixelArt.Get("ui_play"), t, 17))
                     session.StartMatch();
                 GUI.enabled = wasEnabled;
             }
