@@ -223,7 +223,7 @@ static partial class Program
                     case AbilityId.Lifeline: effect = fullHp.Count == 2; break;
                     case AbilityId.Sanctum: effect = Z(ZoneKind.Sanctum) > 0; break;
                     case AbilityId.WorldTree: effect = Z(ZoneKind.Grove) > 0 && M(MinionKind.Sprite) >= 4; break;
-                    case AbilityId.MeteorStorm: effect = Z(ZoneKind.Meteor) >= 10; break;
+                    case AbilityId.BulletRain: effect = Z(ZoneKind.BulletRain) > 0; break;
                     case AbilityId.Legion: effect = M(MinionKind.Wolf) >= 6 && M(MinionKind.Bat) >= 6; break;
                 }
                 bool synced = client.Game.Players[id].Slots[Upgrades.UltSlot].Id == ult && ult == Upgrades.Ultimate(hp.Role, kit);

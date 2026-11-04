@@ -14,7 +14,7 @@ namespace Arena
         // Summoner
         GolemWall, Earthquake, GuardianSpirit, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Sacrifice, AlphaCall,
         // Ultimates (F): one per role and class
-        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, MeteorStorm, Legion,
+        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, BulletStorm, BulletRain, Legion,
         // Knight (Space), then the Knight ultimates
         ShieldWall, LeapSlam, Unbreakable, Consecrate, GuardiansOath, LayOnHands, Whirlwind, Lunge, BattleFury,
         LastStand, HallowedBlade, BladeTempest,

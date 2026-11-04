@@ -6,6 +6,7 @@ namespace Arena
     /// Ultimates (F): one per role and class, on a long cooldown (host only).
     public partial class Game
     {
+        public const float BulletRainRadius = 165f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
         bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm;
 
         /// Returns how many it erased; during a cast, every 5 count as a hit for mastery.
@@ -77,9 +78,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.MeteorStorm, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Meteor Storm", Cooldown = 70f, Desc = "Twelve meteors rain down on enemies over 3 s, 150 damage each.",
-                Capstone = "Twenty meteors.",
+                Id = AbilityId.BulletRain, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
+                Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it.",
+                Capstone = "Lasts 9 s.",
             },
             new AbilityDef
             {
@@ -181,21 +182,11 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
                     break;
 
-                case AbilityId.MeteorStorm:  // DPS: Mage
+                case AbilityId.BulletRain:  // DPS: Mage
                 {
-                    var targets = new List<Enemy>();
-                    foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Def.Xp > 0)
-                            targets.Add(e);
-                    int meteors = cap ? 20 : 12;
-                    for (int i = 0; i < meteors; i++)
-                    {
-                        V2 at = targets.Count > 0
-                            ? targets[(i + rng.Next(targets.Count)) % targets.Count].Pos + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 30f)
-                            : target + V2.FromAngle(Rand(0f, MathX.Tau)) * Rand(0f, 200f);
-                        AddZone(ZoneKind.Meteor, p, ClampToArena(at, 10f), 90f, 0.7f + 0.2f * i * 12f / meteors);
-                    }
-                    Sounds.Add(Sfx.SpellFire);
+                    V2 at = ClampToArena(target, BulletRainRadius);
+                    AddZone(ZoneKind.BulletRain, p, at, BulletRainRadius, cap ? 9f : 6f);
+                    BroadcastFx(FxKind.Ring, at, Kits.Get(ZoneKind.BulletRain).Color, BulletRainRadius, 0.6f, Sfx.SpellFire);
                     break;
                 }
 
