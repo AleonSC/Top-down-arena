@@ -1,0 +1,439 @@
+<title>Elementalist DPS Abilities</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Three looping previews (Meteor, Blizzard, Tsunami), each with three
+   looks to pick from. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --fire: #ff9a3c; --ice: #9fd8ff; --wave: #4fd1e8; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--wave); }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header, section.ab { display: grid; gap: 12px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+canvas.arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 960 / 420; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #16233a; border-color: var(--wave); color: var(--fg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; cursor: pointer; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--wave); }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: 0.12em; color: var(--wave); }
+.card p { font-size: 14px; color: var(--soft); }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 92ch; color: var(--soft); }
+table { border-collapse: collapse; font-size: 14px; max-width: 100%; }
+th, td { text-align: left; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.scroll { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Elementalist DPS · abilities · pick a look for each</div>
+    <h1>Meteor · Blizzard · <span>Tsunami</span></h1>
+    <p class="lead">Meteor and Blizzard keep their numbers and only get new visuals. <b>Arcane Surge is replaced by Tsunami</b>:
+      a wave rolls out from where you stand in the direction you aim, nicks everything it crosses and leaves it <b>wet</b>. Wet enemies
+      are slowed, and <b>every lightning hit anywhere on the map arcs to every wet enemy</b> (Arc Lightning, Storm Hammer, Chain Light, Nimbus), for a
+      little extra damage. The wave itself barely hurts: the payoff is the lightning that follows. Pick one look per ability.</p>
+    <div class="group"><span class="label">All previews</span><button id="pause" aria-pressed="false">Pause</button><button id="slow" aria-pressed="false">¼× speed</button></div>
+  </header>
+
+  <section class="ab" id="meteor">
+    <div class="eyebrow">1 of 3 · visual upgrade only</div>
+    <h2>Meteor</h2>
+    <p>Today: a flashing circle that fills in over 0.9 s, then 150 damage, nothing falls. Each look below adds a falling meteor and a proper impact.</p>
+    <div class="stage"><canvas class="arena" width="960" height="420"></canvas>
+      <div class="bar"><div class="group looks"><span class="label">Look</span></div>
+        <div class="group"><span class="label">Capstone</span><button class="opt" aria-pressed="false">Burning ground 3 s</button></div></div></div>
+    <div class="cards"></div>
+  </section>
+
+  <section class="ab" id="blizzard">
+    <div class="eyebrow">2 of 3 · visual upgrade only</div>
+    <h2>Blizzard</h2>
+    <p>Today: a pale circle with 14 white dots drifting round. Slows and damages enemies inside for 5 s (10 s at the capstone). Enemies inside are shown slowed and rimed.</p>
+    <div class="stage"><canvas class="arena" width="960" height="420"></canvas>
+      <div class="bar"><div class="group looks"><span class="label">Look</span></div></div></div>
+    <div class="cards"></div>
+  </section>
+
+  <section class="ab" id="tsunami">
+    <div class="eyebrow">3 of 3 · replaces Arcane Surge</div>
+    <h2>Tsunami</h2>
+    <p>The loop: <b>1</b> the wave rolls out and soaks everything in its path; <b>2</b> wet enemies drip and crawl; <b>3</b> an Arc Lightning strip hits one dry enemy
+      and the bolts jump to <i>every</i> wet enemy, near or far; <b>4</b> a Storm Hammer hit does the same on each of its pulses; <b>5</b> they dry out. The three enemies off the wave's line stay dry.</p>
+    <div class="stage"><canvas class="arena" width="960" height="420"></canvas>
+      <div class="bar"><div class="group looks"><span class="label">Look</span></div></div></div>
+    <div class="cards"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Tsunami: proposed numbers</h2>
+    <div class="scroll"><table>
+      <tr><th>Part</th><th>Proposal</th><th>Why</th></tr>
+      <tr><td>Cooldown</td><td>16 s (same slot as Arcane Surge)</td><td>Long enough that wet is a window, not a permanent state.</td></tr>
+      <tr><td>Wave</td><td>340 px wide, 70 px thick, 520 px/s, travels 1000 px (the arena's width) and is stopped by nothing</td><td>One pass across the arena in about 2 s. Hits each enemy once.</td></tr>
+      <tr><td>Wave damage</td><td><b>12</b> per enemy (Meteor is 150; one Arc Lightning strip is 40)</td><td>Deliberately tiny: you cast it for the wet, not the damage. Bosses take it too.</td></tr>
+      <tr><td>Wet</td><td>8 s, refreshed if hit again. Slows by 30% (bosses 15%)</td><td>A real slow, but weaker than Blizzard (which stacks with it on purpose).</td></tr>
+      <tr><td>Lightning arcs</td><td>Any lightning hit sends a bolt from the struck target to <b>every wet enemy on the map</b>, each for 40% of that hit's damage. A given wet enemy can be arced at most every 0.4 s</td><td>The limiter stops Nimbus or a Storm Hammer pulse chain from becoming a screen-wide laser. Arc strips with Barrage still count once per strip.</td></tr>
+      <tr><td>Who counts as lightning</td><td>Arc Lightning, Storm Hammer pulses (each counts as half a hammer hit, since its own arcs are only an eighth), Chain Light, Nimbus strikes</td><td>Every lightning weapon the player can use. Enemy lightning (the Storm Herald) doesn't count.</td></tr>
+      <tr><td>Capstone</td><td>Wet lasts 14 s, and the wave rolls back to you, wetting anything it missed</td><td>Longer window plus a second chance on moving enemies.</td></tr>
+      <tr><td>Rough value</td><td>Arc Lightning full charge on a wet pack of 8: 40 + 7 × 16 = 152 instead of 40</td><td>A big multiplier, but gated behind a 16 s cooldown, a lightning weapon and a 2 s setup.</td></tr>
+    </table></div>
+  </section>
+
+  <section class="notes">
+    <h2>If you pick these</h2>
+    <ul>
+      <li><b>Meteor / Blizzard:</b> drawing only (<code>WorldEnemies.cs</code> zones, plus the impact in the FX layer). No protocol change.</li>
+      <li><b>Tsunami:</b> <code>AbilityId.ArcaneSurge</code> and its code (<code>SurgeT</code>, the buff timer, the violet aura, the Arc Surge bonuses in Combat/Weapons/BloodMage) get replaced. A wave is a new moving zone or projectile, and wet is a per-enemy timer that clients must see, so <b>the protocol version goes up</b>.</li>
+      <li>Wet also needs a look on enemies (drips and a blue rim, shown in the preview) and a Bestiary/Armory entry later. I won't touch those pages unless you ask.</li>
+      <li>Open question: should wet be removed by fire (Fireball, Meteor steam it off)? Left out of the proposal to keep it simple; easy to add.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, W = 960, H = 420;
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  const ease = (v) => 1 - Math.pow(1 - clamp01(v), 3);
+  const lerp = (a, b, f) => a + (b - a) * f;
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+  const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+  const rnd = (seed) => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
+  const WHITE = [255, 255, 255], FIRE = [255, 150, 60], HOT = [255, 220, 150], ICE = [160, 216, 255], WAVE = [79, 209, 232], BOLT = [191, 217, 255];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function glow(ctx, x, y, r, c, a) {
+    if (a <= 0.01 || r <= 0.5) return;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(c, a)); g.addColorStop(0.35, rgba(c, a * 0.35)); g.addColorStop(1, rgba(c, 0));
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); ctx.restore();
+  }
+  const disc = (ctx, x, y, r, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, TAU); ctx.fill(); };
+  const ring = (ctx, x, y, r, w, col, a0 = 0, a1 = TAU) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), a0, a1); ctx.stroke(); };
+  const line = (ctx, x0, y0, x1, y1, w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); };
+  function jagged(ax, ay, bx, by, segs, amp, R) {
+    const pts = [[ax, ay]], nx = -(by - ay), ny = bx - ax, len = Math.hypot(nx, ny) || 1;
+    for (let i = 1; i < segs; i++) { const f = i / segs, j = (R() - 0.5) * 2 * amp * Math.sin(f * Math.PI); pts.push([ax + (bx - ax) * f + nx / len * j, ay + (by - ay) * f + ny / len * j]); }
+    pts.push([bx, by]); return pts;
+  }
+  function polyline(ctx, pts, w, col) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
+  function bolt(ctx, pts, w, a, col = BOLT) { polyline(ctx, pts, w * 2.8, rgba(col, 0.32 * a)); polyline(ctx, pts, w, rgba(WHITE, a)); }
+  function floor(ctx) {
+    ctx.fillStyle = "#070910"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(110,140,220,0.07)"; ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
+  }
+  const CASTER = { x: 110, y: 210 };
+  function caster(ctx, charge = 0, col = FIRE) {
+    const { x, y } = CASTER, r = 17;
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 9, r, r * 0.45, 0, 0, TAU); ctx.fill();
+    disc(ctx, x, y, r, "#1a2236"); ring(ctx, x, y, r, 2.5, "#ffb04a");
+    line(ctx, x + 4, y - 3, x + 18, y - 3, 2, "#cfd8e3"); line(ctx, x + 4, y + 3, x + 18, y + 3, 2, "#cfd8e3");
+    glow(ctx, x + 18, y, 8 + 16 * charge, col, 0.4 + 0.6 * charge); disc(ctx, x, y, 1.8, "#fff");
+  }
+  // An enemy triangle pointing at the caster. o: flash, dead (0..1 fade out), wet, frost, burn, t
+  function enemy(ctx, x, y, o = {}) {
+    const a = 1 - (o.dead || 0); if (a <= 0.01) return;
+    const r = 14 * (1 + 0.18 * (o.flash || 0));
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(Math.PI);
+    ctx.fillStyle = o.flash > 0 ? `rgba(255,255,255,${0.4 + 0.6 * o.flash})` : o.wet ? "#26394f" : o.frost ? "#3a4a66" : "#5a1f24";
+    ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(-r * 0.7, r * 0.8); ctx.lineTo(-r * 0.7, -r * 0.8); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = o.wet ? rgba(WAVE, 0.95) : o.frost ? rgba(ICE, 0.95) : "#ff5a5f"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.globalAlpha = a;
+    if (o.wet) {   // drips running off it and a sheen
+      glow(ctx, x, y, 26, WAVE, 0.22 * o.wet);
+      for (let k = 0; k < 4; k++) { const ph = ((o.t || 0) * 1.4 + k * 0.27 + hash(k + x)) % 1; disc(ctx, x + (k - 1.5) * 6, y + 6 + ph * 18, 1.8 * (1 - ph * 0.5), rgba(WAVE, 0.9 * (1 - ph) * o.wet)); }
+    }
+    if (o.frost) {
+      for (let k = 0; k < 6; k++) { const an = k * 1.05 + 0.3; line(ctx, x + Math.cos(an) * 12, y + Math.sin(an) * 12, x + Math.cos(an) * 18, y + Math.sin(an) * 18, 1.5, rgba(WHITE, 0.85)); }
+    }
+    if (o.burn) glow(ctx, x, y, 28, FIRE, 0.35 * o.burn);
+    ctx.restore();
+  }
+  function label(ctx, text, x = 14, y = 24) { ctx.font = "500 13px 'IBM Plex Mono', monospace"; ctx.fillStyle = "rgba(231,238,243,0.85)"; ctx.fillText(text, x, y); }
+  function floater(ctx, text, x, y, f, col = "#bfd9ff") { if (f <= 0 || f >= 1) return; ctx.save(); ctx.globalAlpha = 1 - f; ctx.font = "700 14px Oxanium, sans-serif"; ctx.fillStyle = col; ctx.textAlign = "center"; ctx.fillText(text, x, y - 12 - 22 * f); ctx.restore(); }
+
+  /* ===================== METEOR ===================== */
+  const MT = { x: 660, y: 215 }, MR = 78, MLOOP = 3.6, MWARN = 0.9;
+  const MEN = [[-40, -30], [30, -45], [-10, 20], [48, 28], [-62, 38], [0, 0], [140, -80], [150, 90]];
+  function meteorScene(ctx, style, tt, opt) {
+    floor(ctx);
+    const warn = tt < MWARN, f = clamp01(tt / MWARN), ti = tt - MWARN;
+    caster(ctx, warn ? 0.4 : 0);
+    // scorch / crater decals persist after impact
+    if (!warn) {
+      const fade = clamp01(1 - ti / 2.8);
+      if (style === 2) { disc(ctx, MT.x, MT.y, MR * 0.45, rgba([14, 10, 10], 0.9)); ring(ctx, MT.x, MT.y, MR * 0.45, 3, rgba(lerp2(FIRE, [90, 50, 40], clamp01(ti / 2)), 0.9)); }
+      else disc(ctx, MT.x, MT.y, MR * 0.8, rgba([25, 14, 10], 0.55 * fade));
+      if (style === 2) for (let k = 0; k < 9; k++) { const a = k * TAU / 9 + 0.3, l = MR * (0.5 + 0.35 * hash(k)); line(ctx, MT.x + Math.cos(a) * MR * 0.45, MT.y + Math.sin(a) * MR * 0.45, MT.x + Math.cos(a) * l, MT.y + Math.sin(a) * l, 2.4, rgba(lerp2(FIRE, [90, 50, 40], clamp01(ti / 2)), 0.9 * Math.max(0.15, fade))); }
+    }
+    // the warning
+    if (warn) {
+      const pulse = (tt % 0.2) < 0.1 ? 0.9 : 0.5;
+      if (style === 0) {
+        disc(ctx, MT.x, MT.y, MR * f, rgba(FIRE, 0.22));
+        ring(ctx, MT.x, MT.y, MR, 3, rgba(FIRE, pulse));
+        for (let k = 0; k < 8; k++) { const a = k * TAU / 8 + tt * 1.5; line(ctx, MT.x + Math.cos(a) * (MR - 6), MT.y + Math.sin(a) * (MR - 6), MT.x + Math.cos(a) * (MR + 8), MT.y + Math.sin(a) * (MR + 8), 2.5, rgba(FIRE, 0.8)); }
+        line(ctx, MT.x - 10, MT.y, MT.x + 10, MT.y, 2, rgba(FIRE, 0.8)); line(ctx, MT.x, MT.y - 10, MT.x, MT.y + 10, 2, rgba(FIRE, 0.8));
+      } else if (style === 1) {
+        ctx.save(); ctx.beginPath(); ctx.arc(MT.x, MT.y, MR, 0, TAU); ctx.clip();
+        disc(ctx, MT.x, MT.y, MR, `rgba(40,0,0,${0.18 + 0.35 * f})`);
+        ctx.strokeStyle = rgba(FIRE, 0.28 * f); ctx.lineWidth = 3; for (let k = -MR * 2; k < MR * 2; k += 14) { ctx.beginPath(); ctx.moveTo(MT.x + k, MT.y - MR); ctx.lineTo(MT.x + k + MR, MT.y + MR); ctx.stroke(); }
+        ctx.restore(); ring(ctx, MT.x, MT.y, MR, 3, rgba(FIRE, pulse));
+        ctx.fillStyle = `rgba(0,0,0,${0.35 * f})`; ctx.beginPath(); ctx.ellipse(MT.x, MT.y + 6, 10 + 36 * f, 4 + 14 * f, 0, 0, TAU); ctx.fill();
+      } else {
+        ring(ctx, MT.x, MT.y, MR, 3, rgba(FIRE, pulse));
+        for (let k = 0; k < 9; k++) {
+          const a = k * TAU / 9 + 0.3, l = MR * (0.35 + 0.65 * hash(k + 3)) * ease(f * 1.2);
+          const pts = jagged(MT.x, MT.y, MT.x + Math.cos(a) * l, MT.y + Math.sin(a) * l, 5, 5, rnd(k + 9));
+          polyline(ctx, pts, 5, rgba(FIRE, 0.25 * f)); polyline(ctx, pts, 2, rgba(HOT, 0.4 + 0.6 * f));
+        }
+        glow(ctx, MT.x, MT.y, MR * f, FIRE, 0.35);
+      }
+    }
+    // the falling rock
+    if (warn) {
+      let sx, sy;
+      if (style === 0) { sx = MT.x + 320; sy = MT.y - 380; }
+      else if (style === 1) { sx = MT.x; sy = MT.y - 400; }
+      else { sx = MT.x - 240; sy = MT.y - 400; }
+      const e = f * f, hx = lerp(sx, MT.x, e), hy = lerp(sy, MT.y, e), size = style === 1 ? 8 + 30 * e : 9 + 14 * e;
+      for (let k = 18; k >= 1; k--) {
+        const ee = Math.max(0, f - k * 0.018), ex = lerp(sx, MT.x, ee * ee), ey = lerp(sy, MT.y, ee * ee);
+        const a = (1 - k / 18); glow(ctx, ex, ey, size * (1.2 + a), style === 1 ? [110, 110, 120] : FIRE, 0.55 * a);
+        if (style === 1 && k % 3 === 0) disc(ctx, ex + (hash(k) - 0.5) * 10, ey, size * 0.5 * a, rgba([70, 70, 78], 0.35 * a));
+      }
+      glow(ctx, hx, hy, size * 3, FIRE, 0.8); disc(ctx, hx, hy, size, "#5a2a1a"); disc(ctx, hx - size * 0.2, hy - size * 0.2, size * 0.6, rgba(FIRE, 0.95)); disc(ctx, hx - size * 0.25, hy - size * 0.25, size * 0.3, rgba(WHITE, 0.95));
+    }
+    // enemies
+    MEN.forEach(([dx, dy], i) => {
+      const x = MT.x + dx, y = MT.y + dy, inside = Math.hypot(dx, dy) < MR;
+      const hit = !warn && inside; enemy(ctx, x, y, { flash: hit ? clamp01(1 - ti / 0.2) : 0, dead: hit ? clamp01((ti - 0.12) / 0.35) : 0, burn: opt && !warn && !inside ? 0 : 0, t: tt });
+    });
+    // the impact
+    if (!warn) {
+      if (style === 0) {
+        glow(ctx, MT.x, MT.y, 240 * clamp01(1 - ti / 0.35), HOT, 0.95);
+        ring(ctx, MT.x, MT.y, MR * 1.25 * ease(ti / 0.45), 5 * (1 - ti / 0.5), rgba(HOT, 1 - ti / 0.5));
+        for (let k = 0; k < 20; k++) { const a = hash(k) * TAU, v = 130 + hash(k + 5) * 210, d = v * Math.min(ti, 0.9) , g = 160 * ti * ti; if (ti < 0.9) disc(ctx, MT.x + Math.cos(a) * d, MT.y + Math.sin(a) * d * 0.7 + g, 2.6 * (1 - ti / 0.9), rgba(HOT, 1 - ti / 0.9)); }
+      } else if (style === 1) {
+        const dome = ease(ti / 0.35); glow(ctx, MT.x, MT.y, MR * 1.7 * dome, FIRE, 0.95 * (1 - clamp01(ti / 0.7)));
+        disc(ctx, MT.x, MT.y, MR * 1.05 * dome, rgba(HOT, 0.55 * (1 - clamp01(ti / 0.5))));
+        ring(ctx, MT.x, MT.y, MR * 1.2 * dome, 4, rgba(FIRE, 1 - clamp01(ti / 0.6)));
+        for (let k = 0; k < 9; k++) { const ph = clamp01((ti - 0.15 - k * 0.04) / 1.8); disc(ctx, MT.x + (hash(k) - 0.5) * MR * 1.2, MT.y - 14 - ph * 90, 12 + 22 * ph, rgba([70, 70, 78], 0.4 * (1 - ph) * (ti > 0.15 ? 1 : 0))); }
+      } else {
+        glow(ctx, MT.x, MT.y, 210 * clamp01(1 - ti / 0.3), HOT, 0.9);
+        ring(ctx, MT.x, MT.y, MR * 1.4 * ease(ti / 0.5), 6 * (1 - ti / 0.5), rgba(WHITE, 0.9 * (1 - ti / 0.5)));
+        for (let k = 0; k < 11; k++) { const a = hash(k + 2) * TAU, v = 90 + hash(k) * 160; if (ti < 1.1) { const d = v * ti, h = 140 * Math.sin(Math.min(1, ti / 1.1) * Math.PI) * hash(k + 7); disc(ctx, MT.x + Math.cos(a) * d, MT.y + Math.sin(a) * d * 0.5 - h, 4 + 3 * hash(k), "#3b2a24"); disc(ctx, MT.x + Math.cos(a) * d, MT.y + Math.sin(a) * d * 0.5 - h, 1.8, rgba(FIRE, 0.9)); } }
+      }
+      if (opt && ti > 0.2 && ti < 3.2) {   // capstone: burning ground
+        const a = ti > 2.6 ? 1 - (ti - 2.6) / 0.6 : 1;
+        glow(ctx, MT.x, MT.y, MR * 1.1, FIRE, 0.16 * a);
+        for (let k = 0; k < 16; k++) { const an = hash(k) * TAU, rr = MR * 0.9 * Math.sqrt(hash(k + 4)), fl = 0.6 + 0.4 * Math.sin(tt * 14 + k * 2); const px = MT.x + Math.cos(an) * rr, py = MT.y + Math.sin(an) * rr; glow(ctx, px, py - 5, 14 * fl, FIRE, 0.7 * a); disc(ctx, px, py - 6 * fl, 3.2 * fl, rgba(HOT, 0.9 * a)); }
+      }
+      floater(ctx, "150", MT.x, MT.y - 30, clamp01((ti - 0.1) / 0.9), "#ffe0b0");
+    }
+    label(ctx, warn ? "warning 0.9 s" : "impact: 150 damage");
+  }
+  const lerp2 = (a, b, f) => [lerp(a[0], b[0], f), lerp(a[1], b[1], f), lerp(a[2], b[2], f)];
+
+  /* ===================== BLIZZARD ===================== */
+  const BC = { x: 660, y: 215 }, BR = 112, BLOOP = 4.8;
+  const BEN = [[-50, -30, 0], [40, -50, 1], [20, 30, 2], [-70, 40, 3], [160, -70, 4], [-150, 85, 5]];
+  function blizzardScene(ctx, style, tt) {
+    floor(ctx);
+    const cast = clamp01(tt / 0.4), out = 1 - clamp01((tt - 4.2) / 0.6), a = cast * out;
+    caster(ctx, tt < 0.3 ? 0.5 : 0, ICE);
+    const R = BR * ease(cast);
+    // frost on the floor spreads from the centre and lingers
+    if (style !== 2) { disc(ctx, BC.x, BC.y, R, rgba(ICE, 0.07 * a)); }
+    if (style === 1) {   // ice patches where shards have landed
+      for (let k = 0; k < 22; k++) { const born = 0.5 + k * 0.17; if (tt < born) continue; const an = hash(k + 1) * TAU, rr = BR * 0.92 * Math.sqrt(hash(k + 8)); const px = BC.x + Math.cos(an) * rr, py = BC.y + Math.sin(an) * rr; ctx.fillStyle = rgba(ICE, 0.18 * out); ctx.beginPath(); ctx.ellipse(px, py, 11, 6, an, 0, TAU); ctx.fill(); }
+    }
+    if (style === 2) { disc(ctx, BC.x, BC.y, R, rgba(ICE, 0.09 * a)); ring(ctx, BC.x, BC.y, R * 0.98, 2, rgba(ICE, 0.75 * a));
+      for (let k = 0; k < 22; k++) { const an = k * TAU / 22 + tt * 0.25; const x0 = BC.x + Math.cos(an) * R, y0 = BC.y + Math.sin(an) * R, x1 = BC.x + Math.cos(an) * (R + 10 + 8 * hash(k)), y1 = BC.y + Math.sin(an) * (R + 10 + 8 * hash(k)); line(ctx, x0, y0, x1, y1, 2.5, rgba(WHITE, 0.8 * a)); } }
+    // enemies: slowed, so they crawl; frost rime inside
+    BEN.forEach(([dx, dy, i]) => {
+      const inside = Math.hypot(dx, dy) < BR, sp = inside ? 14 : 42, x = BC.x + dx + Math.sin(tt * 0.8 + i) * 4 - (inside ? 0 : 0) - sp * Math.min(tt, 3) * 0.3, y = BC.y + dy;
+      enemy(ctx, x, y, { frost: inside && tt > 0.45 ? 1 : 0, t: tt });
+    });
+    ctx.save(); ctx.beginPath(); ctx.arc(BC.x, BC.y, Math.max(1, R), 0, TAU); ctx.clip();
+    if (style === 0) {   // Whiteout: fog and fast wind streaks
+      const g = ctx.createRadialGradient(BC.x, BC.y, 10, BC.x, BC.y, R); g.addColorStop(0, rgba(WHITE, 0.1 * a)); g.addColorStop(1, rgba(WHITE, 0.3 * a)); ctx.fillStyle = g; ctx.fillRect(BC.x - R, BC.y - R, R * 2, R * 2);
+      for (let k = 0; k < 70; k++) { const sp = 260 + hash(k) * 300, x0 = ((hash(k + 1) * 600 + tt * sp) % 440) - 220, y0 = (hash(k + 2) - 0.5) * 2 * R, len = 18 + 26 * hash(k + 3); const px = BC.x + x0, py = BC.y + y0 + x0 * 0.28; line(ctx, px, py, px + len, py + len * 0.28, 1.4 + hash(k + 4) * 1.4, rgba(WHITE, (0.4 + 0.5 * hash(k + 5)) * a)); }
+    } else if (style === 1) {   // Shard storm: icicles drop and shatter
+      for (let k = 0; k < 18; k++) {
+        const per = 0.8, ph = ((tt + hash(k) * per) % per) / per, cyc = Math.floor((tt + hash(k) * per) / per);
+        const an = hash(k * 7 + cyc) * TAU, rr = (R - 8) * Math.sqrt(hash(k * 3 + cyc + 5)), gx = BC.x + Math.cos(an) * rr, gy = BC.y + Math.sin(an) * rr;
+        if (ph < 0.7) { const f = ph / 0.7, y = gy - 150 * (1 - f * f); ctx.fillStyle = rgba(ICE, 0.95); ctx.beginPath(); ctx.moveTo(gx, y + 12); ctx.lineTo(gx - 3.5, y - 6); ctx.lineTo(gx + 3.5, y - 6); ctx.closePath(); ctx.fill(); line(ctx, gx, y - 6, gx, y - 22, 1.5, rgba(ICE, 0.35)); }
+        else { const f = (ph - 0.7) / 0.3; ring(ctx, gx, gy, 4 + 14 * f, 1.8, rgba(WHITE, 0.8 * (1 - f))); for (let s = 0; s < 5; s++) { const sa = s * 1.26 + hash(k), d = 4 + 16 * f; disc(ctx, gx + Math.cos(sa) * d, gy + Math.sin(sa) * d * 0.6 - 8 * Math.sin(f * 3), 1.8 * (1 - f), rgba(WHITE, 1 - f)); } }
+      }
+    } else {   // Cyclone: spiral arms round a clear eye
+      for (let arm = 0; arm < 3; arm++) for (let k = 0; k < 40; k++) {
+        const r = 14 + (k / 40) * (R - 14), an = arm * TAU / 3 + r * 0.045 - tt * (2.6 - r * 0.008);
+        const x = BC.x + Math.cos(an) * r, y = BC.y + Math.sin(an) * r * 0.82; disc(ctx, x, y, 1.5 + 2.4 * (k / 40), rgba(WHITE, (0.25 + 0.6 * (k / 40)) * a));
+      }
+      glow(ctx, BC.x, BC.y, 36, ICE, 0.4 * a);
+    }
+    ctx.restore();
+    if (style === 0 || style === 1) ring(ctx, BC.x, BC.y, R, 2, rgba(ICE, 0.55 * a));
+    if (tt < 0.5) ring(ctx, BC.x, BC.y, BR * ease(tt / 0.45), 4 * (1 - tt / 0.5), rgba(WHITE, 0.8 * (1 - tt / 0.5)));
+    label(ctx, tt < 0.4 ? "cast" : tt < 4.2 ? "storm: slows and chills everything inside" : "fades");
+  }
+
+  /* ===================== TSUNAMI ===================== */
+  const TLOOP = 8.2, WSTART = 0.35, WSPEED = 560, WHALF = 90, WTHICK = 110;
+  // x, y, wet when the wave front passes (null = never wet). Last three are off the wave's line.
+  const TEN = [[330, 180], [455, 250], [590, 170], [735, 240], [865, 205], [250, 85], [800, 70], [330, 352], [700, 370]];
+  const wetAt = (e) => (Math.abs(e[1] - CASTER.y) < WHALF + 8) ? WSTART + (e[0] - CASTER.x) / WSPEED : null;
+  function waveShape(ctx, style, fx, t, a) {
+    const cy = CASTER.y, top = cy - WHALF, bot = cy + WHALF;
+    // wet ground left behind
+    const g0 = ctx.createLinearGradient(CASTER.x, 0, fx, 0); g0.addColorStop(0, rgba(WAVE, 0)); g0.addColorStop(1, rgba(WAVE, 0.1 * a)); ctx.fillStyle = g0; ctx.fillRect(CASTER.x, top, Math.max(0, fx - CASTER.x - WTHICK * 0.4), WHALF * 2);
+    const bulge = (y) => 38 * (1 - Math.pow((y - cy) / WHALF, 2));
+    if (style === 0) {          // Crest: curling front, glassy body, foam and spray
+      const g = ctx.createLinearGradient(fx - WTHICK, 0, fx + 30, 0); g.addColorStop(0, rgba(WAVE, 0)); g.addColorStop(0.7, rgba([30, 130, 190], 0.5 * a)); g.addColorStop(1, rgba(WAVE, 0.78 * a));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(fx - WTHICK, top);
+      for (let y = top; y <= bot; y += 6) ctx.lineTo(fx + bulge(y) + 3 * Math.sin(t * 9 + y * 0.12), y);
+      ctx.lineTo(fx - WTHICK, bot); ctx.closePath(); ctx.fill();
+      for (let k = 1; k < 5; k++) { ctx.strokeStyle = rgba(WHITE, 0.14 * a); ctx.lineWidth = 1.5; ctx.beginPath(); for (let y = top + 6; y <= bot - 6; y += 6) { const x = fx - k * 18 + bulge(y) * 0.8 + 2 * Math.sin(t * 7 + y * 0.1 + k); y === top + 6 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+      for (let k = 0; k < 34; k++) { const y = top + 6 + (k / 33) * (bot - top - 12), x = fx + bulge(y) + 4 * Math.sin(t * 11 + k * 1.7); disc(ctx, x - 3, y, 5 + 3 * hash(k + Math.floor(t * 6)), rgba(WHITE, 0.85 * a)); }
+      for (let k = 0; k < 26; k++) { const ph = (t * 1.6 + hash(k)) % 1, y = top + hash(k + 9) * (bot - top), x = fx + bulge(y) - ph * 50 + 6; disc(ctx, x, y - 10 - 34 * Math.sin(ph * Math.PI), 1.6, rgba(WHITE, 0.8 * (1 - ph) * a)); }
+      glow(ctx, fx + 20, cy, 150, WAVE, 0.18 * a);
+    } else if (style === 1) {   // Breaker: flat layered bands with a foam edge
+      const bands = [[[10, 60, 92], 0], [[24, 118, 166], 22], [[79, 195, 232], 46], [[220, 245, 255], 66]];
+      bands.forEach(([c, off], bi) => {
+        ctx.fillStyle = rgba(c, (bi === 3 ? 0.95 : 0.55) * a); ctx.beginPath();
+        const wob = (y) => 4 * Math.sin(t * 8 + y * 0.09 + bi);
+        ctx.moveTo(fx - off - 40, top + off * 0.12);
+        for (let y = top + off * 0.12; y <= bot - off * 0.12; y += 6) ctx.lineTo(fx - off + bulge(y) * 0.5 + wob(y), y);
+        ctx.lineTo(fx - off - 40, bot - off * 0.12); ctx.closePath(); ctx.fill();
+      });
+      for (let k = 0; k < 20; k++) { const y = top + 8 + (k / 19) * (bot - top - 16), ph = (t * 2 + hash(k)) % 1; line(ctx, fx - 66 + bulge(y) * 0.5 - ph * 30, y, fx - 66 + bulge(y) * 0.5 - ph * 30 - 12, y, 2, rgba(WHITE, 0.6 * (1 - ph) * a)); }
+    } else {                    // Chevrons: stacked arrow-shaped swells
+      for (let k = 0; k < 6; k++) {
+        const x0 = fx - k * 22, al = (1 - k / 6) * a;
+        ctx.beginPath(); for (let y = top; y <= bot; y += 6) { const x = x0 + 60 * (1 - Math.abs(y - cy) / WHALF); y === top ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.strokeStyle = rgba(WAVE, 0.3 * al); ctx.lineWidth = 12; ctx.lineJoin = "round"; ctx.stroke();
+        ctx.strokeStyle = rgba(k === 0 ? WHITE : [180, 240, 250], 0.95 * al); ctx.lineWidth = k === 0 ? 4 : 3; ctx.stroke();
+      }
+      for (let k = 0; k < 18; k++) { const ph = (t * 1.8 + hash(k)) % 1, y = top + hash(k + 3) * (bot - top); disc(ctx, fx + 60 * (1 - Math.abs(y - cy) / WHALF) - ph * 70, y, 2, rgba(WHITE, 0.8 * (1 - ph) * a)); }
+      glow(ctx, fx + 30, cy, 140, WAVE, 0.15 * a);
+    }
+  }
+  function tsunamiScene(ctx, style, tt) {
+    floor(ctx);
+    const wetTimes = TEN.map(wetAt), fadeDry = clamp01((tt - 7.1) / 1.0);
+    const T3 = 3.3, T4 = 5.1;   // arc lightning, storm hammer
+    const fx = CASTER.x + (tt - WSTART) * WSPEED, waveOn = tt > WSTART && fx < W + WTHICK + 40;
+    caster(ctx, (tt > T3 - 0.5 && tt < T3) ? clamp01((tt - (T3 - 0.5)) / 0.5) : tt < WSTART + 0.2 ? 0.6 : 0, tt > T3 - 0.5 && tt < T4 - 0.3 ? BOLT : WAVE);
+    // wave
+    if (waveOn) { const edge = clamp01((W + 20 - fx) / 120); waveShape(ctx, style, fx, tt, clamp01((tt - WSTART) / 0.15) * edge); }
+    // arc lightning strip (straight up from the caster) and the dry enemy it hits
+    const dry = [150, 60];
+    let arcF = tt - T3;
+    if (arcF > 0 && arcF < 0.4) { const a = 1 - arcF / 0.4; ctx.fillStyle = rgba(BOLT, 0.14 * a); ctx.fillRect(CASTER.x - 22, dry[1] - 20, 44, CASTER.y - dry[1]); ctx.strokeStyle = rgba(BOLT, 0.9 * a); ctx.lineWidth = 2; ctx.strokeRect(CASTER.x - 22, dry[1] - 20, 44, CASTER.y - dry[1]); for (let k = 0; k < 3; k++) bolt(ctx, jagged(CASTER.x + (k - 1) * 12, CASTER.y, CASTER.x + (k - 1) * 12, dry[1] - 14, 7, 8, rnd(k + Math.floor(tt * 40))), 1.8, a); }
+    // storm hammer: thrown at the dry enemy low on the left, electrifies it
+    const hm = [330, 352], hf = tt - T4;
+    const sources = [];   // lightning "hits" this frame: [x, y, since]
+    if (arcF > 0 && arcF < 0.7) sources.push([dry[0] - 10, dry[1] + 14, arcF]);   // the struck enemy is the source
+    if (hf > 0.35) for (let p = 0; p < 3; p++) { const s = hf - 0.35 - p * 0.55; if (s > 0 && s < 0.5) sources.push([hm[0], hm[1], s]); }
+    if (hf > 0 && hf < 0.35) { const f = hf / 0.35, x = lerp(CASTER.x + 20, hm[0], f), y = lerp(CASTER.y, hm[1], f); ctx.save(); ctx.translate(x, y); ctx.rotate(f * 14); glow(ctx, 0, 0, 24, BOLT, 0.7); ctx.fillStyle = "#cfd8e3"; ctx.fillRect(-7, -5, 14, 10); ctx.fillStyle = "#6a7788"; ctx.fillRect(-2, 5, 4, 12); ctx.restore(); }
+    // enemies
+    TEN.forEach((e, i) => {
+      const wt = wetTimes[i]; let wet = 0, flash = 0;
+      if (wt != null && tt > wt) wet = clamp01((tt - wt) / 0.2) * (1 - fadeDry); flash = wt != null ? clamp01(1 - (tt - wt) / 0.2) * (tt >= wt ? 1 : 0) : 0;
+      const sl = wet > 0 ? 1 : 0, x = e[0] - (tt > WSTART ? Math.min(tt, 7) * (wt != null && tt > wt ? 8 : 24) * 0.25 : 0), y = e[1];
+      if (hf > 0.35 && i === 7) flash = Math.max(flash, clamp01(1 - (hf - 0.35) / 0.2));
+      if (arcF > 0 && arcF < 0.3 && i === 5) flash = Math.max(flash, 1 - arcF / 0.3);
+      enemy(ctx, i === 5 ? dry[0] : x, i === 5 ? dry[1] : y, { wet, flash, t: tt });
+      e._x = i === 5 ? dry[0] : x; e._y = y; e._wet = wet; e._sl = sl;
+      if (wt != null && tt > wt && tt < wt + 0.9) floater(ctx, "12", x, y, clamp01((tt - wt) / 0.9), "#bfeaff");
+    });
+    // the arcs: from each source to every wet enemy
+    sources.forEach(([sx, sy, s], si) => {
+      const a = 1 - s / (s < 0.5 && sy > 300 ? 0.5 : 0.7), R = rnd(Math.floor(tt * 30) * 13 + si * 7);
+      TEN.forEach((e, i) => {
+        if (!(e._wet > 0.5)) return;
+        bolt(ctx, jagged(sx, sy, e._x, e._y, 9, 14, R), 1.6, a);
+        glow(ctx, e._x, e._y, 30, BOLT, 0.5 * a);
+        floater(ctx, "16", e._x, e._y, clamp01(s / 0.7), "#bfd9ff");
+      });
+      glow(ctx, sx, sy, 40, BOLT, 0.7 * a);
+    });
+    // wet "ring" legend
+    const ph = tt < WSTART ? "1 cast" : tt < 2.9 ? "1–2 the wave soaks what it crosses; the other three stay dry" : tt < T4 - 0.2 ? "3 Arc Lightning hits one dry enemy: bolts jump to every wet one" : tt < 6.9 ? "4 Storm Hammer pulses: the same again, every pulse" : "5 wet wears off";
+    label(ctx, ph);
+    ctx.save(); ctx.font = "500 12px 'IBM Plex Mono', monospace"; ctx.fillStyle = "rgba(146,161,173,0.9)"; ctx.fillText("wet: slowed 30%, drips, arcs from any distance", 14, H - 14); ctx.restore();
+  }
+
+  /* ===================== plumbing ===================== */
+  const defs = {
+    meteor: { loop: MLOOP, draw: meteorScene, opt: false, looks: [
+      ["A", "Streak", "Warning circle with spinning ticks, a diagonal fireball with a long tail, white-hot flash, shockwave ring, sparks and a scorch mark."],
+      ["B", "Drop", "A dark shadow grows on the ground as a big smoky fireball falls straight down, then a fire dome, a ring and rising smoke. The most readable \"it's coming\"."],
+      ["C", "Cracked ground", "Glowing cracks race out across the warning circle, the rock slams in steeply, throws burning rubble and leaves a crater whose cracks cool over 2 s."] ] },
+    blizzard: { loop: BLOOP, draw: blizzardScene, looks: [
+      ["A", "Whiteout", "A fogged-out disc full of fast wind-driven snow streaks. Loud and simple; hides what's inside a little."],
+      ["B", "Shard storm", "Icicles fall at random spots, shatter in a puff, and leave ice patches. Enemies visibly get hit rather than just slowed."],
+      ["C", "Cyclone", "Three spiral arms of snow turn round a calm eye; a frosted rim of ice spikes. The tidiest read of the area's edge."] ] },
+    tsunami: { loop: TLOOP, draw: tsunamiScene, looks: [
+      ["A", "Crest", "A curling front with foam along its edge, a glassy body with ripple lines and spray flung back. The most \"wave\"."],
+      ["B", "Breaker", "Four flat layers from deep blue to a white foam line. Cleanest and cheapest to draw; reads from far away."],
+      ["C", "Chevrons", "Six nested arrow-shaped swells moving as one, with droplets. Clear about its direction and width; the most game-icon looking."] ] },
+  };
+  let paused = false, speed = 1, last = performance.now(), clock = 0;
+  document.getElementById("pause").onclick = (e) => { paused = !paused; e.target.setAttribute("aria-pressed", paused); };
+  document.getElementById("slow").onclick = (e) => { speed = speed === 1 ? 0.25 : 1; e.target.setAttribute("aria-pressed", speed !== 1); };
+  Object.entries(defs).forEach(([id, d]) => {
+    const sec = document.getElementById(id), ctx = sec.querySelector("canvas").getContext("2d"), looks = sec.querySelector(".looks"), cards = sec.querySelector(".cards");
+    d.ctx = ctx; d.style = 0; d.btns = []; d.cardEls = [];
+    const pick = (i) => { d.style = i; clock = 0; d.btns.forEach((b, j) => b.setAttribute("aria-pressed", j === i)); d.cardEls.forEach((c, j) => c.toggleAttribute("aria-current", j === i)); };
+    d.looks.forEach(([tag, name, desc], i) => {
+      const b = document.createElement("button"); b.textContent = tag + " · " + name; b.onclick = () => pick(i); looks.appendChild(b); d.btns.push(b);
+      const c = document.createElement("div"); c.className = "card"; c.innerHTML = `<div class="tag">LOOK ${tag}</div><h3>${name}</h3><p>${desc}</p>`; c.onclick = () => pick(i); cards.appendChild(c); d.cardEls.push(c);
+    });
+    const o = sec.querySelector(".opt"); if (o) o.onclick = () => { d.opt = !d.opt; o.setAttribute("aria-pressed", d.opt); };
+    pick(0);
+  });
+  const secs = {}; Object.keys(defs).forEach((id) => { secs[id] = true; new IntersectionObserver((en) => { secs[id] = en[0].isIntersecting; }).observe(document.getElementById(id)); });
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (paused) { requestAnimationFrame(frame); return; }
+    clock += dt * speed;
+    Object.entries(defs).forEach(([id, d]) => {
+      if (!secs[id]) return;
+      const tt = reduce && !paused ? d.loop * 0.3 : clock % d.loop;
+      d.draw(d.ctx, d.style, tt, d.opt);
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  window.seek = (id, style, tt, opt) => { paused = true; defs[id].style = style; defs[id].draw(defs[id].ctx, style, tt, opt); };  // for stills
+})();
+</script>

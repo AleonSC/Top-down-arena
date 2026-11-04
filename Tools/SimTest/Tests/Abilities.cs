@@ -81,7 +81,7 @@ static partial class Program
             WaitForGame(host, client, dt);
             var minions = new HashSet<MinionKind>();
             var zones = new HashSet<ZoneKind>();
-            bool aegis = false, shield = false, surge = false, frenzy = false, bolt = false, boltShot = false;
+            bool aegis = false, shield = false, wave = false, frenzy = false, bolt = false, boltShot = false;
             int ghosts = 0, frame = 0;
             Action watch = () =>
             {
@@ -93,11 +93,13 @@ static partial class Program
                 {
                     aegis |= p.AegisT > 0f;
                     shield |= p.ShieldHp > 0f;
-                    surge |= p.SurgeT > 0f;
                     frenzy |= p.FrenzyT > 0f;
                 }
                 foreach (var fx in client.Game.Effects)
+                {
                     bolt |= fx.Kind == FxKind.Bolt;
+                    wave |= fx.Kind == FxKind.Tsunami;
+                }
                 foreach (var b in client.Game.Bullets.Values)
                     boltShot |= b.Kind == Defs.BoltShot || b.Kind == Defs.HammerShot;
                 if (++frame % 60 == 0)
@@ -129,7 +131,7 @@ static partial class Program
                     case AbilityId.ArcaneWard: abilityOk = shield; break;
                     case AbilityId.Meteor: abilityOk = zones.Contains(ZoneKind.Meteor); break;
                     case AbilityId.Blizzard: abilityOk = zones.Contains(ZoneKind.Blizzard); break;
-                    case AbilityId.ArcaneSurge: abilityOk = surge; break;
+                    case AbilityId.Tsunami: abilityOk = wave; break;
                     case AbilityId.GolemWall: abilityOk = minions.Contains(MinionKind.Wall); break;
                     case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Guardian); break;
                     case AbilityId.SpiritSwarm: abilityOk = minions.Contains(MinionKind.Sprite); break;

@@ -713,6 +713,7 @@ namespace Arena
                 any = true;
                 HurtEnemy(e, dmg, p.Id);
                 OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = dmg, Kind = Defs.BoltShot }, e);
+                WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
                 if (!e.Def.IsBoss)
                     e.FrozenT = Math.Max(e.FrozenT, ArcStun);
                 BroadcastFx(FxKind.Bolt, p.Pos + side * shifts[strip] + dir * Math.Max(0f, Math.Min(len, along)), e.Pos, bolt, 0f, 0.2f, Sfx.None);  // from its strip's middle line
@@ -792,6 +793,7 @@ namespace Arena
                 {
                     HurtEnemy(e, share, p.Id);
                     OnBulletHit(new Bullet { Pos = e.Pos, Vel = dir, Owner = p.Id, Dmg = share, Kind = Defs.HolyShot }, e);  // weapon mods apply to each share
+                    WetArcs(e.Pos, e, share, p.Id);  // Tsunami.cs
                     BroadcastFx(FxKind.Bolt, from, e.Pos, light, 0f, 0.2f, firstArc ? Sfx.SpellChainArc : Sfx.None);
                     firstArc = false;
                 }
@@ -896,6 +898,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (e != from && e.SpawnT <= 0f && e.Hp > 0f && e.Pos.DistanceTo(from.Pos) < sh.Reach + e.Radius)
                     near.Add(e);
+            WetArcs(from.Pos, from, sh.Dmg / HammerArcMult * 0.5f, sh.Owner);  // Tsunami.cs: a pulse counts as half a hammer hit (its own arcs are only an eighth)
             near.Sort((a, b) => a.Pos.DistanceSq(from.Pos).CompareTo(b.Pos.DistanceSq(from.Pos)));
             for (int i = 0; i < near.Count && i < sh.Jumps; i++)
             {

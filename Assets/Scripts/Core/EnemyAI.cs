@@ -360,6 +360,7 @@ namespace Arena
                 e.SlowT = Math.Max(0f, e.SlowT - dt);
                 if (e.SlowT <= 0f)
                     e.SlowMult = 1f;
+                TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
