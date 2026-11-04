@@ -1,0 +1,174 @@
+<title>Hangout Access</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: four lobby wireframes (the real 1280 x 720 layout, scaled to fit), one per way of reaching the Hangout.
+   Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547; --blue: #6fb4ff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+section { display: grid; gap: 12px; min-width: 0; }
+.head { display: grid; gap: 4px; }
+.head .tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.scale { position: relative; width: 100%; overflow: hidden; }
+.lobby { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; background: radial-gradient(ellipse at 30% 20%, #151b26, #080a10 70%); font-family: var(--font-display); color: #fff; }
+.abs { position: absolute; box-sizing: border-box; }
+.title { left: 40px; top: 16px; font-size: 40px; font-weight: 800; letter-spacing: .06em; }
+.mode { left: 40px; top: 76px; width: 376px; height: 58px; border-radius: 29px; background: rgba(10,12,20,.9); display: flex; padding: 4px; gap: 0; }
+.mode i { flex: 1; font-style: normal; text-align: center; font-size: 13px; font-weight: 700; line-height: 50px; color: #8793a6; border-radius: 25px; }
+.mode i.on { background: rgba(80,140,255,.85); color: #fff; }
+.partyh { left: 40px; top: 150px; font-size: 14px; color: #8793a6; letter-spacing: .1em; text-transform: uppercase; }
+.card { left: 40px; width: 376px; height: 88px; border-radius: 12px; border: 1px solid #2a3446; background: #0f1420; }
+.card .face { position: absolute; left: 8px; top: 8px; width: 72px; height: 72px; border-radius: 36px; background: #1b2438; }
+.card .nm { position: absolute; left: 94px; top: 14px; font-size: 16px; font-weight: 700; }
+.card .sub { position: absolute; left: 94px; top: 42px; font-size: 12px; color: #8793a6; font-family: var(--font-body); }
+.card.me { border-color: #5a82d6; }
+.card.open { border-style: dashed; color: #556; display: grid; place-items: center; font-size: 13px; letter-spacing: .1em; }
+.tabs { left: 440px; top: 24px; display: flex; gap: 8px; }
+.tab { height: 34px; border-radius: 17px; padding: 0 16px; background: rgba(255,255,255,.05); color: #8793a6; font-size: 12px; font-weight: 700; letter-spacing: .08em; line-height: 34px; white-space: nowrap; }
+.tab.on { background: rgba(80,140,255,.9); color: #fff; }
+.tab.hg { background: rgba(77,224,189,.9); color: #04281f; }
+.body { left: 440px; top: 68px; width: 800px; height: 532px; border-radius: 12px; border: 1px solid #2a3446; background: rgba(15,20,32,.75); }
+.body .ph { position: absolute; inset: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; }
+.body .ph b { height: 92px; border-radius: 10px; background: rgba(255,255,255,.05); display: block; }
+.bottom { left: 0; top: 624px; width: 1280px; height: 96px; background: rgba(5,7,12,.85); border-top: 1px solid #1c2433; }
+.ready { position: absolute; right: 40px; top: 24px; width: 220px; height: 48px; border-radius: 24px; background: #3aa86a; text-align: center; font-size: 18px; font-weight: 800; line-height: 48px; letter-spacing: .1em; }
+.start { position: absolute; right: 280px; top: 24px; width: 220px; height: 48px; border-radius: 24px; background: #2a3446; text-align: center; font-size: 15px; font-weight: 700; line-height: 48px; letter-spacing: .1em; color: #8793a6; }
+.glow { box-shadow: 0 0 0 3px rgba(77,224,189,.25), 0 0 28px rgba(77,224,189,.45); }
+.room { border: 2px solid rgba(77,224,189,.5); background: rgba(8,13,26,.7); background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 50px 50px; }
+.guy { position: absolute; width: 40px; height: 40px; border-radius: 20px; }
+.guy::after { content: attr(data-n); position: absolute; top: 48px; left: 50%; transform: translateX(-50%); font: 600 12px var(--font-body); color: #cfdae2; white-space: nowrap; }
+.callout { position: absolute; font: 600 13px var(--font-body); color: var(--teal); background: rgba(4,40,31,.9); border: 1px solid var(--teal); border-radius: 8px; padding: 6px 10px; white-space: nowrap; }
+.dbtn { border-radius: 12px; border: 1px solid var(--teal); background: linear-gradient(90deg, rgba(77,224,189,.28), rgba(77,224,189,.08)); }
+.dbtn .t { position: absolute; left: 20px; top: 10px; font-size: 20px; font-weight: 800; letter-spacing: .1em; color: var(--teal); }
+.dbtn .s { position: absolute; left: 20px; top: 40px; font: 500 12px var(--font-body); color: #b9efe0; }
+.dbtn .arr { position: absolute; right: 18px; top: 14px; font-size: 26px; color: var(--teal); }
+footer.note { color: var(--muted); font-size: 14px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Lobby · Hangout</div>
+    <h1>Where should the <span>Hangout</span> live?</h1>
+    <p class="lead">Today it is the second small tab in the row, and opening it replaces your loadout panel. Four other ways to reach it, drawn on the real 1280 × 720 lobby. Teal marks the new part. Pick one, or mix them.</p>
+  </header>
+
+  <!-- A -->
+  <section>
+    <div class="head"><div class="tag">Option A</div><h2>A door under the party</h2></div>
+    <p class="pros"><span><b>Good:</b> impossible to miss, sits next to the people you hang out with, tab row gets shorter.</span><span><b>Cost:</b> still replaces the right panel while open.</span></p>
+    <div class="frame"><div class="scale" data-h="720"><div class="lobby">
+      <div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div>
+      <div class="abs partyh">Party (2/3)</div>
+      <div class="abs card me" style="top:184px"><div class="face"></div><div class="nm">You</div><div class="sub">Soldier · Rifle</div></div>
+      <div class="abs card" style="top:280px"><div class="face"></div><div class="nm">Mira</div><div class="sub">Healer · Sprite Staff</div></div>
+      <div class="abs card open" style="top:376px">OPEN SLOT</div>
+      <div class="abs card dbtn glow" style="top:482px;height:68px;"><div class="t">HANGOUT</div><div class="s">Walk around with the party</div><div class="arr">➜</div></div>
+      <div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div>
+      <div class="abs body"><div class="ph"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
+      <div class="abs bottom"><div class="start">START</div><div class="ready">READY</div></div>
+      <div class="callout" style="left:430px;top:500px">← one click, always in the same place</div>
+    </div></div></div>
+  </section>
+
+  <!-- B -->
+  <section>
+    <div class="head"><div class="tag">Option B</div><h2>A small room always on screen</h2></div>
+    <p class="pros"><span><b>Good:</b> no switching at all. Walk about while you pick weapons and perks.</span><span><b>Cost:</b> the loadout panel loses height; the room is shown at about half size (click it to enlarge).</span></p>
+    <div class="frame"><div class="scale" data-h="720"><div class="lobby">
+      <div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div>
+      <div class="abs partyh">Party (2/3)</div>
+      <div class="abs card me" style="top:184px"><div class="face"></div><div class="nm">You</div><div class="sub">Soldier · Rifle</div></div>
+      <div class="abs card" style="top:280px"><div class="face"></div><div class="nm">Mira</div><div class="sub">Healer · Sprite Staff</div></div>
+      <div class="abs card open" style="top:376px">OPEN SLOT</div>
+      <div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div>
+      <div class="abs body" style="height:300px"><div class="ph"><b style="height:70px"></b><b style="height:70px"></b><b style="height:70px"></b><b style="height:70px"></b></div></div>
+      <div class="abs room glow" style="left:440px;top:384px;width:800px;height:224px;border-radius:12px;">
+        <div class="guy" style="left:120px;top:90px;background:#6fb4ff" data-n="You"></div>
+        <div class="guy" style="left:330px;top:60px;background:#7be07b" data-n="Mira"></div>
+        <div class="abs" style="right:12px;top:8px;font:600 11px var(--font-display);letter-spacing:.14em;color:var(--teal)">HANGOUT · CLICK TO ENLARGE</div>
+      </div>
+      <div class="abs bottom"><div class="start">START</div><div class="ready">READY</div></div>
+    </div></div></div>
+  </section>
+
+  <!-- C -->
+  <section>
+    <div class="head"><div class="tag">Option C</div><h2>A separate button, then a full room</h2></div>
+    <p class="pros"><span><b>Good:</b> the Hangout stops pretending to be a setup tab. The full-width room has space for emotes and props later, and the Ready button stays in view.</span><span><b>Cost:</b> party cards are covered while you are in it.</span></p>
+    <div class="frame"><div class="scale" data-h="1470"><div class="lobby" style="height:720px">
+      <div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div>
+      <div class="abs partyh">Party (2/3)</div>
+      <div class="abs card me" style="top:184px"><div class="face"></div><div class="nm">You</div><div class="sub">Soldier · Rifle</div></div>
+      <div class="abs card" style="top:280px"><div class="face"></div><div class="nm">Mira</div><div class="sub">Healer · Sprite Staff</div></div>
+      <div class="abs card open" style="top:376px">OPEN SLOT</div>
+      <div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div>
+      <div class="abs body"><div class="ph"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
+      <div class="abs bottom">
+        <div class="abs tab hg glow" style="left:40px;top:28px;height:40px;line-height:40px;border-radius:20px;font-size:13px;padding:0 22px">🚪 ENTER HANGOUT</div>
+        <div class="start">START</div><div class="ready">READY</div></div>
+      <div class="callout" style="left:40px;top:578px;">next to Ready, where you wait ↓</div>
+    </div>
+    <div class="lobby" style="top:735px;height:720px">
+      <div class="abs title">HANGOUT</div>
+      <div class="abs tab" style="left:1060px;top:22px;font-size:13px;line-height:34px">⟵ BACK TO LOBBY</div>
+      <div class="abs room" style="left:40px;top:84px;width:1200px;height:520px;border-radius:12px">
+        <div class="guy" style="left:200px;top:300px;background:#6fb4ff" data-n="You"></div>
+        <div class="guy" style="left:520px;top:200px;background:#7be07b" data-n="Mira"></div>
+        <div class="guy" style="left:850px;top:330px;background:#ffb547" data-n="Kade"></div>
+      </div>
+      <div class="abs bottom"><div class="start">START</div><div class="ready">READY</div></div>
+    </div></div></div>
+  </section>
+
+  <!-- D -->
+  <section>
+    <div class="head"><div class="tag">Option D</div><h2>The party is the entrance</h2></div>
+    <p class="pros"><span><b>Good:</b> no new button. The party list becomes the room: click "Party" to expand it into a wide room, and your cards turn into characters. Press <code>H</code> to jump in and out.</span><span><b>Cost:</b> most new work; cards and room must share one layout.</span></p>
+    <div class="frame"><div class="scale" data-h="720"><div class="lobby">
+      <div class="abs title">LOBBY</div><div class="abs mode"><i class="on">GAUNTLET</i><i>BOSS HUNT</i><i>PRACTICE</i></div>
+      <div class="abs partyh glow" style="padding:4px 12px;border-radius:14px;color:var(--teal);border:1px solid var(--teal);top:146px;left:34px">Party (2/3) &nbsp;▾ open room · H</div>
+      <div class="abs card me" style="top:184px"><div class="face"></div><div class="nm">You</div><div class="sub">Soldier · Rifle</div></div>
+      <div class="abs card" style="top:280px"><div class="face"></div><div class="nm">Mira</div><div class="sub">Healer · Sprite Staff</div></div>
+      <div class="abs card open" style="top:376px">OPEN SLOT</div>
+      <div class="abs tabs"><div class="tab on">LOADOUT</div><div class="tab">PERKS</div><div class="tab">DIFFICULTY</div><div class="tab">MODIFIERS</div></div>
+      <div class="abs body"><div class="ph"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
+      <div class="abs bottom"><div class="start">START</div><div class="ready">READY</div></div>
+      <div class="callout" style="left:430px;top:150px">click the Party heading, or press H</div>
+    </div></div></div>
+  </section>
+
+  <footer class="note">Tell me which one (or which parts of which) to build. All four keep the tab out of the setup row, and none of them changes the network, so there is no protocol bump.</footer>
+</div>
+
+<script>
+function fit() {
+  document.querySelectorAll('.scale').forEach(function (s) {
+    var k = s.clientWidth / 1280, h = +s.dataset.h;
+    s.style.height = (h * k) + 'px';
+    s.querySelectorAll('.lobby').forEach(function (l) { l.style.transform = 'scale(' + k + ')'; });
+  });
+}
+addEventListener('resize', fit); fit();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+</script>
