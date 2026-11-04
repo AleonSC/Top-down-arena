@@ -32,6 +32,9 @@ namespace Arena
             var info = Rank.Of(p.Xp);
             var tc = RankLook.TierColor(info.Rank);
             BeginDrawer("YOUR LOOK", Ui.Gold, k, "Cosmetics from your rank");
+            // Close: a round X to the right of the title (Esc does the same).
+            if (Ui.CloseChip(new Rect(DrawerW - 40f - 44f, 38f, 44f, 44f)))
+                CloseWindow(() => cosmeticsOpen = false);
 
             // You: the badge, your name and title, the XP towards the next rank.
             RankLook.Draw(new Rect(40f, 130f, 72f, 72f), info.Rank);
@@ -50,8 +53,6 @@ namespace Arena
                     cosmeticsSection = i;
                 y += r.height + 4f;
             }
-            if (Ui.FancyButton(new Rect(40f, H - 100f, 220f, 48f), "Back  [Esc]", Ui.Primary, PixelArt.Get("ui_back"), t))
-                CloseWindow(() => cosmeticsOpen = false);
             EndDrawer();
 
             BeginPanelAnim("cosmetics" + cosmeticsSection);

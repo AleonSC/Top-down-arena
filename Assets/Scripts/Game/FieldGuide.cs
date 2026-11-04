@@ -302,10 +302,10 @@ namespace Arena
                 SetGuidePage(GuideBestiary);
             if (Ui.Choice(new Rect(hx + 368f, hy + 2f, 140f, 34f), "Armory", armory, ArmoryColor))
                 SetGuidePage(guideArmoryPage);
-            var back = new Rect(panel.xMax - 152f, hy + 2f, 130f, 36f);
-            if (Ui.FancyButton(back, "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
+            var back = new Rect(panel.xMax - 22f - 36f, hy + 1f, 36f, 36f);
+            if (Ui.CloseChip(back))
                 CloseFieldGuide();
-            var search = new Rect(back.x - 262f, hy + 2f, 250f, 34f);
+            var search = new Rect(back.x - 270f, hy + 2f, 250f, 34f);
             Ui.Label(new Rect(search.x - 64f, search.y, 60f, 34f), "SEARCH", 10, Ui.Muted, TextAnchor.MiddleRight, true);
             string q = Ui.Field(search, guideSearch, 30);
             if (q != guideSearch)

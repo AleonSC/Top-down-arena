@@ -58,7 +58,7 @@ namespace Arena
                     statsTab = i;
             if (fromPause)
             {
-                if (Ui.FancyButton(new Rect(W - 164f, 10f, 140f, 38f), "Back", Ui.Primary, PixelArt.Get("ui_back"), t))
+                if (Ui.CloseChip(new Rect(W - 24f - 38f, 10f, 38f, 38f)))
                     runStatsOpen = false;
             }
             else
