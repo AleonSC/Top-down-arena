@@ -21,9 +21,11 @@ A running list of things to pick up next session. Tick off / delete as they're d
             Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
-- [ ] **Healer Soldier: replace Haven with Adrenaline Shot.** Instant cast on the player closest to your cursor (you, if solo): 8 s of +30% move speed,
-      +40% fire rate and 30% less damage taken, 14 s cooldown. Pick a look (A Auto-Injector, B Syringe, C Heartbeat, D Pixel Vial) and a capstone, then build.
-      Mockup: [`Mockups/adrenaline-shot.html`](Mockups/adrenaline-shot.html).
+- [x] **Healer Soldier: Haven replaced by the Adrenaline Shot.** Built (Nov 2026, protocol 143): look C (Heartbeat), capstone C (half-length dose to the nearest
+      other ally within 250 px), from [`Mockups/adrenaline-shot.html`](Mockups/adrenaline-shot.html) (https://claude.ai/artifact/UmTvWZEiBvZ95Qt1a6pQJL).
+      Instant, 14 s cooldown, goes to the player closest to your cursor (you, alone): 8 s of +30% move speed, +40% fire rate, 30% less damage.
+      Hallowed Ground became **Long Dose** (+3 s, 2 stacks). Haven's leftovers are still in the code, waiting for your OK to delete: `ZoneKind.Haven` and its
+      `ZoneDef` (they keep the zone numbers in place), the revive-boost zone code in `Minions.cs` and `SoloZoneHeal`.
 
 - [x] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Built (Nov 2026, protocol 139): Soul Lantern look B
       (Wisp Cage) and Deployable Medkit look A (Field Kit), from [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html)

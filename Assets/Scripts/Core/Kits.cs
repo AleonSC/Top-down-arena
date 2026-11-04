@@ -106,7 +106,8 @@ namespace Arena
         // Indexed by ZoneKind.
         public static readonly ZoneDef[] Zones =
         {
-            new ZoneDef { Name = "Haven", Color = new Rgba(0.4f, 1f, 0.6f), HealRate = 15f, ReviveBoost = 2f },
+            new ZoneDef { Name = "Haven",  // unused since the Adrenaline Shot; kept so the ZoneKind numbers stay put
+                Color = new Rgba(0.4f, 1f, 0.6f), HealRate = 15f, ReviveBoost = 2f },
             new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlockCapacity = 300f },
             new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
             new ZoneDef { Name = "Soul Lantern", Color = new Rgba(1f, 0.9f, 0.5f), HealRate = 5f, PreventDown = true },

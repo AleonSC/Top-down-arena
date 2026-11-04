@@ -5,7 +5,7 @@ using System.Threading;
 using Arena;
 
 // Healers alone: the aura heals you (1 HP/s, +1 per Sanctuary), a Healer's overhealing becomes a short shield,
-// Martyr wards you when nobody's down, a Phoenix brings you back, and Haven heals faster with nobody to revive.
+// Martyr wards you when nobody's down, a Phoenix brings you back, and the Adrenaline Shot goes to you.
 static partial class Program
 {
     static void HealerSoloTest(float dt)
@@ -72,15 +72,12 @@ static partial class Program
         Check(Math.Abs(shield30 - 15f) < 0.01f && shieldT >= 3.9f && Math.Abs(capped - am.MaxHp * 0.2f) < 0.01f && am.ShieldHp == 0f,
             "a Healer's healing past full health becomes a short shield, up to 20% of max health");
 
-        // Haven alone: no one to revive, so it heals 50% faster.
-        Check(am.Slots[0].Id == AbilityId.Haven, "the Soldier Healer's second Space ability is Haven");
-        am.Hp = am.MaxHp * 0.3f; am.ShieldHp = 0f;
-        cast.Invoke(ag, new object[] { 1, 0, am.Pos, false });
-        float hv = am.Hp;
-        a.Item2(1f);
-        float havenGain = am.Hp - hv;
-        Console.WriteLine("  haven alone: {0:0.0} healed in 1 s (zone 15 x 1.5 + aura 3 + 0.5)", havenGain);
-        Check(havenGain > 15f * 1.5f + 3f, "alone, Haven heals 50% faster (nobody to revive)");
+        // Adrenaline Shot alone: no one else to pick, so it always goes to you.
+        Check(am.Slots[0].Id == AbilityId.Adrenaline, "the Soldier Healer's second Space ability is the Adrenaline Shot");
+        float baseSpeed = am.Speed;
+        cast.Invoke(ag, new object[] { 1, 0, new V2(am.Pos.X + 500f, am.Pos.Y), false });
+        Console.WriteLine("  adrenaline alone: {0:0.0} s, speed x{1:0.00}", am.AdrenalineT, am.Speed / baseSpeed);
+        Check(am.AdrenalineT > 7.9f && Math.Abs(am.Speed / baseSpeed - 1.3f) < 0.001f, "alone, the Adrenaline Shot goes to you wherever the cursor is");
         a.Item1.Leave("");
 
         // Martyr alone: pay 40%, and you're warded: going down puts you straight back up at 50%.

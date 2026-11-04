@@ -192,6 +192,8 @@ namespace Arena
                 held[slot] = botHeldLast[slot] = true;
                 if (s.Id == AbilityId.Blink)
                     aimAt = me.Pos + (botMove.IsZero ? V2.FromAngle(me.Aim) : botMove.Normalized()) * 220f;  // blink toward safety
+                else if (s.Id == AbilityId.Adrenaline)
+                    aimAt = (lowest != null && lowest != me ? lowest : me).Pos;  // the hurt ally, or itself
                 else if (target != null && s.Id != AbilityId.Mark)
                     aimAt = target.Pos;
                 break;  // one ability per frame

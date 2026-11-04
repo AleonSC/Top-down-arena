@@ -36,6 +36,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
 - `RadiantOrb.cs`: Healer's Radiant Orb
+- `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 
 ## Enemies and bosses (Core)

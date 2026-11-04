@@ -99,10 +99,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Haven, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
-                Name = "Haven", Cooldown = 16f, Desc = "Place a healing zone for 6 s. Allies inside regenerate fast and revive 3x quicker (alone: you heal 50% faster).",
-                Capstone = "Allies inside also take 30% less damage.",
-                Bot = b => b.AllyHurt,
+                Id = AbilityId.Adrenaline, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
+                Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Inject the player closest to your cursor (you, if alone): 8 s of +30% move speed, +40% fire rate and 30% less damage taken.",
+                Capstone = "Also gives the nearest other ally within 250 px a half-length (4 s) dose.",
+                Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
@@ -178,14 +178,9 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, target, new Rgba(0.5f, 0.75f, 1f), 60f, 0.35f, Sfx.Blink);
                     break;
                 }
-                case AbilityId.Haven:
-                {
-                    var z = AddZone(ZoneKind.Haven, p, p.Pos, HavenRadius * s.HavenRadiusMult, HavenTime + s.HavenBonusTime);
-                    if (cap)
-                        z.DamageCut = 0.3f;
-                    BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.Ability);
+                case AbilityId.Adrenaline:
+                    Adrenaline(p, target, cap, pw);  // Adrenaline.cs
                     break;
-                }
                 case AbilityId.Medkit:
                     ThrowMedkit(p, target, cap, pw);  // Medkit.cs
                     break;

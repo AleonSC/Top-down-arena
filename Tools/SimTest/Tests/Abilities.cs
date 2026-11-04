@@ -20,7 +20,7 @@ static partial class Program
                 var client = JoinAs(port, true, "Friend", roles[1], 0, choice);
                 var s = new[] { host, client };
                 WaitForGame(host, client, dt);
-                bool taunt = false, zone = false, link = false, grenade = false, marked = false;
+                bool taunt = false, zone = false, link = false, grenade = false, marked = false, adrenaline = false;
                 int ghosts = 0, frame = 0;
                 // Mark needs an enemy on screen when the bot presses it, so give it longer.
                 float seconds = roles[0] == Role.Dps && choice == 2 ? 26f : 14f;
@@ -30,6 +30,7 @@ static partial class Program
                     {
                         taunt |= p.TauntT > 0f;
                         link |= p.LinkT > 0f;
+                        adrenaline |= p.AdrenalineT > 0f;
                     }
                     zone |= client.Game.Zones.Count > 0;
                     foreach (var b in client.Game.Bullets.Values)
@@ -49,7 +50,7 @@ static partial class Program
                     switch (ab)
                     {
                         case AbilityId.Roar: seen = taunt; break;
-                        case AbilityId.Haven: seen = zone; break;
+                        case AbilityId.Adrenaline: seen = adrenaline; break;
                         case AbilityId.Grenade: seen = grenade; break;
                         case AbilityId.Mark: seen = marked; break;
                     }
@@ -276,12 +277,12 @@ static partial class Program
         // Switching to another ability restarts the preview: nothing from the last one plays on.
         {
             var sc = new Showcase();
-            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Haven, true);
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Adrenaline, true);
             for (int f = 0; f < 120; f++) sc.Step(dt);
-            bool zoneUp = sc.Game.Zones.Count > 0;
+            bool zoneUp = sc.Me.AdrenalineT > 0f;
             sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Medkit, true);
             sc.Step(dt);
-            Console.WriteLine("  showcase switch: Haven's zone up {0}; after switching to the Medkit: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
+            Console.WriteLine("  showcase switch: Adrenaline up {0}; after switching to the Medkit: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
             Check(zoneUp && sc.Game.Zones.Count == 0 && sc.Me.Run.AbilitiesUsed == 0, "switching the previewed ability restarts the preview (the last one's effects are gone)");
             sc.Stop();
         }

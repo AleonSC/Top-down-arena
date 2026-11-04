@@ -8,7 +8,7 @@ namespace Arena
     public enum AbilityId : byte
     {
         Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
-        Roar, Bulldoze, Haven, Medkit, Grenade, Mark,  // Medkit (Medkit.cs) took Soul Link's place (and number)
+        Roar, Bulldoze, Adrenaline, Medkit, Grenade, Mark,  // Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's
         // Mage
         ArcaneAegis, FrostNova, FlameWall, HealingRain, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
         // Summoner
@@ -62,7 +62,7 @@ namespace Arena
         public float PulseHealMult = 1f, PulseRangeMult = 1f, AuraRangeMult = 1f, AuraHealMult = 1f;
         public float DashIframeBonus, DashCdMult = 1f;
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
-        public float HavenRadiusMult = 1f, HavenBonusTime, LinkHealMult = 1f;
+        public float AdrenalineBonusTime, LinkHealMult = 1f;
         public float GrenadeRadiusMult = 1f, MarkBonus;
         // Knight abilities
         public float WallCapMult = 1f, WallArcMult = 1f, WallBonusTime;
@@ -228,8 +228,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Bulldoze, MaxStacks = 2, Name = "Juggernaut", Desc = "Bulldoze deals double damage", Apply = s => s.BulldozeMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendPulse, MaxStacks = 2, Name = "Greater Mending", Desc = "Mend Pulse heals 60% more and reaches 25% farther",
                 Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Haven, MaxStacks = 2, Name = "Hallowed Ground", Desc = "Haven is 50% bigger and lasts 3 s longer",
-                Apply = s => { s.HavenRadiusMult += 0.5f; s.HavenBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Adrenaline, MaxStacks = 2, Name = "Long Dose", Desc = "Adrenaline Shot lasts 3 s longer",
+                Apply = s => s.AdrenalineBonusTime += 3f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
