@@ -24,6 +24,40 @@ namespace Arena
         bool demoAbility, ultimate;
         float t, castT;
         bool castHeld;
+        bool allies, reviveDemo, prepped;  // teammates present; a downed one is part of the demo; they're hurt for the next cast
+        int castCount, aimTicks;
+        const float PrepBefore = 0.9f;     // teammates get hurt this long before a cast, so the heal is seen
+
+        static readonly Player probe = new Player { Hp = 100f, MaxHp = 100f };
+
+        /// Does this ability act on teammates (heals, shields, buffs them)? Read from the bot's rule for it: it
+        /// fires when an ally is hurt or down, but not when nobody is. Adrenaline Shot picks a player by cursor.
+        public static bool TargetsAlly(AbilityId id)
+        {
+            if (id == AbilityId.None)
+                return false;
+            if (id == AbilityId.Adrenaline)
+                return true;
+            var bot = Upgrades.Ability(id).Bot;
+            if (bot == null)
+                return false;
+            var calm = new BotSense { Me = probe, Players = 3, HaveTarget = true, TargetD = 300f };
+            var hurt = calm;
+            hurt.AllyHurt = hurt.AllyDown = true;
+            return !bot(calm) && bot(hurt);
+        }
+
+        /// Does it only matter when a teammate is down (a revive)?
+        static bool RevivesAlly(AbilityId id)
+        {
+            var bot = Upgrades.Ability(id).Bot;
+            if (bot == null)
+                return false;
+            var calm = new BotSense { Me = probe, Players = 3, TargetD = 9999f };
+            var down = calm;
+            down.AllyDown = true;
+            return !bot(calm) && bot(down);
+        }
 
         /// Where your character stands; the dummies are straight ahead (up), Distance away.
         public static readonly V2 Home = new V2(Game.Width / 2f, Game.Height / 2f + 150f);
@@ -45,7 +79,13 @@ namespace Arena
                 this.weapon = weapon;
                 this.ability = ability;
                 this.ultimate = ultimate;
-                session.HostOffline(role, kit, weapon, 0);
+                var shown = ultimate ? Upgrades.Ultimate(role, kit) : ability;
+                allies = TargetsAlly(shown);
+                reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
+                prepped = false;
+                castCount = 0;
+                aimTicks = 0;
+                session.HostOffline(role, kit, weapon, 0, allies ? 2 : 0);
                 Game.ShowcaseMode = true;
                 Game.HostStart();
                 Game.ShowcaseStart(ability);
@@ -68,6 +108,15 @@ namespace Arena
             t += dt;
             var me = Me;
             var input = new PlayerInput { AimAt = Home + new V2(0f, -Distance) };
+            if (allies && demoAbility)
+            {
+                if (!prepped && castT <= PrepBefore)
+                {
+                    Game.ShowcaseHurtAllies(reviveDemo && (castCount % 2 == 0 || ultimate));
+                    prepped = true;
+                }
+                Game.ShowcaseHoldAllies();
+            }
             // Walk back home after a dash or leap.
             if (me.Pos.DistanceTo(Home) > 10f && Game.DashT <= 0f)
                 input.Move = (Home - me.Pos).Normalized();
@@ -83,11 +132,19 @@ namespace Arena
                     Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
                     castT = ultimate ? UltimateEvery : AbilityEvery;
+                    prepped = false;
+                    castCount++;
+                    aimTicks = 4;  // (held abilities cast on release, so the cursor stays put a few ticks)
                 }
                 if (ultimate)
                     input.Ultimate = castHeld;
                 else
                     input.Ability = castHeld;
+            }
+            if (allies && aimTicks > 0)
+            {
+                input.AimAt = Game.ShowcaseAllyPos(castCount % 2);  // the cursor on a teammate (Adrenaline Shot, Medkit, Healing Rain...), alternating
+                aimTicks--;
             }
             Game.FixedStep(dt, input);
             Game.Update(dt);
@@ -119,6 +176,62 @@ namespace Arena
                 Me.Pos = Me.Disp = Showcase.Home;
             ShowcaseSetAbility(ability);
             DevSetGod(MyId, true);
+            // Stand-in teammates (Showcase.TargetsAlly): either side of you, apart so they can't revive each other.
+            int k = 0;
+            foreach (var p in Players.Values)
+                if (p.Id != MyId)
+                {
+                    p.Pos = p.Disp = AllySpot(k++);
+                    DevSetGod(p.Id, true);
+                }
+        }
+
+        static V2 AllySpot(int k) => Showcase.Home + new V2(k == 0 ? -130f : 130f, 35f);
+
+        List<Player> ShowcaseAllies()
+        {
+            var list = new List<Player>();
+            foreach (var p in Players.Values)
+                if (p.Id != MyId)
+                    list.Add(p);
+            return list;
+        }
+
+        public V2 ShowcaseAllyPos(int k)
+        {
+            var a = ShowcaseAllies();
+            return k < a.Count ? a[k].Pos : Showcase.Home;
+        }
+
+        /// Hurt the teammates (35% health) so a heal shows; with `down`, the second one is knocked down for a revive.
+        public void ShowcaseHurtAllies(bool down)
+        {
+            var a = ShowcaseAllies();
+            for (int k = 0; k < a.Count; k++)
+            {
+                var p = a[k];
+                if (p.Downed)
+                    RevivePlayer(p, 0.1f);
+                p.Hp = p.MaxHp * 0.35f;
+                if (down && k == 1)
+                {
+                    p.Hp = 0f;
+                    p.Downed = true;
+                    p.Revive = 0f;
+                }
+            }
+        }
+
+        /// Keep the teammates where they stand, and nobody walks over to revive them on their own.
+        public void ShowcaseHoldAllies()
+        {
+            int k = 0;
+            foreach (var p in ShowcaseAllies())
+            {
+                p.Pos = p.Disp = AllySpot(k++);
+                if (p.Downed)
+                    p.Revive = 0f;
+            }
         }
 
         public void ShowcaseSetAbility(AbilityId ability)
