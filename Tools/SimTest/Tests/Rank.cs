@@ -116,6 +116,21 @@ static partial class Program
         client.ShareCosmetics();
         PollBoth(host, client);
         Check(entry(host, cid).CardBg == 0, "a card background the rank doesn't have is dropped by the host");
+        // Emotes: thirteen, on the bar (nothing to equip); a player sends one, the host checks rank and pause, everyone sees it.
+        Check(Rank.EmoteCount == 13 && Rank.EmoteIndex("emote-wave") == 1 && Rank.EmoteId(13) == "emote-steam" && Rank.Owns(1, "emote-wave") && !Rank.Owns(24, "emote-spin") && Rank.Owns(25, "emote-spin") && !cp.Equip(CosmeticKind.Emote, "emote-wave") && cp.Equipped(CosmeticKind.Emote) == "",
+            "thirteen emotes from rank 1 to 52, numbered in order, and nothing to equip");
+        cp.Xp = Rank.XpAt(30);
+        client.ShareCosmetics();
+        PollBoth(host, client);
+        int shown; float age;
+        Check(!client.SendEmote(11) && client.EmoteWait == 0f, "an emote your rank hasn't reached isn't sent");
+        Check(client.SendEmote(5), "you can play an emote you've unlocked");
+        PollBoth(host, client);
+        Check(host.EmoteOf(cid, out shown, out age) && shown == 5 && client.EmoteOf(cid, out shown, out age) && shown == 5 && age < 1f, "the host and the player's own game both show it");
+        Check(!client.SendEmote(6) && client.EmoteWait > 0f && client.EmoteWait <= Session.EmoteHangoutCooldown && Session.EmoteCooldown == 2f, "there's a pause before the next one (shorter in the lobby, 2 s in a match)");
+        Check(host.SendEmote(1), "the host plays one too");
+        PollBoth(host, client);
+        Check(client.EmoteOf(1, out shown, out age) && shown == 1, "and the client sees the host's");
         cp.Trail = "trail-gold"; cp.Xp = Rank.XpAt(24);  // not theirs at rank 24
         client.ShareCosmetics();
         PollBoth(host, client);

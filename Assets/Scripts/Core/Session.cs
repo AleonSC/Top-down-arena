@@ -30,6 +30,7 @@ namespace Arena
         Cosmetics,    // client -> host: this player's rank and equipped frame, for the lobby (Rank.cs; the host answers with a Lobby)
         LobbyMove,    // client -> host: where this player's character stands in the lobby's Hangout room (LobbyAvatars.cs)
         LobbyPos,     // host -> all: where everyone's character stands in the Hangout room
+        Emote,        // client -> host: the emote number to play; host -> all: (player id, emote number) to show over that player (Session.cs, Game/EmoteLooks.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -213,6 +214,8 @@ namespace Arena
             awaitingWelcome = false;
             Lobby.Clear();
             Avatars.Clear();
+            Emotes.Clear();
+            emoteLast.Clear();
             Screen = AppScreen.Menu;
             Status = status;
         }
@@ -237,6 +240,71 @@ namespace Arena
                     HandleClientEvent(ev);
             }
             SendAvatars();
+        }
+
+        // --- Emotes ------------------------------------------------------------
+        // A short bubble over a player (Rank.cs lists them; Game/EmoteLooks.cs draws them). Anyone can play one their rank has,
+        // in the lobby's Hangout and in a match, with a short pause between (the host keeps the pause for everyone).
+
+        public const float EmoteCooldown = 2f, EmoteHangoutCooldown = 0.75f, EmoteLife = 2.4f;
+        public struct EmoteShow { public byte Index; public double At; }
+        /// What's showing now, by player id (it lapses after EmoteLife; Clock is when it started).
+        public readonly Dictionary<int, EmoteShow> Emotes = new Dictionary<int, EmoteShow>();
+        readonly Dictionary<int, double> emoteLast = new Dictionary<int, double>();
+        double emoteReadyAt;
+        static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+        public static double Clock => clock.Elapsed.TotalSeconds;
+
+        public float EmotePause => Screen == AppScreen.Game ? EmoteCooldown : EmoteHangoutCooldown;
+        /// Seconds until you can play another (0 = ready).
+        public float EmoteWait => (float)Math.Max(0.0, emoteReadyAt - Clock);
+
+        /// Seconds into player `id`'s emote, and which, or false when none is showing.
+        public bool EmoteOf(int id, out int index, out float age)
+        {
+            EmoteShow s;
+            index = 0;
+            age = 0f;
+            if (!Emotes.TryGetValue(id, out s))
+                return false;
+            age = (float)(Clock - s.At);
+            if (age < 0f || age >= EmoteLife)
+                return false;
+            index = s.Index;
+            return true;
+        }
+
+        /// Play emote number `index` (Rank.EmoteIndex) as this player. False: not yours yet, or still pausing.
+        public bool SendEmote(int index)
+        {
+            if (Net == null || index < 1 || index > Arena.Rank.EmoteCount || EmoteWait > 0f || !Arena.Rank.Owns(Game.Profile.RankNow, Arena.Rank.EmoteId(index)))
+                return false;
+            emoteReadyAt = Clock + EmotePause;
+            if (IsHost)
+                HostEmote(MyId, index);
+            else
+            {
+                var w = Proto.Begin(Msg.Emote);
+                w.Write((byte)index);
+                SendToHost(Proto.End(w));
+            }
+            return true;
+        }
+
+        void HostEmote(int id, int index)
+        {
+            LobbyEntry e;
+            if (!Lobby.TryGetValue(id, out e) || index < 1 || index > Arena.Rank.EmoteCount || !Arena.Rank.Owns(e.Rank, Arena.Rank.EmoteId(index)))
+                return;
+            double last;
+            if (emoteLast.TryGetValue(id, out last) && Clock - last < EmotePause * 0.8)  // (a little slack for the trip)
+                return;
+            emoteLast[id] = Clock;
+            Emotes[id] = new EmoteShow { Index = (byte)index, At = Clock };
+            var w = Proto.Begin(Msg.Emote);
+            w.Write(id);
+            w.Write((byte)index);
+            Broadcast(Proto.End(w));
         }
 
         // --- Sending -----------------------------------------------------------
@@ -396,6 +464,9 @@ namespace Arena
                     break;
                 case Msg.LobbyMove:
                     HostAvatarMove(peer, r);
+                    break;
+                case Msg.Emote:
+                    HostEmote(peer, r.ReadByte());
                     break;
                 case Msg.Cosmetics:
                 {
@@ -1056,6 +1127,12 @@ namespace Arena
                     }
                     if (!Game.Running)
                         Screen = AppScreen.Lobby;
+                    break;
+                }
+                case Msg.Emote:
+                {
+                    int who = r.ReadInt32();
+                    Emotes[who] = new EmoteShow { Index = r.ReadByte(), At = Clock };
                     break;
                 }
                 case Msg.Recall:

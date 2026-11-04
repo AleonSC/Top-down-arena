@@ -305,8 +305,10 @@ namespace Arena
             bool pathChoice = session.Screen == AppScreen.Game && game.PathOffer != null;
             bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
+            if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
+                TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
             // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
-            if (overlay && Keybinds.Down(KeyAction.Fire))
+            if ((overlay || emoteBarOpen) && Keybinds.Down(KeyAction.Fire))
                 fireOnMenu = true;
             if (overlay && Keybinds.Down(KeyAction.Parry))
                 parryOnMenu = true;
@@ -314,7 +316,7 @@ namespace Arena
                 fireOnMenu = false;
             if (!Keybinds.Held(KeyAction.Parry))
                 parryOnMenu = false;
-            fireBlocked = overlay || fireOnMenu;
+            fireBlocked = overlay || fireOnMenu || emoteBarOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
             Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab();

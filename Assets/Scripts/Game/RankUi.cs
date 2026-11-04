@@ -234,6 +234,11 @@ namespace Arena
                 int rk = row.Rank;
                 Ui.Fancy(b, row.Name, 34, Color.white, RankLook.TierColor(rk), TextAnchor.MiddleCenter, new Color(0.4f, 0.5f, 0.8f, 0.3f));
             }
+            else if (row.Cosmetic.Kind == CosmeticKind.Emote)
+            {
+                if (BeginUiGl()) { UiModelAt(new V2(b.center.x, b.center.y + 24f), 1.3f); DrawGenericPlayer(t); EndUiGl(); }
+                DrawEmote(Rank.EmoteIndex(row.Cosmetic.Id), new Vector2(b.center.x, b.center.y - 10f), 0.85f, 1f);
+            }
             else if (row.Cosmetic.Kind == CosmeticKind.CardBackground)
             {
                 var card = new Rect(b.x + 10f, b.y + b.height / 2f - 30f, b.width - 20f, 60f);
@@ -379,7 +384,7 @@ namespace Arena
                 RankLook.Draw(new Rect(rr.x + 6f, rr.y + 6f, 32f, 32f), row.Rank, got ? 1f : 0.5f);
                 Ui.Label(new Rect(rr.x + 46f, rr.y + 4f, rr.width - 130f, 20f), row.Name, 14, got ? Color.white : Ui.Muted, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(rr.x + 46f, rr.y + 23f, rr.width - 130f, 16f), row.Kind + (got ? "" : next ? "  ·  next" : ""), 11, got ? Ui.Good : next ? Ui.Gold : Ui.Muted, TextAnchor.MiddleLeft, true);
-                if (row.Cosmetic != null && got)
+                if (row.Cosmetic != null && got && row.Cosmetic.Kind != CosmeticKind.Emote)  // (emotes are all on the emote bar, nothing to equip)
                 {
                     bool on = p.Equipped(row.Cosmetic.Kind) == row.Cosmetic.Id;
                     if (Ui.SmallButton(new Rect(rr.xMax - 84f, rr.y + 9f, 76f, 26f), on ? "On" : "Equip", on ? Ui.GoldButton : Ui.Neutral, 12))

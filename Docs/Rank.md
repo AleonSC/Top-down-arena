@@ -107,6 +107,7 @@ Placeholder ladder, from the mockup:
 - **Trail**: a short particle trail behind your player in the match (drawing only, like the existing weapon looks).
 - **Frame**: the border of your lobby party card (and your results card).
 - **Card background**: the fill of your lobby party card, behind your name (`Game/CardBackgrounds.cs`; mockup `Docs/Mockups/card-backgrounds.html`). Ten, from rank 6 to 55. Everyone in the lobby sees it (`LobbyEntry.CardBg`, protocol 140).
+- **Emote**: a bubble over your head for 2.4 s, seen by everyone in the Hangout and in a match (`Game/EmoteLooks.cs`, the bar in `Game/EmoteBar.cs`; mockups `Docs/Mockups/emotes.html`, `emote-bar.html`). Thirteen, rank 1 to 52, nothing to equip: hold the Emote key (T) for the bar. `Msg.Emote` (protocol 141); the host checks the rank and keeps the pause (2 s in a match, 0.75 s in the lobby).
 - **Menu background**: an extra entry in the Settings > Visual effects picker (`MenuBackgrounds.cs`).
 - Equipped on a Cosmetics tab in the lobby (or Records). One of each kind at a time. Everyone sees your frame and
   title; the trail is seen by the players in the match.
