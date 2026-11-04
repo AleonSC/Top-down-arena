@@ -888,7 +888,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name card on the main menu (a pencil next to your name there renames you). A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder** (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank); the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line**, **Cursor** and the **Reward ladder** (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank); the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
@@ -948,6 +948,8 @@ each kind at a time:
 | 56 | **Rainbow name**: every letter its own hue, turning round the spectrum |
 
 **Aim lines** change the line from your weapon to the crosshair (the V key still turns it on and off). Classic is free; Dotted Tracer (rank 5), Chevron Flow (11), Ruler (14), Ember Wisp (17), Frost Shard (21), Storm Arc (26), Pixel Beam (29), Helix (34) and Prism (46) are rank rewards. Every look stops at your weapon's range and ends in a cap when the crosshair is farther; only you see your own line.
+
+**Cursors** change your crosshair in a match. Classic is free; Fine Cross (rank 3), Corner Sight (4), Ember Ring (11), Frost Snowflake (15), Circuit Sight (17), Storm Arc (21), Void Eye (26), Gold Diamond (31), Prism Ring (38) and Light Cycle (46, it lays a corner-snapped wall of light behind the pointer) are rank rewards. Each swells for a quarter second when you fire. Only you see your own cursor.
 
 **Name effects** change how your name is drawn for everyone: on the lobby party card, the Hangout name plate and the tag over your head in a match (small names keep only colour and glow, so they stay readable; with Visual effects off each is still).
 

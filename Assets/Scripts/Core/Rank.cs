@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a cosmetic changes. Titles aren't here: they come with the tier (Rank.TierName).
-    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote, NameEffect, AimLine }
+    public enum CosmeticKind : byte { Frame, Trail, Background, CardBackground, Emote, NameEffect, AimLine, Cursor }
 
     /// A cosmetic reward for reaching a rank. Id is stored in the profile: never change one once players own it.
     public class CosmeticDef
@@ -157,6 +157,16 @@ namespace Arena
             new CosmeticDef { Id = "aim-pixel", Name = "Pixel Beam aim line", Kind = CosmeticKind.AimLine, Rank = 29 },
             new CosmeticDef { Id = "aim-helix", Name = "Helix aim line", Kind = CosmeticKind.AimLine, Rank = 34 },
             new CosmeticDef { Id = "aim-prism", Name = "Prism aim line", Kind = CosmeticKind.AimLine, Rank = 46 },
+            new CosmeticDef { Id = "cursor-fine", Name = "Fine Cross cursor", Kind = CosmeticKind.Cursor, Rank = 3 },
+            new CosmeticDef { Id = "cursor-corner", Name = "Corner Sight cursor", Kind = CosmeticKind.Cursor, Rank = 4 },
+            new CosmeticDef { Id = "cursor-ember", Name = "Ember Ring cursor", Kind = CosmeticKind.Cursor, Rank = 11 },
+            new CosmeticDef { Id = "cursor-frost", Name = "Frost Snowflake cursor", Kind = CosmeticKind.Cursor, Rank = 15 },
+            new CosmeticDef { Id = "cursor-circuit", Name = "Circuit Sight cursor", Kind = CosmeticKind.Cursor, Rank = 17 },
+            new CosmeticDef { Id = "cursor-storm", Name = "Storm Arc cursor", Kind = CosmeticKind.Cursor, Rank = 21 },
+            new CosmeticDef { Id = "cursor-void", Name = "Void Eye cursor", Kind = CosmeticKind.Cursor, Rank = 26 },
+            new CosmeticDef { Id = "cursor-gold", Name = "Gold Diamond cursor", Kind = CosmeticKind.Cursor, Rank = 31 },
+            new CosmeticDef { Id = "cursor-prism", Name = "Prism Ring cursor", Kind = CosmeticKind.Cursor, Rank = 38 },
+            new CosmeticDef { Id = "cursor-cycle", Name = "Light Cycle cursor", Kind = CosmeticKind.Cursor, Rank = 46 },
         };
 
         public static CosmeticDef Cosmetic(string id)
@@ -230,6 +240,9 @@ namespace Arena
         /// Aim lines (Game/AimLineLooks.cs): only your own line is drawn, so this never goes on the wire. 0 is the Classic line, then 1.. in table order.
         public static byte AimLineIndex(string id) => IndexOf(CosmeticKind.AimLine, id);
         public static string AimLineId(int index) => IdOf(CosmeticKind.AimLine, index);
+        /// Cursors (Game/CursorLooks.cs): only your own crosshair is drawn, so this never goes on the wire. 0 is the Classic crosshair, then 1.. in table order.
+        public static byte CursorIndex(string id) => IndexOf(CosmeticKind.Cursor, id);
+        public static string CursorId(int index) => IdOf(CosmeticKind.Cursor, index);
         public static string CardBgId(int index) => IdOf(CosmeticKind.CardBackground, index);  // "card-dusk" ... (Game/CardBackgrounds.cs draws them)
 
         /// The frame's base colour for a lobby entry's frame number (the extras on top are Game/FrameLooks.cs).
