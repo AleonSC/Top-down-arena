@@ -120,7 +120,9 @@ namespace Arena
         public float StunT;         // stunned by the Warden's stun shot: can't move (replicated; your own game stops you)
         public float BashGraceT;    // host: until a Riot Shield can bash this player again (WardenFaction.cs)
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
-        public float UltT;                     // Fortress / Bullet Storm time left
+        public float UltT;                     // ultimate time left (Fortress: its dome's time, too)
+        public float DomeT;                    // Fortress: the dome's time left (replicated; Dome.cs)
+        public V2 DomePos;                     // Fortress: where the dome stands (replicated)
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
         public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)

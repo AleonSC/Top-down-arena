@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fortress Dome</title>
+<style>
+:root{--bg:#0a0d10;--panel:#11161b;--line:#242d36;--fg:#e7eef3;--muted:#92a1ad;--gold:#ffc65a;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:18px}
+h1{margin:0;font-size:clamp(26px,5vw,40px);text-transform:uppercase;letter-spacing:.04em}
+h1 span{color:var(--gold)} p{margin:0;max-width:75ch;color:#cfdae2}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;aspect-ratio:960/480;background:#070910}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--line);align-items:center}
+button{font:600 14px system-ui;color:#cfdae2;background:#161c22;border:1px solid #36424e;border-radius:7px;padding:7px 12px;cursor:pointer}
+button[aria-pressed=true]{background:#3a2c0e;border-color:var(--gold);color:#fff}
+.desc{padding:0 14px 14px;color:var(--muted);font-size:14px}
+ul{margin:0;padding-left:20px;color:#cfdae2}
+</style></head><body><div class="wrap">
+<h1>Tank Soldier: Fortress <span>dome</span></h1>
+<p>Rework: the ult drops a fixed, fully impenetrable dome (radius 240 px, arena scale) on the player's spot. It stays put. Only <b>players and player bullets</b> pass through the shell; enemies, enemy bullets, boss attacks and lasers cannot enter or shoot through. Pick a look. The simulation loops: enemies (red) press on the wall, enemy shots (orange) burst on it, your shots (blue) pass out.</p>
+<div class="stage"><canvas id="c" width="960" height="480"></canvas>
+<div class="bar" id="bar"></div><div class="desc" id="desc"></div></div>
+<ul>
+<li>Not decided yet: how long it lasts (suggest 10 s, 14 s mastered, replacing the old 8 s / 12 s) and whether the old taunt and 75% damage cut stay (suggest: dropped, the dome is the ability).</li>
+<li>Enemies already inside when it lands are shoved out to the edge (bosses too, they just can't re-enter).</li>
+<li>Look is drawing only; the rule change is host-side, so a snapshot field for dome position/time means a protocol bump.</li>
+</ul>
+</div>
+<script>
+const LOOKS={
+A:['A · Force field','Translucent gold hex-cell shell. Cells flare where something hits; a bright rim.'],
+B:['B · Bulwark wall','A solid ring of gold armour plates around the edge with a faint glass dome inside; plates flash on hits.'],
+C:['C · Aurora shell','Soft rippling gradient dome with a slow rotating shimmer. Calm, least cluttered.'],
+D:['D · Rune circle','Thin glowing rim plus a rotating rune ring on the floor and light pillars rising from the edge.']};
+let look='A';const bar=document.getElementById('bar');
+for(const k in LOOKS){const b=document.createElement('button');b.textContent=LOOKS[k][0];b.setAttribute('aria-pressed',k==look);b.onclick=()=>{look=k;[...bar.children].forEach(x=>x.setAttribute('aria-pressed',x===b));desc()};b.dataset.k=k;bar.appendChild(b)}
+function desc(){document.getElementById('desc').textContent=LOOKS[look][1]}desc();
+const cv=document.getElementById('c'),g=cv.getContext('2d'),W=960,H=480,C={x:W/2,y:H/2},R=200;
+let t=0,hits=[],en=[],eb=[],pb=[],P={x:C.x+10,y:C.y};
+function rnd(a,b){return a+Math.random()*(b-a)}
+function spawn(){const a=rnd(0,6.283);en.push({x:C.x+Math.cos(a)*(R+260),y:C.y+Math.sin(a)*(R+260),a,fire:rnd(0,2)})}
+for(let i=0;i<7;i++)spawn();
+function step(dt){t+=dt;
+ P.x=C.x+Math.cos(t*.7)*60;P.y=C.y+Math.sin(t*.9)*40;
+ for(const e of en){const d=Math.hypot(e.x-C.x,e.y-C.y),ang=Math.atan2(e.y-C.y,e.x-C.x);
+  const want=R+22;const sp=d>want?70:0;e.x-=Math.cos(ang)*sp*dt;e.y-=Math.sin(ang)*sp*dt;
+  e.x+=-Math.sin(ang)*18*dt;e.y+=Math.cos(ang)*18*dt;
+  e.fire-=dt;if(e.fire<=0){e.fire=rnd(.8,1.8);const a=Math.atan2(P.y-e.y,P.x-e.x);eb.push({x:e.x,y:e.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220})}}
+ for(const b of eb){const o=Math.hypot(b.x-C.x,b.y-C.y);b.x+=b.vx*dt;b.y+=b.vy*dt;
+  const n=Math.hypot(b.x-C.x,b.y-C.y);if(o>=R&&n<R){b.dead=1;hits.push({a:Math.atan2(b.y-C.y,b.x-C.x),t:0})}}
+ eb=eb.filter(b=>!b.dead&&Math.abs(b.x-C.x)<700&&Math.abs(b.y-C.y)<500);
+ if(Math.random()<dt*5){const e=en[(Math.random()*en.length)|0];if(e){const a=Math.atan2(e.y-P.y,e.x-P.x);pb.push({x:P.x,y:P.y,vx:Math.cos(a)*420,vy:Math.sin(a)*420,l:0})}}
+ for(const b of pb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.l+=dt;for(const e of en)if(Math.hypot(b.x-e.x,b.y-e.y)<16){b.dead=1;e.hp=(e.hp||0)+1;if(e.hp>2){e.x=-999;setTimeout(spawn,600)}}}
+ en=en.filter(e=>e.x>-900);pb=pb.filter(b=>!b.dead&&b.l<2);
+ for(const h of hits)h.t+=dt;hits=hits.filter(h=>h.t<.5)}
+function glow(c,r,col,a){const gr=g.createRadialGradient(c.x,c.y,r*.5,c.x,c.y,r);gr.addColorStop(0,'rgba('+col+',0)');gr.addColorStop(1,'rgba('+col+','+a+')');g.fillStyle=gr;g.beginPath();g.arc(c.x,c.y,r,0,7);g.fill()}
+function hexes(alpha){const s=26,h=s*Math.sqrt(3);g.lineWidth=1;
+ for(let y=-R-h;y<R+h;y+=h)for(let x=-R-s*2;x<R+s*2;x+=s*3){for(const o of[0,1]){const cx=C.x+x+o*s*1.5,cy=C.y+y+o*h/2,d=Math.hypot(cx-C.x,cy-C.y);if(d>R-4)continue;
+  let fl=0;for(const hh of hits){const da=Math.abs(Math.atan2(cy-C.y,cx-C.x)-hh.a);if(da<.35&&d>R*.6)fl=Math.max(fl,(1-hh.t/.5)*(1-da/.35))}
+  g.strokeStyle='rgba(255,198,90,'+(alpha*(.25+d/R*.4)+fl)+')';g.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3;g.lineTo(cx+Math.cos(a)*s,cy+Math.sin(a)*s)}g.closePath();g.stroke()}}}
+function dome(){
+ g.save();
+ if(look==='A'){glow(C,R,'255,198,90',.35);g.save();g.beginPath();g.arc(C.x,C.y,R,0,7);g.clip();hexes(.55);g.restore();
+  g.strokeStyle='rgba(255,220,140,.95)';g.lineWidth=3;g.shadowColor='#ffc65a';g.shadowBlur=18;g.beginPath();g.arc(C.x,C.y,R,0,7);g.stroke()}
+ if(look==='B'){glow(C,R,'255,198,90',.18);const n=28;for(let i=0;i<n;i++){const a0=i/n*6.283+.01,a1=(i+1)/n*6.283-.01;let fl=0;for(const h of hits){const d=Math.abs(((a0+a1)/2-h.a+9.42)%6.283-3.14);if(d>2.9)fl=Math.max(fl,1-h.t/.5)}
+  g.strokeStyle=fl?'#fff':'#e0a93f';g.fillStyle=fl?'rgba(255,240,200,.95)':'rgba(120,88,28,.9)';g.lineWidth=2;g.beginPath();g.arc(C.x,C.y,R+10,a0,a1);g.arc(C.x,C.y,R-8,a1,a0,true);g.closePath();g.fill();g.stroke()}}
+ if(look==='C'){const gr=g.createRadialGradient(C.x,C.y,R*.2,C.x,C.y,R);gr.addColorStop(0,'rgba(255,198,90,0)');gr.addColorStop(.8,'rgba(255,170,70,.12)');gr.addColorStop(1,'rgba(255,210,120,.5)');g.fillStyle=gr;g.beginPath();g.arc(C.x,C.y,R,0,7);g.fill();
+  for(let k=0;k<3;k++){g.strokeStyle='rgba(255,230,160,'+(.25-k*.06)+')';g.lineWidth=2;g.beginPath();for(let a=0;a<=6.283;a+=.05){const rr=R-k*6+Math.sin(a*6+t*2+k)*4;g.lineTo(C.x+Math.cos(a)*rr,C.y+Math.sin(a)*rr)}g.closePath();g.stroke()}
+  for(const h of hits){g.strokeStyle='rgba(255,255,255,'+(1-h.t/.5)+')';g.lineWidth=6;g.beginPath();g.arc(C.x,C.y,R,h.a-.25,h.a+.25);g.stroke()}}
+ if(look==='D'){glow(C,R,'255,198,90',.12);g.strokeStyle='rgba(255,210,120,.9)';g.lineWidth=2;g.shadowColor='#ffc65a';g.shadowBlur=14;g.beginPath();g.arc(C.x,C.y,R,0,7);g.stroke();g.shadowBlur=0;
+  g.setLineDash([6,10]);g.strokeStyle='rgba(255,198,90,.55)';g.beginPath();g.arc(C.x,C.y,R-22,t*.5,t*.5+6.283);g.stroke();g.setLineDash([]);
+  for(let i=0;i<12;i++){const a=i/12*6.283+t*.15,x=C.x+Math.cos(a)*R,y=C.y+Math.sin(a)*R;const gr=g.createLinearGradient(x,y,x,y-70);gr.addColorStop(0,'rgba(255,220,140,.7)');gr.addColorStop(1,'rgba(255,220,140,0)');g.fillStyle=gr;g.fillRect(x-3,y-70,6,70)}
+  for(const h of hits){g.strokeStyle='rgba(255,255,255,'+(1-h.t/.5)+')';g.lineWidth=5;g.beginPath();g.arc(C.x,C.y,R,h.a-.2,h.a+.2);g.stroke()}}
+ g.restore()}
+function draw(){g.clearRect(0,0,W,H);g.strokeStyle='#10151d';g.lineWidth=1;for(let x=0;x<W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}for(let y=0;y<H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+ dome();
+ g.fillStyle='#ff5a4f';for(const e of en){g.beginPath();g.arc(e.x,e.y,14,0,7);g.fill()}
+ g.fillStyle='#ff9a3c';for(const b of eb){g.beginPath();g.arc(b.x,b.y,5,0,7);g.fill()}
+ g.fillStyle='#6fb4ff';for(const b of pb){g.beginPath();g.arc(b.x,b.y,4,0,7);g.fill()}
+ g.fillStyle='#6fb4ff';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(P.x,P.y,15,0,7);g.fill();g.stroke()}
+let last=performance.now();(function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;step(dt);draw();requestAnimationFrame(loop)})(last);
+</script></body></html>

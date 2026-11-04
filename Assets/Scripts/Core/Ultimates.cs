@@ -31,8 +31,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Fortress, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Ult,
-                Name = "Fortress", Cooldown = 70f, Desc = "For 8 s every enemy targets you and you take 75% less damage. Erases nearby bullets and shoves enemies away.",
-                Capstone = "Lasts 12 s.",
+                Name = "Fortress", Cooldown = 70f, Desc = "Raises a fixed, impenetrable dome here for 10 s. Only players and player bullets cross it: enemies and their shots can't get in or shoot through.",
+                Capstone = "Lasts 14 s.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
@@ -98,18 +98,13 @@ namespace Arena
             {
                 case AbilityId.Fortress:  // Tank: Soldier
                 {
-                    float time = cap ? 12f : 8f;
+                    float time = cap ? DomeTimeMastered : DomeTime;
                     p.UltT = time;
-                    p.TauntT = Math.Max(p.TauntT, time);
-                    foreach (var e in Enemies.Values)
-                    {
-                        e.TargetId = p.Id;
-                        e.RetargetT = time;
-                        if (e.SpawnT <= 0f && !Heavy(e) && e.Pos.DistanceTo(p.Pos) < 200f + e.Radius)
-                            KnockEnemy(e, (e.Pos - p.Pos).Normalized() * 120f);  // slides (Knock.cs)
-                    }
-                    EraseEnemyBullets(p.Pos, 220f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 220f, 0.6f, Sfx.Roar);
+                    p.DomeT = time;
+                    p.DomePos = p.Pos;
+                    EraseEnemyBullets(p.Pos, DomeRadius + 30f);  // anything already in flight inside is gone
+                    KeepOutOfDomes();  // enemies inside are put out at the edge (Dome.cs)
+                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), DomeRadius, 0.6f, Sfx.Roar);
                     break;
                 }
 
