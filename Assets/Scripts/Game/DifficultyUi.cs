@@ -34,7 +34,7 @@ namespace Arena
             var diff = session.Diff;
             var accent = DiffColor(diff.Level);
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Fancy(new Rect(x, y, w, 28f), "DIFFICULTY", 20, Color.white, Color.Lerp(accent, Color.white, 0.4f), TextAnchor.MiddleLeft, accent);
+            Ui.Glitch(new Rect(x, y, w, 28f), "DIFFICULTY", 20, Color.white, TextAnchor.MiddleLeft, accent);
             Ui.Label(new Rect(x, y, w, 28f), diff.Name.ToUpperInvariant(), 13, accent, TextAnchor.MiddleRight, true);
             y += 32f;
 
@@ -109,8 +109,8 @@ namespace Arena
             Ui.Card(c, col, on ? 0.9f : hover ? 0.5f : 0.2f);
             if (on)
                 Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(col.r, col.g, col.b, 0.14f + 0.05f * Mathf.Sin(t * 3f)));
-            Ui.Fancy(new Rect(c.x, c.y + 8f, c.width, 24f), Difficulty.Names[(int)level], 16, Color.white,
-                on ? Color.Lerp(col, Color.white, 0.5f) : new Color(0.82f, 0.86f, 0.96f), TextAnchor.MiddleCenter);
+            Ui.Glitch(new Rect(c.x, c.y + 8f, c.width, 24f), Difficulty.Names[(int)level], 16,
+                on ? Color.Lerp(col, Color.white, 0.75f) : new Color(0.9f, 0.93f, 1f), TextAnchor.MiddleCenter);
             // Danger: one skull for Easy up to four for Nightmare; a gear for Custom.
             float iy = c.y + 36f;
             if (level == DifficultyLevel.Custom)
