@@ -255,12 +255,12 @@ namespace Arena
 
         /// Writes a file through a temp file that is then swapped in (File.Replace when one is already there), so
         /// there's never a moment with only the half-written temp: a crash leaves the old file or the new one.
-        public static void SafeWrite(string path, string text)
+        public static void SafeWrite(string path, string text, string backupPath = null)
         {
             string tmp = path + ".tmp";
             File.WriteAllText(tmp, text);
             if (File.Exists(path))
-                File.Replace(tmp, path, null);
+                File.Replace(tmp, path, backupPath);
             else
                 File.Move(tmp, path);
         }

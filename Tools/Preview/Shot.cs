@@ -26,6 +26,20 @@ static partial class Shot {
     pr.Recent.Add(new RankLog { Wave = 14, Result = 0, Xp = 440, MultPct = 100, Mods = "" });
     File.WriteAllText(Path.Combine(dir, "profile.txt"), pr.ToText()); Profile.Reload();
   }
+  // A few made-up profiles in a temp folder, for the "Who's playing?" screen (ProfilesUi.cs).
+  static void PreviewWho() {
+    string dir = Path.Combine(Path.GetTempPath(), "arena-preview-who");
+    if (Directory.Exists(dir)) Directory.Delete(dir, true);
+    ProfileStore.Init(dir, "");
+    if (Environment.GetEnvironmentVariable("EMPTY") != null) return;
+    var names = Environment.GetEnvironmentVariable("MANY") != null ? new[] { "Anthony", "Sam", "Little Bee", "Aleon", "Mum", "Dad", "Grandpa" } : new[] { "Anthony", "Sam", "Little Bee" };
+    int[] ranks = { 14, 6, 3, 22, 9, 1, 31 };
+    for (int i = 0; i < names.Length; i++) {
+      string id = ProfileStore.Create(names[i]);
+      new Profile { Name = names[i], Xp = Rank.XpAt(ranks[i]) + 40, RunsWon = ranks[i] / 3, RunsLost = ranks[i] * 2 }.SaveTo(Path.Combine(dir, "profiles", id));
+    }
+    ProfileStore.SetActive(ProfileStore.List()[0].Id);
+  }
   // Shared by Main and the scene and mode code (ShotScenes.cs, ShotModes.cs).
   static string[] args;
   static int wave, players;

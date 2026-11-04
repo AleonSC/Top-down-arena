@@ -873,7 +873,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Practice Range matches, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
-Kept in `profile.txt` in the game's data folder. **Records > Rank** shows your account rank (see **Rank**).
+**Profiles:** the game asks **Who's playing?** at launch: click a profile, **+ New profile** to add one (up to 8), **Manage profiles** to rename or delete (Delete asks twice). **Switch profile** above your name card on the main menu opens it again. Each profile has its own name (used in the lobby), records, rank, cosmetics and saved runs; an older single profile is copied into one named after your old player name, and the old files are left where they were. Kept in `profile.txt` inside the profile's folder under `profiles/` in the game's data folder. **Records > Rank** shows your account rank (see **Rank**). Each save keeps the one before as `profile.txt.bak`; a cut-off or damaged file is set aside (`profile.corrupt-*.txt`, `profile.damaged-*.txt`) and the backup is used. If the disk refuses a save, a red "Profile not saved" popup shows.
 
 **Unlocks**: each is an entry in `Unlocks.All` (`Profile.cs`) with a condition on the records; it's earned the
 moment the condition holds (an **Unlocked** toast in the match, listed in Records). So far: **Warden Hunt** (beat the

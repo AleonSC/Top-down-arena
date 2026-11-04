@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whos Playing Popup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<style>
+/* Mockup: three looks for the "Who's playing?" popup shown on every launch, before the main menu. Single dark look by
+   choice: it mirrors the game. Click a profile to continue as it; Manage shows Rename and Delete (Delete asks twice);
+   "Replay" shows the popup again over the menu. */
+:root {
+  --bg:#0a0d10; --panel:#11161b; --line:#242d36; --fg:#e7eef3; --muted:#92a1ad; --teal:#6fe3c4; --amber:#ffb547;
+  --g-bg:#0b0e18; --g-panel:#1a1f2e; --g-edge:#4f6cff; --g-text:#eef2fb; --g-muted:#8f9bb8; --red:#ff6b86;
+  --display:"Oxanium","Segoe UI",system-ui,sans-serif; --body:"Barlow","Segoe UI",system-ui,sans-serif; color-scheme:dark;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--body); }
+.wrap { max-width:1200px; margin:0 auto; padding-block:28px 64px; padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px)); display:grid; gap:24px; }
+h1,h2 { font-family:var(--display); margin:0; }
+h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--teal); }
+p { margin:0; max-width:70ch; color:#cfdae2; }
+.eyebrow { font:600 11px var(--display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+.opt { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:12px; min-width:0; }
+.opt > p { font-size:14px; color:var(--muted); }
+.opt ul { margin:0; padding-left:18px; font-size:14px; color:#cfdae2; display:grid; gap:2px; }
+.stage { position:relative; height:430px; border-radius:12px; overflow:hidden; background:radial-gradient(120% 90% at 50% 0%,#141a33,#0b0e18 70%); border:1px solid #2a3350; color:var(--g-text); }
+.menu { position:absolute; inset:0; display:grid; justify-items:center; align-content:start; padding-top:34px; gap:10px; }
+.menu .title { font:800 clamp(26px,5vw,40px) var(--display); letter-spacing:.14em; }
+.menu .axis { width:min(70%,420px); height:2px; background:linear-gradient(90deg,transparent,#6f8cff,transparent); }
+.menu .mcard { margin-top:14px; width:min(78%,300px); background:var(--g-panel); border:1px solid #2a3350; border-radius:12px; padding:14px; display:grid; gap:8px; }
+.menu .mcard i { display:block; height:30px; border-radius:8px; background:#252c44; }
+.menu .mcard i:first-child { background:#3b57e0; }
+.veil { position:absolute; inset:0; background:#05070ecc; backdrop-filter:blur(3px); display:grid; place-items:center; padding:12px; }
+.veil[hidden] { display:none; }
+button { font:600 13px var(--body); color:var(--g-text); background:#252c44; border:1px solid #333c5c; border-radius:8px; padding:7px 12px; cursor:pointer; }
+button:hover { background:#2f3857; } button:focus-visible { outline:2px solid var(--teal); outline-offset:1px; }
+button.primary { background:#3b57e0; border-color:#5671f0; }
+button.danger.armed { background:#8c2338; border-color:var(--red); }
+button:disabled { opacity:.4; cursor:not-allowed; }
+.face { width:var(--s,48px); height:var(--s,48px); border-radius:50%; display:grid; place-items:center; font:800 calc(var(--s,48px)*.42) var(--display); color:#0b0e18; flex:none; }
+.nm { font:700 16px var(--display); } .sub { font-size:12px; color:var(--g-muted); }
+.badge { font:800 12px var(--display); border:2px solid currentColor; border-radius:8px; padding:1px 7px; }
+.modal { background:var(--g-panel); border:1px solid #333c5c; border-radius:14px; padding:18px; display:grid; gap:14px; width:min(100%,560px); box-shadow:0 20px 50px #000a; }
+.modal h2 { font-size:22px; letter-spacing:.04em; text-align:center; }
+.row { display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; }
+.cards { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.pc { width:104px; background:#222a40; border:2px solid transparent; border-radius:12px; padding:12px 6px; display:grid; gap:5px; justify-items:center; text-align:center; color:var(--g-text); }
+.pc:hover { border-color:var(--g-edge); transform:translateY(-2px); }
+.pc.dashed { background:transparent; border:2px dashed #3a4468; color:var(--g-muted); align-content:center; }
+.pc .mini { display:flex; gap:4px; }
+.pc .mini button { padding:3px 7px; font-size:11px; }
+.lrow { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; background:#222a40; border:2px solid transparent; border-radius:10px; padding:8px 10px; width:100%; text-align:left; color:var(--g-text); }
+.lrow:hover { border-color:var(--g-edge); }
+.lrow.last { border-color:var(--g-edge); }
+.lrow .tools { display:flex; gap:4px; } .lrow .tools button { padding:3px 8px; font-size:11px; }
+.newbar { display:flex; gap:8px; flex-wrap:wrap; }
+.newbar input { flex:1; min-width:140px; background:#101422; border:1px solid #333c5c; border-radius:8px; padding:7px 10px; color:var(--g-text); font:600 14px var(--body); }
+.full { position:absolute; inset:0; display:grid; align-content:center; justify-items:center; gap:14px; padding:14px; background:radial-gradient(120% 90% at 50% 0%,#141a33,#0b0e18 70%); }
+.full .big { font:800 clamp(22px,4vw,34px) var(--display); letter-spacing:.14em; }
+.full .arc { width:min(80%,520px); height:2px; background:linear-gradient(90deg,transparent,#6f8cff,transparent); position:relative; }
+.full .arc::after { content:""; position:absolute; right:12%; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--amber); box-shadow:0 0 12px var(--amber); }
+.full .cards { margin-top:6px; } .full .pc { width:118px; }
+.full .pc .face { --s:62px; }
+.hint { font-size:12px; color:var(--g-muted); text-align:center; }
+</style>
+<div class="wrap">
+  <div><div class="eyebrow">Mockup · Multiple profiles</div><h1>Who's <span>playing?</span></h1></div>
+  <p>The popup that appears before the main menu on every launch. Three looks. Pick a profile to continue as it; Manage reveals Rename and Delete. Delete asks twice. Each profile has its own name, rank, records and saved runs.</p>
+  <div class="opt" id="o1"></div><div class="opt" id="o2"></div><div class="opt" id="o3"></div>
+</div>
+<script>
+const COL=["#6fe3c4","#ffb547","#ff7aa2","#8fa8ff","#c3e86b"];
+const S={ list:[{id:"a",name:"Anthony",rank:14,wins:9,runs:63,last:"today",c:0},{id:"s",name:"Sam",rank:6,wins:1,runs:18,last:"3 days ago",c:1},{id:"b",name:"Little Bee",rank:3,wins:0,runs:7,last:"last week",c:2}],
+  lastId:"a", open:{1:true,2:true,3:true}, manage:{1:false,2:false,3:false}, armed:null, adding:null, renaming:null, playing:{} };
+const face=(p,s)=>`<span class="face" style="--s:${s}px;background:${COL[p.c%5]}">${p.name[0].toUpperCase()}</span>`;
+const badge=p=>`<span class="badge" style="color:${COL[(p.rank>>2)%5]}">R${p.rank}</span>`;
+const menu=(who)=>`<div class="menu"><div class="title">TOP-DOWN ARENA</div><div class="axis"></div><div class="mcard"><i></i><i></i><i></i></div>${who?`<div class="sub" style="margin-top:6px">Playing as ${who}</div>`:""}</div>`;
+function pick(k,id){ const p=S.list.find(x=>x.id===id); S.lastId=id; S.open[k]=false; S.playing[k]=p.name; S.armed=null; render(); }
+function del(k,id){ if(S.list.length<2) return; if(S.armed!==id){S.armed=id;render();return;} S.list=S.list.filter(p=>p.id!==id); if(S.lastId===id) S.lastId=S.list[0].id; S.armed=null; render(); }
+function startAdd(k){ S.adding=k; S.renaming=null; render(); const i=document.getElementById("nm"+k); if(i){i.focus();} }
+function startRen(k,id){ S.renaming={k,id}; S.adding=null; render(); const i=document.getElementById("nm"+k); if(i){i.focus();i.select();} }
+function commit(k){ const v=document.getElementById("nm"+k).value.trim(); if(!v) return;
+  if(S.adding===k){ S.list.push({id:"n"+Date.now(),name:v.slice(0,16),rank:1,wins:0,runs:0,last:"new",c:S.list.length}); }
+  else if(S.renaming){ S.list.find(p=>p.id===S.renaming.id).name=v.slice(0,16); }
+  S.adding=null; S.renaming=null; render(); }
+function editor(k){ const open=S.adding===k||(S.renaming&&S.renaming.k===k); if(!open) return "";
+  const val=S.renaming?S.list.find(p=>p.id===S.renaming.id).name:"Player "+(S.list.length+1);
+  return `<form class="newbar" onsubmit="event.preventDefault();commit(${k})"><label class="sub" for="nm${k}" style="align-self:center">${S.adding===k?"New profile name":"New name"}</label><input id="nm${k}" maxlength="16" value="${val}" autocomplete="off"><button class="primary" type="submit">Save</button><button type="button" onclick="S.adding=null;S.renaming=null;render()">Cancel</button></form>`; }
+const mgr=(k)=>`<div class="row"><span class="hint" style="text-align:left">${S.manage[k]?"Manage mode: rename or delete":"Click a profile to start"}</span><button onclick="S.manage[${k}]=!S.manage[${k}];S.armed=null;render()" aria-pressed="${S.manage[k]}">${S.manage[k]?"Done":"Manage profiles"}</button></div>`;
+const tools=(k,p)=>S.manage[k]?`<span class="mini tools" style="display:flex;gap:4px"><button onclick="event.stopPropagation();startRen(${k},'${p.id}')">Rename</button><button class="danger ${S.armed===p.id?"armed":""}" onclick="event.stopPropagation();del(${k},'${p.id}')" ${S.list.length<2?"disabled":""}>${S.armed===p.id?"Sure?":"Delete"}</button></span>`:"";
+function head(k,t,d,pros,cons){ return `<div class="eyebrow">${t}</div>`; }
+function foot(k,d,l){ return `<p>${d}</p><ul>${l.map(x=>`<li>${x}</li>`).join("")}</ul>`; }
+const replay=k=>`<div class="row"><span></span><button onclick="S.open[${k}]=true;render()">Replay popup</button></div>`;
+function A(){ const k=1; return head(k,"A · Round avatars, centred")+`<div class="stage">${menu(S.playing[k])}<div class="veil" ${S.open[k]?"":"hidden"}><div class="modal"><h2>Who's playing?</h2>
+ <div class="cards">${S.list.map(p=>`<div class="pc" role="button" tabindex="0" onclick="${S.manage[k]?"":`pick(${k},'${p.id}')`}" onkeydown="if(event.key==='Enter'&&!${S.manage[k]})pick(${k},'${p.id}')">${face(p,56)}<div class="nm">${p.name}</div>${badge(p)}${tools(k,p)}</div>`).join("")}
+ <button class="pc dashed" onclick="startAdd(${k})"><span class="nm" style="font-size:26px">+</span><span class="sub">New profile</span></button></div>${editor(k)}${mgr(k)}</div></div></div>${replay(k)}`+
+ foot(k,"The familiar streaming-app pattern. Big faces, one click, and it works for kids because names and colours are enough to find yourself.",["Fast and obvious for 2 to 5 profiles","Stats are hidden until you pick","Wraps to two rows past about 5"]); }
+function B(){ const k=2; return head(k,"B · List with a Continue button")+`<div class="stage">${menu(S.playing[k])}<div class="veil" ${S.open[k]?"":"hidden"}><div class="modal"><h2>Who's playing?</h2>
+ <div style="display:grid;gap:8px">${S.list.map(p=>`<div class="lrow ${p.id===S.lastId?"last":""}" role="button" tabindex="0" onclick="${S.manage[k]?"":`pick(${k},'${p.id}')`}" onkeydown="if(event.key==='Enter'&&!${S.manage[k]})pick(${k},'${p.id}')">${face(p,40)}<span><div class="nm">${p.name} ${p.id===S.lastId?'<span class="sub">· last played</span>':""}</div><div class="sub">Rank ${p.rank} · ${p.runs} runs · ${p.wins} wins · ${p.last}</div></span>${S.manage[k]?tools(k,p):badge(p)}</div>`).join("")}</div>
+ ${editor(k)}<div class="row"><button onclick="startAdd(${k})">+ New profile</button><span style="display:flex;gap:8px"><button onclick="S.manage[${k}]=!S.manage[${k}];S.armed=null;render()">${S.manage[k]?"Done":"Manage"}</button><button class="primary" onclick="pick(${k},'${S.lastId}')">Continue as ${S.list.find(p=>p.id===S.lastId).name}</button></span></div></div></div></div>${replay(k)}`+
+ foot(k,"A list that shows rank, runs and when each profile last played, with the last profile pre-selected so Enter just continues.",["Most information, easiest to tell similar names apart","The Continue button makes the common case one click","Taller and plainer than A"]); }
+function C(){ const k=3; return head(k,"C · Full-screen title takeover")+`<div class="stage">${menu(S.playing[k])}<div class="full" ${S.open[k]?"":"hidden"}><div class="big">WHO'S PLAYING?</div><div class="arc"></div>
+ <div class="cards">${S.list.map(p=>`<div class="pc" role="button" tabindex="0" onclick="${S.manage[k]?"":`pick(${k},'${p.id}')`}" onkeydown="if(event.key==='Enter'&&!${S.manage[k]})pick(${k},'${p.id}')">${face(p,62)}<div class="nm">${p.name}</div>${badge(p)}<div class="sub">${p.wins} wins</div>${tools(k,p)}</div>`).join("")}
+ <button class="pc dashed" onclick="startAdd(${k})"><span class="nm" style="font-size:26px">+</span><span class="sub">New profile</span></button></div>${editor(k)}<button onclick="S.manage[${k}]=!S.manage[${k}];S.armed=null;render()">${S.manage[k]?"Done":"Manage profiles"}</button></div></div>${replay(k)}`+
+ foot(k,"Not a popup: a title screen of its own in the menu's style (title on its axis, the shot's arc), then the menu fades in after the choice.",["Matches the game's intro and feels like part of it","No dimmed menu behind, so nothing to blur or render twice","Replaces the menu intro's first beat, so the intro plays after the pick"]); }
+function render(){ document.getElementById("o1").innerHTML=A(); document.getElementById("o2").innerHTML=B(); document.getElementById("o3").innerHTML=C(); }
+render();
+</script>
+</body>
+</html>

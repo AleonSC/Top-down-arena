@@ -165,7 +165,7 @@ namespace Arena
             if (!resumed && RecordsRuns && Me != null && Hunt == null)  // (a Boss Hunt isn't a run: its own records at the end)
             {
                 Profile.RunStarted();
-                Profile.Save();
+                SaveProfile();
             }
         }
 
@@ -268,7 +268,7 @@ namespace Arena
                     Profile.BossBeaten(boss, wave);
                     runLastBossWave = Math.Max(runLastBossWave, wave);
                     AddUnlockToasts(Profile.CheckUnlocks());
-                    Profile.Save();
+                    SaveProfile();
                     return;
                 }
                 case RecordKind.Room:
@@ -278,7 +278,7 @@ namespace Arena
                     if (me == null || dev || botTouched)
                         return;
                     Profile.RoomEnded(room, won);
-                    Profile.Save();
+                    SaveProfile();
                     return;
                 }
                 case RecordKind.End:
@@ -295,17 +295,32 @@ namespace Arena
                         AddUnlockToasts(Profile.HuntEnded(Hunt.Boss, won, time));  // Hunts.cs
                         int cleared = won ? Hunts.Length : Math.Max(0, HuntWave - 1);
                         LastGain = Profile.AwardXp(Rank.Award(false, cleared, won ? 1 : 0, me.Run.Revives, Mods, Diff.Level), HuntWave, won ? 3 : 2);
-                        Profile.Save();
+                        SaveProfile();
                         return;
                     }
                     AddUnlockToasts(Profile.RunEnded(won, wave, score, endless, Mods, me.Role, me.Kit, me.Run, time));
                     int wavesCleared = won || runLastBossWave >= wave ? wave : Math.Max(0, wave - 1);
                     LastGain = Profile.AwardXp(Rank.Award(won, wavesCleared, Rank.BossesIn(wavesCleared), me.Run.Revives, Mods, Diff.Level), wave, won ? 1 : 0);
-                    Profile.Save();
+                    SaveProfile();
                     return;
                 }
             }
         }
+
+        /// Saves the profile; if the disk refuses, warns the player once (the next successful save clears it).
+        void SaveProfile()
+        {
+            if (Profile.Save())
+            {
+                profileWarned = false;
+                return;
+            }
+            if (profileWarned)
+                return;
+            profileWarned = true;
+            UnlockToasts.Add(new UnlockToast { Warning = true, T = 8f, Unlock = new UnlockDef { Id = "", Name = "Profile not saved", Desc = "Couldn't write profile.txt: check disk space and permissions" } });
+        }
+        bool profileWarned;
 
         void AddUnlockToasts(List<UnlockDef> fresh)
         {
@@ -327,5 +342,6 @@ namespace Arena
     {
         public UnlockDef Unlock;
         public float T;
+        public bool Warning;   // a "couldn't save" warning, drawn in red instead of the gold "UNLOCKED"
     }
 }
