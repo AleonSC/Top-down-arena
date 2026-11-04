@@ -1,0 +1,187 @@
+<title>Lobby Button Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Four looks for the lobby's Back, Ready? and Start buttons (LobbyUi.cs DrawLobbyActions), drawn at the real sizes:
+   Back 48 x 48, Ready 376 x 56, Start 376 x 66. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --line: #242d36; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --teal: #4de0bd; --amber: #ffb547;
+  --blue1: #5a94ff; --blue2: #2c5fd2; --blue-d: #1b3a86;
+  --gold1: #ffd96b; --gold2: #c8901a; --gold-d: #7a5410;
+  --red1: #d9525a; --red2: #a52b34; --red-d: #5e1219;
+  --green1: #46de8f; --green2: #1f9f5c; --green-d: #0f5a33;
+  --prac1: #4fe0c0; --prac2: #178f78; --prac-d: #0a4a3f;
+  --off1: #2c3452; --off2: #20273f; --off-d: #151a2c; --off-ink: #6f7ba0;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 36px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+p { margin: 0; max-width: 74ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header, section { display: grid; gap: 10px; min-width: 0; }
+.tag { font: 600 12px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.pros { display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font-size: 14px; max-width: none; }
+.pros b { color: var(--soft); font-weight: 600; }
+.rec { color: var(--amber); }
+code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--soft); background: var(--panel); padding: 1px 5px; border-radius: 4px; }
+
+/* The stage is the lobby's left column on its real background. */
+.stage { background: radial-gradient(ellipse at 30% 90%, #3a1d2e 0%, #14101f 55%, #080a10 100%); border: 1px solid var(--line); border-radius: 10px; padding: 22px max(16px, 2vw); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 376px)); gap: 26px 30px; align-items: start; min-width: 0; }
+.col { display: grid; gap: 12px; min-width: 0; }
+.cap { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: #8f9bb8; }
+.row { display: flex; gap: 12px; align-items: center; }
+.hdr { font: 800 40px var(--font-display); letter-spacing: .06em; color: #fff; text-shadow: 0 0 0 #000, 0 2px 0 #3a4a8a; }
+
+/* ---------- shared bits ---------- */
+.b { position: relative; box-sizing: border-box; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; color: #fff; font-family: var(--font-display); font-weight: 800; user-select: none; }
+.b svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+.ready { height: 56px; font-size: 22px; } .start { height: 66px; font-size: 26px; } .back { width: 48px; height: 48px; flex: none; }
+.back svg { width: 24px; height: 24px; }
+.txt { text-shadow: 0 2px 0 rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.25); letter-spacing: .03em; }
+
+/* ---------- 1. Keycap ---------- */
+.k1 { border-radius: 12px; background: linear-gradient(var(--c1), var(--c2)); box-shadow: 0 5px 0 var(--cd), 0 10px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45), inset 0 0 0 1px rgba(255,255,255,.12); margin-bottom: 5px; }
+.k1::before { content: ""; position: absolute; left: 14px; right: 14px; top: 3px; height: 38%; border-radius: 8px 8px 20px 20px / 8px 8px 12px 12px; background: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,0)); pointer-events: none; }
+.k1 .chip { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.25); display: grid; place-items: center; }
+.k1.pressed { transform: translateY(4px); box-shadow: 0 1px 0 var(--cd), 0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.35); }
+.k1.off { color: var(--off-ink); text-shadow: none; }
+.k1.off::before { opacity: .25; }
+.k1.glow { animation: pulse 1.8s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 5px 0 var(--cd), 0 0 0 0 rgba(255,217,107,.7), inset 0 1px 0 rgba(255,255,255,.45); } 100% { box-shadow: 0 5px 0 var(--cd), 0 0 0 14px rgba(255,217,107,0), inset 0 1px 0 rgba(255,255,255,.45); } }
+
+/* ---------- 2. Chamfer plate (matches the panel's corner brackets) ---------- */
+.k2 { --cut: 14px; background: var(--edge); clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); letter-spacing: .1em; text-transform: uppercase; }
+.k2::before { content: ""; position: absolute; inset: 2px; background: linear-gradient(105deg, var(--c1), var(--c2)); clip-path: polygon(calc(var(--cut) - 1px) 0, 100% 0, 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, 0 100%, 0 calc(var(--cut) - 1px)); }
+.k2 > * { position: relative; }
+.k2 .blk { position: absolute; left: 2px; top: 2px; bottom: 2px; width: 56px; background: rgba(0,0,0,.28); display: grid; place-items: center; clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut)); border-right: 1px solid rgba(255,255,255,.2); }
+.k2.ready .txt, .k2.start .txt { padding-left: 56px; }
+.k2.back { clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.k2.back::before { clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px); }
+.k2.off { color: var(--off-ink); }
+.k2.hover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.22) 48%, transparent 56%); }
+
+/* ---------- 3. Outline glow ---------- */
+.k3 { border-radius: 10px; border: 2px solid var(--c1); background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.2)), color-mix(in srgb, var(--c2) 22%, #0a0d18); color: var(--c1); box-shadow: 0 0 18px color-mix(in srgb, var(--c1) 35%, transparent), inset 0 0 22px color-mix(in srgb, var(--c1) 18%, transparent); letter-spacing: .12em; text-transform: uppercase; }
+.k3.fill { background: linear-gradient(var(--c1), var(--c2)); color: #fff; box-shadow: 0 0 26px color-mix(in srgb, var(--c1) 60%, transparent), inset 0 1px 0 rgba(255,255,255,.4); }
+.k3.fill.gold { color: #2a1c00; }
+.k3.off { --c1: #3b4570; border-style: dashed; color: var(--off-ink); box-shadow: none; background: rgba(20,24,40,.5); }
+.k3 .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+
+/* ---------- 4. Status buttons: the button tells you who is ready ---------- */
+.k4 { border-radius: 10px; background: #141a2e; border: 1px solid #34406a; overflow: hidden; justify-content: space-between; padding: 0 16px 0 0; }
+.k4 .fillbar { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--c2), var(--c1)); }
+.k4 > * { position: relative; }
+.k4 .seg { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,.4); }
+.k4 .lab { padding-left: 18px; display: grid; text-align: left; line-height: 1.05; }
+.k4 .lab small { font: 600 11px var(--font-body); letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.k4 .tick { width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.5); display: grid; place-items: center; }
+.k4 .tick svg { width: 22px; height: 22px; opacity: 0; }
+.k4.on .tick { background: #fff; border-color: #fff; color: #7a5410; }
+.k4.on .tick svg { opacity: 1; }
+.k4.ready { background: #141a2e; }
+.k4.ready.on { background: linear-gradient(var(--gold1), var(--gold2)); border-color: #fff0b0; color: #2a1c00; }
+.k4.ready.on .txt { text-shadow: none; }
+.k4.ghost { background: transparent; border-color: rgba(214,74,82,.55); color: #ff8a90; justify-content: center; padding: 0; }
+.k4.ghost.hover { background: rgba(214,74,82,.18); border-color: #ff8a90; }
+.k4.go { border-color: #9bf0c4; box-shadow: 0 0 24px rgba(70,222,143,.5); }
+
+.note { font: 500 14px var(--font-body); color: #aab4cc; }
+.note b { color: #fff; }
+@media (prefers-reduced-motion: reduce) { .k1.glow { animation: none; } }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Lobby &middot; Button styles</div>
+  <h1>Better <span>Back, Ready &amp; Start</span></h1>
+  <p class="lead">Today all three are one flat tinted rounded box with a thin top highlight and a faint chip behind the icon. Start and Ready read as twins, and Back is a red square with an arrow. Four looks follow, each drawn at the in-game size with Ready? / Ready! and Start waiting / ready / practice, so you can compare the states, not just the paint. Colours stay inside the game's palette (blue, gold, red; Start turns green when it can start, and teal in Practice).</p>
+</header>
+
+<!-- ================= 1 ================= -->
+<section>
+  <div><div class="tag">Option 1</div><h2>Keycap</h2></div>
+  <p class="pros"><span><b>Good:</b> closest to what you have, so it's the easiest to build: a vertical gradient, a darker lower lip, a gloss band and a round icon chip. Presses down 4 px on click.</span><span><b>Good:</b> Start (green) and Ready (blue, gold when ready) stop looking alike.</span><span><b>Cost:</b> a few extra <code>Ui.Fill</code> strips per button; no new textures.</span></p>
+  <div class="stage">
+    <div class="col"><div class="cap">Back &middot; normal &middot; hover</div><div class="row"><div class="hdr" style="display:none"></div>
+      <div class="b back k1" style="--c1:var(--red1);--c2:var(--red2);--cd:var(--red-d)"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div>
+      <div class="b back k1 pressed" style="--c1:#ec6a72;--c2:#b8343e;--cd:var(--red-d)"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div></div>
+      <div class="cap" style="margin-top:8px">Ready &middot; not ready &middot; ready (pulses)</div>
+      <div class="b ready k1" style="--c1:var(--blue1);--c2:var(--blue2);--cd:var(--blue-d)"><span class="chip"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span><span class="txt">Ready?</span></div>
+      <div class="b ready k1 glow" style="--c1:var(--gold1);--c2:var(--gold2);--cd:var(--gold-d);color:#2a1c00"><span class="chip"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span><span>Ready!</span></div>
+    </div>
+    <div class="col"><div class="cap">Start &middot; waiting &middot; can start &middot; practice</div>
+      <div class="b start k1 off" style="--c1:var(--off1);--c2:var(--off2);--cd:var(--off-d)"><span class="chip"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span>Start</span></div>
+      <div class="b start k1" style="--c1:var(--green1);--c2:var(--green2);--cd:var(--green-d)"><span class="chip"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="txt">Start</span></div>
+      <div class="b start k1" style="--c1:var(--prac1);--c2:var(--prac2);--cd:var(--prac-d)"><span class="chip"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="txt">Start</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 ================= -->
+<section>
+  <div><div class="tag">Option 2 <span class="rec">&middot; my pick</span></div><h2>Chamfer plate</h2></div>
+  <p class="pros"><span><b>Good:</b> cut corners and a split icon block echo the corner brackets on the loadout panel, so the buttons look like part of the same HUD.</span><span><b>Good:</b> uppercase, letter-spaced labels make Start clearly the headline action.</span><span><b>Cost:</b> needs one small baked corner-cut texture (the game already bakes the fade bar in <code>Ui.cs</code>); about the same work as the panel brackets.</span></p>
+  <div class="stage">
+    <div class="col"><div class="cap">Back &middot; normal &middot; hover</div><div class="row">
+      <div class="b back k2" style="--edge:#ff8a90;--c1:var(--red1);--c2:var(--red2)"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div>
+      <div class="b back k2 hover" style="--edge:#ffd0d3;--c1:#ec6a72;--c2:#b8343e"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div></div>
+      <div class="cap" style="margin-top:8px">Ready &middot; not ready &middot; ready</div>
+      <div class="b ready k2" style="--edge:#8db3ff;--c1:#3f7cf0;--c2:#244fb5"><span class="blk"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span><span class="txt">Ready?</span></div>
+      <div class="b ready k2" style="--edge:#fff0b0;--c1:var(--gold1);--c2:var(--gold2);color:#2a1c00"><span class="blk" style="background:rgba(80,50,0,.3)"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span><span>Ready!</span></div>
+    </div>
+    <div class="col"><div class="cap">Start &middot; waiting &middot; can start &middot; practice</div>
+      <div class="b start k2 off" style="--edge:#34406a;--c1:#1d243d;--c2:#161c30"><span class="blk"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="txt" style="text-shadow:none">Start</span></div>
+      <div class="b start k2" style="--edge:#9bf0c4;--c1:var(--green1);--c2:var(--green2)"><span class="blk"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="txt">Start</span></div>
+      <div class="b start k2" style="--edge:#b5fbe9;--c1:var(--prac1);--c2:var(--prac2)"><span class="blk"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="txt">Start</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 ================= -->
+<section>
+  <div><div class="tag">Option 3</div><h2>Outline glow</h2></div>
+  <p class="pros"><span><b>Good:</b> dark glass with a coloured edge. It's quiet until it matters: a waiting Start is a dashed ghost, and it lights up solid the moment it can start.</span><span><b>Good:</b> fits the dark panels and doesn't compete with the loadout.</span><span><b>Cost:</b> weakest at a glance on the busy purple background; the glow needs a soft-edge texture.</span></p>
+  <div class="stage">
+    <div class="col"><div class="cap">Back &middot; normal &middot; hover</div><div class="row">
+      <div class="b back k3" style="--c1:#ff7a82;--c2:var(--red2)"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div>
+      <div class="b back k3 fill" style="--c1:#ec6a72;--c2:var(--red2)"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div></div>
+      <div class="cap" style="margin-top:8px">Ready &middot; not ready &middot; ready</div>
+      <div class="b ready k3" style="--c1:var(--blue1);--c2:var(--blue2)"><span class="dot"></span><span>Ready?</span></div>
+      <div class="b ready k3 fill gold" style="--c1:var(--gold1);--c2:var(--gold2)"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg><span>Ready!</span></div>
+    </div>
+    <div class="col"><div class="cap">Start &middot; waiting &middot; can start &middot; practice</div>
+      <div class="b start k3 off"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Start</span></div>
+      <div class="b start k3 fill" style="--c1:var(--green1);--c2:var(--green2)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span class="txt">Start</span></div>
+      <div class="b start k3 fill" style="--c1:var(--prac1);--c2:var(--prac2)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span class="txt">Start</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4 ================= -->
+<section>
+  <div><div class="tag">Option 4</div><h2>Buttons that show who's ready</h2></div>
+  <p class="pros"><span><b>Good:</b> Start is a bar that fills one segment per ready player and says "1 of 3 ready", so the separate "Waiting for N players" line can go. It turns into Start when the bar is full.</span><span><b>Good:</b> Ready is a labelled checkbox: clear that it's a toggle you can undo.</span><span><b>Cost:</b> the most new drawing and new copy; Back becomes a quiet outline so the other two lead.</span></p>
+  <div class="stage">
+    <div class="col"><div class="cap">Back &middot; normal &middot; hover</div><div class="row">
+      <div class="b back k4 ghost"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div>
+      <div class="b back k4 ghost hover"><svg viewBox="0 0 24 24"><path d="M11 5 4 12l7 7v-4h9v-6h-9z"/></svg></div></div>
+      <div class="cap" style="margin-top:8px">Ready &middot; off &middot; on</div>
+      <div class="b ready k4 ready"><div class="lab"><span class="txt">Ready up</span></div><span class="tick"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span></div>
+      <div class="b ready k4 ready on"><div class="lab"><span>You're ready</span></div><span class="tick"><svg viewBox="0 0 24 24"><path d="M9.5 17.5 4.5 12.5l2-2 3 3 8-8 2 2z"/></svg></span></div>
+    </div>
+    <div class="col"><div class="cap">Start &middot; 1 of 3 &middot; 2 of 3 &middot; all ready</div>
+      <div class="b start k4" style="--c1:var(--blue1);--c2:var(--blue2)"><div class="fillbar" style="width:33.3%;opacity:.55"></div><span class="seg" style="left:33.3%"></span><span class="seg" style="left:66.6%"></span><div class="lab" style="color:#b9c4e6"><span class="txt">Waiting</span><small>1 of 3 ready</small></div><svg viewBox="0 0 24 24" style="color:#6f7ba0"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="b start k4" style="--c1:var(--blue1);--c2:var(--blue2)"><div class="fillbar" style="width:66.6%;opacity:.55"></div><span class="seg" style="left:33.3%"></span><span class="seg" style="left:66.6%"></span><div class="lab" style="color:#dbe5ff"><span class="txt">Waiting</span><small>2 of 3 ready</small></div><svg viewBox="0 0 24 24" style="color:#8f9bc0"><path d="M8 5v14l11-7z"/></svg></div>
+      <div class="b start k4 go" style="--c1:var(--green1);--c2:var(--green2)"><div class="fillbar" style="width:100%"></div><span class="seg" style="left:33.3%"></span><span class="seg" style="left:66.6%"></span><div class="lab"><span class="txt">Start</span><small>everyone's ready</small></div><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+    </div>
+  </div>
+</section>
+</div>
