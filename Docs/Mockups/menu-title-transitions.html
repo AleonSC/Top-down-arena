@@ -1,0 +1,220 @@
+<title>Menu Title Transitions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;600&display=swap">
+<style>
+/* Same field-manual look as the other mockups. The main menu's title is now a CRT screen with green text, so the old
+   "pen writes it in blue ink" part of the Who's playing? move no longer fits. Every card starts from the moment the
+   move reaches the menu: the axis is full and your point sits on its origin (what the pen starts from today).
+   Each runs about 2.2 s; they loop with a short pause. */
+:root { --bg: #0a0d10; --panel: #11161b; --line: #242d36; --edge: #36424e; --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 "Barlow", system-ui, sans-serif; margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 22px; }
+h1 { font: 800 clamp(28px, 5vw, 44px)/1.05 "Oxanium", sans-serif; letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+h1 span { color: var(--teal); }
+p { margin: 0; max-width: 74ch; color: var(--soft); }
+.eyebrow { font: 600 11px "Oxanium", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+button { font: 600 14px "Barlow", sans-serif; color: var(--soft); background: #161c22; border: 1px solid var(--edge); border-radius: 7px; padding: 7px 14px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); gap: 18px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; }
+.card h2 { font: 700 13px "Oxanium", sans-serif; letter-spacing: .12em; text-transform: uppercase; margin: 0; padding: 10px 14px 2px; display: flex; justify-content: space-between; gap: 10px; }
+.card h2 b { color: var(--amber); margin-right: 8px; }
+.card h2 i { font: 500 12px "Barlow", sans-serif; letter-spacing: 0; text-transform: none; color: var(--muted); font-style: normal; }
+.card .note { padding: 0 14px 6px; font-size: 14px; color: var(--muted); }
+.card .bar2 { padding: 0 14px 12px; display: flex; gap: 8px; }
+.card .bar2 button { padding: 4px 10px; font-size: 13px; }
+.view { position: relative; width: 100%; aspect-ratio: 1000 / 250; overflow: hidden; background: #080b14; }
+.sc { position: absolute; left: 0; top: 0; width: 1000px; height: 250px; transform-origin: 0 0;
+  background: linear-gradient(rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 50px 50px, linear-gradient(90deg, rgba(92,153,255,.07) 1px, transparent 1px) 0 0 / 50px 50px, #080b14; }
+.sc > * { position: absolute; }
+.axis { left: 110px; width: 780px; top: 207px; height: 2px; background: rgba(92,153,255,.6); }
+.axis::before, .axis::after { content: ""; position: absolute; top: -5px; border: 6px solid transparent; }
+.axis::before { left: -10px; border-right-color: rgba(92,153,255,.6); }
+.axis::after { right: -10px; border-left-color: rgba(92,153,255,.6); }
+.ticks { left: 110px; width: 780px; top: 201px; height: 14px; background: repeating-linear-gradient(90deg, rgba(92,153,255,.35) 0 1px, transparent 1px 26px); }
+.dot { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px 3px rgba(92,153,255,.9); }
+.box { left: 90px; top: 48px; width: 820px; height: 118px; border-radius: 12px; transform-origin: 50% 50%;
+  background: #3a424d; box-shadow: 0 0 0 5px #20242a; }
+.box .glass { position: absolute; inset: 7px; border-radius: 9px; overflow: hidden;
+  background: radial-gradient(ellipse at center, #0e2a1a 0%, #04120a 70%, #010603 100%); box-shadow: inset 0 0 38px #000, inset 0 0 6px rgba(40,255,100,.5); }
+.box .glass::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(transparent 0 3px, rgba(0,0,0,.38) 3px 5px); }
+.txt { left: 90px; top: 48px; width: 820px; height: 118px; display: grid; place-items: center; white-space: pre; font: 800 62px/1 "Oxanium", sans-serif; letter-spacing: .02em; color: #7dffa8; text-shadow: 0 0 10px #2f6, 0 0 28px #1c5; pointer-events: none; }
+.txt.r { color: rgba(255,41,51,.9); text-shadow: none; } .txt.c { color: rgba(26,209,255,.9); text-shadow: none; }
+.cur { width: 24px; height: 8px; background: #7dffa8; box-shadow: 0 0 8px #2f6; }
+.scan { top: 30px; width: 6px; height: 156px; background: #9fffc0; box-shadow: 0 0 22px 8px rgba(60,255,120,.55); }
+svg.ov { left: 0; top: 0; width: 1000px; height: 250px; overflow: visible; }
+.ov path, .ov line { fill: none; stroke: #7dffa8; stroke-width: 2.5; filter: drop-shadow(0 0 4px #2f6); }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; Who's playing? to main menu</div>
+  <h1>Title <span>transitions</span></h1>
+  <p>The move from Who's playing? still drops its heading into the axis, shrinks the boxes into points and slides your point to the origin. After that the menu used to write its title with a blue pen, which doesn't suit a green CRT. These eight ways bring the CRT title in from that point instead. Each card starts with the axis full and your point on its origin. Pick one (or a mix) and I'll build it into the move.</p>
+  <div class="bar"><button id="all">Replay all</button><button id="pause" aria-pressed="false">Pause</button><button id="slow" aria-pressed="false">Slow motion</button></div>
+</header>
+<div class="grid" id="grid"></div>
+</div>
+
+<script>
+const TITLE = "CARTESIAN COLOSSEUM", WHO = "WHO'S PLAYING?", SYM = "#%&01/=+?<>";
+const V = [
+  ["power", "CRT power-on", "Your point lifts off the axis, stretches into a bright line, then the screen opens from the line and the text fades up through a colour split.", 2.3],
+  ["outline", "Pen draws the bezel", "Keeps the pen idea: the point traces the bezel's outline in green, the glass fills in, then the title decodes left to right behind a cursor.", 2.6],
+  ["corners", "Plot the corners", "Your point splits into four. They fly to the screen's corners, lines join them up (like plotting points), the glass fills and the title types in.", 2.5],
+  ["type", "Terminal type-on", "The dark screen flickers on, then the title types out letter by letter with a block cursor, and ends on one glitch.", 2.5],
+  ["sweep", "Scan sweep", "A bright green bar sweeps left to right and the bezel, glass and text exist only behind it. Echoes the menu's scan-line sweep between screens.", 2.1],
+  ["flicker", "Warm-up flicker", "The screen stutters on in three flashes, and the title resolves from symbols with a red/cyan split that closes up.", 2.3],
+  ["morph", "Heading becomes the title", "The screen opens round the Who's playing? heading (kept in blue), which then decodes into the game's name and turns green. The one thing that carries over from the last screen.", 2.8],
+  ["drop", "Drop and bounce", "The screen falls in from the top of the window, bounces onto the axis with a flash, then the text flickers on.", 2.3]
+];
+const grid = document.getElementById("grid");
+const cards = V.map(([id, name, note, len]) => {
+  const s = document.createElement("section"); s.className = "card";
+  s.innerHTML = '<h2><span><b>' + (V.findIndex(v => v[0] === id) + 1) + '</b>' + name + '</span><i>' + len + ' s</i></h2><div class="view"><div class="sc">' +
+    '<div class="axis"></div><div class="ticks"></div>' +
+    '<div class="box"><div class="glass"></div></div>' +
+    '<svg class="ov" viewBox="0 0 1000 250"></svg>' +
+    '<div class="txt r"></div><div class="txt c"></div><div class="txt w"></div>' +
+    '<div class="cur"></div><div class="scan"></div><div class="dot"></div></div></div>' +
+    '<div class="note">' + note + '</div><div class="bar2"><button>Replay</button></div>';
+  grid.appendChild(s);
+  const c = { id, len, t0: 0, el: s, sc: s.querySelector(".sc"), view: s.querySelector(".view") };
+  ["box", "dot", "cur", "scan", "ov"].forEach(k => c[k] = s.querySelector("." + k));
+  c.r = s.querySelector(".txt.r"); c.c = s.querySelector(".txt.c"); c.w = s.querySelector(".txt.w");
+  c.axis = s.querySelector(".axis");
+  s.querySelector("button").onclick = () => { c.t0 = clock; };
+  return c;
+});
+function fit() { cards.forEach(c => { const s = c.view.clientWidth / 1000; c.sc.style.transform = "scale(" + s + ")"; }); }
+addEventListener("resize", fit); fit();
+
+let clock = 0, paused = false, slow = false, last = performance.now() / 1000;
+document.getElementById("all").onclick = () => cards.forEach(c => c.t0 = clock);
+const pb = document.getElementById("pause"), sb = document.getElementById("slow");
+pb.onclick = () => { paused = !paused; pb.setAttribute("aria-pressed", paused); pb.textContent = paused ? "Resume" : "Pause"; };
+sb.onclick = () => { slow = !slow; sb.setAttribute("aria-pressed", slow); sb.textContent = slow ? "Normal speed" : "Slow motion"; };
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const ease = x => x * x * (3 - 2 * x);
+const rnd = s => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const OX = 500, OY = 208, BX = 90, BY = 48, BW = 820, BH = 118;
+
+function setBox(c, o, sx, sy, dy = 0, bright = 1) {
+  c.box.style.opacity = o; c.box.style.transform = "translateY(" + dy + "px) scale(" + sx + "," + sy + ")"; c.box.style.filter = "brightness(" + bright + ")";
+}
+function setTxt(c, str, o, split = 0, tint) {
+  c.w.textContent = c.r.textContent = c.c.textContent = str;
+  c.w.style.opacity = o; c.r.style.opacity = split > .02 ? .9 * split * o : 0; c.c.style.opacity = split > .02 ? .9 * split * o : 0;
+  c.r.style.transform = "translateX(" + (-8 * split) + "px)"; c.c.style.transform = "translateX(" + (8 * split) + "px)";
+  c.w.style.color = tint || ""; c.w.style.textShadow = tint ? "0 0 10px " + tint : "";
+}
+function dot(c, x, y, o = 1, s = 1) { c.dot.style.left = x + "px"; c.dot.style.top = y + "px"; c.dot.style.opacity = o; c.dot.style.transform = "scale(" + s + ")"; }
+function cur(c, x, y, o) { c.cur.style.left = x + "px"; c.cur.style.top = y + "px"; c.cur.style.opacity = o; }
+function scramble(str, resolved, seed) {
+  return [...str].map((ch, i) => (i < resolved || ch === " ") ? ch : SYM[Math.floor(rnd(seed + i * 3) * SYM.length)]).join("");
+}
+function reset(c) {
+  setBox(c, 0, 1, 1); setTxt(c, "", 0); cur(c, 0, 0, 0); c.scan.style.opacity = 0; c.ov.innerHTML = ""; c.box.style.clipPath = ""; c.w.style.clipPath = c.r.style.clipPath = c.c.style.clipPath = "";
+  c.axis.style.boxShadow = ""; c.axis.style.background = ""; c.box.style.boxShadow = "";
+  dot(c, OX, OY, 1, 1);
+}
+
+function frame(c, T) {
+  reset(c);
+  const step = Math.floor(T * 30), L = TITLE.length;
+  const full = () => { setBox(c, 1, 1, 1); setTxt(c, TITLE, 1); };
+  if (c.id === "power") {
+    const lift = ease(seg(T, 0.15, 0.55)), wide = ease(seg(T, 0.55, 1.0)), open = ease(seg(T, 1.0, 1.4)), tx = seg(T, 1.2, 1.9);
+    if (T < .55) dot(c, OX, OY - (OY - 107) * lift, 1, 1 + lift * .6);
+    else if (T < 1.0) dot(c, OX, 107, 1 - wide, 1);
+    else dot(c, 0, 0, 0);
+    if (T >= .55) setBox(c, 1, Math.max(.01, wide), Math.max(.012, open), 0, 1 + 1.8 * Math.max(0, 1 - Math.abs(T - 1.1) / .25));
+    if (T >= 1.2) setTxt(c, TITLE, ease(tx), 1 - ease(tx));
+    if (T >= 1.5 && T < 1.9) c.w.style.opacity = ease(tx) * (rnd(step) > .85 ? .6 : 1);
+  } else if (c.id === "outline") {
+    const p = ease(seg(T, 0.35, 1.3)), fill = ease(seg(T, 1.3, 1.65)), n = seg(T, 1.5, 2.3);
+    const per = 2 * (BW + BH), d = p * per; let x, y;
+    if (d < BW) { x = BX + d; y = BY; } else if (d < BW + BH) { x = BX + BW; y = BY + d - BW; } else if (d < 2 * BW + BH) { x = BX + BW - (d - BW - BH); y = BY + BH; } else { x = BX; y = BY + BH - (d - 2 * BW - BH); }
+    const lk = ease(seg(T, .15, .35));
+    if (T < .35) dot(c, OX + (BX - OX) * lk, OY + (BY - OY) * lk, 1, 1); else dot(c, x, y, 1 - fill, 1);
+    const pathD = "M" + BX + "," + BY + " H" + (BX + BW) + " V" + (BY + BH) + " H" + BX + " Z";
+    if (T >= .35) { c.ov.innerHTML = '<path d="' + pathD + '" pathLength="1" stroke-dasharray="1" stroke-dashoffset="' + (1 - Math.min(1, (T - .35) / (1.3 - .35))) + '" opacity="' + (1 - fill) + '"/>'; }
+    if (fill > 0) setBox(c, fill, 1, 1);
+    if (n > 0) { const cut = Math.floor(n / .85 * L); setTxt(c, scramble(TITLE, Math.min(L, cut), step * 3), 1); cur(c, BX + 40 + Math.min(1, n / .85) * (BW - 150), BY + 82, n < .85 ? (step % 4 < 2 ? .9 : .3) : 0); }
+  } else if (c.id === "corners") {
+    const split = ease(seg(T, 0.2, 0.9)), join = ease(seg(T, 0.9, 1.4)), fill = ease(seg(T, 1.35, 1.7)), n = seg(T, 1.6, 2.4);
+    const C = [[BX, BY], [BX + BW, BY], [BX + BW, BY + BH], [BX, BY + BH]];
+    if (T < .2) dot(c, OX, OY, 1, 1);
+    else {
+      dot(c, 0, 0, 0);
+      let html = "";
+      C.forEach(([cx, cy], i) => { const x = OX + (cx - OX) * split, y = OY + (cy - OY) * split; html += '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#fff" stroke="none" style="filter:drop-shadow(0 0 7px #5c99ff)" opacity="' + (1 - fill) + '"/>'; });
+      const edges = [[0, 1], [1, 2], [2, 3], [3, 0]];
+      edges.forEach(([a, b]) => { const A = C[a], B = C[b]; html += '<line x1="' + A[0] + '" y1="' + A[1] + '" x2="' + (A[0] + (B[0] - A[0]) * join) + '" y2="' + (A[1] + (B[1] - A[1]) * join) + '" opacity="' + (1 - fill) + '"/>'; });
+      c.ov.innerHTML = html;
+    }
+    if (fill > 0) setBox(c, fill, 1, 1);
+    if (n > 0) { const cut = Math.floor(Math.min(1, n / .85) * L); setTxt(c, TITLE.slice(0, cut), 1); cur(c, BX + 50 + Math.min(1, n / .85) * (BW - 160), BY + 82, n < .9 ? (step % 4 < 2 ? .9 : .3) : 0); }
+  } else if (c.id === "type") {
+    const on = seg(T, 0.2, 0.7), n = seg(T, 0.8, 1.9);
+    dot(c, OX, OY, 1 - ease(seg(T, 0, .25)), 1);
+    if (T > .2) setBox(c, on < 1 ? (rnd(step) > .45 ? .5 + .5 * on : .1 * on) : 1, 1, 1);
+    const cut = Math.floor(n * L);
+    if (n > 0) setTxt(c, TITLE.slice(0, cut), 1);
+    const ex = BX + 0.5 * BW + (cut / L - 0.5) * 760;
+    if (T > .75) cur(c, n < 1 ? ex + 8 : BX + BW - 60, n < 1 ? BY + 82 : BY + 98, (step % 8 < 4) ? .9 : .2);
+    const g = seg(T, 2.0, 2.5); if (g > 0) setTxt(c, TITLE, 1, Math.sin(g * Math.PI) ** 2);
+  } else if (c.id === "sweep") {
+    const q = ease(seg(T, 0.2, 1.5)), x = BX - 20 + q * (BW + 40);
+    dot(c, OX, OY, 1 - ease(seg(T, 0, .2)), 1);
+    if (T > .2 && T < 1.6) { c.scan.style.opacity = 1; c.scan.style.left = x + "px"; }
+    if (T > .2) {
+      const rightInset = Math.max(0, BX + BW - x) ; const clip = "inset(-20px " + (rightInset + 10) + "px -20px -20px)";
+      setBox(c, 1, 1, 1); c.box.style.clipPath = "inset(-20px " + Math.max(0, BW - (x - BX)) + "px -20px -20px)";
+      setTxt(c, TITLE, 1); [c.w, c.r, c.c].forEach(e => e.style.clipPath = "inset(0 " + Math.max(0, BW - (x - BX)) + "px 0 0)");
+    }
+    if (T > 1.5 && T < 1.9) c.box.style.boxShadow = "0 0 0 5px #20242a, 0 0 " + (30 * (1 - seg(T, 1.5, 1.9))) + "px rgba(60,255,120,.6)";
+  } else if (c.id === "flicker") {
+    dot(c, OX, OY, 1 - ease(seg(T, 0, .2)), 1);
+    const flashes = [[.25, .33], [.45, .52], [.66, 1.0]];
+    let lit = flashes.some(([a, b]) => T >= a && T < b) || T >= 1.0;
+    if (lit) setBox(c, T >= 1 ? 1 : .8, 1, 1, 0, T < 1 ? 1.5 : 1);
+    const n = seg(T, 0.8, 1.6);
+    if (T >= .66) setTxt(c, scramble(TITLE, Math.floor(ease(n) * L), step * 2), T < 1.0 ? .6 : 1, 1 - ease(seg(T, 1.0, 1.8)));
+  } else if (c.id === "morph") {
+    const open = ease(seg(T, 0.2, 0.8)), n = seg(T, 1.0, 1.9), tint = seg(T, 1.5, 2.1);
+    dot(c, OX, OY - (OY - 107) * ease(seg(T, 0.05, .3)), 1 - ease(seg(T, .25, .4)), 1);
+    const sx = .22 + .78 * open;
+    if (T > .2) setBox(c, 1, sx, Math.max(.05, ease(seg(T, 0.2, 0.45))), 0, 1);
+    if (T > .3) {
+      const cut = Math.floor(n * L), mid = T < 1.0 ? WHO : scramble(TITLE, cut, step * 2);
+      const blue = "#8fb4ff", green = "#7dffa8";
+      setTxt(c, T < 1.0 ? WHO : mid, ease(seg(T, 0.3, 0.6)), 0, T < 1.0 ? blue : (tint > .5 ? green : blue));
+      if (T < 1.0) { c.w.style.fontSize = "56px"; } else c.w.style.fontSize = "";
+    }
+  } else if (c.id === "drop") {
+    // damped bounce
+    const bt = T - 0.1; let y;
+    if (bt < 0) y = -190; else if (bt < .42) { const k = bt / .42; y = -190 * (1 - k * k); } else y = -34 * Math.exp(-(bt - .42) * 6) * Math.abs(Math.sin((bt - .42) * 12)) * 0 - 22 * Math.exp(-(bt - .42) * 6) * Math.abs(Math.sin((bt - .42) * 11));
+    dot(c, OX, OY, 1 - ease(seg(T, 0, .15)), 1);
+    setBox(c, T < .1 ? 0 : 1, 1, 1, y, 1 + 1.6 * Math.max(0, 1 - Math.abs(T - .52) / .12));
+    const n = seg(T, 0.7, 1.5);
+    if (n > 0) { const fl = n < 1 && rnd(step) > .7 ? .4 : 1; setTxt(c, TITLE, ease(n) * fl, 1 - ease(seg(T, 1.2, 1.8))); c.w.style.transform = "translateY(" + y + "px)"; c.r.style.transform += " translateY(" + y + "px)"; c.c.style.transform += " translateY(" + y + "px)"; }
+  }
+}
+function loop(ts) {
+  const t = ts / 1000;
+  if (!paused) clock += Math.min(0.1, t - last) * (slow ? .25 : 1);
+  last = t;
+  cards.forEach(c => { const cyc = c.len + 1.0; const T = (clock - c.t0) % cyc; frame(c, Math.min(T, c.len)); });
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
