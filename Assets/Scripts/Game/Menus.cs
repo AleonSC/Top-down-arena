@@ -325,27 +325,17 @@ namespace Arena
             if (editable)
                 RankBadgeTip(rankRect, myRank, true);
             float tx = face.xMax + Mathf.Lerp(10f, 14f, k), tw = (plain ? rankRect.x - 8f : r.xMax - 8f) - tx;
-            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + (plain ? 4f : Mathf.Lerp(3f, 8f, k)), tw + (editable ? 4f : 0f), plain ? 30f : Mathf.Lerp(25f, 26f, k));
+            var nameRect = new Rect(tx, r.y + (plain ? 4f : Mathf.Lerp(3f, 8f, k)), tw, plain ? 30f : Mathf.Lerp(25f, 26f, k));
             int size = plain ? 22 : Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
                 size--;  // a long name gets smaller until it fits
-            if (editable)
-            {
-                // Click the name to type a new one (the field takes the click itself).
-                string before = nameText;
-                GUI.SetNextControlName("menu_name");
-                nameText = Ui.BareField(nameRect, nameText, 16, size);
-                if (nameText != before)
-                    SaveMenuFields();
-            }
-            else
-                Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);
+            Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);  // renamed with the pencil in Your look (CosmeticsUi.cs)
             if (plain)
             {
                 // Under the name: the rank title and number, then the XP towards the next rank, thin.
                 Ui.Label(new Rect(tx, r.y + 33f, tw, 18f), Rank.Title(myRank) + "  ·  Rank " + myRank, 14, RankLook.TierColor(myRank), TextAnchor.MiddleLeft, true);
                 Ui.Bar(new Rect(tx, r.yMax - 11f, tw, 4f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
-                // Anywhere else on the chip opens your cosmetics. (Drawn last: the name and the pencil take their own clicks first.)
+                // Anywhere on the card opens your cosmetics.
                 if (editable && Ui.HitArea(r))
                     OpenCosmetics();
             }
