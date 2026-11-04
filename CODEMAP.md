@@ -121,6 +121,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `ArenaApp.cs`: boot, input, frame loop, layout/scaling, `OnGUI` dispatch
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
+- `MenuVhs.cs`: the main menu buttons' VHS hover and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs`)
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (placeholder: every slot and perk locked, "Coming soon"; see `Docs/BossHuntsAndPerks.md`)
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)
