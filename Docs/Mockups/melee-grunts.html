@@ -1,0 +1,271 @@
+<title>Melee Grunt Variants</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: header + shared controls, then three cards (Buzzsaw, Swarmer, Spike Block), each with a big sprite, a live chase arena and stats. Dark teal/amber to match the other mockups. */
+:root{--bg:#0a0d10;--panel:#11161b;--panel2:#161d24;--line:#242d36;--fg:#e7eef3;--muted:#92a1ad;--soft:#cfdae2;--teal:#4de0bd;--amber:#ffb547;
+--saw:#5ad1ff;--swarm:#ff994d;--block:#e5484d;
+--fd:"Oxanium","Segoe UI",system-ui,sans-serif;--fb:"Barlow","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.55 var(--fb);margin:0;
+ padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:26px}
+h1,h2,h3{font-family:var(--fd);margin:0}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+h2{font-size:22px;font-weight:700;letter-spacing:.03em}
+p{margin:0;max-width:72ch;color:var(--soft)}
+.eyebrow{font:600 11px var(--fd);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+header{display:grid;gap:10px}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ctl span{font:600 12px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+button,select{font:600 13px var(--fd);letter-spacing:.06em;color:var(--fg);background:var(--panel2);border:1px solid #33414d;border-radius:8px;padding:8px 14px;cursor:pointer}
+button:hover,select:hover{border-color:var(--teal)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.card{min-width:0;display:grid;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;border-top:3px solid var(--c)}
+.head{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
+.head canvas{width:96px;height:96px;background:#0c1116;border-radius:8px;border:1px solid var(--line)}
+.tag{display:inline-block;font:700 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:#0a0d10;background:var(--c);border-radius:4px;padding:2px 7px;margin-bottom:6px}
+.sub{font-size:14px;color:var(--muted);line-height:1.4;margin-top:2px}
+.arena{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0c1116}
+.arena canvas{display:block;width:100%;aspect-ratio:400/240;touch-action:none}
+.hint{position:absolute;left:8px;top:7px;font:600 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:#0a0d10b3;padding:3px 7px;border-radius:4px;pointer-events:none}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 12px var(--fd);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.read b{color:var(--c);font-size:16px;margin-left:4px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--panel2);border-radius:6px;padding:7px 8px;min-width:0}
+.stat i{display:block;font:600 10px var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-style:normal}
+.stat b{font:700 15px var(--fd);font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px;display:grid;gap:5px;color:var(--soft);font-size:15px}
+li::marker{color:var(--c)}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px}
+.note p{font-size:15px}
+@media (max-width:420px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; Melee enemies</div>
+  <h1>Melee Grunt Variants</h1>
+  <p>Three melee grunts. The Buzzsaw replaces the Swarmer, the Swarmer moves in a new way, and the Spike Block is new. Each arena has a target (the teal dot) to chase. Move your pointer over an arena to steer the target yourself.</p>
+  <div class="ctl">
+    <span>Playback</span>
+    <button id="pp" type="button">Pause</button>
+    <button id="rs" type="button">Reset</button>
+    <label for="spd"><span>Speed</span></label>
+    <select id="spd"><option value="1">1x</option><option value="0.5">0.5x</option><option value="0.25">0.25x slow-mo</option></select>
+  </div>
+</header>
+
+<div class="cards">
+  <article class="card" style="--c:var(--saw)">
+    <div class="head"><canvas id="pv-saw" width="192" height="192" aria-label="Buzzsaw sprite"></canvas>
+      <div><span class="tag">New &middot; replaces Swarmer</span><h2>Buzzsaw</h2><div class="sub">A round body ringed by spikes that spin at a blur.</div></div></div>
+    <div class="arena"><canvas id="cv-saw" aria-label="Buzzsaw chasing a target"></canvas><div class="hint">Live</div></div>
+    <div class="read"><span>Damage taken<b id="d-saw">0</b></span><span>Hits<b id="h-saw">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>30</b></div><div class="stat"><i>Speed</i><b>170</b></div>
+      <div class="stat"><i>Contact</i><b>4 / 0.12s</b></div><div class="stat"><i>Radius</i><b>12</b></div>
+    </div>
+    <ul>
+      <li>Steers with momentum, so it swoops in on curves and loops past you instead of turning on a spot.</li>
+      <li>Fastest grunt. Low damage per hit but a hit lands about 8 times a second (about 33 damage per second).</li>
+      <li>Spikes spin at roughly 3 turns a second, which is purely visual. It hurts on any contact.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:var(--swarm)">
+    <div class="head"><canvas id="pv-swarm" width="192" height="192" aria-label="Swarmer sprite"></canvas>
+      <div><span class="tag">Changed &middot; movement</span><h2>Swarmer</h2><div class="sub">Same small orange triangle, now unpredictable.</div></div></div>
+    <div class="arena"><canvas id="cv-swarm" aria-label="Swarmer zig-zagging toward a target"></canvas><div class="hint">Live</div></div>
+    <div class="read"><span>Damage taken<b id="d-swarm">0</b></span><span>Hits<b id="h-swarm">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>22</b></div><div class="stat"><i>Speed</i><b>135</b></div>
+      <div class="stat"><i>Contact</i><b>10 / 0.6s</b></div><div class="stat"><i>Radius</i><b>9</b></div>
+    </div>
+    <ul>
+      <li>Heads for you but swings 40 to 65 degrees off line, then flips to the other side every 0.2 to 0.45 s.</li>
+      <li>The swing fades as it gets close, so the last stretch is a straight bite. The trail shows the weave.</li>
+      <li>Stats stay as they are today. Only the path changes, which makes it hard to line up shots.</li>
+    </ul>
+  </article>
+
+  <article class="card" style="--c:var(--block)">
+    <div class="head"><canvas id="pv-block" width="192" height="192" aria-label="Spike Block sprite"></canvas>
+      <div><span class="tag">New</span><h2>Spike Block</h2><div class="sub">A square with one big spike on each face.</div></div></div>
+    <div class="arena"><canvas id="cv-block" aria-label="Spike Block weaving then lunging at a target"></canvas><div class="hint">Live</div></div>
+    <div class="read"><span>Damage taken<b id="d-block">0</b></span><span>Hits<b id="h-block">0</b></span></div>
+    <div class="stats">
+      <div class="stat"><i>Health</i><b>60</b></div><div class="stat"><i>Speed</i><b>65 + side</b></div>
+      <div class="stat"><i>Lunge</i><b>35 dmg</b></div><div class="stat"><i>Radius</i><b>14</b></div>
+    </div>
+    <ul>
+      <li>Approaches slowly, rocking side to side, with one spike always turning to face you.</li>
+      <li>Inside about 135 px it stops and winds up for 0.55 s: it shakes, the spike glows and a red line shows the lunge.</li>
+      <li>Then it dashes about 170 px in a straight line for 35 damage on a hit. It is slow and dim for 0.8 s afterward, which is your window to shoot it.</li>
+    </ul>
+  </article>
+</div>
+
+<div class="note">
+  <div class="eyebrow">Notes</div>
+  <p>Names and numbers are placeholders for you to change. Sides and radii follow the existing grunt scale. The Buzzsaw keeps the Swarmer's slot in wave design and in the melee-heavy modes (Swarm Fields, Defend the Crystal, Zombie waves). The Spike Block would need a new enemy type added at the end of the enum, plus a protocol version bump.</p>
+</div>
+</div>
+
+<script>
+(function(){
+var W=400,H=240,TAU=Math.PI*2;
+var C={saw:'#5ad1ff',swarm:'#ff994d',block:'#e5484d'};
+function rnd(a,b){return a+Math.random()*(b-a)}
+function wrap(a){while(a>Math.PI)a-=TAU;while(a<-Math.PI)a+=TAU;return a}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+var timeScale=1,paused=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- drawing ---------- */
+function spikeTri(ctx,x0,y0,x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.closePath();ctx.fill()}
+function drawEnemy(ctx,kind,e,x,y,k){
+  ctx.save();ctx.translate(x,y);ctx.scale(k,k);
+  if(kind==='saw'){
+    ctx.beginPath();ctx.arc(0,0,17,0,TAU);ctx.strokeStyle='rgba(90,209,255,.22)';ctx.lineWidth=5;ctx.stroke();
+    ctx.rotate(e.spin);
+    ctx.fillStyle='#e3f7ff';
+    for(var i=0;i<8;i++){ctx.rotate(TAU/8);spikeTri(ctx,-4.5,-9,0,-20,4.5,-9)}
+    ctx.beginPath();ctx.arc(0,0,11.5,0,TAU);ctx.fillStyle='#12394a';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=C.saw;ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,4,0,TAU);ctx.fillStyle=C.saw;ctx.fill();
+    ctx.beginPath();ctx.moveTo(0,-4);ctx.lineTo(0,-9);ctx.lineWidth=2;ctx.strokeStyle=C.saw;ctx.stroke();
+  }else if(kind==='swarm'){
+    ctx.rotate(e.ang);
+    ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.closePath();
+    ctx.fillStyle=C.swarm;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#5a2a0c';ctx.stroke();
+  }else{
+    var sx=0,sy=0;
+    if(e.ph==='wind'){sx=rnd(-1.4,1.4);sy=rnd(-1.4,1.4)}
+    ctx.translate(sx,sy);ctx.rotate(e.a);
+    if(e.ph==='recover')ctx.globalAlpha=.55;
+    var hot=e.ph==='wind'||e.ph==='lunge';
+    if(hot){ctx.shadowColor='#ff3b3b';ctx.shadowBlur=10}
+    ctx.fillStyle=hot?'#fff0ee':'#f2b4b6';
+    for(var j=0;j<4;j++){ctx.save();ctx.rotate(j*Math.PI/2);spikeTri(ctx,12,-7.5,26,0,12,7.5);ctx.restore()}
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#3b1416';ctx.fillRect(-13,-13,26,26);
+    ctx.lineWidth=2;ctx.strokeStyle=C.block;ctx.strokeRect(-13,-13,26,26);
+    ctx.fillStyle=hot?'#ff5a5a':'#7a2327';ctx.fillRect(-5,-5,10,10);
+  }
+  ctx.restore();
+}
+
+/* ---------- arena sim ---------- */
+function makeSim(kind){
+  var cv=document.getElementById('cv-'+kind),ctx=cv.getContext('2d');
+  cv.width=W*2;cv.height=H*2;
+  var dEl=document.getElementById('d-'+kind),hEl=document.getElementById('h-'+kind),mouse=null;
+  cv.addEventListener('pointermove',function(ev){var r=cv.getBoundingClientRect();mouse={x:(ev.clientX-r.left)/r.width*W,y:(ev.clientY-r.top)/r.height*H}});
+  cv.addEventListener('pointerleave',function(){mouse=null});
+  var s={};
+  function reset(){
+    s.t=0;s.p={x:W/2,y:H/2};
+    s.e={x:36,y:36,vx:0,vy:0,ang:0.6,spin:0,a:0,ph:'go',pt:0,cd:1,hit:false,sign:1,zt:0,off:1,lx:1,ly:0};
+    s.trail=[];s.txt=[];s.dmg=0;s.hits=0;s.tick=0;out();
+  }
+  function out(){dEl.textContent=s.dmg;hEl.textContent=s.hits}
+  function hurt(n){s.dmg+=n;s.hits++;s.txt.push({x:s.p.x+rnd(-6,6),y:s.p.y-14,t:0,n:n});out()}
+  function align(target,rate,dt){
+    var d=wrap(target-s.e.a);d=((d+Math.PI/4)%(Math.PI/2)+Math.PI/2)%(Math.PI/2)-Math.PI/4;
+    s.e.a+=d*Math.min(1,dt*rate);
+  }
+  function update(dt){
+    s.t+=dt;var e=s.e,p=s.p;
+    var tx,ty;
+    if(mouse){tx=mouse.x;ty=mouse.y}else{tx=W/2+135*Math.sin(s.t*.42);ty=H/2+70*Math.sin(s.t*.67+1)}
+    p.x+=(tx-p.x)*Math.min(1,dt*5);p.y+=(ty-p.y)*Math.min(1,dt*5);
+    var dx=p.x-e.x,dy=p.y-e.y,d=Math.max(1,Math.hypot(dx,dy)),ang=Math.atan2(dy,dx);
+    if(kind==='saw'){
+      var k=Math.min(1,dt*3.2);
+      e.vx+=(dx/d*170-e.vx)*k;e.vy+=(dy/d*170-e.vy)*k;
+      e.x+=e.vx*dt;e.y+=e.vy*dt;e.spin+=dt*19;
+      if(d<30){s.tick-=dt;while(s.tick<=0){hurt(4);s.tick+=.12}}else s.tick=0;
+    }else if(kind==='swarm'){
+      e.zt-=dt;
+      if(e.zt<=0){e.sign=-e.sign;e.zt=rnd(.2,.45);e.off=rnd(.7,1.13)}
+      var fade=clamp(d/150,.2,1);
+      e.ang+=wrap(ang+e.sign*e.off*fade-e.ang)*Math.min(1,dt*12);
+      e.x+=Math.cos(e.ang)*135*dt;e.y+=Math.sin(e.ang)*135*dt;
+      s.tick-=dt;
+      if(d<20&&s.tick<=0){hurt(10);s.tick=.6}
+    }else{
+      if(e.ph==='go'){
+        var nx=-dy/d,ny=dx/d,side=Math.sin(s.t*2.6)*115;
+        e.x+=(dx/d*65+nx*side)*dt;e.y+=(dy/d*65+ny*side)*dt;
+        align(ang,5,dt);e.cd-=dt;
+        if(d<135&&e.cd<=0){e.ph='wind';e.pt=.55;e.lx=dx/d;e.ly=dy/d;e.hit=false}
+      }else if(e.ph==='wind'){
+        align(Math.atan2(e.ly,e.lx),14,dt);e.pt-=dt;
+        if(e.pt<=0){e.ph='lunge';e.pt=.26}
+      }else if(e.ph==='lunge'){
+        e.x+=e.lx*650*dt;e.y+=e.ly*650*dt;e.pt-=dt;
+        if(!e.hit&&d<14+9+10){e.hit=true;hurt(35)}
+        if(e.pt<=0){e.ph='recover';e.pt=.8}
+      }else{
+        e.pt-=dt;if(e.pt<=0){e.ph='go';e.cd=.5}
+      }
+    }
+    e.x=clamp(e.x,12,W-12);e.y=clamp(e.y,12,H-12);
+    s.trail.push({x:e.x,y:e.y});if(s.trail.length>70)s.trail.shift();
+    for(var i=s.txt.length-1;i>=0;i--){s.txt[i].t+=dt;if(s.txt[i].t>.9)s.txt.splice(i,1)}
+  }
+  function draw(){
+    ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0c1116';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#ffffff0a';ctx.lineWidth=1;ctx.beginPath();
+    for(var x=0;x<=W;x+=40){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+    for(var y=0;y<=H;y+=40){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+    ctx.stroke();
+    var e=s.e,p=s.p,tr=s.trail;
+    ctx.lineWidth=2;ctx.lineCap='round';
+    for(var i=1;i<tr.length;i++){ctx.strokeStyle=C[kind];ctx.globalAlpha=i/tr.length*.45;ctx.beginPath();ctx.moveTo(tr[i-1].x,tr[i-1].y);ctx.lineTo(tr[i].x,tr[i].y);ctx.stroke()}
+    ctx.globalAlpha=1;
+    if(kind==='block'&&e.ph==='wind'){
+      ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(255,70,70,.8)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(e.x,e.y);ctx.lineTo(e.x+e.lx*170,e.y+e.ly*170);ctx.stroke();ctx.setLineDash([]);
+    }
+    ctx.beginPath();ctx.arc(p.x,p.y,10,0,TAU);ctx.fillStyle='#14423a';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#4de0bd';ctx.stroke();
+    drawEnemy(ctx,kind,e,e.x,e.y,1);
+    ctx.font='700 13px Oxanium,sans-serif';ctx.textAlign='center';
+    s.txt.forEach(function(t){ctx.globalAlpha=1-t.t/.9;ctx.fillStyle=t.n>=20?'#ff6b6b':'#ffd479';ctx.fillText('-'+t.n,t.x,t.y-t.t*28)});
+    ctx.globalAlpha=1;
+  }
+  reset();
+  return {update:update,draw:draw,reset:reset};
+}
+
+/* ---------- sprite previews ---------- */
+function makePreview(kind){
+  var cv=document.getElementById('pv-'+kind),ctx=cv.getContext('2d');
+  return function(t){
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,192,192);
+    var e={spin:t*14,ang:-.5+Math.sin(t*.8)*.25,a:Math.sin(t*.6)*.3,ph:(Math.floor(t/1.6)%2)?'wind':'go'};
+    drawEnemy(ctx,kind,e,96,96,kind==='block'?2.4:kind==='swarm'?3.8:3.2);
+  };
+}
+
+var sims=[makeSim('saw'),makeSim('swarm'),makeSim('block')];
+var prevs=[makePreview('saw'),makePreview('swarm'),makePreview('block')];
+var pt=0,last=0;
+function frame(ts){
+  var dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(!paused){
+    var d=dt*timeScale;pt+=dt;
+    for(var i=0;i<sims.length;i++)sims[i].update(d);
+  }
+  for(var j=0;j<sims.length;j++){sims[j].draw();prevs[j](pt)}
+  requestAnimationFrame(frame);
+}
+var pp=document.getElementById('pp');
+function label(){pp.textContent=paused?'Play':'Pause'}
+pp.addEventListener('click',function(){paused=!paused;label()});
+document.getElementById('rs').addEventListener('click',function(){sims.forEach(function(s){s.reset()})});
+document.getElementById('spd').addEventListener('change',function(ev){timeScale=parseFloat(ev.target.value)});
+label();requestAnimationFrame(frame);
+})();
+</script>
