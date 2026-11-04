@@ -97,6 +97,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PixelArt.cs`: 16x16 icons as text grids
 
 ## HUD and in-run UI (Game)
+- `ChatBox.cs`: the match text chat (Enter opens, bottom right, pills that fade; state in `Session.Chat`)
 - `Hud.cs`: wave plate, player cards, ability bar, banners
 - `CardArt.cs`: the picker cards' shaded gradient bodies (one texture per colour; `Ui.Glow`/`Ui.Dot` draw the glow and stack circles)
 - `HudBossBars.cs`, `HudPicker.cs`, `HudSummary.cs`, `HudTab.cs`, `HudTiles.cs`: boss bars, upgrade picker, run summary, Tab menu, ability tile animations
