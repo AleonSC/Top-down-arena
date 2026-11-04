@@ -23,7 +23,7 @@ namespace Arena
                 t = 0f;
             var inner = new Rect(r.x + CardBgInset, r.y + CardBgInset, r.width - 2f * CardBgInset, r.height - 2f * CardBgInset);
             float w = inner.width, h = inner.height;
-            GUI.BeginGroup(inner);
+            cardOx = inner.x; cardOy = inner.y; cardW = w; cardH = h;  // (drawn in the card's own coordinates, clipped by CardFill)
             switch (id)
             {
                 case "card-dusk": CardDusk(w, h, t); break;
@@ -42,40 +42,53 @@ namespace Arena
             for (int i = 0; i < steps; i++)
             {
                 float f = i / (float)(steps - 1), a = f < 0.55f ? Mathf.Lerp(0.88f, 0.55f, f / 0.55f) : Mathf.Lerp(0.55f, 0.15f, (f - 0.55f) / 0.45f);
-                Ui.Fill(new Rect(w * i / steps, 0f, w / steps + 1f, h), new Color(0.024f, 0.035f, 0.063f, a));
+                CardFill(new Rect(w * i / steps, 0f, w / steps + 1f, h), new Color(0.024f, 0.035f, 0.063f, a));
             }
-            GUI.EndGroup();
         }
 
         // --- Drawing helpers (local to the clipped group) ---------------------------------------------------------
+
+        static float cardOx, cardOy, cardW, cardH;  // the card being drawn: where its fill starts and how big it is
+
+        /// A rect in the card's own coordinates, cut to the card by hand (IMGUI's clip can't be trusted with the odd shapes here).
+        static void CardFill(Rect r, Color c)
+        {
+            float x0 = Mathf.Max(0f, r.x), y0 = Mathf.Max(0f, r.y), x1 = Mathf.Min(cardW, r.xMax), y1 = Mathf.Min(cardH, r.yMax);
+            if (x1 <= x0 || y1 <= y0)
+                return;
+            Ui.Fill(new Rect(cardOx + x0, cardOy + y0, x1 - x0, y1 - y0), c);
+        }
+
+        static void CardDot(float x, float y, float rad, Color c) => CardFill(new Rect(x - rad, y - rad, rad * 2f, rad * 2f), c);
 
         static void CardGradient(float w, float h, Color top, Color bottom)
         {
             const int n = 14;
             for (int i = 0; i < n; i++)
-                Ui.Fill(new Rect(0f, h * i / n, w, h / n + 1f), Color.Lerp(top, bottom, i / (float)(n - 1)));
+                CardFill(new Rect(0f, h * i / n, w, h / n + 1f), Color.Lerp(top, bottom, i / (float)(n - 1)));
         }
 
-        /// A straight line of the given thickness (a rotated fill).
+        /// A line as a run of small squares (no rotation: a rotated draw escapes IMGUI's clip).
         static void CardLine(Vector2 a, Vector2 b, float thick, Color c)
         {
             var d = b - a;
             float len = d.magnitude;
-            if (len < 0.01f)
-                return;
-            var old = GUI.matrix;
-            GUIUtility.RotateAroundPivot(Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg, a);
-            Ui.Fill(new Rect(a.x, a.y - thick / 2f, len, thick), c);
-            GUI.matrix = old;
+            int n = Mathf.Max(1, (int)Mathf.Ceil(len / 3f));
+            float half = thick / 2f + 0.8f;
+            for (int i = 0; i <= n; i++)
+                CardDot(a.x + d.x * i / n, a.y + d.y * i / n, half, c);
         }
 
-        /// A square turned by `deg` degrees round its centre (a shard).
-        static void CardDiamond(float cx, float cy, float half, float deg, Color c)
+        /// A shard turning about its vertical axis: a diamond squashed by the turn, in 2 px strips.
+        static void CardShard(float cx, float cy, float half, float turn, Color c)
         {
-            var old = GUI.matrix;
-            GUIUtility.RotateAroundPivot(deg, new Vector2(cx, cy));
-            Ui.Fill(new Rect(cx - half, cy - half, half * 2f, half * 2f), c);
-            GUI.matrix = old;
+            float sx = Mathf.Max(0.12f, Mathf.Abs(Mathf.Cos(turn)));
+            for (float dy = -half; dy < half; dy += 2f)
+            {
+                float wd = (half - Mathf.Abs(dy + 1f)) * sx;
+                if (wd > 0f)
+                    CardFill(new Rect(cx - wd, cy + dy, wd * 2f, 2f), c);
+            }
         }
 
         static float Wrap(float v, float m) => ((v % m) + m) % m;
@@ -93,9 +106,9 @@ namespace Arena
             for (int k = 0; k < 7; k++)
             {
                 float f = Wrap(k + t * 0.35f, 7f) / 7f, y = hz + (h - hz) * f * f;
-                Ui.Fill(new Rect(0f, y, w, 1f), new Color(0.75f, 0.55f, 1f, 0.15f + 0.5f * f));
+                CardFill(new Rect(0f, y, w, 1f), new Color(0.75f, 0.55f, 1f, 0.15f + 0.5f * f));
             }
-            Ui.Fill(new Rect(0f, hz - 1f, w, 2f), new Color(1f, 0.59f, 0.82f, 0.18f));
+            CardFill(new Rect(0f, hz - 1f, w, 2f), new Color(1f, 0.59f, 0.82f, 0.18f));
         }
 
         /// Rank 10: three layers of drifting stars, and now and then a shooting star.
@@ -107,7 +120,7 @@ namespace Arena
                 {
                     float x = Wrap(FrameHash(i + layer * 40) * w - t * (layer + 1) * 9f, w), y = FrameHash(i * 3 + layer * 17) * h;
                     float tw = 0.55f + 0.45f * Mathf.Sin(t * 2f + i), s = 0.8f + layer * 0.6f;
-                    Ui.Fill(new Rect(x, y, s, s), new Color(0.86f, 0.9f, 1f, (0.25f + layer * 0.22f) * tw));
+                    CardFill(new Rect(x, y, s, s), new Color(0.86f, 0.9f, 1f, (0.25f + layer * 0.22f) * tw));
                 }
             float p = Wrap(t * 0.22f, 1f);
             if (p < 0.18f && t > 0f)
@@ -120,20 +133,20 @@ namespace Arena
         /// Rank 13: cyan drafting paper, a grid, a dimension line and a circle that traces itself.
         static void CardBlueprint(float w, float h, float t)
         {
-            Ui.Fill(new Rect(0f, 0f, w, h), new Color(0.055f, 0.165f, 0.29f));
+            CardFill(new Rect(0f, 0f, w, h), new Color(0.055f, 0.165f, 0.29f));
             var grid = new Color(0.47f, 0.75f, 1f, 0.14f);
-            for (float x = 0f; x < w; x += 12f) Ui.Fill(new Rect(x, 0f, 1f, h), grid);
-            for (float y = 0f; y < h; y += 12f) Ui.Fill(new Rect(0f, y, w, 1f), grid);
+            for (float x = 0f; x < w; x += 12f) CardFill(new Rect(x, 0f, 1f, h), grid);
+            for (float y = 0f; y < h; y += 12f) CardFill(new Rect(0f, y, w, 1f), grid);
             var ink = new Color(0.59f, 0.82f, 1f, 0.45f);
             var c = new Vector2(w * 0.8f, h * 0.5f);
             float sweep = t > 0f ? Wrap(t * 0.25f, 1f) * Mathf.PI * 2f : Mathf.PI * 1.5f;
-            for (float a = 0f; a < sweep; a += 0.2f)
-                CardLine(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 26f, c + new Vector2(Mathf.Cos(a + 0.2f), Mathf.Sin(a + 0.2f)) * 26f, 1f, ink);
-            for (float a = 0f; a < Mathf.PI * 2f; a += 0.4f)
-                CardLine(c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 14f, c + new Vector2(Mathf.Cos(a + 0.4f), Mathf.Sin(a + 0.4f)) * 14f, 1f, ink);
-            Ui.Fill(new Rect(w * 0.45f, h - 12f, w * 0.55f - 14f, 1f), ink);
-            Ui.Fill(new Rect(w * 0.45f, h - 16f, 1f, 8f), ink);
-            Ui.Fill(new Rect(w - 14f, h - 16f, 1f, 8f), ink);
+            for (float a = 0f; a < sweep; a += 0.08f)
+                CardDot(c.x + Mathf.Cos(a) * 26f, c.y + Mathf.Sin(a) * 26f, 0.7f, ink);
+            for (float a = 0f; a < Mathf.PI * 2f; a += 0.16f)
+                CardDot(c.x + Mathf.Cos(a) * 14f, c.y + Mathf.Sin(a) * 14f, 0.7f, ink);
+            CardFill(new Rect(w * 0.45f, h - 12f, w * 0.55f - 14f, 1f), ink);
+            CardFill(new Rect(w * 0.45f, h - 16f, 1f, 8f), ink);
+            CardFill(new Rect(w - 14f, h - 16f, 1f, 8f), ink);
         }
 
         /// Rank 19: a warm glow along the bottom edge, with embers lifting off it.
@@ -143,38 +156,38 @@ namespace Arena
             for (int i = 0; i < 22; i++)
             {
                 float life = Wrap(t * 0.4f + FrameHash(i), 1f), x = FrameHash(i * 5 + 1) * w + Mathf.Sin(t * 2f + i) * 6f, y = h - life * h * 1.05f;
-                FrameDot(x, y, 1f + 1.8f * (1f - life), new Color(1f, 0.59f + 0.35f * (1f - life), 0.24f, (1f - life) * 0.8f));
+                CardDot(x, y, 1f + 1.8f * (1f - life), new Color(1f, 0.59f + 0.35f * (1f - life), 0.24f, (1f - life) * 0.8f));
             }
         }
 
         /// Rank 23: slow green and violet ribbons.
         static void CardAurora(float w, float h, float t)
         {
-            Ui.Fill(new Rect(0f, 0f, w, h), new Color(0.03f, 0.07f, 0.1f));
+            CardFill(new Rect(0f, 0f, w, h), new Color(0.03f, 0.07f, 0.1f));
             var cols = new[] { new Color(0.24f, 1f, 0.67f, 0.10f), new Color(0.47f, 0.43f, 1f, 0.10f), new Color(0.24f, 0.86f, 1f, 0.10f) };
             for (int k = 0; k < 3; k++)
                 for (float x = 0f; x < w; x += 6f)
                 {
                     float y = h * (0.3f + 0.12f * k) + Mathf.Sin(x * 0.02f + t * 0.6f + k * 2f) * 14f + Mathf.Sin(x * 0.045f - t * 0.4f + k * 2f) * 7f;
-                    Ui.Fill(new Rect(x, y, 6f, h - y), cols[k]);
+                    CardFill(new Rect(x, y, 6f, h - y), cols[k]);
                 }
         }
 
         /// Rank 27: dark green traces with a pulse running along each.
         static void CardCircuit(float w, float h, float t)
         {
-            Ui.Fill(new Rect(0f, 0f, w, h), new Color(0.03f, 0.08f, 0.06f));
+            CardFill(new Rect(0f, 0f, w, h), new Color(0.03f, 0.08f, 0.06f));
             var trace = new Color(0.24f, 0.78f, 0.59f, 0.22f);
             for (int i = 0; i < 6; i++)
             {
                 float y = 10f + i * (h - 20f) / 5f, x0 = FrameHash(i) * 40f, bend = x0 + 60f + FrameHash(i + 9) * 120f, dy = i % 2 == 1 ? 14f : -14f;
-                Ui.Fill(new Rect(0f, y - 0.75f, bend, 1.5f), trace);
+                CardFill(new Rect(0f, y - 0.75f, bend, 1.5f), trace);
                 CardLine(new Vector2(bend, y), new Vector2(bend + 14f, y + dy), 1.5f, trace);
-                Ui.Fill(new Rect(bend + 14f, y + dy - 0.75f, w - bend - 14f, 1.5f), trace);
-                Ui.Fill(new Rect(bend - 2f, y - 2f, 4f, 4f), new Color(0.24f, 0.78f, 0.59f, 0.5f));
+                CardFill(new Rect(bend + 14f, y + dy - 0.75f, w - bend - 14f, 1.5f), trace);
+                CardFill(new Rect(bend - 2f, y - 2f, 4f, 4f), new Color(0.24f, 0.78f, 0.59f, 0.5f));
                 float px = Wrap(t * 60f + i * 70f, w + 40f) - 20f;
                 float py = px < bend ? y : px < bend + 14f ? y + dy * (px - bend) / 14f : y + dy;
-                FrameDot(px, py, 2f, new Color(0.59f, 1f, 0.86f, 0.9f));
+                CardDot(px, py, 2f, new Color(0.59f, 1f, 0.86f, 0.9f));
             }
         }
 
@@ -189,31 +202,25 @@ namespace Arena
                 CardLine(new Vector2(x, y), new Vector2(x - 3f, y + 14f), 1f, streak);
             }
             for (int i = 0; i < 5; i++)
-                FrameDot(FrameHash(i + 30) * w, Wrap(t * 18f + FrameHash(i + 40) * h, h), 2.2f, new Color(0.78f, 0.88f, 1f, 0.35f));
+                CardDot(FrameHash(i + 30) * w, Wrap(t * 18f + FrameHash(i + 40) * h, h), 2.2f, new Color(0.78f, 0.88f, 1f, 0.35f));
         }
 
         /// Rank 37: a slow violet vortex behind the portrait.
         static void CardVoid(float w, float h, float t)
         {
-            Ui.Fill(new Rect(0f, 0f, w, h), new Color(0.04f, 0.024f, 0.08f));
+            CardFill(new Rect(0f, 0f, w, h), new Color(0.04f, 0.024f, 0.08f));
             var c = new Vector2(w * 0.2f, h * 0.5f);
             for (int ring = 0; ring < 5; ring++)
             {
-                var col = new Color(0.59f, 0.35f, 1f, 0.28f - ring * 0.04f);
-                Vector2 prev = Vector2.zero;
-                bool first = true;
-                for (float a = 0f; a < Mathf.PI * 3.2f; a += 0.25f)
+                var col = new Color(0.65f, 0.4f, 1f, 0.5f - ring * 0.07f);
+                for (float a = 0f; a < Mathf.PI * 3.2f; a += 0.12f)
                 {
                     float rad = 10f + ring * 14f + a * 7f, an = a - t * (0.6f + ring * 0.1f) + ring;
-                    var p = c + new Vector2(Mathf.Cos(an) * rad * 1.6f, Mathf.Sin(an) * rad * 0.7f);
-                    if (!first)
-                        CardLine(prev, p, 1.5f, col);
-                    prev = p;
-                    first = false;
+                    CardDot(c.x + Mathf.Cos(an) * rad * 1.6f, c.y + Mathf.Sin(an) * rad * 0.7f, 1f, col);
                 }
             }
             for (int k = 3; k >= 1; k--)
-                Ui.Pill(new Rect(c.x - 18f * k, c.y - 12f * k, 36f * k, 24f * k), new Color(0.75f, 0.55f, 1f, 0.12f));
+                CardFill(new Rect(c.x - 18f * k, c.y - 12f * k, 36f * k, 24f * k), new Color(0.75f, 0.55f, 1f, 0.1f));
         }
 
         /// Rank 42: brushed gold with a diagonal sheen that sweeps across.
@@ -221,29 +228,29 @@ namespace Arena
         {
             CardGradient(w, h, new Color(0.23f, 0.16f, 0.03f), new Color(0.18f, 0.125f, 0.024f));
             for (int i = 0; i < 6; i++)
-                Ui.Fill(new Rect(w * i / 6f, 0f, w / 6f + 1f, h), new Color(0.42f, 0.31f, 0.07f, Mathf.Sin(i / 5f * Mathf.PI) * 0.7f));
+                CardFill(new Rect(w * i / 6f, 0f, w / 6f + 1f, h), new Color(0.42f, 0.31f, 0.07f, Mathf.Sin(i / 5f * Mathf.PI) * 0.7f));
             for (float y = 0f; y < h; y += 3f)
-                Ui.Fill(new Rect(0f, y, w, 1f), new Color(1f, 0.88f, 0.55f, 0.05f));
+                CardFill(new Rect(0f, y, w, 1f), new Color(1f, 0.88f, 0.55f, 0.05f));
             float sheen = (t > 0f ? Wrap(t * 0.28f, 1.4f) - 0.2f : 0.55f) * (w + 120f) - 60f;
             for (float y = 0f; y < h; y += 3f)
             {
                 float cx = sheen + (h - y) * 0.4f;
-                Ui.Fill(new Rect(cx - 36f, y, 72f, 3f), new Color(1f, 0.94f, 0.7f, 0.08f));
-                Ui.Fill(new Rect(cx - 20f, y, 40f, 3f), new Color(1f, 0.94f, 0.7f, 0.12f));
-                Ui.Fill(new Rect(cx - 8f, y, 16f, 3f), new Color(1f, 0.94f, 0.7f, 0.16f));
+                CardFill(new Rect(cx - 36f, y, 72f, 3f), new Color(1f, 0.94f, 0.7f, 0.08f));
+                CardFill(new Rect(cx - 20f, y, 40f, 3f), new Color(1f, 0.94f, 0.7f, 0.12f));
+                CardFill(new Rect(cx - 8f, y, 16f, 3f), new Color(1f, 0.94f, 0.7f, 0.16f));
             }
         }
 
         /// Rank 55: spectrum shards turning slowly and overlapping.
         static void CardPrism(float w, float h, float t)
         {
-            Ui.Fill(new Rect(0f, 0f, w, h), new Color(0.05f, 0.05f, 0.09f));
+            CardFill(new Rect(0f, 0f, w, h), new Color(0.05f, 0.05f, 0.09f));
             for (int i = 0; i < 9; i++)
             {
                 float cx = FrameHash(i) * w, cy = FrameHash(i + 5) * h, half = 9f + FrameHash(i + 11) * 14f;
-                float deg = (t * (17f + FrameHash(i + 2) * 23f) * (i % 2 == 1 ? 1f : -1f) + i * 40f);
+                float turn = t * (0.5f + FrameHash(i + 2) * 0.7f) * (i % 2 == 1 ? 1f : -1f) + i;
                 var col = Color.HSVToRGB(Wrap(i * 0.11f + t * 0.08f, 1f), 0.6f, 1f);
-                CardDiamond(cx, cy, half, deg, new Color(col.r, col.g, col.b, 0.14f));
+                CardShard(cx, cy, half, turn, new Color(col.r, col.g, col.b, 0.24f));
             }
         }
     }
