@@ -692,7 +692,29 @@ The **Boss hunt** tab shows the ten bosses with their live models. A boss's hunt
 run** (the host's records decide, in co-op); the others say Locked or Coming soon, and the match won't start on a
 locked one. **Only the Warden has a hunt so far**: a hunt's build-up waves need the boss's faction (only the
 Warden has one yet), and later bosses will need the party handed a build that fits their strength. Records keep each hunt's plays, wins and best time per player
-(not counted as runs). Plan: `Docs/BossHuntsAndPerks.md` (perks come next).
+(not counted as runs). Winning a hunt unlocks that boss's perk (below). Plan: `Docs/BossHuntsAndPerks.md`.
+
+## Perks
+
+A perk is a rule you bring into a run, one per boss, unlocked by winning that boss's **Boss Hunt**. Pick them on the lobby's
+**Perks** tab: your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
+hunts), and a card for each perk on the right. Click an unlocked card to equip it, click an equipped card (or the slot's
+*remove*) to take it off, and hover a card for the rules. A second perk from the same boss takes the first one's slot. Everyone
+brings their own perks in co-op, and each seat shows its perk icons on its party card. Perks are off in the Practice Range, the
+Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the tab is read-only and shows
+what the seat was saved with. Equipped perks are saved with your profile.
+
+| Perk | Boss | Unlocked by | Effect |
+|---|---|---|---|
+| **Riot Gear** | The Warden | winning the Warden Hunt | A riot-shield plate blocks the next hit that would hurt you: no health lost, no damage counted, and half a second of invulnerability. Then the shield takes **30 s** to come back (the timer keeps running between waves and while you're downed). You start every run with it ready. It blocks one hit from an enemy: a shot, a swing, a blast, a boss slam. **Burning, gas, acid, lava and other damage-over-time ticks go through** and don't spend it. |
+| Contraband | The Warden | winning the Warden Hunt on Hard | Not built yet: shown locked ("Coming soon"). Planned: chests at the start of each boss cycle are rare or better. |
+
+The plate hovers at your side and swings toward the nearest incoming enemy shot (resting behind you otherwise). While the shield
+recharges a ghost plate fills along its length, and it pops back when ready. A block flashes the plate white, throws sparks off
+the impact and breaks the plate into three pieces that fly off (with visual effects reduced or off, only the flash). A small
+**Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
+show too. Other bosses' perks come later: the tab shows them as locked placeholders. Runs don't yet note which perks were used (a
+"no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
 
 ## Practice Range
 

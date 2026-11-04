@@ -270,5 +270,12 @@ So friends can play without Tailscale or port forwarding.
       hunts/approaches/paths use designed waves (the Warden Hunt's nine first).
 - [x] Zombie Infection modifier, basic version (hordes, cap, the dead rise). Next: zombie looks/types, infected
       co-op players: [`ZombieInfection.md`](ZombieInfection.md)
+- [ ] **Riot Gear, the first perk (and the perk framework).** Built (Nov 2026, protocol 154; plan in [`RiotGear.md`](RiotGear.md)): the lobby's Perks tab (look A of
+      [`Mockups/riot-gear-perk-menu.html`](Mockups/riot-gear-perk-menu.html), https://claude.ai/artifact/WrbA5TsYMgcn6tfe7Rd8ad), the Plate look and HUD chip (look 2 of
+      [`Mockups/riot-gear-effects.html`](Mockups/riot-gear-effects.html), https://claude.ai/artifact/241kgcxDtwMbJVEkRijuuG), perks synced through the lobby, the match start,
+      the snapshot and saved runs. Blocks one hit, then a 30 s recharge, 0.5 s of invulnerability after a block; burn, gas, acid and lava ticks go through. Needs a try in Unity:
+      the Perks tab (clicks, hover tips, seat icons), the plate's look and timing, the HUD chip's place above the XP strip, and how a block feels. The Armory and Bestiary are not
+      updated. Replay files are now format 2 (older replays no longer open). Left for later: Contraband and the other bosses' perks, the second/third perk unlocks per boss, the
+      no-perks record variant, and a "perks used" line on the run records. Say if reviving should refill the shield (it doesn't now: the timer runs on).
 - [x] Boss Hunt for the Warden (10 waves, its own enemies). Next: factions + starting builds for later bosses, then Perks:
       [`BossHuntsAndPerks.md`](BossHuntsAndPerks.md)
