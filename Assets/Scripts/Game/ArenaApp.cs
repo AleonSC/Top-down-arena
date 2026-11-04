@@ -329,7 +329,7 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
+            Cursor.visible = (session.Screen != AppScreen.Game && !MenuCursorOn) || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
 
             if (!menuUp)
             {
@@ -718,6 +718,7 @@ namespace Arena
                     DrawDevMenu();
             }
             TextEditEndGui();
+            DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button
