@@ -15,10 +15,9 @@ namespace Arena
             bool host = session.IsHost;
             var profile = game.Profile;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Glitch(new Rect(x, y, w, 28f), "BOSS HUNT", 20, Color.white, TextAnchor.MiddleLeft, HuntColor);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), host ? "Pick a boss to hunt: nine waves of its own enemies, then the boss. Beat a boss in a run to open its hunt."
+            Ui.Label(new Rect(x, y, w, 18f), host ? "Pick a boss to hunt: nine waves of its own enemies, then the boss. Beat a boss in a run to open its hunt."
                 : "The host picks the boss (from the hunts they've opened).", 12, Ui.Muted);
-            y += 56f;
+            y += 30f;
 
             // Ten cards, five to a row, in the order the bosses come.
             const int cols = 5, count = 10;
@@ -40,7 +39,7 @@ namespace Arena
                 Ui.Card(c, picked ? HuntColor : open ? Ui.Gold : Ui.Muted, picked ? 0.9f : hover ? 0.5f : open ? 0.25f : 0.08f);
                 if (picked)
                     Ui.Pill(new Rect(c.x + 2f, c.y + 2f, c.width - 4f, c.height - 4f), new Color(HuntColor.r, HuntColor.g, HuntColor.b, 0.12f + 0.04f * Mathf.Sin(t * 3f)));
-                Ui.Glitch(new Rect(c.x, c.y + 96f, c.width, 18f), BossName(boss), 13, open || picked ? Color.white : Ui.Muted, TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(c.x, c.y + 96f, c.width, 18f), BossName(boss), 13, open || picked ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
                 string state = hunt == null ? "Coming soon" : open ? (profile.HuntWon(boss) > 0 ? "Won " + profile.HuntWon(boss) + " of " + profile.HuntPlayed(boss) : Hunts.Length + " waves") : "Locked";
                 Ui.Label(new Rect(c.x, c.y + 116f, c.width, 16f), state, 11, hunt != null && open ? Ui.Gold : Ui.Muted, TextAnchor.MiddleCenter);
                 if (hunt != null && !open)

@@ -34,7 +34,6 @@ namespace Arena
             var diff = session.Diff;
             var accent = DiffColor(diff.Level);
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
-            Ui.Glitch(new Rect(x, y, w, 28f), "DIFFICULTY", 20, Color.white, TextAnchor.MiddleLeft, accent);
             Ui.Label(new Rect(x, y, w, 28f), diff.Name.ToUpperInvariant(), 13, accent, TextAnchor.MiddleRight, true);
             y += 32f;
 
