@@ -6,7 +6,7 @@ namespace Arena
     /// Ultimates (F): one per role and class, on a long cooldown (host only).
     public partial class Game
     {
-        public const float BulletRainRadius = 165f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
+        public const float BulletRainRadius = 165f, BulletRainWetTime = 3f;  // Bullet Rain's zone (the Elementalist DPS ultimate)
         /// Lifeline: seconds of invulnerability, how long its look runs (the 3 s plus a 0.7 s fade, Game/LifelineLook.cs), and the
         /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
         public const float LifelineInvuln = 3f, LifelineFxTime = 3.7f, LifelinePlainRing = 0.62f, LifelinePlainLink = 0.56f;
@@ -83,7 +83,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BulletRain, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it.",
+                Name = "Bullet Rain", Cooldown = 70f, Desc = "Call a downpour at your cursor for 6 s and harden the drops into needles: 45 damage a second to every enemy in it, and leaves them wet.",
                 Capstone = "Lasts 9 s.",
             },
             new AbilityDef
