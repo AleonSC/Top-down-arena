@@ -306,6 +306,7 @@ static partial class Program
         Test("challenges", "challenge rooms: a portal every five waves, the five challenges, the altar's prize, failing safely", () => ChallengesTest(Dt)),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
         Test("rank", "the account rank: the curve, XP for a run, modifier multiplier, profile, lobby sharing, a run ending", () => RankTest(Dt)),
+        Test("hangout", "the lobby's Hangout room: everyone's character, moves over the network, the walls", () => HangoutTest(Dt)),
         Test("zombies", "Zombie Infection: melee hordes, the cap, the dead rising", () => ZombieTest(Dt)),
         Test("wavegen", "the built-in designed waves match their files in Data/Waves (Tools/WaveGen/build.sh)", WaveGenTest),
         Test("wavedesign", "the wave editor's designs: the .waves file, and playing them in the Practice Range", () => WaveDesignTest(Dt)),

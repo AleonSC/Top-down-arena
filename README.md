@@ -795,6 +795,14 @@ filling and, on a rank up, RANK UP! with a flash; your party's ranks; and the re
 of the trail, frame, background or title) or the next one to go for and how much XP it needs. **Stats** goes back. **Leave** sits bottom-left as in the lobby; the host can play
 again, go back to the lobby, or keep going after a victory.
 
+## Lobby Hangout
+
+The lobby's **Hangout** tab is a room where everyone's character walks around. Move yours with **WASD** (or the arrow keys,
+or your rebound movement keys); the others in the lobby move theirs, and everyone sees everyone. Each character is
+your real class and weapon model, with the **trail** you have equipped behind it, your **rank badge** and a name plate
+with your **frame's** colour (and a green dot once you've readied up). No shooting, abilities or collisions: it's just a
+place to stand while the party gets ready. Works in every lobby mode. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
+
 ## Rank
 
 A **cosmetic account rank**. Every finished run (and Boss Hunt) earns XP; XP raises your **Rank**; ranks unlock

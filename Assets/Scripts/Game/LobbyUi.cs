@@ -11,7 +11,7 @@ namespace Arena
         static readonly Color PracticeColor = new Color(0.22f, 0.78f, 0.62f);
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks
+        int lobbyTab;              // 0 = your loadout, 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks, 6 = hangout
         bool lobbyWasPractice, lobbyWasHunt;
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
@@ -103,6 +103,8 @@ namespace Arena
                 DrawDifficulty(body, t);  // DifficultyUi.cs
             else if (lobbyTab == PerkTab && !practice)
                 DrawPerks(body, t);  // PerksUi.cs
+            else if (lobbyTab == HangoutTab)
+                DrawHangout(body, t);  // LobbyRoom.cs
             else if (session.Resume != null)
                 DrawResumeSeats(body, t);  // SavesUi.cs
             else if (me != null)
@@ -157,11 +159,11 @@ namespace Arena
         {
             int mods = Modifiers.Count(session.Modifiers);
             bool hunt = session.HuntMode && !practice && session.Resume == null;
-            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks); null = not shown.
+            // Indexed by tab id (0 loadout, 1 practice, 2 modifiers, 3 difficulty, 4 boss hunt, 5 perks, 6 hangout); null = not shown.
             string[] names = { session.Resume != null ? "Seats" : "Loadout", practice ? "Practice waves  (" + session.Plan.Waves.Count + ")" : null, mods > 0 ? "Modifiers  (" + mods + ")" : "Modifiers",
-                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks" };
+                "Difficulty", hunt ? "Boss hunt" : null, practice ? null : "Perks", "Hangout" };
             // The same order in every mode: the shared tabs, then the mode's own tab at the end.
-            int[] order = { 0, PerkTab, 3, 2, 1, 4 };
+            int[] order = { 0, HangoutTab, PerkTab, 3, 2, 1, 4 };
             float x = r.x;
             foreach (int i in order)
             {
@@ -170,7 +172,7 @@ namespace Arena
                 float w = 30f + names[i].Length * 8.2f;
                 var tab = new Rect(x, r.y, w, r.height);
                 bool on = lobbyTab == i;
-                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : i == PerkTab ? Ui.Gold : Ui.Accent;
+                var c = i == 1 ? PracticeColor : i == 2 ? ModColor : i == 3 ? DiffColor(session.Diff.Level) : i == 4 ? HuntColor : i == PerkTab ? Ui.Gold : i == HangoutTab ? HangoutColor : Ui.Accent;
                 Ui.Pill(tab, on ? new Color(c.r, c.g, c.b, 0.9f) : new Color(1f, 1f, 1f, tab.Contains(Event.current.mousePosition) ? 0.1f : 0.05f));
                 Ui.Label(tab, names[i].ToUpperInvariant(), 12, on ? Color.white : Ui.Muted, TextAnchor.MiddleCenter, true);
                 if (!on && Ui.HitArea(tab))

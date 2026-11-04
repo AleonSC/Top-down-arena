@@ -75,6 +75,9 @@ bonus for harder modifiers; ranks unlock cosmetics only (titles, trails, frames,
 - [x] **Built** (Nov 2026, protocol 135): `Rank.cs` + profile XP + `rank` tests, the results strip, the lobby badge and
       frame, the menu chip, Records > Rank, the Ember and Gold stardust trails, the Steel and Gold frames, and the Dusk
       Grid background. See "As built" in the doc.
+- [x] **Lobby Hangout.** Built (Nov 2026, protocol 137): a Hangout tab in the lobby where every player's character walks around
+      with WASD, wearing their trail, frame and rank (`Game/LobbyRoom.cs`, `Core/LobbyAvatars.cs`, `Docs/Hangout.md`). No mockup
+      first, at the owner's request. Left for later: emotes, a ready pad, a weapon preview spot.
 - [x] **More rank trails.** Built (Nov 2026, protocol 136): Frost 14, Storm 18, Void 22 and Prism 35, from
       [`Mockups/rank-trails.html`](Mockups/rank-trails.html) (https://claude.ai/artifact/L5DppgBwZDXzgAaPo2cf2o). Drawing only
       (`TrailPiece` in `Game/RankTrails.cs`, shared with the cosmetics window samples). Trails are numbered in rank order in the

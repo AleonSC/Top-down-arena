@@ -106,6 +106,34 @@ static partial class Shot {
         host.Lobby.Remove(2); host.Lobby[1].Seat = 0; host.Lobby[1].Role = Role.Tank; host.Lobby[1].Kit = Kit.Knight; host.Lobby[1].Weapon = 1; host.Lobby[1].Ability = 2; host.Lobby[1].Ready = false;
       }
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
+      // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.
+      if (Environment.GetEnvironmentVariable("HANGOUT") != null) {
+        var tr = Environment.GetEnvironmentVariable("HANGOUT").Split(',');
+        set("lobbyTab", 6);
+        host.Lobby[3] = new LobbyEntry { Id = 3, Name = "Sam", Role = Role.Healer, Kit = Kit.Summoner, Weapon = 0, Ability = 0, Rank = 14, Frame = 1 };
+        Time.unscaledTime = 10f;
+        var tpType = typeof(ArenaApp).GetNestedType("TrailPoint", BindingFlags.NonPublic);
+        var rt = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<object>>();
+        var rtField = typeof(ArenaApp).GetField("roomTrails", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(app);
+        var spots = new[] { new V2(250f, 300f), new V2(520f, 210f), new V2(380f, 400f) };
+        int n = 0;
+        foreach (var le in host.Lobby.Values) {
+          if (n < tr.Length) le.Trail = Rank.TrailIndex(tr[n]);
+          var pos = spots[n]; var av = new Avatar { Pos = pos, Disp = pos, Aim = n == 1 ? 3.14f : 0.2f - n * 0.4f }; host.Avatars[le.Id] = av;
+          var listType = rtField.GetType(); var list = Activator.CreateInstance(listType.GetGenericArguments()[1]);
+          for (int i = 24; i >= 0; i--) {
+            var tp = Activator.CreateInstance(tpType);
+            float dir = n == 1 ? 1f : -1f;
+            tpType.GetField("At").SetValue(tp, new V2(pos.X + dir * i * 7f, pos.Y + (float)Math.Sin(i * 0.35f + n) * 9f));
+            tpType.GetField("T").SetValue(tp, 10f - i * 0.036f);
+            list.GetType().GetMethod("Add").Invoke(list, new object[] { tp });
+          }
+          if (le.Trail != 0) listType.GetMethod("set_Item").Invoke(rtField, new object[] { le.Id, list });
+          n++;
+        }
+        host.MyId = 1;
+      }
       // MODSFOLD=n: the Modifiers tab with those tiers folded (a bit per ModLean: 1 Harder, 2 Easier, 4 Risky).
       set("modsFolded", int.Parse(Environment.GetEnvironmentVariable("MODSFOLD") ?? "0"));
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).

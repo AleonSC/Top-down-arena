@@ -49,6 +49,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - Boss loot: `QueenLoot.cs`, `ReaperLoot.cs` (legendary weapons/abilities)
 
 ## Networking (Core)
+- `LobbyAvatars.cs`: the Hangout room's characters, their positions and the two messages (`Msg.LobbyMove`, `Msg.LobbyPos`); a partial of `Session`
 - `Session.cs`: host/join, lobby, **`Msg` enum**, **`ProtocolVersion`** (bump when a message or snapshot changes)
 - `Net.cs`: `NetPeer`, length-prefixed TCP
 - `GameNet.cs`, `NetSync.cs`: all snapshot and input serialisation (one ref pass for read and write)
@@ -102,6 +103,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `PerksUi.cs`: the lobby's Perks tab (placeholder: every slot and perk locked, "Coming soon"; see `Docs/BossHuntsAndPerks.md`)
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)
 - `RankLook.cs`, `RankUi.cs`, `RankTrails.cs`: the rank badge (a pixel shield per tier), the results strip, badge hover card and Records > Rank, and the trails drawn behind players
+- `LobbyRoom.cs` (with `Core/LobbyAvatars.cs`): the lobby's Hangout tab, a room where everyone's character walks with WASD wearing their cosmetics (`Docs/Hangout.md`)
 - `LobbyUi.cs`, `LobbyEnter.cs`, `DifficultyUi.cs`, `ModifiersUi.cs`, `MenuBackgrounds.cs`: lobby tabs, menu-to-lobby transition, backgrounds (the picker is in Settings > Visual effects)
 - `SavesUi.cs`: Continue list, Records, unlock toasts
 - `FieldGuide.cs`, `ReferencePages.cs`: in-game Bestiary/Armory, links to the web pages

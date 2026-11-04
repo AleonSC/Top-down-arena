@@ -28,6 +28,8 @@ namespace Arena
         Loot,         // client -> host: take or discard the chest item you're standing on (Props.cs)
         Recall,       // host -> all: everyone's beamed out (the Game screen's Recall.cs), then ToLobby follows
         Cosmetics,    // client -> host: this player's rank and equipped frame, for the lobby (Rank.cs; the host answers with a Lobby)
+        LobbyMove,    // client -> host: where this player's character stands in the lobby's Hangout room (LobbyAvatars.cs)
+        LobbyPos,     // host -> all: where everyone's character stands in the Hangout room
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -73,13 +75,13 @@ namespace Arena
     public enum AppScreen { Menu, Lobby, Game }
 
     /// Connection and lobby handling. The match itself lives in Game.
-    public class Session
+    public partial class Session
     {
         public const int DefaultPort = 7777;
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 136;
+        public const int ProtocolVersion = 137;
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -208,6 +210,7 @@ namespace Arena
             Connecting = false;
             awaitingWelcome = false;
             Lobby.Clear();
+            Avatars.Clear();
             Screen = AppScreen.Menu;
             Status = status;
         }
@@ -231,6 +234,7 @@ namespace Arena
                 else
                     HandleClientEvent(ev);
             }
+            SendAvatars();
         }
 
         // --- Sending -----------------------------------------------------------
@@ -387,6 +391,9 @@ namespace Arena
                     break;
                 case Msg.SeatRequest:
                     SetSeat(peer, r.ReadByte());
+                    break;
+                case Msg.LobbyMove:
+                    HostAvatarMove(peer, r);
                     break;
                 case Msg.Cosmetics:
                 {
@@ -649,6 +656,7 @@ namespace Arena
         void BroadcastLobby()
         {
             SyncOwnCosmetics();
+            SyncAvatars();  // (a new arrival gets a spot, and the next position broadcast tells everyone)
             var w = Proto.Begin(Msg.Lobby);
             w.Write((byte)Lobby.Count);
             foreach (var e in Lobby.Values)
@@ -1005,6 +1013,9 @@ namespace Arena
                 case Msg.Reject:
                     Leave(r.ReadString());
                     break;
+                case Msg.LobbyPos:
+                    ClientAvatarPositions(r);
+                    break;
                 case Msg.Lobby:
                 {
                     Lobby.Clear();
@@ -1019,6 +1030,7 @@ namespace Arena
                         e.Trail = r.ReadByte();
                         Lobby[e.Id] = e;
                     }
+                    SyncAvatars();
                     Modifiers = (RunMod)r.ReadInt32();
                     Diff = Difficulty.Read(r);
                     HuntMode = r.ReadBoolean();

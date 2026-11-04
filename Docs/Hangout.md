@@ -1,0 +1,42 @@
+# Lobby Hangout
+
+A walkable room in the lobby. Every player has their character in it, wearing what their rank has earned, and moves
+it with WASD (or the arrow keys, or whatever the movement keys are rebound to). Nothing to shoot, no abilities, no
+collisions: it is somewhere to stand while the party sorts out loadouts and readies up. Cosmetic only, like Rank.
+
+## What you see
+
+- A new **Hangout** tab in the lobby, next to Loadout (`LobbyRoom.cs`). The room is 780 x 500 units, one unit per
+  UI pixel, with a faint grid over the lobby's own background.
+- Each character is drawn with the real model for their role, class and weapon (the same drawing as the party cards).
+  It faces the way it walks, and keeps its facing when it stops.
+- **Trail**: their equipped rank trail flows behind them as they walk (`TrailPiece`, shared with the match and the
+  cosmetics window, so all six trails look the same everywhere).
+- **Frame and rank**: a name plate under the character with their rank badge, name, a lit rim in their frame's colour
+  (a blue rim for you if you have none) and a green dot once they've clicked Ready.
+- The room works in every lobby mode (Gauntlet, Boss Hunt, Practice Range, continuing a saved run).
+
+## Network (protocol 137)
+
+- `Msg.LobbyMove` (client to host): where this player's character is and which way it faces, up to 15 a second, only
+  while something changed.
+- `Msg.LobbyPos` (host to all): everyone's position and facing, up to 15 a second, only while something changed.
+- Your own character is yours: it shows at once, and the host's echo of it is ignored. Everyone else's is smoothed
+  towards the last position heard.
+- The host keeps every position inside the room (and drops NaN and infinity), spawns each new arrival in a spot along the
+  bottom of the room, and removes a character when its player leaves (`Session.SyncAvatars`, called whenever the lobby
+  is broadcast). Moves are ignored once a match is running.
+- Not saved anywhere: characters start at their spawn spots every time the party forms.
+
+## Code
+
+| File | What |
+|---|---|
+| `Core/LobbyAvatars.cs` | `Avatar`, the room's size, `MoveMyAvatar`, `StepAvatars`, sending and receiving the two messages |
+| `Game/LobbyRoom.cs` | the Hangout tab: movement keys, the floor, drawing each character, its trail and name plate |
+| `Tools/SimTest/Tests/Hangout.cs` | `run.sh 1 30 hangout`: spawn spots, moves each way, the walls, NaN, leaving |
+| `Tools/Preview` | `HANGOUT=trail-void,trail-prism,trail-storm Tools/Preview/shot.sh hang lobby` |
+
+## Ideas for later
+
+Emotes, walking onto a pad to ready up, a spot to preview your weapon's attack, props to bump into, a chat bubble.

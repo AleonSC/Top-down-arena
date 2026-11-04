@@ -112,6 +112,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Defs.cs` | 0.3k | role, weapon, enemy and bullet definitions (each class's `WeaponDef`s live in its own file; `Defs.Weapons` gathers them) (stats, colours; each enemy's `Blurb`, `Picker` group, `Late` and `Heavy` flags) |
 | `BestiaryData.cs` | 0.1k | the in-game Bestiary's words (`BestiaryEntry`, `BestiaryAttack`); most come from `BestiaryData.Generated.cs`, built from the Bestiary page by `Docs/Bestiary/build_data.js` |
 | `Upgrades.cs` | 0.4k | upgrade cards, `AbilityDef` and the ability registry (`Upgrades.Abilities`, gathered from each class's file; the lobby tables `RoleAbility`/`Ultimate` are built from the entries), per-weapon/Knight descriptions |
+| `LobbyAvatars.cs` | 0.15k | the lobby Hangout room: `Avatar`, room size, `MoveMyAvatar`/`StepAvatars`, `Msg.LobbyMove`/`LobbyPos` (a partial of `Session`; `Docs/Hangout.md`) |
 | `Session.cs` | 0.7k | hosting/joining, lobby, ready state, **message enum** (`Msg`), protocol version, practice sync |
 | `Net.cs` | 0.26k | `NetPeer`: length-prefixed messages over TCP (`NoDelay`) |
 | `SessionRecorder.cs` | 0.5k | the session JSON recorder |
@@ -150,6 +151,7 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `Menus.cs` | 0.5k | main menu ("Big play", `Docs/Mockups/menu-d.html`: title on its axis with the shot's arc (`DrawMenuArc`) and a changing chip under it (`MenuTip` picks the line, `DrawMenuTipChip` draws it: tag, topic, rest, in a `Ui.Capsule`); the box `MenuCard` with Host, Join and Continue (`DrawMenuCardInside`, Join's address row); the bottom bar with the name field, Records, Settings, Quit (`DrawMenuSecondary`); name, port and last address saved (`Load/SaveMenuFields`)), How to play, pause menu, settings and audio |
 | `MenuIntro.cs` | 0.1k | the main menu drawing itself in the first time it shows (pen plot, option B): `menuIntroT`, `TickMenuIntro` (any key or click skips), `MenuIntroK(a, b)` that every piece asks, the ink-then-fill title and the pen tip. Preview: `MENUINTRO=<s> Tools/Preview/shot.sh <name> menu` (`JOINOPEN=1` for Join's row) |
 | `PerksUi.cs` | 0.04k | the lobby's Perks tab (tab 5): placeholder with every slot and perk locked ("Coming soon"); mockup `Docs/Mockups/lobby-perks.html` option A |
+| `LobbyRoom.cs` | 0.15k | the Hangout tab: WASD movement, the floor, each character with its trail, rank badge and frame name plate |
 | `LobbyUi.cs` | 0.5k | the lobby: "!" connection popup by the title (port, invite addresses), the hero card's live mini-arena (`DrawShowcase`, stepped from `FixedUpdate`), mode switch (left column, under the title), party cards with live characters, loadout with hero preview, bottom bar |
 | `PracticeUi.cs` | 0.45k | Practice Range editor (live enemy tiles, shared edits, save/load) |
 | `ZombieLook.cs` | 0.2k | the zombies' shapes, haze, drips, frenzy streaks, the Crawler's vines, acid and spore patches; the dark green arena colours |
