@@ -1,0 +1,488 @@
+<title>Soldier DPS Gun Animations</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a control strip, then three weapon cards side by side; each is a live top-down arena, a phase timeline and notes. */
+:root{
+  --bg:#eceef1; --card:#ffffff; --fg:#161b22; --muted:#5b6673; --line:#d5dae0; --chip:#e4e8ec; --chipOn:#161b22; --chipOnFg:#ffffff;
+  --twin:#d9731a; --rail:#1790c4; --smg:#b8861a;
+  --f-head:'Barlow Condensed','Arial Narrow',sans-serif; --f-body:'Barlow',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1318; --card:#181d24; --fg:#e8ecf1; --muted:#93a0ae; --line:#2a323c; --chip:#232a33; --chipOn:#e8ecf1; --chipOnFg:#0f1318;
+  --twin:#ff9a42; --rail:#52c9ff; --smg:#f0c04a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1318; --card:#181d24; --fg:#e8ecf1; --muted:#93a0ae; --line:#2a323c; --chip:#232a33; --chipOn:#e8ecf1; --chipOnFg:#0f1318;
+  --twin:#ff9a42; --rail:#52c9ff; --smg:#f0c04a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-head);font-weight:700;font-size:clamp(30px,4vw,44px);line-height:1;margin:0;letter-spacing:.01em;text-wrap:balance}
+.sub{margin:6px 0 0;color:var(--muted);max-width:72ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button,.bar label{font:500 13px var(--f-mono);border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 12px;border-radius:6px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;min-height:38px}
+.bar button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnFg);border-color:var(--chipOn)}
+.bar input{accent-color:var(--fg)}
+.bar button:focus-visible,.bar input:focus-visible{outline:2px solid var(--rail);outline-offset:2px}
+.hint{font:400 12px var(--f-mono);color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-family:var(--f-head);font-weight:700;font-size:28px;line-height:1;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h2 span{font:400 12px var(--f-mono);color:var(--muted)}
+.card[data-w="twin"]{border-top:4px solid var(--twin)}
+.card[data-w="rail"]{border-top:4px solid var(--rail)}
+.card[data-w="smg"]{border-top:4px solid var(--smg)}
+canvas{width:100%;aspect-ratio:480/300;border-radius:6px;display:block;background:#161b22;touch-action:none;cursor:crosshair}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li{font:400 11.5px var(--f-mono);background:var(--chip);border-radius:4px;padding:4px 8px;transition:background .08s,color .08s}
+.chips li b{font-weight:500}
+.chips li.on{background:var(--chipOn);color:var(--chipOnFg)}
+.notes{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.notes b{color:var(--fg);font-weight:500}
+.foot{color:var(--muted);font-size:13px;max-width:80ch}
+@media (prefers-reduced-motion:reduce){.chips li{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Soldier DPS Gun Animations</h1>
+    <p class="sub">Twin Rifle, Railgun and Burst SMG as they could look in play: recoil, hand work, casings, charge-up and spin-up. The glowing shots copy the in-game ones (orange tracers, the Railgun's slug with rings of air and its ion trail). Everything else is proposed.</p>
+  </header>
+
+  <div class="bar" role="toolbar" aria-label="Playback">
+    <button id="bPause" aria-pressed="false">Pause</button>
+    <button id="bSlow" aria-pressed="false">Slow motion ×0.25</button>
+    <button id="bUp" aria-pressed="false">With "extra projectile" upgrade</button>
+    <label><input type="checkbox" id="cAuto" checked> Auto-fire</label>
+    <span class="hint">Move over an arena to aim. With auto-fire off, hold the pointer down to shoot.</span>
+  </div>
+
+  <div class="grid">
+    <section class="card" data-w="twin">
+      <h2>Twin Rifle <span>0.1 s · 4 per barrel · barrels 60 px apart</span></h2>
+      <canvas id="cvTwin" aria-label="Twin Rifle animation"></canvas>
+      <ul class="chips" id="phTwin"></ul>
+      <ul class="notes">
+        <li><b>Two guns, held wide:</b> each rifle is angled in so both streams cross at your cursor's distance (never closer than 120 px).</li>
+        <li><b>Crossfire:</b> the dashed ring is the 45 px crossfire zone. Hits inside it do double and show gold. Aim at the X.</li>
+        <li><b>Hand work:</b> both guns kick together, the bolts flick back and brass drops out the outer side. Barrels warm up the longer you hold fire.</li>
+        <li><b>Upgrade:</b> a third rifle fills in the middle of the same 60 px.</li>
+      </ul>
+    </section>
+
+    <section class="card" data-w="rail">
+      <h2>Railgun <span>0.7 s · 45 dmg · pierces 3</span></h2>
+      <canvas id="cvRail" aria-label="Railgun animation"></canvas>
+      <ul class="chips" id="phRail"></ul>
+      <ul class="notes">
+        <li><b>Charge:</b> three coils light up one after another over the 0.7 s between shots, and a ring closes in on the muzzle when it is ready.</li>
+        <li><b>Discharge:</b> a white flash, arcs jumping between the rails, a hard 0.2 s kick that slides the rails back, and steam from the coils.</li>
+        <li><b>Ion trail:</b> the path glows for 1 s and ticks 25 a second on anything standing in it. The slug is the in-game one.</li>
+        <li><b>Upgrade:</b> 2 shrapnel shards fly sideways from every enemy it pierces.</li>
+      </ul>
+    </section>
+
+    <section class="card" data-w="smg">
+      <h2>Burst SMG <span>0.055 s · 5 dmg · spin-up 2 s</span></h2>
+      <canvas id="cvSmg" aria-label="Burst SMG animation"></canvas>
+      <ul class="chips" id="phSmg"></ul>
+      <ul class="notes">
+        <li><b>Spin-up:</b> the three barrel tubes turn faster and the metal heats from steel to white. A ring fills round you, white-hot when full.</li>
+        <li><b>Spray:</b> the faint cone is the real spread. It tightens from 9° to 2° and damage climbs from 5 to 8 as it spins up.</li>
+        <li><b>Wind-down:</b> let go and everything cools over 0.6 s. Auto-fire holds for 4 s, then rests so you can see it.</li>
+        <li><b>Upgrade:</b> +1 bullet per shot at half damage, with a spray 35% wider.</li>
+      </ul>
+    </section>
+  </div>
+
+  <p class="foot">Mockup only. Timings use the real fire intervals, ranges and damage from <code>Weapons.cs</code>. Nothing in the game has been changed.</p>
+</div>
+
+<script>
+(function(){
+'use strict';
+const W=480,H=300,TAU=Math.PI*2,dpr=Math.min(2,window.devicePixelRatio||1);
+const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.min(b,Math.max(a,v)), mix=(a,b,t)=>a+(b-a)*t;
+const angDiff=(a,b)=>{let d=(b-a)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return d};
+const S={paused:false,slow:false,up:false,auto:true};
+const ORANGE=[255,178,89], PALE=[255,255,191];
+
+class Panel{
+  constructor(cvId,phId,phases){
+    this.cv=document.getElementById(cvId);this.cv.width=W*dpr;this.cv.height=H*dpr;
+    this.c=this.cv.getContext('2d');this.px=64;this.py=150;this.aim=0;this.t=0;this.since=9;this.cd=0;
+    this.fx=[];this.txt=[];this.shake=0;this.mouse=null;this.down=false;this.phases=phases;this.last=[];
+    const ul=document.getElementById(phId);
+    this.chips=phases.map(p=>{const li=document.createElement('li');li.innerHTML='<b>'+p.n+'</b> '+p.r;ul.appendChild(li);return li});
+    const pos=e=>{const r=this.cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}};
+    this.cv.addEventListener('pointermove',e=>{this.mouse=pos(e)});
+    this.cv.addEventListener('pointerleave',()=>{this.mouse=null;this.down=false});
+    this.cv.addEventListener('pointerdown',e=>{this.mouse=pos(e);this.down=true;try{this.cv.setPointerCapture(e.pointerId)}catch(_){}});
+    this.cv.addEventListener('pointerup',()=>{this.down=false});
+  }
+  spawn(o){this.fx.push(Object.assign({x:0,y:0,vx:0,vy:0,life:.3,max:.3,r:2,col:'#fff',type:'dot',drag:0,a:0,spin:0,len:6,R:20,w:2},o,{max:o.life}))}
+  text(x,y,s,col){this.txt.push({x,y,s,col,life:.75})}
+  wantFire(){return S.auto||this.down}
+  updateAim(dt){
+    let tgt=this.mouse?Math.atan2(this.mouse.y-this.py,this.mouse.x-this.px):this.autoAim();
+    this.aim+=angDiff(this.aim,tgt)*Math.min(1,dt*14);
+  }
+  step(dt){
+    this.t+=dt;this.since+=dt;this.cd-=dt;this.shake=Math.max(0,this.shake-dt*28);
+    this.updateAim(dt);this.update(dt);
+    if(this.cd<=0&&this.wantFire())this.fire();
+    for(const f of this.fx){f.life-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;if(f.drag){const k=Math.exp(-f.drag*dt);f.vx*=k;f.vy*=k}f.a+=f.spin*dt}
+    this.fx=this.fx.filter(f=>f.life>0);
+    for(const s of this.txt){s.life-=dt;s.y-=34*dt}
+    this.txt=this.txt.filter(s=>s.life>0);
+    const on=this.phases.map(p=>!!p.on(this));
+    on.forEach((v,i)=>{if(v!==this.last[i])this.chips[i].classList.toggle('on',v)});this.last=on;
+  }
+  // ---- drawing helpers
+  R(x,y,w,h,col){this.c.fillStyle=col;this.c.fillRect(x,y,w,h)}
+  L(x1,y1,x2,y2,w,col){const c=this.c;c.strokeStyle=col;c.lineWidth=w;c.lineCap='butt';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()}
+  P(col,...p){const c=this.c;c.fillStyle=col;c.beginPath();c.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)c.lineTo(p[i],p[i+1]);c.closePath();c.fill()}
+  C(x,y,r,col){const c=this.c;c.fillStyle=col;c.beginPath();c.arc(x,y,r,0,TAU);c.fill()}
+  glow(x,y,r,rgb,a){const c=this.c,g=c.createRadialGradient(x,y,0,x,y,r),k=rgb.join(',');
+    g.addColorStop(0,`rgba(${k},${a})`);g.addColorStop(.3,`rgba(${k},${a*.38})`);g.addColorStop(1,`rgba(${k},0)`);
+    c.save();c.globalCompositeOperation='lighter';c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,TAU);c.fill();c.restore()}
+  taper(x,y,vx,vy,len,w,rgb,a){const m=Math.hypot(vx,vy)||1,dx=vx/m,dy=vy/m,c=this.c,tx=x-dx*len,ty=y-dy*len,g=c.createLinearGradient(x,y,tx,ty),k=rgb.join(',');
+    g.addColorStop(0,`rgba(${k},${a})`);g.addColorStop(1,`rgba(${k},0)`);c.fillStyle=g;c.beginPath();
+    c.moveTo(x-dy*w/2,y+dx*w/2);c.lineTo(tx-dy*.3,ty+dx*.3);c.lineTo(tx+dy*.3,ty-dx*.3);c.lineTo(x+dy*w/2,y-dx*w/2);c.fill()}
+  // the in-game tracer: tapered streak, big soft glow, white head
+  tracer(b){const m=Math.hypot(b.vx,b.vy),flown=(b.life0-b.life)*m;
+    this.taper(b.x,b.y,b.vx,b.vy,Math.min(m/6,flown),3,ORANGE,.8);
+    this.glow(b.x,b.y,14,ORANGE,.8);this.C(b.x,b.y,3,'#fff')}
+  floor(){
+    const c=this.c;c.fillStyle='#161b22';c.fillRect(-20,-20,W+40,H+40);
+    c.strokeStyle='#1f2630';c.lineWidth=1;c.beginPath();
+    for(let x=0;x<=W;x+=40){c.moveTo(x,0);c.lineTo(x,H)}for(let y=0;y<=H;y+=40){c.moveTo(0,y);c.lineTo(W,y)}c.stroke();
+  }
+  // world point from the aim frame (f forward, s sideways) with the body pushed back by `rec`
+  w(f,s,rec){const d=this.aim,bx=this.px-Math.cos(d)*(rec||0)*.25,by=this.py-Math.sin(d)*(rec||0)*.25;
+    return{x:bx+Math.cos(d)*f-Math.sin(d)*s,y:by+Math.sin(d)*f+Math.cos(d)*s}}
+  body(rec,ring){
+    const c=this.c,d=this.aim,bx=this.px-Math.cos(d)*rec*.25,by=this.py-Math.sin(d)*rec*.25;
+    this.C(bx+1,by+2,17,'rgba(0,0,0,.35)');
+    this.C(bx,by,16,'#6b4a2e');c.strokeStyle='#2c1c10';c.lineWidth=2;c.beginPath();c.arc(bx,by,16,0,TAU);c.stroke();
+    this.C(bx+Math.cos(d)*3,by+Math.sin(d)*3,9,'#4e3520');
+    return{bx,by};
+  }
+  hand(x,y){this.C(x,y,4.4,'#e2b995');this.c.strokeStyle='#8a6446';this.c.lineWidth=1;this.c.beginPath();this.c.arc(x,y,4.4,0,TAU);this.c.stroke()}
+  enemy(e,col){
+    const c=this.c;this.C(e.x+1,e.y+2,e.r+1,'rgba(0,0,0,.35)');
+    this.C(e.x,e.y,e.r,e.flash>0?'#ffffff':col);c.strokeStyle='#2a1212';c.lineWidth=2;c.beginPath();c.arc(e.x,e.y,e.r,0,TAU);c.stroke();
+    this.C(e.x-e.r*.45,e.y-e.r*.3,2.2,'#220d0d');this.C(e.x-e.r*.45,e.y+e.r*.3,2.2,'#220d0d');
+    const w=e.r*2;this.R(e.x-e.r,e.y-e.r-8,w,3,'#0b0e12');this.R(e.x-e.r,e.y-e.r-8,w*clamp(e.hp/e.max,0,1),3,'#6fd16f');
+  }
+  fxDraw(){
+    const c=this.c;
+    for(const f of this.fx){
+      const k=clamp(f.life/f.max,0,1);
+      c.globalAlpha=k;
+      if(f.type==='dot'){this.C(f.x,f.y,f.r*(.4+.6*k),f.col)}
+      else if(f.type==='smoke'){c.globalAlpha=k*.38;this.C(f.x,f.y,f.r*(1+(1-k)*1.8),f.col)}
+      else if(f.type==='line'){const m=Math.hypot(f.vx,f.vy)||1;this.L(f.x,f.y,f.x-f.vx/m*f.len*k,f.y-f.vy/m*f.len*k,f.w,f.col)}
+      else if(f.type==='ring'){const r=f.R*(1-Math.pow(k,3));c.strokeStyle=f.col;c.lineWidth=f.w*k+.5;c.beginPath();c.arc(f.x,f.y,r,0,TAU);c.stroke()}
+      else if(f.type==='disc'){c.globalAlpha=k*.85;this.C(f.x,f.y,f.R*(1-Math.pow(k,3)),f.col)}
+      else if(f.type==='casing'){c.save();c.translate(f.x,f.y);c.rotate(f.a);c.fillStyle=f.col;c.fillRect(-f.r,-f.r*.5,f.r*2,f.r);c.restore()}
+      else if(f.type==='wedge'){c.save();c.translate(f.x,f.y);c.rotate(f.a);this.P(f.col,0,0,f.len,-f.R,f.len*1.15,0,f.len,f.R);c.restore()}
+      else if(f.type==='arc'){c.strokeStyle=f.col;c.lineWidth=f.w;c.beginPath();c.moveTo(f.x,f.y);
+        const n=5,dx=f.ex-f.x,dy=f.ey-f.y,m=Math.hypot(dx,dy)||1;
+        for(let i=1;i<=n;i++){const j=i<n?rnd(-f.R,f.R):0;c.lineTo(f.x+dx*i/n-dy/m*j,f.y+dy*i/n+dx/m*j)}c.stroke()}
+      c.globalAlpha=1;
+    }
+    c.font='500 12px "IBM Plex Mono",monospace';c.textAlign='center';
+    for(const s of this.txt){c.globalAlpha=clamp(s.life/.4,0,1);c.fillStyle='#000';c.fillText(s.s,s.x+1,s.y+1);c.fillStyle=s.col;c.fillText(s.s,s.x,s.y)}
+    c.globalAlpha=1;
+  }
+  draw(){
+    const c=this.c;c.setTransform(dpr,0,0,dpr,0,0);c.save();
+    if(this.shake>0)c.translate(rnd(-1,1)*this.shake,rnd(-1,1)*this.shake);
+    this.floor();this.scene();this.fxDraw();c.restore();
+    c.fillStyle='#8fa0b3';c.font='10px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText(this.tag,8,H-8);
+  }
+}
+
+// ======================================================= Twin Rifle
+class Twin extends Panel{
+  constructor(){
+    super('cvTwin','phTwin',[
+      {n:'Flash',r:'0–0.04 s',on:p=>p.since<.04},
+      {n:'Kick + bolt',r:'0–0.07 s',on:p=>p.since<.07},
+      {n:'Warm barrels',r:'builds with fire',on:p=>p.heat>.2},
+      {n:'Crossfire',r:'×2 at the X',on:p=>p.cfT>0}]);
+    this.tag='TWIN RIFLE';this.bul=[];this.heat=0;this.cfT=0;this.flip=0;this.cross={x:300,y:150};
+    this.en={x:330,y:150,r:16,hp:900,max:900,flash:0,by:150};
+  }
+  n(){return S.up?3:2}
+  autoAim(){return Math.atan2(this.en.y-this.py,this.en.x-this.px)}
+  crossDist(){const t=this.mouse||this.en;return clamp(Math.hypot(t.x-this.px,t.y-this.py),120,575)}
+  kick(){return Math.pow(Math.max(0,1-this.since/.07),2)*4}
+  update(dt){
+    const e=this.en;e.x=330+Math.sin(this.t*.5)*40;e.y=e.by+Math.sin(this.t*.9)*46;e.flash-=dt;if(e.hp<80)e.hp=e.max;
+    this.heat=Math.max(0,this.heat-.28*dt);this.cfT-=dt;
+    const d=this.aim;this.cross=this.w(this.crossDist(),0,0);
+    for(const b of this.bul){
+      b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+      if(b.life>0&&Math.hypot(b.x-e.x,b.y-e.y)<e.r+2){
+        b.life=0;const cf=Math.hypot(b.x-this.cross.x,b.y-this.cross.y)<45;e.flash=.04;e.hp-=cf?8:4;
+        if(cf)this.cfT=.25;
+        if(Math.random()<(cf?.5:.18))this.text(e.x+rnd(-12,12),e.y-e.r-6,cf?'8':'4',cf?'#ffd23f':'#e8ecf1');
+        const m=Math.hypot(b.vx,b.vy);
+        for(let i=0;i<(cf?3:2);i++)this.spawn({type:'line',x:b.x,y:b.y,vx:-b.vx/m*rnd(60,150)+rnd(-60,60),vy:-b.vy/m*rnd(60,150)+rnd(-60,60),life:.14,len:8,w:1.3,col:cf?'#ffd23f':'#ffcf9a'});
+        if(cf)this.spawn({type:'ring',x:b.x,y:b.y,life:.16,R:11,w:2.5,col:'#ffd23f'});
+      }
+    }
+    this.bul=this.bul.filter(b=>b.life>0);
+  }
+  fire(){
+    const n=this.n(),gap=60/(n-1),dist=this.crossDist(),k=this.kick();
+    this.cd=.1;this.since=0;this.shake=Math.max(this.shake,1.4);this.heat=Math.min(1,this.heat+.045);this.flip^=1;
+    const a0=this.aim+rnd(-.035,.035);
+    for(let i=0;i<n;i++){
+      const o=(i-(n-1)/2)*gap,from=this.w(30,o,k),tgt=this.w(dist,0,0),ang=Math.atan2(tgt.y-from.y,tgt.x-from.x)+(a0-this.aim);
+      this.bul.push({x:from.x,y:from.y,vx:Math.cos(ang)*820,vy:Math.sin(ang)*820,life:.7,life0:.7});
+      this.spawn({type:'wedge',x:from.x,y:from.y,a:ang,len:20,R:3.8,life:.04,col:'#fff1d0'});
+      this.spawn({type:'wedge',x:from.x,y:from.y,a:ang,len:11,R:2.4,life:.06,col:'#ff9d3a'});
+      this.spawn({type:'disc',x:from.x,y:from.y,R:7,life:.05,col:'#ffd8a0'});
+      if(Math.random()<.5)this.spawn({type:'smoke',x:from.x,y:from.y,vx:Math.cos(ang)*28,vy:Math.sin(ang)*28,life:.4,r:2.6,col:'#9aa4b0',drag:3});
+      // brass: out of the outer side of each gun, one gun a volley in a three-gun set
+      if(n===2||i!==1||this.flip){
+        const sd=o===0?(this.flip?1:-1):Math.sign(o),eject=this.w(14,o+sd*3,k),nx=-Math.sin(this.aim)*sd,ny=Math.cos(this.aim)*sd;
+        this.spawn({type:'casing',x:eject.x,y:eject.y,vx:nx*rnd(90,140)+rnd(-15,15),vy:ny*rnd(90,140)+rnd(-15,15),life:.7,r:3,col:'#d8b04a',drag:3,spin:rnd(10,16),a:this.aim});
+      }
+    }
+  }
+  rifle(len,kick,bolt,heat){
+    // origin = muzzle, gun runs back along -x
+    this.c.translate(-kick,0);
+    this.R(-len,-2.6,10,5.2,'#8a5a32');                    // stock
+    this.R(-len+10,-3.4,len-22,6.8,'#262c34');             // receiver
+    this.R(-len+13,-5.4,9,2.2,'#7bd0ff');                  // sight
+    this.R(-len+17-bolt,-4.2,5,1.6,'#aeb7c2');             // charging handle, flicks back
+    this.R(-12,-2.2,12,4.4,heat>.05?`rgb(${Math.round(70+185*heat)},${Math.round(76+50*heat)},${Math.round(84-20*heat)})`:'#aeb7c2');  // barrel warms
+    this.R(-12,-3.4,6,6.8,'#3b4350');                      // shroud
+  }
+  scene(){
+    const c=this.c,e=this.en,n=this.n(),gap=60/(n-1),k=this.kick(),d=this.aim,bolt=this.since<.07?5*Math.sin(Math.PI*this.since/.07):0;
+    // crossfire zone and the X
+    c.save();c.setLineDash([4,5]);c.strokeStyle='rgba(255,210,63,.4)';c.lineWidth=1;c.beginPath();c.arc(this.cross.x,this.cross.y,45,0,TAU);c.stroke();c.restore();
+    const cx=this.cross.x,cy=this.cross.y,xs=5+(this.cfT>0?2:0);
+    this.L(cx-xs,cy-xs,cx+xs,cy+xs,2,'rgba(255,210,63,.95)');this.L(cx-xs,cy+xs,cx+xs,cy-xs,2,'rgba(255,210,63,.95)');
+    this.enemy(e,'#8a3b3b');
+    const {bx,by}=this.body(k);
+    c.save();c.translate(bx,by);c.rotate(d);
+    for(let i=0;i<n;i++){
+      const o=(i-(n-1)/2)*gap,mf=30-k*.75,ang=Math.atan2(-o,this.crossDist()-30);
+      const gx=mf-Math.cos(ang)*18,gy=o-Math.sin(ang)*18,sh=o===0?0:Math.sign(o);
+      this.L(4,sh*9,gx,gy,4,'#4e3520');                    // arm
+      c.save();c.translate(mf,o);c.rotate(ang);this.rifle(30,0,bolt,this.heat);
+      this.hand(-17,0);this.hand(-5,0);c.restore();
+    }
+    c.restore();
+    for(const b of this.bul)this.tracer(b);
+  }
+}
+
+// ======================================================= Railgun
+class Rail extends Panel{
+  constructor(){
+    super('cvRail','phRail',[
+      {n:'Discharge',r:'0–0.1 s',on:p=>p.since<.1},
+      {n:'Kick + vent',r:'0–0.2 s',on:p=>p.since<.2},
+      {n:'Charging',r:'3 coils',on:p=>p.since>=.1&&p.since<.7},
+      {n:'Ready',r:'0.7 s',on:p=>p.since>=.7}]);
+    this.tag='RAILGUN';this.bul=[];this.trails=[];this.shards=[];this.vent=0;
+    this.en=[0,1,2,3].map(i=>({bx:190+i*78,x:190+i*78,y:150,r:15,hp:600,max:600,flash:0,ph:i*1.4,tick:0}));
+  }
+  autoAim(){const e=this.en[1];return Math.atan2(e.y-this.py,e.x-this.px)}
+  kick(){return Math.pow(Math.max(0,1-this.since/.2),2)*10}
+  charge(){return clamp((this.since-.08)/.62,0,1)}
+  update(dt){
+    for(const e of this.en){e.x=e.bx;e.y=150+Math.sin(this.t*.8+e.ph)*14;e.flash-=dt;e.tick-=dt;if(e.hp<60)e.hp=e.max}
+    // steam from the coils for a moment after a shot
+    if(this.since<.45&&Math.random()<dt*50){const p=this.w(8+Math.floor(rnd(0,3))*8,Math.random()<.5?-5:5,this.kick());
+      this.spawn({type:'smoke',x:p.x,y:p.y,vx:rnd(-20,20)-Math.sin(this.aim)*(Math.random()<.5?-1:1)*25,vy:rnd(-20,20),life:rnd(.35,.6),r:2.5,col:'#cfe9f5',drag:2})}
+    for(const b of this.bul){
+      b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+      for(const e of this.en){
+        if(b.life>0&&!b.hit.has(e)&&Math.hypot(b.x-e.x,b.y-e.y)<e.r+3.5){
+          b.hit.add(e);e.hp-=45;e.flash=.1;this.text(e.x,e.y-e.r-6,'45','#fff3a8');
+          this.spawn({type:'ring',x:e.x,y:e.y,life:.25,R:22,w:3.5,col:'#bff3ff'});
+          const m=Math.hypot(b.vx,b.vy);
+          for(let i=0;i<6;i++)this.spawn({type:'line',x:e.x,y:e.y,vx:b.vx/m*rnd(80,260)+rnd(-90,90),vy:b.vy/m*rnd(80,260)+rnd(-90,90),life:.2,len:11,w:1.5,col:'#e6fbff'});
+          if(S.up){const nx=-b.vy/m,ny=b.vx/m;for(const sg of[-1,1])this.shards.push({x:e.x,y:e.y,vx:nx*sg*600,vy:ny*sg*600,life:.3,life0:.3})}
+          if(b.hit.size>=3)b.life=0;
+        }
+      }
+      if(b.x>W+60||b.x<-60||b.y<-60||b.y>H+60)b.life=0;
+    }
+    this.bul=this.bul.filter(b=>b.life>0);
+    for(const s of this.shards){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
+      for(const e of this.en)if(s.life>0&&Math.hypot(s.x-e.x,s.y-e.y)<e.r+2){s.life=0;e.hp-=11;e.flash=.05;this.text(e.x,e.y-e.r-6,'11','#ffcf9a')}}
+    this.shards=this.shards.filter(s=>s.life>0);
+    // ion trail: 25 a second to anything standing in the charged stretch
+    for(const tr of this.trails){
+      tr.t+=dt;const head=Math.min(tr.len,1600*tr.t),tail=Math.max(0,1600*(tr.t-1));
+      for(const e of this.en){
+        const rx=e.x-tr.x,ry=e.y-tr.y,al=rx*tr.dx+ry*tr.dy,pd=Math.abs(-rx*tr.dy+ry*tr.dx);
+        if(al>tail&&al<head&&pd<10+e.r&&e.tick<=0){e.tick=.2;e.hp-=5;e.flash=.04;
+          if(Math.random()<.4)this.text(e.x+rnd(-8,8),e.y-e.r-6,'5','#52c9ff')}
+      }
+    }
+    this.trails=this.trails.filter(t=>t.t<1+t.len/1600);
+  }
+  fire(){
+    const d=this.aim,tip=this.w(40,0,this.kick());
+    this.cd=.7;this.since=0;this.shake=5;
+    const dx=Math.cos(d),dy=Math.sin(d);
+    this.bul.push({x:tip.x,y:tip.y,vx:dx*1600,vy:dy*1600,life:.7,life0:.7,hit:new Set()});
+    // range: clipped at the arena edge for the drawing
+    let len=1120;{let tx=dx>0?(W+40-tip.x)/dx:dx<0?(-40-tip.x)/dx:1e9,ty=dy>0?(H+40-tip.y)/dy:dy<0?(-40-tip.y)/dy:1e9;len=Math.min(len,tx,ty)}
+    this.trails.push({x:tip.x,y:tip.y,dx,dy,len,t:0});
+    this.spawn({type:'disc',x:tip.x,y:tip.y,R:22,life:.1,col:'#ffffff'});
+    this.spawn({type:'wedge',x:tip.x,y:tip.y,a:d,len:46,R:9,life:.09,col:'#bff3ff'});
+    this.spawn({type:'ring',x:tip.x,y:tip.y,R:30,life:.2,w:4,col:'#52c9ff'});
+    // arcs jumping between the rails
+    for(let i=0;i<5;i++){const a=this.w(6+i*7,-3,this.kick()),b=this.w(10+i*7,3,this.kick());
+      this.spawn({type:'arc',x:a.x,y:a.y,ex:b.x,ey:b.y,R:3,w:1.6,life:.1+i*.012,col:'#e6fbff'})}
+    for(let i=0;i<10;i++){const a=d+rnd(-.5,.5),v=rnd(120,360);this.spawn({type:'line',x:tip.x,y:tip.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.16,len:13,w:1.4,col:'#bff3ff'})}
+  }
+  drawGun(rec){
+    const c=this.c,ch=this.charge(),k=rec,flash=this.since<.1?1-this.since/.1:0;
+    c.translate(-k,0);
+    this.R(-8,-3,10,6,'#262c34');                                       // stock block
+    const spread=2.2+(this.since<.2?k*.12:0);                            // rails shove apart a touch on firing
+    this.L(2,-3-spread+2.2,38,-3-spread+2.2,2.2,'#aeb7c2');this.L(2,3+spread-2.2,38,3+spread-2.2,2.2,'#aeb7c2');
+    for(let i=0;i<3;i++){
+      const lit=clamp(ch*3-i,0,1),x=10+i*8,col=lit>0?`rgb(${Math.round(60+130*lit)},${Math.round(150+90*lit)},255)`:'#2c3a46';
+      this.R(x,-4.6,3,9.2,col);if(lit>.5)this.glow(x+1.5,0,12*lit,[82,201,255],.55*lit);
+    }
+    this.L(4,0,36,0,1.5,`rgba(191,243,255,${.25+.75*(flash||ch)})`);     // the core line
+    if(flash>0)this.glow(38,0,26,[255,255,255],flash);
+    // ready ring closing on the muzzle, then a held pulse
+    if(this.since>.35){const f=clamp((this.since-.35)/.35,0,1),r=mix(15,6,f);c.strokeStyle=`rgba(82,201,255,${.2+.5*f})`;c.lineWidth=1.4;c.beginPath();c.arc(40,0,r,0,TAU);c.stroke()}
+  }
+  scene(){
+    const c=this.c,k=this.kick();
+    for(const e of this.en)this.enemy(e,'#8a3b3b');
+    // ion trails (the in-game look: wide faint band, thin line, sparks jittering along)
+    for(const tr of this.trails){
+      const head=Math.min(tr.len,1600*tr.t),tail=Math.max(0,1600*(tr.t-1));if(tail>=head)continue;
+      const ax=tr.x+tr.dx*tail,ay=tr.y+tr.dy*tail,bx=tr.x+tr.dx*head,by=tr.y+tr.dy*head;
+      this.L(ax,ay,bx,by,20,'rgba(255,255,191,.14)');this.L(ax,ay,bx,by,2,'rgba(255,255,191,.7)');
+      const n=Math.max(2,Math.floor((head-tail)/30));
+      for(let i=0;i<n;i++){const al=tail+(head-tail)*((i+.5)/n),j=Math.sin(tr.t*47+i*2.3)*10,x=tr.x+tr.dx*al,y=tr.y+tr.dy*al;
+        this.L(x,y,x-tr.dy*j+tr.dx*6,y+tr.dx*j+tr.dy*6,1.2,'rgba(255,255,255,.6)')}
+    }
+    const {bx,by}=this.body(k);
+    c.save();c.translate(bx+Math.cos(this.aim)*12-Math.cos(this.aim)*k*.75,by+Math.sin(this.aim)*12-Math.sin(this.aim)*k*.75);c.rotate(this.aim);
+    this.drawGun(k);this.hand(2-k*.2,0);this.hand(20-k*.2,0);c.restore();
+    for(const s of this.shards)this.tracer(s);
+    // the slug: stretched body, hot nose, rings of air pushed ahead, a faint tail
+    for(const b of this.bul){
+      const m=Math.hypot(b.vx,b.vy),dx=b.vx/m,dy=b.vy/m,sx=-dy,sy=dx,r=3.5,l=r*2.4,h=r*.8,col='rgb(255,255,191)';
+      this.glow(b.x,b.y,15.75,PALE,.5);
+      for(let q=0;q<3;q++){const f=((this.t*6+q/3+b.x*.001)%1),rr=r+5+f*9;
+        c.strokeStyle=`rgba(255,255,191,${.5*(1-f)})`;c.lineWidth=1.8;c.beginPath();
+        c.arc(b.x-dx*f*26,b.y-dy*f*26,rr,Math.atan2(dy,dx)+Math.PI-1,Math.atan2(dy,dx)+Math.PI+1);c.stroke()}
+      this.L(b.x-dx*(l+30),b.y-dy*(l+30),b.x-dx*l,b.y-dy*l,h*.8,'rgba(255,255,191,.3)');
+      this.P(col,b.x+dx*l+sx*h*.6,b.y+dy*l+sy*h*.6,b.x+dx*l-sx*h*.6,b.y+dy*l-sy*h*.6,b.x-dx*l-sx*h,b.y-dy*l-sy*h,b.x-dx*l+sx*h,b.y-dy*l+sy*h);
+      this.C(b.x+dx*l*.7,b.y+dy*l*.7,h*.7,'rgba(255,255,255,.9)');
+    }
+  }
+}
+Rail.prototype.w2=Panel.prototype.w;
+
+// ======================================================= Burst SMG
+class Smg extends Panel{
+  constructor(){
+    super('cvSmg','phSmg',[
+      {n:'Flash',r:'every 0.055 s',on:p=>p.since<.03},
+      {n:'Spin-up',r:'0–2 s',on:p=>p.firing&&p.spin<.999},
+      {n:'Full spin',r:'tight, +60%',on:p=>p.spin>=.999},
+      {n:'Wind-down',r:'0.6 s',on:p=>!p.firing&&p.spin>.01}]);
+    this.tag='BURST SMG';this.bul=[];this.spin=0;this.firing=false;this.rot=0;this.n=0;this.hits=0;
+    this.en={x:360,y:150,r:20,hp:3000,max:3000,flash:0,by:150};
+  }
+  wantFire(){return S.auto?(this.t%5.5)<4.2:this.down}
+  autoAim(){return Math.atan2(this.en.y-this.py,this.en.x-this.px)}
+  spray(){return(0.16-(0.16-0.04)*this.spin)*(S.up?1.35:1)}
+  kick(){return Math.pow(Math.max(0,1-this.since/.05),2)*(1.6+this.spin*1.4)}
+  update(dt){
+    this.firing=this.wantFire();
+    this.spin=this.firing?Math.min(1,this.spin+dt/2):Math.max(0,this.spin-dt/.6);
+    this.rot+=dt*(6+this.spin*60);
+    const e=this.en;e.x=360+Math.sin(this.t*.5)*30;e.y=e.by+Math.sin(this.t*.8)*40;e.flash-=dt;if(e.hp<300)e.hp=e.max;
+    for(const b of this.bul){
+      b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+      if(b.life>0&&Math.hypot(b.x-e.x,b.y-e.y)<e.r+2){
+        b.life=0;e.flash=.03;this.hits++;const m=Math.hypot(b.vx,b.vy);
+        if(this.hits%7===0)this.text(e.x+rnd(-12,12),e.y-e.r-6,String(Math.round(b.dmg)),this.spin>.95?'#fff3a8':'#e8ecf1');
+        this.spawn({type:'line',x:b.x,y:b.y,vx:-b.vx/m*rnd(60,150)+rnd(-60,60),vy:-b.vy/m*rnd(60,150)+rnd(-60,60),life:.12,len:7,w:1.2,col:'#ffcf9a'});
+      }
+    }
+    this.bul=this.bul.filter(b=>b.life>0);
+  }
+  fire(){
+    const sp=this.spray(),extra=S.up?1:0,tip=this.w(31,0,this.kick()),spun=1+.6*this.spin;
+    this.cd=.055;this.since=0;this.n++;this.shake=Math.max(this.shake,.6+this.spin*1.4);
+    for(let i=0;i<=extra;i++){
+      const a=this.aim+rnd(-sp,sp);
+      this.bul.push({x:tip.x,y:tip.y,vx:Math.cos(a)*760,vy:Math.sin(a)*760,life:.8,life0:.8,dmg:(i?2.5:5)*spun});
+    }
+    const hot=this.spin;
+    this.spawn({type:'wedge',x:tip.x,y:tip.y,a:this.aim+rnd(-.08,.08),len:12+hot*8,R:2.8,life:.035,col:hot>.9?'#ffffff':'#fff1d0'});
+    this.spawn({type:'disc',x:tip.x,y:tip.y,R:5.5,life:.04,col:'#ff9d3a'});
+    if(this.n%2===0){
+      const n={x:-Math.sin(this.aim)*-1,y:Math.cos(this.aim)*-1},g=this.w(10,4,this.kick());
+      this.spawn({type:'casing',x:g.x,y:g.y,vx:-n.x*rnd(100,170)+rnd(-20,20),vy:-n.y*rnd(100,170)+rnd(-20,20),life:.6,r:2.6,col:'#d8b04a',drag:3,spin:rnd(14,22),a:this.aim});
+    }
+    if(this.spin>.5&&this.n%3===0)this.spawn({type:'smoke',x:tip.x,y:tip.y,vx:Math.cos(this.aim)*25,vy:Math.sin(this.aim)*25-10,life:.5,r:2.6,col:'#9aa4b0',drag:3});
+  }
+  scene(){
+    const c=this.c,k=this.kick(),sp=this.spin,d=this.aim;
+    // the real spray cone
+    const sa=this.spray();c.save();c.strokeStyle=`rgba(255,178,89,${.16+.18*sp})`;c.lineWidth=1;c.setLineDash([3,4]);
+    for(const s of[-1,1]){c.beginPath();c.moveTo(this.px,this.py);c.lineTo(this.px+Math.cos(d+s*sa)*340,this.py+Math.sin(d+s*sa)*340);c.stroke()}c.restore();
+    this.enemy(this.en,'#8a3b3b');
+    const {bx,by}=this.body(k);
+    // spin ring: fills round you, white-hot when full
+    if(sp>.02){c.strokeStyle=sp>=.999?'rgba(255,255,255,.95)':`rgba(255,${Math.round(150+80*sp)},${Math.round(80+100*sp)},.85)`;c.lineWidth=3;c.beginPath();c.arc(bx,by,23,-Math.PI/2,-Math.PI/2+TAU*sp);c.stroke();
+      if(sp>=.999)this.glow(bx,by,34,[255,255,255],.35)}
+    c.save();c.translate(bx+Math.cos(d)*8-Math.cos(d)*k*.75+rnd(-1,1)*sp*.5,by+Math.sin(d)*8-Math.sin(d)*k*.75+rnd(-1,1)*sp*.5);c.rotate(d);
+    this.R(-9,-2.6,10,5.2,'#22272e');                         // stock
+    this.R(0,-3.6,16,7.2,'#4a5560');                           // receiver
+    this.R(4,3,5,9,'#22272e');                                 // magazine
+    this.R(2,-5,6,1.8,'#7bd0ff');
+    // three barrel tubes turning faster as it spins up, steel to white-hot
+    const col=sp<.05?'#aeb7c2':`rgb(${Math.round(174+81*sp)},${Math.round(183+(sp<.5?-20*sp*2:-20+75*(sp-.5)*2))},${Math.round(194-110*sp+(sp>.5?150*(sp-.5)*2:0))})`;
+    for(let i=0;i<3;i++){const y=Math.sin(this.rot+i*2.094)*2.6,z=Math.cos(this.rot+i*2.094);
+      this.L(16,y,26,y,1.8+.5*z,col)}
+    this.R(14,-4,3,8,'#3b4350');
+    if(sp>.3)this.glow(24,0,10+sp*8,[255,160,70],.3*sp);
+    this.hand(2,0);this.hand(14,0);c.restore();
+    for(const b of this.bul)this.tracer(b);
+  }
+}
+
+const panels=[new Twin(),new Rail(),new Smg()];
+
+// ---- controls
+const $=id=>document.getElementById(id);
+$('bPause').onclick=e=>{S.paused=!S.paused;e.currentTarget.setAttribute('aria-pressed',S.paused);e.currentTarget.textContent=S.paused?'Play':'Pause'};
+$('bSlow').onclick=e=>{S.slow=!S.slow;e.currentTarget.setAttribute('aria-pressed',S.slow)};
+$('bUp').onclick=e=>{S.up=!S.up;e.currentTarget.setAttribute('aria-pressed',S.up)};
+$('cAuto').onchange=e=>{S.auto=e.target.checked};
+
+let last=performance.now();
+function frame(now){
+  const dt=clamp((now-last)/1000,0,.05);last=now;
+  if(!S.paused){const d=dt*(S.slow?.25:1);for(const p of panels)p.step(d)}
+  for(const p of panels)p.draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

@@ -160,6 +160,7 @@ namespace Arena
             var melee = new List<EnemyType> { EnemyType.Swarmer };
             if (n >= 3) melee.Add(EnemyType.Brute);
             if (n >= 5) melee.Add(EnemyType.Lunger);
+            if (n >= 5) { melee.Add(EnemyType.Buzzsaw); melee.Add(EnemyType.SpikeBlock); }  // the melee grunts (MeleeGrunts.cs)
             BuildApproach(n, ref count);  // the boss's faction takes its share first (Approaches.cs)
             if (BuildPathWave(n, ref count, pool, melee))  // a path's own mix (Paths.cs)
             {
@@ -436,6 +437,7 @@ namespace Arena
                 float contact = e.Def.IsBoss ? 25f
                     : e.Type == EnemyType.Charger && e.Phase == 2 || e.Type == EnemyType.Juggernaut ? 25f
                     : e.Type == EnemyType.Lunger && e.Phase == 2 ? 26f
+                    : e.Type == EnemyType.SpikeBlock && e.Phase == 2 ? SpikeLungeDamage
                     : e.Def.Contact > 0f ? e.Def.Contact : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 foreach (var p in Players.Values)
@@ -454,6 +456,8 @@ namespace Arena
                             p.BossContactT = BossContactEvery;
                         }
                         Damage(p, contact, e.Def.Name + " (contact)");
+                        if (e.Type == EnemyType.Buzzsaw && !p.Downed)
+                            p.InvulnT = Math.Min(p.InvulnT, SawGrace);  // its touches come fast, not once per hit grace
                     }
                 }
             }
@@ -516,8 +520,8 @@ namespace Arena
             float want = (tpos - e.Pos).Angle;
             if (e.Type == EnemyType.Charger && e.Phase != 0)
                 return;  // locked in while winding up and dashing
-            if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber)
-                return;  // committed to the leap / flight line
+            if (e.Type == EnemyType.Lunger && e.Phase >= 2 || e.Type == EnemyType.HiveBomber || e.Type == EnemyType.SpikeBlock && e.Phase >= 1)
+                return;  // committed to the leap / flight line (a Spike Block locks its line when it winds up)
             if (e.Type == EnemyType.BeamSentry && e.Phase >= 2 || e.Type == EnemyType.Reaver && e.Phase != 0 || e.Type == EnemyType.Leader && e.Phase == 1)
                 return;  // the beam's aim and sweep, the rake's cone, the Leader's aim line (Variety.cs)
             if (e.Type == EnemyType.RiotShield)
@@ -690,8 +694,21 @@ namespace Arena
                     else
                         v = e.Waypoint - e.Pos;
                     break;
-                case EnemyType.Swarmer:  // straight at you, weaving a little
-                    v = dir + dir.Orthogonal() * (float)Math.Sin(e.T * 5f + e.Id) * 0.45f;
+                case EnemyType.Swarmer:  // heads for you in a zig-zag (MeleeGrunts.cs)
+                    v = SwarmerMove(e, dir, dist, dt);
+                    break;
+                case EnemyType.Buzzsaw:  // swoops in on curves, steering with momentum
+                    e.Vel += (dir - e.Vel) * Math.Min(1f, dt * SawTurn);
+                    v = e.Vel;
+                    break;
+                case EnemyType.SpikeBlock:  // rocks from side to side as it closes in; stands still to wind up and recover
+                    if (e.Phase == 0)
+                        v = dir * 0.6f + dir.Orthogonal() * (float)Math.Sin(e.T * 2.6f + e.Id) * 0.8f;
+                    else if (e.Phase == 2)
+                    {
+                        v = V2.FromAngle(e.Facing);
+                        speed = SpikeLungeSpeed;
+                    }
                     break;
                 case EnemyType.Brute:
                     v = dir;
@@ -830,6 +847,9 @@ namespace Arena
                     }
                     break;
                 }
+                case EnemyType.SpikeBlock:
+                    SpikeBlockSpecial(e, tpos, dt);  // MeleeGrunts.cs
+                    break;
                 case EnemyType.Charger:
                     // Phase 1: wind up (telegraph line); phase 2: dash, then burst.
                     if (e.Phase == 0)

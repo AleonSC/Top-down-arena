@@ -366,6 +366,12 @@ namespace Arena
                     continue;
                 V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * p.Def.BodyR;  // from your edge, like shots (so it ends where the aim line does)
                 BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits, false, beam.HalfWidth);
+                GateLockStrike(q =>  // a Warden gate's lock on the beam's line takes a hit too (Warden.cs)
+                {
+                    V2 rel = q - from;
+                    float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
+                    return along > -LockW / 2f && along < beam.Range + LockW / 2f && across < beam.HalfWidth + LockW / 2f;
+                });
                 p.Run.ShotsFired++;
                 if (beamHits.Count > 0)
                     p.Run.ShotsHit++;

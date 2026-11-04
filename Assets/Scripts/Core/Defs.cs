@@ -34,6 +34,8 @@ namespace Arena
         Gatekeeper, Shadow,
         // Zombie Infection's horde (Zombies.cs, ZombieLook.cs)
         Shambler, Runner, Spitter, Crawler, Bloater, Shrieker, Mender,
+        // melee grunts from wave 5 (EnemyAI.cs, MeleeGrunts.cs)
+        Buzzsaw, SpikeBlock,
     }
 
     public class RoleDef
@@ -75,7 +77,7 @@ namespace Arena
         public string AreaDesc;    // set on weapons whose damage lands in an area (Game.AreaWeapon): what Homing Rounds grow instead of bending shots
         public string HomingDesc;  // what Homing Rounds do for it instead (the card text after the weapon's name; checked before AreaDesc, so cones say they condense)
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
-        public string ExtraDesc;  // what each extra projectile (Multishot, Bullet Storm) does for this weapon
+        public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
         public float FireInterval;
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
         // arrives every CompanionRespawn seconds; the others only die to Sacrifice.
@@ -195,7 +197,7 @@ namespace Arena
             new EnemyDef { Name = "Gravity Well", Hp = 260f, Radius = 15f, Speed = 160f, Score = 40, Xp = 15, Sides = 6, Color = new Rgba(0.7f, 0.45f, 1f), Late = true },
             // Melee
             new EnemyDef { Name = "Swarmer", Hp = 22f, Radius = 9f, Speed = 135f, Score = 5, Xp = 5, Sides = 3, Color = new Rgba(1f, 0.6f, 0.3f), Melee = true, Contact = 10f,
-                Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher that weaves toward you in pairs." },
+                Picker = PickerGroup.Melee, Blurb = "Small and fast melee rusher with long thin spikes. It zig-zags toward you in pairs." },
             new EnemyDef { Name = "Brute", Hp = 110f, Radius = 19f, Speed = 62f, Score = 15, Xp = 14, Sides = 7, Color = new Rgba(0.8f, 0.45f, 0.35f), Melee = true, Contact = 24f,
                 Picker = PickerGroup.Melee, Blurb = "Slow, tough melee bruiser that hits hard (24) when it reaches you." },
             new EnemyDef { Name = "Lunger", Hp = 45f, Radius = 12f, Speed = 95f, Score = 12, Xp = 12, Sides = 4, Color = new Rgba(0.95f, 0.35f, 0.65f), Melee = true, Contact = 18f,
@@ -247,6 +249,10 @@ namespace Arena
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: hangs back and screams, sending the horde round it into a frenzy. Silence it." },
             new EnemyDef { Name = "Mender", Hp = 50f, Radius = 12f, Speed = 65f, Score = 10, Xp = 14, Sides = 4, Color = new Rgba(0.18f, 0.84f, 0.49f),
                 Picker = PickerGroup.Ranged, Blurb = "Zombie: heals the horde round it and makes the dead rise faster. Kill it first." },
+            new EnemyDef { Name = "Buzzsaw", Hp = 30f, Radius = 12f, Speed = 170f, Score = 8, Xp = 8, Sides = 24, Color = new Rgba(0.35f, 0.82f, 1f), Melee = true, Contact = 4f,
+                Picker = PickerGroup.Melee, Blurb = "A fast ring of spinning spikes that swoops round on curves. Each touch is small, but they come about eight times a second." },
+            new EnemyDef { Name = "Spike Block", Hp = 60f, Radius = 14f, Speed = 120f, Score = 14, Xp = 14, Sides = 4, Color = new Rgba(0.9f, 0.28f, 0.3f), Melee = true, Contact = 12f,
+                Picker = PickerGroup.Melee, Blurb = "Rocks from side to side as it closes in, then stops, flashes a red line and lunges for a big hit (35). Slow to recover." },
         };
 
         public const int WeaponsPerRole = 3;

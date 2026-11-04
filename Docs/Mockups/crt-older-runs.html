@@ -1,0 +1,136 @@
+<title>Older Runs CRT Mockup</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: five variants of the same 620x126 run card, stacked, each a different kind of CRT. */
+:root {
+  --bg: #080b14;
+  --panel: #10162a;
+  --fg: #dfe8ff;
+  --muted: #7d8bb0;
+  --line: #243055;
+  --accent: #5b8cff;
+  --f-display: "VT323", "Courier New", monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --f-ui: "Rajdhani", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-ui);
+  padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+header h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: .02em; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 16px; max-width: 62ch; line-height: 1.45; }
+.opt { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.opt .tag { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.opt .tag b { font-size: 20px; letter-spacing: .04em; }
+.opt .tag span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.opt p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 66ch; }
+
+/* ---------- shared screen ---------- */
+.stage { background: var(--panel); border: 1px solid var(--line); padding: 22px; display: grid; place-items: center; }
+.set { width: 100%; max-width: 680px; }
+.screen {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--sbg); color: var(--ink);
+  font-family: var(--f-display); font-size: 20px; line-height: 1;
+  text-shadow: 0 0 6px var(--glow), 0 0 14px var(--glow);
+  padding: 16px 20px 18px;
+}
+/* scanlines */
+.screen::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+/* vignette + glass */
+.screen::after {
+  content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background:
+    radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%),
+    linear-gradient(115deg, rgba(255,255,255,.07) 0 14%, transparent 30%);
+}
+.roll { position: absolute; left: 0; right: 0; height: 34%; z-index: 2; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.05), transparent);
+  animation: roll 7s linear infinite; }
+@keyframes roll { from { top: -40%; } to { top: 110%; } }
+@keyframes flick { 0%, 100% { opacity: 1; } 47% { opacity: .96; } 50% { opacity: .9; } 53% { opacity: .97; } }
+@keyframes blink { 50% { opacity: 0; } }
+.screen > .body { position: relative; z-index: 1; animation: flick 5s infinite; }
+
+.osd { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 18px; letter-spacing: .08em; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: 1.05fr 1.1fr auto; gap: 0; align-items: stretch; }
+.col { padding: 0 18px; min-width: 0; border-left: 1px dashed var(--rule); }
+.col:first-child { padding-left: 0; border-left: 0; }
+.col:last-child { padding-right: 0; display: grid; place-items: center; }
+.lab { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; opacity: .85; }
+.big { font-size: 46px; letter-spacing: .02em; margin: 2px 0 6px; }
+.kv { display: grid; grid-template-columns: 58px 1fr; font-size: 18px; line-height: 1.12; }
+.kv i { font-style: normal; color: var(--dim); text-shadow: none; }
+.seat { display: flex; align-items: center; gap: 10px; font-size: 21px; margin-top: 7px; white-space: nowrap; }
+.seat .bar { width: 4px; height: 17px; background: #4f86ff; box-shadow: 0 0 8px #4f86ff; flex: none; }
+.seat em { font-style: normal; color: var(--dim); font-size: 18px; text-shadow: none; overflow: hidden; text-overflow: ellipsis; }
+.go { font-family: var(--f-display); font-size: 30px; letter-spacing: .06em; padding: 12px 18px 10px; border: 2px solid var(--ink); color: var(--ink);
+  background: transparent; cursor: pointer; text-shadow: inherit; display: flex; gap: 10px; align-items: center; justify-content: center; white-space: nowrap; }
+.go:hover, .go:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.go svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.cur { display: inline-block; width: .55em; height: .85em; background: var(--ink); margin-left: 4px; vertical-align: -.08em; box-shadow: 0 0 8px var(--glow); animation: blink 1s steps(1) infinite; }
+.foot { display: flex; gap: 10px; margin-top: 14px; }
+.foot span { flex: 1; text-align: center; font-size: 19px; letter-spacing: .06em; padding: 9px 4px 7px; border: 1px solid var(--rule); color: var(--dim); text-shadow: none; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .col { border-left: 0; padding: 0; }
+  .col + .col { border-top: 1px dashed var(--rule); padding-top: 12px; }
+  .col:last-child { display: block; }
+  .go { width: 100%; }
+  .foot { flex-wrap: wrap; } .foot span { flex: 1 1 40%; }
+  .big { font-size: 40px; }
+}
+
+.v1 .screen { --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.55); --rule: rgba(77,255,154,.28); border-radius: 14px; box-shadow: inset 0 0 40px rgba(0,0,0,.8), 0 0 0 5px #0d1a14, 0 0 0 7px #1c3a2a, 0 0 28px rgba(60,255,150,.18); padding: 14px 20px; }
+.top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.top h2 { margin: 0; font: inherit; font-size: 30px; letter-spacing: .06em; flex: 1; }
+.pager { display: flex; align-items: center; gap: 8px; font-size: 20px; }
+.sm { font-family: var(--f-display); font-size: 22px; letter-spacing: .05em; padding: 5px 12px 3px; border: 2px solid var(--ink); color: var(--ink); background: rgba(77,255,154,.07); cursor: pointer; text-shadow: inherit; white-space: nowrap; line-height: 1; }
+.sm:hover, .sm:focus-visible { background: var(--ink); color: var(--sbg); text-shadow: none; outline: none; }
+.sm.danger { border-color: #ff6b7a; color: #ff6b7a; background: rgba(255,107,122,.07); }
+.sm.danger:hover, .sm.danger:focus-visible, .sm.danger.armed { background: #ff6b7a; color: #1a0508; text-shadow: none; }
+.tbl { display: grid; grid-template-columns: 54px 118px 66px 70px 1fr auto; column-gap: 12px; align-items: center; }
+.tbl .h { font-size: 15px; color: var(--dim); letter-spacing: .12em; text-shadow: none; padding-bottom: 4px; border-bottom: 1px dashed var(--rule); }
+.tbl .c { padding: 9px 0 7px; border-bottom: 1px dashed var(--rule); font-size: 21px; white-space: nowrap; align-self: stretch; display: flex; align-items: center; }
+.tbl .wave { font-size: 30px; } .tbl .wave small { font-size: 14px; color: var(--dim); margin-left: 4px; text-shadow: none; }
+.tbl .acts { gap: 8px; justify-content: flex-end; }
+.players { display: flex; flex-direction: column; gap: 3px; font-size: 18px; line-height: 1; }
+.players .seat { margin: 0; font-size: 18px; gap: 8px; } .players .seat .bar { height: 12px; width: 3px; } .players .seat em { font-size: 16px; }
+.hint { margin-top: 12px; text-align: center; font-size: 17px; color: var(--dim); text-shadow: none; letter-spacing: .06em; }
+.row-armed { background: rgba(255,107,122,.08); }
+@media (max-width: 640px) {
+  .tbl { grid-template-columns: 44px 1fr auto; }
+  .tbl .h:nth-child(n+3):not(:last-child), .tbl .c.sc, .tbl .c.pl, .tbl .h.sc { display: none; }
+  .tbl .c { padding: 6px 0 5px; font-size: 18px; }
+  .top { flex-wrap: wrap; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Older runs, as a CRT</h1>
+    <p>The same phosphor look as the latest run card, on the older-runs page: one screen holding the table, three runs to a page. Hover a button to see the inverse-video state. The third row shows the delete button after its first click.</p>
+  </header>
+  <section class="opt v1">
+    <div class="tag"><b>Older runs</b><span>620 wide, three rows a page</span></div>
+    <div class="stage"><div class="set"><div class="screen"><div class="roll"></div><div class="body">
+      <div class="top"><h2>OLDER RUNS</h2>
+        <div class="pager"><button class="sm" type="button" aria-label="Previous page">&lsaquo;</button><span>1 / 2</span><button class="sm" type="button" aria-label="Next page">&rsaquo;</button></div>
+        <button class="sm" type="button">&#9666; BACK</button></div>
+      <div class="tbl"><div class="h">WAVE</div><div class="h">SAVED</div><div class="h sc">SCORE</div><div class="h">PLAYED</div><div class="h">PLAYERS</div><div class="h"></div><div class="c wave">17</div><div class="c">Nov 2, 21:40</div><div class="c sc">12400</div><div class="c">38 min</div><div class="c pl"><div class="players"><div class="seat"><span class="bar" style="background:#4f86ff;box-shadow:0 0 8px #4f86ff"></span>Anthony <em>Knight Tank</em></div><div class="seat"><span class="bar" style="background:#f08a30;box-shadow:0 0 8px #f08a30"></span>Aleon <em>Elementalist DPS</em></div></div></div><div class="c acts"><button class="sm" type="button">▶ CONTINUE</button><button class="sm danger" type="button" aria-label="Delete run">DEL</button></div><div class="c wave">9<small>endless</small></div><div class="c">Oct 30, 18:12</div><div class="c sc">5300</div><div class="c">21 min</div><div class="c pl"><div class="players"><div class="seat"><span class="bar" style="background:#4f86ff;box-shadow:0 0 8px #4f86ff"></span>Anthony <em>Soldier Tank</em></div></div></div><div class="c acts"><button class="sm" type="button">▶ CONTINUE</button><button class="sm danger" type="button" aria-label="Delete run">DEL</button></div><div class="c wave row-armed">5</div><div class="c row-armed">Oct 28, 09:03</div><div class="c sc row-armed">1900</div><div class="c row-armed">11 min</div><div class="c pl row-armed"><div class="players"><div class="seat"><span class="bar" style="background:#4f86ff;box-shadow:0 0 8px #4f86ff"></span>Anthony <em>Soldier Tank</em></div></div></div><div class="c acts row-armed"><button class="sm" type="button">▶ CONTINUE</button><button class="sm danger armed" type="button">REALLY?</button></div></div>
+      <div class="hint">Click DEL again to delete that run.</div>
+    </div></div></div></div>
+    <p>The page title and Back move inside the screen, so the page reads as one monitor. The trash icon becomes a red DEL that turns into REALLY? on the first click, keeping the click-twice rule. Reduced effects drops the glow, rolling bar and flicker here too.</p>
+  </section>
+</div>

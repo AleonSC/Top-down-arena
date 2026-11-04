@@ -291,7 +291,7 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = DateTime.UtcNow.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
         typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
-        if (Environment.GetEnvironmentVariable("OLDER") != null) set("menuPlayOlder", true);
+        if (Environment.GetEnvironmentVariable("OLDER") != null) { set("menuPlayOlder", true); set("menuOlderK", 1f); }
         if (Environment.GetEnvironmentVariable("PAGE") != null) set("menuOlderPage", int.Parse(Environment.GetEnvironmentVariable("PAGE")));
       }
       GL.Tris.Clear();

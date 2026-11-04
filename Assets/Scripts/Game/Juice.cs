@@ -126,6 +126,7 @@ namespace Arena
             ClearSoldierLooks();  // SoldierLooks.cs
             ClearTankLooks();  // TankLooks.cs
             ClearTankGunLooks();  // TankGunLooks.cs
+            ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
@@ -332,6 +333,8 @@ namespace Arena
                         OnRevolverShot(owner, b);  // the Revolver's flash, smoke and brass (GunBowLooks.cs)
                     else if (fromGun && (owner.Weapon.Id == WeaponId.Scattergun && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.RiotRepeater && b.Kind == Defs.TankShot || owner.Weapon.Id == WeaponId.FlakCannon && b.Kind == Defs.FlakShell))
                         OnTankGunShot(owner, b);  // the Tank guns' flash, smoke and brass (TankGunLooks.cs)
+                    else if (fromGun && (owner.Weapon.Id == WeaponId.TwinRifle && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.BurstSmg && b.Kind == Defs.DpsShot || owner.Weapon.Id == WeaponId.Railgun && b.Kind == Defs.RailShot))
+                        OnDpsGunShot(owner, b);  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
                     if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
                     {
                         muzzleT[b.Owner] = juiceClock + 0.05f;
@@ -384,6 +387,7 @@ namespace Arena
 
             UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
             UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
+            UpdateDpsGunLooks(dt);  // DpsGunLooks.cs: the SMG's barrels turning, a fired Railgun's steam
             UpdateOrbs();        // Ambience.cs: orb trails, pickup pulses
             UpdateDust(dt);      // dust at your feet
             UpdateWeather(dt);   // the path's weather

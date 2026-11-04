@@ -221,6 +221,7 @@ namespace Arena
         public int Score;
         public float T, SpawnT, FireT, Ang, Strafe = 1f, RetargetT, Flash, T2;
         public float Facing;    // direction it faces (shields, charges)
+        public V2 Vel;          // host only: a Buzzsaw's steering velocity (it swoops instead of turning on the spot)
         public byte Phase;      // per-type state, e.g. charger wind-up / dash, boss shield
         public float PhaseT;
         public bool Elite;
@@ -295,6 +296,7 @@ namespace Arena
         public byte Kind;
         public V2 Pos, Vel;
         public float AngVel, Life, Radius, Dmg;
+        public float Stasis;      // 0..1: how far a Lumen Ward has slowed it to a stop (worked out the same on every peer, not sent; LumenWard.cs)
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
@@ -366,6 +368,8 @@ namespace Arena
         public bool Follow;         // host: mastered Soul Lantern moves with its owner
         public float DamageCut;     // host: allies inside take less damage (the Ninja's smoke)
         public bool Embers;         // host: a mastered Meteor leaves burning ground
+        public float Aim;           // replicated: a Lumen Ward's cone points this way (radians; Pos is its apex, Radius its length)
+        public bool Freezes;        // host: a mastered Lumen Ward freezes enemies outside its light (not bosses)
         public bool Consecrates;    // host: Hallowed Blade blesses the ground where it lands
         public float BlockHp;       // host: damage it can still soak (blocking zones)
         public float GuardFrac;     // replicated BlockHp fraction, for drawing (a Spirit Ward's soak)

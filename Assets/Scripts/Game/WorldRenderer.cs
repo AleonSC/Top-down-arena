@@ -114,7 +114,8 @@ namespace Arena
             // Crosshair
             V2 m = MouseArena();
             StepCursor(m, t, Input.GetMouseButton(0) && !fireBlocked);
-            DrawCursorLook(CursorLook(), m, t, cursorFire, cursorHist);  // CursorLooks.cs
+            if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
+                DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a match starts
             EndJuiceFrame();
             EndRecording();
         }
@@ -186,6 +187,7 @@ namespace Arena
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot)
                     DrawSmallShot(b, t);
+            DrawFrozenShots(t);  // bullets a Lumen Ward is holding (LumenWardLook.cs)
             DrawQueenSwarm(t);  // QueenLook.cs
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
@@ -268,6 +270,15 @@ namespace Arena
                 var hot = new Rgba(1f, 0.6f, 0.2f).Mix(new Rgba(1f, 0.95f, 0.8f), p.SpinUp);
                 Arc(p.Disp, r, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
                 Arc(p.Disp, r, full ? 3.5f : 2.5f, hot.WithAlpha(full ? 0.7f + 0.3f * Mathf.Sin(t * 30f) : 0.8f), 28, t * 9f, MathX.Tau * p.SpinUp);
+                if (Juicy)  // the real spray cone, tightening as it spins up (DpsGunLooks.cs)
+                {
+                    float spray = Game.SmgSpray - (Game.SmgSpray - Game.SmgSprayTight) * p.SpinUp;
+                    for (int sg = -1; sg <= 1; sg += 2)
+                    {
+                        V2 d = V2.FromAngle(p.Aim + sg * spray);
+                        Line(p.Disp + d * 24f, p.Disp + d * 300f, 1f, new Rgba(1f, 0.7f, 0.35f, 0.14f + 0.14f * p.SpinUp));
+                    }
+                }
             }
             if (p.Role == Role.Healer)
             {
@@ -310,10 +321,9 @@ namespace Arena
                 DrawParryGauge(p, t, 0.4f);
             if (p.DomeT > 0f)  // Fortress: the dome (DomeLook.cs)
                 DrawFortressDome(p, t);
+            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // Artillery Assault (ArtilleryLook.cs)
+                DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BulletStorm)  // spinning muzzle sparks
-                for (int k = 0; k < 3; k++)
-                    Arc(p.Disp, p.Def.BodyR + 7f + k * 4f, 2f, new Rgba(1f, 0.6f, 0.25f, 0.8f - k * 0.2f), 12, t * (8f + k * 3f), 1.2f);
         }
 
         /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.

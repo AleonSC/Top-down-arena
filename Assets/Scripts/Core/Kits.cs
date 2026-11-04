@@ -38,7 +38,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain }
+    public enum ZoneKind : byte { Haven, FlameWall, Blizzard, Lantern, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, Siphon, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard }
 
     public class ZoneDef
     {
@@ -99,7 +99,7 @@ namespace Arena
                 Damage = 16f },  // moved and cuts by ReaperLoot.cs (Dusk's colour; the outer one is drawn in Dawn's)
             new MinionDef { Name = "Thrown Scythe", Radius = 22f, Sides = 3, Color = new Rgba(0.85f, 0.75f, 1f), Move = MinionMove.Static,
                 Damage = 45f },  // thrown by ReaperLoot.cs
-            new MinionDef { Name = "Nimbus", Radius = 20f, Sides = 6, Color = new Rgba(0.62f, 0.74f, 1f), Move = MinionMove.FollowOwner, Speed = 300f },  // steered to your cursor and raining by Nimbus.cs
+            new MinionDef { Name = "Nimbus", Radius = 20f, Sides = 6, Color = new Rgba(0.62f, 0.74f, 1f), Move = MinionMove.FollowOwner, Speed = 600f },  // steered to your cursor and raining by Nimbus.cs
             new MinionDef { Name = "Soul Lantern", Radius = 14f, Sides = 6, Color = new Rgba(0.47f, 1f, 0.88f), Move = MinionMove.Static },  // moved, healing and flaming by SoulLantern.cs
         };
 
@@ -112,7 +112,7 @@ namespace Arena
             new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
             new ZoneDef { Name = "Soul Lantern", Color = new Rgba(1f, 0.9f, 0.5f), HealRate = 5f, PreventDown = true },
             new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },
-            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), HealRate = 20f, PreventDown = true, BlockCapacity = 1500f },
+            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), PreventDown = true, BlockCapacity = 1500f },  // heals in pulses (Sanctum.cs), not by HealRate
             new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
             new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
             new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },
@@ -126,6 +126,8 @@ namespace Arena
             new ZoneDef { Name = "Ofuda Ward", Color = new Rgba(1f, 0.85f, 0.6f) },
             new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (BloodMage.cs)
             new ZoneDef { Name = "Healing Rain", Color = new Rgba(0.4f, 0.85f, 0.5f), HealRate = 8f, Slow = 0.3f },  // the Healer Elementalist's rain (Docs/HealingRain.md)
+            new ZoneDef { Name = "Bullet Rain", Color = new Rgba(0.47f, 0.69f, 0.94f), Dps = 45f },  // the Elementalist DPS ultimate (BulletRainLook.cs)
+            new ZoneDef { Name = "Lumen Ward", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 9f },  // a cone of light along the caster's aim (LumenWard.cs): heals inside, enemy bullets outside slow to a stop
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

@@ -47,7 +47,7 @@ namespace Arena
                 Sound = Sfx.ShotSmg },
         };
 
-        /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Bullet Storm, Counterstance.
+        /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
         float FireRate(Player p) => p.Stats.FireRateMult * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.FuryT > 0f ? 1.4f : 1f)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * BloodFireRate(p);
 
@@ -55,7 +55,7 @@ namespace Arena
         void FirePlayer(Player p, float spread = 0f)
         {
             float dmg = p.Stats.DmgMult;
-            // Each extra projectile (Multishot, Bullet Storm) upgrades the weapon in its own way.
+            // Each extra projectile (Multishot, Artillery Assault) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
             if (p.Weapon.Id == WeaponId.Pistol)
@@ -150,6 +150,7 @@ namespace Arena
                 nb.Bomblet = true;
                 nb.Burst = 1;
             }
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.3f, Sfx.Explode);
             BroadcastFx(FxKind.Ring, b.Pos, Rgba.White, b.Splash * 1.15f, 0.2f, Sfx.None);
         }
@@ -189,7 +190,7 @@ namespace Arena
         public const float BarrageCopyDamage = 0.6f;
         float volleyShare = 1f;  // set while a Barrage copy fires
 
-        /// Extra projectiles from upgrades, plus two during Bullet Storm.
+        /// Extra projectiles from upgrades, plus two during Artillery Assault.
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.BulletStorm) ? 4 : 2) : 0)
             + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0)
             + (p.FuryT > 0f && Mastered(p, AbilityId.BattleFury) ? 1 : 0);

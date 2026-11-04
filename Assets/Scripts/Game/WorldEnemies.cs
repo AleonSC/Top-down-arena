@@ -80,6 +80,12 @@ namespace Arena
                         Circle(z.Pos + V2.FromAngle(MathX.Tau * k / 18f) * z.Radius, (7f + 3f * Mathf.Sin(t * 14f + k)) * wall, c.WithAlpha(0.8f * wall), 8);
                     break;
                 }
+                case ZoneKind.BulletRain:  // Downpour: the arena rains, the zone's drops harden into needles (BulletRainLook.cs)
+                    DrawBulletRain(z, t);
+                    break;
+                case ZoneKind.LumenWard:  // a cone of light, god rays and drifting dust (LumenWardLook.cs)
+                    DrawLumenWard(z, t);
+                    return;
                 case ZoneKind.Blizzard:  // a whiteout of wind-driven snow (ElementalistLooks.cs)
                     DrawBlizzard(z, t);
                     break;
@@ -152,6 +158,11 @@ namespace Arena
                     break;
                 }
                 case ZoneKind.Sanctum:  // a shining dome
+                    if (fxOn)
+                    {
+                        DrawSanctum(z, t);  // SanctumLook.cs
+                        return;
+                    }
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f + 0.04f * Mathf.Sin(t * 3f)), 56);
                     Arc(z.Pos, z.Radius - 6f, 2f, c.WithAlpha(0.5f), 56);
                     for (int k = 0; k < 8; k++)
@@ -438,8 +449,13 @@ namespace Arena
 
         void DrawMeleeSpikes(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            int spikes = e.Type == EnemyType.Swarmer ? 6 : e.Type == EnemyType.Brute ? 10 : 8;
-            float spin = e.Type == EnemyType.Swarmer ? t * 4f : t * 0.6f;
+            if (e.Type == EnemyType.Swarmer || e.Type == EnemyType.SpikeBlock)
+            {
+                DrawFaceSpikes(e, pos, r, col);  // MeleeGrunts: a spike on each face
+                return;
+            }
+            int spikes = e.Type == EnemyType.Brute ? 10 : 8;
+            float spin = e.Type == EnemyType.Buzzsaw ? t * 7f + e.Id : t * 0.6f;  // a Buzzsaw's turn about once a second
             for (int k = 0; k < spikes; k++)
             {
                 float a = spin + MathX.Tau * k / spikes;
@@ -447,6 +463,41 @@ namespace Arena
                 SetColor(col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.35f));
                 Tri(pos + d * (r + 6f), pos + d * (r - 2f) + side * (r * 0.28f), pos + d * (r - 2f) - side * (r * 0.28f));
             }
+        }
+
+        /// A Swarmer's three long thin spikes (one per face of its triangle) and a Spike Block's four big ones (one per face of its
+        /// square). The body is turned so the faces line up with the spikes (EnemyRotation). A Spike Block's spikes glow while it winds up and leaps.
+        void DrawFaceSpikes(Enemy e, V2 pos, float r, Rgba col)
+        {
+            bool block = e.Type == EnemyType.SpikeBlock;
+            int faces = block ? 4 : 3;
+            bool hot = block && (e.Phase == 1 || e.Phase == 2);
+            Rgba c = hot ? new Rgba(1f, 0.92f, 0.9f, col.A) : col.Mix(new Rgba(1f, 0.95f, 0.85f, col.A), 0.45f);
+            float apothem = block ? r * 0.7071f : r * 0.5f;       // centre to the middle of a face
+            float len = block ? r * 1.05f : r * 1.4f;              // how far a spike sticks out of its face
+            float half = block ? r * 0.4f : r * 0.16f;             // half the spike's width at its base
+            float first = block ? e.Facing : e.Facing + MathX.Pi / 3f;  // a Swarmer's faces lie between its corners
+            for (int k = 0; k < faces; k++)
+            {
+                V2 d = V2.FromAngle(first + MathX.Tau * k / faces), side = d.Orthogonal();
+                SetColor(c);
+                Tri(pos + d * (apothem + len), pos + d * (apothem - 1f) + side * half, pos + d * (apothem - 1f) - side * half);
+            }
+        }
+
+        /// Winding up: the red line of the lunge. Leaping: a smear behind it. Resting: dim.
+        void DrawSpikeBlockTell(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            if (e.Phase == 1)
+            {
+                V2 dir = V2.FromAngle(e.Facing);
+                float a = MathX.Fmod(t, 0.12f) < 0.06f ? 0.65f : 0.3f;
+                Line(pos + dir * r, pos + dir * (r + 175f), 3f, new Rgba(1f, 0.25f, 0.25f, a));
+                Circle(pos, r + 6f + 2f * Mathf.Sin(t * 30f), new Rgba(1f, 0.2f, 0.2f, 0.2f), 20);
+            }
+            else if (e.Phase == 2)
+                for (int k = 1; k <= 3; k++)
+                    Circle(pos - V2.FromAngle(e.Facing) * (r * 0.9f * k), r * (1f - 0.2f * k), col.WithAlpha(0.35f / k), 12);
         }
 
         /// Each type's effects behind its body. Returns the body colour (a Phantom flickers).
@@ -463,6 +514,9 @@ namespace Arena
                     break;
                 case EnemyType.Lunger:
                     DrawLungerTell(e, pos, r, col, t);
+                    break;
+                case EnemyType.SpikeBlock:
+                    DrawSpikeBlockTell(e, pos, r, col, t);
                     break;
                 case EnemyType.Charger:
                     DrawChargerTell(e, pos, r, col, t);
@@ -649,6 +703,9 @@ namespace Arena
         {
             switch (e.Type)
             {
+                case EnemyType.SpikeBlock:
+                    return e.Facing + MathX.Pi / 4f;  // a corner is 45 degrees off a face, and its spikes point out of the faces
+                case EnemyType.Swarmer:
                 case EnemyType.Charger:
                 case EnemyType.Lunger:
                 case EnemyType.Brute:

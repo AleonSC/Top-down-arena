@@ -32,6 +32,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Combat.cs`: bullets, collisions, damage to players/enemies, on-hit/on-kill, burn, orbs
 - `Weapons.cs`: fire rate, firing, volleys, range, Revolver, Mender's Bow
 - `Abilities.cs`, `Ultimates.cs`, `Mastery.cs`: Soldier abilities, the 12 ultimates, ability XP/levels
+- `Sanctum.cs`: the Healer Elementalist's Sanctum ultimate: seven healing pulses from the dome's centre, each ally healed as the ring reaches them (`SanctumPulse`, called from `TickZones`; `SanctumLook.cs` draws the bubble)
 - `Aegis.cs`: the Elementalist tank's Aeroaegis vortex (goes to the player the cursor is nearest, enemies held out; `AeroaegisLook.cs` draws it)
 - `Dome.cs`: the Tank Soldier's Fortress dome (enemies and their shots held out, `DomeLook.cs` draws it)
 - `Parry.cs`, `Stun.cs`, `Knock.cs`, `Repulsion.cs`: parry shield, stun, knockback slides, repulsion cannon
@@ -43,12 +44,14 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Ninja.cs`: Ninja weapons, Substitution, Shadow Step, clones, Vanish
 - `BloodMage.cs`: Hemomancer (health costs, Implosion, Blood Pact)
 - `Minions.cs`, `KitWeapons.cs`: Elementalist/Summoner abilities, minions, zones, their weapons
+- `LumenWard.cs`: the Healer Elementalist's Lumen Ward (`AbilityId.Sanctify`, renamed): a cone zone (`ZoneKind.LumenWard`, `Zone.Aim`) that heals inside, burns bullets in it and holds the ones outside (`Bullet.Stasis`, worked out on every peer)
 - `RadiantOrb.cs`: Healer's Radiant Orb
 - `Adrenaline.cs`: Healer Soldier's Adrenaline Shot (replaced Haven; target pick; speed, fire rate and damage cut live in `Entities.cs` `Player.Speed`, `Weapons.cs` `FireRate`, `Combat.cs`); look in `Game/AdrenalineLook.cs`.
 - `SoulLantern.cs`, `Medkit.cs`: Healer Summoner's Soul Lantern (linked lantern minion), Healer Soldier's Deployable Medkit (thrown case, healing orbs); `SoulGhost.cs` is the retired Soul Link ghost, no longer cast
 
 ## Enemies and bosses (Core)
 - `EnemyAI.cs`: enemy roster per wave, movement, firing, contact damage, bullet budget
+- `MeleeGrunts.cs`: the Buzzsaw (momentum steering, rapid touches), the zig-zagging Swarmer and the Spike Block's lunge
 - `Variety.cs`, `Readability.cs`: wave 15+ enemies and elite traits, shooters taking turns
 - `Zombies.cs`: Zombie Infection modifier (seven zombie kinds)
 - `Approaches.cs`, `WardenFaction.cs`: boss factions/approach mixes, Warden's faction enemies
@@ -87,6 +90,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `RepulseLook.cs`: the Repulsion Cannon's blast (muzzle star, smoke, ring, sparks, a small kick; Visual effects on)
 - `FrostLook.cs`: the Frost Lance's crystal-spear icicle and shard splinters (Visual effects on)
 - `RootLook.cs`: the Treant Rod's root lash and the root tether to its Treant (`DrawRoot`, `DrawRootLashFx`)
+- `LumenWardLook.cs`: Lumen Ward's cone of light (look A, Cathedral, of `Docs/Mockups/sanctify-cone.html`: bands, god rays, dust) and the halo on bullets it holds
 - `LifelineLook.cs`: the Healer Soldier's Lifeline (heartbeat pulse, halo and column of light on each player it reached; `FxKind.Lifeline`)
 - `ElementalistLooks.cs`: Meteor (falling rock, impact), Blizzard (whiteout) and Tsunami (crest, wet drips) looks
 - `NimbusLook.cs`, `ChalkLook.cs`: the Nimbus's cloud, rain and lightning; Spirit Chalk's ink, sealed loops and the ring on penned enemies
@@ -99,13 +103,17 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `AirTrailLooks.cs`: the air trail with Visual effects on (look A, Ribbons): two fading streamlines behind any player, enemy or minion, scaled by drawn speed (none under 110 px/s, full at 330)
 - `GunBowLooks.cs`: the Healer's Revolver (kick, flash, smoke, brass) and Mender's Bow (flexing limbs, snapping string, ring of light) with Visual effects on
 - `TankGunLooks.cs`: the Tank Soldier's Scattergun (recoil, pump, shell), Flak Cannon (recoil, heat, lifted shell, airburst) and Riot Repeater (bolt kick, brass, glowing rounds) with Visual effects on
+- `DpsGunLooks.cs`: the Soldier DPS's Twin Rifle (angled guns, kick, handle flick, brass, warming barrels), Railgun (charging coils, discharge arcs, rail kick, steam) and Burst SMG (spinning barrel tubes that heat up, growing flash, brass, smoke) with Visual effects on; the spray cone is in `WorldRenderer.cs`
 - `SoldierLooks.cs`: Soldier DPS ability looks with Visual effects on: Dash's comet streak, the Cluster Grenade's flight ring and Frag Burst blast, Mark for Death's reticle and skull
 - `ChainLightLooks.cs`: Chain Light with Visual effects on: a soft fan of light, beams and halos (style A, Radiance)
 - `EnergyWardLook.cs`: the Healer Elementalist's Energy Ward bubble with Visual effects on: a spring-driven radius that shrinks and squashes toward each hit, blue to green, and a green heal core growing inside (Heal core + Jelly hits)
 - `MendPulseLook.cs`: the Healer Soldier's Mend Pulse with Visual effects on: a swelling fill, a double-beat ring and a heart on each ally reached (style B, Heartbeat)
 - `TankLooks.cs`: the Tank Soldier's Roar (wave, enemy "!" pops, orbiting plates, draining rim, tethers) and Bulldoze (lane, afterimages, bow wave, hit sparks, landing stomp) with Visual effects on, timed from the cast's `FxKind.Callout`
+- `SanctumLook.cs`: Sanctum's Bubble look (shimmering shell, pulse discs and sparkles, rim flare, flicker at the end); the old plain dome with Visual effects off
 - `AeroaegisLook.cs`, `FrostNovaLook.cs`, `FlameWallLook.cs`: Aeroaegis's gust shell, Frost Nova's shatter and ice blocks, Flame Wall's magma ring, with Visual effects on (`Docs/Mockups/aeroaegis.html`, `frost-nova-rework.html`, `flame-wall-rework.html`)
 - `DomeLook.cs`: the Fortress dome, a ring of gold plates that flash as enemy shots reach it (look B of `Docs/Mockups/fortress-dome.html`)
+- `BulletRainLook.cs`: Bullet Rain (Elementalist DPS ultimate, `ZoneKind.BulletRain`): arena-wide rain, needles hardening in the zone
+- `ArtilleryLook.cs`: Artillery Assault (DPS Soldier ultimate, once Bullet Storm): heat aura and ring, speed streaks, muzzle flash
 - `BarrierLook.cs`: the Tank Soldier's Barrier with Visual effects on: eight armour plates that slam down, recoil on blocks and are knocked off as it soaks (style C, Bulwark Plates)
 - `ArcLightningLooks.cs`: Arc Lightning with Visual effects on: charge halo, sparks and dashed strip, the spine bolt (style A, Thunderhead)
 - `PropsLook.cs`, `ZombieLook.cs`, `VarietyLook.cs`, `ChallengeLook.cs`: props, zombies, wave 15+ enemies, challenge rooms
@@ -129,6 +137,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 - `Ui.cs`: IMGUI style kit (panels, buttons, bars)
 - `Menus.cs`, `MenuIntro.cs`, `MenuDrawer.cs`, `WindowAnim.cs`: main menu, pause/settings/records drawers, animations
 - `MenuVhs.cs`: the main menu buttons' VHS hover (with the `Sfx.MenuHover` tape-head tick on enter, via `MenuVhs.OnHover`; `Ui.SilentHover` mutes the generic hover tick for these buttons) and snap-to-focus click (`MenuVhs.Draw` wraps a button's draw call in `Menus.cs` and `SavesUi.cs`)
+- `CrtUi.cs`: the green-phosphor CRT look of the latest-run card, the older-runs page and the tip box (`Begin`, glowing `Text`, inverse-video `Button`/`Small`/`Tile`, `End` for scanlines and glass); Reduced effects drops glow, roll bar and flicker
 - `Keybinds.cs`, `KeybindsUi.cs`: every rebindable key (`KeyAction`, defaults, saved in PlayerPrefs, rebind capture) and Settings → Keybinds. Weapon secondaries read `PlayerInput.WeaponAction` (Left Alt) in `Core/Ninja.cs` `LocalWeaponDash`
 - `PerksUi.cs`: the lobby's Perks tab (look A: your slots left, perk cards right; click to equip, hover for the rules) and the perk icons on party cards (`DrawSeatPerks`); see `Docs/RiotGear.md`
 - `CosmeticsUi.cs`: your cosmetics window (the drawer opened by the main menu's name chip: Frame, Trail, Background, Reward ladder)

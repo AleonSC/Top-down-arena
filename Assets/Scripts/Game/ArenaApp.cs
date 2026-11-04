@@ -312,7 +312,7 @@ namespace Arena
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && game.PathOffer != null;
             bool shopping = session.Screen == AppScreen.Game && game.ShopOpen && me != null;  // the Bazaar's shop covers the arena (ShopUi.cs)
-            bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab();
+            bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || WaveBoxUp(me);  // (the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
             TickPing(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay && !emoteBarOpen);  // PingLooks.cs: tap to ping, hold for the wheel
@@ -329,7 +329,14 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             mouseBlocked = fireBlocked || parryBlocked;
-            Cursor.visible = session.Screen != AppScreen.Game || choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me);
+            bool inMenus = session.Screen != AppScreen.Game;
+            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || WaveBoxUp(me)
+                || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
+            // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
+            // morphs into the crosshair when the match takes over (CursorLooks.cs).
+            cursorWantPointer = inMenus || overlayPointer;
+            Cursor.visible = false;
+            StepCursorMorph(cursorWantPointer);
 
             if (!menuUp)
             {
@@ -718,6 +725,7 @@ namespace Arena
                     DrawDevMenu();
             }
             TextEditEndGui();
+            DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)
             bool clicked = Ui.TakeClick();
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime);  // a soft tick when the mouse moves onto a button

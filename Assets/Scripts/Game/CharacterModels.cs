@@ -143,13 +143,17 @@ namespace Arena
             }
             float gKick, gPump, gHeat; int gLit;
             TankGunPose(p, out gKick, out gPump, out gHeat, out gLit);  // the Scattergun, Flak Cannon and Riot Repeater kick and pump (TankGunLooks.cs)
+            float dKick;
+            DpsGunPose(p, out dKick);  // the Twin Rifle, Railgun and Burst SMG kick, charge and spin (DpsGunLooks.cs)
+            gKick += dKick;
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             ModelArm(K, 1f, ry * 0.72f, rhx, rhy);
             ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
-            MFrame(rhx, rhy, 0f, wk, false);
+            float twist = mDpsOn && p.Weapon.Id == WeaponId.TwinRifle ? 0.12f : 0f;  // the Twin Rifle's guns angle in toward where the streams cross
+            MFrame(rhx, rhy, -twist, wk, false);
             DrawHeld(p, t, hold);
-            if (hold == 2) { MFrame(lhx, lhy, 0f, wk, true); DrawHeld(p, t, hold); }
+            if (hold == 2) { MFrame(lhx, lhy, twist, wk, true); DrawHeld(p, t, hold); }
             MFrame(0f, 0f, 0f, 1f, false);
             MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
 
@@ -406,14 +410,17 @@ namespace Arena
                     break;
                 }
                 case WeaponId.TwinRifle:
+                    if (mDpsOn) { DrawTwinRifleFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2f, 8f, 4f, MWood); MRect(0f, -2.6f, 14f, 5.2f, MDark); MLine(12f, 0f, 26f, 0f, 2.4f, MSteel); MRect(5f, -5f, 8f, 2.6f, Hx(0x7bd0ff));
                     break;
                 case WeaponId.Railgun:
+                    if (mDpsOn) { DrawRailgunFx(); break; }  // DpsGunLooks.cs
                     MRect(-8f, -3f, 10f, 6f, MDark); MLine(2f, -3f, 38f, -3f, 2.2f, MSteel); MLine(2f, 3f, 38f, 3f, 2.2f, MSteel);
                     for (int i = 0; i < 3; i++) MRect(10f + i * 8f, -4.6f, 3f, 9.2f, Hx(0x52c9ff));
                     MLine(4f, 0f, 36f, 0f, 1.5f, Hx(0xbff3ff));
                     break;
                 case WeaponId.BurstSmg:
+                    if (mDpsOn) { DrawBurstSmgFx(); break; }  // DpsGunLooks.cs
                     MRect(-6f, -2.5f, 8f, 5f, MDark); MRect(0f, -3.4f, 14f, 6.8f, Hx(0x4a5560)); MRect(4f, 2f, 5f, 8f, Hx(0x22272e));
                     for (int i = 0; i < 3; i++) { float y = Mathf.Sin(t * 9f + i * 2.09f) * 2.2f; MLine(14f, y, 24f, y, 1.8f, MSteel); }
                     break;
