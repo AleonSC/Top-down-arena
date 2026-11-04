@@ -17,7 +17,7 @@ namespace Arena
             bool host = session.IsHost;
             float x = r.x + 18f, w = r.width - 36f, y = r.y + 14f;
             int n = Modifiers.Count(session.Modifiers);
-            Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModColor, TextAnchor.MiddleRight, true);
+            Ui.Label(new Rect(x, y, w, 28f), n == 0 ? "None on: a normal run" : n + " on", 12, n == 0 ? Ui.Muted : ModColor, TextAnchor.MiddleLeft, true);
             if (n > 0 && host && Ui.Button(new Rect(x + w - 150f, y + 2f, 100f, 24f), "Turn all off"))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
