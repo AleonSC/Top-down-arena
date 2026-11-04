@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rank Trails</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a patch of arena at the game's scale with a player on a looping
+   path, wearing the trail you pick, and a rank slider that locks or unlocks each trail. Under it: one card per trail,
+   all running the same path. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gold); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; }
+canvas { display: block; width: 100%; height: auto; aspect-ratio: 960 / 400; background: #070910; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2716; border-color: var(--gold); color: var(--fg); }
+input[type=range] { width: min(320px, 70vw); accent-color: var(--gold); }
+.rank { font: 700 16px var(--font-display); color: var(--fg); min-width: 7ch; font-variant-numeric: tabular-nums; }
+.tier { font: 600 12px var(--font-display); letter-spacing: .1em; text-transform: uppercase; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; position: relative; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--gold); }
+.card canvas { border: 1px solid var(--line); border-radius: 6px; }
+.card.locked canvas { filter: grayscale(1) brightness(.45); }
+.card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.card .tag { font: 700 12px var(--font-display); letter-spacing: .12em; color: var(--gold); }
+.card .req { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card.locked .req::before { content: "\1F512  "; }
+.card:not(.locked) .req { color: var(--teal); border-color: #2c5d52; }
+.card p { font-size: 14px; color: var(--soft); }
+.new { font: 600 10px var(--font-display); letter-spacing: .14em; color: #0a0d10; background: var(--amber); padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.ladder { display: grid; gap: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ladder div { display: grid; grid-template-columns: 70px 1fr auto; gap: 12px; padding: 9px 14px; border-top: 1px solid var(--line); align-items: baseline; font-size: 15px; }
+.ladder div:first-child { border-top: 0; }
+.ladder b { font-family: var(--font-display); color: var(--fg); }
+.ladder span:last-child { color: var(--muted); font-size: 13px; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Account rank · Cosmetics · Trails</div>
+    <h1>Rank <span>Trails</span></h1>
+    <p class="lead">Rank unlocks cosmetics only, never power. Today there are two trails: Ember (rank 8) and Gold stardust
+      (rank 25). Here is a fuller ladder of six, with the two existing ones drawn exactly as the game draws them and
+      five new ideas (marked NEW) that fill the gaps between tiers. Drag the rank slider to see what is locked, pick a
+      trail, and watch it on the big stage. Every preview runs at the game's scale with the same path, so you are
+      comparing like with like.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="960" height="400"></canvas>
+    <div class="bar">
+      <div class="group"><span class="label">Your rank</span>
+        <input id="rank" type="range" min="1" max="60" value="60" aria-label="Rank">
+        <span class="rank" id="rankTxt">Rank 60</span><span class="tier" id="tierTxt"></span></div>
+      <div class="group"><span class="label">Time</span>
+        <button id="pause" aria-pressed="false">Pause</button>
+        <button id="slow" aria-pressed="false">Slow-mo &frac14;&times;</button>
+        <button id="stop" aria-pressed="false">Stand still</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The trails</h2>
+    <p class="lead" style="margin-block:6px 14px">Click a card to put it on the big stage. Locked ones are greyed out for
+      the rank you chose; they still animate so you can see what you are working towards.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Proposed ladder</h2>
+    <p class="lead" style="margin-block:6px 14px">Trails go in the gaps between the existing rewards, and the later ones
+      sit at tier changes so a new tier always brings something you can see.</p>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li><b>Drawing only.</b> Same mechanism as today: <code>DrawRankTrails</code> in <code>Game/RankTrails.cs</code>
+        keeps each player's last 0.9 s of path (a point every 7 px) and draws from that. The lobby entry already
+        carries each player's <code>Trail</code> index, so every player sees everyone's trail.</li>
+      <li><b>Protocol.</b> New entries go at the <b>end</b> of <code>Rank.Cosmetics</code> (ids are stored in profiles and
+        the lobby sends an index, so never reorder). The index is a byte on the wire, so no format change and no
+        protocol bump is needed unless the table order changes for existing ones.</li>
+      <li><b>Ember and Gold</b> are today's code unchanged. The four new ones are the same shape: one polyline of faded
+        segments plus a few small particles per point, so cost stays near today's (about 15 points, up to 3 players).</li>
+      <li><b>Readability.</b> Every trail is kept at low alpha and thin near the player so bullets and enemy telegraphs
+        stay readable in a bullet hell. Prism is the busiest, which is why it's a Legend reward.</li>
+      <li><b>Colour clash.</b> Frost and Void sit near some enemy and boss colours, so the trail is drawn <i>behind</i>
+        the player and below projectiles.</li>
+      <li><b>Cosmetics UI.</b> The Trail row in <code>CosmeticsUi.cs</code> already lists every trail with its rank. A
+        small live preview in the row (this mockup's card canvas) is the natural follow-up.</li>
+      <li><b>Pick.</b> I'd ship Frost (14), Storm (18) and Void (22) first because they extend the ladder through the
+        Veteran and Champion tiers with the least new code, then Prism as the Legend flex. Say which you want and I'll
+        build them, with their README and tests.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, W = 960, H = 400, LIFE = 0.9;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const rgba = (r, g, b, a) => `rgba(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)},${clamp01(a)})`;
+  const hsl = (h, s, l, a) => `hsla(${h},${s}%,${l}%,${clamp01(a)})`;
+  const TIERS = [["Recruit", "#8a94b0", 1], ["Challenger", "#5a96ff", 5], ["Veteran", "#4fd1b5", 10], ["Champion", "#b573ff", 20], ["Legend", "#ffcc59", 30]];
+  const tierOf = r => { let t = TIERS[0]; for (const x of TIERS) if (r >= x[2]) t = x; return t; };
+
+  function seg(c, a, b, w, col) { c.strokeStyle = col; c.lineWidth = Math.max(.4, w); c.lineCap = "round"; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); }
+  function disc(c, x, y, r, col) { c.fillStyle = col; c.beginPath(); c.arc(x, y, Math.max(.1, r), 0, TAU); c.fill(); }
+  function diamond(c, x, y, r, rot, col) {
+    c.fillStyle = col; c.beginPath();
+    for (let k = 0; k < 4; k++) { const a = rot + k * TAU / 4, rr = k % 2 ? r * .45 : r; c.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+    c.closePath(); c.fill();
+  }
+
+  // Each style draws one point of the path; i is the index, age 0..1, a = 1 - age, t is the clock.
+  // Ember and Gold are the game's own code (RankTrails.cs) ported 1:1.
+  const STYLES = [
+    { id: "none", name: "No trail", rank: 1, tag: "NOW", text: "What you have before rank 8." },
+    { id: "ember", name: "Ember", rank: 8, tag: "REWARD", text: "Today's rank-8 trail: a warm orange smear, embers drifting up as they die.",
+      pt(c, p, q, i, age, a, t) {
+        seg(c, q, p, 5 * a + .5, rgba(1, .4, .1, .16 * a));
+        const fl = .6 + .4 * Math.sin(t * 20 + i * 2.3);
+        disc(c, p.x, p.y - 10 * age, 1.6 + 2.2 * a * fl, rgba(1, .55 + .3 * a, .15, .75 * a));
+      } },
+    { id: "frost", name: "Frost", rank: 14, isNew: true, tag: "NEW", text: "A pale-blue chill line with ice crystals left where you passed. They don't drift: they sit, glint and melt.",
+      pt(c, p, q, i, age, a, t) {
+        seg(c, q, p, 3.5 * a + .5, rgba(.55, .85, 1, .2 * a));
+        if (i % 2 === 0) {
+          const g = .55 + .45 * Math.sin(t * 9 + i * 1.9), o = (i % 4 === 0 ? 1 : -1) * (5 + 3 * age);
+          const nx = p.x + o * .5, ny = p.y + o;
+          diamond(c, nx, ny, 2.2 + 2.4 * a, i * .8, rgba(.75, .93, 1, .8 * a * g));
+          disc(c, nx, ny, .9 * a, rgba(1, 1, 1, a));
+        }
+      } },
+    { id: "storm", name: "Storm", rank: 18, isNew: true, tag: "NEW", text: "Crackling static: a jagged yellow-white thread that re-rolls every few frames, with the odd bright fork.",
+      pt(c, p, q, i, age, a, t) {
+        const fr = Math.floor(t * 18), r1 = Math.sin((i + fr * 7.3) * 12.9898) * 43758.5453, rj = (r1 - Math.floor(r1)) - .5;
+        const dx = p.x - q.x, dy = p.y - q.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, j = rj * 16 * a;
+        const m = { x: (p.x + q.x) / 2 + nx * j, y: (p.y + q.y) / 2 + ny * j };
+        seg(c, q, m, 3.2 * a + .4, rgba(.6, .75, 1, .22 * a)); seg(c, m, p, 3.2 * a + .4, rgba(.6, .75, 1, .22 * a));
+        seg(c, q, m, 1.3 * a + .3, rgba(1, .97, .7, .9 * a)); seg(c, m, p, 1.3 * a + .3, rgba(1, .97, .7, .9 * a));
+        if (i % 5 === 0 && rj > 0) seg(c, m, { x: m.x + nx * 14 * a, y: m.y + ny * 14 * a }, .9, rgba(1, 1, 1, .8 * a));
+      } },
+    { id: "void", name: "Void", rank: 22, isNew: true, tag: "NEW", text: "A dark ribbon with a violet edge. Motes are pulled back toward the player instead of drifting away.",
+      pt(c, p, q, i, age, a, t, pl) {
+        seg(c, q, p, 8 * a + 1, rgba(.45, .15, .85, .2 * a));
+        seg(c, q, p, 5 * a + .5, rgba(.05, .02, .12, .75 * a));
+        if (i % 2 === 0) {
+          const k = 1 - .55 * age, ph = i * 2.1 + t * 3;
+          const mx = pl.x + (p.x - pl.x) * k + Math.cos(ph) * 6 * a, my = pl.y + (p.y - pl.y) * k + Math.sin(ph) * 6 * a;
+          disc(c, mx, my, 1.1 + 1.6 * a, rgba(.78, .5, 1, .8 * a));
+        }
+      } },
+    { id: "gold", name: "Gold stardust", rank: 25, tag: "REWARD", text: "Today's rank-25 trail: a soft gold line and twinkling sparkles.",
+      pt(c, p, q, i, age, a, t) {
+        seg(c, q, p, 3 * a + .5, rgba(1, .85, .4, .22 * a));
+        if (i % 2 === 0) {
+          const tw = .5 + .5 * Math.sin(t * 14 + i * 1.7), an = i * 2.4, d = 4 + 6 * age;
+          disc(c, p.x + Math.cos(an) * d, p.y + Math.sin(an) * d, 1.2 + 1.4 * a * tw, rgba(1, .95, .75, .85 * a * tw));
+        }
+      } },
+    { id: "prism", name: "Prism", rank: 35, isNew: true, tag: "NEW", text: "The Legend flex. Three offset ribbons that cycle through the spectrum along their length, with white glints.",
+      pt(c, p, q, i, age, a, t) {
+        const dx = p.x - q.x, dy = p.y - q.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+        for (let k = -1; k <= 1; k++) {
+          const o = k * 5 * a, h = (t * 120 + i * 14 + k * 50) % 360;
+          seg(c, { x: q.x + nx * o, y: q.y + ny * o }, { x: p.x + nx * o, y: p.y + ny * o }, 2.4 * a + .4, hsl(h, 95, 62, .55 * a));
+        }
+        if (i % 3 === 0) {
+          const tw = .5 + .5 * Math.sin(t * 16 + i);
+          disc(c, p.x + nx * 9 * Math.sin(i), p.y + ny * 9 * Math.sin(i), 1 + 1.3 * a * tw, rgba(1, 1, 1, .9 * a * tw));
+        }
+      } },
+  ];
+
+
+  // --- An emitter: the player's path history, as the game keeps it ---
+  class Player {
+    constructor() { this.pts = []; }
+    path(t, still) {
+      const u = still ? 2.2 : t - 1.6 * Math.sin(t * .5);
+      return { x: W / 2 + 360 * Math.sin(u * .9), y: H / 2 + 120 * Math.sin(u * 1.8) };
+    }
+    step(t, still, kind) {
+      const pos = this.path(t, still);
+      const last = this.pts[this.pts.length - 1];
+      if (!last || Math.hypot(last.x - pos.x, last.y - pos.y) > 7) this.pts.push({ x: pos.x, y: pos.y, t });
+      while (this.pts.length && t - this.pts[0].t > LIFE) this.pts.shift();
+      this.pos = pos;
+    }
+    draw(c, style, t) {
+      if (style && style.pt) for (let i = 1; i < this.pts.length; i++) {
+        const age = clamp01((t - this.pts[i].t) / LIFE), a = 1 - age;
+        if (Math.hypot(this.pts[i].x - this.pts[i - 1].x, this.pts[i].y - this.pts[i - 1].y) > 120) continue;
+        style.pt(c, this.pts[i], this.pts[i - 1], i, age, a, t, this.pos);
+      }
+      const { x, y } = this.pos;  // the player, drawn over the trail
+      disc(c, x, y, 17, "rgba(111,227,196,.18)"); disc(c, x, y, 13, "#2b8f7a"); disc(c, x, y, 13, "rgba(255,255,255,.06)");
+      c.strokeStyle = "#cfeee6"; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 13, 0, TAU); c.stroke();
+    }
+  }
+
+  function drawBackdrop(c) {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, W, H);
+    c.strokeStyle = "rgba(120,140,170,.07)"; c.lineWidth = 1; c.beginPath();
+    for (let x = 0; x <= W; x += 40) { c.moveTo(x, 0); c.lineTo(x, H); }
+    for (let y = 0; y <= H; y += 40) { c.moveTo(0, y); c.lineTo(W, y); }
+    c.stroke();
+  }
+
+  const $ = id => document.getElementById(id);
+  const main = $("arena"), mctx = main.getContext("2d"), mp = new Player();
+  let sel = "gold", rank = 60, paused = false, slow = false, still = false, clock = 0, last = performance.now();
+  const byId = id => STYLES.find(s => s.id === id);
+
+  // Cards
+  const cardsEl = $("cards"), cards = [];
+  for (const s of STYLES) {
+    const el = document.createElement("div"); el.className = "card"; el.tabIndex = 0; el.setAttribute("role", "button");
+    el.innerHTML = `<canvas width="${W}" height="${H}"></canvas><div class="row"><h3><span class="tag">${s.tag}</span> ${s.name}</h3><span class="req">${s.rank > 1 ? "Rank " + s.rank : "Default"}</span></div><p>${s.text}</p>`;
+    const pick = () => { sel = s.id; refresh(); };
+    el.onclick = pick; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+    cardsEl.appendChild(el);
+    cards.push({ s, el, ctx: el.querySelector("canvas").getContext("2d"), p: new Player() });
+  }
+  // Ladder
+  const lad = [[5, "Title: Challenger"], [8, "Trail: Ember", 1], [10, "Title: Veteran"], [12, "Frame: Steel"], [14, "Trail: Frost", 2], [15, "Menu background: Dusk grid"],
+    [18, "Trail: Storm", 2], [20, "Title: Champion"], [22, "Trail: Void", 2], [25, "Trail: Gold stardust", 1], [30, "Frame: Gold, Title: Legend"], [35, "Trail: Prism", 2]];
+  $("ladder").innerHTML = lad.map(([r, n, k]) => `<div><b>${r}</b><span>${n}${k === 2 ? ' <span class="new">NEW</span>' : ""}</span><span>${k ? "trail" : ""}</span></div>`).join("");
+
+  function refresh() {
+    const t = tierOf(rank);
+    $("rankTxt").textContent = "Rank " + rank; $("tierTxt").textContent = t[0]; $("tierTxt").style.color = t[1];
+    for (const c of cards) {
+      c.el.classList.toggle("locked", rank < c.s.rank);
+      c.el.setAttribute("aria-current", c.s.id === sel ? "true" : "false");
+    }
+  }
+  $("rank").oninput = e => { rank = +e.target.value; refresh(); };
+  const tog = (id, f) => { const b = $(id); b.onclick = () => { const v = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", v); f(v); }; };
+  tog("pause", v => paused = v); tog("slow", v => slow = v); tog("stop", v => still = v);
+
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!paused) clock += dt * (slow ? .25 : 1);
+    const t = clock;
+    // main stage: if the selected trail is locked, show it anyway but label it
+    const s = byId(sel);
+    drawBackdrop(mctx); mp.step(t, still); mp.draw(mctx, s, t);
+    mctx.font = "600 13px Oxanium, sans-serif"; mctx.fillStyle = "#92a1ad"; mctx.textAlign = "left";
+    mctx.fillText(s.name + (rank < s.rank ? "  (locked until rank " + s.rank + ")" : ""), 16, 26);
+    for (const c of cards) { drawBackdrop(c.ctx); c.p.step(t, still); c.p.draw(c.ctx, c.s, t); }
+    requestAnimationFrame(frame);
+  }
+  refresh(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
