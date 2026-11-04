@@ -1,0 +1,297 @@
+<title>Rank Frames</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a lobby party at the game's own size (376 x 88 per card) with the
+   frame you pick on your card and a rank slider that locks or unlocks each one. Under it: one card per frame, all
+   animating together. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gold); }
+h2 { font-size: 21px; font-weight: 700; letter-spacing: .04em; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.party { display: grid; gap: 0; justify-items: center; padding: 22px 16px 10px; background: #080b11; }
+.party canvas { display: block; width: 100%; max-width: 560px; height: auto; aspect-ratio: 404 / 348; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #2a2716; border-color: var(--gold); color: var(--fg); }
+input[type=range] { width: min(320px, 70vw); accent-color: var(--gold); }
+.rank { font: 700 16px var(--font-display); min-width: 7ch; font-variant-numeric: tabular-nums; }
+.tier { font: 600 12px var(--font-display); letter-spacing: .1em; text-transform: uppercase; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; cursor: pointer; min-width: 0; }
+.card:hover { border-color: var(--edge); }
+.card[aria-current="true"] { border-color: var(--gold); }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 404 / 116; background: #080b11; border-radius: 6px; }
+.card.locked canvas { filter: grayscale(1) brightness(.5); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .12em; color: var(--gold); }
+.req { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card:not(.locked) .req { color: var(--teal); border-color: #2c5d52; }
+.card.locked .req::before { content: "\1F512  "; }
+.card p { font-size: 14px; color: var(--soft); }
+.ladder { display: grid; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ladder div { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 9px 14px; border-top: 1px solid var(--line); align-items: baseline; font-size: 15px; }
+.ladder div:first-child { border-top: 0; }
+.ladder b { font-family: var(--font-display); }
+.ladder span:last-child { color: var(--muted); font-size: 13px; }
+.new { font: 600 10px var(--font-display); letter-spacing: .14em; color: #0a0d10; background: var(--amber); padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 90ch; color: var(--soft); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Account rank · Cosmetics · Frames</div>
+    <h1>Rank <span>Frames</span></h1>
+    <p class="lead">A frame is the border round your party card in the lobby, and round your results card. Today there are
+      two, Steel (rank 12) and Gold (rank 30), and both are a plain coloured rim. Here they are as the game draws them,
+      plus five new ones (marked NEW) that add something small that moves. The party below is drawn at the game's real
+      card size. Pick a frame to wear it on your card, and drag the rank slider to see what is locked.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <div class="party"><canvas id="party" width="808" height="696"></canvas></div>
+    <div class="bar">
+      <div class="group"><span class="label">Your rank</span>
+        <input id="rank" type="range" min="1" max="60" value="60" aria-label="Rank">
+        <span class="rank" id="rankTxt">Rank 60</span><span class="tier" id="tierTxt"></span></div>
+      <div class="group"><span class="label">Time</span>
+        <button id="pause" aria-pressed="false">Pause</button>
+        <button id="slow" aria-pressed="false">Slow-mo &frac14;&times;</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The frames</h2>
+    <p class="lead" style="margin-block:6px 14px">Click a card to put it on your party card. Locked ones are greyed for the
+      rank you chose but still animate.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <h2>Proposed ladder</h2>
+    <p class="lead" style="margin-block:6px 14px">Frames sit between the existing rewards. The animated ones get busier as
+      the rank goes up, and the last two are the long-term goals.</p>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <section class="notes">
+    <h2>Build notes</h2>
+    <ul>
+      <li><b>Drawing only.</b> Every effect here is made of rects, lines, circles and the soft glow pills the party card
+        already uses (<code>DrawPartyCard</code> in <code>Game/LobbyUi.cs</code>). Nothing is sent that isn't sent today:
+        the lobby already carries each player's frame number (<code>LobbyEntry.Frame</code>), and each screen animates it
+        itself from the clock, so everyone sees everyone's frame.</li>
+      <li><b>Frame style.</b> Today <code>Rank.FrameColor</code> returns one colour per frame. These need a style as well
+        as a colour, so I'd add a small <code>FrameLook</code> switch on the frame id (the same way
+        <code>TrailPiece</code> switches on the trail id) and draw it from one helper that the party card, the results
+        card, the cosmetics window and the Hangout name plate all call.</li>
+      <li><b>Protocol.</b> New ids go in <code>Rank.Cosmetics</code> in rank order, which renumbers the frames in the lobby
+        (Gold goes from 2 to 5, as Gold stardust did when the trails were added), so the protocol is bumped. Profiles keep
+        ids, so nobody loses what they had equipped.</li>
+      <li><b>Hangout and small spots.</b> The Hangout name plate and the cosmetics window thumbnails are too small for
+        sparks and shimmers, so they use only the frame's base colour and a simple rim, as they do now.</li>
+      <li><b>Readability and cost.</b> Effects stay inside a 14 px band round the card and never cover the portrait, name
+        or Ready badge. Each frame is at most about 20 small shapes. With Visual effects off, every frame falls back to a
+        static rim in its base colour.</li>
+      <li><b>My pick.</b> Circuit (16), Ember Edge (20) and Void Pulse (24) first, because they fill the long gap between
+        Steel and Gold and each needs only a few lines. Legend Foil (40) and Prism (50) are the rewards to chase.
+        Say which you want and I'll build them with their README and tests.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, CW = 376, CH = 88, PAD = 14, R = 10;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const TIERS = [["Recruit", "#8a94b0", 1], ["Challenger", "#5a96ff", 5], ["Veteran", "#4fd1b5", 10], ["Champion", "#b573ff", 20], ["Legend", "#ffcc59", 30]];
+  const tierOf = r => { let t = TIERS[0]; for (const x of TIERS) if (r >= x[2]) t = x; return t; };
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${clamp01(a)})`;
+  const rnd = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  const STEEL = [184, 199, 230], GOLD = [255, 204, 89], TEAL = [79, 209, 181], EMBER = [255, 122, 26], VIOLET = [181, 115, 255];
+
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+  // A point on the card's outline, s from 0 to 1 once round (clockwise from the top left).
+  function perim(w, h, s) {
+    const total = 2 * (w + h); let d = ((s % 1) + 1) % 1 * total;
+    if (d < w) return [d, 0]; d -= w;
+    if (d < h) return [w, d]; d -= h;
+    if (d < w) return [w - d, h]; d -= w;
+    return [0, h - d];
+  }
+  function glowLayers(c, w, h, col, a) {  // the game's own: three soft pills growing outwards
+    for (let k = 3; k >= 1; k--) { rr(c, -3 * k, -3 * k, w + 6 * k, h + 6 * k, R + 3 * k); c.fillStyle = rgba(col, a * 0.05 * (4 - k) / 3 * 3); c.fill(); }
+  }
+  function spark(c, x, y, r, rot, col) {
+    c.strokeStyle = col; c.lineWidth = 1.4; c.lineCap = "round"; c.beginPath();
+    for (let k = 0; k < 2; k++) { const a = rot + k * Math.PI / 2; c.moveTo(x - Math.cos(a) * r, y - Math.sin(a) * r); c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+    c.stroke();
+  }
+
+  // Each frame: back(c, w, h, t) is drawn under the card, rim(c, w, h, t) over its edge.
+  const FRAMES = [
+    { id: "none", name: "No frame", rank: 1, tag: "NOW", base: null, text: "Your card shows your role's colour, dimmer if it isn't yours.",
+      rim: (c, w, h, t, role) => { rr(c, 0, 0, w, h, R); c.strokeStyle = rgba(role, .3); c.lineWidth = 1.5; c.stroke(); } },
+    { id: "steel", name: "Steel", rank: 12, tag: "REWARD", base: STEEL, text: "Today's rank-12 frame: a lit steel-grey rim with a soft glow.",
+      back: (c, w, h) => glowLayers(c, w, h, STEEL, 1),
+      rim: (c, w, h) => { rr(c, 0, 0, w, h, R); c.strokeStyle = rgba(STEEL, 1); c.lineWidth = 1.6; c.stroke(); } },
+    { id: "circuit", name: "Circuit", rank: 16, isNew: true, tag: "NEW", base: TEAL, text: "A teal rim with bracketed corners and a pulse of light that runs round the edge every few seconds.",
+      back: (c, w, h) => glowLayers(c, w, h, TEAL, .8),
+      rim: (c, w, h, t) => {
+        rr(c, 0, 0, w, h, R); c.strokeStyle = rgba(TEAL, .75); c.lineWidth = 1.4; c.stroke();
+        c.strokeStyle = rgba(TEAL, 1); c.lineWidth = 3; c.lineCap = "square"; const L = 18;
+        for (const [x, y, sx, sy] of [[0, 0, 1, 1], [w, 0, -1, 1], [w, h, -1, -1], [0, h, 1, -1]]) { c.beginPath(); c.moveTo(x + sx * L, y); c.lineTo(x, y); c.lineTo(x, y + sy * L); c.stroke(); }
+        const head = (t * 0.22) % 1;
+        for (let j = 0; j < 14; j++) { const [px, py] = perim(w, h, head - j * 0.006); c.fillStyle = rgba([200, 255, 245], (1 - j / 14) * .95); c.beginPath(); c.arc(px, py, 3 - j * .15, 0, TAU); c.fill(); }
+      } },
+    { id: "ember", name: "Ember Edge", rank: 20, isNew: true, tag: "NEW", base: EMBER, text: "A warm rim that flickers like a coal, with embers lifting off the top edge and fading as they rise.",
+      back: (c, w, h, t) => glowLayers(c, w, h, EMBER, .7 + .3 * Math.sin(t * 11)),
+      rim: (c, w, h, t) => {
+        const g = c.createLinearGradient(0, h, 0, 0); g.addColorStop(0, rgba(EMBER, .95)); g.addColorStop(1, rgba([255, 214, 110], .95));
+        rr(c, 0, 0, w, h, R); c.strokeStyle = g; c.globalAlpha = .8 + .2 * Math.sin(t * 17); c.lineWidth = 1.8; c.stroke(); c.globalAlpha = 1;
+        const rd = rnd(7);
+        for (let i = 0; i < 16; i++) {
+          const life = ((t * .7 + rd()) % 1), x = 12 + rd() * (w - 24) + Math.sin(t * 3 + i) * 4, y = -life * 22 - 1;
+          c.fillStyle = rgba([255, 150 + 80 * (1 - life), 40], 1 - life); c.beginPath(); c.arc(x, y, 1 + 1.6 * (1 - life), 0, TAU); c.fill();
+        }
+      } },
+    { id: "void", name: "Void Pulse", rank: 24, isNew: true, tag: "NEW", base: VIOLET, text: "A violet rim with a second, dimmer rim inside it that breathes, and two dark motes circling the card.",
+      back: (c, w, h, t) => glowLayers(c, w, h, VIOLET, .55 + .45 * (.5 + .5 * Math.sin(t * 2.4))),
+      rim: (c, w, h, t) => {
+        const b = .5 + .5 * Math.sin(t * 2.4);
+        rr(c, 0, 0, w, h, R); c.strokeStyle = rgba(VIOLET, 1); c.lineWidth = 1.6; c.stroke();
+        rr(c, 5, 5, w - 10, h - 10, R - 3); c.strokeStyle = rgba(VIOLET, .2 + .35 * b); c.lineWidth = 1; c.stroke();
+        for (let k = 0; k < 2; k++) { const [px, py] = perim(w, h, t * .06 + k * .5); c.fillStyle = "rgba(14,6,30,.95)"; c.beginPath(); c.arc(px, py, 4.6, 0, TAU); c.fill(); c.strokeStyle = rgba(VIOLET, .9); c.lineWidth = 1.3; c.stroke(); }
+      } },
+    { id: "gold", name: "Gold", rank: 30, tag: "REWARD", base: GOLD, text: "Today's rank-30 frame: a lit gold rim with a soft glow.",
+      back: (c, w, h) => glowLayers(c, w, h, GOLD, 1),
+      rim: (c, w, h) => { rr(c, 0, 0, w, h, R); c.strokeStyle = rgba(GOLD, 1); c.lineWidth = 1.6; c.stroke(); } },
+    { id: "foil", name: "Legend Foil", rank: 40, isNew: true, tag: "NEW", base: GOLD, text: "Gold with a bright band of light that sweeps across the rim every few seconds, and four twinkling corner stars.",
+      back: (c, w, h) => glowLayers(c, w, h, GOLD, 1.1),
+      rim: (c, w, h, t) => {
+        const gx = ((t % 3.4) / 3.4) * (w + 140) - 70, g = c.createLinearGradient(gx - 34, h * .6, gx + 34, -h * .6);
+        g.addColorStop(0, rgba(GOLD, 1)); g.addColorStop(.5, "rgba(255,255,245,1)"); g.addColorStop(1, rgba(GOLD, 1));
+        rr(c, 0, 0, w, h, R); c.strokeStyle = g; c.lineWidth = 2.6; c.stroke();
+        [[0, 0], [w, 0], [w, h], [0, h]].forEach(([x, y], k) => { const tw = .5 + .5 * Math.sin(t * 4 + k * 1.7); spark(c, x, y, 3 + 6 * tw, Math.PI / 4 * (k % 2), rgba([255, 246, 210], .5 + .5 * tw)); });
+      } },
+    { id: "prism", name: "Prism", rank: 50, isNew: true, tag: "NEW", base: [255, 255, 255], text: "A rim that cycles through the whole spectrum as it turns round the card. The busiest frame, so it is the last reward.",
+      back: (c, w, h, t) => glowLayers(c, w, h, hslRgb((t * 40) % 360), 1),
+      rim: (c, w, h, t) => {
+        let g;
+        if (c.createConicGradient) {
+          g = c.createConicGradient(t * .8, w / 2, h / 2);
+          for (let k = 0; k <= 6; k++) g.addColorStop(k / 6, `hsl(${k * 60},95%,64%)`);
+        } else { g = c.createLinearGradient(0, 0, w, 0); for (let k = 0; k <= 6; k++) g.addColorStop(k / 6, `hsl(${(k * 60 + t * 60) % 360},95%,64%)`); }
+        rr(c, 0, 0, w, h, R); c.strokeStyle = g; c.lineWidth = 2.6; c.stroke();
+        const [px, py] = perim(w, h, t * .12); spark(c, px, py, 5, t * 2, "rgba(255,255,255,.95)");
+      } },
+  ];
+  function hslRgb(h) { const f = n => { const k = (n + h / 30) % 12; return 0.64 - 0.3 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)]; }
+
+  // A party card as DrawPartyCard draws it: portrait, name, class, rank shield, ready pill.
+  const ROLE = { tank: [90, 150, 255], dps: [255, 150, 90], healer: [110, 230, 150] };
+  function partyCard(c, f, p, t) {
+    const role = ROLE[p.role];
+    c.save(); c.translate(PAD, PAD);
+    if (f && f.back) f.back(c, CW, CH, t);
+    rr(c, 0, 0, CW, CH, R); c.fillStyle = "#121826"; c.fill();
+    (f || FRAMES[0]).rim(c, CW, CH, t, role);
+    // portrait
+    rr(c, 8, 8, 72, 72, 9); c.fillStyle = `rgb(${role[0] * .25},${role[1] * .25},${role[2] * .25})`; c.fill();
+    c.fillStyle = rgba(role, .9); c.beginPath(); c.arc(44, 44, 16, 0, TAU); c.fill();
+    c.strokeStyle = "#e6ecf8"; c.lineWidth = 3; c.lineCap = "round"; c.beginPath(); c.moveTo(52, 38); c.lineTo(72, 28); c.stroke();
+    c.fillStyle = "#dfe6f6"; c.beginPath(); c.arc(44, 44, 7, 0, TAU); c.fill();
+    shield(c, 58, 58, 22, p.rank);
+    c.textBaseline = "middle"; c.textAlign = "left";
+    c.fillStyle = "#fff"; c.font = "700 19px Barlow, sans-serif"; c.fillText(p.name, 94, 22);
+    c.fillStyle = rgba(role.map(v => v + (255 - v) * .15), 1); c.font = "700 14px Barlow, sans-serif"; c.fillText(p.cls, 94, 46);
+    c.fillStyle = "#98a3bd"; c.font = "500 12px Barlow, sans-serif"; c.fillText(p.loadout, 94, 68);
+    if (p.you) badge(c, CW - 56, 10, 44, 20, "YOU", "#3b5fa8");
+    if (p.host) badge(c, CW - 56 - (p.you ? 54 : 0), 10, 50, 20, "HOST", "#7a5a1c");
+    badge(c, CW - 98, CH - 30, 86, 20, p.ready ? "READY" : "NOT READY", p.ready ? "#2a6b3a" : "#2b3247");
+    c.restore();
+  }
+  function badge(c, x, y, w, h, text, fill) { rr(c, x, y, w, h, h / 2); c.fillStyle = fill; c.fill(); c.fillStyle = "#fff"; c.font = "700 10px Barlow, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, x + w / 2, y + h / 2 + 1); c.textAlign = "left"; }
+  function shield(c, x, y, s, rank) {
+    const col = tierOf(rank)[1];
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + s, y); c.lineTo(x + s, y + s * .62); c.lineTo(x + s / 2, y + s * 1.15); c.lineTo(x, y + s * .62); c.closePath();
+    c.fillStyle = "#14182a"; c.fill(); c.strokeStyle = col; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = "#fff"; c.font = "800 " + (rank > 99 ? 8 : 11) + "px Barlow, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(rank, x + s / 2, y + s * .42); c.textAlign = "left";
+  }
+
+  const $ = id => document.getElementById(id);
+  const party = $("party"), pctx = party.getContext("2d");
+  let sel = "foil", rank = 60, paused = false, slow = false, clock = 0, last = performance.now();
+  const byId = id => FRAMES.find(f => f.id === id);
+
+  const cardsEl = $("cards"), cards = [];
+  for (const f of FRAMES) {
+    const el = document.createElement("div"); el.className = "card"; el.tabIndex = 0; el.setAttribute("role", "button");
+    el.innerHTML = `<canvas width="808" height="232"></canvas><div class="row"><h3><span class="tag">${f.tag}</span> ${f.name}</h3><span class="req">${f.rank > 1 ? "Rank " + f.rank : "Default"}</span></div><p>${f.text}</p>`;
+    const pick = () => { sel = f.id; refresh(); };
+    el.onclick = pick; el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+    cardsEl.appendChild(el);
+    cards.push({ f, el, ctx: el.querySelector("canvas").getContext("2d") });
+  }
+  const lad = [[5, "Title: Challenger"], [8, "Trail: Ember"], [10, "Title: Veteran"], [12, "Frame: Steel", 1], [14, "Trail: Frost"], [15, "Menu background: Dusk grid"], [16, "Frame: Circuit", 2],
+    [18, "Trail: Storm"], [20, "Title: Champion, Frame: Ember Edge", 2], [22, "Trail: Void"], [24, "Frame: Void Pulse", 2], [25, "Trail: Gold stardust"], [30, "Frame: Gold, Title: Legend", 1],
+    [35, "Trail: Prism"], [40, "Frame: Legend Foil", 2], [50, "Frame: Prism", 2]];
+  $("ladder").innerHTML = lad.map(([r, n, k]) => `<div><b>${r}</b><span>${n}${k === 2 ? ' <span class="new">NEW</span>' : ""}</span><span>${k ? "frame" : ""}</span></div>`).join("");
+
+  function refresh() {
+    const t = tierOf(rank);
+    $("rankTxt").textContent = "Rank " + rank; $("tierTxt").textContent = t[0]; $("tierTxt").style.color = t[1];
+    for (const c of cards) { c.el.classList.toggle("locked", rank < c.f.rank); c.el.setAttribute("aria-current", c.f.id === sel ? "true" : "false"); }
+  }
+  $("rank").oninput = e => { rank = +e.target.value; refresh(); };
+  const tog = (id, fn) => { const b = $(id); b.onclick = () => { const v = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", v); fn(v); }; };
+  tog("pause", v => paused = v); tog("slow", v => slow = v);
+
+  const YOU = { name: "Anthony", role: "tank", cls: "Knight Tank", loadout: "Lance  ·  Unbreakable", rank: 60, you: true, host: true, ready: true };
+  const OTHERS = [
+    { name: "Aleon", role: "dps", cls: "Elementalist DPS", loadout: "Fireball  ·  Blizzard", rank: 27, frame: "gold" },
+    { name: "Sam", role: "healer", cls: "Summoner Healer", loadout: "Sprite Staff  ·  Spirit Swarm", rank: 14, frame: "none" },
+  ];
+
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!paused) clock += dt * (slow ? .25 : 1);
+    const t = clock;
+    pctx.setTransform(2, 0, 0, 2, 0, 0); pctx.clearRect(0, 0, 404, 348);
+    const s = byId(sel);
+    pctx.save(); partyCard(pctx, s, { ...YOU, rank }, t); pctx.restore();
+    OTHERS.forEach((o, i) => { pctx.save(); pctx.translate(0, (i + 1) * 116); partyCard(pctx, byId(o.frame), o, t); pctx.restore(); });
+    for (const c of cards) {
+      c.ctx.setTransform(2, 0, 0, 2, 0, 0); c.ctx.clearRect(0, 0, 404, 116);
+      partyCard(c.ctx, c.f, { ...YOU, you: false, host: false, ready: false, rank: Math.max(rank, 1) }, t);
+    }
+    requestAnimationFrame(frame);
+  }
+  refresh(); requestAnimationFrame(frame);
+})();
+</script>
