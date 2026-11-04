@@ -14,7 +14,7 @@ namespace Arena
         int cosmeticsSection;  // 0 Frame, 1 Trail, 2 Background, 3 Card background, 4 Name effect, 5 Aim line, 6 Reward ladder
 
         static readonly string[] CosmeticSections = { "Frame", "Trail", "Background", "Card background", "Name effect", "Aim line", "Reward ladder" };
-        static readonly string[] CosmeticIcons = { "ui_star", "blink", "snow", "ui_star", "ui_star", "ui_star", "ui_trophy" };
+        static readonly string[] CosmeticIcons = { "ui_frame", "ui_trail", "ui_scene", "ui_card", "ui_name", "ui_aim", "ui_trophy" };
 
         void OpenCosmetics()
         {
