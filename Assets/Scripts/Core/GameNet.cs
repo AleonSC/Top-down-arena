@@ -715,6 +715,7 @@ namespace Arena
             s.Float(ref z.T);
             s.Float(ref z.Duration);
             s.Float(ref z.GuardFrac);
+            s.Float(ref z.Aim);
             if (s.Reading)
                 Zones[z.Id] = z;
         }

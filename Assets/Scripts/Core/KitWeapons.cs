@@ -861,6 +861,7 @@ namespace Arena
                     HurtEnemy(e, b.Dmg, b.Owner);
                     OnBulletHit(b, e);
                 }
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.BoulderShot), b.Splash, 0.35f, Sfx.Explode);
             BroadcastFx(FxKind.Ring, b.Pos, new Rgba(0.85f, 0.78f, 0.65f), b.Splash * 1.2f, 0.3f, Sfx.None);
         }

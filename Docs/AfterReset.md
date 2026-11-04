@@ -3,10 +3,11 @@
 A running list of things to pick up next session. Tick off / delete as they're done.
 
 ## Bugs / polish
-- [ ] **Sanctum: healing pulses, Bubble look.** Built (Nov 2026, protocol unchanged, 155): look B of [`Mockups/sanctum.html`](Mockups/sanctum.html) (https://claude.ai/artifact/TT6twY4kADa161ohhGM9aj).
+- [ ] **Sanctum: healing pulses, Bubble look.** Built (Nov 2026, protocol unchanged, 156): look B of [`Mockups/sanctum.html`](Mockups/sanctum.html) (https://claude.ai/artifact/TT6twY4kADa161ohhGM9aj).
       The dome (200 px, 300 with the capstone, 7 s, still stops bullets and prevents going down) no longer heals 20 HP/s: it sends 7 pulses from its centre, one every 0.9 s starting at 0.9 s,
       20 HP each and 30 for the last (150 total, was 140). A ring takes 0.55 s to reach the rim and each ally is healed as it passes them (`Core/Sanctum.cs`; `Game/SanctumLook.cs`).
       Left out of the mockup: ripples where bullets hit the shell. Needs a try in Unity. Armory page for Sanctum is out of date.
+- [ ] **Lumen Ward (Sanctify, reworked).** Built (Nov 2026, protocol 156): look A (Cathedral) of [`Mockups/sanctify-cone.html`](Mockups/sanctify-cone.html) (https://claude.ai/artifact/V38EdAFeoRynvKNiGrvooq), named Lumen Ward (`AbilityId.Sanctify` kept). A 740 px cone along your aim for 6 s, locked at the cast: heals 9 HP/s inside, burns enemy bullets in it; enemy bullets elsewhere slow to a stop (about 0.7 s, spreading at 1100 px/s) and fly again when it ends. Cooldown 20 s, no longer Instant for mastery XP. Capstone: enemies outside the light freeze too (not bosses). Numbers are my proposals. Left out of the mockup's look: the dark vignette outside the cone. Needs a try in Unity. README is updated; the Armory page for it is out of date.
 - [ ] **Artillery Assault and Bullet Rain.** Built (Nov 2026, protocol 155). **Artillery Assault** is the DPS Soldier's Bullet Storm renamed, with look A of
       [`Mockups/bullet-rain.html`](Mockups/bullet-rain.html) (heat aura, streaks, muzzle flash; `ArtilleryLook.cs`); mechanics unchanged. **Bullet Rain** replaces the
       Elementalist DPS's Meteor Storm: look D (Downpour) of [`Mockups/bullet-rain-elementalist.html`](Mockups/bullet-rain-elementalist.html). A `ZoneKind.BulletRain`

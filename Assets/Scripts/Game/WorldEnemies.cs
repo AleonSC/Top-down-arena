@@ -83,6 +83,9 @@ namespace Arena
                 case ZoneKind.BulletRain:  // Downpour: the arena rains, the zone's drops harden into needles (BulletRainLook.cs)
                     DrawBulletRain(z, t);
                     break;
+                case ZoneKind.LumenWard:  // a cone of light, god rays and drifting dust (LumenWardLook.cs)
+                    DrawLumenWard(z, t);
+                    return;
                 case ZoneKind.Blizzard:  // a whiteout of wind-driven snow (ElementalistLooks.cs)
                     DrawBlizzard(z, t);
                     break;

@@ -94,9 +94,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Sanctify, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Instant = true,
-                Name = "Sanctify", Cooldown = 12f, Desc = "Erase enemy bullets around you and heal everyone nearby for 25.",
-                Capstone = "Also freezes enemies around you solid for 1.5 s (not bosses).",
+                Id = AbilityId.Sanctify, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2,  // the AbilityId stays Sanctify; the player-facing name is Lumen Ward (LumenWard.cs)
+                Name = "Lumen Ward", Cooldown = 20f, Desc = "A huge cone of light along your aim for 6 s: heals everyone inside 9 HP/s and burns away enemy bullets in it. Enemy bullets everywhere else slow to a stop and fly again when it ends.",
+                Capstone = "Also freezes enemies outside the light for as long as it lasts (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
             },
             new AbilityDef
@@ -290,21 +290,9 @@ namespace Arena
                         }
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.5f, 0.7f, 1f), 300f, 0.5f, Sfx.Ability);
                     break;
-                case AbilityId.Sanctify:
-                {
-                    EraseEnemyBullets(p.Pos, 280f);
-                    foreach (var q in Players.Values)
-                        if (q.Pos.DistanceTo(p.Pos) < 280f)
-                        {
-                            Heal(q, 25f, p);
-                            if (q != p && !q.Downed)
-                                BroadcastFx(FxKind.Link, p.Pos, q.Pos, Defs.BulletColor(Defs.HolyShot), 0f, 0.4f, Sfx.None);
-                        }
-                    if (cap)
-                        Freeze(p.Pos, 280f, 1.5f);
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.HolyShot), 280f, 0.5f, Sfx.SpellHoly);
+                case AbilityId.Sanctify:  // Lumen Ward (LumenWard.cs)
+                    CastLumenWard(p, target, cap);
                     break;
-                }
                 case AbilityId.Meteor:
                     AddZone(ZoneKind.Meteor, p, target, 120f, 0.9f).Embers = cap;  // the zone is the warning; it hits when it expires
                     Sounds.Add(Sfx.SpellFire);
@@ -824,6 +812,11 @@ namespace Arena
                 if (z.T <= 0f)
                 {
                     expired.Add(z);
+                    continue;
+                }
+                if (z.Kind == ZoneKind.LumenWard)
+                {
+                    TickLumen(z, dt);  // a cone, not a circle (LumenWard.cs)
                     continue;
                 }
                 foreach (var q in Players.Values)

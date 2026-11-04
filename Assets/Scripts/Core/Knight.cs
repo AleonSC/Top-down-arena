@@ -417,6 +417,23 @@ namespace Arena
                 }
                 hits.Add(e);
             }
+            GateLockStrike(q =>  // a Warden gate's lock in reach takes the swing as a target LockW wide (Warden.cs)
+            {
+                float lr = LockW / 2f;
+                if (circle)
+                    return q.DistanceTo(circleAt) <= s.Circle + lr;
+                if (box)
+                {
+                    V2 rel = q - origin;
+                    float along = Dot(rel, dir), across = Math.Abs(Dot(rel, dir.Orthogonal()));
+                    return along >= -lr - p.Def.BodyR && along <= s.Reach + lr && across <= s.HalfWidth + lr && across >= s.Hollow;
+                }
+                float d = q.DistanceTo(origin);
+                if (d - lr > s.Reach)
+                    return false;
+                float slack = d > 1f ? (float)Math.Asin(Math.Min(1f, lr / d)) : MathX.Pi;
+                return full || AngleTo(origin, q, s.Aim) <= s.HalfArc + slack || d <= lr + p.Def.BodyR;
+            });
             if (s.Sweep > 0)
             {
                 hits.RemoveAll(e => e.SweepMark == s.Sweep);  // already hit by an earlier step of this sweep

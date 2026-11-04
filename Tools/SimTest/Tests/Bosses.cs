@@ -510,6 +510,15 @@ static partial class Program
             Console.WriteLine("  warden gate lock: open {0} (client sees it {1}); hits left {2}", gate.LockOpen, cgate != null && cgate.LockOpen, gate.LockHp);
             Check(blockedBefore && gate.LockOpen && Game.InGateGap(gate, gate.LockX) && cgate != null && cgate.LockOpen,
                 "six shots break a gate's gold lock, opening a third door in the middle (everyone sees it)");
+
+            // Blasts, swings and beams aren't bullets in flight, but they take hits off the lock too.
+            gate.LockOpen = false;
+            gate.LockHp = Game.LockHits;
+            V2 mid = new V2(gate.LockX, (gate.Front + Game.GateBack(gate)) / 2f);
+            typeof(Game).GetMethod("GateLockBlast", flags).Invoke(g, new object[] { mid + new V2(40f, 0f), 60f, 1 });
+            int afterBlast = gate.LockHp;
+            typeof(Game).GetMethod("GateLockBlast", flags).Invoke(g, new object[] { mid + new V2(400f, 0f), 60f, 1 });
+            Check(afterBlast == Game.LockHits - 1 && gate.LockHp == afterBlast, "a grenade/boulder/flak blast reaching a gate's lock takes a hit off it; one far away doesn't");
         }
 
         // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.

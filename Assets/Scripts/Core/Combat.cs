@@ -192,6 +192,7 @@ namespace Arena
             }
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
+            GateLockBlast(b.Pos, b.Splash, b.Owner);  // and cracks a Warden gate's lock (Warden.cs)
         }
 
         void MoveBullets(float dt)
@@ -205,6 +206,7 @@ namespace Arena
             bool wellsUp = wells.Count > 0;
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
+            PrepareLumen();           // Lumen Wards (LumenWard.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
             lo -= margin;
@@ -218,13 +220,14 @@ namespace Arena
                     Steer(b, dt);
                 if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
                     PullIntoWells(b, dt);
+                float lumen = LumenSpeed(b, dt);  // 1 normally; falls to 0 as a Lumen Ward holds it still (LumenWard.cs)
                 if (b.Kind == Defs.PauseShot)
-                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b));  // slows to a stop, then hangs (Variety.cs)
+                    b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b) * lumen);  // slows to a stop, then hangs (Variety.cs)
                 else
-                    b.Pos += b.Vel * (dt * SmokeSpeed(b));
+                    b.Pos += b.Vel * (dt * SmokeSpeed(b) * lumen);
                 if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
                     b.Pos += wind * dt;
-                b.Life -= dt;
+                b.Life -= dt * lumen;  // a held bullet doesn't run out of range
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
                 {
                     scratchIds.Add(b.Id);  // an enemy shot touching a dome is gone
@@ -280,6 +283,7 @@ namespace Arena
                             HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
                     PropBlast(b.Pos, b.Splash, b.Owner);
+                    GateLockBlast(b.Pos, b.Splash, b.Owner);
                     continue;
                 }
                 if (b.Owner != 0)
