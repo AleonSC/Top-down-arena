@@ -1,0 +1,287 @@
+<title>Reward Ladder Next Box</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Four looks for Your look > Reward ladder, drawn in the game's navy and gold. One shared rank slider drives all four so the
+   locked / unlocked / next states can be compared. Single dark look by choice: it mirrors the game. */
+:root {
+  --bg: #080b14; --panel: #0e1424; --panel-2: #141b30; --line: #232c47; --edge: #34406a;
+  --fg: #eef2ff; --muted: #8a94b8; --soft: #c7cfe8; --gold: #ffd250; --good: #62e07a; --violet: #a874ff; --accent: #5b8cff;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.5 var(--font-body); margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gold); }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: .05em; }
+p { margin: 0; max-width: 70ch; color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+header, section { display: grid; gap: 12px; min-width: 0; }
+.ctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; font: 500 13px var(--font-data); color: var(--muted); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+.ctl input { flex: 1 1 220px; accent-color: var(--gold); min-width: 0; }
+.ctl b { color: var(--fg); font-weight: 500; min-width: 9ch; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .14em; color: var(--gold); }
+.tag em { font-style: normal; color: var(--muted); letter-spacing: .06em; margin-left: 8px; font-weight: 500; }
+
+/* the in-game window frame each look lives in */
+.win { background: linear-gradient(180deg, #0f1629, #0b1020); border: 1px solid var(--edge); border-radius: 12px; padding: 22px 24px 20px; display: grid; gap: 14px; min-width: 0; box-shadow: 0 0 0 1px #05070d inset; }
+.win > header { gap: 2px; }
+.win > * { min-width: 0; }
+.win h3 { font-size: 34px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.win .sub { font-size: 13px; color: var(--muted); }
+.scroll { max-height: 520px; overflow: auto; padding-right: 6px; scrollbar-color: var(--edge) transparent; }
+
+/* shield badge */
+.badge { width: var(--s, 44px); height: var(--s, 44px); flex: none; display: block; }
+.badge text { font: 800 15px var(--font-display); fill: #fff; }
+.lock { opacity: .5; filter: saturate(.35); }
+
+/* kind chips */
+.kind { font: 600 11px var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--kc); display: inline-flex; align-items: center; gap: 6px; }
+.kind i { width: 7px; height: 7px; border-radius: 2px; background: var(--kc); display: inline-block; }
+.st { font: 600 12px var(--font-body); color: var(--good); display: inline-flex; align-items: center; gap: 5px; }
+.st.no { color: var(--muted); }
+.px { image-rendering: pixelated; width: var(--s, 22px); height: var(--s, 22px); flex: none; }
+
+/* ---- A: rail ---- */
+.rail { display: grid; gap: 0; position: relative; }
+.rail .tier { font: 700 12px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--tc); padding: 18px 0 8px 64px; display: flex; gap: 10px; align-items: center; }
+.rail .tier::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--tc), transparent); opacity: .5; }
+.node { display: grid; grid-template-columns: 52px 1fr; gap: 12px; position: relative; }
+.node .spine { position: relative; display: grid; justify-items: center; align-content: start; padding-top: 10px; }
+.node .spine::before { content: ""; position: absolute; top: 0; bottom: 0; width: 3px; background: var(--line); }
+.node.done .spine::before { background: linear-gradient(180deg, var(--tc), var(--tc)); opacity: .8; }
+.node .spine .badge { position: relative; z-index: 1; }
+.rewards { display: grid; gap: 8px; padding: 8px 0 8px; }
+.rw { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.04); border-radius: 8px; padding: 9px 12px; min-width: 0; }
+.rw.lockd { background: rgba(255,255,255,.02); }
+.rw .nm { font: 700 17px var(--font-display); color: var(--fg); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.rw.lockd .nm { color: var(--muted); }
+.here { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; margin: 2px 0; }
+.here .dot { justify-self: center; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 5px rgba(255,210,80,.18), 0 0 18px rgba(255,210,80,.7); z-index: 1; }
+.here .bar { display: grid; gap: 4px; }
+.here .bar div.t { height: 8px; border-radius: 4px; background: #05070d; overflow: hidden; border: 1px solid var(--line); }
+.here .bar div.t i { display: block; height: 100%; background: linear-gradient(90deg, #c8921f, var(--gold)); }
+.here .bar span { font: 500 12px var(--font-data); color: var(--soft); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+/* ---- B: tiers ---- */
+.banner { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 8px; background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 26%, transparent), transparent 80%); border-left: 3px solid var(--tc); }
+.banner h4 { margin: 0; font: 800 18px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); }
+.banner span { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin: 10px 0 18px; }
+.tile { position: relative; display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; padding: 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); min-width: 0; overflow: hidden; }
+.tile::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--kc); opacity: .9; }
+.tile.lockd { background: rgba(255,255,255,.02); }
+.tile.lockd .nm { color: var(--muted); }
+.tile.next { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(255,210,80,.35), 0 0 22px rgba(255,210,80,.18); }
+.tile .well { width: 56px; height: 56px; border-radius: 10px; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--kc) 30%, #0a0f1d), #0a0f1d 75%); display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--kc) 40%, transparent); position: relative; }
+.tile .well .badge { position: absolute; right: -8px; bottom: -8px; --s: 26px; }
+.tile .well .badge text { font-size: 17px; }
+.tile .nm { font: 700 17px var(--font-display); line-height: 1.15; overflow-wrap: anywhere; }
+.tile .meta { display: flex; flex-wrap: wrap; gap: 3px 10px; margin-top: 4px; align-items: center; }
+.pill { position: absolute; bottom: 8px; right: 8px; font: 700 10px var(--font-display); letter-spacing: .12em; color: #1a1305; background: var(--gold); padding: 2px 7px; border-radius: 99px; }
+
+/* ---- C: spotlight + list ---- */
+.split { display: grid; grid-template-columns: 300px 1fr; gap: 18px; min-width: 0; }
+.spot { border-radius: 12px; padding: 18px; background: radial-gradient(120% 90% at 50% 0%, rgba(255,210,80,.16), transparent 60%), var(--panel-2); border: 1px solid var(--edge); display: grid; gap: 10px; align-content: start; justify-items: center; text-align: center; min-width: 0; }
+.spot .lbl { font: 700 11px var(--font-display); letter-spacing: .18em; color: var(--gold); }
+.spot .big { width: 120px; height: 120px; border-radius: 14px; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--kc) 34%, #0a0f1d), #0a0f1d 75%); border: 1px solid color-mix(in srgb, var(--kc) 45%, transparent); }
+.spot .big .px { --s: 64px; }
+.spot h4 { margin: 0; font: 800 24px var(--font-display); letter-spacing: .02em; }
+.spot .bar { width: 100%; height: 10px; border-radius: 5px; background: #05070d; border: 1px solid var(--line); overflow: hidden; }
+.spot .bar i { display: block; height: 100%; background: linear-gradient(90deg, #c8921f, var(--gold)); }
+.spot small { font: 500 12px var(--font-data); color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { color: #1a1305; background: var(--gold); border-color: var(--gold); }
+.chip:focus-visible, .ctl input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: grid; grid-template-columns: 40px 28px 1fr auto auto; gap: 12px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); min-width: 0; }
+.row:hover { background: rgba(255,255,255,.03); }
+.row .nm { font: 700 16px var(--font-display); min-width: 0; overflow-wrap: anywhere; }
+.row.lockd .nm { color: var(--muted); }
+.row .kind { min-width: 130px; }
+.rk { font: 500 12px var(--font-data); color: var(--muted); }
+
+/* ---- D: milestones strip + dense columns ---- */
+.strip { position: relative; display: flex; gap: 0; align-items: stretch; overflow-x: auto; padding: 6px 2px 14px; scrollbar-color: var(--edge) transparent; }
+.ms { flex: 0 0 150px; display: grid; justify-items: center; gap: 6px; position: relative; padding-top: 4px; text-align: center; }
+.ms::before { content: ""; position: absolute; top: 28px; left: 0; right: 0; height: 3px; background: var(--line); }
+.ms.done::before { background: var(--tc); opacity: .85; }
+.ms.now::before { background: linear-gradient(90deg, var(--tc) 50%, var(--line) 50%); }
+.ms .badge { position: relative; z-index: 1; --s: 50px; }
+.ms .nm { font: 700 14px var(--font-display); line-height: 1.2; padding: 0 6px; }
+.ms.lockd .nm { color: var(--muted); }
+.ms small { font: 500 11px var(--font-data); color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.col { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.col h4 { margin: 0 0 4px; font: 800 14px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--kc); display: flex; align-items: center; gap: 8px; }
+.item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font: 600 14px var(--font-body); border-top: 1px solid var(--line); min-width: 0; }
+.item .r { font: 500 12px var(--font-data); color: var(--muted); width: 3.2ch; text-align: right; flex: none; }
+.item .n { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.item.lockd .n { color: var(--muted); }
+.item .ok { color: var(--good); font-size: 13px; }
+
+@media (max-width: 720px) {
+  .split { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 36px 24px 1fr auto; }
+  .row .kind { display: none; }
+  .win { padding: 16px 14px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tile.next { animation: glow 2.4s ease-in-out infinite alternate; }
+  @keyframes glow { to { box-shadow: 0 0 0 1px rgba(255,210,80,.6), 0 0 30px rgba(255,210,80,.3); } }
+}
+
+/* ---- combined: spotlight box + rail ---- */
+.spot { border-radius: 12px; padding: 18px; background: radial-gradient(120% 90% at 50% 0%, rgba(255,210,80,.16), transparent 60%), var(--panel-2); border: 1px solid var(--edge); display: grid; gap: 10px; align-content: start; justify-items: center; text-align: center; min-width: 0; }
+.spot .lbl { font: 700 11px var(--font-display); letter-spacing: .18em; color: var(--gold); }
+.spot .big { width: 110px; height: 110px; border-radius: 14px; display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--kc) 34%, #0a0f1d), #0a0f1d 75%); border: 1px solid color-mix(in srgb, var(--kc) 45%, transparent); }
+.spot h4 { margin: 0; font: 800 24px var(--font-display); }
+.spot .bar { width: 100%; height: 10px; border-radius: 5px; background: #05070d; border: 1px solid var(--line); overflow: hidden; }
+.spot .bar i { display: block; height: 100%; background: linear-gradient(90deg, #c8921f, var(--gold)); }
+.spot small { font: 500 12px var(--font-data); color: var(--muted); }
+.spot.wide { grid-template-columns: auto 1fr auto; justify-items: start; text-align: left; align-items: center; gap: 8px 20px; padding: 16px 20px; }
+.spot.wide .info { display: grid; gap: 6px; min-width: 0; }
+.spot.wide .xp { display: grid; gap: 6px; min-width: 200px; text-align: right; justify-items: end; }
+.split { display: grid; grid-template-columns: 290px 1fr; gap: 18px; min-width: 0; align-items: start; }
+.split .spot { position: sticky; top: 0; }
+.stack { display: grid; gap: 14px; min-width: 0; }
+.rail { display: grid; position: relative; }
+.rail .tier { font: 700 12px var(--font-display); letter-spacing: .18em; text-transform: uppercase; color: var(--tc); padding: 16px 0 8px 64px; display: flex; gap: 10px; align-items: center; }
+.rail .tier::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--tc), transparent); opacity: .5; }
+.node { display: grid; grid-template-columns: 52px 1fr; gap: 12px; position: relative; }
+.node .spine { position: relative; display: grid; justify-items: center; align-content: start; padding-top: 10px; }
+.node .spine::before { content: ""; position: absolute; top: 0; bottom: 0; width: 3px; background: var(--line); }
+.node.done .spine::before { background: var(--tc); opacity: .8; }
+.node .spine .badge { position: relative; z-index: 1; }
+.rewards { display: grid; gap: 8px; padding: 8px 0; }
+.rw { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.04); border-radius: 8px; padding: 9px 12px; min-width: 0; }
+.rw.lockd { background: rgba(255,255,255,.02); }
+.rw .nm { font: 700 17px var(--font-display); color: var(--fg); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.rw.lockd .nm { color: var(--muted); }
+.rw.next { outline: 1px solid var(--gold); background: rgba(255,210,80,.07); }
+.here { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; margin: 2px 0; }
+.here .dot { justify-self: center; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 5px rgba(255,210,80,.18), 0 0 18px rgba(255,210,80,.7); z-index: 1; }
+.here .bar { display: grid; gap: 4px; }
+.here .bar div.t { height: 8px; border-radius: 4px; background: #05070d; overflow: hidden; border: 1px solid var(--line); }
+.here .bar div.t i { display: block; height: 100%; background: linear-gradient(90deg, #c8921f, var(--gold)); }
+.here .bar span { font: 500 12px var(--font-data); color: var(--soft); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+/* inline spotlight that replaces the next node */
+.node.nextnode .spot { margin: 8px 0; grid-template-columns: 110px 1fr; justify-items: start; text-align: left; align-items: center; gap: 6px 16px; padding: 14px; }
+.node.nextnode .spot .info { display: grid; gap: 6px; min-width: 0; width: 100%; }
+.rail.two .rewards { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+@media (max-width: 760px) { .split { grid-template-columns: 1fr !important; } .split .spot { position: static; } .spot.wide { grid-template-columns: 1fr; } .spot.wide .xp { text-align: left; justify-items: start; } .node.nextnode .spot { grid-template-columns: 1fr; } .win { padding: 16px 14px; } }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Your look · Reward ladder</div>
+  <h1>Next reward <span>+ rail</span></h1>
+  <p>Look C's next-reward box combined with look A's vertical ladder, in four arrangements. Drag the rank to see it move.</p>
+</header>
+<div class="ctl"><label for="rank">Your rank</label><input id="rank" type="range" min="18" max="36" value="26"><b id="rankOut">Rank 26</b></div>
+<section><div class="tag">1 <em>Side box · the next reward stays pinned on the left while the ladder scrolls</em></div><div class="win"><header><h3>Reward ladder</h3><div class="sub">What each rank unlocks. Titles come with your tier.</div></header><div id="V1"></div></div></section>
+<section><div class="tag">2 <em>Top banner · a wide next-reward strip, the ladder under it</em></div><div class="win"><header><h3>Reward ladder</h3><div class="sub">What each rank unlocks. Titles come with your tier.</div></header><div id="V2"></div></div></section>
+<section><div class="tag">3 <em>In the rail · the box opens up in place at your position on the ladder</em></div><div class="win"><header><h3>Reward ladder</h3><div class="sub">What each rank unlocks. Titles come with your tier.</div></header><div id="V3"></div></div></section>
+<section><div class="tag">4 <em>Box on the right · the ladder reads first, the next reward pinned beside it</em></div><div class="win"><header><h3>Reward ladder</h3><div class="sub">What each rank unlocks. Titles come with your tier.</div></header><div id="V4"></div></div></section>
+</div>
+<script>
+// Real entries from the game (ranks 22-34), plus the Legend title.
+const DATA = [
+  [22,'Void Trail','Trail'],[23,'Aurora Card','Card background'],[24,'Void Pulse Frame','Frame'],
+  [25,'Spin Emote','Emote'],[25,'Gold Stardust','Trail'],[26,'Storm Arc Aim Line','Aim line'],
+  [27,'Circuit Board Card','Card background'],[27,'Shimmer Name','Name effect'],[29,'Pixel Beam Aim Line','Aim line'],
+  [30,'Gold Frame','Frame'],[30,'Legend','Title'],[31,'Salute Emote','Emote'],
+  [32,'Rain on Glass Card','Card background'],[33,'Glitch Name','Name effect'],[34,'Helix Aim Line','Aim line'],
+].map(([rank,name,kind])=>({rank,name,kind}));
+const KC = {'Frame':'#ffd250','Trail':'#6fd8ff','Card background':'#4ee0c0','Emote':'#ff8fc0','Aim line':'#ff7a5c','Name effect':'#b98aff','Title':'#f4f6ff'};
+const TIERS = [{from:20,to:29,name:'Violet tier',c:'#a874ff'},{from:30,to:39,name:'Gold tier',c:'#ffd250'}];
+const tierOf = r => (r>=30?TIERS[1]:TIERS[0]);
+const tierC = r => r>=30?'#f2c14e':r>=20?'#a874ff':r>=10?'#5b8cff':'#8a94b8';
+
+// 12x12 pixel glyphs, the same drawings the game now uses in Your look's side menu.
+const G = {
+ 'Frame':['............','.wwwwwwwwww.','.w........w.','.w.wwwwww.w.','.w.w....w.w.','.w.w.ww.w.w.','.w.w.ww.w.w.','.w.w....w.w.','.w.wwwwww.w.','.w........w.','.wwwwwwwwww.','............'],
+ 'Trail':['............','............','..........w.','.........ww.','w.......www.','.ww....wwww.','..www.wwwww.','...wwwwwww..','....wwwww...','.....www....','............','............'],
+ 'Card background':['............','.wwwwwwwwww.','.w........w.','.w.ww.www.w.','.wwwww....w.','.wwwww.ww.w.','.w.ww.....w.','.w........w.','.w.wwwwww.w.','.wwwwwwwwww.','............','............'],
+ 'Name effect':['..w.........','.www....w...','..w....www..','....ww..w...','...wwww.....','..ww..ww....','..ww..ww....','..wwwwww....','..ww..ww....','..ww..ww....','............','............'],
+ 'Aim line':['............','............','..........w.','.........www','........ww.w','w.w.w.w.w.ww','........ww.w','.........www','..........w.','............','............','............'],
+ 'Emote':['............','...wwwwww...','..w......w..','.w..w..w..w.','.w........w.','.w.w....w.w.','.w..wwww..w.','..w......w..','...wwwwww...','............','............','............'],
+ 'Title':['............','..wwwwwwww..','wwwwwwwwwwww','w.wwwwwwww.w','w.wwwwwwww.w','.wwwwwwwwww.','...wwwwww...','.....ww.....','.....ww.....','....wwww....','...wwwwww...','............'],
+};
+const px = (kind,color,size) => {
+  const rows = G[kind]||G.Frame, cv = document.createElement('canvas'); cv.width = cv.height = 12; cv.className='px'; cv.style.setProperty('--s',size+'px');
+  const c = cv.getContext('2d'); c.fillStyle = color;
+  rows.forEach((r,y)=>[...r].forEach((ch,x)=>{ if(ch==='w') c.fillRect(x,y,1,1); }));
+  return cv;
+};
+const badge = (rank,size,locked) => {
+  const c = tierC(rank), s = size||44;
+  const d = document.createElement('div'); d.style.display='contents';
+  d.innerHTML = `<svg class="badge ${locked?'lock':''}" style="--s:${s}px" viewBox="0 0 44 44" aria-hidden="true">
+    <path d="M22 2 38 8v14c0 9-6 16-16 20C12 38 6 31 6 22V8z" fill="#1b1436" stroke="${c}" stroke-width="2.5"/>
+    <path d="M22 6 34 10.5V22c0 7-4.5 12.5-12 16-7.5-3.500-12-9-12-16V10.5z" fill="${c}" opacity=".22"/>
+    <path d="M2 14l4 4-4 4zM42 14l-4 4 4 4z" fill="${c}"/>
+    <text x="22" y="26" text-anchor="middle">${rank}</text>
+    <path d="M16 31l6-3 6 3" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/></svg>`;
+  return d.firstChild;
+};
+const el = (tag,cls,html) => { const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; };
+const kindChip = k => `<span class="kind" style="--kc:${KC[k]}"><i></i>${k}</span>`;
+const stat = got => got ? `<span class="st">✓ Unlocked</span>` : `<span class="st no">Locked</span>`;
+const XP = r => Math.round(8 * r * r + 120 * r); // stand-in curve for the mockup
+const rank = () => +document.getElementById('rank').value;
+
+
+function spotBox(R, wide){
+  const next = DATA.find(d=>d.rank>R), spot = el('div','spot'+(wide?' wide':''));
+  if(!next){ spot.append(el('div','lbl','ALL DONE'), el('h4','','Every reward unlocked')); return spot; }
+  spot.style.setProperty('--kc',KC[next.kind]);
+  const big = el('div','big'); big.append(px(next.kind,KC[next.kind],64));
+  const need = XP(next.rank)-XP(R);
+  if(wide){
+    const info = el('div','info'); info.append(el('div','lbl','NEXT REWARD · RANK '+next.rank), el('h4','',next.name), el('div','',kindChip(next.kind)));
+    const xp = el('div','xp'); xp.append(el('small','',need.toLocaleString()+' XP to go'), el('div','bar','<i style="width:45%"></i>')); xp.lastChild.style.width='100%';
+    spot.append(big,info,xp);
+  } else spot.append(el('div','lbl','NEXT REWARD · RANK '+next.rank), big, el('h4','',next.name), el('div','',kindChip(next.kind)), el('div','bar','<i style="width:45%"></i>'), el('small','',need.toLocaleString()+' XP to go'));
+  return spot;
+}
+function hereRow(R){
+  const next = DATA.find(d=>d.rank>R), h = el('div','here'); h.append(el('div','dot'));
+  h.append(el('div','bar', `<div class="t"><i style="width:45%"></i></div><span><b style="color:var(--gold)">YOU · RANK ${R}</b><span>${next?`${(XP(next.rank)-XP(R)).toLocaleString()} XP to rank ${next.rank}`:'Every reward unlocked'}</span></span>`)); return h;
+}
+function railInto(rail,R,opt){
+  opt=opt||{};
+  const ranks=[...new Set(DATA.map(d=>d.rank))]; let lastTier=null, hereDone=false; const nextRank=(DATA.find(d=>d.rank>R)||{}).rank;
+  ranks.forEach(rk=>{
+    const t=tierOf(rk);
+    if(t!==lastTier){ const h=el('div','tier',`${t.name} · ranks ${t.from} to ${t.to}`); h.style.setProperty('--tc',t.c); rail.append(h); lastTier=t; }
+    if(!hereDone && rk>R){ hereDone=true; rail.append(hereRow(R)); }
+    const got=rk<=R, n=el('div','node '+(got?'done':'lockd')); n.style.setProperty('--tc',tierC(rk));
+    const sp=el('div','spine'); sp.append(badge(rk,44,!got));
+    const rw=el('div','rewards');
+    if(opt.inline && rk===nextRank){ n.classList.add('nextnode'); const box=spotBox(R,false); const big=box.querySelector('.big'); const info=el('div','info'); [...box.children].filter(c=>c!==big).forEach(c=>info.append(c)); box.replaceChildren(big,info); rw.append(box); const rest=DATA.filter(d=>d.rank===rk).slice(1); }
+    DATA.filter(d=>d.rank===rk).forEach((d,i)=>{
+      if(opt.inline && rk===nextRank && i===0) return;
+      const r=el('div','rw '+(got?'':'lockd')+(!got&&opt.hl&&rk===nextRank&&i===0?' next':'')); r.append(px(d.kind,got?KC[d.kind]:'#5a6385',22)); r.append(el('div','nm',d.name)); r.insertAdjacentHTML('beforeend',kindChip(d.kind)+stat(got)); rw.append(r);
+    });
+    n.append(sp,rw); rail.append(n);
+  });
+  if(!hereDone) rail.append(hereRow(R));
+}
+function render(R){
+  document.getElementById('rankOut').textContent='Rank '+R;
+  let r=document.getElementById('V1'); r.replaceChildren(); let sp=el('div','split'); let rail=el('div','rail'); sp.append(spotBox(R,false),rail); r.append(sp); railInto(rail,R,{hl:1});
+  r=document.getElementById('V2'); r.replaceChildren(); let st=el('div','stack'); rail=el('div','rail'); st.append(spotBox(R,true),rail); r.append(st); railInto(rail,R,{hl:1});
+  r=document.getElementById('V3'); r.replaceChildren(); rail=el('div','rail'); r.append(rail); railInto(rail,R,{inline:1});
+  r=document.getElementById('V4'); r.replaceChildren(); sp=el('div','split'); sp.style.gridTemplateColumns='1fr 290px'; rail=el('div','rail');
+  sp.append(rail,spotBox(R,false)); r.append(sp); railInto(rail,R,{hl:1});
+}
+document.getElementById('rank').addEventListener('input',()=>render(rank())); render(rank());
+</script>
