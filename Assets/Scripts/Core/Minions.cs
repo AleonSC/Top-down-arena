@@ -207,8 +207,8 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SoulLantern, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2,
-                Name = "Soul Lantern", Cooldown = 20f, Desc = "For 5 s, allies near the lantern can't go down.",
-                Capstone = "The lantern follows you.",
+                Name = "Soul Lantern", Cooldown = 18f, Desc = "A lantern appears beside the ally nearest your cursor (you, alone) and links to them for 6 s: it follows, heals 8 health a second and flames nearby enemies.",
+                Capstone = "Lasts 9 s, and the linked player can't go down.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
@@ -364,8 +364,7 @@ namespace Arena
                     Sounds.Add(Sfx.Summon);
                     break;
                 case AbilityId.SoulLantern:
-                    AddZone(ZoneKind.Lantern, p, p.Pos, 120f, 5f).Follow = cap;
-                    BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Lantern).Color, 120f, 0.5f, Sfx.Ability);
+                    SpawnSoulLantern(p, target, cap, pw);  // SoulLantern.cs
                     break;
                 case AbilityId.BatSwarm:
                 {
@@ -537,6 +536,12 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (m.Kind == MinionKind.SoulLantern)
+                {
+                    if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
+                        expired.Add(m);
+                    continue;
+                }
                 if (m.Kind == MinionKind.HiveDrone)
                 {
                     MoveDrone(m, owner, dt);  // QueenLoot.cs
@@ -878,6 +883,9 @@ namespace Arena
             foreach (var z in Zones.Values)
                 if (z.Def.PreventDown && p.Pos.DistanceTo(z.Pos) <= z.Radius)
                     return true;
+            foreach (var m in Minions.Values)
+                if (m.Kind == MinionKind.SoulLantern && m.Mastered && m.LinkTo == p.Id)
+                    return true;  // a mastered Soul Lantern's linked player can't go down (SoulLantern.cs)
             return false;
         }
 

@@ -340,7 +340,8 @@ namespace Arena
             CrescentShot = 52, // the Eclipse's crescent blade (an enemy kind: 10-19 were all taken)
             PauseShot = 53,    // the Pauser's shots: fly out, stop dead and hang, then the host fires a rush shot from each (Variety.cs)
             StitchShot = 54,   // the Stitcher's orbs: each is tied to the nearest other one by a harmful thread (Variety.cs)
-            FireflyShot = 55;  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
+            FireflyShot = 55,  // the Sprite Staff's firefly: seeds what it hits, then hops to the nearest enemy that isn't seeded (KitWeapons.cs)
+            MedkitShot = 56;   // the Deployable Medkit, lobbed: it flies over everything and bursts into healing orbs where it lands (Medkit.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == PauseShot || kind == StitchShot;
 
@@ -396,6 +397,7 @@ namespace Arena
                 case FlameShot: return 7f;
                 case HammerShot: return 11f;
                 case BoulderShot: return 16f;
+                case MedkitShot: return 11f;
                 case FireballShot: return 15f;
                 case HoneyShot: return 9f;
                 case HollowShot: return 7f;
@@ -481,6 +483,7 @@ namespace Arena
                 case FlameShot: return new Rgba(1f, 0.55f, 0.15f);
                 case HammerShot: return new Rgba(0.75f, 0.85f, 1f);
                 case BoulderShot: return new Rgba(0.62f, 0.54f, 0.45f);
+                case MedkitShot: return new Rgba(0.95f, 0.97f, 1f);
                 case FireballShot: return new Rgba(1f, 0.5f, 0.15f);
                 case HoneyShot: return new Rgba(1f, 0.67f, 0.16f);
                 case HollowShot: return new Rgba(0.9f, 0.91f, 1f);  // a Duelist decoy's shot: a harmless ring

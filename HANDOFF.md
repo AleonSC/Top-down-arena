@@ -123,7 +123,8 @@ Docs/                  sources of the Armory and Bestiary reference pages       
 | `BuildPower.cs` | 0.1k | boss health that keeps up with strong builds (a build's power vs a typical build at that wave) |
 | `Duelist.cs`, `Lich.cs`, `Herald.cs`, `Devourer.cs` | 0.64-0.82k each | the three-stage Duelist (wave 30), Lich (35), Storm Herald (40) and Devourer (45): stage, turns, synced state |
 | `Stun.cs`, `QueenLoot.cs`, `ReaperLoot.cs` | 0.26-0.28k each | boss legendaries: the Warden's (Stun Gun, Warden's Guard), the Queen's (Hive Drones, Royal Dive, Bomber Escort), the Reapers' (Twin Scythes, Final Reap, Scythe Throw) |
-| `RadiantOrb.cs`, `Repulsion.cs`, `SoulGhost.cs` | <0.1k each | the Elementalist Healer's Radiant Orb, the Soldier Healer's Repulsion Cannon, Soul Link's ghost |
+| `RadiantOrb.cs`, `Repulsion.cs`, `SoulGhost.cs` | <0.1k each | the Elementalist Healer's Radiant Orb, the Soldier Healer's Repulsion Cannon, Soul Link's ghost (retired: nothing casts it any more) |
+| `SoulLantern.cs`, `Medkit.cs` | <0.1k each | the Summoner Healer's Soul Lantern (minion linked to a player, heals and flames), the Soldier Healer's Deployable Medkit (a lobbed `MedkitShot` that bursts into `Orb.Med` orbs) |
 | `Hunts.cs` | 0.07k | Boss Hunt mode (ten waves: nine of the boss's faction, then the boss); hunt-aware `IsBossWave`/`BossAt`/`NextBossWave` |
 | `Zombies.cs` | 0.3k | the Zombie Infection modifier: hordes, the dead rise, and the seven zombie kinds' AI (`ZombieMove`, `ZombieSpecial`, `ZombieFire`; Crawler grab via `StunT`, Spitter acid and Bloater spores as patches) |
 | `WaveDesign.cs` | 0.4k | the wave editor's designs (`WaveSet`/`DesignWave`/`DesignGroup`/`DesignProp`, spawn points A-E), the `.waves` text format, playing them in the Practice Range (`Game.Design`, `BuildDesignWave`, `TickDesign`) |

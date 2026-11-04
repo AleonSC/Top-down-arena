@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soul Lantern Rework</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Soul Lantern (Healer Summoner, Choice 2), reworked from Soul Link. Four looks, each a looping scene at 0.75x game scale. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --heal:#59ff8c; --amber:#ffb547;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; --font-data:"IBM Plex Mono",ui-monospace,monospace; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--amber); }
+h2 { font-size:20px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+code { font:500 13px var(--font-data); color:var(--soft); background:var(--panel-2); padding:1px 5px; border-radius:4px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--amber); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:78ch; }
+.bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+button[aria-pressed="true"] { background:#2a1f0c; border-color:var(--amber); color:var(--fg); }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Healer Summoner · Soul Lantern</div>
+  <h1>Soul <span>Lantern</span></h1>
+  <p class="lead">Soul Link leaves the Healer Soldier and takes the Healer Summoner's third ability slot, replacing the old
+    zone lantern, under the name <b>Soul Lantern</b>. Cast it and a lantern appears beside the ally nearest your cursor (or beside you, solo). It
+    <b>links</b> to that player, follows them, heals them through a tether, and spits little flames at enemies near it. Each scene loops the same
+    moment: you at left, a hurt ally at right with your cursor on them, three enemies closing in. The lantern's lifetime is shown at real length (6 s).</p>
+  <div class="bar">
+    <button id="pause" aria-pressed="false">Pause</button>
+    <button id="slow" aria-pressed="false">¼× speed</button>
+    <button id="solo" aria-pressed="false">Solo (link to yourself)</button>
+    <button id="restart">Restart all</button>
+    <span class="note-motion">Reduced motion is on: each scene shows one still frame.</span>
+  </div>
+</header>
+
+<div class="grid" id="cards"></div>
+
+<section class="panel">
+  <h2>Proposed numbers (same for every look)</h2>
+  <ul>
+    <li><b>Cast:</b> 18 s cooldown. The lantern lands next to the ally <i>nearest your cursor</i> (any distance; a downed ally counts). Solo, it lands beside you and links to you.</li>
+    <li><b>Link:</b> the lantern hovers about 40 px off its player, follows them for 6 s, and a tether shows the link. If the player dies, the lantern fades.</li>
+    <li><b>Heal:</b> 8 health a second through the tether, in a pulse every 0.75 s (the real heal is smooth; the pulses are only how it is drawn).</li>
+    <li><b>Flames:</b> every 0.6 s, a flame at the nearest enemy within 260 px of the lantern. 7 damage, so about 12 damage a second.</li>
+    <li><b>Capstone:</b> lasts 9 s, and the linked player can't go down while it lasts (the old lantern's trick).</li>
+    <li><b>Replaces:</b> Soul Lantern (zone) and, because Soul Link leaves the Soldier kit, the Soul Ghost goes with it. Kindred Spirits ("Soul Link heals twice as fast") would be re-pointed at the lantern's heal.</li>
+  </ul>
+</section>
+<section class="panel">
+  <h2>Build notes</h2>
+  <ul>
+    <li>Needs <code>Core/</code> work: a new minion kind (the lantern, linked to a player) and a protocol bump. Nothing is built until you pick a look.</li>
+    <li>The Healer Soldier's slot 2 is taken over by the <a href="deployable-medkit.html" style="color:var(--amber)">Deployable Medkit</a> (separate mockup).</li>
+    <li>With Visual effects off, the lantern is a plain glow and the tether a plain line.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, SC = 0.75, W = 480, H = 340;
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp(x), 3);
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${clamp(a).toFixed(3)})`;
+  const G = [102, 255, 140];
+  let solo = false;
+
+  // ---- timeline (seconds) ----
+  const CAST = 0.5, DROP = 0.4, ACT = CAST + DROP, LIFE = 6, END = ACT + LIFE, FADE = 0.7, PERIOD = END + FADE + 1.0;
+  const SHOT_GAP = 0.6, SHOT0 = ACT + 0.5, FLY = 0.25;
+  const SHOTS = Array.from({ length: 9 }, (_, n) => ({ t: SHOT0 + n * SHOT_GAP, e: Math.floor(n / 3) }));
+  const ENEMIES = [{ x0: 235, y0: -110, vx: -9, vy: 6 }, { x0: 215, y0: 115, vx: -8, vy: -8 }, { x0: -5, y0: -150, vx: 5, vy: 9 }];
+  const enemyPos = (e, T) => ({ x: e.x0 + e.vx * T, y: e.y0 + e.vy * T });
+  const HEALER = { x: -120, y: 40 };
+  const allyPos = T => solo ? HEALER : { x: 100 + Math.cos(T * 0.6) * 22, y: -5 + Math.sin(T * 0.9) * 16 };
+  const lanternPos = T => { const a = allyPos(T); return { x: a.x - 32 + Math.sin(T * 1.7) * 4, y: a.y - 40 + Math.sin(T * 2.3) * 5 }; };
+  const hits = (ei, T) => SHOTS.filter(s => s.e === ei && s.t + FLY <= T).length;
+  const deadAt = ei => SHOTS.filter(s => s.e === ei).pop().t + FLY;
+
+  // ---------- LOOKS ----------
+  // body(c,x,y,T,fade)  tether(c,a,b,T,fade)  flame(c,x,y,ang,k)  hit(c,x,y,k)
+  const spark = (c, x, y, k, col, n = 6, r0 = 3, r1 = 16, sq = false) => {
+    for (let i = 0; i < n; i++) { const a = i / n * TAU + 0.4, r = r0 + (r1 - r0) * easeOut(k), s = 2.4 * (1 - k) + 0.6;
+      c.fillStyle = rgba(col, 1 - k); if (sq) c.fillRect(x + Math.cos(a) * r - s, y + Math.sin(a) * r - s, s * 2, s * 2);
+      else { c.beginPath(); c.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, s, 0, TAU); c.fill(); } }
+  };
+  const wavy = (c, a, b, amp, freq, T, n = 28) => {
+    const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    c.beginPath();
+    for (let i = 0; i <= n; i++) { const u = i / n, w = Math.sin(u * Math.PI) * amp * Math.sin(u * freq - T * 5);
+      const x = a.x + dx * u + nx * w, y = a.y + dy * u + ny * w; i ? c.lineTo(x, y) : c.moveTo(x, y); }
+  };
+
+  const LOOKS = [
+    { tag: "A · Paper Lantern", name: "Warm glow", col: [255, 196, 90],
+      desc: "A round paper lantern with ribs, caps and a tassel, swaying on its own. Flames are small orange comets; the tether is a golden dotted thread that carries green heal motes.",
+      body(c, x, y, T, f) {
+        const fl = 0.85 + 0.15 * Math.sin(T * 17) * Math.sin(T * 5.3);
+        const g = c.createRadialGradient(x, y, 2, x, y, 70); g.addColorStop(0, rgba(this.col, 0.30 * f * fl)); g.addColorStop(1, rgba(this.col, 0));
+        c.fillStyle = g; c.beginPath(); c.arc(x, y, 70, 0, TAU); c.fill();
+        c.save(); c.translate(x, y); c.rotate(Math.sin(T * 1.9) * 0.08); c.globalAlpha = f;
+        c.strokeStyle = "#6b4a1a"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(0, -19); c.lineTo(0, -26); c.stroke();
+        c.fillStyle = "#7a2c1c"; c.fillRect(-7, -19, 14, 4);
+        const bg = c.createRadialGradient(0, 0, 2, 0, 0, 16); bg.addColorStop(0, "#fff1c0"); bg.addColorStop(0.6, "#ffb347"); bg.addColorStop(1, "#c8631f");
+        c.fillStyle = bg; c.beginPath(); c.ellipse(0, 0, 13, 16, 0, 0, TAU); c.fill();
+        c.strokeStyle = "rgba(122,44,28,.55)"; c.lineWidth = 1; for (const k of [-0.55, 0, 0.55]) { c.beginPath(); c.ellipse(0, 0, 13 * Math.abs(k) + 0.1, 16, 0, 0, TAU); c.stroke(); }
+        c.fillStyle = "#7a2c1c"; c.fillRect(-7, 15, 14, 4);
+        c.strokeStyle = "#e0a63a"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(0, 19); c.lineTo(Math.sin(T * 3) * 2, 28); c.stroke();
+        c.fillStyle = "#e0a63a"; c.beginPath(); c.arc(Math.sin(T * 3) * 2, 29, 2.5, 0, TAU); c.fill();
+        c.restore();
+      },
+      tether(c, a, b, T, f) {
+        c.save(); c.setLineDash([2, 6]); c.lineDashOffset = -T * 20; c.strokeStyle = rgba(this.col, 0.85 * f); c.lineWidth = 2.2;
+        wavy(c, a, b, 5, 9, T); c.stroke(); c.restore();
+      },
+      flame(c, x, y, ang, k) {
+        for (let i = 0; i < 5; i++) { const bx = x - Math.cos(ang) * i * 6, by = y - Math.sin(ang) * i * 6;
+          c.fillStyle = rgba(i < 2 ? [255, 236, 170] : [255, 140, 40], (1 - i / 5) * 0.95); c.beginPath(); c.arc(bx, by, 4.5 - i * 0.7, 0, TAU); c.fill(); }
+      },
+      hit(c, x, y, k) { spark(c, x, y, k, [255, 160, 60]); c.beginPath(); c.arc(x, y, 6 + 10 * k, 0, TAU); c.strokeStyle = rgba([255, 200, 90], 1 - k); c.lineWidth = 2; c.stroke(); } },
+
+    { tag: "B · Wisp Cage", name: "Spirit flame", col: [120, 255, 225],
+      desc: "A small iron cage holding a cold teal soul flame that leans toward enemies. Flames are twisting wisps. The tether is a ghostly ribbon that undulates.",
+      body(c, x, y, T, f) {
+        const g = c.createRadialGradient(x, y, 2, x, y, 64); g.addColorStop(0, rgba(this.col, 0.34 * f)); g.addColorStop(1, rgba(this.col, 0));
+        c.fillStyle = g; c.beginPath(); c.arc(x, y, 64, 0, TAU); c.fill();
+        c.save(); c.translate(x, y); c.globalAlpha = f;
+        // flame
+        const lean = Math.sin(T * 6) * 2;
+        c.fillStyle = rgba([200, 255, 245], 0.95); c.shadowColor = rgba(this.col, 1); c.shadowBlur = 12;
+        c.beginPath(); c.moveTo(0, 12); c.bezierCurveTo(-10, 4, -6, -8, lean, -16); c.bezierCurveTo(8, -8, 10, 4, 0, 12); c.fill(); c.shadowBlur = 0;
+        c.fillStyle = rgba(this.col, 0.9); c.beginPath(); c.ellipse(0, 4, 4, 7, 0, 0, TAU); c.fill();
+        // cage
+        c.strokeStyle = "#5c6a74"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(-11, 14); c.lineTo(-13, -8); c.quadraticCurveTo(0, -22, 13, -8); c.lineTo(11, 14); c.stroke();
+        c.beginPath(); c.moveTo(0, 15); c.lineTo(0, -16); c.moveTo(-6, 15); c.quadraticCurveTo(-8, -4, -4, -16); c.moveTo(6, 15); c.quadraticCurveTo(8, -4, 4, -16); c.lineWidth = 1.3; c.stroke();
+        c.lineWidth = 2.4; c.beginPath(); c.moveTo(-13, 15); c.lineTo(13, 15); c.stroke();
+        c.beginPath(); c.arc(0, -21, 3, 0, TAU); c.stroke();
+        c.restore();
+      },
+      tether(c, a, b, T, f) {
+        c.save(); c.lineCap = "round";
+        c.strokeStyle = rgba(this.col, 0.25 * f); c.lineWidth = 8; wavy(c, a, b, 9, 7, T); c.stroke();
+        c.strokeStyle = rgba([210, 255, 248], 0.9 * f); c.lineWidth = 2; wavy(c, a, b, 9, 7, T); c.stroke(); c.restore();
+      },
+      flame(c, x, y, ang, k) {
+        for (let i = 0; i < 9; i++) { const u = i / 9, sp = Math.sin(i * 1.3 + k * 18) * 4 * (1 - u * 0.4);
+          const px = x - Math.cos(ang) * i * 3.2 - Math.sin(ang) * sp, py = y - Math.sin(ang) * i * 3.2 + Math.cos(ang) * sp;
+          c.fillStyle = rgba(i < 2 ? [230, 255, 250] : this.col, (1 - u) * 0.9); c.beginPath(); c.arc(px, py, 3.8 - u * 2.4, 0, TAU); c.fill(); }
+      },
+      hit(c, x, y, k) { c.beginPath(); c.arc(x, y, 5 + 16 * easeOut(k), 0, TAU); c.strokeStyle = rgba(this.col, 1 - k); c.lineWidth = 2.5 * (1 - k) + 0.5; c.stroke(); spark(c, x, y, k, this.col, 4, 2, 12); } },
+
+    { tag: "C · Pixel Lamp", name: "Chunky pixels", col: [255, 214, 74],
+      desc: "A blocky pixel lamp that matches the Cross Pulse and pixel-icon style. Flames are square embers in a short stair-step trail; the tether is a dashed pixel line.",
+      body(c, x, y, T, f) {
+        const P = 4, fl = Math.floor(T * 8) % 2;
+        c.save(); c.translate(Math.round(x / P) * P, Math.round(y / P) * P); c.globalAlpha = f;
+        c.fillStyle = rgba(this.col, 0.16 * f); c.fillRect(-36, -36, 72, 72); c.fillStyle = rgba(this.col, 0.12 * f); c.fillRect(-24, -24, 48, 48);
+        const px = (gx, gy, w, h, col) => { c.fillStyle = col; c.fillRect(gx * P, gy * P, w * P, h * P); };
+        px(-1, -6, 2, 1, "#7a5a1a");           // hook
+        px(-3, -5, 6, 1, "#9b6b22");            // cap
+        px(-4, -4, 8, 8, "#3b2a12");            // frame
+        px(-3, -3, 6, 6, "#ffd44a");            // glass
+        px(-2, -2, 4, 4, "#fff4b0");            // core
+        px(-1 + fl, -3, 1, 2, "#ff9a2a");       // flicker
+        px(-4, 4, 8, 1, "#9b6b22");             // base
+        px(-2, 5, 4, 1, "#7a5a1a");
+        c.restore();
+      },
+      tether(c, a, b, T, f) {
+        const L = Math.hypot(b.x - a.x, b.y - a.y), n = Math.floor(L / 9);
+        for (let i = 0; i < n; i++) { const u = ((i + (T * 3 % 1)) / n) % 1, x = a.x + (b.x - a.x) * u, y = a.y + (b.y - a.y) * u;
+          c.fillStyle = rgba(this.col, 0.9 * f); c.fillRect(Math.round(x / 3) * 3 - 2, Math.round(y / 3) * 3 - 2, 4, 4); }
+      },
+      flame(c, x, y, ang, k) {
+        for (let i = 0; i < 4; i++) { const px = x - Math.cos(ang) * i * 7, py = y - Math.sin(ang) * i * 7, s = 7 - i * 1.6;
+          c.fillStyle = rgba(i === 0 ? [255, 244, 176] : [255, 150, 40], (1 - i / 4)); c.fillRect(Math.round(px / 2) * 2 - s / 2, Math.round(py / 2) * 2 - s / 2, s, s); }
+      },
+      hit(c, x, y, k) { spark(c, x, y, k, [255, 190, 60], 8, 2, 18, true); } },
+
+    { tag: "D · Crystal Beacon", name: "Prism light", col: [196, 164, 255],
+      desc: "A floating violet crystal with a slow orbit ring. Flames are bright shards with a streak. The tether is a straight, steady beam that pulses brighter on each heal.",
+      body(c, x, y, T, f) {
+        const g = c.createRadialGradient(x, y, 2, x, y, 66); g.addColorStop(0, rgba(this.col, 0.30 * f)); g.addColorStop(1, rgba(this.col, 0));
+        c.fillStyle = g; c.beginPath(); c.arc(x, y, 66, 0, TAU); c.fill();
+        c.save(); c.translate(x, y); c.globalAlpha = f;
+        c.strokeStyle = rgba(this.col, 0.7); c.lineWidth = 1.5; c.beginPath(); c.ellipse(0, 0, 22, 7, T * 0.8, 0, TAU); c.stroke();
+        const sq = 0.8 + 0.2 * Math.cos(T * 2.2);
+        c.fillStyle = "#d9c6ff"; c.beginPath(); c.moveTo(0, -17); c.lineTo(11 * sq, 0); c.lineTo(0, 17); c.lineTo(-11 * sq, 0); c.closePath(); c.fill();
+        c.fillStyle = "#a583ff"; c.beginPath(); c.moveTo(0, -17); c.lineTo(11 * sq, 0); c.lineTo(0, 3); c.closePath(); c.fill();
+        c.fillStyle = "rgba(255,255,255,.75)"; c.beginPath(); c.moveTo(0, -17); c.lineTo(-11 * sq, 0); c.lineTo(-2, -2); c.closePath(); c.fill();
+        c.strokeStyle = rgba(this.col, 0.7); c.beginPath(); c.ellipse(0, 0, 22, 7, T * 0.8, 0, Math.PI); c.stroke();
+        c.restore();
+      },
+      tether(c, a, b, T, f) {
+        const pulse = 0.5 + 0.5 * Math.pow(Math.max(0, Math.sin(T * TAU / 0.75)), 6);
+        c.save(); c.lineCap = "round";
+        c.strokeStyle = rgba(this.col, (0.18 + 0.2 * pulse) * f); c.lineWidth = 9; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+        c.strokeStyle = rgba([245, 238, 255], (0.6 + 0.4 * pulse) * f); c.lineWidth = 2; c.stroke(); c.restore();
+      },
+      flame(c, x, y, ang, k) {
+        c.strokeStyle = rgba(this.col, 0.55); c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.lineTo(x - Math.cos(ang) * 22, y - Math.sin(ang) * 22); c.stroke();
+        c.save(); c.translate(x, y); c.rotate(ang); c.fillStyle = "#f3eaff"; c.shadowColor = rgba(this.col, 1); c.shadowBlur = 8;
+        c.beginPath(); c.moveTo(7, 0); c.lineTo(0, 3.5); c.lineTo(-5, 0); c.lineTo(0, -3.5); c.closePath(); c.fill(); c.restore();
+      },
+      hit(c, x, y, k) { c.save(); c.translate(x, y); c.rotate(k); const r = 4 + 14 * easeOut(k); c.strokeStyle = rgba([245, 238, 255], 1 - k); c.lineWidth = 2;
+        for (let i = 0; i < 4; i++) { c.rotate(Math.PI / 2); c.beginPath(); c.moveTo(0, r * 0.4); c.lineTo(0, r); c.stroke(); } c.restore(); } },
+  ];
+
+  // ---------- scene ----------
+  const hpOf = T => 0.25 + 0.48 * clamp((T - ACT) / LIFE);
+  function drawScene(c, look, T) {
+    const f = T < ACT ? clamp((T - CAST) / DROP) : T < END ? 1 : 1 - clamp((T - END) / FADE);
+    const active = T >= ACT && T < END, shown = T >= CAST && T < END + FADE;
+    const al = allyPos(T), lp = lanternPos(T);
+    // range ring while active
+    if (active) { c.setLineDash([4, 8]); c.strokeStyle = rgba(look.col, 0.22); c.lineWidth = 1.5; c.beginPath(); c.arc(lp.x, lp.y, 260, 0, TAU); c.stroke(); c.setLineDash([]); }
+    // enemies
+    ENEMIES.forEach((e, i) => {
+      const p = enemyPos(e, T), h = hits(i, T), dT = deadAt(i);
+      if (T > dT + 0.4) return;
+      const fade = T > dT ? 1 - (T - dT) / 0.4 : 1;
+      c.save(); c.globalAlpha = fade; c.translate(p.x, p.y);
+      c.beginPath(); c.moveTo(0, -14); c.lineTo(13, 10); c.lineTo(-13, 10); c.closePath(); c.fillStyle = "#2a1416"; c.fill(); c.lineWidth = 2.5; c.strokeStyle = "#ff5a4f"; c.stroke();
+      const recent = SHOTS.some(s => s.e === i && T - (s.t + FLY) >= 0 && T - (s.t + FLY) < 0.12);
+      if (recent) { c.fillStyle = "rgba(255,255,255,.55)"; c.fill(); }
+      c.fillStyle = "#0c1014"; c.fillRect(-14, 16, 28, 4); c.fillStyle = "#ff5a4f"; c.fillRect(-14, 16, 28 * (1 - h / 3), 4);
+      c.restore();
+    });
+    // tether
+    if (shown) look.tether(c, lp, al, T, f);
+    // heal motes along tether + floaters
+    if (active) {
+      const per = 0.75, k = ((T - ACT) % per) / per;
+      c.fillStyle = rgba(G, 0.95 * (1 - Math.abs(k - 0.5) * 0.6)); c.shadowColor = rgba(G, 1); c.shadowBlur = 8;
+      c.beginPath(); c.arc(lp.x + (al.x - lp.x) * k, lp.y + (al.y - lp.y) * k, 4, 0, TAU); c.fill(); c.shadowBlur = 0;
+      const n = Math.floor((T - ACT) / per), age = (T - ACT) - n * per - 0.35 * per;
+      if (n >= 0 && age > 0 && age < 0.7) { c.font = "700 14px Oxanium, sans-serif"; c.textAlign = "center"; c.fillStyle = rgba(G, 1 - age / 0.7); c.fillText("+6", al.x + 20, al.y - 24 - 22 * easeOut(age / 0.7)); }
+    }
+    // flames
+    SHOTS.forEach(s => {
+      const k = (T - s.t) / FLY, e = ENEMIES[s.e];
+      if (k >= 0 && k < 1) {
+        const a = lanternPos(s.t), b = enemyPos(e, s.t + FLY), ang = Math.atan2(b.y - a.y, b.x - a.x);
+        look.flame(c, a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, ang, k);
+      }
+      const hk = (T - s.t - FLY) / 0.35;
+      if (hk >= 0 && hk < 1) { const b = enemyPos(e, s.t + FLY); look.hit(c, b.x + (enemyPos(e, T).x - b.x), enemyPos(e, T).y, hk); }
+    });
+    // ally
+    c.save(); c.translate(al.x, al.y);
+    if (active) { c.beginPath(); c.arc(0, 0, 24 + 2 * Math.sin(T * 4), 0, TAU); c.strokeStyle = rgba(look.col, 0.35); c.lineWidth = 2; c.stroke(); }
+    c.beginPath(); c.arc(0, 0, 15, 0, TAU); c.fillStyle = "#1a2229"; c.fill(); c.lineWidth = 3; c.strokeStyle = solo ? "#59ff8c" : "#6fb4ff"; c.stroke();
+    c.beginPath(); c.arc(0, 0, 5, 0, TAU); c.fillStyle = solo ? "#59ff8c" : "#6fb4ff"; c.fill(); c.restore();
+    const hp = T < ACT ? 0.25 : active ? hpOf(T) : 0.25 + 0.48 * (T >= END ? 1 : 0);
+    c.fillStyle = "#0c1014"; c.fillRect(al.x - 18, al.y + 24, 36, 5);
+    c.fillStyle = hp > 0.6 ? "#59ff8c" : hp > 0.3 ? "#ffd04a" : "#ff5a4f"; c.fillRect(al.x - 18, al.y + 24, 36 * hp, 5);
+    c.strokeStyle = "#36424e"; c.lineWidth = 1; c.strokeRect(al.x - 18.5, al.y + 23.5, 37, 6);
+    // cursor before cast
+    if (T < CAST + 0.1 && !solo) { c.strokeStyle = "rgba(255,255,255,.8)"; c.lineWidth = 1.5; c.beginPath(); c.arc(al.x, al.y, 28, 0, TAU); c.stroke();
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; c.beginPath(); c.moveTo(al.x + Math.cos(a) * 22, al.y + Math.sin(a) * 22); c.lineTo(al.x + Math.cos(a) * 36, al.y + Math.sin(a) * 36); c.stroke(); }
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.textAlign = "center"; c.fillStyle = "#cfdae2"; c.fillText("cursor", al.x, al.y - 42); }
+    // healer (you)
+    if (!solo) {
+      c.save(); c.translate(HEALER.x, HEALER.y); const sq = T >= CAST && T < CAST + 0.25 ? 1 + 0.18 * Math.sin((T - CAST) / 0.25 * Math.PI) : 1; c.scale(sq, sq);
+      c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.fillStyle = "#1c1630"; c.fill(); c.lineWidth = 3; c.strokeStyle = "#c58bff"; c.stroke();
+      c.fillStyle = "#c58bff"; c.fillRect(-7, -2, 14, 4); c.fillRect(-2, -7, 4, 14); c.restore();
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.textAlign = "center"; c.fillStyle = "#92a1ad"; c.fillText("you", HEALER.x, HEALER.y + 34);
+    }
+    // lantern body + drop-in
+    if (shown) {
+      const rise = T < ACT ? (1 - easeOut((T - CAST) / DROP)) * -40 : 0;
+      look.body(c, lp.x, lp.y + rise, T, f);
+      if (T >= CAST && T < CAST + 0.5) { const k = (T - CAST) / 0.5; c.beginPath(); c.arc(lp.x, lp.y, 18 + 50 * easeOut(k), 0, TAU); c.strokeStyle = rgba(look.col, 1 - k); c.lineWidth = 3 * (1 - k) + 0.5; c.stroke(); }
+    }
+    if (T >= END && T < END + FADE) spark(c, lp.x, lp.y, (T - END) / FADE, look.col, 8, 6, 26);
+  }
+
+  const grid = document.getElementById("cards");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scenes = LOOKS.map(look => {
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = `<canvas width="${W * 2}" height="${H * 2}" aria-label="${look.name} preview"></canvas><div class="t"><span class="tag">${look.tag}</span><b>${look.name}</b><span>${look.desc}</span></div>`;
+    grid.appendChild(card);
+    return { look, c: card.querySelector("canvas").getContext("2d") };
+  });
+
+  let paused = false, slow = false, offset = 0, last = performance.now();
+  const pauseB = document.getElementById("pause"), slowB = document.getElementById("slow"), soloB = document.getElementById("solo");
+  pauseB.onclick = () => { paused = !paused; pauseB.setAttribute("aria-pressed", paused); pauseB.textContent = paused ? "Play" : "Pause"; };
+  slowB.onclick = () => { slow = !slow; slowB.setAttribute("aria-pressed", slow); };
+  soloB.onclick = () => { solo = !solo; soloB.setAttribute("aria-pressed", solo); render(); };
+  document.getElementById("restart").onclick = () => { offset = 0; if (reduce) { paused = true; offset = 3.2; } render(); };
+
+  function render() {
+    const T = offset % PERIOD;
+    for (const { look, c } of scenes) {
+      c.setTransform(2, 0, 0, 2, 0, 0); c.clearRect(0, 0, W, H);
+      c.fillStyle = "#070910"; c.fillRect(0, 0, W, H);
+      c.save(); c.translate(W / 2 - 10, H / 2 - 4); c.scale(SC, SC);
+      c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+      for (let g = -400; g <= 400; g += 50) { c.beginPath(); c.moveTo(g, -300); c.lineTo(g, 300); c.stroke(); c.beginPath(); c.moveTo(-400, g); c.lineTo(400, g); c.stroke(); }
+      drawScene(c, look, T);
+      c.restore();
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.fillStyle = "#92a1ad"; c.textAlign = "left";
+      c.fillText(T < CAST ? "ready" : T < END ? `linked · ${Math.max(0, END - T).toFixed(1)} s left` : "fades", 10, H - 10);
+    }
+  }
+  function frame(now) { const dt = (now - last) / 1000; last = now; if (!paused && !reduce) offset += dt * (slow ? 0.25 : 1); render(); requestAnimationFrame(frame); }
+  if (reduce) { paused = true; offset = 3.2; render(); } else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

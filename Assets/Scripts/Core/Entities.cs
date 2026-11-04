@@ -326,11 +326,13 @@ namespace Arena
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public bool Dew;        // a drop of Healing Mist's dew (Ninja.cs)
         public float DewHeal;   // host: what that drop heals
+        public bool Med;        // a Deployable Medkit's orb (Medkit.cs)
+        public float MedHeal;   // host: what it heals
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : Tiny || Dew ? 4f : 6f;
-        public float Heal => Dew ? DewHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
+        public float Radius => Big ? 11f : Med ? 8f : Tiny || Dew ? 4f : 6f;
+        public float Heal => Med ? MedHeal : Dew ? DewHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal;
     }
 
     /// An area on the ground: Haven, Flame Wall, Blizzard, Soul Lantern, healing totem or a meteor's warning.
@@ -381,6 +383,7 @@ namespace Arena
         public V2 Goal;
         public float SentT;              // host: how long it has been out
         public int Stings;               // host: a Hive Drone's stings left on this sortie (QueenLoot.cs)
+        public int LinkTo;               // replicated: the player a Soul Lantern is linked to (SoulLantern.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
     }
 

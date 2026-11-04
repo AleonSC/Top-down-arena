@@ -21,6 +21,15 @@ A running list of things to pick up next session. Tick off / delete as they're d
             Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
+- [x] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Built (Nov 2026, protocol 139): Soul Lantern look B
+      (Wisp Cage) and Deployable Medkit look A (Field Kit), from [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html)
+      (https://claude.ai/artifact/1LBQNmz4VkR48go2Un1xSk) and [`Mockups/deployable-medkit.html`](Mockups/deployable-medkit.html)
+      (https://claude.ai/artifact/6mZaE1GtNnM1PsK4YhDRwa). Soul Link left the Soldier; the Medkit took its slot (and enum number).
+      Kindred Spirits now speeds the lantern's heal. Medkit orbs use the normal orb magnet (110 px, hurt players only).
+      Leftover for you to decide: the Soul Ghost code (`SoulGhost.cs`, `MinionKind.SoulGhost`, `Player.LinkT`/`LinkTo`, the old tether
+      drawing) is dormant: nothing casts it. Say the word and I'll remove it. The old zone lantern (`ZoneKind.Lantern`) is dormant too.
+      Bestiary/Armory pages still show the old abilities until you ask.
+
 ## Visuals
 - [x] **Healer Soldier Mend Pulse animations.** Built (Nov 2026): look B, Heartbeat (`Game/MendPulseLook.cs`, no protocol bump), from
       [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html) (https://claude.ai/artifact/4RHDSKaLNNGErr8MhprTWx). Left out: the capstone's bullet

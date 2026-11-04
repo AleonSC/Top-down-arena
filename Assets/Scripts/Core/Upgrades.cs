@@ -8,7 +8,7 @@ namespace Arena
     public enum AbilityId : byte
     {
         Barrier, MendPulse, Dash, Shockwave, Overdrive, Blink, Nova, Turret,
-        Roar, Bulldoze, Haven, SoulLink, Grenade, Mark,
+        Roar, Bulldoze, Haven, Medkit, Grenade, Mark,  // Medkit (Medkit.cs) took Soul Link's place (and number)
         // Mage
         ArcaneAegis, FrostNova, FlameWall, HealingRain, ArcaneWard, Sanctify, Meteor, Blizzard, ArcaneSurge,
         // Summoner
@@ -221,7 +221,7 @@ namespace Arena
                 Apply = s => { s.PulseHealMult += 0.6f; s.PulseRangeMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Haven, MaxStacks = 2, Name = "Hallowed Ground", Desc = "Haven is 50% bigger and lasts 3 s longer",
                 Apply = s => { s.HavenRadiusMult += 0.5f; s.HavenBonusTime += 3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLink, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Link heals twice as fast", Apply = s => s.LinkHealMult += 1f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SoulLantern, MaxStacks = 2, Name = "Kindred Spirits", Desc = "Soul Lantern heals twice as fast", Apply = s => s.LinkHealMult += 1f },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Dash, MaxStacks = 2, Name = "Phase Step", Desc = "Dash invulnerability lasts 0.25 s longer; -25% Dash cooldown",

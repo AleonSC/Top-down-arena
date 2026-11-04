@@ -106,10 +106,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.SoulLink, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
-                Name = "Soul Link", Cooldown = 18f, Desc = "Tether to your ally for 6 s: they take half damage and you both regenerate. Alone, you link to a ghost of yourself that fights beside you.",
-                Capstone = "Lasts 9 s, and both of you are invulnerable for 1 s when it starts.",
-                Bot = b => b.AllyHurt || b.Players == 1 && b.HaveTarget,
+                Id = AbilityId.Medkit, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
+                Name = "Deployable Medkit", Cooldown = MedkitCooldown, Desc = "Throw a medkit at your cursor: it bursts into 6 healing orbs (15 health each) that anyone can pick up for 6 s.",
+                Capstone = "Bursts into 9 orbs worth 20 health each.",
+                Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
@@ -186,27 +186,9 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, z.Radius, 0.5f, Sfx.Ability);
                     break;
                 }
-                case AbilityId.SoulLink:
-                {
-                    p.LinkT = (cap ? 9f : LinkTime) * pw;
-                    p.LinkTo = p.Id;
-                    // Link to the nearest ally who's still standing (or any ally, if all are down).
-                    Player best = null;
-                    foreach (var q in Players.Values)
-                        if (q.Id != p.Id && (best == null || (best.Downed && !q.Downed)
-                            || best.Downed == q.Downed && q.Pos.DistanceSq(p.Pos) < best.Pos.DistanceSq(p.Pos)))
-                            best = q;
-                    if (best != null)
-                        p.LinkTo = best.Id;
-                    else
-                        SpawnSoulGhost(p, p.LinkT, cap);  // alone: a ghost of you to link to (SoulGhost.cs)
-                    if (cap)
-                        foreach (var q in new[] { p, best })
-                            if (q != null && !q.Downed)
-                                q.InvulnT = Math.Max(q.InvulnT, 1f);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.6f, 1f, 0.9f), 60f, 0.4f, Sfx.Ability);
+                case AbilityId.Medkit:
+                    ThrowMedkit(p, target, cap, pw);  // Medkit.cs
                     break;
-                }
                 case AbilityId.Grenade:
                 {
                     V2 vel = (target - p.Pos) / GrenadeFlight;

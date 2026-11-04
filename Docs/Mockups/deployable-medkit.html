@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployable Medkit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Deployable Medkit (Healer Soldier, Choice 2), takes Soul Link's slot. Four looks, each a looping scene at 0.75x game scale. */
+:root { --bg:#0a0d10; --panel:#11161b; --panel-2:#161c22; --line:#242d36; --edge:#36424e; --fg:#e7eef3; --muted:#92a1ad; --soft:#cfdae2; --heal:#59ff8c; --amber:#ffb547;
+  --font-display:"Oxanium","Segoe UI",system-ui,sans-serif; --font-body:"Barlow","Segoe UI",system-ui,sans-serif; --font-data:"IBM Plex Mono",ui-monospace,monospace; color-scheme: dark; }
+body { background:var(--bg); color:var(--fg); font:400 16px/1.55 var(--font-body); margin:0; }
+.wrap { max-width:1100px; margin:0 auto; padding:28px 16px 64px; display:grid; gap:24px; }
+h1,h2 { font-family:var(--font-display); margin:0; text-wrap:balance; }
+h1 { font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:.04em; text-transform:uppercase; line-height:1.05; }
+h1 span { color:var(--amber); }
+h2 { font-size:20px; font-weight:700; letter-spacing:.04em; }
+p { margin:0; max-width:72ch; } .lead { color:var(--soft); }
+.eyebrow { font:600 11px var(--font-display); letter-spacing:.16em; text-transform:uppercase; color:var(--amber); }
+header { display:grid; gap:10px; }
+code { font:500 13px var(--font-data); color:var(--soft); background:var(--panel-2); padding:1px 5px; border-radius:4px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr)); gap:16px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:grid; min-width:0; }
+.card canvas { display:block; width:100%; height:auto; aspect-ratio:480/340; background:#070910; }
+.card .t { padding:12px 14px 14px; display:grid; gap:4px; }
+.card .t b { font:700 17px var(--font-display); letter-spacing:.03em; }
+.card .t span { color:var(--muted); font-size:14.5px; }
+.tag { font:600 11px var(--font-display); letter-spacing:.14em; text-transform:uppercase; color:var(--amber); }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; display:grid; gap:8px; }
+ul { margin:0; padding-left:20px; color:var(--soft); display:grid; gap:4px; max-width:78ch; }
+.bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+button { font:600 14px var(--font-body); color:var(--soft); background:var(--panel-2); border:1px solid var(--edge); border-radius:7px; padding:6px 12px; cursor:pointer; }
+button:hover { border-color:var(--muted); color:var(--fg); }
+button:focus-visible { outline:2px solid var(--amber); outline-offset:2px; }
+button[aria-pressed="true"] { background:#2a1f0c; border-color:var(--amber); color:var(--fg); }
+.note-motion { display:none; color:var(--muted); font-size:13px; }
+@media (prefers-reduced-motion: reduce) { .note-motion { display:block; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup · Healer Soldier · Deployable Medkit</div>
+  <h1>Deployable <span>Medkit</span></h1>
+  <p class="lead">With Soul Link gone from the Soldier kit, the Healer Soldier's third slot becomes a thrown medkit. Aim and throw it like the Cluster Grenade;
+    where it lands it bursts into <b>healing orbs</b> that lie on the ground for a few seconds. Any player who walks over one picks it up and is healed
+    (so allies have to move to it, and enemies can't be healed by it). Each scene loops the same moment: you at left, two hurt allies,
+    your cursor between them. One orb is never picked up so you can see it expire.</p>
+  <div class="bar">
+    <button id="pause" aria-pressed="false">Pause</button>
+    <button id="slow" aria-pressed="false">¼× speed</button>
+    <button id="restart">Restart all</button>
+    <span class="note-motion">Reduced motion is on: each scene shows one still frame.</span>
+  </div>
+</header>
+
+<div class="grid" id="cards"></div>
+
+<section class="panel">
+  <h2>Proposed numbers (same for every look)</h2>
+  <ul>
+    <li><b>Throw:</b> 14 s cooldown. Flies to your cursor in 0.5 s (max reach 360 px, like the grenade's arc), landing where you aim.</li>
+    <li><b>Orbs:</b> 6 healing orbs scatter within about 70 px of the landing spot. Walking over one heals 15 health. The kit itself does no healing and no damage.</li>
+    <li><b>Pickup:</b> anyone can take them, including you. Within 40 px an orb drifts toward the nearest player, so grabbing one is easy. Each orb lasts 6 s and flickers for its last 1.5 s.</li>
+    <li><b>Downed allies:</b> an orb that lands on or drifts to a downed ally picks them up at 20% health (a small revive, so the kit has a use in a crisis).</li>
+    <li><b>Capstone:</b> 9 orbs, 20 health each.</li>
+    <li><b>Total if all are taken:</b> 90 healing from 14 s of cooldown, about 6.4 a second, in bursts you have to position for. Mend Pulse is 60 on a 10 s cooldown for comparison.</li>
+  </ul>
+</section>
+<section class="panel">
+  <h2>Build notes</h2>
+  <ul>
+    <li>Needs <code>Core/</code> work (a thrown projectile that spawns pickups, a new pickup kind replicated to clients) and a protocol bump. Nothing is built until you pick a look.</li>
+    <li>Pickups would reuse the Bone Spear pickup code path (<code>TickSpearPickups</code>) as a template.</li>
+    <li>Soul Link's removal from the Soldier also removes its tether drawing and the Soul Ghost; the lantern takes over the idea in the <a href="soul-lantern.html" style="color:var(--amber)">Soul Lantern</a> mockup.</li>
+  </ul>
+</section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, SC = 0.75, W = 480, H = 340;
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const easeOut = x => 1 - Math.pow(1 - clamp(x), 3);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${clamp(a).toFixed(3)})`;
+  const G = [102, 255, 140];
+  const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+  // ---- timeline ----
+  const THROW = 0.5, FLIGHT = 0.5, LAND = THROW + FLIGHT, SCATTER = 0.4, ORB_LIFE = 6, END = LAND + ORB_LIFE, PERIOD = END + 1.2;
+  const HEALER = { x: -140, y: 70 }, TARGET = { x: 30, y: 0 };
+  const ORBS = Array.from({ length: 6 }, (_, i) => {
+    const a = i / 6 * TAU + 0.5, r = 34 + hash(i) * 34;
+    return { x: TARGET.x + Math.cos(a) * r, y: TARGET.y + Math.sin(a) * r * 0.8, by: i * 0.9, take: null, who: null };
+  });
+  // allies walk through waypoints; a waypoint with orb index picks that orb up on arrival
+  const A1 = { col: "#6fb4ff", hp0: 0.3, pts: [[0, 110, 70], [LAND + 0.9, 110, 70], [LAND + 1.6, null, 0], [LAND + 2.3, null, 1], [LAND + 3.0, null, 2], [LAND + 3.8, 120, 70]] };
+  const A2 = { col: "#ffb547", hp0: 0.4, pts: [[0, 130, -70], [LAND + 1.2, 130, -70], [LAND + 2.0, null, 3], [LAND + 2.8, null, 4], [LAND + 3.6, 130, -70]] };
+  for (const A of [A1, A2]) for (const p of A.pts) if (p[2] != null && p[1] == null) { const o = ORBS[p[2]]; p[1] = o.x; p[2] = o.y; o.take = p[0]; o.who = A }
+  const allyPos = (A, T) => {
+    const p = A.pts; if (T <= p[0][0]) return { x: p[0][1], y: p[0][2] };
+    for (let i = 1; i < p.length; i++) if (T <= p[i][0]) { const k = easeOut((T - p[i - 1][0]) / (p[i][0] - p[i - 1][0])); return { x: lerp(p[i - 1][1], p[i][1], k), y: lerp(p[i - 1][2], p[i][2], k) }; }
+    return { x: p[p.length - 1][1], y: p[p.length - 1][2] };
+  };
+  const hpOf = (A, T) => A.hp0 + 0.15 * ORBS.filter(o => o.who === A && o.take != null && T >= o.take).length;
+  const orbRest = (o, T) => ({ x: o.x, y: o.y + Math.sin(T * 3 + o.by) * 2.5 });
+  const orbPos = (o, T) => {
+    const k = (T - LAND) / SCATTER;
+    if (k < 1) return { x: lerp(TARGET.x, o.x, easeOut(k)), y: lerp(TARGET.y, o.y, easeOut(k)) - Math.sin(clamp(k) * Math.PI) * 26 };
+    const r = orbRest(o, T);
+    if (o.take != null && T > o.take - 0.3) { const a = allyPos(o.who, T), m = clamp((T - (o.take - 0.3)) / 0.3); return { x: lerp(r.x, a.x, m), y: lerp(r.y, a.y, m) }; }
+    return r;
+  };
+  const orbAlive = (o, T) => T >= LAND && T < (o.take != null ? o.take : END);
+
+  // ---------- LOOKS ----------
+  // kit(c,x,y,rot,lift,k)  burst(c,x,y,age)  orb(c,x,y,r,T,fade)  pickup(c,x,y,k)
+  const ring = (c, x, y, r, col, a, lw = 3) => { c.beginPath(); c.arc(x, y, r, 0, TAU); c.strokeStyle = rgba(col, a); c.lineWidth = lw; c.stroke(); };
+  const plus = (c, x, y, s, col, a) => { c.fillStyle = rgba(col, a); c.fillRect(x - s, y - s / 3, s * 2, s * 2 / 3); c.fillRect(x - s / 3, y - s, s * 2 / 3, s * 2); };
+  const glowOrb = (c, x, y, r, col, a, blur = 10) => { c.save(); c.shadowColor = rgba(col, 1); c.shadowBlur = blur; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = rgba(col, a); c.fill(); c.restore(); };
+
+  const LOOKS = [
+    { tag: "A · Field Kit", name: "White box, red cross",
+      desc: "A classic first-aid case tumbles in, lands with a thud, the lid pops and glowing green orbs with a white plus fountain out. Orbs pulse like a heartbeat. The empty case fades.",
+      kit(c, x, y, rot, lift) {
+        c.save(); c.translate(x, y - lift); c.rotate(rot);
+        c.fillStyle = "#f2f5f7"; c.strokeStyle = "#8c98a2"; c.lineWidth = 1.5; c.beginPath(); c.roundRect(-13, -10, 26, 20, 3); c.fill(); c.stroke();
+        c.fillStyle = "#e5483f"; c.fillRect(-7, -2.5, 14, 5); c.fillRect(-2.5, -7, 5, 14);
+        c.fillStyle = "#8c98a2"; c.fillRect(-13, -10, 26, 2.5); c.restore();
+      },
+      burst(c, x, y, age) {
+        if (age < 0.5) { const k = age / 0.5; ring(c, x, y, 10 + 55 * easeOut(k), G, 1 - k, 3); }
+        if (age < 0.25) { c.fillStyle = `rgba(255,255,255,${1 - age / 0.25})`; c.fillRect(x - 3, y - 36 * easeOut(age / 0.25), 6, 36 * easeOut(age / 0.25)); }
+        if (age < 3) { c.save(); c.translate(x, y); c.globalAlpha = 1 - clamp((age - 0.3) / 0.6); this.kit(c, 0, 0, 0.1, 0); c.restore(); }
+      },
+      orb(c, x, y, r, T, f) { const pu = 1 + 0.12 * Math.sin(T * 6); glowOrb(c, x, y, 9 * pu * f, G, 0.95, 12); plus(c, x, y, 5 * f, [255, 255, 255], 0.95); },
+      pickup(c, x, y, k) { ring(c, x, y, 10 + 24 * easeOut(k), G, 1 - k, 2.5); plus(c, x, y - 12 - 18 * k, 5, G, 1 - k); } },
+
+    { tag: "B · Supply Canister", name: "Pop-top flare",
+      desc: "A stubby green canister spins out, lands and vents green smoke, then pops its top: orbs shoot up in a fountain and land in a ring. Orbs are soft plasma with a short smoke trail.",
+      kit(c, x, y, rot, lift) {
+        c.save(); c.translate(x, y - lift); c.rotate(rot);
+        c.fillStyle = "#3f5a3a"; c.strokeStyle = "#1d2a1b"; c.lineWidth = 1.5; c.beginPath(); c.roundRect(-8, -13, 16, 26, 4); c.fill(); c.stroke();
+        c.fillStyle = "#59ff8c"; c.fillRect(-8, -3, 16, 5); c.fillStyle = "#cfe9c8"; c.fillRect(-5, -16, 10, 4);
+        c.restore();
+      },
+      burst(c, x, y, age) {
+        for (let i = 0; i < 7; i++) { const k = clamp((age - i * 0.04) / 1.1); if (k <= 0 || k >= 1) continue; const a = hash(i) * TAU, r = 10 + 30 * easeOut(k);
+          c.beginPath(); c.arc(x + Math.cos(a) * r, y + Math.sin(a) * r * 0.7 - 12 * k, 10 + 14 * k, 0, TAU); c.fillStyle = `rgba(150,230,170,${0.28 * (1 - k)})`; c.fill(); }
+        if (age < 0.35) { const k = age / 0.35; c.fillStyle = rgba([210, 255, 220], 1 - k); c.beginPath(); c.moveTo(x - 6 - 10 * k, y); c.lineTo(x, y - 60 * easeOut(k)); c.lineTo(x + 6 + 10 * k, y); c.fill(); }
+        if (age < 3) { c.save(); c.globalAlpha = 1 - clamp((age - 0.4) / 0.7); this.kit(c, x, y, 0.15, 0); c.restore(); }
+      },
+      orb(c, x, y, r, T, f) { for (let i = 3; i > 0; i--) { c.beginPath(); c.arc(x - i * 2, y + i * 3, (8 - i * 1.5) * f, 0, TAU); c.fillStyle = rgba(G, 0.14); c.fill(); }
+        glowOrb(c, x, y, 8.5 * f, [90, 255, 150], 0.9, 16); c.beginPath(); c.arc(x - 2, y - 2, 3 * f, 0, TAU); c.fillStyle = "rgba(230,255,240,.9)"; c.fill(); },
+      pickup(c, x, y, k) { for (let i = 0; i < 6; i++) { const a = i / 6 * TAU, r = 6 + 18 * easeOut(k); c.beginPath(); c.arc(x + Math.cos(a) * r, y + Math.sin(a) * r - 6 * k, 3 * (1 - k), 0, TAU); c.fillStyle = rgba(G, 1 - k); c.fill(); } } },
+
+    { tag: "C · Pill Capsule", name: "Cracks open",
+      desc: "A big red-and-white capsule spins through the air and cracks in half on landing. The halves flop apart and the orbs spill out as small glowing capsules. Orbs are rounded pills, half red, half green glow.",
+      kit(c, x, y, rot, lift) {
+        c.save(); c.translate(x, y - lift); c.rotate(rot);
+        c.beginPath(); c.roundRect(-15, -7, 30, 14, 7); c.clip(); c.fillStyle = "#f2f5f7"; c.fillRect(-15, -7, 15, 14); c.fillStyle = "#e5483f"; c.fillRect(0, -7, 15, 14);
+        c.restore(); c.save(); c.translate(x, y - lift); c.rotate(rot); c.strokeStyle = "#7d8993"; c.lineWidth = 1.5; c.beginPath(); c.roundRect(-15, -7, 30, 14, 7); c.stroke(); c.restore();
+      },
+      burst(c, x, y, age) {
+        const k = easeOut(age / 0.5);
+        c.save(); c.translate(x - 16 * k, y + 2 * k); c.rotate(-0.6 * k); c.beginPath(); c.roundRect(-15, -7, 15, 14, [7, 0, 0, 7]); c.fillStyle = "#f2f5f7"; c.globalAlpha = 1 - clamp((age - 1.2) / 0.8); c.fill(); c.restore();
+        c.save(); c.translate(x + 16 * k, y - 2 * k); c.rotate(0.7 * k); c.beginPath(); c.roundRect(0, -7, 15, 14, [0, 7, 7, 0]); c.fillStyle = "#e5483f"; c.globalAlpha = 1 - clamp((age - 1.2) / 0.8); c.fill(); c.restore();
+        if (age < 0.4) { const f = age / 0.4; for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; c.fillStyle = rgba([255, 255, 255], 1 - f); c.fillRect(x + Math.cos(a) * 26 * f - 1.5, y + Math.sin(a) * 26 * f - 1.5, 3, 3); } }
+      },
+      orb(c, x, y, r, T, f) { c.save(); c.translate(x, y); c.rotate(Math.sin(T * 2 + x) * 0.5); c.shadowColor = rgba(G, 1); c.shadowBlur = 10;
+        c.beginPath(); c.roundRect(-8 * f, -4.5 * f, 16 * f, 9 * f, 4.5 * f); c.clip(); c.fillStyle = "#7dffa6"; c.fillRect(-8, -5, 8, 10); c.fillStyle = "#e5ffee"; c.fillRect(0, -5, 8, 10); c.restore(); },
+      pickup(c, x, y, k) { for (let i = 0; i < 2; i++) { const s = i ? 1 : -1; c.save(); c.translate(x + s * 14 * k, y - 14 * k * 1.4); c.rotate(s * k * 3); c.fillStyle = rgba(G, 1 - k); c.fillRect(-4, -2, 8, 4); c.restore(); } } },
+
+    { tag: "D · Heart Case", name: "Pixel hearts",
+      desc: "A chunky pixel medkit with a heart on the lid lands and pops in a puff of pixels. The orbs are pixel hearts that bob and sparkle; a picked-up heart rises as a green + and the ally gets a quick heart pop.",
+      kit(c, x, y, rot, lift) {
+        const P = 3; c.save(); c.translate(Math.round(x / P) * P, Math.round((y - lift) / P) * P);
+        const px = (gx, gy, w, h, col) => { c.fillStyle = col; c.fillRect(gx * P, gy * P, w * P, h * P); };
+        px(-5, -3, 10, 7, "#2b3640"); px(-4, -2, 8, 5, "#f2f5f7"); px(-3, -4, 6, 1, "#8c98a2");
+        px(-1, -1, 2, 3, "#e5483f"); px(-2, 0, 4, 1, "#e5483f"); c.restore();
+      },
+      burst(c, x, y, age) {
+        if (age < 0.6) for (let i = 0; i < 14; i++) { const a = hash(i + 3) * TAU, d = easeOut(age / 0.6) * (20 + hash(i) * 40), s = 4 * (1 - age / 0.6) + 1;
+          c.fillStyle = i % 2 ? rgba(G, 1 - age / 0.6) : `rgba(255,255,255,${1 - age / 0.6})`; c.fillRect(Math.round((x + Math.cos(a) * d) / 3) * 3, Math.round((y + Math.sin(a) * d * 0.7) / 3) * 3, s, s); }
+        if (age < 3) { c.save(); c.globalAlpha = 1 - clamp((age - 0.3) / 0.5); this.kit(c, x, y, 0, 0); c.restore(); }
+      },
+      orb(c, x, y, r, T, f) { const P = 2.6 * f, rows = ["01100110", "11111111", "11111111", "01111110", "00111100", "00011000"];
+        c.save(); c.translate(Math.round(x), Math.round(y)); c.shadowColor = rgba(G, 1); c.shadowBlur = 8;
+        rows.forEach((row, ry) => [...row].forEach((v, rx) => { if (v === "1") { c.fillStyle = ry < 2 && rx < 3 ? "#d6ffe3" : "#59ff8c"; c.fillRect((rx - 4) * P, (ry - 3) * P, P + 0.4, P + 0.4); } }));
+        c.restore(); if (Math.sin(T * 5 + x) > 0.92) plus(c, x + 8, y - 8, 3, [255, 255, 255], 0.9); },
+      pickup(c, x, y, k) { plus(c, x, y - 10 - 20 * k, 6, G, 1 - k); for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + 0.78, r = 8 + 16 * k; c.fillStyle = rgba(G, 1 - k); c.fillRect(x + Math.cos(a) * r - 2, y + Math.sin(a) * r - 2, 4, 4); } } },
+  ];
+
+  // ---------- scene ----------
+  function drawScene(c, look, T) {
+    // landing marker
+    if (T < LAND) { c.setLineDash([4, 8]); c.strokeStyle = "rgba(255,255,255,.28)"; c.lineWidth = 1.5; c.beginPath(); c.arc(TARGET.x, TARGET.y, 18, 0, TAU); c.stroke(); c.setLineDash([]); }
+    // orb zone hint
+    if (T >= LAND && T < END) { c.setLineDash([3, 7]); c.strokeStyle = "rgba(102,255,140,.14)"; c.beginPath(); c.arc(TARGET.x, TARGET.y, 80, 0, TAU); c.stroke(); c.setLineDash([]); }
+    // allies
+    for (const A of [A1, A2]) {
+      const p = allyPos(A, T), hp = hpOf(A, T);
+      c.save(); c.translate(p.x, p.y); c.beginPath(); c.arc(0, 0, 15, 0, TAU); c.fillStyle = "#1a2229"; c.fill(); c.lineWidth = 3; c.strokeStyle = A.col; c.stroke();
+      c.beginPath(); c.arc(0, 0, 5, 0, TAU); c.fillStyle = A.col; c.fill(); c.restore();
+      c.fillStyle = "#0c1014"; c.fillRect(p.x - 18, p.y + 24, 36, 5);
+      c.fillStyle = hp > 0.6 ? "#59ff8c" : hp > 0.3 ? "#ffd04a" : "#ff5a4f"; c.fillRect(p.x - 18, p.y + 24, 36 * hp, 5);
+      c.strokeStyle = "#36424e"; c.lineWidth = 1; c.strokeRect(p.x - 18.5, p.y + 23.5, 37, 6);
+    }
+    // burst + kit in flight
+    if (T >= THROW && T < LAND) {
+      const k = (T - THROW) / FLIGHT, x = lerp(HEALER.x, TARGET.x, k), y = lerp(HEALER.y, TARGET.y, k), lift = Math.sin(k * Math.PI) * 70;
+      c.fillStyle = "rgba(0,0,0,.35)"; c.beginPath(); c.ellipse(x, y + 8, 12, 4, 0, 0, TAU); c.fill();
+      look.kit(c, x, y, k * 9, lift);
+    }
+    if (T >= LAND && T < LAND + 3) look.burst(c, TARGET.x, TARGET.y, T - LAND);
+    // orbs
+    ORBS.forEach((o, i) => {
+      if (!orbAlive(o, T)) return;
+      const p = orbPos(o, T), left = (o.take != null ? Infinity : END) - T;
+      const f = o.take == null && left < 1.5 ? (Math.sin(T * 24) > 0 ? 1 : 0.3) * (0.4 + 0.6 * left / 1.5) : 1;
+      c.globalAlpha = clamp(f); look.orb(c, p.x, p.y, 9, T, clamp((T - LAND) / 0.15)); c.globalAlpha = 1;
+    });
+    // pickups
+    ORBS.forEach(o => { if (o.take == null) return; const k = (T - o.take) / 0.6; if (k >= 0 && k < 1) { const a = allyPos(o.who, T); look.pickup(c, a.x, a.y, k);
+      c.font = "700 14px Oxanium, sans-serif"; c.textAlign = "center"; c.fillStyle = rgba(G, 1 - k); c.fillText("+15", a.x + 22, a.y - 22 - 20 * easeOut(k)); } });
+    // expiring orb puff
+    ORBS.forEach(o => { if (o.take != null) return; const k = (T - END) / 0.4; if (k >= 0 && k < 1) { const r = orbRest(o, END); ring(c, r.x, r.y, 6 + 10 * k, G, 0.6 * (1 - k), 2); } });
+    // healer
+    c.save(); c.translate(HEALER.x, HEALER.y); const sq = T >= THROW && T < THROW + 0.25 ? 1 + 0.18 * Math.sin((T - THROW) / 0.25 * Math.PI) : 1; c.scale(sq, sq);
+    c.beginPath(); c.arc(0, 0, 17, 0, TAU); c.fillStyle = "#14281c"; c.fill(); c.lineWidth = 3; c.strokeStyle = "#59ff8c"; c.stroke();
+    c.fillStyle = "#59ff8c"; c.fillRect(-7, -2, 14, 4); c.fillRect(-2, -7, 4, 14); c.restore();
+    c.font = "500 11px 'IBM Plex Mono', monospace"; c.textAlign = "center"; c.fillStyle = "#92a1ad"; c.fillText("you", HEALER.x, HEALER.y + 34);
+    if (T < THROW + 0.1) { c.strokeStyle = "rgba(255,255,255,.8)"; c.lineWidth = 1.5; c.beginPath(); c.arc(TARGET.x, TARGET.y, 14, 0, TAU); c.stroke();
+      c.beginPath(); c.moveTo(TARGET.x - 22, TARGET.y); c.lineTo(TARGET.x - 8, TARGET.y); c.moveTo(TARGET.x + 8, TARGET.y); c.lineTo(TARGET.x + 22, TARGET.y); c.moveTo(TARGET.x, TARGET.y - 22); c.lineTo(TARGET.x, TARGET.y - 8); c.moveTo(TARGET.x, TARGET.y + 8); c.lineTo(TARGET.x, TARGET.y + 22); c.stroke();
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.fillStyle = "#cfdae2"; c.fillText("cursor", TARGET.x, TARGET.y - 32); }
+  }
+
+  const grid = document.getElementById("cards");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scenes = LOOKS.map(look => {
+    const card = document.createElement("div"); card.className = "card";
+    card.innerHTML = `<canvas width="${W * 2}" height="${H * 2}" aria-label="${look.name} preview"></canvas><div class="t"><span class="tag">${look.tag}</span><b>${look.name}</b><span>${look.desc}</span></div>`;
+    grid.appendChild(card);
+    return { look, c: card.querySelector("canvas").getContext("2d") };
+  });
+
+  let paused = false, slow = false, offset = 0, last = performance.now();
+  const pauseB = document.getElementById("pause"), slowB = document.getElementById("slow");
+  pauseB.onclick = () => { paused = !paused; pauseB.setAttribute("aria-pressed", paused); pauseB.textContent = paused ? "Play" : "Pause"; };
+  slowB.onclick = () => { slow = !slow; slowB.setAttribute("aria-pressed", slow); };
+  document.getElementById("restart").onclick = () => { offset = 0; if (reduce) { paused = true; offset = LAND + 1.0; } render(); };
+
+  function render() {
+    const T = offset % PERIOD;
+    for (const { look, c } of scenes) {
+      c.setTransform(2, 0, 0, 2, 0, 0); c.clearRect(0, 0, W, H);
+      c.fillStyle = "#070910"; c.fillRect(0, 0, W, H);
+      c.save(); c.translate(W / 2 - 10, H / 2 - 4); c.scale(SC, SC);
+      c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 1;
+      for (let g = -400; g <= 400; g += 50) { c.beginPath(); c.moveTo(g, -300); c.lineTo(g, 300); c.stroke(); c.beginPath(); c.moveTo(-400, g); c.lineTo(400, g); c.stroke(); }
+      drawScene(c, look, T);
+      c.restore();
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.fillStyle = "#92a1ad"; c.textAlign = "left";
+      c.fillText(T < THROW ? "ready" : T < LAND ? "thrown" : T < END ? `orbs · ${Math.max(0, END - T).toFixed(1)} s left` : "gone", 10, H - 10);
+    }
+  }
+  function frame(now) { const dt = (now - last) / 1000; last = now; if (!paused && !reduce) offset += dt * (slow ? 0.25 : 1); render(); requestAnimationFrame(frame); }
+  if (reduce) { paused = true; offset = LAND + 1.0; render(); } else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
