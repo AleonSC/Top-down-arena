@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ping System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. Top: a live arena you can ping in (tap to ping, hold for the wheel; allies ping on their own).
+   Under it: the six pings, how each looks on screen / off screen / on the minimap, and the open questions. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4; --gold: #ffcc59;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--teal); }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: .03em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code, kbd { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.stage canvas { display: block; width: 100%; height: auto; aspect-ratio: 960 / 540; background: #080b11; cursor: crosshair; touch-action: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+.hint { color: var(--muted); font-size: 14px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 270 / 110; background: #080b11; border-radius: 6px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tag { font: 700 12px var(--font-display); letter-spacing: .12em; }
+.req { font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--edge); color: var(--muted); white-space: nowrap; }
+.card p { font-size: 14px; color: var(--soft); }
+.notes { display: grid; gap: 10px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--soft); font-size: 15px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: baseline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Mockup &middot; co-op communication</div>
+  <h1>Ping <span>System</span></h1>
+  <p class="lead">With 1-3 players and no voice, a ping lets you say "look here", "run!" or "kill that one" without typing. <b>Tap</b> the Ping key (or middle mouse) to drop a plain "Here" at your cursor; <b>hold</b> it for a six-slice wheel. Everyone sees it, in their own colour, for 5 seconds.</p>
+</header>
+
+<section class="stage" aria-label="Live ping demo">
+  <canvas id="arena" width="960" height="540" aria-label="Demo arena. Tap to ping, hold to open the ping wheel. Move with WASD or arrow keys."></canvas>
+  <div class="bar">
+    <div class="group"><span class="label">Tap ping is</span><span id="types"></span></div>
+    <div class="group"><span class="label">Allies</span><button id="auto" aria-pressed="true">Pinging on their own</button></div>
+    <div class="group"><span class="label">Camera</span><span class="hint">move with <kbd>WASD</kbd> to push pings off screen</span></div>
+  </div>
+  <div class="bar"><span class="hint">In the demo, click is the Ping key: <b>tap</b> = the selected ping, <b>hold 0.2 s</b> = wheel (drag to a slice, let go; let go in the middle to cancel). Spam is capped at 3 live pings each; a 4th replaces your oldest.</span></div>
+</section>
+
+<section class="grid" style="display:grid;gap:14px">
+  <h2>The six pings</h2>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section style="display:grid;gap:14px">
+  <h2>Where a ping shows up</h2>
+  <div class="two">
+    <div class="box">
+      <h3>On screen</h3>
+      <ul>
+        <li>Three ripples spread out from the spot, then a ring with the glyph and a thin beam of light going up, so it reads over a busy screen.</li>
+        <li>A small chip in the pinger's colour: name and, once, the word (<code>P2 &middot; DANGER</code>). After 1 s the word drops and only the glyph stays.</li>
+        <li>Fades over its last second. Bullets and enemies draw over the ring, never under the glyph.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Off screen</h3>
+      <ul>
+        <li>The glyph pins to the screen edge (36 px in) with a chevron pointing the way and the distance beneath (<code>640</code>, in px like the rest of the game).</li>
+        <li>Because the arena wraps, it points the <em>short</em> way round.</li>
+        <li>Minimap (top-right) shows the same dot, so the party can see the whole picture at a glance.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>On an enemy or pickup</h3>
+      <ul>
+        <li><b>Focus</b> snaps to the enemy within 60 px of the cursor and follows it until it dies; the ring becomes a crosshair that sits on it.</li>
+        <li>Enemies a teammate has marked get a thin outline in their colour, so you can find "the Hexer P3 meant" in a crowd.</li>
+        <li><b>Loot</b> on an orb, card or shop item tags it "mine"; the item gets a small pinger-coloured corner mark until taken.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Rules</h3>
+      <ul>
+        <li>Lasts 5 s (Danger 4 s). Max 3 live per player; 0.4 s between pings, so mashing doesn't flood the screen.</li>
+        <li>A <b>Help</b> ping also shows on the pinger's HP bar for everyone, and the Healer's abilities highlight them.</li>
+        <li>Works in matches only; the Hangout has emotes. Mute a player's pings from the pause menu if they spam.</li>
+        <li>Spectators and dead players can still ping, with a dim ring (nice for "boss is going left").</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section style="display:grid;gap:14px">
+  <h2>If we build it</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Piece</th><th>Plan</th></tr>
+    <tr><td>Input</td><td>New <code>Ping</code> control: default <kbd>G</kbd> and middle mouse, rebindable. Tap / hold as above. Gamepad: right stick click. Tap picks the last wheel choice (default Here), set in Settings &rarr; Gameplay.</td></tr>
+    <tr><td>Network</td><td>New <code>Msg.Ping</code> at the end of the enum: type, world position, optional target id. Host checks the cooldown and cap, then broadcasts; clients draw from <code>Session.Pings</code>. Snapshot format unchanged apart from the ping list, so a protocol bump.</td></tr>
+    <tr><td>Core</td><td>Plain C# in <code>Core/</code> (<code>PingState</code>: list, expiry, focus follow, rate limit), tested in SimTest. Drawing in <code>Game/PingLooks.cs</code> and the wheel in <code>Game/PingWheel.cs</code>, like the emote bar.</td></tr>
+    <tr><td>Audio</td><td>A short two-note blip per type, pitched higher for Danger, quiet enough for spam. Plays for allies' pings at 60% volume.</td></tr>
+  </table></div>
+</section>
+
+<section class="notes">
+  <h2>Questions for you</h2>
+  <p><b>Wheel or tap-only?</b> The wheel gives six meanings but is slower in a bullet hell. Alternative: tap = Here, double-tap = Danger, nothing else.</p>
+  <p><b>Own colour or class colour?</b> Shown here: player slot colour (teal / amber / violet). Class colour is prettier but two Knights would clash.</p>
+  <p><b>Ping vs. emote key?</b> Emotes use hold-T. Could merge: T bar gets a "Ping" tab. I'd keep them separate: pings are about the map, emotes are about you.</p>
+</section>
+
+</div>
+
+<script>
+(() => {
+const TYPES = {
+  here:   { name: 'HERE',   color: '#6fe3c4', life: 5, tip: 'Look here / regroup here. The default tap.' },
+  go:     { name: 'GO',     color: '#7bd96b', life: 5, tip: 'Head this way. A trail of chevrons points from the pinger to the spot.' },
+  danger: { name: 'DANGER', color: '#ff5a4d', life: 4, tip: 'Watch out: a boss attack, a mine field, a bad corner. Pulses faster.' },
+  help:   { name: 'HELP',   color: '#ffb547', life: 5, tip: 'I need a healer or a revive. Also flags your HP bar for everyone.' },
+  focus:  { name: 'FOCUS',  color: '#e06bff', life: 6, tip: 'Kill this one. Snaps to the nearest enemy and follows it until it dies.' },
+  loot:   { name: 'LOOT',   color: '#ffcc59', life: 5, tip: 'Pick this up / save this for me. Marks orbs, cards and shop items.' },
+};
+const ORDER = ['here','focus','danger','help','loot','go']; // wheel, clockwise from the top
+const PCOL = ['#6fe3c4', '#ffb547', '#b78cff'];
+const PNAME = ['YOU', 'P2', 'P3'];
+const W = 1800, H = 1000, VW = 960, VH = 540;
+
+// ---------- glyphs ----------
+function glyph(c, type, x, y, r, col, a = 1) {
+  c.save(); c.translate(x, y); c.globalAlpha *= a; c.strokeStyle = col; c.fillStyle = col; c.lineWidth = Math.max(2, r * .16); c.lineCap = 'round'; c.lineJoin = 'round';
+  const k = r * .5;
+  if (type === 'here') { c.beginPath(); c.arc(0, 0, k * .9, 0, 7); c.stroke(); c.beginPath(); c.arc(0, 0, k * .22, 0, 7); c.fill(); }
+  else if (type === 'danger') { c.beginPath(); c.moveTo(0, -k * 1.1); c.lineTo(k * 1.05, k * .8); c.lineTo(-k * 1.05, k * .8); c.closePath(); c.stroke(); c.fillRect(-k * .09, -k * .45, k * .18, k * .75); c.fillRect(-k * .09, k * .45, k * .18, k * .18); }
+  else if (type === 'help') { c.fillRect(-k * .22, -k * .9, k * .44, k * 1.8); c.fillRect(-k * .9, -k * .22, k * 1.8, k * .44); }
+  else if (type === 'go') { for (const o of [-.45, .35]) { c.beginPath(); c.moveTo(-k * .8, o * k - k * .35); c.lineTo(0, o * k + k * .45); c.lineTo(k * .8, o * k - k * .35); c.stroke(); } }
+  else if (type === 'focus') { c.beginPath(); c.arc(0, 0, k * .8, 0, 7); c.stroke(); for (let i = 0; i < 4; i++) { c.save(); c.rotate(i * Math.PI / 2); c.beginPath(); c.moveTo(0, -k * 1.15); c.lineTo(0, -k * .5); c.stroke(); c.restore(); } c.beginPath(); c.arc(0, 0, k * .16, 0, 7); c.fill(); }
+  else if (type === 'loot') { c.beginPath(); c.moveTo(0, -k); c.lineTo(k * .85, 0); c.lineTo(0, k); c.lineTo(-k * .85, 0); c.closePath(); c.stroke(); c.globalAlpha *= .35; c.fill(); }
+  c.restore();
+}
+function chip(c, text, x, y, col, a = 1) {
+  c.save(); c.globalAlpha *= a; c.font = '700 11px Oxanium, sans-serif'; const w = c.measureText(text).width + 14;
+  c.fillStyle = 'rgba(8,11,17,.85)'; c.strokeStyle = col; c.lineWidth = 1.2; c.beginPath(); c.roundRect(x - w / 2, y - 9, w, 18, 9); c.fill(); c.stroke();
+  c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y + .5); c.restore();
+}
+
+// ---------- world ----------
+const rnd = (a, b) => a + Math.random() * (b - a);
+const players = [ { x: 900, y: 500, tx: 900, ty: 500 }, { x: 1150, y: 380, tx: 1250, ty: 300 }, { x: 650, y: 640, tx: 500, ty: 700 } ];
+const enemies = [];
+for (let i = 0; i < 12; i++) enemies.push({ x: rnd(100, W - 100), y: rnd(100, H - 100), a: rnd(0, 7), s: rnd(18, 36), r: 9, boss: false, hp: 1 });
+enemies.push({ x: 1500, y: 260, a: 3, s: 12, r: 34, boss: true, hp: 1 });
+const orbs = Array.from({ length: 7 }, () => ({ x: rnd(80, W - 80), y: rnd(80, H - 80) }));
+const pings = [];
+const keys = {};
+let camX = 0, camY = 0, now = 0;
+
+function wrapD(a, b, size) { let d = b - a; if (d > size / 2) d -= size; if (d < -size / 2) d += size; return d; } // short way round
+
+function addPing(owner, type, x, y) {
+  const mine = pings.filter(p => p.owner === owner);
+  if (mine.length >= 3) pings.splice(pings.indexOf(mine[0]), 1);
+  let target = null;
+  if (type === 'focus') { let best = 70; for (const e of enemies) { const d = Math.hypot(wrapD(x, e.x, W), wrapD(y, e.y, H)) - e.r; if (d < best) { best = d; target = e; } } }
+  if (target) { x = target.x; y = target.y; }
+  pings.push({ owner, type, x, y, t0: now, target });
+}
+
+// ---------- drawing ----------
+const cv = document.getElementById('arena'), g = cv.getContext('2d');
+function toScreen(wx, wy) { return [VW / 2 + wrapD(camX, wx, W), VH / 2 + wrapD(camY, wy, H)]; }
+
+function drawWorld() {
+  g.fillStyle = '#080b11'; g.fillRect(0, 0, VW, VH);
+  g.strokeStyle = '#141b23'; g.lineWidth = 1;
+  const gx = ((-camX + VW / 2) % 60 + 60) % 60, gy = ((-camY + VH / 2) % 60 + 60) % 60;
+  g.beginPath(); for (let x = gx; x < VW; x += 60) { g.moveTo(x, 0); g.lineTo(x, VH); } for (let y = gy; y < VH; y += 60) { g.moveTo(0, y); g.lineTo(VW, y); } g.stroke();
+  for (const o of orbs) { const [x, y] = toScreen(o.x, o.y); g.fillStyle = '#ffcc59'; g.globalAlpha = .85; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.globalAlpha = .25; g.beginPath(); g.arc(x, y, 9 + Math.sin(now * 4) * 1.5, 0, 7); g.fill(); g.globalAlpha = 1; }
+  // enemy outlines for marked ones
+  for (const e of enemies) {
+    const [x, y] = toScreen(e.x, e.y);
+    const marked = pings.find(p => p.target === e);
+    g.fillStyle = e.boss ? '#5a2a3a' : '#3a2230'; g.strokeStyle = e.boss ? '#c0587a' : '#8a4560'; g.lineWidth = 2;
+    g.beginPath(); g.arc(x, y, e.r, 0, 7); g.fill(); g.stroke();
+    if (e.boss) { g.fillStyle = '#e8b0c0'; g.font = '700 10px Oxanium'; g.textAlign = 'center'; g.fillText('BOSS', x, y + 3); }
+    if (marked) { g.strokeStyle = PCOL[marked.owner]; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, e.r + 4, 0, 7); g.stroke(); }
+  }
+  players.forEach((p, i) => { const [x, y] = toScreen(p.x, p.y); g.fillStyle = PCOL[i]; g.beginPath(); g.arc(x, y, 11, 0, 7); g.fill(); g.strokeStyle = '#0a0d10'; g.lineWidth = 2; g.stroke();
+    g.fillStyle = '#e7eef3'; g.font = '600 10px Barlow'; g.textAlign = 'center'; g.fillText(PNAME[i], x, y - 18);
+    // Help ping flags the HP bar
+    if (pings.some(q => q.owner === i && q.type === 'help')) { g.strokeStyle = TYPES.help.color; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 16 + Math.sin(now * 8) * 2, 0, 7); g.stroke(); }
+  });
+}
+
+function drawPing(p) {
+  const T = TYPES[p.type], col = PCOL[p.owner], age = now - p.t0, life = T.life, fade = Math.min(1, (life - age) / 1);
+  if (p.target) { p.x = p.target.x; p.y = p.target.y; }
+  let [sx, sy] = toScreen(p.x, p.y);
+  const inside = sx > 20 && sx < VW - 20 && sy > 20 && sy < VH - 20;
+  g.save(); g.globalAlpha = Math.max(0, fade);
+  const pulse = p.type === 'danger' ? 2.4 : 1.4;
+  if (inside) {
+    for (let i = 0; i < 3; i++) { const t = ((age * pulse - i * .33) % 1 + 1) % 1; if (age * pulse < i * .33) continue; g.globalAlpha = Math.max(0, fade) * (1 - t) * .8; g.strokeStyle = T.color; g.lineWidth = 2.5; g.beginPath(); g.arc(sx, sy, 8 + t * 34, 0, 7); g.stroke(); }
+    g.globalAlpha = Math.max(0, fade);
+    const gr = g.createLinearGradient(0, sy - 120, 0, sy); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, T.color); g.fillStyle = gr; g.globalAlpha = Math.max(0, fade) * .5; g.fillRect(sx - 1.5, sy - 120, 3, 120);
+    g.globalAlpha = Math.max(0, fade);
+    g.fillStyle = 'rgba(8,11,17,.8)'; g.beginPath(); g.arc(sx, sy - 22, 15, 0, 7); g.fill(); g.strokeStyle = col; g.lineWidth = 2; g.stroke();
+    glyph(g, p.type, sx, sy - 22, 24, T.color);
+    chip(g, age < 1 ? PNAME[p.owner] + ' · ' + T.name : PNAME[p.owner], sx, sy - 48, col);
+  } else {
+    // pin to the edge, pointing the short way round
+    const dx = sx - VW / 2, dy = sy - VH / 2, m = 40, k = Math.min((VW / 2 - m) / Math.abs(dx || 1), (VH / 2 - m) / Math.abs(dy || 1));
+    const ex = VW / 2 + dx * k, ey = VH / 2 + dy * k, ang = Math.atan2(dy, dx);
+    const bob = Math.sin(now * 6) * 2;
+    g.translate(ex, ey);
+    g.save(); g.rotate(ang); g.fillStyle = col; g.beginPath(); g.moveTo(26 + bob, 0); g.lineTo(16 + bob, -7); g.lineTo(16 + bob, 7); g.closePath(); g.fill(); g.restore();
+    g.fillStyle = 'rgba(8,11,17,.88)'; g.beginPath(); g.arc(0, 0, 15, 0, 7); g.fill(); g.strokeStyle = col; g.lineWidth = 2; g.stroke();
+    glyph(g, p.type, 0, 0, 24, T.color);
+    chip(g, String(Math.round(Math.hypot(wrapD(players[0].x, p.x, W), wrapD(players[0].y, p.y, H)))), 0, ey < VH / 2 ? 28 : -28, col);
+  }
+  g.restore();
+}
+
+function drawMinimap() {
+  const mw = 170, mh = Math.round(170 * H / W), x0 = VW - mw - 12, y0 = 12;
+  g.save(); g.fillStyle = 'rgba(8,11,17,.8)'; g.strokeStyle = '#36424e'; g.lineWidth = 1; g.fillRect(x0, y0, mw, mh); g.strokeRect(x0 + .5, y0 + .5, mw, mh);
+  const mx = x => x0 + x / W * mw, my = y => y0 + y / H * mh;
+  g.strokeStyle = '#2a3744'; const vx = ((camX - VW / 2) % W + W) % W, vy = ((camY - VH / 2) % H + H) % H; g.strokeRect(mx(Math.min(vx, W - VW)), my(Math.min(vy, H - VH)), VW / W * mw, VH / H * mh);
+  for (const e of enemies) { g.fillStyle = e.boss ? '#c0587a' : '#6b3a50'; g.fillRect(mx(e.x) - (e.boss ? 3 : 1), my(e.y) - (e.boss ? 3 : 1), e.boss ? 6 : 2, e.boss ? 6 : 2); }
+  players.forEach((p, i) => { g.fillStyle = PCOL[i]; g.beginPath(); g.arc(mx(p.x), my(p.y), 2.5, 0, 7); g.fill(); });
+  for (const p of pings) { const a = Math.max(0, Math.min(1, TYPES[p.type].life - (now - p.t0))); const r = 3 + ((now - p.t0) * 2 % 1) * 6; g.strokeStyle = TYPES[p.type].color; g.globalAlpha = a; g.lineWidth = 1.5; g.beginPath(); g.arc(mx(p.x), my(p.y), r, 0, 7); g.stroke(); g.fillStyle = TYPES[p.type].color; g.beginPath(); g.arc(mx(p.x), my(p.y), 2, 0, 7); g.fill(); g.globalAlpha = 1; }
+  g.restore();
+}
+
+// ---------- wheel ----------
+let wheel = null; // {sx, sy, hover}
+function drawWheel() {
+  if (!wheel) return; const { sx, sy } = wheel, R0 = 34, R1 = 96;
+  g.save(); g.fillStyle = 'rgba(4,6,9,.45)'; g.fillRect(0, 0, VW, VH);
+  g.translate(sx, sy);
+  ORDER.forEach((t, i) => {
+    const a0 = (-90 + i * 60 - 30) * Math.PI / 180, a1 = a0 + Math.PI / 3, am = (a0 + a1) / 2, hot = wheel.hover === i, T = TYPES[t];
+    g.beginPath(); g.arc(0, 0, R1, a0 + .02, a1 - .02); g.arc(0, 0, R0, a1 - .02, a0 + .02, true); g.closePath();
+    g.fillStyle = hot ? T.color + '55' : 'rgba(17,22,27,.92)'; g.fill(); g.strokeStyle = hot ? T.color : '#36424e'; g.lineWidth = hot ? 2.5 : 1.2; g.stroke();
+    const rr = (R0 + R1) / 2 + (hot ? 4 : 0);
+    glyph(g, t, Math.cos(am) * rr, Math.sin(am) * rr - 6, 26, hot ? '#fff' : T.color);
+    g.font = '700 10px Oxanium'; g.textAlign = 'center'; g.fillStyle = hot ? '#fff' : '#92a1ad'; g.fillText(T.name, Math.cos(am) * rr, Math.sin(am) * rr + 16);
+  });
+  g.beginPath(); g.arc(0, 0, R0 - 6, 0, 7); g.fillStyle = 'rgba(8,11,17,.9)'; g.fill(); g.strokeStyle = '#36424e'; g.stroke();
+  g.fillStyle = '#92a1ad'; g.font = '600 9px Oxanium'; g.textAlign = 'center'; g.fillText(wheel.hover < 0 ? 'CANCEL' : 'RELEASE', 0, 3);
+  g.restore();
+}
+
+// ---------- input ----------
+let tapType = 'here', down = null;
+const typesEl = document.getElementById('types');
+ORDER.forEach(t => { const b = document.createElement('button'); b.textContent = TYPES[t].name; b.dataset.t = t; b.setAttribute('aria-pressed', t === tapType); b.style.borderLeft = '4px solid ' + TYPES[t].color;
+  b.onclick = () => { tapType = t; typesEl.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.t === t)); }; typesEl.appendChild(b); typesEl.append(' '); });
+document.getElementById('auto').onclick = e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); e.target.textContent = on ? 'Pinging on their own' : 'Quiet'; };
+const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * VW / r.width, (e.clientY - r.top) * VH / r.height]; };
+let lastPing = 0;
+cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); const [x, y] = pos(e); down = { x, y, t: performance.now() }; });
+cv.addEventListener('pointermove', e => { if (!down) return; const [x, y] = pos(e);
+  if (wheel) { const dx = x - wheel.sx, dy = y - wheel.sy; if (Math.hypot(dx, dy) < 30) wheel.hover = -1; else { let a = Math.atan2(dy, dx) * 180 / Math.PI + 90 + 30; a = ((a % 360) + 360) % 360; wheel.hover = Math.floor(a / 60) % 6; } } });
+cv.addEventListener('pointerup', e => { if (!down) return; const [x, y] = pos(e); let type = tapType;
+  if (wheel) { type = wheel.hover >= 0 ? ORDER[wheel.hover] : null; wheel = null; }
+  down = null;
+  if (type && now - lastPing > .4) { lastPing = now; addPing(0, type, camX + wrapD(0, x - VW / 2, 1e9), camY + wrapD(0, y - VH / 2, 1e9)); } });
+cv.addEventListener('pointercancel', () => { down = null; wheel = null; });
+addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if (e.key.startsWith('Arrow')) e.preventDefault(); });
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+// ---------- loop ----------
+let last = performance.now(), nextAuto = 1.5;
+function step(dt) {
+  now += dt;
+  if (down && !wheel && performance.now() - down.t > 200) wheel = { sx: Math.max(110, Math.min(VW - 110, down.x)), sy: Math.max(110, Math.min(VH - 110, down.y)), hover: -1 };
+  const p0 = players[0], sp = 170, mx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0), my = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
+  if (mx || my) { const l = Math.hypot(mx, my); p0.x = (p0.x + mx / l * sp * dt + W) % W; p0.y = (p0.y + my / l * sp * dt + H) % H; }
+  for (const i of [1, 2]) { const p = players[i], dx = wrapD(p.x, p.tx, W), dy = wrapD(p.y, p.ty, H), d = Math.hypot(dx, dy); if (d < 8) { p.tx = rnd(100, W - 100); p.ty = rnd(100, H - 100); } else { p.x = (p.x + dx / d * 90 * dt + W) % W; p.y = (p.y + dy / d * 90 * dt + H) % H; } }
+  for (const e of enemies) { e.x = (e.x + Math.cos(e.a) * e.s * dt + W) % W; e.y = (e.y + Math.sin(e.a) * e.s * dt + H) % H; if (Math.random() < dt * .2) e.a += rnd(-1, 1); }
+  camX += wrapD(camX, p0.x, W) * Math.min(1, dt * 5); camY += wrapD(camY, p0.y, H) * Math.min(1, dt * 5); camX = (camX + W) % W; camY = (camY + H) % H;
+  for (let i = pings.length - 1; i >= 0; i--) if (now - pings[i].t0 > TYPES[pings[i].type].life) pings.splice(i, 1);
+  nextAuto -= dt;
+  if (nextAuto < 0 && document.getElementById('auto').getAttribute('aria-pressed') === 'true') {
+    nextAuto = rnd(2.5, 5); const who = Math.random() < .5 ? 1 : 2, t = ORDER[Math.floor(Math.random() * 6)], me = players[who];
+    let x, y;
+    if (t === 'loot') { const o = orbs[Math.floor(Math.random() * orbs.length)]; x = o.x; y = o.y; }
+    else if (t === 'focus') { const e = Math.random() < .35 ? enemies[enemies.length - 1] : enemies[Math.floor(Math.random() * 12)]; x = e.x; y = e.y; }
+    else if (t === 'help') { x = me.x; y = me.y; }
+    else if (t === 'go') { x = me.x + rnd(-500, 500); y = me.y + rnd(-300, 300); }
+    else { x = me.x + rnd(-700, 700); y = me.y + rnd(-450, 450); }
+    addPing(who, t, (x + W) % W, (y + H) % H);
+  }
+}
+function frame(tm) { const dt = Math.min(.05, (tm - last) / 1000); last = tm; step(dt); drawWorld(); pings.forEach(drawPing); drawMinimap(); drawWheel(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+
+// ---------- the six cards ----------
+const cardsEl = document.getElementById('cards');
+const cardDraw = [];
+ORDER.forEach(t => {
+  const T = TYPES[t], el = document.createElement('div'); el.className = 'card';
+  el.innerHTML = `<canvas width="270" height="110" aria-hidden="true"></canvas><div class="row"><h3 style="color:${T.color}">${T.name}</h3><span class="req">${T.life} s</span></div><p>${T.tip}</p>`;
+  cardsEl.appendChild(el);
+  const c = el.querySelector('canvas').getContext('2d');
+  cardDraw.push(tm => {
+    const age = (tm / 1000) % 3, pulse = t === 'danger' ? 2.4 : 1.4; c.clearRect(0, 0, 270, 110); c.fillStyle = '#080b11'; c.fillRect(0, 0, 270, 110);
+    const x = 135, y = 82;
+    if (t === 'go') { c.strokeStyle = '#1c2630'; c.setLineDash([4, 6]); c.beginPath(); c.moveTo(30, 90); c.lineTo(x, y); c.stroke(); c.setLineDash([]); for (let i = 0; i < 4; i++) { const f = ((age * .8 + i * .25) % 1); const px = 30 + (x - 30) * f, py = 90 + (y - 90) * f; c.globalAlpha = Math.sin(f * Math.PI); glyph(c, 'go', px, py, 12, T.color); c.globalAlpha = 1; } }
+    for (let i = 0; i < 3; i++) { const u = ((age * pulse - i * .33) % 1 + 1) % 1; c.globalAlpha = (1 - u) * .8; c.strokeStyle = T.color; c.lineWidth = 2.5; c.beginPath(); c.arc(x, y, 6 + u * 30, 0, 7); c.stroke(); }
+    c.globalAlpha = .5; const gr = c.createLinearGradient(0, y - 60, 0, y); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, T.color); c.fillStyle = gr; c.fillRect(x - 1.5, y - 60, 3, 60); c.globalAlpha = 1;
+    if (t === 'focus') { c.fillStyle = '#3a2230'; c.strokeStyle = '#8a4560'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 9, 0, 7); c.fill(); c.stroke(); c.strokeStyle = PCOL[1]; c.beginPath(); c.arc(x, y, 13, 0, 7); c.stroke(); }
+    if (t === 'loot') { c.fillStyle = '#ffcc59'; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); }
+    if (t === 'help') { c.fillStyle = PCOL[2]; c.beginPath(); c.arc(x, y, 10, 0, 7); c.fill(); c.strokeStyle = T.color; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 15 + Math.sin(age * 8) * 2, 0, 7); c.stroke(); }
+    c.fillStyle = 'rgba(8,11,17,.85)'; c.beginPath(); c.arc(x, y - 30, 14, 0, 7); c.fill(); c.strokeStyle = PCOL[t === 'help' ? 2 : 1]; c.lineWidth = 2; c.stroke();
+    glyph(c, t, x, y - 30, 22, T.color);
+    chip(c, (t === 'help' ? 'P3' : 'P2') + ' · ' + T.name, x, y - 56, PCOL[t === 'help' ? 2 : 1]);
+  });
+});
+(function loop(tm) { cardDraw.forEach(f => f(tm)); requestAnimationFrame(loop); })(0);
+})();
+</script>
+</body>
+</html>
