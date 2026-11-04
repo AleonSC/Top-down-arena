@@ -119,6 +119,7 @@ namespace Arena
             sounds = new SoundBank(gameObject);
             sounds.StartMusic(gameObject);
             LoadAudioSettings();
+            ScanCustomMusic();
             LoadJukebox();
             Keybinds.Load();  // Settings → Keybinds (Keybinds.cs)
             LoadFxSettings();  // Juice.cs
@@ -461,6 +462,7 @@ namespace Arena
         /// it's on the field. The next boss's track is rendered ahead of time.
         void UpdateMusic()
         {
+            TickDecodes();
             string wanted = "menu", keep = null;
             if (session.Screen == AppScreen.Game && game.State != MatchState.GameOver && game.State != MatchState.Victory)
             {
@@ -487,9 +489,9 @@ namespace Arena
                 else
                 {
                     wanted = juke.Selected;
-                    sounds.RequestLibraryTrack(wanted);
+                    RequestMusic(wanted);
                     keep2 = juke.Upcoming;
-                    sounds.RequestLibraryTrack(keep2);
+                    RequestMusic(keep2);
                 }
                 AdvanceJukebox();
             }

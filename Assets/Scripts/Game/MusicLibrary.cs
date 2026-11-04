@@ -13,15 +13,17 @@ namespace Arena
             public string Id, Title, Mood, Blurb;
             public float Gain;
             public Func<float[]> Render;
+            public string Path;       // custom tracks: the file
+            public bool NeedsUnity;    // custom mp3 / ogg: Unity decodes it (MusicPlayerUi.cs)
             public EnemyType? Boss;   // set for boss themes (their id is SoundBank.BossTrackId)
         }
 
         public const string Menu = "menu", Battle = "battle";
 
         /// Ids that are rendered on demand and let go again when nothing needs them (a few MB each).
-        public static bool IsTransient(string id) => id != null && (id.StartsWith("boss:") || id.StartsWith("juke:"));
+        public static bool IsTransient(string id) => id != null && (id.StartsWith("boss:") || id.StartsWith("juke:") || id.StartsWith(CustomMusic.IdPrefix));
 
-        public static readonly string[] Moods = { "Chill", "Action", "Dark", "Epic", "Boss" };
+        public static readonly string[] Moods = { "Chill", "Action", "Dark", "Epic", "Boss", "Custom" };
 
         static Entry Extra(string id, string title, string mood, string blurb, GameMusic.Recipe r) =>
             new Entry { Id = "juke:" + id, Title = title, Mood = mood, Blurb = blurb, Gain = 0.5f, Render = () => GameMusic.Render(r) };
@@ -149,6 +151,13 @@ namespace Arena
                 BossEntry(EnemyType.Devourer, "The Devourer", "Grinding and hungry"),
                 BossEntry(EnemyType.Eclipse, "The Eclipse", "The finale: big, choral, driving"),
             };
+        }
+
+        /// Swap in the tracks found in the music folder (after the built-in ones).
+        public static void SetCustom(List<Entry> entries)
+        {
+            All.RemoveAll(e => e.Id.StartsWith(CustomMusic.IdPrefix));
+            All.AddRange(entries);
         }
 
         public static Entry Find(string id)

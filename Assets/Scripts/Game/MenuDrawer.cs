@@ -654,6 +654,8 @@ namespace Arena
                         {
                             audioTab = ti;
                             jukeScroll = 0f;
+                            if (ti == 1)
+                                ScanCustomMusic();  // picks up files added since last time
                         }
                     if (audioTab == 1)
                     {

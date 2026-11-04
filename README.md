@@ -1019,6 +1019,13 @@ ten boss themes there are eight extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lou
 "Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the
 list. Your pick, shuffle and repeat are saved. Tracks render in the background the first time (a few seconds).
 
+**Your own music:** in the Music player click **Open folder** (the game's `music` folder inside its save data folder; it is
+made for you), drop in `.wav`, `.mp3` or `.ogg` files, and click **Rescan** (the tab also rescans when you open it). They
+join the list as green *Custom* tracks, named after the file (`my_song.mp3` shows as "my song"), and work with everything
+above: shuffle, repeat, play in menus and matches. Tracks are levelled to a similar loudness and loop. A file the game
+can't read shows "Couldn't read this file" and is skipped. WAVs (8 / 16 / 24 / 32-bit or float) are decoded by the game;
+mp3 and ogg by Unity (mp3 on Linux may not play).
+
 ## Playing with a friend
 
 **You both need the same version of the game.** The version is shown at the bottom of the main menu and
