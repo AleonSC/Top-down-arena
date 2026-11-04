@@ -214,7 +214,7 @@ namespace Arena
                     continue;
                 foreach (var p in Players.Values)
                     if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceTo(pt.Pos) < pt.Radius + p.Def.HitR)
-                        Damage(p, Zombies.AcidDps * 0.25f, "Spitter acid", true);
+                        DamageOverTime(p, Zombies.AcidDps * 0.25f, "Spitter acid");
             }
         }
 
@@ -321,7 +321,7 @@ namespace Arena
                 }
                 e.Pos = held.Pos - V2.FromAngle(e.Facing) * (e.Radius + held.Def.HitR + 2f);
                 if (held.InvulnT <= 0f)
-                    Damage(held, Zombies.GrabDps * dt * D(DiffKnob.EnemyDamage), "Crawler", true);
+                    DamageOverTime(held, Zombies.GrabDps * dt * D(DiffKnob.EnemyDamage), "Crawler");
                 return;
             }
             e.T2 -= dt;

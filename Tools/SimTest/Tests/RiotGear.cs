@@ -30,7 +30,7 @@ static partial class Program
         var ally = g.Players[2];
 
         Action calm = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; g.Bullets.Clear(); me.Hp = me.MaxHp; ally.Hp = ally.MaxHp; };
-        Action<Player, float, string, bool> hit = (p, amount, src, dot) => damage.Invoke(g, new object[] { p, amount, src, dot });
+        Action<Player, float, string, bool> hit = (p, amount, src, dot) => (dot ? typeof(Game).GetMethod("DamageOverTime", flags) : damage).Invoke(g, dot ? new object[] { p, amount, src } : new object[] { p, amount, src });
         calm();
 
         Check(Game.HasPerk(me, PerkId.RiotGear) && !Game.HasPerk(ally, PerkId.RiotGear), "the host brings its equipped perk into the run; the friend, with none, has none");

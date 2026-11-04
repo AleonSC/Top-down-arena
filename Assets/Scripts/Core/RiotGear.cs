@@ -20,6 +20,16 @@ namespace Arena
                 p.Perks = Perks.Equipped(from).ToArray();
         }
 
+        bool tickDamage;  // set while DamageOverTime runs
+
+        /// A burn, gas, acid or lava tick: it hurts like any damage, but Riot Gear's shield doesn't block it.
+        void DamageOverTime(Player p, float amount, string source)
+        {
+            tickDamage = true;
+            try { Damage(p, amount, source); }
+            finally { tickDamage = false; }
+        }
+
         /// Called first in Damage. True: the shield took the hit, so nothing else about it happens.
         bool RiotBlocks(Player p, string source)
         {

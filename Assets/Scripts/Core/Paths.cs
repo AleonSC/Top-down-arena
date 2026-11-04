@@ -461,7 +461,7 @@ namespace Arena
                             Heal(p, Paths.PoolHeal * Paths.PatchTick, null, "Sanctuary pools");
                     }
                     else if (!p.Downed && p.InvulnT <= 0f)
-                        Damage(p, Paths.FirePlayerDps(Wave) * Paths.PatchTick, "Burning Grounds", true);
+                        DamageOverTime(p, Paths.FirePlayerDps(Wave) * Paths.PatchTick, "Burning Grounds");
                 }
                 if (pt.Kind == PatchKind.Fire)
                     foreach (var e in Enemies.Values)
