@@ -171,6 +171,8 @@ static partial class Program
         Check(pb.RunsStarted == 5 && pb.RunsWon == 1 && pb.RunsLost == 3 && pb.BestWave == 37 && pb.Kills == 812 && pb.Beaten(EnemyType.HiveQueen) == 2 && pb.IsUnlocked("something"),
             "a profile's text reads back the same");
 
+        ProfileFileTest();
+
         // Each player's own game keeps their own profile: a boss beaten and the run's end count for both.
         var test = new UnlockDef { Id = "test-loss", Name = "Test", Desc = "Lose a run", Earned = p => p.RunsLost > 0 };
         Unlocks.All.Add(test);
@@ -216,6 +218,63 @@ static partial class Program
         finally
         {
             Unlocks.All.Remove(test);
+        }
+    }
+
+    /// profile.txt on disk: backup, cut-off and damaged files, version 1 files, save failures.
+    static void ProfileFileTest()
+    {
+        string folder = Path.Combine(Path.GetTempPath(), "arena-profile-test-" + Guid.NewGuid().ToString("N"));
+        Profile.Folder = folder;
+        try
+        {
+            string main = Path.Combine(folder, "profile.txt"), bak = main + ".bak";
+            var a = new Profile { RunsWon = 1, Xp = 100 };
+            Check(a.Save() && File.Exists(main) && !File.Exists(bak), "first save writes profile.txt, no backup yet");
+            a.RunsWon = 2; a.Xp = 250;
+            a.Save();
+            Check(File.Exists(bak) && Profile.Parse(File.ReadAllText(bak)).RunsWon == 1, "the second save keeps the one before as profile.txt.bak");
+            Profile.Reload();
+            Check(Profile.Current.RunsWon == 2 && Profile.LoadNote == "", "a good file loads with no note");
+
+            // Cut off mid-write: no "end" line, so it falls back to the backup and the bad file is set aside.
+            string text = File.ReadAllText(main);
+            File.WriteAllText(main, text.Substring(0, text.Length / 2));
+            Profile.Reload();
+            Check(Profile.Current.RunsWon == 1 && Profile.LoadNote.Contains("bak"), "a cut-off profile restores from the backup");
+            Check(Directory.GetFiles(folder, "profile.corrupt-*.txt").Length == 1, "the cut-off file is kept, not overwritten");
+
+            // Garbage with no backup: a blank profile, the garbage kept.
+            File.Delete(bak);
+            File.WriteAllText(main, "not a profile at all");
+            Profile.Reload();
+            Check(Profile.Current.RunsWon == 0 && Profile.LoadNote.Contains("no backup"), "garbage and no backup: new profile, with a note");
+            Check(Directory.GetFiles(folder, "profile.corrupt-*.txt").Length >= 1, "the garbage file is kept too");
+
+            // A damaged line is skipped, the rest loads, and a copy of the file is kept.
+            File.WriteAllText(main, text.Replace("best ", "best x "));
+            Profile.Reload();
+            Check(Profile.Current.RunsWon == 2 && Directory.GetFiles(folder, "profile.damaged-*.txt").Length == 1 && Profile.LoadNote.Contains("damaged line"),
+                "a damaged line is skipped, the rest loads, a copy is kept");
+
+            // A version 1 file (no "end" line) still loads and is brought up to date.
+            string v1 = text.Replace("arena-profile 2", "arena-profile 1").Replace("end 1\n", "");
+            var old = Profile.Parse(v1);
+            Check(old.Valid && old.RunsWon == 2 && old.LoadedVersion == Profile.FormatVersion, "a version 1 profile loads and migrates");
+            Check(!Profile.Parse("runs 1 1 0\n").Valid, "text without the header isn't a profile");
+
+            // Failing to write: Save says so, and the next good save clears it.
+            File.WriteAllText(Path.Combine(folder, "blocker"), "x");
+            Profile.Folder = Path.Combine(folder, "blocker", "sub");
+            Check(!a.Save() && Profile.LastSaveFailed, "a save that can't write reports the failure");
+            Profile.Folder = folder;
+            Check(a.Save() && !Profile.LastSaveFailed, "the next good save clears it");
+        }
+        finally
+        {
+            Profile.Folder = null;
+            Profile.Reload();
+            try { Directory.Delete(folder, true); } catch (IOException) { }
         }
     }
 }
