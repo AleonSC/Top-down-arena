@@ -46,6 +46,12 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Healer Soldier Mend Pulse animations.** Built (Nov 2026): look B, Heartbeat (`Game/MendPulseLook.cs`, no protocol bump), from
       [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html) (https://claude.ai/artifact/4RHDSKaLNNGErr8MhprTWx). Left out: the capstone's bullet
       pops (bullets are erased host-side with no event the client sees).
+- [x] **Tank Soldier Roar and Bulldoze animations.** Built (Nov 2026): the "Proposed" side of [`Mockups/tank-abilities.html`](Mockups/tank-abilities.html)
+      (https://claude.ai/artifact/NosUu8ukpJzDsBes8FiAYM), `Game/TankLooks.cs`, no protocol bump (protocol 142). Timed from each cast's `FxKind.Callout`,
+      so nothing is synced; the old plain rings are skipped with Visual effects on. Differences from the mockup: no windup before the cast (the
+      ability fires instantly, so Roar's pull-in is 0.08 s, and Bulldoze's lane shows as it starts), enemies don't turn to face you, no hit-stop
+      on other players' casts, and an enemy a Bulldoze kills is gone before the charge reaches it, so it shows no contact sparks.
+      Preview: `CAST=Roar CASTT=0.25 Tools/Preview/shot.sh x hud 6 9 2`, `CAST=Bulldoze CASTT=0.2 ...`, or `LOADOUT=0,0,0,1 ABILITY=1 SHOWT=1.55 shot.sh x lobby`.
 - [x] **Tank Soldier Barrier animations.** Built (Nov 2026): look C, Bulwark Plates (`Game/BarrierLook.cs`, no protocol bump). Reflect tint left out (host-only flag). Mockup: [`Mockups/barrier-animations.html`](Mockups/barrier-animations.html)
       (https://claude.ai/artifact/CpWoeYAWoSirm4mkf7XHx4): A today, B Force Field (hex dome), C Bulwark Plates (8 plates,
       one knocked off per boss hit), D Soap Bubble. Drawing only; a reflect-specific tint would need `BarrierReflect`

@@ -444,7 +444,9 @@ namespace Arena
                     prev = pt;
                 }
             }
-            if (p.TauntT > 0f && !p.Downed)  // Roar
+            if (p.TauntT > 0f && !p.Downed && fxOn)  // Roar: plates, a draining rim and tethers (TankLooks.cs)
+                DrawRoarSustain(p, t);
+            else if (p.TauntT > 0f && !p.Downed)  // Roar
                 Arc(p.Disp, p.Def.BodyR + 12f + 3f * Mathf.Sin(t * 16f), 3f, new Rgba(1f, 0.4f, 0.25f, 0.85f), 32);
         }
 
