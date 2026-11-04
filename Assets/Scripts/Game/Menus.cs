@@ -229,42 +229,57 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// Your name card: the lobby's party card in small (frame in your role's colour, your character, your name, your
-        /// class), sized for the bottom bar. (k between 0 and 1 would lay it out toward a full party card's size.)
+        /// Your name card, sized for the bottom bar (k = 0): a neutral player figure (no role or class: that's chosen in the
+        /// lobby), your name, your rank title and badge, and the XP towards the next rank. Click the name or the pencil to
+        /// rename; click anywhere else on it to open your cosmetics. (k between 0 and 1 is the move into the lobby: it lays
+        /// out toward a full party card, with the class you've picked.)
         void DrawNameCard(Rect r, float k, bool editable, float t)
         {
-            var color = ToColor(Defs.Get(hostRole).Color);
+            bool plain = k < 0.01f;  // the menu's chip: no role or class shown
+            var color = plain ? Ui.Accent : ToColor(Defs.Get(hostRole).Color);
             var prof = Profile.Current;
             int myRank = prof.RankNow;
+            var mouse = Event.current.mousePosition;
+            bool hover = editable && plain && r.Contains(mouse);
             if (Rank.Owns(myRank, prof.Frame))  // your equipped frame (Rank.cs) lights the rim
                 Ui.Card(r, RankLook.Tint(Rank.FrameColor(Rank.FrameIndex(prof.Frame))), 1f);
             else
-                Ui.Card(r, color, 0.85f);
+                Ui.Card(r, color, hover ? 1f : 0.85f);
+            if (hover)
+                Ui.Pill(r, new Color(1f, 1f, 1f, 0.05f));
             float fs = Mathf.Lerp(r.height - 10f, 72f, k);
             var face = new Rect(r.x + Mathf.Lerp(5f, 8f, k), r.y + Mathf.Lerp((r.height - fs) / 2f, 8f, k), fs, fs);
             Ui.Pill(face, new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 0.9f));
             if (BeginUiGl())
             {
-                UiModelAt(new V2(face.center.x, face.center.y), Mathf.Lerp(0.45f, 0.95f, k));
-                DrawPreviewPlayer(hostRole, kitChoice, weaponChoice, t);
+                if (plain)
+                {
+                    UiModelAt(new V2(face.center.x, face.center.y), 0.8f);
+                    DrawGenericPlayer(t);  // RankUi.cs
+                }
+                else
+                {
+                    UiModelAt(new V2(face.center.x, face.center.y), Mathf.Lerp(0.45f, 0.95f, k));
+                    DrawPreviewPlayer(hostRole, kitChoice, weaponChoice, t);
+                }
                 EndUiGl();
             }
-            float bsz = Mathf.Lerp(22f, 30f, k);
-            var rankRect = new Rect(face.xMax - bsz * 0.7f, face.yMax - bsz * 0.7f, bsz, bsz);
+            // The badge sits at the right, before the pencil, so it never covers the name or the XP bar.
+            float bsz = plain ? 30f : Mathf.Lerp(22f, 30f, k);
+            float badgeRight = r.xMax - (editable ? 46f : 10f);
+            var rankRect = plain ? new Rect(badgeRight - bsz, r.y + (r.height - bsz) / 2f, bsz, bsz) : new Rect(face.xMax - bsz * 0.7f, face.yMax - bsz * 0.7f, bsz, bsz);
             RankLook.Draw(rankRect, myRank);
-            if (k < 0.5f)  // the XP towards the next rank, thin along the bottom edge
-                Ui.Bar(new Rect(r.x + 14f, r.yMax - 6f, r.width - 28f, 3f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
             if (editable)
                 RankBadgeTip(rankRect, myRank, true);
-            float tx = face.xMax + Mathf.Lerp(8f, 14f, k), tw = r.xMax - tx - (editable ? 44f : 8f);
-            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(3f, 8f, k), tw, Mathf.Lerp(25f, 26f, k));
+            float tx = face.xMax + Mathf.Lerp(10f, 14f, k), tw = (plain ? rankRect.x - 8f : r.xMax - 8f - (editable ? 36f : 0f)) - tx;
+            var nameRect = new Rect(tx - (editable ? 4f : 0f), r.y + Mathf.Lerp(3f, 8f, k), tw + (editable ? 4f : 0f), Mathf.Lerp(25f, 26f, k));
             int size = Mathf.RoundToInt(Mathf.Lerp(17f, 19f, k));
             while (size > 11 && Ui.TextWidth(nameText, size, true) + 10f > tw)
                 size--;  // a long name gets smaller until it fits
+            var pencil = new Rect(r.xMax - 38f, r.y + (r.height - 30f) / 2f, 30f, 30f);
             if (editable)
             {
                 // The pencil puts the cursor in your name (clicking the name itself works too); it lights up while typing.
-                var pencil = new Rect(r.xMax - 38f, r.y + (r.height - 30f) / 2f, 30f, 30f);
                 bool typing = GUI.GetNameOfFocusedControl() == "menu_name";
                 if (Ui.Button(pencil, "", typing ? Ui.Primary : Ui.Neutral))
                     GUI.FocusControl("menu_name");
@@ -277,8 +292,26 @@ namespace Arena
             }
             else
                 Ui.Label(nameRect, nameText, size, Color.white, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(tx, r.y + Mathf.Lerp(27f, 34f, k), tw, 18f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
-                Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
+            if (plain)
+            {
+                // Under the name: the rank title and number, then the XP towards the next rank, thin.
+                Ui.Label(new Rect(tx, r.y + 25f, tw, 16f), Rank.Title(myRank) + "  ·  Rank " + myRank, 11, RankLook.TierColor(myRank), TextAnchor.MiddleLeft, true);
+                Ui.Bar(new Rect(tx, r.yMax - 7f, tw, 3f), Rank.Of(prof.Xp).Fraction, RankLook.TierColor(myRank));
+                // Anywhere else on the chip opens your cosmetics. (Drawn last: the name and the pencil take their own clicks first.)
+                if (editable && Ui.HitArea(r))
+                    OpenCosmetics();
+            }
+            else
+                Ui.Label(new Rect(tx, r.y + Mathf.Lerp(27f, 34f, k), tw, 18f), Defs.KitName(kitChoice) + " " + Defs.Get(hostRole).Name,
+                    Mathf.RoundToInt(Mathf.Lerp(11f, 14f, k)), Color.Lerp(color, Color.white, 0.15f), TextAnchor.MiddleLeft, true);
+        }
+
+        /// The chip's click. For now it opens Records > Rank (the reward ladder, with Equip); the customization window
+        /// designed in Docs/Mockups/customization.html replaces it.
+        void OpenCosmetics()
+        {
+            recordsSection = 5;
+            recordsOpen = true;
         }
 
         /// Your name and the port are kept between sessions (unless given on the command line).

@@ -133,8 +133,11 @@ From the mockup, in priority order:
 - **No separate Cosmetics tab:** you equip in **Records > Rank** (the reward ladder has an Equip button on each
   cosmetic you've earned). The Dusk Grid is equipped by picking it in Settings > Visual effects (or its Equip button),
   and is skipped while locked.
-- **Menu chip:** the badge sits on the portrait and a thin XP bar runs along the bottom; the title is in the hover
-  card (the chip keeps its class line). The chip uses your equipped frame for its rim.
+- **Menu chip** (reworked Nov 2026): a generic player figure (no role or class: those are picked in the lobby), your
+  name, your rank title and number, the XP bar under them and the badge on the right. It uses your equipped frame
+  for its rim. Click the name or the pencil to rename; click anywhere else on it to open your cosmetics (for now
+  Records > Rank; the customization window in [`Mockups/customization.html`](Mockups/customization.html) is meant to
+  replace that, in look A, B or C: still to pick).
 - **Titles** come with the tier and aren't equipped separately.
 - **Network:** `LobbyEntry` gained `Rank` and `Frame` and `Trail` (in the `Lobby` message), and clients send
   `Msg.Cosmetics` (rank, frame, trail) when they join, return to the lobby, or equip something. The host clamps the

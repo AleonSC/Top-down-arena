@@ -806,7 +806,8 @@ win bonus. The Practice Range and runs where dev tools (F1) or the bot were used
 blue, teal, violet, gold) and a chevron per step.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
-yours, the XP), on the main menu's name chip (with a thin XP bar along its bottom edge) and on each results card;
+yours, the XP), on the main menu's name chip (a generic player figure with your name, rank title, the badge and a thin
+XP bar; click the name or the pencil to rename, anywhere else to open your cosmetics) and on each results card;
 the **rank strip** at the foot of the results (the badge, the bar, the total, how it was worked out, and RANK UP! with
 what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, what's equipped, and the last six runs
 with the modifiers they used and the multiplier).

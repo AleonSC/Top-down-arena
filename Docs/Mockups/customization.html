@@ -1,0 +1,331 @@
+<title>Customization Window</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a rank switch, then three 1280x720 game screens (canvas), each a different look for the window that opens when you
+   click your name chip on the main menu. Click the tiles to try things on. Single dark look on purpose (the game's own screens). */
+:root {
+  color-scheme: dark;
+  --page: #0a0c12;
+  --ink: #e9edf8;
+  --muted: #9ea9c4;
+  --line: rgba(255,255,255,0.08);
+  --gold: #ffcc59;
+  --font-game: "Arial", "Liberation Sans", Helvetica, sans-serif;
+}
+body { background: var(--page); color: var(--ink); font-family: var(--font-game); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 36px; }
+header h1 { font-size: 30px; margin: 0 0 6px; text-wrap: balance; }
+header p { color: var(--muted); margin: 0 0 8px; max-width: 80ch; line-height: 1.5; }
+.option { display: grid; gap: 12px; min-width: 0; }
+.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar h2 { margin: 0; font-size: 20px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.tag { font-size: 12px; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; }
+.seg { display: inline-flex; background: #141926; border-radius: 9px; padding: 3px; gap: 3px; box-shadow: inset 0 0 0 1px var(--line); }
+.seg button { font: 700 13px var(--font-game); color: var(--muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #2c5bd0; color: #fff; }
+button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.screen { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line), 0 18px 50px rgba(0,0,0,0.5); background: #0b0d14; max-width: 100%; }
+.notes { color: var(--muted); line-height: 1.55; margin: 0; padding-left: 18px; max-width: 92ch; }
+.notes li { margin: 2px 0; }
+.picker { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--page); padding-block: 8px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Customization Window</h1>
+    <p>Three looks for the window that opens when you click your name chip on the main menu. It holds what Rank unlocks: a frame for your party card, a trail, and a menu background. Your title comes with your rank tier and shows beside them. The chip itself is now a generic player with your title, badge and XP; the role and class are chosen in the lobby.</p>
+    <p>Click a tile to equip it (click it again to take it off). Locked tiles show the rank they need. Use the switch to see the window at different ranks. Tiles marked <b>example</b> are not built yet; they show how a fuller ladder would fit.</p>
+  </header>
+
+  <section class="option picker">
+    <div class="bar"><h2><span class="tag">Preview</span>Your rank</h2>
+      <div class="seg" role="group" aria-label="Rank" id="rankSeg">
+        <button data-r="3" aria-pressed="false">Rank 3</button><button data-r="8" aria-pressed="true">Rank 8</button><button data-r="15" aria-pressed="false">Rank 15</button><button data-r="27" aria-pressed="false">Rank 27</button><button data-r="34" aria-pressed="false">Rank 34</button>
+      </div></div>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Look A</span>Wardrobe</h2></div>
+    <canvas class="screen" id="A" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>You on a stage on the left, moving, with your trail and your menu background behind you, and your name, title and badge under it. Whatever you pick shows there straight away.</li>
+      <li>Tabs on the right for Frame, Trail and Background, each a grid of tiles with a live sample. The strip along the bottom is how the others see you in a lobby.</li>
+      <li>Best for trying things on. The most space for a growing ladder, because only one category shows at a time.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Look B</span>Locker</h2></div>
+    <canvas class="screen" id="B" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Everything on one page: a row per category, each a strip of tiles, so you can see your whole look and what is left to earn at once.</li>
+      <li>The preview is a fixed column on the right: your lobby party card and your menu chip, exactly as they'll look.</li>
+      <li>Best while there are few cosmetics. Once a category has more than a row of tiles it would need scrolling.</li>
+    </ul>
+  </section>
+
+  <section class="option">
+    <div class="bar"><h2><span class="tag">Look C</span>Drawer</h2></div>
+    <canvas class="screen" id="C" width="1280" height="720"></canvas>
+    <ul class="notes">
+      <li>Built like Records and Settings: a drawer on the left with your rank and a row per category (each shows what's equipped), and the open category on the right as a list with a large preview.</li>
+      <li>Reuses the game's own window pattern, so it needs the least new UI code and slides in like the others.</li>
+      <li>The reward ladder (rank by rank) is the last row, so progress and customizing live in one place.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const W = 1280, H = 720;
+let RANK = 8;
+const EQ = { frame: "", trail: "ember", bg: "" };
+const TAB = { A: "frame", C: "frame" };
+const TIER_COL = ["#8a94b0", "#5a96ff", "#4fd1b5", "#b473ff", "#ffcc59"];
+const tier = r => r >= 30 ? 4 : r >= 20 ? 3 : r >= 10 ? 2 : r >= 5 ? 1 : 0;
+const TITLE = ["Recruit", "Challenger", "Veteran", "Champion", "Legend"];
+const need = r => 200 * r;
+const CATS = {
+  frame: { label: "Frame", items: [
+    { id: "", name: "None", rank: 0 }, { id: "steel", name: "Steel frame", rank: 12, col: "#b8c7e6" }, { id: "gold", name: "Gold frame", rank: 30, col: "#ffcc59" }, { id: "frost", name: "Frost frame", rank: 40, col: "#8ce6ff", ex: true } ] },
+  trail: { label: "Trail", items: [
+    { id: "", name: "None", rank: 0 }, { id: "ember", name: "Ember trail", rank: 8, col: "#ff7a2a" }, { id: "gold", name: "Gold stardust", rank: 25, col: "#ffd96a" }, { id: "wisp", name: "Violet wisp", rank: 35, col: "#b473ff", ex: true } ] },
+  bg: { label: "Background", items: [
+    { id: "", name: "Your pick", rank: 0 }, { id: "dusk", name: "Dusk Grid", rank: 15, col: "#ff8d73" }, { id: "tidal", name: "Tidal", rank: 38, col: "#5ec8ff", ex: true } ] },
+};
+const KEYS = ["frame", "trail", "bg"];
+const owned = it => RANK >= it.rank;
+const itemOf = k => CATS[k].items.find(i => i.id === EQ[k]) || CATS[k].items[0];
+
+// --- helpers -----------------------------------------------------------------------------------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function label(g, text, x, y, size, col, align = "left", weight = 700, alpha = 1) { g.save(); g.globalAlpha *= alpha; g.font = `${weight} ${size}px Arial, sans-serif`; g.fillStyle = col; g.textAlign = align; g.textBaseline = "middle"; g.fillText(text, x, y); g.restore(); }
+function fancy(g, text, x, y, size, low, align = "center") {
+  g.save(); g.font = `900 ${size}px Arial, sans-serif`; g.textAlign = align; g.textBaseline = "middle"; g.shadowColor = low; g.shadowBlur = size * 0.35; g.lineJoin = "round"; g.lineWidth = Math.max(3, size * 0.11); g.strokeStyle = "#0b1020"; g.strokeText(text, x, y); g.shadowBlur = 0;
+  const gr = g.createLinearGradient(0, y - size * 0.5, 0, y + size * 0.5); gr.addColorStop(0.3, "#fff"); gr.addColorStop(1, low); g.fillStyle = gr; g.fillText(text, x, y); g.restore();
+}
+function panel(g, x, y, w, h, stroke = "rgba(107,153,255,0.9)") { rr(g, x, y, w, h, 10); const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "rgba(31,36,54,0.97)"); gr.addColorStop(1, "rgba(23,26,38,0.97)"); g.fillStyle = gr; g.fill(); g.strokeStyle = stroke; g.lineWidth = 1.5; g.stroke(); }
+function backdrop(g) {
+  const gr = g.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, 820); gr.addColorStop(0, "#151a2a"); gr.addColorStop(1, "#080a10"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.strokeStyle = "rgba(120,150,255,0.05)"; g.lineWidth = 1; g.beginPath(); for (let x = 0; x <= W; x += 64) { g.moveTo(x, 0); g.lineTo(x, H); } for (let y = 0; y <= H; y += 64) { g.moveTo(0, y); g.lineTo(W, y); } g.stroke();
+}
+function xpbar(g, x, y, w, h, f, col) { rr(g, x, y, w, h, h / 2); g.fillStyle = "#1d2232"; g.fill(); if (f > 0) { g.save(); rr(g, x, y, w, h, h / 2); g.clip(); g.fillStyle = col; g.fillRect(x, y, w * clamp(f, 0, 1), h); g.restore(); } }
+function button(g, x, y, w, h, text, on, locked) {
+  rr(g, x, y, w, h, 7); g.fillStyle = locked ? "#202536" : on ? "#b98a1d" : "#3a4468"; g.fill();
+  label(g, text, x + w / 2, y + h / 2 + 1, 12, locked ? "#6a728c" : "#fff", "center", 800);
+}
+// The rank badge: style B, the shield with tier chevrons.
+function badge(g, x, y, r, rank) {
+  const col = TIER_COL[tier(rank)], n = tier(rank);
+  g.save(); g.translate(x, y); g.beginPath(); g.moveTo(-r * 0.85, -r * 0.9); g.lineTo(r * 0.85, -r * 0.9); g.lineTo(r * 0.85, r * 0.1); g.quadraticCurveTo(r * 0.85, r * 0.66, 0, r); g.quadraticCurveTo(-r * 0.85, r * 0.66, -r * 0.85, r * 0.1); g.closePath();
+  g.fillStyle = "#141929"; g.fill(); const gr = g.createLinearGradient(0, -r, 0, r); gr.addColorStop(0, col + "66"); gr.addColorStop(1, col + "14"); g.fillStyle = gr; g.fill(); g.lineJoin = "round"; g.strokeStyle = col; g.lineWidth = Math.max(1.6, r * 0.13); g.stroke();
+  const chev = r >= 18; label(g, String(rank), 0, chev ? -r * 0.18 : 0, r * (rank >= 10 ? 0.78 : 0.95), "#fff", "center", 900);
+  if (chev) { g.strokeStyle = col; g.lineWidth = Math.max(1.5, r * 0.07); g.lineCap = "round"; g.lineJoin = "round"; for (let i = 0; i <= n; i++) { const yy = r * 0.36 + i * r * 0.115; g.beginPath(); g.moveTo(-r * 0.3, yy); g.lineTo(0, yy + r * 0.12); g.lineTo(r * 0.3, yy); g.stroke(); } }
+  g.restore();
+}
+// The generic player: a neutral top-down figure.
+function figure(g, x, y, s, aim) {
+  g.save(); g.translate(x, y); g.rotate(aim); g.scale(s, s);
+  const skin = "#dbe0f2", cloth = "#8094c2", sh = "#9fb3e0";
+  g.beginPath(); g.arc(0, 0, 21, 0, 7); g.fillStyle = "rgba(10,14,26,0.9)"; g.fill();
+  g.lineCap = "round"; g.strokeStyle = cloth; g.lineWidth = 5; g.beginPath(); g.moveTo(2, -11); g.lineTo(24, -7); g.moveTo(2, 11); g.lineTo(24, 7); g.stroke();
+  for (const sy of [-7, 7]) { g.beginPath(); g.arc(24, sy, 3.4, 0, 7); g.fillStyle = skin; g.fill(); }
+  g.beginPath(); g.arc(0, 0, 17, 0, 7); g.fillStyle = cloth; g.fill();
+  for (const sy of [-11, 11]) { g.beginPath(); g.arc(-1, sy, 7, 0, 7); g.fillStyle = sh; g.fill(); }
+  g.beginPath(); g.arc(1, 0, 9, 0, 7); g.fillStyle = skin; g.fill();
+  g.strokeStyle = "#404a73"; g.lineWidth = 2; g.beginPath(); g.moveTo(5, -4); g.lineTo(5, 4); g.stroke();
+  g.restore();
+}
+// A background thumbnail.
+function bgThumb(g, x, y, w, h, id, t) {
+  g.save(); rr(g, x, y, w, h, 6); g.clip();
+  if (id === "dusk") {
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "#0f0d29"); gr.addColorStop(1, "#66293f"); g.fillStyle = gr; g.fillRect(x, y, w, h);
+    const gl = g.createRadialGradient(x + w / 2, y + h * 1.05, 4, x + w / 2, y + h * 1.05, w * 0.7); gl.addColorStop(0, "rgba(255,128,77,0.45)"); gl.addColorStop(1, "rgba(255,128,77,0)"); g.fillStyle = gl; g.fillRect(x, y, w, h);
+    g.strokeStyle = "rgba(255,166,140,0.12)"; g.lineWidth = 1; const c = w / 6, ox = (t * 9) % c; g.beginPath(); for (let i = -1; i < 8; i++) { g.moveTo(x + i * c + ox, y); g.lineTo(x + i * c + ox, y + h); } for (let j = 0; j < 5; j++) { g.moveTo(x, y + j * c * 0.6 + ox * 0.6); g.lineTo(x + w, y + j * c * 0.6 + ox * 0.6); } g.stroke();
+  } else if (id === "tidal") {
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, "#07162a"); gr.addColorStop(1, "#0d4a6e"); g.fillStyle = gr; g.fillRect(x, y, w, h);
+    g.strokeStyle = "rgba(120,210,255,0.25)"; g.lineWidth = 1.5; for (let j = 0; j < 4; j++) { g.beginPath(); for (let i = 0; i <= w; i += 4) g.lineTo(x + i, y + h * (0.3 + j * 0.2) + Math.sin(i * 0.06 + t * 1.5 + j) * 5); g.stroke(); }
+  } else {
+    g.fillStyle = "#101524"; g.fillRect(x, y, w, h); g.strokeStyle = "rgba(120,150,255,0.1)"; g.lineWidth = 1; g.beginPath(); for (let i = 0; i < w; i += w / 6) { g.moveTo(x + i, y); g.lineTo(x + i, y + h); } for (let j = 0; j < h; j += w / 6) { g.moveTo(x, y + j); g.lineTo(x + w, y + j); } g.stroke();
+    g.fillStyle = "rgba(107,153,255,0.5)"; for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + ((i * 37 + t * 6) % w), y + ((i * 53) % h), 1.6, 0, 7); g.fill(); }
+  }
+  g.restore();
+}
+// A trail sample flowing to the left of (x, y), w long.
+function trailSample(g, x, y, w, kind, t, amp = 8) {
+  if (!kind) return;
+  const n = 18;
+  for (let i = 1; i <= n; i++) {
+    const k = i / n, a = 1 - k, px = x - k * w, py = y + Math.sin(k * 5 + t * 3) * amp * k;
+    if (kind === "gold" || kind === "wisp") {
+      const c = kind === "gold" ? "255,217,106" : "190,130,255", tw = 0.5 + 0.5 * Math.sin(t * 14 + i * 1.7);
+      g.strokeStyle = `rgba(${c},${0.22 * a})`; g.lineWidth = 3 * a + 0.5; g.beginPath(); g.moveTo(px + w / n, y + Math.sin((k - 1 / n) * 5 + t * 3) * amp * (k - 1 / n)); g.lineTo(px, py); g.stroke();
+      if (i % 2 === 0) { g.fillStyle = `rgba(${c},${0.9 * a * tw})`; g.beginPath(); g.arc(px + Math.cos(i * 2.4) * 4 * k, py + Math.sin(i * 2.4) * 4 * k, 1.2 + 1.4 * a * tw, 0, 7); g.fill(); }
+    } else {
+      const fl = 0.6 + 0.4 * Math.sin(t * 20 + i * 2.3);
+      g.strokeStyle = `rgba(255,102,26,${0.16 * a})`; g.lineWidth = 5 * a + 0.5; g.beginPath(); g.moveTo(px + w / n, y); g.lineTo(px, py); g.stroke();
+      g.fillStyle = `rgba(255,${140 + 70 * a},38,${0.75 * a})`; g.beginPath(); g.arc(px, py - 10 * k, 1.6 + 2.2 * a * fl, 0, 7); g.fill();
+    }
+  }
+}
+// The lobby party card as the others see you.
+function partyCard(g, x, y, w, t, aim) {
+  const f = itemOf("frame"), fc = f.id ? f.col : null;
+  g.save(); if (fc) { g.shadowColor = fc; g.shadowBlur = 12; }
+  rr(g, x, y, w, 88, 10); g.fillStyle = "rgba(22,28,46,0.97)"; g.fill(); g.strokeStyle = fc || "rgba(107,153,255,0.9)"; g.lineWidth = fc ? 2.5 : 1.5; g.stroke(); g.restore();
+  rr(g, x + 8, y + 8, 72, 72, 8); g.fillStyle = "rgba(24,34,60,1)"; g.fill(); figure(g, x + 44, y + 44, 1.0, aim); badge(g, x + 66, y + 66, 15, RANK);
+  label(g, "Anthony", x + 96, y + 20, 19, "#fff", "left", 900); label(g, TITLE[tier(RANK)] + "  ·  Rank " + RANK, x + 96, y + 43, 14, TIER_COL[tier(RANK)], "left", 700); label(g, "Role and class: picked in the lobby", x + 96, y + 66, 12, "rgba(200,210,230,0.55)", "left", 400);
+  rr(g, x + w - 112, y + 10, 54, 22, 11); g.fillStyle = "rgba(160,120,40,0.9)"; g.fill(); label(g, "HOST", x + w - 85, y + 21, 10.5, "#fff", "center", 800);
+  rr(g, x + w - 52, y + 10, 42, 22, 11); g.fillStyle = "rgba(74,110,200,0.9)"; g.fill(); label(g, "YOU", x + w - 31, y + 21, 10.5, "#fff", "center", 800);
+}
+// The menu chip.
+function chip(g, x, y, w) {
+  const f = itemOf("frame"), fc = f.id ? f.col : "rgba(107,153,255,0.9)", tc = TIER_COL[tier(RANK)], info = rankInfo();
+  rr(g, x, y, w, 48, 10); g.fillStyle = "rgba(14,18,30,0.95)"; g.fill(); g.strokeStyle = fc; g.lineWidth = f.id ? 2.5 : 1.5; g.stroke();
+  rr(g, x + 5, y + 5, 38, 38, 7); g.fillStyle = "rgba(24,34,60,1)"; g.fill(); figure(g, x + 24, y + 24, 0.8, -0.3);
+  label(g, "Anthony", x + 54, y + 15, 17, "#fff", "left", 900); label(g, TITLE[tier(RANK)] + "  ·  Rank " + RANK, x + 54, y + 33, 11, tc, "left", 700);
+  xpbar(g, x + 54, y + 41, w - 54 - 90, 3, info.f, tc); badge(g, x + w - 62, y + 24, 15, RANK);
+  rr(g, x + w - 38, y + 9, 30, 30, 7); g.fillStyle = "#3a4468"; g.fill(); label(g, "✎", x + w - 23, y + 25, 15, "#fff", "center", 700);
+}
+function rankInfo() { return { into: Math.round(need(RANK) * 0.07), need: need(RANK), f: 0.07 }; }
+function lockIcon(g, x, y, col) { g.save(); g.translate(x, y); rr(g, -8, -3, 16, 12, 3); g.fillStyle = col; g.fill(); g.beginPath(); g.arc(0, -3, 5.5, Math.PI, 0); g.strokeStyle = col; g.lineWidth = 2.5; g.stroke(); g.restore(); }
+
+// --- interaction ---------------------------------------------------------------------------------
+const hits = { A: [], B: [], C: [] };
+function pick(k, it) { if (!owned(it)) return; EQ[k] = EQ[k] === it.id && it.id !== "" ? "" : it.id; }
+function addHit(o, x, y, w, h, fn) { hits[o].push({ x, y, w, h, fn }); }
+const keyOf = e => { const c = e.currentTarget, r = c.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+for (const o of ["A", "B", "C"]) {
+  const c = document.getElementById(o);
+  c.addEventListener("click", e => { const [x, y] = keyOf(e); const h = hits[o].find(h => x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h); if (h) h.fn(); });
+  c.addEventListener("mousemove", e => { const [x, y] = keyOf(e); c.style.cursor = hits[o].some(h => x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) ? "pointer" : "default"; });
+}
+
+// One tile: a live sample of the item, its name, and its state.
+function tile(g, o, k, it, x, y, w, h, t) {
+  const on = EQ[k] === it.id, ok = owned(it);
+  rr(g, x, y, w, h, 9); g.fillStyle = on ? "rgba(255,204,89,0.1)" : "rgba(255,255,255,0.04)"; g.fill(); g.strokeStyle = on ? "#ffcc59" : "rgba(255,255,255,0.1)"; g.lineWidth = on ? 2 : 1; g.stroke();
+  const sw = w - 20, sh = h - 62; g.save(); g.globalAlpha = ok ? 1 : 0.4;
+  if (k === "bg") bgThumb(g, x + 10, y + 10, sw, sh, it.id, t);
+  else {
+    rr(g, x + 10, y + 10, sw, sh, 6); g.fillStyle = "#101524"; g.fill();
+    if (k === "frame") { rr(g, x + 24, y + 22, sw - 28, sh - 24, 9); g.strokeStyle = it.id ? it.col : "rgba(107,153,255,0.9)"; g.lineWidth = it.id ? 3 : 1.5; if (it.id) { g.shadowColor = it.col; g.shadowBlur = 10; } g.stroke(); g.shadowBlur = 0; figure(g, x + 10 + sw / 2, y + 10 + sh / 2, 0.8, -0.3); }
+    else { trailSample(g, x + 10 + sw / 2 + 4, y + 10 + sh / 2, sw / 2 - 14, it.id, t); figure(g, x + 10 + sw / 2 + 10, y + 10 + sh / 2, 0.7, 0); }
+  }
+  g.restore();
+  label(g, it.name, x + 12, y + h - 36, 14, ok ? "#fff" : "#9ea9c4", "left", 800);
+  if (it.ex) label(g, "example", x + w - 12, y + h - 36, 10, "#c9a6ff", "right", 700);
+  if (!ok) { lockIcon(g, x + 18, y + h - 15, "#8a94b0"); label(g, "Rank " + it.rank, x + 32, y + h - 14, 12, "#8a94b0", "left", 700); }
+  else button(g, x + w - 82, y + h - 28, 72, 22, on ? (it.id ? "Equipped" : "In use") : "Equip", on, false);
+  if (ok) addHit(o, x, y, w, h, () => pick(k, it));
+}
+
+// --- Look A: Wardrobe ---------------------------------------------------------------------------
+const mover = [];
+function drawA(t) {
+  const g = document.getElementById("A").getContext("2d"); hits.A = []; backdrop(g);
+  fancy(g, "YOUR LOOK", 40, 40, 36, "#6b99ff", "left");
+  // stage
+  panel(g, 40, 84, 420, 596);
+  const sx = 56, sy = 100, sw = 388, sh = 360;
+  bgThumb(g, sx, sy, sw, sh, EQ.bg, t);
+  const px = sx + sw / 2 + Math.cos(t * 0.9) * 90, py = sy + sh / 2 + Math.sin(t * 1.8) * 60, aim = Math.atan2(Math.cos(t * 1.8) * 108, -Math.sin(t * 0.9) * 90);
+  mover.push({ x: px, y: py, t }); while (mover.length && t - mover[0].t > 0.9) mover.shift();
+  g.save(); rr(g, sx, sy, sw, sh, 6); g.clip(); const kind = EQ.trail;
+  if (kind) for (let i = 1; i < mover.length; i++) { const a = 1 - (t - mover[i].t) / 0.9, p0 = mover[i - 1], p1 = mover[i]; if (Math.hypot(p1.x - p0.x, p1.y - p0.y) > 60) continue;
+    if (kind === "ember") { g.strokeStyle = `rgba(255,102,26,${0.16 * a})`; g.lineWidth = 5 * a + 0.5; g.beginPath(); g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y); g.stroke(); g.fillStyle = `rgba(255,${140 + 70 * a},38,${0.75 * a})`; g.beginPath(); g.arc(p1.x, p1.y - 10 * (1 - a), 1.6 + 2.2 * a * (0.6 + 0.4 * Math.sin(t * 20 + i)), 0, 7); g.fill(); }
+    else { const c = kind === "gold" ? "255,217,106" : "190,130,255", tw = 0.5 + 0.5 * Math.sin(t * 14 + i * 1.7); g.strokeStyle = `rgba(${c},${0.22 * a})`; g.lineWidth = 3 * a + 0.5; g.beginPath(); g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y); g.stroke(); if (i % 2 === 0) { g.fillStyle = `rgba(${c},${0.9 * a * tw})`; g.beginPath(); g.arc(p1.x + Math.cos(i * 2.4) * 5, p1.y + Math.sin(i * 2.4) * 5, 1.2 + 1.4 * a * tw, 0, 7); g.fill(); } } }
+  g.restore(); figure(g, px, py, 1.5, aim);
+  const tc = TIER_COL[tier(RANK)], f = itemOf("frame"); badge(g, 100, 506, 34, RANK);
+  label(g, "Anthony", 150, 488, 26, "#fff", "left", 900); label(g, TITLE[tier(RANK)] + "  ·  Rank " + RANK, 150, 516, 15, tc, "left", 700);
+  xpbar(g, 76, 560, 348, 12, 0.07, tc); label(g, rankInfo().into + " / " + rankInfo().need + " XP", 250, 590, 12, "#dfe6ff", "center", 700);
+  label(g, "Title comes with your rank. Frames, trails and backgrounds are chosen on the right.", 250, 630, 11, "#9ea9c4", "center", 400);
+  // tabs
+  const tabs = KEYS; let tx = 490;
+  tabs.forEach(k => { const on = TAB.A === k, w = 130; rr(g, tx, 84, w, 38, 8); g.fillStyle = on ? "#2c5bd0" : "#1a2033"; g.fill(); label(g, CATS[k].label, tx + w / 2, 104, 14, on ? "#fff" : "#9ea9c4", "center", 800); addHit("A", tx, 84, w, 38, () => TAB.A = k); tx += w + 8; });
+  panel(g, 480, 130, 760, 410);
+  const items = CATS[TAB.A].items, cw = 232, ch = 178;
+  items.forEach((it, i) => tile(g, "A", TAB.A, it, 500 + (i % 3) * (cw + 12), 148 + Math.floor(i / 3) * (ch + 12), cw, ch, t));
+  // how others see you
+  label(g, "HOW OTHERS SEE YOU IN THE LOBBY", 480, 566, 11, "#9ea9c4", "left", 800);
+  partyCard(g, 480, 584, 376, t, -0.3); chip(g, 880, 604, 300);
+  label(g, "MAIN MENU CHIP", 880, 590, 11, "#9ea9c4", "left", 800);
+}
+
+// --- Look B: Locker ------------------------------------------------------------------------------
+function drawB(t) {
+  const g = document.getElementById("B").getContext("2d"); hits.B = []; backdrop(g);
+  fancy(g, "YOUR LOOK", 40, 40, 36, "#6b99ff", "left");
+  KEYS.forEach((k, r) => {
+    const y = 90 + r * 204, items = CATS[k].items;
+    panel(g, 40, y, 820, 192, "rgba(107,153,255,0.5)");
+    label(g, CATS[k].label.toUpperCase(), 62, y + 22, 12, "#9ea9c4", "left", 800);
+    const it = itemOf(k); label(g, "Equipped: " + (it.id ? it.name : "none"), 838, y + 22, 12, it.id ? "#ffcc59" : "#6a728c", "right", 700);
+    items.forEach((m, i) => tile(g, "B", k, m, 58 + i * 196, y + 36, 184, 146, t));
+  });
+  // fixed preview column
+  panel(g, 880, 90, 360, 600, "rgba(255,204,89,0.5)"); label(g, "PREVIEW", 904, 116, 12, "#9ea9c4", "left", 800);
+  bgThumb(g, 900, 134, 320, 110, EQ.bg, t); trailSample(g, 1100, 190, 110, EQ.trail, t); figure(g, 1110, 190, 1.1, 0);
+  label(g, "YOUR LOBBY CARD", 904, 272, 11, "#9ea9c4", "left", 800); partyCard(g, 904, 288, 316 + 0, t, -0.3);
+  label(g, "YOUR MENU CHIP", 904, 404, 11, "#9ea9c4", "left", 800); chip(g, 904, 420, 316);
+  const tc = TIER_COL[tier(RANK)]; badge(g, 940, 540, 30, RANK); label(g, TITLE[tier(RANK)], 984, 526, 22, "#fff", "left", 900); label(g, "Rank " + RANK + "  ·  title from your tier", 984, 552, 12, tc, "left", 700);
+  xpbar(g, 904, 596, 316, 10, 0.07, tc); label(g, rankInfo().into + " / " + rankInfo().need + " XP", 1062, 622, 12, "#dfe6ff", "center", 700);
+  label(g, "Click a tile to equip it.", 1062, 660, 11, "#9ea9c4", "center", 400);
+}
+
+// --- Look C: Drawer ------------------------------------------------------------------------------
+function drawC(t) {
+  const g = document.getElementById("C").getContext("2d"); hits.C = []; backdrop(g);
+  g.fillStyle = "rgba(14,17,28,0.97)"; g.fillRect(0, 0, 420, H); g.fillStyle = "rgba(107,153,255,0.25)"; g.fillRect(420, 0, 1, H);
+  fancy(g, "YOUR LOOK", 42, 60, 36, "#ffcc59", "left"); label(g, "Cosmetics from your rank", 44, 100, 12, "#b9c2db", "left", 400);
+  const tc = TIER_COL[tier(RANK)]; badge(g, 84, 168, 36, RANK); label(g, "Anthony", 134, 150, 22, "#fff", "left", 900); label(g, TITLE[tier(RANK)] + "  ·  Rank " + RANK, 134, 176, 13, tc, "left", 700);
+  xpbar(g, 42, 220, 336, 8, 0.07, tc); label(g, rankInfo().into + " / " + rankInfo().need + " XP", 378, 240, 11, "#9ea9c4", "right", 700);
+  const rows = [...KEYS, "ladder"];
+  rows.forEach((k, i) => {
+    const y = 270 + i * 62, on = TAB.C === k; rr(g, 28, y, 364, 54, 8);
+    if (on) { const gr = g.createLinearGradient(28, 0, 392, 0); gr.addColorStop(0, "rgba(255,204,89,0.18)"); gr.addColorStop(1, "rgba(255,204,89,0.02)"); g.fillStyle = gr; g.fill(); g.fillStyle = "#ffcc59"; g.fillRect(28, y, 3, 54); }
+    const name = k === "ladder" ? "Reward ladder" : CATS[k].label, sub = k === "ladder" ? "Rank by rank" : (itemOf(k).id ? itemOf(k).name : "None equipped");
+    label(g, name, 56, y + 20, 17, on ? "#ffcc59" : "#d6dcee", "left", 900); label(g, sub, 56, y + 40, 12, "#9ea9c4", "left", 400);
+    addHit("C", 28, y, 364, 54, () => TAB.C = k);
+  });
+  button(g, 40, 640, 220, 48, "Back  [Esc]", false, false); rr(g, 40, 640, 220, 48, 10); g.fillStyle = "#3a6fe0"; g.fill(); label(g, "Back  [Esc]", 150, 665, 18, "#fff", "center", 900);
+  panel(g, 470, 40, 770, 640, "rgba(107,153,255,0.5)");
+  const k = TAB.C;
+  if (k === "ladder") {
+    fancy(g, "REWARD LADDER", 496, 76, 32, "#6b99ff", "left"); label(g, "What each rank unlocks. Titles come with the tier.", 498, 108, 13, "#b9c2db", "left", 400);
+    const L = [[5, "Title", "Challenger"], [8, "Trail", "Ember trail"], [10, "Title", "Veteran"], [12, "Frame", "Steel frame"], [15, "Background", "Dusk Grid"], [20, "Title", "Champion"], [25, "Trail", "Gold stardust"], [30, "Frame", "Gold frame"], [30, "Title", "Legend"]];
+    L.forEach(([r, kind, nm], i) => { const col = i % 2, row = Math.floor(i / 2), x = 496 + col * 366, y = 140 + row * 96, ok = RANK >= r;
+      rr(g, x, y, 352, 84, 9); g.fillStyle = "rgba(255,255,255,0.04)"; g.fill(); g.globalAlpha = ok ? 1 : 0.5; badge(g, x + 38, y + 42, 24, r); g.globalAlpha = 1;
+      label(g, nm, x + 76, y + 32, 18, ok ? "#fff" : "#b9c2db", "left", 900); label(g, kind + (ok ? "  ·  unlocked" : ""), x + 76, y + 56, 12, ok ? "#6fe39a" : "#9ea9c4", "left", 700); });
+    return;
+  }
+  fancy(g, CATS[k].label.toUpperCase(), 496, 76, 32, "#6b99ff", "left");
+  // big preview
+  const px = 496, py = 116, pw = 340, ph = 200; bgThumb(g, px, py, pw, ph, EQ.bg, t);
+  g.save(); rr(g, px, py, pw, ph, 6); g.clip(); trailSample(g, px + pw / 2 + 10, py + ph / 2, 120, EQ.trail, t, 14); g.restore();
+  const f = itemOf("frame"); if (f.id) { rr(g, px + 70, py + 36, pw - 140, ph - 72, 12); g.strokeStyle = f.col; g.lineWidth = 3; g.shadowColor = f.col; g.shadowBlur = 12; g.stroke(); g.shadowBlur = 0; }
+  figure(g, px + pw / 2 + 14, py + ph / 2, 1.6, 0);
+  label(g, "PREVIEW", px, py + ph + 18, 11, "#9ea9c4", "left", 800); partyCard(g, px, py + ph + 32, 340, t, -0.3);
+  // list
+  const lx = 860, items = CATS[k].items; label(g, "CHOOSE", lx, 126, 11, "#9ea9c4", "left", 800);
+  items.forEach((it, i) => { const y = 142 + i * 66, ok = owned(it), on = EQ[k] === it.id;
+    rr(g, lx, y, 352, 58, 9); g.fillStyle = on ? "rgba(255,204,89,0.1)" : "rgba(255,255,255,0.04)"; g.fill(); if (on) { g.strokeStyle = "#ffcc59"; g.lineWidth = 1.5; g.stroke(); }
+    g.save(); g.globalAlpha = ok ? 1 : 0.45;
+    if (k === "bg") bgThumb(g, lx + 8, y + 8, 64, 42, it.id, t);
+    else { rr(g, lx + 8, y + 8, 64, 42, 6); g.fillStyle = "#101524"; g.fill(); if (k === "frame") { rr(g, lx + 18, y + 14, 44, 30, 6); g.strokeStyle = it.id ? it.col : "rgba(107,153,255,0.9)"; g.lineWidth = it.id ? 2.5 : 1.2; g.stroke(); figure(g, lx + 40, y + 29, 0.45, -0.3); } else { trailSample(g, lx + 44, y + 29, 30, it.id, t, 4); figure(g, lx + 52, y + 29, 0.4, 0); } }
+    g.restore();
+    label(g, it.name, lx + 84, y + 22, 15, ok ? "#fff" : "#b9c2db", "left", 800); label(g, it.ex ? "example" : ok ? "unlocked" : "needs rank " + it.rank, lx + 84, y + 42, 11, it.ex ? "#c9a6ff" : ok ? "#6fe39a" : "#9ea9c4", "left", 700);
+    if (ok) { button(g, lx + 352 - 84, y + 17, 74, 24, on ? (it.id ? "Equipped" : "In use") : "Equip", on, false); addHit("C", lx, y, 352, 58, () => pick(k, it)); } else lockIcon(g, lx + 352 - 28, y + 24, "#8a94b0"); });
+}
+
+// --- wiring ---------------------------------------------------------------------------------------
+document.getElementById("rankSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return; RANK = +b.dataset.r;
+  document.querySelectorAll("#rankSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  for (const k of KEYS) if (!owned(itemOf(k))) EQ[k] = "";
+});
+if (RANK < 8) EQ.trail = "";
+function frame(ms) { const t = ms / 1000; drawA(t); drawB(t); drawC(t); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+</script>

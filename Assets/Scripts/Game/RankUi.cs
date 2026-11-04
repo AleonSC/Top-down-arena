@@ -68,6 +68,28 @@ namespace Arena
             return session.Lobby.TryGetValue(p.Id, out e) ? e.Rank : 1;
         }
 
+        // --- The generic player ---------------------------------------------------------------------------
+
+        /// GL (inside BeginUiGl, after UiModelAt): a neutral top-down figure for the menu chip: no role, class or weapon, just a
+        /// body, shoulders, two hands out front and a head, turning slowly. The costume colours come from cosmetics later.
+        void DrawGenericPlayer(float t)
+        {
+            float a = -0.5f + 0.9f * Mathf.Sin(t * 0.7f), c = Mathf.Cos(a), s = Mathf.Sin(a);
+            System.Func<float, float, V2> at = (x, y) => new V2(x * c - y * s, x * s + y * c);  // along the aim, to the right
+            var skin = new Rgba(0.86f, 0.88f, 0.95f);
+            var cloth = new Rgba(0.5f, 0.58f, 0.76f);
+            Circle(V2.Zero, 21f, new Rgba(0.06f, 0.08f, 0.14f, 0.9f), 24);
+            Line(at(2f, -11f), at(24f, -7f), 5f, cloth);   // arms out to the hands
+            Line(at(2f, 11f), at(24f, 7f), 5f, cloth);
+            Circle(at(24f, -7f), 3.4f, skin, 8);
+            Circle(at(24f, 7f), 3.4f, skin, 8);
+            Circle(V2.Zero, 17f, cloth, 24);                // the body
+            Circle(at(-1f, -11f), 7f, new Rgba(0.62f, 0.7f, 0.88f), 12);  // shoulders
+            Circle(at(-1f, 11f), 7f, new Rgba(0.62f, 0.7f, 0.88f), 12);
+            Circle(at(1f, 0f), 9f, skin, 16);               // the head
+            Line(at(5f, -4f), at(5f, 4f), 2f, new Rgba(0.25f, 0.3f, 0.45f));  // a visor line, so you can tell which way it faces
+        }
+
         // --- Hover card ---------------------------------------------------------------------------------------
 
         /// Hovering a rank badge: its title and rank, and (for yours) the XP towards the next. Call between TipClear and DrawTip.
