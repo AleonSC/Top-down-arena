@@ -79,8 +79,9 @@ namespace Arena
         {
             if (!(MenuIntroPlaying && MenuIntroFull))
             {
-                Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent);
-                DrawVhsOsd(r);
+                DrawCrtBack();
+                DrawCrtTitle(r);
+                DrawCrtFront();
                 return;
             }
             float pen = Seg(menuIntroT, 0.35f, 1.35f), fill = Seg(menuIntroT, 1.35f, 1.55f);
@@ -92,28 +93,51 @@ namespace Arena
                 GUI.EndGroup();
             }
             if (fill > 0f)
-                WithAlpha(fill, () => Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, Color.white, TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(fill, () => { DrawCrtBack(); DrawCrtTitle(r); DrawCrtFront(); });
         }
 
-        /// The title as a VCR's on-screen display (Docs/Mockups/title-styles.html, look 6): "PLAY" top left, a running
-        /// tape counter bottom right, and a tracking band that drifts down through the title every few seconds.
-        void DrawVhsOsd(Rect r)
+        static readonly Color CrtGreen = new Color(0.49f, 1f, 0.66f), CrtGlow = new Color(0.18f, 1f, 0.4f);
+        static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f, 1040f, 104f);
+
+        /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark green glass screen.
+        void DrawCrtBack()
         {
-            float t = Time.unscaledTime, left = W / 2f - MenuTitleHalf, right = W / 2f + MenuTitleHalf;
-            float band = (t % 6f) / 1.6f;  // 0..1 while it drifts down, then it rests
-            if (band < 1f)
+            var box = CrtBox;
+            Ui.Pill(new Rect(box.x - 8f, box.y - 8f, box.width + 16f, box.height + 16f), new Color(0.23f, 0.26f, 0.3f));
+            Ui.Pill(new Rect(box.x - 5f, box.y - 5f, box.width + 10f, box.height + 10f), new Color(0.125f, 0.14f, 0.16f));
+            Ui.Pill(new Rect(box.x - 1f, box.y - 1f, box.width + 2f, box.height + 2f), new Color(0.03f, 0.035f, 0.04f));
+            for (int i = 0; i < 6; i++)  // glass: dark at the edges, lighter towards the middle
             {
-                GUI.BeginGroup(new Rect(left - 10f, r.y, right - left + 20f, r.height));
-                float by = -24f + (r.height + 24f) * band;
-                Ui.Fill(new Rect(0f, by, right - left + 20f, 22f), new Color(1f, 1f, 1f, 0.07f));
-                Ui.Fill(new Rect(0f, by + 22f, right - left + 20f, 1f), new Color(1f, 1f, 1f, 0.12f));
-                GUI.EndGroup();
+                float k = i / 5f;
+                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(new Color(0.004f, 0.02f, 0.01f), new Color(0.05f, 0.17f, 0.1f), k));
             }
-            Ui.Icon(new Rect(left - 4f, r.y - 14f, 14f, 14f), PixelArt.Get("ui_play"));
-            Ui.Shadowed(new Rect(left + 14f, r.y - 16f, 80f, 18f), "PLAY", 13, Color.white, TextAnchor.MiddleLeft);
-            int secs = Mathf.FloorToInt(t);
-            string clock = "SP  " + (secs / 3600) + ":" + (secs / 60 % 60).ToString("00") + ":" + (secs % 60).ToString("00");
-            Ui.Shadowed(new Rect(right - 140f, r.yMax - 8f, 144f, 18f), clock, 13, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleRight);
+        }
+
+        /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
+        void DrawCrtFront()
+        {
+            var box = CrtBox;
+            float t = Time.unscaledTime;
+            GUI.BeginGroup(box);
+            float roll = (t * 18f) % 4f;
+            for (float y = -4f + roll; y < box.height; y += 4f)
+                Ui.Fill(new Rect(0f, y, box.width, 2f), new Color(0f, 0f, 0f, 0.28f));
+            Ui.Fill(new Rect(24f, 5f, box.width * 0.35f, 2f), new Color(1f, 1f, 1f, 0.07f));  // glare
+            GUI.EndGroup();
+            Ui.Rim(box, CrtGlow, 0.3f);
+            if ((int)(t * 1.2f) % 2 == 0)
+            {
+                Ui.Fill(new Rect(box.xMax - 58f, box.yMax - 18f, 30f, 7f), new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, 0.85f));
+            }
+        }
+
+        /// The title text: phosphor green with a glow, and a brief dip in brightness now and then (the screen flickering).
+        void DrawCrtTitle(Rect r)
+        {
+            float t = Time.unscaledTime;
+            float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
+            var c = new Color(CrtGreen.r, CrtGreen.g, CrtGreen.b, flick);
+            Ui.Glitch(r, "CARTESIAN COLOSSEUM", (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
         }
 
         /// GL (inside BeginUiGl): the pen's glowing tip, writing the title and then tracing the arc.
