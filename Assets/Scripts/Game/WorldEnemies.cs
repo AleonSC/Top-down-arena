@@ -268,6 +268,11 @@ namespace Arena
                 DrawWardenGuard(m, t);  // WardenLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.SoulLantern)
+            {
+                DrawSoulLantern(m, t);  // HealerKitLooks.cs
+                return;
+            }
             if (m.Kind == MinionKind.SoulGhost)
             {
                 DrawSoulGhost(m, t);

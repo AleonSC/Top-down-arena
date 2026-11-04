@@ -75,12 +75,11 @@ static partial class Shot {
       for (int f = 0; f < 60; f++) { me.Pos = new V2(700f, 450f); host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { Fire = true, AimAt = at }); host.Game.Update(1f / 60f); }
     }
     if (Environment.GetEnvironmentVariable("SOULGHOST") != null) {
-      // Soul Link cast alone: the Soul Ghost beside you, tethered, a little hurt, SOULGHOST=<seconds> in.
+      // Soul Lantern cast alone: the lantern beside you, linked, SOULGHOST=<seconds> in.
       host.Game.Bot = false; me.Pos = me.Disp = new V2(700f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(-0.4f) * 300f;
-      me.Slots[0].Id = AbilityId.SoulLink; me.Slots[0].Charges = 1;
+      me.Slots[0].Id = AbilityId.SoulLantern; me.Slots[0].Charges = 1;
       typeof(Game).GetMethod("HostAbility", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(host.Game, new object[] { 1, 0, me.Pos, false });
       for (int f = 0; f < 60 * float.Parse(Environment.GetEnvironmentVariable("SOULGHOST")); f++) { me.Pos = new V2(700f, 450f); host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); host.Game.Update(1f / 60f); }
-      foreach (var m in host.Game.Minions.Values) if (m.Kind == MinionKind.SoulGhost) { m.Hp = m.MaxHp * 0.7f; m.GuardFrac = 0.7f; }
     }
     if (Environment.GetEnvironmentVariable("FLAME") != null) {
       // The Flamethrower held on a few enemies for FLAME=<seconds>: the stream and the burning.

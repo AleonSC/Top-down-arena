@@ -21,13 +21,14 @@ A running list of things to pick up next session. Tick off / delete as they're d
             Spirit Chalk also traps: **draw a loop round non-boss enemies and they can't leave it for 3.5 s.** The old weapons'
             leftover code (the Prism Beam's split beams, the totem zone, charge and timer) was removed on request (Nov 2026).
 
-- [ ] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Mockups ready, pick a look for each; nothing is built yet
-      (needs `Core/` work and a protocol bump). Soul Link leaves the Healer Soldier (Soul Ghost goes with it) and becomes the Healer Summoner's
-      third ability, replacing the zone lantern, named **Soul Lantern**: a lantern lands by the ally nearest your cursor (you, solo), links,
-      follows, heals and spits flames. The Soldier's freed slot becomes a thrown **Deployable Medkit** that bursts into healing orbs to pick up.
-      - [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html): A Paper Lantern, B Wisp Cage, C Pixel Lamp, D Crystal Beacon. Proposed numbers on the page.
-      - [`Mockups/deployable-medkit.html`](Mockups/deployable-medkit.html): A Field Kit, B Supply Canister, C Pill Capsule, D Heart Case. Proposed numbers on the page.
-      Open: Kindred Spirits (Soul Link heal upgrade) would point at the lantern; Bestiary/Armory/README entries are out of date until built.
+- [x] **Healer rework: Soul Lantern (Summoner) and Deployable Medkit (Soldier).** Built (Nov 2026, protocol 139): Soul Lantern look B
+      (Wisp Cage) and Deployable Medkit look A (Field Kit), from [`Mockups/soul-lantern.html`](Mockups/soul-lantern.html)
+      (https://claude.ai/artifact/1LBQNmz4VkR48go2Un1xSk) and [`Mockups/deployable-medkit.html`](Mockups/deployable-medkit.html)
+      (https://claude.ai/artifact/6mZaE1GtNnM1PsK4YhDRwa). Soul Link left the Soldier; the Medkit took its slot (and enum number).
+      Kindred Spirits now speeds the lantern's heal. Medkit orbs use the normal orb magnet (110 px, hurt players only).
+      Leftover for you to decide: the Soul Ghost code (`SoulGhost.cs`, `MinionKind.SoulGhost`, `Player.LinkT`/`LinkTo`, the old tether
+      drawing) is dormant: nothing casts it. Say the word and I'll remove it. The old zone lantern (`ZoneKind.Lantern`) is dormant too.
+      Bestiary/Armory pages still show the old abilities until you ask.
 
 ## Visuals
 - [ ] **Healer Soldier Mend Pulse animations.** Mockup ready, pick a look: [`Mockups/mend-pulse.html`](Mockups/mend-pulse.html)

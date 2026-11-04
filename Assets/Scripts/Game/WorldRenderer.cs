@@ -450,6 +450,11 @@ namespace Arena
         /// A health orb: green with a white cross; big ones get a gold ring.
         void DrawOrb(Orb o, float t)
         {
+            if (o.Med)
+            {
+                DrawMedOrb(o, t);  // HealerKitLooks.cs
+                return;
+            }
             // Blink during the last 3 seconds before the orb disappears.
             if (o.Life < 3f && MathX.Fmod(t, 0.25f) < 0.1f)
                 return;

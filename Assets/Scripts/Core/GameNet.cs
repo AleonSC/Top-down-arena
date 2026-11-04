@@ -635,7 +635,7 @@ namespace Arena
         /// A minion; returns its id. Reading, a new id brings a new minion.
         int SyncMinion(NetSync s, Minion m)
         {
-            int id = 0, kind = 0, owner = 0;
+            int id = 0, kind = 0, owner = 0, link = 0;
             V2 pos = default(V2);
             float aim = 0f, t = 0f, duration = 0f, guard = 0f, scale = 0f;
             if (!s.Reading)
@@ -651,6 +651,7 @@ namespace Arena
                     : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? m.BlockHp / (m.Def.BlockCapacity * m.Scale) : 0f;
                 guard = m.GuardFrac;
                 scale = m.Scale;
+                link = m.LinkTo;
             }
             s.Int(ref id);
             s.Byte(ref kind);
@@ -661,6 +662,7 @@ namespace Arena
             s.Float(ref duration);
             s.Float(ref guard);
             s.Float(ref scale);
+            s.Int(ref link);
             if (s.Reading)
             {
                 if (!Minions.TryGetValue(id, out m))
@@ -674,6 +676,7 @@ namespace Arena
                 m.Duration = duration;
                 m.GuardFrac = guard;
                 m.Scale = scale;
+                m.LinkTo = link;
             }
             return id;
         }
@@ -703,20 +706,21 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0;
-            bool big = o != null && o.Big, tiny = o != null && o.Tiny, dew = o != null && o.Dew;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny, dew = o != null && o.Dew, med = o != null && o.Med;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
             s.Bool(ref big);
             s.Bool(ref tiny);
             s.Bool(ref dew);
+            s.Bool(ref med);
             s.Vec(ref pos);
             s.Float(ref life);
             if (s.Reading)
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Dew = dew, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Dew = dew, Med = med, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

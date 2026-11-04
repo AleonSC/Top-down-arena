@@ -143,7 +143,7 @@ namespace Arena
 
         /// Weapon mods apply to players' shots, but not to grenades (they land where you aim)
         /// or to Swarm Rounds' splinters.
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -152,7 +152,7 @@ namespace Arena
             if (owner != 0 && Moddable(kind) && Players.TryGetValue(owner, out shooter))
                 b.Radius *= shooter.Stats.ShotSizeMult;  // Magnum Rounds (every game knows everyone's upgrades, so it's the same size everywhere)
             Bullets[id] = b;
-            if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot)
+            if (owner == MyId && owner != 0 && kind != Defs.GrenadeShot && kind != Defs.MedkitShot)
                 NoteShot(b);
             if (owner == 0)
                 Sounds.Add(Sfx.EnemyShot);
@@ -215,13 +215,13 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
+                if (wellsUp && b.Owner != 0 && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
                     PullIntoWells(b, dt);
                 if (b.Kind == Defs.PauseShot)
                     b.Pos += b.Vel * (dt * PauseSpeedNow(b) * SmokeSpeed(b));  // slows to a stop, then hangs (Variety.cs)
                 else
                     b.Pos += b.Vel * (dt * SmokeSpeed(b));
-                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot)
+                if (!wind.IsZero && b.Kind != Defs.GrenadeShot && b.Kind != Defs.BoulderShot && b.Kind != Defs.MedkitShot)
                     b.Pos += wind * dt;
                 b.Life -= dt;
                 if (b.Life <= 0f || b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y)
@@ -245,6 +245,11 @@ namespace Arena
                 if (b.Rush)
                 {
                     PauseRush(b);  // Variety.cs
+                    continue;
+                }
+                if (b.Kind == Defs.MedkitShot)
+                {
+                    LandMedkit(b);  // Medkit.cs
                     continue;
                 }
                 if (b.Kind == Defs.BoulderShot)
@@ -388,8 +393,8 @@ namespace Arena
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             foreach (var b in Bullets.Values)
             {
-                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.FlakShell || b.Ward)
-                    continue;  // grenades, boulders and flak shells fly over enemies and land or burst where you aimed
+                if (b.Kind == Defs.GrenadeShot || b.Kind == Defs.BoulderShot || b.Kind == Defs.MedkitShot || b.Kind == Defs.FlakShell || b.Ward)
+                    continue;  // grenades, boulders, medkits and flak shells fly over enemies and land or burst where you aimed
                 if (Props.Count > 0 && PropStops(b))
                 {
                     scratchIds.Add(b.Id);  // a crate takes an enemy shot; a barrel any shot (Props.cs)
@@ -1073,6 +1078,15 @@ namespace Arena
                     if (!p.Downed && p.Hp < p.MaxHp && p.Pos.DistanceTo(o.Pos) < OrbMagnetRange &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
+                if (nearest == null && o.Med)
+                    foreach (var p in Players.Values)  // a medkit's orb also picks a downed ally back up (Medkit.cs)
+                        if (p.Downed && p.Pos.DistanceTo(o.Pos) < p.Def.BodyR + o.Radius + 6f)
+                        {
+                            RevivePlayer(p, 0.2f);
+                            BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), 50f, 0.35f, Sfx.PickupBig);
+                            gone.Add(o.Id);
+                            break;
+                        }
                 if (nearest == null)
                     continue;
                 V2 to = nearest.Pos - o.Pos;

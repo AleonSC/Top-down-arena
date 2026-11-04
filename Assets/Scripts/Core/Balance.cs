@@ -94,7 +94,8 @@ namespace Arena
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f;
         const float RoarTime = 5f, RoarReduction = 0.4f;
         const float HavenRadius = 130f, HavenTime = 6f;
-        const float LinkTime = 6f, LinkHeal = 8f;
+        const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)
+        const float MedkitCooldown = 14f, MedkitReach = 360f, MedkitFlight = 0.5f, MedkitLife = 6f;  // Medkit.cs
         const float GrenadeRange = 380f, GrenadeFlight = 0.55f, GrenadeDamage = 80f;
         public const float GrenadeRadius = 110f;  // (public: the grenade's flight look draws it, SoldierLooks.cs)
         const float MarkTime = 6f;

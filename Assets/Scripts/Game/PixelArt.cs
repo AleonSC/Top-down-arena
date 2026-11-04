@@ -117,7 +117,7 @@ namespace Arena
             { "Bulldoze", "fist" },
             { "Mend Pulse", "pulse" },
             { "Haven", "ground" },
-            { "Soul Link", "link" },
+            { "Deployable Medkit", "pulse" },
             { "Dash", "dash" },
             { "Cluster Grenade", "grenade" },
             { "Mark for Death", "crosshair" },

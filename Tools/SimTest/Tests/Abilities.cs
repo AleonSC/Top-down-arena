@@ -50,7 +50,6 @@ static partial class Program
                     {
                         case AbilityId.Roar: seen = taunt; break;
                         case AbilityId.Haven: seen = zone; break;
-                        case AbilityId.SoulLink: seen = link; break;
                         case AbilityId.Grenade: seen = grenade; break;
                         case AbilityId.Mark: seen = marked; break;
                     }
@@ -134,7 +133,7 @@ static partial class Program
                     case AbilityId.GuardianSpirit: abilityOk = minions.Contains(MinionKind.Guardian); break;
                     case AbilityId.SpiritSwarm: abilityOk = minions.Contains(MinionKind.Sprite); break;
                     case AbilityId.Phoenix: abilityOk = minions.Contains(MinionKind.Phoenix); break;
-                    case AbilityId.SoulLantern: abilityOk = zones.Contains(ZoneKind.Lantern); break;
+                    case AbilityId.SoulLantern: abilityOk = minions.Contains(MinionKind.SoulLantern); break;
                     case AbilityId.BatSwarm: abilityOk = minions.Contains(MinionKind.Bat); break;
                     case AbilityId.AlphaCall: abilityOk = frenzy; break;
                 }
@@ -280,9 +279,9 @@ static partial class Program
             sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Haven, true);
             for (int f = 0; f < 120; f++) sc.Step(dt);
             bool zoneUp = sc.Game.Zones.Count > 0;
-            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.SoulLink, true);
+            sc.Show(Role.Healer, Kit.Soldier, 0, AbilityId.Medkit, true);
             sc.Step(dt);
-            Console.WriteLine("  showcase switch: Haven's zone up {0}; after switching to Soul Link: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
+            Console.WriteLine("  showcase switch: Haven's zone up {0}; after switching to the Medkit: {1} zones, {2} casts", zoneUp, sc.Game.Zones.Count, sc.Me.Run.AbilitiesUsed);
             Check(zoneUp && sc.Game.Zones.Count == 0 && sc.Me.Run.AbilitiesUsed == 0, "switching the previewed ability restarts the preview (the last one's effects are gone)");
             sc.Stop();
         }
