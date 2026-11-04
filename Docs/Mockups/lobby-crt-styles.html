@@ -1,0 +1,236 @@
+<title>Lobby Screen Styles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500&family=Rajdhani:wght@500;700&display=swap">
+<style>
+/* Layout: the lobby rebuilt as separate screens on a console. A header screen with a physical key beside it, a party screen, tab keys, and content screens. Three looks share one structure. */
+:root {
+  --bg: #080b14; --panel: #10162a; --fg: #dfe8ff; --muted: #7d8bb0; --line: #243055;
+  --f-disp: "VT323", "Courier New", monospace; --f-mono: "IBM Plex Mono", ui-monospace, monospace; --f-ui: "Rajdhani", system-ui, sans-serif;
+  --sbg: #03110a; --ink: #4dff9a; --dim: #2fa66a; --glow: rgba(60,255,150,.5); --rule: rgba(77,255,154,.28); --bez: #1c3a2a;
+  --red: #ff6b7a; --blue: #4f86ff; --gold: #f2c14e;
+  --body: #151d38; --body-edge: #2c3a68; --key-a: #27325c; --key-b: #1c2548; --key-sh: #0e1530; --key-edge: #3a4a82;
+  color-scheme: dark;
+}
+[data-look="amber"] { --sbg: #130b02; --ink: #ffb347; --dim: #b8782a; --glow: rgba(255,170,60,.5); --rule: rgba(255,179,71,.3); --bez: #3a2410;
+  --body: #211a14; --body-edge: #4a3a28; --key-a: #4a3a28; --key-b: #34281a; --key-sh: #150f08; --key-edge: #6a5236; }
+[data-look="hybrid"] { --body: #101830; --body-edge: #3a5aa8; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-ui); padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 28px; margin: 0 0 6px; text-wrap: balance; }
+.intro { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 70ch; }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ctl span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-right: 4px; }
+.seg { font-family: var(--f-ui); font-weight: 700; font-size: 15px; color: var(--fg); background: transparent; border: 1px solid var(--line); padding: 8px 14px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--line); }
+.seg:focus-visible, .key:focus-visible, .btn:focus-visible, .tab:focus-visible, .opt:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.note { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 76ch; }
+.scroller { overflow-x: auto; }
+
+/* ---- the console ---- */
+.console { min-width: 900px; background: var(--body); border: 1px solid var(--body-edge); border-radius: 16px; padding: 14px; display: grid; grid-template-columns: 300px 1fr; gap: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.4); }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: flex; gap: 12px; align-items: stretch; }
+
+/* ---- CRT ---- */
+.screen { position: relative; overflow: hidden; isolation: isolate; background: var(--sbg); color: var(--ink); font-family: var(--f-disp); font-size: 19px; line-height: 1.1;
+  text-shadow: 0 0 5px var(--glow); border-radius: 12px; box-shadow: inset 0 0 36px rgba(0,0,0,.8), 0 0 0 3px #0b140f, 0 0 0 5px var(--bez), 0 0 18px var(--glow); }
+.screen::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.26) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+.screen::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0,0,0,.5) 100%), linear-gradient(115deg, rgba(255,255,255,.06) 0 14%, transparent 30%); }
+.screen > .in { position: relative; z-index: 1; padding: 12px 16px; }
+[data-look="hybrid"] .pane { background: #0d1530; color: var(--fg); text-shadow: none; box-shadow: inset 0 0 0 1px #2c3a68; font-family: var(--f-ui); border-radius: 10px; }
+[data-look="hybrid"] .pane::before, [data-look="hybrid"] .pane::after { display: none; }
+[data-look="hybrid"] .pane .lab, [data-look="hybrid"] .pane .dim { color: var(--muted); }
+@keyframes blink { 50% { opacity: 0; } } .cur { display: inline-block; width: .5em; height: .8em; background: var(--ink); margin-left: 6px; animation: blink 1s steps(1) infinite; vertical-align: -.05em; }
+.lab { font-size: 14px; color: var(--dim); letter-spacing: .12em; text-shadow: none; text-transform: uppercase; }
+.dim { color: var(--dim); text-shadow: none; }
+
+/* ---- physical keys ---- */
+.key { font-family: var(--f-ui); font-weight: 700; font-size: 16px; letter-spacing: .05em; color: #dfe8ff; border: 1px solid var(--key-edge); border-radius: 10px; padding: 12px 14px; cursor: pointer;
+  background: linear-gradient(var(--key-a), var(--key-b)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 0 var(--key-sh); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.key:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-sh); }
+.key .lamp { width: 7px; height: 7px; border-radius: 50%; background: #3a4a66; } .key.on .lamp { background: var(--ink); box-shadow: 0 0 8px var(--glow); }
+.key.on { color: var(--ink); } .key.big { padding: 18px; font-size: 22px; }
+.key.dis { opacity: .5; cursor: default; }
+.back { width: 112px; flex: none; }
+/* amber look: rocker-style tabs; others: flat keys */
+[data-look="amber"] .key { border-radius: 4px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+/* ---- header ---- */
+.hdr { flex: 1; min-width: 0; } .hdr .in { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; }
+.hdr h2 { margin: 0; font: inherit; font-size: 36px; letter-spacing: .08em; }
+.modes { display: flex; gap: 8px; } .modes .btn { font-size: 20px; }
+.btn { font-family: var(--f-disp); font-size: 20px; letter-spacing: .05em; padding: 5px 12px 3px; border: 2px solid var(--ink); color: var(--ink); background: rgba(255,255,255,.04); cursor: pointer; text-shadow: inherit; line-height: 1; }
+.btn.sel, .btn:hover { background: var(--ink); color: var(--sbg); text-shadow: none; }
+[data-look="hybrid"] .btn { font-family: var(--f-ui); font-weight: 700; font-size: 15px; border-color: var(--blue); color: var(--fg); }
+[data-look="hybrid"] .btn.sel, [data-look="hybrid"] .btn:hover { background: var(--blue); color: #fff; }
+[data-look="hybrid"] .hdr, [data-look="hybrid"] .party, [data-look="hybrid"] .detail { }
+
+/* ---- party ---- */
+.seat { border: 1px dashed var(--rule); padding: 10px 12px; margin-bottom: 8px; display: grid; gap: 4px; }
+.seat.me { border: 2px solid var(--ink); }
+.seat b { font-size: 26px; font-weight: 400; } .seat .tags { display: flex; gap: 6px; font-size: 14px; }
+.tag { border: 1px solid var(--ink); padding: 2px 6px 0; font-size: 13px; letter-spacing: .08em; }
+.seat.open { text-align: center; color: var(--dim); text-shadow: none; padding: 18px 0; letter-spacing: .12em; }
+
+/* ---- shared content bits ---- */
+.sec { margin-bottom: 14px; } .sec .lab { margin-bottom: 6px; display: flex; justify-content: space-between; gap: 10px; }
+.opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.opts.c3 { grid-template-columns: repeat(3, 1fr); } .opts.c2 { grid-template-columns: repeat(2, 1fr); } .opts.c5 { grid-template-columns: repeat(5, 1fr); }
+.opt { font-family: inherit; font-size: 19px; text-shadow: inherit; letter-spacing: .04em; color: var(--ink); background: transparent; border: 1px solid var(--rule); padding: 8px 6px 6px; cursor: pointer; text-align: center; min-width: 0; }
+.opt:hover { border-color: var(--ink); } .opt.sel { border: 2px solid var(--ink); background: rgba(255,255,255,.07); } .opt.lock { color: var(--dim); text-shadow: none; border-style: dashed; cursor: default; }
+[data-look="hybrid"] .opt { font-family: var(--f-ui); font-weight: 700; font-size: 16px; color: var(--fg); border-color: #2c3a68; background: #131c3c; border-radius: 8px; }
+[data-look="hybrid"] .opt.sel { border-color: var(--blue); background: #1b2a5c; } [data-look="hybrid"] .opt.lock { color: var(--muted); }
+.statrow { display: grid; grid-template-columns: 74px 1fr 52px; gap: 8px; align-items: center; font-size: 17px; margin-bottom: 5px; }
+.bar { height: 7px; background: rgba(255,255,255,.08); } .bar i { display: block; height: 100%; background: var(--ink); box-shadow: 0 0 8px var(--glow); }
+.two { display: grid; grid-template-columns: 250px 1fr; gap: 16px; } .two > * { min-width: 0; }
+.prev { height: 150px; border: 1px solid var(--rule); display: grid; place-items: center; position: relative; }
+.prev::after { content: ""; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 16px var(--glow); }
+.detail p { margin: 4px 0 0; font-size: 16px; line-height: 1.3; } .detail h3 { margin: 2px 0 0; font: inherit; font-size: 30px; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } .cols2 > * { min-width: 0; }
+.pill { display: inline-block; border: 1px solid var(--rule); padding: 3px 8px 1px; margin: 6px 6px 0 0; font-size: 15px; }
+
+/* perks */
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.slot { border: 1px dashed var(--rule); padding: 10px; min-height: 64px; } .slot b { font-weight: 400; font-size: 24px; display: block; }
+.perks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.perk { text-align: left; font-family: inherit; color: inherit; text-shadow: inherit; border: 1px solid var(--rule); background: transparent; padding: 10px 12px; cursor: pointer; min-width: 0; }
+.perk.sel { border: 2px solid var(--ink); background: rgba(255,255,255,.06); } .perk.lock { color: var(--dim); text-shadow: none; border-style: dashed; cursor: default; }
+.perk b { font-weight: 400; font-size: 24px; display: block; } .perk small { font-family: var(--f-mono); font-size: 11px; letter-spacing: .04em; display: block; margin-top: 4px; line-height: 1.4; }
+[data-look="hybrid"] .perk { background: #131c3c; border-color: #2c3a68; font-family: var(--f-ui); border-radius: 8px; } [data-look="hybrid"] .perk.sel { border-color: var(--blue); }
+
+/* difficulty */
+.tbl { display: grid; grid-template-columns: 1fr 70px 70px; gap: 4px 10px; font-size: 17px; }
+.tbl div { padding: 3px 0; border-bottom: 1px dashed var(--rule); } .tbl .h { color: var(--dim); font-size: 13px; letter-spacing: .1em; text-shadow: none; }
+.good { color: #6dff9a; } .bad { color: var(--red); text-shadow: none; }
+.slide { display: grid; grid-template-columns: 1fr 70px; gap: 10px; align-items: center; font-size: 17px; margin-bottom: 6px; }
+.track { position: relative; height: 6px; background: rgba(255,255,255,.1); } .track i { position: absolute; top: -3px; width: 12px; height: 12px; background: var(--ink); box-shadow: 0 0 8px var(--glow); } .track u { position: absolute; top: -4px; width: 1px; height: 14px; background: var(--dim); }
+
+/* modifiers */
+.tier { margin-bottom: 12px; } .tier h4 { margin: 0 0 6px; font: inherit; font-size: 18px; letter-spacing: .1em; display: flex; justify-content: space-between; cursor: pointer; border-bottom: 1px dashed var(--rule); padding-bottom: 3px; }
+.mods { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mod { font-family: inherit; text-align: left; color: inherit; text-shadow: inherit; border: 1px solid var(--rule); background: transparent; padding: 8px 10px 7px; cursor: pointer; min-width: 0; font-size: 19px; }
+.mod small { display: block; font-family: var(--f-mono); font-size: 10.5px; line-height: 1.35; margin-top: 3px; color: var(--dim); text-shadow: none; }
+.mod.on { border: 2px solid var(--ink); background: rgba(255,255,255,.07); padding: 7px 9px 6px; }
+.mod .led { float: right; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #333; } .mod.on .led { background: var(--ink); box-shadow: 0 0 8px var(--glow); }
+.t-easy h4 { color: #6dff9a; } .t-risky h4 { color: var(--gold); } .t-hard h4 { color: var(--red); }
+[data-look="hybrid"] .mod { background: #131c3c; border-color: #2c3a68; font-family: var(--f-ui); font-weight: 700; font-size: 16px; border-radius: 8px; } [data-look="hybrid"] .mod.on { border-color: var(--blue); }
+@media (prefers-reduced-motion: reduce) { .cur { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Lobby, rebuilt as separate screens</h1>
+    <p class="intro">The saves-screen treatment applied to the lobby: the title on its own screen with a physical Back key, a party screen, the four tabs as physical keys, and the content on screens beneath. Pick a look, then click through the tabs. Everything here is clickable: seats, classes, perks, difficulty cards and modifier switches.</p>
+  </header>
+  <div class="ctl"><span>Look</span>
+    <button class="seg" data-look="crt" type="button" aria-pressed="true">A · Green console</button>
+    <button class="seg" data-look="hybrid" type="button" aria-pressed="false">B · Hybrid (CRT only for header, party, details)</button>
+    <button class="seg" data-look="amber" type="button" aria-pressed="false">C · Amber ops deck</button>
+  </div>
+  <div class="scroller"><div class="console" id="con" data-look="crt">
+    <div class="col">
+      <div class="screen party"><div class="in">
+        <div class="lab" style="margin-bottom:8px">Party (1/3)</div>
+        <div class="seat me"><div class="tags"><span class="tag">HOST</span><span class="tag">YOU</span></div><b>Anthony</b><span id="seatClass">Soldier Tank</span><span class="dim" style="font-size:16px">Scattergun · Barrier · NOT READY</span></div>
+        <div class="seat open">OPEN SLOT</div><div class="seat open">OPEN SLOT</div>
+      </div></div>
+      <div style="flex:1"></div>
+      <button class="key big" id="ready" type="button"><span class="lamp"></span>Ready?</button>
+      <button class="key big dis" type="button">&#9654; Start</button>
+    </div>
+    <div class="col">
+      <div class="row">
+        <div class="screen hdr"><div class="in"><h2>LOBBY<span class="cur"></span></h2>
+          <div class="modes" id="modes"><button class="btn sel" type="button">GAUNTLET</button><button class="btn" type="button">BOSS HUNT</button><button class="btn" type="button">PRACTICE</button></div></div></div>
+        <button class="key back" type="button">&larr; BACK</button>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="key on tab" data-t="loadout" type="button"><span class="lamp"></span>LOADOUT</button>
+        <button class="key tab" data-t="perks" type="button"><span class="lamp"></span>PERKS</button>
+        <button class="key tab" data-t="diff" type="button"><span class="lamp"></span>DIFFICULTY</button>
+        <button class="key tab" data-t="mods" type="button"><span class="lamp"></span>MODIFIERS</button>
+      </div>
+      <div class="screen pane"><div class="in" id="pane" style="min-height:470px"></div></div>
+    </div>
+  </div></div>
+  <p class="note">The structure is the same in all three looks: header screen + Back key, party screen, tab keys with lamps, content screen. B keeps the current blue buttons inside the content area and uses CRT only where text is read; C swaps the phosphor and keys to amber and squares the key corners. On a real build the Back key, the tab keys and the Ready / Start keys would be the same physical-key control used on the saves screens.</p>
+</div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); }, $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+  var con = $('#con'), pane = $('#pane'), tab = 'loadout';
+  var st = { role: 'Tank', cls: 'Soldier', weapon: 'Scattergun', ability: 'Barrier', perk: 'Riot Gear', diff: 'Normal', mods: { 'Lucky': 1 }, folded: {}, ready: false };
+  var CLS = { Soldier: ['240 HP', 185, 278, 154], Elementalist: ['170 HP', 200, 330, 120], Summoner: ['190 HP', 175, 300, 100], Knight: ['300 HP', 160, 90, 180] };
+  var DIFF = { Easy: [.75, .8, .75, '+1.5%', .85, '0.5'], Normal: [1, 1, 1, '+3%', 1, '0.25'], Hard: [1.25, 1.2, 1.25, '+4%', 1.15, '0.15'], Nightmare: [1.5, 1.4, 1.5, '+5%', 1.3, '0'], Custom: [1, 1, 1, '+3%', 1, '0.25'] };
+  var MODS = { easy: [['Lucky', '3 extra upgrade rerolls each'], ['Head Start', 'Start at level 3 with a free legendary'], ['Practiced', 'Abilities gain mastery twice as fast'], ['Gold Rush', 'Kills give gold; shop before each boss']],
+    risky: [['Glass Cannon', 'Deal 50% more damage, take 50% more'], ['Bloodlust', 'Kills heal you; no orbs, no regen'], ['Second Wind', 'Get back up alone once per boss cycle'], ['Hunted', 'One player is chased and deals double']],
+    hard: [['Tough Crowd', 'Enemies and bosses +50% health'], ['Frenzy', 'Enemies shoot 30% faster'], ['Swift Foes', 'Enemies move 30% faster'], ['Famine', 'Enemies never drop health orbs'], ['Nightfall', 'Dark except your lantern'], ['Death Throes', 'Enemies burst into a ring of shots'], ['Solid Walls', 'No wrapping; walls stop bullets'], ['Tiny Arena', 'Walls close in after each boss'], ['Cluttered', 'Crates fill the arena into a maze'], ['Zombie Infection', 'Every wave is a green horde']] };
+  function opts(list, cur, key, cls) {
+    return '<div class="opts ' + (cls || '') + '">' + list.map(function (o) {
+      var lock = o === 'Locked';
+      return '<button class="opt' + (o === cur ? ' sel' : '') + (lock ? ' lock' : '') + '" type="button" ' + (lock ? '' : 'data-k="' + key + '" data-v="' + o + '"') + '>' + (lock ? '&#128274; Locked' : o) + '</button>';
+    }).join('') + '</div>';
+  }
+  function stat(n, v, max, show) { return '<div class="statrow"><span class="dim">' + n + '</span><div class="bar"><i style="width:' + Math.min(100, v / max * 100) + '%"></i></div><span style="text-align:right">' + show + '</span></div>'; }
+  var views = {
+    loadout: function () {
+      var c = CLS[st.cls] || CLS.Soldier;
+      return '<div class="two"><div><div class="prev"></div><h3 style="margin:10px 0 8px;font:inherit;font-size:30px;text-align:center">' + st.cls + ' ' + st.role + '</h3>' +
+        stat('HEALTH', 240, 300, c[0]) + stat('SPEED', c[1], 250, c[1]) + stat('RANGE', c[2], 400, c[2] + ' px') + stat('DAMAGE', c[3], 220, c[3] + ' / s') + '</div><div>' +
+        '<div class="sec"><div class="lab"><span>Role</span><span>Big HP pool. Enemies prefer to target you.</span></div>' + opts(['Tank', 'Healer', 'DPS', 'Locked'], st.role, 'role') + '</div>' +
+        '<div class="sec"><div class="lab"><span>Class</span></div>' + opts(['Soldier', 'Elementalist', 'Summoner', 'Knight', 'Ninja', 'Hemomancer', 'Locked', 'Locked'], st.cls, 'cls') + '</div>' +
+        '<div class="cols2"><div class="sec"><div class="lab"><span>Weapon</span></div>' + opts(['Scattergun', 'Flak Cannon', 'Riot Repeater', 'Locked'], st.weapon, 'weapon', 'c2') + '</div>' +
+        '<div class="sec"><div class="lab"><span>Ability</span></div>' + opts(['Barrier', 'Roar', 'Bulldoze', 'Locked'], st.ability, 'ability', 'c2') + '</div></div>' +
+        '<div class="screen detail" style="margin:6px 5px 0"><div class="in cols2"><div><div class="lab">Weapon</div><h3>' + st.weapon + '</h3><p>A short-range spread of 5 pellets. Point-blank does double damage and shoves the enemy back.</p><span class="pill">7 per hit</span><span class="pill">2 shots / s</span></div>' +
+        '<div><div class="lab">Ability</div><h3>' + st.ability + '</h3><p>A bubble that stops incoming enemy bullets. Bosses can break it. <span style="color:var(--gold)">&#9733; Mastered (Lv 5): bullets are reflected.</span></p><span class="pill">12 s cooldown</span></div></div></div></div></div>';
+    },
+    perks: function () {
+      var P = [['Riot Gear', 'THE WARDEN · win the Warden Hunt', 'A riot-shield plate blocks the next hit. 30 s to recharge.', 0], ['Contraband', 'THE WARDEN · win it on Hard or Nightmare', 'A treasure chest turns up the first wave after each boss.', 0], ['Perk (soon)', 'THE COLOSSUS', 'Locked placeholder', 1], ['Perk (soon)', 'THE DEVOURER', 'Locked placeholder', 1]];
+      return '<div class="sec"><div class="lab"><span>Your slots</span><span>1 to start · 2nd after a full run win · 3rd after five hunts</span></div><div class="slots"><div class="slot"><span class="lab">Slot 1</span><b>' + (st.perk || 'empty') + '</b><span class="dim" style="font-size:15px">' + (st.perk ? 'click to remove' : 'pick a perk') + '</span></div><div class="slot"><span class="lab">Slot 2</span><b class="dim">&#128274; locked</b></div><div class="slot"><span class="lab">Slot 3</span><b class="dim">&#128274; locked</b></div></div></div>' +
+        '<div class="sec"><div class="lab"><span>Perks</span><span>One per boss. Same boss shares a slot.</span></div><div class="perks">' + P.map(function (p) {
+          return '<button class="perk' + (p[0] === st.perk ? ' sel' : '') + (p[3] ? ' lock' : '') + '" type="button" ' + (p[3] ? '' : 'data-perk="' + p[0] + '"') + '><b>' + (p[3] ? '&#128274; ' : '') + p[0] + '</b><small>' + p[1] + '</small><small style="font-family:inherit;font-size:15px">' + p[2] + '</small></button>'; }).join('') + '</div></div>';
+    },
+    diff: function () {
+      var d = DIFF[st.diff];
+      var rows = [['Enemy health', d[0] + 'x', 1], ['Boss health (on top)', d[1] + 'x', 1], ['Enemy damage', d[2] + 'x', 1], ['Damage growth / wave', d[3], 0], ['Enemy count', d[4] + 'x', 1], ['Regeneration', d[5] + ' HP/s', 2]];
+      return '<div class="sec"><div class="lab"><span>Difficulty</span><span>Host picks · changing it takes back everyone\'s Ready</span></div>' + opts(['Easy', 'Normal', 'Hard', 'Nightmare', 'Custom'], st.diff, 'diff', 'c5') + '</div>' +
+        '<div class="cols2"><div><div class="lab" style="margin-bottom:8px">Sliders (Normal is the tick)</div>' + rows.slice(0, 5).map(function (r, i) {
+          var v = [d[0], d[1], d[2], parseFloat(d[3]) / 3, d[4]][i], pos = Math.min(95, v / 2 * 100);
+          var cls = i === 3 ? (v > 1 ? 'bad' : v < 1 ? 'good' : '') : (v > 1 ? 'bad' : v < 1 ? 'good' : '');
+          return '<div class="slide"><div><div>' + r[0] + '</div><div class="track" style="margin-top:6px"><u style="left:50%"></u><i style="left:' + pos + '%"></i></div></div><span class="' + cls + '" style="text-align:right">' + r[1] + '</span></div>'; }).join('') + '</div>' +
+        '<div><div class="lab" style="margin-bottom:8px">This difficulty vs the others</div><div class="tbl"><div class="h">NUMBER</div><div class="h">NORMAL</div><div class="h">' + st.diff.toUpperCase() + '</div>' +
+        rows.map(function (r) { return '<div>' + r[0] + '</div><div class="dim">' + (r[2] === 0 ? '+3%' : r[2] === 2 ? '0.25 HP/s' : '1x') + '</div><div>' + r[1] + '</div>'; }).join('') + '</div>' +
+        '<p class="dim" style="font-size:15px;margin:10px 0 0">Damage growth multiplies with enemy damage: Nightmare at wave 11 hits 2.25x as hard.</p></div></div>';
+    },
+    mods: function () {
+      var n = Object.keys(st.mods).length, T = [['easy', 'EASIER'], ['risky', 'RISKY'], ['hard', 'HARDER']];
+      return '<div class="lab" style="margin-bottom:10px"><span>' + n + ' of 17 on · host switches · click a heading to fold it</span></div>' + T.map(function (t) {
+        var list = MODS[t[0]], on = list.filter(function (m) { return st.mods[m[0]]; }).length, f = st.folded[t[0]];
+        return '<div class="tier t-' + t[0] + '"><h4 data-fold="' + t[0] + '"><span>' + (f ? '&#9656; ' : '&#9662; ') + t[1] + '</span><span class="dim">' + (f ? list.length + ' hidden, ' + on + ' on' : on + ' on') + '</span></h4>' +
+          (f ? '' : '<div class="mods">' + list.map(function (m) { return '<button class="mod' + (st.mods[m[0]] ? ' on' : '') + '" type="button" data-mod="' + m[0] + '"><span class="led"></span>' + m[0] + '<small>' + m[1] + '</small></button>'; }).join('') + '</div>') + '</div>'; }).join('');
+    }
+  };
+  function render() {
+    pane.innerHTML = views[tab]();
+    $$('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === tab); });
+    $('#seatClass').textContent = st.cls + ' ' + st.role;
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.look) { con.dataset.look = t.dataset.look; document.documentElement.dataset.look = t.dataset.look; $$('.seg').forEach(function (s) { s.setAttribute('aria-pressed', s === t); }); return; }
+    if (t.classList.contains('tab')) { tab = t.dataset.t; render(); return; }
+    if (t.dataset.k) { st[t.dataset.k] = t.dataset.v; render(); return; }
+    if (t.dataset.perk) { st.perk = st.perk === t.dataset.perk ? null : t.dataset.perk; render(); return; }
+    if (t.dataset.mod) { var k = t.dataset.mod; if (st.mods[k]) delete st.mods[k]; else st.mods[k] = 1; render(); return; }
+    if (t.parentNode.id === 'modes') { $$('#modes .btn').forEach(function (b) { b.classList.toggle('sel', b === t); }); return; }
+    if (t.id === 'ready') { st.ready = !st.ready; t.classList.toggle('on', st.ready); t.lastChild.textContent = st.ready ? 'Ready!' : 'Ready?'; }
+  });
+  document.addEventListener('click', function (e) { var h = e.target.closest('[data-fold]'); if (h) { st.folded[h.dataset.fold] = !st.folded[h.dataset.fold]; render(); } });
+  render();
+})();
+</script>
