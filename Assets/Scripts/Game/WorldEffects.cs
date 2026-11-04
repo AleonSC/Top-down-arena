@@ -126,6 +126,9 @@ namespace Arena
                 case FxKind.Tsunami:
                     DrawTsunamiFx(fx, t);  // ElementalistLooks.cs
                     break;
+                case FxKind.RiotBlock:
+                    DrawRiotBlockFx(fx);  // RiotGearLook.cs
+                    break;
                 case FxKind.Icicle:
                     DrawIcicleFx(fx, f);
                     break;

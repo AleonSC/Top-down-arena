@@ -368,6 +368,8 @@ namespace Arena
                 int slotIndex = i;
                 TileTransformed(r.center, look.Scale, look.Dx, () => DrawAbilityTile(me, slotIndex, r, look));
             }
+            if (Game.HasPerk(me, PerkId.RiotGear))
+                DrawRiotChip(new Rect(x0, y - 66f, 112f, 38f), me);  // RiotGearLook.cs
             DrawMasteryToasts(x0 + total / 2f, y - 64f);
         }
 

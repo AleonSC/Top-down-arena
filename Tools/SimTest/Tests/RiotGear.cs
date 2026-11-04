@@ -57,6 +57,15 @@ static partial class Program
 
         // A hit is blocked: no health lost, the recharge starts, a half second of grace.
         float before = me.Hp, taken = me.Run.DamageTaken;
+        V2 shotAt = me.Pos + new V2(40f, 0f);
+        g.Bullets[900001] = new Bullet { Id = 900001, Kind = 10, Pos = shotAt, Vel = new V2(-10f, 0f), Life = 3f, Radius = 4f, Dmg = 5f };
+        hit(me, 20f, "Test shot", false);
+        var blockFx = g.Effects.LastOrDefault(e => e.Kind == FxKind.RiotBlock);
+        Check(blockFx != null && blockFx.Pos2.DistanceTo(shotAt) < 1f && blockFx.Pos.DistanceTo(me.Pos) < 1f && Math.Abs(blockFx.Radius - (me.Def.BodyR + 11f)) < 0.01f, "a block sends the RiotBlock effect, pointing at the shot that was blocked");
+        Run(s, dt, 0.15f, null, calm);
+        Check(cg.Effects.Any(e => e.Kind == FxKind.RiotBlock), "and the friend's screen gets it");
+        me.RiotT = 0f; me.InvulnT = 0f;
+        before = me.Hp; taken = me.Run.DamageTaken;
         hit(me, 20f, "Test shot", false);
         Check(me.Hp == before && me.Run.DamageTaken == taken && !me.Downed, "the first hit is blocked: no health lost and no damage counted");
         Check(Math.Abs(me.RiotT - Perks.RiotRecharge) < 0.001f && me.InvulnT >= Perks.RiotGraceT - 0.001f && !Game.RiotReady(me), "a block starts the 30 s recharge and half a second of invulnerability");
