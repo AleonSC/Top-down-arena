@@ -55,7 +55,7 @@ namespace Arena
                 while (j < ink.Count && ink[j].Owner == owner && ink[j].Stroke == stroke && (j == i || ink[j - 1].Pos.DistanceTo(ink[j].Pos) < 40f))
                 {
                     var d = ink[j];
-                    inkRun.Add(new InkVert { P = d.Pos, Fade = Mathf.Clamp01(d.T / 0.8f) * (0.93f + 0.07f * Mathf.Sin(t * 7f + d.Pos.X * 0.05f)), Sealed = d.Pen != 0 });
+                    inkRun.Add(new InkVert { P = d.Pos, Fade = Mathf.Min(Mathf.Clamp01(d.T / 0.8f), 0.12f + 0.88f * Mathf.Pow(Mathf.Clamp01(d.T / Game.ChalkLife), 2f)) * (0.93f + 0.07f * Mathf.Sin(t * 7f + d.Pos.X * 0.05f)), Sealed = d.Pen != 0 });
                     j++;
                 }
                 V2 tip;
@@ -73,6 +73,24 @@ namespace Arena
                 DrawInkRun(inkRun, Game.ChalkDotR * 2f * (who != null ? Game.AreaMult(who) : 1f));
                 i = j;
             }
+            // Dust (look C, Docs/Mockups/chalk-fade.html): the older a dot, the more grains lift off it and drift. Stateless: each grain's
+            // phase comes from the dot's position and the clock, so there is nothing to keep in sync.
+            if (fxOn && !fxReduced)
+                foreach (var d in ink)
+                {
+                    float f = Mathf.Clamp01(d.T / Game.ChalkLife);
+                    if (f > 0.97f || d.T <= 0f)
+                        continue;
+                    float seed = d.Pos.X * 0.37f + d.Pos.Y * 1.13f;
+                    for (int g = 0; g < 2; g++)
+                    {
+                        if (Hash01(seed + g * 5.3f) > (1f - f) * 0.9f)
+                            continue;
+                        float age = Mathf.Repeat(t * 0.7f + Hash01(seed + g * 9.1f), 1f);
+                        V2 at = d.Pos + new V2(Hash01(seed + g) * 10f - 5f + age * (14f + Hash01(seed + 2f) * 18f), Hash01(seed + 4f + g) * 10f - 5f - age * (10f + Hash01(seed + 6f) * 18f));
+                        Circle(at, 1.3f, new Rgba(0.8f, 0.9f, 1f, 0.7f * (1f - age)), 6);
+                    }
+                }
             // The chalk itself, where a line is being drawn.
             foreach (var kv in game.InkTipDisp)
             {

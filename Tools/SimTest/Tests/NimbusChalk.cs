@@ -121,7 +121,7 @@ static partial class Program
         Check(client.Game.Ink.Count == g.Ink.Count, "the other player sees the same ink");
         play(1f, idle);  // let go
         Check(g.Ink.Count(d => d.Owner == 1) >= dots - 3, "letting go stops drawing");
-        play(4.5f, idle);
+        play(Game.ChalkLife - 1f + 0.5f, idle);  // (the newest dot has aged 1 s already)
         Check(g.Ink.Count == 0, "ink fades after " + (int)Game.ChalkLife + " s");
 
         // Ink cap: scribbling all over uses up the ink.
@@ -197,15 +197,25 @@ static partial class Program
         allyAt = new V2(300f, 100f);
         play(0.2f, idle);
 
-        // Bullets: one that crosses ink is destroyed, and wears it down.
+        // Bullets: plain ink lets them through; with Warding Ink one that crosses is destroyed, and wears the ink down.
         var line = lay(from + new V2(200f, -100f), from + new V2(200f, 100f));
         float life0 = line.Sum(d => d.T);
         var shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(120f, 0f), new V2(300f, 0f), 0f, 2f, 5f, 0, false, 0f });
         int shotId = shot.Id;
         play(0.6f, idle);
+        Check(g.Bullets.ContainsKey(shotId) && Math.Abs(life0 - 0.6f * line.Length - line.Sum(d => d.T)) < 0.01f, "plain ink lets enemy bullets through and isn't worn by them");
+        reset();
+        play(0.3f, idle);
+        me.Stats.ChalkWard = true;
+        line = lay(from + new V2(200f, -100f), from + new V2(200f, 100f));
+        life0 = line.Sum(d => d.T);
+        shot = (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(120f, 0f), new V2(300f, 0f), 0f, 2f, 5f, 0, false, 0f });
+        shotId = shot.Id;
+        play(0.6f, idle);
         float worn = life0 - 0.6f * line.Length - line.Sum(d => d.T);
-        Check(!g.Bullets.ContainsKey(shotId), "an enemy bullet crossing ink is destroyed");
+        Check(!g.Bullets.ContainsKey(shotId), "with Warding Ink an enemy bullet crossing ink is destroyed");
         Check(worn > Game.ChalkWear * 0.7f && worn < Game.ChalkWear * 2f, "and wears the ink down (" + worn.ToString("0.00") + " s)");
+        me.Stats.ChalkWard = false;
         reset();
         play(0.3f, idle);
 

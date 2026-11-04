@@ -22,12 +22,12 @@ namespace Arena
     }
 
     /// Spirit Chalk (Healer Summoner): hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals
-    /// allies standing on it and destroys enemy bullets that cross it (each wearing it down). Draw a loop round enemies and they
+    /// allies standing on it and (with the Warding Ink card) destroys enemy bullets that cross it, each wearing it down fast. Draw a loop round enemies and they
     /// are penned in until it fades (bosses aren't held). Clients see it through the snapshot (SyncInk). Looks: Game/ChalkLook.cs.
     public partial class Game
     {
-        public const float ChalkSpeed = 700f, ChalkStep = 10f, ChalkLife = 4f, ChalkInk = 600f, ChalkDotR = 11f;
-        public const float ChalkBurn = 26f, ChalkSlow = 0.3f, ChalkHeal = 10f, ChalkWear = 0.3f;
+        public const float ChalkSpeed = 700f, ChalkStep = 10f, ChalkLife = 10f, ChalkInk = 600f, ChalkDotR = 11f;
+        public const float ChalkBurn = 26f, ChalkSlow = 0.3f, ChalkHeal = 10f, ChalkWear = 1.5f;  // ink fades out over ChalkLife s; with Warding Ink each bullet it stops takes ChalkWear s off the dot it hit
         public const float ChalkErase = 0.3f;  // a dot with less life than this is fading out (erased, or about to expire) and no longer counts as ink down
         public const float ChalkSeal = 3.5f, ChalkCloseDist = 20f, ChalkMinLoopArea = 3600f;  // a loop closes within this of where it began; it holds this long; it must enclose at least about 60 x 60 px
         public const int ChalkMinLoopDots = 12;  // a loop is at least 120 px of line (so a scribble in place doesn't count)
@@ -284,10 +284,13 @@ namespace Arena
                 {
                     Player owner;
                     Players.TryGetValue(d.Owner, out owner);
+                    if (owner == null || !owner.Stats.ChalkWard)
+                        continue;  // plain ink lets bullets through; Warding Ink makes it a wall that wears away
                     if (b.Pos.DistanceTo(d.Pos) > ChalkDotR * InkWidth(owner) + b.Radius)
                         continue;
                     gone.Add(b.Id);
                     d.T -= ChalkWear;
+                    BroadcastFx(FxKind.Spark, d.Pos, new Rgba(0.8f, 0.9f, 1f), 12f, 0.25f, Sfx.None);  // a puff of dust where it hit
                     break;
                 }
             }

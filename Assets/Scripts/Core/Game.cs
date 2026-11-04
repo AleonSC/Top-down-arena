@@ -493,7 +493,7 @@ namespace Arena
                 return;
             p.Rerolls--;
             Recorder?.Rerolled(p);
-            p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level);
+            p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
         }
@@ -554,7 +554,7 @@ namespace Arena
             }
             else if (p.PrizePicks > 0)
             {
-                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken);  // a challenge room's prize (Challenges.cs)
+                p.Offer = Upgrades.PrizeOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Weapon.Id);  // a challenge room's prize (Challenges.cs)
                 p.OfferPrize = true;
             }
             else if (p.PendingMilestones > 0 && (p.Offer = Upgrades.MilestoneOffer(rng, p.Role, p.RoleAbility, p.Taken)) != null)
@@ -562,7 +562,7 @@ namespace Arena
             else if (p.PendingPicks > 0)
             {
                 p.PendingMilestones = 0;  // (only reached with the milestone pool used up)
-                p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level);
+                p.Offer = Upgrades.RollOffer(rng, p.Role, p.RoleAbility, p.Taken, p.Level, p.Weapon.Id);
             }
             else
                 p.Offer = null;
