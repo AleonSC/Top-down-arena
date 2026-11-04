@@ -864,6 +864,21 @@ each kind at a time:
 | 37 | **Void Rift card**: a slow violet vortex behind your portrait (the fill of your lobby party card, behind your name) |
 | 42 | **Gilded Foil card**: brushed gold with a sheen sweeping across (the fill of your lobby party card, behind your name) |
 | 55 | **Prism Shards card**: spectrum shards turning slowly and overlapping (the fill of your lobby party card, behind your name) |
+| 1 | **Wave emote**: a hand waves while you sway |
+| 1 | **Thumbs up emote**: a thumb pops up, you bob |
+| 3 | **GG emote** |
+| 7 | **Cheer emote**: you hop, with a burst of confetti |
+| 10 | **Heart emote**: small hearts floating up |
+| 12 | **Laugh emote**: you shake with it |
+| 15 | **Question emote** |
+| 17 | **Sleep emote**: Zs drifting up while you sink |
+| 21 | **Dance emote**: you sway to the beat, notes drifting off |
+| 25 | **Spin emote**: two turns inside a ring of light |
+| 31 | **Salute emote**: you snap upright |
+| 41 | **Fireworks emote**: three bursts in turn |
+| 52 | **Steam emote**: puffs of steam and a red bubble, you shake |
+
+**Emotes** are a short bubble over your head for 2.4 s (a gesture, a heart, GG...) that everyone sees, in the Hangout and in a match; several also move your character (a hop, a sway, a shake, two spins), the model only, never your hitbox, and not with Visual effects off. Every one your rank has is on the emote bar (hold T); nothing to equip. After one there is a 2 s pause in a match (0.75 s in the Hangout).
 
 Everyone in the match sees your trail, and everyone in the lobby sees your rank, frame and card background; the host clamps what
 players report, and only accepts a frame or trail your rank has. XP, what's equipped and the last six runs are kept in
