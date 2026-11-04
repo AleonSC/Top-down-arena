@@ -144,6 +144,17 @@ static partial class Program
         Console.WriteLine("  twin rifle: a small enemy 70 px away, aiming past it {0:0.0}; a big one 650 px away {1:0.0}", close, far);
         Check(close == 0f && far == 0f, "the Twin Rifle's wide barrels miss a small enemy up close unless you aim at it, and it reaches about 575 px");
 
+        // Extra barrels fill the same width instead of widening it, and a Barrage copy fires from a narrow cluster.
+        Func<int, float> Width = extraN =>
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); me.Pos = from; me.AimAt = from + new V2(400f, 0f);
+            volley.Invoke(g, new object[] { me, 0f, extraN });
+            return g.Bullets.Values.Where(b => b.Owner == 1).Max(b => b.Pos.Y) - g.Bullets.Values.Where(b => b.Owner == 1).Min(b => b.Pos.Y);
+        };
+        float w2 = Width(0), w4 = Width(2);
+        Console.WriteLine("  twin rifle: barrel width with 2 barrels {0:0.0}, with 4 {1:0.0}", w2, w4);
+        Check(Math.Abs(w4 - w2) < 1f, "extra Twin Rifle barrels fill the same width instead of widening it");
+
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BurstSmg);
         g.Enemies.Clear(); g.Bullets.Clear();
         me.Pos = from;

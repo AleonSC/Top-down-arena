@@ -16,7 +16,7 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 150f;
+        const float WhoCardW = 172f;
 
         void OpenWho()
         {
@@ -170,7 +170,7 @@ namespace Arena
             if (whoManage && live)
             {
                 float by = r.yMax - 34f;
-                if (Ui.Button(new Rect(r.x + 8f, by, 64f, 26f), "Rename", Ui.Neutral))
+                if (Ui.SmallButton(new Rect(r.x + 8f, by, 74f, 26f), "Rename", Ui.Neutral, 13))
                 {
                     whoEdit = p.Id;
                     whoName = p.Name;
@@ -179,7 +179,7 @@ namespace Arena
                 }
                 bool armed = whoArmed == p.Id;
                 GUI.enabled = whoList.Count > 1;
-                if (Ui.Button(new Rect(r.xMax - 72f, by, 64f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral))
+                if (Ui.SmallButton(new Rect(r.xMax - 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? Ui.Danger : Ui.Neutral, 13))
                 {
                     if (!armed)
                         whoArmed = p.Id;

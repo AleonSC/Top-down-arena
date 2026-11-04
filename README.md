@@ -150,7 +150,7 @@ your weapon. Per extra projectile:
 | Healer · Summoner | **Sprite Staff** | A firefly (7) that seeds the enemy it hits, then hops to the nearest enemy that isn't seeded yet (up to 2 hops within 300 px, so one shot can seed three), plus 2 healing sprites; killing a seeded enemy frees another sprite for 6 s (up to 4 more) | +1 Sprite |
 | | **Treant Rod** | A thorny root whips out from you along your aim (250 px, 15 damage) and snaps back, hitting everything on the line and healing allies it touches (10); plus a Treant that roots where it stands and blocks bullets; a root from you to it heals allies crossing it (8/s) and slows and stings enemies crossing it (50%, 6/s); it walks after you past 360 px | The Treant grows 30%: blocks more, hits harder, reaches farther |
 | | **Spirit Chalk** | Hold and drag to draw a line of spirit ink (the chalk follows your cursor at up to 700 px/s, within 450 px of you, and the line is drawn as one smooth curve for everyone, head and all; 600 px of line at a time: **draw more and the start of the line rubs out as you go**, so you never run dry; a dab also fades after 4 s). It burns enemies touching it (26 a second) and slows them 30%, heals allies standing on it (10 a second) and destroys enemy bullets that cross it (each wearing the ink down 0.3 s). **Close a loop** (the line meets itself, round at least about 60 x 60 px) and every enemy inside is **trapped** for 3.5 s: it can't cross the ring, and the ring glows gold. Bosses and mini-bosses can't be trapped. A hole shot through the ring (or the ring fading) lets them go | +20% ink: a longer line before the start rubs out |
-| DPS · Soldier | **Twin Rifle** | Twin streams (4 per barrel) from barrels 60 px apart, angled in to cross at your cursor's distance (120 px to full range, about 575 px); hits within 45 px of the crossing are crossfire, for double. Up close the streams are still apart, so they can pass either side of a small enemy: aim at the crossing. Your aim line marks it with an X | +1 barrel |
+| DPS · Soldier | **Twin Rifle** | Twin streams (4 per barrel) from barrels sharing a 60 px width (extra barrels fill it in, they don't widen it; Barrage's copies fire from a narrow 20 px cluster), angled in to cross at your cursor's distance (120 px to full range, about 575 px); hits within 45 px of the crossing are crossfire, for double. Up close the streams are still apart, so they can pass either side of a small enemy: aim at the crossing. Your aim line marks it with an X | +1 barrel |
 | | **Railgun** | Slow shots (45) that pierce 3; the path stays charged for 1 s behind the round, hurting anything in it (25 a second) | Throws 2 shrapnel shards sideways at every enemy it pierces |
 | | **Burst SMG** | Very fast spray (5) that spins up as you keep firing: over 2 s the spray tightens from 9° to 2° either side and damage climbs to +60%; it winds down in 0.6 s when you stop | +1 bullet per shot (half damage) and a wider spray |
 | DPS · Elementalist | **Fireball** | A big, slow fireball that rolls through every enemy in its path (22 each), setting them burning (8 a second for 3 s) | +1 fireball, fanned out |
@@ -1018,6 +1018,19 @@ ten boss themes there are eight extra moods (`Game/MusicLibrary.cs`): *Lo-fi Lou
 *Last Stand* (Epic). Controls: Prev / Play-Pause / Next, Shuffle, Repeat (all, or this one), a progress bar, and
 "Boss themes still play" (on by default: a boss fight swaps in its own theme, then your track returns). Wheel scrolls the
 list. Your pick, shuffle and repeat are saved. Tracks render in the background the first time (a few seconds).
+
+**Your own music in Unity:** drop audio files into `Assets/Resources/Music` and they appear in the music player as
+*Custom* tracks, no setup (for long songs set the clip's Load Type to Streaming). For more control make a **Music Pack**
+(Assets > Create > Arena > Music Pack, saved as `Assets/Resources/MusicPack`): assign a clip to replace the **menu**
+theme, the **wave battle** track or any **boss's** theme (with a volume each), and list **Tracks** with your own title
+and mood. Anything you don't fill in stays generated. Code: `Game/MusicPack.cs`, `LoadMusicPack` in `MusicPlayerUi.cs`.
+
+**Your own music from files (no Unity needed):** in the Music player click **Open folder** (the game's `music` folder inside its save data folder; it is
+made for you), drop in `.wav`, `.mp3` or `.ogg` files, and click **Rescan** (the tab also rescans when you open it). They
+join the list as green *Custom* tracks, named after the file (`my_song.mp3` shows as "my song"), and work with everything
+above: shuffle, repeat, play in menus and matches. Tracks are levelled to a similar loudness and loop. A file the game
+can't read shows "Couldn't read this file" and is skipped. WAVs (8 / 16 / 24 / 32-bit or float) are decoded by the game;
+mp3 and ogg by Unity (mp3 on Linux may not play).
 
 ## Playing with a friend
 

@@ -12,7 +12,7 @@ collisions: it is somewhere to stand while the party sorts out loadouts and read
   It faces the way it walks, and keeps its facing when it stops.
 - **Trail**: their equipped rank trail flows behind them as they walk (`TrailPiece`, shared with the match and the
   cosmetics window, so all six trails look the same everywhere).
-- **Frame and rank**: a name plate under the character with their rank badge, name, a lit rim in their frame's colour
+- **Frame and rank**: a name plate under the character with their rank badge, name, their full animated frame
   (a blue rim for you if you have none) and a green dot once they've clicked Ready.
 - The room works in every lobby mode (Gauntlet, Boss Hunt, Practice Range, continuing a saved run).
 

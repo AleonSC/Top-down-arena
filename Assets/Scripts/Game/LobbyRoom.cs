@@ -144,7 +144,7 @@ namespace Arena
             DrawPlayer(p, t, true);
         }
 
-        /// UI: the name plate under a character: rank badge, name, a lit rim in their frame's colour, and a green mark when ready.
+        /// UI: the name plate under a character: rank badge, name, their frame (animated, as on the party card), and a green mark when ready.
         void DrawAvatarTag(int id, Avatar av, Rect room, float t)
         {
             LobbyEntry e;
@@ -155,9 +155,14 @@ namespace Arena
             var tag = new Rect(room.x + av.Disp.X - w / 2f, room.y + av.Disp.Y + 40f, w, h);
             tag.x = Mathf.Clamp(tag.x, room.x + 4f, room.xMax - w - 4f);
             tag.y = Mathf.Min(tag.y, room.yMax - h - 4f);
-            Color rim = e.Frame > 0 ? RankLook.Tint(Rank.FrameColor(e.Frame)) : mine ? Ui.Accent : new Color(1f, 1f, 1f, 0.25f);
-            Ui.Pill(new Rect(tag.x - 2f, tag.y - 2f, tag.width + 4f, tag.height + 4f), new Color(rim.r, rim.g, rim.b, e.Frame > 0 ? 0.95f : 0.7f));
-            Ui.Pill(tag, new Color(0.04f, 0.06f, 0.12f, 0.94f));
+            if (e.Frame > 0)
+                DrawFrameCard(tag, e.Frame, t);  // their equipped frame, animated like on the party card (FrameLooks.cs)
+            else
+            {
+                Color rim = mine ? Ui.Accent : new Color(1f, 1f, 1f, 0.25f);
+                Ui.Pill(new Rect(tag.x - 2f, tag.y - 2f, tag.width + 4f, tag.height + 4f), new Color(rim.r, rim.g, rim.b, 0.7f));
+                Ui.Pill(tag, new Color(0.04f, 0.06f, 0.12f, 0.94f));
+            }
             RankLook.Draw(new Rect(tag.x + 3f, tag.y + 1f, 22f, 22f), e.Rank);
             Ui.Label(new Rect(tag.x + 28f, tag.y, tag.width - 40f, tag.height), e.Name, 12, mine ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
             if (e.Ready)

@@ -162,6 +162,7 @@ namespace Arena
             Port = port;
             MyId = 1;
             Lobby[1] = new LobbyEntry { Id = 1, Name = CleanName(name), Role = role, Kit = kit, Weapon = (byte)ClampWeapon(weapon), Ability = (byte)ClampAbility(ability) };
+            SyncOwnCosmetics();  // your rank, frame and trail show from the start (not only after the first lobby broadcast, e.g. pressing ready)
             Screen = AppScreen.Lobby;
             return true;
         }

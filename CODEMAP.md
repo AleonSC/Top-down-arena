@@ -117,7 +117,7 @@ front-end `partial class`. Detailed per-file notes: `HANDOFF.md` §2. Player-fac
 ## Audio (Game)
 - `SoundBank.cs`: every synthesised sound effect
 - `GameMusic.cs`, `MenuMusic.cs`: in-run and menu music
-- `MusicLibrary.cs`: every track the music player lists (extra mood recipes) and the `Jukebox` selection logic; `MusicPlayerUi.cs`: Settings > Audio > Music player
+- `MusicPack.cs`: the Inspector asset for your own clips (replace menu / battle / boss music, extra tracks); `CustomMusic.cs`: the music folder scan and WAV decoder for your own tracks; `MusicLibrary.cs`: every track the music player lists (extra mood recipes) and the `Jukebox` selection logic; `MusicPlayerUi.cs`: Settings > Audio > Music player
 - `PickSounds.cs`, `PauseGlitch.cs`: upgrade picker and pause-menu sounds
 
 ## Tools and docs (repo root)
