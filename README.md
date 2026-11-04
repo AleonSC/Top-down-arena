@@ -866,7 +866,7 @@ what it unlocked); and **Records > Rank** (your rank and XP, the reward ladder, 
 with the modifiers they used and the multiplier).
 
 **Your look** is the cosmetics window: click your name card on the main menu (a pencil next to your name there renames you). A side drawer shows your rank and a row
-each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder**; the open one shows a live preview of you
+each for **Frame**, **Trail**, **Background**, **Card background**, **Name effect**, **Aim line** and the **Reward ladder** (a box with your next reward and the XP to go, beside a vertical ladder of rank shields that opens at your rank); the open one shows a live preview of you
 (moving, with your trail, background and frame), a card with how others see you in the lobby, and a list with **Equip**
 for each reward you've earned (locked ones say the rank they need). Records > Rank has the same equip buttons. One of
 each kind at a time:
