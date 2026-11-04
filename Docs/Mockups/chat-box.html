@@ -1,0 +1,175 @@
+<title>Chat Box</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other mockups. A match screen (960 x 540, scaled to fit) with the chat box bottom right above the HUD.
+   Press Enter (or the button) to open it, type, Enter to send, Esc to close. It fades away after a few quiet seconds. Single dark look by choice. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --amber: #ffb547; --teal: #6fe3c4;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+h1 { font-family: var(--font-display); font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 span { color: var(--teal); }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 10px; }
+code { font: 500 13px var(--font-data); color: var(--soft); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; min-width: 0; }
+.holder { width: 100%; overflow: hidden; position: relative; background: #080b11; padding: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.label { font: 600 11px var(--font-display); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14281f; border-color: var(--teal); color: var(--fg); }
+input[type=range] { width: 160px; accent-color: var(--teal); }
+.notes { display: grid; gap: 8px; color: var(--soft); font-size: 15px; }
+.notes b { font-family: var(--font-display); color: var(--fg); }
+
+.screen { position: relative; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden; background: #080b11; }
+.screen > canvas { position: absolute; inset: 0; display: block; }
+
+/* ---- the chat box: right 16, sits above the HUD strip (HUD is ~62 px tall) ---- */
+.chat { position: absolute; right: 16px; bottom: 74px; width: 300px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; font-family: var(--font-body); pointer-events: none; }
+.log { display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; max-height: 150px; overflow: hidden; }
+.msg { font-size: 13px; line-height: 1.3; color: #eef3f7; opacity: 1; transition: opacity .6s ease, transform .2s ease; word-break: break-word; }
+.msg.old { opacity: 0; }
+.msg .n { font-family: var(--font-display); font-weight: 700; margin-right: 6px; }
+.msg.sys { color: #9fb0bd; font-style: italic; }
+.entry { display: none; align-items: center; gap: 8px; height: 30px; padding: 0 10px; font-size: 13px; color: #fff; }
+.entry .tag { font: 700 10px var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: var(--teal); }
+.entry input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #fff; font: 500 13px var(--font-body); padding: 0; }
+.entry input::placeholder { color: rgba(231,238,243,.4); }
+.entry .cnt { font: 500 10px var(--font-data); color: rgba(231,238,243,.45); }
+.chat.typing .entry { display: flex; }
+.chat.typing { pointer-events: auto; }
+.chat { opacity: 0; transform: translateY(6px); transition: opacity .35s ease, transform .35s ease; }
+.chat.show, .chat.typing { opacity: 1; transform: none; }
+
+/* A: glass log. No box until you type; text carries a shadow, the entry is a thin glass bar. */
+.chat.A .msg { text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,.8); }
+.chat.A.typing .log { background: linear-gradient(0deg, rgba(8,12,20,.55), rgba(8,12,20,0)); padding: 18px 8px 4px; border-radius: 8px; }
+.chat.A .entry { background: rgba(8,12,20,.6); border: 1px solid rgba(160,190,255,.35); border-radius: 8px; backdrop-filter: blur(3px); }
+
+/* B: panel. A field-manual card appears with a header strip; messages sit inside it. */
+.chat.B .log, .chat.B .entry { background: rgba(10,14,24,.88); border: 1px solid rgba(255,255,255,.14); }
+.chat.B .log { border-radius: 8px 8px 0 0; padding: 6px 10px; border-bottom: 0; position: relative; }
+.chat.B .entry { border-radius: 0 0 8px 8px; border-top-color: rgba(111,227,196,.5); }
+.chat.B:not(.typing) .entry { display: none; }
+.chat.B:not(.typing) .log { border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,.14); }
+.chat.B .msg { padding: 1px 0; }
+.chat.B .msg:nth-child(odd) { background: rgba(255,255,255,.03); margin: 0 -10px; padding: 1px 10px; }
+
+/* C: bubbles. Each line is its own small pill with a player-colour edge; they stack up and fade one by one. */
+.chat.C .log { gap: 5px; }
+.chat.C .msg { align-self: flex-end; max-width: 100%; background: rgba(10,14,24,.86); border: 1px solid rgba(255,255,255,.12); border-left: 3px solid var(--pc, #7fb3ff); border-radius: 8px; padding: 4px 9px; }
+.chat.C .entry { background: rgba(10,14,24,.92); border: 1px solid var(--teal); border-radius: 99px; padding: 0 14px; }
+</style>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Mockup &middot; HUD</div>
+  <h1>Chat <span>box</span></h1>
+  <p class="lead">A small text chat in the bottom right, just above the HUD. Press <code>Enter</code> and the box slides up with a text line; type, press <code>Enter</code> to send, <code>Esc</code> to cancel. When nobody has typed or sent anything for a few seconds it fades away by itself, and a new message from a teammate brings it back, only for a moment. Three looks below: pick one (or mix).</p>
+</header>
+
+<section class="stage" aria-label="Preview">
+  <div class="holder" id="holder"><div class="screen" id="screen">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div class="chat A" id="chat" aria-live="polite">
+      <div class="log" id="log"></div>
+      <label class="entry" id="entry"><span class="tag">All</span><input id="inp" maxlength="120" placeholder="Say something..." autocomplete="off" aria-label="Chat message"><span class="cnt" id="cnt">120</span></label>
+    </div>
+  </div></div>
+  <div class="bar">
+    <div class="group"><span class="label">Look</span>
+      <button data-look="A" aria-pressed="true">A &middot; Glass log</button>
+      <button data-look="B" aria-pressed="false">B &middot; Panel</button>
+      <button data-look="C" aria-pressed="false">C &middot; Bubbles</button></div>
+    <div class="group"><span class="label">Hide after</span><input id="idle" type="range" min="2" max="10" value="5" aria-label="Seconds of quiet before the chat hides"><span id="idlev" class="label" style="color:var(--soft)">5 s</span></div>
+    <div class="group"><button id="open">Open (Enter)</button><button id="bot">Teammate says something</button></div>
+  </div>
+</section>
+
+<section class="notes">
+  <p><b>Opening.</b> <code>Enter</code> opens the entry line and takes the keyboard: movement, abilities and the emote key are ignored while you type, so a typed <code>Q</code> doesn't fire your ability. <code>Enter</code> again sends and closes the line; <code>Esc</code> closes it without sending. Your character keeps being drawn and the fight keeps running, nothing pauses.</p>
+  <p><b>Auto-hide.</b> The box stays up while you type or someone speaks, then fades out after a few quiet seconds (5 s here; a setting could change it, or keep it always on). With it hidden, an incoming line pops it up for about 4 s so you don't miss it, then it fades without grabbing the keyboard. Older lines fade first, one by one, so a busy chat never fills the corner.</p>
+  <p><b>Where.</b> Right edge, 16 px in, its foot just above the HUD strip so it never covers the ability bar or your card. 300 px wide, at most about seven lines; the player's name in their own colour, system lines (joins, leaves, revives) in grey italics.</p>
+  <p><b>Wiring (if picked).</b> A <code>Msg.Chat</code> (player index and up to 120 characters, client to host, relayed to everyone) so a protocol bump; the host trims, rate-limits (about 1 line a second) and drops control characters. <code>Session</code> keeps the last few lines, drawn by a new <code>ChatBox.cs</code> next to <code>Hud.cs</code>. Solo play shows only system lines.</p>
+</section>
+</div>
+<script>
+"use strict";
+const TAU = Math.PI * 2;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const holder = document.getElementById("holder"), screen = document.getElementById("screen");
+const fit = () => { const s = Math.min(1, holder.clientWidth / 960); screen.style.transform = `translateX(${(holder.clientWidth - 960 * s) / 2}px) scale(${s})`; holder.style.height = (540 * s) + "px"; };
+addEventListener("resize", fit); fit();
+
+/* the match behind it */
+const pl = [ {x:300,y:270,c:"#6a9bff",n:"You"}, {x:560,y:210,c:"#5be0a0",n:"Moss"}, {x:690,y:330,c:"#e0a0ff",n:"Quill"} ];
+const tiles = [["Q","Barrier","#6a9bff"],["E","Mend","#5be0a0"],["⇧","Dash","#ffb547"],["␣","Slam","#ff7a7a"]];
+const gc = document.getElementById("game").getContext("2d");
+function hud(c){
+  const bx=960/2-4*34-4, by=540-62;
+  c.fillStyle="rgba(10,14,24,.85)"; c.beginPath(); c.roundRect(bx-12,by-8,4*68+24,66,12); c.fill();
+  tiles.forEach((tl,i)=>{ const x=bx+i*68; c.fillStyle="rgba(255,255,255,.07)"; c.strokeStyle=tl[2]; c.lineWidth=2; c.beginPath(); c.roundRect(x,by,60,50,8); c.fill(); c.stroke(); c.fillStyle=tl[2]; c.font="800 18px Oxanium, sans-serif"; c.textAlign="center"; c.textBaseline="middle"; c.fillText(tl[1][0],x+30,by+22); c.fillStyle="#e7eef3"; c.font="700 10px Oxanium, sans-serif"; c.fillText(tl[0],x+10,by+10); c.fillText(tl[1],x+30,by+41); });
+  c.fillStyle="rgba(10,14,24,.85)"; c.beginPath(); c.roundRect(20,540-52,240,34,10); c.fill(); c.fillStyle="#2f2f3a"; c.beginPath(); c.roundRect(30,540-42,220,14,7); c.fill(); c.fillStyle="#4fe07a"; c.beginPath(); c.roundRect(30,540-42,150,14,7); c.fill();
+  c.fillStyle="rgba(10,14,24,.85)"; c.beginPath(); c.roundRect(740,540-52,200,34,10); c.fill();
+  c.fillStyle="#e7eef3"; c.font="700 11px Oxanium, sans-serif"; c.textAlign="left"; c.fillText("WAVE 12",756,540-34); c.textAlign="right"; c.fillText("SCORE 48,210",924,540-34);
+}
+function frame(ms){
+  const now=ms/1000, c=gc;
+  const g=c.createLinearGradient(0,0,0,540); g.addColorStop(0,"#0f1626"); g.addColorStop(1,"#0a0e18"); c.fillStyle=g; c.fillRect(0,0,960,540);
+  c.strokeStyle="rgba(120,150,220,.07)"; c.lineWidth=1; for(let x=0;x<960;x+=48){ c.beginPath(); c.moveTo(x+.5,0); c.lineTo(x+.5,540); c.stroke(); } for(let y=0;y<540;y+=48){ c.beginPath(); c.moveTo(0,y+.5); c.lineTo(960,y+.5); c.stroke(); }
+  for(let i=0;i<6;i++){ const ex=140+hash(i)*680+Math.sin(now*.6+i)*30, ey=70+hash(i+5)*300+Math.cos(now*.5+i)*20; c.fillStyle="#d06a6a"; c.beginPath(); c.arc(ex,ey,12,0,TAU); c.fill(); c.strokeStyle="rgba(255,255,255,.4)"; c.lineWidth=1.5; c.stroke(); }
+  pl.forEach((p,i)=>{ const y=p.y+Math.sin(now*1.6+i)*1.5; c.fillStyle="rgba(0,0,0,.35)"; c.beginPath(); c.ellipse(p.x,y+19,16,5,0,0,TAU); c.fill(); c.fillStyle=p.c; c.beginPath(); c.arc(p.x,y,16,0,TAU); c.fill(); c.strokeStyle="#fff"; c.lineWidth=2.2; c.stroke(); c.fillStyle="rgba(255,255,255,.85)"; c.beginPath(); c.arc(p.x+5,y-2,4,0,TAU); c.fill(); c.fillRect(p.x+8,y-1,15,3); });
+  hud(c); requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* the chat */
+const chat = document.getElementById("chat"), log = document.getElementById("log"), inp = document.getElementById("inp"), cnt = document.getElementById("cnt");
+let idle = 5, hideT = 0, typing = false;
+const MAX = 7, FADE = 5;   /* lines kept; seconds before a single line fades while the box isn't open */
+const line = (who, text, sys) => {
+  const d = document.createElement("div"); d.className = "msg" + (sys ? " sys" : "");
+  if (!sys) { const n = document.createElement("span"); n.className = "n"; n.textContent = who.n; n.style.color = who.c; d.style.setProperty("--pc", who.c); d.appendChild(n); }
+  d.appendChild(document.createTextNode(text)); log.appendChild(d);
+  while (log.children.length > MAX) log.removeChild(log.firstChild);
+  d._t = setTimeout(() => { if (!typing) d.classList.add("old"); }, FADE * 1000);
+  wake(); return d;
+};
+function wake(){ chat.classList.add("show"); clearTimeout(hideT); if (!typing) hideT = setTimeout(() => { chat.classList.remove("show"); }, idle * 1000 - (idle > 3 ? 1000 : 0)); }
+function setTyping(v){
+  typing = v; chat.classList.toggle("typing", v);
+  if (v) { clearTimeout(hideT); [...log.children].forEach(m => m.classList.remove("old")); chat.classList.add("show"); inp.focus(); armIdle(); }
+  else { inp.blur(); inp.value = ""; cnt.textContent = 120; wake(); }
+}
+let typeT = 0;
+function armIdle(){ clearTimeout(typeT); typeT = setTimeout(() => { if (typing) setTyping(false); }, Math.max(idle, 6) * 1000 * 2); }   /* the line closes itself after a long pause, draft dropped */
+inp.addEventListener("input", () => { cnt.textContent = 120 - inp.value.length; armIdle(); });
+inp.addEventListener("keydown", e => {
+  if (e.key === "Enter") { const v = inp.value.trim(); if (v) line(pl[0], v); setTyping(false); e.preventDefault(); }
+  else if (e.key === "Escape") { setTyping(false); e.preventDefault(); }
+  e.stopPropagation();
+});
+addEventListener("keydown", e => { if (e.key === "Enter" && !typing && !e.target.matches("button,input")) { setTyping(true); e.preventDefault(); } });
+document.getElementById("open").onclick = () => setTyping(true);
+const talk = [ [1,"Healing the left side"], [2,"boss at 40%, push!"], [1,"need a revive on me"], [2,"nice dash"], [1,"cooldowns up in 5"], [2,"gg so far"], [1,"watch the archers"] ]; let ti = 0;
+const bot = () => { const [p, t] = talk[ti++ % talk.length]; line(pl[p], t); };
+document.getElementById("bot").onclick = bot;
+document.querySelectorAll("[data-look]").forEach(b => b.onclick = () => { chat.className = "chat " + b.dataset.look + (typing ? " typing" : "") + " show"; document.querySelectorAll("[data-look]").forEach(x => x.setAttribute("aria-pressed", x === b)); wake(); });
+const idleIn = document.getElementById("idle"); idleIn.oninput = () => { idle = +idleIn.value; document.getElementById("idlev").textContent = idle + " s"; wake(); };
+/* a little scripted chatter so the page isn't empty on load, then the box fades by itself */
+line(null, "Wave 12 started", true); setTimeout(bot, 600); setTimeout(bot, 2000);
+</script>

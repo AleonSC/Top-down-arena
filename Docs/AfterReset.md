@@ -6,6 +6,8 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
+- [ ] **In-run text chat box** (bottom right above the HUD, Enter to open, auto-hides). Mockup built, waiting for a look pick:
+      [`Mockups/chat-box.html`](Mockups/chat-box.html) (A Glass log, B Panel, C Bubbles). Needs a `Msg.Chat` and a protocol bump.
 - [x] **Defend the Crystal should use mostly melee enemies.** Done (Nov 2026): melee, a gun 15% of the time.
 - [x] **Revolver and Mender's Bow animations.** Built: look A for both (Revolver "Smoke & brass", Bow "Flex & snap"), Nov 2026
       (`Game/GunBowLooks.cs`). Mockup: [`Mockups/revolver-bow-animations.html`](Mockups/revolver-bow-animations.html)
