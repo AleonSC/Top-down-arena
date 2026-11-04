@@ -430,13 +430,19 @@ namespace Arena
             while (p.Xp >= Defs.XpToNext(p.Level))
             {
                 p.Xp -= Defs.XpToNext(p.Level);
-                p.Level++;
-                p.PendingPicks++;
-                if (p.Level % MilestoneEvery == 0 || p.Stats.MilestoneChance > 0f && rng.NextDouble() < p.Stats.MilestoneChance)
-                    p.PendingMilestones = Math.Min(255, p.PendingMilestones + 1);
-                if (p.Stats.ExtraPickChance > 0f && rng.NextDouble() < p.Stats.ExtraPickChance)
-                    p.PendingPicks++;
+                LevelUpPlayer(p);
             }
+        }
+
+        /// One level: a normal pick, plus a milestone pick every 10 levels (or by Milestone Compass luck) and Second Helping's extra pick.
+        void LevelUpPlayer(Player p)
+        {
+            p.Level++;
+            p.PendingPicks++;
+            if (p.Level % MilestoneEvery == 0 || p.Stats.MilestoneChance > 0f && rng.NextDouble() < p.Stats.MilestoneChance)
+                p.PendingMilestones = Math.Min(255, p.PendingMilestones + 1);
+            if (p.Stats.ExtraPickChance > 0f && rng.NextDouble() < p.Stats.ExtraPickChance)
+                p.PendingPicks++;
         }
 
         /// Called by the front end when the local player clicks an upgrade card.
