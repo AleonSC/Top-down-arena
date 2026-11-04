@@ -526,9 +526,9 @@ namespace Arena
                             }
                             break;
                         }
-                        if (blockable && p.AegisT > 0f && Enters(b, p.Pos, p.Def.BodyR + 24f))
+                        if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
                         {
-                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult });  // Arcane Aegis
+                            reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult });  // Aeroaegis
                             scratchIds.Add(b.Id);
                             p.AegisHp -= BlockerWear(b);
                             if (p.AegisHp <= 0f)

@@ -8,6 +8,19 @@ A running list of things to pick up next session. Tick off / delete as they're d
 - [x] **Pause menu: models show up before the rest of the menu.** Done (Nov 2026): models fade with their panel.
 
 ## Balance / design
+- [x] **Elementalist tank reworks: Aeroaegis, Frost Nova, Flame Wall.** Built (Nov 2026, protocol unchanged), picks B, A and B of
+      [`Mockups/aeroaegis.html`](Mockups/aeroaegis.html) (https://claude.ai/artifact/N3c3iaVGPCbmaTwdkmMbFT),
+      [`Mockups/frost-nova-rework.html`](Mockups/frost-nova-rework.html) (https://claude.ai/artifact/EmEnaEkh7bnKo6Y8twYRRS) and
+      [`Mockups/flame-wall-rework.html`](Mockups/flame-wall-rework.html) (https://claude.ai/artifact/F2KPGcHLYYcnByVSCiuFEL). The lobby preview
+      runs the real game, so it matches. Needs a try in Unity. Armory pages are now out of date for all three.
+      - **Aeroaegis** (was Arcane Aegis, `Core/Aegis.cs`, `Game/AeroaegisLook.cs`): the vortex (56 px) goes to the player your cursor is nearest
+        (you if no one is closer; downed allies skipped). Enemies are pressed out to its rim and slid round it. I kept the bullet reflect and its
+        mastery (4.5 s, double damage), now at the vortex's radius. `AbilityId.ArcaneAegis` is unchanged. Say if bullets should pass instead.
+      - **Frost Nova** (`Game/FrostNovaLook.cs`): its Ring effect now lasts 3.3 s so the frosted ground stays; the old ring draws with effects off.
+        Left out: the mockup's 0.35 s wind-up (the cast is instant), the ice bursting into shards when it thaws, and a freeze ring that tracks
+        other freezes (the ring counts 3 s from when the enemy is first seen frozen).
+      - **Flame Wall** (`Game/FlameWallLook.cs`): magma ring; the mockup's fireball arc from the staff and spark bursts on blocked shots are left out
+        (the cast is instant; blocked shots flare the rock just before they hit).
 - [x] **Ping system.** Built (Nov 2026, protocol 145; `Msg.PingMark`, since `Msg.Ping` was already the latency check). Mockup:
       [`Mockups/ping-system.html`](Mockups/ping-system.html) (https://claude.ai/artifact/UHdFiTLxtxuzmZLQZQbH3Z). I picked the wheel (tap = last pick, hold = wheel),
       the player's slot colour, and a separate key (middle mouse, rebindable). The arena is one fixed screen, so the mockup's off-screen arrows and

@@ -42,7 +42,7 @@ namespace Arena
         }
 
         /// Ice Shards (WeaponId.ArcaneMissiles, Docs/Mockups/ice-shards.html look A): frost blue, with a pale and a deep half.
-        /// Defs.BulletColor(ArcaneShot) stays violet for the other arcane shots (Arcane Aegis reflections and rings).
+        /// Defs.BulletColor(ArcaneShot) stays violet for the other arcane shots (Aeroaegis reflections and rings).
         static readonly Rgba IceCol = new Rgba(0.56f, 0.89f, 1f), IceLight = new Rgba(0.94f, 0.99f, 1f), IceDark = new Rgba(0.29f, 0.64f, 0.88f);
 
         /// A shot's colour: Ice Shards' frost blue, or the kind's own.

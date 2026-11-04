@@ -70,6 +70,11 @@ namespace Arena
                     return;
                 case ZoneKind.FlameWall:  // a ring of flickering flames; lower once it's done blocking
                 {
+                    if (fxOn)
+                    {
+                        DrawMagmaWall(z, t);  // FlameWallLook.cs
+                        break;
+                    }
                     float wall = z.GuardFrac > 0f ? 1f : 0.45f;
                     Circle(z.Pos, z.Radius, c.WithAlpha(0.12f), 40);
                     for (int k = 0; k < 18; k++)
@@ -407,7 +412,12 @@ namespace Arena
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen)
-                DrawIceBlock(e, pos, r, t);
+            {
+                if (fxOn)
+                    DrawIceBlockFacets(e, pos, r, t);  // FrostNovaLook.cs
+                else
+                    DrawIceBlock(e, pos, r, t);
+            }
             DrawEnemyDetails(e, pos, r, col, t);
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.

@@ -61,7 +61,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ArcaneAegis, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0,
-                Name = "Arcane Aegis", Cooldown = 11f, Desc = "For 3 s, enemy bullets that touch you are reflected back as your own.",
+                Name = "Aeroaegis", Cooldown = 11f, Desc = "For 3 s, a wind vortex wraps the player your cursor is nearest: enemies can't get in, and bullets that touch it are reflected back as your own.",
                 Capstone = "Lasts 4.5 s and reflects bullets for double damage.",
                 Bot = b => b.Danger,
             },
@@ -231,6 +231,8 @@ namespace Arena
             },
         };
 
+        public const float FrostNovaFxTime = 3.3f;
+
         void KitAbility(Player p, AbilityId id, V2 target)
         {
             var s = p.Stats;
@@ -240,12 +242,16 @@ namespace Arena
             switch (id)
             {
                 // Mage
-                case AbilityId.ArcaneAegis:
-                    p.AegisT = cap ? 4.5f : 3f;
-                    p.AegisHp = AegisCapacity * pw;
-                    p.AegisReflectMult = pw * (cap ? 2f : 1f);
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.ArcaneShot), 50f, 0.4f, Sfx.Ability);
+                case AbilityId.ArcaneAegis:  // Aeroaegis (Aegis.cs): the vortex goes to whoever your cursor is nearest
+                {
+                    var ward = AegisTarget(p, target);
+                    ward.AegisT = cap ? 4.5f : 3f;
+                    ward.AegisHp = AegisCapacity * pw;
+                    ward.AegisReflectMult = pw * (cap ? 2f : 1f);
+                    KeepOutOfAegis(0f);  // enemies already inside are put out at the rim
+                    BroadcastFx(FxKind.Ring, ward.Pos, new Rgba(0.84f, 1f, 0.97f), AegisRadius + 70f, 0.5f, Sfx.Ability);
                     break;
+                }
                 case AbilityId.FrostNova:
                     foreach (var e in Enemies.Values)
                     {
@@ -257,7 +263,7 @@ namespace Arena
                     }
                     if (cap)
                         EraseEnemyBullets(p.Pos, 220f);
-                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 220f, 0.5f, Sfx.Freeze);
+                    BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.FrostShot), 220f, FrostNovaFxTime, Sfx.Freeze);  // lasts as long as the freeze: the frost stays on the ground (Game/FrostNovaLook.cs)
                     break;
                 case AbilityId.FlameWall:
                     AddZone(ZoneKind.FlameWall, p, target, 90f, 5f).ExtraSlow = cap ? 0.4f : 0f;
