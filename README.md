@@ -398,9 +398,11 @@ squad as often as a melee enemy used to come). Paths with their own mix keep it.
 
 | Wave | Melee enemy | What it does |
 |---|---|---|
-| 1 | Swarmer | Small and fast, weaves toward you, comes in pairs |
+| 1 | Swarmer | Small and fast, with a long thin spike on each face. Zig-zags toward you (swinging 40 to 65 degrees off line, flipping side every 0.2 to 0.45 s, straightening as it gets close), comes in pairs |
 | 3 | **Brute** | Slow and tough; hits hard (24) when it reaches you |
 | 5 | **Lunger** | Circles in close, flashes a pink line, then leaps along it. Step aside |
+| 5 | **Buzzsaw** | A ring of spinning spikes. Fast (170) and it steers with momentum, so it swoops and overshoots. Each touch is only 4, but they land about eight times a second |
+| 5 | **Spike Block** | A square with a big spike on each face. Rocks from side to side as it closes in; within about 140 px it stops, shakes and shows a red line (0.55 s, the line is locked), then lunges along it for 35. It rests 0.8 s afterward: shoot it then |
 
 | Wave | Shooter | What it does |
 |---|---|---|
